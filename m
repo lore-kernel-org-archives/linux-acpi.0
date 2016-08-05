@@ -1,188 +1,135 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 00/30] ACPICA: 20160629 Release
-Date: Fri, 5 Aug 2016 00:42:07 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0A44D@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1470299677.git.lv.zheng@intel.com>
- <13c8b6e0-c9a1-68a0-ebff-942136faba25@redhat.com>
+Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
+Date: Fri, 5 Aug 2016 01:06:57 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0A4BE@SHSMSX101.ccr.corp.intel.com>
+References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
+ <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
+ <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
+ <20160613100707.GA2365@nest>
+ <1AE640813FDE7649BE1B193DEA596E883BBF7E94@SHSMSX101.ccr.corp.intel.com>
+ <20160624213235.GA8304@nest>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:38626 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:49470 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754612AbcHEAnF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Aug 2016 20:43:05 -0400
-In-Reply-To: <13c8b6e0-c9a1-68a0-ebff-942136faba25@redhat.com>
+	id S965472AbcHEBH0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Aug 2016 21:07:26 -0400
+In-Reply-To: <20160624213235.GA8304@nest>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "ahs3@redhat.com" <ahs3@redhat.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
-
-> From: Al Stone [mailto:ahs3@redhat.com]
-> Subject: Re: [PATCH 00/30] ACPICA: 20160629 Release
-> 
-> On 08/04/2016 02:36 AM, Lv Zheng wrote:
-> > The 20160629 ACPICA kernel-resident subsystem updates are linuxized
-> based
-> > on the linux-pm/linux-next branch.
-> >
-> > The patchset has passed the following build/boot tests.
-> > Build tests are performed as follows:
-> > 1. i386 + allyes
-> > 2. i386 + allno
-> > 3. i386 + default + ACPI_DEBUGGER=y
-> > 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> > 5. i386 + default + ACPI_DEBUG=n + ACPI=y
-> > 6. i386 + default + ACPI=n
-> > 7. x86_64 + allyes
-> > 8. x86_64 + allno
-> > 9. x86_64 + default + ACPI_DEBUGGER=y
-> > 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> > 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
-> > 12.x86_64 + default + ACPI=n
-> > Boot tests are performed as follows:
-> > 1. i386 + default + ACPI_DEBUGGER=y
-> > 2. x86_64 + default + ACPI_DEBUGGER=y
-> > Where:
-> > 1. i386: machine named as "Dell Inspiron Mini 1010"
-> > 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> > 3. default: kernel configuration with following items enabled:
-> >    All hardware drivers related to the machines of i386/x86_64
-> >    All "drivers/acpi" configurations
-> >    All "drivers/platform" drivers
-> >    All other drivers that link the APIs provided by ACPICA subsystem
-> >
-> > The divergences checking result:
-> > Before applying (20160422 Release):
-> >   494 lines
-> > After applying (20160629 Release):
-> >   508 lines
-> >
-> > Bob Moore (8):
-> >   ACPICA: Interpreter: Remove temporary code for External() opcode
-> >   ACPICA: Debugger: Extend some max line lengths
-> >   ACPICA: Disassembler: Add option to emit embedded External
-> >     operators/opcodes
-> >   ACPICA: Simplify configuration for "Max Loops" system parameter
-> >   ACPICA: iASL/Disassembler: Add a check for missing filename
-> >   ACPICA: Use os_allocate_zeroed
-> >   ACPICA: FADT support cleanup
-> >   ACPICA: Update version to 20160629
-> >
-> > Jung-uk Kim (2):
-> >   ACPICA: Fix deconstification warnings (-Wcast-qual) with function
-> >     traces.
-> >   ACPICA: Fix deconstification warnings (-Wcast-qual) with
-> >     acpi_ns_root_initialize().
-> >
-> > Lv Zheng (20):
-> >   ACPICA: Utilities: Introduce facility to allow Linux to set correct
-> >     logging levels
-> >   ACPICA: Divergence: Port declarators back to ACPICA
-> >   ACPICA: Events: Introduce acpi_mask_gpe() to implement GPE masking
-> >     mechanism
-> >   ACPI / sysfs: Update /sys/firmware/acpi/interrupts/gpexx using new
-> >     GPE masking mechanism
-> >   ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
-> >   ACPICA: Debugger: Fix wrong inclusions in dbfileio.c
-> >   ACPICA: OSL: Add correct acpi_gbl_debug_timeout export to allow
-> >     acpiexec to link
-> >   ACPICA: acpidump: Fix a duplicate variable definition
-> >   ACPICA: Applications: Enable USE_NATIVE_ALLOCATE_ZEROED
-> environment
-> >     for all applications
-> >   ACPICA: Clib: Fix build issues when ACPI_USE_STANDARD_HEADERS is
-> not
-> >     defined by converting size_t to acpi_size
-> >   ACPICA: Clib: Cleanup va_arg related code
-> >   ACPICA: Clib: Fix wrong mini C library usage
-> >   ACPICA: Clib/EFI: Fix wrong order of standard integer types/IO
-> >     handles
-> >   ACPICA: MSVC9: Fix <sys/stat.h> inclusion order issue
-> >   ACPICA: Clib: Add -nostdinc support for EFI layer
-> >   ACPICA: Clib: Eliminate acpi_os_XXXFile()/acpi_log_error and link
-> >     clibrary fxxx()/errno/perror() instead
-> >   ACPICA: Applications: Fix a potential issue that help messages may be
-> >     dumped to acpi_gbl_debug_file
-> >   ACPICA: EFI: Port acpidump to EDK2 environment
-> >   ACPICA: OSL: Cleanup the inclusion order of the compiler-specific
-> >     headers
-> >   ACPICA: OSL: Fix a regression that old GCC requires a workaround for
-> >     strchr()
-> >
-> >  Documentation/kernel-parameters.txt                |   10 +
-> >  drivers/acpi/acpica/acapps.h                       |   10 +-
-> >  drivers/acpi/acpica/acevents.h                     |    3 +
-> >  drivers/acpi/acpica/acglobal.h                     |    2 +
-> >  drivers/acpi/acpica/aclocal.h                      |    2 +
-> >  drivers/acpi/acpica/actables.h                     |    3 +-
-> >  drivers/acpi/acpica/acutils.h                      |   36 ++--
-> >  drivers/acpi/acpica/dbfileio.c                     |   20 +-
-> >  drivers/acpi/acpica/dbobject.c                     |    4 +-
-> >  drivers/acpi/acpica/dsutils.c                      |   17 +-
-> >  drivers/acpi/acpica/evgpe.c                        |   57 +++++
-> >  drivers/acpi/acpica/evxfgpe.c                      |   43 ++++
-> >  drivers/acpi/acpica/hwgpe.c                        |   23 ++-
-> >  drivers/acpi/acpica/nsaccess.c                     |    6 +-
-> >  drivers/acpi/acpica/nsdump.c                       |    2 +-
-> >  drivers/acpi/acpica/tbfadt.c                       |   10 +-
-> >  drivers/acpi/acpica/tbutils.c                      |    3 +-
-> >  drivers/acpi/acpica/tbxface.c                      |    4 +-
-> >  drivers/acpi/acpica/tbxfload.c                     |    4 +-
-> >  drivers/acpi/acpica/tbxfroot.c                     |    5 +-
-> >  drivers/acpi/acpica/utbuffer.c                     |   30 ++-
-> >  drivers/acpi/acpica/utdebug.c                      |   61 +++---
-> >  drivers/acpi/acpica/utdecode.c                     |    2 +-
-> >  drivers/acpi/acpica/utinit.c                       |    2 +-
-> >  drivers/acpi/acpica/utpredef.c                     |    2 -
-> >  drivers/acpi/acpica/utprint.c                      |  105 ++++++++--
-> >  drivers/acpi/acpica/uttrack.c                      |    4 +-
-> >  drivers/acpi/acpica/utxface.c                      |    2 +-
-> >  drivers/acpi/acpica/utxfinit.c                     |    6 +-
-> >  drivers/acpi/internal.h                            |    1 +
-> >  drivers/acpi/scan.c                                |    1 +
-> >  drivers/acpi/sleep.c                               |    2 +-
-> >  drivers/acpi/sysfs.c                               |   89 +++++++-
-> >  include/acpi/acconfig.h                            |    4 +
-> >  include/acpi/acoutput.h                            |    6 +-
-> >  include/acpi/acpiosxf.h                            |   43 +---
-> >  include/acpi/acpixf.h                              |   37 ++--
-> >  include/acpi/actbl.h                               |  164 ++++++++-------
-> >  include/acpi/actypes.h                             |   48 ++---
-> >  include/acpi/platform/acenv.h                      |   90 +++-----
-> >  include/acpi/platform/acenvex.h                    |   21 +-
-> >  include/acpi/platform/acgcc.h                      |   17 +-
-> >  include/acpi/platform/acgccex.h                    |   58 ++++++
-> >  include/acpi/platform/aclinux.h                    |   22 +-
-> >  include/acpi/platform/aclinuxex.h                  |    2 +-
-> >  tools/power/acpi/common/cmfsize.c                  |   13 +-
-> >  tools/power/acpi/common/getopt.c                   |    4 +-
-> >  .../acpi/os_specific/service_layers/oslibcfs.c     |  217 --------------------
-> >  .../acpi/os_specific/service_layers/osunixxf.c     |    3 -
-> >  tools/power/acpi/tools/acpidump/Makefile           |    1 -
-> >  tools/power/acpi/tools/acpidump/acpidump.h         |   12 +-
-> >  tools/power/acpi/tools/acpidump/apdump.c           |   71 +++----
-> >  tools/power/acpi/tools/acpidump/apfiles.c          |   56 ++---
-> >  tools/power/acpi/tools/acpidump/apmain.c           |   33 +--
-> >  54 files changed, 796 insertions(+), 697 deletions(-)
-> >  create mode 100644 include/acpi/platform/acgccex.h
-> >  delete mode 100644
-> tools/power/acpi/os_specific/service_layers/oslibcfs.c
-> >
-> 
-> I'm very confused.  I don't see a 20160629 release on the ACPICA .org
-> download site.  There is a 20160729, though; is this just a typo?  Patch
-> 30/30 indicates it is...
-[Lv Zheng] 
-I couldn't see 20160729 on acpica.org.
-This is the original commit:
-https://github.com/acpica/acpica/commit/1e997ab9a
-
-I just followed the rule and generated the ACPICA release according to the indicator in the last commit.
-I'm not sure if this is a typo or just a delayed release.
-
-Ciao,
-Lv
+SGksIEFuZHJleQ0KDQo+IEZyb206IEFuZHJleSBTa3ZvcnRzb3YgW21haWx0bzphbmRyZWouc2t2
+b3J0em92QGdtYWlsLmNvbV0NCj4gU3ViamVjdDogUmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRv
+IFJBTSB3aXRoIHY0LjctcmMxDQo+IA0KPiBPbiAyNCBKdW4sIFpoZW5nLCBMdiB3cm90ZToNCj4g
+PiBIaSwNCj4gPg0KPiA+ID4gRnJvbTogQW5kcmV5IFNrdm9ydHNvdiBbbWFpbHRvOmFuZHJlai5z
+a3ZvcnR6b3ZAZ21haWwuY29tXQ0KPiA+ID4gU3ViamVjdDogUmU6IGFjcGk6IGJyb2tlbiBzdXNw
+ZW5kIHRvIFJBTSB3aXRoIHY0LjctcmMxDQo+ID4gPg0KPiA+ID4gSGkgTHYsDQo+ID4gPg0KPiA+
+ID4gT24gMTMgSnVuLCBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPiA+ID4gRnJvbTogbGludXgtYWNw
+aS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiA+ID4gPiA+IG93
+bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4g
+PiA+ID4gU3ViamVjdDogUmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRvIFJBTSB3aXRoIHY0Ljct
+cmMxDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBPbiBTYXR1cmRheSwgSnVuZSAxMSwgMjAxNiAwMTo0
+OToyMiBQTSBBbmRyZXkgU2t2b3J0c292IHdyb3RlOg0KPiA+ID4gPiA+ID4gT24gMTAgSnVuLCBS
+YWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiA+ID4gPiA+ID4gT24gRnJpZGF5LCBKdW5lIDEw
+LCAyMDE2IDExOjMyOjEwIFBNIEFuZHJleSBTa3ZvcnRzb3Ygd3JvdGU6DQo+ID4gPiA+ID4gPiA+
+ID4gSGksDQo+ID4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiBPbiBteSBsYXB0b3AgKERF
+TEwgVm9zdHJvIDE1MDApIGluIHY0LjctcmMxIGlzIGJyb2tlbg0KPiBzdXNwZW5kDQo+ID4gPiB0
+byBSQU0uDQo+ID4gPiA+ID4gPiA+ID4gTGFwdG9wIGRvZXNuJ3QgZmluaXNoIHN1c3BlbmQgdG8g
+UkFNIHByb2Nlc3MgKGRpc2tzIGFyZSBvZmYsDQo+IGJ1dA0KPiA+ID4gPiA+ID4gPiA+IFdpRmkg
+YW5kIFBvd2VyIExFRHMgYXJlIHN0aWxsIG9uKS4gVGhlIG9ubHkgd2F5IHRvIGdldCBpdCBvdXQg
+b2YNCj4gPiA+ID4gPiA+ID4gPiB0aGlzIHN0YXRlLCBpcyB0byB0dXJuIHRoZSBwb3dlciBvZmYu
+DQo+ID4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiBJJ3ZlIGJpc2VjdGVkIHRoZSBpc3N1
+ZSB0byBjb21taXQgNjZiMWVkNWFhOGRkMjUNCj4gPiA+ID4gPiA+ID4gPiBbQUNQSUNBOiBBQ1BJ
+IDIuMCwgSGFyZHdhcmU6IEFkZCBhY2Nlc3Nfd2lkdGgvYml0X29mZnNldA0KPiA+ID4gc3VwcG9y
+dA0KPiA+ID4gPiA+ID4gPiA+IGZvciBhY3BpX2h3X3dyaXRlKCldLg0KPiA+ID4gPiA+ID4gPiA+
+DQo+ID4gPiA+ID4gPiA+ID4gSWYgSSByZXZlcnQgdGhpcyBjb21taXQgaW4gdjQuNy1yYzEgKG9y
+IHY0LjctcmMyKSwgc3VzcGVuZCB0bw0KPiBSQU0NCj4gPiA+ID4gPiA+ID4gPiBpcyB3b3JraW5n
+IGFnYWluLg0KPiA+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gVGhlIGNhdXNlIG9mIHRo
+aXMgcHJvYmxlbSBpcyB0aGF0IGFmdGVyIHRoaXMgY29tbWl0IHdyaXRlIHRvDQo+ID4gPiBQTTFB
+DQo+ID4gPiA+ID4gPiA+ID4gQ29udHJvbCBCbG9jayAoMTYtYml0IHJlZ2lzdGVyKSBpcyBkb25l
+IHVzaW5nIHR3byA4LWJpdCB3cml0ZXMuDQo+ID4gPiA+ID4gPiA+ID4gSWYgSSBmb3JjZSB0aGlz
+IHdyaXRlIHRvIGJlIDE2LWJpdCwgdGhlbiBhbGwgaXMgd29ya2luZyBhcyBiZWZvcmUuDQo+ID4g
+PiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiBUbyBnZXQgaXQgd29ya2luZyAnYWNjZXNzX3dp
+ZHRoJyBmb3IgUE0xQSBDb250cm9sIEJsb2NrDQo+IG5lZWRzIHRvDQo+ID4gPiA+ID4gPiA+ID4g
+YmUgMiAoMTYtYml0KSwgYnV0IGl0J3MgMSAoOC1iaXQpLg0KPiA+ID4gPiBbTHYgWmhlbmddDQo+
+ID4gPiA+IENvdWxkIHlvdSBzZW5kIG1lIHRoZSBhY3BpZHVtcCBvZiB0aGUgbWFjaGluZT8NCj4g
+PiA+IEhlcmUgaXQgaXMNCj4gPiA+DQo+IGh0dHBzOi8vZGwuZHJvcGJveHVzZXJjb250ZW50LmNv
+bS91LzI0MDIzNjI2L2RlbGxfdm9zdHJvXzE1MDAuYWNwaWQNCj4gPiA+IHVtcC5iaW4NCj4gPiBb
+THYgWmhlbmddDQo+ID4gSSd2ZSBiZWVuIHRyeWluZyB0byBkb3dubG9hZCBpdCB0aGVzZSBkYXlz
+IGJ1dCBhbGwgZmFpbGVkLg0KPiA+IENvdWxkIHlvdSBzZW5kIGFuIG9mZi1saXN0IGVtYWlsIHRv
+IG1lIHdpdGggdGhpcyBhdHRhY2hlZD8NCj4gU3RyYW5nZS4gSSd2ZSBjaGVjayBub3cuIFRoZSBs
+aW5rIGFib3ZlIGlzIHdvcmtpbmcsIGJ1dCBJIHNlZSB0aGF0DQo+IHBhcnQgb2YgdGhlIGxpbmsg
+YWJvdmUgaXMgbW92ZWQgdG8gdGhlIG5leHQgbGluZS4NCj4gQW55d2F5IEkgcmVzZW5kIHlvdSBh
+bGwgZmlsZXMgb2ZmLWxpc3QuDQo+IA0KPiANCj4gPiA+ID4gPiA+ID4gPiBUaGUgcm9vdCBvZiB0
+aGUgcHJvYmxlbSBzZWVtcyB0byBiZSBub3QgdGhlIGNvbW1pdA0KPiA+ID4gPiA+IDY2YjFlZDVh
+YThkZDI1DQo+ID4gPiA+ID4gPiA+ID4gaXRzZWxmLCBidXQgdGhlIEFDUEkgdGFibGVzIGluIEJJ
+T1Mgd2hlcmUgd3JvbmcgYWNjZXNzX3dpZHRoDQo+ID4gPiA+ID4gPiA+ID4gY29tZXMgZnJvbS4g
+SSBmaXhlZCBwcm9ibGVtIGluIEZBQ1AgIHRhYmxlLCBwdXQgaXQgaW4gaW5pdHJkIHRvDQo+ID4g
+PiA+ID4gPiA+ID4gb3ZlcnJpZGUgRkFDUCB0YWJsZSBmcm9tIEJJT1MuIFRoaXMgZml4ZWQgdGhl
+IGlzc3VlLCBzdXNwZW5kDQo+IHRvDQo+ID4gPiA+ID4gPiA+ID4gUkFNIGlzIHdvcmtpbmcgbm93
+IGFnYWluLg0KPiA+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gQnV0IEknbSBub3Qgc3Vy
+ZSB3aGV0aGVyIGlzIHRoaXMgcHJvcGVyIGZpeCBmb3IgdGhpcyBwcm9ibGVtLg0KPiA+ID4gPiA+
+ID4gPiA+IElzIHRoZXJlIGFueSBwbGFjZSBpbiB0aGUga2VybmVsLCB3aGVyZSBzdWNoIEFDUEkg
+cXVpcmtzIGFyZQ0KPiBwbGFjZWQ/DQo+ID4gPiA+IFtMdiBaaGVuZ10NCj4gPiA+ID4gTXkgcXVl
+c3Rpb24gd291bGQgYmU6DQo+ID4gPiA+IERvZXMgV2luZG93cyBiZWhhdmUgY29ycmVjdGx5IGZv
+ciB0aGlzIHRhYmxlPw0KPiA+ID4gWWVzLCBzdXNwZW5kIHRvIFJBTSBpcyB3b3JraW5nIHVuZGVy
+IFdpbmRvd3MgVmlzdGEuDQo+ID4gPiBJSVJDIGl0IHdvcmtlZCB1bmRlciBXaW5kb3dzIFhQIHRv
+by4NCj4gPiA+DQo+ID4gPiA+IEhvd2V2ZXIgdGhlcmUgaXMgYSByZWFsIGNhc2Ugc2hvd2luZyB0
+aGF0IHRoZXJlIGFyZSByZWFsIHRhYmxlcyBuZWVkDQo+IHVzIHRvDQo+ID4gPiBjb3JyZWN0bHkg
+c3VwcG9ydCBCaXRXaWR0aC9CaXRPZmZzZXQuDQo+ID4gPiA+IEhlcmUgaXMgdGhlIGluZm9ybWF0
+aW9uIGZvciB5b3UgdG8gcmVmZXI6DQo+ID4gPiA+DQo+IGh0dHA6Ly9wZXJtYWxpbmsuZ21hbmUu
+b3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC5jb21taXRzLmhlYWQvMzEzODcwDQo+ID4gPiA+DQo+ID4g
+PiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+IFdlbGwsIGlmIHRoZSBjb21taXQgaW4gcXVlc3Rpb24g
+Y2F1c2VkIGEgcHJvYmxlbSB0byBoYXBwZW4gZm9yDQo+ID4gPiB5b3UsDQo+ID4gPiA+ID4gPiA+
+IGl0IGFsc28gbWlnaHQgY2F1c2Ugc2ltaWxhciBwcm9ibGVtcyB0byBoYXBwZW4gZWxzZXdoZXJl
+Lg0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiBJdCBsb29rcyBsaWtlIHdlJ2xsIG5lZWQg
+dG8gcmV2ZXJ0IHRoYXQgY29tbWl0Lg0KPiA+ID4gPiA+ID4gSGksDQo+ID4gPiA+ID4gPg0KPiA+
+ID4gPiA+ID4gb3IgbWF5YmUgdG8gcmVzZXQgYWNjZXNzX3dpZHRoIEFueUFjYyBmcm9tIEZBQ1Ag
+dGFibGUgb25seSBmb3INCj4gPiA+IFBNMUENCj4gPiA+ID4gPiA+IGNvbnRyb2wgcmVnaXN0ZXIg
+b3IgZXZlbiBmb3IgYWxsIHJlZ2lzdGVycz8gVGhpcyB3aWxsIGZpeCB0aGUgaXNzdWUgdG9vLg0K
+PiA+ID4gPiA+DQo+ID4gPiA+ID4gVGhhdCdzIGEgZ29vZCBpZGVhIGFjdHVhbGx5Lg0KPiA+ID4g
+PiA+DQo+ID4gPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQu
+Yw0KPiA+ID4gPiA+ID4gYi9kcml2ZXJzL2FjcGkvYWNwaWNhL3RiZmFkdC5jIGluZGV4IDYyMDgw
+NjkuLmE0NzZlOTQgMTAwNjQ0DQo+ID4gPiA+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNh
+L3RiZmFkdC5jDQo+ID4gPiA+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL3RiZmFkdC5j
+DQo+ID4gPiA+ID4gPiBAQCAtNzE0LDcgKzcxNCwxNCBAQCBzdGF0aWMgdm9pZA0KPiA+ID4gYWNw
+aV90Yl9zZXR1cF9mYWR0X3JlZ2lzdGVycyh2b2lkKQ0KPiA+ID4gPiA+ID4gICAgICAgICAgICAg
+ICAgICAgICAgICAgfQ0KPiA+ID4gPiA+ID4gICAgICAgICAgICAgICAgIH0NCj4gPiA+ID4gPiA+
+ICAgICAgICAgfQ0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ICsgICAgICAgLyoNCj4gPiA+ID4g
+PiA+ICsgICAgICAgICogUmVzZXQgYWNjZXNzX3dpZHRoIGluIHRoZSBHQVMgZm9yIFBNMUEgY29u
+dHJvbCByZWdpc3Rlcg0KPiB0bw0KPiA+ID4gPiA+ID4gKyAgICAgICAgKiB1bmRlZmluZWQgdmFs
+dWUuIEJlY2F1c2UgaW4gc29tZSBjYXNlcyB0aGlzIGZpZWxkIGNvbnRhaW5zDQo+ID4gPiA+ID4g
+PiArICAgICAgICAqIHdyb25nIHZhbHVlLg0KPiA+ID4gPiA+ID4gKyAgICAgICAgKi8NCj4gPiA+
+ID4gPiA+ICsgICAgICAgYWNwaV9nYmxfRkFEVC54cG0xYV9jb250cm9sX2Jsb2NrLmFjY2Vzc193
+aWR0aCA9IDA7DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBPSywgbGV0J3Mgc2VlIHdoYXQgQm9iIGFu
+ZCBMdiB0aGluayBhYm91dCB0aGF0Lg0KPiA+ID4gPiBbTHYgWmhlbmddDQo+ID4gPiA+IFRoZXJl
+IGlzIGEgY29tbWl0IGluIDQuNy1yYzI6DQo+ID4gPiA+DQo+ID4gPg0KPiBodHRwczovL2dpdC5r
+ZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51eC5naXQvY29tbWl0
+Lz9pZD0NCj4gPiA+IDdmOWJlZjlkDQo+ID4gPiA+IEhhdmUgeW91IHRyaWVkIGlmIHRoZSBwcm9i
+bGVtIHN0aWxsIGV4aXN0cyBpbiA0LjctcmMyPw0KPiA+ID4gSSd2ZSBqdXN0IHRyaWVkIHY0Ljct
+cmMzLiBJdCBjb250YWlucyBjb21taXQgN2Y5YmVmOWQgYW5kIHRoZSBwcm9ibGVtDQo+ID4gPiBl
+eGlzdHMgdGhlcmUgdG9vLg0KPiA+IFtMdiBaaGVuZ10NCj4gPiBJTU8sIGZvciB0aGUgdGltZSBi
+ZWluZywgeW91IGNhbiB1c2UgcXVpcmtzLg0KPiA+IEJvb3RpbmcgeW91ciBrZXJuZWwgd2l0aCB0
+aGUgZm9sbG93aW5nIHBhcmFtZXRlcnM6DQo+ID4NCj4gPiBhY3BpPXJzZHQNCj4gPiBPcg0KPiA+
+IGFjcGlfZm9yY2VfMzJiaXRfZmFkdF9hZGRyDQo+ID4gT3INCj4gPiBCb3RoDQo+IA0KPiBSYWZh
+ZWwgcmV2ZXJ0ZWQgY29tbWl0LCBzbyBJJ20gb2sgbm93Lg0KPiANCj4gQWN0dWFsbHkgYWNwaV9m
+b3JjZV8zMmJpdF9mYWR0X2FkZHIgd2lsbCBub3QgaGVscCBoZXJlLCBiZWNhdXNlIGl0J3MgdGFr
+ZQ0KPiBlZmZlY3Qgb25seSBpZiBhZGRyZXNzNjQgIT0gYWRkcmVzczMyLiBCdXQgaGVyZSB0aGVz
+ZSBhZGRyZXNzZXMgYXJlDQo+IHRoZSBzYW1lLCB0aGVyZWZvcmUgYWNjZXNzX3dpZHRoIGlzIHRh
+a2VuIGZyb20gZXh0ZW5kZWQgYWRkcmVzcy4NCltMdiBaaGVuZ10gDQpUaGlzIHNvdW5kcyBzdHJh
+bmdlLg0KTXkgcmVjZW50IGludmVzdGlnYXRpb24gc2hvd3MgdGhhdCBXaW5kb3dzIG1heSBmYXZv
+ciAzMmJpdCBmYWR0IGFkZHJlc3MuDQpTbyB3ZSBuZWVkIHRvIGdldCB0aGlzIHF1aXJrIHdvcmtp
+bmcuDQpJIGZpbGVkIGEgYnVnIGhlcmUsIGhvcGUgeW91IGNhbiBoZWxwIG1lIHRvIGRpZyB0aGlz
+IGEgYml0IGZ1cnRoZXI6DQpodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
+P2lkPTE1MTUwMQ0KDQpUaGFua3MgaW4gYWR2YW5jZS4NCg0KQmVzdCByZWdhcmRzDQpMdg0KDQoN
+Cj4gDQo+IGh0dHA6Ly9seHIuZnJlZS1lbGVjdHJvbnMuY29tL3NvdXJjZS9kcml2ZXJzL2FjcGkv
+YWNwaWNhL3RiZmFkdC5jI0w1NzYNCj4gDQo+IA0KPiBhY3BpPXJzZHQgaGVscHMuIFRoYW5rcyBm
+b3IgdGhlIGluZm9ybWF0aW9uIGFib3V0IHRoaXMgb3B0aW9uLiBJDQo+IG1pc3NlZCBpdCwgd2hl
+biBJIHJlYWQgZG9jdW1lbnRhdGlvbi4NCj4gDQo+IA0KPiANCj4gLS0NCj4gQmVzdCByZWdhcmRz
+LA0KPiBBbmRyZXkgU2t2b3J0c292DQo+IA0KDQo=
