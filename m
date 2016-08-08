@@ -1,66 +1,198 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [RFC PATCH V5 0/5] ECAM quirks handling for ARM64 platforms
-Date: Mon, 8 Aug 2016 16:13:12 +0100
-Message-ID: <20160808151312.GG18515@xora-haswell.xora.org.uk>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [RFC PATCH V5 3/5] PCI: Check platform specific ECAM quirks
+Date: Mon, 08 Aug 2016 11:34:37 -0400
+Message-ID: <1470670477.3551.35.camel@redhat.com>
 References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
+	 <1470661541-26270-4-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52552 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752159AbcHHPen (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Aug 2016 11:34:43 -0400
+In-Reply-To: <1470661541-26270-4-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
+Cc: hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Aug 08, 2016 at 03:05:36PM +0200, Tomasz Nowicki wrote:
-> Quirk handling relies on an idea of matching MCFG OEM ID, TABLE ID and
-> revision (the ones from standard header of MCFG table).
+On Mon, 2016-08-08 at 15:05 +0200, Tomasz Nowicki wrote:
+> Some platforms may not be fully compliant with generic set of PCI config
+> accessors. For these cases we implement the way to overwrite accessors
+> set. Algorithm traverses available quirk list (static array),
+> matches against <oem_id, oem_table_id, rev, domain, bus number range> and
+> returns pci_config_window structure with fancy PCI config ops.
+> oem_id, oem_table_id and rev come from MCFG table standard header.
 > 
-> Static array is used to keep quirk entries. Each entry consists of
-> mentioned MCFG IDs along with custom pci_ops structure and initialization call.
+> It is possible to define custom init call which is responsible for
+> setting up PCI configuration access accordingly to quirk requirements.
+> If custom init call is not defined, use standard pci_acpi_setup_ecam_mapping().
 > 
-> As an example, the last patch presents quirk handling mechanism usage for
-> ThunderX PEM driver.
+> pci_generic_ecam_ops will be used for platforms free from quirks.
 > 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> Signed-off-by: Christopher Covington <cov@codeaurora.org>
+> ---
+>  drivers/pci/host/Makefile      |  1 +
+>  drivers/pci/host/mcfg-quirks.c | 86 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/host/mcfg-quirks.h | 20 ++++++++++
+>  include/linux/pci-acpi.h       |  2 +
+>  4 files changed, 109 insertions(+)
+>  create mode 100644 drivers/pci/host/mcfg-quirks.c
+>  create mode 100644 drivers/pci/host/mcfg-quirks.h
+> 
+> diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
+> index 8843410..500cf78 100644
+> --- a/drivers/pci/host/Makefile
+> +++ b/drivers/pci/host/Makefile
+> @@ -31,3 +31,4 @@ obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
+>  obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
+>  obj-$(CONFIG_PCIE_ARMADA_8K) += pcie-armada8k.o
+>  obj-$(CONFIG_PCIE_ARTPEC6) += pcie-artpec6.o
+> +obj-$(CONFIG_ACPI_MCFG) += mcfg-quirks.o
+> diff --git a/drivers/pci/host/mcfg-quirks.c b/drivers/pci/host/mcfg-quirks.c
+> new file mode 100644
+> index 0000000..aa9907b
+> --- /dev/null
+> +++ b/drivers/pci/host/mcfg-quirks.c
+> @@ -0,0 +1,86 @@
+> +/*
+> + * Copyright (C) 2016 Semihalf
+> + *	Author: Tomasz Nowicki <tn@semihalf.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License, version 2, as
+> + * published by the Free Software Foundation (the "GPL").
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License version 2 (GPLv2) for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * version 2 (GPLv2) along with this source code.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/ioport.h>
+> +#include <linux/pci.h>
+> +#include <linux/pci-acpi.h>
+> +#include <linux/pci-ecam.h>
+> +
+> +#include "mcfg-quirks.h"
+> +
+> +struct pci_cfg_fixup {
+> +	char oem_id[ACPI_OEM_ID_SIZE + 1];
+> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+> +	u32 oem_revision;
+> +	struct resource domain_range;
+> +	struct resource bus_range;
+> +	struct pci_ops *ops;
+> +	struct pci_config_window *(*init)(struct acpi_pci_root *root,
+> +					  struct pci_ops *ops);
+> +};
+> +
+> +#define MCFG_DOM_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
+> +						((end) - (start) + 1), NULL, 0)
+> +#define MCFG_DOM_ANY			MCFG_DOM_RANGE(0x0, 0xffff)
+> +#define MCFG_BUS_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
+> +						((end) - (start) + 1),	\
+> +						NULL, IORESOURCE_BUS)
+> +#define MCFG_BUS_ANY			MCFG_BUS_RANGE(0x0, 0xff)
+> +
+> +static struct pci_cfg_fixup mcfg_quirks[] __initconst = {
+                                             ^^^^^^^^^^^^^^
 
-Series looks good to me.
+I get section warnings because pci_cfg_fixup_match() is not
+an init function.
 
-Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+WARNING: vmlinux.o(.text+0x3f6c74): Section mismatch in reference from the function pci_mcfg_match_quirks() to the variable .init.rodata:$d
+The function pci_mcfg_match_quirks() references
+the variable __initconst $d.
+This is often because pci_mcfg_match_quirks lacks a __initconst 
+annotation or the annotation of $d is wrong.
 
-> v4 -> v5
-> - rebase against v4.8-rc1
-> - rework to exact MCFG OEM ID, TABLE ID, rev match
->   - use memcmp instead of strncmp
->   - no substring match
-> - fix typos and dmesg message
-> 
-> Tomasz Nowicki (5):
->   PCI: Embed pci_ecam_ops in pci_config_window structure
->   PCI/ACPI: Move ACPI ECAM mapping to generic MCFG driver
->   PCI: Check platform specific ECAM quirks
->   ARM64/PCI: Start using quirks handling for ACPI based PCI host
->     controller
->   PCI: thunder-pem: Support quirky configuration space access for ACPI
->     based PCI host controller
-> 
->  arch/arm64/kernel/pci.c            | 42 +----------------
->  drivers/acpi/pci_mcfg.c            | 40 ++++++++++++++++
->  drivers/pci/ecam.c                 |  6 +--
->  drivers/pci/host/Makefile          |  1 +
->  drivers/pci/host/mcfg-quirks.c     | 93 ++++++++++++++++++++++++++++++++++++
->  drivers/pci/host/mcfg-quirks.h     | 24 ++++++++++
->  drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
->  include/linux/pci-acpi.h           |  5 ++
->  include/linux/pci-ecam.h           |  2 +-
->  9 files changed, 252 insertions(+), 57 deletions(-)
->  create mode 100644 drivers/pci/host/mcfg-quirks.c
->  create mode 100644 drivers/pci/host/mcfg-quirks.h
-> 
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, pci_ops, init_hook }, */
+> +};
+> +
+> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
+> +				 struct acpi_table_header *mcfg_header)
+> +{
+> +	return (!memcmp(f->oem_id, mcfg_header->oem_id, ACPI_OEM_ID_SIZE) &&
+> +		!memcmp(f->oem_table_id, mcfg_header->oem_table_id,
+> +			ACPI_OEM_TABLE_ID_SIZE) &&
+> +		f->oem_revision == mcfg_header->oem_revision);
+> +}
+> +
+> +struct pci_config_window *pci_mcfg_match_quirks(struct acpi_pci_root *root)
+> +{
+> +	struct resource dom_res = MCFG_DOM_RANGE(root->segment, root->segment);
+> +	struct resource *bus_res = &root->secondary;
+> +	struct pci_cfg_fixup *f = mcfg_quirks;
+> +	struct acpi_table_header *mcfg_header;
+> +	acpi_status status;
+> +	int i;
+> +
+> +	status = acpi_get_table(ACPI_SIG_MCFG, 0, &mcfg_header);
+> +	if (ACPI_FAILURE(status))
+> +		return NULL;
+> +
+> +	/*
+> +	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
+> +	 * table ID, and OEM revision from MCFG table standard header.
+> +	 */
+> +	for (i = 0; i < ARRAY_SIZE(mcfg_quirks); i++, f++) {
+> +		if (resource_contains(&f->domain_range, &dom_res) &&
+> +		    resource_contains(&f->bus_range, bus_res) &&
+> +		    pci_mcfg_fixup_match(f, mcfg_header)) {
+> +			dev_info(&root->device->dev, "Applying PCI MCFG quirks for %s %s rev: %d\n",
+> +				 f->oem_id, f->oem_table_id, f->oem_revision);
+> +			return f->init ? f->init(root, f->ops) :
+> +				pci_acpi_setup_ecam_mapping(root, f->ops);
+> +		}
+> +	}
+> +	return pci_acpi_setup_ecam_mapping(root, &pci_generic_ecam_ops.pci_ops);
+> +}
+> diff --git a/drivers/pci/host/mcfg-quirks.h b/drivers/pci/host/mcfg-quirks.h
+> new file mode 100644
+> index 0000000..45cbd16
+> --- /dev/null
+> +++ b/drivers/pci/host/mcfg-quirks.h
+> @@ -0,0 +1,20 @@
+> +/*
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License, version 2, as
+> + * published by the Free Software Foundation (the "GPL").
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License version 2 (GPLv2) for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * version 2 (GPLv2) along with this source code.
+> + */
+> +
+> +#ifndef __MCFG_QUIRKS_H__
+> +#define __MCFG_QUIRKS_H__
+> +
+> +/* MCFG quirks initialize call list */
+> +
+> +#endif /* __MCFG_QUIRKS_H__ */
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index e9bfe00..28cdce4 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -25,6 +25,8 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
+>  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+>  
+>  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
+> +extern struct pci_config_window *
+> +pci_mcfg_match_quirks(struct acpi_pci_root *root);
+>  
+>  extern struct pci_config_window *
+>  pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root, struct pci_ops *ops);
+
