@@ -1,59 +1,56 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] libnvdimm, nd_blk: mask off reserved status bits
-Date: Mon, 8 Aug 2016 12:36:30 -0700
-Message-ID: <CAPcyv4jr4KSsVn-CgJmqYXqcZ=Rah9UP025x-4Uv2rz8S0JW=Q@mail.gmail.com>
-References: <20160729205912.20436-1-ross.zwisler@linux.intel.com>
- <20160802182653.6647-1-ross.zwisler@linux.intel.com>
- <20160808191019.GA965@linux.intel.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [RFC PATCH V5 0/5] ECAM quirks handling for ARM64 platforms
+Date: Mon, 08 Aug 2016 15:44:05 -0400
+Message-ID: <1470685445.3551.37.camel@redhat.com>
+References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160808191019.GA965-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Lee,
- Chun-Yi" <jlee-IBi9RG/b67k@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1470661541-26270-1-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
+Cc: hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 8, 2016 at 12:10 PM, Ross Zwisler
-<ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> On Tue, Aug 02, 2016 at 12:26:53PM -0600, Ross Zwisler wrote:
->> The "NVDIMM Block Window Driver Writer's Guide":
->>
->> http://pmem.io/documents/
->> http://pmem.io/documents/NVDIMM_DriverWritersGuide-July-2016.pdf
->>
->> defines the layout of the block window status register.  For the July 2016
->> version of the spec linked to above, this happens in Figure 4 on page 26.
->>
->> The only bits defined in this spec are bits 31, 5, 4, 2, 1 and 0.  The rest
->> of the bits in the status register are reserved, and there is a warning
->> following the diagram that says:
->>
->>   Note: The driver cannot assume the value of the RESERVED bits in the
->>   status register are zero. These reserved bits need to be masked off, and
->>   the driver must avoid checking the state of those bits.
->>
->> This change ensures that for hardware implementations that set these
->> reserved bits in the status register, the driver won't incorrectly fail the
->> block I/Os.
->>
->> Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> Reviewed-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
->> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v4.2+
->
-> Ping on this patch - through which tree should we merge this for v4.8-rc2?
-> Dan's nvdimm tree?
+On Mon, 2016-08-08 at 15:05 +0200, Tomasz Nowicki wrote:
+> Quirk handling relies on an idea of matching MCFG OEM ID, TABLE ID and
+> revision (the ones from standard header of MCFG table).
+> 
+> Static array is used to keep quirk entries. Each entry consists of
+> mentioned MCFG IDs along with custom pci_ops structure and initialization call.
+> 
+> As an example, the last patch presents quirk handling mechanism usage for
+> ThunderX PEM driver.
+> 
+> v4 -> v5
+> - rebase against v4.8-rc1
+> - rework to exact MCFG OEM ID, TABLE ID, rev match
+>   - use memcmp instead of strncmp
+>   - no substring match
+> - fix typos and dmesg message
+> 
+> Tomasz Nowicki (5):
+>   PCI: Embed pci_ecam_ops in pci_config_window structure
+>   PCI/ACPI: Move ACPI ECAM mapping to generic MCFG driver
+>   PCI: Check platform specific ECAM quirks
+>   ARM64/PCI: Start using quirks handling for ACPI based PCI host
+>     controller
+>   PCI: thunder-pem: Support quirky configuration space access for ACPI
+>     based PCI host controller
+> 
+>  arch/arm64/kernel/pci.c            | 42 +----------------
+>  drivers/acpi/pci_mcfg.c            | 40 ++++++++++++++++
+>  drivers/pci/ecam.c                 |  6 +--
+>  drivers/pci/host/Makefile          |  1 +
+>  drivers/pci/host/mcfg-quirks.c     | 93 ++++++++++++++++++++++++++++++++++++
+>  drivers/pci/host/mcfg-quirks.h     | 24 ++++++++++
+>  drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
+>  include/linux/pci-acpi.h           |  5 ++
+>  include/linux/pci-ecam.h           |  2 +-
+>  9 files changed, 252 insertions(+), 57 deletions(-)
+>  create mode 100644 drivers/pci/host/mcfg-quirks.c
+>  create mode 100644 drivers/pci/host/mcfg-quirks.h
+> 
 
-It's getting 0-day coverage on my libnvdimm-pending branch and will go
-to Linus at the end of the week.
+Tested-by: Mark Salter <msalter@redhat.com>
