@@ -1,56 +1,58 @@
-From: <kchristopher@framingham.edu>
-Subject: RE: linux-acpi
-Date: Sun, 7 Aug 2016 09:54:17 -0400
-Message-ID: <000101d1f0e5$69a9070a$c0a80001@asianet.co.th>
-Reply-To: <linux-acpi@vger.kernel.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: Remove unnecessary '\n' in the end of ACPI_INFO
+ output
+Date: Mon, 8 Aug 2016 00:55:54 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0AEDE@SHSMSX101.ccr.corp.intel.com>
+References: <20160806172749.6315-1-kuleshovmail@gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="fsyxu.linux-acpi.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 114-27-112-100.dynamic.hinet.net ([114.27.112.100]:43006 "HELO
-	asianet.co.th" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751671AbcHGNyR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Aug 2016 09:54:17 -0400
-Content-Disposition: attachment
+Received: from mga11.intel.com ([192.55.52.93]:56984 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751955AbcHHAz6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Aug 2016 20:55:58 -0400
+In-Reply-To: <20160806172749.6315-1-kuleshovmail@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: Alexander Kuleshov <kuleshovmail@gmail.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-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
+> From: Alexander Kuleshov [mailto:kuleshovmail@gmail.com]
+> Subject: [PATCH] ACPICA: Remove unnecessary '\n' in the end of
+> ACPI_INFO output
+> 
+> as the ACPI_INFO already prints `\n` in the end itself.
+[Lv Zheng] 
+Looks good.
+Acked-by: Lv Zheng <lv.zheng@intel.com>
+However this patch should go through ACPICA upstream.
+
+Thanks
+-Lv
+
+> 
+> Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+> ---
+>  drivers/acpi/acpica/tbxfload.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> index ac71abc..e7119b7 100644
+> --- a/drivers/acpi/acpica/tbxfload.c
+> +++ b/drivers/acpi/acpica/tbxfload.c
+> @@ -240,7 +240,7 @@ acpi_status acpi_tb_load_namespace(void)
+>  	}
+> 
+>  	if (!tables_failed) {
+> -		ACPI_INFO(("%u ACPI AML tables successfully acquired and
+> loaded\n", tables_loaded));
+> +		ACPI_INFO(("%u ACPI AML tables successfully acquired and
+> loaded", tables_loaded));
+>  	} else {
+>  		ACPI_ERROR((AE_INFO,
+>  			    "%u table load failures, %u successful",
+> --
+> 2.8.0.rc3.1353.gea9bdc0
+
