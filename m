@@ -1,56 +1,41 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [RFC PATCH V5 0/5] ECAM quirks handling for ARM64 platforms
-Date: Mon, 08 Aug 2016 15:44:05 -0400
-Message-ID: <1470685445.3551.37.camel@redhat.com>
-References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 13/30] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
+Date: Mon, 08 Aug 2016 22:24:04 +0200
+Message-ID: <1940728.OSvgQcsBu1@vostro.rjw.lan>
+References: <cover.1470299677.git.lv.zheng@intel.com> <3d86ecd98996bc782a1f4a0bb0c0a0ae2b958df9.1470299677.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42338 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752541AbcHHUSp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Aug 2016 16:18:45 -0400
+In-Reply-To: <3d86ecd98996bc782a1f4a0bb0c0a0ae2b958df9.1470299677.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Mon, 2016-08-08 at 15:05 +0200, Tomasz Nowicki wrote:
-> Quirk handling relies on an idea of matching MCFG OEM ID, TABLE ID and
-> revision (the ones from standard header of MCFG table).
+On Thursday, August 04, 2016 04:43:51 PM Lv Zheng wrote:
+> Sometimes, the users may require a quirk to be provided from ACPI subsystem
+> core to prevent a GPE from flooding. Normally, if a GPE cannot be
+> dispatched, ACPICA core automatically prevents the GPE from firing. But
+> there are cases the GPE is dispatched by _Lxx/_Exx provided via AML table,
+> and OSPM is lacking of the knowledge to get _Lxx/_Exx correctly executed to
+> handle the GPE, thus the GPE flooding may still occur.
 > 
-> Static array is used to keep quirk entries. Each entry consists of
-> mentioned MCFG IDs along with custom pci_ops structure and initialization call.
+> This patch provides a quirk mechanism to stop this kind of GPE flooding.
 > 
-> As an example, the last patch presents quirk handling mechanism usage for
-> ThunderX PEM driver.
-> 
-> v4 -> v5
-> - rebase against v4.8-rc1
-> - rework to exact MCFG OEM ID, TABLE ID, rev match
->   - use memcmp instead of strncmp
->   - no substring match
-> - fix typos and dmesg message
-> 
-> Tomasz Nowicki (5):
->   PCI: Embed pci_ecam_ops in pci_config_window structure
->   PCI/ACPI: Move ACPI ECAM mapping to generic MCFG driver
->   PCI: Check platform specific ECAM quirks
->   ARM64/PCI: Start using quirks handling for ACPI based PCI host
->     controller
->   PCI: thunder-pem: Support quirky configuration space access for ACPI
->     based PCI host controller
-> 
->  arch/arm64/kernel/pci.c            | 42 +----------------
->  drivers/acpi/pci_mcfg.c            | 40 ++++++++++++++++
->  drivers/pci/ecam.c                 |  6 +--
->  drivers/pci/host/Makefile          |  1 +
->  drivers/pci/host/mcfg-quirks.c     | 93 ++++++++++++++++++++++++++++++++++++
->  drivers/pci/host/mcfg-quirks.h     | 24 ++++++++++
->  drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
->  include/linux/pci-acpi.h           |  5 ++
->  include/linux/pci-ecam.h           |  2 +-
->  9 files changed, 252 insertions(+), 57 deletions(-)
->  create mode 100644 drivers/pci/host/mcfg-quirks.c
->  create mode 100644 drivers/pci/host/mcfg-quirks.h
-> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
+> Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-Tested-by: Mark Salter <msalter@redhat.com>
+I didn't like this patch before and I still don't like it.
+
+Besides, I'd appreciate it if you didn't mix ACPICA release patches with
+non-ACPICA ones.
+
+Thanks,
+Rafael
+
