@@ -1,87 +1,46 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [RFC PATCH V5 1/5] PCI: Embed pci_ecam_ops in pci_config_window structure
-Date: Mon,  8 Aug 2016 15:05:37 +0200
-Message-ID: <1470661541-26270-2-git-send-email-tn@semihalf.com>
+Subject: [RFC PATCH V5 4/5] ARM64/PCI: Start using quirks handling for ACPI based PCI host controller
+Date: Mon,  8 Aug 2016 15:05:40 +0200
+Message-ID: <1470661541-26270-5-git-send-email-tn@semihalf.com>
 References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:35570 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752433AbcHHNGF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Aug 2016 09:06:05 -0400
+Received: by mail-wm0-f52.google.com with SMTP id f65so117078348wmi.0
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Aug 2016 06:06:05 -0700 (PDT)
 In-Reply-To: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
 Cc: hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-pci_config_window keeps pointer to pci_ecam_ops and every time
-we want to deallocate pci_config_window (pci_ecam_free()) we need to make
-sure to free pci_ecam_ops in case it was dynamically allocated prior to
-pci_ecam_create() call.
-
-To avoid that extra effort, embed pci_ecam_ops in pci_config_window,
-instead of just a pointer.
+Since there are platforms which have non-compliant ECAM space we need to
+override these accessors prior to PCI buses enumeration. In order to do
+that we call pci_mcfg_match_quirks() to retrieve custom
+pci_config_window structure. If no correlated quirk on list, use
+fully ECAM compliant generic PCI config accessors.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-To: Jayachandran C <jchandra@broadcom.com>
 ---
- arch/arm64/kernel/pci.c  | 2 +-
- drivers/pci/ecam.c       | 6 +++---
- include/linux/pci-ecam.h | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm64/kernel/pci.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index acf3872..981e828 100644
+index 2e7bed4..aa734bd 100644
 --- a/arch/arm64/kernel/pci.c
 +++ b/arch/arm64/kernel/pci.c
-@@ -183,7 +183,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+@@ -139,8 +139,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	if (!ri)
  		return NULL;
- 	}
  
--	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
-+	acpi_pci_root_ops.pci_ops = &ri->cfg->ops.pci_ops;
- 	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
- 				   ri->cfg);
- 	if (!bus)
-diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-index 43ed08d..24242f0 100644
---- a/drivers/pci/ecam.c
-+++ b/drivers/pci/ecam.c
-@@ -52,7 +52,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
- 		return ERR_PTR(-ENOMEM);
- 
- 	cfg->parent = dev;
--	cfg->ops = ops;
-+	cfg->ops = *ops;
- 	cfg->busr.start = busr->start;
- 	cfg->busr.end = busr->end;
- 	cfg->busr.flags = IORESOURCE_BUS;
-@@ -138,7 +138,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
- 			       int where)
- {
- 	struct pci_config_window *cfg = bus->sysdata;
--	unsigned int devfn_shift = cfg->ops->bus_shift - 8;
-+	unsigned int devfn_shift = cfg->ops.bus_shift - 8;
- 	unsigned int busn = bus->number;
- 	void __iomem *base;
- 
-@@ -149,7 +149,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
- 	if (per_bus_mapping)
- 		base = cfg->winp[busn];
- 	else
--		base = cfg->win + (busn << cfg->ops->bus_shift);
-+		base = cfg->win + (busn << cfg->ops.bus_shift);
- 	return base + (devfn << devfn_shift) + where;
- }
- 
-diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-index 7adad20..0ce2920 100644
---- a/include/linux/pci-ecam.h
-+++ b/include/linux/pci-ecam.h
-@@ -39,7 +39,7 @@ struct pci_config_window {
- 	struct resource			res;
- 	struct resource			busr;
- 	void				*priv;
--	struct pci_ecam_ops		*ops;
-+	struct pci_ecam_ops		ops;
- 	union {
- 		void __iomem		*win;	/* 64-bit single mapping */
- 		void __iomem		**winp; /* 32-bit per-bus mapping */
+-	ri->cfg = pci_acpi_setup_ecam_mapping(root,
+-					      &pci_generic_ecam_ops.pci_ops);
++	ri->cfg = pci_mcfg_match_quirks(root);
+ 	if (!ri->cfg) {
+ 		kfree(ri);
+ 		return NULL;
 -- 
 1.9.1
+
