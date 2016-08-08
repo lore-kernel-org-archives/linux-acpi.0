@@ -1,22 +1,14 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v11 2/7] x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at boot time.
-Date: Mon, 8 Aug 2016 16:37:51 +0800
-Message-ID: <1470645476-16605-3-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1470645476-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v11 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Mon, 8 Aug 2016 16:37:49 +0800
+Message-ID: <1470645476-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1470645476-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-
-Change log v10 -> v11:
-  Reduce the number of repeat judgment of online/offline
-  Seperate out the functionality in the enable or disable situation
 
 [Problem]
 
@@ -97,6 +89,7 @@ static struct worker *alloc_worker(int node)
         return worker;
 }
 
+
 [Solution]
 
 There are four mappings in the kernel:
@@ -142,84 +135,86 @@ MADT (Multiple APIC Description Table). So we finish the job in the following st
 4. Establish all possible cpuid <-> nodeid mapping.
    This is done via an additional acpi namespace walk for processors.
 
-This patch finished step 1.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- arch/x86/kernel/apic/apic.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+For previous discussion, please refer to:
+https://lkml.org/lkml/2015/2/27/145
+https://lkml.org/lkml/2015/3/25/989
+https://lkml.org/lkml/2015/5/14/244
+https://lkml.org/lkml/2015/7/7/200
+https://lkml.org/lkml/2015/9/27/209
+https://lkml.org/lkml/2016/5/19/212
+https://lkml.org/lkml/2016/7/19/181
+https://lkml.org/lkml/2016/7/25/99
+https://lkml.org/lkml/2016/7/26/52
 
-diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index 60078a6..4a3ee90 100644
---- a/arch/x86/kernel/apic/apic.c
-+++ b/arch/x86/kernel/apic/apic.c
-@@ -1998,7 +1998,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
- 	apic_write(APIC_LVT1, value);
- }
- 
--int generic_processor_info(int apicid, int version)
-+static int __generic_processor_info(int apicid, int version, bool enabled)
- {
- 	int cpu, max = nr_cpu_ids;
- 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
-@@ -2064,7 +2064,6 @@ int generic_processor_info(int apicid, int version)
- 		return -EINVAL;
- 	}
- 
--	num_processors++;
- 	if (apicid == boot_cpu_physical_apicid) {
- 		/*
- 		 * x86_bios_cpu_apicid is required to have processors listed
-@@ -2087,6 +2086,7 @@ int generic_processor_info(int apicid, int version)
- 
- 		pr_warning("ACPI: Package limit reached. Processor %d/0x%x ignored.\n",
- 			   thiscpu, apicid);
-+
- 		disabled_cpus++;
- 		return -ENOSPC;
- 	}
-@@ -2106,7 +2106,6 @@ int generic_processor_info(int apicid, int version)
- 			apic_version[boot_cpu_physical_apicid], cpu, version);
- 	}
- 
--	physid_set(apicid, phys_cpu_present_map);
- 	if (apicid > max_physical_apicid)
- 		max_physical_apicid = apicid;
- 
-@@ -2119,11 +2118,22 @@ int generic_processor_info(int apicid, int version)
- 		apic->x86_32_early_logical_apicid(cpu);
- #endif
- 	set_cpu_possible(cpu, true);
--	set_cpu_present(cpu, true);
-+
-+	if (enabled) {
-+		num_processors++;
-+		physid_set(apicid, phys_cpu_present_map);
-+		set_cpu_present(cpu, true);
-+	} else
-+		disabled_cpus++;
- 
- 	return cpu;
- }
- 
-+int generic_processor_info(int apicid, int version)
-+{
-+	return __generic_processor_info(apicid, version, true);
-+}
-+
- int hard_smp_processor_id(void)
- {
- 	return read_apic_id();
+Change log v10 -> v11:
+1. Reduce the number of repeat judgment of online/offline
+2. Seperate out the functionality in the enable or disable situation
+
+Change log v9 -> v10:
+1. Providing an empty definition of acpi_set_processor_mapping() for 
+CONFIG_ACPI_HOTPLUG_CPU unset. In patch 5.
+2. Fix auto build test ERROR on ia64/next. In patch 5.
+3. Fix some comment.
+
+Change log v8 -> v9:
+1. Providing an empty definition of acpi_set_processor_mapping() for 
+CONFIG_ACPI_HOTPLUG_CPU unset.
+
+Change log v7 -> v8:
+1. Provide the mechanism to validate processors in the ACPI tables.
+2. Provide the interface to validate the proc_id when setting the mapping. 
+
+Change log v6 -> v7:
+1. Fix arm64 build failure.
+
+Change log v5 -> v6:
+1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
+
+Change log v4 -> v5:
+1. Remove useless code in patch 1.
+2. Small improvement of commit message.
+
+Change log v3 -> v4:
+1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
+   before per cpu areas were initialized.
+
+Change log v2 -> v3:
+1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
+2. Build zonelists for memory-less nodes so that memory allocator will fall 
+   back to proper nodes automatically.
+
+Change log v1 -> v2:
+1. Split code movement and actual changes. Add patch 1.
+2. Synchronize best near online node record when node hotplug happens. In patch 2.
+3. Fix some comment.
+
+Dou Liyang (2):
+  acpi: Provide the mechanism to validate processors in the ACPI tables
+  acpi: Provide the interface to validate the proc_id
+
+Gu Zheng (4):
+  x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+    boot time.
+  x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+    persistent cpuid <-> apicid mapping.
+  x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+  x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+    booting.
+
+Tang Chen (1):
+  x86, memhp, numa: Online memory-less nodes at boot time.
+
+ arch/ia64/kernel/acpi.c       |   3 +-
+ arch/x86/include/asm/mpspec.h |   1 +
+ arch/x86/kernel/acpi/boot.c   |  11 ++--
+ arch/x86/kernel/apic/apic.c   |  77 +++++++++++++++++++++++--
+ arch/x86/mm/numa.c            |  27 +++++----
+ drivers/acpi/acpi_processor.c | 105 +++++++++++++++++++++++++++++++++-
+ drivers/acpi/bus.c            |   1 +
+ drivers/acpi/processor_core.c | 128 +++++++++++++++++++++++++++++++++++-------
+ include/linux/acpi.h          |   6 ++
+ 9 files changed, 309 insertions(+), 50 deletions(-)
+
 -- 
 2.5.5
-
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
