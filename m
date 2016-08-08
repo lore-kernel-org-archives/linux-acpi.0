@@ -1,41 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 13/30] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
-Date: Mon, 08 Aug 2016 22:24:04 +0200
-Message-ID: <1940728.OSvgQcsBu1@vostro.rjw.lan>
-References: <cover.1470299677.git.lv.zheng@intel.com> <3d86ecd98996bc782a1f4a0bb0c0a0ae2b958df9.1470299677.git.lv.zheng@intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V5 1/3] x86/ioapic: Support hot-removal of IOAPICs
+ present during boot
+Date: Mon, 8 Aug 2016 15:22:51 -0500
+Message-ID: <20160808202251.GB6129@localhost>
+References: <20160623173445.GF17987@localhost>
+ <1466912697-3498-1-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42338 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752541AbcHHUSp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Aug 2016 16:18:45 -0400
-In-Reply-To: <3d86ecd98996bc782a1f4a0bb0c0a0ae2b958df9.1470299677.git.lv.zheng@intel.com>
+Received: from mail.kernel.org ([198.145.29.136]:50824 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751774AbcHHUXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Aug 2016 16:23:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1466912697-3498-1-git-send-email-rui.y.wang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, August 04, 2016 04:43:51 PM Lv Zheng wrote:
-> Sometimes, the users may require a quirk to be provided from ACPI subsystem
-> core to prevent a GPE from flooding. Normally, if a GPE cannot be
-> dispatched, ACPICA core automatically prevents the GPE from firing. But
-> there are cases the GPE is dispatched by _Lxx/_Exx provided via AML table,
-> and OSPM is lacking of the knowledge to get _Lxx/_Exx correctly executed to
-> handle the GPE, thus the GPE flooding may still occur.
+On Sun, Jun 26, 2016 at 11:44:57AM +0800, Rui Wang wrote:
+> v5: Remove #ifdef CONFIG_X86 from setup-bus.c, making it neutral to archs.
+> v4: Add comments explaining when to call acpi_ioapic_add().
+> v3: Previous versions break mips. This version fixes it.
 > 
-> This patch provides a quirk mechanism to stop this kind of GPE flooding.
+> IOAPICs present during system boot aren't added to ioapic_list,
+> thus are unable to be hot-removed. Fix it by calling
+> acpi_ioapic_add() during root bus enumeration.
 > 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
-> Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 
-I didn't like this patch before and I still don't like it.
+Hi Rui,
 
-Besides, I'd appreciate it if you didn't mix ACPICA release patches with
-non-ACPICA ones.
+Where are we at with this?  If there's anything that still needs to be
+merged, can you rebase it to v4.8-rc1 and post a new, complete,
+series?
 
-Thanks,
-Rafael
-
+Bjorn
