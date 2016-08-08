@@ -1,198 +1,240 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [RFC PATCH V5 3/5] PCI: Check platform specific ECAM quirks
-Date: Mon, 08 Aug 2016 11:34:37 -0400
-Message-ID: <1470670477.3551.35.camel@redhat.com>
-References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-	 <1470661541-26270-4-git-send-email-tn@semihalf.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFC PATCH v3 13/13] drivers: acpi: iort: introduce
+	iort_iommu_configure
+Date: Mon, 8 Aug 2016 17:16:18 +0100
+Message-ID: <20160808161618.GC22306@red-moon>
+References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1469013815-24380-14-git-send-email-lorenzo.pieralisi@arm.com>
+	<016fb1080595ef61ec7a91da15ef2430@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52552 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752159AbcHHPen (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Aug 2016 11:34:43 -0400
-In-Reply-To: <1470661541-26270-4-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <016fb1080595ef61ec7a91da15ef2430-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2016-08-08 at 15:05 +0200, Tomasz Nowicki wrote:
-> Some platforms may not be fully compliant with generic set of PCI config
-> accessors. For these cases we implement the way to overwrite accessors
-> set. Algorithm traverses available quirk list (static array),
-> matches against <oem_id, oem_table_id, rev, domain, bus number range> and
-> returns pci_config_window structure with fancy PCI config ops.
-> oem_id, oem_table_id and rev come from MCFG table standard header.
+Hi Nate,
+
+thanks for having a look.
+
+On Wed, Aug 03, 2016 at 10:19:43AM -0400, nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org wrote:
+> On 2016-07-20 07:23, Lorenzo Pieralisi wrote:
+> >DT based systems have a generic kernel API to configure IOMMUs
+> >for devices (ie of_iommu_configure()).
+> >
+> >On ARM based ACPI systems, the of_iommu_configure() equivalent can
+> >be implemented atop ACPI IORT kernel API, with the corresponding
+> >functions to map device identifiers to IOMMUs and retrieve the
+> >corresponding IOMMU operations necessary for DMA operations set-up.
+> >
+> >By relying on the iommu_fwspec generic kernel infrastructure,
+> >implement the IORT based IOMMU configuration for ARM ACPI systems
+> >and hook it up in the ACPI kernel layer that implements DMA
+> >configuration for a device.
+> >
+> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> >Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> >Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+> >Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> >---
+> > drivers/acpi/iort.c  | 64
+> >++++++++++++++++++++++++++++++++++++++++++++++++++++
+> > drivers/acpi/scan.c  |  7 +++++-
+> > include/linux/iort.h |  4 ++++
+> > 3 files changed, 74 insertions(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
+> >index c116b68..a12a4ff 100644
+> >--- a/drivers/acpi/iort.c
+> >+++ b/drivers/acpi/iort.c
+> >@@ -18,6 +18,7 @@
+> >
+> > #define pr_fmt(fmt)	"ACPI: IORT: " fmt
+> >
+> >+#include <linux/iommu-fwspec.h>
+> > #include <linux/iort.h>
+> > #include <linux/kernel.h>
+> > #include <linux/list.h>
+> >@@ -27,6 +28,8 @@
+> >
+> > #define IORT_TYPE_MASK(type)	(1 << (type))
+> > #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
+> >+#define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
+> >+				(1 << ACPI_IORT_NODE_SMMU_V3))
+> >
+> > struct iort_its_msi_chip {
+> > 	struct list_head	list;
+> >@@ -458,6 +461,67 @@ iort_get_device_domain(struct device *dev,
+> >u32 req_id)
+> > 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+> > }
+> >
+> >+static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> >+{
+> >+	u32 *rid = data;
+> >+
+> >+	*rid = alias;
+> >+	return 0;
+> >+}
+> >+
+> >+static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
+> >+			       struct fwnode_handle *fwnode)
+> >+{
+> >+	int ret = iommu_fwspec_init(dev, fwnode);
+> >+
+> >+	if (!ret)
+> >+		ret = iommu_fwspec_add_ids(dev, &streamid, 1);
+> >+
+> >+	return 0;
 > 
-> It is possible to define custom init call which is responsible for
-> setting up PCI configuration access accordingly to quirk requirements.
-> If custom init call is not defined, use standard pci_acpi_setup_ecam_mapping().
+> Are you intentionally returning 0 instead of ret? How about doing
+> this instead?
 > 
-> pci_generic_ecam_ops will be used for platforms free from quirks.
+> 	return ret ? ret : iommu_fwspec_add_ids(dev, &streamid, 1);
+
+No, that's a bug, I will return ret as the of_xlate() function in
+the ARM SMMU v3 driver does, thanks.
+
+> >+}
+> >+
+> >+/**
+> >+ * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> >+ *
+> >+ * @dev: device to configure
+> >+ *
+> >+ * Returns: iommu_ops pointer on configuration success
+> >+ *          NULL on configuration failure
+> >+ */
+> >+const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> >+{
+> >+	struct acpi_iort_node *node, *parent;
+> >+	struct fwnode_handle *iort_fwnode;
+> >+	u32 rid = 0, devid = 0;
 > 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> Signed-off-by: Christopher Covington <cov@codeaurora.org>
-> ---
->  drivers/pci/host/Makefile      |  1 +
->  drivers/pci/host/mcfg-quirks.c | 86 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/host/mcfg-quirks.h | 20 ++++++++++
->  include/linux/pci-acpi.h       |  2 +
->  4 files changed, 109 insertions(+)
->  create mode 100644 drivers/pci/host/mcfg-quirks.c
->  create mode 100644 drivers/pci/host/mcfg-quirks.h
+> Since this routine maps the RID space of a device to the StreamID
+> space of its parent smmu, would you consider renaming the devid
+> variable to some form of sid or streamid?
+
+Yes, I will do.
+
+> >+	if (dev_is_pci(dev)) {
+> >+		struct pci_bus *bus = to_pci_dev(dev)->bus;
+> >+
+> >+		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> >+				       &rid);
+> >+
+> >+		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> >+				      iort_match_node_callback, &bus->dev);
+> >+	} else {
+> >+		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> >+				      iort_match_node_callback, dev);
+> >+	}
+> >+
+> >+	if (!node)
+> >+		return NULL;
+> >+
+> >+	parent = iort_node_map_rid(node, rid, &devid, IORT_IOMMU_TYPE);
+> >+	if (parent) {
+> >+		iort_fwnode = iort_get_fwnode(parent);
+> >+		if (iort_fwnode) {
+> >+			arm_smmu_iort_xlate(dev, devid, iort_fwnode);
 > 
-> diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
-> index 8843410..500cf78 100644
-> --- a/drivers/pci/host/Makefile
-> +++ b/drivers/pci/host/Makefile
-> @@ -31,3 +31,4 @@ obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
->  obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
->  obj-$(CONFIG_PCIE_ARMADA_8K) += pcie-armada8k.o
->  obj-$(CONFIG_PCIE_ARTPEC6) += pcie-artpec6.o
-> +obj-$(CONFIG_ACPI_MCFG) += mcfg-quirks.o
-> diff --git a/drivers/pci/host/mcfg-quirks.c b/drivers/pci/host/mcfg-quirks.c
-> new file mode 100644
-> index 0000000..aa9907b
-> --- /dev/null
-> +++ b/drivers/pci/host/mcfg-quirks.c
-> @@ -0,0 +1,86 @@
-> +/*
-> + * Copyright (C) 2016 Semihalf
-> + *	Author: Tomasz Nowicki <tn@semihalf.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, version 2, as
-> + * published by the Free Software Foundation (the "GPL").
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License version 2 (GPLv2) for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * version 2 (GPLv2) along with this source code.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/ioport.h>
-> +#include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
-> +#include <linux/pci-ecam.h>
-> +
-> +#include "mcfg-quirks.h"
-> +
-> +struct pci_cfg_fixup {
-> +	char oem_id[ACPI_OEM_ID_SIZE + 1];
-> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> +	u32 oem_revision;
-> +	struct resource domain_range;
-> +	struct resource bus_range;
-> +	struct pci_ops *ops;
-> +	struct pci_config_window *(*init)(struct acpi_pci_root *root,
-> +					  struct pci_ops *ops);
-> +};
-> +
-> +#define MCFG_DOM_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
-> +						((end) - (start) + 1), NULL, 0)
-> +#define MCFG_DOM_ANY			MCFG_DOM_RANGE(0x0, 0xffff)
-> +#define MCFG_BUS_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
-> +						((end) - (start) + 1),	\
-> +						NULL, IORESOURCE_BUS)
-> +#define MCFG_BUS_ANY			MCFG_BUS_RANGE(0x0, 0xff)
-> +
-> +static struct pci_cfg_fixup mcfg_quirks[] __initconst = {
-                                             ^^^^^^^^^^^^^^
+> What about named components with multiple stream ids? Since
+> establishing the relationship between a named component and its parent
+> smmu is already dependent on there being an appropriate mapping of rid
+> 0, it stands to reason that all of the stream ids for a named
+> component could be enumerated by mapping increasing rid values until
+> the output parent no longer matches that returned for rid 0.
 
-I get section warnings because pci_cfg_fixup_match() is not
-an init function.
+Yes, that's a good point, what I am doing currently for named
+components is not correct I will update the handling in the next
+version. In particular, I think that we should support only
+single mappings for named components for the time being and add
+code to carry out the mapping as it is done in DT through the
+iommus property handling in of_iommu_configure().
 
-WARNING: vmlinux.o(.text+0x3f6c74): Section mismatch in reference from the function pci_mcfg_match_quirks() to the variable .init.rodata:$d
-The function pci_mcfg_match_quirks() references
-the variable __initconst $d.
-This is often because pci_mcfg_match_quirks lacks a __initconst 
-annotation or the annotation of $d is wrong.
+> >+			return fwspec_iommu_get_ops(iort_fwnode);
+> >+		}
+> >+	}
+> >+
+> >+	return NULL;
+> >+}
+> 
+> It should be noted that while trying out the approach described above,
+> I noticed that each of the smmu attached named components described in
+> my iort were ending up with an extra stream id. The culprit appears to
+> be that the range checking in iort_id_map() is overly permissive on
+> the upper bounds. For example, mappings with input_base=N and
+> id_count=1 were matching both N and N+1. The following change fixed
+> the issue.
 
-> +/*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, pci_ops, init_hook }, */
-> +};
-> +
-> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
-> +				 struct acpi_table_header *mcfg_header)
-> +{
-> +	return (!memcmp(f->oem_id, mcfg_header->oem_id, ACPI_OEM_ID_SIZE) &&
-> +		!memcmp(f->oem_table_id, mcfg_header->oem_table_id,
-> +			ACPI_OEM_TABLE_ID_SIZE) &&
-> +		f->oem_revision == mcfg_header->oem_revision);
-> +}
-> +
-> +struct pci_config_window *pci_mcfg_match_quirks(struct acpi_pci_root *root)
-> +{
-> +	struct resource dom_res = MCFG_DOM_RANGE(root->segment, root->segment);
-> +	struct resource *bus_res = &root->secondary;
-> +	struct pci_cfg_fixup *f = mcfg_quirks;
-> +	struct acpi_table_header *mcfg_header;
-> +	acpi_status status;
-> +	int i;
-> +
-> +	status = acpi_get_table(ACPI_SIG_MCFG, 0, &mcfg_header);
-> +	if (ACPI_FAILURE(status))
-> +		return NULL;
-> +
-> +	/*
-> +	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
-> +	 * table ID, and OEM revision from MCFG table standard header.
-> +	 */
-> +	for (i = 0; i < ARRAY_SIZE(mcfg_quirks); i++, f++) {
-> +		if (resource_contains(&f->domain_range, &dom_res) &&
-> +		    resource_contains(&f->bus_range, bus_res) &&
-> +		    pci_mcfg_fixup_match(f, mcfg_header)) {
-> +			dev_info(&root->device->dev, "Applying PCI MCFG quirks for %s %s rev: %d\n",
-> +				 f->oem_id, f->oem_table_id, f->oem_revision);
-> +			return f->init ? f->init(root, f->ops) :
-> +				pci_acpi_setup_ecam_mapping(root, f->ops);
-> +		}
-> +	}
-> +	return pci_acpi_setup_ecam_mapping(root, &pci_generic_ecam_ops.pci_ops);
-> +}
-> diff --git a/drivers/pci/host/mcfg-quirks.h b/drivers/pci/host/mcfg-quirks.h
-> new file mode 100644
-> index 0000000..45cbd16
-> --- /dev/null
-> +++ b/drivers/pci/host/mcfg-quirks.h
-> @@ -0,0 +1,20 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, version 2, as
-> + * published by the Free Software Foundation (the "GPL").
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License version 2 (GPLv2) for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * version 2 (GPLv2) along with this source code.
-> + */
-> +
-> +#ifndef __MCFG_QUIRKS_H__
-> +#define __MCFG_QUIRKS_H__
-> +
-> +/* MCFG quirks initialize call list */
-> +
-> +#endif /* __MCFG_QUIRKS_H__ */
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index e9bfe00..28cdce4 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -25,6 +25,8 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
->  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
->  
->  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
-> +extern struct pci_config_window *
-> +pci_mcfg_match_quirks(struct acpi_pci_root *root);
->  
->  extern struct pci_config_window *
->  pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root, struct pci_ops *ops);
+I will ask Tomasz to fix it up.
 
+> @@ -296,7 +296,7 @@ iort_id_map(struct acpi_iort_id_mapping *map, u8
+> type, u32 rid_in, u32 *rid_out)
+>         }
+> 
+>         if (rid_in < map->input_base ||
+> -           (rid_in > map->input_base + map->id_count))
+> +           (rid_in >= map->input_base + map->id_count))
+>                 return -ENXIO;
+> 
+>         *rid_out = map->output_base + (rid_in - map->input_base);
+> 
+> >+
+> > static void acpi_smmu_v3_register_irq(int hwirq, const char *name,
+> > 				      struct resource *res)
+> > {
+> >diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> >index b4b9064..de28825 100644
+> >--- a/drivers/acpi/scan.c
+> >+++ b/drivers/acpi/scan.c
+> >@@ -7,6 +7,7 @@
+> > #include <linux/slab.h>
+> > #include <linux/kernel.h>
+> > #include <linux/acpi.h>
+> >+#include <linux/iort.h>
+> > #include <linux/signal.h>
+> > #include <linux/kthread.h>
+> > #include <linux/dmi.h>
+> >@@ -1365,11 +1366,15 @@ enum dev_dma_attr acpi_get_dma_attr(struct
+> >acpi_device *adev)
+> >  */
+> > void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> > {
+> >+	const struct iommu_ops *iommu;
+> >+
+> >+	iommu = iort_iommu_configure(dev);
+> >+
+> > 	/*
+> > 	 * Assume dma valid range starts at 0 and covers the whole
+> > 	 * coherent_dma_mask.
+> > 	 */
+> >-	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
+> >+	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
+> > 			   attr == DEV_DMA_COHERENT);
+> 
+> If dev has a matching named component iort entry with a non-zero value
+> for memory_address_limit, why not use that as the size input to
+> arch_setup_dma_ops?
+
+I was hoping to address this through something more generic (ie
+_DMA object - I am not sure it was ever used in x86 world though)
+in ACPI rather than relying on IORT named component specific
+firmware data (similar to "dma-ranges" handling in DT), I will
+certainly keep this in mind though.
+
+Thanks !
+Lorenzo
