@@ -1,45 +1,49 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [RFC PATCH V5 5/5] PCI: thunder-pem: Support quirky
- configuration space access for ACPI based PCI host controller
-Date: Tue, 9 Aug 2016 13:04:13 +0200
-Message-ID: <20160809110413.GV22012@rric.localdomain>
-References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
- <1470661541-26270-6-git-send-email-tn@semihalf.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V5 1/3] x86/ioapic: Support hot-removal of IOAPICs present
+ during boot
+Date: Tue, 9 Aug 2016 14:09:32 +0200
+Message-ID: <CAJZ5v0hPCnDRjntnj-x7D_0FKkdO7Rtxzjp7xnmg57ngidxCiA@mail.gmail.com>
+References: <20160808202251.GB6129@localhost> <1470713005-23690-1-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1470661541-26270-6-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: gabriele.paoloni@huawei.com, rafael@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, andrea.gallo@linaro.org, Lorenzo.Pieralisi@arm.com, jhugo@codeaurora.org, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, helgaas@kernel.org, liudongdong3@huawei.com, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, arnd@arndb.de, jcm@redhat.com, msalter@redhat.com, cov@codeaurora.org, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, ard.biesheuvel@linaro.org, dhdang@apm.com, linux-kernel@vger.kernel.org, jeremy.linton@arm.com, hanjun.guo@linaro.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36332 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932249AbcHIMJf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 08:09:35 -0400
+In-Reply-To: <1470713005-23690-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 08.08.16 15:05:41, Tomasz Nowicki wrote:
-> Add infrastructure to support ThunderX PEM specific PCI configuration space
-> access for ACPI based PCI host controller. This involves:
-> 1. New initialization call thunder_pem_cfg_init() to create configuration
-> space mapping based on hardcoded range addresses
-> 2. thunder_pem_init() ACPI extension to obtain hardcoded addresses for
-> PEM specific register ranges
-> 3. New quirk entry (for common quirk array) which identifies platform and
-> calls thunder_pem_cfg_init() from [1]
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+On Tue, Aug 9, 2016 at 5:23 AM, Rui Wang <rui.y.wang@intel.com> wrote:
+> On Tuesday, Aug 9, 2016 4:23 AM, Bjorn Helgaas wrote:
+>> On Sun, Jun 26, 2016 at 11:44:57AM +0800, Rui Wang wrote:
+>> > v5: Remove #ifdef CONFIG_X86 from setup-bus.c, making it neutral to
+>> archs.
+>> > v4: Add comments explaining when to call acpi_ioapic_add().
+>> > v3: Previous versions break mips. This version fixes it.
+>> >
+>> > IOAPICs present during system boot aren't added to ioapic_list, thus
+>> > are unable to be hot-removed. Fix it by calling
+>> > acpi_ioapic_add() during root bus enumeration.
+>> >
+>> > Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+>>
+>> Hi Rui,
+>>
+>> Where are we at with this?  If there's anything that still needs to be merged,
+>> can you rebase it to v4.8-rc1 and post a new, complete, series?
+>>
+> Hi Bjorn,
+>
+> Yes. These patches are needed for IOAPIC hotplug to work.
+>
+> So Thomas & Rafael, any advice?
 
-Acked-by: Robert Richter <rrichter@cavium.com>
+Can you please do as per what Bjorn said?  That is, rebase the series
+on top of 4.8-rc1 and post it afresh?
 
-> ---
->  drivers/pci/host/mcfg-quirks.c     |  7 +++
->  drivers/pci/host/mcfg-quirks.h     |  4 ++
->  drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
->  3 files changed, 94 insertions(+), 13 deletions(-)
+Thanks,
+Rafael
