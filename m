@@ -1,51 +1,43 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH v2 1/2] ACPI/tables: Correct the wrong count increasing
-Date: Tue, 9 Aug 2016 08:30:06 +0800
-Message-ID: <20160809003006.GF16660@x1.redhat.com>
-References: <1470697311-1292-1-git-send-email-bhe@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rui Wang <rui.y.wang@intel.com>
+Subject: Re: [PATCH V5 1/3] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Tue,  9 Aug 2016 11:23:25 +0800
+Message-ID: <1470713005-23690-1-git-send-email-rui.y.wang@intel.com>
+References: <20160808202251.GB6129@localhost>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59230 "EHLO mx1.redhat.com"
+Received: from mga01.intel.com ([192.55.52.88]:17790 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750929AbcHIAaK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Aug 2016 20:30:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1470697311-1292-1-git-send-email-bhe@redhat.com>
+	id S1752254AbcHIDkG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Aug 2016 23:40:06 -0400
+In-Reply-To: <20160808202251.GB6129@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: helgaas@kernel.org
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 
-The current code always increases the count in the 1st element of
-array proc[].
+On Tuesday, Aug 9, 2016 4:23 AM, Bjorn Helgaas wrote:
+> On Sun, Jun 26, 2016 at 11:44:57AM +0800, Rui Wang wrote:
+> > v5: Remove #ifdef CONFIG_X86 from setup-bus.c, making it neutral to
+> archs.
+> > v4: Add comments explaining when to call acpi_ioapic_add().
+> > v3: Previous versions break mips. This version fixes it.
+> >
+> > IOAPICs present during system boot aren't added to ioapic_list, thus
+> > are unable to be hot-removed. Fix it by calling
+> > acpi_ioapic_add() during root bus enumeration.
+> >
+> > Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> 
+> Hi Rui,
+> 
+> Where are we at with this?  If there's anything that still needs to be merged,
+> can you rebase it to v4.8-rc1 and post a new, complete, series?
+> 
+Hi Bjorn,
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
+Yes. These patches are needed for IOAPIC hotplug to work.
 
-v1->v2:
-    V1 is a wrong post because I didn't update the tested code to my
-    local laptop. Repost with a correct v2.
+So Thomas & Rafael, any advice?
 
- drivers/acpi/tables.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 9f0ad6e..34d45bb 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -281,7 +281,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 			     proc[i].handler(entry, table_end))
- 				return -EINVAL;
- 
--			proc->count++;
-+			proc[i].count++;
- 			break;
- 		}
- 		if (i != proc_num)
--- 
-2.5.5
+Thanks
+Rui
 
