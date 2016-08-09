@@ -1,51 +1,62 @@
-From: kamlakant.patel@broadcom.com
-Subject: [PATCH 1/2] ACPI / APD: Add device HID for Vulcan SPI controller
-Date: Tue,  9 Aug 2016 19:35:21 +0530
-Message-ID: <1470751522-11060-1-git-send-email-kamlakant.patel@broadcom.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 0/3]
+Date: Tue, 09 Aug 2016 19:01:17 +0300
+Message-ID: <1470758477.25395.12.camel@linux.intel.com>
+References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:64338 "EHLO
-	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbcHIO1T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 10:27:19 -0400
+Received: from mga04.intel.com ([192.55.52.120]:42731 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752103AbcHIQB0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Aug 2016 12:01:26 -0400
+In-Reply-To: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki \"" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Kamlakant Patel <kamlakant.patel@broadcom.com>, linux-acpi@vger.kernel.org, Jayachandran C <jchandra@broadcom.com>, Mark Brown <broonie@kernel.org>
+To: Kefeng Wang <wangkefeng.wang@huawei.com>, gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 
-From: Kamlakant Patel <kamlakant.patel@broadcom.com>
+On Fri, 2016-07-15 at 19:01 +0800, Kefeng Wang wrote:
+> Make dw8250_set_termios() as the default set_termios callback for 8250
+> dw uart, correct me
+> if I am wrong.
+> 
+> Then add ACPI support for uart on Hisilicon Hip05 soc, be careful that
+> it is not 16500
+> compatible. Meanwhile, set dw8250_serial_out32 to keep consistent
+> between serial_out
+> and serial_in in ACPI.
 
-Add device HID for SPI controller on Broadcom Vulcan ARM64.
-The default frequency for SPI on Vulcan is 133MHz.
+I will review it perhaps late this week.
+Though have a quick question, did you test it? I hope you have done.
 
-Signed-off-by: Kamlakant Patel <kamlakant.patel@broadcom.com>
----
- drivers/acpi/acpi_apd.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+> 
+> Change since v2:
+> - Add a new patch to use new var dev in probe
+> - Use built-in device properties to set device parameters for existing
+> device probed by acpi,
+>   suggested by Andy Shevchenko 
+> 
+> 
+> Change since v1:
+> - Use acpi_match_device() instead of acpi_dev_found(), limit the check
+> to the device
+>   being probed and not a global search for whole DSDT (pointed by grae
+> me.gregory@linaro.org)
+> 
+> Kefeng Wang (3):
+>   serial: 8250_dw: make dw8250_set_termios as default set_termios
+>     callback
+>   serial: 8250_dw: Use new dev variable in probe
+>   serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 soc
+> 
+>  drivers/tty/serial/8250/8250_dw.c | 71 ++++++++++++++++++++++------
+> -----------
+>  1 file changed, 41 insertions(+), 30 deletions(-)
+> 
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 1daf9c4..c80c8f8 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -87,6 +87,11 @@ static struct apd_device_desc xgene_i2c_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 100000000,
- };
-+
-+static struct apd_device_desc vulcan_spi_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 133000000,
-+};
- #endif
- 
- #else
-@@ -149,6 +154,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- #endif
- #ifdef CONFIG_ARM64
- 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
-+	{ "BRCM900D", APD_ADDR(vulcan_spi_desc) },
- #endif
- 	{ }
- };
 -- 
-1.9.1
 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
