@@ -1,103 +1,28 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH V2 3/5] ACPI/CPPC: support for batching CPPC requests
-Date: Mon, 8 Aug 2016 18:09:56 -0600
-Message-ID: <bf9134cd-3055-d4e3-652a-a8dee0aa9e26@codeaurora.org>
-References: <1469562328-10201-1-git-send-email-pprakash@codeaurora.org>
- <1469562328-10201-4-git-send-email-pprakash@codeaurora.org>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH 1/2] ACPI/tables: Correct the wrong count increasing
+Date: Tue, 9 Aug 2016 08:28:02 +0800
+Message-ID: <20160809002802.GE16660@x1.redhat.com>
+References: <1470697311-1292-1-git-send-email-bhe@redhat.com>
+ <201608090738.otXchGNj%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39267 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751596AbcHIAKA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Aug 2016 20:10:00 -0400
-In-Reply-To: <1469562328-10201-4-git-send-email-pprakash@codeaurora.org>
+Received: from mx1.redhat.com ([209.132.183.28]:46890 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932115AbcHIA2G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Aug 2016 20:28:06 -0400
+Content-Disposition: inline
+In-Reply-To: <201608090738.otXchGNj%fengguang.wu@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Alexey,
+Sorry, I tested in another system, but forget updating code on my
+laptop.
 
-On 7/26/2016 1:45 PM, Prashanth Prakash wrote:
-> CPPC defined in section 8.4.7 of ACPI 6.0 specification suggests
-> "To amortize the cost of PCC transactions, OSPM should read or write
-> all PCC registers via a single read or write command when possible"
-> This patch enables opportunistic batching of frequency transition
-> requests whenever the request happen to overlap in time.
->
-> Currently the access to pcc is serialized by a spin lock which does
-> not scale well as we increase the number of cores in the system. This
-> patch improves the scalability by allowing the differnt CPU cores to
-> update PCC subspace in parallel and by batching requests which will
-> reduce the certain types of operation(checking command completion bit,
-> ringing doorbell) by a significant margin.
->
-> Profiling shows significant improvement in the overall effeciency
-> to service freq. transition requests. With this patch we observe close
-> to 30% of the frequency transition requests being batched with other
-> requests while running apache bench on a ARM platform with 6
-> independent domains(or sets of related cpus).
->
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> ---
->  drivers/acpi/cppc_acpi.c | 176 +++++++++++++++++++++++++++++++++++++++--------
->  1 file changed, 147 insertions(+), 29 deletions(-)
->
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 93826c7..4a887d4 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -40,15 +40,35 @@
->  #include <linux/cpufreq.h>
->  #include <linux/delay.h>
->  #include <linux/ktime.h>
-> +#include <linux/rwsem.h>
-> +#include <linux/wait.h>
->  
->  #include <acpi/cppc_acpi.h>
-> +
->  /*
-> - * Lock to provide mutually exclusive access to the PCC
-> - * channel. e.g. When the remote updates the shared region
-> - * with new data, the reader needs to be protected from
-> - * other CPUs activity on the same channel.
-> + * Lock to provide controlled access to the PCC channel.
-> + *
-> + * For performance critical usecases(currently cppc_set_perf)
-> + *	We need to take read_lock and check if channel belongs to OSPM before
-> + * reading or writing to PCC subspace
-> + *	We need to take write_lock before transferring the channel ownership to
-> + * the platform via a Doorbell
-> + *	This allows us to batch a number of CPPC requests if they happen to
-> + * originate in about the same time
-> + *
-> + * For non-performance critical usecases(init)
-> + *	Take write_lock for all purposes which gives exclusive access
->   */
-> -static DEFINE_SPINLOCK(pcc_lock);
-> +static DECLARE_RWSEM(pcc_lock);
-> +
-> +/* Indicates if there are any pending/batched PCC write commands */
-> +static bool pending_pcc_write_cmd;
-> +
-> +/* Wait queue for CPUs whose requests were batched */
-> +static DECLARE_WAIT_QUEUE_HEAD(pcc_write_wait_q);
-> +
-> +/* Used to identify if a batched request is delivered to platform */
-> +static unsigned int pcc_write_cnt;
->  
-I haven't found a use-case(that would be used with CPPC) for POSTCHANGE
-notification, that require us to be very accurate. Given that cpufreq_stats will not
-be supported with CPPC and moreover CPPC protocol itself doesn't guarantee any
-time bounds on when the actual request will be executed by the platform, I am
-leaning towards getting rid of the wait queue that made sure delivery of request
-to the platform before calling cpufreq_freq_transition_end, in the interest of better
-performance and simpler code.
+Will reply with a v2 post.
 
-Thoughts?
+Sorry again about this mistake.
 
-Thanks,
-Prashanth
+
