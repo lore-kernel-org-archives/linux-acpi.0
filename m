@@ -1,15 +1,15 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH 01/10] irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
-Date: Tue, 9 Aug 2016 15:05:57 +0800
-Message-ID: <1470726366-40809-2-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH 04/10] irqchip: gicv3-its: platform-msi: scan MADT to create platform msi domain
+Date: Tue, 9 Aug 2016 15:06:00 +0800
+Message-ID: <1470726366-40809-5-git-send-email-guohanjun@huawei.com>
 References: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:13292 "EHLO
+Received: from szxga03-in.huawei.com ([119.145.14.66]:13301 "EHLO
 	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbcHIHLo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 03:11:44 -0400
+	with ESMTP id S1751324AbcHIHLp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 03:11:45 -0400
 In-Reply-To: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,66 +18,82 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Adding ACPI support for platform MSI, we need to retrieve the
-dev id in ACPI way instead of device tree, we already have
-a well formed function its_pmsi_prepare() to get the dev id
-but it's OF dependent, so collect OF related code and put them
-into a single function to make its_pmsi_prepare() more friendly
-to ACPI later.
+With the introduction of its_pmsi_init_one(), we can add some code
+on top for ACPI support of platform MSI.
+
+We are scanning the MADT table to get the ITS entry(ies), then use
+the information to create the platform msi domain for devices connect
+to it, just like the PCI MSI for ITS did.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 38 +++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
 diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-index 470b4aa..3c94278 100644
+index 247010a..b7add84 100644
 --- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
 +++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-@@ -24,15 +24,11 @@ static struct irq_chip its_pmsi_irq_chip = {
- 	.name			= "ITS-pMSI",
- };
+@@ -15,7 +15,9 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
  
--static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
--			    int nvec, msi_alloc_info_t *info)
-+static int of_pmsi_get_dev_id(struct irq_domain *domain, struct device *dev,
-+				  u32 *dev_id)
- {
--	struct msi_domain_info *msi_info;
--	u32 dev_id;
- 	int ret, index = 0;
++#include <linux/acpi.h>
+ #include <linux/device.h>
++#include <linux/iort.h>
+ #include <linux/msi.h>
+ #include <linux/of.h>
+ #include <linux/of_irq.h>
+@@ -104,6 +106,41 @@ static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
+ 	return 0;
+ }
  
--	msi_info = msi_get_domain_info(domain->parent);
--
- 	/* Suck the DeviceID out of the msi-parent property */
- 	do {
- 		struct of_phandle_args args;
-@@ -43,11 +39,24 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
- 		if (args.np == irq_domain_get_of_node(domain)) {
- 			if (WARN_ON(args.args_count != 1))
- 				return -EINVAL;
--			dev_id = args.args[0];
-+			*dev_id = args.args[0];
- 			break;
- 		}
- 	} while (!ret);
- 
-+	return ret;
++#ifdef CONFIG_ACPI
++static int __init
++its_pmsi_parse_madt(struct acpi_subtable_header *header,
++			const unsigned long end)
++{
++	struct acpi_madt_generic_translator *its_entry;
++	struct fwnode_handle *domain_handle;
++	const char *node_name;
++	int err = -ENXIO;
++
++	its_entry = (struct acpi_madt_generic_translator *)header;
++	node_name = kasprintf(GFP_KERNEL, "ITS@0x%lx",
++			      (long)its_entry->base_address);
++	domain_handle = iort_find_domain_token(its_entry->translation_id);
++	if (!domain_handle) {
++		pr_err("%s: Unable to locate ITS domain handle\n", node_name);
++		goto out;
++	}
++
++	err = its_pmsi_init_one(domain_handle, node_name);
++
++out:
++	kfree(node_name);
++	return err;
 +}
 +
-+static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
-+			    int nvec, msi_alloc_info_t *info)
++static void __init its_acpi_pmsi_init(void)
 +{
-+	struct msi_domain_info *msi_info;
-+	u32 dev_id;
-+	int ret;
++	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
++			      its_pmsi_parse_madt, 0);
++}
++#else
++static inline void its_acpi_pmsi_init(void) { }
++#endif
 +
-+	msi_info = msi_get_domain_info(domain->parent);
-+
-+	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
- 	if (ret)
- 		return ret;
- 
+ static void __init its_pmsi_of_init(void)
+ {
+ 	struct device_node *np;
+@@ -120,6 +157,7 @@ static void __init its_pmsi_of_init(void)
+ static int __init its_pmsi_init(void)
+ {
+ 	its_pmsi_of_init();
++	its_acpi_pmsi_init();
+ 	return 0;
+ }
+ early_initcall(its_pmsi_init);
 -- 
 1.7.12.4
 
