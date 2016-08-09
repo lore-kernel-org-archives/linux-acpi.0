@@ -1,14 +1,16 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH 00/10] ACPI platform MSI, interrupt producer and its example mbi-gen
-Date: Tue, 9 Aug 2016 15:05:56 +0800
-Message-ID: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH 01/10] irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+Date: Tue, 9 Aug 2016 15:05:57 +0800
+Message-ID: <1470726366-40809-2-git-send-email-guohanjun@huawei.com>
+References: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:13195 "EHLO
+Received: from szxga03-in.huawei.com ([119.145.14.66]:13292 "EHLO
 	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbcHIHLg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 03:11:36 -0400
+	with ESMTP id S1751194AbcHIHLo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 03:11:44 -0400
+In-Reply-To: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -16,101 +18,66 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-With platform msi support landed in the kernel, and the introduction
-of IORT for GICv3 ITS (PCI MSI) [1], the framework for platform msi
-is ready, this patch set add few patches to enable the ACPI platform
-msi support.
+Adding ACPI support for platform MSI, we need to retrieve the
+dev id in ACPI way instead of device tree, we already have
+a well formed function its_pmsi_prepare() to get the dev id
+but it's OF dependent, so collect OF related code and put them
+into a single function to make its_pmsi_prepare() more friendly
+to ACPI later.
 
-For platform device connecting to ITS on arm platform, we have IORT
-table with the named componant node to describe the mappings of paltform
-device and ITS, so we can retrieve the dev id and find its parent
-irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-With acpi platform msi supported, we add the ACPI support for irqchip
-mbi-gen, which use this framework to form its stacked irqdomain, below
-is the mbi-gen's topology in the system:
-
-
-  | ---------------|                  |------------------|
-  |                |       MSI        |                  |     wired interrupt(s)
-  |       ITS      |<-----------------|   MBI-GEN        |<----------------------------- IO device(s)
-  |                |                  |                  |<----------------------------- IO device(s)
-  ------------------                  -------------------
-
-So with ACPI platform MSI support, we can build the stacked domain for
-mbi-gen which represented its mappings with the named componant in IORT,
-but we still missing the connectings of devices to mbi-gen as in ACPI
-world devices connect to main interrupt controller in MADT in default.
-
-In ACPI 6.1, section 19.6.62, Interrupt Resource Descriptor Macro,
-
-    Interrupt (ResourceUsage, EdgeLevel, ActiveLevel, Shared,
-    ResourceSourceIndex, ResourceSource, DescriptorName)
-    { InterruptList } => Buffer
-    
-For the arguement ResourceUsage and DescriptorName, which means:
-    
-ResourceUsage describes whether the device consumes the specified
-interrupt ( ResourceConsumer ) or produces it for use by a child
-device ( ResourceProducer ).
-If nothing is specified, then ResourceConsumer is assumed.
-    
-DescriptorName evaluates to a name string which refers to the
-entire resource descriptor.
-    
-So it can be used for devices connecting to a specific interrupt
-prodcucer instead of the main interrupt controller in MADT, we can
-define:
-
-Interrupt(ResourceConsumer,..., "\_SB.IRQP") {12,14,....},
-
-then get the interrupt producer with the full path name "\_SB.IRQP".
-
-This is the RFC version and we still needs to address:
- - the code is still in drivers/acpi/iort.c which will move to
-   drivers/acpi/arm64 in the future;
-
- - Retrieve the dev id from IORT which require the req_id but
-   for platform device we don't need that, so we may need to
-   add proper API for platform device;
-
- - Setting device's MSI domain's code is just plugged into the platform
-   driver core code, which may need better solution.
-
-Comments are warmly welcomed!
-
-Thanks
-Hanjun
-
-
-Hanjun Guo (8):
-  irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
-  ACPI: platform-msi: retrieve dev id from IORT
-  irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
-    for ACPI
-  irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
-    domain
-  ACPI: platform: setup MSI domain for ACPI based platform device
-  msi: platform: make platform_msi_create_device_domain() ACPI aware
-  ACPI: irq: introduce interrupt producer
-  irqchip: mbigen: Add ACPI support
-
-Kefeng Wang (2):
-  irqchip: mbigen: drop module owner
-  irqchip: mbigen: introduce mbigen_of_create_domain()
-
- drivers/acpi/gsi.c                            |  10 ++-
- drivers/acpi/iort.c                           |  32 +++++++-
- drivers/acpi/resource.c                       |  85 ++++++++++++++------
- drivers/base/platform-msi.c                   |  19 ++++-
- drivers/base/platform.c                       |   2 +
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 107 +++++++++++++++++++------
- drivers/irqchip/irq-mbigen.c                  | 109 ++++++++++++++++++++++----
- include/acpi/acpi_bus.h                       |   1 +
- include/linux/iort.h                          |   7 ++
- include/linux/msi.h                           |   1 +
- 10 files changed, 300 insertions(+), 73 deletions(-)
-
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 470b4aa..3c94278 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -24,15 +24,11 @@ static struct irq_chip its_pmsi_irq_chip = {
+ 	.name			= "ITS-pMSI",
+ };
+ 
+-static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+-			    int nvec, msi_alloc_info_t *info)
++static int of_pmsi_get_dev_id(struct irq_domain *domain, struct device *dev,
++				  u32 *dev_id)
+ {
+-	struct msi_domain_info *msi_info;
+-	u32 dev_id;
+ 	int ret, index = 0;
+ 
+-	msi_info = msi_get_domain_info(domain->parent);
+-
+ 	/* Suck the DeviceID out of the msi-parent property */
+ 	do {
+ 		struct of_phandle_args args;
+@@ -43,11 +39,24 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+ 		if (args.np == irq_domain_get_of_node(domain)) {
+ 			if (WARN_ON(args.args_count != 1))
+ 				return -EINVAL;
+-			dev_id = args.args[0];
++			*dev_id = args.args[0];
+ 			break;
+ 		}
+ 	} while (!ret);
+ 
++	return ret;
++}
++
++static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
++			    int nvec, msi_alloc_info_t *info)
++{
++	struct msi_domain_info *msi_info;
++	u32 dev_id;
++	int ret;
++
++	msi_info = msi_get_domain_info(domain->parent);
++
++	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
 1.7.12.4
 
