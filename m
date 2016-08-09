@@ -1,62 +1,51 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [RFC PATCH V5 0/5] ECAM quirks handling for ARM64 platforms
-Date: Tue, 9 Aug 2016 07:20:04 -0700
-Message-ID: <CADaLNDnabEFArcepRCjLyWt=nWdzTzWLLAkwP+G=T+79WU9ZgQ@mail.gmail.com>
-References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1470661541-26270-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>, jeremy.linton@arm.com, Dongdong Liu <liud>
+From: kamlakant.patel@broadcom.com
+Subject: [PATCH 1/2] ACPI / APD: Add device HID for Vulcan SPI controller
+Date: Tue,  9 Aug 2016 19:35:21 +0530
+Message-ID: <1470751522-11060-1-git-send-email-kamlakant.patel@broadcom.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:64338 "EHLO
+	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056AbcHIO1T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 10:27:19 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki \"" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Kamlakant Patel <kamlakant.patel@broadcom.com>, linux-acpi@vger.kernel.org, Jayachandran C <jchandra@broadcom.com>, Mark Brown <broonie@kernel.org>
 
-On Mon, Aug 8, 2016 at 6:05 AM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> Quirk handling relies on an idea of matching MCFG OEM ID, TABLE ID and
-> revision (the ones from standard header of MCFG table).
->
-> Static array is used to keep quirk entries. Each entry consists of
-> mentioned MCFG IDs along with custom pci_ops structure and initialization call.
->
-> As an example, the last patch presents quirk handling mechanism usage for
-> ThunderX PEM driver.
+From: Kamlakant Patel <kamlakant.patel@broadcom.com>
 
-Tested on X-Gene with X-Gene Ecam quirk and the PCIe ports work fine
-with this patch set.
+Add device HID for SPI controller on Broadcom Vulcan ARM64.
+The default frequency for SPI on Vulcan is 133MHz.
 
->
-> v4 -> v5
-> - rebase against v4.8-rc1
-> - rework to exact MCFG OEM ID, TABLE ID, rev match
->   - use memcmp instead of strncmp
->   - no substring match
-> - fix typos and dmesg message
->
-> Tomasz Nowicki (5):
->   PCI: Embed pci_ecam_ops in pci_config_window structure
->   PCI/ACPI: Move ACPI ECAM mapping to generic MCFG driver
->   PCI: Check platform specific ECAM quirks
->   ARM64/PCI: Start using quirks handling for ACPI based PCI host
->     controller
->   PCI: thunder-pem: Support quirky configuration space access for ACPI
->     based PCI host controller
->
->  arch/arm64/kernel/pci.c            | 42 +----------------
->  drivers/acpi/pci_mcfg.c            | 40 ++++++++++++++++
->  drivers/pci/ecam.c                 |  6 +--
->  drivers/pci/host/Makefile          |  1 +
->  drivers/pci/host/mcfg-quirks.c     | 93 ++++++++++++++++++++++++++++++++++++
->  drivers/pci/host/mcfg-quirks.h     | 24 ++++++++++
->  drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
->  include/linux/pci-acpi.h           |  5 ++
->  include/linux/pci-ecam.h           |  2 +-
->  9 files changed, 252 insertions(+), 57 deletions(-)
->  create mode 100644 drivers/pci/host/mcfg-quirks.c
->  create mode 100644 drivers/pci/host/mcfg-quirks.h
->
-> --
-> 1.9.1
->
-Regards,
-Duc Dang.
+Signed-off-by: Kamlakant Patel <kamlakant.patel@broadcom.com>
+---
+ drivers/acpi/acpi_apd.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 1daf9c4..c80c8f8 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -87,6 +87,11 @@ static struct apd_device_desc xgene_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+ 	.fixed_clk_rate = 100000000,
+ };
++
++static struct apd_device_desc vulcan_spi_desc = {
++	.setup = acpi_apd_setup,
++	.fixed_clk_rate = 133000000,
++};
+ #endif
+ 
+ #else
+@@ -149,6 +154,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+ #endif
+ #ifdef CONFIG_ARM64
+ 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
++	{ "BRCM900D", APD_ADDR(vulcan_spi_desc) },
+ #endif
+ 	{ }
+ };
+-- 
+1.9.1
+
