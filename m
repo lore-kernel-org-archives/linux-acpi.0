@@ -1,15 +1,15 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH 10/10] irqchip: mbigen: Add ACPI support
-Date: Tue, 9 Aug 2016 15:06:06 +0800
-Message-ID: <1470726366-40809-11-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH 07/10] ACPI: irq: introduce interrupt producer
+Date: Tue, 9 Aug 2016 15:06:03 +0800
+Message-ID: <1470726366-40809-8-git-send-email-guohanjun@huawei.com>
 References: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:15815 "EHLO
+Received: from szxga03-in.huawei.com ([119.145.14.66]:22819 "EHLO
 	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbcHIHOw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 03:14:52 -0400
+	with ESMTP id S1750810AbcHIHXV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Aug 2016 03:23:21 -0400
 In-Reply-To: <1470726366-40809-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,158 +18,254 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-With the preparation of platform msi support and interrupt producer
-in DSDT, we can add mbigen ACPI support now.
+In ACPI 6.1 spec, section 19.6.62, Interrupt Resource Descriptor Macro,
 
-We are using _PRS methd to indicate number of irq pins instead
-of num_pins in DT.
+Interrupt (ResourceUsage, EdgeLevel, ActiveLevel, Shared,
+ResourceSourceIndex, ResourceSource, DescriptorName)
+{ InterruptList } => Buffer
 
-For mbi-gen,
-    Device(MBI0) {
-          Name(_HID, "HISI0152")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-          })
+For the arguement ResourceUsage and DescriptorName, which means:
 
-          Name (_PRS, ResourceTemplate() {
-		  Interrupt(ResourceProducer,...) {12,14,....}
-          })
-    }
+ResourceUsage describes whether the device consumes the specified
+interrupt ( ResourceConsumer ) or produces it for use by a child
+device ( ResourceProducer ).
+If nothing is specified, then ResourceConsumer is assumed.
 
-For devices,
+DescriptorName evaluates to a name string which refers to the
+entire resource descriptor.
 
-   Device(COM0) {
-          Name(_HID, "ACPIIDxx")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
-          })
-    }
+So it can be used for devices connecting to a specific interrupt
+prodcucer instead of the main interrupt controller in MADT. In the
+real world, we have irqchip such as mbi-gen which connecting to
+a group of wired interrupts and then issue msi to the ITS, devices
+connecting to such interrupt controller fit this scope.
 
-With the helpe of platform msi and interrupt producer, then devices
-will get the virq from mbi-gen's irqdomain.
+For now the irq for ACPI only pointer to the main interrupt
+controller's irqdomain, for devices not connecting to those
+irqdomains, which need to present its irq parent, we can use
+following ASL code to represent it:
+
+Interrupt(ResourceConsumer,..., "\_SB.IRQP") {12,14,....}
+
+then we can parse the interrupt producer with the full
+path name "\_SB.IRQP".
+
+In order to do that, we introduce a pointer interrupt_producer
+in struct acpi_device, and fill it when scanning irq resources
+for acpi device if it specifies the interrupt producer.
+
+But for now when parsing the resources for acpi devices, we don't
+pass the acpi device for acpi_walk_resoures() in drivers/acpi/resource.c,
+so introduce a adev in struct res_proc_context to pass it as a context
+to scan the interrupt resources, then finally pass to acpi_register_gsi()
+to find its interrupt producer to get the virq from diffrent domains.
+
+With steps above ready, rework acpi_register_gsi() to get other
+interrupt producer if devices not connecting to main interrupt
+controller.
+
+Since we often pass NULL to acpi_register_gsi() and there is no interrupt
+producer for devices connect to gicd on ARM or io-apic on X86, so it will
+use the default irqdomain for those deivces and no functional changes to
+those devices.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 67 insertions(+), 3 deletions(-)
+ drivers/acpi/gsi.c      | 10 ++++--
+ drivers/acpi/resource.c | 85 ++++++++++++++++++++++++++++++++++---------------
+ include/acpi/acpi_bus.h |  1 +
+ 3 files changed, 68 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-index 9484ea0..80d6842 100644
---- a/drivers/irqchip/irq-mbigen.c
-+++ b/drivers/irqchip/irq-mbigen.c
-@@ -16,6 +16,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/interrupt.h>
- #include <linux/irqchip.h>
- #include <linux/module.h>
-@@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
- 				    unsigned long *hwirq,
- 				    unsigned int *type)
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index ee9e0f2..29ee547 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -55,13 +55,19 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 		      int polarity)
  {
--	if (is_of_node(fwspec->fwnode)) {
-+	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
- 		if (fwspec->param_count != 2)
- 			return -EINVAL;
+ 	struct irq_fwspec fwspec;
++	struct acpi_device *adev = dev ? to_acpi_device(dev) : NULL;
  
-@@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
- 	return 0;
+-	if (WARN_ON(!acpi_gsi_domain_id)) {
++	if (adev && &adev->fwnode && adev->interrupt_producer)
++		/* devices in DSDT connecting to spefic interrupt producer */
++		fwspec.fwnode = adev->interrupt_producer;
++	else if (acpi_gsi_domain_id)
++		/* devices connecting to gicd in default */
++		fwspec.fwnode = acpi_gsi_domain_id;
++	else {
+ 		pr_warn("GSI: No registered irqchip, giving up\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	fwspec.fwnode = acpi_gsi_domain_id;
+ 	fwspec.param[0] = gsi;
+ 	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
+ 	fwspec.param_count = 2;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 56241eb..f1371cf 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -381,7 +381,7 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
+ 	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
  }
  
-+#ifdef CONFIG_ACPI
-+static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
-+					     void *context)
-+{
-+	struct acpi_resource_extended_irq *ext_irq;
-+	u32 *num_irqs = context;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-+		ext_irq = &ares->data.extended_irq;
-+		*num_irqs = ext_irq->interrupt_count;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static int mbigen_acpi_create_domain(struct platform_device *pdev,
-+				     struct mbigen_device *mgn_chip)
-+{
-+	struct irq_domain *domain;
-+	u32 num_msis = 0;
-+	acpi_status status;
-+
-+	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__PRS,
-+				     mbigen_acpi_process_resource, &num_msis);
-+        if (ACPI_FAILURE(status) || num_msis == 0)
-+		return -EINVAL;
-+
-+	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
-+						   mbigen_write_msg,
-+						   &mbigen_domain_ops,
-+						   mgn_chip);
-+	if (!domain)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+#else
-+static int mbigen_acpi_create_domain(struct platform_device *pdev,
-+				     struct mbigen_device *mgn_chip)
-+{
-+	return -ENODEV;
-+}
-+#endif
-+
- static int mbigen_device_probe(struct platform_device *pdev)
+-static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
++static void acpi_dev_get_irqresource(struct acpi_device *adev, struct resource *res, u32 gsi,
+ 				     u8 triggering, u8 polarity, u8 shareable,
+ 				     bool legacy)
  {
- 	struct mbigen_device *mgn_chip;
-@@ -288,9 +337,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
- 	if (IS_ERR(mgn_chip->base))
- 		return PTR_ERR(mgn_chip->base);
+@@ -415,7 +415,7 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+ 	}
  
--	err = mbigen_of_create_domain(pdev, mgn_chip);
--	if (err)
-+	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-+		err = mbigen_of_create_domain(pdev, mgn_chip);
-+	else if (ACPI_COMPANION(&pdev->dev))
-+		err = mbigen_acpi_create_domain(pdev, mgn_chip);
-+	else
-+		err = -EINVAL;
+ 	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+-	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
++	irq = acpi_register_gsi(&adev->dev, gsi, triggering, polarity);
+ 	if (irq >= 0) {
+ 		res->start = irq;
+ 		res->end = irq;
+@@ -424,27 +424,9 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+ 	}
+ }
+ 
+-/**
+- * acpi_dev_resource_interrupt - Extract ACPI interrupt resource information.
+- * @ares: Input ACPI resource object.
+- * @index: Index into the array of GSIs represented by the resource.
+- * @res: Output generic resource object.
+- *
+- * Check if the given ACPI resource object represents an interrupt resource
+- * and @index does not exceed the resource's interrupt count (true is returned
+- * in that case regardless of the results of the other checks)).  If that's the
+- * case, register the GSI corresponding to @index from the array of interrupts
+- * represented by the resource and populate the generic resource object pointed
+- * to by @res accordingly.  If the registration of the GSI is not successful,
+- * IORESOURCE_DISABLED will be set it that object's flags.
+- *
+- * Return:
+- * 1) false with res->flags setting to zero: not the expected resource type
+- * 2) false with IORESOURCE_DISABLED in res->flags: valid unassigned resource
+- * 3) true: valid assigned resource
+- */
+-bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+-				 struct resource *res)
++static bool __acpi_dev_resource_interrupt(struct acpi_device *adev,
++					  struct acpi_resource *ares, int index,
++					  struct resource *res)
+ {
+ 	struct acpi_resource_irq *irq;
+ 	struct acpi_resource_extended_irq *ext_irq;
+@@ -460,7 +442,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+ 			acpi_dev_irqresource_disabled(res, 0);
+ 			return false;
+ 		}
+-		acpi_dev_get_irqresource(res, irq->interrupts[index],
++		acpi_dev_get_irqresource(adev, res, irq->interrupts[index],
+ 					 irq->triggering, irq->polarity,
+ 					 irq->sharable, true);
+ 		break;
+@@ -470,7 +452,31 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+ 			acpi_dev_irqresource_disabled(res, 0);
+ 			return false;
+ 		}
+-		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
 +
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
- 		return err;
-+	}
- 
- 	platform_set_drvdata(pdev, mgn_chip);
- 	return 0;
-@@ -302,10 +359,17 @@ static const struct of_device_id mbigen_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, mbigen_of_match);
- 
-+static const struct acpi_device_id mbigen_acpi_match[] = {
-+        { "HISI0152", 0 },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
++		/*
++		 * It's a interrupt consumer device and connecting to specfic
++		 * interrupt controller. For now, we only support connecting
++		 * interrupts to one irq controller for a single device
++		 */
++		if (ext_irq->producer_consumer == ACPI_CONSUMER
++		    && ext_irq->resource_source.string_length != 0
++		    && !adev->interrupt_producer) {
++			acpi_status status;
++			acpi_handle handle;
++			struct acpi_device *device;
 +
- static struct platform_driver mbigen_platform_driver = {
- 	.driver = {
- 		.name		= "Hisilicon MBIGEN-V2",
- 		.of_match_table	= mbigen_of_match,
-+		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
- 	},
- 	.probe			= mbigen_device_probe,
++			status = acpi_get_handle(NULL, ext_irq->resource_source.string_ptr, &handle);
++			if (ACPI_FAILURE(status))
++				return false;
++
++			device = acpi_bus_get_acpi_device(handle);
++			if (!device)
++				return false;
++
++			adev->interrupt_producer = &device->fwnode;
++		}
++
++		acpi_dev_get_irqresource(adev, res, ext_irq->interrupts[index],
+ 					 ext_irq->triggering, ext_irq->polarity,
+ 					 ext_irq->sharable, false);
+ 		break;
+@@ -481,6 +487,31 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+ 
+ 	return true;
+ }
++
++/**
++ * acpi_dev_resource_interrupt - Extract ACPI interrupt resource information.
++ * @ares: Input ACPI resource object.
++ * @index: Index into the array of GSIs represented by the resource.
++ * @res: Output generic resource object.
++ *
++ * Check if the given ACPI resource object represents an interrupt resource
++ * and @index does not exceed the resource's interrupt count (true is returned
++ * in that case regardless of the results of the other checks)).  If that's the
++ * case, register the GSI corresponding to @index from the array of interrupts
++ * represented by the resource and populate the generic resource object pointed
++ * to by @res accordingly.  If the registration of the GSI is not successful,
++ * IORESOURCE_DISABLED will be set it that object's flags.
++ *
++ * Return:
++ * 1) false with res->flags setting to zero: not the expected resource type
++ * 2) false with IORESOURCE_DISABLED in res->flags: valid unassigned resource
++ * 3) true: valid assigned resource
++ */
++bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
++				 struct resource *res)
++{
++	return __acpi_dev_resource_interrupt(NULL, ares, index, res);
++}
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_interrupt);
+ 
+ /**
+@@ -499,6 +530,7 @@ struct res_proc_context {
+ 	void *preproc_data;
+ 	int count;
+ 	int error;
++	struct acpi_device *adev;
  };
+ 
+ static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
+@@ -546,7 +578,7 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+ 	    || acpi_dev_resource_ext_address_space(ares, &win))
+ 		return acpi_dev_new_resource_entry(&win, c);
+ 
+-	for (i = 0; acpi_dev_resource_interrupt(ares, i, res); i++) {
++	for (i = 0; __acpi_dev_resource_interrupt(c->adev, ares, i, res); i++) {
+ 		acpi_status status;
+ 
+ 		status = acpi_dev_new_resource_entry(&win, c);
+@@ -599,6 +631,7 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+ 	c.preproc_data = preproc_data;
+ 	c.count = 0;
+ 	c.error = 0;
++	c.adev = adev;
+ 	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+ 				     acpi_dev_process_resource, &c);
+ 	if (ACPI_FAILURE(status)) {
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index c1a524d..62c24d1 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -355,6 +355,7 @@ struct acpi_device {
+ 	int device_type;
+ 	acpi_handle handle;		/* no handle for fixed hardware */
+ 	struct fwnode_handle fwnode;
++	struct fwnode_handle *interrupt_producer;
+ 	struct acpi_device *parent;
+ 	struct list_head children;
+ 	struct list_head node;
 -- 
 1.7.12.4
 
