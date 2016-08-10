@@ -1,58 +1,42 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v12] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Wed, 10 Aug 2016 21:05:27 +0800
-Message-ID: <CADyBb7vPhbhGZU+UB7JcP_okA0XV+-yPZe0ass67TZWBMpNRBA@mail.gmail.com>
-References: <1469782664-12611-1-git-send-email-fu.wei@linaro.org>
- <20160804094838.GB8093@nazgul.tnic>
- <CADyBb7ujfaXPP_CUB66_E53fY9MeEbt6EhOaCzf+hoDCGYD+dw@mail.gmail.com>
- <20160810104513.GB16664@nazgul.tnic>
- <CADyBb7uW2-jh8UBLXZ03p1y9SMP7M3z6eULwV2DYhWXEqTm2Rw@mail.gmail.com>
- <20160810111005.GD16664@nazgul.tnic>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [Patch v3 2/2] x86/acpi: Remove the repeated lapic address
+ override entry parsing
+Date: Wed, 10 Aug 2016 16:02:57 +0200
+Message-ID: <20160810140257.GB22965@gmail.com>
+References: <1469877001-18393-1-git-send-email-bhe@redhat.com>
+ <1469877001-18393-2-git-send-email-bhe@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160810111005.GD16664@nazgul.tnic>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, pavel@ucw.cz, hpa@zytor.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, mingo@redhat.com, len.brown@intel.com, linux-pm@vger.kernel.org, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, matt.fleming@intel.com, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1469877001-18393-2-git-send-email-bhe@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Baoquan He <bhe@redhat.com>
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgQm9yaXNsYXYsCgpPbiAxMCBBdWd1c3QgMjAxNiBhdCAxOToxMCwgQm9yaXNsYXYgUGV0a292
-IDxicEBzdXNlLmRlPiB3cm90ZToKPiBPbiBXZWQsIEF1ZyAxMCwgMjAxNiBhdCAwNzowMTowNVBN
-ICswODAwLCBGdSBXZWkgd3JvdGU6Cj4+IC0gaWYgKCFhY3BpX2Rpc2FibGVfY21jZmYpCj4+IC0g
-YXBlaV9oZXN0X3BhcnNlKGhlc3RfcGFyc2VfY21jLCBOVUxMKTsKPj4gKyByYyA9YXBlaV9oZXN0
-X3BhcnNlKGhlc3RfcGFyc2VfY21jLCBOVUxMKTsKPj4gKyBpZiAocmMpCj4+ICsgZ290byBlcnI7
-Cj4+Cj4+ICAgaWYgKCFnaGVzX2Rpc2FibGUpIHsKPj4gICByYyA9IGFwZWlfaGVzdF9wYXJzZSho
-ZXN0X3BhcnNlX2doZXNfY291bnQsICZnaGVzX2NvdW50KTsKPj4KPj4gRG8geW91IGhhdmUgb3Ro
-ZXIgc3VnZ2VzdGlvbj8gdGhlbiBJIGNhbiBwb3N0IHYxNCB0byBmaXggaXQgOi0pCj4KPiBOYWgs
-IGxvb2tzIGdvb2QgOikKPgo+IExldCdzIGtlZXAgaXQgc2ltcGxlIGFuZCBhZGQgbW9yZSBpbnZv
-bHZlZCBoYW5kbGluZyB3aGVuIGl0IGlzIHJlYWxseQo+IG5lZWRlZC4gVGhhbmtzIQoKVGhhbmtz
-IGZvciB5b3VyIGhlbHAsIHRoaXMgaGF2ZSBiZWVuIGZpeGVkIGluIHYxNChqdXN0IHBvc3RlZCku
-Cgo+Cj4gQnR3LCB0aGF0IGNvbW1lbnQ6Cj4KPiArLyoKPiArICogYWNwaV9kaXNhYmxlX2NtY2Zm
-IGlzIHVzZWQgaW4gZHJpdmVycy9hY3BpL2FwZWkvaGVzdC5jIGZvciBkaXNhYmxpbmcKPiArICog
-SUEtMzIgQXJjaGl0ZWN0dXJlIENvcnJlY3RlZCBNYWNoaW5lIENoZWNreChjbWMpIEZJUk1XQVJF
-X0ZJUlNUIG1vZGUgYnkKPiArICogYm9vdCBwYXJhbWV0ZXIoYWNwaT1ub2NtY2ZmKS4gQnV0IHdl
-IGRvbid0IGhhdmUgdGhpcyBJQS0zMiBzcGVjaWZpYwo+ICsgKiBmZWF0dXJlIG9uIEFSTTY0LCB0
-aGlzIGRlZmluaXRpb24gaXMgb25seSBmb3IgY29tcGF0aWJpbGl0eS4KPiArICovCj4gKyNkZWZp
-bmUgYWNwaV9kaXNhYmxlX2NtY2ZmIDEKPgo+IGxvb2tzIG9rLCBleGNlcHQgdGhlIHNtYWxsIHR5
-cG86Cj4KPiBBcmNoaXRlY3R1cmUgQ29ycmVjdGVkIE1hY2hpbmUgQ2hlY2t4KGNtYykKPiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBeCj4gTWFrZSB0aGF0Cj4KPiAiSUEtMzIg
-QXJjaGl0ZWN0dXJlIENvcnJlY3RlZCBNYWNoaW5lIENoZWNrIChDTUMpIEZpcm13YXJlLUZpcnN0
-IG1vZGUiCgpEb25lISBUaGFua3MgOi0pCgo+Cj4gVGhhbmtzLgo+Cj4gLS0KPiBSZWdhcmRzL0dy
-dXNzLAo+ICAgICBCb3Jpcy4KPgo+IEVDTyB0aXAgIzEwMTogVHJpbSB5b3VyIG1haWxzIHdoZW4g
-eW91IHJlcGx5Lgo+Cj4gU1VTRSBMaW51eCBHbWJILCBHRjogRmVsaXggSW1lbmTDtnJmZmVyLCBK
-YW5lIFNtaXRoYXJkLCBHcmFoYW0gTm9ydG9uLCBIUkIgMjEyODQgKEFHIE7DvHJuYmVyZykKPiAt
-LQoKCgotLSAKQmVzdCByZWdhcmRzLAoKRnUgV2VpClNvZnR3YXJlIEVuZ2luZWVyClJlZCBIYXQK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFy
-bS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1r
-ZXJuZWwK
+
+* Baoquan He <bhe@redhat.com> wrote:
+
+> ACPI MADT has a 32-bit field providing lapic address at which
+> each processor can access its lapic information. MADT also contains
+> an optional entry to provide a 64-bit address to override the 32-bit
+> one. However the current code does the lapic address override entry
+> parsing twice. One is in early_acpi_boot_init() because AMD NUMA need
+> get boot_cpu_id earlier. The other is in acpi_boot_init() which parses
+> all MADT entries.
+> 
+> So in this patch remove the repeated code in the 2nd part. Meanwhile
+> print lapic override entry information like other MADT entry, this
+> will be added to boot log.
+
+it is not at all clear to me from this changelog whether the change is supposed to 
+change anything. If not then please spell it out explicitly:
+
+  "This patch is not supposed to change any behavior."
+
+Or so.
+
+Thanks,
+
+	Ingo
