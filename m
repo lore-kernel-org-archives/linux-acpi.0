@@ -1,41 +1,56 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v3 3/5] x86/ioapic: Fix setup_res() failing to get resource
-Date: Wed, 10 Aug 2016 12:01:56 +0800
-Message-ID: <1470801718-29004-4-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH v3 5/5] x86/ioapic: Fix ioapic failing to request resource
+Date: Wed, 10 Aug 2016 12:01:58 +0800
+Message-ID: <1470801718-29004-6-git-send-email-rui.y.wang@intel.com>
 References: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:30603 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751058AbcHJES1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Aug 2016 00:18:27 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
 Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
+List-Id: linux-acpi@vger.kernel.org
 
-acpi_dev_filter_resource_type() returns 0 on success, and 1 on failure.
-A return value of zero means there's a matching resource, so we should
-continue within setup_res() to get the resource.
+handle_ioapic_add() uses request_resource() to request ACPI "_CRS"
+resources. This can fail with the following error message:
+
+[  247.325693] ACPI: \_SB_.IIO1.AID1: failed to insert resource
+
+This happens when there are multiple IOAPICs and DSDT groups their
+"_CRS" resources as the children of a parent resource, as seen from
+/proc/iomem:
+
+fec00000-fecfffff : PNP0003:00
+  fec00000-fec003ff : IOAPIC 0
+  fec01000-fec013ff : IOAPIC 1
+  fec40000-fec403ff : IOAPIC 2
+
+In this case request_resource() fails because there's a conflicting
+resource which is the parent (fec0000-fecfffff). Fix it by using
+insert_resource() which can request resources by taking the conflicting
+resource as the parent.
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- drivers/acpi/ioapic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/ioapic.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index 2449377..8ab6d42 100644
+index ee20111..6d7ce6e 100644
 --- a/drivers/acpi/ioapic.c
 +++ b/drivers/acpi/ioapic.c
-@@ -46,7 +46,7 @@ static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
- 	struct resource_win win;
+@@ -146,10 +146,12 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
  
- 	res->flags = 0;
--	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM) == 0)
-+	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM))
- 		return AE_OK;
- 
- 	if (!acpi_dev_resource_memory(acpi_res, res)) {
+ 	crs_res = &ioapic->res;
+ 	acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, crs_res);
++	crs_res->name = type;
++	crs_res->flags |= IORESOURCE_BUSY;
+ 	if (crs_res->flags == 0) {
+ 		acpi_handle_warn(handle, "failed to get resource\n");
+ 		goto exit_release;
+-	} else if (request_resource(&iomem_resource, crs_res)) {
++	} else if (insert_resource(&iomem_resource, crs_res)) {
+ 		acpi_handle_warn(handle, "failed to insert resource\n");
+ 		goto exit_release;
+ 	}
 -- 
 1.8.3.1
-
