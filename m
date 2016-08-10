@@ -1,56 +1,69 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v3 5/5] x86/ioapic: Fix ioapic failing to request resource
-Date: Wed, 10 Aug 2016 12:01:58 +0800
-Message-ID: <1470801718-29004-6-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH v3 2/5] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Wed, 10 Aug 2016 12:01:55 +0800
+Message-ID: <1470801718-29004-3-git-send-email-rui.y.wang@intel.com>
 References: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
 Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-handle_ioapic_add() uses request_resource() to request ACPI "_CRS"
-resources. This can fail with the following error message:
-
-[  247.325693] ACPI: \_SB_.IIO1.AID1: failed to insert resource
-
-This happens when there are multiple IOAPICs and DSDT groups their
-"_CRS" resources as the children of a parent resource, as seen from
-/proc/iomem:
-
-fec00000-fecfffff : PNP0003:00
-  fec00000-fec003ff : IOAPIC 0
-  fec01000-fec013ff : IOAPIC 1
-  fec40000-fec403ff : IOAPIC 2
-
-In this case request_resource() fails because there's a conflicting
-resource which is the parent (fec0000-fecfffff). Fix it by using
-insert_resource() which can request resources by taking the conflicting
-resource as the parent.
+IOAPICs present during system boot aren't added to ioapic_list,
+thus are unable to be hot-removed. Fix it by calling
+acpi_ioapic_add() during root bus enumeration.
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- drivers/acpi/ioapic.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/pci_root.c | 10 ++++++++++
+ drivers/pci/setup-bus.c |  5 ++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index ee20111..6d7ce6e 100644
---- a/drivers/acpi/ioapic.c
-+++ b/drivers/acpi/ioapic.c
-@@ -146,10 +146,12 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
- 
- 	crs_res = &ioapic->res;
- 	acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, crs_res);
-+	crs_res->name = type;
-+	crs_res->flags |= IORESOURCE_BUSY;
- 	if (crs_res->flags == 0) {
- 		acpi_handle_warn(handle, "failed to get resource\n");
- 		goto exit_release;
--	} else if (request_resource(&iomem_resource, crs_res)) {
-+	} else if (insert_resource(&iomem_resource, crs_res)) {
- 		acpi_handle_warn(handle, "failed to insert resource\n");
- 		goto exit_release;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index b07eda1..bf601d4 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -614,6 +614,16 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
++		/*
++		 * This is only called for the hotadd case. For the boot-time
++		 * case, we need to wait until after PCI initialization in
++		 * order to deal with IOAPICs mapped in on a PCI BAR.
++		 *
++		 * This is currently x86-specific, because acpi_ioapic_add()
++		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
++		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
++		 * (see drivers/acpi/Kconfig).
++		 */
+ 		acpi_ioapic_add(root->device->handle);
  	}
+ 
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index c74059e..ec538d3 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioport.h>
+ #include <linux/cache.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ unsigned int pci_flags;
+@@ -1852,8 +1853,10 @@ void __init pci_assign_unassigned_resources(void)
+ {
+ 	struct pci_bus *root_bus;
+ 
+-	list_for_each_entry(root_bus, &pci_root_buses, node)
++	list_for_each_entry(root_bus, &pci_root_buses, node) {
+ 		pci_assign_unassigned_root_bus_resources(root_bus);
++		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
++	}
+ }
+ 
+ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
 -- 
 1.8.3.1
