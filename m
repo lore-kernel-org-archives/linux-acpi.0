@@ -1,97 +1,92 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v3 1/5] x86/ioapic: Change prototype of acpi_ioapic_add()
-Date: Wed, 10 Aug 2016 12:01:54 +0800
-Message-ID: <1470801718-29004-2-git-send-email-rui.y.wang@intel.com>
-References: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:30603 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797AbcHJESX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Aug 2016 00:18:23 -0400
-In-Reply-To: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v12] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Wed, 10 Aug 2016 14:22:06 +0800
+Message-ID: <CADyBb7syoK4_iH55gh9w8ShsZ4be3iLTeJz3g1yMCAKbYxWy1w@mail.gmail.com>
+References: <1469782664-12611-1-git-send-email-fu.wei@linaro.org>
+ <20160804094838.GB8093@nazgul.tnic> <20160804103028.GA8152@nazgul.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160804103028.GA8152@nazgul.tnic>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Borislav Petkov <bp@suse.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, pavel@ucw.cz, hpa@zytor.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, mingo@redhat.com, len.brown@intel.com, linux-pm@vger.kernel.org, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, matt.fleming@intel.com, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
-Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 
-Change the argument of acpi_ioapic_add() to a generic ACPI handle, and
-move its prototype from drivers/acpi/internal.h to include/linux/acpi.h
-so that it can be called from outside the pci_root driver.
-
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- drivers/acpi/internal.h | 2 --
- drivers/acpi/ioapic.c   | 6 +++---
- drivers/acpi/pci_root.c | 2 +-
- include/linux/acpi.h    | 6 ++++++
- 4 files changed, 10 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 940218f..f26fc1d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
- void acpi_container_init(void);
- void acpi_memory_hotplug_init(void);
- #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
--int acpi_ioapic_add(struct acpi_pci_root *root);
- int acpi_ioapic_remove(struct acpi_pci_root *root);
- #else
--static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
- static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
- #endif
- #ifdef CONFIG_ACPI_DOCK
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index ccdc8db..2449377 100644
---- a/drivers/acpi/ioapic.c
-+++ b/drivers/acpi/ioapic.c
-@@ -189,13 +189,13 @@ exit:
- 	return AE_OK;
- }
- 
--int acpi_ioapic_add(struct acpi_pci_root *root)
-+int acpi_ioapic_add(acpi_handle root_handle)
- {
- 	acpi_status status, retval = AE_OK;
- 
--	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
- 				     UINT_MAX, handle_ioapic_add, NULL,
--				     root->device->handle, (void **)&retval);
-+				     root_handle, (void **)&retval);
- 
- 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
- }
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index d144168..b07eda1 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -614,7 +614,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	if (hotadd) {
- 		pcibios_resource_survey_bus(root->bus);
- 		pci_assign_unassigned_root_bus_resources(root->bus);
--		acpi_ioapic_add(root);
-+		acpi_ioapic_add(root->device->handle);
- 	}
- 
- 	pci_lock_rescan_remove();
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4d8452c..c9a596b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -751,6 +751,12 @@ static inline int acpi_reconfig_notifier_unregister(struct notifier_block *nb)
- 
- #endif	/* !CONFIG_ACPI */
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+int acpi_ioapic_add(acpi_handle root);
-+#else
-+static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
-+#endif
-+
- #ifdef CONFIG_ACPI
- void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- 			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
--- 
-1.8.3.1
-
+SGkgQm9yaXNsYXYuCgpPbiA0IEF1Z3VzdCAyMDE2IGF0IDE4OjMwLCBCb3Jpc2xhdiBQZXRrb3Yg
+PGJwQHN1c2UuZGU+IHdyb3RlOgo+IFRvbWFzeidzIGxpbmFybyBhZGRyZXNzIGJvdW5jZXMsIGFk
+ZGluZyBvbmUgSSd2ZSBmb3VuZCBvbiBsa21sIHRvIENDCj4gaW5zdGVhZC4KClRoYW5rcyBmb3Ig
+cmVtaW5kaW5nIG1lLCBJIGhhdmUgYWRkZWQgaGltKHRuQHNlbWloYWxmLmNvbSkgaW4gVE8gbGlz
+dC4KVGhlIGRhdGVkIGVtYWlsIGFkZHJlc3ModG9tYXN6Lm5vd2lja2lAbGluYXJvLm9yZykgd2Fz
+IGFkZGVkIGJ5ICJnaXQKc2VuZC1lbWFpbCIuCkkgaGF2ZSBkaXNhYmxlZCBpdCBieSAiLS1uby1z
+aWduZWQtb2ZmLWJ5LWNjIgoKPgo+IE9uIFRodSwgQXVnIDA0LCAyMDE2IGF0IDExOjQ4OjM4QU0g
+KzAyMDAsIEJvcmlzbGF2IFBldGtvdiB3cm90ZToKPj4gT24gRnJpLCBKdWwgMjksIDIwMTYgYXQg
+MDQ6NTc6NDRQTSArMDgwMCwgZnUud2VpQGxpbmFyby5vcmcgd3JvdGU6Cj4+ID4gRnJvbTogVG9t
+YXN6IE5vd2lja2kgPHRvbWFzei5ub3dpY2tpQGxpbmFyby5vcmc+Cj4+ID4KPj4gPiBUaGlzIGNv
+bW1pdCBwcm92aWRlcyBBUEVJIGFyY2gtc3BlY2lmaWMgYml0cyBmb3IgYWFyY2g2NAo+PiA+Cj4+
+ID4gTWVhbndoaWxlLAo+PiA+ICgxKWFkZCBhIG5ldyBzdWJmdW5jdGlvbiAiaGVzdF9pYTMyX2lu
+aXQiIGZvcgo+PiA+ICJhY3BpX2Rpc2FibGVfY21jZmYiIHdoaWNoIGlzIHVzZWQgYnkgSUEtMzIg
+QXJjaGl0ZWN0dXJlCj4+ID4gQ29ycmVjdGVkIE1hY2hpbmUgQ2hlY2sgKENNQykuCj4+ID4gKDIp
+bW92ZSBIRVNUIHR5cGUgKEFDUElfSEVTVF9UWVBFX0lBMzJfQ09SUkVDVEVEX0NIRUNLKSBjaGVj
+a2luZyB0bwo+PiA+IGEgZ2VuZXJpYyBwbGFjZS4KPj4gPiAoMylzZWxlY3QgSEFWRV9BQ1BJX0FQ
+RUkgd2hlbiBFRkkgYW5kIEFDUEkgaXMgc2V0IG9uIEFSTTY0LAo+PiA+IGJlY2F1c2UgYXJjaF9h
+cGVpX2dldF9tZW1fYXR0cmlidXRlIGlzIHVzaW5nIGVmaV9tZW1fYXR0cmlidXRlcyBvbiBBUk02
+NC4KPj4gPgo+PiA+IFtGdSBXZWk6IGltcHJvdmUgJiYgdXBzdHJlYW1dCj4+ID4KPj4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBUb21hc3ogTm93aWNraSA8dG9tYXN6Lm5vd2lja2lAbGluYXJvLm9yZz4KPj4g
+PiBUZXN0ZWQtYnk6IEpvbmF0aGFuIChaaGl4aW9uZykgWmhhbmcgPHpqemhhbmdAY29kZWF1cm9y
+YS5vcmc+Cj4+ID4gU2lnbmVkLW9mZi1ieTogRnUgV2VpIDxmdS53ZWlAbGluYXJvLm9yZz4KPj4g
+PiBBY2tlZC1ieTogSGFuanVuIEd1byA8aGFuanVuLmd1b0BsaW5hcm8ub3JnPgo+PiA+IFRlc3Rl
+ZC1ieTogVHlsZXIgQmFpY2FyIDx0YmFpY2FyQGNvZGVhdXJvcmEub3JnPgo+PiA+IEFja2VkLWJ5
+OiBXaWxsIERlYWNvbiA8d2lsbC5kZWFjb25AYXJtLmNvbT4KPj4gPiAtLS0KPj4KPj4gLi4uCj4+
+Cj4+ID4gQEAgLTExMCw4ICsxMTEsMjEgQEAgc3RhdGljIGlubGluZSBjb25zdCBjaGFyICphY3Bp
+X2dldF9lbmFibGVfbWV0aG9kKGludCBjcHUpCj4+ID4gIH0KPj4gPgo+PiA+ICAjaWZkZWYgICAg
+IENPTkZJR19BQ1BJX0FQRUkKPj4gPiArI2RlZmluZSBhY3BpX2Rpc2FibGVfY21jZmYgMQo+Pgo+
+PiBXaGF0IGRvZXMgdGhhdCBtZWFuPyBBUk0gZG9lc24ndCBoYXZlIGZpcm13YXJlLWZpcnN0IG1v
+ZGU/Cj4+Cj4+IEEgcGllY2Ugb2YgY29tbWVudCBwbGVhc2UuCj4+Cj4+ID4gIHBncHJvdF90IGFy
+Y2hfYXBlaV9nZXRfbWVtX2F0dHJpYnV0ZShwaHlzX2FkZHJfdCBhZGRyKTsKPj4gPiAtI2VuZGlm
+Cj4+ID4gKwo+PiA+ICsvKgo+PiA+ICsgKiBEZXNwaXRlIGl0cyBuYW1lLCB0aGlzIGZ1bmN0aW9u
+IG11c3Qgc3RpbGwgYnJvYWRjYXN0IHRoZSBUTEIKPj4gPiArICogaW52YWxpZGF0aW9uIGluIG9y
+ZGVyIHRvIGVuc3VyZSBvdGhlciBDUFVzIGRvbid0IHVwIHdpdGgganVuawo+PiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXgo+PiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBlbmQKPj4KPj4gPiArICog
+ZW50cmllcyBhcyBhIHJlc3VsdCBvZiBzcGVjdWxhdGlvbi4gVW51c3VhbGx5LCBpdHMgYWxzbyBj
+YWxsZWQgaW4KPj4gPiArICogSVJRIGNvbnRleHQgKGdoZXNfaW91bm1hcF9pcnEpIHNvIGlmIHdl
+IGV2ZXIgbmVlZCB0byB1c2UgSVBJcyBmb3IKPj4gPiArICogVExCIGJyb2FkY2FzdGluZywgdGhl
+biB3ZSdyZSBpbiB0cm91YmxlIGhlcmUuCj4+ID4gKyAqLwo+PiA+ICtzdGF0aWMgaW5saW5lIHZv
+aWQgYXJjaF9hcGVpX2ZsdXNoX3RsYl9vbmUodW5zaWduZWQgbG9uZyBhZGRyKQo+PiA+ICt7Cj4+
+ID4gKyAgIGZsdXNoX3RsYl9rZXJuZWxfcmFuZ2UoYWRkciwgYWRkciArIFBBR0VfU0laRSk7Cj4+
+ID4gK30KPj4gPiArI2VuZGlmIC8qIENPTkZJR19BQ1BJX0FQRUkgKi8KPj4gPgo+PiA+ICAjaWZk
+ZWYgQ09ORklHX0FDUElfTlVNQQo+PiA+ICBpbnQgYXJtNjRfYWNwaV9udW1hX2luaXQodm9pZCk7
+Cj4+ID4gZGlmZiAtLWdpdCBhL2FyY2gveDg2L2tlcm5lbC9hY3BpL2FwZWkuYyBiL2FyY2gveDg2
+L2tlcm5lbC9hY3BpL2FwZWkuYwo+PiA+IGluZGV4IGMyODBkZjYuLmVhMzA0NmUgMTAwNjQ0Cj4+
+ID4gLS0tIGEvYXJjaC94ODYva2VybmVsL2FjcGkvYXBlaS5jCj4+ID4gKysrIGIvYXJjaC94ODYv
+a2VybmVsL2FjcGkvYXBlaS5jCj4+Cj4+IC4uLgo+Pgo+PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L2FjcGkvYXBlaS9oZXN0LmMgYi9kcml2ZXJzL2FjcGkvYXBlaS9oZXN0LmMKPj4gPiBpbmRleCAy
+MGIzZmNmLi43OTJhMGQ5IDEwMDY0NAo+PiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hcGVpL2hlc3Qu
+Ywo+PiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hcGVpL2hlc3QuYwo+PiA+IEBAIC0yMzIsOCArMjQz
+LDkgQEAgdm9pZCBfX2luaXQgYWNwaV9oZXN0X2luaXQodm9pZCkKPj4gPiAgICAgICAgICAgICBn
+b3RvIGVycjsKPj4gPiAgICAgfQo+PiA+Cj4+ID4gLSAgIGlmICghYWNwaV9kaXNhYmxlX2NtY2Zm
+KQo+PiA+IC0gICAgICAgICAgIGFwZWlfaGVzdF9wYXJzZShoZXN0X3BhcnNlX2NtYywgTlVMTCk7
+Cj4+ID4gKyAgIHJjID0gaGVzdF9pYTMyX2luaXQoKTsKPj4KPj4gV2h5IGRvIHlvdSBuZWVkIGEg
+c2VwYXJhdGUgaGVzdF9pYTMyX2luaXQoKSBoZXJlPwo+Pgo+PiBZb3UgY2FuIGRvCj4+Cj4+ICAg
+ICAgIHJjID0gYXBlaV9oZXN0X3BhcnNlKGhlc3RfcGFyc2VfY21jLCBOVUxMKTsKPj4KPj4gZGly
+ZWN0bHkgaGVyZSBBRkFJQ1QuCj4+Cj4+ID4gKyAgIGlmIChyYykKPj4gPiArICAgICAgICAgICBn
+b3RvIGVycjsKPj4gPgo+PiA+ICAgICBpZiAoIWdoZXNfZGlzYWJsZSkgewo+PiA+ICAgICAgICAg
+ICAgIHJjID0gYXBlaV9oZXN0X3BhcnNlKGhlc3RfcGFyc2VfZ2hlc19jb3VudCwgJmdoZXNfY291
+bnQpOwo+PiA+IC0tCj4+ID4gMi41LjUKPj4gPgo+Cj4gLS0KPiBSZWdhcmRzL0dydXNzLAo+ICAg
+ICBCb3Jpcy4KPgo+IEVDTyB0aXAgIzEwMTogVHJpbSB5b3VyIG1haWxzIHdoZW4geW91IHJlcGx5
+Lgo+Cj4gU1VTRSBMaW51eCBHbWJILCBHRjogRmVsaXggSW1lbmTDtnJmZmVyLCBKYW5lIFNtaXRo
+YXJkLCBHcmFoYW0gTm9ydG9uLCBIUkIgMjEyODQgKEFHIE7DvHJuYmVyZykKPiAtLQoKCgotLSAK
+QmVzdCByZWdhcmRzLAoKRnUgV2VpClNvZnR3YXJlIEVuZ2luZWVyClJlZCBIYXQKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwg
+bWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
+bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
