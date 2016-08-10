@@ -1,131 +1,97 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v3 4/5] x86/ioapic: Fix lost IOAPIC resource after hot-removal and hotadd
-Date: Wed, 10 Aug 2016 12:01:57 +0800
-Message-ID: <1470801718-29004-5-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH v3 1/5] x86/ioapic: Change prototype of acpi_ioapic_add()
+Date: Wed, 10 Aug 2016 12:01:54 +0800
+Message-ID: <1470801718-29004-2-git-send-email-rui.y.wang@intel.com>
 References: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:30603 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751097AbcHJESb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Aug 2016 00:18:31 -0400
+	id S1750797AbcHJESX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Aug 2016 00:18:23 -0400
 In-Reply-To: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
 Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 
-IOAPIC resource at 0xfecxxxxx gets lost from /proc/iomem after
-hot-removing and then hot-adding the IOAPIC device.
-
-After system boot, in /proc/iomem:
-fec00000-fecfffff : PNP0003:00
-  fec00000-fec003ff : IOAPIC 0
-  fec01000-fec013ff : IOAPIC 1
-  fec40000-fec403ff : IOAPIC 2
-  fec80000-fec803ff : IOAPIC 3
-  fecc0000-fecc03ff : IOAPIC 4
-
-Then hot-remove IOAPIC 2 and hot-add it again:
-fec00000-fecfffff : PNP0003:00
-  fec00000-fec003ff : IOAPIC 0
-  fec01000-fec013ff : IOAPIC 1
-  fec80000-fec803ff : IOAPIC 3
-  fecc0000-fecc03ff : IOAPIC 4
-
-The range at 0xfec40000 is lost from /proc/iomem. It is because
-handle_ioapic_add() requests resource from either PCI config BAR or
-ACPI "_CRS", not both. But Intel platforms map the IOxAPIC registers
-both at the PCI config BAR (called MBAR, dynamic), and at the ACPI
-"_CRS" (called ABAR, static). The 0xfecX_YZ00 to 0xfecX_YZFF range
-appears in "_CRS" of each IOAPIC device. Both ranges should be claimed
-from /proc/iomem for exclusive use.
+Change the argument of acpi_ioapic_add() to a generic ACPI handle, and
+move its prototype from drivers/acpi/internal.h to include/linux/acpi.h
+so that it can be called from outside the pci_root driver.
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- drivers/acpi/ioapic.c | 36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ drivers/acpi/internal.h | 2 --
+ drivers/acpi/ioapic.c   | 6 +++---
+ drivers/acpi/pci_root.c | 2 +-
+ include/linux/acpi.h    | 6 ++++++
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 940218f..f26fc1d 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+-int acpi_ioapic_add(struct acpi_pci_root *root);
+ int acpi_ioapic_remove(struct acpi_pci_root *root);
+ #else
+-static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
+ static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+ #endif
+ #ifdef CONFIG_ACPI_DOCK
 diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index 8ab6d42..ee20111 100644
+index ccdc8db..2449377 100644
 --- a/drivers/acpi/ioapic.c
 +++ b/drivers/acpi/ioapic.c
-@@ -97,7 +97,7 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
- 	unsigned long long gsi_base;
- 	struct acpi_pci_ioapic *ioapic;
- 	struct pci_dev *dev = NULL;
--	struct resource *res = NULL;
-+	struct resource *res = NULL, *pci_res = NULL, *crs_res;
- 	char *type = NULL;
+@@ -189,13 +189,13 @@ exit:
+ 	return AE_OK;
+ }
  
- 	if (!acpi_is_ioapic(handle, &type))
-@@ -137,23 +137,28 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
- 		pci_set_master(dev);
- 		if (pci_request_region(dev, 0, type))
- 			goto exit_disable;
--		res = &dev->resource[0];
-+		pci_res = &dev->resource[0];
- 		ioapic->pdev = dev;
- 	} else {
- 		pci_dev_put(dev);
- 		dev = NULL;
-+	}
+-int acpi_ioapic_add(struct acpi_pci_root *root)
++int acpi_ioapic_add(acpi_handle root_handle)
+ {
+ 	acpi_status status, retval = AE_OK;
  
--		res = &ioapic->res;
--		acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, res);
--		if (res->flags == 0) {
--			acpi_handle_warn(handle, "failed to get resource\n");
--			goto exit_free;
--		} else if (request_resource(&iomem_resource, res)) {
--			acpi_handle_warn(handle, "failed to insert resource\n");
--			goto exit_free;
--		}
-+	crs_res = &ioapic->res;
-+	acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, crs_res);
-+	if (crs_res->flags == 0) {
-+		acpi_handle_warn(handle, "failed to get resource\n");
-+		goto exit_release;
-+	} else if (request_resource(&iomem_resource, crs_res)) {
-+		acpi_handle_warn(handle, "failed to insert resource\n");
-+		goto exit_release;
+-	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
++	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+ 				     UINT_MAX, handle_ioapic_add, NULL,
+-				     root->device->handle, (void **)&retval);
++				     root_handle, (void **)&retval);
+ 
+ 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
+ }
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index d144168..b07eda1 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -614,7 +614,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
+-		acpi_ioapic_add(root);
++		acpi_ioapic_add(root->device->handle);
  	}
  
-+	/* try pci resource first, then "_CRS" resource */
-+	res = pci_res;
-+	if (!res || !res->flags)
-+		res = crs_res;
+ 	pci_lock_rescan_remove();
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4d8452c..c9a596b 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -751,6 +751,12 @@ static inline int acpi_reconfig_notifier_unregister(struct notifier_block *nb)
+ 
+ #endif	/* !CONFIG_ACPI */
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
++int acpi_ioapic_add(acpi_handle root);
++#else
++static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
++#endif
 +
- 	if (acpi_register_ioapic(handle, res->start, (u32)gsi_base)) {
- 		acpi_handle_warn(handle, "failed to register IOAPIC\n");
- 		goto exit_release;
-@@ -174,14 +179,13 @@ done:
- exit_release:
- 	if (dev)
- 		pci_release_region(dev, 0);
--	else
--		release_resource(res);
-+	if (ioapic->res.flags && ioapic->res.parent)
-+		release_resource(&ioapic->res);
- exit_disable:
- 	if (dev)
- 		pci_disable_device(dev);
- exit_put:
- 	pci_dev_put(dev);
--exit_free:
- 	kfree(ioapic);
- exit:
- 	mutex_unlock(&ioapic_list_lock);
-@@ -217,9 +221,9 @@ int acpi_ioapic_remove(struct acpi_pci_root *root)
- 			pci_release_region(ioapic->pdev, 0);
- 			pci_disable_device(ioapic->pdev);
- 			pci_dev_put(ioapic->pdev);
--		} else if (ioapic->res.flags && ioapic->res.parent) {
--			release_resource(&ioapic->res);
- 		}
-+		if (ioapic->res.flags && ioapic->res.parent)
-+			release_resource(&ioapic->res);
- 		list_del(&ioapic->list);
- 		kfree(ioapic);
- 	}
+ #ifdef CONFIG_ACPI
+ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+ 			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
 -- 
 1.8.3.1
 
