@@ -1,49 +1,63 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 13/30] ACPI / sysfs: Provide quirk mechanism to prevent
- GPE flooding
-Date: Thu, 11 Aug 2016 03:30:55 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0CD8D@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1470299677.git.lv.zheng@intel.com>
- <3d86ecd98996bc782a1f4a0bb0c0a0ae2b958df9.1470299677.git.lv.zheng@intel.com>
- <1940728.OSvgQcsBu1@vostro.rjw.lan>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [Patch v3 2/2] x86/acpi: Remove the repeated lapic address
+ override entry parsing
+Date: Thu, 11 Aug 2016 10:37:43 +0200
+Message-ID: <20160811083742.GA3645@gmail.com>
+References: <1469877001-18393-1-git-send-email-bhe@redhat.com>
+ <1469877001-18393-2-git-send-email-bhe@redhat.com>
+ <20160810140257.GB22965@gmail.com>
+ <20160810141340.GA5477@x1.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:41240 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932276AbcHKDeF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Aug 2016 23:34:05 -0400
-In-Reply-To: <1940728.OSvgQcsBu1@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35911 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932297AbcHKIhs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Aug 2016 04:37:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20160810141340.GA5477@x1.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Baoquan He <bhe@redhat.com>
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMTMvMzBdIEFDUEkgLyBzeXNmczogUHJv
-dmlkZSBxdWlyayBtZWNoYW5pc20gdG8NCj4gcHJldmVudCBHUEUgZmxvb2RpbmcNCj4gDQo+IE9u
-IFRodXJzZGF5LCBBdWd1c3QgMDQsIDIwMTYgMDQ6NDM6NTEgUE0gTHYgWmhlbmcgd3JvdGU6DQo+
-ID4gU29tZXRpbWVzLCB0aGUgdXNlcnMgbWF5IHJlcXVpcmUgYSBxdWlyayB0byBiZSBwcm92aWRl
-ZCBmcm9tIEFDUEkNCj4gc3Vic3lzdGVtDQo+ID4gY29yZSB0byBwcmV2ZW50IGEgR1BFIGZyb20g
-Zmxvb2RpbmcuIE5vcm1hbGx5LCBpZiBhIEdQRSBjYW5ub3QgYmUNCj4gPiBkaXNwYXRjaGVkLCBB
-Q1BJQ0EgY29yZSBhdXRvbWF0aWNhbGx5IHByZXZlbnRzIHRoZSBHUEUgZnJvbSBmaXJpbmcuIEJ1
-dA0KPiA+IHRoZXJlIGFyZSBjYXNlcyB0aGUgR1BFIGlzIGRpc3BhdGNoZWQgYnkgX0x4eC9fRXh4
-IHByb3ZpZGVkIHZpYSBBTUwNCj4gdGFibGUsDQo+ID4gYW5kIE9TUE0gaXMgbGFja2luZyBvZiB0
-aGUga25vd2xlZGdlIHRvIGdldCBfTHh4L19FeHggY29ycmVjdGx5DQo+IGV4ZWN1dGVkIHRvDQo+
-ID4gaGFuZGxlIHRoZSBHUEUsIHRodXMgdGhlIEdQRSBmbG9vZGluZyBtYXkgc3RpbGwgb2NjdXIu
-DQo+ID4NCj4gPiBUaGlzIHBhdGNoIHByb3ZpZGVzIGEgcXVpcmsgbWVjaGFuaXNtIHRvIHN0b3Ag
-dGhpcyBraW5kIG9mIEdQRSBmbG9vZGluZy4NCj4gPg0KPiA+IExpbms6IGh0dHBzOi8vYnVnemls
-bGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9NTMwNzENCj4gPiBMaW5rOiBodHRwczovL2J1
-Z3MubGF1bmNocGFkLm5ldC91YnVudHUvK3NvdXJjZS9saW51eC8rYnVnLzg4Nzc5Mw0KPiA+IFNp
-Z25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+IA0KPiBJIGRpZG4n
-dCBsaWtlIHRoaXMgcGF0Y2ggYmVmb3JlIGFuZCBJIHN0aWxsIGRvbid0IGxpa2UgaXQuDQo+IA0K
-W0x2IFpoZW5nXSANCk9LLg0KU28gcGxlYXNlIGhlbHAgdG8gZHJvcCBpdCBmcm9tIHRoaXMgc2Vy
-aWVzLg0KDQo+IEJlc2lkZXMsIEknZCBhcHByZWNpYXRlIGl0IGlmIHlvdSBkaWRuJ3QgbWl4IEFD
-UElDQSByZWxlYXNlIHBhdGNoZXMgd2l0aA0KPiBub24tQUNQSUNBIG9uZXMuDQpbTHYgWmhlbmdd
-IA0KT0suDQpTb21ldGltZXMsIEknbGwgaGF2ZSB0byBwdXQgbm9uLUFDUElDQSBtYXRlcmlhbHMg
-aW4gdGhlIEFDUElDQSByZWxlYXNlIHNlcmllcyBpbiBvcmRlciBub3QgdG8gYnJlYWsgdGhpbmdz
-IGJlY2F1c2Ugb2YgQUNQSUNBIHVwc3RyZWFtIGNoYW5nZXMuDQpCdXQgdGhpcyBwYXRjaCBpc24n
-dCBzdWNoIGtpbmQgb2YgcmVxdWlyZWQgdXBkYXRlLCBpdCdzIG15IGZhdWx0LCBwbGVhc2UgZHJv
-cCBpdC4NCg0KVGhhbmtzDQpMdg0KDQo=
+
+* Baoquan He <bhe@redhat.com> wrote:
+
+> On 08/10/16 at 04:02pm, Ingo Molnar wrote:
+> > 
+> > * Baoquan He <bhe@redhat.com> wrote:
+> > 
+> > > ACPI MADT has a 32-bit field providing lapic address at which
+> > > each processor can access its lapic information. MADT also contains
+> > > an optional entry to provide a 64-bit address to override the 32-bit
+> > > one. However the current code does the lapic address override entry
+> > > parsing twice. One is in early_acpi_boot_init() because AMD NUMA need
+> > > get boot_cpu_id earlier. The other is in acpi_boot_init() which parses
+> > > all MADT entries.
+> > > 
+> > > So in this patch remove the repeated code in the 2nd part. Meanwhile
+> > > print lapic override entry information like other MADT entry, this
+> > > will be added to boot log.
+> > 
+> > it is not at all clear to me from this changelog whether the change is supposed to 
+> > change anything. If not then please spell it out explicitly:
+> > 
+> >   "This patch is not supposed to change any behavior."
+> 
+> I don't know if adding new information to boot log can be seen as
+> behavior change. If lapic override entry exist, the code change will
+> add one line of message to boot log:
+> 
+> 	LAPIC_ADDR_OVR (address[0xXXXXXXXX])
+> 
+> If this is not behavior change, I will add the sentence you suggested.
+
+Yeah, you can write it:
+
+	"This patch is not supposed to change any runtime behavior, other than 
+	 improving kernel messages."
+
+Thanks,
+
+	Ingo
