@@ -1,190 +1,138 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFC PATCH v3 13/13] drivers: acpi: iort: introduce
-	iort_iommu_configure
-Date: Thu, 11 Aug 2016 09:44:46 +0100
-Message-ID: <20160811084446.GA6581@red-moon>
-References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1469013815-24380-14-git-send-email-lorenzo.pieralisi@arm.com>
-	<016fb1080595ef61ec7a91da15ef2430@codeaurora.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH v10 0/8] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 11 Aug 2016 11:37:41 +0200
+Message-ID: <0befd611-91a7-88e9-1686-82929c1745e8@semihalf.com>
+References: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <016fb1080595ef61ec7a91da15ef2430-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35547 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722AbcHKJht (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Aug 2016 05:37:49 -0400
+Received: by mail-wm0-f50.google.com with SMTP id f65so18593364wmi.0
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Aug 2016 02:37:48 -0700 (PDT)
+In-Reply-To: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: fu.wei@linaro.org, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, linux@roeck-us.net, linux-watchdog@vger.kernel.org
 
-On Wed, Aug 03, 2016 at 10:19:43AM -0400, nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org wrote:
+Hi Fu,
 
-[...]
+Do you mind if I send IORT series where new drivers/acpi/arm64 directory 
+would be introduced in first place ? This means your GTDT set would 
+depend on IORT.
 
-> >+const struct iommu_ops *iort_iommu_configure(struct device *dev)
-> >+{
-> >+	struct acpi_iort_node *node, *parent;
-> >+	struct fwnode_handle *iort_fwnode;
-> >+	u32 rid = 0, devid = 0;
-> 
-> Since this routine maps the RID space of a device to the StreamID
-> space of its
-> parent smmu, would you consider renaming the devid variable to some
-> form of sid
-> or streamid?
-> 
-> >+
-> >+	if (dev_is_pci(dev)) {
-> >+		struct pci_bus *bus = to_pci_dev(dev)->bus;
-> >+
-> >+		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> >+				       &rid);
-> >+
-> >+		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> >+				      iort_match_node_callback, &bus->dev);
-> >+	} else {
-> >+		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> >+				      iort_match_node_callback, dev);
-> >+	}
-> >+
-> >+	if (!node)
-> >+		return NULL;
-> >+
-> >+	parent = iort_node_map_rid(node, rid, &devid, IORT_IOMMU_TYPE);
-> >+	if (parent) {
-> >+		iort_fwnode = iort_get_fwnode(parent);
-> >+		if (iort_fwnode) {
-> >+			arm_smmu_iort_xlate(dev, devid, iort_fwnode);
-> 
-> What about named components with multiple stream ids? Since
-> establishing the relationship between a named component and its parent
-> smmu is already dependent on there being an appropriate mapping of rid
-> 0, it stands to reason that all of the stream ids for a named
-> component could be enumerated by mapping increasing rid values until
-> the output parent no longer matches that returned for rid 0.
+Thanks,
+Tomasz
 
-I have reworked the code since for named component it makes no
-sense to carry out a mapping that depends on an input id given
-that we do not have one. Instead what we will do is the same
-thing DT does (ie "iommus" property), namely walk the array of
-single mappings for a given named component (that do not depend
-on the input rid, there is not any) and add them to the translation
-as we find them.
-
-Ergo, mappings that are not single mappings are pretty much useless
-for named components (for the time being), and I won't allow them.
-
-Thoughts ?
-
-Lorenzo
-
-> 
-> >+			return fwspec_iommu_get_ops(iort_fwnode);
-> >+		}
-> >+	}
-> >+
-> >+	return NULL;
-> >+}
-> 
-> It should be noted that while trying out the approach described
-> above, I noticed
-> that each of the smmu attached named components described in my iort
-> were ending
-> up with an extra stream id. The culprit appears to be that the range
-> checking in
-> iort_id_map() is overly permissive on the upper bounds. For example,
-> mappings
-> with input_base=N and id_count=1 were matching both N and N+1. The
-> following
-> change fixed the issue.
-> 
-> @@ -296,7 +296,7 @@ iort_id_map(struct acpi_iort_id_mapping *map, u8
-> type, u32 rid_in, u32 *rid_out)
->         }
-> 
->         if (rid_in < map->input_base ||
-> -           (rid_in > map->input_base + map->id_count))
-> +           (rid_in >= map->input_base + map->id_count))
->                 return -ENXIO;
-> 
->         *rid_out = map->output_base + (rid_in - map->input_base);
-> 
-> >+
-> > static void acpi_smmu_v3_register_irq(int hwirq, const char *name,
-> > 				      struct resource *res)
-> > {
-> >diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> >index b4b9064..de28825 100644
-> >--- a/drivers/acpi/scan.c
-> >+++ b/drivers/acpi/scan.c
-> >@@ -7,6 +7,7 @@
-> > #include <linux/slab.h>
-> > #include <linux/kernel.h>
-> > #include <linux/acpi.h>
-> >+#include <linux/iort.h>
-> > #include <linux/signal.h>
-> > #include <linux/kthread.h>
-> > #include <linux/dmi.h>
-> >@@ -1365,11 +1366,15 @@ enum dev_dma_attr acpi_get_dma_attr(struct
-> >acpi_device *adev)
-> >  */
-> > void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
-> > {
-> >+	const struct iommu_ops *iommu;
-> >+
-> >+	iommu = iort_iommu_configure(dev);
-> >+
-> > 	/*
-> > 	 * Assume dma valid range starts at 0 and covers the whole
-> > 	 * coherent_dma_mask.
-> > 	 */
-> >-	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
-> >+	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
-> > 			   attr == DEV_DMA_COHERENT);
-> 
-> If dev has a matching named component iort entry with a non-zero
-> value for
-> memory_address_limit, why not use that as the size input to
-> arch_setup_dma_ops?
-> 
-> > }
-> >
-> >diff --git a/include/linux/iort.h b/include/linux/iort.h
-> >index 18e6836..bbe08ef 100644
-> >--- a/include/linux/iort.h
-> >+++ b/include/linux/iort.h
-> >@@ -34,6 +34,8 @@ struct irq_domain *iort_get_device_domain(struct
-> >device *dev, u32 req_id);
-> > /* IOMMU interface */
-> > int iort_add_smmu_platform_device(struct fwnode_handle *fwnode,
-> > 				  struct acpi_iort_node *node);
-> >+
-> >+const struct iommu_ops *iort_iommu_configure(struct device *dev);
-> > #else
-> > static inline bool iort_node_match(u8 type) { return false; }
-> > static inline void iort_table_detect(void) { }
-> >@@ -48,6 +50,8 @@ iort_add_smmu_platform_device(struct
-> >fwnode_handle *fwnode,
-> > {
-> > 	return -ENODEV;
-> > }
-> >+static inline const struct iommu_ops *
-> >+iort_iommu_configure(struct device *dev) { return NULL; }
-> > #endif
-> >
-> > #define IORT_ACPI_DECLARE(name, table_id, fn)		\
-> 
-> -- 
-> Qualcomm Datacenter Technologies, Inc. on behalf of Qualcomm
-> Technologies, Inc.
-> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a
-> Linux Foundation Collaborative Project.
-> 
+On 26.07.2016 14:19, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+>
+> This patchset:
+>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>         1. Move some enums and marcos to header file;
+>         2. Add a new enum for spi type;
+>         3. Improve printk relevant code.
+>
+>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>     memory-mapped timer and SBSA Generic Watchdog timer.
+>     This driver can help to simplify all the relevant timer drivers,
+>     and separate all the ACPI GTDT knowledge from them.
+>
+>     (3)Simplify ACPI code for arm_arch_timer
+>
+>     (4)Add GTDT support for ARM memory-mapped timer
+>
+> This patchset has been tested on the following platforms:
+>     (1)ARM Foundation v8 model
+>
+> Changelog:
+> V10: https://lkml.org/lkml/2016/7/26/
+>      Drop the "readq" patch.
+>      Rebase to latest Linux 4.7.
+>
+> V9: https://lkml.org/lkml/2016/7/25/345
+>     Improve pr_err message in acpi gtdt driver.
+>     Update Commit message for 7/9
+>     shorten the irq mapping function name
+>     Improve GTDT driver for memory-mapped timer
+>
+> v8: https://lkml.org/lkml/2016/7/19/660
+>     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+>     and also improve printk message.
+>     Simplify is_timer_block and is_watchdog.
+>     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+>     Delete __init in include/linux/acpi.h for GTDT API
+>     Make ARM64 select GTDT.
+>     Delete "#include <linux/module.h>" from acpi_gtdt.c
+>     Simplify GT block parse code.
+>
+> v7: https://lkml.org/lkml/2016/7/13/769
+>     Move the GTDT driver to drivers/acpi/arm64
+>     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+>     Merge 3 patches of GTDT parser driver.
+>     Fix the for_each_platform_timer bug.
+>
+> v6: https://lkml.org/lkml/2016/6/29/580
+>     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+>     and SBSA Generic Watchdog timer
+>     Improve driver by suggestions and example code from Daniel Lezcano
+>
+> v5: https://lkml.org/lkml/2016/5/24/356
+>     Sorting out all patches, simplify the API of GTDT driver:
+>     GTDT driver just fills the data struct for arm_arch_timer driver.
+>
+> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+>     Delete the kvm relevant patches
+>     Separate two patches for sorting out the code for arm_arch_timer.
+>     Improve irq info export code to allow missing irq info in GTDT table.
+>
+> v3: https://lkml.org/lkml/2016/2/1/658
+>     Improve GTDT driver code:
+>       (1)improve pr_* by defining pr_fmt(fmt)
+>       (2)simplify gtdt_sbsa_gwdt_init
+>       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+>       to get GTDT table.
+>     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+>     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+>
+> v2: https://lkml.org/lkml/2015/12/2/10
+>     Rebase to latest kernel version(4.4-rc3).
+>     Fix the bug about the config problem,
+>     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+>
+> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+>
+> Fu Wei (8):
+>   clocksource/drivers/arm_arch_timer: Move enums and defines to header
+>     file
+>   clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+>   clocksource/drivers/arm_arch_timer: Improve printk relevant code
+>   acpi/arm64: Add GTDT table parse driver
+>   clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+>   acpi/arm64: Add memory-mapped timer support in GTDT driver
+>   clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+>     timer
+>   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+>
+>  arch/arm64/Kconfig                   |   1 +
+>  drivers/acpi/Kconfig                 |   5 +
+>  drivers/acpi/Makefile                |   1 +
+>  drivers/acpi/arm64/Kconfig           |   5 +
+>  drivers/acpi/arm64/Makefile          |   1 +
+>  drivers/acpi/arm64/acpi_gtdt.c       | 309 +++++++++++++++++++++++++++++++++++
+>  drivers/clocksource/Kconfig          |   2 +-
+>  drivers/clocksource/arm_arch_timer.c | 225 +++++++++++++++++--------
+>  drivers/watchdog/Kconfig             |   1 +
+>  include/clocksource/arm_arch_timer.h |  32 ++++
+>  include/linux/acpi.h                 |   7 +
+>  11 files changed, 518 insertions(+), 71 deletions(-)
+>  create mode 100644 drivers/acpi/arm64/Kconfig
+>  create mode 100644 drivers/acpi/arm64/Makefile
+>  create mode 100644 drivers/acpi/arm64/acpi_gtdt.c
+>
