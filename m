@@ -1,115 +1,92 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V8 4/8] irqchip/gicv3-its: Cleanup for ITS domain initialization
-Date: Thu, 11 Aug 2016 12:06:34 +0200
-Message-ID: <1470909998-16710-5-git-send-email-tn@semihalf.com>
+Subject: [PATCH V8 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that might be reused for ACPI
+Date: Thu, 11 Aug 2016 12:06:37 +0200
+Message-ID: <1470909998-16710-8-git-send-email-tn@semihalf.com>
 References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1470909998-16710-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
 Cc: will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-There is no point to initialize ITS without having msi-controller
-property in corresponding DT node. However, its_probe is checking
-msi-controller presence at the end, so we can save our time and do that
-check prior to its_probe call. Also, for the code clarity purpose,
-we put domain initialization to separate function.
+Firmware agnostic code lands in common functions which do necessary
+domain initialization based on unique domain handler. DT specific
+code goes to DT specific init call.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-v3-its.c | 57 ++++++++++++++++++++++++----------------
- 1 file changed, 34 insertions(+), 23 deletions(-)
+ drivers/irqchip/irq-gic-v3-its-pci-msi.c | 44 +++++++++++++++++++++-----------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 7ceaba8..bd43de1 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1609,13 +1609,37 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
- }
+diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+index aee60ed..d2c2496 100644
+--- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+@@ -106,34 +106,48 @@ static struct of_device_id its_device_id[] = {
+ 	{},
+ };
  
-+static int its_init_domain(struct device_node *node, struct its_node *its,
-+			   struct irq_domain *parent)
-+{
-+	struct irq_domain *inner_domain;
-+	struct msi_domain_info *info;
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return -ENOMEM;
-+
-+	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
-+	if (!inner_domain) {
-+		kfree(info);
-+		return -ENOMEM;
+-static int __init its_pci_msi_init(void)
++static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
++				       const char *name)
+ {
+-	struct device_node *np;
+ 	struct irq_domain *parent;
+ 
++	parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
++	if (!parent || !msi_get_domain_info(parent)) {
++		pr_err("%s: Unable to locate ITS domain\n", name);
++		return -ENXIO;
 +	}
 +
-+	inner_domain->parent = parent;
-+	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
-+	info->ops = &its_msi_domain_ops;
-+	info->data = its;
-+	inner_domain->host_data = info;
++	if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
++				       parent)) {
++		pr_err("%s: Unable to create PCI domain\n", name);
++		return -ENOMEM;
++	}
 +
 +	return 0;
 +}
 +
- static int __init its_probe(struct device_node *node,
- 			    struct irq_domain *parent)
- {
- 	struct resource res;
- 	struct its_node *its;
- 	void __iomem *its_base;
--	struct irq_domain *inner_domain;
- 	u32 val;
- 	u64 baser, tmp;
- 	int err;
-@@ -1707,28 +1731,9 @@ static int __init its_probe(struct device_node *node,
- 	writeq_relaxed(0, its->base + GITS_CWRITER);
- 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
- 
--	if (of_property_read_bool(node, "msi-controller")) {
--		struct msi_domain_info *info;
--
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
--		if (!info) {
--			err = -ENOMEM;
--			goto out_free_tables;
--		}
--
--		inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
--		if (!inner_domain) {
--			err = -ENOMEM;
--			kfree(info);
--			goto out_free_tables;
--		}
--
--		inner_domain->parent = parent;
--		inner_domain->bus_token = DOMAIN_BUS_NEXUS;
--		info->ops = &its_msi_domain_ops;
--		info->data = its;
--		inner_domain->host_data = info;
--	}
-+	err = its_init_domain(node, its, parent);
-+	if (err)
-+		goto out_free_tables;
- 
- 	spin_lock(&its_lock);
- 	list_add(&its->entry, &its_nodes);
-@@ -1779,6 +1784,12 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
- 
- 	for (np = of_find_matching_node(node, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
-+		if (!of_property_read_bool(np, "msi-controller")) {
-+			pr_warn("%s: no msi-controller property, ITS ignored\n",
-+				np->full_name);
-+			continue;
-+		}
++static int __init its_pci_of_msi_init(void)
++{
++	struct device_node *np;
 +
- 		its_probe(np, parent_domain);
+ 	for (np = of_find_matching_node(NULL, its_device_id); np;
+ 	     np = of_find_matching_node(np, its_device_id)) {
+ 		if (!of_property_read_bool(np, "msi-controller"))
+ 			continue;
+ 
+-		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
+-		if (!parent || !msi_get_domain_info(parent)) {
+-			pr_err("%s: unable to locate ITS domain\n",
+-			       np->full_name);
++		if (its_pci_msi_init_one(of_node_to_fwnode(np), np->full_name))
+ 			continue;
+-		}
+-
+-		if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
+-					       &its_pci_msi_domain_info,
+-					       parent)) {
+-			pr_err("%s: unable to create PCI domain\n",
+-			       np->full_name);
+-			continue;
+-		}
+ 
+ 		pr_info("PCI/MSI: %s domain created\n", np->full_name);
  	}
  
+ 	return 0;
+ }
++
++static int __init its_pci_msi_init(void)
++{
++	its_pci_of_msi_init();
++
++	return 0;
++}
+ early_initcall(its_pci_msi_init);
 -- 
 1.9.1
