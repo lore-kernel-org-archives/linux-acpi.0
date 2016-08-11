@@ -1,80 +1,38 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V8 3/8] PCI/MSI: Setup MSI domain on a per-device basis using
- IORT ACPI table
-Date: Thu, 11 Aug 2016 12:06:33 +0200
-Message-ID: <1470909998-16710-4-git-send-email-tn@semihalf.com>
-References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
+From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v10 0/8] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 11 Aug 2016 18:15:50 +0800
+Message-ID: <510fa357-a729-4ce1-7c10-4cef06feb7b7@linaro.org>
+References: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
+ <0befd611-91a7-88e9-1686-82929c1745e8@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1470909998-16710-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: graeme.gregory@linaro.org, al.stone@linaro.org, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0befd611-91a7-88e9-1686-82929c1745e8-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It is possible to provide information about which MSI controller to
-use on a per-device basis for DT. This patch supply this with ACPI support.
+Hi,
 
-Currently, IORT is the only one ACPI table which can provide such mapping.
-In order to plug IORT into MSI infrastructure we are adding ACPI
-equivalents for finding PCI device domain and its RID translation
-(pci_msi_domain_get_msi_rid and pci_msi_domain_get_msi_rid calls).
+On 2016/8/11 17:37, Tomasz Nowicki wrote:
+> Hi Fu,
+>
+> Do you mind if I send IORT series where new drivers/acpi/arm64 directory
+> would be introduced in first place ? This means your GTDT set would
+> depend on IORT.
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/msi.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+I think it's reasonable as the IORT for ITS is the key device enablement
+for PCI MSI. I talked to Fuwei offline and he is fine with it.
 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index a02981e..7bb981a 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -19,6 +19,7 @@
- #include <linux/smp.h>
- #include <linux/errno.h>
- #include <linux/io.h>
-+#include <linux/iort.h>
- #include <linux/slab.h>
- #include <linux/irqdomain.h>
- #include <linux/of_irq.h>
-@@ -1498,8 +1499,8 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
- 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
- 
- 	of_node = irq_domain_get_of_node(domain);
--	if (of_node)
--		rid = of_msi_map_rid(&pdev->dev, of_node, rid);
-+	rid = of_node ? of_msi_map_rid(&pdev->dev, of_node, rid) :
-+			iort_msi_map_rid(&pdev->dev, rid);
- 
- 	return rid;
- }
-@@ -1515,9 +1516,13 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
-  */
- struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev)
- {
-+	struct irq_domain *dom;
- 	u32 rid = 0;
- 
- 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
--	return of_msi_map_get_device_domain(&pdev->dev, rid);
-+	dom = of_msi_map_get_device_domain(&pdev->dev, rid);
-+	if (!dom)
-+		dom = iort_get_device_domain(&pdev->dev, rid);
-+	return dom;
- }
- #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
--- 
-1.9.1
+But both the GTDT patchset and IORT are in good shape now, can we
+targeting both of them for 4.9 kernel (since all go via tip tree)?
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
