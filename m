@@ -1,235 +1,231 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V8 2/8] ACPI: Add new IORT functions to support MSI
- domain handling
-Date: Fri, 12 Aug 2016 17:42:35 +0100
-Message-ID: <20160812164234.GB17734@red-moon>
-References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
- <1470909998-16710-3-git-send-email-tn@semihalf.com>
+From: Aaron Durbin <adurbin@google.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Fri, 12 Aug 2016 11:45:30 -0500
+Message-ID: <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+ <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60367 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752301AbcHLQml (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Aug 2016 12:42:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1470909998-16710-3-git-send-email-tn@semihalf.com>
+Received: from mail-it0-f52.google.com ([209.85.214.52]:36266 "EHLO
+	mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586AbcHLQpd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Aug 2016 12:45:33 -0400
+Received: by mail-it0-f52.google.com with SMTP id x130so16182459ite.1
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Aug 2016 09:45:32 -0700 (PDT)
+In-Reply-To: <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Thu, Aug 11, 2016 at 12:06:32PM +0200, Tomasz Nowicki wrote:
+On Wed, Jul 27, 2016 at 11:02 PM, Aaron Durbin <adurbin@google.com> wrote:
+> On Wed, Jul 27, 2016 at 7:09 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> On Monday, July 25, 2016 02:11:12 PM Aaron Durbin wrote:
+>>> On Fri, Jul 22, 2016 at 4:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> > On Friday, July 22, 2016 12:26:03 PM Aaron Durbin wrote:
+>>> >> On Thu, Jul 21, 2016 at 7:55 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> >> > On Wednesday, July 20, 2016 08:58:29 PM Aaron Durbin wrote:
+>>> >> >> On Wed, Jul 20, 2016 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> >> >> > On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
+>>> >> >
+>>> >> > [...]
+>>> >> >
+>>> >> >> >> > Isn't the problem a probe ordering issue, though?
+>>> >> >> >>
+>>> >> >> >> No. Not just ordering. There's no parent-child relationship taken into
+>>> >> >> >> account when PCI devices are added to the resource tree. Deferring
+>>> >> >> >> adding an ACPI device's resources would likely fail similarly because
+>>> >> >> >> one doesn't take into account the proper parent. One lives in PCI land
+>>> >> >> >> -- the other in ACPI land.
+>>> >> >> >
+>>> >> >> > What exactly do you mean by "PCI land" and "ACPI land"?
+>>> >> >> >
+>>> >> >> > All PCI resources are derived from the host bridge ones that come from
+>>> >> >> > ACPI anyway.
+>>> >> >>
+>>> >> >> Except that the BARs are queried in the pci devices themselves and
+>>> >> >> those resources are added w/o any communication to/from ACPI. That's
+>>> >> >> all done in the pci subsystem internally. Only if
+>>> >> >
+>>> >> > Well, not quite.
+>>> >> >
+>>> >> > It gets to host bridge resources via pcibios_bus_to_resource() AFAICS and
+>>> >> > those come from ACPI on ACPI-based systems.
+>>> >>
+>>> >> From what I can tell that's just updating resource values that have a
+>>> >> translation across a bridge. For a 1:1 mapping nothing is different
+>>> >> from the BAR encoded in the PCI device itself. Those windows are just
+>>> >> encoded in the bridge device. The only thing adjusted on the resources
+>>> >> is an offset. The BAR values are read from the device. That path is
+>>> >> just adjusting resources -- it's not adding those individual resources
+>>> >> into the resource tree for pci devices. See below.
+>>> >>
+>>> >> >
+>>> >> >> >
+>>> >> >> >> Currently, the issue is manifesting that the ACPI device's resources
+>>> >> >> >> are added into the resource tree. PCI devices the follow trying to add
+>>> >> >> >> their own resources. Conflicts ensue without taking into account the
+>>> >> >> >> proper hierarchy. To make matters worse, struct resource doesn't have
+>>> >> >> >> a struct device -- only a name. That means there's no way of knowing
+>>> >> >> >> who owns what resource. All that information is unavailable. That's
+>>> >> >> >> why the semi-hacky proposal was to see if there is an ACPI companion
+>>> >> >> >> device and see if it has children. If it's children's names match the
+>>> >> >> >> conflicting resource it's a good bet that the PCI device's resources
+>>> >> >> >> should be placed as the parent in the resource tree.
+>>> >> >> >
+>>> >> >> > That really looks like a broken hierarchy of devices somewhere.
+>>> >> >>
+>>> >> >> Why do you think it's a broken hierarchy? This CL has the heirarchy:
+>>> >> >> https://chromium-review.googlesource.com/#/c/359432/
+>>> >> >>
+>>> >> >> There is a device, P2S, which would result in an ACPI companion device
+>>> >> >> when the pci_dev is added to the device infrastructure by way of
+>>> >> >> acpi_platform_notify() which does the ACPI companion binding.
+>>> >> >> device_add() is the caller of platform_notify() which is set to
+>>> >> >> acpi_platform_notify() in init_acpi_device_notify() by way of
+>>> >> >> acpi_init().
+>>> >> >>
+>>> >> >> There are 4 children of the P2S device: GPO0, GPO1, GPO2, GPO3.
+>>> >> >>
+>>> >> >> Those children devices utilize a sub-resource of the P2S device which
+>>> >> >> has a pci_dev companion. It's BAR0 is the resource.
+>>> >> >
+>>> >> > OK
+>>> >> >
+>>> >> >> >
+>>> >> >> > And one more thing: a struct acpi_device object is not a device in general
+>>> >> >> > (althogh some pieces of code in the kernel, arguably incorrectly, treat it
+>>> >> >> > this way).  It is an abstract representation of a firmware entity (a node
+>>> >> >> > in the ACPI namespace).
+>>> >> >> >
+>>> >> >> > There really should be a "physical device" thing corresponding to it and
+>>> >> >> > that should be a child of the PCI device object in question.
+>>> >> >>
+>>> >> >> I thought I established that by the sysfs readlink I output I
+>>> >> >> previously provided?
+>>> >> >>
+>>> >> >> # ls /sys/devices/platform/| grep INT3452
+>>> >> >> INT3452:00
+>>> >> >> INT3452:01
+>>> >> >> INT3452:02
+>>> >> >> INT3452:03
+>>> >> >>
+>>> >> >> # ls /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11 | grep INT3452
+>>> >> >> INT3452:00
+>>> >> >> INT3452:01
+>>> >> >> INT3452:02
+>>> >> >> INT3452:03
+>>> >> >>
+>>> >> >> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11/INT3452:00/physical_node
+>>> >> >> /sys/devices/platform/INT3452:00
+>>> >> >
+>>> >> > OK
+>>> >> >
+>>> >> > I must have missed that part.
+>>> >> >
+>>> >> >> >
+>>> >> >> >> > Do we assign BARs for endpoints during enumeration or only when we find a
+>>> >> >> >> > matching driver?
+>>> >> >> >>
+>>> >> >> >> BARs look to be assigned during enumeration. There's where conflicts
+>>> >> >> >> are found and resources reassigned in the current failing case.
+>>> >> >> >
+>>> >> >> > OK
+>>> >> >> >
+>>> >> >> > You seem to be saying that we insert some resources for ACPI device objects
+>>> >> >> > that correspond to the children of ACPI companions of PCI devices before we
+>>> >> >> > assign the BARs for their parent devices.
+>>> >> >>
+>>> >> >> The pci_dev is the one owning the parent resource. Even if there is a
+>>> >> >> companion ACPI device with a resource it doesn't matter because there
+>>> >> >> will still be a conflict because there is no checking against the
+>>> >> >> companion. There are 2 parallel entities without any communication
+>>> >> >> between the PCI subsystem and the ACPI subsystem when resources are
+>>> >> >> being added.
+>>> >> >>
+>>> >> >> >
+>>> >> >> > To me, that sounds very suspicious.
+>>> >> >> >
+>>> >> >> > Where in the code are the ACPI resources inserted, exactly?
+>>> >> >>
+>>> >> >> I believe it's through this mechanism:
+>>> >> >> acpi_bus_attach() -> acpi_default_enumeration() ->
+>>> >> >> acpi_create_platform_device() -> platform_device_register_full()
+>>> >> >
+>>> >> > I still would like to understand how and why that is called for child devices
+>>> >> > before the (physical) parent is enumerated.
+>>> >> >
+>>> >> > The theory is that when the PCI host bridge is found in the ACPI namespace,
+>>> >> > it will be enumerated along with the entire PCI bus below it before enumerating
+>>> >> > any _HID devices in the ACPI namespace below the host bridge object.
+>>> >> >
+>>> >> > Therefore all PCI devices should be enumerated before any children of any of
+>>> >> > them that aren't PCI devices themselves.  If BARs are assigned during
+>>> >> > enumeration, they all should be assigned before inserting any resources
+>>> >> > for any non-PCI children of any PCI devices.
+>>> >> >
+>>> >> > If that doesn't happen, the practice doesn't match the theory and that very
+>>> >> > well may be the source of the problem you're seeing.
+>>> >> >
+>>> >>
+>>> >> I'll sprinkle some WARN_ON()s in the resource code to track down when
+>>> >> things are being added to provide a definitive answer to when these
+>>> >> resources are being inserted. The current issue is still stands:
+>>> >> there is nothing properly tying the 2 sources of resource information
+>>> >> together. And ACPI resources are added prior to PCI resources.
+>>> >
+>>> > OK, I see what's going on.
+>>> >
+>>> >> PCI devices might be enumerated, but that doesn't mean their
+>>> >> *resources* are added.
+>>> >
+>>> > Right.
+>>> >
+>>> >> Back to the subsys_initcall topic:
+>>> >>
+>>> >> pci_subsys_init() is called *after* acpi_init().
+>>> >>
+>>> >> pci_subsys_init() -> pcibios_init() -> pcibios_resource_survey() ->
+>>> >> pcibios_allocate_resources() -> pcibios_allocate_dev_resources() ->
+>>> >> pci_claim_resource()
+>>> >
+>>> > So first, the PCI resources are allocated in an additional pass after bus
+>>> > enumeration and after enumerating platform devices based on the ACPI namespace.
+>>> > That causes resources of the (non-PCI) children to be inserted before the
+>>> > resources of the (PCI) parents.
+>>>
+>>> What is the proposal for fixing this issue?
+>>
+>> I can think about a couple of ways, but I'm not sure which one is the best
+>> candidate from the regression risk perspective etc.
+>>
+>> I need to talk about that to some people who are on vacation ATM.
+>>
+>>> > But the problem seems to be that acpi_create_platform_device() doesn't
+>>> > check parent resources at all.  Namely, when pdevinfo.parent is set, the
+>>> > function should look at the resources of the parent and possibly populate
+>>> > the parent field of the new device's resources before passing them to
+>>> > platform_device_register_full().
+>>>
+>>> In the particular issue I reported how would the parent device have
+>>> any resources if it's a PCI device?
+>>
+>> If we can fix the ordering (so that the resources of parents are always
+>> inserted before the resources of their children), then it shouldn't
+>> matter whether or not it is a PCI device.
+>>
+>> In any case, though, its ACPI companion will have information on the
+>> resources the device is using.
+>
+> Thanks. Let me know if you want me to do anything.. validate
+> something. Take a stab at something, etc.
 
-[...]
+Was anyone able to take a look into a solution for the current
+problem?  Again, please feel free to ask if anyone would like help
+testing potential solutions.
 
-> +/**
-> + * iort_register_domain_token() - register domain token and related ITS ID
-> + * to the list from where we can get it back later on.
-> + * @trans_id: ITS ID.
-> + * @fw_node: Domain token.
-> + *
-> + * Returns: 0 on success, -ENOMEM if no memory when allocating list element
-> + */
-> +int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
-> +{
-> +	struct iort_its_msi_chip *its_msi_chip;
-> +
-> +	its_msi_chip = kzalloc(sizeof(*its_msi_chip), GFP_KERNEL);
+Thanks.
 
-I spotted this while reworking my ARM SMMU series, this may sleep
-and that's no good given that we call it within the acpi_probe_lock.
-
-Same goes for irq_domain_alloc_fwnode() (that we call in
-gic_v2_acpi_init()), we have got to fix this usage, I will see with
-Marc what's the best way to do it.
-
-Lorenzo
-
-> +	if (!its_msi_chip)
-> +		return -ENOMEM;
-> +
-> +	its_msi_chip->fw_node = fw_node;
-> +	its_msi_chip->translation_id = trans_id;
-> +
-> +	spin_lock(&iort_msi_chip_lock);
-> +	list_add(&its_msi_chip->list, &iort_msi_chip_list);
-> +	spin_unlock(&iort_msi_chip_lock);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * iort_deregister_domain_token() - Deregister domain token based on ITS ID
-> + * @trans_id: ITS ID.
-> + *
-> + * Returns: none.
-> + */
-> +void iort_deregister_domain_token(int trans_id)
-> +{
-> +	struct iort_its_msi_chip *its_msi_chip, *t;
-> +
-> +	spin_lock(&iort_msi_chip_lock);
-> +	list_for_each_entry_safe(its_msi_chip, t, &iort_msi_chip_list, list) {
-> +		if (its_msi_chip->translation_id == trans_id) {
-> +			list_del(&its_msi_chip->list);
-> +			kfree(its_msi_chip);
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&iort_msi_chip_lock);
-> +}
-> +
-> +/**
-> + * iort_find_domain_token() - Find domain token based on given ITS ID
-> + * @trans_id: ITS ID.
-> + *
-> + * Returns: domain token when find on the list, NULL otherwise
-> + */
-> +struct fwnode_handle *iort_find_domain_token(int trans_id)
-> +{
-> +	struct fwnode_handle *fw_node = NULL;
-> +	struct iort_its_msi_chip *its_msi_chip;
-> +
-> +	spin_lock(&iort_msi_chip_lock);
-> +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
-> +		if (its_msi_chip->translation_id == trans_id) {
-> +			fw_node = its_msi_chip->fw_node;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&iort_msi_chip_lock);
-> +
-> +	return fw_node;
-> +}
-> +
->  static struct acpi_iort_node *
->  iort_scan_node(enum acpi_iort_node_type type,
->  	       iort_find_node_callback callback, void *context)
-> @@ -206,6 +285,96 @@ iort_find_dev_node(struct device *dev)
->  			      iort_match_node_callback, &pbus->dev);
->  }
->  
-> +/**
-> + * iort_msi_map_rid() - Map a MSI requester ID for a device
-> + * @dev: The device for which the mapping is to be done.
-> + * @req_id: The device requester ID.
-> + *
-> + * Returns: mapped MSI RID on success, input requester ID otherwise
-> + */
-> +u32 iort_msi_map_rid(struct device *dev, u32 req_id)
-> +{
-> +	struct acpi_iort_node *node;
-> +	u32 dev_id;
-> +
-> +	if (!iort_table)
-> +		return req_id;
-> +
-> +	node = iort_find_dev_node(dev);
-> +	if (!node) {
-> +		dev_err(dev, "can't find related IORT node\n");
-> +		return req_id;
-> +	}
-> +
-> +	iort_node_map_rid(node, req_id, &dev_id, ACPI_IORT_NODE_ITS_GROUP);
-> +	return dev_id;
-> +}
-> +
-> +/**
-> + * iort_dev_find_its_id() - Find the ITS identifier for a device
-> + * @dev: The device.
-> + * @idx: Index of the ITS identifier list.
-> + * @its_id: ITS identifier.
-> + *
-> + * Returns: 0 on success, appropriate error value otherwise
-> + */
-> +static int
-> +iort_dev_find_its_id(struct device *dev, u32 req_id, unsigned int idx,
-> +		     int *its_id)
-> +{
-> +	struct acpi_iort_its_group *its;
-> +	struct acpi_iort_node *node;
-> +
-> +	node = iort_find_dev_node(dev);
-> +	if (!node) {
-> +		dev_err(dev, "can't find related IORT node\n");
-> +		return -ENXIO;
-> +	}
-> +
-> +	node = iort_node_map_rid(node, req_id, NULL, ACPI_IORT_NODE_ITS_GROUP);
-> +	if (!node) {
-> +		dev_err(dev, "can't find related ITS node\n");
-> +		return -ENXIO;
-> +	}
-> +
-> +	/* Move to ITS specific data */
-> +	its = (struct acpi_iort_its_group *)node->node_data;
-> +	if (idx > its->its_count) {
-> +		dev_err(dev, "requested ITS ID index [%d] is greater than available [%d]\n",
-> +			idx, its->its_count);
-> +		return -ENXIO;
-> +	}
-> +
-> +	*its_id = its->identifiers[idx];
-> +	return 0;
-> +}
-> +
-> +/**
-> + * iort_get_device_domain() - Find MSI domain related to a device
-> + * @dev: The device.
-> + * @req_id: Requester ID for the device.
-> + *
-> + * Returns: the MSI domain for this device, NULL otherwise
-> + */
-> +struct irq_domain *
-> +iort_get_device_domain(struct device *dev, u32 req_id)
-> +{
-> +	static struct fwnode_handle *handle;
-> +	int its_id;
-> +
-> +	if (!iort_table)
-> +		return NULL;
-> +
-> +	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
-> +		return NULL;
-> +
-> +	handle = iort_find_domain_token(its_id);
-> +	if (!handle)
-> +		return NULL;
-> +
-> +	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
-> +}
-> +
->  void __init iort_table_detect(void)
->  {
->  	acpi_status status;
-> diff --git a/include/linux/iort.h b/include/linux/iort.h
-> index cde6809..d7daba1 100644
-> --- a/include/linux/iort.h
-> +++ b/include/linux/iort.h
-> @@ -20,11 +20,22 @@
->  #define __IORT_H__
->  
->  #include <linux/acpi.h>
-> +#include <linux/fwnode.h>
-> +#include <linux/irqdomain.h>
->  
-> +int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
-> +void iort_deregister_domain_token(int trans_id);
-> +struct fwnode_handle *iort_find_domain_token(int trans_id);
->  #ifdef CONFIG_IORT_TABLE
->  void iort_table_detect(void);
-> +u32 iort_msi_map_rid(struct device *dev, u32 req_id);
-> +struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
->  #else
->  static inline void iort_table_detect(void) { }
-> +static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
-> +{ return req_id; }
-> +static inline struct irq_domain *
-> +iort_get_device_domain(struct device *dev, u32 req_id) { return NULL; }
->  #endif
->  
->  #endif /* __IORT_H__ */
-> -- 
-> 1.9.1
-> 
+-Aaron
