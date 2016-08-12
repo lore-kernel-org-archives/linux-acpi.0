@@ -1,76 +1,235 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH 1/5] acpi: cppc: Allow build with ACPI_CPU_FREQ_PSS config
-Date: Fri, 12 Aug 2016 09:35:09 -0700
-Message-ID: <CAFHUOYx55WhrwaqpB7Jh8V_fnR1xVW=RWf9ZsCnJZFJt_JbpBw@mail.gmail.com>
-References: <1470874646-70570-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1470874646-70570-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V8 2/8] ACPI: Add new IORT functions to support MSI
+ domain handling
+Date: Fri, 12 Aug 2016 17:42:35 +0100
+Message-ID: <20160812164234.GB17734@red-moon>
+References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
+ <1470909998-16710-3-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1470874646-70570-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, viresh.kumar@linaro.org, linux acpi <linux-acpi@vger.kernel.org>, linux-pm@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60367 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752301AbcHLQml (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Aug 2016 12:42:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1470909998-16710-3-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-Hi Srinivas,
+On Thu, Aug 11, 2016 at 12:06:32PM +0200, Tomasz Nowicki wrote:
 
-On Wed, Aug 10, 2016 at 5:17 PM, Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
-> Some newer x86 platforms have support for both _CPC and _PSS object. So
-> kernel config can have both ACPI_CPU_FREQ_PSS and ACPI_CPPC_LIB. So remove
-> restriction for ACPI_CPPC_LIB to build only when ACPI_CPU_FREQ_PSS is not
-> defined.
-> Also for legacy systems with only _PSS, we shouldn't bail out if
-> acpi_cppc_processor_probe() fails, if ACPI_CPU_FREQ_PSS is also defined.
->
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> ---
->  drivers/acpi/Kconfig            | 1 -
->  drivers/acpi/processor_driver.c | 5 ++++-
->  2 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 445ce28..c6bb6aa 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -227,7 +227,6 @@ config ACPI_MCFG
->  config ACPI_CPPC_LIB
->         bool
->         depends on ACPI_PROCESSOR
-> -       depends on !ACPI_CPU_FREQ_PSS
+[...]
 
->From ACPI 6.1 spec, if _CPC is present, its use supersedes the use of
-PSS. So I think, config ACPI_CPU_FREQ_PSS should depend on
-!ACPI_CPPC_LIB.
+> +/**
+> + * iort_register_domain_token() - register domain token and related ITS ID
+> + * to the list from where we can get it back later on.
+> + * @trans_id: ITS ID.
+> + * @fw_node: Domain token.
+> + *
+> + * Returns: 0 on success, -ENOMEM if no memory when allocating list element
+> + */
+> +int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
+> +{
+> +	struct iort_its_msi_chip *its_msi_chip;
+> +
+> +	its_msi_chip = kzalloc(sizeof(*its_msi_chip), GFP_KERNEL);
 
-Thanks
-Hoan
+I spotted this while reworking my ARM SMMU series, this may sleep
+and that's no good given that we call it within the acpi_probe_lock.
 
->         select MAILBOX
->         select PCC
->         help
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 0553aee..0e0b629 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -245,8 +245,11 @@ static int __acpi_processor_start(struct acpi_device *device)
->                 return 0;
->
->         result = acpi_cppc_processor_probe(pr);
-> -       if (result)
-> +       if (result) {
-> +#ifndef CONFIG_ACPI_CPU_FREQ_PSS
->                 return -ENODEV;
-> +#endif
-> +       }
->
->         if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
->                 acpi_processor_power_init(pr);
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Same goes for irq_domain_alloc_fwnode() (that we call in
+gic_v2_acpi_init()), we have got to fix this usage, I will see with
+Marc what's the best way to do it.
+
+Lorenzo
+
+> +	if (!its_msi_chip)
+> +		return -ENOMEM;
+> +
+> +	its_msi_chip->fw_node = fw_node;
+> +	its_msi_chip->translation_id = trans_id;
+> +
+> +	spin_lock(&iort_msi_chip_lock);
+> +	list_add(&its_msi_chip->list, &iort_msi_chip_list);
+> +	spin_unlock(&iort_msi_chip_lock);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * iort_deregister_domain_token() - Deregister domain token based on ITS ID
+> + * @trans_id: ITS ID.
+> + *
+> + * Returns: none.
+> + */
+> +void iort_deregister_domain_token(int trans_id)
+> +{
+> +	struct iort_its_msi_chip *its_msi_chip, *t;
+> +
+> +	spin_lock(&iort_msi_chip_lock);
+> +	list_for_each_entry_safe(its_msi_chip, t, &iort_msi_chip_list, list) {
+> +		if (its_msi_chip->translation_id == trans_id) {
+> +			list_del(&its_msi_chip->list);
+> +			kfree(its_msi_chip);
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&iort_msi_chip_lock);
+> +}
+> +
+> +/**
+> + * iort_find_domain_token() - Find domain token based on given ITS ID
+> + * @trans_id: ITS ID.
+> + *
+> + * Returns: domain token when find on the list, NULL otherwise
+> + */
+> +struct fwnode_handle *iort_find_domain_token(int trans_id)
+> +{
+> +	struct fwnode_handle *fw_node = NULL;
+> +	struct iort_its_msi_chip *its_msi_chip;
+> +
+> +	spin_lock(&iort_msi_chip_lock);
+> +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
+> +		if (its_msi_chip->translation_id == trans_id) {
+> +			fw_node = its_msi_chip->fw_node;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&iort_msi_chip_lock);
+> +
+> +	return fw_node;
+> +}
+> +
+>  static struct acpi_iort_node *
+>  iort_scan_node(enum acpi_iort_node_type type,
+>  	       iort_find_node_callback callback, void *context)
+> @@ -206,6 +285,96 @@ iort_find_dev_node(struct device *dev)
+>  			      iort_match_node_callback, &pbus->dev);
+>  }
+>  
+> +/**
+> + * iort_msi_map_rid() - Map a MSI requester ID for a device
+> + * @dev: The device for which the mapping is to be done.
+> + * @req_id: The device requester ID.
+> + *
+> + * Returns: mapped MSI RID on success, input requester ID otherwise
+> + */
+> +u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+> +{
+> +	struct acpi_iort_node *node;
+> +	u32 dev_id;
+> +
+> +	if (!iort_table)
+> +		return req_id;
+> +
+> +	node = iort_find_dev_node(dev);
+> +	if (!node) {
+> +		dev_err(dev, "can't find related IORT node\n");
+> +		return req_id;
+> +	}
+> +
+> +	iort_node_map_rid(node, req_id, &dev_id, ACPI_IORT_NODE_ITS_GROUP);
+> +	return dev_id;
+> +}
+> +
+> +/**
+> + * iort_dev_find_its_id() - Find the ITS identifier for a device
+> + * @dev: The device.
+> + * @idx: Index of the ITS identifier list.
+> + * @its_id: ITS identifier.
+> + *
+> + * Returns: 0 on success, appropriate error value otherwise
+> + */
+> +static int
+> +iort_dev_find_its_id(struct device *dev, u32 req_id, unsigned int idx,
+> +		     int *its_id)
+> +{
+> +	struct acpi_iort_its_group *its;
+> +	struct acpi_iort_node *node;
+> +
+> +	node = iort_find_dev_node(dev);
+> +	if (!node) {
+> +		dev_err(dev, "can't find related IORT node\n");
+> +		return -ENXIO;
+> +	}
+> +
+> +	node = iort_node_map_rid(node, req_id, NULL, ACPI_IORT_NODE_ITS_GROUP);
+> +	if (!node) {
+> +		dev_err(dev, "can't find related ITS node\n");
+> +		return -ENXIO;
+> +	}
+> +
+> +	/* Move to ITS specific data */
+> +	its = (struct acpi_iort_its_group *)node->node_data;
+> +	if (idx > its->its_count) {
+> +		dev_err(dev, "requested ITS ID index [%d] is greater than available [%d]\n",
+> +			idx, its->its_count);
+> +		return -ENXIO;
+> +	}
+> +
+> +	*its_id = its->identifiers[idx];
+> +	return 0;
+> +}
+> +
+> +/**
+> + * iort_get_device_domain() - Find MSI domain related to a device
+> + * @dev: The device.
+> + * @req_id: Requester ID for the device.
+> + *
+> + * Returns: the MSI domain for this device, NULL otherwise
+> + */
+> +struct irq_domain *
+> +iort_get_device_domain(struct device *dev, u32 req_id)
+> +{
+> +	static struct fwnode_handle *handle;
+> +	int its_id;
+> +
+> +	if (!iort_table)
+> +		return NULL;
+> +
+> +	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
+> +		return NULL;
+> +
+> +	handle = iort_find_domain_token(its_id);
+> +	if (!handle)
+> +		return NULL;
+> +
+> +	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+> +}
+> +
+>  void __init iort_table_detect(void)
+>  {
+>  	acpi_status status;
+> diff --git a/include/linux/iort.h b/include/linux/iort.h
+> index cde6809..d7daba1 100644
+> --- a/include/linux/iort.h
+> +++ b/include/linux/iort.h
+> @@ -20,11 +20,22 @@
+>  #define __IORT_H__
+>  
+>  #include <linux/acpi.h>
+> +#include <linux/fwnode.h>
+> +#include <linux/irqdomain.h>
+>  
+> +int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
+> +void iort_deregister_domain_token(int trans_id);
+> +struct fwnode_handle *iort_find_domain_token(int trans_id);
+>  #ifdef CONFIG_IORT_TABLE
+>  void iort_table_detect(void);
+> +u32 iort_msi_map_rid(struct device *dev, u32 req_id);
+> +struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+>  #else
+>  static inline void iort_table_detect(void) { }
+> +static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+> +{ return req_id; }
+> +static inline struct irq_domain *
+> +iort_get_device_domain(struct device *dev, u32 req_id) { return NULL; }
+>  #endif
+>  
+>  #endif /* __IORT_H__ */
+> -- 
+> 1.9.1
+> 
