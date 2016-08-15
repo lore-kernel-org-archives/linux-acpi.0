@@ -1,91 +1,85 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v7 14/15] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Mon, 15 Aug 2016 16:35:46 +0100
-Message-ID: <20160815153546.GF22320@e104818-lin.cambridge.arm.com>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 0/6] Apple device properties
+Date: Mon, 15 Aug 2016 18:13:58 +0200
+Message-ID: <20160815161358.GA9603@wunner.de>
+References: <cover.1469616641.git.lukas@wunner.de>
+ <20160804145710.GL3636@codeblueprint.co.uk>
+ <20160809133816.GA6571@wunner.de>
+ <20160815115414.GE30909@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41501 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752812AbcHOPfx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Aug 2016 11:35:53 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20160815115414.GE30909@codeblueprint.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, x86@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-On Tue, May 24, 2016 at 03:35:44PM -0700, David Daney wrote:
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index aee323b..4b13ecd 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -113,4 +113,12 @@ static inline const char *acpi_get_enable_method(int cpu)
->  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
->  #endif
->  
-> +#ifdef CONFIG_ACPI_NUMA
-> +int arm64_acpi_numa_init(void);
-> +int acpi_numa_get_nid(unsigned int cpu, u64 hwid);
-> +#else
-> +static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
-> +static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
-> +#endif /* CONFIG_ACPI_NUMA */
-> +
->  #endif /*_ASM_ACPI_H*/
+On Mon, Aug 15, 2016 at 12:54:14PM +0100, Matt Fleming wrote:
+> On Tue, 09 Aug, at 03:38:16PM, Lukas Wunner wrote:
+> > @@ -208,7 +201,10 @@ struct efi_config {
+> >  __pure const struct efi_config *__efi_early(void);
+> >  
+> >  #define efi_call_early(f, ...)					\
+> > -	__efi_early()->call(__efi_early()->f, __VA_ARGS__);
+> > +	__efi_early()->call(__efi_early()->is64 ?			\
+> > +	((efi_boot_services_64_t *)__efi_early()->boot_services)->f :	\
+> > +	((efi_boot_services_32_t *)__efi_early()->boot_services)->f,	\
+> > +						       __VA_ARGS__);
+> >  
+> 
+> You cannot use pointers from the firmware directly in mixed mode
+> because the kernel is compiled for 64-bits but the firmware is using
+> 32-bit addresses, so dereferencing a pointer causes a 64-bit load.
 
-Apparently this doesn't always build since asm/acpi.h is conditionally
-included from linux/acpi.h only when CONFIG_ACPI is enabled. Disabling
-this option on arm64 leads to:
+Please behold the resulting binary code, which uses a 32-bit load,
+not a 64-bit load (note the "mov edi, dword [ds:rax+0x2c]").
 
-arch/arm64/mm/numa.c: In function ‘arm64_numa_init’:
-arch/arm64/mm/numa.c:395:24: error: ‘arm64_acpi_numa_init’ undeclared (first use in this function)
-   if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
+This is a call to AllocatePool *with* my patch:
 
-I'll fix it in arch/arm64 by including asm/acpi.h directly as we do in a
-couple of other files:
+0x22c1         mov        rax, qword [ds:efi_early]
+0x22c8         add        rdx, 0x10                  ; buffer size argument
+0x22cc         cmp        byte [ds:rax+0x28], 0x0    ; !efi_early->is64 ?
+0x22d0         mov        r8, qword [ds:rax+0x20]    ; efi_early->call()
+0x22d4         mov        rax, qword [ds:rax+0x10]   ; efi_early->boot_services
+0x22d8         je         0x2410
+0x22de         mov        rdi, qword [ds:rax+0x40]   ; allocate_pool (64 bit)
+0x22e2         xor        eax, eax
+0x22e4         mov        rcx, r13                   ; buffer argument
+0x22e7         mov        esi, 0x2                   ; EfiLoaderData argument
+0x22ec         call       r8
+...
+0x2410         mov        edi, dword [ds:rax+0x2c]   ; allocate_pool (32 bit)
+0x2413         jmp        0x22e2
 
-------------------8<------------------------------
->From 9a83bf400e0b4ef066b83eeaecdbca909b8491ea Mon Sep 17 00:00:00 2001
-From: Catalin Marinas <catalin.marinas@arm.com>
-Date: Mon, 15 Aug 2016 16:33:10 +0100
-Subject: [PATCH] arm64: Fix NUMA build error when !CONFIG_ACPI
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+The same *without* my patch:
 
-Since asm/acpi.h is only included by linux/acpi.h when CONFIG_ACPI is
-enabled, disabling the latter leads to the following build error on
-arm64:
+0x1d41         mov        r8, qword [ds:efi_early]
+0x1d48         add        r15, 0x40
+0x1d4c         mov        rcx, qword [ss:rsp-0x10+arg_20] ; buffer argument
+0x1d51         mov        rdx, r15                   ; buffer size argument
+0x1d54         mov        esi, 0x2                   ; EfiLoaderData argument
+0x1d59         mov        rdi, qword [ds:r8+0x10]    ; allocate_pool
+0x1d5d         call       qword [ds:r8+0x58]         ; efi_early->call
 
-arch/arm64/mm/numa.c: In function ‘arm64_numa_init’:
-arch/arm64/mm/numa.c:395:24: error: ‘arm64_acpi_numa_init’ undeclared (first use in this function)
-   if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
+So it looks to me like my patch should work just fine on 32-bit,
+even though I cannot verify it through testing.
 
-This patch include the asm/acpi.h explicitly in arch/arm64/mm/numa.c for
-the arm64_acpi_numa_init() definition.
+The ARM folks afford invocation of arbitrary boot services, it just
+seemed natural to me to allow the same for x86. The portion of the
+stub code which is shared between arches cannot use more than the
+8 boot services supported by x86 even though ARM would be capable
+of using all of them.
 
-Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and SLIT")
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
----
- arch/arm64/mm/numa.c | 2 ++
- 1 file changed, 2 insertions(+)
+Of course the binary code with my patch is longer, less readable,
+and needs to follow multiple indirections and I can understand if
+you would rather stay with the current approach for these reasons.
 
-diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-index c7fe3ec70774..5bb15eab6f00 100644
---- a/arch/arm64/mm/numa.c
-+++ b/arch/arm64/mm/numa.c
-@@ -23,6 +23,8 @@
- #include <linux/module.h>
- #include <linux/of.h>
- 
-+#include <asm/acpi.h>
-+
- struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
- EXPORT_SYMBOL(node_data);
- nodemask_t numa_nodes_parsed __initdata;
+But I would like to understand the "cannot jump through pointers at
+runtime" argument because the binary code looks to me like it should
+work on 32 bit. I guess I must be missing something obvious?
+
+Thanks,
+
+Lukas
