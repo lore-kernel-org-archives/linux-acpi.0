@@ -1,90 +1,184 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v10 7/7] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-Date: Mon, 15 Aug 2016 15:51:35 +0100
-Message-ID: <ccf9be5c-bf5b-181f-ed36-4f72c4d79da5@arm.com>
-References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
- <1468950779-21745-8-git-send-email-sudeep.holla@arm.com>
- <579BA8DE.3050802@codeaurora.org>
- <4963f55a-d014-ec7b-2d9d-471fb3f29204@arm.com>
- <828911ef-fbc6-5db1-acce-239117b62fd0@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH v4 00/15] ACPI IORT ARM SMMU v3 support
+Date: Mon, 15 Aug 2016 16:23:25 +0100
+Message-ID: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40956 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:41132 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752897AbcHOOvn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Aug 2016 10:51:43 -0400
-In-Reply-To: <828911ef-fbc6-5db1-acce-239117b62fd0@codeaurora.org>
+	id S1753000AbcHOPXr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Aug 2016 11:23:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>, ACPI List <linux-acpi@vger.kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, ALKML <linux-arm-kernel@lists.infradead.org>, Sunil <sunil.vl@hpe.com>, Marc Zyngier <marc.zyngier@arm.com>
+To: iommu@lists.linux-foundation.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Christopher,
+This patch series is v4 of a previous posting:
 
-On 15/08/16 15:47, Christopher Covington wrote:
-> Hi Sudeep,
->
-> On 08/02/2016 09:00 AM, Sudeep Holla wrote:
->>
->> On 29/07/16 20:05, Christopher Covington wrote:
->>> Hi Sudeep,
->>>
->>> On 07/19/2016 01:52 PM, Sudeep Holla wrote:
->>>> Now that ACPI processor idle driver supports LPI(Low Power Idle), lets
->>>> enable ACPI_PROCESSOR_IDLE for ARM64 too.
->>>>
->>>> This patch just removes the IA64 and X86 dependency on
->>>> ACPI_PROCESSOR_IDLE
->>>>
->>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->>>> ---
->>>>  drivers/acpi/Kconfig | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->>>> index 1358fb7d7a68..d74275c0f374 100644
->>>> --- a/drivers/acpi/Kconfig
->>>> +++ b/drivers/acpi/Kconfig
->>>> @@ -238,7 +238,7 @@ config ACPI_CPPC_LIB
->>>>  config ACPI_PROCESSOR
->>>>      tristate "Processor"
->>>>      depends on X86 || IA64 || ARM64
->>>> -    select ACPI_PROCESSOR_IDLE if X86 || IA64
->>>> +    select ACPI_PROCESSOR_IDLE
->>>>      select ACPI_CPU_FREQ_PSS if X86 || IA64
->>>>      default y
->>>>      help
->>>>
->>>
->>> This causes a boot hang on QDF2432. cpuidle.off=1 works around the
->>> problem. I understand you're working on a fix to the problem in GICv3
->>> code. If there's anything I can do to help, please let me know.
->>
->> Sorry for the late response, I was away. Yes it's to do with GICv3 and
->> retention states. I exchanged mails with QCOM guys in private. To
->> summarize:
->>
->> We don't need any additional support in Linux to support that. Infact we
->> need to remove disabling the redistributor in the powerdown path. PSCI
->> implementation also do the same for Group0(aka secure/EL3 interrupts)
->> and we currently do that for Group1(aka EL1N interrupts) in Linux. The
->> plan was to move that to EL3 code, to align with GICv2 code.
->>
->> Hence the changes in Linux is just removal of the GICv3 PM notifier
->> partially. I will need to check with Trusted Firmware team and do some
->> testing before I post that change. I will plan to do that later this week.
->
-> Have you been able to make progress on the fix? If there's anything we
-> can do to help, please let us know. If the fix is going to take a while,
-> would it be appropriate to revert the Kconfig change until it is in place?
->
+https://lkml.org/lkml/2016/7/20/248
 
-Thanks for the remainder. Yes I will post this week, I posted arm
-trusted firmware patch first and was waiting it to be pulled.
+v3 -> v4
+	- Added single mapping API (for IORT named components)
+	- Fixed arm_smmu_iort_xlate() return value
+	- Reworked fwnode registration and platform device creation
+	  ordering to fix probe ordering dependencies
+	- Added code to keep device_node ref count with new iommu
+	  fwspec API
+	- Added patch to make iommu_fwspec arch agnostic
+	- Dropped RFC status
+	- Rebased against v4.8-rc2
+
+v2 -> v3
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc3)
+	- Added back reliance on ACPI early probing infrastructure
+	- Patch[1-3] merged through other dependent series
+	- Added back IOMMU fwnode generalization
+	- Move SMMU v3 static functions configuration to IORT code
+	- Implemented generic IOMMU fwspec API
+	- Added code to implement fwnode platform device look-up
+
+v1 -> v2:
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc1)
+	- Removed IOMMU fwnode generalization
+	- Implemented ARM SMMU v3 ACPI probing instead of ARM SMMU v2
+	  owing to patch series dependencies [1]
+	- Moved platform device creation logic to IORT code to
+	  generalize its usage for ARM SMMU v1-v2-v3 components
+	- Removed reliance on ACPI early device probing
+	- Created IORT specific iommu_xlate() translation hook leaving
+	  OF code unchanged according to v1 reviews
+
+The ACPI IORT table provides information that allows instantiating
+ARM SMMU devices and carrying out id mappings between components on
+ARM based systems (devices, IOMMUs, interrupt controllers).
+
+http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+
+Building on basic IORT support, available through [2],
+this patchset enables ARM SMMU v3 support on ACPI systems.
+
+Most of the code is aimed at building the required generic ACPI
+infrastructure to create and enable IOMMU components and to bring
+the IOMMU infrastructure for ACPI on par with DT, which is going to
+make future ARM SMMU components easier to integrate.
+
+PATCH (1) adds a FWNODE_IOMMU type to the struct fwnode_handle type.
+          It is required to attach a fwnode identifier to platform
+          devices allocated/detected through IORT tables entries;
+          IOMMU devices have to have an identifier to look them up
+          eg IOMMU core layer carrying out id translation. This can be
+          done through a fwnode_handle (ie IOMMU platform devices created
+          out of IORT tables are not ACPI devices hence they can't be
+          allocated as such, otherwise they would have a fwnode_handle of
+          type FWNODE_ACPI).
+
+PATCH (2) Add kernel infrastructure to make the struct iommu_fwspec
+          handling arch agnostic and generic.
+
+PATCH (3) makes use of the ACPI early probing API to add a linker script
+          section for probing devices via IORT ACPI kernel code.
+
+PATCH (4) provides IORT support for registering IOMMU IORT node through
+          their fwnode handle.
+
+PATCH (5) implements core code fwnode based platform devices look-up.
+
+PATCH (6) extends iommu_fwspec so that it can be used on ACPI based
+          system by creating a generic IOMMU fwspec kernel layer.
+
+PATCH (7) implements the of_dma_configure() API in ACPI world -
+          acpi_dma_configure() - and patches PCI and ACPI core code to
+          start making use of it.
+
+PATCH (8) provides an IORT function to detect existence of specific type
+          of IORT components.
+
+PATCH (9) creates the kernel infrastructure required to create ARM SMMU
+          platform devices for IORT nodes.
+
+PATCH (10) refactors the ARM SMMU v3 driver so that the init functions are
+           split in a way that groups together code that probes through DT
+           and code that carries out HW registers FW agnostic probing, in
+           preparation for adding the ACPI probing path.
+
+PATCH (11) rework ARM SMMU v3 platform driver registration to make it work
+           on ACPI systems.
+
+PATCH (12) Building on patch (9), it adds ARM SMMU v3 IORT IOMMU
+           operations to create and probe ARM SMMU v3 components.
+
+PATCH (13) Extend the IORT iort_node_map_rid() to work on a type mask
+           instead of a single type so that the translation API can
+           be used on a range of components.
+
+PATCH (14) Add IORT API to carry out id mappings for components that do
+           do not have an input identifier/RIDs (ie named components).
+
+PATCH (15) provides IORT infrastructure to carry out IOMMU configuration
+           for devices and hook it up to the previously introduced ACPI
+           DMA configure API.
+
+This patchset is built on top and depends on these two patch series:
+
+[1] R.Murphy "Generic DT bindings for PCI and ARM SMMU v3" v4
+    https://marc.info/?l=devicetree&m=146739193215518&w=2
+
+[2] T.Nowicki "Introduce ACPI world to ITS irqchip" v8
+    https://marc.info/?l=linux-kernel&m=147091000919640&w=2
+
+and is provided for early review/testing purposes here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v4
+
+Tested on FVP models for ARM SMMU v3 probing path.
+
+Lorenzo Pieralisi (15):
+  drivers: iommu: add FWNODE_IOMMU fwnode type
+  drivers: iommu: implement arch_{set/get}_iommu_fwspec API
+  drivers: acpi: iort: introduce linker section for IORT entries probing
+  drivers: acpi: iort: add support for IOMMU fwnode registration
+  drivers: platform: add fwnode base platform devices retrieval
+  drivers: iommu: make iommu_fwspec OF agnostic
+  drivers: acpi: implement acpi_dma_configure
+  drivers: acpi: iort: add node match function
+  drivers: acpi: iort: add support for ARM SMMU platform devices
+    creation
+  drivers: iommu: arm-smmu-v3: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu-v3: enable ACPI driver initialization
+  drivers: iommu: arm-smmu-v3: add IORT configuration
+  drivers: acpi: iort: replace rid map type with type mask
+  drivers: acpi: iort: add single mapping function
+  drivers: acpi: iort: introduce iort_iommu_configure
+
+ arch/arm/Kconfig                      |   1 +
+ arch/arm/include/asm/iommu-fwspec.h   |  30 +++
+ arch/arm64/Kconfig                    |   1 +
+ arch/arm64/include/asm/iommu-fwspec.h |  30 +++
+ drivers/acpi/arm64/iort.c             | 481 +++++++++++++++++++++++++++++++++-
+ drivers/acpi/glue.c                   |   4 +-
+ drivers/acpi/scan.c                   |  29 ++
+ drivers/base/platform.c               |  23 ++
+ drivers/iommu/Kconfig                 |   7 +
+ drivers/iommu/Makefile                |   1 +
+ drivers/iommu/arm-smmu-v3.c           | 150 +++++++++--
+ drivers/iommu/iommu-fwspec.c          | 126 +++++++++
+ drivers/iommu/of_iommu.c              |  91 -------
+ drivers/pci/probe.c                   |   3 +-
+ include/acpi/acpi_bus.h               |   2 +
+ include/asm-generic/vmlinux.lds.h     |   1 +
+ include/linux/acpi.h                  |   5 +
+ include/linux/fwnode.h                |   1 +
+ include/linux/iommu-fwspec.h          |  70 +++++
+ include/linux/iommu.h                 |  25 ++
+ include/linux/iort.h                  |  18 ++
+ include/linux/of_iommu.h              |  28 +-
+ include/linux/platform_device.h       |   3 +
+ 23 files changed, 995 insertions(+), 135 deletions(-)
+ create mode 100644 arch/arm/include/asm/iommu-fwspec.h
+ create mode 100644 arch/arm64/include/asm/iommu-fwspec.h
+ create mode 100644 drivers/iommu/iommu-fwspec.c
+ create mode 100644 include/linux/iommu-fwspec.h
 
 -- 
-Regards,
-Sudeep
+2.6.4
+
