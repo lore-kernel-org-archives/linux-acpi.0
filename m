@@ -1,66 +1,81 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 2/2] power: surface3_power: MSHW0011 rev-eng
- implementation
-Date: Mon, 15 Aug 2016 23:58:50 +0200
-Message-ID: <20160815215850.3g7mvrquvooojr7x@earth>
-References: <1469807366-24642-1-git-send-email-benjamin.tissoires@redhat.com>
- <1469807366-24642-3-git-send-email-benjamin.tissoires@redhat.com>
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH v7 14/15] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Mon, 15 Aug 2016 15:55:14 -0700
+Message-ID: <57B24852.5090108@caviumnetworks.com>
+References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
+ <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
+ <20160815153546.GF22320@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="pubkjadzdhgfcvxh"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53278 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751176AbcHOV64 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Aug 2016 17:58:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1469807366-24642-3-git-send-email-benjamin.tissoires@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160815153546.GF22320@e104818-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter
+ Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, David Daney <ddaney.cavm@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, devel@acpica.org, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <gkulkarni@caviumnetwo>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Stephen Just <stephenjust@gmail.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-
---pubkjadzdhgfcvxh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Fri, Jul 29, 2016 at 05:49:26PM +0200, Benjamin Tissoires wrote:
-> MSHW0011 replaces the battery firmware by using ACPI operation regions.
-> The values have been obtained by reverse engineering, and are subject to
-> errors. Looks like it works on overall pretty well.
->=20
-> I couldn't manage to get the IRQ correctly triggered, so I am using a
-> good old polling thread to check for changes.
-
-With CONFIG_ACPI_BATTERY being in drivers/acpi/ and this not
-using the power-supply subsystem's framework at all, I wonder
-if this driver should also go to drivers/acpi/.
-
--- Sebastian
-
---pubkjadzdhgfcvxh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXsjsXAAoJENju1/PIO/qaC0EQAJbtOgztd3Pjaff1FpJsXY8S
-Qjmg5QVfJKgN2GPNN6EgfdCH0pWDRbvBCh0mRuLy2uaSChWFirsSRoAdwuqHbQOr
-y5VRwVMlHBpcPiXilh5FBdCGfP4c0W0Fhx9lzd0Smzj5js+CO7HQuTR0GLAaYMOG
-+S7b6gSiGSBVvL0qdPvEsGf7ajuaVbHWrhLd3L2OC96DLINziZmH3nai9izKIvq7
-SqZ/pzeutYEcGYr+ZEyl62COYsE7ILAaz/T3iD3WPO2IjsL65ueZpQIsFUoC4irr
-4nh5iEqVCdOir6hmOLdIQIQCENq7zQPS8csIDoco99DyGwIDA22/yLigLOOLsiOg
-H5zSJ47qsUO4yMBrsgXPX1Yxg+LoQzzO2lqAMG0SWc5dTCQ8ej/Iqyxs78O/qswl
-DbNJ6/4BM+tGOop2SBXXEdHm2wGBNkL/7cr6ZDKKpPLpkrIGQfN7XHGOWSMp4Mv2
-uwSgHnB0Thccg13KXHYn9Sian1yqtafgjUBjXZuQATLIZSGZaMhUohyBIUymqZAm
-6d3taQSIDQMvcPBKOAljxe9Rj2wBkYSIpCyZe6rAb93Q262vL2Zosk5pWw6WpvT4
-H6NQ7QDGghvH/YiNoOx4cpgLeIjb8dNa+Pivg4ePYBf6tfbYgRY5z58R/gQi9WJf
-bfJyNjau2Ysu75lt0rr6
-=9ziK
------END PGP SIGNATURE-----
-
---pubkjadzdhgfcvxh--
+T24gMDgvMTUvMjAxNiAwODozNSBBTSwgQ2F0YWxpbiBNYXJpbmFzIHdyb3RlOgo+IE9uIFR1ZSwg
+TWF5IDI0LCAyMDE2IGF0IDAzOjM1OjQ0UE0gLTA3MDAsIERhdmlkIERhbmV5IHdyb3RlOgo+PiBk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm02NC9pbmNsdWRlL2FzbS9hY3BpLmggYi9hcmNoL2FybTY0L2lu
+Y2x1ZGUvYXNtL2FjcGkuaAo+PiBpbmRleCBhZWUzMjNiLi40YjEzZWNkIDEwMDY0NAo+PiAtLS0g
+YS9hcmNoL2FybTY0L2luY2x1ZGUvYXNtL2FjcGkuaAo+PiArKysgYi9hcmNoL2FybTY0L2luY2x1
+ZGUvYXNtL2FjcGkuaAo+PiBAQCAtMTEzLDQgKzExMywxMiBAQCBzdGF0aWMgaW5saW5lIGNvbnN0
+IGNoYXIgKmFjcGlfZ2V0X2VuYWJsZV9tZXRob2QoaW50IGNwdSkKPj4gICBwZ3Byb3RfdCBhcmNo
+X2FwZWlfZ2V0X21lbV9hdHRyaWJ1dGUocGh5c19hZGRyX3QgYWRkcik7Cj4+ICAgI2VuZGlmCj4+
+Cj4+ICsjaWZkZWYgQ09ORklHX0FDUElfTlVNQQo+PiAraW50IGFybTY0X2FjcGlfbnVtYV9pbml0
+KHZvaWQpOwo+PiAraW50IGFjcGlfbnVtYV9nZXRfbmlkKHVuc2lnbmVkIGludCBjcHUsIHU2NCBo
+d2lkKTsKPj4gKyNlbHNlCj4+ICtzdGF0aWMgaW5saW5lIGludCBhcm02NF9hY3BpX251bWFfaW5p
+dCh2b2lkKSB7IHJldHVybiAtRU5PU1lTOyB9Cj4+ICtzdGF0aWMgaW5saW5lIGludCBhY3BpX251
+bWFfZ2V0X25pZCh1bnNpZ25lZCBpbnQgY3B1LCB1NjQgaHdpZCkgeyByZXR1cm4gTlVNQV9OT19O
+T0RFOyB9Cj4+ICsjZW5kaWYgLyogQ09ORklHX0FDUElfTlVNQSAqLwo+PiArCj4+ICAgI2VuZGlm
+IC8qX0FTTV9BQ1BJX0gqLwo+Cj4gQXBwYXJlbnRseSB0aGlzIGRvZXNuJ3QgYWx3YXlzIGJ1aWxk
+IHNpbmNlIGFzbS9hY3BpLmggaXMgY29uZGl0aW9uYWxseQo+IGluY2x1ZGVkIGZyb20gbGludXgv
+YWNwaS5oIG9ubHkgd2hlbiBDT05GSUdfQUNQSSBpcyBlbmFibGVkLiBEaXNhYmxpbmcKPiB0aGlz
+IG9wdGlvbiBvbiBhcm02NCBsZWFkcyB0bzoKPgo+IGFyY2gvYXJtNjQvbW0vbnVtYS5jOiBJbiBm
+dW5jdGlvbiDigJhhcm02NF9udW1hX2luaXTigJk6Cj4gYXJjaC9hcm02NC9tbS9udW1hLmM6Mzk1
+OjI0OiBlcnJvcjog4oCYYXJtNjRfYWNwaV9udW1hX2luaXTigJkgdW5kZWNsYXJlZCAoZmlyc3Qg
+dXNlIGluIHRoaXMgZnVuY3Rpb24pCj4gICAgIGlmICghYWNwaV9kaXNhYmxlZCAmJiAhbnVtYV9p
+bml0KGFybTY0X2FjcGlfbnVtYV9pbml0KSkKPgo+IEknbGwgZml4IGl0IGluIGFyY2gvYXJtNjQg
+YnkgaW5jbHVkaW5nIGFzbS9hY3BpLmggZGlyZWN0bHkgYXMgd2UgZG8gaW4gYQo+IGNvdXBsZSBv
+ZiBvdGhlciBmaWxlczoKClNvdW5kcyBnb29kLiAgVGhhbmtzIGZvciBmaXhpbmcgaXQuCgpEYXZp
+ZAoKCj4KPiAtLS0tLS0tLS0tLS0tLS0tLS04PC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQo+ICBGcm9tIDlhODNiZjQwMGUwYjRlZjA2NmI4M2VlYWVjZGJjYTkwOWI4NDkxZWEgTW9uIFNl
+cCAxNyAwMDowMDowMCAyMDAxCj4gRnJvbTogQ2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1hcmlu
+YXNAYXJtLmNvbT4KPiBEYXRlOiBNb24sIDE1IEF1ZyAyMDE2IDE2OjMzOjEwICswMTAwCj4gU3Vi
+amVjdDogW1BBVENIXSBhcm02NDogRml4IE5VTUEgYnVpbGQgZXJyb3Igd2hlbiAhQ09ORklHX0FD
+UEkKPiBNSU1FLVZlcnNpb246IDEuMAo+IENvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNl
+dD1VVEYtOAo+IENvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6IDhiaXQKPgo+IFNpbmNlIGFzbS9h
+Y3BpLmggaXMgb25seSBpbmNsdWRlZCBieSBsaW51eC9hY3BpLmggd2hlbiBDT05GSUdfQUNQSSBp
+cwo+IGVuYWJsZWQsIGRpc2FibGluZyB0aGUgbGF0dGVyIGxlYWRzIHRvIHRoZSBmb2xsb3dpbmcg
+YnVpbGQgZXJyb3Igb24KPiBhcm02NDoKPgo+IGFyY2gvYXJtNjQvbW0vbnVtYS5jOiBJbiBmdW5j
+dGlvbiDigJhhcm02NF9udW1hX2luaXTigJk6Cj4gYXJjaC9hcm02NC9tbS9udW1hLmM6Mzk1OjI0
+OiBlcnJvcjog4oCYYXJtNjRfYWNwaV9udW1hX2luaXTigJkgdW5kZWNsYXJlZCAoZmlyc3QgdXNl
+IGluIHRoaXMgZnVuY3Rpb24pCj4gICAgIGlmICghYWNwaV9kaXNhYmxlZCAmJiAhbnVtYV9pbml0
+KGFybTY0X2FjcGlfbnVtYV9pbml0KSkKPgo+IFRoaXMgcGF0Y2ggaW5jbHVkZSB0aGUgYXNtL2Fj
+cGkuaCBleHBsaWNpdGx5IGluIGFyY2gvYXJtNjQvbW0vbnVtYS5jIGZvcgo+IHRoZSBhcm02NF9h
+Y3BpX251bWFfaW5pdCgpIGRlZmluaXRpb24uCj4KPiBGaXhlczogZDhiNDdmY2E4YzIzICgiYXJt
+NjQsIEFDUEksIE5VTUE6IE5VTUEgc3VwcG9ydCBiYXNlZCBvbiBTUkFUIGFuZCBTTElUIikKPiBT
+aWduZWQtb2ZmLWJ5OiBDYXRhbGluIE1hcmluYXMgPGNhdGFsaW4ubWFyaW5hc0Bhcm0uY29tPgo+
+IC0tLQo+ICAgYXJjaC9hcm02NC9tbS9udW1hLmMgfCAyICsrCj4gICAxIGZpbGUgY2hhbmdlZCwg
+MiBpbnNlcnRpb25zKCspCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm02NC9tbS9udW1hLmMgYi9h
+cmNoL2FybTY0L21tL251bWEuYwo+IGluZGV4IGM3ZmUzZWM3MDc3NC4uNWJiMTVlYWI2ZjAwIDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtNjQvbW0vbnVtYS5jCj4gKysrIGIvYXJjaC9hcm02NC9tbS9u
+dW1hLmMKPiBAQCAtMjMsNiArMjMsOCBAQAo+ICAgI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgo+
+ICAgI2luY2x1ZGUgPGxpbnV4L29mLmg+Cj4KPiArI2luY2x1ZGUgPGFzbS9hY3BpLmg+Cj4gKwo+
+ICAgc3RydWN0IHBnbGlzdF9kYXRhICpub2RlX2RhdGFbTUFYX05VTU5PREVTXSBfX3JlYWRfbW9z
+dGx5Owo+ICAgRVhQT1JUX1NZTUJPTChub2RlX2RhdGEpOwo+ICAgbm9kZW1hc2tfdCBudW1hX25v
+ZGVzX3BhcnNlZCBfX2luaXRkYXRhOwo+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJt
+LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
