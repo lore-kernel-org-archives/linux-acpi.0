@@ -1,85 +1,121 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH 0/6] Apple device properties
-Date: Mon, 15 Aug 2016 18:13:58 +0200
-Message-ID: <20160815161358.GA9603@wunner.de>
-References: <cover.1469616641.git.lukas@wunner.de>
- <20160804145710.GL3636@codeblueprint.co.uk>
- <20160809133816.GA6571@wunner.de>
- <20160815115414.GE30909@codeblueprint.co.uk>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Mon, 15 Aug 2016 09:45:24 -0700
+Message-ID: <CAFHUOYx_iQ2kD9agSKU6wDZDZEX48hr-TnPvUEsuFGOAO7O-LA@mail.gmail.com>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
+ <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org> <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
+ <4302600.LGpaGycv0T@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160815115414.GE30909@codeblueprint.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ua0-f178.google.com ([209.85.217.178]:36021 "EHLO
+	mail-ua0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887AbcHOQp0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Aug 2016 12:45:26 -0400
+Received: by mail-ua0-f178.google.com with SMTP id 97so81392670uav.3
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Aug 2016 09:45:26 -0700 (PDT)
+In-Reply-To: <4302600.LGpaGycv0T@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
 
-On Mon, Aug 15, 2016 at 12:54:14PM +0100, Matt Fleming wrote:
-> On Tue, 09 Aug, at 03:38:16PM, Lukas Wunner wrote:
-> > @@ -208,7 +201,10 @@ struct efi_config {
-> >  __pure const struct efi_config *__efi_early(void);
-> >  
-> >  #define efi_call_early(f, ...)					\
-> > -	__efi_early()->call(__efi_early()->f, __VA_ARGS__);
-> > +	__efi_early()->call(__efi_early()->is64 ?			\
-> > +	((efi_boot_services_64_t *)__efi_early()->boot_services)->f :	\
-> > +	((efi_boot_services_32_t *)__efi_early()->boot_services)->f,	\
-> > +						       __VA_ARGS__);
-> >  
-> 
-> You cannot use pointers from the firmware directly in mixed mode
-> because the kernel is compiled for 64-bits but the firmware is using
-> 32-bit addresses, so dereferencing a pointer causes a 64-bit load.
+On Mon, Jun 27, 2016 at 2:32 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> On Monday, June 27, 2016 11:27:42 AM Hoan Tran wrote:
+> > Hi Jassi and Rafael,
+> >
+> > On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
+> > <pprakash@codeaurora.org> wrote:
+> > >
+> > >
+> > > On 6/9/2016 4:43 PM, Hoan Tran wrote:
+> > >> Hi Prashanth,
+> > >>
+> > >> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
+> > >> <pprakash@codeaurora.org> wrote:
+> > >>>
+> > >>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
+> > >>>> Hi Ashwin and Prashanth,
+> > >>>>
+> > >>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
+> > >>>>> Hi Prashanth,
+> > >>>>>
+> > >>>>>
+> > >>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
+> > >>>>> <pprakash@codeaurora.org> wrote:
+> > >>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
+> > >>>>>>> Hi Ashwin,
+> > >>>>>>>
+> > >>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
+> > >>>>>>> <ashwin.chaugule@linaro.org> wrote:
+> > >>>>>>>> + Prashanth (Can you please have a look as well?)
+> > >>>>>>>>
+> > >>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+> > >>>>>>>>> Hi Ashwin,
+> > >>>>>>>> Hi,
+> > >>>>>>>>
+> > >>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
+> > >>>>>>>> locations, so its been a bit crazy lately.
+> > >>>>>>> It's ok and hope you're doing well.
+> > >>>>>>>
+> > >>>>>>>> I dont have any major
+> > >>>>>>>> concerns with this code, although there could be subtle issues with
+> > >>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
+> > >>>>>>>> PCC subspace type 2. But you're also adding support for tx command
+> > >>>>>>>> completion which is not specific to Type 2. We could support that even
+> > >>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
+> > >>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
+> > >>>>>>>> of async platform notification, where you could have a PCC client in
+> > >>>>>>>> the OS writing to the cmd bit and the platform sending an async
+> > >>>>>>>> notification by writing to some bits in the same 8byte address as the
+> > >>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
+> > >>>>>>>> and platform could step on each other. Perhaps Prashanth has better
+> > >>>>>>>> insight into this.
+> > >>>>>>> I think, this mutual exclusivity could be in another patch.
+> > >>>>>> Ashwin,
+> > >>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
+> > >>>>>> each other.  There is a line is spec that says "all operations on status field
+> > >>>>>> must be made using interlocked operations", but not sure what these
+> > >>>>>> interlocked operation translates to.
+> > >>>>> Yes, I had the same question about how to prevent it.
+> > >>>> For platform notification, if the hardware doesn't support interlocked
+> > >>>> operations. I think we can use a workaround that, platform triggers
+> > >>>> interrupt to OSPM without touching status field. The OSPM PCC client
+> > >>>> will decide what to do with this interrupt. For example, OSPM sends a
+> > >>>> consumer command to check it.
+> > >>> How do we decide which platform can support this interlocked operation?
+> > >>> and how do we decide between a completion notification and platform
+> > >>> notification?
+> > >> Truly, we should follow the specification. But I don't know if there's
+> > >> any hardware support this interlocked operation.
+> > >> For the decide between a completion notification and platform notification
+> > >>  - Completion notification: Bit "Command Complete" is set.
+> > >>  - Platform notification: Bit "Command Complete" is not set.
+> > >>
+> > >>> I think the ACPI spec on platform notification is quite ambiguous and it is
+> > >>> best to get the necessary clarification and/or correction before implementing
+> > >>> anything related to platform notification.
+> > >> Agreed, a clarification inside ACPI Specification is needed
+> > > This patch look good to me, as it doesn't deal with platform notification.
+> > > We can try to get some clarification from spec side before handling the platform
+> > > notification pieces.
+> > >
+> > > Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+> >
+> > Do you have plan to apply this patch ?
+>
+> Yes.
+>
+> Thanks,
+> Rafael
+>
 
-Please behold the resulting binary code, which uses a 32-bit load,
-not a 64-bit load (note the "mov edi, dword [ds:rax+0x2c]").
+Hi Rafael,
 
-This is a call to AllocatePool *with* my patch:
+This patch had an ACK from Prashanth.  Can you consider to merge
+this patch please?
 
-0x22c1         mov        rax, qword [ds:efi_early]
-0x22c8         add        rdx, 0x10                  ; buffer size argument
-0x22cc         cmp        byte [ds:rax+0x28], 0x0    ; !efi_early->is64 ?
-0x22d0         mov        r8, qword [ds:rax+0x20]    ; efi_early->call()
-0x22d4         mov        rax, qword [ds:rax+0x10]   ; efi_early->boot_services
-0x22d8         je         0x2410
-0x22de         mov        rdi, qword [ds:rax+0x40]   ; allocate_pool (64 bit)
-0x22e2         xor        eax, eax
-0x22e4         mov        rcx, r13                   ; buffer argument
-0x22e7         mov        esi, 0x2                   ; EfiLoaderData argument
-0x22ec         call       r8
-...
-0x2410         mov        edi, dword [ds:rax+0x2c]   ; allocate_pool (32 bit)
-0x2413         jmp        0x22e2
-
-The same *without* my patch:
-
-0x1d41         mov        r8, qword [ds:efi_early]
-0x1d48         add        r15, 0x40
-0x1d4c         mov        rcx, qword [ss:rsp-0x10+arg_20] ; buffer argument
-0x1d51         mov        rdx, r15                   ; buffer size argument
-0x1d54         mov        esi, 0x2                   ; EfiLoaderData argument
-0x1d59         mov        rdi, qword [ds:r8+0x10]    ; allocate_pool
-0x1d5d         call       qword [ds:r8+0x58]         ; efi_early->call
-
-So it looks to me like my patch should work just fine on 32-bit,
-even though I cannot verify it through testing.
-
-The ARM folks afford invocation of arbitrary boot services, it just
-seemed natural to me to allow the same for x86. The portion of the
-stub code which is shared between arches cannot use more than the
-8 boot services supported by x86 even though ARM would be capable
-of using all of them.
-
-Of course the binary code with my patch is longer, less readable,
-and needs to follow multiple indirections and I can understand if
-you would rather stay with the current approach for these reasons.
-
-But I would like to understand the "cannot jump through pointers at
-runtime" argument because the binary code looks to me like it should
-work on 32 bit. I guess I must be missing something obvious?
-
-Thanks,
-
-Lukas
+Thanks
+Hoan
