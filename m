@@ -1,121 +1,66 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
- Subspace type 2
-Date: Mon, 15 Aug 2016 09:45:24 -0700
-Message-ID: <CAFHUOYx_iQ2kD9agSKU6wDZDZEX48hr-TnPvUEsuFGOAO7O-LA@mail.gmail.com>
-References: <1463704347-22550-1-git-send-email-hotran@apm.com>
- <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org> <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
- <4302600.LGpaGycv0T@vostro.rjw.lan>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 2/2] power: surface3_power: MSHW0011 rev-eng
+ implementation
+Date: Mon, 15 Aug 2016 23:58:50 +0200
+Message-ID: <20160815215850.3g7mvrquvooojr7x@earth>
+References: <1469807366-24642-1-git-send-email-benjamin.tissoires@redhat.com>
+ <1469807366-24642-3-git-send-email-benjamin.tissoires@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="pubkjadzdhgfcvxh"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f178.google.com ([209.85.217.178]:36021 "EHLO
-	mail-ua0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752887AbcHOQp0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Aug 2016 12:45:26 -0400
-Received: by mail-ua0-f178.google.com with SMTP id 97so81392670uav.3
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Aug 2016 09:45:26 -0700 (PDT)
-In-Reply-To: <4302600.LGpaGycv0T@vostro.rjw.lan>
+Received: from mail.kernel.org ([198.145.29.136]:53278 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751176AbcHOV64 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Aug 2016 17:58:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1469807366-24642-3-git-send-email-benjamin.tissoires@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Stephen Just <stephenjust@gmail.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jun 27, 2016 at 2:32 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> On Monday, June 27, 2016 11:27:42 AM Hoan Tran wrote:
-> > Hi Jassi and Rafael,
-> >
-> > On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
-> > <pprakash@codeaurora.org> wrote:
-> > >
-> > >
-> > > On 6/9/2016 4:43 PM, Hoan Tran wrote:
-> > >> Hi Prashanth,
-> > >>
-> > >> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
-> > >> <pprakash@codeaurora.org> wrote:
-> > >>>
-> > >>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
-> > >>>> Hi Ashwin and Prashanth,
-> > >>>>
-> > >>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
-> > >>>>> Hi Prashanth,
-> > >>>>>
-> > >>>>>
-> > >>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
-> > >>>>> <pprakash@codeaurora.org> wrote:
-> > >>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
-> > >>>>>>> Hi Ashwin,
-> > >>>>>>>
-> > >>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
-> > >>>>>>> <ashwin.chaugule@linaro.org> wrote:
-> > >>>>>>>> + Prashanth (Can you please have a look as well?)
-> > >>>>>>>>
-> > >>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
-> > >>>>>>>>> Hi Ashwin,
-> > >>>>>>>> Hi,
-> > >>>>>>>>
-> > >>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
-> > >>>>>>>> locations, so its been a bit crazy lately.
-> > >>>>>>> It's ok and hope you're doing well.
-> > >>>>>>>
-> > >>>>>>>> I dont have any major
-> > >>>>>>>> concerns with this code, although there could be subtle issues with
-> > >>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
-> > >>>>>>>> PCC subspace type 2. But you're also adding support for tx command
-> > >>>>>>>> completion which is not specific to Type 2. We could support that even
-> > >>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
-> > >>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
-> > >>>>>>>> of async platform notification, where you could have a PCC client in
-> > >>>>>>>> the OS writing to the cmd bit and the platform sending an async
-> > >>>>>>>> notification by writing to some bits in the same 8byte address as the
-> > >>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
-> > >>>>>>>> and platform could step on each other. Perhaps Prashanth has better
-> > >>>>>>>> insight into this.
-> > >>>>>>> I think, this mutual exclusivity could be in another patch.
-> > >>>>>> Ashwin,
-> > >>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
-> > >>>>>> each other.  There is a line is spec that says "all operations on status field
-> > >>>>>> must be made using interlocked operations", but not sure what these
-> > >>>>>> interlocked operation translates to.
-> > >>>>> Yes, I had the same question about how to prevent it.
-> > >>>> For platform notification, if the hardware doesn't support interlocked
-> > >>>> operations. I think we can use a workaround that, platform triggers
-> > >>>> interrupt to OSPM without touching status field. The OSPM PCC client
-> > >>>> will decide what to do with this interrupt. For example, OSPM sends a
-> > >>>> consumer command to check it.
-> > >>> How do we decide which platform can support this interlocked operation?
-> > >>> and how do we decide between a completion notification and platform
-> > >>> notification?
-> > >> Truly, we should follow the specification. But I don't know if there's
-> > >> any hardware support this interlocked operation.
-> > >> For the decide between a completion notification and platform notification
-> > >>  - Completion notification: Bit "Command Complete" is set.
-> > >>  - Platform notification: Bit "Command Complete" is not set.
-> > >>
-> > >>> I think the ACPI spec on platform notification is quite ambiguous and it is
-> > >>> best to get the necessary clarification and/or correction before implementing
-> > >>> anything related to platform notification.
-> > >> Agreed, a clarification inside ACPI Specification is needed
-> > > This patch look good to me, as it doesn't deal with platform notification.
-> > > We can try to get some clarification from spec side before handling the platform
-> > > notification pieces.
-> > >
-> > > Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
-> >
-> > Do you have plan to apply this patch ?
->
-> Yes.
->
-> Thanks,
-> Rafael
->
 
-Hi Rafael,
+--pubkjadzdhgfcvxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch had an ACK from Prashanth.  Can you consider to merge
-this patch please?
+Hi,
 
-Thanks
-Hoan
+On Fri, Jul 29, 2016 at 05:49:26PM +0200, Benjamin Tissoires wrote:
+> MSHW0011 replaces the battery firmware by using ACPI operation regions.
+> The values have been obtained by reverse engineering, and are subject to
+> errors. Looks like it works on overall pretty well.
+>=20
+> I couldn't manage to get the IRQ correctly triggered, so I am using a
+> good old polling thread to check for changes.
+
+With CONFIG_ACPI_BATTERY being in drivers/acpi/ and this not
+using the power-supply subsystem's framework at all, I wonder
+if this driver should also go to drivers/acpi/.
+
+-- Sebastian
+
+--pubkjadzdhgfcvxh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXsjsXAAoJENju1/PIO/qaC0EQAJbtOgztd3Pjaff1FpJsXY8S
+Qjmg5QVfJKgN2GPNN6EgfdCH0pWDRbvBCh0mRuLy2uaSChWFirsSRoAdwuqHbQOr
+y5VRwVMlHBpcPiXilh5FBdCGfP4c0W0Fhx9lzd0Smzj5js+CO7HQuTR0GLAaYMOG
++S7b6gSiGSBVvL0qdPvEsGf7ajuaVbHWrhLd3L2OC96DLINziZmH3nai9izKIvq7
+SqZ/pzeutYEcGYr+ZEyl62COYsE7ILAaz/T3iD3WPO2IjsL65ueZpQIsFUoC4irr
+4nh5iEqVCdOir6hmOLdIQIQCENq7zQPS8csIDoco99DyGwIDA22/yLigLOOLsiOg
+H5zSJ47qsUO4yMBrsgXPX1Yxg+LoQzzO2lqAMG0SWc5dTCQ8ej/Iqyxs78O/qswl
+DbNJ6/4BM+tGOop2SBXXEdHm2wGBNkL/7cr6ZDKKpPLpkrIGQfN7XHGOWSMp4Mv2
+uwSgHnB0Thccg13KXHYn9Sian1yqtafgjUBjXZuQATLIZSGZaMhUohyBIUymqZAm
+6d3taQSIDQMvcPBKOAljxe9Rj2wBkYSIpCyZe6rAb93Q262vL2Zosk5pWw6WpvT4
+H6NQ7QDGghvH/YiNoOx4cpgLeIjb8dNa+Pivg4ePYBf6tfbYgRY5z58R/gQi9WJf
+bfJyNjau2Ysu75lt0rr6
+=9ziK
+-----END PGP SIGNATURE-----
+
+--pubkjadzdhgfcvxh--
