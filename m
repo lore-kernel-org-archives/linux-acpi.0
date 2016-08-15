@@ -1,176 +1,155 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH V2 3/5] ACPI/CPPC: support for batching CPPC requests
-Date: Fri, 12 Aug 2016 15:30:51 -0600
-Message-ID: <baf3560b-fd74-1a3d-bb51-6b54a9b78896@codeaurora.org>
-References: <1469562328-10201-1-git-send-email-pprakash@codeaurora.org>
- <1469562328-10201-4-git-send-email-pprakash@codeaurora.org>
- <bf9134cd-3055-d4e3-652a-a8dee0aa9e26@codeaurora.org>
- <20160812124029.GA11926@arm.com>
- <32e1db55-9335-e755-97c6-daacf9403973@codeaurora.org>
- <20160812174236.GA19964@arm.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v9 4/4] serial: pl011: add console matching function
+Date: Mon, 15 Aug 2016 14:17:25 +0300
+Message-ID: <d1fc02d9-0be6-a5d0-08c9-88b368a7ee05@linaro.org>
+References: <20160811153152.755-1-aleksey.makarov@linaro.org>
+ <20160811153152.755-5-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54368 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010AbcHLVay (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Aug 2016 17:30:54 -0400
-In-Reply-To: <20160812174236.GA19964@arm.com>
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35782 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752684AbcHOLTL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Aug 2016 07:19:11 -0400
+Received: by mail-wm0-f47.google.com with SMTP id f65so84266028wmi.0
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Aug 2016 04:19:10 -0700 (PDT)
+In-Reply-To: <20160811153152.755-5-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Klimov <alexey.klimov@arm.com>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, hotran@apm.com, cov@codeaurora.org
-
-Hi Alexey,
-
-On 8/12/2016 11:42 AM, Alexey Klimov wrote:
-> On Fri, Aug 12, 2016 at 10:27:55AM -0600, Prakash, Prashanth wrote:
->> Hi Alexey,
->>
->> On 8/12/2016 6:40 AM, Alexey Klimov wrote:
->>> Hi Prashanth,
->>>
->>> On Mon, Aug 08, 2016 at 06:09:56PM -0600, Prakash, Prashanth wrote:
->>>> Hi Alexey,
->>>>
->>>> On 7/26/2016 1:45 PM, Prashanth Prakash wrote:
->>>>> CPPC defined in section 8.4.7 of ACPI 6.0 specification suggests
->>>>> "To amortize the cost of PCC transactions, OSPM should read or write
->>>>> all PCC registers via a single read or write command when possible"
->>>>> This patch enables opportunistic batching of frequency transition
->>>>> requests whenever the request happen to overlap in time.
->>>>>
->>>>> Currently the access to pcc is serialized by a spin lock which does
->>>>> not scale well as we increase the number of cores in the system. This
->>>>> patch improves the scalability by allowing the differnt CPU cores to
->>>>> update PCC subspace in parallel and by batching requests which will
->>>>> reduce the certain types of operation(checking command completion bit,
->>>>> ringing doorbell) by a significant margin.
->>>>>
->>>>> Profiling shows significant improvement in the overall effeciency
->>>>> to service freq. transition requests. With this patch we observe close
->>>>> to 30% of the frequency transition requests being batched with other
->>>>> requests while running apache bench on a ARM platform with 6
->>>>> independent domains(or sets of related cpus).
->>>>>
->>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>>>> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
->>>>> ---
->>>>>  drivers/acpi/cppc_acpi.c | 176 +++++++++++++++++++++++++++++++++++++++--------
->>>>>  1 file changed, 147 insertions(+), 29 deletions(-)
->>>>>
->>>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->>>>> index 93826c7..4a887d4 100644
->>>>> --- a/drivers/acpi/cppc_acpi.c
->>>>> +++ b/drivers/acpi/cppc_acpi.c
->>>>> @@ -40,15 +40,35 @@
->>>>>  #include <linux/cpufreq.h>
->>>>>  #include <linux/delay.h>
->>>>>  #include <linux/ktime.h>
->>>>> +#include <linux/rwsem.h>
->>>>> +#include <linux/wait.h>
->>>>>  
->>>>>  #include <acpi/cppc_acpi.h>
->>>>> +
->>>>>  /*
->>>>> - * Lock to provide mutually exclusive access to the PCC
->>>>> - * channel. e.g. When the remote updates the shared region
->>>>> - * with new data, the reader needs to be protected from
->>>>> - * other CPUs activity on the same channel.
->>>>> + * Lock to provide controlled access to the PCC channel.
->>>>> + *
->>>>> + * For performance critical usecases(currently cppc_set_perf)
->>>>> + *	We need to take read_lock and check if channel belongs to OSPM before
->>>>> + * reading or writing to PCC subspace
->>>>> + *	We need to take write_lock before transferring the channel ownership to
->>>>> + * the platform via a Doorbell
->>>>> + *	This allows us to batch a number of CPPC requests if they happen to
->>>>> + * originate in about the same time
->>>>> + *
->>>>> + * For non-performance critical usecases(init)
->>>>> + *	Take write_lock for all purposes which gives exclusive access
->>>>>   */
->>>>> -static DEFINE_SPINLOCK(pcc_lock);
->>>>> +static DECLARE_RWSEM(pcc_lock);
->>>>> +
->>>>> +/* Indicates if there are any pending/batched PCC write commands */
->>>>> +static bool pending_pcc_write_cmd;
->>>>> +
->>>>> +/* Wait queue for CPUs whose requests were batched */
->>>>> +static DECLARE_WAIT_QUEUE_HEAD(pcc_write_wait_q);
->>>>> +
->>>>> +/* Used to identify if a batched request is delivered to platform */
->>>>> +static unsigned int pcc_write_cnt;
->>>>>  
->>>> I haven't found a use-case(that would be used with CPPC) for POSTCHANGE
->>>> notification, that require us to be very accurate. Given that cpufreq_stats will not
->>>> be supported with CPPC and moreover CPPC protocol itself doesn't guarantee any
->>>> time bounds on when the actual request will be executed by the platform, I am
->>>> leaning towards getting rid of the wait queue that made sure delivery of request
->>>> to the platform before calling cpufreq_freq_transition_end, in the interest of better
->>>> performance and simpler code.
->>>>
->>>> Thoughts?
->>> Sorry for huge delay reacting on this.
->>>
->>> I was about to answer that everything looks ok apart from one minor change (not relevant
->>> now) but you put new comment that make me double-check everything again :)
->>>
->>> I don't have clear insight into how precise frequency change notifications should be
->>> (i guess it's main question) so I thought Rafael will comment on this. If Rafael will
->>> accept changes with potential out of time order notifications then it will be good to add
->>> noticeable comment about this at least.
->> Yes, I was planning to add a noticeable comment just in case in future we run into a
->> use case that need very precise notification(like upto single digit micro seconds).
->
-> Good.
->
->>> About use-cases I see only two arguments for maintaining more or less precise notification
->>> arrival time:
->>> 1) Drivers and their friends that subscribed to such kind of notifications.
->>> Do they rely on accuracy?
->>> 2) EAS may rely on cpu freq change notification to be accurate. IIRC, EAS is not in
->>> mainline though.
->>>
->>> I suspect that platform's firmwares will split in two groups -- one group will only
->>> enqueue request to change freq and set command complete bit almost immediately and
->>> another group of firmwares will hold setting the cmd complete bit till real frequency
->>> change request be handled. I agree, we can't assume that cmd complete bit is set immediately
->>> after frequency was changed.
->>>
->>> Looks like we should make a trade-off.
->>>
->>> Rafael?
->> Sounds good. I will wait for Rafael's inputs and proceed accordingly.
-> Hey Prashanth,
->
-> If i remember correctly, CPPC/PCC has bit indicating error during execution of last command.
-> Looks like current code doesn't detect it, right?
->
-> Ideally if we detect error on cpu frequency change request we should go on error path and that
-> error path should send PRE- and POST- notifications too (not only to local CPU but to others
-> who "contributed" to shared mem). I didn't think over it but I hope it's possible to implement
-> this with batching request.
-
-To implement check for error bit we would need the wait queue based synchronization.
-So, my initial comment about removing synchronized completion notification is no
-longer valid :)
-
-Since we not checking for error bit now, I will add another patch that introduces it.
-I am planning to add a check for error bit in send_pcc_cmd().  So send_pcc_cmd() will
-make sure the command is complete and then check for error bit. With this we can
-remove the check for command completion bit from all other places and that should
-make the code much simpler as well.
-
-Sounds good?
-
-Thanks,
-Prashanth
-
-> Best regards,
-> Alexey
->
->
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@armlinux.org.uk>, Jiri Slaby <jslaby@suse.com>
 
 
+On 08/11/2016 06:31 PM, Aleksey Makarov wrote:
+> This patch adds function pl011_console_match() that implements
+> method match of struct console.  It allows to match consoles against
+> data specified in a string, for example taken from command line or
+> compiled by ACPI SPCR table handler.
+
+Hi Greg,
+
+Can you review this new version of the patch and consider ACKing it please?
+
+It had your ACK for v7 but I had to make some changes:
+
+The patch by Christopher Covington [1] specifies that SBSA uart
+does 32-bit access to registers and this breaks the match function.
+In this series the function was changed to match with both mmio32 and
+mmio access. I removed Acked-by: Greg from this patch because of these
+changes.
+
+The difference between v7 and v9:
+
+@@ -2319,6 +2320,9 @@ static int __init pl011_console_match(struct
+console *co, char *name, int idx,
+        if (uart_parse_earlycon(options, &iotype, &addr, &options))
+                return -ENODEV;
+
++       if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
++               return -ENODEV;
++
+        /* try to match the port specified on the command line */
+        for (i = 0; i < ARRAY_SIZE(amba_ports); i++) {
+                struct uart_port *port;
+@@ -2328,10 +2332,7 @@ static int __init pl011_console_match(struct
+console *co, char *name, int idx,
+
+                port = &amba_ports[i]->port;
+
+-               if (port->iotype != iotype)
+-                       continue;
+-               if ((iotype == UPIO_MEM || iotype == UPIO_MEM32) &&
+-                   (port->mapbase != addr))
++               if (port->mapbase != addr)
+                        continue;
+
+                co->index = i;
+
+
+[1]
+https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
+
+Thank you
+Aleksey Makarov
+
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
+> ---
+>  drivers/tty/serial/amba-pl011.c | 56 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+> 
+> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+> index 8a9e213..d6a51cb 100644
+> --- a/drivers/tty/serial/amba-pl011.c
+> +++ b/drivers/tty/serial/amba-pl011.c
+> @@ -2288,12 +2288,68 @@ static int __init pl011_console_setup(struct console *co, char *options)
+>  	return uart_set_options(&uap->port, co, baud, parity, bits, flow);
+>  }
+>  
+> +/**
+> + *	pl011_console_match - non-standard console matching
+> + *	@co:	  registering console
+> + *	@name:	  name from console command line
+> + *	@idx:	  index from console command line
+> + *	@options: ptr to option string from console command line
+> + *
+> + *	Only attempts to match console command lines of the form:
+> + *	    console=pl011,mmio|mmio32,<addr>[,<options>]
+> + *	    console=pl011,0x<addr>[,<options>]
+> + *	This form is used to register an initial earlycon boot console and
+> + *	replace it with the amba_console at pl011 driver init.
+> + *
+> + *	Performs console setup for a match (as required by interface)
+> + *	If no <options> are specified, then assume the h/w is already setup.
+> + *
+> + *	Returns 0 if console matches; otherwise non-zero to use default matching
+> + */
+> +static int __init pl011_console_match(struct console *co, char *name, int idx,
+> +				      char *options)
+> +{
+> +	char match[] = "pl011";	/* pl011-specific earlycon name */
+> +	unsigned char iotype;
+> +	unsigned long addr;
+> +	int i;
+> +
+> +	if (strncmp(name, match, 5) != 0)
+> +		return -ENODEV;
+> +
+> +	if (uart_parse_earlycon(options, &iotype, &addr, &options))
+> +		return -ENODEV;
+> +
+> +	if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
+> +		return -ENODEV;
+> +
+> +	/* try to match the port specified on the command line */
+> +	for (i = 0; i < ARRAY_SIZE(amba_ports); i++) {
+> +		struct uart_port *port;
+> +
+> +		if (!amba_ports[i])
+> +			continue;
+> +
+> +		port = &amba_ports[i]->port;
+> +
+> +		if (port->mapbase != addr)
+> +			continue;
+> +
+> +		co->index = i;
+> +		port->cons = co;
+> +		return pl011_console_setup(co, options);
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+>  static struct uart_driver amba_reg;
+>  static struct console amba_console = {
+>  	.name		= "ttyAMA",
+>  	.write		= pl011_console_write,
+>  	.device		= uart_console_device,
+>  	.setup		= pl011_console_setup,
+> +	.match		= pl011_console_match,
+>  	.flags		= CON_PRINTBUFFER,
+>  	.index		= -1,
+>  	.data		= &amba_reg,
+> 
