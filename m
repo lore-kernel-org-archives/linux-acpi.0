@@ -1,42 +1,66 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH 0/6] Apple device properties
-Date: Mon, 15 Aug 2016 12:54:14 +0100
-Message-ID: <20160815115414.GE30909@codeblueprint.co.uk>
-References: <cover.1469616641.git.lukas@wunner.de>
- <20160804145710.GL3636@codeblueprint.co.uk>
- <20160809133816.GA6571@wunner.de>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH v9 4/4] serial: pl011: add console matching function
+Date: Mon, 15 Aug 2016 13:39:34 +0100
+Message-ID: <20160815123934.GJ1041@n2100.armlinux.org.uk>
+References: <20160811153152.755-1-aleksey.makarov@linaro.org>
+ <20160811153152.755-5-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:36532 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752984AbcHOLyR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Aug 2016 07:54:17 -0400
-Received: by mail-wm0-f51.google.com with SMTP id q128so85731857wma.1
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Aug 2016 04:54:16 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160809133816.GA6571@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20160811153152.755-5-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Jiri Slaby <jslaby@suse.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, x86@kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 09 Aug, at 03:38:16PM, Lukas Wunner wrote:
-> @@ -208,7 +201,10 @@ struct efi_config {
->  __pure const struct efi_config *__efi_early(void);
->  
->  #define efi_call_early(f, ...)						\
-> -	__efi_early()->call(__efi_early()->f, __VA_ARGS__);
-> +	__efi_early()->call(__efi_early()->is64 ?			\
-> +	((efi_boot_services_64_t *)__efi_early()->boot_services)->f :	\
-> +	((efi_boot_services_32_t *)__efi_early()->boot_services)->f,	\
-> +						       __VA_ARGS__);
->  
+On Thu, Aug 11, 2016 at 06:31:41PM +0300, Aleksey Makarov wrote:
+> +/**
+> + *	pl011_console_match - non-standard console matching
+> + *	@co:	  registering console
+> + *	@name:	  name from console command line
+> + *	@idx:	  index from console command line
+> + *	@options: ptr to option string from console command line
+> + *
+> + *	Only attempts to match console command lines of the form:
+> + *	    console=pl011,mmio|mmio32,<addr>[,<options>]
+> + *	    console=pl011,0x<addr>[,<options>]
+> + *	This form is used to register an initial earlycon boot console and
+> + *	replace it with the amba_console at pl011 driver init.
+> + *
+> + *	Performs console setup for a match (as required by interface)
+> + *	If no <options> are specified, then assume the h/w is already setup.
+> + *
+> + *	Returns 0 if console matches; otherwise non-zero to use default matching
+> + */
+> +static int __init pl011_console_match(struct console *co, char *name, int idx,
+> +				      char *options)
+> +{
+> +	char match[] = "pl011";	/* pl011-specific earlycon name */
 
-You cannot use pointers from the firmware directly in mixed mode
-because the kernel is compiled for 64-bits but the firmware is using
-32-bit addresses, so dereferencing a pointer causes a 64-bit load.
+This is inefficient - the compiler will probably store "pl011" in the
+rodata section, then allocate an array on the stack, and them memcpy()
+it onto the stack.  This is really a false optimisation.
 
-That's the reason we deconstruct the tables and copy the addresses
-from the last level - so we don't have to jump through multiple
-pointers.
+> +	unsigned char iotype;
+> +	unsigned long addr;
+> +	int i;
+> +
+> +	if (strncmp(name, match, 5) != 0)
+
+Just do:
+
+	if (strncmp(name, "pl011", 5) != 0)
+
+here, and let the compiler work it out - it'll probably place "pl011"
+in the rodata section, and use a pointer to it rather than messing around
+with the stack.
+
+What if "console=pl011x,..." is passed?  Should this be matched too?
+Maybe this should compare with "pl011," to ensure that the name is
+correctly terminated?
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
