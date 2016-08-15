@@ -1,221 +1,91 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: [PATCH v4 15/15] drivers: acpi: iort: introduce iort_iommu_configure
-Date: Mon, 15 Aug 2016 16:23:40 +0100
-Message-ID: <1471274620-20754-16-git-send-email-lorenzo.pieralisi@arm.com>
-References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v7 14/15] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Mon, 15 Aug 2016 16:35:46 +0100
+Message-ID: <20160815153546.GF22320@e104818-lin.cambridge.arm.com>
+References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
+ <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1471274620-20754-1-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:41501 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752812AbcHOPfx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Aug 2016 11:35:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-DT based systems have a generic kernel API to configure IOMMUs
-for devices (ie of_iommu_configure()).
+On Tue, May 24, 2016 at 03:35:44PM -0700, David Daney wrote:
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index aee323b..4b13ecd 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -113,4 +113,12 @@ static inline const char *acpi_get_enable_method(int cpu)
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+>  #endif
+>  
+> +#ifdef CONFIG_ACPI_NUMA
+> +int arm64_acpi_numa_init(void);
+> +int acpi_numa_get_nid(unsigned int cpu, u64 hwid);
+> +#else
+> +static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
+> +static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
+> +#endif /* CONFIG_ACPI_NUMA */
+> +
+>  #endif /*_ASM_ACPI_H*/
 
-On ARM based ACPI systems, the of_iommu_configure() equivalent can
-be implemented atop ACPI IORT kernel API, with the corresponding
-functions to map device identifiers to IOMMUs and retrieve the
-corresponding IOMMU operations necessary for DMA operations set-up.
+Apparently this doesn't always build since asm/acpi.h is conditionally
+included from linux/acpi.h only when CONFIG_ACPI is enabled. Disabling
+this option on arm64 leads to:
 
-By relying on the iommu_fwspec generic kernel infrastructure,
-implement the IORT based IOMMU configuration for ARM ACPI systems
-and hook it up in the ACPI kernel layer that implements DMA
-configuration for a device.
+arch/arm64/mm/numa.c: In function ‘arm64_numa_init’:
+arch/arm64/mm/numa.c:395:24: error: ‘arm64_acpi_numa_init’ undeclared (first use in this function)
+   if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+I'll fix it in arch/arm64 by including asm/acpi.h directly as we do in a
+couple of other files:
+
+------------------8<------------------------------
+>From 9a83bf400e0b4ef066b83eeaecdbca909b8491ea Mon Sep 17 00:00:00 2001
+From: Catalin Marinas <catalin.marinas@arm.com>
+Date: Mon, 15 Aug 2016 16:33:10 +0100
+Subject: [PATCH] arm64: Fix NUMA build error when !CONFIG_ACPI
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Since asm/acpi.h is only included by linux/acpi.h when CONFIG_ACPI is
+enabled, disabling the latter leads to the following build error on
+arm64:
+
+arch/arm64/mm/numa.c: In function ‘arm64_numa_init’:
+arch/arm64/mm/numa.c:395:24: error: ‘arm64_acpi_numa_init’ undeclared (first use in this function)
+   if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
+
+This patch include the asm/acpi.h explicitly in arch/arm64/mm/numa.c for
+the arm64_acpi_numa_init() definition.
+
+Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and SLIT")
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 ---
- drivers/acpi/arm64/iort.c | 96 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/scan.c       |  7 +++-
- include/linux/iort.h      |  5 +++
- 3 files changed, 107 insertions(+), 1 deletion(-)
+ arch/arm64/mm/numa.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index e68ed2c..c231629 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -18,6 +18,7 @@
+diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+index c7fe3ec70774..5bb15eab6f00 100644
+--- a/arch/arm64/mm/numa.c
++++ b/arch/arm64/mm/numa.c
+@@ -23,6 +23,8 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
  
- #define pr_fmt(fmt)	"ACPI: IORT: " fmt
- 
-+#include <linux/iommu-fwspec.h>
- #include <linux/iort.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
-@@ -27,6 +28,8 @@
- 
- #define IORT_TYPE_MASK(type)	(1 << (type))
- #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
-+#define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
-+				(1 << ACPI_IORT_NODE_SMMU_V3))
- 
- struct iort_its_msi_chip {
- 	struct list_head	list;
-@@ -496,6 +499,99 @@ iort_get_device_domain(struct device *dev, u32 req_id)
- 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
- }
- 
-+static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-+{
-+	u32 *rid = data;
++#include <asm/acpi.h>
 +
-+	*rid = alias;
-+	return 0;
-+}
-+
-+static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
-+			       struct fwnode_handle *fwnode)
-+{
-+	int ret = iommu_fwspec_init(dev, fwnode);
-+
-+	if (!ret)
-+		ret = iommu_fwspec_add_ids(dev, &streamid, 1);
-+
-+	return ret;
-+}
-+
-+static const struct iommu_ops *
-+iort_iommu_xlate(struct device *dev, struct acpi_iort_node *node,
-+		 u32 streamid)
-+{
-+	struct fwnode_handle *iort_fwnode = NULL;
-+	int ret;
-+
-+	if (node) {
-+		iort_fwnode = iort_get_fwnode(node);
-+		if (!iort_fwnode)
-+			return NULL;
-+
-+		ret = arm_smmu_iort_xlate(dev, streamid,
-+					  iort_fwnode);
-+		if (!ret)
-+			return fwspec_iommu_get_ops(iort_fwnode);
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * iort_iommu_configure - Set-up IOMMU configuration for a device.
-+ *
-+ * @dev: device to configure
-+ *
-+ * Returns: iommu_ops pointer on configuration success
-+ *          NULL on configuration failure
-+ */
-+const struct iommu_ops *iort_iommu_configure(struct device *dev)
-+{
-+	struct acpi_iort_node *node, *parent;
-+	const struct iommu_ops *ops = NULL;
-+	u32 streamid = 0;
-+
-+	if (dev_is_pci(dev)) {
-+		struct pci_bus *bus = to_pci_dev(dev)->bus;
-+		u32 rid;
-+
-+		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-+				       &rid);
-+
-+		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-+				      iort_match_node_callback, &bus->dev);
-+		if (!node)
-+			return NULL;
-+
-+		parent = iort_node_map_rid(node, rid, &streamid,
-+					   IORT_IOMMU_TYPE);
-+
-+		ops = iort_iommu_xlate(dev, parent, streamid);
-+
-+	} else {
-+		int i = 0;
-+
-+		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-+				      iort_match_node_callback, dev);
-+		if (!node)
-+			return NULL;
-+
-+		parent = iort_node_get_id(node, &streamid,
-+					  IORT_IOMMU_TYPE, i++);
-+
-+		while (parent) {
-+			ops = iort_iommu_xlate(dev, parent, streamid);
-+
-+			parent = iort_node_get_id(node, &streamid,
-+						  IORT_IOMMU_TYPE, i++);
-+		}
-+	}
-+
-+	return ops;
-+}
-+
- static void __init acpi_iort_register_irq(int hwirq, const char *name,
- 					  int trigger,
- 					  struct resource *res)
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 0bdc98e..e875537 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -7,6 +7,7 @@
- #include <linux/slab.h>
- #include <linux/kernel.h>
- #include <linux/acpi.h>
-+#include <linux/iort.h>
- #include <linux/signal.h>
- #include <linux/kthread.h>
- #include <linux/dmi.h>
-@@ -1377,11 +1378,15 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
-  */
- void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
- {
-+	const struct iommu_ops *iommu;
-+
-+	iommu = iort_iommu_configure(dev);
-+
- 	/*
- 	 * Assume dma valid range starts at 0 and covers the whole
- 	 * coherent_dma_mask.
- 	 */
--	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
-+	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
- 			   attr == DEV_DMA_COHERENT);
- }
- 
-diff --git a/include/linux/iort.h b/include/linux/iort.h
-index bf37aaf..1b6c50d 100644
---- a/include/linux/iort.h
-+++ b/include/linux/iort.h
-@@ -34,6 +34,8 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
- int iort_set_fwnode(struct acpi_iort_node *iort_node,
- 		    struct fwnode_handle *fwnode);
- struct fwnode_handle *iort_get_fwnode(struct acpi_iort_node *node);
-+/* IOMMU interface */
-+const struct iommu_ops *iort_iommu_configure(struct device *dev);
- #else
- static inline bool iort_node_match(u8 type) { return false; }
- static inline void iort_table_detect(void) { }
-@@ -46,6 +48,9 @@ static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
- { return -ENODEV; }
- static inline struct fwnode_handle *
- iort_get_fwnode(struct acpi_iort_node *node) { return NULL; }
-+/* IOMMU interface */
-+static inline const struct iommu_ops *
-+iort_iommu_configure(struct device *dev) { return NULL; }
- #endif
- 
- #define IORT_ACPI_DECLARE(name, table_id, fn)		\
--- 
-2.6.4
+ struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
+ EXPORT_SYMBOL(node_data);
+ nodemask_t numa_nodes_parsed __initdata;
