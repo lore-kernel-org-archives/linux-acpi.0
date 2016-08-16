@@ -1,53 +1,101 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/5] ACPICA: Tables: Remove wrong table event macros
-Date: Tue, 16 Aug 2016 16:52:55 +0800
-Message-ID: <be6e8bc6cb869b341d2f051e9d6ac73badd5a241.1471337441.git.lv.zheng@intel.com>
-References: <cover.1471337441.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1471337441.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Tue, 16 Aug 2016 12:15:02 +0300
+Message-ID: <20160816091502.GB1751@lahna.fi.intel.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <3103060.86QBTjSLk3@vostro.rjw.lan>
+ <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+ <3861743.KWBechkp08@vostro.rjw.lan>
+ <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
+ <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:46156 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751532AbcHPJPG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Aug 2016 05:15:06 -0400
+Content-Disposition: inline
+In-Reply-To: <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Durbin <adurbin@google.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-There are wrong table event macros, this patch cleans them up.
+On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
+> Was anyone able to take a look into a solution for the current
+> problem?  Again, please feel free to ask if anyone would like help
+> testing potential solutions.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/actypes.h |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+Below is one proposal for fixing the issue. It is just a prototype and
+I'm not sure if it takes everything needed into account. Would you be
+able to try it out and let us know if it works for you?
 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index e96907b..892595f 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1034,12 +1034,6 @@ struct acpi_statistics {
- 	u32 method_count;
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 159f7f19abce..72068415f806 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/platform_device.h>
++#include <linux/pci.h>
+ 
+ #include "internal.h"
+ 
+@@ -30,6 +31,35 @@ static const struct acpi_device_id forbidden_id_list[] = {
+ 	{"", 0},
  };
  
--/* Table Event Types */
--
--#define ACPI_TABLE_EVENT_LOAD           0x0
--#define ACPI_TABLE_EVENT_UNLOAD         0x1
--#define ACPI_NUM_TABLE_EVENTS           2
--
- /*
-  * Types specific to the OS service interfaces
-  */
-@@ -1091,9 +1085,11 @@ acpi_status (*acpi_exception_handler) (acpi_status aml_status,
- typedef
- acpi_status (*acpi_table_handler) (u32 event, void *table, void *context);
- 
--#define ACPI_TABLE_LOAD             0x0
--#define ACPI_TABLE_UNLOAD           0x1
--#define ACPI_NUM_TABLE_EVENTS       2
-+/* Table Event Types */
++static struct resource *acpi_find_parent_resource(struct acpi_device *adev,
++						  struct resource *res)
++{
++	struct device *parent;
 +
-+#define ACPI_TABLE_EVENT_LOAD           0x0
-+#define ACPI_TABLE_EVENT_UNLOAD         0x1
-+#define ACPI_NUM_TABLE_EVENTS           2
++	parent = acpi_get_first_physical_node(adev->parent);
++	if (!parent)
++		return NULL;
++
++#if IS_ENABLED(CONFIG_PCI)
++	if (dev_is_pci(parent)) {
++		struct pci_dev *pdev = to_pci_dev(parent);
++
++		if (!pci_is_bridge(pdev)) {
++			int i;
++
++			for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
++				struct resource *r = &pdev->resource[i];
++
++				if (r->start && resource_contains(r, res))
++					return r;
++			}
++		}
++	}
++#endif
++
++	return NULL;
++}
++
+ /**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
+@@ -69,8 +99,17 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 			return ERR_PTR(-ENOMEM);
+ 		}
+ 		count = 0;
+-		list_for_each_entry(rentry, &resource_list, node)
+-			resources[count++] = *rentry->res;
++		list_for_each_entry(rentry, &resource_list, node) {
++			struct resource *res = &resources[count++];
++
++			*res = *rentry->res;
++			/*
++			 * If the device has parent we need to take its
++			 * resources into account as well because this
++			 * device might consume part of those.
++			 */
++			res->parent = acpi_find_parent_resource(adev, res);
++		}
  
- /* Address Spaces (For Operation Regions) */
- 
--- 
-1.7.10
+ 		acpi_dev_free_resource_list(&resource_list);
+ 	}
