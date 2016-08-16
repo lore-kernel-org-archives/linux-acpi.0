@@ -1,95 +1,46 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 14/15] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Tue, 16 Aug 2016 19:58:09 +0800
-Message-ID: <3ac8ffb3-f447-45ef-c118-dde4efe74911@linaro.org>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
- <20160815153546.GF22320@e104818-lin.cambridge.arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Tue, 16 Aug 2016 15:20:18 +0300
+Message-ID: <20160816122018.GK1751@lahna.fi.intel.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <3103060.86QBTjSLk3@vostro.rjw.lan>
+ <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+ <3861743.KWBechkp08@vostro.rjw.lan>
+ <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
+ <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
+ <20160816091502.GB1751@lahna.fi.intel.com>
+ <1471346604.4887.120.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20160815153546.GF22320@e104818-lin.cambridge.arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, David Daney <ddaney.cavm@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:14767 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803AbcHPMUW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Aug 2016 08:20:22 -0400
+Content-Disposition: inline
+In-Reply-To: <1471346604.4887.120.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Aaron Durbin <adurbin@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On 2016/8/15 23:35, Catalin Marinas wrote:
-> On Tue, May 24, 2016 at 03:35:44PM -0700, David Daney wrote:
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index aee323b..4b13ecd 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -113,4 +113,12 @@ static inline const char *acpi_get_enable_method(int cpu)
->>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
->>  #endif
->>
->> +#ifdef CONFIG_ACPI_NUMA
->> +int arm64_acpi_numa_init(void);
->> +int acpi_numa_get_nid(unsigned int cpu, u64 hwid);
->> +#else
->> +static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
->> +static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
->> +#endif /* CONFIG_ACPI_NUMA */
->> +
->>  #endif /*_ASM_ACPI_H*/
->
-> Apparently this doesn't always build since asm/acpi.h is conditionally
-> included from linux/acpi.h only when CONFIG_ACPI is enabled. Disabling
-> this option on arm64 leads to:
->
-> arch/arm64/mm/numa.c: In function ‘arm64_numa_init’:
-> arch/arm64/mm/numa.c:395:24: error: ‘arm64_acpi_numa_init’ undeclared (first use in this function)
->    if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
->
-> I'll fix it in arch/arm64 by including asm/acpi.h directly as we do in a
-> couple of other files:
->
-> ------------------8<------------------------------
-> From 9a83bf400e0b4ef066b83eeaecdbca909b8491ea Mon Sep 17 00:00:00 2001
-> From: Catalin Marinas <catalin.marinas@arm.com>
-> Date: Mon, 15 Aug 2016 16:33:10 +0100
-> Subject: [PATCH] arm64: Fix NUMA build error when !CONFIG_ACPI
-> MIME-Version: 1.0
-> Content-Type: text/plain; charset=UTF-8
-> Content-Transfer-Encoding: 8bit
->
-> Since asm/acpi.h is only included by linux/acpi.h when CONFIG_ACPI is
-> enabled, disabling the latter leads to the following build error on
-> arm64:
->
-> arch/arm64/mm/numa.c: In function ‘arm64_numa_init’:
-> arch/arm64/mm/numa.c:395:24: error: ‘arm64_acpi_numa_init’ undeclared (first use in this function)
->    if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
->
-> This patch include the asm/acpi.h explicitly in arch/arm64/mm/numa.c for
-> the arm64_acpi_numa_init() definition.
->
-> Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and SLIT")
-> Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-> ---
->  arch/arm64/mm/numa.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-> index c7fe3ec70774..5bb15eab6f00 100644
-> --- a/arch/arm64/mm/numa.c
-> +++ b/arch/arm64/mm/numa.c
-> @@ -23,6 +23,8 @@
->  #include <linux/module.h>
->  #include <linux/of.h>
->
-> +#include <asm/acpi.h>
-> +
->  struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
->  EXPORT_SYMBOL(node_data);
->  nodemask_t numa_nodes_parsed __initdata;
+On Tue, Aug 16, 2016 at 02:23:24PM +0300, Andy Shevchenko wrote:
+> On Tue, 2016-08-16 at 12:15 +0300, Mika Westerberg wrote:
+> > On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
+> > > 
+> > > Was anyone able to take a look into a solution for the current
+> > > problem?��Again, please feel free to ask if anyone would like help
+> > > testing potential solutions.
+> > 
+> > Below is one proposal for fixing the issue. It is just a prototype and
+> > I'm not sure if it takes everything needed into account. Would you be
+> > able to try it out and let us know if it works for you?
+> 
+> Just style comments below.
 
+Thanks for the comments. As Rafael already mentioned, this is just a
+prototype. We don't even know yet if it fixes the issue.
 
-Thanks a lot!
-
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Hanjun
+If it turns out to be working and we decide to go with this approach, I
+will clean up the code accordingly and submit it as a proper patch.
