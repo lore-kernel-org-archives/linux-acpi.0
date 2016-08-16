@@ -1,306 +1,188 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V3 5/7] ACPI/CPPC: add sysfs support to compute delivered performance
-Date: Tue, 16 Aug 2016 14:39:42 -0600
-Message-ID: <1471379984-15712-6-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V3 7/7] ACPI/CPPC: check for error bit in PCC status field
+Date: Tue, 16 Aug 2016 14:39:44 -0600
+Message-ID: <1471379984-15712-8-git-send-email-pprakash@codeaurora.org>
 References: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54893 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:54931 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753265AbcHPUj6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:39:58 -0400
+	with ESMTP id S1753569AbcHPUkA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:40:00 -0400
 In-Reply-To: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, Prashanth Prakash <pprakash@codeaurora.org>
 
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-
-The CPPC tables contain entries for per CPU feedback counters which
-allows us to compute the delivered performance over a given interval
-of time.
-
-The math for delivered performance per the CPPCv5.0+ spec is:
-  reference perf * delta(delivered perf ctr)/delta(ref perf ctr)
-
-Maintaining deltas of the counters in the kernel is messy, as it
-depends on when the reads are triggered. (e.g. via the cpufreq
-->get() interface). Also the ->get() interace only returns one
-value, so cant return raw values. So instead, leave it to userspace
-to keep track of raw values and do its math for CPUs it cares about.
-
-delivered and reference perf counters are exposed via the same
-sysfs file to avoid the potential "skid", if these values are read
-individually from userspace.
+PCC status field exposes an error bit(2) to indicate any errors during
+the execution of last comamnd. This patch checks the error bit before
+notifying success/failure to the cpufreq driver.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 ---
- drivers/acpi/cppc_acpi.c | 135 ++++++++++++++++++++++++++++++++++++++++-------
- include/acpi/cppc_acpi.h |   6 +--
- 2 files changed, 120 insertions(+), 21 deletions(-)
+ drivers/acpi/cppc_acpi.c | 66 +++++++++++++++++++++++-------------------------
+ include/acpi/cppc_acpi.h |  4 ++-
+ 2 files changed, 34 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 6c54a8f..f00fac3 100644
+index 80c123f..ed58883 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -95,6 +95,17 @@ static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
- 				(cpc)->cpc_entry.reg.space_id ==	\
- 				ACPI_ADR_SPACE_PLATFORM_COMM)
+@@ -54,6 +54,7 @@ struct cppc_pcc_data {
+ 	unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
  
-+/* Evalutes to True if reg is a NULL register descriptor */
-+#define IS_NULL_REG(reg) ((reg)->space_id ==  ACPI_ADR_SPACE_SYSTEM_MEMORY && \
-+				(reg)->address == 0 &&			\
-+				(reg)->bit_width == 0 &&		\
-+				(reg)->bit_offset == 0 &&		\
-+				(reg)->access_width == 0)
-+
-+/* Evalutes to True if an optional cpc field is supported */
-+#define CPC_SUPPORTED(cpc) ((cpc)->type == ACPI_TYPE_INTEGER ?		\
-+				!!(cpc)->cpc_entry.int_value :		\
-+				!IS_NULL_REG(&(cpc)->cpc_entry.reg))
+ 	bool pending_pcc_write_cmd;	/* Any pending/batched PCC write cmds? */
++	bool platform_owns_pcc;		/* Ownership of PCC subspace */
+ 	unsigned int pcc_write_cnt;	/* Running count of PCC write commands */
+ 
+ 	/*
+@@ -79,6 +80,7 @@ struct cppc_pcc_data {
+ /* Structure to represent the single PCC channel */
+ static struct cppc_pcc_data pcc_data = {
+ 	.pcc_subspace_idx = -1,
++	.platform_owns_pcc = true,
+ };
+ 
  /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
-@@ -102,6 +113,71 @@ static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
-  */
- #define NUM_RETRIES 500
+@@ -181,12 +183,15 @@ static struct kobj_type cppc_ktype = {
+ 	.default_attrs = cppc_attrs,
+ };
  
-+struct cppc_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct kobject *kobj,
-+			struct attribute *attr, char *buf);
-+	ssize_t (*store)(struct kobject *kobj,
-+			struct attribute *attr, const char *c, ssize_t count);
-+};
-+
-+#define define_one_cppc_ro(_name)		\
-+static struct cppc_attr _name =			\
-+__ATTR(_name, 0444, show_##_name, NULL)
-+
-+#define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
-+
-+static ssize_t show_feedback_ctrs(struct kobject *kobj,
-+		struct attribute *attr, char *buf)
-+{
-+	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-+	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-+
-+	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-+
-+	return scnprintf(buf, PAGE_SIZE, "ref:%llu del:%llu\n",
-+			fb_ctrs.reference, fb_ctrs.delivered);
-+}
-+define_one_cppc_ro(feedback_ctrs);
-+
-+static ssize_t show_reference_perf(struct kobject *kobj,
-+		struct attribute *attr, char *buf)
-+{
-+	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-+	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-+
-+	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%llu\n",
-+			fb_ctrs.reference_perf);
-+}
-+define_one_cppc_ro(reference_perf);
-+
-+static ssize_t show_wraparound_time(struct kobject *kobj,
-+				struct attribute *attr, char *buf)
-+{
-+	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-+	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-+
-+	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%llu\n", fb_ctrs.ctr_wrap_time);
-+
-+}
-+define_one_cppc_ro(wraparound_time);
-+
-+static struct attribute *cppc_attrs[] = {
-+	&feedback_ctrs.attr,
-+	&reference_perf.attr,
-+	&wraparound_time.attr,
-+	NULL
-+};
-+
-+static struct kobj_type cppc_ktype = {
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_attrs = cppc_attrs,
-+};
-+
- static int check_pcc_chan(void)
+-static int check_pcc_chan(void)
++static int check_pcc_chan(bool chk_err_bit)
  {
- 	int ret = -EIO;
-@@ -555,6 +631,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	union acpi_object *out_obj, *cpc_obj;
- 	struct cpc_desc *cpc_ptr;
- 	struct cpc_reg *gas_t;
-+	struct device *cpu_dev;
- 	acpi_handle handle = pr->handle;
- 	unsigned int num_ent, i, cpc_rev;
- 	acpi_status status;
-@@ -678,6 +755,16 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	/* Everything looks okay */
- 	pr_debug("Parsed CPC struct for CPU: %d\n", pr->id);
+-	int ret = -EIO;
++	int ret = -EIO, status = 0;
+ 	struct acpi_pcct_shared_memory __iomem *generic_comm_base = pcc_data.pcc_comm_addr;
+ 	ktime_t next_deadline = ktime_add(ktime_get(), pcc_data.deadline);
  
-+	/* Add per logical CPU nodes for reading its feedback counters. */
-+	cpu_dev = get_cpu_device(pr->id);
-+	if (!cpu_dev)
-+		goto out_free;
++	if (!pcc_data.platform_owns_pcc)
++		return 0;
 +
-+	ret = kobject_init_and_add(&cpc_ptr->kobj, &cppc_ktype, &cpu_dev->kobj,
-+			"acpi_cppc");
-+	if (ret)
-+		goto out_free;
-+
- 	kfree(output.pointer);
- 	return 0;
- 
-@@ -708,6 +795,7 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
- 	struct cpc_desc *cpc_ptr;
- 	unsigned int i;
- 	void __iomem *addr;
-+
- 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
- 
- 	/* Free all the mapped sys mem areas for this CPU */
-@@ -717,6 +805,7 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
- 			iounmap(addr);
+ 	/* Retry in case the remote processor was too slow to catch up. */
+ 	while (!ktime_after(ktime_get(), next_deadline)) {
+ 		/*
+@@ -194,8 +199,11 @@ static int check_pcc_chan(void)
+ 		 * platform and should have set the command completion bit when
+ 		 * PCC can be used by OSPM
+ 		 */
+-		if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
++		status = readw_relaxed(&generic_comm_base->status);
++		if (status & PCC_CMD_COMPLETE_MASK) {
+ 			ret = 0;
++			if (chk_err_bit && (status & PCC_ERROR_MASK))
++				ret = -EIO;
+ 			break;
+ 		}
+ 		/*
+@@ -205,6 +213,11 @@ static int check_pcc_chan(void)
+ 		udelay(3);
  	}
  
-+	kobject_put(&cpc_ptr->kobj);
- 	kfree(cpc_ptr);
++	if (likely(!ret))
++		pcc_data.platform_owns_pcc = false;
++	else
++		pr_err("PCC check channel failed. Status=%x\n", status);
++
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
-@@ -818,7 +907,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
- 	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
- 								 *nom_perf;
--	u64 high, low, ref, nom;
-+	u64 high, low, nom;
- 	int ret = 0, regs_in_pcc = 0;
  
- 	if (!cpc_desc) {
-@@ -849,15 +938,9 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	cpc_read(lowest_reg, &low);
- 	perf_caps->lowest_perf = low;
+@@ -234,7 +247,7 @@ static int send_pcc_cmd(u16 cmd)
+ 		if (pcc_data.pending_pcc_write_cmd)
+ 			send_pcc_cmd(CMD_WRITE);
  
--	cpc_read(ref_perf, &ref);
--	perf_caps->reference_perf = ref;
--
- 	cpc_read(nom_perf, &nom);
- 	perf_caps->nominal_perf = nom;
+-		ret = check_pcc_chan();
++		ret = check_pcc_chan(false);
+ 		if (ret)
+ 			goto end;
+ 	} else /* CMD_WRITE */
+@@ -282,6 +295,8 @@ static int send_pcc_cmd(u16 cmd)
+ 	/* Flip CMD COMPLETE bit */
+ 	writew_relaxed(0, &generic_comm_base->status);
  
--	if (!ref)
--		perf_caps->reference_perf = perf_caps->nominal_perf;
--
- 	if (!high || !low || !nom)
- 		ret = -EFAULT;
- 
-@@ -878,8 +961,9 @@ EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
- int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- {
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
--	struct cpc_register_resource *delivered_reg, *reference_reg;
--	u64 delivered, reference;
-+	struct cpc_register_resource *delivered_reg, *reference_reg,
-+		*ref_perf_reg, *ctr_wrap_reg;
-+	u64 delivered, reference, ref_perf, ctr_wrap_time;
- 	int ret = 0, regs_in_pcc = 0;
- 
- 	if (!cpc_desc) {
-@@ -889,9 +973,19 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 
- 	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
- 	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
-+	ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
-+	ctr_wrap_reg = &cpc_desc->cpc_regs[CTR_WRAP_TIME];
++	pcc_data.platform_owns_pcc = true;
 +
-+	/*
-+	 * If refernce perf register is not supported then we should
-+	 * use the nominal perf value
-+	 */
-+	if (!CPC_SUPPORTED(ref_perf_reg))
-+		ref_perf_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
- 
- 	/* Are any of the regs PCC ?*/
--	if (CPC_IN_PCC(delivered_reg) || CPC_IN_PCC(reference_reg)) {
-+	if (CPC_IN_PCC(delivered_reg) || CPC_IN_PCC(reference_reg) ||
-+		CPC_IN_PCC(ctr_wrap_reg) || CPC_IN_PCC(ref_perf_reg)) {
- 		down_write(&pcc_lock);
- 		regs_in_pcc = 1;
- 		/* Ring doorbell once to update PCC subspace */
-@@ -903,21 +997,26 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 
- 	cpc_read(delivered_reg, &delivered);
- 	cpc_read(reference_reg, &reference);
-+	cpc_read(ref_perf_reg, &ref_perf);
-+
-+	/*
-+	 * Per spec, if ctr_wrap_time optional register is unsupported, then the
-+	 * performance counters are assumed to never wrap during the lifetime of
-+	 * platform
-+	 */
-+	ctr_wrap_time = (u64)(~((u64)0));
-+	if (CPC_SUPPORTED(ctr_wrap_reg))
-+		cpc_read(ctr_wrap_reg, &ctr_wrap_time);
- 
--	if (!delivered || !reference) {
-+	if (!delivered || !reference ||	!ref_perf) {
- 		ret = -EFAULT;
- 		goto out_err;
+ 	/* Ring doorbell */
+ 	ret = mbox_send_message(pcc_data.pcc_channel, &cmd);
+ 	if (ret < 0) {
+@@ -290,23 +305,11 @@ static int send_pcc_cmd(u16 cmd)
+ 		goto end;
  	}
  
- 	perf_fb_ctrs->delivered = delivered;
- 	perf_fb_ctrs->reference = reference;
--
--	perf_fb_ctrs->delivered -= perf_fb_ctrs->prev_delivered;
--	perf_fb_ctrs->reference -= perf_fb_ctrs->prev_reference;
--
--	perf_fb_ctrs->prev_delivered = delivered;
--	perf_fb_ctrs->prev_reference = reference;
--
-+	perf_fb_ctrs->reference_perf = ref_perf;
-+	perf_fb_ctrs->ctr_wrap_time = ctr_wrap_time;
- out_err:
- 	if (regs_in_pcc)
- 		up_write(&pcc_lock);
+-	/*
+-	 * For READs we need to ensure the cmd completed to ensure
+-	 * the ensuing read()s can proceed. For WRITEs we dont care
+-	 * because the actual write()s are done before coming here
+-	 * and the next READ or WRITE will check if the channel
+-	 * is busy/free at the entry of this call.
+-	 *
+-	 * If Minimum Request Turnaround Time is non-zero, we need
+-	 * to record the completion time of both READ and WRITE
+-	 * command for proper handling of MRTT, so we need to check
+-	 * for pcc_mrtt in addition to CMD_READ
+-	 */
+-	if (cmd == CMD_READ || pcc_data.pcc_mrtt) {
+-		ret = check_pcc_chan();
+-		if (pcc_data.pcc_mrtt)
+-			last_cmd_cmpl_time = ktime_get();
+-	}
++	/* wait for completion and check for PCC errro bit */
++	ret = check_pcc_chan(true);
++
++	if (pcc_data.pcc_mrtt)
++		last_cmd_cmpl_time = ktime_get();
+ 
+ 	mbox_client_txdone(pcc_data.pcc_channel, ret);
+ 
+@@ -1059,25 +1062,18 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 	 */
+ 	if (CPC_IN_PCC(desired_reg)) {
+ 		down_read(&pcc_data.pcc_lock);	/* BEGIN Phase-I */
+-		/*
+-		 * If there are pending write commands i.e pending_pcc_write_cmd
+-		 * is TRUE, then we know OSPM owns the channel as another CPU
+-		 * has already checked for command completion bit and updated
+-		 * the corresponding CPC registers
+-		 */
+-		if (!pcc_data.pending_pcc_write_cmd) {
+-			ret = check_pcc_chan();
++		if (pcc_data.platform_owns_pcc) {
++			ret = check_pcc_chan(false);
+ 			if (ret) {
+ 				up_read(&pcc_data.pcc_lock);
+ 				return ret;
+ 			}
+-			/*
+-			 * Update the pending_write to make sure a PCC CMD_READ
+-			 * will not arrive and steal the channel during the
+-			 * transition to write lock
+-			 */
+-			pcc_data.pending_pcc_write_cmd = TRUE;
+ 		}
++		/*
++		 * Update the pending_write to make sure a PCC CMD_READ will not
++		 * arrive and steal the channel during the switch to write lock
++		 */
++		pcc_data.pending_pcc_write_cmd = true;
+ 		cpc_desc->write_cmd_id = pcc_data.pcc_write_cnt;
+ 		cpc_desc->write_cmd_status = 0;
+ 	}
 diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 42cbeb9..f50b533 100644
+index f50b533..0e83cc3 100644
 --- a/include/acpi/cppc_acpi.h
 +++ b/include/acpi/cppc_acpi.h
-@@ -65,6 +65,7 @@ struct cpc_desc {
- 	int write_cmd_id;
- 	struct cpc_register_resource cpc_regs[MAX_CPC_REG_ENT];
- 	struct acpi_psd_package domain_info;
-+	struct kobject kobj;
- };
+@@ -24,7 +24,9 @@
+ #define CPPC_NUM_ENT	21
+ #define CPPC_REV	2
  
- /* These are indexes into the per-cpu cpc_regs[]. Order is important. */
-@@ -99,7 +100,6 @@ enum cppc_regs {
- struct cppc_perf_caps {
- 	u32 highest_perf;
- 	u32 nominal_perf;
--	u32 reference_perf;
- 	u32 lowest_perf;
- };
+-#define PCC_CMD_COMPLETE 1
++#define PCC_CMD_COMPLETE_MASK	(1 << 0)
++#define PCC_ERROR_MASK		(1 << 2)
++
+ #define MAX_CPC_REG_ENT 19
  
-@@ -111,9 +111,9 @@ struct cppc_perf_ctrls {
- 
- struct cppc_perf_fb_ctrs {
- 	u64 reference;
--	u64 prev_reference;
- 	u64 delivered;
--	u64 prev_delivered;
-+	u64 reference_perf;
-+	u64 ctr_wrap_time;
- };
- 
- /* Per CPU container for runtime CPPC management. */
+ /* CPPC specific PCC commands. */
 -- 
 Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
