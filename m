@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 4/5] ACPI / sysfs: Fix an issue for LoadTable opcode
-Date: Tue, 16 Aug 2016 16:53:08 +0800
-Message-ID: <95ab759477b67ba43862d686ff410efd8471fd33.1471337441.git.lv.zheng@intel.com>
+Subject: [PATCH 5/5] ACPI / sysfs: Update sysfs signature handling code
+Date: Tue, 16 Aug 2016 16:53:15 +0800
+Message-ID: <a1bcc19e4a62a078cd070551905641eae70f21b1.1471337441.git.lv.zheng@intel.com>
 References: <cover.1471337441.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1471337441.git.lv.zheng@intel.com>
@@ -10,44 +10,94 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-OEM tables can be installed via RSDT/XSDT, in this case, they have already
-been created under /sys/firmware/acpi/tables.
+This is a cleanup to covert sysfs signature handling code using ACPICA
+APIs, so that sysfs code can automatically be benefit from any future
+implementation in the name tag handling macros.
+Additional filename attribute is added in order to handle both BE/LE name
+tag cases.
 
-For this kind of tables, normally LoadTable opcode will be executed to load
-them. If LoadTable opcode is executed after acpi_sysfs_init(),
-acpi_sysfs_table_handler() will be invoked, thus a redundant table file
-will be created under /sys/firmware/acpi/tables/dynamic. Then running
-"acpidump" on such platform results in an error.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=150841
-Reported-by: Jason Voelz <jason.voelz@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/sysfs.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/sysfs.c |   35 +++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 358165e..f2fa363 100644
+index f2fa363..974eb64 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
-@@ -383,7 +383,7 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
- 	struct acpi_table_attr *table_attr;
+@@ -314,10 +314,13 @@ static struct kobject *tables_kobj;
+ static struct kobject *dynamic_tables_kobj;
+ static struct kobject *hotplug_kobj;
  
- 	switch (event) {
--	case ACPI_TABLE_EVENT_LOAD:
-+	case ACPI_TABLE_EVENT_INSTALL:
- 		table_attr =
- 		    kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
- 		if (!table_attr)
-@@ -397,7 +397,9 @@ acpi_status acpi_sysfs_table_handler(u32 event, void *table, void *context)
- 		} else
- 			list_add_tail(&table_attr->node, &acpi_table_attr_list);
- 		break;
-+	case ACPI_TABLE_EVENT_LOAD:
- 	case ACPI_TABLE_EVENT_UNLOAD:
-+	case ACPI_TABLE_EVENT_UNINSTALL:
- 		/*
- 		 * we do not need to do anything right now
- 		 * because the table is not deleted from the
++#define ACPI_INST_SIZE		4	/* including trailing 0 */
++
+ struct acpi_table_attr {
+ 	struct bin_attribute attr;
+-	char name[8];
++	char name[ACPI_NAME_SIZE];
+ 	int instance;
++	char filename[ACPI_NAME_SIZE+ACPI_INST_SIZE];
+ 	struct list_head node;
+ };
+ 
+@@ -329,14 +332,9 @@ static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
+-	char name[ACPI_NAME_SIZE];
+ 
+-	if (strncmp(table_attr->name, "NULL", 4))
+-		memcpy(name, table_attr->name, ACPI_NAME_SIZE);
+-	else
+-		memcpy(name, "\0\0\0\0", 4);
+-
+-	status = acpi_get_table(name, table_attr->instance, &table_header);
++	status = acpi_get_table(table_attr->name, table_attr->instance,
++				&table_header);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+@@ -349,30 +347,31 @@ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
+ {
+ 	struct acpi_table_header *header = NULL;
+ 	struct acpi_table_attr *attr = NULL;
++	char instance_str[ACPI_INST_SIZE];
+ 
+ 	sysfs_attr_init(&table_attr->attr.attr);
+-	if (table_header->signature[0] != '\0')
+-		memcpy(table_attr->name, table_header->signature,
+-		       ACPI_NAME_SIZE);
+-	else
+-		memcpy(table_attr->name, "NULL", 4);
++	ACPI_MOVE_NAME(table_attr->name, table_header->signature);
+ 
+ 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
+-		if (!memcmp(table_attr->name, attr->name, ACPI_NAME_SIZE))
++		if (ACPI_COMPARE_NAME(table_attr->name, attr->name))
+ 			if (table_attr->instance < attr->instance)
+ 				table_attr->instance = attr->instance;
+ 	}
+ 	table_attr->instance++;
+ 
++	ACPI_MOVE_NAME(table_attr->filename, table_header->signature);
++	table_attr->filename[ACPI_NAME_SIZE] = '\0';
+ 	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
+ 					 !acpi_get_table
+-					 (table_header->signature, 2, &header)))
+-		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
+-			table_attr->instance);
++					 (table_header->signature, 2, &header))) {
++		snprintf(instance_str, sizeof(instance_str), "%u",
++			 table_attr->instance);
++		strcat(table_attr->filename, instance_str);
++	}
+ 
+ 	table_attr->attr.size = table_header->length;
+ 	table_attr->attr.read = acpi_table_show;
+-	table_attr->attr.attr.name = table_attr->name;
++	table_attr->attr.attr.name = table_attr->filename;
+ 	table_attr->attr.attr.mode = 0400;
+ 
+ 	return;
 -- 
 1.7.10
