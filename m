@@ -1,46 +1,46 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Tue, 16 Aug 2016 13:27:41 +0200
-Message-ID: <CAJZ5v0gnuYiA73aKjnwDnfM98Fk7gRA8FEvvxxRMziEaWdkCEA@mail.gmail.com>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
- <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
- <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
- <20160816091502.GB1751@lahna.fi.intel.com> <1471346604.4887.120.camel@linux.intel.com>
+Subject: Re: [PATCH 0/5] ACPI / sysfs: Cleanup sysfs table handling code
+Date: Tue, 16 Aug 2016 13:32:00 +0200
+Message-ID: <CAJZ5v0j6eg9YvBrdqn-z0u8Rz1VtTdVcqxHJK+jsGC8DLc2Q_g@mail.gmail.com>
+References: <cover.1471337441.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:36744 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256AbcHPL1s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 07:27:48 -0400
-In-Reply-To: <1471346604.4887.120.camel@linux.intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34241 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240AbcHPLcC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 07:32:02 -0400
+In-Reply-To: <cover.1471337441.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Durbin <adurbin@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Aug 16, 2016 at 1:23 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Tue, 2016-08-16 at 12:15 +0300, Mika Westerberg wrote:
->> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
->> >
->> > Was anyone able to take a look into a solution for the current
->> > problem?  Again, please feel free to ask if anyone would like help
->> > testing potential solutions.
->>
->> Below is one proposal for fixing the issue. It is just a prototype and
->> I'm not sure if it takes everything needed into account. Would you be
->> able to try it out and let us know if it works for you?
+On Tue, Aug 16, 2016 at 10:52 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> There are issues in sysfs table handling code:
+> 1. It cannot handle table loaded by LoadTable opcode executed after
+>    acpi_sysfs_init();
+> 2. It's signature handling code is not correct.
 >
-> Just style comments below.
+> This patchset fixes these issues.
+>
+> Lv Zheng (5):
+>   ACPICA: Tables: Remove acpi_tb_install_fixed_table()
+>   ACPICA: Tables: Remove wrong table event macros
+>   ACPICA: Tables: Add new table events indicating table
+>     installation/uninstallation
+>   ACPI / sysfs: Fix an issue for LoadTable opcode
+>   ACPI / sysfs: Update sysfs signature handling code
+>
+>  drivers/acpi/acpica/actables.h |    7 +---
+>  drivers/acpi/acpica/tbfadt.c   |   24 +++++++------
+>  drivers/acpi/acpica/tbinstal.c |   73 +++++-----------------------------------
+>  drivers/acpi/sysfs.c           |   39 ++++++++++-----------
+>  include/acpi/actypes.h         |   16 ++++-----
+>  5 files changed, 51 insertions(+), 108 deletions(-)
 
-Didn't Mika say it was a prototype?  Meaning that it would be cleaned
-up (among other things)?
-
-Why do you have to confuse things by posting style comments on patches
-clearly described as prototypes?  Is there not enough noise on the
-mailing lists already?
+Patches [1-3/5] clearly modify ACPICA.  Have they gone into the
+upstream already?
 
 Thanks,
 Rafael
