@@ -1,480 +1,254 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: [RESEND PATCH v3] mailbox: pcc: Support HW-Reduced Communication Subspace type 2
-Date: Mon, 15 Aug 2016 17:14:05 -0700
-Message-ID: <1471306445-943-1-git-send-email-hotran@apm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH V8 2/8] ACPI: Add new IORT functions to support MSI
+ domain handling
+Date: Tue, 16 Aug 2016 02:15:44 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0E3F2@SHSMSX101.ccr.corp.intel.com>
+References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
+ <1470909998-16710-3-git-send-email-tn@semihalf.com>
+ <20160812164234.GB17734@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:34540 "EHLO
-	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080AbcHPAO1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Aug 2016 20:14:27 -0400
-Received: by mail-pf0-f182.google.com with SMTP id p64so21383024pfb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Aug 2016 17:14:26 -0700 (PDT)
+Received: from mga01.intel.com ([192.55.52.88]:29415 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932201AbcHPCRn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Aug 2016 22:17:43 -0400
+In-Reply-To: <20160812164234.GB17734@red-moon>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, alexey.klimov@arm.com, Prakash Prashanth <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>
+Cc: "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "helgaas@kernel.org" <helgaas@kernel.org>, "rafael@kernel.org" <rafael@kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "shijie.huang@arm.com" <shijie.huang@arm.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-ACPI 6.1 has a PCC HW-Reduced Communication Subspace type 2 intended for
-use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
-to acknowledge doorbell interrupt. This patch provides the implementation
-for the Communication Subspace Type 2.
+Hi,
 
-Signed-off-by: Hoan Tran <hotran@apm.com>
-Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
----
-v3
- * Remove 2 global structures
- * Correct parsing subspace type 1 and subspace type 2
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Lorenzo
+> Pieralisi
+> Subject: Re: [PATCH V8 2/8] ACPI: Add new IORT functions to support MSI domain handling
+> 
+> On Thu, Aug 11, 2016 at 12:06:32PM +0200, Tomasz Nowicki wrote:
+> 
+> [...]
+> 
+> > +/**
+> > + * iort_register_domain_token() - register domain token and related ITS ID
+> > + * to the list from where we can get it back later on.
+> > + * @trans_id: ITS ID.
+> > + * @fw_node: Domain token.
+> > + *
+> > + * Returns: 0 on success, -ENOMEM if no memory when allocating list element
+> > + */
+> > +int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node)
+> > +{
+> > +	struct iort_its_msi_chip *its_msi_chip;
+> > +
+> > +	its_msi_chip = kzalloc(sizeof(*its_msi_chip), GFP_KERNEL);
+> 
+> I spotted this while reworking my ARM SMMU series, this may sleep
+> and that's no good given that we call it within the acpi_probe_lock.
+> 
+> Same goes for irq_domain_alloc_fwnode() (that we call in
+> gic_v2_acpi_init()), we have got to fix this usage, I will see with
+> Marc what's the best way to do it.
 
-v2
- * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
- * Parse both subspace type 1 and subspace type 2
- * Remove unnecessary variable initialization
- * ISR returns IRQ_NONE in case of error
+If we can ensure that all table device probe entries are created during link stage or early stage.
+I think you can safely unlock probe lock before invoking acpi_table_parse() in __acpi_probe_device_table().
 
-v1
- * Initial
+Thanks
+Lv
 
- drivers/mailbox/pcc.c | 316 ++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 245 insertions(+), 71 deletions(-)
-
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 043828d..08c87fa 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -59,6 +59,7 @@
- #include <linux/delay.h>
- #include <linux/io.h>
- #include <linux/init.h>
-+#include <linux/interrupt.h>
- #include <linux/list.h>
- #include <linux/platform_device.h>
- #include <linux/mailbox_controller.h>
-@@ -68,11 +69,16 @@
- #include "mailbox.h"
- 
- #define MAX_PCC_SUBSPACES	256
-+#define MBOX_IRQ_NAME		"pcc-mbox"
- 
- static struct mbox_chan *pcc_mbox_channels;
- 
- /* Array of cached virtual address for doorbell registers */
- static void __iomem **pcc_doorbell_vaddr;
-+/* Array of cached virtual address for doorbell ack registers */
-+static void __iomem **pcc_doorbell_ack_vaddr;
-+/* Array of doorbell interrupts */
-+static int *pcc_doorbell_irq;
- 
- static struct mbox_controller pcc_mbox_ctrl = {};
- /**
-@@ -91,6 +97,132 @@ static struct mbox_chan *get_pcc_channel(int id)
- 	return &pcc_mbox_channels[id];
- }
- 
-+/*
-+ * PCC can be used with perf critical drivers such as CPPC
-+ * So it makes sense to locally cache the virtual address and
-+ * use it to read/write to PCC registers such as doorbell register
-+ *
-+ * The below read_register and write_registers are used to read and
-+ * write from perf critical registers such as PCC doorbell register
-+ */
-+static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
-+{
-+	int ret_val = 0;
-+
-+	switch (bit_width) {
-+	case 8:
-+		*val = readb(vaddr);
-+		break;
-+	case 16:
-+		*val = readw(vaddr);
-+		break;
-+	case 32:
-+		*val = readl(vaddr);
-+		break;
-+	case 64:
-+		*val = readq(vaddr);
-+		break;
-+	default:
-+		pr_debug("Error: Cannot read register of %u bit width",
-+			bit_width);
-+		ret_val = -EFAULT;
-+		break;
-+	}
-+	return ret_val;
-+}
-+
-+static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
-+{
-+	int ret_val = 0;
-+
-+	switch (bit_width) {
-+	case 8:
-+		writeb(val, vaddr);
-+		break;
-+	case 16:
-+		writew(val, vaddr);
-+		break;
-+	case 32:
-+		writel(val, vaddr);
-+		break;
-+	case 64:
-+		writeq(val, vaddr);
-+		break;
-+	default:
-+		pr_debug("Error: Cannot write register of %u bit width",
-+			bit_width);
-+		ret_val = -EFAULT;
-+		break;
-+	}
-+	return ret_val;
-+}
-+
-+/**
-+ * pcc_map_interrupt - Map a PCC subspace GSI to a linux IRQ number
-+ * @interrupt: GSI number.
-+ * @flags: interrupt flags
-+ *
-+ * Returns: a valid linux IRQ number on success
-+ *		0 or -EINVAL on failure
-+ */
-+static int pcc_map_interrupt(u32 interrupt, u32 flags)
-+{
-+	int trigger, polarity;
-+
-+	if (!interrupt)
-+		return 0;
-+
-+	trigger = (flags & ACPI_PCCT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-+			: ACPI_LEVEL_SENSITIVE;
-+
-+	polarity = (flags & ACPI_PCCT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-+			: ACPI_ACTIVE_HIGH;
-+
-+	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
-+}
-+
-+/**
-+ * pcc_mbox_irq - PCC mailbox interrupt handler
-+ */
-+static irqreturn_t pcc_mbox_irq(int irq, void *p)
-+{
-+	struct acpi_generic_address *doorbell_ack;
-+	struct acpi_pcct_hw_reduced *pcct_ss;
-+	struct mbox_chan *chan = p;
-+	u64 doorbell_ack_preserve;
-+	u64 doorbell_ack_write;
-+	u64 doorbell_ack_val;
-+	int ret;
-+
-+	pcct_ss = chan->con_priv;
-+
-+	mbox_chan_received_data(chan, NULL);
-+
-+	if (pcct_ss->header.type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
-+		struct acpi_pcct_hw_reduced_type2 *pcct2_ss = chan->con_priv;
-+		u32 id = chan - pcc_mbox_channels;
-+
-+		doorbell_ack = &pcct2_ss->doorbell_ack_register;
-+		doorbell_ack_preserve = pcct2_ss->ack_preserve_mask;
-+		doorbell_ack_write = pcct2_ss->ack_write_mask;
-+
-+		ret = read_register(pcc_doorbell_ack_vaddr[id],
-+				    &doorbell_ack_val,
-+				    doorbell_ack->bit_width);
-+		if (ret)
-+			return IRQ_NONE;
-+
-+		ret = write_register(pcc_doorbell_ack_vaddr[id],
-+				     (doorbell_ack_val & doorbell_ack_preserve)
-+					| doorbell_ack_write,
-+				     doorbell_ack->bit_width);
-+		if (ret)
-+			return IRQ_NONE;
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
- /**
-  * pcc_mbox_request_channel - PCC clients call this function to
-  *		request a pointer to their PCC subspace, from which they
-@@ -135,6 +267,18 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
- 	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
- 		chan->txdone_method |= TXDONE_BY_ACK;
- 
-+	if (pcc_doorbell_irq[subspace_id] > 0) {
-+		int rc;
-+
-+		rc = devm_request_irq(dev, pcc_doorbell_irq[subspace_id],
-+				      pcc_mbox_irq, 0, MBOX_IRQ_NAME, chan);
-+		if (unlikely(rc)) {
-+			dev_err(dev, "failed to register PCC interrupt %d\n",
-+				pcc_doorbell_irq[subspace_id]);
-+			chan = ERR_PTR(rc);
-+		}
-+	}
-+
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 
- 	return chan;
-@@ -149,80 +293,30 @@ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
-  */
- void pcc_mbox_free_channel(struct mbox_chan *chan)
- {
-+	u32 id = chan - pcc_mbox_channels;
- 	unsigned long flags;
- 
- 	if (!chan || !chan->cl)
- 		return;
- 
-+	if (id >= pcc_mbox_ctrl.num_chans) {
-+		pr_debug("pcc_mbox_free_channel: Invalid mbox_chan passed\n");
-+		return;
-+	}
-+
- 	spin_lock_irqsave(&chan->lock, flags);
- 	chan->cl = NULL;
- 	chan->active_req = NULL;
- 	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
- 		chan->txdone_method = TXDONE_BY_POLL;
- 
-+	if (pcc_doorbell_irq[id] > 0)
-+		devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
-+
- 	spin_unlock_irqrestore(&chan->lock, flags);
- }
- EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
- 
--/*
-- * PCC can be used with perf critical drivers such as CPPC
-- * So it makes sense to locally cache the virtual address and
-- * use it to read/write to PCC registers such as doorbell register
-- *
-- * The below read_register and write_registers are used to read and
-- * write from perf critical registers such as PCC doorbell register
-- */
--static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
--{
--	int ret_val = 0;
--
--	switch (bit_width) {
--	case 8:
--		*val = readb(vaddr);
--		break;
--	case 16:
--		*val = readw(vaddr);
--		break;
--	case 32:
--		*val = readl(vaddr);
--		break;
--	case 64:
--		*val = readq(vaddr);
--		break;
--	default:
--		pr_debug("Error: Cannot read register of %u bit width",
--			bit_width);
--		ret_val = -EFAULT;
--		break;
--	}
--	return ret_val;
--}
--
--static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
--{
--	int ret_val = 0;
--
--	switch (bit_width) {
--	case 8:
--		writeb(val, vaddr);
--		break;
--	case 16:
--		writew(val, vaddr);
--		break;
--	case 32:
--		writel(val, vaddr);
--		break;
--	case 64:
--		writeq(val, vaddr);
--		break;
--	default:
--		pr_debug("Error: Cannot write register of %u bit width",
--			bit_width);
--		ret_val = -EFAULT;
--		break;
--	}
--	return ret_val;
--}
- 
- /**
-  * pcc_send_data - Called from Mailbox Controller code. Used
-@@ -296,8 +390,10 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
- 	if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
- 		pcct_ss = (struct acpi_pcct_hw_reduced *) header;
- 
--		if (pcct_ss->header.type !=
--				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
-+		if ((pcct_ss->header.type !=
-+				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
-+		    && (pcct_ss->header.type !=
-+				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
- 			pr_err("Incorrect PCC Subspace type detected\n");
- 			return -EINVAL;
- 		}
-@@ -307,6 +403,43 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
- }
- 
- /**
-+ * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
-+ *		There should be one entry per PCC client.
-+ * @id: PCC subspace index.
-+ * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
-+ *
-+ * Return: 0 for Success, else errno.
-+ *
-+ * This gets called for each entry in the PCC table.
-+ */
-+static int pcc_parse_subspace_irq(int id,
-+				  struct acpi_pcct_hw_reduced *pcct_ss)
-+{
-+	pcc_doorbell_irq[id] = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
-+						 (u32)pcct_ss->flags);
-+	if (pcc_doorbell_irq[id] <= 0) {
-+		pr_err("PCC GSI %d not registered\n",
-+		       pcct_ss->doorbell_interrupt);
-+		return -EINVAL;
-+	}
-+
-+	if (pcct_ss->header.type
-+		== ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
-+		struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
-+
-+		pcc_doorbell_ack_vaddr[id] = acpi_os_ioremap(
-+				pcct2_ss->doorbell_ack_register.address,
-+				pcct2_ss->doorbell_ack_register.bit_width / 8);
-+		if (!pcc_doorbell_ack_vaddr[id]) {
-+			pr_err("Failed to ioremap PCC ACK register\n");
-+			return -ENOMEM;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-  * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
-  *
-  * Return: 0 for Success, else errno.
-@@ -316,7 +449,9 @@ static int __init acpi_pcc_probe(void)
- 	acpi_size pcct_tbl_header_size;
- 	struct acpi_table_header *pcct_tbl;
- 	struct acpi_subtable_header *pcct_entry;
--	int count, i;
-+	struct acpi_table_pcct *acpi_pcct_tbl;
-+	int count, i, rc;
-+	int sum = 0;
- 	acpi_status status = AE_OK;
- 
- 	/* Search for PCCT */
-@@ -333,37 +468,66 @@ static int __init acpi_pcc_probe(void)
- 			sizeof(struct acpi_table_pcct),
- 			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
- 			parse_pcc_subspace, MAX_PCC_SUBSPACES);
-+	sum += (count > 0) ? count : 0;
-+
-+	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
-+			sizeof(struct acpi_table_pcct),
-+			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
-+			parse_pcc_subspace, MAX_PCC_SUBSPACES);
-+	sum += (count > 0) ? count : 0;
- 
--	if (count <= 0) {
-+	if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
- 		pr_err("Error parsing PCC subspaces from PCCT\n");
- 		return -EINVAL;
- 	}
- 
- 	pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) *
--			count, GFP_KERNEL);
--
-+			sum, GFP_KERNEL);
- 	if (!pcc_mbox_channels) {
- 		pr_err("Could not allocate space for PCC mbox channels\n");
- 		return -ENOMEM;
- 	}
- 
--	pcc_doorbell_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
-+	pcc_doorbell_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
- 	if (!pcc_doorbell_vaddr) {
--		kfree(pcc_mbox_channels);
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		goto err_free_mbox;
-+	}
-+
-+	pcc_doorbell_ack_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
-+	if (!pcc_doorbell_ack_vaddr) {
-+		rc = -ENOMEM;
-+		goto err_free_db_vaddr;
-+	}
-+
-+	pcc_doorbell_irq = kcalloc(sum, sizeof(int), GFP_KERNEL);
-+	if (!pcc_doorbell_irq) {
-+		rc = -ENOMEM;
-+		goto err_free_db_ack_vaddr;
- 	}
- 
- 	/* Point to the first PCC subspace entry */
- 	pcct_entry = (struct acpi_subtable_header *) (
- 		(unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
- 
--	for (i = 0; i < count; i++) {
-+	acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
-+	if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
-+		pcc_mbox_ctrl.txdone_irq = true;
-+
-+	for (i = 0; i < sum; i++) {
- 		struct acpi_generic_address *db_reg;
- 		struct acpi_pcct_hw_reduced *pcct_ss;
- 		pcc_mbox_channels[i].con_priv = pcct_entry;
- 
-+		pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
-+
-+		if (pcc_mbox_ctrl.txdone_irq) {
-+			rc = pcc_parse_subspace_irq(i, pcct_ss);
-+			if (rc < 0)
-+				goto err;
-+		}
-+
- 		/* If doorbell is in system memory cache the virt address */
--		pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
- 		db_reg = &pcct_ss->doorbell_register;
- 		if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 			pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
-@@ -372,11 +536,21 @@ static int __init acpi_pcc_probe(void)
- 			((unsigned long) pcct_entry + pcct_entry->length);
- 	}
- 
--	pcc_mbox_ctrl.num_chans = count;
-+	pcc_mbox_ctrl.num_chans = sum;
- 
- 	pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
- 
- 	return 0;
-+
-+err:
-+	kfree(pcc_doorbell_irq);
-+err_free_db_ack_vaddr:
-+	kfree(pcc_doorbell_ack_vaddr);
-+err_free_db_vaddr:
-+	kfree(pcc_doorbell_vaddr);
-+err_free_mbox:
-+	kfree(pcc_mbox_channels);
-+	return rc;
- }
- 
- /**
--- 
-1.9.1
-
+> 
+> Lorenzo
+> 
+> > +	if (!its_msi_chip)
+> > +		return -ENOMEM;
+> > +
+> > +	its_msi_chip->fw_node = fw_node;
+> > +	its_msi_chip->translation_id = trans_id;
+> > +
+> > +	spin_lock(&iort_msi_chip_lock);
+> > +	list_add(&its_msi_chip->list, &iort_msi_chip_list);
+> > +	spin_unlock(&iort_msi_chip_lock);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> > + * iort_deregister_domain_token() - Deregister domain token based on ITS ID
+> > + * @trans_id: ITS ID.
+> > + *
+> > + * Returns: none.
+> > + */
+> > +void iort_deregister_domain_token(int trans_id)
+> > +{
+> > +	struct iort_its_msi_chip *its_msi_chip, *t;
+> > +
+> > +	spin_lock(&iort_msi_chip_lock);
+> > +	list_for_each_entry_safe(its_msi_chip, t, &iort_msi_chip_list, list) {
+> > +		if (its_msi_chip->translation_id == trans_id) {
+> > +			list_del(&its_msi_chip->list);
+> > +			kfree(its_msi_chip);
+> > +			break;
+> > +		}
+> > +	}
+> > +	spin_unlock(&iort_msi_chip_lock);
+> > +}
+> > +
+> > +/**
+> > + * iort_find_domain_token() - Find domain token based on given ITS ID
+> > + * @trans_id: ITS ID.
+> > + *
+> > + * Returns: domain token when find on the list, NULL otherwise
+> > + */
+> > +struct fwnode_handle *iort_find_domain_token(int trans_id)
+> > +{
+> > +	struct fwnode_handle *fw_node = NULL;
+> > +	struct iort_its_msi_chip *its_msi_chip;
+> > +
+> > +	spin_lock(&iort_msi_chip_lock);
+> > +	list_for_each_entry(its_msi_chip, &iort_msi_chip_list, list) {
+> > +		if (its_msi_chip->translation_id == trans_id) {
+> > +			fw_node = its_msi_chip->fw_node;
+> > +			break;
+> > +		}
+> > +	}
+> > +	spin_unlock(&iort_msi_chip_lock);
+> > +
+> > +	return fw_node;
+> > +}
+> > +
+> >  static struct acpi_iort_node *
+> >  iort_scan_node(enum acpi_iort_node_type type,
+> >  	       iort_find_node_callback callback, void *context)
+> > @@ -206,6 +285,96 @@ iort_find_dev_node(struct device *dev)
+> >  			      iort_match_node_callback, &pbus->dev);
+> >  }
+> >
+> > +/**
+> > + * iort_msi_map_rid() - Map a MSI requester ID for a device
+> > + * @dev: The device for which the mapping is to be done.
+> > + * @req_id: The device requester ID.
+> > + *
+> > + * Returns: mapped MSI RID on success, input requester ID otherwise
+> > + */
+> > +u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+> > +{
+> > +	struct acpi_iort_node *node;
+> > +	u32 dev_id;
+> > +
+> > +	if (!iort_table)
+> > +		return req_id;
+> > +
+> > +	node = iort_find_dev_node(dev);
+> > +	if (!node) {
+> > +		dev_err(dev, "can't find related IORT node\n");
+> > +		return req_id;
+> > +	}
+> > +
+> > +	iort_node_map_rid(node, req_id, &dev_id, ACPI_IORT_NODE_ITS_GROUP);
+> > +	return dev_id;
+> > +}
+> > +
+> > +/**
+> > + * iort_dev_find_its_id() - Find the ITS identifier for a device
+> > + * @dev: The device.
+> > + * @idx: Index of the ITS identifier list.
+> > + * @its_id: ITS identifier.
+> > + *
+> > + * Returns: 0 on success, appropriate error value otherwise
+> > + */
+> > +static int
+> > +iort_dev_find_its_id(struct device *dev, u32 req_id, unsigned int idx,
+> > +		     int *its_id)
+> > +{
+> > +	struct acpi_iort_its_group *its;
+> > +	struct acpi_iort_node *node;
+> > +
+> > +	node = iort_find_dev_node(dev);
+> > +	if (!node) {
+> > +		dev_err(dev, "can't find related IORT node\n");
+> > +		return -ENXIO;
+> > +	}
+> > +
+> > +	node = iort_node_map_rid(node, req_id, NULL, ACPI_IORT_NODE_ITS_GROUP);
+> > +	if (!node) {
+> > +		dev_err(dev, "can't find related ITS node\n");
+> > +		return -ENXIO;
+> > +	}
+> > +
+> > +	/* Move to ITS specific data */
+> > +	its = (struct acpi_iort_its_group *)node->node_data;
+> > +	if (idx > its->its_count) {
+> > +		dev_err(dev, "requested ITS ID index [%d] is greater than available [%d]\n",
+> > +			idx, its->its_count);
+> > +		return -ENXIO;
+> > +	}
+> > +
+> > +	*its_id = its->identifiers[idx];
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> > + * iort_get_device_domain() - Find MSI domain related to a device
+> > + * @dev: The device.
+> > + * @req_id: Requester ID for the device.
+> > + *
+> > + * Returns: the MSI domain for this device, NULL otherwise
+> > + */
+> > +struct irq_domain *
+> > +iort_get_device_domain(struct device *dev, u32 req_id)
+> > +{
+> > +	static struct fwnode_handle *handle;
+> > +	int its_id;
+> > +
+> > +	if (!iort_table)
+> > +		return NULL;
+> > +
+> > +	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
+> > +		return NULL;
+> > +
+> > +	handle = iort_find_domain_token(its_id);
+> > +	if (!handle)
+> > +		return NULL;
+> > +
+> > +	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+> > +}
+> > +
+> >  void __init iort_table_detect(void)
+> >  {
+> >  	acpi_status status;
+> > diff --git a/include/linux/iort.h b/include/linux/iort.h
+> > index cde6809..d7daba1 100644
+> > --- a/include/linux/iort.h
+> > +++ b/include/linux/iort.h
+> > @@ -20,11 +20,22 @@
+> >  #define __IORT_H__
+> >
+> >  #include <linux/acpi.h>
+> > +#include <linux/fwnode.h>
+> > +#include <linux/irqdomain.h>
+> >
+> > +int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
+> > +void iort_deregister_domain_token(int trans_id);
+> > +struct fwnode_handle *iort_find_domain_token(int trans_id);
+> >  #ifdef CONFIG_IORT_TABLE
+> >  void iort_table_detect(void);
+> > +u32 iort_msi_map_rid(struct device *dev, u32 req_id);
+> > +struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+> >  #else
+> >  static inline void iort_table_detect(void) { }
+> > +static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+> > +{ return req_id; }
+> > +static inline struct irq_domain *
+> > +iort_get_device_domain(struct device *dev, u32 req_id) { return NULL; }
+> >  #endif
+> >
+> >  #endif /* __IORT_H__ */
+> > --
+> > 1.9.1
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
