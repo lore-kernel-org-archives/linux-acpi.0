@@ -1,12 +1,12 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V3 2/7] ACPI/CPPC: acquire pcc_lock only while accessing PCC subspace
-Date: Tue, 16 Aug 2016 14:39:39 -0600
-Message-ID: <1471379984-15712-3-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V3 4/7] ACPI/CPPC: set a non-zero value for transition_latency
+Date: Tue, 16 Aug 2016 14:39:41 -0600
+Message-ID: <1471379984-15712-5-git-send-email-pprakash@codeaurora.org>
 References: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54893 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:54891 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425AbcHPUj4 (ORCPT
+	with ESMTP id S1753334AbcHPUj4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:39:56 -0400
 In-Reply-To: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,112 +14,117 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, Prashanth Prakash <pprakash@codeaurora.org>
 
-We need to acquire pcc_lock only when we are accessing registers
-that are in the PCC subspsace.
+Compute the expected transition latency for frequency transitions
+using the values from the PCCT tables when the desired perf
+register is in PCC.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+Reviewed-by: Alexey Klimov <alexey.klimov@arm.com>
 ---
- drivers/acpi/cppc_acpi.c | 30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ drivers/acpi/cppc_acpi.c       | 46 ++++++++++++++++++++++++++++++++++++++++--
+ drivers/cpufreq/cppc_cpufreq.c |  1 +
+ include/acpi/cppc_acpi.h       |  1 +
+ 3 files changed, 46 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index fea58e2..93826c7 100644
+index 5623fca..6c54a8f 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -763,7 +763,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
- 								 *nom_perf;
- 	u64 high, low, ref, nom;
--	int ret = 0;
-+	int ret = 0, regs_in_pcc = 0;
+@@ -85,7 +85,7 @@ static void __iomem *pcc_comm_addr;
+ static int pcc_subspace_idx = -1;
+ static bool pcc_channel_acquired;
+ static ktime_t deadline;
+-static unsigned int pcc_mpar, pcc_mrtt;
++static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
  
- 	if (!cpc_desc) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
-@@ -775,13 +775,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
- 	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
+ /* pcc mapped address + header size + offset within PCC subspace */
+ #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
+@@ -473,7 +473,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
+ 			return -ENODEV;
+ 		}
  
--	spin_lock(&pcc_lock);
 -
- 	/* Are any of the regs PCC ?*/
- 	if ((highest_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
--			(lowest_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
--			(ref_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
--			(nom_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
-+		(lowest_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
-+		(ref_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
-+		(nom_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
-+		spin_lock(&pcc_lock);
-+		regs_in_pcc = 1;
- 		/* Ring doorbell once to update PCC subspace */
- 		if (send_pcc_cmd(CMD_READ) < 0) {
- 			ret = -EIO;
-@@ -808,7 +808,8 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 		ret = -EFAULT;
+ 		/*
+ 		 * cppc_ss->latency is just a Nominal value. In reality
+ 		 * the remote processor could be much slower to reply.
+@@ -483,6 +482,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
+ 		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
+ 		pcc_mrtt = cppc_ss->min_turnaround_time;
+ 		pcc_mpar = cppc_ss->max_access_rate;
++		pcc_nominal = cppc_ss->latency;
  
- out_err:
--	spin_unlock(&pcc_lock);
-+	if (regs_in_pcc)
-+		spin_unlock(&pcc_lock);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
-@@ -825,7 +826,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
- 	struct cpc_register_resource *delivered_reg, *reference_reg;
- 	u64 delivered, reference;
--	int ret = 0;
-+	int ret = 0, regs_in_pcc = 0;
- 
- 	if (!cpc_desc) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
-@@ -835,11 +836,11 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
- 	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
- 
--	spin_lock(&pcc_lock);
--
- 	/* Are any of the regs PCC ?*/
- 	if ((delivered_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
- 		(reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
-+		spin_lock(&pcc_lock);
-+		regs_in_pcc = 1;
- 		/* Ring doorbell once to update PCC subspace */
- 		if (send_pcc_cmd(CMD_READ) < 0) {
- 			ret = -EIO;
-@@ -865,7 +866,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	perf_fb_ctrs->prev_reference = reference;
- 
- out_err:
--	spin_unlock(&pcc_lock);
-+	if (regs_in_pcc)
-+		spin_unlock(&pcc_lock);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_get_perf_ctrs);
-@@ -890,10 +892,9 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 
- 	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
- 
--	spin_lock(&pcc_lock);
--
- 	/* If this is PCC reg, check if channel is free before writing */
- 	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-+		spin_lock(&pcc_lock);
- 		ret = check_pcc_chan();
- 		if (ret)
- 			goto busy_channel;
-@@ -912,7 +913,8 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 			ret = -EIO;
- 	}
- busy_channel:
--	spin_unlock(&pcc_lock);
-+	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
-+		spin_unlock(&pcc_lock);
+ 		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
+ 		if (!pcc_comm_addr) {
+@@ -1048,3 +1048,45 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
  	return ret;
  }
  EXPORT_SYMBOL_GPL(cppc_set_perf);
++
++/**
++ * cppc_get_transition_latency - returns frequency transition latency in ns
++ *
++ * ACPI CPPC does not explicitly specifiy how a platform can specify the
++ * transition latency for perfromance change requests. The closest we have
++ * is the timing information from the PCCT tables which provides the info
++ * on the number and frequency of PCC commands the platform can handle.
++ */
++unsigned int cppc_get_transition_latency(int cpu_num)
++{
++	/*
++	 * Expected transition latency is based on the PCCT timing values
++	 * Below are definition from ACPI spec:
++	 * pcc_nominal- Expected latency to process a command, in microseconds
++	 * pcc_mpar   - The maximum number of periodic requests that the subspace
++	 *              channel can support, reported in commands per minute. 0
++	 *              indicates no limitation.
++	 * pcc_mrtt   - The minimum amount of time that OSPM must wait after the
++	 *              completion of a command before issuing the next command,
++	 *              in microseconds.
++	 */
++	unsigned int latency_ns = 0;
++	struct cpc_desc *cpc_desc;
++	struct cpc_register_resource *desired_reg;
++
++	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
++	if (!cpc_desc)
++		return CPUFREQ_ETERNAL;
++
++	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
++	if (!CPC_IN_PCC(desired_reg))
++		return CPUFREQ_ETERNAL;
++
++	if (pcc_mpar)
++		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_mpar);
++
++	latency_ns = max(latency_ns, (pcc_nominal + pcc_mrtt) * 1000);
++
++	return latency_ns;
++}
++EXPORT_SYMBOL_GPL(cppc_get_transition_latency);
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index 8882b8e..e6a3359 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -98,6 +98,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	policy->max = cpu->perf_caps.highest_perf;
+ 	policy->cpuinfo.min_freq = policy->min;
+ 	policy->cpuinfo.max_freq = policy->max;
++	policy->cpuinfo.transition_latency = cppc_get_transition_latency(cpu_num);
+ 	policy->shared_type = cpu->shared_type;
+ 
+ 	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index d2101bc..42cbeb9 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -131,5 +131,6 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
+ extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
+ extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
+ extern int acpi_get_psd_map(struct cpudata **);
++extern unsigned int cppc_get_transition_latency(int cpu);
+ 
+ #endif /* _CPPC_ACPI_H*/
 -- 
 Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
