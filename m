@@ -1,75 +1,58 @@
-From: Alexey Klimov <alexey.klimov@arm.com>
-Subject: Re: [PATCH 5/5] acpi: bus: Enable HWP CPPC objects
-Date: Tue, 16 Aug 2016 15:32:57 +0100
-Message-ID: <20160816143257.GA22533@arm.com>
-References: <1470874646-70570-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1470874646-70570-6-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH 1/2] drivers: acpi: fix typo in ACPI_DECLARE_PROBE_ENTRY macro
+Date: Tue, 16 Aug 2016 16:59:52 +0100
+Message-ID: <1471363193-16559-1-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47567 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751936AbcHPOdF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 10:33:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1470874646-70570-6-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: rjw@rjwysocki.net, viresh.kumar@linaro.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, ashwin.chaugule@linaro.org
 
-Hi Srinivas,
+When the ACPI_DECLARE_PROBE_ENTRY macro was added in
+commit e647b532275b ("ACPI: Add early device probing infrastructure"),
+a stub macro adding an unused entry was added for the !CONFIG_ACPI
+Kconfig option case to make sure kernel code making use of the
+macro did not require to be guarded within CONFIG_ACPI in order to
+be compiled.
 
-On Wed, Aug 10, 2016 at 05:17:26PM -0700, Srinivas Pandruvada wrote:
-> Need to set platform wide _OSC bits CPC version 1 and version 2 bits
-> so that BIOS presents CPPC objects.
-> Even though the cppc_acpi supports only version 2, need to set both
-> _OSC bits for version 1 and version 2, otherwise BIOS ignore _OSC
-> settings.
+The stub macro was never used since all kernel code that defines
+ACPI_DECLARE_PROBE_ENTRY entries is currently guarded within
+CONFIG_ACPI; it contains a typo that should be nonetheless fixed.
 
-Does such behaviour go against ACPI specs?
-If yes, it's better to add comment in the code.
+Fix the typo in the stub (ie !CONFIG_ACPI) ACPI_DECLARE_PROBE_ENTRY()
+macro so that it can actually be used if needed.
+
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Fixes: e647b532275b ("ACPI: Add early device probing infrastructure")
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>
+---
+ include/linux/acpi.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4d8452c..c5eaf2f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1056,7 +1056,7 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+ 	return NULL;
+ }
  
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> ---
->  drivers/acpi/bus.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 85b7d07..61643a5 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -330,6 +330,13 @@ static void acpi_bus_osc_support(void)
->  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
->  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
->  
-> +#ifdef CONFIG_X86
-> +	if (boot_cpu_has(X86_FEATURE_HWP)) {
-> +		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_SUPPORT;
-> +		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPCV2_SUPPORT;
-> +	}
-> +#endif
-
-Just to check if I understand things correctly.
-I thought that OSC method is kind of 'handshake'. OS describes features
-that it supports and then platform indicates back what features it can
-provide/support.
-Here in this patch I see only first part and I don't see where you check
-confirmation from platform that it supports/enabled CPPC.
-You don't need that, do you?
-It will be nice to see explanation.
-
-Best regards,
-Alexey.
-
->  	if (!ghes_disable)
->  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
->  	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, validate, data, fn) \
++#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn) \
+ 	static const void * __acpi_table_##name[]			\
+ 		__attribute__((unused))					\
+ 		 = { (void *) table_id,					\
+-- 
+2.6.4
