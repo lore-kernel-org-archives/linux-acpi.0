@@ -1,188 +1,125 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V3 7/7] ACPI/CPPC: check for error bit in PCC status field
-Date: Tue, 16 Aug 2016 14:39:44 -0600
-Message-ID: <1471379984-15712-8-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V3 2/7] ACPI/CPPC: acquire pcc_lock only while accessing PCC subspace
+Date: Tue, 16 Aug 2016 14:39:39 -0600
+Message-ID: <1471379984-15712-3-git-send-email-pprakash@codeaurora.org>
 References: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54931 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:54893 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753569AbcHPUkA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:40:00 -0400
+	with ESMTP id S1752425AbcHPUj4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:39:56 -0400
 In-Reply-To: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, Prashanth Prakash <pprakash@codeaurora.org>
 
-PCC status field exposes an error bit(2) to indicate any errors during
-the execution of last comamnd. This patch checks the error bit before
-notifying success/failure to the cpufreq driver.
+We need to acquire pcc_lock only when we are accessing registers
+that are in the PCC subspsace.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 ---
- drivers/acpi/cppc_acpi.c | 66 +++++++++++++++++++++++-------------------------
- include/acpi/cppc_acpi.h |  4 ++-
- 2 files changed, 34 insertions(+), 36 deletions(-)
+ drivers/acpi/cppc_acpi.c | 30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 80c123f..ed58883 100644
+index fea58e2..93826c7 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -54,6 +54,7 @@ struct cppc_pcc_data {
- 	unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
+@@ -763,7 +763,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
+ 								 *nom_perf;
+ 	u64 high, low, ref, nom;
+-	int ret = 0;
++	int ret = 0, regs_in_pcc = 0;
  
- 	bool pending_pcc_write_cmd;	/* Any pending/batched PCC write cmds? */
-+	bool platform_owns_pcc;		/* Ownership of PCC subspace */
- 	unsigned int pcc_write_cnt;	/* Running count of PCC write commands */
+ 	if (!cpc_desc) {
+ 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+@@ -775,13 +775,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
+ 	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
  
- 	/*
-@@ -79,6 +80,7 @@ struct cppc_pcc_data {
- /* Structure to represent the single PCC channel */
- static struct cppc_pcc_data pcc_data = {
- 	.pcc_subspace_idx = -1,
-+	.platform_owns_pcc = true,
- };
+-	spin_lock(&pcc_lock);
+-
+ 	/* Are any of the regs PCC ?*/
+ 	if ((highest_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
+-			(lowest_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
+-			(ref_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
+-			(nom_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
++		(lowest_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
++		(ref_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
++		(nom_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
++		spin_lock(&pcc_lock);
++		regs_in_pcc = 1;
+ 		/* Ring doorbell once to update PCC subspace */
+ 		if (send_pcc_cmd(CMD_READ) < 0) {
+ 			ret = -EIO;
+@@ -808,7 +808,8 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 		ret = -EFAULT;
  
- /*
-@@ -181,12 +183,15 @@ static struct kobj_type cppc_ktype = {
- 	.default_attrs = cppc_attrs,
- };
- 
--static int check_pcc_chan(void)
-+static int check_pcc_chan(bool chk_err_bit)
- {
--	int ret = -EIO;
-+	int ret = -EIO, status = 0;
- 	struct acpi_pcct_shared_memory __iomem *generic_comm_base = pcc_data.pcc_comm_addr;
- 	ktime_t next_deadline = ktime_add(ktime_get(), pcc_data.deadline);
- 
-+	if (!pcc_data.platform_owns_pcc)
-+		return 0;
-+
- 	/* Retry in case the remote processor was too slow to catch up. */
- 	while (!ktime_after(ktime_get(), next_deadline)) {
- 		/*
-@@ -194,8 +199,11 @@ static int check_pcc_chan(void)
- 		 * platform and should have set the command completion bit when
- 		 * PCC can be used by OSPM
- 		 */
--		if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
-+		status = readw_relaxed(&generic_comm_base->status);
-+		if (status & PCC_CMD_COMPLETE_MASK) {
- 			ret = 0;
-+			if (chk_err_bit && (status & PCC_ERROR_MASK))
-+				ret = -EIO;
- 			break;
- 		}
- 		/*
-@@ -205,6 +213,11 @@ static int check_pcc_chan(void)
- 		udelay(3);
- 	}
- 
-+	if (likely(!ret))
-+		pcc_data.platform_owns_pcc = false;
-+	else
-+		pr_err("PCC check channel failed. Status=%x\n", status);
-+
+ out_err:
+-	spin_unlock(&pcc_lock);
++	if (regs_in_pcc)
++		spin_unlock(&pcc_lock);
  	return ret;
  }
+ EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
+@@ -825,7 +826,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+ 	struct cpc_register_resource *delivered_reg, *reference_reg;
+ 	u64 delivered, reference;
+-	int ret = 0;
++	int ret = 0, regs_in_pcc = 0;
  
-@@ -234,7 +247,7 @@ static int send_pcc_cmd(u16 cmd)
- 		if (pcc_data.pending_pcc_write_cmd)
- 			send_pcc_cmd(CMD_WRITE);
+ 	if (!cpc_desc) {
+ 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+@@ -835,11 +836,11 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
+ 	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
  
--		ret = check_pcc_chan();
-+		ret = check_pcc_chan(false);
+-	spin_lock(&pcc_lock);
+-
+ 	/* Are any of the regs PCC ?*/
+ 	if ((delivered_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
+ 		(reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
++		spin_lock(&pcc_lock);
++		regs_in_pcc = 1;
+ 		/* Ring doorbell once to update PCC subspace */
+ 		if (send_pcc_cmd(CMD_READ) < 0) {
+ 			ret = -EIO;
+@@ -865,7 +866,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 	perf_fb_ctrs->prev_reference = reference;
+ 
+ out_err:
+-	spin_unlock(&pcc_lock);
++	if (regs_in_pcc)
++		spin_unlock(&pcc_lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(cppc_get_perf_ctrs);
+@@ -890,10 +892,9 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 
+ 	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+ 
+-	spin_lock(&pcc_lock);
+-
+ 	/* If this is PCC reg, check if channel is free before writing */
+ 	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
++		spin_lock(&pcc_lock);
+ 		ret = check_pcc_chan();
  		if (ret)
- 			goto end;
- 	} else /* CMD_WRITE */
-@@ -282,6 +295,8 @@ static int send_pcc_cmd(u16 cmd)
- 	/* Flip CMD COMPLETE bit */
- 	writew_relaxed(0, &generic_comm_base->status);
- 
-+	pcc_data.platform_owns_pcc = true;
-+
- 	/* Ring doorbell */
- 	ret = mbox_send_message(pcc_data.pcc_channel, &cmd);
- 	if (ret < 0) {
-@@ -290,23 +305,11 @@ static int send_pcc_cmd(u16 cmd)
- 		goto end;
+ 			goto busy_channel;
+@@ -912,7 +913,8 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 			ret = -EIO;
  	}
- 
--	/*
--	 * For READs we need to ensure the cmd completed to ensure
--	 * the ensuing read()s can proceed. For WRITEs we dont care
--	 * because the actual write()s are done before coming here
--	 * and the next READ or WRITE will check if the channel
--	 * is busy/free at the entry of this call.
--	 *
--	 * If Minimum Request Turnaround Time is non-zero, we need
--	 * to record the completion time of both READ and WRITE
--	 * command for proper handling of MRTT, so we need to check
--	 * for pcc_mrtt in addition to CMD_READ
--	 */
--	if (cmd == CMD_READ || pcc_data.pcc_mrtt) {
--		ret = check_pcc_chan();
--		if (pcc_data.pcc_mrtt)
--			last_cmd_cmpl_time = ktime_get();
--	}
-+	/* wait for completion and check for PCC errro bit */
-+	ret = check_pcc_chan(true);
-+
-+	if (pcc_data.pcc_mrtt)
-+		last_cmd_cmpl_time = ktime_get();
- 
- 	mbox_client_txdone(pcc_data.pcc_channel, ret);
- 
-@@ -1059,25 +1062,18 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	 */
- 	if (CPC_IN_PCC(desired_reg)) {
- 		down_read(&pcc_data.pcc_lock);	/* BEGIN Phase-I */
--		/*
--		 * If there are pending write commands i.e pending_pcc_write_cmd
--		 * is TRUE, then we know OSPM owns the channel as another CPU
--		 * has already checked for command completion bit and updated
--		 * the corresponding CPC registers
--		 */
--		if (!pcc_data.pending_pcc_write_cmd) {
--			ret = check_pcc_chan();
-+		if (pcc_data.platform_owns_pcc) {
-+			ret = check_pcc_chan(false);
- 			if (ret) {
- 				up_read(&pcc_data.pcc_lock);
- 				return ret;
- 			}
--			/*
--			 * Update the pending_write to make sure a PCC CMD_READ
--			 * will not arrive and steal the channel during the
--			 * transition to write lock
--			 */
--			pcc_data.pending_pcc_write_cmd = TRUE;
- 		}
-+		/*
-+		 * Update the pending_write to make sure a PCC CMD_READ will not
-+		 * arrive and steal the channel during the switch to write lock
-+		 */
-+		pcc_data.pending_pcc_write_cmd = true;
- 		cpc_desc->write_cmd_id = pcc_data.pcc_write_cnt;
- 		cpc_desc->write_cmd_status = 0;
- 	}
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index f50b533..0e83cc3 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -24,7 +24,9 @@
- #define CPPC_NUM_ENT	21
- #define CPPC_REV	2
- 
--#define PCC_CMD_COMPLETE 1
-+#define PCC_CMD_COMPLETE_MASK	(1 << 0)
-+#define PCC_ERROR_MASK		(1 << 2)
-+
- #define MAX_CPC_REG_ENT 19
- 
- /* CPPC specific PCC commands. */
+ busy_channel:
+-	spin_unlock(&pcc_lock);
++	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
++		spin_unlock(&pcc_lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(cppc_set_perf);
 -- 
 Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
