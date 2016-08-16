@@ -1,110 +1,46 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: ACPI device using sub-resource of PCI device
-Date: Tue, 16 Aug 2016 14:23:24 +0300
-Message-ID: <1471346604.4887.120.camel@linux.intel.com>
+Date: Tue, 16 Aug 2016 13:27:41 +0200
+Message-ID: <CAJZ5v0gnuYiA73aKjnwDnfM98Fk7gRA8FEvvxxRMziEaWdkCEA@mail.gmail.com>
 References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
-	 <3103060.86QBTjSLk3@vostro.rjw.lan>
-	 <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
-	 <3861743.KWBechkp08@vostro.rjw.lan>
-	 <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
-	 <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
-	 <20160816091502.GB1751@lahna.fi.intel.com>
+ <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+ <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
+ <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
+ <20160816091502.GB1751@lahna.fi.intel.com> <1471346604.4887.120.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:60018 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751522AbcHPLX2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 07:23:28 -0400
-In-Reply-To: <20160816091502.GB1751@lahna.fi.intel.com>
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:36744 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753256AbcHPL1s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 07:27:48 -0400
+In-Reply-To: <1471346604.4887.120.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Durbin <adurbin@google.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Durbin <adurbin@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On Tue, 2016-08-16 at 12:15 +0300, Mika Westerberg wrote:
-> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
-> > 
-> > Was anyone able to take a look into a solution for the current
-> > problem?  Again, please feel free to ask if anyone would like help
-> > testing potential solutions.
-> 
-> Below is one proposal for fixing the issue. It is just a prototype and
-> I'm not sure if it takes everything needed into account. Would you be
-> able to try it out and let us know if it works for you?
+On Tue, Aug 16, 2016 at 1:23 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Tue, 2016-08-16 at 12:15 +0300, Mika Westerberg wrote:
+>> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
+>> >
+>> > Was anyone able to take a look into a solution for the current
+>> > problem?  Again, please feel free to ask if anyone would like help
+>> > testing potential solutions.
+>>
+>> Below is one proposal for fixing the issue. It is just a prototype and
+>> I'm not sure if it takes everything needed into account. Would you be
+>> able to try it out and let us know if it works for you?
+>
+> Just style comments below.
 
-Just style comments below.
+Didn't Mika say it was a prototype?  Meaning that it would be cleaned
+up (among other things)?
 
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -18,6 +18,7 @@
->  #include <linux/module.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/platform_device.h>
-> +#include <linux/pci.h>
+Why do you have to confuse things by posting style comments on patches
+clearly described as prototypes?  Is there not enough noise on the
+mailing lists already?
 
-I would keep trying to arrange them in alphabetical order, i.e. put
-before platform_device.h.
-
->  
->  #include "internal.h"
->  
-> @@ -30,6 +31,35 @@ static const struct acpi_device_id
-> forbidden_id_list[] = {
->  	{"", 0},
->  };
->  
-> +static struct resource *acpi_find_parent_resource(struct acpi_device
-> *adev,
-> +						  struct resource
-> *res)
-> +{
-> +	struct device *parent;
-> +
-> +	parent = acpi_get_first_physical_node(adev->parent);
-> +	if (!parent)
-> +		return NULL;
-> +
-> +#if IS_ENABLED(CONFIG_PCI)
-
-Oh.
-
-> +	if (dev_is_pci(parent)) {
-
-Has a stub.
-
-> +		struct pci_dev *pdev = to_pci_dev(parent);
-
-Not needed an ugly define.
-
-> +
-> +		if (!pci_is_bridge(pdev)) {
-
-Ditto.
-
-> +			int i;
-> +
-> +			for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-
-Ditto.
-
-> +				struct resource *r = &pdev-
-> >resource[i];
-> +
-> +				if (r->start && resource_contains(r,
-> res))
-> +					return r;
-> +			}
-> +		}
-> +	}
-> +#endif
-> +
-> +	return NULL;
-> +}
-> +
-
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks,
+Rafael
