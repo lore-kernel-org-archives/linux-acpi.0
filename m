@@ -1,96 +1,55 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH 5/5] acpi: bus: Enable HWP CPPC objects
-Date: Tue, 16 Aug 2016 09:50:55 -0700
-Message-ID: <1471366255.3745.45.camel@linux.intel.com>
-References: <1470874646-70570-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <1470874646-70570-6-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <20160816143257.GA22533@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Prashanth Prakash <pprakash@codeaurora.org>
+Subject: [PATCH V3 0/7] CPPC enhancements
+Date: Tue, 16 Aug 2016 14:39:37 -0600
+Message-ID: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:25938 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529AbcHPQu4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 12:50:56 -0400
-In-Reply-To: <20160816143257.GA22533@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:54826 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420AbcHPUjx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:39:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Klimov <alexey.klimov@arm.com>
-Cc: rjw@rjwysocki.net, viresh.kumar@linaro.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, ashwin.chaugule@linaro.org
+To: linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, Prashanth Prakash <pprakash@codeaurora.org>
 
-Hi Alexey,
+Hi,
 
-On Tue, 2016-08-16 at 15:32 +0100, Alexey Klimov wrote:
-> Hi Srinivas,
-> 
-> On Wed, Aug 10, 2016 at 05:17:26PM -0700, Srinivas Pandruvada wrote:
-> > 
-> > Need to set platform wide _OSC bits CPC version 1 and version 2
-> > bits
-> > so that BIOS presents CPPC objects.
-> > Even though the cppc_acpi supports only version 2, need to set both
-> > _OSC bits for version 1 and version 2, otherwise BIOS ignore _OSC
-> > settings.
-> Does such behaviour go against ACPI specs?
-> If yes, it's better to add comment in the code.
-I need to fix the commit description here. The bit 5 is generic CPPC
-support and bit 6 is CPPC_V2 support capability. So if we set only bit
-5 then we can support only CPPC v1. If we set bit 6, we also support
-CPPC v2. So we have to set both bits for CPPC v2 (Table 6-176 Platform-
-Wide _OSC Capabilities DWORD 2 ACPI 6.0 spec). 
- 
-> > 
-> > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel
-> > .com>
-> > ---
-> >  drivers/acpi/bus.c | 7 +++++++
-> >  1 file changed, 7 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > index 85b7d07..61643a5 100644
-> > --- a/drivers/acpi/bus.c
-> > +++ b/drivers/acpi/bus.c
-> > @@ -330,6 +330,13 @@ static void acpi_bus_osc_support(void)
-> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
-> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
-> >  
-> > +#ifdef CONFIG_X86
-> > +	if (boot_cpu_has(X86_FEATURE_HWP)) {
-> > +		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_SUPPORT;
-> > +		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPCV2_SUPPORT;
-> > +	}
-> > +#endif
-> Just to check if I understand things correctly.
-> I thought that OSC method is kind of 'handshake'. OS describes
-> features
-> that it supports and then platform indicates back what features it
-> can
-> provide/support.
-> Here in this patch I see only first part and I don't see where you
-> check
-> confirmation from platform that it supports/enabled CPPC.
-> You don't need that, do you?
-Once we set these bits the BIOS will expose the CPPC tables. This will
-result in acpi_cppc_processor_probe will be successful. Also _OSC
-response will set bit 5 and 6 here to confirm the acceptance, but I
-can't do any meaningful processing with that confirmation till
-acpi_cppc_processor_probe() returns successfully, which is the
-confirmation.
-How the CPPC data is used in x86 as I indicated in the cover page will
-be a separate series. I submitted CPPC ACPI changes before so that they
-can be reviewed first.
+This series has patches related to cppc that either improves the performance
+or adds some features.
+
+v3:
+  * Fixed the error path in send_pcc_cmd in CPPC batching patch
+  * Included a patch to consolidate all the global variables
+  * Included a patch to check for PCC error bit (Alexey)
+v2:
+  * Sysfs entry for counter wraparound time(Alexey)
+  * Updated latency calculation to sum of Nominal and MRTT(Alexey)
+  * Moved refernce_perf from perf_caps to fb_ctrs
+  * Addressed review comments from Hoan and few minor cleanups
+v1:
+  * Pulled in the CPPC batching path to this series
+  * Addressed POSTCHANGE issue(Alexey) and switch to RW semaphore(Hoan)
 
 Thanks,
-Srinivas
+Prashanth
+Ashwin Chaugule (2):
+  ACPI/CPPC: restructure read/writes for efficient sys mapped reg ops
+  ACPI/CPPC: add sysfs support to compute delivered performance
 
+Prashanth Prakash (5):
+  ACPI/CPPC: acquire pcc_lock only while accessing PCC subspace
+  ACPI/CPPC: support for batching CPPC requests
+  ACPI/CPPC: set a non-zero value for transition_latency
+  ACPI/CPPC: move all PCC related information into pcc_data
+  ACPI/CPPC: check for error bit in PCC status field
 
-> It will be nice to see explanation.
-> 
-> Best regards,
-> Alexey.
-> 
-> > 
-> >  	if (!ghes_disable)
-> >  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
-> >  	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+ drivers/acpi/cppc_acpi.c       | 600 +++++++++++++++++++++++++++++++----------
+ drivers/cpufreq/cppc_cpufreq.c |   1 +
+ include/acpi/cppc_acpi.h       |  14 +-
+ 3 files changed, 466 insertions(+), 149 deletions(-)
+
+-- 
+Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
+
