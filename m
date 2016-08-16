@@ -1,141 +1,96 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
- Subspace type 2
-Date: Tue, 16 Aug 2016 09:27:59 -0700
-Message-ID: <CAFHUOYz-2jd7HSnTsRttWTrPFyN0OzhSd2=+=UaeoVBL9Uk+-Q@mail.gmail.com>
-References: <1463704347-22550-1-git-send-email-hotran@apm.com>
- <9102573.MEe9O1jMMq@vostro.rjw.lan> <CAFHUOYyw-AmTxZnO5oEq0RXgwEcJFL4TZcQYtjBE+NjYw9D3ww@mail.gmail.com>
- <16935343.I93a8yB3ce@vostro.rjw.lan>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH 5/5] acpi: bus: Enable HWP CPPC objects
+Date: Tue, 16 Aug 2016 09:50:55 -0700
+Message-ID: <1471366255.3745.45.camel@linux.intel.com>
+References: <1470874646-70570-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <1470874646-70570-6-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <20160816143257.GA22533@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f175.google.com ([209.85.217.175]:33067 "EHLO
-	mail-ua0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbcHPQ2B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 12:28:01 -0400
-Received: by mail-ua0-f175.google.com with SMTP id 74so130343957uau.0
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Aug 2016 09:28:00 -0700 (PDT)
-In-Reply-To: <16935343.I93a8yB3ce@vostro.rjw.lan>
+Received: from mga14.intel.com ([192.55.52.115]:25938 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752529AbcHPQu4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Aug 2016 12:50:56 -0400
+In-Reply-To: <20160816143257.GA22533@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
+To: Alexey Klimov <alexey.klimov@arm.com>
+Cc: rjw@rjwysocki.net, viresh.kumar@linaro.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, ashwin.chaugule@linaro.org
 
-On Tue, Aug 16, 2016 at 4:56 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, August 15, 2016 04:41:22 PM Hoan Tran wrote:
->> Hi Rafael,
->>
->> On Mon, Aug 15, 2016 at 4:18 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Monday, August 15, 2016 09:45:24 AM Hoan Tran wrote:
->> >> On Mon, Jun 27, 2016 at 2:32 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> >> >
->> >> > On Monday, June 27, 2016 11:27:42 AM Hoan Tran wrote:
->> >> > > Hi Jassi and Rafael,
->> >> > >
->> >> > > On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
->> >> > > <pprakash@codeaurora.org> wrote:
->> >> > > >
->> >> > > >
->> >> > > > On 6/9/2016 4:43 PM, Hoan Tran wrote:
->> >> > > >> Hi Prashanth,
->> >> > > >>
->> >> > > >> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
->> >> > > >> <pprakash@codeaurora.org> wrote:
->> >> > > >>>
->> >> > > >>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
->> >> > > >>>> Hi Ashwin and Prashanth,
->> >> > > >>>>
->> >> > > >>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
->> >> > > >>>>> Hi Prashanth,
->> >> > > >>>>>
->> >> > > >>>>>
->> >> > > >>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
->> >> > > >>>>> <pprakash@codeaurora.org> wrote:
->> >> > > >>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
->> >> > > >>>>>>> Hi Ashwin,
->> >> > > >>>>>>>
->> >> > > >>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
->> >> > > >>>>>>> <ashwin.chaugule@linaro.org> wrote:
->> >> > > >>>>>>>> + Prashanth (Can you please have a look as well?)
->> >> > > >>>>>>>>
->> >> > > >>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
->> >> > > >>>>>>>>> Hi Ashwin,
->> >> > > >>>>>>>> Hi,
->> >> > > >>>>>>>>
->> >> > > >>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
->> >> > > >>>>>>>> locations, so its been a bit crazy lately.
->> >> > > >>>>>>> It's ok and hope you're doing well.
->> >> > > >>>>>>>
->> >> > > >>>>>>>> I dont have any major
->> >> > > >>>>>>>> concerns with this code, although there could be subtle issues with
->> >> > > >>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
->> >> > > >>>>>>>> PCC subspace type 2. But you're also adding support for tx command
->> >> > > >>>>>>>> completion which is not specific to Type 2. We could support that even
->> >> > > >>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
->> >> > > >>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
->> >> > > >>>>>>>> of async platform notification, where you could have a PCC client in
->> >> > > >>>>>>>> the OS writing to the cmd bit and the platform sending an async
->> >> > > >>>>>>>> notification by writing to some bits in the same 8byte address as the
->> >> > > >>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
->> >> > > >>>>>>>> and platform could step on each other. Perhaps Prashanth has better
->> >> > > >>>>>>>> insight into this.
->> >> > > >>>>>>> I think, this mutual exclusivity could be in another patch.
->> >> > > >>>>>> Ashwin,
->> >> > > >>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
->> >> > > >>>>>> each other.  There is a line is spec that says "all operations on status field
->> >> > > >>>>>> must be made using interlocked operations", but not sure what these
->> >> > > >>>>>> interlocked operation translates to.
->> >> > > >>>>> Yes, I had the same question about how to prevent it.
->> >> > > >>>> For platform notification, if the hardware doesn't support interlocked
->> >> > > >>>> operations. I think we can use a workaround that, platform triggers
->> >> > > >>>> interrupt to OSPM without touching status field. The OSPM PCC client
->> >> > > >>>> will decide what to do with this interrupt. For example, OSPM sends a
->> >> > > >>>> consumer command to check it.
->> >> > > >>> How do we decide which platform can support this interlocked operation?
->> >> > > >>> and how do we decide between a completion notification and platform
->> >> > > >>> notification?
->> >> > > >> Truly, we should follow the specification. But I don't know if there's
->> >> > > >> any hardware support this interlocked operation.
->> >> > > >> For the decide between a completion notification and platform notification
->> >> > > >>  - Completion notification: Bit "Command Complete" is set.
->> >> > > >>  - Platform notification: Bit "Command Complete" is not set.
->> >> > > >>
->> >> > > >>> I think the ACPI spec on platform notification is quite ambiguous and it is
->> >> > > >>> best to get the necessary clarification and/or correction before implementing
->> >> > > >>> anything related to platform notification.
->> >> > > >> Agreed, a clarification inside ACPI Specification is needed
->> >> > > > This patch look good to me, as it doesn't deal with platform notification.
->> >> > > > We can try to get some clarification from spec side before handling the platform
->> >> > > > notification pieces.
->> >> > > >
->> >> > > > Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
->> >> > >
->> >> > > Do you have plan to apply this patch ?
->> >> >
->> >> > Yes.
->> >> >
->> >> > Thanks,
->> >> > Rafael
->> >> >
->> >>
->> >> Hi Rafael,
->> >>
->> >> This patch had an ACK from Prashanth.  Can you consider to merge
->> >> this patch please?
->> >
->> > Can you please resend it with the ACK?
->>
->> Correcting, it got a "Reviewed-by: Prashanth Prakash
->> <pprakash@codeaurora.org>". Is it OK?
->
-> Yes, it is.
+Hi Alexey,
 
-Already resend.
+On Tue, 2016-08-16 at 15:32 +0100, Alexey Klimov wrote:
+> Hi Srinivas,
+> 
+> On Wed, Aug 10, 2016 at 05:17:26PM -0700, Srinivas Pandruvada wrote:
+> > 
+> > Need to set platform wide _OSC bits CPC version 1 and version 2
+> > bits
+> > so that BIOS presents CPPC objects.
+> > Even though the cppc_acpi supports only version 2, need to set both
+> > _OSC bits for version 1 and version 2, otherwise BIOS ignore _OSC
+> > settings.
+> Does such behaviour go against ACPI specs?
+> If yes, it's better to add comment in the code.
+I need to fix the commit description here. The bit 5 is generic CPPC
+support and bit 6 is CPPC_V2 support capability. So if we set only bit
+5 then we can support only CPPC v1. If we set bit 6, we also support
+CPPC v2. So we have to set both bits for CPPC v2 (Table 6-176 Platform-
+Wide _OSC Capabilities DWORD 2 ACPI 6.0 spec). 
+ 
+> > 
+> > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel
+> > .com>
+> > ---
+> >  drivers/acpi/bus.c | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > index 85b7d07..61643a5 100644
+> > --- a/drivers/acpi/bus.c
+> > +++ b/drivers/acpi/bus.c
+> > @@ -330,6 +330,13 @@ static void acpi_bus_osc_support(void)
+> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
+> >  
+> > +#ifdef CONFIG_X86
+> > +	if (boot_cpu_has(X86_FEATURE_HWP)) {
+> > +		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_SUPPORT;
+> > +		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPCV2_SUPPORT;
+> > +	}
+> > +#endif
+> Just to check if I understand things correctly.
+> I thought that OSC method is kind of 'handshake'. OS describes
+> features
+> that it supports and then platform indicates back what features it
+> can
+> provide/support.
+> Here in this patch I see only first part and I don't see where you
+> check
+> confirmation from platform that it supports/enabled CPPC.
+> You don't need that, do you?
+Once we set these bits the BIOS will expose the CPPC tables. This will
+result in acpi_cppc_processor_probe will be successful. Also _OSC
+response will set bit 5 and 6 here to confirm the acceptance, but I
+can't do any meaningful processing with that confirmation till
+acpi_cppc_processor_probe() returns successfully, which is the
+confirmation.
+How the CPPC data is used in x86 as I indicated in the cover page will
+be a separate series. I submitted CPPC ACPI changes before so that they
+can be reviewed first.
 
-Thanks
-Hoan
+Thanks,
+Srinivas
 
->
-> Thanks,
-> Rafael
->
+
+> It will be nice to see explanation.
+> 
+> Best regards,
+> Alexey.
+> 
+> > 
+> >  	if (!ghes_disable)
+> >  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
+> >  	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
