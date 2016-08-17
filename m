@@ -1,41 +1,81 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 3/3] tools/power/acpi/acpidbg: Add multi-commands support in batch mode
-Date: Wed, 17 Aug 2016 02:30:50 +0200
-Message-ID: <3470775.ryIxlEgpGv@vostro.rjw.lan>
-References: <cover.1468464391.git.lv.zheng@intel.com> <cover.1469528979.git.lv.zheng@intel.com> <3492bf600484b4d625be1407013eef0062e6246a.1469528980.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v3 2/5] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Wed, 17 Aug 2016 02:33:30 +0200
+Message-ID: <23015419.Vf5YANn61V@vostro.rjw.lan>
+References: <1470801718-29004-1-git-send-email-rui.y.wang@intel.com> <1470801718-29004-3-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55489 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752152AbcHQAZU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 20:25:20 -0400
-In-Reply-To: <3492bf600484b4d625be1407013eef0062e6246a.1469528980.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1470801718-29004-3-git-send-email-rui.y.wang@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: helgaas@kernel.org, tglx@linutronix.de, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, July 26, 2016 07:01:45 PM Lv Zheng wrote:
-> This patch adds multi-commands support for the batch mode. The same mode
-> can be seen in acpiexec.
+On Wednesday, August 10, 2016 12:01:55 PM Rui Wang wrote:
+> IOAPICs present during system boot aren't added to ioapic_list,
+> thus are unable to be hot-removed. Fix it by calling
+> acpi_ioapic_add() during root bus enumeration.
 > 
-> However people may think this is not useful for an in-kernel debugger,
-> because the in-kernel debugger is always running, never exits. So we can
-> run another command by running another acpidbg batch mode instance.
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+
+This patch has been ACKed by Bjorn, right?
+
+In which case you should have added the Acked-by tag to it when reposting.
+
+> ---
+>  drivers/acpi/pci_root.c | 10 ++++++++++
+>  drivers/pci/setup-bus.c |  5 ++++-
+>  2 files changed, 14 insertions(+), 1 deletion(-)
 > 
-> But this mode should still be useful for acpidbg. The reason is: when the
-> in-kernel debugger has entered the single-stepping mode, ending acpidbg
-> (which closes the debugger IO interface) will lead to the end of the
-> single-stepping mode.
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index b07eda1..bf601d4 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -614,6 +614,16 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	if (hotadd) {
+>  		pcibios_resource_survey_bus(root->bus);
+>  		pci_assign_unassigned_root_bus_resources(root->bus);
+> +		/*
+> +		 * This is only called for the hotadd case. For the boot-time
+> +		 * case, we need to wait until after PCI initialization in
+> +		 * order to deal with IOAPICs mapped in on a PCI BAR.
+> +		 *
+> +		 * This is currently x86-specific, because acpi_ioapic_add()
+> +		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
+> +		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
+> +		 * (see drivers/acpi/Kconfig).
+> +		 */
+>  		acpi_ioapic_add(root->device->handle);
+>  	}
+>  
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index c74059e..ec538d3 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/cache.h>
+>  #include <linux/slab.h>
+> +#include <linux/acpi.h>
+>  #include "pci.h"
+>  
+>  unsigned int pci_flags;
+> @@ -1852,8 +1853,10 @@ void __init pci_assign_unassigned_resources(void)
+>  {
+>  	struct pci_bus *root_bus;
+>  
+> -	list_for_each_entry(root_bus, &pci_root_buses, node)
+> +	list_for_each_entry(root_bus, &pci_root_buses, node) {
+>  		pci_assign_unassigned_root_bus_resources(root_bus);
+> +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
+> +	}
+>  }
+>  
+>  void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
 > 
-> So we need the acpidbg multi-commands batch mode in order to execute
-> multiple single-stepping mode commands in scripts.
 
-An example would be really useful here IMO.
-
-Thanks,
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
