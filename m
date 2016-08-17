@@ -1,49 +1,107 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v10 0/8] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Wed, 17 Aug 2016 14:01:18 -0500
-Message-ID: <57B4B47E.5030100@codeaurora.org>
-References: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
- <0befd611-91a7-88e9-1686-82929c1745e8@semihalf.com>
- <510fa357-a729-4ce1-7c10-4cef06feb7b7@linaro.org>
- <CADyBb7tZDT2LMGnsWW_orR37dsfseijLEjzn59rLW9tbbxKVPQ@mail.gmail.com>
- <20160811105848.GA25680@red-moon>
+From: Aaron Durbin <adurbin@google.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Wed, 17 Aug 2016 16:02:45 -0700
+Message-ID: <CAE2855ts_Xw2ahGRYpVWHAqCEvzNYV7BmOVejeErJ_e2oXZ1qg@mail.gmail.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+ <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
+ <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com> <20160816091502.GB1751@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160811105848.GA25680@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Fu Wei <fu.wei@linaro.org>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, wei@redhat.com, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Leo Duran <leo.duran@amd.com>, Hanj
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f172.google.com ([209.85.223.172]:36622 "EHLO
+	mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135AbcHQXCr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Aug 2016 19:02:47 -0400
+Received: by mail-io0-f172.google.com with SMTP id b62so5026171iod.3
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Aug 2016 16:02:46 -0700 (PDT)
+In-Reply-To: <20160816091502.GB1751@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Lorenzo Pieralisi wrote:
-> I do not think you need a v11 just to remove the drivers/acpi/arm64
-> directory creation, you need to get Daniel/Thomas review/ack on
-> the respective patches though, I do not see the point of churning
-> out another series just because drivers/acpi/arm64 is now created
-> in the IORT patch series. If v10 is ok you will rebase it on top of
-> Tomasz's series and mention the dependency in the respective pull
-> request.
+On Tue, Aug 16, 2016 at 2:15 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
+>> Was anyone able to take a look into a solution for the current
+>> problem?  Again, please feel free to ask if anyone would like help
+>> testing potential solutions.
 >
-> If there is need for a v11 following Daniel/Thomas review yes,
-> you can proceed as above.
+> Below is one proposal for fixing the issue. It is just a prototype and
+> I'm not sure if it takes everything needed into account. Would you be
+> able to try it out and let us know if it works for you?
 
-What's the latest on this patchset?  I really want them in 4.9.  Is 
-everything queued up, or are still issues that need to be resolved.
+Yes. I'll give it a go. I'm traveling this week so it won't likely be
+til early next week. Thanks for the proposed fix. I'll report back on
+my findings.
 
-Who will be merging these patches?
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+>
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index 159f7f19abce..72068415f806 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/module.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pci.h>
+>
+>  #include "internal.h"
+>
+> @@ -30,6 +31,35 @@ static const struct acpi_device_id forbidden_id_list[] = {
+>         {"", 0},
+>  };
+>
+> +static struct resource *acpi_find_parent_resource(struct acpi_device *adev,
+> +                                                 struct resource *res)
+> +{
+> +       struct device *parent;
+> +
+> +       parent = acpi_get_first_physical_node(adev->parent);
+> +       if (!parent)
+> +               return NULL;
+> +
+> +#if IS_ENABLED(CONFIG_PCI)
+> +       if (dev_is_pci(parent)) {
+> +               struct pci_dev *pdev = to_pci_dev(parent);
+> +
+> +               if (!pci_is_bridge(pdev)) {
+> +                       int i;
+> +
+> +                       for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+> +                               struct resource *r = &pdev->resource[i];
+> +
+> +                               if (r->start && resource_contains(r, res))
+> +                                       return r;
+> +                       }
+> +               }
+> +       }
+> +#endif
+> +
+> +       return NULL;
+> +}
+> +
+>  /**
+>   * acpi_create_platform_device - Create platform device for ACPI device node
+>   * @adev: ACPI device node to create a platform device for.
+> @@ -69,8 +99,17 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>                         return ERR_PTR(-ENOMEM);
+>                 }
+>                 count = 0;
+> -               list_for_each_entry(rentry, &resource_list, node)
+> -                       resources[count++] = *rentry->res;
+> +               list_for_each_entry(rentry, &resource_list, node) {
+> +                       struct resource *res = &resources[count++];
+> +
+> +                       *res = *rentry->res;
+> +                       /*
+> +                        * If the device has parent we need to take its
+> +                        * resources into account as well because this
+> +                        * device might consume part of those.
+> +                        */
+> +                       res->parent = acpi_find_parent_resource(adev, res);
+> +               }
+>
+>                 acpi_dev_free_resource_list(&resource_list);
+>         }
