@@ -1,41 +1,51 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v4 3/5] x86/ioapic: Fix setup_res() failing to get resource
-Date: Wed, 17 Aug 2016 16:00:35 +0800
-Message-ID: <1471420837-31003-4-git-send-email-rui.y.wang@intel.com>
-References: <1471420837-31003-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:38468 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753616AbcHQIRT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Aug 2016 04:17:19 -0400
-In-Reply-To: <1471420837-31003-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v4 0/5] Fixing a set of bugs for ioapic hotplug
+Date: Wed, 17 Aug 2016 16:00:32 +0800
+Message-ID: <1471420837-31003-1-git-send-email-rui.y.wang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
 Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com, x86@kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-acpi_dev_filter_resource_type() returns 0 on success, and 1 on failure.
-A return value of zero means there's a matching resource, so we should
-continue within setup_res() to get the resource.
+A set of patches fixing bugs found while testing IOAPIC hotplug.
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- drivers/acpi/ioapic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
+Rui
 
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index 2449377..8ab6d42 100644
---- a/drivers/acpi/ioapic.c
-+++ b/drivers/acpi/ioapic.c
-@@ -46,7 +46,7 @@ static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
- 	struct resource_win win;
- 
- 	res->flags = 0;
--	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM) == 0)
-+	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM))
- 		return AE_OK;
- 
- 	if (!acpi_dev_resource_memory(acpi_res, res)) {
+Changelog:
+
+Changes from v3 to v4:
+* Rebased on top of 4.8-rc2 and re-tested it.
+* Added the missing 'Acked-by: Bjorn Helgaas <bhelgaas@google.com>' in 0002.
+* Sent to x86@kernel.org for review as suggested by Rafael.
+
+Changes from v2 to v3:
+* Rebased on top of 4.8-rc1 per Bjorn & Rafael.
+* Improved the commit message of 0003, w/ clearer explanation.
+
+Changes from v1 to v2:
+* Split the first patch into two as advised by Bjorn: "would be nicer if
+the interface change and header file munging were in a separate patch so
+they wouldn't obscure the meat of the change, i.e., the addition of calls
+to acpi_ioapic_add()."
+* Removed acpi_ioapic_add() as an exported symbol.
+* Fixed some typos, and s/acpi/ACPI/, s/ioapic/IOAPIC/ throughout.
+* Fixed a warning from 0-day testing.
+
+Rui Wang (5):
+  x86/ioapic: Change prototype of acpi_ioapic_add()
+  x86/ioapic: Support hot-removal of IOAPICs present during boot
+  x86/ioapic: Fix setup_res() failing to get resource
+  x86/ioapic: Fix lost IOAPIC resource after hot-removal and hotadd
+  x86/ioapic: Fix ioapic failing to request resource
+
+ drivers/acpi/internal.h |  2 --
+ drivers/acpi/ioapic.c   | 46 ++++++++++++++++++++++++++--------------------
+ drivers/acpi/pci_root.c | 12 +++++++++++-
+ drivers/pci/setup-bus.c |  5 ++++-
+ include/linux/acpi.h    |  6 ++++++
+ 5 files changed, 47 insertions(+), 24 deletions(-)
+
 -- 
 1.8.3.1
-
