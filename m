@@ -1,184 +1,57 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 1/2] ACPI / button: Fix an issue that the platform triggered reliable events may not be delivered to the userspace
-Date: Wed, 17 Aug 2016 02:19:26 +0200
-Message-ID: <1830278.Y8XYXFSbDK@vostro.rjw.lan>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com> <c74aa0d3edf6b9632fc56480da0ee9df3f18bf90.1469526583.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v4 1/3] ACPI / debugger: Add kernel flushing support
+Date: Wed, 17 Aug 2016 02:25:27 +0200
+Message-ID: <3495155.KjS3JCMr0I@vostro.rjw.lan>
+References: <cover.1468464391.git.lv.zheng@intel.com> <cover.1469528979.git.lv.zheng@intel.com> <accaa346738c7e405e06dca2aa20088ffa94e3e7.1469528980.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63223 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62511 "HELO
 	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752152AbcHQAN5 (ORCPT
+	by vger.kernel.org with SMTP id S1752345AbcHQAVv (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 20:13:57 -0400
-In-Reply-To: <c74aa0d3edf6b9632fc56480da0ee9df3f18bf90.1469526583.git.lv.zheng@intel.com>
+	Tue, 16 Aug 2016 20:21:51 -0400
+In-Reply-To: <accaa346738c7e405e06dca2aa20088ffa94e3e7.1469528980.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-api@vger.kernel.org
 
-On Tuesday, July 26, 2016 05:52:24 PM Lv Zheng wrote:
-> On most platforms, _LID returning value, lid open/close events are all
-> reliable, but there are exceptions. Some AML tables report wrong initial
-> lid state (Link 1), and some of them never report lid open state (Link 2).
-> The usage model on such buggy platforms is:
-> 1. The initial lid state returned from _LID is not reliable;
-> 2. The lid open event is not reliable;
-> 3. The lid close event is always reliable, used by the platform firmware to
->    trigger OSPM power saving operations.
-> This usage model is not compliant to the Linux SW_LID model as the Linux
-> userspace is very strict to the reliability of the open events.
+On Tuesday, July 26, 2016 07:01:33 PM Lv Zheng wrote:
+> This patch adds debugger output flushing support in kernel via .ioctl()
+> callback. The in-kernel flushing is more efficient, because it reduces
+> useless log IOs by bypassing log user_read/kern_write during the flush
+> period.
 > 
-> In order not to trigger issues on such buggy platforms, the ACPI button
-> driver currently implements a lid_init_state=open quirk to send additional
-> "open" event after resuming. However, this is still not sufficient because:
-> 1. Some special usage models (e.x., the dark resume scenario) cannot be
->    supported by this mode.
-> 2. If a "close" event is not used to trigger "suspend", then the subsequent
->    "close" events cannot be seen by the userspace.
-> So we need to stop sending the additional "open" event and switch the
-> driver to lid_init_state=ignore mode and make sure the platform triggered
-> events can be reliably delivered to the userspace. The userspace programs
-> then can be changed to not to be strict to the "open" events on such buggy
-> platforms.
-> 
-> Why will the subsequent "close" events be lost? This is because the input
-> layer automatically filters redundant events for switch events. Thus given
-> that the buggy AML tables do not guarantee paired "open"/"close" events,
-> the ACPI button driver currently is not able to guarantee that the platform
-> triggered reliable events can be always be seen by the userspace via
-> SW_LID.
-> 
-> This patch adds a mechanism to insert lid events as a compensation for the
-> platform triggered ones to form a complete event switches in order to make
-> sure that the platform triggered events can always be reliably delivered
-> to the userspace. This essentially guarantees that the platform triggered
-> reliable "close" events will always be relibly delivered to the userspace.
-> 
-> However this mechanism is not suitable for lid_init_state=open/method as
-> it should not send the complement switch event for the unreliable initial
-> lid state notification. 2 unreliable events can trigger unexpected
-> behavior. Thus this patch only implements this mechanism for
-> lid_init_state=ignore.
-> 
-> Link 1: https://bugzilla.kernel.org/show_bug.cgi?id=89211
->         https://bugzilla.kernel.org/show_bug.cgi?id=106151
-> Link 2: https://bugzilla.kernel.org/show_bug.cgi?id=106941
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Suggested-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> Cc: Bastien Nocera: <hadess@hadess.net>
-> Cc: linux-input@vger.kernel.org
-> ---
->  drivers/acpi/button.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 50 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 148f4e5..dca1806 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -19,6 +19,8 @@
->   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->   */
->  
-> +#define pr_fmt(fmt) "ACPI : button: " fmt
-> +
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/init.h>
-> @@ -104,6 +106,8 @@ struct acpi_button {
->  	struct input_dev *input;
->  	char phys[32];			/* for input device */
->  	unsigned long pushed;
-> +	int last_state;
-> +	unsigned long last_time;
+> This mechanism is useful for the batch mode.
 
-Why don't you use ktime_t here?
+Is it only useful or is it required?
 
->  	bool suspended;
->  };
->  
-> @@ -111,6 +115,10 @@ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->  static struct acpi_device *lid_device;
->  static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
->  
-> +static unsigned long lid_report_interval __read_mostly = 500;
-> +module_param(lid_report_interval, ulong, 0644);
-> +MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
-> +
->  /* --------------------------------------------------------------------------
->                                FS Interface (/proc)
->     -------------------------------------------------------------------------- */
-> @@ -135,9 +143,48 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
->  	struct acpi_button *button = acpi_driver_data(device);
->  	int ret;
->  
-> -	/* input layer checks if event is redundant */
-> +	if (button->last_state == !!state &&
-> +	    time_after(jiffies, button->last_time +
-> +				msecs_to_jiffies(lid_report_interval))) {
+Also the batch mode is introduced by the remaining patches in the series,
+isn't it?
 
-And ktime_after() here?
+> Scripts can integrate a batch mode acpidbg instance to perform AML debugger
+> functionalities.
 
-> +		/* Complain the buggy firmware */
-> +		pr_warn_once("The lid device is not compliant to SW_LID.\n");
-> +
-> +		/*
-> +		 * Send the unreliable complement switch event:
-> +		 *
-> +		 * On most platforms, the lid device is reliable. However
-> +		 * there are exceptions:
-> +		 * 1. Platforms returning initial lid state as "close" by
-> +		 *    default after booting/resuming:
-> +		 *     https://bugzilla.kernel.org/show_bug.cgi?id=89211
-> +		 *     https://bugzilla.kernel.org/show_bug.cgi?id=106151
-> +		 * 2. Platforms never reporting "open" events:
-> +		 *     https://bugzilla.kernel.org/show_bug.cgi?id=106941
-> +		 * On these buggy platforms, the usage model of the ACPI
-> +		 * lid device actually is:
-> +		 * 1. The initial returning value of _LID may not be
-> +		 *    reliable.
-> +		 * 2. The open event may not be reliable.
-> +		 * 3. The close event is reliable.
-> +		 *
-> +		 * But SW_LID is typed as input switch event, the input
-> +		 * layer checks if the event is redundant. Hence if the
-> +		 * state is not switched, the userspace cannot see this
-> +		 * platform triggered reliable event. By inserting a
-> +		 * complement switch event, it then is guaranteed that the
-> +		 * platform triggered reliable one can always be seen by
-> +		 * the userspace.
-> +		 */
-> +		if (lid_init_state == ACPI_BUTTON_LID_INIT_IGNORE) {
-> +			input_report_switch(button->input, SW_LID, state);
-> +			input_sync(button->input);
-> +		}
-> +	}
-> +	/* Send the platform triggered reliable event */
->  	input_report_switch(button->input, SW_LID, !state);
->  	input_sync(button->input);
-> +	button->last_state = !!state;
-> +	button->last_time = jiffies;
+This sentence is not parsable for me.  What does it mean, really?
 
-And ktime_get() here?
+> As the batch mode always starts from a new command write, it thus requires
+> the kernel debugger driver to drop the old input/output first.
 
->  
->  	if (state)
->  		pm_wakeup_event(&device->dev, 0);
-> @@ -407,6 +454,8 @@ static int acpi_button_add(struct acpi_device *device)
->  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
->  		sprintf(class, "%s/%s",
->  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
-> +		button->last_state = !!acpi_lid_evaluate_state(device);
-> +		button->last_time = jiffies;
+What does "the old" mean here?
 
-And here?
+> The old input is automatically dropped by acpi_os_get_line() via an error
+> returning value,
 
->  	} else {
->  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
->  		error = -ENODEV;
-> 
+I can't parse this too, sorry.
+
+> but the output are remained in acpi_dbg output buffers and should be
+> dropped prior than reading the new command, otherwise, the old output can
+> be read out by the batch mode instance and the result of the batch mode
+> command will be messed up.
+
+Can you give an example here for clarity, please?
 
 Thanks,
 Rafael
