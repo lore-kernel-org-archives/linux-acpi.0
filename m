@@ -1,132 +1,185 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V3 4/7] ACPI/CPPC: set a non-zero value for transition_latency
-Date: Tue, 16 Aug 2016 14:39:41 -0600
-Message-ID: <1471379984-15712-5-git-send-email-pprakash@codeaurora.org>
-References: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 1/2] ACPI / button: Fix an issue that the platform triggered reliable events may not be delivered to the userspace
+Date: Wed, 17 Aug 2016 02:19:26 +0200
+Message-ID: <1830278.Y8XYXFSbDK@vostro.rjw.lan>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com> <c74aa0d3edf6b9632fc56480da0ee9df3f18bf90.1469526583.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54891 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334AbcHPUj4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 16:39:56 -0400
-In-Reply-To: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63223 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752152AbcHQAN5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Aug 2016 20:13:57 -0400
+In-Reply-To: <c74aa0d3edf6b9632fc56480da0ee9df3f18bf90.1469526583.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, Prashanth Prakash <pprakash@codeaurora.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
 
-Compute the expected transition latency for frequency transitions
-using the values from the PCCT tables when the desired perf
-register is in PCC.
+On Tuesday, July 26, 2016 05:52:24 PM Lv Zheng wrote:
+> On most platforms, _LID returning value, lid open/close events are all
+> reliable, but there are exceptions. Some AML tables report wrong initial
+> lid state (Link 1), and some of them never report lid open state (Link 2).
+> The usage model on such buggy platforms is:
+> 1. The initial lid state returned from _LID is not reliable;
+> 2. The lid open event is not reliable;
+> 3. The lid close event is always reliable, used by the platform firmware to
+>    trigger OSPM power saving operations.
+> This usage model is not compliant to the Linux SW_LID model as the Linux
+> userspace is very strict to the reliability of the open events.
+> 
+> In order not to trigger issues on such buggy platforms, the ACPI button
+> driver currently implements a lid_init_state=open quirk to send additional
+> "open" event after resuming. However, this is still not sufficient because:
+> 1. Some special usage models (e.x., the dark resume scenario) cannot be
+>    supported by this mode.
+> 2. If a "close" event is not used to trigger "suspend", then the subsequent
+>    "close" events cannot be seen by the userspace.
+> So we need to stop sending the additional "open" event and switch the
+> driver to lid_init_state=ignore mode and make sure the platform triggered
+> events can be reliably delivered to the userspace. The userspace programs
+> then can be changed to not to be strict to the "open" events on such buggy
+> platforms.
+> 
+> Why will the subsequent "close" events be lost? This is because the input
+> layer automatically filters redundant events for switch events. Thus given
+> that the buggy AML tables do not guarantee paired "open"/"close" events,
+> the ACPI button driver currently is not able to guarantee that the platform
+> triggered reliable events can be always be seen by the userspace via
+> SW_LID.
+> 
+> This patch adds a mechanism to insert lid events as a compensation for the
+> platform triggered ones to form a complete event switches in order to make
+> sure that the platform triggered events can always be reliably delivered
+> to the userspace. This essentially guarantees that the platform triggered
+> reliable "close" events will always be relibly delivered to the userspace.
+> 
+> However this mechanism is not suitable for lid_init_state=open/method as
+> it should not send the complement switch event for the unreliable initial
+> lid state notification. 2 unreliable events can trigger unexpected
+> behavior. Thus this patch only implements this mechanism for
+> lid_init_state=ignore.
+> 
+> Link 1: https://bugzilla.kernel.org/show_bug.cgi?id=89211
+>         https://bugzilla.kernel.org/show_bug.cgi?id=106151
+> Link 2: https://bugzilla.kernel.org/show_bug.cgi?id=106941
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Suggested-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+> Cc: Bastien Nocera: <hadess@hadess.net>
+> Cc: linux-input@vger.kernel.org
+> ---
+>  drivers/acpi/button.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 50 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 148f4e5..dca1806 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -19,6 +19,8 @@
+>   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>   */
+>  
+> +#define pr_fmt(fmt) "ACPI : button: " fmt
+> +
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+> @@ -104,6 +106,8 @@ struct acpi_button {
+>  	struct input_dev *input;
+>  	char phys[32];			/* for input device */
+>  	unsigned long pushed;
+> +	int last_state;
+> +	unsigned long last_time;
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-Reviewed-by: Alexey Klimov <alexey.klimov@arm.com>
----
- drivers/acpi/cppc_acpi.c       | 46 ++++++++++++++++++++++++++++++++++++++++--
- drivers/cpufreq/cppc_cpufreq.c |  1 +
- include/acpi/cppc_acpi.h       |  1 +
- 3 files changed, 46 insertions(+), 2 deletions(-)
+Why don't you use ktime_t here?
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 5623fca..6c54a8f 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -85,7 +85,7 @@ static void __iomem *pcc_comm_addr;
- static int pcc_subspace_idx = -1;
- static bool pcc_channel_acquired;
- static ktime_t deadline;
--static unsigned int pcc_mpar, pcc_mrtt;
-+static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
- 
- /* pcc mapped address + header size + offset within PCC subspace */
- #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
-@@ -473,7 +473,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 			return -ENODEV;
- 		}
- 
--
- 		/*
- 		 * cppc_ss->latency is just a Nominal value. In reality
- 		 * the remote processor could be much slower to reply.
-@@ -483,6 +482,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
- 		pcc_mrtt = cppc_ss->min_turnaround_time;
- 		pcc_mpar = cppc_ss->max_access_rate;
-+		pcc_nominal = cppc_ss->latency;
- 
- 		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
- 		if (!pcc_comm_addr) {
-@@ -1048,3 +1048,45 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_set_perf);
-+
-+/**
-+ * cppc_get_transition_latency - returns frequency transition latency in ns
-+ *
-+ * ACPI CPPC does not explicitly specifiy how a platform can specify the
-+ * transition latency for perfromance change requests. The closest we have
-+ * is the timing information from the PCCT tables which provides the info
-+ * on the number and frequency of PCC commands the platform can handle.
-+ */
-+unsigned int cppc_get_transition_latency(int cpu_num)
-+{
-+	/*
-+	 * Expected transition latency is based on the PCCT timing values
-+	 * Below are definition from ACPI spec:
-+	 * pcc_nominal- Expected latency to process a command, in microseconds
-+	 * pcc_mpar   - The maximum number of periodic requests that the subspace
-+	 *              channel can support, reported in commands per minute. 0
-+	 *              indicates no limitation.
-+	 * pcc_mrtt   - The minimum amount of time that OSPM must wait after the
-+	 *              completion of a command before issuing the next command,
-+	 *              in microseconds.
-+	 */
-+	unsigned int latency_ns = 0;
-+	struct cpc_desc *cpc_desc;
-+	struct cpc_register_resource *desired_reg;
-+
-+	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
-+	if (!cpc_desc)
-+		return CPUFREQ_ETERNAL;
-+
-+	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
-+	if (!CPC_IN_PCC(desired_reg))
-+		return CPUFREQ_ETERNAL;
-+
-+	if (pcc_mpar)
-+		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_mpar);
-+
-+	latency_ns = max(latency_ns, (pcc_nominal + pcc_mrtt) * 1000);
-+
-+	return latency_ns;
-+}
-+EXPORT_SYMBOL_GPL(cppc_get_transition_latency);
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 8882b8e..e6a3359 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -98,6 +98,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	policy->max = cpu->perf_caps.highest_perf;
- 	policy->cpuinfo.min_freq = policy->min;
- 	policy->cpuinfo.max_freq = policy->max;
-+	policy->cpuinfo.transition_latency = cppc_get_transition_latency(cpu_num);
- 	policy->shared_type = cpu->shared_type;
- 
- 	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index d2101bc..42cbeb9 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -131,5 +131,6 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
- extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
- extern int acpi_get_psd_map(struct cpudata **);
-+extern unsigned int cppc_get_transition_latency(int cpu);
- 
- #endif /* _CPPC_ACPI_H*/
--- 
-Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+>  	bool suspended;
+>  };
+>  
+> @@ -111,6 +115,10 @@ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+>  static struct acpi_device *lid_device;
+>  static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+>  
+> +static unsigned long lid_report_interval __read_mostly = 500;
+> +module_param(lid_report_interval, ulong, 0644);
+> +MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
+> +
+>  /* --------------------------------------------------------------------------
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+> @@ -135,9 +143,48 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
+>  	struct acpi_button *button = acpi_driver_data(device);
+>  	int ret;
+>  
+> -	/* input layer checks if event is redundant */
+> +	if (button->last_state == !!state &&
+> +	    time_after(jiffies, button->last_time +
+> +				msecs_to_jiffies(lid_report_interval))) {
+
+And ktime_after() here?
+
+> +		/* Complain the buggy firmware */
+> +		pr_warn_once("The lid device is not compliant to SW_LID.\n");
+> +
+> +		/*
+> +		 * Send the unreliable complement switch event:
+> +		 *
+> +		 * On most platforms, the lid device is reliable. However
+> +		 * there are exceptions:
+> +		 * 1. Platforms returning initial lid state as "close" by
+> +		 *    default after booting/resuming:
+> +		 *     https://bugzilla.kernel.org/show_bug.cgi?id=89211
+> +		 *     https://bugzilla.kernel.org/show_bug.cgi?id=106151
+> +		 * 2. Platforms never reporting "open" events:
+> +		 *     https://bugzilla.kernel.org/show_bug.cgi?id=106941
+> +		 * On these buggy platforms, the usage model of the ACPI
+> +		 * lid device actually is:
+> +		 * 1. The initial returning value of _LID may not be
+> +		 *    reliable.
+> +		 * 2. The open event may not be reliable.
+> +		 * 3. The close event is reliable.
+> +		 *
+> +		 * But SW_LID is typed as input switch event, the input
+> +		 * layer checks if the event is redundant. Hence if the
+> +		 * state is not switched, the userspace cannot see this
+> +		 * platform triggered reliable event. By inserting a
+> +		 * complement switch event, it then is guaranteed that the
+> +		 * platform triggered reliable one can always be seen by
+> +		 * the userspace.
+> +		 */
+> +		if (lid_init_state == ACPI_BUTTON_LID_INIT_IGNORE) {
+> +			input_report_switch(button->input, SW_LID, state);
+> +			input_sync(button->input);
+> +		}
+> +	}
+> +	/* Send the platform triggered reliable event */
+>  	input_report_switch(button->input, SW_LID, !state);
+>  	input_sync(button->input);
+> +	button->last_state = !!state;
+> +	button->last_time = jiffies;
+
+And ktime_get() here?
+
+>  
+>  	if (state)
+>  		pm_wakeup_event(&device->dev, 0);
+> @@ -407,6 +454,8 @@ static int acpi_button_add(struct acpi_device *device)
+>  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
+>  		sprintf(class, "%s/%s",
+>  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
+> +		button->last_state = !!acpi_lid_evaluate_state(device);
+> +		button->last_time = jiffies;
+
+And here?
+
+>  	} else {
+>  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
+>  		error = -ENODEV;
+> 
+
+Thanks,
+Rafael
 
