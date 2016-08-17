@@ -1,106 +1,49 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V8 5/8] irqchip/gicv3-its: Refactor ITS DT init code to
- prepare for ACPI
-Date: Wed, 17 Aug 2016 10:58:32 -0500
-Message-ID: <20160817155832.GA25421@localhost>
-References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
- <1470909998-16710-6-git-send-email-tn@semihalf.com>
- <57B4213E.3060201@huawei.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v10 0/8] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Wed, 17 Aug 2016 14:01:18 -0500
+Message-ID: <57B4B47E.5030100@codeaurora.org>
+References: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
+ <0befd611-91a7-88e9-1686-82929c1745e8@semihalf.com>
+ <510fa357-a729-4ce1-7c10-4cef06feb7b7@linaro.org>
+ <CADyBb7tZDT2LMGnsWW_orR37dsfseijLEjzn59rLW9tbbxKVPQ@mail.gmail.com>
+ <20160811105848.GA25680@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:47600 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752594AbcHQP6h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Aug 2016 11:58:37 -0400
-Content-Disposition: inline
-In-Reply-To: <57B4213E.3060201@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160811105848.GA25680@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Fu Wei <fu.wei@linaro.org>
+Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, wei@redhat.com, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Leo Duran <leo.duran@amd.com>, Hanj
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On Wed, Aug 17, 2016 at 04:33:02PM +0800, Hanjun Guo wrote:
-> On 2016/8/11 18:06, Tomasz Nowicki wrote:
-> > In order to add ACPI support we need to isolate ACPI&DT common code and
-> > move DT logic to corresponding functions. To achieve this we are using
-> > firmware agnostic handle which can be unpacked to either DT or ACPI node.
-> >
-> > No functional changes other than a very minor one:
-> > 1. Terminate its_init call with -ENODEV for non-DT case which allows
-> > to remove hack from its-gic-v3.c.
-> > 2. Fix ITS base register address type (from 'unsigned long' to 'phys_addr_t'),
-> > as a bonus we get nice string formatting.
-> > 3. Since there is only one of ITS parent domain convert it to static global
-> > variable and drop the parameter from its_probe_one. Users can refer to it
-> > in more convenient way then.
-> [...]
-> > -static int __init its_probe(struct device_node *node,
-> > -			    struct irq_domain *parent)
-> > +static int __init its_probe_one(struct resource *res,
-> > +				struct fwnode_handle *handle, int numa_node)
-> >  {
-> > -	struct resource res;
-> >  	struct its_node *its;
-> >  	void __iomem *its_base;
-> >  	u32 val;
-> >  	u64 baser, tmp;
-> >  	int err;
-> >  
-> > -	err = of_address_to_resource(node, 0, &res);
-> > -	if (err) {
-> > -		pr_warn("%s: no regs?\n", node->full_name);
-> > -		return -ENXIO;
-> > -	}
-> > -
-> > -	its_base = ioremap(res.start, resource_size(&res));
-> > +	its_base = ioremap(res->start, resource_size(res));
-> >  	if (!its_base) {
-> > -		pr_warn("%s: unable to map registers\n", node->full_name);
-> > +		pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
-> >  		return -ENOMEM;
-> >  	}
-> >  
-> >  	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
-> >  	if (val != 0x30 && val != 0x40) {
-> > -		pr_warn("%s: no ITS detected, giving up\n", node->full_name);
-> > +		pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
-> >  		err = -ENODEV;
-> >  		goto out_unmap;
-> >  	}
-> >  
-> >  	err = its_force_quiescent(its_base);
-> >  	if (err) {
-> > -		pr_warn("%s: failed to quiesce, giving up\n",
-> > -			node->full_name);
-> > +		pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
-> >  		goto out_unmap;
-> >  	}
-> >  
-> > -	pr_info("ITS: %s\n", node->full_name);
-> > +	pr_info("ITS@%pa\n", &res->start);
->                 ^^
-> 
-> When I was testing this patch set I found message printed as below:
-> 
-> [    0.000000] ITS@0x00000000c6000000
+Lorenzo Pieralisi wrote:
+> I do not think you need a v11 just to remove the drivers/acpi/arm64
+> directory creation, you need to get Daniel/Thomas review/ack on
+> the respective patches though, I do not see the point of churning
+> out another series just because drivers/acpi/arm64 is now created
+> in the IORT patch series. If v10 is ok you will rebase it on top of
+> Tomasz's series and mention the dependency in the respective pull
+> request.
+>
+> If there is need for a v11 following Daniel/Thomas review yes,
+> you can proceed as above.
 
-I think it'd be nicer to print the resource with %pR so we see the
-type and size in a way that matches other physical address usage.
+What's the latest on this patchset?  I really want them in 4.9.  Is 
+everything queued up, or are still issues that need to be resolved.
 
-I don't know whether there is or should be a struct device associated
-with the ITS.  The its_probe_one() function looks similar to regular
-driver probe functions, so maybe there should be.
+Who will be merging these patches?
 
-If there were a struct device associated with the ITS, it'd be nicer
-to use dev_info() as well, of course.
-
-> [    0.000000] ITS@0x00000000c6000000: allocated 524288 Devices @27dc400000 (flat, esz 8, psz 16K, shr 1)
-> [    0.000000] ITS@0x00000000c6000000: allocated 2048 Virtual CPUs @27dc820000 (flat, esz 8, psz 4K, shr 1)
-> [    0.000000] ITS@0x00000000c6000000: allocated 512 Interrupt Collections @27dc80f000 (flat, esz 8, psz 4K, shr 1)
-> 
-> Seems this print is redundant, can we remove it?
-> 
-> Thanks
-> Hanjun
-> 
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
