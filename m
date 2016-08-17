@@ -1,47 +1,59 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 0/5] ACPI / sysfs: Cleanup sysfs table handling code
-Date: Wed, 17 Aug 2016 01:46:24 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0EAC6@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1471337441.git.lv.zheng@intel.com>
- <CAJZ5v0j6eg9YvBrdqn-z0u8Rz1VtTdVcqxHJK+jsGC8DLc2Q_g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/5] ACPI / sysfs: Cleanup sysfs table handling code
+Date: Wed, 17 Aug 2016 03:49:23 +0200
+Message-ID: <CAJZ5v0i+GowZTLMKh1wVsZf0vZ=NsMvD2Y3TPVnGic2Zzkogaw@mail.gmail.com>
+References: <cover.1471337441.git.lv.zheng@intel.com> <CAJZ5v0j6eg9YvBrdqn-z0u8Rz1VtTdVcqxHJK+jsGC8DLc2Q_g@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E883BC0EAC6@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:54961 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753409AbcHQBrF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 21:47:05 -0400
-In-Reply-To: <CAJZ5v0j6eg9YvBrdqn-z0u8Rz1VtTdVcqxHJK+jsGC8DLc2Q_g@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35424 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752152AbcHQBtZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Aug 2016 21:49:25 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BC0EAC6@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
-bC5jb21dIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BB
-VENIIDAvNV0gQUNQSSAvIHN5c2ZzOiBDbGVhbnVwIHN5c2ZzIHRhYmxlIGhhbmRsaW5nIGNvZGUN
-Cj4gDQo+IE9uIFR1ZSwgQXVnIDE2LCAyMDE2IGF0IDEwOjUyIEFNLCBMdiBaaGVuZyA8bHYuemhl
-bmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBUaGVyZSBhcmUgaXNzdWVzIGluIHN5c2ZzIHRhYmxl
-IGhhbmRsaW5nIGNvZGU6DQo+ID4gMS4gSXQgY2Fubm90IGhhbmRsZSB0YWJsZSBsb2FkZWQgYnkg
-TG9hZFRhYmxlIG9wY29kZSBleGVjdXRlZCBhZnRlcg0KPiA+ICAgIGFjcGlfc3lzZnNfaW5pdCgp
-Ow0KPiA+IDIuIEl0J3Mgc2lnbmF0dXJlIGhhbmRsaW5nIGNvZGUgaXMgbm90IGNvcnJlY3QuDQo+
-ID4NCj4gPiBUaGlzIHBhdGNoc2V0IGZpeGVzIHRoZXNlIGlzc3Vlcy4NCj4gPg0KPiA+IEx2IFpo
-ZW5nICg1KToNCj4gPiAgIEFDUElDQTogVGFibGVzOiBSZW1vdmUgYWNwaV90Yl9pbnN0YWxsX2Zp
-eGVkX3RhYmxlKCkNCj4gPiAgIEFDUElDQTogVGFibGVzOiBSZW1vdmUgd3JvbmcgdGFibGUgZXZl
-bnQgbWFjcm9zDQo+ID4gICBBQ1BJQ0E6IFRhYmxlczogQWRkIG5ldyB0YWJsZSBldmVudHMgaW5k
-aWNhdGluZyB0YWJsZQ0KPiA+ICAgICBpbnN0YWxsYXRpb24vdW5pbnN0YWxsYXRpb24NCj4gPiAg
-IEFDUEkgLyBzeXNmczogRml4IGFuIGlzc3VlIGZvciBMb2FkVGFibGUgb3Bjb2RlDQo+ID4gICBB
-Q1BJIC8gc3lzZnM6IFVwZGF0ZSBzeXNmcyBzaWduYXR1cmUgaGFuZGxpbmcgY29kZQ0KPiA+DQo+
-ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvYWN0YWJsZXMuaCB8ICAgIDcgKy0tLQ0KPiA+ICBkcml2
-ZXJzL2FjcGkvYWNwaWNhL3RiZmFkdC5jICAgfCAgIDI0ICsrKysrKystLS0tLS0NCj4gPiAgZHJp
-dmVycy9hY3BpL2FjcGljYS90Ymluc3RhbC5jIHwgICA3MyArKysrKy0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9zeXNmcy5jICAgICAgICAgICB8
-ICAgMzkgKysrKysrKysrKy0tLS0tLS0tLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3R5cGVzLmgg
-ICAgICAgICB8ICAgMTYgKysrKy0tLS0tDQo+ID4gIDUgZmlsZXMgY2hhbmdlZCwgNTEgaW5zZXJ0
-aW9ucygrKSwgMTA4IGRlbGV0aW9ucygtKQ0KPiANCj4gUGF0Y2hlcyBbMS0zLzVdIGNsZWFybHkg
-bW9kaWZ5IEFDUElDQS4gIEhhdmUgdGhleSBnb25lIGludG8gdGhlDQo+IHVwc3RyZWFtIGFscmVh
-ZHk/DQoNCk5vLCB0aGV5IGFyZSBmaXhpbmcgYW4gdXJnZW50IHVzZXIgcmVwb3J0ZWQgYnVnLg0K
-U28gSSBwb3N0ZWQgdGhlbSBmb3IgdGhlIHJlcG9ydGVycy4NCldlIGNhbiB3YWl0IHVudGlsIFBB
-VENIIDEtMyBtZXJnZWQgaW4gdGhlIEFDUElDQSB1cHN0cmVhbS4NCg0KVGhhbmtzDQpMdg0K
+On Wed, Aug 17, 2016 at 3:46 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
+>
+>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of Rafael J. Wysocki
+>> Subject: Re: [PATCH 0/5] ACPI / sysfs: Cleanup sysfs table handling code
+>>
+>> On Tue, Aug 16, 2016 at 10:52 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> > There are issues in sysfs table handling code:
+>> > 1. It cannot handle table loaded by LoadTable opcode executed after
+>> >    acpi_sysfs_init();
+>> > 2. It's signature handling code is not correct.
+>> >
+>> > This patchset fixes these issues.
+>> >
+>> > Lv Zheng (5):
+>> >   ACPICA: Tables: Remove acpi_tb_install_fixed_table()
+>> >   ACPICA: Tables: Remove wrong table event macros
+>> >   ACPICA: Tables: Add new table events indicating table
+>> >     installation/uninstallation
+>> >   ACPI / sysfs: Fix an issue for LoadTable opcode
+>> >   ACPI / sysfs: Update sysfs signature handling code
+>> >
+>> >  drivers/acpi/acpica/actables.h |    7 +---
+>> >  drivers/acpi/acpica/tbfadt.c   |   24 +++++++------
+>> >  drivers/acpi/acpica/tbinstal.c |   73 +++++-----------------------------------
+>> >  drivers/acpi/sysfs.c           |   39 ++++++++++-----------
+>> >  include/acpi/actypes.h         |   16 ++++-----
+>> >  5 files changed, 51 insertions(+), 108 deletions(-)
+>>
+>> Patches [1-3/5] clearly modify ACPICA.  Have they gone into the
+>> upstream already?
+>
+> No, they are fixing an urgent user reported bug.
+> So I posted them for the reporters.
+> We can wait until PATCH 1-3 merged in the ACPICA upstream.
+
+OK
+
+Thanks,
+Rafael
