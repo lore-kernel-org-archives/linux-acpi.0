@@ -1,68 +1,80 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v3 0/5] Fixing a set of bugs for ioapic hotplug
-Date: Wed, 17 Aug 2016 10:46:49 +0800
-Message-ID: <1471402009-29711-1-git-send-email-rui.y.wang@intel.com>
-References: <2854492.7D21TlQXT3@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 3/3] tools/power/acpi/acpidbg: Add multi-commands
+ support in batch mode
+Date: Wed, 17 Aug 2016 04:31:48 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0EB79@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1468464391.git.lv.zheng@intel.com>
+ <cover.1469528979.git.lv.zheng@intel.com>
+ <3492bf600484b4d625be1407013eef0062e6246a.1469528980.git.lv.zheng@intel.com>
+ <3470775.ryIxlEgpGv@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16537 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:26113 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753071AbcHQDDS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Aug 2016 23:03:18 -0400
-In-Reply-To: <2854492.7D21TlQXT3@vostro.rjw.lan>
+	id S1750778AbcHQEdo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Aug 2016 00:33:44 -0400
+In-Reply-To: <3470775.ryIxlEgpGv@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: helgaas@kernel.org, tglx@linutronix.de, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com, x86@kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Aug 17, 2016 8:36 AM Rafael J. Wysocki wrote:
-> On Wednesday, August 10, 2016 12:01:53 PM Rui Wang wrote:
-> > A set of patches fixing bugs found while testing IOAPIC hotplug.
-> 
-> This should have been posted to the x86@kernel.org list too for the benefit
-> of the maintainers.
-> 
-> Can you please resend it with a CC to that one (and the Bjorn's ACK on the
-> second patch)?
-> 
-
-Thanks for the advice.
-Will do.
-
-Regards,
-Rui
-
-> Thanks,
-> Rafael
-> 
-> 
-> > Changelog:
-> >
-> > Changes from v2 to v3:
-> > * Rebased on top of 4.8-rc1 per Bjorn & Rafael.
-> > * Improved the commit message of 0003, w/ clearer explanation.
-> >
-> > Changes from v1 to v2:
-> > * Split the first patch into two as advised by Bjorn: "would be nicer
-> > if the interface change and header file munging were in a separate
-> > patch so they wouldn't obscure the meat of the change, i.e., the
-> > addition of calls to acpi_ioapic_add()."
-> > * Removed acpi_ioapic_add() as an exported symbol.
-> > * Fixed some typos, and s/acpi/ACPI/, s/ioapic/IOAPIC/ throughout.
-> > * Fixed a warning from 0-day testing.
-> >
-> > Rui Wang (5):
-> >   x86/ioapic: Change prototype of acpi_ioapic_add()
-> >   x86/ioapic: Support hot-removal of IOAPICs present during boot
-> >   x86/ioapic: Fix setup_res() failing to get resource
-> >   x86/ioapic: Fix lost IOAPIC resource after hot-removal and hotadd
-> >   x86/ioapic: Fix ioapic failing to request resource
-> >
-> >  drivers/acpi/internal.h |  2 --
-> >  drivers/acpi/ioapic.c   | 46 ++++++++++++++++++++++++++-----------------
-> ---
-> >  drivers/acpi/pci_root.c | 12 +++++++++++-  drivers/pci/setup-bus.c |
-> > 5 ++++-
-> >  include/linux/acpi.h    |  6 ++++++
-> >  5 files changed, 47 insertions(+), 24 deletions(-)
-
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjQgMy8zXSB0b29scy9wb3dlci9hY3Bp
+L2FjcGlkYmc6IEFkZCBtdWx0aS1jb21tYW5kcyBzdXBwb3J0IGluIGJhdGNoIG1vZGUNCj4gDQo+
+IE9uIFR1ZXNkYXksIEp1bHkgMjYsIDIwMTYgMDc6MDE6NDUgUE0gTHYgWmhlbmcgd3JvdGU6DQo+
+ID4gVGhpcyBwYXRjaCBhZGRzIG11bHRpLWNvbW1hbmRzIHN1cHBvcnQgZm9yIHRoZSBiYXRjaCBt
+b2RlLiBUaGUgc2FtZSBtb2RlDQo+ID4gY2FuIGJlIHNlZW4gaW4gYWNwaWV4ZWMuDQo+ID4NCj4g
+PiBIb3dldmVyIHBlb3BsZSBtYXkgdGhpbmsgdGhpcyBpcyBub3QgdXNlZnVsIGZvciBhbiBpbi1r
+ZXJuZWwgZGVidWdnZXIsDQo+ID4gYmVjYXVzZSB0aGUgaW4ta2VybmVsIGRlYnVnZ2VyIGlzIGFs
+d2F5cyBydW5uaW5nLCBuZXZlciBleGl0cy4gU28gd2UgY2FuDQo+ID4gcnVuIGFub3RoZXIgY29t
+bWFuZCBieSBydW5uaW5nIGFub3RoZXIgYWNwaWRiZyBiYXRjaCBtb2RlIGluc3RhbmNlLg0KPiA+
+DQo+ID4gQnV0IHRoaXMgbW9kZSBzaG91bGQgc3RpbGwgYmUgdXNlZnVsIGZvciBhY3BpZGJnLiBU
+aGUgcmVhc29uIGlzOiB3aGVuIHRoZQ0KPiA+IGluLWtlcm5lbCBkZWJ1Z2dlciBoYXMgZW50ZXJl
+ZCB0aGUgc2luZ2xlLXN0ZXBwaW5nIG1vZGUsIGVuZGluZyBhY3BpZGJnDQo+ID4gKHdoaWNoIGNs
+b3NlcyB0aGUgZGVidWdnZXIgSU8gaW50ZXJmYWNlKSB3aWxsIGxlYWQgdG8gdGhlIGVuZCBvZiB0
+aGUNCj4gPiBzaW5nbGUtc3RlcHBpbmcgbW9kZS4NCj4gPg0KPiA+IFNvIHdlIG5lZWQgdGhlIGFj
+cGlkYmcgbXVsdGktY29tbWFuZHMgYmF0Y2ggbW9kZSBpbiBvcmRlciB0byBleGVjdXRlDQo+ID4g
+bXVsdGlwbGUgc2luZ2xlLXN0ZXBwaW5nIG1vZGUgY29tbWFuZHMgaW4gc2NyaXB0cy4NCj4gDQo+
+IEFuIGV4YW1wbGUgd291bGQgYmUgcmVhbGx5IHVzZWZ1bCBoZXJlIElNTy4NCg0KQ29uc2lkZXJp
+bmcgdGhlIGZvbGxvd2luZyBjb250cm9sIG1ldGhvZDoNCg0KTmFtZSAoVFZBTCwgWmVybykNCk1l
+dGhvZCAoVE1URCkNCnsNCiAgICBJbnJlbWVudCAoVFZBTCkNCn0NCg0KV2hlbiBpdCBpcyBleGVj
+dXRlZCBpbiBhY3BpZXhlYzoNCi0tLQ0KIyEvYmluL3NoDQphY3BpZXhlYyAtYiAiZXggXFRNVEQi
+IC1lcyBkc2R0LmFtbA0KYWNwaWV4ZWMgLWIgImV4IFxUVkFMIiAtZXMgZHNkdC5hbWwNCi0tLQ0K
+VGhlIHJlc3VsdCBpcyAiMCIgZm9yIFRWQUwsIGJlY2F1c2UgZWFjaCBhY3BpZXhlYyBpbnN0YW5j
+ZSByZS1pbml0aWFsaXplcyB0aGUgbmFtZXNwYWNlLg0KVGh1cyBhY3BpZXhlYyBwcm92aWRlcyBh
+IG11bHRpLWNvbW1hbmQgYmF0Y2ggbW9kZToNCi0tLQ0KIyEvYmluL3NoDQphY3BpZXhlYyAtYiAi
+ZXggXFRNVEQ7IGV4IFxUVkFMIiAtZXMgZHNkdC5hbWwNCi0tLQ0KVGhlIHJlc3VsdCBpcyAiMSIg
+bm93Lg0KDQpUaGVuIGZvciB0aGlzIGNhc2UgKEknbGwgdXNlIGl0IHRvIGNvbXBhcmUgYWNwaWRi
+ZyBiZWhhdmlvcik6DQotLS0NCiMhL2Jpbi9zaA0KYWNwaWV4ZWMgLWIgImV4IFxUTVREIiAtZXMg
+ZHNkdC5hbWwNCmFjcGlleGVjIC1iICJleCBcVE1URDsgZXggXFRWQUwiIC1lcyBkc2R0LmFtbA0K
+LS0tDQpUaGUgcmVzdWx0IGlzICIxIi4NCg0KVW5saWtlIGFjcGlleGVjLCB3aGF0ZXZlciB0aGUg
+QU1MIGRlYnVnZ2VyIGlzIGluaXRpYWxpemVkL3Rlcm1pbmF0ZWQuDQpUaGUgbmFtZXNwYWNlIHdv
+bid0IGJlIHJlLWluaXRpYWxpemVkLg0KDQpTbyBmb3IgdGhlIGFib3ZlIGNhc2VzOg0KLS0tDQoj
+IS9iaW4vc2gNCmFjcGlkYmcgLWIgImV4IFxUTVREIg0KYWNwaWRiZyAtYiAiZXggXFRWQUwiDQot
+LS0NClRoZSByZXN1bHQgaXMgIjEiLg0KLS0tDQojIS9iaW4vc2gNCmFjcGlkYmcgLWIgImV4IFxU
+TVREIg0KYWNwaWRiZyAtYiAiZXggXFRNVEQ7IGV4IFxUVkFMIg0KLS0tDQpUaGUgcmVzdWx0IGlz
+ICIyIiwgaXQgc2hvdWxkIGJlIG5vIGRpZmZlcmVudCB0aGFuOg0KLS0tDQojIS9iaW4vc2gNCmFj
+cGlkYmcgLWIgImV4IFxUTVREIg0KYWNwaWRiZyAtYiAiZXggXFRNVEQiDQphY3BpZGJnIC1iICJl
+eCBcVFZBTCINCi0tLQ0KVGh1cyBJIHNhaWQ6DQpQZW9wbGUgbWF5IHRoaW5rIHRoaXMgKHRoZSBt
+dWx0aS1jb21tYW5kIHN1cHBvcnQpIGlzIG5vdCB1c2VmdWwgZm9yIGFuIGluLWtlcm5lbCBkZWJ1
+Z2dlci4NCg0KDQpCdXQgdGhlcmUgaXMgYSBzcGVjaWFsIGNhc2UgZm9yIHRoZSBzaW5nbGUgc3Rl
+cHBpbmcgbW9kZS4NCi0tLQ0KIyEvYmluL3NoDQphY3BpZGJnIC1iICJkZWJ1ZyBcVE1URCINCmFj
+cGlkYmcgLWIgImxvY2FscyINCi0tLQ0KVGhlICJkZWJ1ZyIgY29tbWFuZCBpcyBzcGVjaWFsLCBp
+dCBwdXRzIEFNTCBkZWJ1Z2dlciBpbnRvIHNpbmdsZSBzdGVwcGluZyBtb2RlLg0KSW4gdGhpcyBt
+b2RlLCB1c2VyIGNhbiB1c2Ugc2luZ2xlIHN0ZXBwaW5nIG1vZGUgY29tbWFuZHMgdG8gZGVidWcg
+dGhlIGV2YWx1YXRpb24gb2YgdGhlIFRNVEQuDQpUaGUgcmVzdWx0IG9mIHRoaXMgc2NyaXB0IGlz
+Og0KVGhlcmUgaXMgbm8gbWV0aG9kIGN1cnJlbnRseSBleGVjdXRpbmcuDQoNCkJlY2F1c2UgZm9y
+IHRoZSBrZXJuZWwgQU1MIGRlYnVnZ2VyLCBpZiB3ZSBsZWF2ZSBhIFxUTVREIHVuZmluaXNoZWQu
+DQpUaGVuIG11dGV4IGhlbGQgaW4gdGhpcyBtZXRob2QgY291bGQgYmxvY2sgbm9ybWFsIGtlcm5l
+bCBldmFsdWF0aW9ucyBvZiB0aGUgbWV0aG9kcyByZXF1aXJpbmcgc2FtZSBtdXRleGVzLg0KDQpU
+aHVzIGlmIGFjcGlkYmcgZXhpdHMgKGNsb3NpbmcgYWNwaV9kYmcgSU8pLCBzaW5nbGUgc3RlcHBp
+bmcgbW9kZSB3aWxsIGFsc28gcnVuIGludG8gYW4gZW5kLg0KU2VlOg0KYWNwaV90ZXJtaW5hdGVf
+ZGVidWdnZXIoKSBpbiBhY3BpX2FtbF9yZWxlYXNlKCkuDQoNClNvIHdlIG5lZWQgdGhlIG11bHRp
+LWNvbW1hbmQgYmF0Y2ggbW9kZSBmb3IgdGhpcyBjYXNlOg0KLS0tDQojIS9iaW4vc2gNCmFjcGlk
+YmcgLWIgImRlYnVnIFxUTVREOyBsb2NhbHMiDQotLS0NClRoZSByZXN1bHQgb2YgdGhpcyBzY3Jp
+cHQgaXM6DQpObyBMb2NhbCBWYXJpYWJsZXMgYXJlIGluaXRpYWxpemVkIGZvciBtZXRob2QgKFRN
+VEQpDQoNCkJlc3QgcmVnYXJkcw0KTHYNCg==
