@@ -1,129 +1,96 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v8 2/2] ACPI / button: Add document for ACPI control method lid device restrictions
-Date: Wed, 17 Aug 2016 16:23:14 +0800
-Message-ID: <5b3ad68bd0806671fcf96efbc36681827f312f02.1471422130.git.lv.zheng@intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH V8 5/8] irqchip/gicv3-its: Refactor ITS DT init code to
+ prepare for ACPI
+Date: Wed, 17 Aug 2016 16:33:02 +0800
+Message-ID: <57B4213E.3060201@huawei.com>
+References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
+ <1470909998-16710-6-git-send-email-tn@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1470909998-16710-6-git-send-email-tn@semihalf.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
+Cc: graeme.gregory@linaro.org, al.stone@linaro.org, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds documentation for the usage model of the control method lid
-device on some buggy platforms.
+On 2016/8/11 18:06, Tomasz Nowicki wrote:
+> In order to add ACPI support we need to isolate ACPI&DT common code and
+> move DT logic to corresponding functions. To achieve this we are using
+> firmware agnostic handle which can be unpacked to either DT or ACPI node.
+>
+> No functional changes other than a very minor one:
+> 1. Terminate its_init call with -ENODEV for non-DT case which allows
+> to remove hack from its-gic-v3.c.
+> 2. Fix ITS base register address type (from 'unsigned long' to 'phys_addr_t'),
+> as a bonus we get nice string formatting.
+> 3. Since there is only one of ITS parent domain convert it to static global
+> variable and drop the parameter from its_probe_one. Users can refer to it
+> in more convenient way then.
+[...]
+> -static int __init its_probe(struct device_node *node,
+> -			    struct irq_domain *parent)
+> +static int __init its_probe_one(struct resource *res,
+> +				struct fwnode_handle *handle, int numa_node)
+>  {
+> -	struct resource res;
+>  	struct its_node *its;
+>  	void __iomem *its_base;
+>  	u32 val;
+>  	u64 baser, tmp;
+>  	int err;
+>  
+> -	err = of_address_to_resource(node, 0, &res);
+> -	if (err) {
+> -		pr_warn("%s: no regs?\n", node->full_name);
+> -		return -ENXIO;
+> -	}
+> -
+> -	its_base = ioremap(res.start, resource_size(&res));
+> +	its_base = ioremap(res->start, resource_size(res));
+>  	if (!its_base) {
+> -		pr_warn("%s: unable to map registers\n", node->full_name);
+> +		pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
+>  		return -ENOMEM;
+>  	}
+>  
+>  	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
+>  	if (val != 0x30 && val != 0x40) {
+> -		pr_warn("%s: no ITS detected, giving up\n", node->full_name);
+> +		pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
+>  		err = -ENODEV;
+>  		goto out_unmap;
+>  	}
+>  
+>  	err = its_force_quiescent(its_base);
+>  	if (err) {
+> -		pr_warn("%s: failed to quiesce, giving up\n",
+> -			node->full_name);
+> +		pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
+>  		goto out_unmap;
+>  	}
+>  
+> -	pr_info("ITS: %s\n", node->full_name);
+> +	pr_info("ITS@%pa\n", &res->start);
+                ^^
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Acked-by: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Bastien Nocera: <hadess@hadess.net>
-Cc: linux-input@vger.kernel.org
----
- Documentation/acpi/acpi-lid.txt |   96 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
- create mode 100644 Documentation/acpi/acpi-lid.txt
+When I was testing this patch set I found message printed as below:
 
-diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/acpi/acpi-lid.txt
-new file mode 100644
-index 0000000..effe7af
---- /dev/null
-+++ b/Documentation/acpi/acpi-lid.txt
-@@ -0,0 +1,96 @@
-+Special Usage Model of the ACPI Control Method Lid Device
-+
-+Copyright (C) 2016, Intel Corporation
-+Author: Lv Zheng <lv.zheng@intel.com>
-+
-+
-+Abstract:
-+
-+Platforms containing lids convey lid state (open/close) to OSPMs using a
-+control method lid device. To implement this, the AML tables issue
-+Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
-+changed. The _LID control method for the lid device must be implemented to
-+report the "current" state of the lid as either "opened" or "closed".
-+
-+For most platforms, both the _LID method and the lid notifications are
-+reliable. However, there are exceptions. In order to work with these
-+exceptional buggy platforms, special restrictions and expections should be
-+taken into account. This document describes the restrictions and the
-+expections of the Linux ACPI lid device driver.
-+
-+
-+1. Restrictions of the returning value of the _LID control method
-+
-+The _LID control method is described to return the "current" lid state.
-+However the word of "current" has ambiguity, some buggy AML tables return
-+the lid state upon the last lid notification instead of returning the lid
-+state upon the last _LID evaluation. There won't be difference when the
-+_LID control method is evaluated during the runtime, the problem is its
-+initial returning value. When the AML tables implement this control method
-+with cached value, the initial returning value is likely not reliable.
-+There are platforms always retun "closed" as initial lid state.
-+
-+2. Restrictions of the lid state change notifications
-+
-+There are buggy AML tables never notifying when the lid device state is
-+changed to "opened". Thus the "opened" notification is not guaranteed. But
-+it is guaranteed that the AML tables always notify "closed" when the lid
-+state is changed to "closed". The "closed" notification is normally used to
-+trigger some system power saving operations on Windows. Since it is fully
-+tested, it is reliable from all AML tables.
-+
-+3. Expections for the userspace users of the ACPI lid device driver
-+
-+The ACPI button driver exports the lid state to the userspace via the
-+following file:
-+  /proc/acpi/button/lid/LID0/state
-+This file actually calls the _LID control method described above. And given
-+the previous explanation, it is not reliable enough on some platforms. So
-+it is advised for the userspace program to not to solely rely on this file
-+to determine the actual lid state.
-+
-+The ACPI button driver emits the following input event to the userspace:
-+  SW_LID
-+The ACPI lid device driver is implemented to try to deliver the platform
-+triggered events to the userspace. However, given the fact that the buggy
-+firmware cannot make sure "opened"/"closed" events are paired, the ACPI
-+button driver uses the following 3 modes in order not to trigger issues.
-+
-+If the userspace hasn't been prepared to ignore the unreliable "opened"
-+events and the unreliable initial state notification, Linux users can use
-+the following kernel parameters to handle the possible issues:
-+A. button.lid_init_state=method:
-+   When this option is specified, the ACPI button driver reports the
-+   initial lid state using the returning value of the _LID control method
-+   and whether the "opened"/"closed" events are paired fully relies on the
-+   firmware implementation.
-+   This option can be used to fix some platforms where the returning value
-+   of the _LID control method is reliable but the initial lid state
-+   notification is missing.
-+   This option is the default behavior during the period the userspace
-+   isn't ready to handle the buggy AML tables.
-+B. button.lid_init_state=open:
-+   When this option is specified, the ACPI button driver always reports the
-+   initial lid state as "opened" and whether the "opened"/"closed" events
-+   are paired fully relies on the firmware implementation.
-+   This may fix some platforms where the returning value of the _LID
-+   control method is not reliable and the initial lid state notification is
-+   missing.
-+
-+If the userspace has been prepared to ignore the unreliable "opened" events
-+and the unreliable initial state notification, Linux users should always
-+use the following kernel parameter:
-+C. button.lid_init_state=ignore:
-+   When this option is specified, the ACPI button driver never reports the
-+   initial lid state and there is a compensation mechanism implemented to
-+   ensure that the reliable "closed" notifications can always be delievered
-+   to the userspace by always pairing "closed" input events with complement
-+   "opened" input events. But there is still no guarantee that the "opened"
-+   notifications can be delivered to the userspace when the lid is actually
-+   opens given that some AML tables do not send "opened" notifications
-+   reliably.
-+   In this mode, if everything is correctly implemented by the platform
-+   firmware, the old userspace programs should still work. Otherwise, the
-+   new userspace programs are required to work with the ACPI button driver.
-+   This option will be the default behavior after the userspace is ready to
-+   handle the buggy AML tables.
--- 
-1.7.10
+[    0.000000] ITS@0x00000000c6000000
+[    0.000000] ITS@0x00000000c6000000: allocated 524288 Devices @27dc400000 (flat, esz 8, psz 16K, shr 1)
+[    0.000000] ITS@0x00000000c6000000: allocated 2048 Virtual CPUs @27dc820000 (flat, esz 8, psz 4K, shr 1)
+[    0.000000] ITS@0x00000000c6000000: allocated 512 Interrupt Collections @27dc80f000 (flat, esz 8, psz 4K, shr 1)
+
+Seems this print is redundant, can we remove it?
+
+Thanks
+Hanjun
