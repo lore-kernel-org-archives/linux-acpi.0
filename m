@@ -1,268 +1,159 @@
 From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH 04/11] sched,x86: Enable Turbo Boost Max Technology
-Date: Thu, 18 Aug 2016 15:36:45 -0700
-Message-ID: <1471559812-19967-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH 02/11] sched, x86: Add SD_ASYM_PACKING flags to x86 cpu topology for cpus supporting Intel Turbo Boost Max Technology
+Date: Thu, 18 Aug 2016 15:36:43 -0700
+Message-ID: <1471559812-19967-3-git-send-email-srinivas.pandruvada@linux.intel.com>
 References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org
 Cc: x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, srinivas.pandruvada@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
 From: Tim Chen <tim.c.chen@linux.intel.com>
 
-On some Intel cores, they can boosted to a higher turbo frequency than
-the other cores on the same die.  So we prefer processes to be run on
-them vs other lower frequency ones for extra performance.
-
-We extend the asym packing feature in the scheduler to support packing
-task to the higher frequency core at the core sched domain level.
-
-We set up a core priority metric to abstract the core preferences based
-on the maximum boost frequency.  The priority is instantiated such that
-the core with a higher priority is favored over the core with lower
-priority when making scheduling decision using ASYM_PACKING.  The smt
-threads that are of higher number are discounted in their priority so
-we will not try to pack tasks onto all the threads of a favored core
-before using other cpu cores.  The cpu that's of the highese priority
-in a sched_group is recorded in sched_group->asym_prefer_cpu during
-initialization to save lookup during load balancing.
-
-A sysctl variable /proc/sys/kernel/sched_itmt_enabled is provided so
-the scheduling based on favored core can be turned on or off at run time.
+We uses ASYM_PACKING feature in the scheduler to move tasks to more
+capable cpus that can be boosted to higher frequency.  We mark the sched
+domain topology level with SD_ASYM_PACKING flag for such systems.
 
 Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- arch/x86/Kconfig                |   9 +++
- arch/x86/include/asm/topology.h |  26 +++++++
- arch/x86/kernel/Makefile        |   1 +
- arch/x86/kernel/itmt.c          | 147 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 183 insertions(+)
- create mode 100644 arch/x86/kernel/itmt.c
+ arch/x86/kernel/smpboot.c | 77 ++++++++++++++++++++++++++++++++++++-----------
+ kernel/sched/core.c       |  3 ++
+ 2 files changed, 62 insertions(+), 18 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index c580d8c..c1d36db 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -928,6 +928,15 @@ config SCHED_MC
- 	  making when dealing with multi-core CPU chips at a cost of slightly
- 	  increased overhead in some places. If unsure say N here.
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index 2a6e84a..255f64e 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -464,31 +464,59 @@ static bool match_die(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o)
+ 	return false;
+ }
  
-+config SCHED_ITMT
-+	bool "Intel Turbo Boost Max Technology (ITMT) scheduler support"
-+	depends on SCHED_MC && CPU_SUP_INTEL && X86_INTEL_PSTATE
-+	---help---
-+	  ITMT enabled scheduler support improves the CPU scheduler's decision
-+	  to move tasks to cpu core that can be boosted to a higher frequency
-+	  than others. It will have better performance at a cost of slightly
-+	  increased overhead in task migrations. If unsure say N here.
-+
- source "kernel/Kconfig.preempt"
- 
- config UP_LATE_INIT
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index cf75871..f148843 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -146,4 +146,30 @@ struct pci_bus;
- int x86_pci_root_bus_node(int bus);
- void x86_pci_root_bus_resources(int bus, struct list_head *resources);
- 
+-static struct sched_domain_topology_level numa_inside_package_topology[] = {
 +#ifdef CONFIG_SCHED_ITMT
-+DECLARE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
++extern unsigned int sysctl_sched_itmt_enabled;
 +
-+static inline bool sched_asym_prefer(int a, int b)
++static int x86_core_flags(void)
 +{
-+	return per_cpu(sched_core_priority, a) > per_cpu(sched_core_priority, b);
++	int flags = cpu_core_flags();
++
++	if (sysctl_sched_itmt_enabled)
++		flags |= SD_ASYM_PACKING;
++
++	return flags;
 +}
 +
-+#define sched_asym_prefer sched_asym_prefer
-+
-+/* Interface to set priority of a cpu */
-+void sched_set_itmt_core_prio(int prio, int core_cpu);
-+
-+/* Interface to notify scheduler that system supports ITMT */
-+void set_sched_itmt(bool support_itmt);
-+
-+#else /* CONFIG_SCHED_ITMT */
-+
-+static inline void set_sched_itmt(bool support_itmt)
++static int x86_smt_flags(void)
 +{
++	int flags = cpu_smt_flags();
++
++	if (sysctl_sched_itmt_enabled)
++		flags |= SD_ASYM_PACKING;
++
++	return flags;
 +}
-+static inline void sched_set_itmt_core_prio(int prio, int core_cpu)
-+{
-+}
-+#endif /* CONFIG_SCHED_ITMT */
++#else
++#define x86_core_flags cpu_core_flags
++#define x86_smt_flags cpu_smt_flags
++#endif
 +
- #endif /* _ASM_X86_TOPOLOGY_H */
-diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
-index 0503f5b..2008335 100644
---- a/arch/x86/kernel/Makefile
-+++ b/arch/x86/kernel/Makefile
-@@ -124,6 +124,7 @@ obj-$(CONFIG_EFI)			+= sysfb_efi.o
- 
- obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
- obj-$(CONFIG_TRACING)			+= tracepoint.o
-+obj-$(CONFIG_SCHED_ITMT)		+= itmt.o
- 
- ###
- # 64 bit specific files
-diff --git a/arch/x86/kernel/itmt.c b/arch/x86/kernel/itmt.c
-new file mode 100644
-index 0000000..a9470f5
---- /dev/null
-+++ b/arch/x86/kernel/itmt.c
-@@ -0,0 +1,147 @@
-+/*
-+ * itmt.c: Functions and data structures for enabling
-+ * 	   scheduler to favor scheduling on cores that
-+ *	   can be boosted to a higher frequency using
-+ *	   Intel Turbo Boost Max Technology 3.0
-+ *
-+ * (C) Copyright 2016 Intel Corporation
-+ * Author: Tim Chen <tim.c.chen@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; version 2
-+ * of the License.
-+ */
-+
-+#include <linux/sched.h>
-+#include <linux/cpumask.h>
-+#include <linux/cpuset.h>
-+#include <asm/mutex.h>
-+#include <linux/sched.h>
-+#include <linux/sysctl.h>
-+
-+DEFINE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
-+static DEFINE_MUTEX(itmt_update_mutex);
-+
-+static unsigned int zero = 0;
-+static unsigned int one = 1;
-+
-+/*
-+ * Boolean to control whether we want to move processes to cpu capable
-+ * of higher turbo frequency for cpus supporting Intel Turbo Boost Max
-+ * Technology 3.0.
-+ *
-+ * It can be set via /proc/sys/kernel/sched_itmt_enabled
-+ */
-+unsigned int __read_mostly sysctl_sched_itmt_enabled = 0;
-+
-+/*
-+ * The pstate_driver calls set_sched_itmt to indicate if the system
-+ * is ITMT capable.
-+ */
-+static bool __read_mostly sched_itmt_capable;
-+
-+static void enable_sched_itmt(bool enable_itmt)
-+{
-+	mutex_lock(&itmt_update_mutex);
-+
-+	sysctl_sched_itmt_enabled = enable_itmt;
-+	regenerate_sched_domains();
-+
-+	mutex_unlock(&itmt_update_mutex);
-+}
-+
-+static int sched_itmt_update_handler(struct ctl_table *table, int write,
-+			      void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+
-+	if (ret || !write)
-+		return ret;
-+
-+	enable_sched_itmt(sysctl_sched_itmt_enabled);
-+
-+	return ret;
-+}
-+
-+static struct ctl_table itmt_kern_table[] = {
-+	{
-+		.procname	= "sched_itmt_enabled",
-+		.data		= &sysctl_sched_itmt_enabled,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= sched_itmt_update_handler,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
-+	{}
++static struct sched_domain_topology_level x86_topology[] = {
++#ifdef CONFIG_SCHED_SMT
++	{ cpu_smt_mask, x86_smt_flags, SD_INIT_NAME(SMT) },
++#endif
++#ifdef CONFIG_SCHED_MC
++	{ cpu_coregroup_mask, x86_core_flags, SD_INIT_NAME(MC) },
++#endif
++	{ cpu_cpu_mask, SD_INIT_NAME(DIE) },
++	{ NULL, },
 +};
 +
-+static struct ctl_table itmt_root_table[] = {
-+	{
-+		.procname	= "kernel",
-+		.mode		= 0555,
-+		.child		= itmt_kern_table,
-+	},
-+	{}
-+};
++static struct sched_domain_topology_level x86_numa_in_package_topology[] = {
+ #ifdef CONFIG_SCHED_SMT
+-	{ cpu_smt_mask, cpu_smt_flags, SD_INIT_NAME(SMT) },
++	{ cpu_smt_mask, x86_smt_flags, SD_INIT_NAME(SMT) },
+ #endif
+ #ifdef CONFIG_SCHED_MC
+-	{ cpu_coregroup_mask, cpu_core_flags, SD_INIT_NAME(MC) },
++	{ cpu_coregroup_mask, x86_core_flags, SD_INIT_NAME(MC) },
+ #endif
+ 	{ NULL, },
+ };
 +
-+static struct ctl_table_header *itmt_sysctl_header;
+ /*
+- * set_sched_topology() sets the topology internal to a CPU.  The
+- * NUMA topologies are layered on top of it to build the full
+- * system topology.
+- *
+- * If NUMA nodes are observed to occur within a CPU package, this
+- * function should be called.  It forces the sched domain code to
+- * only use the SMT level for the CPU portion of the topology.
+- * This essentially falls back to relying on NUMA information
+- * from the SRAT table to describe the entire system topology
+- * (except for hyperthreads).
++ * Set if a package/die has multiple NUMA nodes inside.
++ * AMD Magny-Cours and Intel Cluster-on-Die have this.
+  */
+-static void primarily_use_numa_for_topology(void)
+-{
+-	set_sched_topology(numa_inside_package_topology);
+-}
++static bool x86_has_numa_in_package = false;
+ 
+ void set_cpu_sibling_map(int cpu)
+ {
+@@ -551,7 +579,7 @@ void set_cpu_sibling_map(int cpu)
+ 				c->booted_cores = cpu_data(i).booted_cores;
+ 		}
+ 		if (match_die(c, o) && !topology_same_node(c, o))
+-			primarily_use_numa_for_topology();
++			x86_has_numa_in_package = true;
+ 	}
+ 
+ 	threads = cpumask_weight(topology_sibling_cpumask(cpu));
+@@ -1297,6 +1325,16 @@ void __init native_smp_prepare_cpus(unsigned int max_cpus)
+ 		zalloc_cpumask_var(&per_cpu(cpu_core_map, i), GFP_KERNEL);
+ 		zalloc_cpumask_var(&per_cpu(cpu_llc_shared_map, i), GFP_KERNEL);
+ 	}
 +
-+/*
-+ * The boot code will find out the max boost frequency
-+ * and call this function to set a priority proportional
-+ * to the max boost frequency. CPU with higher boost
-+ * frequency will receive higher priority.
-+ */
-+void sched_set_itmt_core_prio(int prio, int core_cpu)
-+{
-+	int cpu, i = 1;
++	/*
++	 * Set 'default' x86 topology, this matches default_topology() in that
++	 * it has NUMA nodes as a topology level. See also
++	 * native_smp_cpus_done().
++	 *
++	 * Must be done before set_cpus_sibling_map() is ran.
++	 */
++	set_sched_topology(x86_topology);
 +
-+	for_each_cpu(cpu, topology_sibling_cpumask(core_cpu)) {
-+		int smt_prio;
+ 	set_cpu_sibling_map(0);
+ 
+ 	switch (smp_sanity_check(max_cpus)) {
+@@ -1363,6 +1401,9 @@ void __init native_smp_cpus_done(unsigned int max_cpus)
+ {
+ 	pr_debug("Boot done\n");
+ 
++	if (x86_has_numa_in_package)
++		set_sched_topology(x86_numa_in_package_topology);
 +
-+		/*
-+		 * Discount the priority of sibling so that we don't
-+		 * pack all loads to the same core before using other cores.
-+		 */
-+		smt_prio = prio * smp_num_siblings / i;
-+		i++;
-+		per_cpu(sched_core_priority, cpu) = smt_prio;
-+	}
-+}
+ 	nmi_selftest();
+ 	impress_friends();
+ 	setup_ioapic_dest();
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index ec752da..342eca9 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -6487,6 +6487,9 @@ static struct sched_domain_topology_level *sched_domain_topology =
+ 
+ void set_sched_topology(struct sched_domain_topology_level *tl)
+ {
++	if (WARN_ON_ONCE(sched_smp_initialized))
++		return;
 +
-+/*
-+ * During boot up, boot code will detect if the system
-+ * is ITMT capable and call set_sched_itmt.
-+ *
-+ * This should be call after sched_set_itmt_core_prio
-+ * has been called to set the cpus' priorities.
-+ *
-+ * This function should be called without cpu hot plug lock
-+ * as we need to acquire the lock to rebuild sched domains
-+ * later.
-+ */
-+void set_sched_itmt(bool itmt_capable)
-+{
-+	mutex_lock(&itmt_update_mutex);
-+
-+	if (itmt_capable != sched_itmt_capable) {
-+
-+		if (itmt_capable) {
-+			itmt_sysctl_header =
-+				register_sysctl_table(itmt_root_table);
-+		} else {
-+			if (itmt_sysctl_header)
-+				unregister_sysctl_table(itmt_sysctl_header);
-+			sysctl_sched_itmt_enabled = false;
-+		}
-+
-+		sched_itmt_capable = itmt_capable;
-+		regenerate_sched_domains();
-+	}
-+
-+	mutex_unlock(&itmt_update_mutex);
-+}
+ 	sched_domain_topology = tl;
+ }
+ 
 -- 
 2.7.4
-
