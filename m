@@ -1,49 +1,57 @@
-From: "=?UTF-8?q?Jo=C3=A3o=20Paulo=20Rechi=20Vita?=" <jprvita@gmail.com>
-Subject: [PATCH 0/1] Fix NULL pointer dereference in ACPI tables parsing code
-Date: Thu, 18 Aug 2016 16:36:36 -0400
-Message-ID: <1471552597-27909-1-git-send-email-jprvita@endlessm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:33599 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754409AbcHSA7l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Aug 2016 20:59:41 -0400
-Received: by mail-qk0-f196.google.com with SMTP id n66so114793qkf.0
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2016 17:59:40 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH 05/11] acpi: cppc: Allow build with ACPI_CPU_FREQ_PSS config
+Date: Thu, 18 Aug 2016 15:36:46 -0700
+Message-ID: <1471559812-19967-6-git-send-email-srinivas.pandruvada@linux.intel.com>
+References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org
+Cc: x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, srinivas.pandruvada@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux@endlessm.com, =?UTF-8?q?Jo=C3=A3o=20Paulo=20Rechi=20Vita?= <jprvita@endlessm.com>
 
-Hello ACPI gurus,
+Some newer x86 platforms have support for both _CPC and _PSS object. So
+kernel config can have both ACPI_CPU_FREQ_PSS and ACPI_CPPC_LIB. So remove
+restriction for ACPI_CPPC_LIB to build only when ACPI_CPU_FREQ_PSS is not
+defined.
+Also for legacy systems with only _PSS, we shouldn't bail out if
+acpi_cppc_processor_probe() fails, if ACPI_CPU_FREQ_PSS is also defined.
 
-I'm experiencing a NULL pointer dereference on acpi_ds_load1_begin_op() from
-drivers/acpi/acpica/dswload.c, when running on a Acer Aspire E14 ES1-432-P06A
-laptop. Before the kernel panic stack trace, I see the following warnings and
-error (sorry for any typos, as I had to manually type this):
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ drivers/acpi/Kconfig            | 1 -
+ drivers/acpi/processor_driver.c | 5 ++++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-ACPI Core revision 20160422
-ACPI Warning: Unsupported module-level executable opcode 0x80 at table offset 0x0190 (20160422/psloop-222)
-ACPI Warning: Unsupported module-level executable opcode 0x80 at table offset 0x0196 (20160422/psloop-222)
-ACPI Error: Unknown opcode 0x03 at table offset 0x0171, ignoring (20160422/psobject-108)
-
-I'm not exactly sure how to map these addresses to the DSDT ASL code, so any
-suggestions in that direction or to better understand the whole picture are
-appreciated. The disassembled DSDT can be found here:
-https://gist.github.com/jprvita/c6373856f6672a06b9031c67e2980bdd, and I can
-provide the binary tables if necessary.
-
-The following patch fixes the NULL pointer dereference, and things seem to be
-working normally.
-
-João Paulo Rechi Vita (1):
-  acpi: Check walk_state->scope_info before dereferencing
-
- drivers/acpi/acpica/dswload.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 445ce28..c6bb6aa 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -227,7 +227,6 @@ config ACPI_MCFG
+ config ACPI_CPPC_LIB
+ 	bool
+ 	depends on ACPI_PROCESSOR
+-	depends on !ACPI_CPU_FREQ_PSS
+ 	select MAILBOX
+ 	select PCC
+ 	help
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 0553aee..0e0b629 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -245,8 +245,11 @@ static int __acpi_processor_start(struct acpi_device *device)
+ 		return 0;
+ 
+ 	result = acpi_cppc_processor_probe(pr);
+-	if (result)
++	if (result) {
++#ifndef CONFIG_ACPI_CPU_FREQ_PSS
+ 		return -ENODEV;
++#endif
++	}
+ 
+ 	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+ 		acpi_processor_power_init(pr);
 -- 
-2.8.1
+2.7.4
 
