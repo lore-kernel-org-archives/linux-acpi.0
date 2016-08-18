@@ -1,106 +1,65 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V8 5/8] irqchip/gicv3-its: Refactor ITS DT init code to
- prepare for ACPI
-Date: Thu, 18 Aug 2016 14:55:38 +0800
-Message-ID: <57B55BEA.6070702@huawei.com>
-References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
- <1470909998-16710-6-git-send-email-tn@semihalf.com>
- <57B4213E.3060201@huawei.com> <20160817155832.GA25421@localhost>
- <00af2bfa-0869-75e0-8a9a-4d7e0cafb687@semihalf.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v10 0/8] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 18 Aug 2016 15:48:23 +0800
+Message-ID: <CADyBb7ujY0kEFq5zrWfEdS1JA=G39rKAdZC4mf2jfw=Gm8GnpA@mail.gmail.com>
+References: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
+ <0befd611-91a7-88e9-1686-82929c1745e8@semihalf.com> <510fa357-a729-4ce1-7c10-4cef06feb7b7@linaro.org>
+ <CADyBb7tZDT2LMGnsWW_orR37dsfseijLEjzn59rLW9tbbxKVPQ@mail.gmail.com>
+ <20160811105848.GA25680@red-moon> <57B4B47E.5030100@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <00af2bfa-0869-75e0-8a9a-4d7e0cafb687@semihalf.com>
+In-Reply-To: <57B4B47E.5030100@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+To: Timur Tabi <timur@codeaurora.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will
 List-Id: linux-acpi@vger.kernel.org
 
-On 2016/8/18 14:42, Tomasz Nowicki wrote:
-> On 17.08.2016 17:58, Bjorn Helgaas wrote:
->> On Wed, Aug 17, 2016 at 04:33:02PM +0800, Hanjun Guo wrote:
->>> On 2016/8/11 18:06, Tomasz Nowicki wrote:
->>>> In order to add ACPI support we need to isolate ACPI&DT common code and
->>>> move DT logic to corresponding functions. To achieve this we are using
->>>> firmware agnostic handle which can be unpacked to either DT or ACPI node.
->>>>
->>>> No functional changes other than a very minor one:
->>>> 1. Terminate its_init call with -ENODEV for non-DT case which allows
->>>> to remove hack from its-gic-v3.c.
->>>> 2. Fix ITS base register address type (from 'unsigned long' to 'phys_addr_t'),
->>>> as a bonus we get nice string formatting.
->>>> 3. Since there is only one of ITS parent domain convert it to static global
->>>> variable and drop the parameter from its_probe_one. Users can refer to it
->>>> in more convenient way then.
->>> [...]
->>>> -static int __init its_probe(struct device_node *node,
->>>> -                struct irq_domain *parent)
->>>> +static int __init its_probe_one(struct resource *res,
->>>> +                struct fwnode_handle *handle, int numa_node)
->>>>  {
->>>> -    struct resource res;
->>>>      struct its_node *its;
->>>>      void __iomem *its_base;
->>>>      u32 val;
->>>>      u64 baser, tmp;
->>>>      int err;
->>>>
->>>> -    err = of_address_to_resource(node, 0, &res);
->>>> -    if (err) {
->>>> -        pr_warn("%s: no regs?\n", node->full_name);
->>>> -        return -ENXIO;
->>>> -    }
->>>> -
->>>> -    its_base = ioremap(res.start, resource_size(&res));
->>>> +    its_base = ioremap(res->start, resource_size(res));
->>>>      if (!its_base) {
->>>> -        pr_warn("%s: unable to map registers\n", node->full_name);
->>>> +        pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
->>>>          return -ENOMEM;
->>>>      }
->>>>
->>>>      val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
->>>>      if (val != 0x30 && val != 0x40) {
->>>> -        pr_warn("%s: no ITS detected, giving up\n", node->full_name);
->>>> +        pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
->>>>          err = -ENODEV;
->>>>          goto out_unmap;
->>>>      }
->>>>
->>>>      err = its_force_quiescent(its_base);
->>>>      if (err) {
->>>> -        pr_warn("%s: failed to quiesce, giving up\n",
->>>> -            node->full_name);
->>>> +        pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
->>>>          goto out_unmap;
->>>>      }
->>>>
->>>> -    pr_info("ITS: %s\n", node->full_name);
->>>> +    pr_info("ITS@%pa\n", &res->start);
->>>                 ^^
->>>
->>> When I was testing this patch set I found message printed as below:
->>>
->>> [    0.000000] ITS@0x00000000c6000000
->>
->> I think it'd be nicer to print the resource with %pR so we see the
->> type and size in a way that matches other physical address usage.
->
-> The intention was to keep previous message layout but while we are here, %pR usage for this one pr_info seems nice to me.
->
->>
->> I don't know whether there is or should be a struct device associated
->> with the ITS.  The its_probe_one() function looks similar to regular
->> driver probe functions, so maybe there should be.
->>
->> If there were a struct device associated with the ITS, it'd be nicer
->> to use dev_info() as well, of course.
->
-> Indeed dev_info() would be nice but there is no struct device for ITS.
+Hi Timur,
 
-Yes, it's configured in the MADT table not in the DSDT, which has no struct
-device associated with it.
+On 18 August 2016 at 03:01, Timur Tabi <timur@codeaurora.org> wrote:
+> Lorenzo Pieralisi wrote:
+>>
+>> I do not think you need a v11 just to remove the drivers/acpi/arm64
+>> directory creation, you need to get Daniel/Thomas review/ack on
+>> the respective patches though, I do not see the point of churning
+>> out another series just because drivers/acpi/arm64 is now created
+>> in the IORT patch series. If v10 is ok you will rebase it on top of
+>> Tomasz's series and mention the dependency in the respective pull
+>> request.
+>>
+>> If there is need for a v11 following Daniel/Thomas review yes,
+>> you can proceed as above.
+>
+>
+> What's the latest on this patchset?  I really want them in 4.9.  Is
+> everything queued up, or are still issues that need to be resolved.
 
-Thanks
-Hanjun
+we are trying to let Tomasz's series be merged first, then this patch set
+will be rebased on the top of it.
+
+If everyone is OK with this patchset, I guess  "in 4.9" is not a problem.
+
+I don't see any suggestion and comment for now, will keep my eyes on it.
+
+>
+> Who will be merging these patches?
+
+I think the clocksource maintainer will take care of it, and  GTDT patch
+has got Rafael's ACK.
+
+>
+> --
+> Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+> Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
+> Code Aurora Forum, a Linux Foundation Collaborative Project.
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
