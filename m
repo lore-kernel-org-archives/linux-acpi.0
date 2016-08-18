@@ -1,15 +1,18 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH] acpi, nfit: fix acpi event notifications for nfit
-Date: Thu, 18 Aug 2016 12:54:58 -0700
-Message-ID: <CAPcyv4gM8SNLGn+ATELbBoOZWqk80_XYu41z-PDTs-3ONCGLeA@mail.gmail.com>
+Date: Thu, 18 Aug 2016 20:22:29 +0000
+Message-ID: <1471551711.6177.25.camel@intel.com>
 References: <1471546104-28520-1-git-send-email-vishal.l.verma@intel.com>
  <CAPcyv4ixygjD8St5YP2SjfEJnVeWMsAHjqDTF8xxWPvvDWw_bw@mail.gmail.com>
  <07af328e-d703-fd80-20be-725f00e54812@hpe.com>
+ <CAPcyv4gM8SNLGn+ATELbBoOZWqk80_XYu41z-PDTs-3ONCGLeA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <07af328e-d703-fd80-20be-725f00e54812-ZPxbGqLxI0U@public.gmane.org>
+In-Reply-To: <CAPcyv4gM8SNLGn+ATELbBoOZWqk80_XYu41z-PDTs-3ONCGLeA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <1B49B1C567C3B54C9574FE8F8A2C0B5F-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,31 +22,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linda.knippers-ZPxbGqLxI0U@public.gmane.org" <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 18, 2016 at 12:52 PM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->
->
-> On 8/18/2016 3:48 PM, Dan Williams wrote:
->> On Thu, Aug 18, 2016 at 11:48 AM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->>> The nfit driver had an acpi event notification handler, but it never
->>> would've worked because we weren't setting the
->>> ACPI_DRIVER_ALL_NOTIFY_EVENTS flag in acpi_driver.
->>
->> Let's update the changelog to be helpful for someone implementing a
->> backport or taking this back to a -stable branch.  Something like:
->>
->> Subject: acpi, nfit: fix event notifications
->>
->> Commit 209851649dc4 "acpi: nfit: Add support for hot-add" added
->> support for _FIT notifications, but it neglected to set the
->> ACPI_DRIVER_ALL_NOTIFY_EVENTS flag that acpi_bus_notify() uses to gate
->> notification delivery.
->
-> While we're at it, should we update the notifier function to explicitly check
-> for event 0x80 before re-evaluating the _FIT?  I'm thinking about some time
-> in the future when there might be more than one event.
-
-Yes, good idea.
+T24gVGh1LCAyMDE2LTA4LTE4IGF0IDEyOjU0IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFRodSwgQXVnIDE4LCAyMDE2IGF0IDEyOjUyIFBNLCBMaW5kYSBLbmlwcGVycyA8bGluZGEu
+a25pcHBlcnNAaHBlLmMNCj4gb20+IHdyb3RlOg0KPiA+IA0KPiA+IA0KPiA+IA0KPiA+IE9uIDgv
+MTgvMjAxNiAzOjQ4IFBNLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+ID4gPiANCj4gPiA+IE9uIFRo
+dSwgQXVnIDE4LCAyMDE2IGF0IDExOjQ4IEFNLCBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1h
+QGludA0KPiA+ID4gZWwuY29tPiB3cm90ZToNCj4gPiA+ID4gDQo+ID4gPiA+IFRoZSBuZml0IGRy
+aXZlciBoYWQgYW4gYWNwaSBldmVudCBub3RpZmljYXRpb24gaGFuZGxlciwgYnV0IGl0DQo+ID4g
+PiA+IG5ldmVyDQo+ID4gPiA+IHdvdWxkJ3ZlIHdvcmtlZCBiZWNhdXNlIHdlIHdlcmVuJ3Qgc2V0
+dGluZyB0aGUNCj4gPiA+ID4gQUNQSV9EUklWRVJfQUxMX05PVElGWV9FVkVOVFMgZmxhZyBpbiBh
+Y3BpX2RyaXZlci4NCj4gPiA+IA0KPiA+ID4gTGV0J3MgdXBkYXRlIHRoZSBjaGFuZ2Vsb2cgdG8g
+YmUgaGVscGZ1bCBmb3Igc29tZW9uZSBpbXBsZW1lbnRpbmcNCj4gPiA+IGENCj4gPiA+IGJhY2tw
+b3J0IG9yIHRha2luZyB0aGlzIGJhY2sgdG8gYSAtc3RhYmxlIGJyYW5jaC7CoMKgU29tZXRoaW5n
+IGxpa2U6DQo+ID4gPiANCj4gPiA+IFN1YmplY3Q6IGFjcGksIG5maXQ6IGZpeCBldmVudCBub3Rp
+ZmljYXRpb25zDQo+ID4gPiANCj4gPiA+IENvbW1pdCAyMDk4NTE2NDlkYzQgImFjcGk6IG5maXQ6
+IEFkZCBzdXBwb3J0IGZvciBob3QtYWRkIiBhZGRlZA0KPiA+ID4gc3VwcG9ydCBmb3IgX0ZJVCBu
+b3RpZmljYXRpb25zLCBidXQgaXQgbmVnbGVjdGVkIHRvIHNldCB0aGUNCj4gPiA+IEFDUElfRFJJ
+VkVSX0FMTF9OT1RJRllfRVZFTlRTIGZsYWcgdGhhdCBhY3BpX2J1c19ub3RpZnkoKSB1c2VzIHRv
+DQo+ID4gPiBnYXRlDQo+ID4gPiBub3RpZmljYXRpb24gZGVsaXZlcnkuDQo+ID4gDQo+ID4gV2hp
+bGUgd2UncmUgYXQgaXQsIHNob3VsZCB3ZSB1cGRhdGUgdGhlIG5vdGlmaWVyIGZ1bmN0aW9uIHRv
+DQo+ID4gZXhwbGljaXRseSBjaGVjaw0KPiA+IGZvciBldmVudCAweDgwIGJlZm9yZSByZS1ldmFs
+dWF0aW5nIHRoZSBfRklUP8KgwqBJJ20gdGhpbmtpbmcgYWJvdXQNCj4gPiBzb21lIHRpbWUNCj4g
+PiBpbiB0aGUgZnV0dXJlIHdoZW4gdGhlcmUgbWlnaHQgYmUgbW9yZSB0aGFuIG9uZSBldmVudC4N
+Cj4gDQo+IFllcywgZ29vZCBpZGVhLg0KDQpTb3VuZHMgZ29vZCwgcGFydCBvZiB0aGUgc2FtZSBw
+YXRjaCBvciBzZXBhcmF0ZWx5PwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
+MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
