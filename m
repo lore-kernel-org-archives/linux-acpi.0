@@ -1,53 +1,49 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH 0/6] Apple device properties
-Date: Thu, 18 Aug 2016 21:34:33 +0100
-Message-ID: <20160818203433.GP30909@codeblueprint.co.uk>
-References: <cover.1469616641.git.lukas@wunner.de>
- <20160804145710.GL3636@codeblueprint.co.uk>
- <20160809133816.GA6571@wunner.de>
- <20160815115414.GE30909@codeblueprint.co.uk>
- <20160815161358.GA9603@wunner.de>
+From: "=?UTF-8?q?Jo=C3=A3o=20Paulo=20Rechi=20Vita?=" <jprvita@gmail.com>
+Subject: [PATCH 0/1] Fix NULL pointer dereference in ACPI tables parsing code
+Date: Thu, 18 Aug 2016 16:36:36 -0400
+Message-ID: <1471552597-27909-1-git-send-email-jprvita@endlessm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160815161358.GA9603@wunner.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:33599 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754409AbcHSA7l (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Aug 2016 20:59:41 -0400
+Received: by mail-qk0-f196.google.com with SMTP id n66so114793qkf.0
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Aug 2016 17:59:40 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux@endlessm.com, =?UTF-8?q?Jo=C3=A3o=20Paulo=20Rechi=20Vita?= <jprvita@endlessm.com>
 
-On Mon, 15 Aug, at 06:13:58PM, Lukas Wunner wrote:
-> 
-> But I would like to understand the "cannot jump through pointers at
-> runtime" argument because the binary code looks to me like it should
-> work on 32 bit. I guess I must be missing something obvious?
+Hello ACPI gurus,
 
-Ah no, I forgot that efi_boot_services_{32,64}_t doesn't contain
-pointers - it contains u32/u64 objects. So yeah, your patch looks
-fine.
+I'm experiencing a NULL pointer dereference on acpi_ds_load1_begin_op() from
+drivers/acpi/acpica/dswload.c, when running on a Acer Aspire E14 ES1-432-P06A
+laptop. Before the kernel panic stack trace, I see the following warnings and
+error (sorry for any typos, as I had to manually type this):
 
-It does trigger the following warnings when building for i386 though,
+ACPI Core revision 20160422
+ACPI Warning: Unsupported module-level executable opcode 0x80 at table offset 0x0190 (20160422/psloop-222)
+ACPI Warning: Unsupported module-level executable opcode 0x80 at table offset 0x0196 (20160422/psloop-222)
+ACPI Error: Unknown opcode 0x03 at table offset 0x0171, ignoring (20160422/psobject-108)
 
-In file included from /dev/shm/mfleming/git/efi/drivers/firmware/efi/libstub/efi-stub-helper.c:14:0:
-/dev/shm/mfleming/git/efi/drivers/firmware/efi/libstub/efi-stub-helper.c: In function ‘efi_get_memory_map’:
-/dev/shm/mfleming/git/efi/arch/x86/include/asm/efi.h:205:3: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  ((efi_boot_services_64_t *)__efi_early()->boot_services)->f : \
-   ^
-/dev/shm/mfleming/git/efi/drivers/firmware/efi/libstub/efi-stub-helper.c:85:11: note: in expansion of macro ‘efi_call_early’
-  status = efi_call_early(allocate_pool, EFI_LOADER_DATA,
-           ^
-/dev/shm/mfleming/git/efi/arch/x86/include/asm/efi.h:206:3: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  ((efi_boot_services_32_t *)__efi_early()->boot_services)->f, \
-   ^
-/dev/shm/mfleming/git/efi/drivers/firmware/efi/libstub/efi-stub-helper.c:85:11: note: in expansion of macro ‘efi_call_early’
-  status = efi_call_early(allocate_pool, EFI_LOADER_DATA,
-           ^
-/dev/shm/mfleming/git/efi/arch/x86/include/asm/efi.h:205:3: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  ((efi_boot_services_64_t *)__efi_early()->boot_services)->f : \
-   ^
-/dev/shm/mfleming/git/efi/drivers/firmware/efi/libstub/efi-stub-helper.c:92:11: note: in expansion of macro ‘efi_call_early’
-  status = efi_call_early(get_memory_map, map_size, m,
-           ^
-etc.
+I'm not exactly sure how to map these addresses to the DSDT ASL code, so any
+suggestions in that direction or to better understand the whole picture are
+appreciated. The disassembled DSDT can be found here:
+https://gist.github.com/jprvita/c6373856f6672a06b9031c67e2980bdd, and I can
+provide the binary tables if necessary.
+
+The following patch fixes the NULL pointer dereference, and things seem to be
+working normally.
+
+João Paulo Rechi Vita (1):
+  acpi: Check walk_state->scope_info before dereferencing
+
+ drivers/acpi/acpica/dswload.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+-- 
+2.8.1
+
