@@ -1,180 +1,268 @@
 From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH 07/11] acpi: cppc: Add support for function fixed hardware address
-Date: Thu, 18 Aug 2016 15:36:48 -0700
-Message-ID: <1471559812-19967-8-git-send-email-srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH 04/11] sched,x86: Enable Turbo Boost Max Technology
+Date: Thu, 18 Aug 2016 15:36:45 -0700
+Message-ID: <1471559812-19967-5-git-send-email-srinivas.pandruvada@linux.intel.com>
 References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
 To: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org
 Cc: x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, srinivas.pandruvada@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-The CPPC registers can also be accessed via function fixed hardware
-addresses in X86. Add support by modifying cpc_read and cpc_write
-to be able to read/write MSRs on x86 platform. Also with this change,
-acpi_cppc_processor_probe doesn't bail out if space id is not equal to
-PCC or memory address space.
+From: Tim Chen <tim.c.chen@linux.intel.com>
 
+On some Intel cores, they can boosted to a higher turbo frequency than
+the other cores on the same die.  So we prefer processes to be run on
+them vs other lower frequency ones for extra performance.
+
+We extend the asym packing feature in the scheduler to support packing
+task to the higher frequency core at the core sched domain level.
+
+We set up a core priority metric to abstract the core preferences based
+on the maximum boost frequency.  The priority is instantiated such that
+the core with a higher priority is favored over the core with lower
+priority when making scheduling decision using ASYM_PACKING.  The smt
+threads that are of higher number are discounted in their priority so
+we will not try to pack tasks onto all the threads of a favored core
+before using other cpu cores.  The cpu that's of the highese priority
+in a sched_group is recorded in sched_group->asym_prefer_cpu during
+initialization to save lookup during load balancing.
+
+A sysctl variable /proc/sys/kernel/sched_itmt_enabled is provided so
+the scheduling based on favored core can be turned on or off at run time.
+
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- drivers/acpi/cppc_acpi.c | 77 +++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 66 insertions(+), 11 deletions(-)
+ arch/x86/Kconfig                |   9 +++
+ arch/x86/include/asm/topology.h |  26 +++++++
+ arch/x86/kernel/Makefile        |   1 +
+ arch/x86/kernel/itmt.c          | 147 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 183 insertions(+)
+ create mode 100644 arch/x86/kernel/itmt.c
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 34209f5..939fb5c 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -42,6 +42,10 @@
- #include <linux/ktime.h>
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index c580d8c..c1d36db 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -928,6 +928,15 @@ config SCHED_MC
+ 	  making when dealing with multi-core CPU chips at a cost of slightly
+ 	  increased overhead in some places. If unsure say N here.
  
- #include <acpi/cppc_acpi.h>
-+#ifdef CONFIG_X86
-+#include <asm/msr.h>
-+#endif
++config SCHED_ITMT
++	bool "Intel Turbo Boost Max Technology (ITMT) scheduler support"
++	depends on SCHED_MC && CPU_SUP_INTEL && X86_INTEL_PSTATE
++	---help---
++	  ITMT enabled scheduler support improves the CPU scheduler's decision
++	  to move tasks to cpu core that can be boosted to a higher frequency
++	  than others. It will have better performance at a cost of slightly
++	  increased overhead in task migrations. If unsure say N here.
 +
- /*
-  * Lock to provide mutually exclusive access to the PCC
-  * channel. e.g. When the remote updates the shared region
-@@ -585,8 +589,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 					pr_debug("Mismatched PCC ids.\n");
- 					goto out_free;
- 				}
--			} else if (gas_t->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) {
--				/* Support only PCC and SYS MEM type regs */
-+			} else if (gas_t->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-+				   gas_t->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE) {
-+				/* Support only PCC, FFH and SYS MEM type regs */
- 				pr_debug("Unsupported register type: %d\n", gas_t->space_id);
- 				goto out_free;
- 			}
-@@ -645,13 +650,59 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
- }
- EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+ source "kernel/Kconfig.preempt"
  
-+#ifdef CONFIG_X86
-+static int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val)
+ config UP_LATE_INIT
+diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
+index cf75871..f148843 100644
+--- a/arch/x86/include/asm/topology.h
++++ b/arch/x86/include/asm/topology.h
+@@ -146,4 +146,30 @@ struct pci_bus;
+ int x86_pci_root_bus_node(int bus);
+ void x86_pci_root_bus_resources(int bus, struct list_head *resources);
+ 
++#ifdef CONFIG_SCHED_ITMT
++DECLARE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
++
++static inline bool sched_asym_prefer(int a, int b)
 +{
-+	int err;
++	return per_cpu(sched_core_priority, a) > per_cpu(sched_core_priority, b);
++}
 +
-+	err = rdmsrl_on_cpu(cpunum, reg->address, val);
-+	if (!err) {
-+		u64 mask = GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
-+				       reg->bit_offset);
++#define sched_asym_prefer sched_asym_prefer
 +
-+		*val &= mask;
-+		*val >>= reg->bit_offset;
++/* Interface to set priority of a cpu */
++void sched_set_itmt_core_prio(int prio, int core_cpu);
++
++/* Interface to notify scheduler that system supports ITMT */
++void set_sched_itmt(bool support_itmt);
++
++#else /* CONFIG_SCHED_ITMT */
++
++static inline void set_sched_itmt(bool support_itmt)
++{
++}
++static inline void sched_set_itmt_core_prio(int prio, int core_cpu)
++{
++}
++#endif /* CONFIG_SCHED_ITMT */
++
+ #endif /* _ASM_X86_TOPOLOGY_H */
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index 0503f5b..2008335 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -124,6 +124,7 @@ obj-$(CONFIG_EFI)			+= sysfb_efi.o
+ 
+ obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
+ obj-$(CONFIG_TRACING)			+= tracepoint.o
++obj-$(CONFIG_SCHED_ITMT)		+= itmt.o
+ 
+ ###
+ # 64 bit specific files
+diff --git a/arch/x86/kernel/itmt.c b/arch/x86/kernel/itmt.c
+new file mode 100644
+index 0000000..a9470f5
+--- /dev/null
++++ b/arch/x86/kernel/itmt.c
+@@ -0,0 +1,147 @@
++/*
++ * itmt.c: Functions and data structures for enabling
++ * 	   scheduler to favor scheduling on cores that
++ *	   can be boosted to a higher frequency using
++ *	   Intel Turbo Boost Max Technology 3.0
++ *
++ * (C) Copyright 2016 Intel Corporation
++ * Author: Tim Chen <tim.c.chen@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; version 2
++ * of the License.
++ */
++
++#include <linux/sched.h>
++#include <linux/cpumask.h>
++#include <linux/cpuset.h>
++#include <asm/mutex.h>
++#include <linux/sched.h>
++#include <linux/sysctl.h>
++
++DEFINE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
++static DEFINE_MUTEX(itmt_update_mutex);
++
++static unsigned int zero = 0;
++static unsigned int one = 1;
++
++/*
++ * Boolean to control whether we want to move processes to cpu capable
++ * of higher turbo frequency for cpus supporting Intel Turbo Boost Max
++ * Technology 3.0.
++ *
++ * It can be set via /proc/sys/kernel/sched_itmt_enabled
++ */
++unsigned int __read_mostly sysctl_sched_itmt_enabled = 0;
++
++/*
++ * The pstate_driver calls set_sched_itmt to indicate if the system
++ * is ITMT capable.
++ */
++static bool __read_mostly sched_itmt_capable;
++
++static void enable_sched_itmt(bool enable_itmt)
++{
++	mutex_lock(&itmt_update_mutex);
++
++	sysctl_sched_itmt_enabled = enable_itmt;
++	regenerate_sched_domains();
++
++	mutex_unlock(&itmt_update_mutex);
++}
++
++static int sched_itmt_update_handler(struct ctl_table *table, int write,
++			      void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++
++	if (ret || !write)
++		return ret;
++
++	enable_sched_itmt(sysctl_sched_itmt_enabled);
++
++	return ret;
++}
++
++static struct ctl_table itmt_kern_table[] = {
++	{
++		.procname	= "sched_itmt_enabled",
++		.data		= &sysctl_sched_itmt_enabled,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= sched_itmt_update_handler,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++	{}
++};
++
++static struct ctl_table itmt_root_table[] = {
++	{
++		.procname	= "kernel",
++		.mode		= 0555,
++		.child		= itmt_kern_table,
++	},
++	{}
++};
++
++static struct ctl_table_header *itmt_sysctl_header;
++
++/*
++ * The boot code will find out the max boost frequency
++ * and call this function to set a priority proportional
++ * to the max boost frequency. CPU with higher boost
++ * frequency will receive higher priority.
++ */
++void sched_set_itmt_core_prio(int prio, int core_cpu)
++{
++	int cpu, i = 1;
++
++	for_each_cpu(cpu, topology_sibling_cpumask(core_cpu)) {
++		int smt_prio;
++
++		/*
++		 * Discount the priority of sibling so that we don't
++		 * pack all loads to the same core before using other cores.
++		 */
++		smt_prio = prio * smp_num_siblings / i;
++		i++;
++		per_cpu(sched_core_priority, cpu) = smt_prio;
 +	}
-+	return err;
 +}
 +
-+static int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
++/*
++ * During boot up, boot code will detect if the system
++ * is ITMT capable and call set_sched_itmt.
++ *
++ * This should be call after sched_set_itmt_core_prio
++ * has been called to set the cpus' priorities.
++ *
++ * This function should be called without cpu hot plug lock
++ * as we need to acquire the lock to rebuild sched domains
++ * later.
++ */
++void set_sched_itmt(bool itmt_capable)
 +{
-+	u64 rd_val;
-+	int err;
++	mutex_lock(&itmt_update_mutex);
 +
-+	err = rdmsrl_on_cpu(cpunum, reg->address, &rd_val);
-+	if (!err) {
-+		u64 mask = GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
-+				       reg->bit_offset);
++	if (itmt_capable != sched_itmt_capable) {
 +
-+		val <<= reg->bit_offset;
-+		val &= mask;
-+		rd_val &= ~mask;
-+		rd_val |= val;
-+		err = wrmsrl_on_cpu(cpunum, reg->address, rd_val);
++		if (itmt_capable) {
++			itmt_sysctl_header =
++				register_sysctl_table(itmt_root_table);
++		} else {
++			if (itmt_sysctl_header)
++				unregister_sysctl_table(itmt_sysctl_header);
++			sysctl_sched_itmt_enabled = false;
++		}
++
++		sched_itmt_capable = itmt_capable;
++		regenerate_sched_domains();
 +	}
-+	return err;
-+}
-+#else
-+static int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val)
-+{
-+	return -EINVAL;
-+}
-+static int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
-+{
-+	return -EINVAL;
 +
++	mutex_unlock(&itmt_update_mutex);
 +}
-+#endif
-+
- /*
-  * Since cpc_read and cpc_write are called while holding pcc_lock, it should be
-  * as fast as possible. We have already mapped the PCC subspace during init, so
-  * we can directly write to it.
-  */
- 
--static int cpc_read(struct cpc_register_resource *res, u64 *val)
-+static int cpc_read(int cpunum, struct cpc_register_resource *res, u64 *val)
- {
- 	struct cpc_reg *reg = &res->cpc_entry.reg;
- 	int ret_val = 0;
-@@ -684,13 +735,15 @@ static int cpc_read(struct cpc_register_resource *res, u64 *val)
- 				reg->bit_width);
- 			ret_val = -EFAULT;
- 		}
-+	} else if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
-+		ret_val = cpc_read_ffh(cpunum, reg, val);
- 	} else
- 		ret_val = acpi_os_read_memory((acpi_physical_address)reg->address,
- 					val, reg->bit_width);
- 	return ret_val;
- }
- 
--static int cpc_write(struct cpc_reg *reg, u64 val)
-+static int cpc_write(int cpunum, struct cpc_reg *reg, u64 val)
- {
- 	int ret_val = 0;
- 
-@@ -716,6 +769,8 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
- 			ret_val = -EFAULT;
- 			break;
- 		}
-+	} else if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
-+		ret_val = cpc_write_ffh(cpunum, reg, val);
- 	} else
- 		ret_val = acpi_os_write_memory((acpi_physical_address)reg->address,
- 				val, reg->bit_width);
-@@ -761,16 +816,16 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 		}
- 	}
- 
--	cpc_read(highest_reg, &high);
-+	cpc_read(cpunum, highest_reg, &high);
- 	perf_caps->highest_perf = high;
- 
--	cpc_read(lowest_reg, &low);
-+	cpc_read(cpunum, lowest_reg, &low);
- 	perf_caps->lowest_perf = low;
- 
--	cpc_read(ref_perf, &ref);
-+	cpc_read(cpunum, ref_perf, &ref);
- 	perf_caps->reference_perf = ref;
- 
--	cpc_read(nom_perf, &nom);
-+	cpc_read(cpunum, nom_perf, &nom);
- 	perf_caps->nominal_perf = nom;
- 
- 	if (!ref)
-@@ -819,8 +874,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 		}
- 	}
- 
--	cpc_read(delivered_reg, &delivered);
--	cpc_read(reference_reg, &reference);
-+	cpc_read(cpunum, delivered_reg, &delivered);
-+	cpc_read(cpunum, reference_reg, &reference);
- 
- 	if (!delivered || !reference) {
- 		ret = -EFAULT;
-@@ -875,7 +930,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	 * Skip writing MIN/MAX until Linux knows how to come up with
- 	 * useful values.
- 	 */
--	cpc_write(&desired_reg->cpc_entry.reg, perf_ctrls->desired_perf);
-+	cpc_write(cpu, &desired_reg->cpc_entry.reg, perf_ctrls->desired_perf);
- 
- 	/* Is this a PCC reg ?*/
- 	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
 -- 
 2.7.4
+
