@@ -1,68 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 10/11] acpi: bus: Set _OSC for diverse core support
-Date: Sat, 20 Aug 2016 02:51:14 +0200
-Message-ID: <3394418.ZE72EMLDjL@vostro.rjw.lan>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1471559812-19967-11-git-send-email-srinivas.pandruvada@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Al Stone <ahs3@redhat.com>
+Subject: [PATCH v2 0/3] Correct errors in acpi_parse_entries_array()
+Date: Fri, 19 Aug 2016 18:48:10 -0600
+Message-ID: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47798 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1755223AbcHTApu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 Aug 2016 20:45:50 -0400
-In-Reply-To: <1471559812-19967-11-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40810 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754617AbcHTAsR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 19 Aug 2016 20:48:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, peterz@infradead.org, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: ahs3@redhat.com
 
-On Thursday, August 18, 2016 03:36:51 PM Srinivas Pandruvada wrote:
-> Set the OSC_SB_CPC_DIVERSE_HIGH_SUPPORT (bit 12) to enable diverse
-> core support.
-> 
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> ---
->  drivers/acpi/bus.c   | 4 +++-
->  include/linux/acpi.h | 1 +
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 61643a5..fbd3b7c 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -336,7 +336,9 @@ static void acpi_bus_osc_support(void)
->  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPCV2_SUPPORT;
->  	}
->  #endif
-> -
-> +#ifdef CONFIG_SCHED_ITMT
-> +	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_DIVERSE_HIGH_SUPPORT;
-> +#endif
+Several strange things were found while prototyping a way to correctly
+report whether or not an IORT is needed by an arm64 platform.  What the
+prototype needed to do was iterate over the MADT subtables and look for
+certain types of subtable, count how many there were by type, and capture
+some info about some of the subtables.
 
-	if (IS_ENABLED(CONFIG_SCHED_ITMT))
-		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_DIVERSE_HIGH_SUPPORT;
+When I first read through the acpi_parse_entries_array() function, the
+comments seemed to describe precisely what I needed to do.  However, what
+I found in trying to use the function is that that is not exactly how it
+works.
 
-pretty please.
+So, the first patch fixes the counts of subtable types found so they are
+correct.  Fortunately, nothing has relied on them being correct in the 
+past, just non-zero or not.  This has also been noted by Baoquan He in a
+patch he recently submitted.
 
->  	if (!ghes_disable)
->  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
->  	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 4d8452c..17f6e08 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -460,6 +460,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
->  #define OSC_SB_CPCV2_SUPPORT			0x00000040
->  #define OSC_SB_PCLPI_SUPPORT			0x00000080
->  #define OSC_SB_OSLPI_SUPPORT			0x00000100
-> +#define OSC_SB_CPC_DIVERSE_HIGH_SUPPORT		0x00001000
->  
->  extern bool osc_sb_apei_support_acked;
->  extern bool osc_pc_lpi_support_confirmed;
-> 
+The second patch fixes a problem where iterating over the subtables would
+end earlier than necessary, again throwing off the counts; in this case,
+I only needed to know how many of certain types of subtables were present,
+but would never be able to get to a complete count.
 
-Thanks,
-Rafael
+The third patch removes part of a message that always reported an incorrect
+value for the number of subtables skipped when there's a limit.  It always
+reported zero, so it's never really been useful.
+
+Longer term, I would like to simplify the way MADT and other ACPI tables
+with subtables are parsed; mostly, I want to get rid of the need for using
+file scoped variables.  The acpi_parse_entries_array() function can be a
+good basis to build upon, as long as it works as expected.
+
+Changes since v1:
+  -- Much rewrite of the cover letter and changelogs to make sure the 
+     motivation for the changes was captured (Rafael)
+  -- Verified that the changes in semantics for the function are harmless;
+     direct calls, parents/grandparents/.. of the direct calls were checked
+     to make sure they did not depend on the current behavior in such a way
+     as to break them with these changes (Rafael)
+  -- Patch 3/3 was simplified; on further investigation, should additional
+     callbacks be made to get the total skipped, there could be side effects
+     or dependencies between callbacks that would make the original plan of
+     iterating over all callbacks risky, for very little value (Rafael)
+
+Al Stone (3):
+  ACPI: fix incorrect counts returned by acpi_parse_entries_array()
+  ACPI: fix acpi_parse_entries_array() so it traverses all subtables
+  ACPI: do not report the number of entries ignored by
+    acpi_parse_entries()
+
+ drivers/acpi/tables.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+-- 
+2.7.4
 
