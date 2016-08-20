@@ -1,58 +1,81 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH v2 3/3] ACPI: do not report the number of entries ignored by acpi_parse_entries()
-Date: Fri, 19 Aug 2016 18:48:13 -0600
-Message-ID: <1471654093-6962-4-git-send-email-ahs3@redhat.com>
+Subject: [PATCH v2 2/3] ACPI: fix acpi_parse_entries_array() so it traverses all subtables
+Date: Fri, 19 Aug 2016 18:48:12 -0600
+Message-ID: <1471654093-6962-3-git-send-email-ahs3@redhat.com>
 References: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40826 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755888AbcHTAsV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 Aug 2016 20:48:21 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: ahs3@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-The function acpi_parse_entries_array() has a limiting parameter,
-max_entries, which tells the function to stop looking at subtables
-once that limit has been reached.  If the limit is reached, it is
-reported.  However, the logic is incorrect in that the loop to
-examine all subtables will always report that zero subtables have
-been ignored since it does not continue once the max_entries have
-been reached.
+The acpi_parse_entries_array() function currently returns the very first
+time there is any error found by one of the callback functions, or if one
+of the callbacks returns a non-zero value.  However, the ACPI subtables
+being traversed could still have valid entries that could be used by one
+of the callback functions.  And, if the comments are correct, that is
+what should happen -- always traverse all of the subtables, calling as
+many of the callbacks as possible.
 
-One approach to fixing this would be to correct the logic so that
-all subtables are examined, even if we have hit the max_entries, but
-without executing all the callback functions.  This could be risky
-since we cannot guarantee that no callback will ever have side effects
-that another callback depends on to work correctly.
+This patch makes the function consistent with its description so that it
+will properly invoke all callbacks for all matching entries, for all
+subtables, instead of stopping abruptly as it does today.
 
-So, the simplest approach is to just remove the part of the error
-message that will always be incorrect.
+This does change the semantics of using acpi_parse_entries_array().  In
+examining all users of the function, none of them rely on the current
+behavior; that is, there appears to be no assumption that either all
+subtables are traversed and all callbacks invoked, or that the function
+will return immediately on any error from a callback.  Each callback
+operates independently.  Hence, there should be no functional change
+due to this change in semantics.
+
+Future patches being prepared will rely on this new behavior; indeed,
+they were written assuming the acpi_parse_entries_array() function
+operated as its comments describe.  For example, a callback that
+counts the number of subtables of a specific type can now be assured
+that as many subtables as possible have been enumerated.
 
 Signed-off-by: Al Stone <ahs3@redhat.com>
 Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
 ---
- drivers/acpi/tables.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/tables.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 0d5d17f..984260d 100644
+index 3e167b4..0d5d17f 100644
 --- a/drivers/acpi/tables.c
 +++ b/drivers/acpi/tables.c
-@@ -304,8 +304,8 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+@@ -246,6 +246,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 	struct acpi_subtable_header *entry;
+ 	unsigned long table_end;
+ 	int count = 0;
++	int errs = 0;
+ 	int i;
+ 
+ 	if (acpi_disabled)
+@@ -278,8 +279,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			if (entry->type != proc[i].id)
+ 				continue;
+ 			if (!proc[i].handler ||
+-			     proc[i].handler(entry, table_end))
+-				return -EINVAL;
++			     (!errs && proc[i].handler(entry, table_end))) {
++				errs++;
++				continue;
++			}
+ 
+ 			proc[i].count++;
+ 			break;
+@@ -305,7 +308,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			id, proc->id, count - max_entries, count);
  	}
  
- 	if (max_entries && count > max_entries) {
--		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
--			id, proc->id, count - max_entries, count);
-+		pr_warn("[%4.4s:0x%02x] found the maximum %i entries\n",
-+			id, proc->id, count);
- 	}
+-	return count;
++	return errs ? -EINVAL : count;
+ }
  
- 	return (errs_found) ? -EINVAL : count;
+ int __init
 -- 
 2.7.4
-
