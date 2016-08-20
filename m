@@ -1,68 +1,61 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH v2 0/3] Correct errors in acpi_parse_entries_array()
-Date: Fri, 19 Aug 2016 18:48:10 -0600
-Message-ID: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40810 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754617AbcHTAsR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 Aug 2016 20:48:17 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 1/3] ACPI: fix incorrect counts returned by acpi_parse_entries_array()
+Date: Fri, 19 Aug 2016 18:48:11 -0600
+Message-ID: <1471654093-6962-2-git-send-email-ahs3@redhat.com>
+References: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: ahs3@redhat.com
+Cc: ahs3@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Several strange things were found while prototyping a way to correctly
-report whether or not an IORT is needed by an arm64 platform.  What the
-prototype needed to do was iterate over the MADT subtables and look for
-certain types of subtable, count how many there were by type, and capture
-some info about some of the subtables.
+The static function acpi_parse_entries_array() is provided an array of
+type struct acpi_subtable_proc that has a callback function and a count.
+The count should reflect how many times the callback has been called.
+However, the current code only increments the 0th element of the array,
+regardless of the number of entries in the array, or which callback has
+been invoked.  The result is that we know the total number of callbacks
+made but we cannot determine which callbacks were made, nor how often.
+The fix is to index into the array of structs and increment the proper
+counts.
 
-When I first read through the acpi_parse_entries_array() function, the
-comments seemed to describe precisely what I needed to do.  However, what
-I found in trying to use the function is that that is not exactly how it
-works.
+There is one place in the x86 code for acpi_parse_madt_lapic_entries()
+where the counts for each callback are used.  If no LAPICs *and* no
+X2APICs are found, an ENODEV is supposed to be returned; as it stands,
+the count of X2APICs will always be zero, regardless of what is in the
+MADT.  Should there be no LAPICs, ENODEV will be returned in error, if
+there are X2APICs in the MADT.
 
-So, the first patch fixes the counts of subtable types found so they are
-correct.  Fortunately, nothing has relied on them being correct in the 
-past, just non-zero or not.  This has also been noted by Baoquan He in a
-patch he recently submitted.
+Otherwise, there are no other functional consequences of the count being
+done as it currently is; all other uses simply check that the return value
+from acpi_parse_entries_array() or passed back via its callers is either
+non-zero, an error, or in one case just ignored.
 
-The second patch fixes a problem where iterating over the subtables would
-end earlier than necessary, again throwing off the counts; in this case,
-I only needed to know how many of certain types of subtables were present,
-but would never be able to get to a complete count.
+In future patches, I will also need these counts to be correct; I need
+to count the number of instances of subtables of certain types within
+the MADT to determine whether or not an ACPI IORT is required or not,
+and report when it is not present when it should be.
 
-The third patch removes part of a message that always reported an incorrect
-value for the number of subtables skipped when there's a limit.  It always
-reported zero, so it's never really been useful.
+Signed-off-by: Al Stone <ahs3@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/acpi/tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Longer term, I would like to simplify the way MADT and other ACPI tables
-with subtables are parsed; mostly, I want to get rid of the need for using
-file scoped variables.  The acpi_parse_entries_array() function can be a
-good basis to build upon, as long as it works as expected.
-
-Changes since v1:
-  -- Much rewrite of the cover letter and changelogs to make sure the 
-     motivation for the changes was captured (Rafael)
-  -- Verified that the changes in semantics for the function are harmless;
-     direct calls, parents/grandparents/.. of the direct calls were checked
-     to make sure they did not depend on the current behavior in such a way
-     as to break them with these changes (Rafael)
-  -- Patch 3/3 was simplified; on further investigation, should additional
-     callbacks be made to get the total skipped, there could be side effects
-     or dependencies between callbacks that would make the original plan of
-     iterating over all callbacks risky, for very little value (Rafael)
-
-Al Stone (3):
-  ACPI: fix incorrect counts returned by acpi_parse_entries_array()
-  ACPI: fix acpi_parse_entries_array() so it traverses all subtables
-  ACPI: do not report the number of entries ignored by
-    acpi_parse_entries()
-
- drivers/acpi/tables.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
-
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index fa6fd19..3e167b4 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -281,7 +281,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			     proc[i].handler(entry, table_end))
+ 				return -EINVAL;
+ 
+-			proc->count++;
++			proc[i].count++;
+ 			break;
+ 		}
+ 		if (i != proc_num)
 -- 
 2.7.4
-
