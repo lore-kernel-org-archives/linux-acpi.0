@@ -1,58 +1,38 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: Re: [PATCH 01/11] sched, cpuset: Add regenerate_sched_domains
- function to rebuild all sched domains
-Date: Mon, 22 Aug 2016 12:51:59 -0700
-Message-ID: <1471895519.2916.3.camel@linux.intel.com>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-         <1471559812-19967-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-         <20160822135247.GD25262@e105550-lin.cambridge.arm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] acpi, nfit: check for the correct event code in notifications
+Date: Mon, 22 Aug 2016 15:43:22 -0700
+Message-ID: <CAPcyv4iw0ErHB-1yp+w4nd+7A5aVHXbieRq2ikR953UL4FBUVQ@mail.gmail.com>
+References: <1471639258-28106-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:4937 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752112AbcHVTwB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Aug 2016 15:52:01 -0400
-In-Reply-To: <20160822135247.GD25262@e105550-lin.cambridge.arm.com>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:35697 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754599AbcHVWnX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Aug 2016 18:43:23 -0400
+Received: by mail-oi0-f54.google.com with SMTP id 4so173224791oih.2
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Aug 2016 15:43:23 -0700 (PDT)
+In-Reply-To: <1471639258-28106-1-git-send-email-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Rasmussen <morten.rasmussen@arm.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linda Knippers <linda.knippers@hpe.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Mon, 2016-08-22 at 14:52 +0100, Morten Rasmussen wrote:
-> On Thu, Aug 18, 2016 at 03:36:42PM -0700, Srinivas Pandruvada wrote:
-> > 
-> > From: Tim Chen <tim.c.chen@linux.intel.com>
-> > 
-> > The current rebuild_sched_domains will only rebuild the sched domains
-> > unless the cpumask changes.  However, in some scenarios when the
-> > topology flag value changes, it will not rebuild the sched domain.
-> > 
-> > We create a regenerate_sched_domains function that will always
-> > rebuild all the sched domains to take care of this scenario.
-> [...]
-> 
-> > 
-> > --- a/kernel/sched/core.c
-> > +++ b/kernel/sched/core.c
-> > @@ -7081,7 +7082,7 @@ void partition_sched_domains(int ndoms_new, cpumask_var_t doms_new[],
-> >  	unregister_sched_domain_sysctl();
-> >  
-> >  	/* Let architecture update cpu core mappings. */
-> > -	new_topology = arch_update_cpu_topology();
-> > +	new_topology = arch_update_cpu_topology() | need_domain_rebuild;
-> You can force rebuild_sched_domains() to rebuild the sched_domain
-> hierarchy by just implementing arch_update_cpu_topology(). Make it
-> return 1 when you want the hierarchy to be updated.
-> 
-> Implementing another forcing mechanism seems redundant. I must be
-> missing something?
+On Fri, Aug 19, 2016 at 1:40 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Commit 209851649dc4 "acpi: nfit: Add support for hot-add" added
+> support for _FIT notifications, but it neglected to verify the
+> notification event code matches the one in the ACPI spec for
+> "NFIT Update". Currently there is only one code in the spec, but
+> once additional codes are added, older kernels (without this fix)
+> will misbehave by assuming all event notifications are for an
+> NFIT Update.
+>
+> Fixes: 209851649dc4 ("acpi: nfit: Add support for hot-add")
+> Cc: <stable@vger.kernel.org>
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Linda Knippers <linda.knippers@hpe.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Sure, I'll take a look at using arch_update_cpu_topology. 
-
-Thanks.
-
-Tim
-
-
+Looks good to me.  Given the lead time of spec changes I think this
+can wait for the 4.9 merge window.  I'll add it to the -next branch.
