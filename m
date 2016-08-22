@@ -1,54 +1,120 @@
-From: Morten Rasmussen <morten.rasmussen@arm.com>
-Subject: Re: [PATCH 01/11] sched, cpuset: Add regenerate_sched_domains
- function to rebuild all sched domains
-Date: Mon, 22 Aug 2016 14:52:48 +0100
-Message-ID: <20160822135247.GD25262@e105550-lin.cambridge.arm.com>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1471559812-19967-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v3 3/3] serial: 8250_dw: add ACPI support for uart on
+ Hisilicon Hip05 soc
+Date: Mon, 22 Aug 2016 17:05:58 +0300
+Message-ID: <20160822140558.GB9065@kuha.fi.intel.com>
+References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
+ <1468580485-28567-4-git-send-email-wangkefeng.wang@huawei.com>
+ <1471865054.4887.206.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52903 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755247AbcHVNwm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Aug 2016 09:52:42 -0400
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1471559812-19967-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1471865054.4887.206.camel@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
 
-On Thu, Aug 18, 2016 at 03:36:42PM -0700, Srinivas Pandruvada wrote:
-> From: Tim Chen <tim.c.chen@linux.intel.com>
+Hi,
+
+On Mon, Aug 22, 2016 at 02:24:14PM +0300, Andy Shevchenko wrote:
+> On Fri, 2016-07-15 at 19:01 +0800, Kefeng Wang wrote:
+> > Use built-in device properties to set device parameters for the
+> > existing device probed by acpi.
 > 
-> The current rebuild_sched_domains will only rebuild the sched domains
-> unless the cpumask changes.  However, in some scenarios when the
-> topology flag value changes, it will not rebuild the sched domain.
+> acpi -> ACPI
 > 
-> We create a regenerate_sched_domains function that will always
-> rebuild all the sched domains to take care of this scenario.
+> > 
+> > Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
+> 
+> soc -> SoC
+> 
+> > that it is not 16550 compatibal, so we need set "reg-io-width"
+> 
+> compatibal -> compatible
+> 
+> > and "reg-shift" by _DSD method in DSDT.
+> > 
+> > Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> > ---
+> >  drivers/tty/serial/8250/8250_dw.c | 23 +++++++++++++++++------
+> >  1 file changed, 17 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/tty/serial/8250/8250_dw.c
+> > b/drivers/tty/serial/8250/8250_dw.c
+> > index d6934310..5ab9cfe 100644
+> > --- a/drivers/tty/serial/8250/8250_dw.c
+> > +++ b/drivers/tty/serial/8250/8250_dw.c
+> > @@ -297,12 +297,6 @@ static void dw8250_quirks(struct uart_port *p,
+> > struct dw8250_data *data)
+> >  			p->serial_in = dw8250_serial_in32be;
+> >  			p->serial_out = dw8250_serial_out32be;
+> >  		}
+> > -	} else if (has_acpi_companion(p->dev)) {
+> > -		p->iotype = UPIO_MEM32;
+> > -		p->regshift = 2;
+> > -		p->serial_in = dw8250_serial_in32;
+> > -		/* So far none of there implement the Busy
+> > Functionality */
+> > -		data->uart_16550_compatible = true;
+> >  	}
+> >  
+> >  	/* Platforms with iDMA */
+> > @@ -352,6 +346,19 @@ static void dw8250_setup_port(struct uart_port
+> > *p)
+> >  		up->capabilities |= UART_CAP_AFE;
+> >  }
+> >  
+> > +static struct property_entry dw8250_properties[] = {
+> > +	PROPERTY_ENTRY_U32("reg-io-width", 4),
+> > +	PROPERTY_ENTRY_U32("reg-shift", 2),
+> > +	PROPERTY_ENTRY_BOOL("snps,uart-16550-compatible"),
+> > +	{ },
+> > +};
+> > +
+> > +/* non 16550 compatible id list*/
+> 
+> non 16550 -> Non-16550
+> Space before */
+> 
+> > +static const struct acpi_device_id non_16550_ids[] = {
+> > +	{ "HISI0031", 0 },
+> > +	{ },
+> > +};
+> > +
+> >  static int dw8250_probe(struct platform_device *pdev)
+> >  {
+> >  	struct uart_8250_port uart = {};
+> > @@ -395,6 +402,9 @@ static int dw8250_probe(struct platform_device
+> > *pdev)
+> >  	if (!data)
+> >  		return -ENOMEM;
+> >  
+> > +	if (has_acpi_companion(dev) &&
+> > !acpi_match_device(non_16550_ids, dev))
+> 
+> 
+> > +		platform_device_add_properties(pdev,
+> > dw8250_properties);
+> 
+> What if we probe device which has already properties assigned?
+> 
+> Heikki, are you good with such trick?
 
-[...]
+No this is not the way to do this. As we talked, we need to add the
+properties in the mfd drivers when they exist and not in the driver
+itself. Only if there is no mfd driver that creates the actual
+platform device for dw8250 and when also the ACPI tables don't provide
+the properties, we identify the board in dw8250_quirks and handle it
+separately. Right now there is only one such board.
 
-> --- a/kernel/sched/core.c
-> +++ b/kernel/sched/core.c
-> @@ -7081,7 +7082,7 @@ void partition_sched_domains(int ndoms_new, cpumask_var_t doms_new[],
->  	unregister_sched_domain_sysctl();
->  
->  	/* Let architecture update cpu core mappings. */
-> -	new_topology = arch_update_cpu_topology();
-> +	new_topology = arch_update_cpu_topology() | need_domain_rebuild;
+I'll prepare the patches for that right now. This series can then be
+made on top of those.
 
-You can force rebuild_sched_domains() to rebuild the sched_domain
-hierarchy by just implementing arch_update_cpu_topology(). Make it
-return 1 when you want the hierarchy to be updated.
 
-Implementing another forcing mechanism seems redundant. I must be
-missing something?
+Thanks,
 
-I just did exactly that to set the SD_ASYM_CPUCAPACITY flag for
-big.LITTLE platforms on arm/arm64 as we don't know if the flag should be
-set until cpufreq has initialized.
-
-Morten
+-- 
+heikki
