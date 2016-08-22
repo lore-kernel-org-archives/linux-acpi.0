@@ -1,38 +1,79 @@
-From: "Newsletter" <aktivierung@lcp-prios.com>
-Subject: =?UTF-8?Q?Best=C3=A4tigung?= deiner Email Adresse
-Date: Mon, 22 Aug 2016 11:35:08 +0200
-Message-ID: <2016082209-3804d2a9-5c8e-4654-adf6-f1205c740299@ba895f>
-Reply-To: "Newsletter" <reply-to@lcp-prios.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 1/3] serial: 8250_dw: make dw8250_set_termios as
+ default set_termios callback
+Date: Mon, 22 Aug 2016 14:08:30 +0300
+Message-ID: <1471864110.4887.199.camel@linux.intel.com>
+References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
+         <1468580485-28567-2-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta-125-251.check-for-yours.com ([95.130.125.251]:47384 "EHLO
-        mta-125-251.check-for-yours.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753951AbcHVJpO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Aug 2016 05:45:14 -0400
-Received: by mta-125-251.check-for-yours.com id hnb4qk27sv89 for <linux-acpi@vger.kernel.org>; Mon, 22 Aug 2016 11:35:08 +0200 (envelope-from <aktivierung@lcp-prios.com>)
+Received: from mga04.intel.com ([192.55.52.120]:2938 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752607AbcHVLIf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Aug 2016 07:08:35 -0400
+In-Reply-To: <1468580485-28567-2-git-send-email-wangkefeng.wang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: Kefeng Wang <wangkefeng.wang@huawei.com>, gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 
-Hallo!
+On Fri, 2016-07-15 at 19:01 +0800, Kefeng Wang wrote:
+> We can safely use dw8250_set_termios() as the default set_termios
+> callback instead of serial8250_do_set_termios(), so do it.
 
-Wir freuen uns, dass du dich für unseren kostenlosen Newsletter entschieden 
-hast.
+So, current set_termios() relies on clock to be defined or be an error
+pointer. I'm not sure that it handles NULL properly.
 
-Ab deiner Eintragung bekommst du von uns regelmäßig, komplett kostenfrei, 
-alle aktuellen News zu dem von dir gewählten Thema auf deine E-Mailadresse 
-zugestellt.
+So, the question is does set_termios() handle all possible cases? If no,
+do we guarantee that the case it doesn't handle never happened?
 
-Schließe deine Eintragung ab indem du auf den untenstehenden Link klickst:
-http://rdr.lcp-prios.com/c/7ef45ea2744a3189a8e3af767c66ec4373786f16697f41560cdda3b5c97ca76302058d4a7c62470bd39b19d2b2248918?sToken=listcompanion
+Answer to this question and amend either the patch or improve commit
+message.
 
-Du hast deine Meinung geändert oder dich nicht selbst für unseren Dienst 
-eingetragen? Kein Thema, in dem Fall brauchst du nichts weiter zu tun. Du 
-erhältst von uns keine weiteren E-Mails.
+> 
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> ---
+>  drivers/tty/serial/8250/8250_dw.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_dw.c
+> b/drivers/tty/serial/8250/8250_dw.c
+> index e199696..65f3da7 100644
+> --- a/drivers/tty/serial/8250/8250_dw.c
+> +++ b/drivers/tty/serial/8250/8250_dw.c
+> @@ -301,7 +301,6 @@ static void dw8250_quirks(struct uart_port *p,
+> struct dw8250_data *data)
+>  		p->iotype = UPIO_MEM32;
+>  		p->regshift = 2;
+>  		p->serial_in = dw8250_serial_in32;
+> -		p->set_termios = dw8250_set_termios;
+>  		/* So far none of there implement the Busy
+> Functionality */
+>  		data->uart_16550_compatible = true;
+>  	}
+> @@ -309,7 +308,6 @@ static void dw8250_quirks(struct uart_port *p,
+> struct dw8250_data *data)
+>  	/* Platforms with iDMA */
+>  	if (platform_get_resource_byname(to_platform_device(p->dev),
+>  					 IORESOURCE_MEM,
+> "lpss_priv")) {
+> -		p->set_termios = dw8250_set_termios;
+>  		data->dma.rx_param = p->dev->parent;
+>  		data->dma.tx_param = p->dev->parent;
+>  		data->dma.fn = dw8250_idma_filter;
+> @@ -386,6 +384,7 @@ static int dw8250_probe(struct platform_device
+> *pdev)
+>  	p->iotype	= UPIO_MEM;
+>  	p->serial_in	= dw8250_serial_in;
+>  	p->serial_out	= dw8250_serial_out;
+> +	p->set_termios	= dw8250_set_termios;
+>  
+>  	p->membase = devm_ioremap(&pdev->dev, regs->start,
+> resource_size(regs));
+>  	if (!p->membase)
 
-Dein Team von
-ListCompanion
-
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
