@@ -1,45 +1,55 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v7 9/9] MAINTAINERS: Tweak ARM PMU maintainers
-Date: Tue, 23 Aug 2016 15:48:00 -0500
-Message-ID: <1471985280-2243-10-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v7 6/9] arm: arm64: Add routine to determine cpuid of other cpus
+Date: Tue, 23 Aug 2016 15:47:57 -0500
+Message-ID: <1471985280-2243-7-git-send-email-jeremy.linton@arm.com>
 References: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41024 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:41013 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755682AbcHWUsG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Aug 2016 16:48:06 -0400
+        id S1755583AbcHWUsE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Aug 2016 16:48:04 -0400
 In-Reply-To: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-Update the ARM PMU file list, and add the arm mailing list.
+It is helpful if we can read the cpuid/midr of other CPUs
+in the system independent of arm/arm64.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- MAINTAINERS | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/include/asm/cputype.h   | 2 ++
+ arch/arm64/include/asm/cputype.h | 3 +++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0bbe4b1..d293270 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -905,12 +905,13 @@ ARM PMU PROFILING AND DEBUGGING
- M:	Will Deacon <will.deacon@arm.com>
- R:	Mark Rutland <mark.rutland@arm.com>
- S:	Maintained
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- F:	arch/arm*/kernel/perf_*
- F:	arch/arm/oprofile/common.c
- F:	arch/arm*/kernel/hw_breakpoint.c
- F:	arch/arm*/include/asm/hw_breakpoint.h
- F:	arch/arm*/include/asm/perf_event.h
--F:	drivers/perf/arm_pmu.c
-+F:	drivers/perf/arm_pmu*
- F:	include/linux/perf/arm_pmu.h
+diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
+index 1ee94c7..d5900a2 100644
+--- a/arch/arm/include/asm/cputype.h
++++ b/arch/arm/include/asm/cputype.h
+@@ -208,6 +208,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
+ 	return read_cpuid(CPUID_MPIDR);
+ }
  
- ARM PORT
++#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->cpuid
++
+ /*
+  * Intel's XScale3 core supports some v6 features (supersections, L2)
+  * but advertises itself as v5 as it does not support the v6 ISA.  For
+diff --git a/arch/arm64/include/asm/cputype.h b/arch/arm64/include/asm/cputype.h
+index 9d9fd4b..beb95dc 100644
+--- a/arch/arm64/include/asm/cputype.h
++++ b/arch/arm64/include/asm/cputype.h
+@@ -128,6 +128,9 @@ static inline u32 __attribute_const__ read_cpuid_cachetype(void)
+ {
+ 	return read_cpuid(CTR_EL0);
+ }
++
++#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->reg_midr
++
+ #endif /* __ASSEMBLY__ */
+ 
+ #endif
 -- 
 2.5.5
 
