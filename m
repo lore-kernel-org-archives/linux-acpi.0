@@ -1,34 +1,57 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] ACPI / LPSS: Provide build-in properties of the UART
-Date: Tue, 23 Aug 2016 10:03:22 +0300
-Message-ID: <20160823070322.GB30827@lahna.fi.intel.com>
-References: <1471875855-110782-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1471875855-110782-3-git-send-email-heikki.krogerus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCHv2 3/3] serial: 8250_dw: Add quirk for APM X-Gene SoC
+Date: Tue, 23 Aug 2016 11:33:28 +0300
+Message-ID: <1471941208-27963-4-git-send-email-heikki.krogerus@linux.intel.com>
+References: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12980 "EHLO mga01.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:47802 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756790AbcHWHGm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Aug 2016 03:06:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1471875855-110782-3-git-send-email-heikki.krogerus@linux.intel.com>
+        id S1753181AbcHWIe6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Aug 2016 04:34:58 -0400
+In-Reply-To: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Kan <fkan@apm.com>
 
-On Mon, Aug 22, 2016 at 05:24:14PM +0300, Heikki Krogerus wrote:
-> The UART driver, dw8250.c, needs some details regarding the
-> Designware UART. For ACPI enumerated devices the values are
-> hard-coded, but since the driver also reads the values from
-> device properties, providing them with build-in properties.
-> This allows us to later remove the hard-coded values from
-> the driver.
-> 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+The APM X-Gene SoC UART is the only board that still needs
+the hard-coded values, so handle it separately in
+dw8250_quirks(). The other ACPI platforms are able to
+provide the values with device properties.
 
-Good idea.
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Feng Kan <fkan@apm.com>
+---
+ drivers/tty/serial/8250/8250_dw.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
+index e199696..5c0c123 100644
+--- a/drivers/tty/serial/8250/8250_dw.c
++++ b/drivers/tty/serial/8250/8250_dw.c
+@@ -298,12 +298,17 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
+ 			p->serial_out = dw8250_serial_out32be;
+ 		}
+ 	} else if (has_acpi_companion(p->dev)) {
+-		p->iotype = UPIO_MEM32;
+-		p->regshift = 2;
+-		p->serial_in = dw8250_serial_in32;
++		const struct acpi_device_id *id;
++
++		id = acpi_match_device(p->dev->driver->acpi_match_table,
++				       p->dev);
++		if (id && !strcmp(id->id, "APMC0D08")) {
++			p->iotype = UPIO_MEM32;
++			p->regshift = 2;
++			p->serial_in = dw8250_serial_in32;
++			data->uart_16550_compatible = true;
++		}
+ 		p->set_termios = dw8250_set_termios;
+-		/* So far none of there implement the Busy Functionality */
+-		data->uart_16550_compatible = true;
+ 	}
+ 
+ 	/* Platforms with iDMA */
+-- 
+2.8.1
+
