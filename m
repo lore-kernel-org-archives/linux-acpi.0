@@ -1,93 +1,129 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCHv2 2/3] ACPI / LPSS: Provide build-in properties of the UART
-Date: Tue, 23 Aug 2016 11:33:27 +0300
-Message-ID: <1471941208-27963-3-git-send-email-heikki.krogerus@linux.intel.com>
-References: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:3760 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756858AbcHWIgl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Aug 2016 04:36:41 -0400
-In-Reply-To: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v4 01/15] drivers: iommu: add FWNODE_IOMMU fwnode type
+Date: Tue, 23 Aug 2016 14:49:38 +0100
+Message-ID: <20160823134938.GA9953@red-moon>
+References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1471274620-20754-2-git-send-email-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1471274620-20754-2-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-The UART driver, dw8250.c, needs some details regarding the
-Designware UART. For ACPI enumerated devices the values are
-hard-coded, but since the driver also reads the values from
-device properties, providing them with build-in properties.
-This allows us to later remove the hard-coded values from
-the driver.
+Hi Rafael,
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/acpi_lpss.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+On Mon, Aug 15, 2016 at 04:23:26PM +0100, Lorenzo Pieralisi wrote:
+> On systems booting with a device tree, every struct device is
+> associated with a struct device_node, that represents its DT
+> representation. The device node can be used in generic kernel
+> contexts (eg IRQ translation, IOMMU streamid mapping), to
+> retrieve the properties associated with the device and carry
+> out kernel operation accordingly. Owing to the 1:1 relationship
+> between the device and its device_node, the device_node can also
+> be used as a look-up token for the device (eg looking up a device
+> through its device_node), to retrieve the device in kernel paths
+> where the device_node is available.
+> 
+> On systems booting with ACPI, the same abstraction provided by
+> the device_node is required to provide look-up functionality.
+> 
+> Therefore, mirroring the approach implemented in the IRQ domain
+> kernel layer, this patch adds an additional fwnode type FWNODE_IOMMU.
+> 
+> This patch also implements a glue kernel layer that allows to
+> allocate/free FWNODE_IOMMU fwnode_handle structures and associate
+> them with IOMMU devices.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> ---
+>  include/linux/fwnode.h |  1 +
+>  include/linux/iommu.h  | 25 +++++++++++++++++++++++++
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index 8516717..6e10050 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -19,6 +19,7 @@ enum fwnode_type {
+>  	FWNODE_ACPI_DATA,
+>  	FWNODE_PDATA,
+>  	FWNODE_IRQCHIP,
+> +	FWNODE_IOMMU,
+>  };
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 357a0b8..5520102 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -75,6 +75,7 @@ struct lpss_device_desc {
- 	const char *clk_con_id;
- 	unsigned int prv_offset;
- 	size_t prv_size_override;
-+	struct property_entry *properties;
- 	void (*setup)(struct lpss_private_data *pdata);
- };
- 
-@@ -163,11 +164,19 @@ static const struct lpss_device_desc lpt_i2c_dev_desc = {
- 	.prv_offset = 0x800,
- };
- 
-+static struct property_entry uart_properties[] = {
-+	PROPERTY_ENTRY_U32("reg-io-width", 4),
-+	PROPERTY_ENTRY_U32("reg-shift", 2),
-+	PROPERTY_ENTRY_BOOL("snps,uart-16550-compatible"),
-+	{ },
-+};
-+
- static const struct lpss_device_desc lpt_uart_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
- 	.clk_con_id = "baudclk",
- 	.prv_offset = 0x800,
- 	.setup = lpss_uart_setup,
-+	.properties = uart_properties,
- };
- 
- static const struct lpss_device_desc lpt_sdio_dev_desc = {
-@@ -189,6 +198,7 @@ static const struct lpss_device_desc byt_uart_dev_desc = {
- 	.clk_con_id = "baudclk",
- 	.prv_offset = 0x800,
- 	.setup = lpss_uart_setup,
-+	.properties = uart_properties,
- };
- 
- static const struct lpss_device_desc bsw_uart_dev_desc = {
-@@ -197,6 +207,7 @@ static const struct lpss_device_desc bsw_uart_dev_desc = {
- 	.clk_con_id = "baudclk",
- 	.prv_offset = 0x800,
- 	.setup = lpss_uart_setup,
-+	.properties = uart_properties,
- };
- 
- static const struct lpss_device_desc byt_spi_dev_desc = {
-@@ -440,6 +451,12 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 		goto err_out;
- 	}
- 
-+	if (dev_desc->properties) {
-+		ret = device_add_properties(&adev->dev, dev_desc->properties);
-+		if (ret)
-+			goto err_out;
-+	}
-+
- 	adev->driver_data = pdata;
- 	pdev = acpi_create_platform_device(adev);
- 	if (!IS_ERR_OR_NULL(pdev)) {
--- 
-2.8.1
+Are you ok with this fwnode usage ? It is quite key to the rest
+of this series and I would need to know in order to make progress
+on it please.
 
+Platform devices created out of IORT tables are not ACPI devices
+(I could create fake ones as we do for FADT power button, I do not
+see any particular reason to prefer that approach over this one) and
+in order to identify the device through a fwnode_handle (that, as for
+IRQCHIP is nothing but a token used for look-up) that's what I came
+up with.
+
+Any feedback on the rest of the series is very welcome and needed
+too, thanks.
+
+Lorenzo
+
+>  struct fwnode_handle {
+> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+> index a35fb8b..6f703cb 100644
+> --- a/include/linux/iommu.h
+> +++ b/include/linux/iommu.h
+> @@ -38,6 +38,7 @@ struct bus_type;
+>  struct device;
+>  struct iommu_domain;
+>  struct notifier_block;
+> +struct fwnode_handle;
+>  
+>  /* iommu fault flags */
+>  #define IOMMU_FAULT_READ	0x0
+> @@ -543,4 +544,28 @@ static inline void iommu_device_unlink(struct device *dev, struct device *link)
+>  
+>  #endif /* CONFIG_IOMMU_API */
+>  
+> +/* IOMMU fwnode handling */
+> +static inline bool is_fwnode_iommu(struct fwnode_handle *fwnode)
+> +{
+> +	return fwnode && fwnode->type == FWNODE_IOMMU;
+> +}
+> +
+> +static inline struct fwnode_handle *iommu_alloc_fwnode(void)
+> +{
+> +	struct fwnode_handle *fwnode;
+> +
+> +	fwnode = kzalloc(sizeof(struct fwnode_handle), GFP_ATOMIC);
+> +	fwnode->type = FWNODE_IOMMU;
+> +
+> +	return fwnode;
+> +}
+> +
+> +static inline void iommu_free_fwnode(struct fwnode_handle *fwnode)
+> +{
+> +	if (WARN_ON(!is_fwnode_iommu(fwnode)))
+> +		return;
+> +
+> +	kfree(fwnode);
+> +}
+> +
+>  #endif /* __LINUX_IOMMU_H */
+> -- 
+> 2.6.4
+> 
