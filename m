@@ -1,12 +1,13 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
-Date: Tue, 23 Aug 2016 14:54:27 -0700
-Message-ID: <147198926765.3136.15304034940920273330.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/3] acpi, nfit: nvdimm notification support + tests
+Date: Tue, 23 Aug 2016 16:39:57 -0600
+Message-ID: <20160823223957.GC7799@omniknight.lm.intel.com>
 References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <147198925154.3136.14739108342311837939.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,170 +18,36 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Trigger an nmemX/nfit/flags attribute to fire an event whenever a
-smart-threshold DSM is received.
+On 08/23, Dan Williams wrote:
+> ACPI 6.1 added an "NFIT Health Event Notification" for nvdimm devices.
+> When this fires, system software is expected to issue a DSM to retrieve
+> the latest health values.  For the NFIT driver this notification
+> arrives as an event on the sysfs 'flags' attribute for an nfit/nvdimm
+> device.  The 'flags' attribute reflects the "NVDIMM State Flags" of the
+> "5.2.25.3 NVDIMM Region Mapping Structure", and when read indicates if
+> the platform supports sending health events.
+> 
+> ---
+> 
+> Dan Williams (3):
+>       tools/testing/nvdimm: unit test for acpi_nfit_notify()
+>       acpi, nfit: add dimm device notification support
+>       tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
+> 
+> 
+>  drivers/acpi/nfit/core.c          |  112 ++++++++++++++++++++++++++++++++-----
+>  drivers/acpi/nfit/nfit.h          |    7 ++
+>  drivers/nvdimm/dimm_devs.c        |    6 ++
+>  include/linux/libnvdimm.h         |    1 
+>  tools/testing/nvdimm/Kbuild       |    1 
+>  tools/testing/nvdimm/test/iomap.c |   17 ++++++
+>  tools/testing/nvdimm/test/nfit.c  |   64 +++++++++++++++++++--
+>  7 files changed, 188 insertions(+), 20 deletions(-)
 
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/nfit/core.c         |   10 ++++++--
- drivers/acpi/nfit/nfit.h         |    1 +
- tools/testing/nvdimm/test/nfit.c |   45 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+), 3 deletions(-)
+Looks good to me. For the series,
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 65f155db4283..91ed148784c3 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1248,7 +1248,7 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
- 	return NULL;
- }
- 
--static void __acpi_nvdimm_notify(struct device *dev, u32 event)
-+void __acpi_nvdimm_notify(struct device *dev, u32 event)
- {
- 	struct nfit_mem *nfit_mem;
- 	struct acpi_nfit_desc *acpi_desc;
-@@ -1274,6 +1274,7 @@ static void __acpi_nvdimm_notify(struct device *dev, u32 event)
- 	if (nfit_mem && nfit_mem->flags_attr)
- 		sysfs_notify_dirent(nfit_mem->flags_attr);
- }
-+EXPORT_SYMBOL_GPL(__acpi_nvdimm_notify);
- 
- static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
- {
-@@ -2485,10 +2486,13 @@ static void acpi_nfit_destruct(void *data)
- 	 * notifications.
- 	 */
- 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct acpi_device *adev_dimm = nfit_mem->adev;
-+
- 		sysfs_put(nfit_mem->flags_attr);
- 		nfit_mem->flags_attr = NULL;
--		acpi_remove_notify_handler(nfit_mem->adev->handle,
--				ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
-+		if (adev_dimm)
-+			acpi_remove_notify_handler(adev_dimm->handle,
-+					ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
- 	}
- 	device_unlock(bus_dev);
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 13195824778c..bb101170cd0b 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -233,5 +233,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- const u8 *to_nfit_uuid(enum nfit_uuids id);
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
- void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event);
-+void __acpi_nvdimm_notify(struct device *dev, u32 event);
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 8d79c75d3cae..99ea68674f0a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -161,6 +161,7 @@ struct nfit_test {
- 		unsigned long deadline;
- 		spinlock_t lock;
- 	} ars_state;
-+	struct device *dimm_dev[NUM_DCR];
- };
- 
- static struct nfit_test *to_nfit_test(struct device *dev)
-@@ -430,6 +431,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			break;
- 		case ND_CMD_SMART_THRESHOLD:
- 			rc = nfit_test_cmd_smart_threshold(buf, buf_len);
-+			device_lock(&t->pdev.dev);
-+			__acpi_nvdimm_notify(t->dimm_dev[i], 0x81);
-+			device_unlock(&t->pdev.dev);
- 			break;
- 		default:
- 			return -ENOTTY;
-@@ -566,6 +570,18 @@ static int ars_state_init(struct device *dev, struct ars_state *ars_state)
- 	return 0;
- }
- 
-+static void put_dimms(void *data)
-+{
-+	struct device **dimm_dev = data;
-+	int i;
-+
-+	for (i = 0; i < NUM_DCR; i++)
-+		if (dimm_dev[i])
-+			device_unregister(dimm_dev[i]);
-+}
-+
-+static struct class *nfit_test_dimm;
-+
- static int nfit_test0_alloc(struct nfit_test *t)
- {
- 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
-@@ -621,6 +637,15 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (!t->_fit)
- 		return -ENOMEM;
- 
-+	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t->dimm_dev))
-+		return -ENOMEM;
-+	for (i = 0; i < NUM_DCR; i++) {
-+		t->dimm_dev[i] = device_create(nfit_test_dimm, &t->pdev.dev, 0,
-+				NULL, "test_dimm%d", i);
-+		if (!t->dimm_dev[i])
-+			return -ENOMEM;
-+	}
-+
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -1414,6 +1439,7 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct device *dev = &pdev->dev;
- 	struct nfit_test *nfit_test;
-+	struct nfit_mem *nfit_mem;
- 	union acpi_object *obj;
- 	int rc;
- 
-@@ -1493,6 +1519,20 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	obj->buffer.pointer = nfit_test->nfit_buf;
- 	*(nfit_test->_fit) = obj;
- 	__acpi_nfit_notify(&pdev->dev, nfit_test, 0x80);
-+
-+	/* associate dimm devices with nfit_mem data for notification testing */
-+	mutex_lock(&acpi_desc->init_mutex);
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		u32 nfit_handle = __to_nfit_memdev(nfit_mem)->device_handle;
-+		int i;
-+
-+		for (i = 0; i < NUM_DCR; i++)
-+			if (nfit_handle == handle[i])
-+				dev_set_drvdata(nfit_test->dimm_dev[i],
-+						nfit_mem);
-+	}
-+	mutex_unlock(&acpi_desc->init_mutex);
-+
- 	return 0;
- }
- 
-@@ -1526,6 +1566,10 @@ static __init int nfit_test_init(void)
- {
- 	int rc, i;
- 
-+	nfit_test_dimm = class_create(THIS_MODULE, "nfit_test_dimm");
-+	if (IS_ERR(nfit_test_dimm))
-+		return PTR_ERR(nfit_test_dimm);
-+
- 	nfit_test_setup(nfit_test_lookup);
- 
- 	for (i = 0; i < NUM_NFITS; i++) {
-@@ -1592,6 +1636,7 @@ static __exit void nfit_test_exit(void)
- 	for (i = 0; i < NUM_NFITS; i++)
- 		platform_device_unregister(&instances[i]->pdev);
- 	nfit_test_teardown();
-+	class_destroy(nfit_test_dimm);
- }
- 
- module_init(nfit_test_init);
+Reviewed-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
