@@ -1,93 +1,54 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v7 1/9] arm64: pmu: add fallback probe table
-Date: Tue, 23 Aug 2016 15:47:52 -0500
-Message-ID: <1471985280-2243-2-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v7 3/9] arm64: pmu: Hoist pmu platform device name
+Date: Tue, 23 Aug 2016 15:47:54 -0500
+Message-ID: <1471985280-2243-4-git-send-email-jeremy.linton@arm.com>
 References: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40993 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:41003 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753490AbcHWUsC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Aug 2016 16:48:02 -0400
+        id S1753073AbcHWUsD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Aug 2016 16:48:03 -0400
 In-Reply-To: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-From: Mark Salter <msalter@redhat.com>
+Move the PMU name into a common header file so it may
+be referenced by other users.
 
-In preparation for ACPI support, add a pmu_probe_info table to
-the arm_pmu_device_probe() call. This table gets used when
-probing in the absence of a devicetree node for PMU.
-
-Signed-off-by: Mark Salter <msalter@redhat.com>
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm64/kernel/perf_event.c | 13 ++++++++++++-
- drivers/perf/arm_pmu.c         |  2 +-
- include/linux/perf/arm_pmu.h   |  3 +++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/perf_event.c | 2 +-
+ include/linux/perf/arm_pmu.h   | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-index 838ccf1..3aac598 100644
+index f650548..356fa6c 100644
 --- a/arch/arm64/kernel/perf_event.c
 +++ b/arch/arm64/kernel/perf_event.c
-@@ -24,6 +24,7 @@
- #include <asm/sysreg.h>
- #include <asm/virt.h>
- 
-+#include <linux/acpi.h>
- #include <linux/of.h>
- #include <linux/perf/arm_pmu.h>
- #include <linux/platform_device.h>
-@@ -1044,9 +1045,19 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
- 	{},
- };
- 
-+static const struct pmu_probe_info armv8_pmu_probe_table[] = {
-+	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
-+	{ /* sentinel value */ }
-+};
-+
- static int armv8_pmu_device_probe(struct platform_device *pdev)
- {
--	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids, NULL);
-+	if (acpi_disabled)
-+		return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids,
-+					    NULL);
-+
-+	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids,
-+				    armv8_pmu_probe_table);
- }
+@@ -1099,7 +1099,7 @@ static int armv8_pmu_device_probe(struct platform_device *pdev)
  
  static struct platform_driver armv8_pmu_driver = {
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index c494613..f1aee26 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -1028,7 +1028,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		ret = of_pmu_irq_cfg(pmu);
- 		if (!ret)
- 			ret = init_fn(pmu);
--	} else {
-+	} else if (probe_table) {
- 		cpumask_setall(&pmu->supported_cpus);
- 		ret = probe_current_pmu(pmu, probe_table);
- 	}
+ 	.driver		= {
+-		.name	= "armv8-pmu",
++		.name	= ARMV8_PMU_PDEV_NAME,
+ 		.of_match_table = armv8_pmu_of_device_ids,
+ 	},
+ 	.probe		= armv8_pmu_device_probe,
 diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index e188438..65d8e27 100644
+index 65d8e27..ef4b760 100644
 --- a/include/linux/perf/arm_pmu.h
 +++ b/include/linux/perf/arm_pmu.h
-@@ -147,6 +147,9 @@ struct pmu_probe_info {
- #define XSCALE_PMU_PROBE(_version, _fn) \
- 	PMU_PROBE(ARM_CPU_IMP_INTEL << 24 | _version, ARM_PMU_XSCALE_MASK, _fn)
- 
-+#define ARMV8_PMU_PART_PROBE(_part, _fn) \
-+	PMU_PROBE((_part) << MIDR_PARTNUM_SHIFT, MIDR_PARTNUM_MASK, _fn)
-+
- int arm_pmu_device_probe(struct platform_device *pdev,
+@@ -154,6 +154,8 @@ int arm_pmu_device_probe(struct platform_device *pdev,
  			 const struct of_device_id *of_table,
  			 const struct pmu_probe_info *probe_table);
+ 
++#define ARMV8_PMU_PDEV_NAME "armv8-pmu"
++
+ #endif /* CONFIG_ARM_PMU */
+ 
+ #endif /* __ARM_PMU_H__ */
 -- 
 2.5.5
 
