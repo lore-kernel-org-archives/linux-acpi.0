@@ -1,55 +1,45 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v7 6/9] arm: arm64: Add routine to determine cpuid of other cpus
-Date: Tue, 23 Aug 2016 15:47:57 -0500
-Message-ID: <1471985280-2243-7-git-send-email-jeremy.linton@arm.com>
-References: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41013 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755583AbcHWUsE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Aug 2016 16:48:04 -0400
-In-Reply-To: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/3] acpi, nfit: nvdimm notification support + tests
+Date: Tue, 23 Aug 2016 14:54:11 -0700
+Message-ID: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-It is helpful if we can read the cpuid/midr of other CPUs
-in the system independent of arm/arm64.
+ACPI 6.1 added an "NFIT Health Event Notification" for nvdimm devices.
+When this fires, system software is expected to issue a DSM to retrieve
+the latest health values.  For the NFIT driver this notification
+arrives as an event on the sysfs 'flags' attribute for an nfit/nvdimm
+device.  The 'flags' attribute reflects the "NVDIMM State Flags" of the
+"5.2.25.3 NVDIMM Region Mapping Structure", and when read indicates if
+the platform supports sending health events.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm/include/asm/cputype.h   | 2 ++
- arch/arm64/include/asm/cputype.h | 3 +++
- 2 files changed, 5 insertions(+)
 
-diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
-index 1ee94c7..d5900a2 100644
---- a/arch/arm/include/asm/cputype.h
-+++ b/arch/arm/include/asm/cputype.h
-@@ -208,6 +208,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
- 	return read_cpuid(CPUID_MPIDR);
- }
- 
-+#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->cpuid
-+
- /*
-  * Intel's XScale3 core supports some v6 features (supersections, L2)
-  * but advertises itself as v5 as it does not support the v6 ISA.  For
-diff --git a/arch/arm64/include/asm/cputype.h b/arch/arm64/include/asm/cputype.h
-index 9d9fd4b..beb95dc 100644
---- a/arch/arm64/include/asm/cputype.h
-+++ b/arch/arm64/include/asm/cputype.h
-@@ -128,6 +128,9 @@ static inline u32 __attribute_const__ read_cpuid_cachetype(void)
- {
- 	return read_cpuid(CTR_EL0);
- }
-+
-+#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->reg_midr
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif
--- 
-2.5.5
+Dan Williams (3):
+      tools/testing/nvdimm: unit test for acpi_nfit_notify()
+      acpi, nfit: add dimm device notification support
+      tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
 
+
+ drivers/acpi/nfit/core.c          |  112 ++++++++++++++++++++++++++++++++-----
+ drivers/acpi/nfit/nfit.h          |    7 ++
+ drivers/nvdimm/dimm_devs.c        |    6 ++
+ include/linux/libnvdimm.h         |    1 
+ tools/testing/nvdimm/Kbuild       |    1 
+ tools/testing/nvdimm/test/iomap.c |   17 ++++++
+ tools/testing/nvdimm/test/nfit.c  |   64 +++++++++++++++++++--
+ 7 files changed, 188 insertions(+), 20 deletions(-)
