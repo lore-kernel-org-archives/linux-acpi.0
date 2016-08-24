@@ -1,53 +1,86 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/3] acpi, nfit: nvdimm notification support + tests
-Date: Tue, 23 Aug 2016 16:39:57 -0600
-Message-ID: <20160823223957.GC7799@omniknight.lm.intel.com>
-References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH v3 1/3] serial: 8250_dw: make dw8250_set_termios as
+ default set_termios callback
+Date: Wed, 24 Aug 2016 16:09:01 +0800
+Message-ID: <3dca2d98-1272-0daa-20a5-4649d8ae2405@huawei.com>
+References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
+ <1468580485-28567-2-git-send-email-wangkefeng.wang@huawei.com>
+ <1471864110.4887.199.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <147198925154.3136.14739108342311837939.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:49988 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755191AbcHXI0O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 04:26:14 -0400
+In-Reply-To: <1471864110.4887.199.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 
-On 08/23, Dan Williams wrote:
-> ACPI 6.1 added an "NFIT Health Event Notification" for nvdimm devices.
-> When this fires, system software is expected to issue a DSM to retrieve
-> the latest health values.  For the NFIT driver this notification
-> arrives as an event on the sysfs 'flags' attribute for an nfit/nvdimm
-> device.  The 'flags' attribute reflects the "NVDIMM State Flags" of the
-> "5.2.25.3 NVDIMM Region Mapping Structure", and when read indicates if
-> the platform supports sending health events.
-> 
-> ---
-> 
-> Dan Williams (3):
->       tools/testing/nvdimm: unit test for acpi_nfit_notify()
->       acpi, nfit: add dimm device notification support
->       tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
-> 
-> 
->  drivers/acpi/nfit/core.c          |  112 ++++++++++++++++++++++++++++++++-----
->  drivers/acpi/nfit/nfit.h          |    7 ++
->  drivers/nvdimm/dimm_devs.c        |    6 ++
->  include/linux/libnvdimm.h         |    1 
->  tools/testing/nvdimm/Kbuild       |    1 
->  tools/testing/nvdimm/test/iomap.c |   17 ++++++
->  tools/testing/nvdimm/test/nfit.c  |   64 +++++++++++++++++++--
->  7 files changed, 188 insertions(+), 20 deletions(-)
 
-Looks good to me. For the series,
 
-Reviewed-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 2016/8/22 19:08, Andy Shevchenko wrote:
+> On Fri, 2016-07-15 at 19:01 +0800, Kefeng Wang wrote:
+>> We can safely use dw8250_set_termios() as the default set_termios
+>> callback instead of serial8250_do_set_termios(), so do it.
+> 
+> So, current set_termios() relies on clock to be defined or be an error
+> pointer. I'm not sure that it handles NULL properly.
+> 
+> So, the question is does set_termios() handle all possible cases? If no,
+> do we guarantee that the case it doesn't handle never happened?
+> 
+> Answer to this question and amend either the patch or improve commit
+> message.
+> 
+
+If clk do be NUL, uartclk will be set wrong value, zero, will judge this case
+in dw8250_set_termios, then make it as default callback.
+
+
+>>
+>> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+>> ---
+>>  drivers/tty/serial/8250/8250_dw.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/tty/serial/8250/8250_dw.c
+>> b/drivers/tty/serial/8250/8250_dw.c
+>> index e199696..65f3da7 100644
+>> --- a/drivers/tty/serial/8250/8250_dw.c
+>> +++ b/drivers/tty/serial/8250/8250_dw.c
+>> @@ -301,7 +301,6 @@ static void dw8250_quirks(struct uart_port *p,
+>> struct dw8250_data *data)
+>>  		p->iotype = UPIO_MEM32;
+>>  		p->regshift = 2;
+>>  		p->serial_in = dw8250_serial_in32;
+>> -		p->set_termios = dw8250_set_termios;
+>>  		/* So far none of there implement the Busy
+>> Functionality */
+>>  		data->uart_16550_compatible = true;
+>>  	}
+>> @@ -309,7 +308,6 @@ static void dw8250_quirks(struct uart_port *p,
+>> struct dw8250_data *data)
+>>  	/* Platforms with iDMA */
+>>  	if (platform_get_resource_byname(to_platform_device(p->dev),
+>>  					 IORESOURCE_MEM,
+>> "lpss_priv")) {
+>> -		p->set_termios = dw8250_set_termios;
+>>  		data->dma.rx_param = p->dev->parent;
+>>  		data->dma.tx_param = p->dev->parent;
+>>  		data->dma.fn = dw8250_idma_filter;
+>> @@ -386,6 +384,7 @@ static int dw8250_probe(struct platform_device
+>> *pdev)
+>>  	p->iotype	= UPIO_MEM;
+>>  	p->serial_in	= dw8250_serial_in;
+>>  	p->serial_out	= dw8250_serial_out;
+>> +	p->set_termios	= dw8250_set_termios;
+>>  
+>>  	p->membase = devm_ioremap(&pdev->dev, regs->start,
+>> resource_size(regs));
+>>  	if (!p->membase)
+> 
+
