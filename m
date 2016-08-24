@@ -1,63 +1,38 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH 04/11] sched,x86: Enable Turbo Boost Max Technology
-Date: Wed, 24 Aug 2016 12:18:53 +0200
-Message-ID: <20160824101853.GA25705@gmail.com>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1471559812-19967-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Wed, 24 Aug 2016 04:06:13 -0700
+Message-ID: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34417 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbcHXKeq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 06:34:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1471559812-19967-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from mail-ua0-f172.google.com ([209.85.217.172]:34647 "EHLO
+        mail-ua0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754463AbcHXLHB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 07:07:01 -0400
+Received: by mail-ua0-f172.google.com with SMTP id k90so21690767uak.1
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Aug 2016 04:06:44 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com, Peter Zijlstra <a.p.zijlstra@chello.nl>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rafael Wysocki <rafael@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, patches <patches@apm.com>
 
+[Resend in plain text mode]
 
-* Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com> wrote:
+Hi Lorenzo, Rafael,
 
-> From: Tim Chen <tim.c.chen@linux.intel.com>
-> 
-> On some Intel cores, they can boosted to a higher turbo frequency than
-> the other cores on the same die.  So we prefer processes to be run on
-> them vs other lower frequency ones for extra performance.
-> 
-> We extend the asym packing feature in the scheduler to support packing
-> task to the higher frequency core at the core sched domain level.
-> 
-> We set up a core priority metric to abstract the core preferences based
-> on the maximum boost frequency.  The priority is instantiated such that
-> the core with a higher priority is favored over the core with lower
-> priority when making scheduling decision using ASYM_PACKING.  The smt
-> threads that are of higher number are discounted in their priority so
-> we will not try to pack tasks onto all the threads of a favored core
-> before using other cpu cores.  The cpu that's of the highese priority
-> in a sched_group is recorded in sched_group->asym_prefer_cpu during
-> initialization to save lookup during load balancing.
-> 
-> A sysctl variable /proc/sys/kernel/sched_itmt_enabled is provided so
-> the scheduling based on favored core can be turned on or off at run time.
+ACPI 6.1 spec does not specify how to set interrupt polarity and
+trigger mode in _PRT when the interrupts are static (hardwired to
+specific interrupt inputs in interrupt controller). In current
+acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
+default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
+ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
+GICv3 controllers and will cause failures in PCIe AER, PME services
+(on X-Gene platforms).
 
-> +/*
-> + * Boolean to control whether we want to move processes to cpu capable
-> + * of higher turbo frequency for cpus supporting Intel Turbo Boost Max
-> + * Technology 3.0.
-> + *
-> + * It can be set via /proc/sys/kernel/sched_itmt_enabled
-> + */
-> +unsigned int __read_mostly sysctl_sched_itmt_enabled = 0;
+Is there any way to specify polarity and trigger mode for static
+interrupts in _PRT? If not, can we introduce a _weak_ hook to specify
+default polarity and trigger mode for for ARM64 PCIe INTx in
+drivers/acpi/pci_irq.c?
 
-Ugh, no.
-
-We don't add features to the scheduler in the hope that they might or might not 
-help. We either enable a new feature by default (and make damn sure it helps!),
-or don't add the feature at all.
-
-Thanks,
-
-	Ingo
+Regards,
+Duc Dang.
