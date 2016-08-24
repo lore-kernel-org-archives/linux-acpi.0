@@ -1,30 +1,52 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 04/11] sched,x86: Enable Turbo Boost Max Technology
-Date: Wed, 24 Aug 2016 20:22:55 +0200
-Message-ID: <20160824182255.GC10153@twins.programming.kicks-ass.net>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1471559812-19967-5-git-send-email-srinivas.pandruvada@linux.intel.com>
- <20160824101853.GA25705@gmail.com>
- <20160824175057.GA5032@linux.intel.com>
- <20160824180854.GA1398@gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Wed, 24 Aug 2016 14:30:00 -0500
+Message-ID: <20160824193000.GE23914@localhost>
+References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
+ <20160824142723.GA25843@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160824180854.GA1398@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
+In-Reply-To: <20160824142723.GA25843@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, patches <patches@apm.com>, bhelgaas@google.com, punit.agrawal@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 24, 2016 at 08:08:54PM +0200, Ingo Molnar wrote:
-> > 
-> > So if we take the approach to enable this feature by default for only
-> > single node system (using that as a criteria for client), will that seem
-> > reasonable to you?
+On Wed, Aug 24, 2016 at 03:27:23PM +0100, Lorenzo Pieralisi wrote:
+> [ +Bjorn, Punit]
 > 
-> I suppose that would work. Peter, any objections to such an approach?
+> On Wed, Aug 24, 2016 at 04:06:13AM -0700, Duc Dang wrote:
+> > [Resend in plain text mode]
+> > 
+> > Hi Lorenzo, Rafael,
+> > 
+> > ACPI 6.1 spec does not specify how to set interrupt polarity and
+> > trigger mode in _PRT when the interrupts are static (hardwired to
+> > specific interrupt inputs in interrupt controller). In current
+> > acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
+> > default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
+> > ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
+> > GICv3 controllers and will cause failures in PCIe AER, PME services
+> > (on X-Gene platforms).
 
-Works for me.
+PCI (not PCIe) r3.0, sec 2.2.6, says "Interrupts on PCI are optional
+and defined as 'level sensitive,' asserted low."
 
-Thanks!
+I've heard before that ARM64 does this differently, but I still don't
+understand the difference.  Obviously if you plug a legacy PCI card
+into an ARM64 system, it's still going to pull INTA# low to assert an
+interrupt.  So is there something special about ARM64 that inverts
+that, or what?
+
+> > Is there any way to specify polarity and trigger mode for static
+> > interrupts in _PRT? 
+
+There is no way I'm aware of in _PRT to specify polarity and trigger
+mode.  I don't know the history, but my guess is that it would be seen
+as superfluous given that the PCI spec requires level, active low.
+
+Obviously I'm missing something important.
+
+Bjorn
