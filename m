@@ -1,38 +1,48 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Wed, 24 Aug 2016 04:06:13 -0700
-Message-ID: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH v3 2/3] serial: 8250_dw: Use new dev variable in probe
+Date: Wed, 24 Aug 2016 20:06:37 +0800
+Message-ID: <df249941-7f3c-5d57-7058-0ae7ed923b57@huawei.com>
+References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
+ <1468580485-28567-3-git-send-email-wangkefeng.wang@huawei.com>
+ <1471864381.4887.202.camel@linux.intel.com>
+ <c9107ca9-bd35-e80e-135c-1492789e044a@huawei.com>
+ <1472032817.4887.253.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f172.google.com ([209.85.217.172]:34647 "EHLO
-        mail-ua0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754463AbcHXLHB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 07:07:01 -0400
-Received: by mail-ua0-f172.google.com with SMTP id k90so21690767uak.1
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Aug 2016 04:06:44 -0700 (PDT)
+Received: from szxga01-in.huawei.com ([58.251.152.64]:26933 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751774AbcHXMHT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 08:07:19 -0400
+In-Reply-To: <1472032817.4887.253.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rafael Wysocki <rafael@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, patches <patches@apm.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 
-[Resend in plain text mode]
 
-Hi Lorenzo, Rafael,
 
-ACPI 6.1 spec does not specify how to set interrupt polarity and
-trigger mode in _PRT when the interrupts are static (hardwired to
-specific interrupt inputs in interrupt controller). In current
-acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
-default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
-ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
-GICv3 controllers and will cause failures in PCIe AER, PME services
-(on X-Gene platforms).
+On 2016/8/24 18:00, Andy Shevchenko wrote:
+> On Wed, 2016-08-24 at 16:20 +0800, Kefeng Wang wrote:
+>>
+>> On 2016/8/22 19:13, Andy Shevchenko wrote:
+>>>
+>>> On Fri, 2016-07-15 at 19:01 +0800, Kefeng Wang wrote:
+>>>>
+>>>> Use new dev variable instead of pdev->dev and p->dev in probe
+>>>> function.
+>>>
+>>> I'm not sure we need this one. What is wrong with &pdev->dev?
+>>
+>> Yes, no error in current code. there are &pdev->dev(A) and p->dev(B),
+>> some codes use A, others use B, so I want to use an unified one.
+>>
+>> If someone don't like this, I will drop it, :)
+> 
+> I want to say that this change doesn't belong to the series in this
+> case. You may submit it separately later on.
+> 
 
-Is there any way to specify polarity and trigger mode for static
-interrupts in _PRT? If not, can we introduce a _weak_ hook to specify
-default polarity and trigger mode for for ARM64 PCIe INTx in
-drivers/acpi/pci_irq.c?
+Will do, thanks.
 
-Regards,
-Duc Dang.
