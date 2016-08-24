@@ -1,54 +1,30 @@
-From: Ingo Molnar <mingo@kernel.org>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH 04/11] sched,x86: Enable Turbo Boost Max Technology
-Date: Wed, 24 Aug 2016 20:08:54 +0200
-Message-ID: <20160824180854.GA1398@gmail.com>
+Date: Wed, 24 Aug 2016 20:22:55 +0200
+Message-ID: <20160824182255.GC10153@twins.programming.kicks-ass.net>
 References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
  <1471559812-19967-5-git-send-email-srinivas.pandruvada@linux.intel.com>
  <20160824101853.GA25705@gmail.com>
  <20160824175057.GA5032@linux.intel.com>
+ <20160824180854.GA1398@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34149 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753979AbcHXSJi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 14:09:38 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160824175057.GA5032@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20160824180854.GA1398@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com, Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-
-* Tim Chen <tim.c.chen@linux.intel.com> wrote:
-
-> Ingo,
+On Wed, Aug 24, 2016 at 08:08:54PM +0200, Ingo Molnar wrote:
+> > 
+> > So if we take the approach to enable this feature by default for only
+> > single node system (using that as a criteria for client), will that seem
+> > reasonable to you?
 > 
-> This feature will be a clear benefit for client machines and
-> less clear on servers.
-> 
-> This feature is most beneficial to single threaded workload running on
-> a single socket that operates in mostly Turbo mode.  Client platform
-> like Broadwell High End Desktop is the first one that supports it.
-> Enablng this feature for such platform by default will be a win as it
-> runs single threaded workload much of the time (10%-15% peformance
-> upside).
-> 
-> On the other hand, a heavily loaded server that rarely operates in Turbo
-> mode will benefit much less from this feature.  There is some overhead
-> incurred by migrating load to the favored cores.  Some server folks
-> have asked us to be cautious here and not to turn on ITMT scheduling
-> by default.   Even so, when the server is lightly loaded, this feature
-> can still be a win.  That said, this is future looking as we don't have
-> any server with this feature today.
-> 
-> So if we take the approach to enable this feature by default for only
-> single node system (using that as a criteria for client), will that seem
-> reasonable to you?
+> I suppose that would work. Peter, any objections to such an approach?
 
-I suppose that would work. Peter, any objections to such an approach?
+Works for me.
 
-Thanks,
-
-	Ingo
+Thanks!
