@@ -1,48 +1,55 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH v3 2/3] serial: 8250_dw: Use new dev variable in probe
-Date: Wed, 24 Aug 2016 20:06:37 +0800
-Message-ID: <df249941-7f3c-5d57-7058-0ae7ed923b57@huawei.com>
-References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
- <1468580485-28567-3-git-send-email-wangkefeng.wang@huawei.com>
- <1471864381.4887.202.camel@linux.intel.com>
- <c9107ca9-bd35-e80e-135c-1492789e044a@huawei.com>
- <1472032817.4887.253.camel@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Wed, 24 Aug 2016 15:27:23 +0100
+Message-ID: <20160824142723.GA25843@red-moon>
+References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:26933 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbcHXMHT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Aug 2016 08:07:19 -0400
-In-Reply-To: <1472032817.4887.253.camel@linux.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:48931 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754817AbcHXO1X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Aug 2016 10:27:23 -0400
+Content-Disposition: inline
+In-Reply-To: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org
+To: Duc Dang <dhdang@apm.com>
+Cc: Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, patches <patches@apm.com>, bhelgaas@google.com, punit.agrawal@arm.com
 
+[ +Bjorn, Punit]
 
-
-On 2016/8/24 18:00, Andy Shevchenko wrote:
-> On Wed, 2016-08-24 at 16:20 +0800, Kefeng Wang wrote:
->>
->> On 2016/8/22 19:13, Andy Shevchenko wrote:
->>>
->>> On Fri, 2016-07-15 at 19:01 +0800, Kefeng Wang wrote:
->>>>
->>>> Use new dev variable instead of pdev->dev and p->dev in probe
->>>> function.
->>>
->>> I'm not sure we need this one. What is wrong with &pdev->dev?
->>
->> Yes, no error in current code. there are &pdev->dev(A) and p->dev(B),
->> some codes use A, others use B, so I want to use an unified one.
->>
->> If someone don't like this, I will drop it, :)
+On Wed, Aug 24, 2016 at 04:06:13AM -0700, Duc Dang wrote:
+> [Resend in plain text mode]
 > 
-> I want to say that this change doesn't belong to the series in this
-> case. You may submit it separately later on.
+> Hi Lorenzo, Rafael,
 > 
+> ACPI 6.1 spec does not specify how to set interrupt polarity and
+> trigger mode in _PRT when the interrupts are static (hardwired to
+> specific interrupt inputs in interrupt controller). In current
+> acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
+> default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
+> ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
+> GICv3 controllers and will cause failures in PCIe AER, PME services
+> (on X-Gene platforms).
+> 
+> Is there any way to specify polarity and trigger mode for static
+> interrupts in _PRT? If not, can we introduce a _weak_ hook to specify
+> default polarity and trigger mode for for ARM64 PCIe INTx in
+> drivers/acpi/pci_irq.c?
 
-Will do, thanks.
+Is there any reason why we can NOT use interrupt links (PNP0C0F) and
+related resources to describe those interrupts (I know that the spec
+says they can be used just for configurable IRQs but I suspect that was
+influenced by legacy x86 platforms) ? I think Rafael and Bjorn have a
+bit more visibility into why the interrupt links were specified that
+way (and I do not have enough x86 background to understand why the legacy
+IRQ routing was specified this way in ACPI - which was obviously biased
+by how x86 HW works).
 
+Lorenzo
+
+> 
+> Regards,
+> Duc Dang.
+> 
