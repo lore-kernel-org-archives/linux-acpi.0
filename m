@@ -1,406 +1,198 @@
-From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Subject: [PATCH v4 2/2] power: Adds support for Smart Battery System Manager
-Date: Thu, 25 Aug 2016 22:21:01 +0200
-Message-ID: <1472156461-25180-3-git-send-email-karl-heinz@schneider-inet.de>
-References: <1bIiDr-0004G1-0P>
- <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from schneider-inet.de ([85.214.76.205]:58643 "EHLO
-        h1714509.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752958AbcHYUYC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2016 16:24:02 -0400
-In-Reply-To: <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Christopher Covington <cov@codeaurora.org>
+Subject: Re: [PATCH v9 0/4] ACPI: parse the SPCR table
+Date: Thu, 25 Aug 2016 16:50:13 -0400
+Message-ID: <0bb74c68-536e-dfa1-5813-a65474e812bf@codeaurora.org>
+References: <20160811153152.755-1-aleksey.makarov@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160811153152.755-1-aleksey.makarov@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
 
-This patch adds support for Smart Battery System Manager.
-A SBSM is a device listening at I2C/SMBus address 0x0a and is capable of
-communicating up to four I2C smart battery devices. All smart battery
-devices are listening at address 0x0b, so the SBSM muliplexes between
-them. The driver makes use of the I2C-Mux framework to allow smart
-batteries to be bound via device tree, i.e. the sbs-battery driver.
+On 08/11/2016 11:31 AM, Aleksey Makarov wrote:
+> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port Console
+> Redirection Table) [2] as a mandatory ACPI table that specifies the
+> configuration of serial console.
+> 
+> Move "earlycon" early_param handling to earlycon.c to parse this option once
+> 
+> Parse SPCR table, setup earlycon and register specified console.
+> 
+> Enable parsing this table on ARM64.  Earlycon should be set up as early as
+> possible.  ACPI boot tables are mapped in
+> arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch() and
+> that's where we parse spcr.  So it has to be opted-in per-arch. When
+> ACPI_SPCR_TABLE is defined initialization of DT earlycon is deferred until the
+> DT/ACPI decision is done.
+> 
+> Implement console_match() for pl011.
+> 
+> Based on the work by Leif Lindholm [3]
+> Thanks to Peter Hurley for explaining how this should work.
+> 
+> Should be applied to v4.8-rc1
+> Tested on QEMU and ThunderX.
+> SPCR support is included in QEMU's ARM64 mach-virt since 2.4 release.
 
-Via sysfs interface the online state and charge type are presented. If
-the driver is bound as ltc1760 (an implementation of a Dual Smart Battery
-System Manager) the charge type can also be changed from trickle to fast.
+Tested-by: Christopher Covington <cov@codeaurora.org>
 
-Tested-by: Phil Reid <preid@electromag.com.au>
-Reviewed-by: Phil Reid <preid@electromag.com.au>
-Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
----
- drivers/power/Kconfig       |  13 ++
- drivers/power/Makefile      |   1 +
- drivers/power/sbs-manager.c | 323 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 337 insertions(+)
- create mode 100644 drivers/power/sbs-manager.c
+on the QDF2432
 
-diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
-index acd4a15..6816153 100644
---- a/drivers/power/Kconfig
-+++ b/drivers/power/Kconfig
-@@ -157,6 +157,19 @@ config BATTERY_WM97XX
- 	help
- 	  Say Y to enable support for battery measured by WM97xx aux port.
- 
-+config MANAGER_SBS
-+	tristate "Smart Battery System Manager"
-+	depends on I2C && I2C_MUX
-+	help
-+	  Say Y here to include support for Smart Battery System Manager
-+	  ICs. The driver reports online and charging status via sysfs.
-+	  It presents itself also as I2C mux which allows to bind
-+	  smart battery driver to its ports.
-+	  Supported is for example LTC1760.
-+
-+	  This driver can also be built as a module. If so, the module will be
-+	  called sbs-manager.
-+
- config BATTERY_SBS
-         tristate "SBS Compliant gas gauge"
-         depends on I2C
-diff --git a/drivers/power/Makefile b/drivers/power/Makefile
-index e46b75d..5378e65 100644
---- a/drivers/power/Makefile
-+++ b/drivers/power/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
- obj-$(CONFIG_BATTERY_DS2780)	+= ds2780_battery.o
- obj-$(CONFIG_BATTERY_DS2781)	+= ds2781_battery.o
- obj-$(CONFIG_BATTERY_DS2782)	+= ds2782_battery.o
-+obj-$(CONFIG_MANAGER_SBS)	+= sbs-manager.o
- obj-$(CONFIG_BATTERY_GAUGE_LTC2941)	+= ltc2941-battery-gauge.o
- obj-$(CONFIG_BATTERY_GOLDFISH)	+= goldfish_battery.o
- obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
-diff --git a/drivers/power/sbs-manager.c b/drivers/power/sbs-manager.c
-new file mode 100644
-index 0000000..e3debd7
---- /dev/null
-+++ b/drivers/power/sbs-manager.c
-@@ -0,0 +1,323 @@
-+/*
-+ * Driver for SBS compliant Smart Battery System Managers
-+ *
-+ * The device communicates via i2c at address 0x0a and multiplexes access to up
-+ * to four smart batteries at address 0x0b.
-+ *
-+ * Via sysfs interface the online state and charge type are presented.
-+ *
-+ * Datasheet SBSM:    http://sbs-forum.org/specs/sbsm100b.pdf
-+ * Datasheet LTC1760: http://cds.linear.com/docs/en/datasheet/1760fb.pdf
-+ *
-+ * Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-mux.h>
-+#include <linux/power_supply.h>
-+
-+#define SBSM_MAX_BATS  4
-+#define SBSM_RETRY_CNT 3
-+
-+/* registers addresses */
-+#define SBSM_CMD_BATSYSSTATE     0x01
-+#define SBSM_CMD_BATSYSSTATECONT 0x02
-+#define SBSM_CMD_BATSYSINFO      0x04
-+#define SBSM_CMD_LTC             0x3c
-+
-+struct sbsm_data {
-+	struct i2c_client *client;
-+	struct i2c_mux_core *muxc;
-+
-+	struct power_supply *psy;
-+
-+	int cur_chan;         /* currently selected channel */
-+	bool is_ltc1760;      /* special capabilities */
-+};
-+
-+static enum power_supply_property sbsm_props[] = {
-+	POWER_SUPPLY_PROP_ONLINE,
-+	POWER_SUPPLY_PROP_CHARGE_TYPE,
-+};
-+
-+static int sbsm_read_word(struct i2c_client *client, u8 address)
-+{
-+	int reg, retries = SBSM_RETRY_CNT;
-+
-+	while (retries > 0) {
-+		reg = i2c_smbus_read_word_data(client, address);
-+		if (reg >= 0)
-+			break;
-+		--retries;
-+	}
-+
-+	if (reg < 0) {
-+		dev_err(&client->dev, "failed to read register %i\n",
-+			(int)address);
-+		return reg;
-+	}
-+
-+	return le16_to_cpu(reg);
-+}
-+
-+static int sbsm_write_word(struct i2c_client *client, u8 address, u16 word)
-+{
-+	int ret, retries = SBSM_RETRY_CNT;
-+
-+	word = cpu_to_le16(word);
-+	while (retries > 0) {
-+		ret = i2c_smbus_write_word_data(client, address, word);
-+		if (ret >= 0)
-+			break;
-+		--retries;
-+	}
-+	if (ret < 0)
-+		dev_err(&client->dev, "failed to write to register %i\n",
-+			(int)address);
-+
-+	return ret;
-+}
-+
-+static int sbsm_get_property(struct power_supply *psy,
-+			     enum power_supply_property psp,
-+			     union power_supply_propval *val)
-+{
-+	struct sbsm_data *data = power_supply_get_drvdata(psy);
-+	int regval = 0;
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_ONLINE:
-+		regval = sbsm_read_word(data->client, SBSM_CMD_BATSYSSTATECONT);
-+		if (regval < 0)
-+			return regval;
-+		val->intval = !!(regval & 0x1);
-+		break;
-+
-+	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-+		regval = sbsm_read_word(data->client, SBSM_CMD_BATSYSSTATE);
-+		if (regval < 0)
-+			return regval;
-+
-+		if ((regval & 0x00f0) == 0) {
-+			val->intval = POWER_SUPPLY_CHARGE_TYPE_NONE;
-+			return 0;
-+		}
-+		val->intval = POWER_SUPPLY_CHARGE_TYPE_TRICKLE;
-+
-+		if (data->is_ltc1760) {
-+			/* charge mode fast if turbo is active */
-+			regval = sbsm_read_word(data->client, SBSM_CMD_LTC);
-+			if (regval < 0)
-+				return regval;
-+			else if (regval & 0x80)
-+				val->intval = POWER_SUPPLY_CHARGE_TYPE_FAST;
-+		}
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sbsm_prop_is_writeable(struct power_supply *psy,
-+				  enum power_supply_property psp)
-+{
-+	struct sbsm_data *data = power_supply_get_drvdata(psy);
-+
-+	return (psp == POWER_SUPPLY_PROP_CHARGE_TYPE) && data->is_ltc1760;
-+}
-+
-+static int sbsm_set_property(struct power_supply *psy,
-+			     enum power_supply_property psp,
-+			     const union power_supply_propval *val)
-+{
-+	struct sbsm_data *data = power_supply_get_drvdata(psy);
-+	int ret = -EINVAL;
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-+		/* write 1 to TURBO if type fast is given */
-+		if (data->is_ltc1760) {
-+			u16 regval = val->intval ==
-+			POWER_SUPPLY_CHARGE_TYPE_FAST ? (0x1 << 7) : 0;
-+			ret = sbsm_write_word(data->client, SBSM_CMD_LTC,
-+					      regval);
-+		}
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * Switch to battery
-+ * Parameter chan is directly the content of SMB_BAT* nibble
-+ */
-+static int sbsm_select(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct sbsm_data *data = i2c_mux_priv(muxc);
-+	int ret = 0;
-+	u16 reg;
-+
-+	if (data->cur_chan == chan)
-+		return ret;
-+
-+	/* chan goes from 1 ... 4 */
-+	reg = 1 << (11 + chan);
-+	ret = sbsm_write_word(data->client, SBSM_CMD_BATSYSSTATE, reg);
-+	if (ret)
-+		dev_err(&data->client->dev, "Failed to select channel %i\n",
-+			chan);
-+	else
-+		data->cur_chan = chan;
-+
-+	return ret;
-+}
-+
-+#if defined(CONFIG_OF)
-+
-+#include <linux/of_device.h>
-+
-+static const struct of_device_id sbsm_dt_ids[] = {
-+	{ .compatible = "sbs,sbs-manager" },
-+	{ .compatible = "lltc,ltc1760" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, sbsm_dt_ids);
-+
-+#endif
-+
-+static const struct power_supply_desc sbsm_default_psy_desc = {
-+	.type = POWER_SUPPLY_TYPE_MAINS,
-+	.properties = sbsm_props,
-+	.num_properties = ARRAY_SIZE(sbsm_props),
-+	.get_property = &sbsm_get_property,
-+	.set_property = &sbsm_set_property,
-+	.property_is_writeable = &sbsm_prop_is_writeable,
-+};
-+
-+static int sbsm_probe(struct i2c_client *client,
-+		      const struct i2c_device_id *id)
-+{
-+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-+	struct sbsm_data *data;
-+	struct device *dev = &client->dev;
-+	struct power_supply_desc *psy_desc;
-+	struct power_supply_config psy_cfg = {};
-+	int ret = 0, i, supported_bats;
-+
-+	/* Device listens only at address 0x0a */
-+	if (client->addr != 0x0a)
-+		return -ENODEV;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
-+		return -EPFNOSUPPORT;
-+
-+	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, data);
-+
-+	data->client = client;
-+	data->is_ltc1760 = !!strstr(id->name, "ltc1760");
-+
-+	ret  = sbsm_read_word(client, SBSM_CMD_BATSYSINFO);
-+	if (ret < 0)
-+		return ret;
-+	supported_bats = le16_to_cpu(ret) & 0xf;
-+
-+	data->muxc = i2c_mux_alloc(adapter, dev, SBSM_MAX_BATS, 0,
-+				   I2C_MUX_LOCKED, &sbsm_select, NULL);
-+	if (!data->muxc) {
-+		ret = -ENOMEM;
-+		goto err_mux_alloc;
-+	}
-+	data->muxc->priv = data;
-+
-+	/* register muxed i2c channels. One for each supported battery */
-+	for (i = 0; i < SBSM_MAX_BATS; ++i) {
-+		if ((1 << i) & supported_bats) {
-+			ret = i2c_mux_add_adapter(data->muxc, 0, i + 1, 0);
-+			if (ret) {
-+				dev_err(dev,
-+					"failed to register i2c mux channel %d\n",
-+					i + 1);
-+				goto err_mux_register;
-+			}
-+		}
-+	}
-+
-+	psy_desc = devm_kmemdup(dev, &sbsm_default_psy_desc,
-+				sizeof(struct power_supply_desc),
-+				GFP_KERNEL);
-+	if (!psy_desc) {
-+		ret = -ENOMEM;
-+		goto err_psy;
-+	}
-+
-+	psy_desc->name = devm_kasprintf(dev, GFP_KERNEL, "sbsm-%s",
-+					dev_name(&client->dev));
-+	if (!psy_desc->name) {
-+		ret = -ENOMEM;
-+		goto err_psy;
-+	}
-+
-+	psy_cfg.drv_data = data;
-+	data->psy = devm_power_supply_register(dev, psy_desc, &psy_cfg);
-+	if (IS_ERR(data->psy)) {
-+		ret = PTR_ERR(data->psy);
-+		dev_err(dev, "failed to register power supply %s\n",
-+			psy_desc->name);
-+		goto err_psy;
-+	}
-+
-+	dev_info(dev, "sbsm registered\n");
-+	return 0;
-+
-+err_psy:
-+err_mux_register:
-+	i2c_mux_del_adapters(data->muxc);
-+
-+err_mux_alloc:
-+	return ret;
-+}
-+
-+static int sbsm_remove(struct i2c_client *client)
-+{
-+	struct sbsm_data *data = i2c_get_clientdata(client);
-+
-+	i2c_mux_del_adapters(data->muxc);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id sbsm_ids[] = {
-+	{ "sbs-manager", 0 },
-+	{ "ltc1760",     0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, sbsm_ids);
-+
-+static struct i2c_driver sbsm_driver = {
-+	.driver = {
-+		.name = "sbsm",
-+	},
-+	.probe		= sbsm_probe,
-+	.remove		= sbsm_remove,
-+	.id_table	= sbsm_ids
-+};
-+module_i2c_driver(sbsm_driver);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Karl-Heinz Schneider <karl-heinz@schneider-inet.de>");
-+MODULE_DESCRIPTION("SBSM Smart Battery System Manager");
+Thanks,
+Cov
+
+> v9:
+> - rebase to v4.8-rc1
+> - fix compilation for !CONFIG_SERIAL_EARLYCON case
+> - add Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com> for ACPI part
+> - move constant check out of loop (Yury Norov)
+> - add '\n' to info message
+> 
+> v8:
+> - rebase to next-20160520
+> - remove the patch "ACPICA: Headers: Add new constants for the DBG2 ACPI table"
+>   as it have got to linux-next
+> - add Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Reviewed-by:
+>   Peter Hurley <peter@hurleysoftware.com> (but see below)
+> - fix the patch "serial: pl011: add console matching function".  The patch by
+>   Christopher Covington [4] specifies that SBSA uart does 32-bit access to
+>   registers and this breaks the match function.  In this series the function
+>   was changed to match when SPCR specifies both mmio32 and mmio access.
+>   I removed Acked-by: Greg from this patch because of these changes.
+> 
+> v7:
+> https://lkml.kernel.org/g/1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org
+> - add Acked-by: Rob Herring for "of/serial: move earlycon early_param handling
+>   to serial"
+> - call DT earlycon initialization from the arch ACPI code, not from parse_spcr()
+>   (Rafael J. Wysocki)
+> - fix a few minor issues (Rafael J. Wysocki)
+> 
+> v6:
+> https://lkml.kernel.org/g/1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org
+> - add documentation for parse_spcr() functioin (Yury Norov)
+> - don't initialize err variable (Yury Norov)
+> - add __initdata for the earlycon_init_is_deferred flag variable
+> - rename the function exported in "of/serial: move earlycon early_param handling
+>   to serial" to avoid clash with the function from arch/microblaze/kernel/prom.c
+> - defer initialization of DT earlycon until DT/ACPI decision is made
+>   (Rob Herring, Peter Hurley)
+> - use snprintf instead of sprintf (Andy Shevchenko)
+> - drop patch that adds EARLYCON_DECLARE for pl011 as EARLYCON_DECLARE is
+>   equivalent to OF_EARLYCON_DECLARE for 4.6+ (Peter Hurley).  This means that
+>   SPCR earlycon will not work on the kernels before 4.6
+> 
+> v5:
+> https://lkml.kernel.org/g/1458643595-14719-1-git-send-email-aleksey.makarov@linaro.org
+> - drop patch "serial: pl011: use ACPI SPCR to setup 32-bit access" because
+>   it is ugly. Also because Christopher Covington came with a better solution [4]
+> - remove error message when the table is not provided by ACPI (Andy Shevchenko)
+> - rewrite spcr.c following the suggestions by Peter Hurley
+> - add console_match() for pl011 in a separate patch
+> - add EARLYCON_DECLARE for pl011 in a separate patch
+> - add patch "of/serial: move earlycon early_param handling to serial" from
+>   the GDB2 series
+> 
+> v4:
+> https://lkml.kernel.org/g/1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org
+> - drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
+>   ACPI developers work on a new API and asked not to do that.
+>   Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
+>   and cache the result. (Lv Zheng)
+> - fix some style issues (Yury Norov)
+> 
+> v3:
+> https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
+> 
+> Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
+> 
+> - drop acpi_match() member of struct console
+> - drop implementations of this member for pl011 and 8250
+> - drop the patch that renames some vars in printk.c as it is not needed anymore
+> - drop patch that introduces system wide acpi_table_parse2().
+>   Instead introduce a custom acpi_table_parse_spcr() in spcr.c
+> 
+> Instead of introducing a new match_acpi() member of struct console,
+> this patchset introduces a new function acpi_console_check().
+> This function is called when a new uart is registered at serial_core.c
+> the same way OF code checks for console.  If the registered uart is the
+> console specified by SPCR table, this function calls add_preferred_console()
+> 
+> The restrictions of this approach are:
+> 
+> - only serial consoles can be set up
+> - only consoles specified by the memory/io address can be set up
+>   (SPCR can specify devices by PCI id/PCI address)
+> 
+> v2:
+> https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
+> - don't use SPCR if user specified console in command line
+> - fix initialization order of newcon->index = 0
+> - rename some variables at printk.c (Joe Perches, Peter Hurley)
+> - enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
+> - remove the retry loop for console registering (Peter Hurley).
+>   Instead, obtain SPCR with acpi_get_table().  That works after
+>   call to acpi_early_init() i. e. in any *_initcall()
+> - describe design decision behind introducing acpi_match() (Peter Hurley)
+> - fix compilation for x86 + ACPI (Graeme Gregory)
+> - introduce DBG2 constants in a separate patch (Andy Shevchenko)
+> - fix a typo in DBG2 constants (Andy Shevchenko)
+> - add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
+> - add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
+> - add documentation for functions
+> - add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
+>   accessor functions (Christopher Covington)
+> - change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
+> - introduce acpi_table_parse2() in a separate patch
+> - fix fetching the SPCR table early (Mark Salter)
+> - add a patch from Mark Salter that introduces support for matching 8250-based
+>   consoles
+> 
+> v1:
+> https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
+> 
+> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+> [3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
+> [4] https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
+> 
+> Aleksey Makarov (3):
+>   ACPI: parse SPCR and enable matching console
+>   ARM64: ACPI: enable ACPI_SPCR_TABLE
+>   serial: pl011: add console matching function
+> 
+> Leif Lindholm (1):
+>   of/serial: move earlycon early_param handling to serial
+> 
+>  arch/arm64/Kconfig              |   1 +
+>  arch/arm64/kernel/acpi.c        |  11 +++-
+>  drivers/acpi/Kconfig            |   3 ++
+>  drivers/acpi/Makefile           |   1 +
+>  drivers/acpi/spcr.c             | 111 ++++++++++++++++++++++++++++++++++++++++
+>  drivers/of/fdt.c                |  11 +---
+>  drivers/tty/serial/amba-pl011.c |  56 ++++++++++++++++++++
+>  drivers/tty/serial/earlycon.c   |  19 ++++++-
+>  include/linux/acpi.h            |   6 +++
+>  include/linux/of_fdt.h          |   2 +
+>  include/linux/serial_core.h     |   9 +++-
+>  11 files changed, 216 insertions(+), 14 deletions(-)
+>  create mode 100644 drivers/acpi/spcr.c
+> 
+
+
 -- 
-2.7.4
-
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+Technologies, Inc. Qualcomm Technologies, Inc. is a member of the Code
+Aurora Forum, a Linux Foundation Collaborative Project.
