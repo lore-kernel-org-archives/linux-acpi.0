@@ -1,94 +1,90 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v12 7/7] acpi: Provide the interface to validate the proc_id
-Date: Thu, 25 Aug 2016 16:35:20 +0800
-Message-ID: <1472114120-3281-8-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v12 2/7] x86, acpi, cpu-hotplug: Enable acpi to register
+ all possible cpus at boot time.
+Date: Thu, 25 Aug 2016 16:57:37 +0800
+Message-ID: <c716d43a-8b9f-f517-2c84-a3a61ab361b0@cn.fujitsu.com>
 References: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <1472114120-3281-3-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
+In-Reply-To: <1472114120-3281-3-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+To: tglx@linutronix.de
+Cc: tj@kernel.org, rjw@rjwysocki.net, akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-When we want to identify whether the proc_id is unreasonable or not, we
-can call the "acpi_processor_validate_proc_id" function. It will search
-in the duplicate IDs. If we find the proc_id in the IDs, we return true
-to the call function. Conversely, the false represents available.
+Hi tglx,
 
-When we establish all possible cpuid <-> nodeid mapping to handle the
-cpu hotplugs, we will use the proc_id from ACPI table.
+At 08/25/2016 04:35 PM, Dou Liyang wrote:
+>  arch/x86/kernel/apic/apic.c | 18 ++++++++++++++----
+>  1 file changed, 14 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+> index cea4fc1..e5612a9 100644
+> --- a/arch/x86/kernel/apic/apic.c
+> +++ b/arch/x86/kernel/apic/apic.c
+> @@ -2024,7 +2024,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+>  	apic_write(APIC_LVT1, value);
+>  }
+>
+> -int generic_processor_info(int apicid, int version)
+> +static int __generic_processor_info(int apicid, int version, bool enabled)
+>  {
+>  	int cpu, max = nr_cpu_ids;
+>  	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+> @@ -2090,7 +2090,6 @@ int generic_processor_info(int apicid, int version)
+>  		return -EINVAL;
+>  	}
+>
+> -	num_processors++;
+>  	if (apicid == boot_cpu_physical_apicid) {
 
-We do validation when we get the proc_id. If the result is true, we
-will stop the mapping.
+I move the "num_processors++" below.
+Because I think that if "apicid == boot_cpu_physical_apicid" is true,
+The "disabled_cpus" will plus one that may conflict with the
+"num_processors++"
 
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- drivers/acpi/acpi_processor.c | 16 ++++++++++++++++
- drivers/acpi/processor_core.c |  4 ++++
- include/linux/acpi.h          |  3 +++
- 3 files changed, 23 insertions(+)
+Is my thought right?
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 346fbfc..ae6dae9 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -659,6 +659,22 @@ static void acpi_processor_duplication_valiate(void)
- 						NULL, NULL, NULL);
- }
- 
-+bool acpi_processor_validate_proc_id(int proc_id)
-+{
-+	int i;
-+
-+	/*
-+	 * compare the proc_id with duplicate IDs, if the proc_id is already
-+	 * in the duplicate IDs, return true, otherwise, return false.
-+	 */
-+	for (i = 0; i < nr_duplicate_ids; i++) {
-+		if (duplicate_processor_ids[i] == proc_id)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- void __init acpi_processor_init(void)
- {
- 	acpi_processor_duplication_valiate();
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 7827c71..bf72097 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -301,6 +301,10 @@ static bool map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
- 		if (ACPI_FAILURE(status))
- 			return false;
- 		acpi_id = object.processor.proc_id;
-+
-+		/* validate the acpi_id */
-+		if(acpi_processor_validate_proc_id(acpi_id))
-+			return false;
- 		break;
- 	case ACPI_TYPE_DEVICE:
- 		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ea67776..929ff8f 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -267,6 +267,9 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- 	return phys_id == PHYS_CPUID_INVALID;
- }
- 
-+/* Validate the processor object's proc_id */
-+bool acpi_processor_validate_proc_id(int proc_id);
-+
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
--- 
-2.5.5
+>  		/*
+>  		 * x86_bios_cpu_apicid is required to have processors listed
+> @@ -2113,6 +2112,7 @@ int generic_processor_info(int apicid, int version)
+>
+>  		pr_warning("APIC: Package limit reached. Processor %d/0x%x ignored.\n",
+>  			   thiscpu, apicid);
+> +
+>  		disabled_cpus++;
+>  		return -ENOSPC;
+>  	}
+> @@ -2132,7 +2132,6 @@ int generic_processor_info(int apicid, int version)
+>  			apic_version[boot_cpu_physical_apicid], cpu, version);
+>  	}
+>
+> -	physid_set(apicid, phys_cpu_present_map);
+>  	if (apicid > max_physical_apicid)
+>  		max_physical_apicid = apicid;
+>
+> @@ -2145,11 +2144,22 @@ int generic_processor_info(int apicid, int version)
+>  		apic->x86_32_early_logical_apicid(cpu);
+>  #endif
+>  	set_cpu_possible(cpu, true);
+> -	set_cpu_present(cpu, true);
+> +
+> +	if (enabled) {
+> +		num_processors++;
+> +		physid_set(apicid, phys_cpu_present_map);
+> +		set_cpu_present(cpu, true);
+> +	} else
+> +		disabled_cpus++;
+>
 
+I remove all the "if (enabled)" code and do the unified
+judgment here.
+
+Thanks,
+Dou
 
 
 --
