@@ -1,97 +1,55 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Wed, 24 Aug 2016 17:56:35 -0500
-Message-ID: <20160824225635.GM23914@localhost>
-References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
- <20160824142723.GA25843@red-moon>
- <20160824193000.GE23914@localhost>
- <20160824213005.1a9300ef@arm.com>
- <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: GPEs occur, but no EC (_Qxx) events
+Date: Thu, 25 Aug 2016 03:16:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC11E60@SHSMSX101.ccr.corp.intel.com>
+References: <20160824144911.GA31547@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:50330 "EHLO mail.kernel.org"
+Received: from mga09.intel.com ([134.134.136.24]:18077 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753827AbcHXW4m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 24 Aug 2016 18:56:42 -0400
-Content-Disposition: inline
-In-Reply-To: <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+        id S1753369AbcHYEyJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 Aug 2016 00:54:09 -0400
+In-Reply-To: <20160824144911.GA31547@al>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Duc Dang <dhdang@apm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, punit.agrawal@arm.com
+To: Peter Wu <peter@lekensteyn.nl>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Aug 24, 2016 at 03:19:21PM -0700, Duc Dang wrote:
-> On Wed, Aug 24, 2016 at 1:30 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> > On Wed, 24 Aug 2016 14:30:00 -0500
-> > Bjorn Helgaas <helgaas@kernel.org> wrote:
-> >
-> >> On Wed, Aug 24, 2016 at 03:27:23PM +0100, Lorenzo Pieralisi wrote:
-> >> > [ +Bjorn, Punit]
-> >> >
-> >> > On Wed, Aug 24, 2016 at 04:06:13AM -0700, Duc Dang wrote:
-> >> > > [Resend in plain text mode]
-> >> > >
-> >> > > Hi Lorenzo, Rafael,
-> >> > >
-> >> > > ACPI 6.1 spec does not specify how to set interrupt polarity and
-> >> > > trigger mode in _PRT when the interrupts are static (hardwired to
-> >> > > specific interrupt inputs in interrupt controller). In current
-> >> > > acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
-> >> > > default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
-> >> > > ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
-> >> > > GICv3 controllers and will cause failures in PCIe AER, PME services
-> >> > > (on X-Gene platforms).
-> >>
-> >> PCI (not PCIe) r3.0, sec 2.2.6, says "Interrupts on PCI are optional
-> >> and defined as 'level sensitive,' asserted low."
-> >>
-> >> I've heard before that ARM64 does this differently, but I still don't
-> >> understand the difference.  Obviously if you plug a legacy PCI card
-> >> into an ARM64 system, it's still going to pull INTA# low to assert an
-> >> interrupt.  So is there something special about ARM64 that inverts
-> >> that, or what?
-> >
-> > There is certainly an inverter somewhere on the interrupt path, because
-> > the GIC triggers on level high, not level low. But I don't think that's
-> > the issue Duc is trying to outline here, because that's not something
-> > SW can fix. I'm worried that in his system, the interrupt is edge
-> > triggered instead.
-> 
-> Yes, there is an inverter in the interrupt path to deliver interrupt to the GIC
-> as level-high. X-Gene GIC uses level high for PCI INTx. I myself has been
-> lucky when using trigger-rising for PCI INTx in DT boot mode.
+Hi, Peter
 
-I'd say the code in drivers/acpi/pci_irq.c should be generic and
-assume what's in the PCI spec, i.e., level-triggered, active low.  If
-a platform needs to do something else, that exception should be
-handled in platform-specific code somehow, not in pci_irq.c.
+> From: Peter Wu [mailto:peter@lekensteyn.nl]
+> Subject: GPEs occur, but no EC (_Qxx) events
+> 
+> Hi Lv,
+> 
+> The Asus X550ZE laptop does not trigger EC events, resulting in
+> non-working Fn keys and inability to detect lid close events. From
+> /sys/firmware/acpi/interrupts/ I observe that GPE 0x15 is continuously
+> increasing, but no _Qxx methods are invoked. Any idea what to try?
 
-> >> > > Is there any way to specify polarity and trigger mode for static
-> >> > > interrupts in _PRT?
-> >>
-> >> There is no way I'm aware of in _PRT to specify polarity and trigger
-> >> mode.  I don't know the history, but my guess is that it would be seen
-> >> as superfluous given that the PCI spec requires level, active low.
+
+According to your description, if GPE 0x15 is the EC GPE, you surely need to check the EC debugging logs:
+# echo "file ec.c +p" > <debugfs>/dynamic_debug/control
+
 > 
-> The device still pulls the INTx pin low to trigger interrupt, but the
-> interrupt delivered
-> to interrupt controller (GIC in this case) is not necessarily to be
-> level-low. Current code
-> assume level-low mode to program to the interrupt controller for INTx,
-> and fails for
-> GIC, GICv2m and GICv3.
+> The original bug report is at
+> https://bugzilla.kernel.org/show_bug.cgi?id=115021
+
+OK, I'll help there.
+
+Thanks
+Lv
+
 > 
-> >>
-> >> Obviously I'm missing something important.
-> >
-> > Same here, unless the HW is not PCI compliant...
-> >
-> > Thanks,
-> >
-> >         M.
-> > --
-> > Jazz is not dead. It just smells funny.
+> More debug dumps can be found in
+> https://lekensteyn.nl/files/Asus-X550ZE/
 > 
-> Regards,
-> Duc Dang.
+> Reproduced with various kernel versions including 4.6.3, 4.7 and
+> v4.8-rc2-348-g6040e57.
+> --
+> Kind regards,
+> Peter Wu
+> https://lekensteyn.nl
