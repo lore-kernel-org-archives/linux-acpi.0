@@ -1,34 +1,54 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 03/11] sched: Extend scheduler's asym packing
-Date: Thu, 25 Aug 2016 13:45:22 +0200
-Message-ID: <20160825114522.GD10138@twins.programming.kicks-ass.net>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1471559812-19967-4-git-send-email-srinivas.pandruvada@linux.intel.com>
- <20160825112251.GA1323@e105550-lin.cambridge.arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCHv2 0/3] serial: dw8250: ACPI tuning
+Date: Thu, 25 Aug 2016 15:47:38 +0300
+Message-ID: <1472129258.4887.301.camel@linux.intel.com>
+References: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39609 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758408AbcHYLpg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2016 07:45:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20160825112251.GA1323@e105550-lin.cambridge.arm.com>
+Received: from mga09.intel.com ([134.134.136.24]:16674 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754706AbcHYMsA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 Aug 2016 08:48:00 -0400
+In-Reply-To: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Rasmussen <morten.rasmussen@arm.com>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 25, 2016 at 12:22:52PM +0100, Morten Rasmussen wrote:
-> I haven't reviewed the entire patch set in detail, but why can't the cpu
-> priority list be handed to the scheduler instead of moving scheduling
-> decisions out of the scheduler?
+On Tue, 2016-08-23 at 11:33 +0300, Heikki Krogerus wrote:
+> Hi,
+> 
+> Since we now have the build-in properties available, using those when
+> ever possible to get the details the driver expects and when they are
+> not being provided by the fw. Right now there is only one exception
+> ACPI enumerated board where we have no means to provide the properties
+> with build-in ones, so simply handling that as an exception in
+> dw8250_quirks().
 
-It basically does that. All that we allow here is the architecture to
-override the default order of what is considered priority.
+Looks good to me.
 
-The default (as per Power7) is naked cpu number, with lower cpu numbers
-having higher priority to higher numbers.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-This patch set allows the architecture to provide a less_than operator
-(and through that a custom order).
+
+> 
+> Changes since v1:
+> - Fix a compiler error in acpi_apd.c found by kbuild test robot
+> - ACK from Mika
+> 
+> 
+> Heikki Krogerus (3):
+>   ACPI / APD: Provide build-in properties of the UART
+>   ACPI / LPSS: Provide build-in properties of the UART
+>   serial: 8250_dw: Add quirk for APM X-Gene SoC
+> 
+>  drivers/acpi/acpi_apd.c           | 15 +++++++++++++++
+>  drivers/acpi/acpi_lpss.c          | 17 +++++++++++++++++
+>  drivers/tty/serial/8250/8250_dw.c | 15 ++++++++++-----
+>  3 files changed, 42 insertions(+), 5 deletions(-)
+> 
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
