@@ -1,266 +1,105 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v12 0/7] Make cpuid <-> nodeid mapping persistent
-Date: Thu, 25 Aug 2016 17:08:21 +0800
-Message-ID: <ffa700ac-6055-c216-2627-446449beae14@cn.fujitsu.com>
-References: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Thu, 25 Aug 2016 11:04:02 +0100
+Message-ID: <87pooxqi5p.fsf@e105922-lin.cambridge.arm.com>
+References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
+        <20160824142723.GA25843@red-moon> <20160824193000.GE23914@localhost>
+        <20160824213005.1a9300ef@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:54429 "EHLO
+        cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933357AbcHYKE2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 25 Aug 2016 06:04:28 -0400
+In-Reply-To: <20160824213005.1a9300ef@arm.com> (Marc Zyngier's message of
+        "Wed, 24 Aug 2016 21:30:05 +0100")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, bhelgaas@google.com
 
-Hi all,
+Marc Zyngier <marc.zyngier@arm.com> writes:
 
-These patches are used to fixing the memory allocation failure.
-and it's fine from the ACPI perspective.
+> On Wed, 24 Aug 2016 14:30:00 -0500
+> Bjorn Helgaas <helgaas@kernel.org> wrote:
+>
+>> On Wed, Aug 24, 2016 at 03:27:23PM +0100, Lorenzo Pieralisi wrote:
+>> > [ +Bjorn, Punit]
+>> > 
+>> > On Wed, Aug 24, 2016 at 04:06:13AM -0700, Duc Dang wrote:  
+>> > > [Resend in plain text mode]
+>> > > 
+>> > > Hi Lorenzo, Rafael,
+>> > > 
+>> > > ACPI 6.1 spec does not specify how to set interrupt polarity and
+>> > > trigger mode in _PRT when the interrupts are static (hardwired to
+>> > > specific interrupt inputs in interrupt controller). In current
+>> > > acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
+>> > > default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
+>> > > ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
+>> > > GICv3 controllers and will cause failures in PCIe AER, PME services
+>> > > (on X-Gene platforms).  
+>> 
+>> PCI (not PCIe) r3.0, sec 2.2.6, says "Interrupts on PCI are optional
+>> and defined as 'level sensitive,' asserted low."
+>> 
+>> I've heard before that ARM64 does this differently, but I still don't
+>> understand the difference.  Obviously if you plug a legacy PCI card
+>> into an ARM64 system, it's still going to pull INTA# low to assert an
+>> interrupt.  So is there something special about ARM64 that inverts
+>> that, or what?
+>
+> There is certainly an inverter somewhere on the interrupt path, because
+> the GIC triggers on level high, not level low. But I don't think that's
+> the issue Duc is trying to outline here, because that's not something
+> SW can fix. I'm worried that in his system, the interrupt is edge
+> triggered instead. 
+>
+>> 
+>> > > Is there any way to specify polarity and trigger mode for static
+>> > > interrupts in _PRT?   
+>> 
+>> There is no way I'm aware of in _PRT to specify polarity and trigger
+>> mode.  I don't know the history, but my guess is that it would be seen
+>> as superfluous given that the PCI spec requires level, active low.
+>> 
+>> Obviously I'm missing something important.
+>
+> Same here, unless the HW is not PCI compliant...
 
-I hope that RJ<rjw@rjwysocki.net> can apply them.
+I had faced this issue on Juno r2[0] a few months back - though AFAICS,
+it wasn't preventing anything to work but printed an annoying message on
+boot.
 
-Due to these patches are also related to x86 and mm,
-so, I need the ACKs from the x86 and mm maintainers.   :)
+[ 1.353696] genirq: Setting trigger mode 8 for irq 9 failed (gic_set_type+0x0/0x5c)
+[ 1.478286] genirq: Setting trigger mode 8 for irq 17 failed (gic_set_type+0x0/0x5c)
 
-Thanks,
-Dou.
+The ACPI code in the kernel (drivers/acpi/pci_irq.c) is behaving as per
+spec, so nothing to be done there IMHO. The problem arises due to the
+integration of two mismatched components - PCI is level low and the GIC
+supports only level high - making it necessary to introduce glue
+elements like the inverter.
 
-At 08/25/2016 04:35 PM, Dou Liyang wrote:
-> [Summary]
->
-> Use ACPI tables: MADT, DSDT.
-> 1. Create cpuid in order based on Local Apic ID in MADT(apicid).
-> 2. Obtain the nodeid by the proc_id in DSDT.
-> 3. Make the cpuid <-> nodeid mapping persistent.
->
-> The mapping relations:
->
-> proc_id in DSDT <--> Processor ID in MADT(acpiid) <--> Local Apic ID in MADT(apicid)
->         ^                                                        ^
->         |                                                        |
->         v                                                        v 
->    pxm in DSDT                                                 cpuid
->         ^
->         |
->         v
->      nodeid
->
-> [Problem]
->
-> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
-> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
->
-> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
-> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
-> workqueue does not update wq_numa_possible_cpumask.
->
-> So here is the problem:
->
-> Assume we have the following cpuid <-> nodeid in the beginning:
->
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 2 | 30-44, 90-104
-> node 3 | 45-59, 105-119
->
-> and we hot-remove node2 and node3, it becomes:
->
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
->
-> and we hot-add node4 and node5, it becomes:
->
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 4 | 30-59
-> node 5 | 90-119
->
-> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
->
-> When a pool workqueue is initialized, if its cpumask belongs to a node, its
-> pool->node will be mapped to that node. And memory used by this workqueue will
-> also be allocated on that node.
->
-> static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
-> ...
->         /* if cpumask is contained inside a NUMA node, we belong to that node */
->         if (wq_numa_enabled) {
->                 for_each_node(node) {
->                         if (cpumask_subset(pool->attrs->cpumask,
->                                            wq_numa_possible_cpumask[node])) {
->                                 pool->node = node;
->                                 break;
->                         }
->                 }
->         }
->
-> Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
-> which will lead to memory allocation failure:
->
->  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
->   cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
->   node 0: slabs: 6172, objs: 259224, free: 245741
->   node 1: slabs: 3261, objs: 136962, free: 127656
->
-> It happens here:
->
-> create_worker(struct worker_pool *pool)
->  |--> worker = alloc_worker(pool->node);
->
-> static struct worker *alloc_worker(int node)
-> {
->         struct worker *worker;
->
->         worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
->
->         ......
->
->         return worker;
-> }
->
->
-> [Solution]
->
-> There are four mappings in the kernel:
-> 1. nodeid (logical node id)   <->   pxm
-> 2. apicid (physical cpu id)   <->   nodeid
-> 3. cpuid (logical cpu id)     <->   apicid
-> 4. cpuid (logical cpu id)     <->   nodeid
->
-> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
->    mapping is setup at boot time. This mapping is persistent, won't change.
->
-> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
->    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
->    persistent.
->
-> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
->    allocated, lower ids first, and released at CPU hotremove time, reused for other
->    hotadded CPUs. So this mapping is not persistent.
->
-> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
->    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
->
-> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
-> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
-> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
-> mapping. So the key point is obtaining all cpus' apicid.
->
-> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
-> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
->
-> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
->    This is done by introducing an extra parameter to generic_processor_info to let the
->    caller control if disabled cpus are ignored.
->
-> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
->    the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
->    registering local apic. Store the mapping in this array.
->
-> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
->    This is also done by introducing an extra parameter to these apis to let the caller
->    control if disabled cpus are ignored.
->
-> 4. Establish all possible cpuid <-> nodeid mapping.
->    This is done via an additional acpi namespace walk for processors.
->
->
-> For previous discussion, please refer to:
-> https://lkml.org/lkml/2015/2/27/145
-> https://lkml.org/lkml/2015/3/25/989
-> https://lkml.org/lkml/2015/5/14/244
-> https://lkml.org/lkml/2015/7/7/200
-> https://lkml.org/lkml/2015/9/27/209
-> https://lkml.org/lkml/2016/5/19/212
-> https://lkml.org/lkml/2016/7/19/181
-> https://lkml.org/lkml/2016/7/25/99
-> https://lkml.org/lkml/2016/7/26/52
-> https://lkml.org/lkml/2016/8/8/96
->
-> Change log v11 -> v12:
-> 1. Rebase
-> 2. Add a short summary
->
-> Change log v10 -> v11:
-> 1. Reduce the number of repeat judgment of online/offline
-> 2. Seperate out the functionality in the enable or disable situation
->
-> Change log v9 -> v10:
-> 1. Providing an empty definition of acpi_set_processor_mapping() for
-> CONFIG_ACPI_HOTPLUG_CPU unset. In patch 5.
-> 2. Fix auto build test ERROR on ia64/next. In patch 5.
-> 3. Fix some comment.
->
-> Change log v8 -> v9:
-> 1. Providing an empty definition of acpi_set_processor_mapping() for
-> CONFIG_ACPI_HOTPLUG_CPU unset.
->
-> Change log v7 -> v8:
-> 1. Provide the mechanism to validate processors in the ACPI tables.
-> 2. Provide the interface to validate the proc_id when setting the mapping.
->
-> Change log v6 -> v7:
-> 1. Fix arm64 build failure.
->
-> Change log v5 -> v6:
-> 1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
->
-> Change log v4 -> v5:
-> 1. Remove useless code in patch 1.
-> 2. Small improvement of commit message.
->
-> Change log v3 -> v4:
-> 1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
->    before per cpu areas were initialized.
->
-> Change log v2 -> v3:
-> 1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
-> 2. Build zonelists for memory-less nodes so that memory allocator will fall
->    back to proper nodes automatically.
->
-> Change log v1 -> v2:
-> 1. Split code movement and actual changes. Add patch 1.
-> 2. Synchronize best near online node record when node hotplug happens. In patch 2.
-> 3. Fix some comment.
->
-> Dou Liyang (2):
->   acpi: Provide the mechanism to validate processors in the ACPI tables
->   acpi: Provide the interface to validate the proc_id
->
-> Gu Zheng (4):
->   x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
->     boot time.
->   x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
->     persistent cpuid <-> apicid mapping.
->   x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
->   x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
->     booting.
->
-> Tang Chen (1):
->   x86, memhp, numa: Online memory-less nodes at boot time.
->
->  arch/ia64/kernel/acpi.c       |   3 +-
->  arch/x86/include/asm/mpspec.h |   1 +
->  arch/x86/kernel/acpi/boot.c   |  11 ++--
->  arch/x86/kernel/apic/apic.c   |  77 +++++++++++++++++++++++--
->  arch/x86/mm/numa.c            |  27 +++++----
->  drivers/acpi/acpi_processor.c | 105 ++++++++++++++++++++++++++++++++-
->  drivers/acpi/bus.c            |   1 +
->  drivers/acpi/processor_core.c | 131 +++++++++++++++++++++++++++++++++++-------
->  include/linux/acpi.h          |   6 ++
->  9 files changed, 311 insertions(+), 51 deletions(-)
->
+This would all be OK if ACPI had a mechanism to specify the interrupt
+type (trigger and polarity). As an alternative, for Juno I created a
+link device (as Lorenzo suggests) to provide this information to the
+kernel.
 
+With this fix the warnings went away and I suspect this will address
+Duc's issue as well. But that is playing naughty with the spec (ACPI 6.1
+Section. 6.2.13).
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+If there are no good reason to restrict using link devices to
+configurable interrupts, perhaps the spec needs an update.
+
+Perhaps Rafael knows why is there a restriction on using link devices
+for fixed interrupts in the ACPI spec...
+
+[0] https://lists.linaro.org/pipermail/linaro-acpi/2016-May/006880.html
+
+>
+> Thanks,
+>
+> 	M.
