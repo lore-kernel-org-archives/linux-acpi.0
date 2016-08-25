@@ -1,151 +1,92 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: Defining polarity and trigger mode for static interrupts in
- _PRT
-Date: Thu, 25 Aug 2016 12:18:25 +0100
-Message-ID: <20160825121825.322d8450@arm.com>
-References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
-        <20160824142723.GA25843@red-moon>
-        <20160824193000.GE23914@localhost>
-        <20160824213005.1a9300ef@arm.com>
-        <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+From: Morten Rasmussen <morten.rasmussen@arm.com>
+Subject: Re: [PATCH 03/11] sched: Extend scheduler's asym packing
+Date: Thu, 25 Aug 2016 12:22:52 +0100
+Message-ID: <20160825112251.GA1323@e105550-lin.cambridge.arm.com>
+References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <1471559812-19967-4-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56917 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752567AbcHYLSa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Aug 2016 07:18:30 -0400
-In-Reply-To: <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1471559812-19967-4-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, peterz@infradead.org, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Duc Dang <dhdang@apm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, punit.agrawal@arm.com
 
-On Wed, 24 Aug 2016 15:19:21 -0700
-Duc Dang <dhdang@apm.com> wrote:
-
-> On Wed, Aug 24, 2016 at 1:30 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> > On Wed, 24 Aug 2016 14:30:00 -0500
-> > Bjorn Helgaas <helgaas@kernel.org> wrote:
-> >  
-> >> On Wed, Aug 24, 2016 at 03:27:23PM +0100, Lorenzo Pieralisi wrote:  
-> >> > [ +Bjorn, Punit]
-> >> >
-> >> > On Wed, Aug 24, 2016 at 04:06:13AM -0700, Duc Dang wrote:  
-> >> > > [Resend in plain text mode]
-> >> > >
-> >> > > Hi Lorenzo, Rafael,
-> >> > >
-> >> > > ACPI 6.1 spec does not specify how to set interrupt polarity and
-> >> > > trigger mode in _PRT when the interrupts are static (hardwired to
-> >> > > specific interrupt inputs in interrupt controller). In current
-> >> > > acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
-> >> > > default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
-> >> > > ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
-> >> > > GICv3 controllers and will cause failures in PCIe AER, PME services
-> >> > > (on X-Gene platforms).  
-> >>
-> >> PCI (not PCIe) r3.0, sec 2.2.6, says "Interrupts on PCI are optional
-> >> and defined as 'level sensitive,' asserted low."
-> >>
-> >> I've heard before that ARM64 does this differently, but I still don't
-> >> understand the difference.  Obviously if you plug a legacy PCI card
-> >> into an ARM64 system, it's still going to pull INTA# low to assert an
-> >> interrupt.  So is there something special about ARM64 that inverts
-> >> that, or what?  
-> >
-> > There is certainly an inverter somewhere on the interrupt path, because
-> > the GIC triggers on level high, not level low. But I don't think that's
-> > the issue Duc is trying to outline here, because that's not something
-> > SW can fix. I'm worried that in his system, the interrupt is edge
-> > triggered instead.  
+On Thu, Aug 18, 2016 at 03:36:44PM -0700, Srinivas Pandruvada wrote:
+> From: Tim Chen <tim.c.chen@linux.intel.com>
 > 
-> Yes, there is an inverter in the interrupt path to deliver interrupt to the GIC
-> as level-high. X-Gene GIC uses level high for PCI INTx. I myself has been
-> lucky when using trigger-rising for PCI INTx in DT boot mode.
+> We generalize the scheduler's asym packing to provide an
+> ordering of the cpu beyond just the cpu number.  This allows
+> the use of the ASYM_PACKING scheduler machinery to move
+> loads to prefered CPU in a sched domain based on a preference
+> defined by sched_asym_prefer function.
 > 
-> >  
-> >>  
-> >> > > Is there any way to specify polarity and trigger mode for static
-> >> > > interrupts in _PRT?  
-> >>
-> >> There is no way I'm aware of in _PRT to specify polarity and trigger
-> >> mode.  I don't know the history, but my guess is that it would be seen
-> >> as superfluous given that the PCI spec requires level, active low.  
+> We also record the most preferred cpu in a sched group when
+> we build the cpu's capacity for fast lookup of preferred cpu
+> during load balancing.
 > 
-> The device still pulls the INTx pin low to trigger interrupt, but the
-> interrupt delivered
-> to interrupt controller (GIC in this case) is not necessarily to be
-> level-low. Current code
-> assume level-low mode to program to the interrupt controller for INTx,
-> and fails for
-> GIC, GICv2m and GICv3.
+> Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Well, there's nothing that can't be fixed. The GIC doesn't have a
-programmatic notion of what is high or low. It only knows about level
-interrupts. But the HW only knows about level_high. Obviously, for
-things to work, the integrator has to put an inverter on the line to
-cope with level_low.
+[...]
 
-If the driver code insist on using level_low, we can address this
-pretty easily, and just warn about the oddity:
+> diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+> index c64fc51..75e1002 100644
+> --- a/kernel/sched/sched.h
+> +++ b/kernel/sched/sched.h
+> @@ -532,6 +532,22 @@ struct dl_rq {
+>  
+>  #ifdef CONFIG_SMP
+>  
+> +#ifndef sched_asym_prefer
+> +
+> +/* For default ASYM_PACKING, lower numbered cpu is prefered */
+> +static inline bool sched_asym_prefer(int a, int b)
+> +{
+> +	return a < b;
+> +}
+> +
+> +#endif /* sched_asym_prefer */
 
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 6fc56c3..b3755a3 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -306,9 +306,16 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
- 		return -EINVAL;
- 
- 	/* SPIs have restrictions on the supported types */
--	if (irq >= 32 && type != IRQ_TYPE_LEVEL_HIGH &&
--			 type != IRQ_TYPE_EDGE_RISING)
--		return -EINVAL;
-+	if (irq >= 32) {
-+		unsigned int tmp = type;
-+		if (type == IRQ_TYPE_LEVEL_LOW)
-+			type = IRQ_TYPE_LEVEL_HIGH;
-+		if (type == IRQ_TYPE_EDGE_FALLING)
-+			type = IRQ_TYPE_EDGE_RISING;
-+		if (tmp != type)
-+			pr_warn("Overriding IRQ%d type from %d to %d\n",
-+				d->irq, tmp, type);
-+	}
- 
- 	if (gic_irq_in_rdist(d)) {
- 		base = gic_data_rdist_sgi_base();
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index c2cab57..0d187dc 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -280,9 +280,16 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
- 		return -EINVAL;
- 
- 	/* SPIs have restrictions on the supported types */
--	if (gicirq >= 32 && type != IRQ_TYPE_LEVEL_HIGH &&
--			    type != IRQ_TYPE_EDGE_RISING)
--		return -EINVAL;
-+	if (gicirq >= 32) {
-+		unsigned int tmp = type;
-+		if (type == IRQ_TYPE_LEVEL_LOW)
-+			type = IRQ_TYPE_LEVEL_HIGH;
-+		if (type == IRQ_TYPE_EDGE_FALLING)
-+			type = IRQ_TYPE_EDGE_RISING;
-+		if (tmp != type)
-+			pr_warn("Overriding IRQ%d type from %d to %d\n",
-+				d->irq, tmp, type);
-+	}
- 
- 	return gic_configure_irq(gicirq, type, base, NULL);
- }
+Isn't this a very significant change in the interface between
+architecture and the scheduler?
 
+If I'm not mistaken, our current interface is quite strict when it comes
+to information passed from the architecture into the scheduler. We allow
+'topology' flags, but not behavioural flags, to be set by the
+architecture, and the architecture can expose current and max cpu
+capacities through the arch_scale_*() functions. For NUMA, we can expose
+'distance' between nodes (and more?).
 
+These are meant to describe the system topology to the scheduler, so it
+can make better decisions on its own. sched_asym_prefer() is is not only
+affecting scheduler behaviour, it is handing off scheduling decisions to
+architecture code. In essence allowing logic to be plugged into the
+scheduler, although with a somewhat limited scope of impact.
 
-Does this work for you?
+Should this been seen as the architecture/scheduler is up for revision
+and we will start allowing architecture code to plug in function to
+affect scheduling behaviour?
+
+I haven't reviewed the entire patch set in detail, but why can't the cpu
+priority list be handed to the scheduler instead of moving scheduling
+decisions out of the scheduler?
+
+Isn't it possible to express the cpu 'priority' as different cpu
+capacities instead? Without understanding the details of ITMT, it seems
+to me that what you really have is different cpu compute capacities, and
+that is what we have cpu capacity for.
+
+Is the intention long term to change the cpu priority order on the fly,
+otherwise I don't see why you would put the logic in architecture code?
+
+Finally, the existing callback functions from the scheduler to
+architecture code are prefixed with arch_, I think this one should do
+the same to make it clear that this function may be implemented by
+generic scheduler code.
 
 Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny.
+Morten
