@@ -1,79 +1,51 @@
 From: wangyijing <wangyijing@huawei.com>
 Subject: Re: [PATCH] PCI: release pci_host_bridge resource after remove root
  bus
-Date: Thu, 25 Aug 2016 16:01:27 +0800
-Message-ID: <57BEA5D7.6090007@huawei.com>
+Date: Thu, 25 Aug 2016 16:16:12 +0800
+Message-ID: <57BEA94C.2010607@huawei.com>
 References: <1466682138-25281-1-git-send-email-wangyijing@huawei.com>
  <20160822172821.GG18628@localhost> <57BBB383.50503@huawei.com>
  <20160824213921.GH23914@localhost>
+ <c9129658-d500-ac4c-ccd7-090ebcbf731d@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([119.145.14.199]:9791 "EHLO
+Received: from szxga05-in.huawei.com ([119.145.14.199]:52275 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753868AbcHYIKA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2016 04:10:00 -0400
-In-Reply-To: <20160824213921.GH23914@localhost>
+        with ESMTP id S1757665AbcHYIQt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2016 04:16:49 -0400
+In-Reply-To: <c9129658-d500-ac4c-ccd7-090ebcbf731d@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
+To: Sinan Kaya <okaya@codeaurora.org>, Bjorn Helgaas <helgaas@kernel.org>
 Cc: bhelgaas@google.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
->>>> 1. For pci devices, we would release their resources in
->>>>    pci_destroy_dev() regardless of pci device refcount.
->>>> 2. When we try to remove pci root bus, there is no devices
->>>>    need to use the pci_host_bridge resources again, release
->>>>    pci_host_bridge resources is safe.
->>>> 3. In some cases, users woule make mistake, for example,
->>>>    user get a pci device(increase refcount), but forget to
->>>>    put this device, then if we do hotplug pci root bus,
->>>>    it would make all pci devices cannot work after hot add.
->>>
->>> Can you explain this a little more?  Are you talking about a *driver*
->>> that forgets to put the device?
+
+
+在 2016/8/25 5:48, Sinan Kaya 写道:
+> On 8/24/2016 5:39 PM, Bjorn Helgaas wrote:
+>>> Yes, may some pci drivers make a mistake, the refcount control the device object
+>>>> release is fine, but I think move the mem resource release out is better.
+>> If this is caused by driver bugs, I think we need to fix the driver
+>> bugs.
 >>
->> Yes, may some pci drivers make a mistake, the refcount control the device object
->> release is fine, but I think move the mem resource release out is better.
-> 
-> If this is caused by driver bugs, I think we need to fix the driver
-> bugs.
-
-Agree, but it's better if pci root bus hotplug could work well regardless of the drviers' bug.
-After we stop all pci devices, I think no one could uses the resources again,
-it's no need to free host bridge resource until its refcount reach 0.
-
-But this is just my personal opinion :)
-
-> 
-> So far all I see here is "it works when I do this."  What we need is
-> an argument for "it's correct to do this."  It's certainly possible
-> that you're already making that argument and I'm just not
-> understanding it.
-> 
->>>> I found this issue in the following case:
->>>> 1. I have a raid pci device in my system;
->>>> 2. I mount a disk which connect to this raid.
->>>> 3. hot remove the pci root bus.
->>>> 4. hot add the pci root bus.
->>>> 5. found the resource conflicts for the children pci devices under this root bus.
->>>>
->>>> pci_root_bus increase a refcount at pci_host_bridge.
->>>> pci_root_bus decrease a refcount at pci_host_bridge in
->>>>   release_pcibus_dev() when pci_root_bus device refcount reach 0.
->>>>
->>>> pci_dev increase a refcount at pci_bus in pci_alloc_dev().
->>>> pci_dev decrease a refcount at pci_bus in pci_release_dev()
->>>> when pci_dev refcount reach 0.
->>>>
->>>> If any pci device refcount cannot reach 0, then its pci_bus
->>>> refcount cannot reach 0 too, the result is pci_host_bridge
->>>> refcount cannot reach 0.
->>>
->>> .
->>>
+>> So far all I see here is "it works when I do this."  What we need is
+>> an argument for "it's correct to do this."  It's certainly possible
+>> that you're already making that argument and I'm just not
+>> understanding it.
 >>
 > 
-> .
+> I also want to point out that the sysfs is not the only device removal
+> path. As Bjorn pointed out, you were moving resource free code into the sysfs
+> path and breaking other path (ACPI hotplug).
+
+No, this changes is also in ACPI hotplug path, but I found antoher problem,
+now host bridge resource allocated pci_acpi_root_add_resources(), if we move the
+free into pci_remove_root_bus(), it's not symmetrical as Bjorn pointed out.
+This may introudce some problem, E.g. if we created host bridge, but create root bus
+fail, in this case ,we have no way to free host bridge resource again.  :(
+
+
 > 
 
