@@ -1,55 +1,79 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: GPEs occur, but no EC (_Qxx) events
-Date: Thu, 25 Aug 2016 03:16:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC11E60@SHSMSX101.ccr.corp.intel.com>
-References: <20160824144911.GA31547@al>
+From: wangyijing <wangyijing@huawei.com>
+Subject: Re: [PATCH] PCI: release pci_host_bridge resource after remove root
+ bus
+Date: Thu, 25 Aug 2016 16:01:27 +0800
+Message-ID: <57BEA5D7.6090007@huawei.com>
+References: <1466682138-25281-1-git-send-email-wangyijing@huawei.com>
+ <20160822172821.GG18628@localhost> <57BBB383.50503@huawei.com>
+ <20160824213921.GH23914@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18077 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753369AbcHYEyJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Aug 2016 00:54:09 -0400
-In-Reply-To: <20160824144911.GA31547@al>
-Content-Language: en-US
+Received: from szxga05-in.huawei.com ([119.145.14.199]:9791 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753868AbcHYIKA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2016 04:10:00 -0400
+In-Reply-To: <20160824213921.GH23914@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Wu <peter@lekensteyn.nl>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: bhelgaas@google.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-Hi, Peter
-
-> From: Peter Wu [mailto:peter@lekensteyn.nl]
-> Subject: GPEs occur, but no EC (_Qxx) events
+>>>> 1. For pci devices, we would release their resources in
+>>>>    pci_destroy_dev() regardless of pci device refcount.
+>>>> 2. When we try to remove pci root bus, there is no devices
+>>>>    need to use the pci_host_bridge resources again, release
+>>>>    pci_host_bridge resources is safe.
+>>>> 3. In some cases, users woule make mistake, for example,
+>>>>    user get a pci device(increase refcount), but forget to
+>>>>    put this device, then if we do hotplug pci root bus,
+>>>>    it would make all pci devices cannot work after hot add.
+>>>
+>>> Can you explain this a little more?  Are you talking about a *driver*
+>>> that forgets to put the device?
+>>
+>> Yes, may some pci drivers make a mistake, the refcount control the device object
+>> release is fine, but I think move the mem resource release out is better.
 > 
-> Hi Lv,
-> 
-> The Asus X550ZE laptop does not trigger EC events, resulting in
-> non-working Fn keys and inability to detect lid close events. From
-> /sys/firmware/acpi/interrupts/ I observe that GPE 0x15 is continuously
-> increasing, but no _Qxx methods are invoked. Any idea what to try?
+> If this is caused by driver bugs, I think we need to fix the driver
+> bugs.
 
+Agree, but it's better if pci root bus hotplug could work well regardless of the drviers' bug.
+After we stop all pci devices, I think no one could uses the resources again,
+it's no need to free host bridge resource until its refcount reach 0.
 
-According to your description, if GPE 0x15 is the EC GPE, you surely need to check the EC debugging logs:
-# echo "file ec.c +p" > <debugfs>/dynamic_debug/control
+But this is just my personal opinion :)
 
 > 
-> The original bug report is at
-> https://bugzilla.kernel.org/show_bug.cgi?id=115021
-
-OK, I'll help there.
-
-Thanks
-Lv
-
+> So far all I see here is "it works when I do this."  What we need is
+> an argument for "it's correct to do this."  It's certainly possible
+> that you're already making that argument and I'm just not
+> understanding it.
 > 
-> More debug dumps can be found in
-> https://lekensteyn.nl/files/Asus-X550ZE/
+>>>> I found this issue in the following case:
+>>>> 1. I have a raid pci device in my system;
+>>>> 2. I mount a disk which connect to this raid.
+>>>> 3. hot remove the pci root bus.
+>>>> 4. hot add the pci root bus.
+>>>> 5. found the resource conflicts for the children pci devices under this root bus.
+>>>>
+>>>> pci_root_bus increase a refcount at pci_host_bridge.
+>>>> pci_root_bus decrease a refcount at pci_host_bridge in
+>>>>   release_pcibus_dev() when pci_root_bus device refcount reach 0.
+>>>>
+>>>> pci_dev increase a refcount at pci_bus in pci_alloc_dev().
+>>>> pci_dev decrease a refcount at pci_bus in pci_release_dev()
+>>>> when pci_dev refcount reach 0.
+>>>>
+>>>> If any pci device refcount cannot reach 0, then its pci_bus
+>>>> refcount cannot reach 0 too, the result is pci_host_bridge
+>>>> refcount cannot reach 0.
+>>>
+>>> .
+>>>
+>>
 > 
-> Reproduced with various kernel versions including 4.6.3, 4.7 and
-> v4.8-rc2-348-g6040e57.
-> --
-> Kind regards,
-> Peter Wu
-> https://lekensteyn.nl
+> .
+> 
+
