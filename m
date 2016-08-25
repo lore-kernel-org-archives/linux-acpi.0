@@ -1,105 +1,80 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Thu, 25 Aug 2016 11:04:02 +0100
-Message-ID: <87pooxqi5p.fsf@e105922-lin.cambridge.arm.com>
-References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
-        <20160824142723.GA25843@red-moon> <20160824193000.GE23914@localhost>
-        <20160824213005.1a9300ef@arm.com>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: [PATCH] acpi: fix ubsan warning
+Date: Thu, 25 Aug 2016 07:11:20 -0400 (EDT)
+Message-ID: <alpine.LRH.2.02.1608250709480.24332@file01.intranet.prod.int.rdu2.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:54429 "EHLO
-        cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933357AbcHYKE2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Aug 2016 06:04:28 -0400
-In-Reply-To: <20160824213005.1a9300ef@arm.com> (Marc Zyngier's message of
-        "Wed, 24 Aug 2016 21:30:05 +0100")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, bhelgaas@google.com
 
-Marc Zyngier <marc.zyngier@arm.com> writes:
+This patch fixes the following warning. The warning happens when using the
+Linux kernel 4.8-rc1 on kvm virtual machine, on Debian Jessie host.
 
-> On Wed, 24 Aug 2016 14:30:00 -0500
-> Bjorn Helgaas <helgaas@kernel.org> wrote:
->
->> On Wed, Aug 24, 2016 at 03:27:23PM +0100, Lorenzo Pieralisi wrote:
->> > [ +Bjorn, Punit]
->> > 
->> > On Wed, Aug 24, 2016 at 04:06:13AM -0700, Duc Dang wrote:  
->> > > [Resend in plain text mode]
->> > > 
->> > > Hi Lorenzo, Rafael,
->> > > 
->> > > ACPI 6.1 spec does not specify how to set interrupt polarity and
->> > > trigger mode in _PRT when the interrupts are static (hardwired to
->> > > specific interrupt inputs in interrupt controller). In current
->> > > acpi_pci_irq_enable (drivers/acpi/pci_irq.c) implementation, by
->> > > default the trigger mode is set to LEVEL_SENSITIVE, polarity is set to
->> > > ACTIVE_LOW. This default setting won't work for ARM64 GICv2, GICv2m,
->> > > GICv3 controllers and will cause failures in PCIe AER, PME services
->> > > (on X-Gene platforms).  
->> 
->> PCI (not PCIe) r3.0, sec 2.2.6, says "Interrupts on PCI are optional
->> and defined as 'level sensitive,' asserted low."
->> 
->> I've heard before that ARM64 does this differently, but I still don't
->> understand the difference.  Obviously if you plug a legacy PCI card
->> into an ARM64 system, it's still going to pull INTA# low to assert an
->> interrupt.  So is there something special about ARM64 that inverts
->> that, or what?
->
-> There is certainly an inverter somewhere on the interrupt path, because
-> the GIC triggers on level high, not level low. But I don't think that's
-> the issue Duc is trying to outline here, because that's not something
-> SW can fix. I'm worried that in his system, the interrupt is edge
-> triggered instead. 
->
->> 
->> > > Is there any way to specify polarity and trigger mode for static
->> > > interrupts in _PRT?   
->> 
->> There is no way I'm aware of in _PRT to specify polarity and trigger
->> mode.  I don't know the history, but my guess is that it would be seen
->> as superfluous given that the PCI spec requires level, active low.
->> 
->> Obviously I'm missing something important.
->
-> Same here, unless the HW is not PCI compliant...
+================================================================================
+UBSAN: Undefined behaviour in drivers/acpi/acpica/dsutils.c:641:16
+index -1 is out of range for type 'acpi_operand_object *[9]'
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.8.0-rc1+ #2
+Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+ 0000000000000000 ffff88011b17b9c8 ffffffff81264718 0000000000000002
+ ffff88011b17b9f0 ffffffffffffffff ffff88011b17b9e0 ffffffff8129397a
+ ffffffff81add780 ffff88011b17ba30 ffffffff8129401e 0000000000000202
+Call Trace:
+ [<ffffffff81264718>] dump_stack+0x83/0xc1
+ [<ffffffff8129397a>] ubsan_epilogue+0xd/0x3a
+ [<ffffffff8129401e>] __ubsan_handle_out_of_bounds+0x54/0x5d
+ [<ffffffff812c8192>] acpi_ds_create_operand+0x249/0x2e4
+ [<ffffffff812c838d>] acpi_ds_create_operands+0x160/0x1b7
+ [<ffffffff812b34d3>] ? acpi_os_release_object+0x9/0xd
+ [<ffffffff812eda68>] ? acpi_ut_delete_generic_state+0x18/0x1a
+ [<ffffffff812e2b94>] ? acpi_ps_pop_scope+0xde/0x13c
+ [<ffffffff812c8c71>] acpi_ds_exec_end_op+0x335/0x57d
+ [<ffffffff812e1670>] acpi_ps_parse_loop+0x729/0x78b
+ [<ffffffff812ed97b>] ? acpi_ut_create_generic_state+0x34/0x3f
+ [<ffffffff812e270c>] acpi_ps_parse_aml+0xa7/0x2d6
+ [<ffffffff812e32fb>] acpi_ps_execute_method+0x1f3/0x231
+ [<ffffffff812db33f>] acpi_ns_evaluate+0x22e/0x2be
+ [<ffffffff812df1e5>] acpi_evaluate_object+0x13c/0x255
+ [<ffffffff8117c8e6>] ? kfree+0x1b2/0x1c1
+ [<ffffffff812bb50b>] acpi_get_phys_id+0x38/0x11a
+ [<ffffffff812bb75f>] acpi_get_cpuid+0xc/0x18
+ [<ffffffff81c86f23>] early_init_pdc+0x8d/0xa2
+ [<ffffffff812defac>] acpi_ns_walk_namespace+0x11c/0x1ea
+ [<ffffffff81c86e96>] ? set_no_mwait+0x3b/0x3b
+ [<ffffffff81c86e96>] ? set_no_mwait+0x3b/0x3b
+ [<ffffffff812df40d>] acpi_walk_namespace+0x9b/0xd0
+ [<ffffffff81c863b4>] ? acpi_sleep_init+0x120/0x120
+ [<ffffffff81c86f68>] acpi_early_processor_set_pdc+0x30/0x4a
+ [<ffffffff81c86535>] acpi_init+0x181/0x2e5
+ [<ffffffff81c863b4>] ? acpi_sleep_init+0x120/0x120
+ [<ffffffff810004aa>] do_one_initcall+0xd3/0x164
+ [<ffffffff81c5c522>] kernel_init_freeable+0x246/0x2d8
+ [<ffffffff81420713>] kernel_init+0xa/0x103
+ [<ffffffff8142ed0f>] ret_from_fork+0x1f/0x40
+ [<ffffffff81420709>] ? rest_init+0x160/0x160
+================================================================================
 
-I had faced this issue on Juno r2[0] a few months back - though AFAICS,
-it wasn't preventing anything to work but printed an annoying message on
-boot.
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 
-[ 1.353696] genirq: Setting trigger mode 8 for irq 9 failed (gic_set_type+0x0/0x5c)
-[ 1.478286] genirq: Setting trigger mode 8 for irq 17 failed (gic_set_type+0x0/0x5c)
-
-The ACPI code in the kernel (drivers/acpi/pci_irq.c) is behaving as per
-spec, so nothing to be done there IMHO. The problem arises due to the
-integration of two mismatched components - PCI is level low and the GIC
-supports only level high - making it necessary to introduce glue
-elements like the inverter.
-
-This would all be OK if ACPI had a mechanism to specify the interrupt
-type (trigger and polarity). As an alternative, for Juno I created a
-link device (as Lorenzo suggests) to provide this information to the
-kernel.
-
-With this fix the warnings went away and I suspect this will address
-Duc's issue as well. But that is playing naughty with the spec (ACPI 6.1
-Section. 6.2.13).
-
-If there are no good reason to restrict using link devices to
-configurable interrupts, perhaps the spec needs an update.
-
-Perhaps Rafael knows why is there a restriction on using link devices
-for fixed interrupts in the ACPI spec...
-
-[0] https://lists.linaro.org/pipermail/linaro-acpi/2016-May/006880.html
-
->
-> Thanks,
->
-> 	M.
+Index: linux-2.6/drivers/acpi/acpica/dsutils.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/acpica/dsutils.c
++++ linux-2.6/drivers/acpi/acpica/dsutils.c
+@@ -637,11 +637,10 @@ acpi_ds_create_operand(struct acpi_walk_
+ 			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 					  "Argument previously created, already stacked\n"));
+ 
+-			acpi_db_display_argument_object(walk_state->
+-							operands[walk_state->
+-								 num_operands -
+-								 1],
+-							walk_state);
++			if (walk_state->num_operands)
++				acpi_db_display_argument_object(walk_state->
++					operands[walk_state-> num_operands - 1],
++					walk_state);
+ 
+ 			/*
+ 			 * Use value that was already previously returned
