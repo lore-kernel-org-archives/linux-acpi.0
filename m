@@ -1,74 +1,95 @@
-From: Morten Rasmussen <morten.rasmussen@arm.com>
-Subject: Re: [PATCH 03/11] sched: Extend scheduler's asym packing
-Date: Fri, 26 Aug 2016 11:39:46 +0100
-Message-ID: <20160826103945.GC1323@e105550-lin.cambridge.arm.com>
-References: <1471559812-19967-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1471559812-19967-4-git-send-email-srinivas.pandruvada@linux.intel.com>
- <20160825112251.GA1323@e105550-lin.cambridge.arm.com>
- <20160825114522.GD10138@twins.programming.kicks-ass.net>
- <20160825131836.GB1323@e105550-lin.cambridge.arm.com>
- <20160825134503.GH10138@twins.programming.kicks-ass.net>
+From: okaya@codeaurora.org
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Fri, 26 Aug 2016 07:04:32 -0400
+Message-ID: <38d7a30f5acfbb96f9d1567194209216@codeaurora.org>
+References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
+ <20160824142723.GA25843@red-moon> <20160824193000.GE23914@localhost>
+ <20160824213005.1a9300ef@arm.com>
+ <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+ <20160825121825.322d8450@arm.com>
+ <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+ <20160825195917.0e75a8db@arm.com> <20160826090813.GA1038@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37854 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753003AbcHZKjf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 26 Aug 2016 06:39:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20160825134503.GH10138@twins.programming.kicks-ass.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:41429 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752116AbcHZLGJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Aug 2016 07:06:09 -0400
+In-Reply-To: <20160826090813.GA1038@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, mingo@redhat.com, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, x86@kernel.org, bp@suse.de, sudeep.holla@arm.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, alexey.klimov@arm.com, viresh.kumar@linaro.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, lenb@kernel.org, tim.c.chen@linux.intel.com, paul.gortmaker@windriver.com, jpoimboe@redhat.com, mcgrof@kernel.org, jgross@suse.com, robert.moore@intel.com, dvyukov@google.com, jeyu@redhat.com
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 
-On Thu, Aug 25, 2016 at 03:45:03PM +0200, Peter Zijlstra wrote:
-> On Thu, Aug 25, 2016 at 02:18:37PM +0100, Morten Rasmussen wrote:
+On 2016-08-26 05:08, Lorenzo Pieralisi wrote:
+> [ +Sinan ]
 > 
-> > But why not just pass the customized list into the scheduler? Seems
-> > simpler?
+> On Thu, Aug 25, 2016 at 07:59:17PM +0100, Marc Zyngier wrote:
 > 
-> Mostly because I didn't want to regress Power I suppose. The ITMT stuff
-> needs an extra load, whereas the Power stuff can use the CPU number we
-> already have.
+> [...]
+> 
+>> > Thanks, Marc! It works, I tested on current X-Gene platforms that uses
+>> > GICv2 and GICv2m.
+>> >
+>> > Will you commit this change? It will be a huge help as going with
+>> > interrupt link will require firmware change.
+>> 
+>> Not for the time being. We now have an understanding of *why* things 
+>> do
+>> not work, but Lorenzo seems to have a good grasp on what we can do to
+>> address it correctly, and we should explore this first. If (and only 
+>> if)
+>> there is a consensus that firmware already does all it should, then
+>> I'll turn this hack into a proper series.
+> 
+> For the records, it is a discussion that already took place:
+> 
+> https://lkml.org/lkml/2016/3/14/923
+> 
+> As I have said there are already ARM64 systems with ACPI tables
+> out there using PCI interrupt links; I doubt that Qualcomm systems
+> allow to reconfigure the GIC interrupt pin allocated to legacy PCI
+> IRQs through interrupt links _SRS (hey it is *empty* :)),
+> therefore:
+> 
+> a) Some (the above is just an example from the mailing lists I am not
+>    picking on anyone it is just for the sake of this discussion, I have
+>    not dumped all ARM partners _PRT from their ACPI tables to check)
+>    ACPI tables must be rewritten because they are not FW compliant
+> 
+> OR
+> 
+> b) We allow PCI interrupt links to be used for static interrupt
+>    configurations
+> 
+> OR
+> 
+> c) We ignore the polarity flag (only for PCI legacy IRQs ? I wonder
+>    how GIC code can detect from which part of the kernel the interrupt
+>    request is coming, unless we implement an 
+> ACPI-PCI-legacy-IRQ-special
+>    gem)
+> 
+> Comments ?
+> 
+> Lorenzo
 
-The customized list wouldn't have to be mandatory. You could easily
-create a default list that would match current behaviour for Power.
+I complained about active low assumption before when reviewing the 
+series from Tomasz too. The above discussion took place when refactoring 
+the pci link code.
 
-To pass in a custom list of priorities you could either extend struct
-sched_domain_topology_level to have another function pointer that
-returns the cpu priority, or introduce an arch_cpu_priotity() function.
-Either of them could be used in the sched_domain hierarchy to set the
-sched_group priority cpu and if you add a rq->cpu_priority, the
-asymmetric packing comparison would be a simple comparison between
-rq->cpu_priority of the two cpus in question.
+ From Acpi spec perspective, both types of declarations are valid.
 
-What is the 'extra load' needed for ITMT? Isn't it just a priority list,
-or does the absolute priority value have a meaning? I only saw it used
-for less_than comparison, maybe I missed it.
+It is just one syntax doesn't work on arm64. The other syntax is more 
+expressive and it works. That is the reason why link objects are used in 
+QCOM platforms.
 
-If you need to express the difference in compute capability, why not use
-capacity?
+I think we need to fix the code by either changing the active low 
+assumption or the gic code.
 
-> Also, since we need an interface to pass in this custom list, I don't
-> see the distinction, you can do the same manipulation by constantly
-> updating the prio list.
+Changing it at the gic level opens door for bugs that wouldn't be 
+otherwise caught. I would make this change in pci code.
 
-Sure, but the overhead of rebuilding the sched_domain hierarchy is huge
-compared to just tweaking the result of the less_than operator that get
-called from the scheduler frequently. However, updating
-group_priority_cpu() would require a rebuild too in this patch set.
-
-> But not of this stuff should be EXPORT'ed, so its only available to the
-> core kernel, which greatly limits the potential for abuse. We can see
-> arch code just fine.
-
-I don't see why it can't be wired up to be controlled by entities
-outside arch code, e.g. cpufreq or the thermal framework, or even code
-outside the kernel (firmware).
-
-> And if you spin a custom kernel, you can already wreck the load
-> balancer.
-
-You can wreck any software where you have the source code and a compiler
-:)
