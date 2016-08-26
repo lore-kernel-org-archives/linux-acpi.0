@@ -1,49 +1,51 @@
-From: okaya@codeaurora.org
-Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Fri, 26 Aug 2016 07:04:32 -0400
-Message-ID: <38d7a30f5acfbb96f9d1567194209216@codeaurora.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in
+ _PRT
+Date: Fri, 26 Aug 2016 13:08:32 +0100
+Message-ID: <20160826130832.2fde2327@arm.com>
 References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
- <20160824142723.GA25843@red-moon> <20160824193000.GE23914@localhost>
- <20160824213005.1a9300ef@arm.com>
- <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
- <20160825121825.322d8450@arm.com>
- <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
- <20160825195917.0e75a8db@arm.com> <20160826090813.GA1038@red-moon>
+        <20160824142723.GA25843@red-moon>
+        <20160824193000.GE23914@localhost>
+        <20160824213005.1a9300ef@arm.com>
+        <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+        <20160825121825.322d8450@arm.com>
+        <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+        <20160825195917.0e75a8db@arm.com>
+        <20160826090813.GA1038@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41429 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752116AbcHZLGJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Aug 2016 07:06:09 -0400
+Received: from foss.arm.com ([217.140.101.70]:38446 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751465AbcHZMIg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Aug 2016 08:08:36 -0400
 In-Reply-To: <20160826090813.GA1038@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
+Cc: Duc Dang <dhdang@apm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>, okaya@codeaurora.org
 
-On 2016-08-26 05:08, Lorenzo Pieralisi wrote:
+On Fri, 26 Aug 2016 10:08:13 +0100
+Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
+
 > [ +Sinan ]
 > 
 > On Thu, Aug 25, 2016 at 07:59:17PM +0100, Marc Zyngier wrote:
 > 
 > [...]
 > 
->> > Thanks, Marc! It works, I tested on current X-Gene platforms that uses
->> > GICv2 and GICv2m.
->> >
->> > Will you commit this change? It will be a huge help as going with
->> > interrupt link will require firmware change.
->> 
->> Not for the time being. We now have an understanding of *why* things 
->> do
->> not work, but Lorenzo seems to have a good grasp on what we can do to
->> address it correctly, and we should explore this first. If (and only 
->> if)
->> there is a consensus that firmware already does all it should, then
->> I'll turn this hack into a proper series.
+> > > Thanks, Marc! It works, I tested on current X-Gene platforms that uses
+> > > GICv2 and GICv2m.
+> > > 
+> > > Will you commit this change? It will be a huge help as going with
+> > > interrupt link will require firmware change.  
+> > 
+> > Not for the time being. We now have an understanding of *why* things do
+> > not work, but Lorenzo seems to have a good grasp on what we can do to
+> > address it correctly, and we should explore this first. If (and only if)
+> > there is a consensus that firmware already does all it should, then
+> > I'll turn this hack into a proper series.  
 > 
 > For the records, it is a discussion that already took place:
 > 
@@ -69,27 +71,22 @@ On 2016-08-26 05:08, Lorenzo Pieralisi wrote:
 > 
 > c) We ignore the polarity flag (only for PCI legacy IRQs ? I wonder
 >    how GIC code can detect from which part of the kernel the interrupt
->    request is coming, unless we implement an 
-> ACPI-PCI-legacy-IRQ-special
+>    request is coming, unless we implement an ACPI-PCI-legacy-IRQ-special
 >    gem)
 > 
 > Comments ?
-> 
-> Lorenzo
 
-I complained about active low assumption before when reviewing the 
-series from Tomasz too. The above discussion took place when refactoring 
-the pci link code.
+I'm not overly keen on (c), as it is pretty hard to find out where the
+request is coming from (and the hack I previously posted opens the door
+to all kind of undetected misconfiguration). We *could* use a stacked
+irqchip to represent the inverter, but it feels like using a car sized
+hammer to squash a tiny fly.
 
- From Acpi spec perspective, both types of declarations are valid.
+(b) seems like the right thing to do, but I cannot comment on whether
+or not this is compliant with the specification.
 
-It is just one syntax doesn't work on arm64. The other syntax is more 
-expressive and it works. That is the reason why link objects are used in 
-QCOM platforms.
+Thanks,
 
-I think we need to fix the code by either changing the active low 
-assumption or the gic code.
-
-Changing it at the gic level opens door for bugs that wouldn't be 
-otherwise caught. I would make this change in pci code.
-
+	M.
+-- 
+Jazz is not dead. It just smells funny.
