@@ -1,51 +1,145 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] acpi, nfit: add dimm device notification support
-Date: Fri, 26 Aug 2016 11:39:23 -0700
-Message-ID: <CAPcyv4hdLdGR7LLyHVZsyXK6dNL1+jF927Siqt_D2DfPSifwwA@mail.gmail.com>
-References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
- <147198926249.3136.6163137762013359047.stgit@dwillia2-desk3.amr.corp.intel.com>
- <1472235940.1532.23.camel@hpe.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v7 8/9] arm64: pmu: Detect and enable multiple PMUs in an
+ ACPI system
+Date: Fri, 26 Aug 2016 17:44:59 -0500
+Message-ID: <b4d5397f-2ab0-8c19-d36e-ea23edb71bfb@arm.com>
+References: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
+ <1471985280-2243-9-git-send-email-jeremy.linton@arm.com>
+ <8737lro9lq.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1472235940.1532.23.camel-ZPxbGqLxI0U@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Wysocki,
- Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:55350 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751449AbcHZWpC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 26 Aug 2016 18:45:02 -0400
+In-Reply-To: <8737lro9lq.fsf@e105922-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Fri, Aug 26, 2016 at 11:26 AM, Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
-> On Tue, 2016-08-23 at 14:54 -0700, Dan Williams wrote:
->> Per "ACPI 6.1 Section 9.20.3" NVDIMM devices, children of the
->> ACPI0012 NVDIMM Root device, can receive health event notifications.
->>
->> Given that these devices are precluded from registering a
->> notification handler via acpi_driver.acpi_device_ops (due to no
->> _HID), we use acpi_install_notify_handler() directly.
->
-> I've confirmed that this ACPI notify handler is called properly.
->
->> The registered handler, acpi_nvdimm_notify(), triggers a poll(2)
->> event on the nmemX/nfit/flags sysfs attribute when a health event
->> notification is received.
->
-> This sounds good idea, but should we document that the value of sysfs
-> 'flags' itself does not get updated?  User space program will then need
-> to call its _DSM to get health status.
+Hi,
 
-Yes, this plus the new scrub attribute behavior need documentation.
-I'll prepare a refresh for Documentation/nvdimm/nvdimm.txt.
+On 08/26/2016 10:04 AM, Punit Agrawal wrote:
+(trimming)
+>> +			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
+>> +			if (!pmu) {
+>> +				pr_warn("Unable to allocate pmu_types\n");
+>> +				/*
+>> +				 * continue to count cpus for any pmu_types
+>> +				 * already allocated, but don't allocate any
+>> +				 * more pmu_types. This avoids undercounting.
+>> +				 */
+>> +				alloc_failure = true;
+>
+> Why not just fail probe and return an error? What is the benefit of
+> having some of the PMUs available?
 
-The need to call a _DSM after a notification event is documented in
-the ACPI spec, but you're right, we do need to connect that language
-to the Linux specific mechanism.
+AFAIC, there isn't a good reason for penalizing PMU's which we can get 
+working if a subset of the system PMUs can't be created. But this is per 
+PMU type, so with current systems the kzalloc will be called a max of 2 
+times (there is the potential of a 3rd time, due to some other error 
+handling, but that doesn't change the argument much). AKA, this doesn't 
+result in "partial registration" of a PMU.
+
+So, really the only question in my mind is does it work if one of the 
+allocations fails and the other succeeds, and the answer is yes, the 
+remaining interrupts/etc get associated with the correct PMU, and it 
+gets created and should work as well as perf currently works in systems 
+with heterogeneous PMUs (cue discussion about CPU process migration).
+
+So, since this is early boot, and we are taking a tiny allocation, if 
+this fails i suspect that the machine will probably die anyway, not due 
+to the choice of whether the PMU is counted properly or not. I would 
+guess the platform allocation or similar will die..
+
+(trimming)
+
+>> +/*
+>> + * For the given cpu/pmu type, walk all known GSIs, register them, and add
+>> + * them to the resource structure. Return the number of GSI's contained
+>> + * in the res structure, and the id of the last CPU/PMU we added.
+>> + */
+>> +static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
+>> +				       struct resource *res, int *last_cpu_id)
+>> +{
+>> +	int i, count;
+>> +	int irq;
+>> +
+>> +	/* lets group all the PMU's from similar CPU's together */
+>> +	count = 0;
+>> +	for_each_possible_cpu(i) {
+>> +		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
+>> +
+>> +		if (pmus->cpu_type == MIDR_PARTNUM(cinfo->reg_midr)) {
+>> +			if (pmu_irqs[i].gsi == 0)
+>> +				continue;
+>
+> Please don't silently continue if the irq is missing. It deserves a user
+> visible message. We don't want users complaining about kernel issues
+> when the firmware fails to provide the required information.
+
+See below.
+
+>
+>> +
+>> +			irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
+>> +						pmu_irqs[i].trigger,
+>> +						ACPI_ACTIVE_HIGH);
+>
+> Check for the return value of acpi_register_gsi as it can return an
+> error.
+
+Ok, so this is probably a little subtle, but IIRC from a few months back 
+when I was testing this/reworking it, duplicate GSI registrations for 
+exclusive PPI's result in errors (see any random discussion about PPI's 
+not being ACPI GSI's). As the code to handle SPI vs PPI exists in the 
+platform code, I decided to ignore registration errors until such a 
+determination can be made. AKA, i'm potentially tossing invalid irq's 
+into the irq list for PPIs, but it doesn't matter because they are 
+temporary ignored. The core ARM PMU code, has a much better handle on 
+what is a correct interrupt binding, so the decision about whether these 
+failures need to be worried about are delayed until then. This results 
+in a large simplification because we handle the irq deregistration 
+necessarily for any further errors together, AKA you will notice a 
+complete lack of differing code paths for PPI vs SPI in this module.
+
+As far as gsi=0, in cases where there are placeholder GICC entries in 
+the MADT (think disabled CPU) then i've seen gsi=0. I'm not sure that is 
+incorrect, so again it gets skipped, the pmu mask doesn't have it 
+listed, and everything "works". So if i'm going to add a message here 
+i'm, going to wrap it in a reg_midr!=0 check.
+
+>
+>> +
+>> +			res[count].start = res[count].end = irq;
+>> +			res[count].flags = IORESOURCE_IRQ;
+>> +
+>> +			if (pmu_irqs[i].trigger == ACPI_EDGE_SENSITIVE)
+>> +				res[count].flags |= IORESOURCE_IRQ_HIGHEDGE;
+>> +			else
+>> +				res[count].flags |= IORESOURCE_IRQ_HIGHLEVEL;
+>> +
+>> +			pmu_irqs[i].registered = true;
+>> +			count++;
+>> +			(*last_cpu_id) = cinfo->reg_midr;
+>
+> What is the benefit of using the entire MIDR for cpu_id when the
+> grouping is done on the basis of a subset, i.e., part number.
+
+Because the platform code isn't partnum specific, unless the the 
+ARMV8_PMU_PART_PROBE() macro is utilized. Delaying any decisions about 
+what part of the MIDR happens to be used (if any) to the part probe 
+table is probably a good idea. Especially if someone happens to think 
+that they want a ARMV8_PMU_PART_REVISION_PROBE() or similar macro..
+
+
+If anything It might be worth removing the partnum checks in this module 
+as well. That way should someone ship a machine with the same CPU only 
+differing by revision (or pick your favorite !partnum field) they get 
+different PMUs definitions. Why anyone would do that I cannot guess, but 
+I do see that apparently the xscale version was important at one point.
+
+
