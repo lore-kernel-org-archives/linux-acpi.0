@@ -1,57 +1,70 @@
-From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Subject: [PATCH v4 0/2] Add support for Smart Battery System Manager
-Date: Thu, 25 Aug 2016 22:20:59 +0200
-Message-ID: <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
-References: <1bIiDr-0004G1-0P>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from schneider-inet.de ([85.214.76.205]:58686 "EHLO
-        h1714509.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756545AbcHYUtV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Aug 2016 16:49:21 -0400
-In-Reply-To: <1bIiDr-0004G1-0P>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Fri, 26 Aug 2016 10:08:13 +0100
+Message-ID: <20160826090813.GA1038@red-moon>
+References: <CADaLNDm-HmnOsrntDC8zz28bwiQZVv36LG-iMDATqzavY7cXVg@mail.gmail.com>
+ <20160824142723.GA25843@red-moon>
+ <20160824193000.GE23914@localhost>
+ <20160824213005.1a9300ef@arm.com>
+ <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+ <20160825121825.322d8450@arm.com>
+ <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+ <20160825195917.0e75a8db@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160825195917.0e75a8db@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Duc Dang <dhdang@apm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>, okaya@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
 
-This patch series adds support for Smart Battery System Manager.
-A SBSM is a device listening at I2C/SMBus address 0x0a and is capable of
-communicating up to four I2C smart battery devices. All smart battery
-devices are listening at address 0x0b, so the SBSM muliplexes between
-them. The driver makes use of the I2C-Mux framework to allow smart
-batteries to be bound via device tree, i.e. the sbs-battery driver.
+[ +Sinan ]
 
-Via sysfs interface the online state and charge type are presented. If
-the driver is bound as ltc1760 (a Dual Smart Battery System Manager)
-the charge type can also be changed from trickle to fast.
+On Thu, Aug 25, 2016 at 07:59:17PM +0100, Marc Zyngier wrote:
 
-Changes:
-V2:
-* Fixed sample node names and compatible strings in binding documentaton.
-* Removed optional property "sbsm,i2c-retry-count"
-* Retry count hardcoded. Removed no longer needed OF readout function
-* Rebased onto v4.7rc-5
+[...]
 
-V3:
-* Changed enumeration sheme
-* Rebased onto v4.7rc-7
+> > Thanks, Marc! It works, I tested on current X-Gene platforms that uses
+> > GICv2 and GICv2m.
+> > 
+> > Will you commit this change? It will be a huge help as going with
+> > interrupt link will require firmware change.
+> 
+> Not for the time being. We now have an understanding of *why* things do
+> not work, but Lorenzo seems to have a good grasp on what we can do to
+> address it correctly, and we should explore this first. If (and only if)
+> there is a consensus that firmware already does all it should, then
+> I'll turn this hack into a proper series.
 
-V4:
-* removed .owner field as advised by kbuild test robot
-* removed print on ENOMEM
-* added reference to i2c-mux documentation in binding doc
+For the records, it is a discussion that already took place:
 
-Karl-Heinz Schneider (2):
-  Documentation: Add sbs-manager device tree node documentation
-  power: Adds support for Smart Battery System Manager
+https://lkml.org/lkml/2016/3/14/923
 
- .../devicetree/bindings/power/sbs,sbs-manager.txt  |  53 ++++
- drivers/power/Kconfig                              |  13 +
- drivers/power/Makefile                             |   1 +
- drivers/power/sbs-manager.c                        | 323 +++++++++++++++++++++
- 4 files changed, 390 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
- create mode 100644 drivers/power/sbs-manager.c
+As I have said there are already ARM64 systems with ACPI tables
+out there using PCI interrupt links; I doubt that Qualcomm systems
+allow to reconfigure the GIC interrupt pin allocated to legacy PCI
+IRQs through interrupt links _SRS (hey it is *empty* :)),
+therefore:
 
---
-2.7.4
+a) Some (the above is just an example from the mailing lists I am not
+   picking on anyone it is just for the sake of this discussion, I have
+   not dumped all ARM partners _PRT from their ACPI tables to check)
+   ACPI tables must be rewritten because they are not FW compliant
+
+OR
+
+b) We allow PCI interrupt links to be used for static interrupt
+   configurations
+
+OR
+
+c) We ignore the polarity flag (only for PCI legacy IRQs ? I wonder
+   how GIC code can detect from which part of the kernel the interrupt
+   request is coming, unless we implement an ACPI-PCI-legacy-IRQ-special
+   gem)
+
+Comments ?
+
+Lorenzo
