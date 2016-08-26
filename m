@@ -1,16 +1,15 @@
-From: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 2/3] acpi, nfit: add dimm device notification support
-Date: Fri, 26 Aug 2016 18:26:19 +0000
-Message-ID: <1472235940.1532.23.camel@hpe.com>
+Date: Fri, 26 Aug 2016 11:39:23 -0700
+Message-ID: <CAPcyv4hdLdGR7LLyHVZsyXK6dNL1+jF927Siqt_D2DfPSifwwA@mail.gmail.com>
 References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
  <147198926249.3136.6163137762013359047.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <1472235940.1532.23.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <147198926249.3136.6163137762013359047.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <6EF9A0222886D94BA6BE5CF9B308A8C5-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+In-Reply-To: <1472235940.1532.23.camel-ZPxbGqLxI0U@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,25 +19,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Kani, Toshimitsu" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Wysocki,
+ Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCAyMDE2LTA4LTIzIGF0IDE0OjU0IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IFBlciAiQUNQSSA2LjEgU2VjdGlvbiA5LjIwLjMiIE5WRElNTSBkZXZpY2VzLCBjaGlsZHJlbiBv
-ZiB0aGUNCj4gQUNQSTAwMTIgTlZESU1NIFJvb3QgZGV2aWNlLCBjYW4gcmVjZWl2ZSBoZWFsdGgg
-ZXZlbnQgbm90aWZpY2F0aW9ucy4NCj4gDQo+IEdpdmVuIHRoYXQgdGhlc2UgZGV2aWNlcyBhcmUg
-cHJlY2x1ZGVkIGZyb20gcmVnaXN0ZXJpbmcgYQ0KPiBub3RpZmljYXRpb24gaGFuZGxlciB2aWEg
-YWNwaV9kcml2ZXIuYWNwaV9kZXZpY2Vfb3BzIChkdWUgdG8gbm8NCj4gX0hJRCksIHdlIHVzZSBh
-Y3BpX2luc3RhbGxfbm90aWZ5X2hhbmRsZXIoKSBkaXJlY3RseS7CoMKgDQoNCkkndmUgY29uZmly
-bWVkIHRoYXQgdGhpcyBBQ1BJIG5vdGlmeSBoYW5kbGVyIGlzIGNhbGxlZCBwcm9wZXJseS4NCg0K
-PiBUaGUgcmVnaXN0ZXJlZCBoYW5kbGVyLCBhY3BpX252ZGltbV9ub3RpZnkoKSwgdHJpZ2dlcnMg
-YSBwb2xsKDIpDQo+IGV2ZW50IG9uIHRoZSBubWVtWC9uZml0L2ZsYWdzIHN5c2ZzIGF0dHJpYnV0
-ZSB3aGVuIGEgaGVhbHRoIGV2ZW50DQo+IG5vdGlmaWNhdGlvbiBpcyByZWNlaXZlZC4NCg0KVGhp
-cyBzb3VuZHMgZ29vZCBpZGVhLCBidXQgc2hvdWxkIHdlIGRvY3VtZW50IHRoYXQgdGhlIHZhbHVl
-IG9mIHN5c2ZzDQonZmxhZ3MnIGl0c2VsZiBkb2VzIG5vdCBnZXQgdXBkYXRlZD8gwqBVc2VyIHNw
-YWNlIHByb2dyYW0gd2lsbCB0aGVuIG5lZWQNCnRvIGNhbGwgaXRzIF9EU00gdG8gZ2V0IGhlYWx0
-aCBzdGF0dXMuDQoNClRoYW5rcywNCi1Ub3NoaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtbnZkaW1tCg==
+On Fri, Aug 26, 2016 at 11:26 AM, Kani, Toshimitsu <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
+> On Tue, 2016-08-23 at 14:54 -0700, Dan Williams wrote:
+>> Per "ACPI 6.1 Section 9.20.3" NVDIMM devices, children of the
+>> ACPI0012 NVDIMM Root device, can receive health event notifications.
+>>
+>> Given that these devices are precluded from registering a
+>> notification handler via acpi_driver.acpi_device_ops (due to no
+>> _HID), we use acpi_install_notify_handler() directly.
+>
+> I've confirmed that this ACPI notify handler is called properly.
+>
+>> The registered handler, acpi_nvdimm_notify(), triggers a poll(2)
+>> event on the nmemX/nfit/flags sysfs attribute when a health event
+>> notification is received.
+>
+> This sounds good idea, but should we document that the value of sysfs
+> 'flags' itself does not get updated?  User space program will then need
+> to call its _DSM to get health status.
+
+Yes, this plus the new scrub attribute behavior need documentation.
+I'll prepare a refresh for Documentation/nvdimm/nvdimm.txt.
+
+The need to call a _DSM after a notification event is documented in
+the ACPI spec, but you're right, we do need to connect that language
+to the Linux specific mechanism.
