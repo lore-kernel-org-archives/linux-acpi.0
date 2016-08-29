@@ -1,89 +1,43 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v8 0/9] Enable PMUs in ACPI systems
-Date: Mon, 29 Aug 2016 16:48:11 -0500
-Message-ID: <1472507300-9844-1-git-send-email-jeremy.linton@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55222 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756881AbcH2Vsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 29 Aug 2016 17:48:33 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/3] acpi, nfit: nvdimm notification support + tests
+Date: Mon, 29 Aug 2016 23:50:55 +0200
+Message-ID: <CAJZ5v0j3+DHgU1A_0w-yCDyEzO2OneC=8UgexrnjGYOOqyW13A@mail.gmail.com>
+References: <147198925154.3136.14739108342311837939.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <147198925154.3136.14739108342311837939.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-v8:
-Rebase to 4.8rc4
-Assorted minor comment/hunk placement/etc tweaks per Punit Agrawal
+On Tue, Aug 23, 2016 at 11:54 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> ACPI 6.1 added an "NFIT Health Event Notification" for nvdimm devices.
+> When this fires, system software is expected to issue a DSM to retrieve
+> the latest health values.  For the NFIT driver this notification
+> arrives as an event on the sysfs 'flags' attribute for an nfit/nvdimm
+> device.  The 'flags' attribute reflects the "NVDIMM State Flags" of the
+> "5.2.25.3 NVDIMM Region Mapping Structure", and when read indicates if
+> the platform supports sending health events.
+>
+> ---
+>
+> Dan Williams (3):
+>       tools/testing/nvdimm: unit test for acpi_nfit_notify()
+>       acpi, nfit: add dimm device notification support
+>       tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
 
-v7:
-Rebase to 4.8rc3
-Remove cpu affinity sysfs entry. While providing a CPU mask for
-ARMv8 PMU's is really helpful in big/little environments, reworking
-the PMU code to support the cpumask attribute for !arm64 PMUs is out
-of the scope of this patch set.
-Fix CPU miscount problem where an alloc failure followed by successfully
-allocating the structure can result in under counting the CPUs associated
-with the PMU. This bug was created in v6 with the conversion to a linked
-list.
-Remove initial platform device creation code by Mark Salter, and re-squash
-multiple platform device creation code together with helper routines.
-Other minor tweakage.
+ACK for the series from the ACPI core perspective.
 
-v6:
-Added cpu affinity sysfs entry
-Converted pmu_types array, to linked list
-Restrict use of the armv8_pmu_probe_table to ACPI systems
-Rename MADT parsing routines in smp.c
-Convert sysfs PMU name to use index rather than partnum
-Remove pr_devel statements
-Other Minor cleanups
-Add Partial Ack-by Will Deacon
-
-v5:
-Remove list of CPU types for ACPI systems. We now match a generic
-event list, and use the PMCIED[01] to select events which exist on
-the given PMU. This avoids the need to update the kernel every time
-a new CPU is released.
-Update the maintainers list to include the new file.
-
-v4:
-Correct build issues with ARM (!ARM64) kernels.
-Add ThunderX to list of PMU types.
-
-v3:
-Enable ARM performance monitoring units on ACPI/arm64 machines.
-
-This patch expands and reworks the patches published by Mark Salter
-in order to clean up a few of the previous review comments, as well as
-add support for newer CPUs and big/little configurations.
-
-Jeremy Linton (7):
-  arm64: pmu: Probe default hw/cache counters
-  arm64: pmu: Hoist pmu platform device name
-  arm64: Rename the common MADT parse routine
-  arm: arm64: Add routine to determine cpuid of other cpus
-  arm: arm64: pmu: Assign platform PMU CPU affinity
-  arm64: pmu: Detect and enable multiple PMUs in an ACPI system
-  MAINTAINERS: Tweak ARM PMU maintainers
-
-Mark Salter (2):
-  arm64: pmu: add fallback probe table
-  arm64: pmu: Cache PMU interrupt numbers from MADT parse
-
- MAINTAINERS                      |   3 +-
- arch/arm/include/asm/cputype.h   |   2 +
- arch/arm64/include/asm/cputype.h |   3 +
- arch/arm64/kernel/perf_event.c   |  58 ++++++++++-
- arch/arm64/kernel/smp.c          |  18 ++--
- drivers/perf/Kconfig             |   4 +
- drivers/perf/Makefile            |   1 +
- drivers/perf/arm_pmu.c           |  71 +++++++++++--
- drivers/perf/arm_pmu_acpi.c      | 218 +++++++++++++++++++++++++++++++++++++++
- include/linux/perf/arm_pmu.h     |   9 ++
- 10 files changed, 364 insertions(+), 23 deletions(-)
- create mode 100644 drivers/perf/arm_pmu_acpi.c
-
--- 
-2.5.5
-
+Thanks,
+Rafael
