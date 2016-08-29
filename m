@@ -1,127 +1,152 @@
-From: Roland Singer <roland.singer@desertbit.com>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Mon, 29 Aug 2016 21:55:56 +0200
-Message-ID: <a0079ace-3062-4792-5c33-3a5e350daac3@desertbit.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost>
- <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
- <20160829190737.GA4053@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v8 5/9] arm64: pmu: Cache PMU interrupt numbers from MADT parse
+Date: Mon, 29 Aug 2016 16:48:16 -0500
+Message-ID: <1472507300-9844-6-git-send-email-jeremy.linton@arm.com>
+References: <1472507300-9844-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.146.197.76.144.clients.your-server.de ([144.76.197.146]:55414
-        "EHLO desertbit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756272AbcH2T5K (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Aug 2016 15:57:10 -0400
-In-Reply-To: <20160829190737.GA4053@localhost>
+Received: from foss.arm.com ([217.140.101.70]:55272 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756440AbcH2Vs1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 29 Aug 2016 17:48:27 -0400
+In-Reply-To: <1472507300-9844-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-Just tried it and the system didn't freeze. However it will freeze
-after some time (few minutes while working).
+From: Mark Salter <msalter@redhat.com>
 
-Seams to be pci_read_config_dword. Where is this exactly defined?
+In the case of ACPI, the PMU IRQ information is contained in the
+MADT table. Also, since the PMU does not exist as a device in the
+ACPI DSDT table, it is necessary to create a platform device so
+that the appropriate driver probing is triggered. Since the platform
+device creation needs to happen after the CPU's have been started, and
+the MADT parsing needs to happen before, we save off the interrupt
+numbers discovered during the parsing.
 
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ arch/arm64/kernel/smp.c      |  5 +++++
+ drivers/perf/Kconfig         |  4 ++++
+ drivers/perf/Makefile        |  1 +
+ drivers/perf/arm_pmu_acpi.c  | 40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/perf/arm_pmu.h |  7 +++++++
+ 5 files changed, 57 insertions(+)
+ create mode 100644 drivers/perf/arm_pmu_acpi.c
 
-Am 29.08.2016 um 21:07 schrieb Bjorn Helgaas:
-> On Mon, Aug 29, 2016 at 08:46:17PM +0200, Roland Singer wrote:
->> Hi Bjorn,
->>
->> I am using the bbswitch kernel module to switch off/on the GPU and
->> to obtain the GPU power state.
->> Obtaining the GPU state immediately after starting the graphical user
->> session freezes the system.
->>
->> This code triggers something, which is responsible for the freeze.
->>
->> ---
->> // Returns 1 if the card is disabled, 0 if enabled
->> static int is_card_disabled(void) {
->>     u32 cfg_word;
->>     // read first config word which contains Vendor and Device ID. If all bits
->>     // are enabled, the device is assumed to be off
->>     pci_read_config_dword(dis_dev, 0, &cfg_word);
->>     // if one of the bits is not enabled (the card is enabled), the inverted
->>     // result will be non-zero and hence logical not will make it 0 ("false")
->>     return !~cfg_word;
->> }
->>
->> static int bbswitch_proc_show(struct seq_file *seqfp, void *p) {
->>     // show the card state. Example output: 0000:01:00:00 ON
->>     dis_dev_get();
->>     seq_printf(seqfp, "%s %s\n", dev_name(&dis_dev->dev),
->>              is_card_disabled() ? "OFF" : "ON");
->>     dis_dev_put();
->>     return 0;
->> }
->> ---
->>
->> Either dis_dev_get or pci_read_config_dword is the trigger.
-> 
-> What happens if you remove the call to is_card_disabled()?  Does the
-> system still freeze if you only do the dis_dev_get()/dis_dev_put()?
-> 
->> Link to the bbswitch module source code:
->> https://github.com/Bumblebee-Project/bbswitch/blob/master/bbswitch.c#L333
->>
->>
->> Am 29.08.2016 um 18:02 schrieb Bjorn Helgaas:
->>> [+cc linux-acpi, linux-kernel, dri-devel]
->>>
->>> Hi Roland,
->>>
->>> I have no idea how to debug this problem.  Are you seeing something
->>> that suggests it may be a PCI problem?
->>>
->>> On Tue, Aug 23, 2016 at 11:23:45AM +0200, Roland Singer wrote:
->>>> Hi,
->>>>
->>>> hope somebody can help me fix this kernel problem which affects the following machines:
->>>>
->>>> - Clevo P651RA (i7-6700HQ/GTX 965M, part of the P6xxRx family which are also affected)
->>>> - MSI GE62 Apache Pro (i7-6700HQ/GTX 960M)
->>>> - Gigabyte P35V5 (i7-6700HQ/GTX 970M)
->>>> - Razer Blade 14" (2016) (i7-6700HQ/GTX 970M) (BIOS 5.11, 04/07/2016)
->>>>
->>>>
->>>> The kernel freezes if the graphical user session (Xorg & Wayland) is
->>>> started with a switched off discrete GPU card (NVIDIA).
->>>> If the discrete GPU is switched off after the graphical session start,
->>>> then everything works as expected, until the graphical session is restarted.
->>>>
->>>> This problem seams to be linked to specific BIOS settings. If the computer
->>>> is started with the following command line:
->>>>
->>>> acpi_osi=! acpi_osi="Windows 2009"
->>>>
->>>> then the kernel freeze does not occur anymore. However this required a special
->>>> ACPI DSDT firmware patch for the Razer Blade 2016 laptop:
->>>>
->>>> https://github.com/m4ng0squ4sh/razer_blade_14_2016_acpi_dsdt
->>>>
->>>> I strongly recommend to fix this in the kernel and I am ready to help and solve
->>>> this problem with some help.
->>>>
->>>> Here is a link to the GitHub issue with further information:
->>>>
->>>> https://github.com/Bumblebee-Project/Bumblebee/issues/764#issuecomment-241212595
->>>>
->>>> Here are some more detailed information:
->>>>
->>>> https://github.com/Lekensteyn/acpi-stuff/blob/master/Clevo-P651RA/notes.txt
->>>>
->>>> Hope somebody can help.
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index a6552fe..dc333c6 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -37,6 +37,7 @@
+ #include <linux/completion.h>
+ #include <linux/of.h>
+ #include <linux/irq_work.h>
++#include <linux/perf/arm_pmu.h>
+ 
+ #include <asm/alternative.h>
+ #include <asm/atomic.h>
+@@ -540,6 +541,7 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+ 			return;
+ 		}
+ 		bootcpu_valid = true;
++		arm_pmu_parse_acpi(0, processor);
+ 		return;
+ 	}
+ 
+@@ -560,6 +562,9 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+ 	 */
+ 	acpi_set_mailbox_entry(cpu_count, processor);
+ 
++	/* get PMU irq info */
++	arm_pmu_parse_acpi(cpu_count, processor);
++
+ 	early_map_cpu_to_node(cpu_count, acpi_numa_get_nid(cpu_count, hwid));
+ 
+ 	cpu_count++;
+diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+index 04e2653..818fa3b 100644
+--- a/drivers/perf/Kconfig
++++ b/drivers/perf/Kconfig
+@@ -12,4 +12,8 @@ config ARM_PMU
+ 	  Say y if you want to use CPU performance monitors on ARM-based
+ 	  systems.
+ 
++config ARM_PMU_ACPI
++	def_bool y
++	depends on ARM_PMU && ACPI
++
+ endmenu
+diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+index acd2397..fd8090d 100644
+--- a/drivers/perf/Makefile
++++ b/drivers/perf/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_ARM_PMU) += arm_pmu.o
++obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
+diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+new file mode 100644
+index 0000000..c1cf00c
+--- /dev/null
++++ b/drivers/perf/arm_pmu_acpi.c
+@@ -0,0 +1,40 @@
++/*
++ * ARM ACPI PMU support
++ *
++ * Copyright (C) 2015 Red Hat Inc.
++ * Author: Mark Salter <msalter@redhat.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
++ */
++
++#include <asm/cpu.h>
++#include <linux/acpi.h>
++#include <linux/irq.h>
++#include <linux/irqdesc.h>
++#include <linux/list.h>
++#include <linux/perf/arm_pmu.h>
++#include <linux/platform_device.h>
++
++struct pmu_irq {
++	int  gsi;
++	int  trigger;
++	bool registered;
++};
++
++static struct pmu_irq pmu_irqs[NR_CPUS] __initdata;
++
++/*
++ * Called from acpi_verify_and_map_madt()'s MADT parsing during boot.
++ * This routine saves off the GSI's and their trigger state for use when we are
++ * ready to build the PMU platform device.
++*/
++void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
++{
++	pmu_irqs[cpu].gsi = gic->performance_interrupt;
++	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
++		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
++	else
++		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
++}
+diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
+index eab9014..535c9e2 100644
+--- a/include/linux/perf/arm_pmu.h
++++ b/include/linux/perf/arm_pmu.h
+@@ -155,4 +155,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 
+ #endif /* CONFIG_ARM_PMU */
+ 
++#ifdef CONFIG_ARM_PMU_ACPI
++struct acpi_madt_generic_interrupt;
++void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
++#else
++#define arm_pmu_parse_acpi(a, b) do { } while (0)
++#endif /* CONFIG_ARM_PMU_ACPI */
++
+ #endif /* __ARM_PMU_H__ */
+-- 
+2.5.5
 
