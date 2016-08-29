@@ -1,55 +1,115 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v8 6/9] arm: arm64: Add routine to determine cpuid of other cpus
-Date: Mon, 29 Aug 2016 16:48:17 -0500
-Message-ID: <1472507300-9844-7-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v8 2/9] arm64: pmu: Probe default hw/cache counters
+Date: Mon, 29 Aug 2016 16:48:13 -0500
+Message-ID: <1472507300-9844-3-git-send-email-jeremy.linton@arm.com>
 References: <1472507300-9844-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55274 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:55234 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756865AbcH2Vsb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 29 Aug 2016 17:48:31 -0400
+        id S1756876AbcH2Vsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 29 Aug 2016 17:48:33 -0400
 In-Reply-To: <1472507300-9844-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-It is helpful if we can read the cpuid/midr of other CPUs
-in the system independent of arm/arm64.
+ARMv8 machines can identify the micro/arch defined counters
+that are available on a machine. Add all these counters to the
+default armv8 perf map. At run-time disable the counters which
+are not available on the given PMU.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
 ---
- arch/arm/include/asm/cputype.h   | 2 ++
- arch/arm64/include/asm/cputype.h | 3 +++
- 2 files changed, 5 insertions(+)
+ arch/arm64/kernel/perf_event.c | 45 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 41 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
-index 1ee94c7..d5900a2 100644
---- a/arch/arm/include/asm/cputype.h
-+++ b/arch/arm/include/asm/cputype.h
-@@ -208,6 +208,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
- 	return read_cpuid(CPUID_MPIDR);
- }
+diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
+index 3aac598..f650548 100644
+--- a/arch/arm64/kernel/perf_event.c
++++ b/arch/arm64/kernel/perf_event.c
+@@ -191,13 +191,23 @@
+ #define ARMV8_THUNDER_PERFCTR_L1I_CACHE_PREF_MISS		0xED
  
-+#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->cpuid
+ /* PMUv3 HW events mapping. */
 +
- /*
-  * Intel's XScale3 core supports some v6 features (supersections, L2)
-  * but advertises itself as v5 as it does not support the v6 ISA.  For
-diff --git a/arch/arm64/include/asm/cputype.h b/arch/arm64/include/asm/cputype.h
-index 9d9fd4b..beb95dc 100644
---- a/arch/arm64/include/asm/cputype.h
-+++ b/arch/arm64/include/asm/cputype.h
-@@ -128,6 +128,9 @@ static inline u32 __attribute_const__ read_cpuid_cachetype(void)
++/*
++ * ARMv8 Architectural defined events, not all of these may
++ * be supported on any given implementation. Undefined events will
++ * be disabled at run-time.
++ */
+ static const unsigned armv8_pmuv3_perf_map[PERF_COUNT_HW_MAX] = {
+ 	PERF_MAP_ALL_UNSUPPORTED,
+ 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV8_PMUV3_PERFCTR_CPU_CYCLES,
+ 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV8_PMUV3_PERFCTR_INST_RETIRED,
+ 	[PERF_COUNT_HW_CACHE_REFERENCES]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE,
+ 	[PERF_COUNT_HW_CACHE_MISSES]		= ARMV8_PMUV3_PERFCTR_L1D_CACHE_REFILL,
++	[PERF_COUNT_HW_BRANCH_INSTRUCTIONS]	= ARMV8_PMUV3_PERFCTR_PC_WRITE_RETIRED,
+ 	[PERF_COUNT_HW_BRANCH_MISSES]		= ARMV8_PMUV3_PERFCTR_BR_MIS_PRED,
++	[PERF_COUNT_HW_BUS_CYCLES]		= ARMV8_PMUV3_PERFCTR_BUS_CYCLES,
++	[PERF_COUNT_HW_STALLED_CYCLES_FRONTEND]	= ARMV8_PMUV3_PERFCTR_STALL_FRONTEND,
++	[PERF_COUNT_HW_STALLED_CYCLES_BACKEND]	= ARMV8_PMUV3_PERFCTR_STALL_BACKEND,
+ };
+ 
+ /* ARM Cortex-A53 HW events mapping. */
+@@ -259,6 +269,15 @@ static const unsigned armv8_pmuv3_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
+ 	[C(L1D)][C(OP_WRITE)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE,
+ 	[C(L1D)][C(OP_WRITE)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE_REFILL,
+ 
++	[C(L1I)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1I_CACHE,
++	[C(L1I)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1I_CACHE_REFILL,
++
++	[C(DTLB)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1D_TLB_REFILL,
++	[C(DTLB)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1D_TLB,
++
++	[C(ITLB)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1I_TLB_REFILL,
++	[C(ITLB)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1I_TLB,
++
+ 	[C(BPU)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_BR_PRED,
+ 	[C(BPU)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_BR_MIS_PRED,
+ 	[C(BPU)][C(OP_WRITE)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_BR_PRED,
+@@ -906,9 +925,22 @@ static void armv8pmu_reset(void *info)
+ 
+ static int armv8_pmuv3_map_event(struct perf_event *event)
  {
- 	return read_cpuid(CTR_EL0);
+-	return armpmu_map_event(event, &armv8_pmuv3_perf_map,
+-				&armv8_pmuv3_perf_cache_map,
+-				ARMV8_PMU_EVTYPE_EVENT);
++	int hw_event_id;
++	struct arm_pmu *armpmu = to_arm_pmu(event->pmu);
++
++	hw_event_id = armpmu_map_event(event, &armv8_pmuv3_perf_map,
++				       &armv8_pmuv3_perf_cache_map,
++				       ARMV8_PMU_EVTYPE_EVENT);
++	if (hw_event_id < 0)
++		return hw_event_id;
++
++	/* disable micro/arch events not supported by this PMU */
++	if ((hw_event_id < ARMV8_PMUV3_MAX_COMMON_EVENTS) &&
++		!test_bit(hw_event_id, armpmu->pmceid_bitmap)) {
++			return -EOPNOTSUPP;
++	}
++
++	return hw_event_id;
  }
-+
-+#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->reg_midr
-+
- #endif /* __ASSEMBLY__ */
  
- #endif
+ static int armv8_a53_map_event(struct perf_event *event)
+@@ -1045,8 +1077,13 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
+ 	{},
+ };
+ 
++/*
++ * Non DT systems have their micro/arch events probed at run-time.
++ * A fairly complete list of generic events are provided and ones that
++ * aren't supported by the current PMU are disabled.
++ */
+ static const struct pmu_probe_info armv8_pmu_probe_table[] = {
+-	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
++	PMU_PROBE(0, 0, armv8_pmuv3_init), /* enable all defined counters */
+ 	{ /* sentinel value */ }
+ };
+ 
 -- 
 2.5.5
 
