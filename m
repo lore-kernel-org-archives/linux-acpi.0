@@ -1,28 +1,46 @@
-From: Friedrich Mayrhofer <efucili@mendoza-conicet.gob.ar>
-Subject: Did you get my message?
-Date: Tue, 30 Aug 2016 03:56:03 -0300 (ART)
-Message-ID: <1558189556.162341.1472540163822.JavaMail.root@correo.mendoza-conicet.gob.ar>
-Reply-To: Friedrich Mayrhofer <qatif6oil29gas@gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 4/6] driver core: Don't leak secondary fwnode on device
+ removal
+Date: Tue, 30 Aug 2016 11:03:25 +0200
+Message-ID: <20160830090325.GA25024@wunner.de>
+References: <cover.1469616641.git.lukas@wunner.de>
+ <ef34b0d31d1fb9bc6a48a07d265fd103527b3f30.1469616641.git.lukas@wunner.de>
+ <6868582.iUcUV1Tb36@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.mendoza-conicet.gob.ar ([168.96.255.91]:47942 "EHLO
-        mx1.mendoza-conicet.gob.ar" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750697AbcH3HLp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 Aug 2016 03:11:45 -0400
+Received: from mailout1.hostsharing.net ([83.223.95.204]:42579 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753282AbcH3JDb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 05:03:31 -0400
+Content-Disposition: inline
+In-Reply-To: <6868582.iUcUV1Tb36@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, Pierre Moreau <pierre.morrow@free.fr>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org
 
+On Wed, Aug 17, 2016 at 02:38:50AM +0200, Rafael J. Wysocki wrote:
+> On Thursday, July 28, 2016 02:25:41 AM Lukas Wunner wrote:
+> > If device_add_property_set() is called for a device, a secondary fwnode
+> > is allocated and assigned to the device but currently not freed once the
+> > device is removed.
+> > 
+> > This can be triggered on Apple Macs if a Thunderbolt device is plugged
+> > in on boot since Apple's NHI EFI driver sets a number of properties for
+> > that device which are leaked on unplug.
+> > 
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Cc: Andreas Noever <andreas.noever@gmail.com>
+> > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> 
+> ACK, or I can apply it directly if you want me to do that.
 
+Yes, if you could apply it directly I'd be grateful.
 
-Hello,
+Thanks!
 
-This is the second time i am sending you this mail.
-I, Friedrich Mayrhofer and my wife has Donate $ 1,000,000.00 USD 
-to You, Email  Me personally for more details.
-
-Regards.
-
-Friedrich Mayrhofer
+Lukas
