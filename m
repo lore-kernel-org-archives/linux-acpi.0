@@ -1,63 +1,58 @@
-From: Ilia Mirkin <imirkin@alum.mit.edu>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 14:13:46 -0400
-Message-ID: <CAKb7Uvjzhog27TUPTn5OOqXviyD_z3UV0qvskZDEO8CAB2-i2w@mail.gmail.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost>
- <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
- <20160829190737.GA4053@localhost>
- <a0079ace-3062-4792-5c33-3a5e350daac3@desertbit.com>
- <20160829235403.GA14177@localhost>
- <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
- <20160830130634.GA16426@localhost>
- <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
- <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
- <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
- <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
- <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
- <1c761bab-f82b-3f43-c4f0-c7a8eff94f25@desertbit.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH] ACPI: CPPC: Support PCC with interrupt flag
+Date: Tue, 30 Aug 2016 11:20:53 -0700
+Message-ID: <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
+References: <1469135265-27048-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1c761bab-f82b-3f43-c4f0-c7a8eff94f25@desertbit.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Roland Singer <roland.singer@desertbit.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Emil Velikov <emil.l.velikov@gmail.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Peter Wu <peter@lekensteyn.nl>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ua0-f173.google.com ([209.85.217.173]:35997 "EHLO
+        mail-ua0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751025AbcH3SUz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 14:20:55 -0400
+Received: by mail-ua0-f173.google.com with SMTP id m60so47459659uam.3
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Aug 2016 11:20:55 -0700 (PDT)
+In-Reply-To: <1469135265-27048-1-git-send-email-hotran@apm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>, ashwinch@google.com
 
-T24gVHVlLCBBdWcgMzAsIDIwMTYgYXQgMjowMiBQTSwgUm9sYW5kIFNpbmdlcgo8cm9sYW5kLnNp
-bmdlckBkZXNlcnRiaXQuY29tPiB3cm90ZToKPiBJIGNvbmZpZ3VyZWQgYmJzd2l0Y2ggdG8gbm90
-IHNldCBhbnkgc3RhdGVzIGF1dG9tYXRpY2FsbHkuLi4KPiBTbyBpdCdzIHBvc3NpYmxlIHRvIG9i
-dGFpbiBhbmQgdmVyaWZ5IHRoZSBHUFUgcG93ZXIgc3RhdGUuCj4KPiBIb3dldmVyIEkgcmVtb3Zl
-ZCB0aGUgYmJzd2l0Y2ggbW9kdWxlIGFuZCBib290ZWQgd2l0aCBub3V2ZWF1Lgo+Cj4gS2VybmVs
-IDQuNy4yOiBub3V2ZWF1IHN3aXRjaGVzIHRoZSBkaXNjcmV0ZSBHUFUgb2ZmLgo+ICAgICAgICAg
-ICAgICAgSSBjYW4ndCB0cmlnZ2VyIHRoZSBmcmVlemUsIGJlY2F1c2UgYmJzd2l0Y2ggaXMgbWlz
-c2luZy4KPiAgICAgICAgICAgICAgIEknbGwgd29yayB3aXRoIHRoZSBzeXN0ZW0gYW5kIHNlZSBp
-ZiBpdCB3aWxsIGZyZWV6ZS4KPgo+IEtlcm5lbCA0LjgtcmM0OiBub3V2ZWF1IGRvZXMgbm90IGNh
-cmUgYWJvdXQgdGhlIHBvd2VyIHN0YXRlIGFuZAo+ICAgICAgICAgICAgICAgICB0aGUgZGlzY3Jl
-dGUgR1BVIGlzIG5ldmVyIHN3aXRjaGVkIG9mZi4gSSB3aWxsIG5vdGljZQo+ICAgICAgICAgICAg
-ICAgICB0aGlzLCBiZWNhdXNlIHRoZSBzZWNvbmQgY29vbGluZyBGQU4gd2lsbCBzdG9wLi4uCj4g
-ICAgICAgICAgICAgICAgIFNhbWUgbG9nIG1lc3NhZ2VzIGFzIHNlbmQgYmVmb3JlLgoKVGhhdCdz
-IHN1cnByaXNpbmcuIEkgYmVsaWV2ZSB0aGVyZSdzIGFuIGlzc3VlIHdpdGggdGhlIG5ldyBsb2dp
-YyB3aGVuCnRoZXJlJ3MgYW4gSERNSSBhdWRpbyBzdWJkZXZpY2UuIEhvd2V2ZXIgdGhhdCBvbmx5
-IGFwcGVhcnMgaWYgdGhlcmUncwphIGNhYmxlIHBsdWdnZWQgaW4sIGF0IGxlYXN0IGluIHRoZSBz
-eXN0ZW1zIFBldGVyIHRlc3RlZC4gWW91IHNob3VsZApiZSBhYmxlIHRvIHNlZSB3aGV0aGVyIGl0
-J3MgdGhlcmUgb3Igbm90IHdpdGggJ2xzcGNpJy4KCllvdSBjYW4gY2hlY2sgZm9yIHN1cmUgYnkg
-bG9va2luZyBpbiB0aGUgdmdhc3dpdGNoZXJvbyBzdGF0ZS4gSXQKc2hvdWxkIHNheSBEeW5PZmYg
-d2hlbiBpdCdzIHBvd2VyZWQgb2ZmLgoKRWl0aGVyIHdheSwgSSB0aGluayB1c2luZyBiYnN3aXRj
-aCArIG5vdXZlYXUgaXNuJ3Qgc3VwcG9ydGVkIGJ5CmFueW9uZSwgc28gaWYgeW91IHdhbnQgdG8g
-dXNlIGl0IHRoYXQgd2F5LCB5b3UncmUgb24geW91ciBvd24uIChZb3UKbWF5IHdhbnQgdG8gbG9h
-ZCBub3V2ZWF1IHdpdGggcnVucG09MCBzbyB0aGF0IG5vdXZlYXUgZG9lc24ndCB0cnkgdG8KbWFu
-YWdlIHRoZSBHUFUgc3VzcGVuZCBzdHVmZi4pCgogIC1pbGlhCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
-dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On Thu, Jul 21, 2016 at 2:07 PM, Hoan Tran <hotran@apm.com> wrote:
+> For PCC mailbox with interrupt flag, CPPC should call mbox_chan_txdone()
+> function to notify the mailbox framework about TX completion.
+>
+> Signed-off-by: Hoan Tran <hotran@apm.com>
+> ---
+> This patch is tested on top and depends on patch[1]:
+> [1] http://www.spinics.net/lists/linux-acpi/msg66041.html
+>  - [PATCH v3] mailbox: pcc: Support HW-Reduced Communication Subspace type 2
+>
+>  drivers/acpi/cppc_acpi.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 2e98173..19606aa 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -191,7 +191,11 @@ static int send_pcc_cmd(u16 cmd)
+>                         last_cmd_cmpl_time = ktime_get();
+>         }
+>
+> -       mbox_client_txdone(pcc_channel, ret);
+> +       if (pcc_channel->mbox->txdone_irq)
+> +               mbox_chan_txdone(pcc_channel, ret);
+> +       else
+> +               mbox_client_txdone(pcc_channel, ret);
+> +
+>         return ret;
+>  }
+>
+> --
+> 1.9.1
+>
+
+Any feedbacks.
+
+Thanks
+Hoan
