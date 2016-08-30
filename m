@@ -1,7 +1,7 @@
-From: Roland Singer <roland.singer@desertbit.com>
+From: Ilia Mirkin <imirkin@alum.mit.edu>
 Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 19:37:22 +0200
-Message-ID: <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
+Date: Tue, 30 Aug 2016 13:43:50 -0400
+Message-ID: <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
 References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <20160829160210.GA24451@localhost>
  <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
@@ -13,93 +13,33 @@ References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
  <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
  <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
+ <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, imirkin@alum.mit.edu
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Roland Singer <roland.singer@desertbit.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Emil Velikov <emil.l.velikov@gmail.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I am running 4.7.2, but I also just tried the 4.8.0-rc4 mainline kernel.
-The result is the same. There is no difference if bbswitch of acpi_call
-is used. However I noticed following:
-
-1. The nouveau driver is broken in both kernel version and is responsible
-   for the freezes while gathering power state information with bbswitch.
-   Sometimes while shutting the system down, everything except the LCD
-   screen is switched off. This only happens with nouveau.
-   I noticed following error log messages:
-
-   kernel: nouveau 0000:01:00.0: fb: 6144 MiB GDDR5
-   kernel: nouveau 0000:01:00.0: priv: HUB0: 10ecc0 ffffffff (1e40822c)
-   kernel: nouveau 0000:01:00.0: DRM: VRAM: 6144 MiB
-   kernel: nouveau 0000:01:00.0: DRM: GART: 1048576 MiB
-   kernel: nouveau 0000:01:00.0: DRM: Pointer to TMDS table invalid
-   kernel: nouveau 0000:01:00.0: DRM: DCB version 4.1
-   kernel: nouveau 0000:01:00.0: DRM: Pointer to flat panel table invalid
-
-2. -> Boot with nouveau module loaded
-   -> switch off the discrete GPU with bbswitch or acpi_call
-   -> start X11
-   -> obtaining power state with bbswitch freezes the system
-   -> or working with the system for some minutes freezes the system
-
-3. -> Boot with nouveau module blacklisted
-   -> switch off the discrete GPU
-   -> start X11
-   -> system immediately freezes
-
-4. -> Boot with nouveau module blacklisted
-   -> switch off the discrete GPU
-   -> start Wayland
-   -> system runs - Note: I tried this for couple of days with 4.6 and 4.7 mainline
-                          and the system freezed randomly after some time.
-                          However I have to test if this is still present with 4.7.2
-                          and 4.8 mainline. Right now it seams to be fine.
-   -> running Xwayland (does not depend on the GPU power state) kills performance!
-      the system freezes for several seconds...
-      So working with Wayland is also no solution.
-
-My conclusion:
-
-1. Nouveau has couple of problems with GTX 9** M Nvidia GPUs.
-   I would love to help here.
-
-2. X11 is just broken and is not capable to start the graphical session
-   if the nvidia GPU is not handled by any video driver (kernel module).
-   Even forcing X11 to ignore the discrete GPU doesn't help.
-
-   Setting the command line arguments to:
-
-     acpi_osi=! acpi_osi="Windows 2009"
-
-   fixes the issues with X11 but other things break...
-   What the hell is going on?! :/
-
-Am 30.08.2016 um 17:48 schrieb Emil Velikov:
-> On 30 August 2016 at 16:25, Roland Singer <roland.singer@desertbit.com> wrote:
->> I tried these scenarios:
->>
->> 1. Booted the system without the bbswitch module. The nouveau module
->>    was loaded and is responsible for the power management of the GPU.
->>    The graphical session freezes after some minutes...
->>
->> 2. Booted the system without bbswitch and with nouveau blacklisted.
->>    Manually loaded bbswitch to switch off the discrete GPU.
->>    Same freeze after a while or by explicitly obtaining the GPU state.
->>
->> Is there a possibility to switch off the discrete card without bbswitch?
->> If this is possible, then I could test this without nouveau and bbswitch
->> at all. If the system hangs, then it is not the video driver nor bbswitch.
->>
-> As Ilia mentioned acpi_call should do it. You can also check with the
-> nouveau/bbwswitch code to see which ones they use in your case and
-> bash it manually. It might be that the 'wrong one' gets used thus
-> things going horribly wrong.
-> 
-> Regards,
-> Emil
-> 
+T24gVHVlLCBBdWcgMzAsIDIwMTYgYXQgMTozNyBQTSwgUm9sYW5kIFNpbmdlcgo8cm9sYW5kLnNp
+bmdlckBkZXNlcnRiaXQuY29tPiB3cm90ZToKPiBNeSBjb25jbHVzaW9uOgo+Cj4gMS4gTm91dmVh
+dSBoYXMgY291cGxlIG9mIHByb2JsZW1zIHdpdGggR1RYIDkqKiBNIE52aWRpYSBHUFVzLgo+ICAg
+IEkgd291bGQgbG92ZSB0byBoZWxwIGhlcmUuCgpub3V2ZWF1ICsgYmJzd2l0Y2ggd2lsbCBhbHdh
+eXMgZW5kIGluIHRlYXJzLiBZb3UncmUgZ29pbmcgYmVoaW5kIHRoZQpkcml2ZXIncyBiYWNrIGFu
+ZCBtZXNzaW5nIGFyb3VuZCB3aXRoIHN0YXRlIGl0IGJlbGlldmVzIGl0IGlzCm1hbmFnaW5nLiBX
+aGF0IGlmIHlvdSBqdXN0IHVzZSBub3V2ZWF1IGFuZCBsZXQgaXQgYXV0by1wb3dlci1vZmYgdGhl
+CkdQVSBsaWtlIGl0J3MgZGVzaWduZWQgdG8sIHdpdGggdjQuOC1yYz8KCiAgLWlsaWEKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxp
+bmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
