@@ -1,79 +1,105 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: DAX can not work on virtual nvdimm device
-Date: Tue, 30 Aug 2016 10:09:01 -0700
-Message-ID: <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
-References: <436d7526-bf06-633d-afce-4333552d9e31@linux.intel.com>
- <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
- <20160819183047.GA7216@linux.intel.com> <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
- <20160829193014.GB16738@linux.intel.com> <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
+From: Roland Singer <roland.singer@desertbit.com>
+Subject: Re: Kernel Freeze with American Megatrends BIOS
+Date: Tue, 30 Aug 2016 19:37:22 +0200
+Message-ID: <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
+References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
+ <20160829160210.GA24451@localhost>
+ <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
+ <20160829190737.GA4053@localhost>
+ <a0079ace-3062-4792-5c33-3a5e350daac3@desertbit.com>
+ <20160829235403.GA14177@localhost>
+ <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
+ <20160830130634.GA16426@localhost>
+ <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
+ <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
+ <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:36848 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756559AbcH3RJD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 13:09:03 -0400
-Received: by mail-oi0-f54.google.com with SMTP id f189so34922654oig.3
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Aug 2016 10:09:02 -0700 (PDT)
-In-Reply-To: <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, imirkin@alum.mit.edu
 List-Id: linux-acpi@vger.kernel.org
-To: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Yumei Huang <yuhuang@redhat.com>, KVM <kvm@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>
 
-On Mon, Aug 29, 2016 at 11:53 PM, Xiao Guangrong
-<guangrong.xiao@linux.intel.com> wrote:
->
->
-> On 08/30/2016 03:30 AM, Ross Zwisler wrote:
->
->>
->> Can you please verify that you are using "usable" memory for your memmap?
->> All
->> the details are here:
->>
->>
->> https://nvdimm.wiki.kernel.org/how_to_choose_the_correct_memmap_kernel_parameter_for_pmem_on_your_system
->
->
-> Sure.
->
-> This is the BIOS E820 info in the guest:
->
-> e820: BIOS-provided physical RAM map:
-> BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
-> BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-> BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-> BIOS-e820: [mem 0x0000000000100000-0x00000000bffdefff] usable
-> BIOS-e820: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
-> BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
-> BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-> BIOS-e820: [mem 0x0000000100000000-0x000000083fffffff] usable
-> NX (Execute Disable) protection: active
-> e820: user-defined physical RAM map:
-> user: [mem 0x0000000000000000-0x000000000009fbff] usable
-> user: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-> user: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-> user: [mem 0x0000000000100000-0x00000000bffdefff] usable
-> user: [mem 0x00000000bffdf000-0x00000000bfffffff] reserved
-> user: [mem 0x00000000feffc000-0x00000000feffffff] reserved
-> user: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-> user: [mem 0x0000000100000000-0x000000027fffffff] usable
-> user: [mem 0x0000000280000000-0x00000003ffffffff] persistent (type 12)
-> user: [mem 0x0000000400000000-0x000000083fffffff] usable
->
-> So that the memory we used to emulate PMEM split the 'usable' region.
->
->>
->> My guess is that Boaz was correct, and that your memmap is off using
->> addresses
->> that don't actually map to memory.
->
->
-> I do not think so. :(
->
-> I did mmap-write and mmap-read test, the data written by mmap-write can be
-> correctly read out, so that the backend memory is really existing.
->
+I am running 4.7.2, but I also just tried the 4.8.0-rc4 mainline kernel.
+The result is the same. There is no difference if bbswitch of acpi_call
+is used. However I noticed following:
 
-Can you post your exact reproduction steps?  This test is not failing for me.
+1. The nouveau driver is broken in both kernel version and is responsible
+   for the freezes while gathering power state information with bbswitch.
+   Sometimes while shutting the system down, everything except the LCD
+   screen is switched off. This only happens with nouveau.
+   I noticed following error log messages:
+
+   kernel: nouveau 0000:01:00.0: fb: 6144 MiB GDDR5
+   kernel: nouveau 0000:01:00.0: priv: HUB0: 10ecc0 ffffffff (1e40822c)
+   kernel: nouveau 0000:01:00.0: DRM: VRAM: 6144 MiB
+   kernel: nouveau 0000:01:00.0: DRM: GART: 1048576 MiB
+   kernel: nouveau 0000:01:00.0: DRM: Pointer to TMDS table invalid
+   kernel: nouveau 0000:01:00.0: DRM: DCB version 4.1
+   kernel: nouveau 0000:01:00.0: DRM: Pointer to flat panel table invalid
+
+2. -> Boot with nouveau module loaded
+   -> switch off the discrete GPU with bbswitch or acpi_call
+   -> start X11
+   -> obtaining power state with bbswitch freezes the system
+   -> or working with the system for some minutes freezes the system
+
+3. -> Boot with nouveau module blacklisted
+   -> switch off the discrete GPU
+   -> start X11
+   -> system immediately freezes
+
+4. -> Boot with nouveau module blacklisted
+   -> switch off the discrete GPU
+   -> start Wayland
+   -> system runs - Note: I tried this for couple of days with 4.6 and 4.7 mainline
+                          and the system freezed randomly after some time.
+                          However I have to test if this is still present with 4.7.2
+                          and 4.8 mainline. Right now it seams to be fine.
+   -> running Xwayland (does not depend on the GPU power state) kills performance!
+      the system freezes for several seconds...
+      So working with Wayland is also no solution.
+
+My conclusion:
+
+1. Nouveau has couple of problems with GTX 9** M Nvidia GPUs.
+   I would love to help here.
+
+2. X11 is just broken and is not capable to start the graphical session
+   if the nvidia GPU is not handled by any video driver (kernel module).
+   Even forcing X11 to ignore the discrete GPU doesn't help.
+
+   Setting the command line arguments to:
+
+     acpi_osi=! acpi_osi="Windows 2009"
+
+   fixes the issues with X11 but other things break...
+   What the hell is going on?! :/
+
+Am 30.08.2016 um 17:48 schrieb Emil Velikov:
+> On 30 August 2016 at 16:25, Roland Singer <roland.singer@desertbit.com> wrote:
+>> I tried these scenarios:
+>>
+>> 1. Booted the system without the bbswitch module. The nouveau module
+>>    was loaded and is responsible for the power management of the GPU.
+>>    The graphical session freezes after some minutes...
+>>
+>> 2. Booted the system without bbswitch and with nouveau blacklisted.
+>>    Manually loaded bbswitch to switch off the discrete GPU.
+>>    Same freeze after a while or by explicitly obtaining the GPU state.
+>>
+>> Is there a possibility to switch off the discrete card without bbswitch?
+>> If this is possible, then I could test this without nouveau and bbswitch
+>> at all. If the system hangs, then it is not the video driver nor bbswitch.
+>>
+> As Ilia mentioned acpi_call should do it. You can also check with the
+> nouveau/bbwswitch code to see which ones they use in your case and
+> bash it manually. It might be that the 'wrong one' gets used thus
+> things going horribly wrong.
+> 
+> Regards,
+> Emil
+> 
