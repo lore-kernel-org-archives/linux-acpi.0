@@ -1,45 +1,107 @@
-From: Ilia Mirkin <imirkin@alum.mit.edu>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 13:43:50 -0400
-Message-ID: <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost>
- <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
- <20160829190737.GA4053@localhost>
- <a0079ace-3062-4792-5c33-3a5e350daac3@desertbit.com>
- <20160829235403.GA14177@localhost>
- <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
- <20160830130634.GA16426@localhost>
- <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
- <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
- <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
- <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Tue, 30 Aug 2016 13:54:24 -0400
+Message-ID: <16855e90-43e8-b36b-788a-cf0871261432@codeaurora.org>
+References: <20160824213005.1a9300ef@arm.com>
+ <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+ <20160825121825.322d8450@arm.com>
+ <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+ <20160825195917.0e75a8db@arm.com> <20160826090813.GA1038@red-moon>
+ <20160826130832.2fde2327@arm.com>
+ <f747c2c3-096a-f843-908c-3f76238a6acd@codeaurora.org>
+ <20160826170615.GC23885@red-moon>
+ <66f94732-7ce4-e577-9bec-52f0dc8e6ddb@codeaurora.org>
+ <20160830100834.GA368@red-moon>
+ <CADaLND=DCFZB5KGN+yqdF0pzHhvmDhKHf9fMgZ57c+2GE0n9jQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Roland Singer <roland.singer@desertbit.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Emil Velikov <emil.l.velikov@gmail.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CADaLND=DCFZB5KGN+yqdF0pzHhvmDhKHf9fMgZ57c+2GE0n9jQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Duc Dang <dhdang@apm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCBBdWcgMzAsIDIwMTYgYXQgMTozNyBQTSwgUm9sYW5kIFNpbmdlcgo8cm9sYW5kLnNp
-bmdlckBkZXNlcnRiaXQuY29tPiB3cm90ZToKPiBNeSBjb25jbHVzaW9uOgo+Cj4gMS4gTm91dmVh
-dSBoYXMgY291cGxlIG9mIHByb2JsZW1zIHdpdGggR1RYIDkqKiBNIE52aWRpYSBHUFVzLgo+ICAg
-IEkgd291bGQgbG92ZSB0byBoZWxwIGhlcmUuCgpub3V2ZWF1ICsgYmJzd2l0Y2ggd2lsbCBhbHdh
-eXMgZW5kIGluIHRlYXJzLiBZb3UncmUgZ29pbmcgYmVoaW5kIHRoZQpkcml2ZXIncyBiYWNrIGFu
-ZCBtZXNzaW5nIGFyb3VuZCB3aXRoIHN0YXRlIGl0IGJlbGlldmVzIGl0IGlzCm1hbmFnaW5nLiBX
-aGF0IGlmIHlvdSBqdXN0IHVzZSBub3V2ZWF1IGFuZCBsZXQgaXQgYXV0by1wb3dlci1vZmYgdGhl
-CkdQVSBsaWtlIGl0J3MgZGVzaWduZWQgdG8sIHdpdGggdjQuOC1yYz8KCiAgLWlsaWEKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxp
-bmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On 8/30/2016 11:51 AM, Duc Dang wrote:
+> On Tue, Aug 30, 2016 at 3:08 AM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+>> On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
+>>>
+>>>>> Let me throw option d here.
+>>>>>
+>>>>> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
+>>>>> can't we override this in an arch specific way (arm64's pci.c) while
+>>>>> creating the root bridge?
+>>>>
+>>>> On what basis ? You were not copied in from the beginning, but that
+>>>> is not different from Duc's initial proposal, which Marc discarded
+>>>> because it should not be done at arch level, it depends on the interrupt
+>>>> controller.
+>>>
+>>> I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
+>>> Duc's initial proposal.
+>>>
+>>> I can't imagine someone building an ACPI compliant ARM64 platform
+>>> without a GIC interrupt controller.
+>>>
+>>> The SBSA spec already mentions what kind of compatibility should be
+>>> maintained with respect to GIC. You can't have an ACPI system that's
+>>> SBSA compliant and not using GIC.
+>>>
+>>> Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
+>>> is defined.  Why do we have to reach out to the interrupt controller?
+>>
+>> Patch below (horrible but no solution will be shiny either).
+>>
+>>> https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
+>>
+>> [...]
+>>
+>>> If you look at my email above, I tried getting rid of PCI Link object
+>>> and I couldn't. I sticked to only thing that works.
+>>
+>> That's what I object to. If the ACPI bindings do not work for ARM
+>> we do not work around issues, we upgrade the specs because what may work
+>> for you has to work on all ARM platforms (and all FW developers have
+>> to be aware of that). Granted, this is a tiny snag, but the point is
+>> that no one knows what's the correct way of describing PCI legacy IRQs
+>> on ARM and we need that rectified.
+>>
+>> This does the trick for me (I can turn it into a function/look-up
+>> that returns the polarity), I am sure it will ruffle feathers but
+>> we have to find a solution so here it is (that acpi_irq_model gem
+>> is already used in generic code drivers/acpi/pci_link.c ;-))
+>>
+> 
+> Good catch! This acpi_irq_model gem does help X-Gene :)
+> 
+
++1 to this too. 
+
+We don't need to invent some fake API or push stuff to the arch directory.
+
+>> -- >8 --
+>> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+>> index 2c45dd3..c9b8c85 100644
+>> --- a/drivers/acpi/pci_irq.c
+>> +++ b/drivers/acpi/pci_irq.c
+>> @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>>         int gsi;
+>>         u8 pin;
+>>         int triggering = ACPI_LEVEL_SENSITIVE;
+>> -       int polarity = ACPI_ACTIVE_LOW;
+>> +       int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
+>> +                                     ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+>>         char *link = NULL;
+>>         char link_desc[16];
+>>         int rc;
+> Regards,
+> Duc Dang.
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
