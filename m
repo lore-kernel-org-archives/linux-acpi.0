@@ -1,7 +1,7 @@
-From: Emil Velikov <emil.l.velikov@gmail.com>
+From: Roland Singer <roland.singer@desertbit.com>
 Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 15:08:27 +0100
-Message-ID: <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
+Date: Tue, 30 Aug 2016 17:25:50 +0200
+Message-ID: <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
 References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <20160829160210.GA24451@localhost>
  <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
@@ -10,66 +10,94 @@ References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <20160829235403.GA14177@localhost>
  <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
  <20160830130634.GA16426@localhost>
+ <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20160830130634.GA16426@localhost>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, Roland Singer <roland.singer@desertbit.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static.146.197.76.144.clients.your-server.de ([144.76.197.146]:58043
+        "EHLO desertbit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752717AbcH3P1E (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 11:27:04 -0400
+In-Reply-To: <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Emil Velikov <emil.l.velikov@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org
 
-T24gMzAgQXVndXN0IDIwMTYgYXQgMTQ6MDYsIEJqb3JuIEhlbGdhYXMgPGhlbGdhYXNAa2VybmVs
-Lm9yZz4gd3JvdGU6Cj4gT24gVHVlLCBBdWcgMzAsIDIwMTYgYXQgMTI6MDg6NTdQTSArMDIwMCwg
-Um9sYW5kIFNpbmdlciB3cm90ZToKPj4gVGhhbmtzIGZvciBwb2ludGluZyBpdCBvdXQuCj4+Cj4+
-IFllYWggdGhhdCdzIHJpZ2h0LiBUaGUgc3lzdGVtIHdpbGwgaGFuZyByYW5kb21seSBhIGZldyBt
-aW51dGVzIGxhdGVyLAo+PiBiZWNhdXNlIHNvbWUgY2VydGFpbiBhY3Rpb25zIGluIHRoZSBncmFw
-aGljYWwgdXNlciBzZXNzaW9uIHdpbGwgdHJpZ2dlcgo+PiB0aGUgZnJlZXplLgo+Pgo+PiBJIGhh
-ZCBhIGxvb2sgYXQgdGhlIGZ1bmN0aW9uIGJvZHkgb2YgcGNpX3JlYWRfY29uZmlnX2R3b3JkOgo+
-Pgo+PiAgICNkZWZpbmUgUENJX09QX1JFQUQoc2l6ZSwgdHlwZSwgbGVuKSBcCj4+ICAgaW50IHBj
-aV9idXNfcmVhZF9jb25maWdfIyNzaXplIFwKPj4gICAgICAgKHN0cnVjdCBwY2lfYnVzICpidXMs
-IHVuc2lnbmVkIGludCBkZXZmbiwgaW50IHBvcywgdHlwZSAqdmFsdWUpIFwKPj4gICB7ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIFwKPj4gICAgICAgaW50IHJlczsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIFwKPj4gICAgICAgdW5zaWduZWQgbG9uZyBmbGFnczsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPj4gICAgICAgdTMyIGRh
-dGEgPSAwOyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IFwKPj4gICAgICAgaWYgKFBDSV8jI3NpemUjI19CQUQpIHJldHVybiBQQ0lCSU9TX0JBRF9SRUdJ
-U1RFUl9OVU1CRVI7ICAgICAgIFwKPj4gICAgICAgcmF3X3NwaW5fbG9ja19pcnFzYXZlKCZwY2lf
-bG9jaywgZmxhZ3MpOyAgICAgICAgICAgICAgICAgICAgICAgIFwKPj4gICAgICAgcmVzID0gYnVz
-LT5vcHMtPnJlYWQoYnVzLCBkZXZmbiwgcG9zLCBsZW4sICZkYXRhKTsgICAgICAgICAgICAgIFwK
-Pj4gICAgICAgKnZhbHVlID0gKHR5cGUpZGF0YTsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIFwKPj4gICAgICAgcmF3X3NwaW5fdW5sb2NrX2lycXJlc3RvcmUoJnBj
-aV9sb2NrLCBmbGFncyk7ICAgICAgICAgICBcCj4+ICAgICAgIHJldHVybiByZXM7ICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4+ICAgfQo+Pgo+
-PiBJIGd1ZXNzLCB0aGF0IGJ1cy0+b3BzLT5yZWFkKC4uLikgbWlnaHQgYmUgdGhlIHRyaWdnZXIu
-Cj4+IEFueSBoaW50cyBob3cgdG8gY29udGludWUgZGVidWdnaW5nPwo+Cj4gSXQncyBub3QgbGlr
-ZWx5IHRoYXQgdGhlIHByb2JsZW0gaXMgaW4gdGhlIGJ1cy0+b3BzLT5yZWFkKCkgcGF0aC4gIFRo
-YXQKPiBpcyB1c2VkIGJ5IGV2ZXJ5IGRldmljZSBkcml2ZXIsIHNvIGEgcHJvYmxlbSB0aGVyZSB3
-b3VsZCBjYXVzZSBtb3JlCj4gc2VyaW91cyBwcm9ibGVtcyB0aGFuIHdoYXQgeW91J3JlIHNlZWlu
-Zy4KPgo+IE15IGd1ZXNzIHdvdWxkIGJlIHNvbWUgcHJvYmxlbSBpbiB0aGUgdmlkZW8gZHJpdmVy
-IG9yIHRoZSBiYnN3aXRjaAo+IHRoaW5nLgo+CkZXSVcgSSdtIGluY2xpbmVkIHRvIGNhbGwgaXQg
-YSBiYnN3aXRjaCBidWcuIEl0IGNhbiAoYW5kIGRvZXMgd2hlbgpuZWVkZWQpIHBvd2VyIG9mZiB0
-aGUgZGVkaWNhdGVkIEdQVS4KCkRlcGVuZGluZyBvbiB0aGUgcGxhdGZvcm0gZGlmZmVyZW50IG1l
-dGhvZHMgYXJlIHVzZWQ6CgpTb21ldGltZXMgdGhlIEdQVSBkcml2ZXIgd2lsbCBnZXQgMHhmZmZm
-ZmZmZiAob3Igc2ltaWxhcikgd2hlbiB0cnlpbmcKdG8gcmVhZCBmcm9tIHRoZSBkZXZpY2UgbW1p
-byBzcGFjZS4gV2hpbGUgb25lIGNhbiBzYXkgdGhhdCB0aGUgZHJpdmVyCnNob3VsZCBhdHRyaWJ1
-dGUgZm9yIHRoaXMsIElNSE8gaXQncyBhIGJhZCBpZGVhIHRvIGhhdmUgdHdvIGRyaXZlcnMKY29u
-dHJvbGxpbmcgdGhlIHNhbWUgaGFyZHdhcmUsIGxldCBhbG9uZSB3aXRob3V0IGFueSBjb29yZGlu
-YXRpb24KYmV0d2VlbiB0aGVtLgoKSUlSQyBpbiBzb21lIGNhc2VzIHRoZSBkZXZpY2UgY2FuIGRp
-c2FwcGVhciBmcm9tIHRoZSBQQ0kgYnVzIChub3QgMTAwJQpzdXJlIHRoaXMgb25lKS4gSW4gd2hp
-Y2ggY2FzZSBhIHNpbXBsZSByZWFkIGNhbiBsZWFkIHRvIGEgd2lkZSByYW5nZQpvZiBmaXJld29y
-a3MuCgpEaXNjbGFpbWVyOiBpdCdzIGJlZW4gYSB3aGlsZSBzaW5jZSBJJ3ZlIGxvb2tlZCBpbnRv
-IGJic3dpdGNoIHNvCnRoaW5ncyBtaWdodCBoYXZlIGNoYW5nZWQvaW1wcm92ZWQuCgpSZWdhcmRz
-LApFbWlsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
-aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+I tried these scenarios:
+
+1. Booted the system without the bbswitch module. The nouveau module
+   was loaded and is responsible for the power management of the GPU.
+   The graphical session freezes after some minutes...
+
+2. Booted the system without bbswitch and with nouveau blacklisted.
+   Manually loaded bbswitch to switch off the discrete GPU.
+   Same freeze after a while or by explicitly obtaining the GPU state.
+
+Is there a possibility to switch off the discrete card without bbswitch?
+If this is possible, then I could test this without nouveau and bbswitch
+at all. If the system hangs, then it is not the video driver nor bbswitch.
+
+Am 30.08.2016 um 16:08 schrieb Emil Velikov:
+> On 30 August 2016 at 14:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> On Tue, Aug 30, 2016 at 12:08:57PM +0200, Roland Singer wrote:
+>>> Thanks for pointing it out.
+>>>
+>>> Yeah that's right. The system will hang randomly a few minutes later,
+>>> because some certain actions in the graphical user session will trigger
+>>> the freeze.
+>>>
+>>> I had a look at the function body of pci_read_config_dword:
+>>>
+>>>   #define PCI_OP_READ(size, type, len) \
+>>>   int pci_bus_read_config_##size \
+>>>       (struct pci_bus *bus, unsigned int devfn, int pos, type *value) \
+>>>   {                                                                   \
+>>>       int res;                                                        \
+>>>       unsigned long flags;                                            \
+>>>       u32 data = 0;                                                   \
+>>>       if (PCI_##size##_BAD) return PCIBIOS_BAD_REGISTER_NUMBER;       \
+>>>       raw_spin_lock_irqsave(&pci_lock, flags);                        \
+>>>       res = bus->ops->read(bus, devfn, pos, len, &data);              \
+>>>       *value = (type)data;                                            \
+>>>       raw_spin_unlock_irqrestore(&pci_lock, flags);           \
+>>>       return res;                                                     \
+>>>   }
+>>>
+>>> I guess, that bus->ops->read(...) might be the trigger.
+>>> Any hints how to continue debugging?
+>>
+>> It's not likely that the problem is in the bus->ops->read() path.  That
+>> is used by every device driver, so a problem there would cause more
+>> serious problems than what you're seeing.
+>>
+>> My guess would be some problem in the video driver or the bbswitch
+>> thing.
+>>
+> FWIW I'm inclined to call it a bbswitch bug. It can (and does when
+> needed) power off the dedicated GPU.
+> 
+> Depending on the platform different methods are used:
+> 
+> Sometimes the GPU driver will get 0xffffffff (or similar) when trying
+> to read from the device mmio space. While one can say that the driver
+> should attribute for this, IMHO it's a bad idea to have two drivers
+> controlling the same hardware, let alone without any coordination
+> between them.
+> 
+> IIRC in some cases the device can disappear from the PCI bus (not 100%
+> sure this one). In which case a simple read can lead to a wide range
+> of fireworks.
+> 
+> Disclaimer: it's been a while since I've looked into bbswitch so
+> things might have changed/improved.
+> 
+> Regards,
+> Emil
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
