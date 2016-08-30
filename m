@@ -1,71 +1,141 @@
 From: Peter Wu <peter@lekensteyn.nl>
 Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 21:21:12 +0200
-Message-ID: <20160830192112.GA18045@al>
-References: <20160829235403.GA14177@localhost>
- <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
- <20160830130634.GA16426@localhost>
- <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
- <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
- <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
- <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
- <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
- <1c761bab-f82b-3f43-c4f0-c7a8eff94f25@desertbit.com>
- <CAKb7Uvjzhog27TUPTn5OOqXviyD_z3UV0qvskZDEO8CAB2-i2w@mail.gmail.com>
+Date: Tue, 30 Aug 2016 21:53:37 +0200
+Message-ID: <20160830195337.GA18805@al>
+References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
+ <20160829160210.GA24451@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lekensteyn.nl ([178.21.112.251]:44737 "EHLO lekensteyn.nl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751593AbcH3TVi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 Aug 2016 15:21:38 -0400
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <CAKb7Uvjzhog27TUPTn5OOqXviyD_z3UV0qvskZDEO8CAB2-i2w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20160829160210.GA24451@localhost>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, Roland Singer <roland.singer@desertbit.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ilia Mirkin <imirkin@alum.mit.edu>
-Cc: Roland Singer <roland.singer@desertbit.com>, Emil Velikov <emil.l.velikov@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Aug 30, 2016 at 02:13:46PM -0400, Ilia Mirkin wrote:
-> On Tue, Aug 30, 2016 at 2:02 PM, Roland Singer
-> <roland.singer@desertbit.com> wrote:
-> > I configured bbswitch to not set any states automatically...
-> > So it's possible to obtain and verify the GPU power state.
-> >
-> > However I removed the bbswitch module and booted with nouveau.
-> >
-> > Kernel 4.7.2: nouveau switches the discrete GPU off.
-> >               I can't trigger the freeze, because bbswitch is missing.
-> >               I'll work with the system and see if it will freeze.
-> >
-> > Kernel 4.8-rc4: nouveau does not care about the power state and
-> >                 the discrete GPU is never switched off. I will notice
-> >                 this, because the second cooling FAN will stop...
-> >                 Same log messages as send before.
-> 
-> That's surprising. I believe there's an issue with the new logic when
-> there's an HDMI audio subdevice. However that only appears if there's
-> a cable plugged in, at least in the systems Peter tested. You should
-> be able to see whether it's there or not with 'lspci'.
-
-I doubt that the audio device is responsible here, that should only show
-up after following very specific steps (runtime suspend/resume (PCI or
-ACPI magic), remove PCI device, rescan bus).
-
-> You can check for sure by looking in the vgaswitcheroo state. It
-> should say DynOff when it's powered off.
-> 
-> Either way, I think using bbswitch + nouveau isn't supported by
-> anyone, so if you want to use it that way, you're on your own. (You
-> may want to load nouveau with runpm=0 so that nouveau doesn't try to
-> manage the GPU suspend stuff.)
-
-I understood that Roland's intent is to check the power state, not use
-the suspend functionality of bbswitch, if you load bbswitch without
-module options amd do not write to /proc/bbswitch, then it allows you to
-read out the actual status (you could also just use lspci -H1 for that
-though).
--- 
-Kind regards,
-Peter Wu
-https://lekensteyn.nl
+T24gTW9uLCBBdWcgMjksIDIwMTYgYXQgMTE6MDI6MTBBTSAtMDUwMCwgQmpvcm4gSGVsZ2FhcyB3
+cm90ZToKPiBbK2NjIGxpbnV4LWFjcGksIGxpbnV4LWtlcm5lbCwgZHJpLWRldmVsXQo+IAo+IEhp
+IFJvbGFuZCwKPiAKPiBJIGhhdmUgbm8gaWRlYSBob3cgdG8gZGVidWcgdGhpcyBwcm9ibGVtLiAg
+QXJlIHlvdSBzZWVpbmcgc29tZXRoaW5nCj4gdGhhdCBzdWdnZXN0cyBpdCBtYXkgYmUgYSBQQ0kg
+cHJvYmxlbT8KClllcyBJIHN1c3BlY3QgdGhlcmUgaXMgYW4gQUNQSSBhbmQvIG9yIFBDSSBwcm9i
+bGVtLCBwb3NzaWJseQpkZXZpY2Utc3BlY2lmaWMuIFN0ZXBzIHRvIHJlcHJvZHVjZSBvbiB0aGUg
+YWZmZWN0ZWQgbWFjaGluZXM6CgogMS4gTG9hZCBub3V2ZWF1LgogMi4gV2FpdCBmb3IgaXQgdG8g
+cnVudGltZSBzdXNwZW5kLgogMi4gSW52b2tlICdsc3BjaScsIHRoaXMgcmVzdW1lcyB0aGUgTnZp
+ZGlhIFBDSSBkZXZpY2UgdmlhIG5vdXZlYXUuCiAzLiBsc3BjaSBuZXZlciByZXR1cm5zLCBmZXcg
+bW9tZW50cyBsYXRlciBhbiBBTUxfSU5GSU5JVEVfTE9PUCBpcwogICAgcmVwb3J0ZWQuCgpJZiB5
+b3UgdXNlIHRoZSBleHRlcm5hbCBiYnN3aXRjaCBtb2R1bGUsIHRoZSBlZmZlY3QgaXMgdGhlIHNh
+bWUuIEkgaGF2ZQpiZWVuIHRyeWluZyB0byBkZWJ1ZyB0aGlzIGZvciBzb21lIHRpbWUgb24gbm91
+dmVhdSB3aXRoIG5vIGx1Y2suIFRoZQpQQ0kvUE0gRDNjb2xkIHBhdGNoZXMgZnJvbSBNaWthIG1h
+a2VzIG5vIGRpZmZlcmVuY2UuCgpSdW50aW1lIHJlc3VtZSB2aWEgbm91dmVhdSB0cmlnZ2VycyBz
+b21lIEFDUEkgbWV0aG9kcyAoSSdsbCBhc3N1bWUgdGhlCldpbmRvd3MgOC1zdHlsZSBQUiBtZXRo
+b2QgYW5kIHRha2UgdGhlIENsZXZvIFA2NTEgYXMgZXhhbXBsZSk6CgogICAgXF9TQi5QQ0kwLlBF
+RzAuUEcwMC5fT04gKCkgLT4KICAgICAgICBcX1NCLlBDSTAuUEdPTiAoMCkKClRoZW46CgogICAg
+TWV0aG9kIChQR09OLCAxLCBTZXJpYWxpemVkKSB7CiAgICAgICAgUElPTiA9IEFyZzAgICAgIC8v
+IG5vdGU6IDAgZm9yIFBHMDAKICAgICAgICAvLyAuLi4KICAgICAgICBJZiAoKE9TWVMgIT0gMHgw
+N0RGKSkgeyAvKiBOb3QgV2luZG93cyAyMDE1IChXaW5kb3dzIDEwKSwgc2VlIGJlbG93ICovIH0K
+ICAgICAgICBFbHNlIHsKICAgICAgICAgICAgTEtFTiAoUElPTikKICAgICAgICB9CiAgICAgICAg
+Ly8gdGhpcyBpcyB0aGUgaW5maW5pdGUgbG9vcDogaXQgdHJpZXMgdG8gYnJpbmcgdGhlIFBDSWUg
+bGluayB0bwogICAgICAgIC8vIGZ1bGwgc3BlZWQsIGJ1dCBmYWlscyB0byBkbyBzby4KICAgICAg
+ICBXaGlsZSAoKFxfU0IuUENJMC5QRUcwLkxOS1MgPCAweDA3KSkgewogICAgICAgICAgICBMb2Nh
+bDAgPSAweDIwCiAgICAgICAgICAgIFdoaWxlIChMb2NhbDApIHsKICAgICAgICAgICAgICAgIElm
+ICgoXF9TQi5QQ0kwLlBFRzAuTE5LUyA8IDB4MDcpKSB7CiAgICAgICAgICAgICAgICAgICAgU3Rh
+bGwgKDB4NjQpCiAgICAgICAgICAgICAgICAgICAgTG9jYWwwLS0KICAgICAgICAgICAgICAgIH0g
+RWxzZSB7IEJyZWFrIH0KICAgICAgICAgICAgfQogICAgICAgICAgICBJZiAoKExvY2FsMCA9PSBa
+ZXJvKSkgewogICAgICAgICAgICAgICAgXF9TQi5QQ0kwLlBFRzAuUlRMSyA9IE9uZQogICAgICAg
+ICAgICAgICAgU3RhbGwgKDB4NjQpCiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICAgICAgLy8g
+Li4uCiAgICB9CgpXaXRob3V0IGFueSB3b3JrYXJvdW5kLCB0aGlzIHBpZWNlIG9mIGNvZGUgaXMg
+aW52b2tlZDoKCiAgICBNZXRob2QgKExLRU4sIDEsIE5vdFNlcmlhbGl6ZWQpIHsKICAgICAgICBM
+b2NhbDMgPSAoQ1BFWCAmIDB4MEYpICAvLyBDUEVYIGF0IDB4NWZmOWJlN2YgYW5kIGhhcyB2YWx1
+ZSAwMDA1MDZlMwogICAgICAgIElmICgoTG9jYWwzID09IFplcm8pKSB7CiAgICAgICAgICAgIC8q
+IFNpbWlsYXIgdG8gYmVsb3csIGJ1dCB3aXRoIFEwTDAgLT4gUDBMMCAocmVnaXN0ZXIgMHhCQyBi
+aXQgNikgKi8KICAgICAgICB9IEVsc2VJZiAoKExvY2FsMyAhPSBaZXJvKSkgewogICAgICAgICAg
+ICBJZiAoKEFyZzAgPT0gWmVybykpIHsKICAgICAgICAgICAgICAgIC8qIEVudGVyIEwwIEFjdGl2
+YXRlIHN0YXRlLgogICAgICAgICAgICAgICAgICogKExLRFMgdHJpZXMgdG8gZW50ZXIgTDIsIGRl
+ZXAtZW5lcmd5LXNhdmluZyBzdGF0ZS4pICovCiAgICAgICAgICAgICAgICBRMEwwID0gT25lICAg
+ICAgLy8gcmVnaXN0ZXIgMHgyNDkgYml0IDA7IFxfU0IuUENJMC5PUEcwLlEwTDAgMDA6MDEuMAog
+ICAgICAgICAgICAgICAgU2xlZXAgKDB4MTApCiAgICAgICAgICAgICAgICBMb2NhbDAgPSBaZXJv
+CiAgICAgICAgICAgICAgICBXaGlsZSAoUTBMMCkgewogICAgICAgICAgICAgICAgICAgIElmICgo
+TG9jYWwwID4gMHgwNCkpIHsgQnJlYWsgfQogICAgICAgICAgICAgICAgICAgIFNsZWVwICgweDEw
+KQogICAgICAgICAgICAgICAgICAgIExvY2FsMCsrCiAgICAgICAgICAgICAgICB9CiAgICAgICAg
+ICAgIH0gZWxzZSB7IC8qIG90aGVyIGNhc2VzLCBidXQgd2UgYXJlIG9ubHkgaW50ZXJlc3RlZCBp
+biBQR09OKDApICovIH0KICAgICAgICB9CiAgICB9CgpUaGUgYWNwaV9vc2k9IiFXaW5kb3dzIDIw
+MTUiIHdvcmthcm91bmQgd2lsbCBpbnZva2UgdGhpcyBpbnN0ZWFkOgoKICAgIElmICgoT1NZUyAh
+PSAweDA3REYpKSB7CiAgICAgICAgSWYgKChQSU9OID09IFplcm8pKSB7CiAgICAgICAgICAgIFAw
+QVAgPSBaZXJvICAvKiBQR09GIHdyaXRlcyAzICovCiAgICAgICAgICAgIFAwUk0gPSBaZXJvICAv
+KiBQR09GIHdyaXRlcyAxICovCiAgICAgICAgfQogICAgICAgIElmICgoUEJHRSAhPSBaZXJvKSkg
+eyAvKiBPYnNlcnZlZCB0byBiZSBmYWxzZSAoUEJHRSA9PSAwKSAqLwogICAgICAgICAgICBJZiAo
+U0JETCAoUElPTikpIHsKICAgICAgICAgICAgICAgIFBVQUIgKFBJT04pCiAgICAgICAgICAgICAg
+ICBDQkRMID0gR1VCQyAoUElPTikKICAgICAgICAgICAgICAgIE1CREwgPSBHTVhCIChQSU9OKQog
+ICAgICAgICAgICAgICAgSWYgKChDQkRMID4gTUJETCkpIHsKICAgICAgICAgICAgICAgICAgICBD
+QkRMID0gTUJETCAvKiBcX1NCXy5QQ0kwLk1CREwgKi8KICAgICAgICAgICAgICAgIH0KICAgICAg
+ICAgICAgICAgIFBEVUIgKFBJT04sIENCREwpCiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICAg
+ICAgSWYgKChQSU9OID09IFplcm8pKSB7CiAgICAgICAgICAgIFAwTEQgPSBaZXJvICAgICAvKiBM
+aW5rIERpc2FibGUgPSAwLCBQR09GIHNldHMgMSBpbnN0ZWFkLiAqLwogICAgICAgICAgICBQMFRS
+ID0gT25lICAgICAgLyogVHJhaW4/IChQR09GIGRvZXMgbm90IHNldCB0aGlzKS4gKi8KICAgICAg
+ICAgICAgVENOVCA9IFplcm8KICAgICAgICAgICAgV2hpbGUgKChUQ05UIDwgTERMWSkpIHsgLyog
+TERMWSA9IDMwMCAqLwogICAgICAgICAgICAgICAgSWYgKChQMFZDID09IFplcm8pKSB7CiAgICAg
+ICAgICAgICAgICAgICAgLyogVkMgTmVnb3RpYXRpb24gUGVuZGluZyAwIG1lYW5zIFZDIG5lZ290
+YXRpb24gaXMgY29tcGxldGUuICovCiAgICAgICAgICAgICAgICAgICAgQnJlYWsKICAgICAgICAg
+ICAgICAgIH0KICAgICAgICAgICAgICAgIFNsZWVwICgweDEwKQogICAgICAgICAgICAgICAgVENO
+VCArPSAweDEwIC8qIEF0IG1vc3QgMTkgaXRlcmF0aW9ucywgc2xlZXBpbmcgZm9yIDMwNG1zLiAq
+LwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQoKVGhlIGNvbW1lbnRzIGFib3ZlIGFyZSBt
+eSBvd24gaW50ZXJwcmV0YXRpb24gYmFzZWQgb24gdGhlIGFjcGlkdW1wcyBJCmV4dHJhY3RlZCBm
+cm9tIHRoZSBtYWNoaW5lLiBUaGVzZSBub3RlcyBhbmQgQUNQSSB0YWJsZXMgY2FuIGJlIGZvdW5k
+IGF0Cmh0dHBzOi8vZ2l0aHViLmNvbS9MZWtlbnN0ZXluL2FjcGktc3R1ZmYvYmxvYi9tYXN0ZXIv
+Q2xldm8tUDY1MVJBL25vdGVzLnR4dApodHRwczovL2dpdGh1Yi5jb20vTGVrZW5zdGV5bi9hY3Bp
+LXN0dWZmL3RyZWUvbWFzdGVyL2RzbC9DbGV2b19QNjUxUkEKCk90aGVyIGFmZmVjdGVkIGRldmlj
+ZXMgaGF2ZSBzaW1pbGFyIGNvZGUsIGRpZmZlcmVuY2VzIGFyZSBzbWFsbDoKIC0gTm8gY2hlY2sg
+Zm9yIExOS1MgKGF2b2lkcyB0aGUgaW5maW5pdGUgbG9vcCwgYnV0IGRldmljZSBpcyBzdGlsbCBv
+ZmYpCiAtIEluc3RlYWQgb2YgYSBjaGVjayBmb3IgIT0gIldpbmRvd3MgMjAxNSIsIHRoZXkgY2hl
+Y2sgZm9yID09ICJXaW5kb3dzCiAgIDIwMDkiIG9yIGV2ZW4gZm9yID09ICJXaW5kb3dzIDIwMDki
+IHx8ICJXaW5kb3dzIDIwMTMiIChEZWxsIEluc3Bpcm9uCiAgIDc1NTkpLgoKVGhlIHRlc3RlZCBr
+ZXJuZWxzICh3aXRoIGJic3dpdGNoIG9yIG5vdXZlYXUpIHdlcmUgTGludXggNC40LjAsIDQuNiwK
+NC43IChub3V2ZWF1ICsgUENJL1BNICsgbm91dmVhdSBQUiBwYXRjaGVzKS4gVGhlIFBDSWUgZGV2
+aWNlIGlzCnNvbWV0aGluZyBmcm9tIHRoZSBHVFggOXh4TSBmYW1pbHkgaW4gYWxsIGNhc2VzLgoK
+SSBoYXZlIGEgYnVuY2ggb2YgUENJIGNvbmZpZyBkdW1wcyBmcm9tIFdpbmRvd3MgYW5kIExpbnV4
+LCBidXQgdGhlcmUgaXMKbm90aGluZyBleHRyYW9yZGluYXJ5LiBBbHNvIGRpZCBhbiBBQ1BJIHRy
+YWNlIHZpYSBhIENoZWNrZWQvRGVidWcgYnVpbGQKb2YgV2luZG93cywgYnV0IGl0IGp1c3QgY29u
+ZmlybXMgdGhhdCB0aGUgQUNQSSBtZXRob2Qgd2UgdXNlIGZvciB0aGUKTnZpZGlhIGRldmljZSBp
+cyB0aGUgY29ycmVjdCBvbmUuCgpMZXQgbWUga25vdyBpZiB5b3UgbmVlZCBtb3JlIGluZm9ybWF0
+aW9uLCBJIHdvdWxkIGJlIGdsYWQgdG8gcHJvdmlkZS4KCktpbmQgcmVnYXJkcywKUGV0ZXIKCj4g
+T24gVHVlLCBBdWcgMjMsIDIwMTYgYXQgMTE6MjM6NDVBTSArMDIwMCwgUm9sYW5kIFNpbmdlciB3
+cm90ZToKPiA+IEhpLAo+ID4gCj4gPiBob3BlIHNvbWVib2R5IGNhbiBoZWxwIG1lIGZpeCB0aGlz
+IGtlcm5lbCBwcm9ibGVtIHdoaWNoIGFmZmVjdHMgdGhlIGZvbGxvd2luZyBtYWNoaW5lczoKPiA+
+IAo+ID4gLSBDbGV2byBQNjUxUkEgKGk3LTY3MDBIUS9HVFggOTY1TSwgcGFydCBvZiB0aGUgUDZ4
+eFJ4IGZhbWlseSB3aGljaCBhcmUgYWxzbyBhZmZlY3RlZCkKPiA+IC0gTVNJIEdFNjIgQXBhY2hl
+IFBybyAoaTctNjcwMEhRL0dUWCA5NjBNKQo+ID4gLSBHaWdhYnl0ZSBQMzVWNSAoaTctNjcwMEhR
+L0dUWCA5NzBNKQo+ID4gLSBSYXplciBCbGFkZSAxNCIgKDIwMTYpIChpNy02NzAwSFEvR1RYIDk3
+ME0pIChCSU9TIDUuMTEsIDA0LzA3LzIwMTYpCj4gPiAKPiA+IAo+ID4gVGhlIGtlcm5lbCBmcmVl
+emVzIGlmIHRoZSBncmFwaGljYWwgdXNlciBzZXNzaW9uIChYb3JnICYgV2F5bGFuZCkgaXMKPiA+
+IHN0YXJ0ZWQgd2l0aCBhIHN3aXRjaGVkIG9mZiBkaXNjcmV0ZSBHUFUgY2FyZCAoTlZJRElBKS4K
+PiA+IElmIHRoZSBkaXNjcmV0ZSBHUFUgaXMgc3dpdGNoZWQgb2ZmIGFmdGVyIHRoZSBncmFwaGlj
+YWwgc2Vzc2lvbiBzdGFydCwKPiA+IHRoZW4gZXZlcnl0aGluZyB3b3JrcyBhcyBleHBlY3RlZCwg
+dW50aWwgdGhlIGdyYXBoaWNhbCBzZXNzaW9uIGlzIHJlc3RhcnRlZC4KPiA+IAo+ID4gVGhpcyBw
+cm9ibGVtIHNlYW1zIHRvIGJlIGxpbmtlZCB0byBzcGVjaWZpYyBCSU9TIHNldHRpbmdzLiBJZiB0
+aGUgY29tcHV0ZXIKPiA+IGlzIHN0YXJ0ZWQgd2l0aCB0aGUgZm9sbG93aW5nIGNvbW1hbmQgbGlu
+ZToKPiA+IAo+ID4gYWNwaV9vc2k9ISBhY3BpX29zaT0iV2luZG93cyAyMDA5Igo+ID4gCj4gPiB0
+aGVuIHRoZSBrZXJuZWwgZnJlZXplIGRvZXMgbm90IG9jY3VyIGFueW1vcmUuIEhvd2V2ZXIgdGhp
+cyByZXF1aXJlZCBhIHNwZWNpYWwKPiA+IEFDUEkgRFNEVCBmaXJtd2FyZSBwYXRjaCBmb3IgdGhl
+IFJhemVyIEJsYWRlIDIwMTYgbGFwdG9wOgo+ID4gCj4gPiBodHRwczovL2dpdGh1Yi5jb20vbTRu
+ZzBzcXU0c2gvcmF6ZXJfYmxhZGVfMTRfMjAxNl9hY3BpX2RzZHQKPiA+IAo+ID4gSSBzdHJvbmds
+eSByZWNvbW1lbmQgdG8gZml4IHRoaXMgaW4gdGhlIGtlcm5lbCBhbmQgSSBhbSByZWFkeSB0byBo
+ZWxwIGFuZCBzb2x2ZQo+ID4gdGhpcyBwcm9ibGVtIHdpdGggc29tZSBoZWxwLgo+ID4gCj4gPiBI
+ZXJlIGlzIGEgbGluayB0byB0aGUgR2l0SHViIGlzc3VlIHdpdGggZnVydGhlciBpbmZvcm1hdGlv
+bjoKPiA+IAo+ID4gaHR0cHM6Ly9naXRodWIuY29tL0J1bWJsZWJlZS1Qcm9qZWN0L0J1bWJsZWJl
+ZS9pc3N1ZXMvNzY0I2lzc3VlY29tbWVudC0yNDEyMTI1OTUKPiA+IAo+ID4gSGVyZSBhcmUgc29t
+ZSBtb3JlIGRldGFpbGVkIGluZm9ybWF0aW9uOgo+ID4gCj4gPiBodHRwczovL2dpdGh1Yi5jb20v
+TGVrZW5zdGV5bi9hY3BpLXN0dWZmL2Jsb2IvbWFzdGVyL0NsZXZvLVA2NTFSQS9ub3Rlcy50eHQK
+PiA+IAo+ID4gSG9wZSBzb21lYm9keSBjYW4gaGVscC4KX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
+YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
