@@ -1,7 +1,7 @@
-From: Roland Singer <roland.singer@desertbit.com>
+From: Emil Velikov <emil.l.velikov@gmail.com>
 Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 20:02:11 +0200
-Message-ID: <1c761bab-f82b-3f43-c4f0-c7a8eff94f25@desertbit.com>
+Date: Tue, 30 Aug 2016 19:09:11 +0100
+Message-ID: <CACvgo52qA9YyaskNObO_f_gg51MqBZHN7mubshJhDUcgO8SZaQ@mail.gmail.com>
 References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <20160829160210.GA24451@localhost>
  <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
@@ -14,49 +14,98 @@ References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
  <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
  <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
- <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.146.197.76.144.clients.your-server.de ([144.76.197.146]:58587
-        "EHLO desertbit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756356AbcH3SDY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 14:03:24 -0400
-In-Reply-To: <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Roland Singer <roland.singer@desertbit.com>
+Cc: linux-pci@vger.kernel.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ilia Mirkin <imirkin@alum.mit.edu>
-Cc: Emil Velikov <emil.l.velikov@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-I configured bbswitch to not set any states automatically...
-So it's possible to obtain and verify the GPU power state.
-
-However I removed the bbswitch module and booted with nouveau.
-
-Kernel 4.7.2: nouveau switches the discrete GPU off.
-              I can't trigger the freeze, because bbswitch is missing.
-              I'll work with the system and see if it will freeze.
-
-Kernel 4.8-rc4: nouveau does not care about the power state and
-                the discrete GPU is never switched off. I will notice
-                this, because the second cooling FAN will stop...
-                Same log messages as send before.
-
-
-Am 30.08.2016 um 19:43 schrieb Ilia Mirkin:
-> On Tue, Aug 30, 2016 at 1:37 PM, Roland Singer
-> <roland.singer@desertbit.com> wrote:
->> My conclusion:
->>
->> 1. Nouveau has couple of problems with GTX 9** M Nvidia GPUs.
->>    I would love to help here.
-> 
-> nouveau + bbswitch will always end in tears. You're going behind the
-> driver's back and messing around with state it believes it is
-> managing. What if you just use nouveau and let it auto-power-off the
-> GPU like it's designed to, with v4.8-rc?
-> 
->   -ilia
-> 
-
+T24gMzAgQXVndXN0IDIwMTYgYXQgMTg6MzcsIFJvbGFuZCBTaW5nZXIgPHJvbGFuZC5zaW5nZXJA
+ZGVzZXJ0Yml0LmNvbT4gd3JvdGU6Cj4gSSBhbSBydW5uaW5nIDQuNy4yLCBidXQgSSBhbHNvIGp1
+c3QgdHJpZWQgdGhlIDQuOC4wLXJjNCBtYWlubGluZSBrZXJuZWwuCj4gVGhlIHJlc3VsdCBpcyB0
+aGUgc2FtZS4gVGhlcmUgaXMgbm8gZGlmZmVyZW5jZSBpZiBiYnN3aXRjaCBvZiBhY3BpX2NhbGwK
+PiBpcyB1c2VkLiBIb3dldmVyIEkgbm90aWNlZCBmb2xsb3dpbmc6Cj4KPiAxLiBUaGUgbm91dmVh
+dSBkcml2ZXIgaXMgYnJva2VuIGluIGJvdGgga2VybmVsIHZlcnNpb24gYW5kIGlzIHJlc3BvbnNp
+YmxlCj4gICAgZm9yIHRoZSBmcmVlemVzIHdoaWxlIGdhdGhlcmluZyBwb3dlciBzdGF0ZSBpbmZv
+cm1hdGlvbiB3aXRoIGJic3dpdGNoLgo+ICAgIFNvbWV0aW1lcyB3aGlsZSBzaHV0dGluZyB0aGUg
+c3lzdGVtIGRvd24sIGV2ZXJ5dGhpbmcgZXhjZXB0IHRoZSBMQ0QKPiAgICBzY3JlZW4gaXMgc3dp
+dGNoZWQgb2ZmLiBUaGlzIG9ubHkgaGFwcGVucyB3aXRoIG5vdXZlYXUuCj4gICAgSSBub3RpY2Vk
+IGZvbGxvd2luZyBlcnJvciBsb2cgbWVzc2FnZXM6Cj4KSSBzZWNvbmQgSWxpYSBoZXJlLiBVc2lu
+ZyBiYnN3aXRjaCBpbiBjb25qdW5jdGlvbiB3aXRoIGFueSBkcml2ZXIgKGJlCnRoYXQgbm91dmVh
+dSBvciB0aGUgcHJvcHJpZXRhcnkgb25lKSBpcyBhIGJhZCBpZGVhLgoKPiAgICBrZXJuZWw6IG5v
+dXZlYXUgMDAwMDowMTowMC4wOiBmYjogNjE0NCBNaUIgR0REUjUKPiAgICBrZXJuZWw6IG5vdXZl
+YXUgMDAwMDowMTowMC4wOiBwcml2OiBIVUIwOiAxMGVjYzAgZmZmZmZmZmYgKDFlNDA4MjJjKQo+
+ICAgIGtlcm5lbDogbm91dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogVlJBTTogNjE0NCBNaUIKPiAg
+ICBrZXJuZWw6IG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IEdBUlQ6IDEwNDg1NzYgTWlCCj4g
+ICAga2VybmVsOiBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBQb2ludGVyIHRvIFRNRFMgdGFi
+bGUgaW52YWxpZAo+ICAgIGtlcm5lbDogbm91dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogRENCIHZl
+cnNpb24gNC4xCj4gICAga2VybmVsOiBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBQb2ludGVy
+IHRvIGZsYXQgcGFuZWwgdGFibGUgaW52YWxpZAo+Cj4gMi4gLT4gQm9vdCB3aXRoIG5vdXZlYXUg
+bW9kdWxlIGxvYWRlZAo+ICAgIC0+IHN3aXRjaCBvZmYgdGhlIGRpc2NyZXRlIEdQVSB3aXRoIGJi
+c3dpdGNoIG9yIGFjcGlfY2FsbAo+ICAgIC0+IHN0YXJ0IFgxMQo+ICAgIC0+IG9idGFpbmluZyBw
+b3dlciBzdGF0ZSB3aXRoIGJic3dpdGNoIGZyZWV6ZXMgdGhlIHN5c3RlbQo+ICAgIC0+IG9yIHdv
+cmtpbmcgd2l0aCB0aGUgc3lzdGVtIGZvciBzb21lIG1pbnV0ZXMgZnJlZXplcyB0aGUgc3lzdGVt
+Cj4KKElmIElsaWEncyBzdWdnZXN0aW9ucyBkb2VzIG5vdCBoZWxwKSBDb25maXJtIGlmIHRoZSBm
+cmVlemUgaXMgZHVlCnRvL2FzIHRoZSBHUFUgaXMgcG93ZXJlZCBvbiBvciBvZmYuCgo+IDMuIC0+
+IEJvb3Qgd2l0aCBub3V2ZWF1IG1vZHVsZSBibGFja2xpc3RlZAo+ICAgIC0+IHN3aXRjaCBvZmYg
+dGhlIGRpc2NyZXRlIEdQVQo+ICAgIC0+IHN0YXJ0IFgxMQo+ICAgIC0+IHN5c3RlbSBpbW1lZGlh
+dGVseSBmcmVlemVzCj4KSXQncyBwZXJmZWN0bHkgcG9zc2libGUgdGhhdCB0aGUgZGlzY3JldGUg
+R1BVIGlzIHNldCBhcyBib290IG9uZSBhbmQgWApnb2VzIGFuZ3J5IHNpbmNlIHRoZXJlJ3Mgbm8g
+ZHJpdmVyL3dheSB0byBicmluZyBpdCB1cC4KCj4gNC4gLT4gQm9vdCB3aXRoIG5vdXZlYXUgbW9k
+dWxlIGJsYWNrbGlzdGVkCj4gICAgLT4gc3dpdGNoIG9mZiB0aGUgZGlzY3JldGUgR1BVCj4gICAg
+LT4gc3RhcnQgV2F5bGFuZAo+ICAgIC0+IHN5c3RlbSBydW5zIC0gTm90ZTogSSB0cmllZCB0aGlz
+IGZvciBjb3VwbGUgb2YgZGF5cyB3aXRoIDQuNiBhbmQgNC43IG1haW5saW5lCj4gICAgICAgICAg
+ICAgICAgICAgICAgICAgICBhbmQgdGhlIHN5c3RlbSBmcmVlemVkIHJhbmRvbWx5IGFmdGVyIHNv
+bWUgdGltZS4KPiAgICAgICAgICAgICAgICAgICAgICAgICAgIEhvd2V2ZXIgSSBoYXZlIHRvIHRl
+c3QgaWYgdGhpcyBpcyBzdGlsbCBwcmVzZW50IHdpdGggNC43LjIKPiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIGFuZCA0LjggbWFpbmxpbmUuIFJpZ2h0IG5vdyBpdCBzZWFtcyB0byBiZSBmaW5l
+Lgo+ICAgIC0+IHJ1bm5pbmcgWHdheWxhbmQgKGRvZXMgbm90IGRlcGVuZCBvbiB0aGUgR1BVIHBv
+d2VyIHN0YXRlKSBraWxscyBwZXJmb3JtYW5jZSEKPiAgICAgICB0aGUgc3lzdGVtIGZyZWV6ZXMg
+Zm9yIHNldmVyYWwgc2Vjb25kcy4uLgo+ICAgICAgIFNvIHdvcmtpbmcgd2l0aCBXYXlsYW5kIGlz
+IGFsc28gbm8gc29sdXRpb24uCj4KPiBNeSBjb25jbHVzaW9uOgo+Cj4gMS4gTm91dmVhdSBoYXMg
+Y291cGxlIG9mIHByb2JsZW1zIHdpdGggR1RYIDkqKiBNIE52aWRpYSBHUFVzLgo+ICAgIEkgd291
+bGQgbG92ZSB0byBoZWxwIGhlcmUuCj4KPiAyLiBYMTEgaXMganVzdCBicm9rZW4gYW5kIGlzIG5v
+dCBjYXBhYmxlIHRvIHN0YXJ0IHRoZSBncmFwaGljYWwgc2Vzc2lvbgo+ICAgIGlmIHRoZSBudmlk
+aWEgR1BVIGlzIG5vdCBoYW5kbGVkIGJ5IGFueSB2aWRlbyBkcml2ZXIgKGtlcm5lbCBtb2R1bGUp
+Lgo+ICAgIEV2ZW4gZm9yY2luZyBYMTEgdG8gaWdub3JlIHRoZSBkaXNjcmV0ZSBHUFUgZG9lc24n
+dCBoZWxwLgo+Ck91dCBvZiBjdXJpb3NpdHk6IGhvdyBkaWQgeW91IGZvcmNlIFggdG8gaWdub3Jl
+IHRoZSBkZXZpY2UgPwoKPiAgICBTZXR0aW5nIHRoZSBjb21tYW5kIGxpbmUgYXJndW1lbnRzIHRv
+Ogo+Cj4gICAgICBhY3BpX29zaT0hIGFjcGlfb3NpPSJXaW5kb3dzIDIwMDkiCj4KPiAgICBmaXhl
+cyB0aGUgaXNzdWVzIHdpdGggWDExIGJ1dCBvdGhlciB0aGluZ3MgYnJlYWsuLi4KPiAgICBXaGF0
+IHRoZSBoZWxsIGlzIGdvaW5nIG9uPyEgOi8KPgpZb3UgY2FuIGNoZWNrIGlmIGl0J3MgdGhlIGJv
+b3RfdmdhIGFzc3VtcHRpb24gd2l0aAoKQ2hlY2sgd2gKCllvdSdyZSBhIHZpY3R1bSBvZiB0aGUg
+V2luZG93cyBzcGVjaWZpYyBmdW4gKHF1aXJrcz8pIGluCgo+IEFtIDMwLjA4LjIwMTYgdW0gMTc6
+NDggc2NocmllYiBFbWlsIFZlbGlrb3Y6Cj4+IE9uIDMwIEF1Z3VzdCAyMDE2IGF0IDE2OjI1LCBS
+b2xhbmQgU2luZ2VyIDxyb2xhbmQuc2luZ2VyQGRlc2VydGJpdC5jb20+IHdyb3RlOgo+Pj4gSSB0
+cmllZCB0aGVzZSBzY2VuYXJpb3M6Cj4+Pgo+Pj4gMS4gQm9vdGVkIHRoZSBzeXN0ZW0gd2l0aG91
+dCB0aGUgYmJzd2l0Y2ggbW9kdWxlLiBUaGUgbm91dmVhdSBtb2R1bGUKPj4+ICAgIHdhcyBsb2Fk
+ZWQgYW5kIGlzIHJlc3BvbnNpYmxlIGZvciB0aGUgcG93ZXIgbWFuYWdlbWVudCBvZiB0aGUgR1BV
+Lgo+Pj4gICAgVGhlIGdyYXBoaWNhbCBzZXNzaW9uIGZyZWV6ZXMgYWZ0ZXIgc29tZSBtaW51dGVz
+Li4uCj4+Pgo+Pj4gMi4gQm9vdGVkIHRoZSBzeXN0ZW0gd2l0aG91dCBiYnN3aXRjaCBhbmQgd2l0
+aCBub3V2ZWF1IGJsYWNrbGlzdGVkLgo+Pj4gICAgTWFudWFsbHkgbG9hZGVkIGJic3dpdGNoIHRv
+IHN3aXRjaCBvZmYgdGhlIGRpc2NyZXRlIEdQVS4KPj4+ICAgIFNhbWUgZnJlZXplIGFmdGVyIGEg
+d2hpbGUgb3IgYnkgZXhwbGljaXRseSBvYnRhaW5pbmcgdGhlIEdQVSBzdGF0ZS4KPj4+Cj4+PiBJ
+cyB0aGVyZSBhIHBvc3NpYmlsaXR5IHRvIHN3aXRjaCBvZmYgdGhlIGRpc2NyZXRlIGNhcmQgd2l0
+aG91dCBiYnN3aXRjaD8KPj4+IElmIHRoaXMgaXMgcG9zc2libGUsIHRoZW4gSSBjb3VsZCB0ZXN0
+IHRoaXMgd2l0aG91dCBub3V2ZWF1IGFuZCBiYnN3aXRjaAo+Pj4gYXQgYWxsLiBJZiB0aGUgc3lz
+dGVtIGhhbmdzLCB0aGVuIGl0IGlzIG5vdCB0aGUgdmlkZW8gZHJpdmVyIG5vciBiYnN3aXRjaC4K
+Pj4+Cj4+IEFzIElsaWEgbWVudGlvbmVkIGFjcGlfY2FsbCBzaG91bGQgZG8gaXQuIFlvdSBjYW4g
+YWxzbyBjaGVjayB3aXRoIHRoZQo+PiBub3V2ZWF1L2Jid3N3aXRjaCBjb2RlIHRvIHNlZSB3aGlj
+aCBvbmVzIHRoZXkgdXNlIGluIHlvdXIgY2FzZSBhbmQKPj4gYmFzaCBpdCBtYW51YWxseS4gSXQg
+bWlnaHQgYmUgdGhhdCB0aGUgJ3dyb25nIG9uZScgZ2V0cyB1c2VkIHRodXMKPj4gdGhpbmdzIGdv
+aW5nIGhvcnJpYmx5IHdyb25nLgo+Pgo+PiBSZWdhcmRzLAo+PiBFbWlsCj4+Cj4KX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
+bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
