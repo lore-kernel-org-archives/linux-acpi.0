@@ -1,94 +1,51 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Tue, 30 Aug 2016 08:51:08 -0700
-Message-ID: <CADaLND=DCFZB5KGN+yqdF0pzHhvmDhKHf9fMgZ57c+2GE0n9jQ@mail.gmail.com>
-References: <20160824213005.1a9300ef@arm.com> <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
- <20160825121825.322d8450@arm.com> <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
- <20160825195917.0e75a8db@arm.com> <20160826090813.GA1038@red-moon>
- <20160826130832.2fde2327@arm.com> <f747c2c3-096a-f843-908c-3f76238a6acd@codeaurora.org>
- <20160826170615.GC23885@red-moon> <66f94732-7ce4-e577-9bec-52f0dc8e6ddb@codeaurora.org>
- <20160830100834.GA368@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: jeff.mcgee@intel.com
+Subject: [PATCH 10/15] acpi: Export acpi_bus_type
+Date: Tue, 30 Aug 2016 09:49:05 -0700
+Message-ID: <20160830164910.1248-11-jeff.mcgee@intel.com>
+References: <20160830164910.1248-1-jeff.mcgee@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f171.google.com ([209.85.217.171]:33704 "EHLO
-        mail-ua0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754042AbcH3Pvk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 11:51:40 -0400
-Received: by mail-ua0-f171.google.com with SMTP id l94so40195730ual.0
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Aug 2016 08:51:40 -0700 (PDT)
-In-Reply-To: <20160830100834.GA368@red-moon>
+Received: from mga07.intel.com ([134.134.136.100]:37389 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756735AbcH3Qmu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 Aug 2016 12:42:50 -0400
+In-Reply-To: <20160830164910.1248-1-jeff.mcgee@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
+To: isg-gms@eclists.intel.com
+Cc: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff McGee <jeff.mcgee@intel.com>
 
-On Tue, Aug 30, 2016 at 3:08 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
->>
->> >> Let me throw option d here.
->> >>
->> >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
->> >> can't we override this in an arch specific way (arm64's pci.c) while
->> >> creating the root bridge?
->> >
->> > On what basis ? You were not copied in from the beginning, but that
->> > is not different from Duc's initial proposal, which Marc discarded
->> > because it should not be done at arch level, it depends on the interrupt
->> > controller.
->>
->> I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
->> Duc's initial proposal.
->>
->> I can't imagine someone building an ACPI compliant ARM64 platform
->> without a GIC interrupt controller.
->>
->> The SBSA spec already mentions what kind of compatibility should be
->> maintained with respect to GIC. You can't have an ACPI system that's
->> SBSA compliant and not using GIC.
->>
->> Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
->> is defined.  Why do we have to reach out to the interrupt controller?
->
-> Patch below (horrible but no solution will be shiny either).
->
->> https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
->
-> [...]
->
->> If you look at my email above, I tried getting rid of PCI Link object
->> and I couldn't. I sticked to only thing that works.
->
-> That's what I object to. If the ACPI bindings do not work for ARM
-> we do not work around issues, we upgrade the specs because what may work
-> for you has to work on all ARM platforms (and all FW developers have
-> to be aware of that). Granted, this is a tiny snag, but the point is
-> that no one knows what's the correct way of describing PCI legacy IRQs
-> on ARM and we need that rectified.
->
-> This does the trick for me (I can turn it into a function/look-up
-> that returns the polarity), I am sure it will ruffle feathers but
-> we have to find a solution so here it is (that acpi_irq_model gem
-> is already used in generic code drivers/acpi/pci_link.c ;-))
->
+From: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
 
-Good catch! This acpi_irq_model gem does help X-Gene :)
+Some modules, like i915.ko, needs to detect when certain ACPI features are
+active inorder to prevent corruption on contended resources.
+In particular, use of BIOS RapidStart Technology may corrupt the contents of
+the reserved graphics memory, due to unalarmed hibernation. In which case
+i915.ko cannot assume that it (reserved gfx memory) remains unmodified and
+must recreate the contents and importantly not use it to store unrecoverable
+user data.
 
-> -- >8 --
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 2c45dd3..c9b8c85 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->         int gsi;
->         u8 pin;
->         int triggering = ACPI_LEVEL_SENSITIVE;
-> -       int polarity = ACPI_ACTIVE_LOW;
-> +       int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> +                                     ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
->         char *link = NULL;
->         char link_desc[16];
->         int rc;
-Regards,
-Duc Dang.
+Signed-off-by: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Jeff McGee <jeff.mcgee@intel.com>
+---
+ drivers/acpi/scan.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 4b22ea8..7461bab 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1269,6 +1269,7 @@ struct bus_type acpi_bus_type = {
+ 	.remove		= acpi_device_remove,
+ 	.uevent		= acpi_device_uevent,
+ };
++EXPORT_SYMBOL_GPL(acpi_bus_type);
+ 
+ static void acpi_device_del(struct acpi_device *device)
+ {
+-- 
+2.9.3
+
