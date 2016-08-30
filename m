@@ -1,45 +1,94 @@
-From: Emil Velikov <emil.l.velikov@gmail.com>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Tue, 30 Aug 2016 16:48:59 +0100
-Message-ID: <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost> <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
- <20160829190737.GA4053@localhost> <a0079ace-3062-4792-5c33-3a5e350daac3@desertbit.com>
- <20160829235403.GA14177@localhost> <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
- <20160830130634.GA16426@localhost> <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
- <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Tue, 30 Aug 2016 08:51:08 -0700
+Message-ID: <CADaLND=DCFZB5KGN+yqdF0pzHhvmDhKHf9fMgZ57c+2GE0n9jQ@mail.gmail.com>
+References: <20160824213005.1a9300ef@arm.com> <CADaLNDm+edKaveG76h_fbMjM_b==PdranXLoATL8+JrsWRC6BQ@mail.gmail.com>
+ <20160825121825.322d8450@arm.com> <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+ <20160825195917.0e75a8db@arm.com> <20160826090813.GA1038@red-moon>
+ <20160826130832.2fde2327@arm.com> <f747c2c3-096a-f843-908c-3f76238a6acd@codeaurora.org>
+ <20160826170615.GC23885@red-moon> <66f94732-7ce4-e577-9bec-52f0dc8e6ddb@codeaurora.org>
+ <20160830100834.GA368@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:34887 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753595AbcH3PtC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 11:49:02 -0400
-In-Reply-To: <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
+Received: from mail-ua0-f171.google.com ([209.85.217.171]:33704 "EHLO
+        mail-ua0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754042AbcH3Pvk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 11:51:40 -0400
+Received: by mail-ua0-f171.google.com with SMTP id l94so40195730ual.0
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Aug 2016 08:51:40 -0700 (PDT)
+In-Reply-To: <20160830100834.GA368@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Roland Singer <roland.singer@desertbit.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 
-On 30 August 2016 at 16:25, Roland Singer <roland.singer@desertbit.com> wrote:
-> I tried these scenarios:
+On Tue, Aug 30, 2016 at 3:08 AM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
+>>
+>> >> Let me throw option d here.
+>> >>
+>> >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
+>> >> can't we override this in an arch specific way (arm64's pci.c) while
+>> >> creating the root bridge?
+>> >
+>> > On what basis ? You were not copied in from the beginning, but that
+>> > is not different from Duc's initial proposal, which Marc discarded
+>> > because it should not be done at arch level, it depends on the interrupt
+>> > controller.
+>>
+>> I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
+>> Duc's initial proposal.
+>>
+>> I can't imagine someone building an ACPI compliant ARM64 platform
+>> without a GIC interrupt controller.
+>>
+>> The SBSA spec already mentions what kind of compatibility should be
+>> maintained with respect to GIC. You can't have an ACPI system that's
+>> SBSA compliant and not using GIC.
+>>
+>> Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
+>> is defined.  Why do we have to reach out to the interrupt controller?
 >
-> 1. Booted the system without the bbswitch module. The nouveau module
->    was loaded and is responsible for the power management of the GPU.
->    The graphical session freezes after some minutes...
+> Patch below (horrible but no solution will be shiny either).
 >
-> 2. Booted the system without bbswitch and with nouveau blacklisted.
->    Manually loaded bbswitch to switch off the discrete GPU.
->    Same freeze after a while or by explicitly obtaining the GPU state.
+>> https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
 >
-> Is there a possibility to switch off the discrete card without bbswitch?
-> If this is possible, then I could test this without nouveau and bbswitch
-> at all. If the system hangs, then it is not the video driver nor bbswitch.
+> [...]
 >
-As Ilia mentioned acpi_call should do it. You can also check with the
-nouveau/bbwswitch code to see which ones they use in your case and
-bash it manually. It might be that the 'wrong one' gets used thus
-things going horribly wrong.
+>> If you look at my email above, I tried getting rid of PCI Link object
+>> and I couldn't. I sticked to only thing that works.
+>
+> That's what I object to. If the ACPI bindings do not work for ARM
+> we do not work around issues, we upgrade the specs because what may work
+> for you has to work on all ARM platforms (and all FW developers have
+> to be aware of that). Granted, this is a tiny snag, but the point is
+> that no one knows what's the correct way of describing PCI legacy IRQs
+> on ARM and we need that rectified.
+>
+> This does the trick for me (I can turn it into a function/look-up
+> that returns the polarity), I am sure it will ruffle feathers but
+> we have to find a solution so here it is (that acpi_irq_model gem
+> is already used in generic code drivers/acpi/pci_link.c ;-))
+>
 
+Good catch! This acpi_irq_model gem does help X-Gene :)
+
+> -- >8 --
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index 2c45dd3..c9b8c85 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>         int gsi;
+>         u8 pin;
+>         int triggering = ACPI_LEVEL_SENSITIVE;
+> -       int polarity = ACPI_ACTIVE_LOW;
+> +       int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
+> +                                     ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+>         char *link = NULL;
+>         char link_desc[16];
+>         int rc;
 Regards,
-Emil
+Duc Dang.
