@@ -1,141 +1,61 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI / button: add support for tablet mode switch
-Date: Wed, 31 Aug 2016 16:01:22 +0800
-Message-ID: <1472630482.2273.4.camel@intel.com>
-References: <1472628817-3145-1-git-send-email-wnhuang@google.com>
+From: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: DAX can not work on virtual nvdimm device
+Date: Wed, 31 Aug 2016 16:44:47 +0800
+Message-ID: <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
+References: <436d7526-bf06-633d-afce-4333552d9e31@linux.intel.com>
+ <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
+ <20160819183047.GA7216@linux.intel.com>
+ <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
+ <20160829193014.GB16738@linux.intel.com>
+ <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
+ <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:22127 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753144AbcHaIBe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 Aug 2016 04:01:34 -0400
-In-Reply-To: <1472628817-3145-1-git-send-email-wnhuang@google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Yumei Huang <yuhuang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, KVM <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org" <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Wei-Ning Huang <wnhuang@chromium.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Wei-Ning Huang <wnhuang@google.com>
 
-On 三, 2016-08-31 at 15:33 +0800, Wei-Ning Huang wrote:
-> From: Wei-Ning Huang <wnhuang@chromium.org>
-> 
-> ACPI PNP device HID 'PNP0C60' is a device that indicates tablet mode
-> status. Add support for mapping this device to the SW_TABLET_MODE
-> input
-> event.
-> 
-> Signed-off-by: Wei-Ning Huang <wnhuang@chromium.org>
-> ---
->  drivers/acpi/button.c | 36 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 36 insertions(+)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 148f4e5..50e9de6 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -53,6 +53,11 @@
->  #define ACPI_BUTTON_DEVICE_NAME_LID	"Lid Switch"
->  #define ACPI_BUTTON_TYPE_LID		0x05
->  
-> +#define ACPI_BUTTON_SUBCLASS_TABLET	"tablet"
-> +#define ACPI_BUTTON_HID_TABLET		"PNP0C60"
-> +#define ACPI_BUTTON_DEVICE_NAME_TABLET	"Tablet Mode Switch"
-> +#define ACPI_BUTTON_TYPE_TABLET		0x07
-> +
->  #define ACPI_BUTTON_LID_INIT_IGNORE	0x00
->  #define ACPI_BUTTON_LID_INIT_OPEN	0x01
->  #define ACPI_BUTTON_LID_INIT_METHOD	0x02
-> @@ -70,6 +75,7 @@ static const struct acpi_device_id
-> button_device_ids[] = {
->  	{ACPI_BUTTON_HID_SLEEPF, 0},
->  	{ACPI_BUTTON_HID_POWER,  0},
->  	{ACPI_BUTTON_HID_POWERF, 0},
-> +	{ACPI_BUTTON_HID_TABLET, 0},
->  	{"", 0},
->  };
->  MODULE_DEVICE_TABLE(acpi, button_device_ids);
-> @@ -305,6 +311,23 @@ static void acpi_lid_initialize_state(struct
-> acpi_device *device)
->  	}
->  }
->  
-> +static int acpi_tablet_send_state(struct acpi_device *device)
-> +{
-> +	struct acpi_button *button = acpi_driver_data(device);
-> +	unsigned long long state;
-> +	acpi_status status;
-> +
-> +	status = acpi_evaluate_integer(device->handle, "_TBL", NULL,
-> &state);
 
-Control methods with prefix "_" suggests this is an ACPI predefined
-control method, but I can not find it in ACPI spec 6.1.
-Can you illustrate me where I can find the definition of _TBL?
 
-thanks,
-rui
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	/* input layer checks if event is redundant */
-> +	input_report_switch(button->input, SW_TABLET_MODE, state);
-> +	input_sync(button->input);
-> +
-> +	return 0;
-> +}
-> +
->  static void acpi_button_notify(struct acpi_device *device, u32
-> event)
->  {
->  	struct acpi_button *button = acpi_driver_data(device);
-> @@ -318,6 +341,8 @@ static void acpi_button_notify(struct acpi_device
-> *device, u32 event)
->  		input = button->input;
->  		if (button->type == ACPI_BUTTON_TYPE_LID) {
->  			acpi_lid_update_state(device);
-> +		} else if (button->type == ACPI_BUTTON_TYPE_TABLET)
-> {
-> +			acpi_tablet_send_state(device);
->  		} else {
->  			int keycode;
->  
-> @@ -407,6 +432,11 @@ static int acpi_button_add(struct acpi_device
-> *device)
->  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
->  		sprintf(class, "%s/%s",
->  			ACPI_BUTTON_CLASS,
-> ACPI_BUTTON_SUBCLASS_LID);
-> +	} else if (!strcmp(hid, ACPI_BUTTON_HID_TABLET)) {
-> +		button->type = ACPI_BUTTON_TYPE_TABLET;
-> +		strcpy(name, ACPI_BUTTON_DEVICE_NAME_TABLET);
-> +		sprintf(class, "%s/%s",
-> +			ACPI_BUTTON_CLASS,
-> ACPI_BUTTON_SUBCLASS_TABLET);
->  	} else {
->  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n",
-> hid);
->  		error = -ENODEV;
-> @@ -437,6 +467,10 @@ static int acpi_button_add(struct acpi_device
-> *device)
->  	case ACPI_BUTTON_TYPE_LID:
->  		input_set_capability(input, EV_SW, SW_LID);
->  		break;
-> +
-> +	case ACPI_BUTTON_TYPE_TABLET:
-> +		input_set_capability(input, EV_SW, SW_TABLET_MODE);
-> +		break;
->  	}
->  
->  	error = input_register_device(input);
-> @@ -450,6 +484,8 @@ static int acpi_button_add(struct acpi_device
-> *device)
->  		 */
->  		lid_device = device;
->  	}
-> +	if (button->type == ACPI_BUTTON_TYPE_TABLET)
-> +		acpi_tablet_send_state(device);
->  
->  	printk(KERN_INFO PREFIX "%s [%s]\n", name,
-> acpi_device_bid(device));
->  	return 0;
+On 08/31/2016 01:09 AM, Dan Williams wrote:
+
+>
+> Can you post your exact reproduction steps?  This test is not failing for me.
+>
+
+Sure.
+
+1. make the guest kernel based on your tree, the top commit is
+    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
+    the config file can be found in this thread.
+
+2. add guest kernel command line: memmap=6G!10G
+
+3: start the guest:
+    x86_64-softmmu/qemu-system-x86_64 -machine pc,nvdimm --enable-kvm \
+    -smp 16 -m 32G,maxmem=100G,slots=100 /other/VMs/centos6.img -monitor stdio
+
+4: in guest:
+    mkfs.ext4 /dev/pmem0
+    mount -o dax /dev/pmem0  /mnt/pmem/
+    echo > /mnt/pmem/xxx
+    ./mmap /mnt/pmem/xxx
+    ./read /mnt/pmem/xxx
+
+   The source code of mmap and read has been attached in this mail.
+
+   Hopefully, you can detect the error triggered by read test.
+
+Thanks!
