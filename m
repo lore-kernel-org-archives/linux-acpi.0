@@ -1,66 +1,84 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH V2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
-Date: Wed, 31 Aug 2016 13:48:16 +0200
-Message-ID: <5406169.iVLlEcSJ8X@wuerfel>
-References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com> <1472644094-82731-4-git-send-email-liudongdong3@huawei.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v4 1/2] serial: 8250_dw: make dw8250_set_termios as
+ default set_termios callback
+Date: Wed, 31 Aug 2016 15:07:56 +0300
+Message-ID: <20160831120756.GG1751@kuha.fi.intel.com>
+References: <1472614152-43136-1-git-send-email-wangkefeng.wang@huawei.com>
+ <1472614152-43136-2-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:62785 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932988AbcHaLsd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 07:48:33 -0400
-In-Reply-To: <1472644094-82731-4-git-send-email-liudongdong3@huawei.com>
+Received: from mga11.intel.com ([192.55.52.93]:19200 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759145AbcHaMIC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 Aug 2016 08:08:02 -0400
+Content-Disposition: inline
+In-Reply-To: <1472614152-43136-2-git-send-email-wangkefeng.wang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jiri Slaby <jslaby@suse.com>, guohanjun@huawei.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org, z.liuxinliang@hisilicon.com, linux-acpi@vger.kernel.org
 
-On Wednesday, August 31, 2016 7:48:14 PM CEST Dongdong Liu wrote:
-> +static struct hisi_rc_res rc_res[] = {
-> +       {
-> +               HIP05,
-> +               {
-> +                       DEFINE_RES_MEM(0xb0070000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xb0080000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xb0090000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xb00a0000, SZ_4K)
-> +               }
-> +       },
-> +       {
-> +               HIP06,
-> +               {
-> +                       DEFINE_RES_MEM(0xa0090000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xa0200000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xa00a0000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xa00b0000, SZ_4K)
-> +               }
-> +       },
-> +       {
-> +               HIP07,
-> +               {
-> +                       DEFINE_RES_MEM(0xa0090000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xa0200000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xa00a0000, SZ_4K),
-> +                       DEFINE_RES_MEM(0xa00b0000, SZ_4K),
-> +                       DEFINE_RES_MEM(0x8a0090000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x8a0200000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x8a00a0000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x8a00b0000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x600a0090000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x600a0200000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x600a00a0000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x600a00b0000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x700a0090000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x700a0200000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x700a00a0000UL, SZ_4K),
-> +                       DEFINE_RES_MEM(0x700a00b0000UL, SZ_4K)
-> +               }
-> +       },
+Hi,
 
-I don't know much about ACPI, but I'm pretty sure this is not
-the normal way to find MMIO resources. Why not read them from
-the ACPI tables?
+On Wed, Aug 31, 2016 at 11:29:11AM +0800, Kefeng Wang wrote:
+> Make dw8250_set_termios() handle all cases of dw8250_data->clk properly,
+> then we can safely use dw8250_set_termios() as the default set_termios
+> callback instead of serial8250_do_set_termios(), so do it.
+> 
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> ---
+>  drivers/tty/serial/8250/8250_dw.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
+> index 5c0c123..adecece 100644
+> --- a/drivers/tty/serial/8250/8250_dw.c
+> +++ b/drivers/tty/serial/8250/8250_dw.c
+> @@ -235,7 +235,7 @@ static void dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
+>  	unsigned int rate;
+>  	int ret;
+>  
+> -	if (IS_ERR(d->clk) || !old)
+> +	if (IS_ERR_OR_NULL(d->clk) || !old)
+>  		goto out;
 
-	Arnd
+This part is fine, but...
+
+>  	clk_disable_unprepare(d->clk);
+> @@ -308,13 +308,11 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
+>  			p->serial_in = dw8250_serial_in32;
+>  			data->uart_16550_compatible = true;
+>  		}
+> -		p->set_termios = dw8250_set_termios;
+>  	}
+>  
+>  	/* Platforms with iDMA */
+>  	if (platform_get_resource_byname(to_platform_device(p->dev),
+>  					 IORESOURCE_MEM, "lpss_priv")) {
+> -		p->set_termios = dw8250_set_termios;
+>  		data->dma.rx_param = p->dev->parent;
+>  		data->dma.tx_param = p->dev->parent;
+>  		data->dma.fn = dw8250_idma_filter;
+> @@ -391,6 +389,7 @@ static int dw8250_probe(struct platform_device *pdev)
+>  	p->iotype	= UPIO_MEM;
+>  	p->serial_in	= dw8250_serial_in;
+>  	p->serial_out	= dw8250_serial_out;
+> +	p->set_termios	= dw8250_set_termios;
+
+I'm a bit worried about this. If I remember correctly, we didn't set
+the set_termios hook by default in the past because somebody was using
+a type of clk that can't handle rate rounding and ended up using
+improper clock frequency for some baud rates. Unfortunately I can't
+remember who had that problem and on which platform.
+
+On the other hand, I'm not sure if drivers should worry about things
+like that. This should be done the other way around. The platform
+with the problem should unset the p->set_termios hook in a quirk, but
+by default everybody would use dw8250_set_termios.
+
+
+Thanks,
+
+-- 
+heikki
