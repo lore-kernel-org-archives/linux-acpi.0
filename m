@@ -1,87 +1,132 @@
-From: Roland Singer <roland.singer@desertbit.com>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Wed, 31 Aug 2016 15:13:50 +0200
-Message-ID: <e19456cb-3076-c8f1-c9ec-fbfbd9bb6112@desertbit.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost> <20160830195337.GA18805@al>
- <e7318236-9737-518e-c360-398c66220961@desertbit.com>
- <20160831114639.GD19420@al>
- <1b91b281-3c71-f02f-ff27-51957af92275@desertbit.com>
- <20160831123444.GE19420@al>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Wed, 31 Aug 2016 14:34:54 +0100
+Message-ID: <20160831133454.GA24732@red-moon>
+References: <20160825121825.322d8450@arm.com>
+ <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+ <20160825195917.0e75a8db@arm.com>
+ <20160826090813.GA1038@red-moon>
+ <20160826130832.2fde2327@arm.com>
+ <f747c2c3-096a-f843-908c-3f76238a6acd@codeaurora.org>
+ <20160826170615.GC23885@red-moon>
+ <66f94732-7ce4-e577-9bec-52f0dc8e6ddb@codeaurora.org>
+ <20160830100834.GA368@red-moon>
+ <20160831130506.GB22908@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160831123444.GE19420@al>
-Sender: linux-pci-owner@vger.kernel.org
-To: Peter Wu <peter@lekensteyn.nl>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, emil.l.velikov@gmail.com, "imirkin@alum.mit.edu >> Ilia Mirkin" <imirkin@alum.mit.edu>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:32864 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760687AbcHaNer (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 Aug 2016 09:34:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20160831130506.GB22908@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 
->>
->> Thanks. Right now I am overriding the DSDT, but I am not able to override
->> the SSDT, because I have to fix and compile all the SSDT files. There
->> are too many compile errors... Wanted to find the exact line which
->> is responsible for the hickup.
+On Wed, Aug 31, 2016 at 08:05:06AM -0500, Bjorn Helgaas wrote:
+> On Tue, Aug 30, 2016 at 11:08:34AM +0100, Lorenzo Pieralisi wrote:
+> > On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
+> > > 
+> > > >> Let me throw option d here.
+> > > >>
+> > > >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
+> > > >> can't we override this in an arch specific way (arm64's pci.c) while
+> > > >> creating the root bridge? 
+> > > > 
+> > > > On what basis ? You were not copied in from the beginning, but that
+> > > > is not different from Duc's initial proposal, which Marc discarded
+> > > > because it should not be done at arch level, it depends on the interrupt
+> > > > controller.
+> > > 
+> > > I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
+> > > Duc's initial proposal. 
+> > > 
+> > > I can't imagine someone building an ACPI compliant ARM64 platform
+> > > without a GIC interrupt controller. 
+> > > 
+> > > The SBSA spec already mentions what kind of compatibility should be
+> > > maintained with respect to GIC. You can't have an ACPI system that's
+> > > SBSA compliant and not using GIC. 
+> > > 
+> > > Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
+> > > is defined.  Why do we have to reach out to the interrupt controller?
+> > 
+> > Patch below (horrible but no solution will be shiny either).
+> > 
+> > > https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
+> > 
+> > [...]
+> > 
+> > > If you look at my email above, I tried getting rid of PCI Link object
+> > > and I couldn't. I sticked to only thing that works.
+> > 
+> > That's what I object to. If the ACPI bindings do not work for ARM
+> > we do not work around issues, we upgrade the specs because what may work
+> > for you has to work on all ARM platforms (and all FW developers have
+> > to be aware of that). Granted, this is a tiny snag, but the point is
+> > that no one knows what's the correct way of describing PCI legacy IRQs
+> > on ARM and we need that rectified.
+> > 
+> > This does the trick for me (I can turn it into a function/look-up
+> > that returns the polarity), I am sure it will ruffle feathers but
+> > we have to find a solution so here it is (that acpi_irq_model gem
+> > is already used in generic code drivers/acpi/pci_link.c ;-))
+> > 
+> > -- >8 --
+> > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> > index 2c45dd3..c9b8c85 100644
+> > --- a/drivers/acpi/pci_irq.c
+> > +++ b/drivers/acpi/pci_irq.c
+> > @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> >  	int gsi;
+> >  	u8 pin;
+> >  	int triggering = ACPI_LEVEL_SENSITIVE;
+> > -	int polarity = ACPI_ACTIVE_LOW;
+> > +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
+> > +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+> >  	char *link = NULL;
+> >  	char link_desc[16];
+> >  	int rc;
 > 
-> Have you disassembled with externs included? That is,
+> This still seems weird to me.
 > 
->     iasl -e *.dat -d ssdtX.dat
+> If I understand correctly, this GIC has several inputs, all active
+> high.  Some of those inputs are connected to inverters and then to PCI
+> INTx wires.
 > 
-> If you are sure that the remaining errors are harmless, you can use the
-> '-f' option to ignore errors. You can also use the `-ve` option to
-> suppress warnings and remarks so you can focus on the errors.
+> A generic device driver knows about the hardware it drives, including
+> the properties of its interrupt wires.  PCI drivers and the ACPI/PCI
+> core know that conventional PCI device INTx wires are active low.
+> These drivers, being generic, do not know about the GIC inverters.
 > 
+> The patch above basically says "if ACPI tells us about a PCI interrupt
+> connected to a GIC, *assume* there is an inverter on the input."  But
+> there's no actual description of that inverter anywhere in ACPI or a
+> device tree.  Shouldn't that be made explicit somewhere?
 
-Thanks, I'll try that.
+It is explicit for all IRQs other than PCI legacy IRQs ;-), that's
+the message I wanted to get across and I failed so far.
 
+For "normal" IRQs we can use Extended Interrupt Descriptors, that allow
+us to describe polarity. For PCI legacy IRQs we could use extended
+interrupt descriptors if we were allowed to use PCI interrupt links,
+except that, according to current ACPI specs, PCI interrupt links can
+only be used for *configurable* interrupt pins.
 
-> If you look at my notes.txt, you will see that _OFF always executes the
-> same code. PGON differs. When the problem occurs, "Q0L0" somehow always
-> reads back as non-zero and LNKS < 7.
-> 
+So, some ARM vendors stuck to the static/hardwired configuration
+in the _PRT, that does not give us a chance to describe polarity.
 
-Oh you're Lekensteyn ^^
+I think that we should be allowed to use interrupt links, but that would
+not comply with the specs (and on top of that there is FW that is
+already shipped in ACPI tables that we can't change anymore).
 
-I don't have LNKS and no while loop after calling LKEN ?!
+> If we connect a non-PCI device to a GIC, we need to know whether
+> there's an inverter.  How could we figure that out?
 
+Through an Extended Interrupt Descriptor. How are we solving this ?
 
->>
->> I noticed following:
->>
->> 1. Blacklist nouveau
->> 2. Boot to GDM login manager (Wayland)
->> 3. Switch to TTY with CTRL+ALT+FN2
->> 4. Load bbswitch
->> 5. Switch off GPU
->> 6. run lspci -> no freeze
->> 7. Switch to GDM
->> 8. Login to a Wayland session (X11 won't work)
->> 9. run lspci in a GUI terminal -> system freezes
-> 
-> Is nouveau somehow loaded anyway? All those extra components (X11,
-> Wayland, etc.) are unnecessary to reproduce the core problem. It occurs
-> whenever the device is being resumed (either via DSM/_PS0 or via power
-> resource PG00._ON).
-> 
-
-Sorry that was nonsense. The steps to reproduce the problem are still valid.
-I didn't wait enough to power it down...
-
-But whats interesting:
-
-1. Blacklist nouveau
-2. Load bbswitch
-3. Power off GPU with bbswitch
-4. Power on GPU with bbswitch
-5. Run lspci
-6. Power off GPU with bbswitch
-7. Run lspci -> freeze
-
-So setting the GPU power state with bbswitch works as expected.
-Powering it on is also fine. I did this a couple of times.
-But powering it off and letting lspci powering it on, ends in a race.
-
-It might be, that lspci does not only power the GPU on, but triggers
-another pci action which causes the race condition.
-Does this have something to do with your quote about the retrain bit?
+Thanks,
+Lorenzo
