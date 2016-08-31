@@ -1,92 +1,145 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / button: add support for tablet mode switch
-Date: Thu, 1 Sep 2016 00:55:15 +0200
-Message-ID: <CAJZ5v0imPfDFc=f1Phgb28QTjb0C4O49b9Xuob+eD4zDFBxBMg@mail.gmail.com>
-References: <1472628817-3145-1-git-send-email-wnhuang@google.com>
- <1472630482.2273.4.camel@intel.com> <CABicQ-XJaYGiDVKgefwN-6ckcwepUAvtpjJhwQN3cw389a+12w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Thu, 01 Sep 2016 01:08:19 +0200
+Message-ID: <10604453.yVTAAeibdq@vostro.rjw.lan>
+References: <20160825195917.0e75a8db@arm.com> <20160831160510.GC16426@localhost> <20160831163747.GA28180@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38248 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753364AbcHaXAd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 19:00:33 -0400
-In-Reply-To: <CABicQ-XJaYGiDVKgefwN-6ckcwepUAvtpjJhwQN3cw389a+12w@mail.gmail.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59675 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1753692AbcHaXCa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 31 Aug 2016 19:02:30 -0400
+In-Reply-To: <20160831163747.GA28180@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wei-Ning Huang <wnhuang@google.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 
-On Wed, Aug 31, 2016 at 10:52 AM, Wei-Ning Huang <wnhuang@google.com> wrote=
-:
-> On Wed, Aug 31, 2016 at 4:01 PM, Zhang Rui <rui.zhang@intel.com> wrote:
->> On =E4=B8=89, 2016-08-31 at 15:33 +0800, Wei-Ning Huang wrote:
->>> From: Wei-Ning Huang <wnhuang@chromium.org>
->>>
->>> ACPI PNP device HID 'PNP0C60' is a device that indicates tablet mode
->>> status. Add support for mapping this device to the SW_TABLET_MODE
->>> input
->>> event.
->>>
->>> Signed-off-by: Wei-Ning Huang <wnhuang@chromium.org>
->>> ---
->>>  drivers/acpi/button.c | 36 ++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 36 insertions(+)
->>>
->>> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
->>> index 148f4e5..50e9de6 100644
->>> --- a/drivers/acpi/button.c
->>> +++ b/drivers/acpi/button.c
->>> @@ -53,6 +53,11 @@
->>>  #define ACPI_BUTTON_DEVICE_NAME_LID  "Lid Switch"
->>>  #define ACPI_BUTTON_TYPE_LID         0x05
->>>
->>> +#define ACPI_BUTTON_SUBCLASS_TABLET  "tablet"
->>> +#define ACPI_BUTTON_HID_TABLET               "PNP0C60"
->>> +#define ACPI_BUTTON_DEVICE_NAME_TABLET       "Tablet Mode Switch"
->>> +#define ACPI_BUTTON_TYPE_TABLET              0x07
->>> +
->>>  #define ACPI_BUTTON_LID_INIT_IGNORE  0x00
->>>  #define ACPI_BUTTON_LID_INIT_OPEN    0x01
->>>  #define ACPI_BUTTON_LID_INIT_METHOD  0x02
->>> @@ -70,6 +75,7 @@ static const struct acpi_device_id
->>> button_device_ids[] =3D {
->>>       {ACPI_BUTTON_HID_SLEEPF, 0},
->>>       {ACPI_BUTTON_HID_POWER,  0},
->>>       {ACPI_BUTTON_HID_POWERF, 0},
->>> +     {ACPI_BUTTON_HID_TABLET, 0},
->>>       {"", 0},
->>>  };
->>>  MODULE_DEVICE_TABLE(acpi, button_device_ids);
->>> @@ -305,6 +311,23 @@ static void acpi_lid_initialize_state(struct
->>> acpi_device *device)
->>>       }
->>>  }
->>>
->>> +static int acpi_tablet_send_state(struct acpi_device *device)
->>> +{
->>> +     struct acpi_button *button =3D acpi_driver_data(device);
->>> +     unsigned long long state;
->>> +     acpi_status status;
->>> +
->>> +     status =3D acpi_evaluate_integer(device->handle, "_TBL", NULL,
->>> &state);
->>
->> Control methods with prefix "_" suggests this is an ACPI predefined
->> control method, but I can not find it in ACPI spec 6.1.
->> Can you illustrate me where I can find the definition of _TBL?
->
-> Sorry, I'm not very familiar with ACPI's control method.
+On Wednesday, August 31, 2016 05:37:47 PM Lorenzo Pieralisi wrote:
+> On Wed, Aug 31, 2016 at 11:05:10AM -0500, Bjorn Helgaas wrote:
+> > On Wed, Aug 31, 2016 at 02:34:54PM +0100, Lorenzo Pieralisi wrote:
+> > > On Wed, Aug 31, 2016 at 08:05:06AM -0500, Bjorn Helgaas wrote:
+> > > > On Tue, Aug 30, 2016 at 11:08:34AM +0100, Lorenzo Pieralisi wrote:
+> > > > > On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
+> > > > > > 
+> > > > > > >> Let me throw option d here.
+> > > > > > >>
+> > > > > > >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
+> > > > > > >> can't we override this in an arch specific way (arm64's pci.c) while
+> > > > > > >> creating the root bridge? 
+> > > > > > > 
+> > > > > > > On what basis ? You were not copied in from the beginning, but that
+> > > > > > > is not different from Duc's initial proposal, which Marc discarded
+> > > > > > > because it should not be done at arch level, it depends on the interrupt
+> > > > > > > controller.
+> > > > > > 
+> > > > > > I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
+> > > > > > Duc's initial proposal. 
+> > > > > > 
+> > > > > > I can't imagine someone building an ACPI compliant ARM64 platform
+> > > > > > without a GIC interrupt controller. 
+> > > > > > 
+> > > > > > The SBSA spec already mentions what kind of compatibility should be
+> > > > > > maintained with respect to GIC. You can't have an ACPI system that's
+> > > > > > SBSA compliant and not using GIC. 
+> > > > > > 
+> > > > > > Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
+> > > > > > is defined.  Why do we have to reach out to the interrupt controller?
+> > > > > 
+> > > > > Patch below (horrible but no solution will be shiny either).
+> > > > > 
+> > > > > > https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
+> > > > > 
+> > > > > [...]
+> > > > > 
+> > > > > > If you look at my email above, I tried getting rid of PCI Link object
+> > > > > > and I couldn't. I sticked to only thing that works.
+> > > > > 
+> > > > > That's what I object to. If the ACPI bindings do not work for ARM
+> > > > > we do not work around issues, we upgrade the specs because what may work
+> > > > > for you has to work on all ARM platforms (and all FW developers have
+> > > > > to be aware of that). Granted, this is a tiny snag, but the point is
+> > > > > that no one knows what's the correct way of describing PCI legacy IRQs
+> > > > > on ARM and we need that rectified.
+> > > > > 
+> > > > > This does the trick for me (I can turn it into a function/look-up
+> > > > > that returns the polarity), I am sure it will ruffle feathers but
+> > > > > we have to find a solution so here it is (that acpi_irq_model gem
+> > > > > is already used in generic code drivers/acpi/pci_link.c ;-))
+> > > > > 
+> > > > > -- >8 --
+> > > > > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> > > > > index 2c45dd3..c9b8c85 100644
+> > > > > --- a/drivers/acpi/pci_irq.c
+> > > > > +++ b/drivers/acpi/pci_irq.c
+> > > > > @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> > > > >  	int gsi;
+> > > > >  	u8 pin;
+> > > > >  	int triggering = ACPI_LEVEL_SENSITIVE;
+> > > > > -	int polarity = ACPI_ACTIVE_LOW;
+> > > > > +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
+> > > > > +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+> > > > >  	char *link = NULL;
+> > > > >  	char link_desc[16];
+> > > > >  	int rc;
+> > > > 
+> > > > This still seems weird to me.
+> > > > 
+> > > > If I understand correctly, this GIC has several inputs, all active
+> > > > high.  Some of those inputs are connected to inverters and then to PCI
+> > > > INTx wires.
+> > > > 
+> > > > A generic device driver knows about the hardware it drives, including
+> > > > the properties of its interrupt wires.  PCI drivers and the ACPI/PCI
+> > > > core know that conventional PCI device INTx wires are active low.
+> > > > These drivers, being generic, do not know about the GIC inverters.
+> > > > 
+> > > > The patch above basically says "if ACPI tells us about a PCI interrupt
+> > > > connected to a GIC, *assume* there is an inverter on the input."  But
+> > > > there's no actual description of that inverter anywhere in ACPI or a
+> > > > device tree.  Shouldn't that be made explicit somewhere?
+> > > 
+> > > It is explicit for all IRQs other than PCI legacy IRQs ;-), that's
+> > > the message I wanted to get across and I failed so far.
+> > > 
+> > > For "normal" IRQs we can use Extended Interrupt Descriptors, that allow
+> > > us to describe polarity. For PCI legacy IRQs we could use extended
+> > > interrupt descriptors if we were allowed to use PCI interrupt links,
+> > > except that, according to current ACPI specs, PCI interrupt links can
+> > > only be used for *configurable* interrupt pins.
+> > > 
+> > > So, some ARM vendors stuck to the static/hardwired configuration
+> > > in the _PRT, that does not give us a chance to describe polarity.
+> > > 
+> > > I think that we should be allowed to use interrupt links, but that would
+> > > not comply with the specs (and on top of that there is FW that is
+> > > already shipped in ACPI tables that we can't change anymore).
+> > > 
+> > > > If we connect a non-PCI device to a GIC, we need to know whether
+> > > > there's an inverter.  How could we figure that out?
+> > > 
+> > > Through an Extended Interrupt Descriptor. How are we solving this ?
+> > 
+> > OK, I think I'm convinced.  What in the spec says you can't use PCI
+> > Interrupt Links for this case?  I see the example in ACPI 5.0 sec
+> > 6.2.12 that only shows them changing interrupt numbers with Interrupt
+> > descriptors.  Is there something that prohibits Extended Interrupt
+> > descriptors for PNP0C0F devices?  Is there something in the code that
+> > doesn't handle that?
+> 
+> ACPI 6.1 (6.2.13, page 335), that describes the two ways _PRT can be used.
+> 
+> The problem is not about whether we can use Extended Interrupt
+> Descriptors for PNP0C0F, we *can* use them in their (CRS,SRS,PRS), the
+> problem is that by our specs reading, PNP0C0F PCI interrupt link devices
+> can *only* describe interrupt pins that are configurable;
 
-So apparently you don't really know what the patch you've posted is doing.
-
-> '_TBL' is not a predefined ACPI control method according to the ACPI 6.1 =
-spec.
-> Maybe I should change it to '_LID'? As a tablet switch is sort of a
-> 'inverted' lid switch.
-
-Is that _TBL thing documented anywhere?
+That would be the case if _PRS/_SRS/_DIS were required for those objects.
+It doesn't seem to be the case, though.
 
 Thanks,
 Rafael
+
