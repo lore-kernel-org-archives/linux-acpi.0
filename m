@@ -1,77 +1,256 @@
 From: Roland Singer <roland.singer@desertbit.com>
 Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Wed, 31 Aug 2016 13:12:30 +0200
-Message-ID: <98b2ae5b-399b-8337-18dc-98ac2480746f@desertbit.com>
-References: <20160829235403.GA14177@localhost>
- <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
- <20160830130634.GA16426@localhost>
- <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
- <735da66c-aaf3-8c27-2d59-f62e8c85d3aa@desertbit.com>
- <CACvgo51gNzECupX6R7jwQndH-1rX6MN1kPquuikzJrPk3CeZVA@mail.gmail.com>
- <43ce7a5b-8331-fec2-f598-afcb13ba3785@desertbit.com>
- <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
- <1c761bab-f82b-3f43-c4f0-c7a8eff94f25@desertbit.com>
- <CAKb7Uvjzhog27TUPTn5OOqXviyD_z3UV0qvskZDEO8CAB2-i2w@mail.gmail.com>
- <20160830192112.GA18045@al>
+Date: Wed, 31 Aug 2016 13:27:36 +0200
+Message-ID: <e7318236-9737-518e-c360-398c66220961@desertbit.com>
+References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
+ <20160829160210.GA24451@localhost> <20160830195337.GA18805@al>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160830192112.GA18045@al>
+In-Reply-To: <20160830195337.GA18805@al>
 Sender: linux-pci-owner@vger.kernel.org
-To: Peter Wu <peter@lekensteyn.nl>, Ilia Mirkin <imirkin@alum.mit.edu>
-Cc: Emil Velikov <emil.l.velikov@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Peter Wu <peter@lekensteyn.nl>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, emil.l.velikov@gmail.com, "imirkin@alum.mit.edu >> Ilia Mirkin" <imirkin@alum.mit.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-Am 30.08.2016 um 21:21 schrieb Peter Wu:
-> On Tue, Aug 30, 2016 at 02:13:46PM -0400, Ilia Mirkin wrote:
->> On Tue, Aug 30, 2016 at 2:02 PM, Roland Singer
->> <roland.singer@desertbit.com> wrote:
->>> I configured bbswitch to not set any states automatically...
->>> So it's possible to obtain and verify the GPU power state.
->>>
->>> However I removed the bbswitch module and booted with nouveau.
->>>
->>> Kernel 4.7.2: nouveau switches the discrete GPU off.
->>>               I can't trigger the freeze, because bbswitch is missing.
->>>               I'll work with the system and see if it will freeze.
->>>
->>> Kernel 4.8-rc4: nouveau does not care about the power state and
->>>                 the discrete GPU is never switched off. I will notice
->>>                 this, because the second cooling FAN will stop...
->>>                 Same log messages as send before.
+Am 30.08.2016 um 21:53 schrieb Peter Wu:
+> On Mon, Aug 29, 2016 at 11:02:10AM -0500, Bjorn Helgaas wrote:
+>> [+cc linux-acpi, linux-kernel, dri-devel]
 >>
->> That's surprising. I believe there's an issue with the new logic when
->> there's an HDMI audio subdevice. However that only appears if there's
->> a cable plugged in, at least in the systems Peter tested. You should
->> be able to see whether it's there or not with 'lspci'.
-> 
-> I doubt that the audio device is responsible here, that should only show
-> up after following very specific steps (runtime suspend/resume (PCI or
-> ACPI magic), remove PCI device, rescan bus).
-> 
->> You can check for sure by looking in the vgaswitcheroo state. It
->> should say DynOff when it's powered off.
+>> Hi Roland,
 >>
->> Either way, I think using bbswitch + nouveau isn't supported by
->> anyone, so if you want to use it that way, you're on your own. (You
->> may want to load nouveau with runpm=0 so that nouveau doesn't try to
->> manage the GPU suspend stuff.)
+>> I have no idea how to debug this problem.  Are you seeing something
+>> that suggests it may be a PCI problem?
 > 
-> I understood that Roland's intent is to check the power state, not use
-> the suspend functionality of bbswitch, if you load bbswitch without
-> module options amd do not write to /proc/bbswitch, then it allows you to
-> read out the actual status (you could also just use lspci -H1 for that
-> though).
+> Yes I suspect there is an ACPI and/ or PCI problem, possibly
+> device-specific. Steps to reproduce on the affected machines:
+> 
+>  1. Load nouveau.
+>  2. Wait for it to runtime suspend.
+>  2. Invoke 'lspci', this resumes the Nvidia PCI device via nouveau.
+>  3. lspci never returns, few moments later an AML_INFINITE_LOOP is
+>     reported.
 > 
 
-lspci -H1 works perfect. Thanks.
-Just tried to verify the output with lspci -H1. I unloaded the nouveau
-module and modprobe freezed with:
+I can confirm this. Same result on my machine.
 
-  $ modprobe -r nouveau
-    nouveau 0000:01:00.0: pci: failed to adjust lnkctl speed
-    nouveau 0000:01:00.0: fb: init failed. -22
-    nouveau 0000:01:00.0: init failed with -22
-    nouveau: DRM:00000000:00000000: init failed with -22
-    nouveau: DRM:00000000:00000000: init failed with -22
+Here is a link to my ACPI tables:
+https://bugs.launchpad.net/lpbugreporter/+bug/752542/+attachment/4722651/+files/Razer-Blade.tar.gz
+
+The specific source for the NVIDIA card can be found in the ssdt5.dsl file.
+
+
+    Method (PGON, 1, Serialized)
+    {
+        /* ... */
+
+        GPPR (PION, One)
+        If ((OSYS == 0x07D9))  /* Is Windows 2009 - In my case, setting to Windows 2009 only works! */
+        {
+            If ((PION == Zero))
+            {
+                P0AP = Zero
+                P0RM = Zero
+            }
+            ElseIf ((PION == One))
+            {
+                P1AP = Zero
+                P1RM = Zero
+            }
+            ElseIf ((PION == 0x02))
+            {
+                P2AP = Zero
+                P2RM = Zero
+            }
+
+            If ((PBGE != Zero))
+            {
+                If (SBDL (PION))
+                {
+                    PUAB (PION)
+                    CBDL = GUBC (PION)
+                    MBDL = GMXB (PION)
+                    If ((CBDL > MBDL))
+                    {
+                        CBDL = MBDL /* \_SB_.PCI0.MBDL */
+                    }
+
+                    PDUB (PION, CBDL)
+                }
+            }
+
+            If ((PION == Zero))
+            {
+                P0LD = Zero
+                P0TR = One
+                TCNT = Zero
+                While ((TCNT < LDLY))
+                {
+                    If ((P0VC == Zero))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    TCNT += 0x10
+                }
+            }
+            ElseIf ((PION == One))
+            {
+                P1LD = Zero
+                P1TR = One
+                TCNT = Zero
+                While ((TCNT < LDLY))
+                {
+                    If ((P1VC == Zero))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    TCNT += 0x10
+                }
+            }
+            ElseIf ((PION == 0x02))
+            {
+                P2LD = Zero
+                P2TR = One
+                TCNT = Zero
+                While ((TCNT < LDLY))
+                {
+                    If ((P2VC == Zero))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    TCNT += 0x10
+                }
+            }
+        }
+        Else
+        {
+            LKEN (PION)
+        }
+
+        /* ... */
+        
+        Return (Zero)
+    }
+
+
+
+If not set to Windows 2009, then this is triggered:
+
+
+    Method (LKEN, 1, NotSerialized)
+    {
+        Local3 = (CPEX & 0x0F)
+        If ((Local3 == Zero))
+        {
+            If ((Arg0 == Zero))
+            {
+                P0L0 = One
+                Sleep (0x10)
+                Local0 = Zero
+                While (P0L0)
+                {
+                    If ((Local0 > 0x04))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    Local0++
+                }
+            }
+            ElseIf ((Arg0 == One))
+            {
+                P1L0 = One
+                Sleep (0x10)
+                Local0 = Zero
+                While (P0L0)
+                {
+                    If ((Local0 > 0x04))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    Local0++
+                }
+            }
+            ElseIf ((Arg0 == 0x02))
+            {
+                P2L0 = One
+                Sleep (0x10)
+                Local0 = Zero
+                While (P0L0)
+                {
+                    If ((Local0 > 0x04))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    Local0++
+                }
+            }
+        }
+        ElseIf ((Local3 != Zero))
+        {
+            If ((Arg0 == Zero))
+            {
+                Q0L0 = One
+                Sleep (0x10)
+                Local0 = Zero
+                While (Q0L0)
+                {
+                    If ((Local0 > 0x04))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    Local0++
+                }
+            }
+            ElseIf ((Arg0 == One))
+            {
+                Q1L0 = One
+                Sleep (0x10)
+                Local0 = Zero
+                While (Q1L0)
+                {
+                    If ((Local0 > 0x04))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    Local0++
+                }
+            }
+            ElseIf ((Arg0 == 0x02))
+            {
+                Q2L0 = One
+                Sleep (0x10)
+                Local0 = Zero
+                While (Q2L0)
+                {
+                    If ((Local0 > 0x04))
+                    {
+                        Break
+                    }
+
+                    Sleep (0x10)
+                    Local0++
+                }
+            }
+        }
+    }
+
+
+Is it possible to override the specific ACPI table functions (SSDT) in the DSDT?
+This way I could try to debug to find some more information...
