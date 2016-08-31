@@ -1,184 +1,87 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V8 1/8] ACPI: I/O Remapping Table (IORT) initial support
-Date: Wed, 31 Aug 2016 10:30:02 +0100
-Message-ID: <20160831093002.GA2021@red-moon>
-References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
- <1470909998-16710-2-git-send-email-tn@semihalf.com>
- <20160812163332.GA17734@red-moon>
- <ecf44af7-598c-bfe4-a144-8e26168d4ad8@semihalf.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Wed, 31 Aug 2016 11:07:55 +0100
+Message-ID: <20160831100755.GC1650@red-moon>
+References: <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
+ <20160825195917.0e75a8db@arm.com>
+ <20160826090813.GA1038@red-moon>
+ <20160826130832.2fde2327@arm.com>
+ <f747c2c3-096a-f843-908c-3f76238a6acd@codeaurora.org>
+ <20160826170615.GC23885@red-moon>
+ <66f94732-7ce4-e577-9bec-52f0dc8e6ddb@codeaurora.org>
+ <20160830100834.GA368@red-moon>
+ <CADaLND=DCFZB5KGN+yqdF0pzHhvmDhKHf9fMgZ57c+2GE0n9jQ@mail.gmail.com>
+ <16855e90-43e8-b36b-788a-cf0871261432@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <ecf44af7-598c-bfe4-a144-8e26168d4ad8@semihalf.com>
+In-Reply-To: <16855e90-43e8-b36b-788a-cf0871261432@codeaurora.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Duc Dang <dhdang@apm.com>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <helgaas@kernel.org>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-On Thu, Aug 18, 2016 at 08:25:20AM +0200, Tomasz Nowicki wrote:
-> On 12.08.2016 18:33, Lorenzo Pieralisi wrote:
-> >Hi Tomasz,
-> >
-> >On Thu, Aug 11, 2016 at 12:06:31PM +0200, Tomasz Nowicki wrote:
-> >>IORT shows representation of IO topology for ARM based systems.
-> >>It describes how various components are connected together on
-> >>parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
-> >>http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+On Tue, Aug 30, 2016 at 01:54:24PM -0400, Sinan Kaya wrote:
+> On 8/30/2016 11:51 AM, Duc Dang wrote:
+> > On Tue, Aug 30, 2016 at 3:08 AM, Lorenzo Pieralisi
+> > <lorenzo.pieralisi@arm.com> wrote:
+> >> On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
+> >>>
+> >>>>> Let me throw option d here.
+> >>>>>
+> >>>>> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
+> >>>>> can't we override this in an arch specific way (arm64's pci.c) while
+> >>>>> creating the root bridge?
+> >>>>
+> >>>> On what basis ? You were not copied in from the beginning, but that
+> >>>> is not different from Duc's initial proposal, which Marc discarded
+> >>>> because it should not be done at arch level, it depends on the interrupt
+> >>>> controller.
+> >>>
+> >>> I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
+> >>> Duc's initial proposal.
+> >>>
+> >>> I can't imagine someone building an ACPI compliant ARM64 platform
+> >>> without a GIC interrupt controller.
+> >>>
+> >>> The SBSA spec already mentions what kind of compatibility should be
+> >>> maintained with respect to GIC. You can't have an ACPI system that's
+> >>> SBSA compliant and not using GIC.
+> >>>
+> >>> Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
+> >>> is defined.  Why do we have to reach out to the interrupt controller?
 > >>
-> >>Initial support allows to detect IORT table presence and save its
-> >>root pointer obtained through acpi_get_table(). The pointer validity
-> >>depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
-> >>is not set while using IORT nodes we would dereference unmapped pointers.
+> >> Patch below (horrible but no solution will be shiny either).
 > >>
-> >>For the aforementioned reason call iort_table_detect() from acpi_init()
-> >>which guarantees acpi_gbl_permanent_mmap to be set at that point.
-> >
-> >We still need to get Rafael ACK on this, keeping in mind that the
-> >eg code parsing DMAR table relies on the same assumption.
+> >>> https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
+> >>
+> >> [...]
+> >>
+> >>> If you look at my email above, I tried getting rid of PCI Link object
+> >>> and I couldn't. I sticked to only thing that works.
+> >>
+> >> That's what I object to. If the ACPI bindings do not work for ARM
+> >> we do not work around issues, we upgrade the specs because what may work
+> >> for you has to work on all ARM platforms (and all FW developers have
+> >> to be aware of that). Granted, this is a tiny snag, but the point is
+> >> that no one knows what's the correct way of describing PCI legacy IRQs
+> >> on ARM and we need that rectified.
+> >>
+> >> This does the trick for me (I can turn it into a function/look-up
+> >> that returns the polarity), I am sure it will ruffle feathers but
+> >> we have to find a solution so here it is (that acpi_irq_model gem
+> >> is already used in generic code drivers/acpi/pci_link.c ;-))
+> >>
+> > 
+> > Good catch! This acpi_irq_model gem does help X-Gene :)
+> > 
 > 
-> Exactly.
+> +1 to this too. 
 > 
-> Rafael, can you please have a look ?
+> We don't need to invent some fake API or push stuff to the arch directory.
 
-A gentle reminder, this patch is gating this series and requires
-your review, please let us know what you think.
+Ok, I will make it a proper patch and post it then.
 
-Thank you,
+Thanks,
 Lorenzo
-
-> 
-> >
-> >[...]
-> >
-> >>diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> >>index 445ce28..6cef2d1 100644
-> >>--- a/drivers/acpi/Kconfig
-> >>+++ b/drivers/acpi/Kconfig
-> >>@@ -521,4 +521,9 @@ config ACPI_CONFIGFS
-> >> 	  userspace. The configurable ACPI groups will be visible under
-> >> 	  /config/acpi, assuming configfs is mounted under /config.
-> >>
-> >>+if ARM64
-> >>+source "drivers/acpi/arm64/Kconfig"
-> >>+
-> >
-> >Just curious: Why do you need a space ?
-> 
-> No good reason, it will disappear for next version.
-> 
-> >
-> >>+endif
-> >>+
-> >> endif	# ACPI
-> >>diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> >>index 5ae9d85..e5ada78 100644
-> >>--- a/drivers/acpi/Makefile
-> >>+++ b/drivers/acpi/Makefile
-> >>@@ -105,3 +105,5 @@ obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
-> >>
-> >> video-objs			+= acpi_video.o video_detect.o
-> >> obj-y				+= dptf/
-> >>+
-> >>+obj-$(CONFIG_ARM64)		+= arm64/
-> >>diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
-> >>new file mode 100644
-> >>index 0000000..fc818dc
-> >>--- /dev/null
-> >>+++ b/drivers/acpi/arm64/Kconfig
-> >>@@ -0,0 +1,6 @@
-> >>+#
-> >>+# ACPI Configuration for ARM64
-> >>+#
-> >>+
-> >>+config IORT_TABLE
-> >>+	bool
-> >>diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
-> >>new file mode 100644
-> >>index 0000000..d01be6f
-> >>--- /dev/null
-> >>+++ b/drivers/acpi/arm64/Makefile
-> >>@@ -0,0 +1 @@
-> >>+obj-$(CONFIG_IORT_TABLE) 	+= iort.o
-> >>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >>new file mode 100644
-> >>index 0000000..f89056e
-> >>--- /dev/null
-> >>+++ b/drivers/acpi/arm64/iort.c
-> >>@@ -0,0 +1,218 @@
-> >>+/*
-> >>+ * Copyright (C) 2016, Semihalf
-> >>+ *	Author: Tomasz Nowicki <tn@semihalf.com>
-> >>+ *
-> >>+ * This program is free software; you can redistribute it and/or modify it
-> >>+ * under the terms and conditions of the GNU General Public License,
-> >>+ * version 2, as published by the Free Software Foundation.
-> >>+ *
-> >>+ * This program is distributed in the hope it will be useful, but WITHOUT
-> >>+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> >>+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> >>+ * more details.
-> >>+ *
-> >>+ * This file implements early detection/parsing of I/O mapping
-> >>+ * reported to OS through firmware via I/O Remapping Table (IORT)
-> >>+ * IORT document number: ARM DEN 0049A
-> >>+ */
-> >>+
-> >>+#define pr_fmt(fmt)	"ACPI: IORT: " fmt
-> >>+
-> >>+#include <linux/iort.h>
-> >>+#include <linux/kernel.h>
-> >>+#include <linux/pci.h>
-> >>+
-> >>+typedef acpi_status (*iort_find_node_callback)
-> >>+	(struct acpi_iort_node *node, void *context);
-> >>+
-> >>+/* Root pointer to the mapped IORT table */
-> >>+static struct acpi_table_header *iort_table;
-> >
-> >See above.
-> >
-> >[...]
-> >
-> >>+void __init iort_table_detect(void)
-> >>+{
-> >>+	acpi_status status;
-> >>+
-> >>+	status = acpi_get_table(ACPI_SIG_IORT, 0, &iort_table);
-> >>+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-> >>+		const char *msg = acpi_format_exception(status);
-> >>+		pr_err("Failed to get table, %s\n", msg);
-> >>+	}
-> >>+}
-> >>diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> >>index 85b7d07..55a84da 100644
-> >>--- a/drivers/acpi/bus.c
-> >>+++ b/drivers/acpi/bus.c
-> >>@@ -36,6 +36,7 @@
-> >> #ifdef CONFIG_X86
-> >> #include <asm/mpspec.h>
-> >> #endif
-> >>+#include <linux/iort.h>
-> >> #include <linux/pci.h>
-> >> #include <acpi/apei.h>
-> >> #include <linux/dmi.h>
-> >>@@ -1186,6 +1187,7 @@ static int __init acpi_init(void)
-> >> 	}
-> >>
-> >> 	pci_mmcfg_late_init();
-> >>+	iort_table_detect();
-> >
-> >That's another bit we have to make sure Rafael is ok with, given
-> >that IORT is ARM64 specific (but we stub it out if it is not
-> >configured).
-> >
-> >Having said that:
-> >
-> >Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> 
-> Thanks for your time.
-> 
-> Tomasz
-> 
