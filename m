@@ -1,51 +1,78 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH v4 0/2] serial: 8250_dw: Add ACPI support for uart on Hisilicon Hip05 SoC
-Date: Wed, 31 Aug 2016 11:29:10 +0800
-Message-ID: <1472614152-43136-1-git-send-email-wangkefeng.wang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Lukas Wunner <lukas@wunner.de>
+Subject: [PATCH 1/4] PCI: Afford direct-complete to devices with nonstandard
+ PM
+Date: Wed, 31 Aug 2016 08:15:18 +0200
+Message-ID: <885bb1c3a5cebbc2c22e1f77426d54cde2a4867c.1472554278.git.lukas@wunner.de>
+References: <cover.1472554278.git.lukas@wunner.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:6952 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758454AbcHaDfW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 23:35:22 -0400
+Received: from mailout1.hostsharing.net ([83.223.95.204]:58723 "EHLO
+        mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758588AbcHaGPh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 02:15:37 -0400
+In-Reply-To: <cover.1472554278.git.lukas@wunner.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jiri Slaby <jslaby@suse.com>, guohanjun@huawei.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org, z.liuxinliang@hisilicon.com, linux-acpi@vger.kernel.org, Kefeng Wang <wangkefeng.wang@huawei.com>
+To: linux-pci@vger.kernel.org
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 
-Handle all cases of dw8250_data->clk properly in dw8250_set_termios(), then
-make it as the default set_termios callback for 8250 dw uart.
+There are devices not power-manageable by the platform, but still able
+to runtime suspend to D3cold with a nonstandard mechanism.  One example
+is laptop hybrid graphics where the discrete GPU and its built-in HDA
+controller are power-managed either with a _DSM (AMD PowerXpress, Nvidia
+Optimus) or a separate gmux controller (MacBook Pro).  Another example
+is Thunderbolt on Macs which is power-managed with custom ACPI methods.
 
-After that, add ACPI support for uart on Hisilicon Hip05 SoC, be careful that
-it is not 16500 compatible, and with Heikki's patchset[1], we safely only add
-ACPI identifier, due to the ACPI quirks in dw8250_quirks() only for "APMC0D08".
+When putting the system to sleep, we currently handle such devices
+improperly by transitioning them from D3cold to D3hot (the default power
+state defined at the top of pci_target_state()).  This wastes energy and
+prolongs the suspend sequence (powering up the Thunderbolt controller
+takes 2 seconds).
 
-Change since v3:
-- The new dev var patch is sent separately.
-- Address the comment from Andy, and repost patches based on Heikki Krogerus's patchset[1]
-  "[PATCHv2 0/3] serial: dw8250: ACPI tuning"  
+Avoid that by assuming that a nonstandard PM mechanism is at work if the
+device is not platform-power-manageable but currently in D3cold.
 
-Change since v2:
-- Add a new patch to use new var dev in probe
-- Use built-in device properties to set device parameters for existing device probed by acpi,
-  suggested by Andy Shevchenko
+If the device is wakeup enabled, we might still have to wake it up from
+D3cold if PME cannot be signaled from that power state.
 
+The check for devices without PM capability comes before the check for
+D3cold since such devices could in theory also be powered down by
+nonstandard means and should then be afforded direct-complete as well.
 
-Change since v1:
-- Use acpi_match_device() instead of acpi_dev_found(), limit the check to the device
-  being probed and not a global search for whole DSDT (pointed by graeme.gregory@linaro.org)
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+---
+ drivers/pci/pci.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-[1] http://www.spinics.net/lists/linux-acpi/msg68519.html
-
-Kefeng Wang (2):
-  serial: 8250_dw: make dw8250_set_termios as default set_termios
-    callback
-  serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 SoC
-
- drivers/tty/serial/8250/8250_dw.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index aab9d51..72a9d3a 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -1959,9 +1959,22 @@ static pci_power_t pci_target_state(struct pci_dev *dev)
+ 		default:
+ 			target_state = state;
+ 		}
+-	} else if (!dev->pm_cap) {
++
++		return target_state;
++	}
++
++	if (!dev->pm_cap)
+ 		target_state = PCI_D0;
+-	} else if (device_may_wakeup(&dev->dev)) {
++
++	/*
++	 * If the device is in D3cold even though it's not power-manageable by
++	 * the platform, it may have been powered down by nonstandard means.
++	 * Best to let it slumber.
++	 */
++	if (dev->current_state == PCI_D3cold)
++		target_state = PCI_D3cold;
++
++	if (device_may_wakeup(&dev->dev)) {
+ 		/*
+ 		 * Find the deepest state from which the device can generate
+ 		 * wake-up events, make it the target state and enable device
 -- 
-1.7.12.4
+2.8.1
 
