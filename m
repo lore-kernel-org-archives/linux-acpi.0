@@ -1,45 +1,112 @@
-From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Subject: Re: [PATCH v4 0/2] Add support for Smart Battery System Manager
-Date: Wed, 31 Aug 2016 21:54:16 +0200
-Message-ID: <1472673256.5102.13.camel@schneider-inet.de>
-References: <1bIiDr-0004G1-0P>
-         <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
-         <20160831151044.xftg6k5f66n53jem@earth>
+From: Roland Singer <roland.singer@desertbit.com>
+Subject: Re: Kernel Freeze with American Megatrends BIOS
+Date: Wed, 31 Aug 2016 22:06:31 +0200
+Message-ID: <310ac56e-94bf-35de-79c7-29b0b4b6e2a8@desertbit.com>
+References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
+ <20160829160210.GA24451@localhost> <20160830195337.GA18805@al>
+ <e7318236-9737-518e-c360-398c66220961@desertbit.com>
+ <20160831114639.GD19420@al>
+ <1b91b281-3c71-f02f-ff27-51957af92275@desertbit.com>
+ <20160831123444.GE19420@al>
+ <e19456cb-3076-c8f1-c9ec-fbfbd9bb6112@desertbit.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160831151044.xftg6k5f66n53jem@earth>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static.146.197.76.144.clients.your-server.de ([144.76.197.146]:34113
+        "EHLO desertbit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753202AbcHaUHq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 16:07:46 -0400
+In-Reply-To: <e19456cb-3076-c8f1-c9ec-fbfbd9bb6112@desertbit.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Wu <peter@lekensteyn.nl>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, emil.l.velikov@gmail.com, "imirkin@alum.mit.edu >> Ilia Mirkin" <imirkin@alum.mit.edu>
 
-Hi Sebastian,
+Here is Peter Wu's reply, which was not send to the mailing list, because
+I had to resend my e-mail to him due to a failure...
 
-Am Mittwoch, den 31.08.2016, 17:10 +0200 schrieb Sebastian Reichel:
-> Hi,
-> 
-> On Thu, Aug 25, 2016 at 10:20:59PM +0200, Karl-Heinz Schneider wrote:
+
+-------- Forwarded Message --------
+Subject: Re: Fwd: Re: Kernel Freeze with American Megatrends BIOS
+Date: Wed, 31 Aug 2016 18:08:53 +0200
+From: Peter Wu <peter@lekensteyn.nl>
+To: Roland Singer <roland.singer@desertbit.com>
+
+On Wed, Aug 31, 2016 at 05:56:18PM +0200, Roland Singer wrote:
+
+> > If you look at my notes.txt, you will see that _OFF always executes the
+> > same code. PGON differs. When the problem occurs, "Q0L0" somehow always
+> > reads back as non-zero and LNKS < 7.
 > > 
-> > This patch series adds support for Smart Battery System Manager.
-> > A SBSM is a device listening at I2C/SMBus address 0x0a and is
-> > capable of
-> > communicating up to four I2C smart battery devices. All smart
-> > battery
-> > devices are listening at address 0x0b, so the SBSM muliplexes
-> > between
-> > them. The driver makes use of the I2C-Mux framework to allow smart
-> > batteries to be bound via device tree, i.e. the sbs-battery driver.
-> > 
-> > Via sysfs interface the online state and charge type are presented.
-> > If
-> > the driver is bound as ltc1760 (a Dual Smart Battery System
-> > Manager)
-> > the charge type can also be changed from trickle to fast.
-> Driver looks fine to me. Waiting for Rob's ACK on the DT bindings.
 > 
-> -- Sebastian
-Thanks
+> Oh you're Lekensteyn ^^
+
+Yes, that's me :) I wrote bbswitch, did the Optimus and PR3 ACPI support
+in nouveau so I am fairly certain what happens behind the scenes.
+
+> I don't have LNKS and no while loop after calling LKEN ?!
+
+Yes that is what I said in
+https://www.spinics.net/lists/linux-pci/msg53694.html:
+
+"Other affected devices have similar code, differences are small:
+No check for LNKS (avoids the infinite loop, but device is still off)"
+
+> >>
+> >> I noticed following:
+> >>
+> >> 1. Blacklist nouveau
+> >> 2. Boot to GDM login manager (Wayland)
+> >> 3. Switch to TTY with CTRL+ALT+FN2
+> >> 4. Load bbswitch
+> >> 5. Switch off GPU
+> >> 6. run lspci -> no freeze
+> >> 7. Switch to GDM
+> >> 8. Login to a Wayland session (X11 won't work)
+> >> 9. run lspci in a GUI terminal -> system freezes
+> > 
+> > Is nouveau somehow loaded anyway? All those extra components (X11,
+> > Wayland, etc.) are unnecessary to reproduce the core problem. It occurs
+> > whenever the device is being resumed (either via DSM/_PS0 or via power
+> > resource PG00._ON).
+> > 
+> 
+> Sorry that was nonsense. The steps to reproduce the problem are still valid.
+> I didn't wait enough to power it down...
+> 
+> But whats interesting:
+> 
+> 1. Blacklist nouveau
+> 2. Load bbswitch
+> 3. Power off GPU with bbswitch
+> 4. Power on GPU with bbswitch
+> 5. Run lspci
+> 6. Power off GPU with bbswitch
+> 7. Run lspci -> freeze
+> 
+> So setting the GPU power state with bbswitch works as expected.
+> Powering it on is also fine. I did this a couple of times.
+> But powering it off and letting lspci powering it on, ends in a race.
+
+In some cases I also found that it does always happen at the first try,
+but with nouveau it always seem to happen.
+
+> It might be, that lspci does not only power the GPU on, but triggers
+> another pci action which causes the race condition.
+> Does this have something to do with your quote about the retrain bit?
+
+That is an interesting hypothesis. Even if you invoke `lspci -s01:00.0`
+for example, it will always probe for all devices. So maybe interaction
+with its parent device (PCI root port 00:02.0) causes issues.
+
+However I also tested without lspci before, and the problem still
+exists. You can trigger runtime resume via (as root):
+
+    echo > /sys/bus/pci/0000:01:00.0/power/control on
+
+Set it to "auto" to make it sleep again.
 -- 
-Karl-Heinz
+Kind regards,
+Peter Wu
+https://lekensteyn.nl
