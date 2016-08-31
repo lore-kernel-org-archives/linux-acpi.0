@@ -1,33 +1,105 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCHv2 3/3] serial: 8250_dw: Add quirk for APM X-Gene SoC
-Date: Wed, 31 Aug 2016 16:16:02 +0200
-Message-ID: <20160831141602.GA4725@kroah.com>
-References: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1471941208-27963-4-git-send-email-heikki.krogerus@linux.intel.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v4 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Wed, 31 Aug 2016 09:43:49 -0500
+Message-ID: <20160831144349.GA18510@rob-hp-laptop>
+References: <1bIiDr-0004G1-0P>
+ <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1472156461-25180-2-git-send-email-karl-heinz@schneider-inet.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39594 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933214AbcHaOPy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 10:15:54 -0400
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35236 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935154AbcHaOnw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 10:43:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1471941208-27963-4-git-send-email-heikki.krogerus@linux.intel.com>
+In-Reply-To: <1472156461-25180-2-git-send-email-karl-heinz@schneider-inet.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Kan <fkan@apm.com>
+To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
 
-On Tue, Aug 23, 2016 at 11:33:28AM +0300, Heikki Krogerus wrote:
-> The APM X-Gene SoC UART is the only board that still needs
-> the hard-coded values, so handle it separately in
-> dw8250_quirks(). The other ACPI platforms are able to
-> provide the values with device properties.
+On Thu, Aug 25, 2016 at 10:21:00PM +0200, Karl-Heinz Schneider wrote:
+> This patch adds device tree documentation for the sbs-manager
 > 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Cc: Feng Kan <fkan@apm.com>
+> Reviewed-by: Phil Reid <preid@electromag.com.au>
+> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
 > ---
->  drivers/tty/serial/8250/8250_dw.c | 15 ++++++++++-----
->  1 file changed, 10 insertions(+), 5 deletions(-)
+>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 53 ++++++++++++++++++++++
+>  1 file changed, 53 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+> new file mode 100644
+> index 0000000..6b1a87ce
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+> @@ -0,0 +1,53 @@
+> +Binding for sbs-manager
+> +
+> +Required properties:
+> +- compatible: should be "lltc,ltc1760" or use "sbs,sbs-manager" as fallback.
+> +- reg: integer, i2c address of the device. Should be <0xa>.
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+What happened to adding Phil's interrupt support into this? You don't 
+have to add the whole patch, just the binding part. The driver support 
+can come later.
+
+> +
+> +From OS view the device is basically an i2c-mux used to communicate with up to
+> +four smart battery devices at address 0xb. The driver actually implements this
+> +behaviour. So standard i2c-mux nodes can be used to register up to four slave
+> +batteries. See Documentation/devicetree/bindings/i2c/i2c-mux.txt for more
+> +information on i2c-mux nodes. Channels will be numerated starting from 1 to 4.
+> +
+> +Example:
+> +
+> +batman@0a {
+
+drop leading 0.
+
+> +    compatible = "lltc,ltc1760";
+> +    reg = <0x0a>;
+> +    #address-cells = <1>;
+> +    #size-cells = <0>;
+> +
+> +    i2c@1 {
+> +        #address-cells = <1>;
+> +        #size-cells = <0>;
+> +        reg = <1>;
+> +
+> +        battery@0b {
+
+and here...
+
+> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+> +            reg = <0x0b>;
+> +        };
+> +    };
+> +
+> +    i2c@2 {
+> +        #address-cells = <1>;
+> +        #size-cells = <0>;
+> +        reg = <2>;
+> +
+> +        battery@0b {
+> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+> +            reg = <0x0b>;
+> +        };
+> +    };
+> +
+> +    i2c@3 {
+> +        #address-cells = <1>;
+> +        #size-cells = <0>;
+> +        reg = <3>;
+> +
+> +        battery@0b {
+> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+> +            reg = <0x0b>;
+> +        };
+> +    };
+> +};
+> -- 
+> 2.7.4
+> 
