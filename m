@@ -1,256 +1,58 @@
-From: Roland Singer <roland.singer@desertbit.com>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Wed, 31 Aug 2016 13:27:36 +0200
-Message-ID: <e7318236-9737-518e-c360-398c66220961@desertbit.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost> <20160830195337.GA18805@al>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: [RFC PATCH V2 0/3] Add ACPI support for Hisilicon PCIe Host Controller
+Date: Wed, 31 Aug 2016 19:48:11 +0800
+Message-ID: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160830195337.GA18805@al>
-Sender: linux-pci-owner@vger.kernel.org
-To: Peter Wu <peter@lekensteyn.nl>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, emil.l.velikov@gmail.com, "imirkin@alum.mit.edu >> Ilia Mirkin" <imirkin@alum.mit.edu>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:3375 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932393AbcHaLep (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 07:34:45 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-Am 30.08.2016 um 21:53 schrieb Peter Wu:
-> On Mon, Aug 29, 2016 at 11:02:10AM -0500, Bjorn Helgaas wrote:
->> [+cc linux-acpi, linux-kernel, dri-devel]
->>
->> Hi Roland,
->>
->> I have no idea how to debug this problem.  Are you seeing something
->> that suggests it may be a PCI problem?
-> 
-> Yes I suspect there is an ACPI and/ or PCI problem, possibly
-> device-specific. Steps to reproduce on the affected machines:
-> 
->  1. Load nouveau.
->  2. Wait for it to runtime suspend.
->  2. Invoke 'lspci', this resumes the Nvidia PCI device via nouveau.
->  3. lspci never returns, few moments later an AML_INFINITE_LOOP is
->     reported.
-> 
+This patchset adds ACPI support for the HiSilicon Hip05/Hip06/Hip07 SoC PCIe
+controllers.
+The three patches respectively:
+        - re-architect the current HiSilicon driver to make it scalable to
+          the new ACPI quirks.
+        - rework the current HiSilicon driver to add support for ECAM
+          platforms(not RC).
+        - adds the HiSilicon ACPI specific quirks.
 
-I can confirm this. Same result on my machine.
+This patchset is base on Tomasz RFC V5 quirk mechanism:
+https://lkml.org/lkml/2016/8/8/273
 
-Here is a link to my ACPI tables:
-https://bugs.launchpad.net/lpbugreporter/+bug/752542/+attachment/4722651/+files/Razer-Blade.tar.gz
+v1 -> v2
+- rebase against Tomasz RFC V5 quirk mechanism
+- add ACPI support for the HiSilicon Hip07 SoC PCIe controllers 
 
-The specific source for the NVIDIA card can be found in the ssdt5.dsl file.
+Dongdong Liu (3):
+  PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for
+    ACPI
+  PCI: hisi: Add ECAM support for devices that are not RC
+  PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
 
+ .../devicetree/bindings/pci/hisilicon-pcie.txt     |  15 +-
+ MAINTAINERS                                        |   2 +
+ drivers/pci/host/Kconfig                           |   8 +
+ drivers/pci/host/Makefile                          |   3 +-
+ drivers/pci/host/mcfg-quirks.c                     |   8 +
+ drivers/pci/host/mcfg-quirks.h                     |  11 ++
+ drivers/pci/host/pcie-designware.c                 |   3 +-
+ drivers/pci/host/pcie-designware.h                 |   2 +
+ drivers/pci/host/pcie-hisi-acpi.c                  | 189 +++++++++++++++++++++
+ drivers/pci/host/pcie-hisi-common.c                |  66 +++++++
+ drivers/pci/host/pcie-hisi.c                       | 143 ++++++++--------
+ drivers/pci/host/pcie-hisi.h                       |  25 +++
+ 12 files changed, 392 insertions(+), 83 deletions(-)
+ create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
+ create mode 100644 drivers/pci/host/pcie-hisi-common.c
+ create mode 100644 drivers/pci/host/pcie-hisi.h
 
-    Method (PGON, 1, Serialized)
-    {
-        /* ... */
+-- 
+1.9.1
 
-        GPPR (PION, One)
-        If ((OSYS == 0x07D9))  /* Is Windows 2009 - In my case, setting to Windows 2009 only works! */
-        {
-            If ((PION == Zero))
-            {
-                P0AP = Zero
-                P0RM = Zero
-            }
-            ElseIf ((PION == One))
-            {
-                P1AP = Zero
-                P1RM = Zero
-            }
-            ElseIf ((PION == 0x02))
-            {
-                P2AP = Zero
-                P2RM = Zero
-            }
-
-            If ((PBGE != Zero))
-            {
-                If (SBDL (PION))
-                {
-                    PUAB (PION)
-                    CBDL = GUBC (PION)
-                    MBDL = GMXB (PION)
-                    If ((CBDL > MBDL))
-                    {
-                        CBDL = MBDL /* \_SB_.PCI0.MBDL */
-                    }
-
-                    PDUB (PION, CBDL)
-                }
-            }
-
-            If ((PION == Zero))
-            {
-                P0LD = Zero
-                P0TR = One
-                TCNT = Zero
-                While ((TCNT < LDLY))
-                {
-                    If ((P0VC == Zero))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    TCNT += 0x10
-                }
-            }
-            ElseIf ((PION == One))
-            {
-                P1LD = Zero
-                P1TR = One
-                TCNT = Zero
-                While ((TCNT < LDLY))
-                {
-                    If ((P1VC == Zero))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    TCNT += 0x10
-                }
-            }
-            ElseIf ((PION == 0x02))
-            {
-                P2LD = Zero
-                P2TR = One
-                TCNT = Zero
-                While ((TCNT < LDLY))
-                {
-                    If ((P2VC == Zero))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    TCNT += 0x10
-                }
-            }
-        }
-        Else
-        {
-            LKEN (PION)
-        }
-
-        /* ... */
-        
-        Return (Zero)
-    }
-
-
-
-If not set to Windows 2009, then this is triggered:
-
-
-    Method (LKEN, 1, NotSerialized)
-    {
-        Local3 = (CPEX & 0x0F)
-        If ((Local3 == Zero))
-        {
-            If ((Arg0 == Zero))
-            {
-                P0L0 = One
-                Sleep (0x10)
-                Local0 = Zero
-                While (P0L0)
-                {
-                    If ((Local0 > 0x04))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    Local0++
-                }
-            }
-            ElseIf ((Arg0 == One))
-            {
-                P1L0 = One
-                Sleep (0x10)
-                Local0 = Zero
-                While (P0L0)
-                {
-                    If ((Local0 > 0x04))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    Local0++
-                }
-            }
-            ElseIf ((Arg0 == 0x02))
-            {
-                P2L0 = One
-                Sleep (0x10)
-                Local0 = Zero
-                While (P0L0)
-                {
-                    If ((Local0 > 0x04))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    Local0++
-                }
-            }
-        }
-        ElseIf ((Local3 != Zero))
-        {
-            If ((Arg0 == Zero))
-            {
-                Q0L0 = One
-                Sleep (0x10)
-                Local0 = Zero
-                While (Q0L0)
-                {
-                    If ((Local0 > 0x04))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    Local0++
-                }
-            }
-            ElseIf ((Arg0 == One))
-            {
-                Q1L0 = One
-                Sleep (0x10)
-                Local0 = Zero
-                While (Q1L0)
-                {
-                    If ((Local0 > 0x04))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    Local0++
-                }
-            }
-            ElseIf ((Arg0 == 0x02))
-            {
-                Q2L0 = One
-                Sleep (0x10)
-                Local0 = Zero
-                While (Q2L0)
-                {
-                    If ((Local0 > 0x04))
-                    {
-                        Break
-                    }
-
-                    Sleep (0x10)
-                    Local0++
-                }
-            }
-        }
-    }
-
-
-Is it possible to override the specific ACPI table functions (SSDT) in the DSDT?
-This way I could try to debug to find some more information...
