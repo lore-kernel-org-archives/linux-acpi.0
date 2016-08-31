@@ -1,65 +1,42 @@
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH v4 1/2] serial: 8250_dw: make dw8250_set_termios as default set_termios callback
-Date: Wed, 31 Aug 2016 11:29:11 +0800
-Message-ID: <1472614152-43136-2-git-send-email-wangkefeng.wang@huawei.com>
+Subject: [PATCH v4 2/2] serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 SoC
+Date: Wed, 31 Aug 2016 11:29:12 +0800
+Message-ID: <1472614152-43136-3-git-send-email-wangkefeng.wang@huawei.com>
 References: <1472614152-43136-1-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:60070 "EHLO
+Received: from szxga03-in.huawei.com ([119.145.14.66]:62031 "EHLO
         szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754300AbcHaDba (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 23:31:30 -0400
+        with ESMTP id S1756892AbcHaDeJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Aug 2016 23:34:09 -0400
 In-Reply-To: <1472614152-43136-1-git-send-email-wangkefeng.wang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jiri Slaby <jslaby@suse.com>, guohanjun@huawei.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org, z.liuxinliang@hisilicon.com, linux-acpi@vger.kernel.org, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-Make dw8250_set_termios() handle all cases of dw8250_data->clk properly,
-then we can safely use dw8250_set_termios() as the default set_termios
-callback instead of serial8250_do_set_termios(), so do it.
+Add ACPI identifier for UART on Hisilicon Hip05 SoC, be careful that
+it is not 16550 compatible, and "reg-io-width" and "reg-shift" need
+be set properly by _DSD method in DSDT.
 
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 ---
- drivers/tty/serial/8250/8250_dw.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/tty/serial/8250/8250_dw.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
-index 5c0c123..adecece 100644
+index adecece..3478c2c 100644
 --- a/drivers/tty/serial/8250/8250_dw.c
 +++ b/drivers/tty/serial/8250/8250_dw.c
-@@ -235,7 +235,7 @@ static void dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
- 	unsigned int rate;
- 	int ret;
- 
--	if (IS_ERR(d->clk) || !old)
-+	if (IS_ERR_OR_NULL(d->clk) || !old)
- 		goto out;
- 
- 	clk_disable_unprepare(d->clk);
-@@ -308,13 +308,11 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
- 			p->serial_in = dw8250_serial_in32;
- 			data->uart_16550_compatible = true;
- 		}
--		p->set_termios = dw8250_set_termios;
- 	}
- 
- 	/* Platforms with iDMA */
- 	if (platform_get_resource_byname(to_platform_device(p->dev),
- 					 IORESOURCE_MEM, "lpss_priv")) {
--		p->set_termios = dw8250_set_termios;
- 		data->dma.rx_param = p->dev->parent;
- 		data->dma.tx_param = p->dev->parent;
- 		data->dma.fn = dw8250_idma_filter;
-@@ -391,6 +389,7 @@ static int dw8250_probe(struct platform_device *pdev)
- 	p->iotype	= UPIO_MEM;
- 	p->serial_in	= dw8250_serial_in;
- 	p->serial_out	= dw8250_serial_out;
-+	p->set_termios	= dw8250_set_termios;
- 
- 	p->membase = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
- 	if (!p->membase)
+@@ -623,6 +623,7 @@ static const struct acpi_device_id dw8250_acpi_match[] = {
+ 	{ "APMC0D08", 0},
+ 	{ "AMD0020", 0 },
+ 	{ "AMDI0020", 0 },
++	{ "HISI0031", 0 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
 -- 
 1.7.12.4
 
