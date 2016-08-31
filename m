@@ -1,153 +1,184 @@
-From: Wei-Ning Huang <wnhuang@google.com>
-Subject: Re: [PATCH] ACPI / button: add support for tablet mode switch
-Date: Wed, 31 Aug 2016 16:52:19 +0800
-Message-ID: <CABicQ-XJaYGiDVKgefwN-6ckcwepUAvtpjJhwQN3cw389a+12w@mail.gmail.com>
-References: <1472628817-3145-1-git-send-email-wnhuang@google.com> <1472630482.2273.4.camel@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V8 1/8] ACPI: I/O Remapping Table (IORT) initial support
+Date: Wed, 31 Aug 2016 10:30:02 +0100
+Message-ID: <20160831093002.GA2021@red-moon>
+References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
+ <1470909998-16710-2-git-send-email-tn@semihalf.com>
+ <20160812163332.GA17734@red-moon>
+ <ecf44af7-598c-bfe4-a144-8e26168d4ad8@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472630482.2273.4.camel@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <ecf44af7-598c-bfe4-a144-8e26168d4ad8@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 31, 2016 at 4:01 PM, Zhang Rui <rui.zhang@intel.com> wrote:
-> On =E4=B8=89, 2016-08-31 at 15:33 +0800, Wei-Ning Huang wrote:
->> From: Wei-Ning Huang <wnhuang@chromium.org>
->>
->> ACPI PNP device HID 'PNP0C60' is a device that indicates tablet mode
->> status. Add support for mapping this device to the SW_TABLET_MODE
->> input
->> event.
->>
->> Signed-off-by: Wei-Ning Huang <wnhuang@chromium.org>
->> ---
->>  drivers/acpi/button.c | 36 ++++++++++++++++++++++++++++++++++++
->>  1 file changed, 36 insertions(+)
->>
->> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
->> index 148f4e5..50e9de6 100644
->> --- a/drivers/acpi/button.c
->> +++ b/drivers/acpi/button.c
->> @@ -53,6 +53,11 @@
->>  #define ACPI_BUTTON_DEVICE_NAME_LID  "Lid Switch"
->>  #define ACPI_BUTTON_TYPE_LID         0x05
->>
->> +#define ACPI_BUTTON_SUBCLASS_TABLET  "tablet"
->> +#define ACPI_BUTTON_HID_TABLET               "PNP0C60"
->> +#define ACPI_BUTTON_DEVICE_NAME_TABLET       "Tablet Mode Switch"
->> +#define ACPI_BUTTON_TYPE_TABLET              0x07
->> +
->>  #define ACPI_BUTTON_LID_INIT_IGNORE  0x00
->>  #define ACPI_BUTTON_LID_INIT_OPEN    0x01
->>  #define ACPI_BUTTON_LID_INIT_METHOD  0x02
->> @@ -70,6 +75,7 @@ static const struct acpi_device_id
->> button_device_ids[] =3D {
->>       {ACPI_BUTTON_HID_SLEEPF, 0},
->>       {ACPI_BUTTON_HID_POWER,  0},
->>       {ACPI_BUTTON_HID_POWERF, 0},
->> +     {ACPI_BUTTON_HID_TABLET, 0},
->>       {"", 0},
->>  };
->>  MODULE_DEVICE_TABLE(acpi, button_device_ids);
->> @@ -305,6 +311,23 @@ static void acpi_lid_initialize_state(struct
->> acpi_device *device)
->>       }
->>  }
->>
->> +static int acpi_tablet_send_state(struct acpi_device *device)
->> +{
->> +     struct acpi_button *button =3D acpi_driver_data(device);
->> +     unsigned long long state;
->> +     acpi_status status;
->> +
->> +     status =3D acpi_evaluate_integer(device->handle, "_TBL", NULL,
->> &state);
->
-> Control methods with prefix "_" suggests this is an ACPI predefined
-> control method, but I can not find it in ACPI spec 6.1.
-> Can you illustrate me where I can find the definition of _TBL?
+Hi Rafael,
 
-Sorry, I'm not very familiar with ACPI's control method.
-'_TBL' is not a predefined ACPI control method according to the ACPI 6.1 sp=
-ec.
-Maybe I should change it to '_LID'? As a tablet switch is sort of a
-'inverted' lid switch.
+On Thu, Aug 18, 2016 at 08:25:20AM +0200, Tomasz Nowicki wrote:
+> On 12.08.2016 18:33, Lorenzo Pieralisi wrote:
+> >Hi Tomasz,
+> >
+> >On Thu, Aug 11, 2016 at 12:06:31PM +0200, Tomasz Nowicki wrote:
+> >>IORT shows representation of IO topology for ARM based systems.
+> >>It describes how various components are connected together on
+> >>parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+> >>http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+> >>
+> >>Initial support allows to detect IORT table presence and save its
+> >>root pointer obtained through acpi_get_table(). The pointer validity
+> >>depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+> >>is not set while using IORT nodes we would dereference unmapped pointers.
+> >>
+> >>For the aforementioned reason call iort_table_detect() from acpi_init()
+> >>which guarantees acpi_gbl_permanent_mmap to be set at that point.
+> >
+> >We still need to get Rafael ACK on this, keeping in mind that the
+> >eg code parsing DMAR table relies on the same assumption.
+> 
+> Exactly.
+> 
+> Rafael, can you please have a look ?
 
-Wei-Ning
->
-> thanks,
-> rui
->> +     if (ACPI_FAILURE(status))
->> +             return -ENODEV;
->> +
->> +     /* input layer checks if event is redundant */
->> +     input_report_switch(button->input, SW_TABLET_MODE, state);
->> +     input_sync(button->input);
->> +
->> +     return 0;
->> +}
->> +
->>  static void acpi_button_notify(struct acpi_device *device, u32
->> event)
->>  {
->>       struct acpi_button *button =3D acpi_driver_data(device);
->> @@ -318,6 +341,8 @@ static void acpi_button_notify(struct acpi_device
->> *device, u32 event)
->>               input =3D button->input;
->>               if (button->type =3D=3D ACPI_BUTTON_TYPE_LID) {
->>                       acpi_lid_update_state(device);
->> +             } else if (button->type =3D=3D ACPI_BUTTON_TYPE_TABLET)
->> {
->> +                     acpi_tablet_send_state(device);
->>               } else {
->>                       int keycode;
->>
->> @@ -407,6 +432,11 @@ static int acpi_button_add(struct acpi_device
->> *device)
->>               strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
->>               sprintf(class, "%s/%s",
->>                       ACPI_BUTTON_CLASS,
->> ACPI_BUTTON_SUBCLASS_LID);
->> +     } else if (!strcmp(hid, ACPI_BUTTON_HID_TABLET)) {
->> +             button->type =3D ACPI_BUTTON_TYPE_TABLET;
->> +             strcpy(name, ACPI_BUTTON_DEVICE_NAME_TABLET);
->> +             sprintf(class, "%s/%s",
->> +                     ACPI_BUTTON_CLASS,
->> ACPI_BUTTON_SUBCLASS_TABLET);
->>       } else {
->>               printk(KERN_ERR PREFIX "Unsupported hid [%s]\n",
->> hid);
->>               error =3D -ENODEV;
->> @@ -437,6 +467,10 @@ static int acpi_button_add(struct acpi_device
->> *device)
->>       case ACPI_BUTTON_TYPE_LID:
->>               input_set_capability(input, EV_SW, SW_LID);
->>               break;
->> +
->> +     case ACPI_BUTTON_TYPE_TABLET:
->> +             input_set_capability(input, EV_SW, SW_TABLET_MODE);
->> +             break;
->>       }
->>
->>       error =3D input_register_device(input);
->> @@ -450,6 +484,8 @@ static int acpi_button_add(struct acpi_device
->> *device)
->>                */
->>               lid_device =3D device;
->>       }
->> +     if (button->type =3D=3D ACPI_BUTTON_TYPE_TABLET)
->> +             acpi_tablet_send_state(device);
->>
->>       printk(KERN_INFO PREFIX "%s [%s]\n", name,
->> acpi_device_bid(device));
->>       return 0;
+A gentle reminder, this patch is gating this series and requires
+your review, please let us know what you think.
 
+Thank you,
+Lorenzo
 
-
---=20
-Wei-Ning Huang, =E9=BB=83=E5=81=89=E5=AF=A7 | Software Engineer, Google Inc=
-., Taiwan |
-wnhuang@google.com | Cell: +886 910-380678
+> 
+> >
+> >[...]
+> >
+> >>diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >>index 445ce28..6cef2d1 100644
+> >>--- a/drivers/acpi/Kconfig
+> >>+++ b/drivers/acpi/Kconfig
+> >>@@ -521,4 +521,9 @@ config ACPI_CONFIGFS
+> >> 	  userspace. The configurable ACPI groups will be visible under
+> >> 	  /config/acpi, assuming configfs is mounted under /config.
+> >>
+> >>+if ARM64
+> >>+source "drivers/acpi/arm64/Kconfig"
+> >>+
+> >
+> >Just curious: Why do you need a space ?
+> 
+> No good reason, it will disappear for next version.
+> 
+> >
+> >>+endif
+> >>+
+> >> endif	# ACPI
+> >>diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> >>index 5ae9d85..e5ada78 100644
+> >>--- a/drivers/acpi/Makefile
+> >>+++ b/drivers/acpi/Makefile
+> >>@@ -105,3 +105,5 @@ obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
+> >>
+> >> video-objs			+= acpi_video.o video_detect.o
+> >> obj-y				+= dptf/
+> >>+
+> >>+obj-$(CONFIG_ARM64)		+= arm64/
+> >>diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+> >>new file mode 100644
+> >>index 0000000..fc818dc
+> >>--- /dev/null
+> >>+++ b/drivers/acpi/arm64/Kconfig
+> >>@@ -0,0 +1,6 @@
+> >>+#
+> >>+# ACPI Configuration for ARM64
+> >>+#
+> >>+
+> >>+config IORT_TABLE
+> >>+	bool
+> >>diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+> >>new file mode 100644
+> >>index 0000000..d01be6f
+> >>--- /dev/null
+> >>+++ b/drivers/acpi/arm64/Makefile
+> >>@@ -0,0 +1 @@
+> >>+obj-$(CONFIG_IORT_TABLE) 	+= iort.o
+> >>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >>new file mode 100644
+> >>index 0000000..f89056e
+> >>--- /dev/null
+> >>+++ b/drivers/acpi/arm64/iort.c
+> >>@@ -0,0 +1,218 @@
+> >>+/*
+> >>+ * Copyright (C) 2016, Semihalf
+> >>+ *	Author: Tomasz Nowicki <tn@semihalf.com>
+> >>+ *
+> >>+ * This program is free software; you can redistribute it and/or modify it
+> >>+ * under the terms and conditions of the GNU General Public License,
+> >>+ * version 2, as published by the Free Software Foundation.
+> >>+ *
+> >>+ * This program is distributed in the hope it will be useful, but WITHOUT
+> >>+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> >>+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> >>+ * more details.
+> >>+ *
+> >>+ * This file implements early detection/parsing of I/O mapping
+> >>+ * reported to OS through firmware via I/O Remapping Table (IORT)
+> >>+ * IORT document number: ARM DEN 0049A
+> >>+ */
+> >>+
+> >>+#define pr_fmt(fmt)	"ACPI: IORT: " fmt
+> >>+
+> >>+#include <linux/iort.h>
+> >>+#include <linux/kernel.h>
+> >>+#include <linux/pci.h>
+> >>+
+> >>+typedef acpi_status (*iort_find_node_callback)
+> >>+	(struct acpi_iort_node *node, void *context);
+> >>+
+> >>+/* Root pointer to the mapped IORT table */
+> >>+static struct acpi_table_header *iort_table;
+> >
+> >See above.
+> >
+> >[...]
+> >
+> >>+void __init iort_table_detect(void)
+> >>+{
+> >>+	acpi_status status;
+> >>+
+> >>+	status = acpi_get_table(ACPI_SIG_IORT, 0, &iort_table);
+> >>+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> >>+		const char *msg = acpi_format_exception(status);
+> >>+		pr_err("Failed to get table, %s\n", msg);
+> >>+	}
+> >>+}
+> >>diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> >>index 85b7d07..55a84da 100644
+> >>--- a/drivers/acpi/bus.c
+> >>+++ b/drivers/acpi/bus.c
+> >>@@ -36,6 +36,7 @@
+> >> #ifdef CONFIG_X86
+> >> #include <asm/mpspec.h>
+> >> #endif
+> >>+#include <linux/iort.h>
+> >> #include <linux/pci.h>
+> >> #include <acpi/apei.h>
+> >> #include <linux/dmi.h>
+> >>@@ -1186,6 +1187,7 @@ static int __init acpi_init(void)
+> >> 	}
+> >>
+> >> 	pci_mmcfg_late_init();
+> >>+	iort_table_detect();
+> >
+> >That's another bit we have to make sure Rafael is ok with, given
+> >that IORT is ARM64 specific (but we stub it out if it is not
+> >configured).
+> >
+> >Having said that:
+> >
+> >Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> 
+> Thanks for your time.
+> 
+> Tomasz
+> 
