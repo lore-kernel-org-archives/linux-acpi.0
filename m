@@ -1,132 +1,33 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Wed, 31 Aug 2016 14:34:54 +0100
-Message-ID: <20160831133454.GA24732@red-moon>
-References: <20160825121825.322d8450@arm.com>
- <CADaLND=MkDmYNESmL9zLEQQ5NaZp4_aGv4SnQ4=VS4LmFkFG6g@mail.gmail.com>
- <20160825195917.0e75a8db@arm.com>
- <20160826090813.GA1038@red-moon>
- <20160826130832.2fde2327@arm.com>
- <f747c2c3-096a-f843-908c-3f76238a6acd@codeaurora.org>
- <20160826170615.GC23885@red-moon>
- <66f94732-7ce4-e577-9bec-52f0dc8e6ddb@codeaurora.org>
- <20160830100834.GA368@red-moon>
- <20160831130506.GB22908@localhost>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCHv2 3/3] serial: 8250_dw: Add quirk for APM X-Gene SoC
+Date: Wed, 31 Aug 2016 16:16:02 +0200
+Message-ID: <20160831141602.GA4725@kroah.com>
+References: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1471941208-27963-4-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:32864 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760687AbcHaNer (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 Aug 2016 09:34:47 -0400
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39594 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933214AbcHaOPy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 10:15:54 -0400
 Content-Disposition: inline
-In-Reply-To: <20160831130506.GB22908@localhost>
+In-Reply-To: <1471941208-27963-4-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Kan <fkan@apm.com>
 
-On Wed, Aug 31, 2016 at 08:05:06AM -0500, Bjorn Helgaas wrote:
-> On Tue, Aug 30, 2016 at 11:08:34AM +0100, Lorenzo Pieralisi wrote:
-> > On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
-> > > 
-> > > >> Let me throw option d here.
-> > > >>
-> > > >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
-> > > >> can't we override this in an arch specific way (arm64's pci.c) while
-> > > >> creating the root bridge? 
-> > > > 
-> > > > On what basis ? You were not copied in from the beginning, but that
-> > > > is not different from Duc's initial proposal, which Marc discarded
-> > > > because it should not be done at arch level, it depends on the interrupt
-> > > > controller.
-> > > 
-> > > I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
-> > > Duc's initial proposal. 
-> > > 
-> > > I can't imagine someone building an ACPI compliant ARM64 platform
-> > > without a GIC interrupt controller. 
-> > > 
-> > > The SBSA spec already mentions what kind of compatibility should be
-> > > maintained with respect to GIC. You can't have an ACPI system that's
-> > > SBSA compliant and not using GIC. 
-> > > 
-> > > Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
-> > > is defined.  Why do we have to reach out to the interrupt controller?
-> > 
-> > Patch below (horrible but no solution will be shiny either).
-> > 
-> > > https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
-> > 
-> > [...]
-> > 
-> > > If you look at my email above, I tried getting rid of PCI Link object
-> > > and I couldn't. I sticked to only thing that works.
-> > 
-> > That's what I object to. If the ACPI bindings do not work for ARM
-> > we do not work around issues, we upgrade the specs because what may work
-> > for you has to work on all ARM platforms (and all FW developers have
-> > to be aware of that). Granted, this is a tiny snag, but the point is
-> > that no one knows what's the correct way of describing PCI legacy IRQs
-> > on ARM and we need that rectified.
-> > 
-> > This does the trick for me (I can turn it into a function/look-up
-> > that returns the polarity), I am sure it will ruffle feathers but
-> > we have to find a solution so here it is (that acpi_irq_model gem
-> > is already used in generic code drivers/acpi/pci_link.c ;-))
-> > 
-> > -- >8 --
-> > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> > index 2c45dd3..c9b8c85 100644
-> > --- a/drivers/acpi/pci_irq.c
-> > +++ b/drivers/acpi/pci_irq.c
-> > @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
-> >  	int gsi;
-> >  	u8 pin;
-> >  	int triggering = ACPI_LEVEL_SENSITIVE;
-> > -	int polarity = ACPI_ACTIVE_LOW;
-> > +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> > +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
-> >  	char *link = NULL;
-> >  	char link_desc[16];
-> >  	int rc;
+On Tue, Aug 23, 2016 at 11:33:28AM +0300, Heikki Krogerus wrote:
+> The APM X-Gene SoC UART is the only board that still needs
+> the hard-coded values, so handle it separately in
+> dw8250_quirks(). The other ACPI platforms are able to
+> provide the values with device properties.
 > 
-> This still seems weird to me.
-> 
-> If I understand correctly, this GIC has several inputs, all active
-> high.  Some of those inputs are connected to inverters and then to PCI
-> INTx wires.
-> 
-> A generic device driver knows about the hardware it drives, including
-> the properties of its interrupt wires.  PCI drivers and the ACPI/PCI
-> core know that conventional PCI device INTx wires are active low.
-> These drivers, being generic, do not know about the GIC inverters.
-> 
-> The patch above basically says "if ACPI tells us about a PCI interrupt
-> connected to a GIC, *assume* there is an inverter on the input."  But
-> there's no actual description of that inverter anywhere in ACPI or a
-> device tree.  Shouldn't that be made explicit somewhere?
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Cc: Feng Kan <fkan@apm.com>
+> ---
+>  drivers/tty/serial/8250/8250_dw.c | 15 ++++++++++-----
+>  1 file changed, 10 insertions(+), 5 deletions(-)
 
-It is explicit for all IRQs other than PCI legacy IRQs ;-), that's
-the message I wanted to get across and I failed so far.
-
-For "normal" IRQs we can use Extended Interrupt Descriptors, that allow
-us to describe polarity. For PCI legacy IRQs we could use extended
-interrupt descriptors if we were allowed to use PCI interrupt links,
-except that, according to current ACPI specs, PCI interrupt links can
-only be used for *configurable* interrupt pins.
-
-So, some ARM vendors stuck to the static/hardwired configuration
-in the _PRT, that does not give us a chance to describe polarity.
-
-I think that we should be allowed to use interrupt links, but that would
-not comply with the specs (and on top of that there is FW that is
-already shipped in ACPI tables that we can't change anymore).
-
-> If we connect a non-PCI device to a GIC, we need to know whether
-> there's an inverter.  How could we figure that out?
-
-Through an Extended Interrupt Descriptor. How are we solving this ?
-
-Thanks,
-Lorenzo
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
