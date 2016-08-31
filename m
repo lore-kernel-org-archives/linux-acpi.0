@@ -1,66 +1,66 @@
-From: Peter Wu <peter@lekensteyn.nl>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Wed, 31 Aug 2016 13:46:39 +0200
-Message-ID: <20160831114639.GD19420@al>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost> <20160830195337.GA18805@al>
- <e7318236-9737-518e-c360-398c66220961@desertbit.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH V2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
+Date: Wed, 31 Aug 2016 13:48:16 +0200
+Message-ID: <5406169.iVLlEcSJ8X@wuerfel>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com> <1472644094-82731-4-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <e7318236-9737-518e-c360-398c66220961@desertbit.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Roland Singer <roland.singer@desertbit.com>
-Cc: linux-pci@vger.kernel.org, emil.l.velikov@gmail.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.10]:62785 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932988AbcHaLsd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 07:48:33 -0400
+In-Reply-To: <1472644094-82731-4-git-send-email-liudongdong3@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dongdong Liu <liudongdong3@huawei.com>
+Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-T24gV2VkLCBBdWcgMzEsIDIwMTYgYXQgMDE6Mjc6MzZQTSArMDIwMCwgUm9sYW5kIFNpbmdlciB3
-cm90ZToKPiBBbSAzMC4wOC4yMDE2IHVtIDIxOjUzIHNjaHJpZWIgUGV0ZXIgV3U6Cj4gPiBPbiBN
-b24sIEF1ZyAyOSwgMjAxNiBhdCAxMTowMjoxMEFNIC0wNTAwLCBCam9ybiBIZWxnYWFzIHdyb3Rl
-Ogo+ID4+IFsrY2MgbGludXgtYWNwaSwgbGludXgta2VybmVsLCBkcmktZGV2ZWxdCj4gPj4KPiA+
-PiBIaSBSb2xhbmQsCj4gPj4KPiA+PiBJIGhhdmUgbm8gaWRlYSBob3cgdG8gZGVidWcgdGhpcyBw
-cm9ibGVtLiAgQXJlIHlvdSBzZWVpbmcgc29tZXRoaW5nCj4gPj4gdGhhdCBzdWdnZXN0cyBpdCBt
-YXkgYmUgYSBQQ0kgcHJvYmxlbT8KPiA+IAo+ID4gWWVzIEkgc3VzcGVjdCB0aGVyZSBpcyBhbiBB
-Q1BJIGFuZC8gb3IgUENJIHByb2JsZW0sIHBvc3NpYmx5Cj4gPiBkZXZpY2Utc3BlY2lmaWMuIFN0
-ZXBzIHRvIHJlcHJvZHVjZSBvbiB0aGUgYWZmZWN0ZWQgbWFjaGluZXM6Cj4gPiAKPiA+ICAxLiBM
-b2FkIG5vdXZlYXUuCj4gPiAgMi4gV2FpdCBmb3IgaXQgdG8gcnVudGltZSBzdXNwZW5kLgo+ID4g
-IDIuIEludm9rZSAnbHNwY2knLCB0aGlzIHJlc3VtZXMgdGhlIE52aWRpYSBQQ0kgZGV2aWNlIHZp
-YSBub3V2ZWF1Lgo+ID4gIDMuIGxzcGNpIG5ldmVyIHJldHVybnMsIGZldyBtb21lbnRzIGxhdGVy
-IGFuIEFNTF9JTkZJTklURV9MT09QIGlzCj4gPiAgICAgcmVwb3J0ZWQuCj4gPiAKPiAKPiBJIGNh
-biBjb25maXJtIHRoaXMuIFNhbWUgcmVzdWx0IG9uIG15IG1hY2hpbmUuCj4gCj4gSGVyZSBpcyBh
-IGxpbmsgdG8gbXkgQUNQSSB0YWJsZXM6Cj4gaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQvbHBi
-dWdyZXBvcnRlci8rYnVnLzc1MjU0Mi8rYXR0YWNobWVudC80NzIyNjUxLytmaWxlcy9SYXplci1C
-bGFkZS50YXIuZ3oKPiAKPiBUaGUgc3BlY2lmaWMgc291cmNlIGZvciB0aGUgTlZJRElBIGNhcmQg
-Y2FuIGJlIGZvdW5kIGluIHRoZSBzc2R0NS5kc2wgZmlsZS4KPiAKPiAKPiAgICAgTWV0aG9kIChQ
-R09OLCAxLCBTZXJpYWxpemVkKQo+ICAgICB7Cj4gICAgICAgICAvKiAuLi4gKi8KPiAKPiAgICAg
-ICAgIEdQUFIgKFBJT04sIE9uZSkKPiAgICAgICAgIElmICgoT1NZUyA9PSAweDA3RDkpKSAgLyog
-SXMgV2luZG93cyAyMDA5IC0gSW4gbXkgY2FzZSwgc2V0dGluZyB0byBXaW5kb3dzIDIwMDkgb25s
-eSB3b3JrcyEgKi8KPiAgICAgICAgIHsKWy4uXQo+ICAgICAgICAgfQo+ICAgICAgICAgRWxzZQo+
-ICAgICAgICAgewo+ICAgICAgICAgICAgIExLRU4gKFBJT04pCj4gICAgICAgICB9Cj4gCj4gICAg
-ICAgICAvKiAuLi4gKi8KPiAgICAgICAgIAo+ICAgICAgICAgUmV0dXJuIChaZXJvKQo+ICAgICB9
-Cj4gCj4gCj4gCj4gSWYgbm90IHNldCB0byBXaW5kb3dzIDIwMDksIHRoZW4gdGhpcyBpcyB0cmln
-Z2VyZWQ6Cj4gCj4gCj4gICAgIE1ldGhvZCAoTEtFTiwgMSwgTm90U2VyaWFsaXplZCkKPiAgICAg
-ewpbLi5dCj4gICAgIH0KClllcCwgdGhpcyBpcyB0aGUgc2FtZSBjb2RlLiBJIHN0cmlwcGVkIG91
-dCBpcnJlbGV2YW50IHBhcnRzIGZyb20gdGhlCnByZXZpb3VzIG1haWwgZm9yIGJyZXZpdHkuCgo+
-IElzIGl0IHBvc3NpYmxlIHRvIG92ZXJyaWRlIHRoZSBzcGVjaWZpYyBBQ1BJIHRhYmxlIGZ1bmN0
-aW9ucyAoU1NEVCkgaW4gdGhlIERTRFQ/Cj4gVGhpcyB3YXkgSSBjb3VsZCB0cnkgdG8gZGVidWcg
-dG8gZmluZCBzb21lIG1vcmUgaW5mb3JtYXRpb24uLi4KClNlZSBEb2N1bWVudGF0aW9uL2FjcGkv
-aW5pdHJkX3RhYmxlX292ZXJyaWRlLnR4dCBhbmQgbm90ZSB0aGF0IGl0IGlzCmltcG9ydGFudCB0
-aGF0IHRoZSB0YWJsZXMgYXJlIHJlYWxseSBsb2NhdGVkIGF0IC9rZXJuZWwvZmlybXdhcmUvYWNw
-aS8KaW4geW91ciBpbml0cmQgKHdoaWNoIG11c3QgYmUgdGhlIGZpcnN0LCBldmVuIGJlZm9yZSBh
-bnkgcG9zc2libGUKbWljcm9jb2RlIHVwZGF0ZXMpLgoKV2hhdCBhcmUgeW91IHRyeWluZyB0byBk
-bz8gRm9yIEFDUEkgbWV0aG9kIHRyYWNpbmcsIHNlZQpEb2N1bWVudGF0aW9uL2FjcGkvbWV0aG9k
-LXRyYWNpbmcudHh0Ci0tIApLaW5kIHJlZ2FyZHMsClBldGVyIFd1Cmh0dHBzOi8vbGVrZW5zdGV5
-bi5ubApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmkt
-ZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Wednesday, August 31, 2016 7:48:14 PM CEST Dongdong Liu wrote:
+> +static struct hisi_rc_res rc_res[] = {
+> +       {
+> +               HIP05,
+> +               {
+> +                       DEFINE_RES_MEM(0xb0070000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xb0080000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xb0090000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xb00a0000, SZ_4K)
+> +               }
+> +       },
+> +       {
+> +               HIP06,
+> +               {
+> +                       DEFINE_RES_MEM(0xa0090000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xa0200000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xa00a0000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xa00b0000, SZ_4K)
+> +               }
+> +       },
+> +       {
+> +               HIP07,
+> +               {
+> +                       DEFINE_RES_MEM(0xa0090000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xa0200000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xa00a0000, SZ_4K),
+> +                       DEFINE_RES_MEM(0xa00b0000, SZ_4K),
+> +                       DEFINE_RES_MEM(0x8a0090000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x8a0200000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x8a00a0000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x8a00b0000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x600a0090000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x600a0200000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x600a00a0000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x600a00b0000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x700a0090000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x700a0200000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x700a00a0000UL, SZ_4K),
+> +                       DEFINE_RES_MEM(0x700a00b0000UL, SZ_4K)
+> +               }
+> +       },
+
+I don't know much about ACPI, but I'm pretty sure this is not
+the normal way to find MMIO resources. Why not read them from
+the ACPI tables?
+
+	Arnd
