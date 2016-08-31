@@ -1,13 +1,8 @@
 From: Roland Singer <roland.singer@desertbit.com>
 Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Wed, 31 Aug 2016 13:11:54 +0200
-Message-ID: <ae547108-57bb-11a0-620b-f930ce8bf660@desertbit.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost>
- <1cca943f-eab4-4054-4a13-31370d7ae057@desertbit.com>
- <20160829190737.GA4053@localhost>
- <a0079ace-3062-4792-5c33-3a5e350daac3@desertbit.com>
- <20160829235403.GA14177@localhost>
+Date: Wed, 31 Aug 2016 13:12:30 +0200
+Message-ID: <98b2ae5b-399b-8337-18dc-98ac2480746f@desertbit.com>
+References: <20160829235403.GA14177@localhost>
  <1d1bfdc2-f23d-9816-e4e3-ae676105dc39@desertbit.com>
  <20160830130634.GA16426@localhost>
  <CACvgo51b4XLz2PwH1dkcK4_FknfZkSUKsFepYz-AGfPr7ux2kA@mail.gmail.com>
@@ -17,81 +12,66 @@ References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
  <CAKb7UviZ0qKp3PRR+iHr+KiOU9Sadeeb6PyydWN-FUL0RzyCPA@mail.gmail.com>
  <1c761bab-f82b-3f43-c4f0-c7a8eff94f25@desertbit.com>
  <CAKb7Uvjzhog27TUPTn5OOqXviyD_z3UV0qvskZDEO8CAB2-i2w@mail.gmail.com>
+ <20160830192112.GA18045@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.146.197.76.144.clients.your-server.de ([144.76.197.146]:60792
-        "EHLO desertbit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932478AbcHaLNU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 07:13:20 -0400
-In-Reply-To: <CAKb7Uvjzhog27TUPTn5OOqXviyD_z3UV0qvskZDEO8CAB2-i2w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160830192112.GA18045@al>
+Sender: linux-pci-owner@vger.kernel.org
+To: Peter Wu <peter@lekensteyn.nl>, Ilia Mirkin <imirkin@alum.mit.edu>
+Cc: Emil Velikov <emil.l.velikov@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ilia Mirkin <imirkin@alum.mit.edu>
-Cc: Emil Velikov <emil.l.velikov@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Peter Wu <peter@lekensteyn.nl>
 
-Am 30.08.2016 um 20:13 schrieb Ilia Mirkin:
-> On Tue, Aug 30, 2016 at 2:02 PM, Roland Singer
-> <roland.singer@desertbit.com> wrote:
->> I configured bbswitch to not set any states automatically...
->> So it's possible to obtain and verify the GPU power state.
+Am 30.08.2016 um 21:21 schrieb Peter Wu:
+> On Tue, Aug 30, 2016 at 02:13:46PM -0400, Ilia Mirkin wrote:
+>> On Tue, Aug 30, 2016 at 2:02 PM, Roland Singer
+>> <roland.singer@desertbit.com> wrote:
+>>> I configured bbswitch to not set any states automatically...
+>>> So it's possible to obtain and verify the GPU power state.
+>>>
+>>> However I removed the bbswitch module and booted with nouveau.
+>>>
+>>> Kernel 4.7.2: nouveau switches the discrete GPU off.
+>>>               I can't trigger the freeze, because bbswitch is missing.
+>>>               I'll work with the system and see if it will freeze.
+>>>
+>>> Kernel 4.8-rc4: nouveau does not care about the power state and
+>>>                 the discrete GPU is never switched off. I will notice
+>>>                 this, because the second cooling FAN will stop...
+>>>                 Same log messages as send before.
 >>
->> However I removed the bbswitch module and booted with nouveau.
+>> That's surprising. I believe there's an issue with the new logic when
+>> there's an HDMI audio subdevice. However that only appears if there's
+>> a cable plugged in, at least in the systems Peter tested. You should
+>> be able to see whether it's there or not with 'lspci'.
+> 
+> I doubt that the audio device is responsible here, that should only show
+> up after following very specific steps (runtime suspend/resume (PCI or
+> ACPI magic), remove PCI device, rescan bus).
+> 
+>> You can check for sure by looking in the vgaswitcheroo state. It
+>> should say DynOff when it's powered off.
 >>
->> Kernel 4.7.2: nouveau switches the discrete GPU off.
->>               I can't trigger the freeze, because bbswitch is missing.
->>               I'll work with the system and see if it will freeze.
->>
->> Kernel 4.8-rc4: nouveau does not care about the power state and
->>                 the discrete GPU is never switched off. I will notice
->>                 this, because the second cooling FAN will stop...
->>                 Same log messages as send before.
+>> Either way, I think using bbswitch + nouveau isn't supported by
+>> anyone, so if you want to use it that way, you're on your own. (You
+>> may want to load nouveau with runpm=0 so that nouveau doesn't try to
+>> manage the GPU suspend stuff.)
 > 
-> That's surprising. I believe there's an issue with the new logic when
-> there's an HDMI audio subdevice. However that only appears if there's
-> a cable plugged in, at least in the systems Peter tested. You should
-> be able to see whether it's there or not with 'lspci'.
-> 
-> You can check for sure by looking in the vgaswitcheroo state. It
-> should say DynOff when it's powered off.
-> 
-> Either way, I think using bbswitch + nouveau isn't supported by
-> anyone, so if you want to use it that way, you're on your own. (You
-> may want to load nouveau with runpm=0 so that nouveau doesn't try to
-> manage the GPU suspend stuff.)
-> 
->   -ilia
+> I understood that Roland's intent is to check the power state, not use
+> the suspend functionality of bbswitch, if you load bbswitch without
+> module options amd do not write to /proc/bbswitch, then it allows you to
+> read out the actual status (you could also just use lspci -H1 for that
+> though).
 > 
 
-Kernel 4.8-rc4:
+lspci -H1 works perfect. Thanks.
+Just tried to verify the output with lspci -H1. I unloaded the nouveau
+module and modprobe freezed with:
 
-While running lspci, following kernel log message was printed on the TTY:
-
-  nouveau: 0000:01:00:0: priv: HUB0: 6013d4 0000573f (1f408200)
-  nouveau: 0000:01:00:0: priv: HUB0: 10ecc0 ffffffff (1940822c)
-
-This is my output of lspci:
-
-00:00.0 Host bridge: Intel Corporation Skylake Host Bridge/DRAM Registers (rev 07)
-00:01.0 PCI bridge: Intel Corporation Skylake PCIe Controller (x16) (rev 07)
-00:02.0 VGA compatible controller: Intel Corporation HD Graphics 530 (rev 06)
-00:08.0 System peripheral: Intel Corporation Skylake Gaussian Mixture Model
-00:14.0 USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller (rev 31)
-00:14.2 Signal processing controller: Intel Corporation Sunrise Point-H Thermal subsystem (rev 31)
-00:15.0 Signal processing controller: Intel Corporation Sunrise Point-H Serial IO I2C Controller #0 (rev 31)
-00:15.1 Signal processing controller: Intel Corporation Sunrise Point-H Serial IO I2C Controller #1 (rev 31)
-00:16.0 Communication controller: Intel Corporation Sunrise Point-H CSME HECI #1 (rev 31)
-00:1c.0 PCI bridge: Intel Corporation Sunrise Point-H PCI Express Root Port #1 (rev f1)
-00:1c.5 PCI bridge: Intel Corporation Sunrise Point-H PCI Express Root Port #6 (rev f1)
-00:1d.0 PCI bridge: Intel Corporation Sunrise Point-H PCI Express Root Port #9 (rev f1)
-00:1d.4 PCI bridge: Intel Corporation Sunrise Point-H PCI Express Root Port #13 (rev f1)
-00:1e.0 Signal processing controller: Intel Corporation Sunrise Point-H Serial IO UART #0 (rev 31)
-00:1f.0 ISA bridge: Intel Corporation Sunrise Point-H LPC Controller (rev 31)
-00:1f.2 Memory controller: Intel Corporation Sunrise Point-H PMC (rev 31)
-00:1f.3 Audio device: Intel Corporation Sunrise Point-H HD Audio (rev 31)
-00:1f.4 SMBus: Intel Corporation Sunrise Point-H SMBus (rev 31)
-01:00.0 3D controller: NVIDIA Corporation GM204M [GeForce GTX 970M] (rev a1)
-3b:00.0 Network controller: Qualcomm Atheros QCA6174 802.11ac Wireless Network Adapter (rev 32)
-3d:00.0 Non-Volatile memory controller: Samsung Electronics Co Ltd NVMe SSD Controller (rev 01)
-
+  $ modprobe -r nouveau
+    nouveau 0000:01:00.0: pci: failed to adjust lnkctl speed
+    nouveau 0000:01:00.0: fb: init failed. -22
+    nouveau 0000:01:00.0: init failed with -22
+    nouveau: DRM:00000000:00000000: init failed with -22
+    nouveau: DRM:00000000:00000000: init failed with -22
