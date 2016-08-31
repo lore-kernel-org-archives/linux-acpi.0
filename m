@@ -1,90 +1,142 @@
-From: Roland Singer <roland.singer@desertbit.com>
-Subject: Re: Kernel Freeze with American Megatrends BIOS
-Date: Wed, 31 Aug 2016 22:16:25 +0200
-Message-ID: <e50b350c-c6d1-22ef-527e-3590425dede2@desertbit.com>
-References: <004c7dbe-2014-c691-29d1-7a45f3b73dfa@desertbit.com>
- <20160829160210.GA24451@localhost> <20160830195337.GA18805@al>
- <e7318236-9737-518e-c360-398c66220961@desertbit.com>
- <20160831114639.GD19420@al>
- <1b91b281-3c71-f02f-ff27-51957af92275@desertbit.com>
- <20160831123444.GE19420@al>
- <e19456cb-3076-c8f1-c9ec-fbfbd9bb6112@desertbit.com>
- <310ac56e-94bf-35de-79c7-29b0b4b6e2a8@desertbit.com>
+From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Subject: Re: [PATCH v4 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Thu, 01 Sep 2016 00:34:59 +0200
+Message-ID: <4d255da80e88b400bc6f481b7fa48403@schneider-inet.de>
+References: <1bIiDr-0004G1-0P>
+ <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1472156461-25180-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160831144349.GA18510@rob-hp-laptop>
+Reply-To: <karl-heinz@schneider-inet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.146.197.76.144.clients.your-server.de ([144.76.197.146]:34162
-        "EHLO desertbit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753502AbcHaURq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 16:17:46 -0400
-In-Reply-To: <310ac56e-94bf-35de-79c7-29b0b4b6e2a8@desertbit.com>
+Received: from schneider-inet.de ([85.214.76.205]:34610 "EHLO
+        h1714509.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752513AbcHaWfI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 18:35:08 -0400
+In-Reply-To: <20160831144349.GA18510@rob-hp-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Wu <peter@lekensteyn.nl>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, emil.l.velikov@gmail.com, "imirkin@alum.mit.edu >> Ilia Mirkin" <imirkin@alum.mit.edu>
+To: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
 
-On 08/31/16 22:06, Roland Singer wrote:
-> Here is Peter Wu's reply, which was not send to the mailing list, because
-> I had to resend my e-mail to him due to a failure...
-> 
-> 
-> -------- Forwarded Message --------
-> Subject: Re: Fwd: Re: Kernel Freeze with American Megatrends BIOS
-> Date: Wed, 31 Aug 2016 18:08:53 +0200
-> From: Peter Wu <peter@lekensteyn.nl>
-> To: Roland Singer <roland.singer@desertbit.com>
-> 
-> On Wed, Aug 31, 2016 at 05:56:18PM +0200, Roland Singer wrote:
-> 
->>> If you look at my notes.txt, you will see that _OFF always executes the
->>> same code. PGON differs. When the problem occurs, "Q0L0" somehow always
->>> reads back as non-zero and LNKS < 7.
->>>
+Hi Rob,
+
+Sorry for resending this mail, evolution mixed it up...
+
+On Wed, 31 Aug 2016 09:43:49 -0500, Rob Herring wrote:
+> On Thu, Aug 25, 2016 at 10:21:00PM +0200, Karl-Heinz Schneider wrote:
+>> This patch adds device tree documentation for the sbs-manager
 >>
->> Oh you're Lekensteyn ^^
-> 
-> Yes, that's me :) I wrote bbswitch, did the Optimus and PR3 ACPI support
-> in nouveau so I am fairly certain what happens behind the scenes.
-> 
-
-Awesome! Thanks for all your efforts! Great work :)
-
-
->> I don't have LNKS and no while loop after calling LKEN ?!
-> 
-> Yes that is what I said in
-> https://www.spinics.net/lists/linux-pci/msg53694.html:
-> 
-> "Other affected devices have similar code, differences are small:
-> No check for LNKS (avoids the infinite loop, but device is still off)"
+>> Reviewed-by: Phil Reid <preid@electromag.com.au>
+>> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+>> ---
+>>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 53 
+>> ++++++++++++++++++++++
+>>  1 file changed, 53 insertions(+)
+>>  create mode 100644 
+>> Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>
+>> diff --git 
+>> a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt 
+>> b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>> new file mode 100644
+>> index 0000000..6b1a87ce
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>> @@ -0,0 +1,53 @@
+>> +Binding for sbs-manager
+>> +
+>> +Required properties:
+>> +- compatible: should be "lltc,ltc1760" or use "sbs,sbs-manager" as 
+>> fallback.
+>> +- reg: integer, i2c address of the device. Should be <0xa>.
 >
+> What happened to adding Phil's interrupt support into this? You don't
+> have to add the whole patch, just the binding part. The driver 
+> support
+> can come later.
 
-Ah ok, missed that.
+Phil revoked his patch. Right now it's not clear how the interrupt/gpio
+solution will look like and if they will need an device tree binding at
+all...
+
+>
+>> +
+>> +From OS view the device is basically an i2c-mux used to communicate 
+>> with up to
+>> +four smart battery devices at address 0xb. The driver actually 
+>> implements this
+>> +behaviour. So standard i2c-mux nodes can be used to register up to 
+>> four slave
+>> +batteries. See Documentation/devicetree/bindings/i2c/i2c-mux.txt 
+>> for more
+>> +information on i2c-mux nodes. Channels will be numerated starting 
+>> from 1 to 4.
+>> +
+>> +Example:
+>> +
+>> +batman@0a {
+>
+> drop leading 0.
+
+OK.
+
+>> +    compatible = "lltc,ltc1760";
+>> +    reg = <0x0a>;
 
 
->> It might be, that lspci does not only power the GPU on, but triggers
->> another pci action which causes the race condition.
->> Does this have something to do with your quote about the retrain bit?
-> 
-> That is an interesting hypothesis. Even if you invoke `lspci -s01:00.0`
-> for example, it will always probe for all devices. So maybe interaction
-> with its parent device (PCI root port 00:02.0) causes issues.
-> 
-> However I also tested without lspci before, and the problem still
-> exists. You can trigger runtime resume via (as root):
-> 
->     echo > /sys/bus/pci/0000:01:00.0/power/control on
-> 
-> Set it to "auto" to make it sleep again.
-> 
+Will remove leading 0 at this places too.
 
-Just tried it over and over again. I don't have any problems switching the GPU power state
-with bbswitch. So, switching the GPU on is just fine. There must be something else, which
-does not cooperate well while switching it on (lspci)...
+>> +    #address-cells = <1>;
+>> +    #size-cells = <0>;
+>> +
+>> +    i2c@1 {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +        reg = <1>;
+>> +
+>> +        battery@0b {
+>
+> and here...
 
-I can confirm,, that `lspci -s01:00.0` also freezes the system.
+OK.
 
-Trying to trigger runtime resume with `/sys/bus/pci/0000:01:00.0/power/control`
-did not work for me. The GPU just stayed off.
-Any hints how to get some more information?
+>
+>> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+>> +            reg = <0x0b>;
+>> +        };
+>> +    };
+>> +
+>> +    i2c@2 {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +        reg = <2>;
+>> +
+>> +        battery@0b {
+>> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+>> +            reg = <0x0b>;
+>> +        };
+>> +    };
+>> +
+>> +    i2c@3 {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +        reg = <3>;
+>> +
+>> +        battery@0b {
+>> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+>> +            reg = <0x0b>;
+>> +        };
+>> +    };
+>> +};
+>> --
+>> 2.7.4
+>>
+
+Thanks for review Rob.
+-- 
+Karl-Heinz
