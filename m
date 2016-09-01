@@ -1,56 +1,115 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v7 8/9] arm64: pmu: Detect and enable multiple PMUs in an
- ACPI system
-Date: Thu, 1 Sep 2016 15:30:37 +0100
-Message-ID: <20160901143037.GL6721@arm.com>
-References: <1471985280-2243-1-git-send-email-jeremy.linton@arm.com>
- <1471985280-2243-9-git-send-email-jeremy.linton@arm.com>
- <8737lro9lq.fsf@e105922-lin.cambridge.arm.com>
- <b4d5397f-2ab0-8c19-d36e-ea23edb71bfb@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC PATCH V5 1/5] PCI: Embed pci_ecam_ops in pci_config_window
+ structure
+Date: Thu, 1 Sep 2016 13:23:45 -0500
+Message-ID: <20160901182345.GA18461@localhost>
+References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
+ <1470661541-26270-2-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60464 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754167AbcIAObB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Sep 2016 10:31:01 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <b4d5397f-2ab0-8c19-d36e-ea23edb71bfb@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1470661541-26270-2-git-send-email-tn@semihalf.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: gabriele.paoloni@huawei.com, rafael@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, andrea.gallo@linaro.org, Lorenzo.Pieralisi@arm.com, jhugo@codeaurora.org, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, liudongdong3@huawei.com, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, arnd@arndb.de, jcm@redhat.com, msalter@redhat.com, cov@codeaurora.org, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, ard.biesheuvel@linaro.org, dhdang@apm.com, linux-kernel@vger.kernel.org, jeremy.linton@arm.com, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Punit Agrawal <punit.agrawal@arm.com>, linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Fri, Aug 26, 2016 at 05:44:59PM -0500, Jeremy Linton wrote:
-> Hi,
+On Mon, Aug 08, 2016 at 03:05:37PM +0200, Tomasz Nowicki wrote:
+> pci_config_window keeps pointer to pci_ecam_ops and every time
+> we want to deallocate pci_config_window (pci_ecam_free()) we need to make
+> sure to free pci_ecam_ops in case it was dynamically allocated prior to
+> pci_ecam_create() call.
+
+I think this is a theoretical problem, right?  All the current callers
+pass a pointer to a static pci_ecam_ops struct that does not need to
+be deallocated.
+
+I see that the next patch uses a pci_ecam_ops struct on the stack,
+which would definitely cause issues without this patch, so I agree we
+need something like this; I'm just trying to make the changelog make
+more sense.
+
+> To avoid that extra effort, embed pci_ecam_ops in pci_config_window,
+> instead of just a pointer.
 > 
-> On 08/26/2016 10:04 AM, Punit Agrawal wrote:
-> (trimming)
-> >>+			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
-> >>+			if (!pmu) {
-> >>+				pr_warn("Unable to allocate pmu_types\n");
-> >>+				/*
-> >>+				 * continue to count cpus for any pmu_types
-> >>+				 * already allocated, but don't allocate any
-> >>+				 * more pmu_types. This avoids undercounting.
-> >>+				 */
-> >>+				alloc_failure = true;
-> >
-> >Why not just fail probe and return an error? What is the benefit of
-> >having some of the PMUs available?
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> To: Jayachandran C <jchandra@broadcom.com>
+
+This looks like an editing mistake?
+
+> ---
+>  arch/arm64/kernel/pci.c  | 2 +-
+>  drivers/pci/ecam.c       | 6 +++---
+>  include/linux/pci-ecam.h | 2 +-
+>  3 files changed, 5 insertions(+), 5 deletions(-)
 > 
-> AFAIC, there isn't a good reason for penalizing PMU's which we can get
-> working if a subset of the system PMUs can't be created. But this is per PMU
-> type, so with current systems the kzalloc will be called a max of 2 times
-> (there is the potential of a 3rd time, due to some other error handling, but
-> that doesn't change the argument much). AKA, this doesn't result in "partial
-> registration" of a PMU.
-
-... but this will look mighty confusing to userspace, where things will
-appear to "half-work", if for some reason the machine makes it that far
-at all.
-
-I think we should stick with the KISS approach and just fail the probe
-as Punit is suggesting.
-
-Will
+> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> index acf3872..981e828 100644
+> --- a/arch/arm64/kernel/pci.c
+> +++ b/arch/arm64/kernel/pci.c
+> @@ -183,7 +183,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>  		return NULL;
+>  	}
+>  
+> -	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+> +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops.pci_ops;
+>  	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+>  				   ri->cfg);
+>  	if (!bus)
+> diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+> index 43ed08d..24242f0 100644
+> --- a/drivers/pci/ecam.c
+> +++ b/drivers/pci/ecam.c
+> @@ -52,7 +52,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+>  		return ERR_PTR(-ENOMEM);
+>  
+>  	cfg->parent = dev;
+> -	cfg->ops = ops;
+> +	cfg->ops = *ops;
+>  	cfg->busr.start = busr->start;
+>  	cfg->busr.end = busr->end;
+>  	cfg->busr.flags = IORESOURCE_BUS;
+> @@ -138,7 +138,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+>  			       int where)
+>  {
+>  	struct pci_config_window *cfg = bus->sysdata;
+> -	unsigned int devfn_shift = cfg->ops->bus_shift - 8;
+> +	unsigned int devfn_shift = cfg->ops.bus_shift - 8;
+>  	unsigned int busn = bus->number;
+>  	void __iomem *base;
+>  
+> @@ -149,7 +149,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+>  	if (per_bus_mapping)
+>  		base = cfg->winp[busn];
+>  	else
+> -		base = cfg->win + (busn << cfg->ops->bus_shift);
+> +		base = cfg->win + (busn << cfg->ops.bus_shift);
+>  	return base + (devfn << devfn_shift) + where;
+>  }
+>  
+> diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
+> index 7adad20..0ce2920 100644
+> --- a/include/linux/pci-ecam.h
+> +++ b/include/linux/pci-ecam.h
+> @@ -39,7 +39,7 @@ struct pci_config_window {
+>  	struct resource			res;
+>  	struct resource			busr;
+>  	void				*priv;
+> -	struct pci_ecam_ops		*ops;
+> +	struct pci_ecam_ops		ops;
+>  	union {
+>  		void __iomem		*win;	/* 64-bit single mapping */
+>  		void __iomem		**winp; /* 32-bit per-bus mapping */
+> -- 
+> 1.9.1
+> 
