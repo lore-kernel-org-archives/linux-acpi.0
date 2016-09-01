@@ -1,76 +1,170 @@
-From: Phil Reid <preid@electromag.com.au>
-Subject: Re: [PATCH v4 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Thu, 1 Sep 2016 17:37:28 +0800
-Message-ID: <189f3a28-bef7-674e-de7e-f987b83026d0@electromag.com.au>
-References: <1bIiDr-0004G1-0P>
- <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
- <1472156461-25180-2-git-send-email-karl-heinz@schneider-inet.de>
- <20160831144349.GA18510@rob-hp-laptop>
- <4d255da80e88b400bc6f481b7fa48403@schneider-inet.de>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: Re: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06
+ controllers driver to preapare for ACPI
+Date: Thu, 1 Sep 2016 20:44:49 +0800
+Message-ID: <57C822C1.9000203@huawei.com>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
+ <4925807.5nZM1s8II1@wuerfel> <57C78CE9.3010707@huawei.com>
+ <5913196.I3zIbc2qla@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4d255da80e88b400bc6f481b7fa48403@schneider-inet.de>
-Sender: linux-pm-owner@vger.kernel.org
-To: karl-heinz@schneider-inet.de, Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:47587 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932212AbcIAMpZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Sep 2016 08:45:25 -0400
+In-Reply-To: <5913196.I3zIbc2qla@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-Sorry for the resend, I noticed my reply also got horrible mangled.
+Hi Arnd
 
-On 1/09/2016 06:34, Karl-Heinz Schneider wrote:
-> Hi Rob,
->
-> Sorry for resending this mail, evolution mixed it up...
->
-> On Wed, 31 Aug 2016 09:43:49 -0500, Rob Herring wrote:
->> On Thu, Aug 25, 2016 at 10:21:00PM +0200, Karl-Heinz Schneider wrote:
->>> This patch adds device tree documentation for the sbs-manager
->>>
->>> Reviewed-by: Phil Reid <preid@electromag.com.au>
->>> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
->>> ---
->>>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 53 ++++++++++++++++++++++
->>>  1 file changed, 53 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
->>> new file mode 100644
->>> index 0000000..6b1a87ce
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
->>> @@ -0,0 +1,53 @@
->>> +Binding for sbs-manager
->>> +
->>> +Required properties:
->>> +- compatible: should be "lltc,ltc1760" or use "sbs,sbs-manager" as fallback.
->>> +- reg: integer, i2c address of the device. Should be <0xa>.
+在 2016/9/1 15:41, Arnd Bergmann 写道:
+> On Thursday, September 1, 2016 10:05:29 AM CEST Dongdong Liu wrote:
 >>
->> What happened to adding Phil's interrupt support into this? You don't
->> have to add the whole patch, just the binding part. The driver support
->> can come later.
+>> 在 2016/8/31 19:45, Arnd Bergmann 写道:
+>>> On Wednesday, August 31, 2016 7:48:12 PM CEST Dongdong Liu wrote:
+>>>> +
+>>>> +/* HipXX PCIe host only supports 32-bit config access */
+>>>> +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
+>>>> +                             u32 *val)
+>>>> +{
+>>>> +       u32 reg;
+>>>> +       u32 reg_val;
+>>>> +       void *walker = &reg_val;
+>>>> +
+>>>> +       walker += (where & 0x3);
+>>>> +       reg = where & ~0x3;
+>>>> +       reg_val = readl(reg_base + reg);
+>>>> +
+>>>> +       if (size == 1)
+>>>> +               *val = *(u8 __force *) walker;
+>>>> +       else if (size == 2)
+>>>> +               *val = *(u16 __force *) walker;
+>>>
+>>> What is the __force for?
+>>
+>> Hi Arnd, thanks for replying.
+>>
+>> __force is used to, well, force a conversion, like casting from or to a bitwise type, else the Sparse checker will throw a warning.
 >
-> Phil revoked his patch. Right now it's not clear how the interrupt/gpio
-> solution will look like and if they will need an device tree binding at
-> all...
+> I know what it's for in general, but in this case there is no __bitwise
+> or __iomem or any other annotation on either side of the assignment.
+
+Thanks for you point that.
+
 >
+>>>
+>>>> +       else if (size == 4)
+>>>> +               *val = reg_val;
+>>>> +       else
+>>>> +               return PCIBIOS_BAD_REGISTER_NUMBER;
+>>>> +
+>>>> +       return PCIBIOS_SUCCESSFUL;
+>>>
+>>> It looks like you are reimplementing pci_generic_config_read32/pci_generic_config_write32
+>>> read here, better use them directly.
+>>>
+>>
+>> For our host bridge, access RC and EP config space are not the same way.
+>> Our host bridge is non ECAM only for the RC bus config space;
+>> for any other bus underneath the root bus we support ECAM access.
+>>
+>> hisi_pcie_common_cfg_read is used to read RC config space, only supports 32-bit config access.
+>> hisi_pcie_common_cfg_read/hisi_pcie_common_cfg_write may change as below will be better.
+>>
+>> /* HipXX PCIe host only supports 32-bit config access */
+>> int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
+>> 			      u32 *val)
+>> {
+>> 	void __iomem *addr;
+>>
+>> 	addr = reg_base + (where & ~0x3);
+>> 	*val = readl(addr);
+>>
+>> 	if (size <= 2)
+>> 		*val = (*val >> (8 * (where & 3))) & ((1 << (size * 8)) - 1);
+>>
+>> 	return PCIBIOS_SUCCESSFUL;
+>> }
+>
+> My point was: why not call pci_generic_config_read32() when accessing
+> the RC config space instead of duplicating the code from it?
+
+I know your point.
+
+1. For our host bridge , ".map_bus = pci_ecam_map_bus" is only suitable for
+accessing the EP config space.
+pci_generic_config_read32() need to call "addr = bus->ops->map_bus(bus, devfn, where & ~0x3);",
+
+drivers/pci/host/pcie-hisi-acpi.c
+static struct pci_ops hisi_pcie_ops = {
+	.map_bus = pci_ecam_map_bus,
+	.read = hisi_pcie_acpi_rd_conf,
+	.write = hisi_pcie_acpi_wr_conf,
+};
+
+Yes, we can change ".map_bus = pci_ecam_map_bus" to ".map_bus = hisi_pci_map_bus", and implentment hisi_pci_map_bus as below,
+then we will not need to call hisi_pcie_common_cfg_read().
+
+void __iomem *hisi_pci_map_bus(struct pci_bus *bus, unsigned int devfn, int where)
+{
+	struct pci_config_window *cfg = bus->sysdata;
+	void __iomem *reg_base = cfg->priv;
+
+	/* for RC config access*/
+	if (bus->number == cfg->busr.start)
+		return reg_base + (where & ~0x3);
+	else
+		/* for EP config access */
+		return pci_ecam_map_bus(bus, devfn, where);
+}
+
+and hisi_pcie_acpi_rd_conf() need to change as below.
+static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
+				  int size, u32 *val)
+{
+	struct pci_config_window *cfg = bus->sysdata;
+
+	if (hisi_pcie_acpi_valid_config(cfg, bus, PCI_SLOT(devfn)) == 0)
+		return PCIBIOS_DEVICE_NOT_FOUND;
+	
+	/* access RC config space */
+	if (bus->number == cfg->busr.start)
+		return pci_generic_config_read32(bus, devfn, where, size, val);
+	
+	/* access EP config space */
+	return pci_generic_config_read(bus, devfn, where, size, val);
+}
 
 
-I'm getting back to this now.
-I think we can use the smbalert driver to handle the source interrupt.
-Which I think doesn't need anything in the dt binding. Driver just needs to
-implement the alert callback.
-I haven't figured out if the smb_alert could be used for the sbs-battery
-driver interrupt or if this would make sense. However I think it would still need
-to be a gpio controller in either case so that it can report the presence of the
-batteries in a manner suitable for the sbs-battery driver to use.
-I think the gpio controller approach is the simpler method.
-It looks like the smbalert_driver driver needs some updates to work with device trees.
-I need a bit more time to investigate this option.
+2. We need to backward compatible with the old dt way config access as below code,
+so we have to call hisi_pcie_common_cfg_read() when accessing the RC config space.
+For this, we have to call hisi_pcie_common_cfg_read().
 
--- 
-Regards
-Phil Reid
+drivers/pci/host/pcie-hisi.c
+static inline int hisi_pcie_cfg_read(struct pcie_port *pp, int where,
+		int size, u32 *val)
+{
+	struct hisi_pcie *pcie = to_hisi_pcie(pp);
+
+	return hisi_pcie_common_cfg_read(pcie->reg_base, where, size, val);
+}
+
+static struct pcie_host_ops hisi_pcie_host_ops = {
+	.rd_own_conf = hisi_pcie_cfg_read,
+	.wr_own_conf = hisi_pcie_cfg_write,
+	.link_up = hisi_pcie_link_up,
+};
+
+Thanks
+Dongdong
+>
+> 	Arnd
+>
+> .
+>
 
