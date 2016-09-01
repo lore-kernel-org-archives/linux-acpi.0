@@ -1,182 +1,192 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v2 2/8] sched: Extend scheduler's asym packing
-Date: Thu,  1 Sep 2016 13:33:38 -0700
-Message-ID: <1472762024-88771-3-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, peterz@infradead.org
-Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tim.c.chen@linux.intel.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] trivial treewide: Convert dev_set_uevent_suppress argument to bool
+Date: Thu,  1 Sep 2016 13:11:36 -0700
+Message-ID: <699402ce4c488995b4ddabff0f3b262851cf56ac.1472760613.git.joe@perches.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Miklos Szeredi <miklos@szeredi.hu>, Jiri Kosina <trivial@kernel.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Tim Chen <tim.c.chen@linux.intel.com>
+Assigning an int to a bitfield:1 can lose precision.
+Change the caller argument uses from 1/0 to true/false.
 
-We generalize the scheduler's asym packing to provide an ordering
-of the cpu beyond just the cpu number.  This allows the use of the
-ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
-sched domain. The preference is defined with the cpu priority
-given by arch_asym_cpu_priority(cpu).
+No change to objects.
 
-We also record the most preferred cpu in a sched group when
-we build the cpu's capacity for fast lookup of preferred cpu
-during load balancing.
-
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- include/linux/sched.h |  2 ++
- kernel/sched/core.c   | 18 ++++++++++++++++++
- kernel/sched/fair.c   | 35 ++++++++++++++++++++++++-----------
- kernel/sched/sched.h  | 12 ++++++++++++
- 4 files changed, 56 insertions(+), 11 deletions(-)
+ block/genhd.c               | 4 ++--
+ block/partition-generic.c   | 4 ++--
+ drivers/acpi/dock.c         | 2 +-
+ drivers/s390/cio/chsc_sch.c | 2 +-
+ drivers/s390/cio/css.c      | 4 ++--
+ drivers/s390/cio/device.c   | 4 ++--
+ drivers/s390/cio/eadm_sch.c | 2 +-
+ fs/fuse/cuse.c              | 4 ++--
+ include/linux/device.h      | 2 +-
+ 9 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index b0fa726..15d3f29 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -1052,6 +1052,8 @@ static inline int cpu_numa_flags(void)
- }
- #endif
+diff --git a/block/genhd.c b/block/genhd.c
+index a178c8e..b242eb5 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -519,7 +519,7 @@ static void register_disk(struct device *parent, struct gendisk *disk)
+ 	dev_set_name(ddev, "%s", disk->disk_name);
  
-+int arch_asym_cpu_priority(int cpu);
-+
- struct sched_domain_attr {
- 	int relax_domain_level;
- };
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index e86c4a5..08135ca 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -6237,7 +6237,25 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
- 	WARN_ON(!sg);
+ 	/* delay uevents, until we scanned partition table */
+-	dev_set_uevent_suppress(ddev, 1);
++	dev_set_uevent_suppress(ddev, true);
  
- 	do {
-+		int cpu, max_cpu = -1, prev_cpu = -1;
-+
- 		sg->group_weight = cpumask_weight(sched_group_cpus(sg));
-+
-+		if (!(sd->flags & SD_ASYM_PACKING))
-+			goto next;
-+
-+		for_each_cpu(cpu, sched_group_cpus(sg)) {
-+			if (prev_cpu < 0) {
-+				prev_cpu = cpu;
-+				max_cpu = cpu;
-+			} else {
-+				if (sched_asym_prefer(cpu, max_cpu))
-+					max_cpu = cpu;
-+			}
-+		}
-+		sg->asym_prefer_cpu = max_cpu;
-+
-+next:
- 		sg = sg->next;
- 	} while (sg != sd->groups);
+ 	if (device_add(ddev))
+ 		return;
+@@ -562,7 +562,7 @@ static void register_disk(struct device *parent, struct gendisk *disk)
  
-diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 5d558cc..d8f51d9 100644
---- a/kernel/sched/fair.c
-+++ b/kernel/sched/fair.c
-@@ -100,6 +100,16 @@ const_debug unsigned int sysctl_sched_migration_cost = 500000UL;
-  */
- unsigned int __read_mostly sysctl_sched_shares_window = 10000000UL;
+ exit:
+ 	/* announce disk after possible partitions are created */
+-	dev_set_uevent_suppress(ddev, 0);
++	dev_set_uevent_suppress(ddev, false);
+ 	kobject_uevent(&ddev->kobj, KOBJ_ADD);
  
-+#ifdef CONFIG_SMP
-+/*
-+ * For asym packing, by default the lower numbered cpu has higher priority.
-+ */
-+int __weak arch_asym_cpu_priority(int cpu)
-+{
-+	return -cpu;
-+}
-+#endif
-+
- #ifdef CONFIG_CFS_BANDWIDTH
- /*
-  * Amount of runtime to allocate from global (tg) to local (per-cfs_rq) pool
-@@ -6853,16 +6863,18 @@ static bool update_sd_pick_busiest(struct lb_env *env,
- 	if (env->idle == CPU_NOT_IDLE)
- 		return true;
- 	/*
--	 * ASYM_PACKING needs to move all the work to the lowest
--	 * numbered CPUs in the group, therefore mark all groups
--	 * higher than ourself as busy.
-+	 * ASYM_PACKING needs to move all the work to the highest
-+	 * prority CPUs in the group, therefore mark all groups
-+	 * of lower priority than ourself as busy.
+ 	/* announce possible partitions */
+diff --git a/block/partition-generic.c b/block/partition-generic.c
+index 71d9ed9..4465d81 100644
+--- a/block/partition-generic.c
++++ b/block/partition-generic.c
+@@ -344,7 +344,7 @@ struct hd_struct *add_partition(struct gendisk *disk, int partno,
+ 	pdev->devt = devt;
+ 
+ 	/* delay uevent until 'holders' subdir is created */
+-	dev_set_uevent_suppress(pdev, 1);
++	dev_set_uevent_suppress(pdev, true);
+ 	err = device_add(pdev);
+ 	if (err)
+ 		goto out_put;
+@@ -354,7 +354,7 @@ struct hd_struct *add_partition(struct gendisk *disk, int partno,
+ 	if (!p->holder_dir)
+ 		goto out_del;
+ 
+-	dev_set_uevent_suppress(pdev, 0);
++	dev_set_uevent_suppress(pdev, false);
+ 	if (flags & ADDPART_FLAG_WHOLEDISK) {
+ 		err = device_create_file(pdev, &dev_attr_whole_disk);
+ 		if (err)
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 0c00208..6add25f 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -623,7 +623,7 @@ void acpi_dock_add(struct acpi_device *adev)
+ 	INIT_LIST_HEAD(&dock_station->dependent_devices);
+ 
+ 	/* we want the dock device to send uevents */
+-	dev_set_uevent_suppress(&dd->dev, 0);
++	dev_set_uevent_suppress(&dd->dev, false);
+ 
+ 	if (acpi_dock_match(handle))
+ 		dock_station->flags |= DOCK_IS_DOCK;
+diff --git a/drivers/s390/cio/chsc_sch.c b/drivers/s390/cio/chsc_sch.c
+index 735052e..f767d0b 100644
+--- a/drivers/s390/cio/chsc_sch.c
++++ b/drivers/s390/cio/chsc_sch.c
+@@ -97,7 +97,7 @@ static int chsc_subchannel_probe(struct subchannel *sch)
+ 		kfree(private);
+ 	} else {
+ 		if (dev_get_uevent_suppress(&sch->dev)) {
+-			dev_set_uevent_suppress(&sch->dev, 0);
++			dev_set_uevent_suppress(&sch->dev, false);
+ 			kobject_uevent(&sch->dev.kobj, KOBJ_ADD);
+ 		}
+ 	}
+diff --git a/drivers/s390/cio/css.c b/drivers/s390/cio/css.c
+index 3d2b20e..2b26626 100644
+--- a/drivers/s390/cio/css.c
++++ b/drivers/s390/cio/css.c
+@@ -310,7 +310,7 @@ int css_register_subchannel(struct subchannel *sch)
+ 	 * the subchannel driver can decide itself when it wants to inform
+ 	 * userspace of its existence.
  	 */
--	if (sgs->sum_nr_running && env->dst_cpu < group_first_cpu(sg)) {
-+	if (sgs->sum_nr_running &&
-+	    sched_asym_prefer(env->dst_cpu, group_priority_cpu(sg))) {
- 		if (!sds->busiest)
- 			return true;
- 
--		/* Prefer to move from highest possible cpu's work */
--		if (group_first_cpu(sds->busiest) < group_first_cpu(sg))
-+		/* Prefer to move from lowest priority cpu's work */
-+		if (sched_asym_prefer(group_priority_cpu(sds->busiest),
-+				      group_priority_cpu(sg)))
- 			return true;
- 	}
- 
-@@ -7014,8 +7026,8 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
- 	if (!sds->busiest)
- 		return 0;
- 
--	busiest_cpu = group_first_cpu(sds->busiest);
--	if (env->dst_cpu > busiest_cpu)
-+	busiest_cpu = group_priority_cpu(sds->busiest);
-+	if (sched_asym_prefer(busiest_cpu, env->dst_cpu))
- 		return 0;
- 
- 	env->imbalance = DIV_ROUND_CLOSEST(
-@@ -7356,10 +7368,11 @@ static int need_active_balance(struct lb_env *env)
- 
- 		/*
- 		 * ASYM_PACKING needs to force migrate tasks from busy but
--		 * higher numbered CPUs in order to pack all tasks in the
--		 * lowest numbered CPUs.
-+		 * lower priority CPUs in order to pack all tasks in the
-+		 * highest priority CPUs.
+-	dev_set_uevent_suppress(&sch->dev, 1);
++	dev_set_uevent_suppress(&sch->dev, true);
+ 	css_update_ssd_info(sch);
+ 	/* make it known to the system */
+ 	ret = css_sch_device_register(sch);
+@@ -325,7 +325,7 @@ int css_register_subchannel(struct subchannel *sch)
+ 		 * a fitting driver module may be loaded based on the
+ 		 * modalias.
  		 */
--		if ((sd->flags & SD_ASYM_PACKING) && env->src_cpu > env->dst_cpu)
-+		if ((sd->flags & SD_ASYM_PACKING) &&
-+		    sched_asym_prefer(env->dst_cpu, env->src_cpu))
- 			return 1;
+-		dev_set_uevent_suppress(&sch->dev, 0);
++		dev_set_uevent_suppress(&sch->dev, false);
+ 		kobject_uevent(&sch->dev.kobj, KOBJ_ADD);
  	}
+ 	return ret;
+diff --git a/drivers/s390/cio/device.c b/drivers/s390/cio/device.c
+index 6a58bc8..bfe8056 100644
+--- a/drivers/s390/cio/device.c
++++ b/drivers/s390/cio/device.c
+@@ -868,7 +868,7 @@ static void io_subchannel_register(struct ccw_device *cdev)
+ 	 * Now we know this subchannel will stay, we can throw
+ 	 * our delayed uevent.
+ 	 */
+-	dev_set_uevent_suppress(&sch->dev, 0);
++	dev_set_uevent_suppress(&sch->dev, false);
+ 	kobject_uevent(&sch->dev.kobj, KOBJ_ADD);
+ 	/* make it known to the system */
+ 	ret = ccw_device_add(cdev);
+@@ -1077,7 +1077,7 @@ static int io_subchannel_probe(struct subchannel *sch)
+ 		 * Throw the delayed uevent for the subchannel, register
+ 		 * the ccw_device and exit.
+ 		 */
+-		dev_set_uevent_suppress(&sch->dev, 0);
++		dev_set_uevent_suppress(&sch->dev, false);
+ 		kobject_uevent(&sch->dev.kobj, KOBJ_ADD);
+ 		cdev = sch_get_cdev(sch);
+ 		rc = ccw_device_add(cdev);
+diff --git a/drivers/s390/cio/eadm_sch.c b/drivers/s390/cio/eadm_sch.c
+index b3f44bc..fcccd74 100644
+--- a/drivers/s390/cio/eadm_sch.c
++++ b/drivers/s390/cio/eadm_sch.c
+@@ -251,7 +251,7 @@ static int eadm_subchannel_probe(struct subchannel *sch)
+ 	spin_unlock_irq(&list_lock);
  
-diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index b7fc1ce..f338934 100644
---- a/kernel/sched/sched.h
-+++ b/kernel/sched/sched.h
-@@ -532,6 +532,17 @@ struct dl_rq {
+ 	if (dev_get_uevent_suppress(&sch->dev)) {
+-		dev_set_uevent_suppress(&sch->dev, 0);
++		dev_set_uevent_suppress(&sch->dev, false);
+ 		kobject_uevent(&sch->dev.kobj, KOBJ_ADD);
+ 	}
+ out:
+diff --git a/fs/fuse/cuse.c b/fs/fuse/cuse.c
+index c5b6b71..be3867f 100644
+--- a/fs/fuse/cuse.c
++++ b/fs/fuse/cuse.c
+@@ -350,7 +350,7 @@ static void cuse_process_init_reply(struct fuse_conn *fc, struct fuse_req *req)
+ 		goto err_region;
  
- #ifdef CONFIG_SMP
+ 	device_initialize(dev);
+-	dev_set_uevent_suppress(dev, 1);
++	dev_set_uevent_suppress(dev, true);
+ 	dev->class = cuse_class;
+ 	dev->devt = devt;
+ 	dev->release = cuse_gendev_release;
+@@ -391,7 +391,7 @@ static void cuse_process_init_reply(struct fuse_conn *fc, struct fuse_req *req)
+ 	mutex_unlock(&cuse_lock);
  
-+static inline bool sched_asym_prefer(int a, int b)
-+{
-+	return arch_asym_cpu_priority(a) > arch_asym_cpu_priority(b);
-+}
-+
-+/*
-+ * Return lowest numbered cpu in the group as the most preferred cpu
-+ * for ASYM_PACKING for default case.
-+ */
-+#define group_priority_cpu(group) group->asym_prefer_cpu
-+
- /*
-  * We add the notion of a root-domain which will be used to define per-domain
-  * variables. Each exclusive cpuset essentially defines an island domain by
-@@ -884,6 +895,7 @@ struct sched_group {
+ 	/* announce device availability */
+-	dev_set_uevent_suppress(dev, 0);
++	dev_set_uevent_suppress(dev, false);
+ 	kobject_uevent(&dev->kobj, KOBJ_ADD);
+ out:
+ 	kfree(arg);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 38f0281..69e3c19 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -929,7 +929,7 @@ static inline unsigned int dev_get_uevent_suppress(const struct device *dev)
+ 	return dev->kobj.uevent_suppress;
+ }
  
- 	unsigned int group_weight;
- 	struct sched_group_capacity *sgc;
-+	int asym_prefer_cpu;		/* cpu of highest priority in group */
- 
- 	/*
- 	 * The CPUs this group covers.
+-static inline void dev_set_uevent_suppress(struct device *dev, int val)
++static inline void dev_set_uevent_suppress(struct device *dev, bool val)
+ {
+ 	dev->kobj.uevent_suppress = val;
+ }
 -- 
-2.7.4
-
+2.10.0.rc2.1.g053435c
