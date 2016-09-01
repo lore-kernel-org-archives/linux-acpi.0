@@ -1,88 +1,167 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for ACPI
-Date: Thu, 01 Sep 2016 09:41:03 +0200
-Message-ID: <5913196.I3zIbc2qla@wuerfel>
-References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com> <4925807.5nZM1s8II1@wuerfel> <57C78CE9.3010707@huawei.com>
+From: Phil Reid <preid-qgqNFa1JUf/o2iN0hyhwsIdd74u8MsAO@public.gmane.org>
+Subject: Re: [PATCH v4 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Thu, 1 Sep 2016 17:00:32 +0800
+Message-ID: <e8912f2d-66f9-75c5-e0b7-8a33845e8aa2@electromag.com.au>
+References: <1bIiDr-0004G1-0P>
+ <1472156461-25180-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1472156461-25180-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160831144349.GA18510@rob-hp-laptop>
+ <1472673151.5102.12.camel@schneider-inet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:51730 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753512AbcIAHlW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Sep 2016 03:41:22 -0400
-In-Reply-To: <57C78CE9.3010707@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472673151.5102.12.camel-X5L7DgJ4l23oE99TX8zNy7NAH6kLmebB@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Karl-Heinz Schneider <karl-heinz-X5L7DgJ4l23oE99TX8zNy7NAH6kLmebB@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Peter Rosin <peda-koto5C5qi+TLoDKTGw+V6w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-On Thursday, September 1, 2016 10:05:29 AM CEST Dongdong Liu wrote:
-> 
-> 在 2016/8/31 19:45, Arnd Bergmann 写道:
-> > On Wednesday, August 31, 2016 7:48:12 PM CEST Dongdong Liu wrote:
-> >> +
-> >> +/* HipXX PCIe host only supports 32-bit config access */
-> >> +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
-> >> +                             u32 *val)
-> >> +{
-> >> +       u32 reg;
-> >> +       u32 reg_val;
-> >> +       void *walker = &reg_val;
-> >> +
-> >> +       walker += (where & 0x3);
-> >> +       reg = where & ~0x3;
-> >> +       reg_val = readl(reg_base + reg);
-> >> +
-> >> +       if (size == 1)
-> >> +               *val = *(u8 __force *) walker;
-> >> +       else if (size == 2)
-> >> +               *val = *(u16 __force *) walker;
-> >
-> > What is the __force for?
-> 
-> Hi Arnd, thanks for replying.
-> 
-> __force is used to, well, force a conversion, like casting from or to a bitwise type, else the Sparse checker will throw a warning.
+On 1/09/2016 03:52, Karl-Heinz Schneider wrote:
+> Hi Rob,
+>
+> Am Mittwoch, den 31.08.2016, 09:43 -0500 schrieb Rob Herring:
+>> On Thu, Aug 25, 2016 at 10:21:00PM +0200, Karl-Heinz Schneider wrote:
+>>>
+>>> This patch adds device tree documentation for the sbs-manager
+>>>
+>>> Reviewed-by: Phil Reid <preid-qgqNFa1JUf/o2iN0hyhwsIdd74u8MsAO@public.gmane.org>
+>>> Signed-off-by: Karl-Heinz Schneider <karl-heinz-X5L7DgJ4l23oE99TX8zNy7NAH6kLmebB@public.gmane.org>
+>>> ---
+>>>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 53
+>>> ++++++++++++++++++++++
+>>>  1 file changed, 53 insertions(+)
+>>>  create mode 100644
+>>> Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-
+>>> manager.txt b/Documentation/devicetree/bindings/power/sbs,sbs-
+>>> manager.txt
+>>> new file mode 100644
+>>> index 0000000..6b1a87ce
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>> @@ -0,0 +1,53 @@
+>>> +Binding for sbs-manager
+>>> +
+>>> +Required properties:
+>>> +- compatible: should be "lltc,ltc1760" or use "sbs,sbs-manager" as
+>>> fallback.
+>>> +- reg: integer, i2c address of the device. Should be <0xa>.
+>> What happened to adding Phil's interrupt support into this? You
+>> don't
+>> have to add the whole patch, just the binding part. The driver
+>> support
+>> can come later.
+>
+> Phil revoked his patch. Right now it's not clear how the interrupt/gpio
+> solution will look like and if they will need an device tree binding at
+> all...
 
-I know what it's for in general, but in this case there is no __bitwise
-or __iomem or any other annotation on either side of the assignment.
+I'm getting back to this now.
+I think we can use the smbalert driver to handle the source interrupt.
+Which I think doesn't need anything in the dt binding. Driver just needs to
+implement the alert callback.
 
-> >
-> >> +       else if (size == 4)
-> >> +               *val = reg_val;
-> >> +       else
-> >> +               return PCIBIOS_BAD_REGISTER_NUMBER;
-> >> +
-> >> +       return PCIBIOS_SUCCESSFUL;
-> >
-> > It looks like you are reimplementing pci_generic_config_read32/pci_generic_config_write32
-> > read here, better use them directly.
-> >
-> 
-> For our host bridge, access RC and EP config space are not the same way.
-> Our host bridge is non ECAM only for the RC bus config space;
-> for any other bus underneath the root bus we support ECAM access.
-> 
-> hisi_pcie_common_cfg_read is used to read RC config space, only supports 32-bit config access.
-> hisi_pcie_common_cfg_read/hisi_pcie_common_cfg_write may change as below will be better.
-> 
-> /* HipXX PCIe host only supports 32-bit config access */
-> int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
-> 			      u32 *val)
-> {
-> 	void __iomem *addr;
-> 
-> 	addr = reg_base + (where & ~0x3);
-> 	*val = readl(addr);
-> 
-> 	if (size <= 2)
-> 		*val = (*val >> (8 * (where & 3))) & ((1 << (size * 8)) - 1);
-> 
-> 	return PCIBIOS_SUCCESSFUL;
-> }
+I haven't figured out if the smb_alert could be used for the sbs-battery
+driver interrupt or if this would make sense. However I think it would still need
+to be a gpio controller in either case so that it can report the presence of the
+batteries in a manner suitable for the sbs-battery driver to use.
+I think the gpio controller approach is the simpler method.
 
-My point was: why not call pci_generic_config_read32() when accessing
-the RC config space instead of duplicating the code from it?
+It looks like the smbalert_driver driver needs some updates to work with device trees.
+I need a bit more time to investigate this option.
 
-	Arnd
+
+>
+>>
+>>>
+>>> +
+>>> +From OS view the device is basically an i2c-mux used to
+>>> communicate with up to
+>>> +four smart battery devices at address 0xb. The driver actually
+>>> implements this
+>>> +behaviour. So standard i2c-mux nodes can be used to register up to
+>>> four slave
+>>> +batteries. See Documentation/devicetree/bindings/i2c/i2c-mux.txt
+>>> for more
+>>> +information on i2c-mux nodes. Channels will be numerated starting
+>>> from 1 to 4.
+>>> +
+>>> +Example:
+>>> +
+>>> +batman@0a {
+>> drop leading 0.
+>
+> OK.
+>
+>>>
+>>> +    compatible = "lltc,ltc1760";
+>>> +    reg = <0x0a>;
+>
+> Will remove leading 0 at this places too.
+>
+>>> +    #address-cells = <1>;
+>>> +    #size-cells = <0>;
+>>> +
+>>> +    i2c@1 {
+>>> +        #address-cells = <1>;
+>>> +        #size-cells = <0>;
+>>> +        reg = <1>;
+>>> +
+>>> +        battery@0b {
+>> and here...
+>
+> OK.
+>
+>>>
+>>> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+>>> +            reg = <0x0b>;
+>>> +        };
+>>> +    };
+>>> +
+>>> +    i2c@2 {
+>>> +        #address-cells = <1>;
+>>> +        #size-cells = <0>;
+>>> +        reg = <2>;
+>>> +
+>>> +        battery@0b {
+>>> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+>>> +            reg = <0x0b>;
+>>> +        };
+>>> +    };
+>>> +
+>>> +    i2c@3 {
+>>> +        #address-cells = <1>;
+>>> +        #size-cells = <0>;
+>>> +        reg = <3>;
+>>> +
+>>> +        battery@0b {
+>>> +            compatible = "ti,bq2060", "sbs,sbs-battery";
+>>> +            reg = <0x0b>;
+>>> +        };
+>>> +    };
+>>> +};
+>
+>
+> Thanks for review Rob.
+>
+
+
+-- 
+Regards
+Phil Reid
+
+ElectroMagnetic Imaging Technology Pty Ltd
+Development of Geophysical Instrumentation & Software
+www.electromag.com.au
+
+3 The Avenue, Midland WA 6056, AUSTRALIA
+Ph: +61 8 9250 8100
+Fax: +61 8 9250 7100
+Email: preid-qgqNFa1JUf/o2iN0hyhwsIdd74u8MsAO@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
