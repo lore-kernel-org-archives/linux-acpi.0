@@ -1,99 +1,88 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [RFC PATCH V2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Thu, 1 Sep 2016 11:23:42 +0800
-Message-ID: <57C79F3E.4050405@huawei.com>
-References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
- <1472644094-82731-4-git-send-email-liudongdong3@huawei.com>
- <2194589.LrAdKSkzcT@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for ACPI
+Date: Thu, 01 Sep 2016 09:41:03 +0200
+Message-ID: <5913196.I3zIbc2qla@wuerfel>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com> <4925807.5nZM1s8II1@wuerfel> <57C78CE9.3010707@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:20896 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754052AbcIAD1g (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 23:27:36 -0400
-In-Reply-To: <2194589.LrAdKSkzcT@vostro.rjw.lan>
+Received: from mout.kundenserver.de ([212.227.126.187]:51730 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753512AbcIAHlW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Sep 2016 03:41:22 -0400
+In-Reply-To: <57C78CE9.3010707@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+To: Dongdong Liu <liudongdong3@huawei.com>
+Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
+On Thursday, September 1, 2016 10:05:29 AM CEST Dongdong Liu wrote:
+> 
+> 在 2016/8/31 19:45, Arnd Bergmann 写道:
+> > On Wednesday, August 31, 2016 7:48:12 PM CEST Dongdong Liu wrote:
+> >> +
+> >> +/* HipXX PCIe host only supports 32-bit config access */
+> >> +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
+> >> +                             u32 *val)
+> >> +{
+> >> +       u32 reg;
+> >> +       u32 reg_val;
+> >> +       void *walker = &reg_val;
+> >> +
+> >> +       walker += (where & 0x3);
+> >> +       reg = where & ~0x3;
+> >> +       reg_val = readl(reg_base + reg);
+> >> +
+> >> +       if (size == 1)
+> >> +               *val = *(u8 __force *) walker;
+> >> +       else if (size == 2)
+> >> +               *val = *(u16 __force *) walker;
+> >
+> > What is the __force for?
+> 
+> Hi Arnd, thanks for replying.
+> 
+> __force is used to, well, force a conversion, like casting from or to a bitwise type, else the Sparse checker will throw a warning.
 
-在 2016/9/1 6:56, Rafael J. Wysocki 写道:
-> On Wednesday, August 31, 2016 07:48:14 PM Dongdong Liu wrote:
->> Add specific quirks for PCI config space accessors.This involves:
->> 1. New initialization call hisi_pcie_acpi_init() to get RC config resource
->> with hardcoded range address and setup ecam mapping.
->> 2. New entry in common quirk array.
->>
->> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
->> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
->
-> Well, what exactly is the ACPI support you're adding?  Is it the ECAM part only
-> or is there anything more to it?
->
+I know what it's for in general, but in this case there is no __bitwise
+or __iomem or any other annotation on either side of the assignment.
 
-Hi Rafael, thanks for replying.
+> >
+> >> +       else if (size == 4)
+> >> +               *val = reg_val;
+> >> +       else
+> >> +               return PCIBIOS_BAD_REGISTER_NUMBER;
+> >> +
+> >> +       return PCIBIOS_SUCCESSFUL;
+> >
+> > It looks like you are reimplementing pci_generic_config_read32/pci_generic_config_write32
+> > read here, better use them directly.
+> >
+> 
+> For our host bridge, access RC and EP config space are not the same way.
+> Our host bridge is non ECAM only for the RC bus config space;
+> for any other bus underneath the root bus we support ECAM access.
+> 
+> hisi_pcie_common_cfg_read is used to read RC config space, only supports 32-bit config access.
+> hisi_pcie_common_cfg_read/hisi_pcie_common_cfg_write may change as below will be better.
+> 
+> /* HipXX PCIe host only supports 32-bit config access */
+> int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
+> 			      u32 *val)
+> {
+> 	void __iomem *addr;
+> 
+> 	addr = reg_base + (where & ~0x3);
+> 	*val = readl(addr);
+> 
+> 	if (size <= 2)
+> 		*val = (*val >> (8 * (where & 3))) & ((1 << (size * 8)) - 1);
+> 
+> 	return PCIBIOS_SUCCESSFUL;
+> }
 
-Our host bridge is non ECAM only for the RC bus config space;
-for any other bus underneath the root bus we support ECAM access.
+My point was: why not call pci_generic_config_read32() when accessing
+the RC config space instead of duplicating the code from it?
 
-In our case we cannot use the standard MCFG object to pass the RC itself config space addresses.
-The more discuss information can be found:
-https://lkml.org/lkml/2016/2/22/1087
-[...]
-I have looked into this and in our case we cannot use the
-standard MCFG object to pass the RC config space addresses.
-
-The reason is that in our HW we have the config base addresses of the
-root complex ports that are less than 0x100000 byte distant one from
-the other as we only map the first 0x10000 bytes.
-Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
-for each bus; therefore if we pass our RC addresses through MCFG we end
-up with a resource conflict.
-To give you a practical example we are in a situation where we have:
-
-port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
-port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
-port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
-port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
-So if we pass the base addresses through MCFG the resources
-will overlap as MCFG will consider 0x100000 size for each base
-address of the root complex (only the RC bus uses that address)
-So far I do not see many option other than using _DSD to pass
-these RC config base addresses.
-
-Thanks and Regards
-
-Gab
-[...]
-
-and
-
-https://patchwork.kernel.org/patch/9178791/
-[...]
-Furthermore, I suspect we do not even need a way to pass the
-non-ECAM compliant config space resources to the OS (ie we can't
-change FW anymore anyway in some platforms) so the quirks hooks
-are likely to hardcode the required config space addresses for
-the respective MCFG match.
-
-......
-Thanks !
-Lorenzo
-[...]
-
-So we hard code with our RC itself config resource.
-
-Thanks
-Dongdong
-
-> Thanks,
-> Rafael
->
->
-> .
->
-
+	Arnd
