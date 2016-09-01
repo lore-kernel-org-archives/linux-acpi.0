@@ -1,145 +1,114 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
-Date: Thu, 01 Sep 2016 01:08:19 +0200
-Message-ID: <10604453.yVTAAeibdq@vostro.rjw.lan>
-References: <20160825195917.0e75a8db@arm.com> <20160831160510.GC16426@localhost> <20160831163747.GA28180@red-moon>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: Re: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06
+ controllers driver to preapare for ACPI
+Date: Thu, 1 Sep 2016 10:05:29 +0800
+Message-ID: <57C78CE9.3010707@huawei.com>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
+ <1472644094-82731-2-git-send-email-liudongdong3@huawei.com>
+ <4925807.5nZM1s8II1@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59675 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1753692AbcHaXCa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 Aug 2016 19:02:30 -0400
-In-Reply-To: <20160831163747.GA28180@red-moon>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:58518 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753708AbcIACGW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 22:06:22 -0400
+In-Reply-To: <4925807.5nZM1s8II1@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-On Wednesday, August 31, 2016 05:37:47 PM Lorenzo Pieralisi wrote:
-> On Wed, Aug 31, 2016 at 11:05:10AM -0500, Bjorn Helgaas wrote:
-> > On Wed, Aug 31, 2016 at 02:34:54PM +0100, Lorenzo Pieralisi wrote:
-> > > On Wed, Aug 31, 2016 at 08:05:06AM -0500, Bjorn Helgaas wrote:
-> > > > On Tue, Aug 30, 2016 at 11:08:34AM +0100, Lorenzo Pieralisi wrote:
-> > > > > On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
-> > > > > > 
-> > > > > > >> Let me throw option d here.
-> > > > > > >>
-> > > > > > >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
-> > > > > > >> can't we override this in an arch specific way (arm64's pci.c) while
-> > > > > > >> creating the root bridge? 
-> > > > > > > 
-> > > > > > > On what basis ? You were not copied in from the beginning, but that
-> > > > > > > is not different from Duc's initial proposal, which Marc discarded
-> > > > > > > because it should not be done at arch level, it depends on the interrupt
-> > > > > > > controller.
-> > > > > > 
-> > > > > > I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
-> > > > > > Duc's initial proposal. 
-> > > > > > 
-> > > > > > I can't imagine someone building an ACPI compliant ARM64 platform
-> > > > > > without a GIC interrupt controller. 
-> > > > > > 
-> > > > > > The SBSA spec already mentions what kind of compatibility should be
-> > > > > > maintained with respect to GIC. You can't have an ACPI system that's
-> > > > > > SBSA compliant and not using GIC. 
-> > > > > > 
-> > > > > > Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
-> > > > > > is defined.  Why do we have to reach out to the interrupt controller?
-> > > > > 
-> > > > > Patch below (horrible but no solution will be shiny either).
-> > > > > 
-> > > > > > https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
-> > > > > 
-> > > > > [...]
-> > > > > 
-> > > > > > If you look at my email above, I tried getting rid of PCI Link object
-> > > > > > and I couldn't. I sticked to only thing that works.
-> > > > > 
-> > > > > That's what I object to. If the ACPI bindings do not work for ARM
-> > > > > we do not work around issues, we upgrade the specs because what may work
-> > > > > for you has to work on all ARM platforms (and all FW developers have
-> > > > > to be aware of that). Granted, this is a tiny snag, but the point is
-> > > > > that no one knows what's the correct way of describing PCI legacy IRQs
-> > > > > on ARM and we need that rectified.
-> > > > > 
-> > > > > This does the trick for me (I can turn it into a function/look-up
-> > > > > that returns the polarity), I am sure it will ruffle feathers but
-> > > > > we have to find a solution so here it is (that acpi_irq_model gem
-> > > > > is already used in generic code drivers/acpi/pci_link.c ;-))
-> > > > > 
-> > > > > -- >8 --
-> > > > > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> > > > > index 2c45dd3..c9b8c85 100644
-> > > > > --- a/drivers/acpi/pci_irq.c
-> > > > > +++ b/drivers/acpi/pci_irq.c
-> > > > > @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
-> > > > >  	int gsi;
-> > > > >  	u8 pin;
-> > > > >  	int triggering = ACPI_LEVEL_SENSITIVE;
-> > > > > -	int polarity = ACPI_ACTIVE_LOW;
-> > > > > +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> > > > > +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
-> > > > >  	char *link = NULL;
-> > > > >  	char link_desc[16];
-> > > > >  	int rc;
-> > > > 
-> > > > This still seems weird to me.
-> > > > 
-> > > > If I understand correctly, this GIC has several inputs, all active
-> > > > high.  Some of those inputs are connected to inverters and then to PCI
-> > > > INTx wires.
-> > > > 
-> > > > A generic device driver knows about the hardware it drives, including
-> > > > the properties of its interrupt wires.  PCI drivers and the ACPI/PCI
-> > > > core know that conventional PCI device INTx wires are active low.
-> > > > These drivers, being generic, do not know about the GIC inverters.
-> > > > 
-> > > > The patch above basically says "if ACPI tells us about a PCI interrupt
-> > > > connected to a GIC, *assume* there is an inverter on the input."  But
-> > > > there's no actual description of that inverter anywhere in ACPI or a
-> > > > device tree.  Shouldn't that be made explicit somewhere?
-> > > 
-> > > It is explicit for all IRQs other than PCI legacy IRQs ;-), that's
-> > > the message I wanted to get across and I failed so far.
-> > > 
-> > > For "normal" IRQs we can use Extended Interrupt Descriptors, that allow
-> > > us to describe polarity. For PCI legacy IRQs we could use extended
-> > > interrupt descriptors if we were allowed to use PCI interrupt links,
-> > > except that, according to current ACPI specs, PCI interrupt links can
-> > > only be used for *configurable* interrupt pins.
-> > > 
-> > > So, some ARM vendors stuck to the static/hardwired configuration
-> > > in the _PRT, that does not give us a chance to describe polarity.
-> > > 
-> > > I think that we should be allowed to use interrupt links, but that would
-> > > not comply with the specs (and on top of that there is FW that is
-> > > already shipped in ACPI tables that we can't change anymore).
-> > > 
-> > > > If we connect a non-PCI device to a GIC, we need to know whether
-> > > > there's an inverter.  How could we figure that out?
-> > > 
-> > > Through an Extended Interrupt Descriptor. How are we solving this ?
-> > 
-> > OK, I think I'm convinced.  What in the spec says you can't use PCI
-> > Interrupt Links for this case?  I see the example in ACPI 5.0 sec
-> > 6.2.12 that only shows them changing interrupt numbers with Interrupt
-> > descriptors.  Is there something that prohibits Extended Interrupt
-> > descriptors for PNP0C0F devices?  Is there something in the code that
-> > doesn't handle that?
-> 
-> ACPI 6.1 (6.2.13, page 335), that describes the two ways _PRT can be used.
-> 
-> The problem is not about whether we can use Extended Interrupt
-> Descriptors for PNP0C0F, we *can* use them in their (CRS,SRS,PRS), the
-> problem is that by our specs reading, PNP0C0F PCI interrupt link devices
-> can *only* describe interrupt pins that are configurable;
 
-That would be the case if _PRS/_SRS/_DIS were required for those objects.
-It doesn't seem to be the case, though.
+在 2016/8/31 19:45, Arnd Bergmann 写道:
+> On Wednesday, August 31, 2016 7:48:12 PM CEST Dongdong Liu wrote:
+>> +
+>> +/* HipXX PCIe host only supports 32-bit config access */
+>> +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
+>> +                             u32 *val)
+>> +{
+>> +       u32 reg;
+>> +       u32 reg_val;
+>> +       void *walker = &reg_val;
+>> +
+>> +       walker += (where & 0x3);
+>> +       reg = where & ~0x3;
+>> +       reg_val = readl(reg_base + reg);
+>> +
+>> +       if (size == 1)
+>> +               *val = *(u8 __force *) walker;
+>> +       else if (size == 2)
+>> +               *val = *(u16 __force *) walker;
+>
+> What is the __force for?
 
-Thanks,
-Rafael
+Hi Arnd, thanks for replying.
+
+__force is used to, well, force a conversion, like casting from or to a bitwise type, else the Sparse checker will throw a warning.
+
+>
+>> +       else if (size == 4)
+>> +               *val = reg_val;
+>> +       else
+>> +               return PCIBIOS_BAD_REGISTER_NUMBER;
+>> +
+>> +       return PCIBIOS_SUCCESSFUL;
+>
+> It looks like you are reimplementing pci_generic_config_read32/pci_generic_config_write32
+> read here, better use them directly.
+>
+
+For our host bridge, access RC and EP config space are not the same way.
+Our host bridge is non ECAM only for the RC bus config space;
+for any other bus underneath the root bus we support ECAM access.
+
+hisi_pcie_common_cfg_read is used to read RC config space, only supports 32-bit config access.
+hisi_pcie_common_cfg_read/hisi_pcie_common_cfg_write may change as below will be better.
+
+/* HipXX PCIe host only supports 32-bit config access */
+int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
+			      u32 *val)
+{
+	void __iomem *addr;
+
+	addr = reg_base + (where & ~0x3);
+	*val = readl(addr);
+
+	if (size <= 2)
+		*val = (*val >> (8 * (where & 3))) & ((1 << (size * 8)) - 1);
+
+	return PCIBIOS_SUCCESSFUL;
+}
+
+/* HipXX PCIe host only supports 32-bit config access */
+int hisi_pcie_common_cfg_write(void __iomem *reg_base, int where, int  size,
+				u32 val)
+{
+	void __iomem *addr;
+	u32 mask, tmp;
+
+	addr = reg_base + (where & ~0x3);
+	if (size == 4) {
+		writel(val, addr);
+		return PCIBIOS_SUCCESSFUL;
+	} else {
+		mask = ~(((1 << (size * 8)) - 1) << ((where & 0x3) * 8));
+	}
+
+	tmp = readl(addr) & mask;
+	tmp |= val << ((where & 0x3) * 8);
+	writel(tmp, addr);
+
+	return PCIBIOS_SUCCESSFUL;
+}
+
+
+Thanks
+Dongdong
+
+> 	Arnd
+>
+> .
+>
 
