@@ -1,87 +1,98 @@
 From: Dongdong Liu <liudongdong3@huawei.com>
 Subject: Re: [RFC PATCH V2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon
  SoCs Host Controllers
-Date: Thu, 1 Sep 2016 10:16:02 +0800
-Message-ID: <57C78F62.7030803@huawei.com>
+Date: Thu, 1 Sep 2016 11:23:42 +0800
+Message-ID: <57C79F3E.4050405@huawei.com>
 References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
  <1472644094-82731-4-git-send-email-liudongdong3@huawei.com>
- <5406169.iVLlEcSJ8X@wuerfel>
+ <2194589.LrAdKSkzcT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:28750 "EHLO
+Received: from szxga02-in.huawei.com ([119.145.14.65]:20896 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753708AbcIACSa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 22:18:30 -0400
-In-Reply-To: <5406169.iVLlEcSJ8X@wuerfel>
+        with ESMTP id S1754052AbcIAD1g (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Aug 2016 23:27:36 -0400
+In-Reply-To: <2194589.LrAdKSkzcT@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
 
-
-在 2016/8/31 19:48, Arnd Bergmann 写道:
-> On Wednesday, August 31, 2016 7:48:14 PM CEST Dongdong Liu wrote:
->> +static struct hisi_rc_res rc_res[] = {
->> +       {
->> +               HIP05,
->> +               {
->> +                       DEFINE_RES_MEM(0xb0070000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xb0080000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xb0090000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xb00a0000, SZ_4K)
->> +               }
->> +       },
->> +       {
->> +               HIP06,
->> +               {
->> +                       DEFINE_RES_MEM(0xa0090000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xa0200000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xa00a0000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xa00b0000, SZ_4K)
->> +               }
->> +       },
->> +       {
->> +               HIP07,
->> +               {
->> +                       DEFINE_RES_MEM(0xa0090000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xa0200000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xa00a0000, SZ_4K),
->> +                       DEFINE_RES_MEM(0xa00b0000, SZ_4K),
->> +                       DEFINE_RES_MEM(0x8a0090000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x8a0200000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x8a00a0000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x8a00b0000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x600a0090000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x600a0200000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x600a00a0000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x600a00b0000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x700a0090000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x700a0200000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x700a00a0000UL, SZ_4K),
->> +                       DEFINE_RES_MEM(0x700a00b0000UL, SZ_4K)
->> +               }
->> +       },
+在 2016/9/1 6:56, Rafael J. Wysocki 写道:
+> On Wednesday, August 31, 2016 07:48:14 PM Dongdong Liu wrote:
+>> Add specific quirks for PCI config space accessors.This involves:
+>> 1. New initialization call hisi_pcie_acpi_init() to get RC config resource
+>> with hardcoded range address and setup ecam mapping.
+>> 2. New entry in common quirk array.
+>>
+>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 >
-> I don't know much about ACPI, but I'm pretty sure this is not
-> the normal way to find MMIO resources. Why not read them from
-> the ACPI tables?
+> Well, what exactly is the ACPI support you're adding?  Is it the ECAM part only
+> or is there anything more to it?
 >
 
-Hi Arnd
+Hi Rafael, thanks for replying.
 
 Our host bridge is non ECAM only for the RC bus config space;
 for any other bus underneath the root bus we support ECAM access.
 
-We have not found a comfortable ACPI way to describle RC itself config (not ECAM) resource .
+In our case we cannot use the standard MCFG object to pass the RC itself config space addresses.
+The more discuss information can be found:
+https://lkml.org/lkml/2016/2/22/1087
+[...]
+I have looked into this and in our case we cannot use the
+standard MCFG object to pass the RC config space addresses.
 
+The reason is that in our HW we have the config base addresses of the
+root complex ports that are less than 0x100000 byte distant one from
+the other as we only map the first 0x10000 bytes.
+Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
+for each bus; therefore if we pass our RC addresses through MCFG we end
+up with a resource conflict.
+To give you a practical example we are in a situation where we have:
+
+port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
+port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
+port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
+port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
+So if we pass the base addresses through MCFG the resources
+will overlap as MCFG will consider 0x100000 size for each base
+address of the root complex (only the RC bus uses that address)
+So far I do not see many option other than using _DSD to pass
+these RC config base addresses.
+
+Thanks and Regards
+
+Gab
+[...]
+
+and
+
+https://patchwork.kernel.org/patch/9178791/
+[...]
+Furthermore, I suspect we do not even need a way to pass the
+non-ECAM compliant config space resources to the OS (ie we can't
+change FW anymore anyway in some platforms) so the quirks hooks
+are likely to hardcode the required config space addresses for
+the respective MCFG match.
+
+......
+Thanks !
+Lorenzo
+[...]
+
+So we hard code with our RC itself config resource.
 
 Thanks
 Dongdong
 
-> 	Arnd
+> Thanks,
+> Rafael
+>
 >
 > .
 >
