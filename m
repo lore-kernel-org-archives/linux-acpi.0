@@ -1,154 +1,151 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 4/4] ACPI / EC: Fix issues related to boot_ec
-Date: Fri,  2 Sep 2016 15:46:54 +0800
-Message-ID: <3a4239fb380e79f9209599ff387ce66e63425baf.1472802172.git.lv.zheng@intel.com>
-References: <cover.1472802172.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:5320 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751845AbcIBHrA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Sep 2016 03:47:00 -0400
-In-Reply-To: <cover.1472802172.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: Defining polarity and trigger mode for static interrupts in _PRT
+Date: Fri, 2 Sep 2016 12:09:13 +0100
+Message-ID: <20160902110905.GA10977@red-moon>
+References: <20160825195917.0e75a8db@arm.com>
+ <20160831160510.GC16426@localhost>
+ <20160831163747.GA28180@red-moon>
+ <10604453.yVTAAeibdq@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <10604453.yVTAAeibdq@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, patches <patches@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, jw.hendy@gmail.com
 
-There are issues related to the boot_ec:
-1. If acpi_ec_remove() is invoked, boot_ec will also be freed, this is not
-   expected as the boot_ec could be enumerated via ECDT.
-2. Address space handler installation/unstallation lead to unexpected _REG
-   evaluations.
-This patch adds acpi_is_boot_ec() check to be used to fix the above issues.
-However, since acpi_ec_remove() actually won't be invoked, this patch
-doesn't handle the reference counting of "struct acpi_ec", it only ensures
-the correctness of the boot_ec destruction during the boot.
+On Thu, Sep 01, 2016 at 01:08:19AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, August 31, 2016 05:37:47 PM Lorenzo Pieralisi wrote:
+> > On Wed, Aug 31, 2016 at 11:05:10AM -0500, Bjorn Helgaas wrote:
+> > > On Wed, Aug 31, 2016 at 02:34:54PM +0100, Lorenzo Pieralisi wrote:
+> > > > On Wed, Aug 31, 2016 at 08:05:06AM -0500, Bjorn Helgaas wrote:
+> > > > > On Tue, Aug 30, 2016 at 11:08:34AM +0100, Lorenzo Pieralisi wrote:
+> > > > > > On Fri, Aug 26, 2016 at 06:53:29PM -0400, Sinan Kaya wrote:
+> > > > > > > 
+> > > > > > > >> Let me throw option d here.
+> > > > > > > >>
+> > > > > > > >> I know Bjorn wants to keep ACTIVE_LOW in the code for common code but
+> > > > > > > >> can't we override this in an arch specific way (arm64's pci.c) while
+> > > > > > > >> creating the root bridge? 
+> > > > > > > > 
+> > > > > > > > On what basis ? You were not copied in from the beginning, but that
+> > > > > > > > is not different from Duc's initial proposal, which Marc discarded
+> > > > > > > > because it should not be done at arch level, it depends on the interrupt
+> > > > > > > > controller.
+> > > > > > > 
+> > > > > > > I happen to watch the linux-pci and linux-acpi mail-lists. I also saw
+> > > > > > > Duc's initial proposal. 
+> > > > > > > 
+> > > > > > > I can't imagine someone building an ACPI compliant ARM64 platform
+> > > > > > > without a GIC interrupt controller. 
+> > > > > > > 
+> > > > > > > The SBSA spec already mentions what kind of compatibility should be
+> > > > > > > maintained with respect to GIC. You can't have an ACPI system that's
+> > > > > > > SBSA compliant and not using GIC. 
+> > > > > > > 
+> > > > > > > Can't we just hard code this to ACTIVE_HIGH in arch directory if ACPI
+> > > > > > > is defined.  Why do we have to reach out to the interrupt controller?
+> > > > > > 
+> > > > > > Patch below (horrible but no solution will be shiny either).
+> > > > > > 
+> > > > > > > https://lists.linaro.org/pipermail/linaro-acpi/2015-November/005973.html
+> > > > > > 
+> > > > > > [...]
+> > > > > > 
+> > > > > > > If you look at my email above, I tried getting rid of PCI Link object
+> > > > > > > and I couldn't. I sticked to only thing that works.
+> > > > > > 
+> > > > > > That's what I object to. If the ACPI bindings do not work for ARM
+> > > > > > we do not work around issues, we upgrade the specs because what may work
+> > > > > > for you has to work on all ARM platforms (and all FW developers have
+> > > > > > to be aware of that). Granted, this is a tiny snag, but the point is
+> > > > > > that no one knows what's the correct way of describing PCI legacy IRQs
+> > > > > > on ARM and we need that rectified.
+> > > > > > 
+> > > > > > This does the trick for me (I can turn it into a function/look-up
+> > > > > > that returns the polarity), I am sure it will ruffle feathers but
+> > > > > > we have to find a solution so here it is (that acpi_irq_model gem
+> > > > > > is already used in generic code drivers/acpi/pci_link.c ;-))
+> > > > > > 
+> > > > > > -- >8 --
+> > > > > > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> > > > > > index 2c45dd3..c9b8c85 100644
+> > > > > > --- a/drivers/acpi/pci_irq.c
+> > > > > > +++ b/drivers/acpi/pci_irq.c
+> > > > > > @@ -411,7 +411,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> > > > > >  	int gsi;
+> > > > > >  	u8 pin;
+> > > > > >  	int triggering = ACPI_LEVEL_SENSITIVE;
+> > > > > > -	int polarity = ACPI_ACTIVE_LOW;
+> > > > > > +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
+> > > > > > +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+> > > > > >  	char *link = NULL;
+> > > > > >  	char link_desc[16];
+> > > > > >  	int rc;
+> > > > > 
+> > > > > This still seems weird to me.
+> > > > > 
+> > > > > If I understand correctly, this GIC has several inputs, all active
+> > > > > high.  Some of those inputs are connected to inverters and then to PCI
+> > > > > INTx wires.
+> > > > > 
+> > > > > A generic device driver knows about the hardware it drives, including
+> > > > > the properties of its interrupt wires.  PCI drivers and the ACPI/PCI
+> > > > > core know that conventional PCI device INTx wires are active low.
+> > > > > These drivers, being generic, do not know about the GIC inverters.
+> > > > > 
+> > > > > The patch above basically says "if ACPI tells us about a PCI interrupt
+> > > > > connected to a GIC, *assume* there is an inverter on the input."  But
+> > > > > there's no actual description of that inverter anywhere in ACPI or a
+> > > > > device tree.  Shouldn't that be made explicit somewhere?
+> > > > 
+> > > > It is explicit for all IRQs other than PCI legacy IRQs ;-), that's
+> > > > the message I wanted to get across and I failed so far.
+> > > > 
+> > > > For "normal" IRQs we can use Extended Interrupt Descriptors, that allow
+> > > > us to describe polarity. For PCI legacy IRQs we could use extended
+> > > > interrupt descriptors if we were allowed to use PCI interrupt links,
+> > > > except that, according to current ACPI specs, PCI interrupt links can
+> > > > only be used for *configurable* interrupt pins.
+> > > > 
+> > > > So, some ARM vendors stuck to the static/hardwired configuration
+> > > > in the _PRT, that does not give us a chance to describe polarity.
+> > > > 
+> > > > I think that we should be allowed to use interrupt links, but that would
+> > > > not comply with the specs (and on top of that there is FW that is
+> > > > already shipped in ACPI tables that we can't change anymore).
+> > > > 
+> > > > > If we connect a non-PCI device to a GIC, we need to know whether
+> > > > > there's an inverter.  How could we figure that out?
+> > > > 
+> > > > Through an Extended Interrupt Descriptor. How are we solving this ?
+> > > 
+> > > OK, I think I'm convinced.  What in the spec says you can't use PCI
+> > > Interrupt Links for this case?  I see the example in ACPI 5.0 sec
+> > > 6.2.12 that only shows them changing interrupt numbers with Interrupt
+> > > descriptors.  Is there something that prohibits Extended Interrupt
+> > > descriptors for PNP0C0F devices?  Is there something in the code that
+> > > doesn't handle that?
+> > 
+> > ACPI 6.1 (6.2.13, page 335), that describes the two ways _PRT can be used.
+> > 
+> > The problem is not about whether we can use Extended Interrupt
+> > Descriptors for PNP0C0F, we *can* use them in their (CRS,SRS,PRS), the
+> > problem is that by our specs reading, PNP0C0F PCI interrupt link devices
+> > can *only* describe interrupt pins that are configurable;
+> 
+> That would be the case if _PRS/_SRS/_DIS were required for those objects.
+> It doesn't seem to be the case, though.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=153511
-Reported-by: <jw.hendy@gmail.com>
-Cc: <jw.hendy@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |   63 +++++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 49 insertions(+), 14 deletions(-)
+The kernel currently does not cope with eg missing _SRS on PCI interrupt
+link devices (and I suspect that's the case for other OSs), therefore it
+would only work on ARM64 with an empty _SRS and hardcoded _PRS. We should
+reword the specs, since this has created/is creating confusion (which
+resulted in buggy ACPI tables - ie this thread) and unfortunately we still
+need my hack to make sure static legacy IRQ configurations work on
+ARM64 systems, I would avoid it but there is not much we can do.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 847e665..ab784a6 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1461,6 +1461,37 @@ static int acpi_config_boot_ec(struct acpi_ec *ec, acpi_handle handle,
- 	return ret;
- }
- 
-+static bool acpi_ec_ecdt_get_handle(acpi_handle *phandle)
-+{
-+	struct acpi_table_ecdt *ecdt_ptr;
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	status = acpi_get_table(ACPI_SIG_ECDT, 1,
-+				(struct acpi_table_header **)&ecdt_ptr);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	status = acpi_get_handle(NULL, ecdt_ptr->id, &handle);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	*phandle = handle;
-+	return true;
-+}
-+
-+static bool acpi_is_boot_ec(struct acpi_ec *ec)
-+{
-+	if (!boot_ec)
-+		return false;
-+	if (ec->handle == boot_ec->handle &&
-+	    ec->gpe == boot_ec->gpe &&
-+	    ec->command_addr == boot_ec->command_addr &&
-+	    ec->data_addr == boot_ec->data_addr)
-+		return true;
-+	return false;
-+}
-+
- static int acpi_ec_add(struct acpi_device *device)
- {
- 	struct acpi_ec *ec = NULL;
-@@ -1478,7 +1509,14 @@ static int acpi_ec_add(struct acpi_device *device)
- 			goto error;
- 	}
- 
--	ret = acpi_config_boot_ec(ec, device->handle, true, false);
-+	if (acpi_is_boot_ec(ec)) {
-+		boot_ec_is_ecdt = false;
-+		acpi_handle_debug(ec->handle, "duplicated.\n");
-+		acpi_ec_free(ec);
-+		ec = boot_ec;
-+		ret = acpi_config_boot_ec(ec, ec->handle, true, false);
-+	} else
-+		ret = acpi_ec_setup(ec, true);
- 	if (ret)
- 		goto error;
- 
-@@ -1496,9 +1534,12 @@ static int acpi_ec_add(struct acpi_device *device)
- 	/* Clear stale _Q events if hardware might require that */
- 	if (EC_FLAGS_CLEAR_ON_RESUME)
- 		acpi_ec_clear(ec);
-+	acpi_handle_debug(ec->handle, "enumerated.\n");
- error:
--	if (ret)
--		acpi_ec_free(ec);
-+	if (ret) {
-+		if (ec != boot_ec)
-+			acpi_ec_free(ec);
-+	}
- 	return ret;
- }
- 
-@@ -1510,11 +1551,13 @@ static int acpi_ec_remove(struct acpi_device *device)
- 		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
--	ec_remove_handlers(ec);
- 	release_region(ec->data_addr, 1);
- 	release_region(ec->command_addr, 1);
- 	device->driver_data = NULL;
--	acpi_ec_free(ec);
-+	if (ec != boot_ec) {
-+		ec_remove_handlers(ec);
-+		acpi_ec_free(ec);
-+	}
- 	return 0;
- }
- 
-@@ -1586,8 +1629,6 @@ error:
-  */
- int __init acpi_ec_ecdt_start(void)
- {
--	struct acpi_table_ecdt *ecdt_ptr;
--	acpi_status status;
- 	acpi_handle handle;
- 
- 	if (!boot_ec)
-@@ -1599,17 +1640,11 @@ int __init acpi_ec_ecdt_start(void)
- 	if (!boot_ec_is_ecdt)
- 		return -ENODEV;
- 
--	status = acpi_get_table(ACPI_SIG_ECDT, 1,
--				(struct acpi_table_header **)&ecdt_ptr);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
- 	/*
- 	 * At this point, the namespace and the GPE is initialized, so
- 	 * start to find the namespace objects and handle the events.
- 	 */
--	status = acpi_get_handle(NULL, ecdt_ptr->id, &handle);
--	if (ACPI_FAILURE(status))
-+	if (!acpi_ec_ecdt_get_handle(&handle))
- 		return -ENODEV;
- 	return acpi_config_boot_ec(boot_ec, handle, true, true);
- }
--- 
-1.7.10
-
+Thanks,
+Lorenzo
