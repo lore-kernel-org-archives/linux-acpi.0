@@ -1,127 +1,47 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH V5 1/5] PCI: Embed pci_ecam_ops in pci_config_window
- structure
-Date: Fri, 2 Sep 2016 16:38:45 +0100
-Message-ID: <20160902153845.GA11234@red-moon>
-References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
- <1470661541-26270-2-git-send-email-tn@semihalf.com>
- <20160901182345.GA18461@localhost>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] trivial treewide: Convert dev_set_uevent_suppress
+ argument to bool
+Date: Fri, 02 Sep 2016 08:41:02 -0700
+Message-ID: <1472830862.6758.7.camel@perches.com>
+References: <699402ce4c488995b4ddabff0f3b262851cf56ac.1472760613.git.joe@perches.com>
+         <BLUPR02MB1683CF8A399E613B8C209C3B81E50@BLUPR02MB1683.namprd02.prod.outlook.com>
+         <1472777516.4176.149.camel@perches.com>
+         <BLUPR02MB1683E6A75F29015CBCAD804D81E50@BLUPR02MB1683.namprd02.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160901182345.GA18461@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtprelay0067.hostedemail.com ([216.40.44.67]:51837 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932282AbcIBPlJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Sep 2016 11:41:09 -0400
+In-Reply-To: <BLUPR02MB1683E6A75F29015CBCAD804D81E50@BLUPR02MB1683.namprd02.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>, Jens Axboe <axboe@kernel.dk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Miklos Szeredi <miklos@szeredi.hu>, Jiri Kosina <trivial@kernel.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 
-On Thu, Sep 01, 2016 at 01:23:45PM -0500, Bjorn Helgaas wrote:
-> On Mon, Aug 08, 2016 at 03:05:37PM +0200, Tomasz Nowicki wrote:
-> > pci_config_window keeps pointer to pci_ecam_ops and every time
-> > we want to deallocate pci_config_window (pci_ecam_free()) we need to make
-> > sure to free pci_ecam_ops in case it was dynamically allocated prior to
-> > pci_ecam_create() call.
-> 
-> I think this is a theoretical problem, right?  All the current callers
-> pass a pointer to a static pci_ecam_ops struct that does not need to
-> be deallocated.
-> 
-> I see that the next patch uses a pci_ecam_ops struct on the stack,
+On Fri, 2016-09-02 at 13:41 +0000, Bart Van Assche wrote:
+> On 09/01/16 17:51, Joe Perches wrote:
+> > On Fri, 2016-09-02 at 00:47 +0000, Bart Van Assche wrote:
+> > > On 09/01/16 13:11, Joe Perches wrote:
+> > > > Assigning an int to a bitfield:1 can lose precision.
+> > > > Change the caller argument uses from 1/0 to true/false.
+> > > Can you clarify how assigning 0 or 1 to a one-bit bitfield can cause a
+> > > loss of precision?
+> > There are no existing defects.
+> > Using 1/0 is not a loss of precision, it's just
+> > changing to use bool avoids potential errors and
+> > promotes consistency.
+> > Other uses of this function already use true/false.
+> In the patch description you refer to loss of precision. However, your 
+> patch does not address any loss of precision issues. So I think that the 
+> patch description is misleading and could be made more clear.
 
-I asked Tomasz why we need to have pci_ecam_ops on the stack in the
-first place since I do not think it is needed, or nicer (actually I
-think it is not nice at all, what's the problem in making it static ?).
+I tend towards terse being better than verbose.
+The original patch description says
 
-Anyway, that's part of this thread but I think Tomasz was looking
-more for feedback/agreement on the whole quirks mechanism to check
-if it is fine, more below.
+"no change to objects"
 
-> which would definitely cause issues without this patch, so I agree we
-> need something like this; I'm just trying to make the changelog make
-> more sense.
-> 
-> > To avoid that extra effort, embed pci_ecam_ops in pci_config_window,
-> > instead of just a pointer.
-> > 
-> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > To: Jayachandran C <jchandra@broadcom.com>
-> 
-> This looks like an editing mistake?
+What would you suggest?
 
-Yes it is.
-
-I think the most important bit about this series is to agree on
-whether it is ok to keep quirks in drivers/pci/host/mcfg-quirks.c
-or we need to find a different dir for it, and of course to make
-sure the quirks mechanism is fine with everyone.
-
-Thanks !
-Lorenzo
-
-> >  arch/arm64/kernel/pci.c  | 2 +-
-> >  drivers/pci/ecam.c       | 6 +++---
-> >  include/linux/pci-ecam.h | 2 +-
-> >  3 files changed, 5 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-> > index acf3872..981e828 100644
-> > --- a/arch/arm64/kernel/pci.c
-> > +++ b/arch/arm64/kernel/pci.c
-> > @@ -183,7 +183,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-> >  		return NULL;
-> >  	}
-> >  
-> > -	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
-> > +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops.pci_ops;
-> >  	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
-> >  				   ri->cfg);
-> >  	if (!bus)
-> > diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-> > index 43ed08d..24242f0 100644
-> > --- a/drivers/pci/ecam.c
-> > +++ b/drivers/pci/ecam.c
-> > @@ -52,7 +52,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
-> >  		return ERR_PTR(-ENOMEM);
-> >  
-> >  	cfg->parent = dev;
-> > -	cfg->ops = ops;
-> > +	cfg->ops = *ops;
-> >  	cfg->busr.start = busr->start;
-> >  	cfg->busr.end = busr->end;
-> >  	cfg->busr.flags = IORESOURCE_BUS;
-> > @@ -138,7 +138,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
-> >  			       int where)
-> >  {
-> >  	struct pci_config_window *cfg = bus->sysdata;
-> > -	unsigned int devfn_shift = cfg->ops->bus_shift - 8;
-> > +	unsigned int devfn_shift = cfg->ops.bus_shift - 8;
-> >  	unsigned int busn = bus->number;
-> >  	void __iomem *base;
-> >  
-> > @@ -149,7 +149,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
-> >  	if (per_bus_mapping)
-> >  		base = cfg->winp[busn];
-> >  	else
-> > -		base = cfg->win + (busn << cfg->ops->bus_shift);
-> > +		base = cfg->win + (busn << cfg->ops.bus_shift);
-> >  	return base + (devfn << devfn_shift) + where;
-> >  }
-> >  
-> > diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-> > index 7adad20..0ce2920 100644
-> > --- a/include/linux/pci-ecam.h
-> > +++ b/include/linux/pci-ecam.h
-> > @@ -39,7 +39,7 @@ struct pci_config_window {
-> >  	struct resource			res;
-> >  	struct resource			busr;
-> >  	void				*priv;
-> > -	struct pci_ecam_ops		*ops;
-> > +	struct pci_ecam_ops		ops;
-> >  	union {
-> >  		void __iomem		*win;	/* 64-bit single mapping */
-> >  		void __iomem		**winp; /* 32-bit per-bus mapping */
-> > -- 
-> > 1.9.1
-> > 
-> 
