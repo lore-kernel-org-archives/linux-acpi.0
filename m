@@ -1,78 +1,145 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: DAX can not work on virtual nvdimm device
-Date: Thu, 1 Sep 2016 20:57:38 -0600
-Message-ID: <20160902025738.GA26108@linux.intel.com>
-References: <436d7526-bf06-633d-afce-4333552d9e31@linux.intel.com>
- <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
- <20160819183047.GA7216@linux.intel.com>
- <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
- <20160829193014.GB16738@linux.intel.com>
- <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
- <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
- <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: Re: [RFC PATCH V2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon
+ SoCs Host Controllers
+Date: Fri, 2 Sep 2016 11:49:56 +0800
+Message-ID: <57C8F6E4.4080104@huawei.com>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
+ <2194589.LrAdKSkzcT@vostro.rjw.lan> <57C79F3E.4050405@huawei.com>
+ <2811400.eXt00oZUV7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:55485 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750786AbcIBC5m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Sep 2016 22:57:42 -0400
-Content-Disposition: inline
-In-Reply-To: <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2811400.eXt00oZUV7@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Xiao Guangrong <guangrong.xiao@linux.intel.com>, linux-ext4@vger.kernel.org, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>
-Cc: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Yumei Huang <yuhuang@redhat.com>, KVM <kvm@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>
 
-On Wed, Aug 31, 2016 at 04:44:47PM +0800, Xiao Guangrong wrote:
-> On 08/31/2016 01:09 AM, Dan Williams wrote:
-> > 
-> > Can you post your exact reproduction steps?  This test is not failing for me.
-> > 
-> 
-> Sure.
-> 
-> 1. make the guest kernel based on your tree, the top commit is
->    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
->    the config file can be found in this thread.
-> 
-> 2. add guest kernel command line: memmap=6G!10G
-> 
-> 3: start the guest:
->    x86_64-softmmu/qemu-system-x86_64 -machine pc,nvdimm --enable-kvm \
->    -smp 16 -m 32G,maxmem=100G,slots=100 /other/VMs/centos6.img -monitor stdio
-> 
-> 4: in guest:
->    mkfs.ext4 /dev/pmem0
->    mount -o dax /dev/pmem0  /mnt/pmem/
->    echo > /mnt/pmem/xxx
->    ./mmap /mnt/pmem/xxx
->    ./read /mnt/pmem/xxx
-> 
->   The source code of mmap and read has been attached in this mail.
-> 
->   Hopefully, you can detect the error triggered by read test.
-> 
-> Thanks!
+Hi Rafael
 
-Okay, I think I've isolated this issue.  Xiao's VM was an old CentOS 6 system,
-and for some reason ext4+DAX with the old tools found in that VM fails.  I was
-able to reproduce this failure with a freshly installed CentOS 6.8 VM.
+在 2016/9/2 7:38, Rafael J. Wysocki 写道:
+> On Thursday, September 01, 2016 11:23:42 AM Dongdong Liu wrote:
+>>
+>> 在 2016/9/1 6:56, Rafael J. Wysocki 写道:
+>>> On Wednesday, August 31, 2016 07:48:14 PM Dongdong Liu wrote:
+>>>> Add specific quirks for PCI config space accessors.This involves:
+>>>> 1. New initialization call hisi_pcie_acpi_init() to get RC config resource
+>>>> with hardcoded range address and setup ecam mapping.
+>>>> 2. New entry in common quirk array.
+>>>>
+>>>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+>>>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+>>>
+>>> Well, what exactly is the ACPI support you're adding?  Is it the ECAM part only
+>>> or is there anything more to it?
+>>>
+>>
+>> Hi Rafael, thanks for replying.
+>>
+>> Our host bridge is non ECAM only for the RC bus config space;
+>> for any other bus underneath the root bus we support ECAM access.
+>>
+>> In our case we cannot use the standard MCFG object to pass the RC itself config space addresses.
+>> The more discuss information can be found:
+>> https://lkml.org/lkml/2016/2/22/1087
+>> [...]
+>> I have looked into this and in our case we cannot use the
+>> standard MCFG object to pass the RC config space addresses.
+>>
+>> The reason is that in our HW we have the config base addresses of the
+>> root complex ports that are less than 0x100000 byte distant one from
+>> the other as we only map the first 0x10000 bytes.
+>> Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
+>> for each bus; therefore if we pass our RC addresses through MCFG we end
+>> up with a resource conflict.
+>> To give you a practical example we are in a situation where we have:
+>>
+>> port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
+>> port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
+>> port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
+>> port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
+>> So if we pass the base addresses through MCFG the resources
+>> will overlap as MCFG will consider 0x100000 size for each base
+>> address of the root complex (only the RC bus uses that address)
+>> So far I do not see many option other than using _DSD to pass
+>> these RC config base addresses.
+>
+> It still is not entirely clear to me what the "ACPI support" is here.
+>
+> Do you read any configuration information from the ACPI tables or similar?
+>
+> If so, where is the format of it documented?
+>
 
-You can see the failure with his tests, or perhaps more easily with this
-series of commands:
+Since Our host bridge is non ECAM only for the RC bus config space,for any other bus underneath the root bus we support ECAM access,
+we need to override these accessors prior to PCI buses enumeration.
 
-  # mkfs.ext4 /dev/pmem0
-  # mount -o dax /dev/pmem0  /mnt/pmem/
-  # touch /mnt/pmem/x
-  # md5sum /mnt/pmem/x
-  md5sum: /mnt/pmem/x: Bad address
+As below is MCFG table configuration.
+0x22004000000~0x220040fffff (bus 0x40) addresses are wasted, because Our host bridge is non ECAM only for the RC.
+We use RC base address(0xb0080000)+offset to access our RC config space.
+0x22004100000~0x22007ffffff addresses are used to aceess EP config space (bus 0x41~0x7f).This support ECAM access.
 
-This sequence of commands works fine in the old CentOS 6 system if you use XFS
-instead of ext4, and it works fine with both ext4 and XFS in CentOS 7 and
-with recent versions of Fedora.
+MCFG Table
+...
+{
+       0x22000000000,                                      //Base Address
+       0x0001,                                             //Segment Group Number
+       0x40,                                               //Start Bus Number
+       0x7f,                                               //End Bus Number
+       0x00000000,                                         //Reserved
+},
+...
 
-I've added the ext4 folks to this mail in case they care, but my guess is that
-the tools in CentOS 6 are so old that it's not worth worrying about.  For
-reference, the kernel in CentOS 6 is based on 2.6.32.  :)  DAX was introduced
-in v4.0.
+DSDT Table
+//PCIe Root bus
+Device (PCI1)
+{
+	Name (_HID, "PNP0A08") // PCI Express Root Bridge
+	Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
+	Name(_SEG, 1) // Segment of this Root complex
+	Name(_BBN, 0x40) // Base Bus Number
+	Name(_CCA, 1)
+	Method (_CRS, 0, Serialized) { // Root complex resources
+		Name (RBUF, ResourceTemplate () {
+			WordBusNumber ( // Bus numbers assigned to this root
+				ResourceProducer, MinFixed, MaxFixed, PosDecode,
+				0,    // AddressGranularity
+				0x40, // AddressMinimum - Minimum Bus Number
+				0x7f, // AddressMaximum - Maximum Bus Number
+				0,    // AddressTranslation - Set to 0
+				0x40  // RangeLength - Number of Busses
+			)
+			...
+			...
+		}) // Name(RBUF)
+       Return (RBUF)
+     } // Method(_CRS)
+} // Device(PCI1)
+
+
+As below hisi_pcie_acpi_rd_conf() is our config read implementation.
+static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
+				  int size, u32 *val)
+{
+	struct pci_config_window *cfg = bus->sysdata;
+	void __iomem *reg_base = cfg->priv;
+
+	if (hisi_pcie_acpi_valid_config(cfg, bus, PCI_SLOT(devfn)) == 0)
+		return PCIBIOS_DEVICE_NOT_FOUND;
+	/* Access RC config space */
+	if (bus->number == cfg->busr.start)
+		return hisi_pcie_common_cfg_read(reg_base, where, size, val);
+
+	/* Access EP config space */
+	return pci_generic_config_read(bus, devfn, where, size, val);
+}
+
+Thanks
+Dongdong
+> Thanks,
+> Rafael
+>
+>
+> .
+>
