@@ -1,51 +1,47 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.8-rc5
-Date: Fri, 2 Sep 2016 23:44:11 +0200
-Message-ID: <CAJZ5v0jHo3-HU+cReOFtFFZB+8PuG5t7vip2bMvguoVGL9mYFw@mail.gmail.com>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] nfit, mce: Fix SPA matching logic in MCE handler
+Date: Fri,  2 Sep 2016 17:27:30 -0600
+Message-ID: <1472858850-8807-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34962 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932088AbcIBVoN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Sep 2016 17:44:13 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+The check for a 'pmem' type SPA in the MCE handler was inverted due to a
+merge/rebase error.
 
-Please pull from the tag
+Fixes: 6839a6d nfit: do an ARS scrub on hitting a latent media error
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/mce.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.8-rc5
-
-to receive ACPI fixes for v4.8-rc5.
-
-The top-most commit is 5331d9cab32ef640b4cd38a43b0858874fbb7168
-
- ACPI / drivers: replace acpi_probe_lock spinlock with mutex
-
-and the base is commit 3eab887a55424fc2c27553b7bfe32330df83f7b8
-
- Linux 4.8-rc4
-
-Included are two stable-candidate fixes for the ACPI early device
-probing code added during the 4.4 cycle, one fixing a typo in a stub
-macro used when CONFIG_ACPI is unset and one that prevents sleeping
-functions from being called under a spinlock (Lorenzo Pieralisi).
-
-Thanks!
-
----------------
-
-Lorenzo Pieralisi (2):
-      ACPI / drivers: fix typo in ACPI_DECLARE_PROBE_ENTRY macro
-      ACPI / drivers: replace acpi_probe_lock spinlock with mutex
-
----------------
-
- drivers/acpi/scan.c  | 6 +++---
- include/linux/acpi.h | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
+index 0dfe50e..05005e2 100644
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -43,7 +43,7 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+ 		list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+ 			struct acpi_nfit_system_address *spa = nfit_spa->spa;
+ 
+-			if (nfit_spa_type(spa) == NFIT_SPA_PM)
++			if (nfit_spa_type(spa) != NFIT_SPA_PM)
+ 				continue;
+ 			/* find the spa that covers the mce addr */
+ 			if (spa->address > mce->addr)
+-- 
+2.7.4
