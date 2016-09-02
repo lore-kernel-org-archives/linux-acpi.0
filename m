@@ -1,63 +1,78 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06
- controllers driver to preapare for ACPI
-Date: Fri, 2 Sep 2016 10:02:37 +0800
-Message-ID: <57C8DDBD.5070103@huawei.com>
-References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
- <5913196.I3zIbc2qla@wuerfel> <57C822C1.9000203@huawei.com>
- <6532722.cVEMfv9Kqj@wuerfel>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: DAX can not work on virtual nvdimm device
+Date: Thu, 1 Sep 2016 20:57:38 -0600
+Message-ID: <20160902025738.GA26108@linux.intel.com>
+References: <436d7526-bf06-633d-afce-4333552d9e31@linux.intel.com>
+ <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
+ <20160819183047.GA7216@linux.intel.com>
+ <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
+ <20160829193014.GB16738@linux.intel.com>
+ <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
+ <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
+ <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6532722.cVEMfv9Kqj@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:55485 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750786AbcIBC5m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Sep 2016 22:57:42 -0400
+Content-Disposition: inline
+In-Reply-To: <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Xiao Guangrong <guangrong.xiao@linux.intel.com>, linux-ext4@vger.kernel.org, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>
+Cc: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Yumei Huang <yuhuang@redhat.com>, KVM <kvm@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>
 
-Hi Arnd
+On Wed, Aug 31, 2016 at 04:44:47PM +0800, Xiao Guangrong wrote:
+> On 08/31/2016 01:09 AM, Dan Williams wrote:
+> > 
+> > Can you post your exact reproduction steps?  This test is not failing for me.
+> > 
+> 
+> Sure.
+> 
+> 1. make the guest kernel based on your tree, the top commit is
+>    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
+>    the config file can be found in this thread.
+> 
+> 2. add guest kernel command line: memmap=6G!10G
+> 
+> 3: start the guest:
+>    x86_64-softmmu/qemu-system-x86_64 -machine pc,nvdimm --enable-kvm \
+>    -smp 16 -m 32G,maxmem=100G,slots=100 /other/VMs/centos6.img -monitor stdio
+> 
+> 4: in guest:
+>    mkfs.ext4 /dev/pmem0
+>    mount -o dax /dev/pmem0  /mnt/pmem/
+>    echo > /mnt/pmem/xxx
+>    ./mmap /mnt/pmem/xxx
+>    ./read /mnt/pmem/xxx
+> 
+>   The source code of mmap and read has been attached in this mail.
+> 
+>   Hopefully, you can detect the error triggered by read test.
+> 
+> Thanks!
 
-在 2016/9/1 22:02, Arnd Bergmann 写道:
->
->> 2. We need to backward compatible with the old dt way config access as below code,
->> so we have to call hisi_pcie_common_cfg_read() when accessing the RC config space.
->> For this, we have to call hisi_pcie_common_cfg_read().
->>
->> drivers/pci/host/pcie-hisi.c
->> static inline int hisi_pcie_cfg_read(struct pcie_port *pp, int where,
->> 		int size, u32 *val)
->> {
->> 	struct hisi_pcie *pcie = to_hisi_pcie(pp);
->>
->> 	return hisi_pcie_common_cfg_read(pcie->reg_base, where, size, val);
->> }
->>
->> static struct pcie_host_ops hisi_pcie_host_ops = {
->> 	.rd_own_conf = hisi_pcie_cfg_read,
->> 	.wr_own_conf = hisi_pcie_cfg_write,
->> 	.link_up = hisi_pcie_link_up,
->> };
->
-> I think this would be easier if you separate the ACPI code from the
-> DT code and not try to have a common file used for both.
->
-> Sharing the config space accessors really isn't worth it when both
-> variants are fairly simple to do, but they don't fit in a common
-> model because one is called from the ACPI quirks and the other
-> is called from the dw-pcie driver with completely different calling
-> conventions.
+Okay, I think I've isolated this issue.  Xiao's VM was an old CentOS 6 system,
+and for some reason ext4+DAX with the old tools found in that VM fails.  I was
+able to reproduce this failure with a freshly installed CentOS 6.8 VM.
 
-I agree, many thanks.
+You can see the failure with his tests, or perhaps more easily with this
+series of commands:
 
-Thanks
-Dongdong
->
-> 	ARnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> .
->
+  # mkfs.ext4 /dev/pmem0
+  # mount -o dax /dev/pmem0  /mnt/pmem/
+  # touch /mnt/pmem/x
+  # md5sum /mnt/pmem/x
+  md5sum: /mnt/pmem/x: Bad address
+
+This sequence of commands works fine in the old CentOS 6 system if you use XFS
+instead of ext4, and it works fine with both ext4 and XFS in CentOS 7 and
+with recent versions of Fedora.
+
+I've added the ext4 folks to this mail in case they care, but my guess is that
+the tools in CentOS 6 are so old that it's not worth worrying about.  For
+reference, the kernel in CentOS 6 is based on 2.6.32.  :)  DAX was introduced
+in v4.0.
