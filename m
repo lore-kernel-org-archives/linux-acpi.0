@@ -1,45 +1,29 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [Replacement][PATCH v2 6/8] acpi: bus: Enable HWP CPPC objects
-Date: Thu,  1 Sep 2016 17:14:02 -0700
-Message-ID: <1472775242-10268-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:32805 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751872AbcIBAOl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Sep 2016 20:14:41 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: [PATCH] trivial treewide: Convert dev_set_uevent_suppress
+ argument to bool
+Date: Fri, 2 Sep 2016 00:47:30 +0000
+Message-ID: <BLUPR02MB1683CF8A399E613B8C209C3B81E50@BLUPR02MB1683.namprd02.prod.outlook.com>
+References: <699402ce4c488995b4ddabff0f3b262851cf56ac.1472760613.git.joe@perches.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-block-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-block-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>, Jens Axboe <axboe@kernel.dk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Miklos Szeredi <miklos@szeredi.hu>, Jiri Kosina <trivial@kernel.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
-Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Need to set platform wide _OSC bits to enable CPPC and CPPC version 2.
-If platform supports CPPC, then BIOS exposess CPPC tables.
-
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
-Replacement: Fix error reported by 0-day for compile issue on ARM
-
- drivers/acpi/bus.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 85b7d07..61643a5 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -330,6 +330,13 @@ static void acpi_bus_osc_support(void)
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
- 
-+#ifdef CONFIG_X86
-+	if (boot_cpu_has(X86_FEATURE_HWP)) {
-+		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_SUPPORT;
-+		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPCV2_SUPPORT;
-+	}
-+#endif
-+
- 	if (!ghes_disable)
- 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
--- 
-2.7.4
-
+On 09/01/16 13:11, Joe Perches wrote:=0A=
+> Assigning an int to a bitfield:1 can lose precision.=0A=
+> Change the caller argument uses from 1/0 to true/false.=0A=
+=0A=
+Hello Joe,=0A=
+=0A=
+Can you clarify how assigning 0 or 1 to a one-bit bitfield can cause a =0A=
+loss of precision?=0A=
+=0A=
+Thanks,=0A=
+=0A=
+Bart.=0A=
+=0A=
