@@ -1,37 +1,63 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] trivial treewide: Convert dev_set_uevent_suppress
- argument to bool
-Date: Thu, 01 Sep 2016 17:51:56 -0700
-Message-ID: <1472777516.4176.149.camel@perches.com>
-References: <699402ce4c488995b4ddabff0f3b262851cf56ac.1472760613.git.joe@perches.com>
-         <BLUPR02MB1683CF8A399E613B8C209C3B81E50@BLUPR02MB1683.namprd02.prod.outlook.com>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: Re: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06
+ controllers driver to preapare for ACPI
+Date: Fri, 2 Sep 2016 10:02:37 +0800
+Message-ID: <57C8DDBD.5070103@huawei.com>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
+ <5913196.I3zIbc2qla@wuerfel> <57C822C1.9000203@huawei.com>
+ <6532722.cVEMfv9Kqj@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <BLUPR02MB1683CF8A399E613B8C209C3B81E50@BLUPR02MB1683.namprd02.prod.outlook.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>, Jens Axboe <axboe@kernel.dk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Miklos Szeredi <miklos@szeredi.hu>, Jiri Kosina <trivial@kernel.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6532722.cVEMfv9Kqj@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2016-09-02 at 00:47 +0000, Bart Van Assche wrote:
-> On 09/01/16 13:11, Joe Perches wrote:
-> > 
-> > Assigning an int to a bitfield:1 can lose precision.
-> > Change the caller argument uses from 1/0 to true/false.
-> Hello Joe,
+Hi Arnd
 
-Hi Bart.
+在 2016/9/1 22:02, Arnd Bergmann 写道:
+>
+>> 2. We need to backward compatible with the old dt way config access as below code,
+>> so we have to call hisi_pcie_common_cfg_read() when accessing the RC config space.
+>> For this, we have to call hisi_pcie_common_cfg_read().
+>>
+>> drivers/pci/host/pcie-hisi.c
+>> static inline int hisi_pcie_cfg_read(struct pcie_port *pp, int where,
+>> 		int size, u32 *val)
+>> {
+>> 	struct hisi_pcie *pcie = to_hisi_pcie(pp);
+>>
+>> 	return hisi_pcie_common_cfg_read(pcie->reg_base, where, size, val);
+>> }
+>>
+>> static struct pcie_host_ops hisi_pcie_host_ops = {
+>> 	.rd_own_conf = hisi_pcie_cfg_read,
+>> 	.wr_own_conf = hisi_pcie_cfg_write,
+>> 	.link_up = hisi_pcie_link_up,
+>> };
+>
+> I think this would be easier if you separate the ACPI code from the
+> DT code and not try to have a common file used for both.
+>
+> Sharing the config space accessors really isn't worth it when both
+> variants are fairly simple to do, but they don't fit in a common
+> model because one is called from the ACPI quirks and the other
+> is called from the dw-pcie driver with completely different calling
+> conventions.
 
-> Can you clarify how assigning 0 or 1 to a one-bit bitfield can cause a�
-> loss of precision?
+I agree, many thanks.
 
-There are no existing defects.
-
-Using 1/0 is not a loss of precision, it's just
-changing to use bool avoids potential errors and
-promotes consistency.
-
-Other uses of this function already use true/false.
-
+Thanks
+Dongdong
+>
+> 	ARnd
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> .
+>
