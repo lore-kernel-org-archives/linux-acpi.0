@@ -1,145 +1,255 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [RFC PATCH V2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Fri, 2 Sep 2016 11:49:56 +0800
-Message-ID: <57C8F6E4.4080104@huawei.com>
-References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
- <2194589.LrAdKSkzcT@vostro.rjw.lan> <57C79F3E.4050405@huawei.com>
- <2811400.eXt00oZUV7@vostro.rjw.lan>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v12 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Fri, 2 Sep 2016 14:57:10 +0800
+Message-ID: <5cdaa83f-142b-b9a0-6b7b-57c9162fc537@cn.fujitsu.com>
+References: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <2811400.eXt00oZUV7@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael
+Ping...
 
-在 2016/9/2 7:38, Rafael J. Wysocki 写道:
-> On Thursday, September 01, 2016 11:23:42 AM Dongdong Liu wrote:
->>
->> 在 2016/9/1 6:56, Rafael J. Wysocki 写道:
->>> On Wednesday, August 31, 2016 07:48:14 PM Dongdong Liu wrote:
->>>> Add specific quirks for PCI config space accessors.This involves:
->>>> 1. New initialization call hisi_pcie_acpi_init() to get RC config resource
->>>> with hardcoded range address and setup ecam mapping.
->>>> 2. New entry in common quirk array.
->>>>
->>>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
->>>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
->>>
->>> Well, what exactly is the ACPI support you're adding?  Is it the ECAM part only
->>> or is there anything more to it?
->>>
->>
->> Hi Rafael, thanks for replying.
->>
->> Our host bridge is non ECAM only for the RC bus config space;
->> for any other bus underneath the root bus we support ECAM access.
->>
->> In our case we cannot use the standard MCFG object to pass the RC itself config space addresses.
->> The more discuss information can be found:
->> https://lkml.org/lkml/2016/2/22/1087
->> [...]
->> I have looked into this and in our case we cannot use the
->> standard MCFG object to pass the RC config space addresses.
->>
->> The reason is that in our HW we have the config base addresses of the
->> root complex ports that are less than 0x100000 byte distant one from
->> the other as we only map the first 0x10000 bytes.
->> Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
->> for each bus; therefore if we pass our RC addresses through MCFG we end
->> up with a resource conflict.
->> To give you a practical example we are in a situation where we have:
->>
->> port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
->> port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
->> port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
->> port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
->> So if we pass the base addresses through MCFG the resources
->> will overlap as MCFG will consider 0x100000 size for each base
->> address of the root complex (only the RC bus uses that address)
->> So far I do not see many option other than using _DSD to pass
->> these RC config base addresses.
+At 08/25/2016 04:35 PM, Dou Liyang wrote:
+> [Summary]
 >
-> It still is not entirely clear to me what the "ACPI support" is here.
+> Use ACPI tables: MADT, DSDT.
+> 1. Create cpuid in order based on Local Apic ID in MADT(apicid).
+> 2. Obtain the nodeid by the proc_id in DSDT.
+> 3. Make the cpuid <-> nodeid mapping persistent.
 >
-> Do you read any configuration information from the ACPI tables or similar?
+> The mapping relations:
 >
-> If so, where is the format of it documented?
+> proc_id in DSDT <--> Processor ID in MADT(acpiid) <--> Local Apic ID in MADT(apicid)
+>         ^                                                        ^
+>         |                                                        |
+>         v                                                        v 
+>    pxm in DSDT                                                 cpuid
+>         ^
+>         |
+>         v
+>      nodeid
 >
-
-Since Our host bridge is non ECAM only for the RC bus config space,for any other bus underneath the root bus we support ECAM access,
-we need to override these accessors prior to PCI buses enumeration.
-
-As below is MCFG table configuration.
-0x22004000000~0x220040fffff (bus 0x40) addresses are wasted, because Our host bridge is non ECAM only for the RC.
-We use RC base address(0xb0080000)+offset to access our RC config space.
-0x22004100000~0x22007ffffff addresses are used to aceess EP config space (bus 0x41~0x7f).This support ECAM access.
-
-MCFG Table
-...
-{
-       0x22000000000,                                      //Base Address
-       0x0001,                                             //Segment Group Number
-       0x40,                                               //Start Bus Number
-       0x7f,                                               //End Bus Number
-       0x00000000,                                         //Reserved
-},
-...
-
-DSDT Table
-//PCIe Root bus
-Device (PCI1)
-{
-	Name (_HID, "PNP0A08") // PCI Express Root Bridge
-	Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
-	Name(_SEG, 1) // Segment of this Root complex
-	Name(_BBN, 0x40) // Base Bus Number
-	Name(_CCA, 1)
-	Method (_CRS, 0, Serialized) { // Root complex resources
-		Name (RBUF, ResourceTemplate () {
-			WordBusNumber ( // Bus numbers assigned to this root
-				ResourceProducer, MinFixed, MaxFixed, PosDecode,
-				0,    // AddressGranularity
-				0x40, // AddressMinimum - Minimum Bus Number
-				0x7f, // AddressMaximum - Maximum Bus Number
-				0,    // AddressTranslation - Set to 0
-				0x40  // RangeLength - Number of Busses
-			)
-			...
-			...
-		}) // Name(RBUF)
-       Return (RBUF)
-     } // Method(_CRS)
-} // Device(PCI1)
-
-
-As below hisi_pcie_acpi_rd_conf() is our config read implementation.
-static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-				  int size, u32 *val)
-{
-	struct pci_config_window *cfg = bus->sysdata;
-	void __iomem *reg_base = cfg->priv;
-
-	if (hisi_pcie_acpi_valid_config(cfg, bus, PCI_SLOT(devfn)) == 0)
-		return PCIBIOS_DEVICE_NOT_FOUND;
-	/* Access RC config space */
-	if (bus->number == cfg->busr.start)
-		return hisi_pcie_common_cfg_read(reg_base, where, size, val);
-
-	/* Access EP config space */
-	return pci_generic_config_read(bus, devfn, where, size, val);
-}
-
-Thanks
-Dongdong
-> Thanks,
-> Rafael
+> [Problem]
+>
+> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+>
+> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+> workqueue does not update wq_numa_possible_cpumask.
+>
+> So here is the problem:
+>
+> Assume we have the following cpuid <-> nodeid in the beginning:
+>
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> node 2 | 30-44, 90-104
+> node 3 | 45-59, 105-119
+>
+> and we hot-remove node2 and node3, it becomes:
+>
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+>
+> and we hot-add node4 and node5, it becomes:
+>
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> node 4 | 30-59
+> node 5 | 90-119
+>
+> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+>
+> When a pool workqueue is initialized, if its cpumask belongs to a node, its
+> pool->node will be mapped to that node. And memory used by this workqueue will
+> also be allocated on that node.
+>
+> static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+> ...
+>         /* if cpumask is contained inside a NUMA node, we belong to that node */
+>         if (wq_numa_enabled) {
+>                 for_each_node(node) {
+>                         if (cpumask_subset(pool->attrs->cpumask,
+>                                            wq_numa_possible_cpumask[node])) {
+>                                 pool->node = node;
+>                                 break;
+>                         }
+>                 }
+>         }
+>
+> Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+> which will lead to memory allocation failure:
+>
+>  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+>   cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+>   node 0: slabs: 6172, objs: 259224, free: 245741
+>   node 1: slabs: 3261, objs: 136962, free: 127656
+>
+> It happens here:
+>
+> create_worker(struct worker_pool *pool)
+>  |--> worker = alloc_worker(pool->node);
+>
+> static struct worker *alloc_worker(int node)
+> {
+>         struct worker *worker;
+>
+>         worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+>
+>         ......
+>
+>         return worker;
+> }
 >
 >
-> .
+> [Solution]
 >
+> There are four mappings in the kernel:
+> 1. nodeid (logical node id)   <->   pxm
+> 2. apicid (physical cpu id)   <->   nodeid
+> 3. cpuid (logical cpu id)     <->   apicid
+> 4. cpuid (logical cpu id)     <->   nodeid
+>
+> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+>    mapping is setup at boot time. This mapping is persistent, won't change.
+>
+> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+>    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+>    persistent.
+>
+> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+>    allocated, lower ids first, and released at CPU hotremove time, reused for other
+>    hotadded CPUs. So this mapping is not persistent.
+>
+> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+>    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+>
+> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+> mapping. So the key point is obtaining all cpus' apicid.
+>
+> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+>
+> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
+>    This is done by introducing an extra parameter to generic_processor_info to let the
+>    caller control if disabled cpus are ignored.
+>
+> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+>    the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+>    registering local apic. Store the mapping in this array.
+>
+> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+>    This is also done by introducing an extra parameter to these apis to let the caller
+>    control if disabled cpus are ignored.
+>
+> 4. Establish all possible cpuid <-> nodeid mapping.
+>    This is done via an additional acpi namespace walk for processors.
+>
+>
+> For previous discussion, please refer to:
+> https://lkml.org/lkml/2015/2/27/145
+> https://lkml.org/lkml/2015/3/25/989
+> https://lkml.org/lkml/2015/5/14/244
+> https://lkml.org/lkml/2015/7/7/200
+> https://lkml.org/lkml/2015/9/27/209
+> https://lkml.org/lkml/2016/5/19/212
+> https://lkml.org/lkml/2016/7/19/181
+> https://lkml.org/lkml/2016/7/25/99
+> https://lkml.org/lkml/2016/7/26/52
+> https://lkml.org/lkml/2016/8/8/96
+>
+> Change log v11 -> v12:
+> 1. Rebase
+> 2. Add a short summary
+>
+> Change log v10 -> v11:
+> 1. Reduce the number of repeat judgment of online/offline
+> 2. Seperate out the functionality in the enable or disable situation
+>
+> Change log v9 -> v10:
+> 1. Providing an empty definition of acpi_set_processor_mapping() for
+> CONFIG_ACPI_HOTPLUG_CPU unset. In patch 5.
+> 2. Fix auto build test ERROR on ia64/next. In patch 5.
+> 3. Fix some comment.
+>
+> Change log v8 -> v9:
+> 1. Providing an empty definition of acpi_set_processor_mapping() for
+> CONFIG_ACPI_HOTPLUG_CPU unset.
+>
+> Change log v7 -> v8:
+> 1. Provide the mechanism to validate processors in the ACPI tables.
+> 2. Provide the interface to validate the proc_id when setting the mapping.
+>
+> Change log v6 -> v7:
+> 1. Fix arm64 build failure.
+>
+> Change log v5 -> v6:
+> 1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
+>
+> Change log v4 -> v5:
+> 1. Remove useless code in patch 1.
+> 2. Small improvement of commit message.
+>
+> Change log v3 -> v4:
+> 1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
+>    before per cpu areas were initialized.
+>
+> Change log v2 -> v3:
+> 1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
+> 2. Build zonelists for memory-less nodes so that memory allocator will fall
+>    back to proper nodes automatically.
+>
+> Change log v1 -> v2:
+> 1. Split code movement and actual changes. Add patch 1.
+> 2. Synchronize best near online node record when node hotplug happens. In patch 2.
+> 3. Fix some comment.
+>
+> Dou Liyang (2):
+>   acpi: Provide the mechanism to validate processors in the ACPI tables
+>   acpi: Provide the interface to validate the proc_id
+>
+> Gu Zheng (4):
+>   x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+>     boot time.
+>   x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+>     persistent cpuid <-> apicid mapping.
+>   x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+>   x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+>     booting.
+>
+> Tang Chen (1):
+>   x86, memhp, numa: Online memory-less nodes at boot time.
+>
+>  arch/ia64/kernel/acpi.c       |   3 +-
+>  arch/x86/include/asm/mpspec.h |   1 +
+>  arch/x86/kernel/acpi/boot.c   |  11 ++--
+>  arch/x86/kernel/apic/apic.c   |  77 +++++++++++++++++++++++--
+>  arch/x86/mm/numa.c            |  27 +++++----
+>  drivers/acpi/acpi_processor.c | 105 ++++++++++++++++++++++++++++++++-
+>  drivers/acpi/bus.c            |   1 +
+>  drivers/acpi/processor_core.c | 131 +++++++++++++++++++++++++++++++++++-------
+>  include/linux/acpi.h          |   6 ++
+>  9 files changed, 311 insertions(+), 51 deletions(-)
+>
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
