@@ -1,27 +1,27 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [RFC DSD v3 01/04] _DSD Property Registration Ruleset
-Date: Sun, 4 Sep 2016 14:32:47 -0600
-Message-ID: <71b9a4ab-7767-20a5-d744-1ca9fc8b62e4@redhat.com>
+Subject: [RFC DSD v3 02/04] _DSD Property Database Ruleset
+Date: Sun, 4 Sep 2016 14:33:54 -0600
+Message-ID: <eb91e89c-cede-bea5-d5af-d580b0bbe3a6@redhat.com>
 References: <16c080d3-9106-e1f3-e65a-e0d8aaf1b01e@redhat.com>
 Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f48.google.com ([209.85.214.48]:36769 "EHLO
-        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753118AbcIDUcu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Sep 2016 16:32:50 -0400
-Received: by mail-it0-f48.google.com with SMTP id i184so119752332itf.1
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Sep 2016 13:32:49 -0700 (PDT)
+Received: from mail-it0-f42.google.com ([209.85.214.42]:36081 "EHLO
+        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752962AbcIDUd4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Sep 2016 16:33:56 -0400
+Received: by mail-it0-f42.google.com with SMTP id i184so119771633itf.1
+        for <linux-acpi@vger.kernel.org>; Sun, 04 Sep 2016 13:33:56 -0700 (PDT)
 In-Reply-To: <16c080d3-9106-e1f3-e65a-e0d8aaf1b01e@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>
 
-_DSD Property Registration Ruleset
-==================================
+_DSD Property Database Ruleset
+==============================
 Dated:	2016-08-04
 Status:	Final
 
@@ -29,211 +29,221 @@ Status:	Final
 Contents
 --------
 1. Purpose
-2. Properties, Property Sets and Property Subsets
-3. What Can Be Registered
-    3.1. Individual Properties Cannot Be Registered
-    3.2. Device ID Requirement
-    3.3. What Property Sets Are Eligible for Registration
-4. Who Can Register Property Sets
-5. How To Submit a Property Set for Registration
-6. Review Process
-7. Maintainers of the Database
-8. Immutability of Registered Property Set Definitions
-9. References
-10. Contributors
+2. Database Structure
+    2.1. Directory Tree Representation
+    2.2. Inheritance
+3. Content License
+4. Immutability of Registered Property Set Definitions
+5. References
+6. Contributors
 
 
 1. Purpose
 ----------
-This document specifies the rules regarding the registration and formal
-definition of device properties to be used with the ACPI _DSD (Device
-Specific Data) device configuration object along with the Device
-Properties UUID, daffd814-6eba-4d8c-8a91-bc9bbf4aa301 [1].
+This document specifies the rules regarding the content and structure of
+the common database of device properties to be used with the ACPI _DSD
+(Device Specific Data) device configuration object along with the Device
+Properties UUID, daffd814-6eba-4d8c-8a91-bc9bbf4aa301 [1], and along
+with the UUID dbb8e3e6-5886-4ba6-8795-1319f52a966b, for the Hierarchical
+Data Extension for _DSD [5].
+
+Definitions of the terms "device properties", "property sets", "property
+subsets", and the process for requesting they be included in the common
+database of device properties are documented independently [2].
 
 
-2. Properties, Property Sets and Property Subsets
--------------------------------------------------
-A device property is a data item consisting of a string key and a value
-(of a specific type) associated with it.
+2. Database Structure
+---------------------
 
-In the ACPI _DSD context it is an element of the sub-package following
-the Device Properties UUID in the _DSD return package as specified in
-the Device Properties UUID definition document [1].
+2.1. Directory Tree Representation
+----------------------------------
+The database is organized as a directory tree.  The topmost-level
+directory of it is referred to as the database root.
 
-It also may be regarded as the definition of a key and the associated
-data type that can be returned by _DSD in the Device Properties UUID
-sub-package for a given device.  That is, what can be stored in the
-database described for retaining a permanent record of these device
-properties [2].
+The top-level subdirectories of the database root are assigned to
+bus types, or other categories of devices, each using a uniform device
+identification scheme.  They are referred to as "bus directories" and
+their names reflect the name of the bus type in question.  For example,
+the "pci" bus directory will contain the properties of PCI devices while
+the "acpi" bus directory will contain properties of devices using ACPI
+or PNP device IDs for identification.  The allowed names for bus
+directories will be defined by the database maintainers as needed, in
+order to maintain uniformity.
 
-A property set is a collection of properties applicable to a hardware
-entity like a device.  In the ACPI _DSD context it is the set of all
-properties that can be returned in the Device Properties UUID sub-package
-for the device in question.
+The subdirectories of each of bus directory are assigned to device
+vendors.  They are referred to as "vendor directories" and their names
+will be the bus-assigned Vendor ID (e.g., "INTC" for Intel under the
+ACPI bus directory, or "ARMH" for ARM Ltd. under ACPI).  Each vendor
+directory contains the property set definitions for that vendor's Device
+IDs.
 
-Property subsets are nested collections of properties.  Each of them is
-associated with an additional key (name) allowing the subset to be
-referred to as a whole (and to be treated as a separate entity).  The
-canonical representation of property subsets is via the mechanism
-specified in the Hierarchical Properties Extension UUID definition
-document [3].
+The names of subdirectories in each vendor directory are the Device IDs
+of devices using the bus type in question, or belonging to the category
+represented by the given bus directory.  Each subdirectory contains the
+definitions of all revisions of the property set applicable to devices
+using that particular Device ID for identification.  They are referred
+to as "device directories".
 
-Property sets may be hierarchical.  That is, a property set may contain
-multiple property subsets that each may contain property subsets of its
-own and so on.
+A vendor directory may also contain subdirectories that are not device
+directories, such as "common" or "shared", if necessary or useful.
 
+Each device directory contains subdirectories whose names are treated
+as strings representing the revisions of the property set defined in
+it.  They are referred to as "revision directories".  The most recent
+revision of the property set is defined in the revision directory whose
+name represents the largest value, when compared.
 
-3. What Can Be Registered
--------------------------
-The goal of the registration of device properties is to make records of
-what properties can be used with what devices.  That requires a way to
-identify devices the properties are applicable to unambiguously and so
-it implies that properties should be bound to Device IDs.
+Revision names may consist of groupings of ASCII digits separated by a
+'.', or any numeric value commonly used in the C language.  Comparison
+is from left to right, and values are compared numerically; any group
+not present is assumed to be zero.  For example, '1.4' > '1.3',
+'0x01040000' > '0x01030100', and '20160421' > '20160312'.  New revisions
+must always be greater than any existing revisions; i.e., you cannot add
+revision '131' if '140' already exists.
 
-Moreover, in general, the interpretation of a single property may only
-be meaningful if it is taken into consideration along with some other
-properties applicable to the same device.  Thus every meaningful
-property has to belong to a property set that can be related to a
-specific device via its Device ID.
+The rules regarding the creation of new revisions of a property set are
+set in the section on immutability that follows.  At least one revision
+directory must be present in each device directory.
 
-The above observations lead to the following rules:
+Each property in a property set is represented by a file located in the
+revision directory defining it.  The name of that file is the name of
+the property represented by it.  It contains a list of property
+attributes in a simple human-readable format, described in detail, and
+with examples, in [3].
 
-3.1. Individual Properties Cannot Be Registered
------------------------------------------------
-The common device properties database [2] holds property sets, not
-individual properties.
-
-Even if the given property set consists of a single property, it still
-has to be registered as a set.
-
-
-3.2. Device ID Requirement
---------------------------
-For every property set in the database, with the exception of property
-sets created for the sole purpose of inheritance (see the section
-entitled "Inheritance" below), there must be at least one Device ID
-associated with it.  That can be a PNP or ACPI device ID, a device ID
-that can be returned by the ACPI _CID object, a PCI Class Code that can
-be returned by the ACPI _CLS object, or generally a device ID that can
-be used by an Operating System to find a matching driver for the device.
-In any case, it must be well defined in a way that is not OS-specific.
-
-
-3.3. What Property Sets Are Eligible for Registration
------------------------------------------------------
-Property sets eligible for registration must follow the guidance given
-by the Device Properties UUID definition document [1].
-
-_DSD properties are intended to be used in addition to, and not instead
-of, the existing mechanisms defined by the ACPI specification.
-Therefore, as a rule, they should only be used if the ACPI specification
-does not make direct provisions for handling the underlying use case.
-Property sets that do not follow that rule generally cannot be registered.
-
-[Note: Examples are given in [1].]
+Property subsets of a given property set are represented by
+subdirectories of the revision directory defining it.  Their names are
+the keys identifying those property subsets.  They each contain files
+representing properties in the given subset following the same
+formalisms as property attributes, or subdirectories representing
+further subsets.
 
 
-4. Who Can Register Property Sets
----------------------------------
-Since it is required to bind property sets to Device IDs, they can only
-be registered by the owners of those Device IDs or by their authorized
-representatives.
+2.2. Inheritance
+----------------
+To facilitate re-use of existing definitions of properties and property
+subsets, the database is designed to allow new property sets to be built
+on top of existing ones and to inherit property items (i.e., properties
+or property subsets) from them. The process is strictly additive,
+overriding property definitions is not permitted.
 
-A request to register a property set for a given Device ID is equivalent
-to the statement: "I endorse the use of this set of properties with
-devices identified by that Device ID".
+The property set whose property items are inherited is referred to as a
+base set.  The property set inheriting property items is referred to as
+a derived set.
+
+A property set may be derived from multiple base sets.
+
+In order to inherit properties from some base sets, the revision
+directory defining the derived set will contain a list of pointers to
+the base sets the current derived set is based on, and must retain the
+ordering given in the property set definition.  This ensures that the
+semantics used in the derivation are preserved -- that is, that "A is
+derived from B and C" is different from "A is derived from C and B".
+Each of these stored pointers is the path from the database root to the
+revision directory containing the base set in question.  How these
+pointers are stored and how they represent the path are implementation
+defined.
+
+As a rule, a derived set contains all of the properties from all base
+sets along with the properties defined in it directly. However, if two
+or more base sets contain a property with the same key, the property
+definition must be identical in all cases.  For example, if property set
+C is derived from set A first, and then set B, and both sets A and B
+contain a property called "maximum", both A and B must define "maximum"
+in the exact same way. Similarly, if C were to define "maximum"
+directly, it must match the definition of A and B exactly (although
+there is no reason to do so).  In short, overriding property definitions
+is forbidden, doing so will be considered an error.
+
+In general, inheritance should be limited to individual vendor
+directories.  Cross-vendor inheritance of property sets, although
+technically possible, would require an agreement between the involved
+vendors for each revision.
+
+A single vendor, however, may define property sets for the sole purpose
+of inheritance by other property sets belonging to that vendor.  In that
+case, it is required to locate the definitions of those property sets in
+a separate subdirectory of the vendor directory, using a name such as
+"common" or "shared".  We refer to such property sets as "abstract"
+property sets, as they are not associated with a particular device ID.
+In the same manner as regular property set definitions, each abstract
+set is represented by a directory.  The name of that directory should
+reflect the purpose of the "abstract" property set and its structure
+must follow the format of revision directories as previously described.
+
+For clarity, the directories containing the definitions of the
+"abstract" property sets may be located in different parent directories.
+For example, the "shared" subdirectory of a vendor directory may contain
+subdirectories like "pci", "acpi", "usb", etc. (reflecting the bus type
+names) that would contain subdirectories defining "abstract" property
+sets (applicable to devices on those bus types).
 
 
-5. How To Submit a Property Set for Registration
-------------------------------------------------
-Property sets are submitted for registration along with the Device IDs
-they are associated with by sending an e-mail message to dsd@acpica.org
-(public mailing list) and (optionally) to the maintainers of the common
-device properties database [2].  The preferred format for the contents
-of the e-mail message are described in [3].
+3. Content License
+------------------
+By submitting a property set description and allowing it to be included
+in the database, the copyright owner of the description is implicitly
+allowing that content to re-distributed under the terms of the BSD
+2-clause license [4].  The terms of the license are very simple:
+
+    Copyright (c) <YEAR>, <OWNER>
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+    COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+    ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+For the purposes of the database, the <YEAR> above will be the year
+when the property set is submitted, and <OWNER> will be the vendor
+specified in the property set definition.
 
 
-6. Review Process
------------------
-The purpose of the device properties review process is to catch possible
-problems with the submitted property sets before they are registered and
-therefore avoid putting invalid content into the database [2].  This is
-critical in light of the immutability of registered property sets as
-described later in this document.
-
-Submitted property sets can be reviewed by all of the subscribers of the
-dsd@acpica.org mailing list and the reviewers' comments will only be taken
-into consideration by the database maintainers if they are sent to that
-list.
-
-Generally, the comments should point out potential problems with the
-submitted property set.  The only situation in which the submitter of a
-property set may be requested to make changes to it is when there are
-valid concerns about the material as submitted.  Review comments that
-do not follow this rule will be discarded.
-
-After a review period typically lasting between one to two weeks, the
-database maintainers decide whether or not to include the property set
-into the database and communicate their decision by sending an e-mail
-message to the list.
-
-
-7. Maintainers of The Database
-------------------------------
-The maintainership of the common database of device properties is a
-service to the community of all of the existing users of it.
-
-Maintainers are appointed by that community on a consensus basis.  They
-must be generally trusted and possess sufficient industry experience to
-be able to serve in their role effectively.
-
-
-8. Immutability of Registered Property Set Definitions
+4. Immutability of Registered Property Set Definitions
 ------------------------------------------------------
-All property set definitions, once registered and in the database [2],
-are essentially immutable.  It is not allowed to remove existing content
-from the database, and only a limited set of very specific modifications
-may be made to an existing property set.
-
-Changes to an accepted property set are only allowed if:
-
-    1)  The change corrects an obvious typographical error, or
-
-    2)  The change is an erratum, meant to correct the property set so
-        that it accurately reflects shipping firmware, or
-
-    3)  The change is to an existing data validation rule to make it
-        stricter, which ensures that backward compatibility can be
-	maintained.  The change cannot modify the types of values, or
-	allow for a broader range of values.
-
-The only way in which one property set can be superseded by another one
-is to register a new revision of the property set in question.
-
-When creating a new revision of a property set, it is invalid
-to remove or redefine property keys (that is, associate them with
-different data types or give them different meaning). Properties may be
-added to new revisions, but those properties must be considered optional
-to preserve compatibility with platforms already shipping the previous
-revision. If properties need to be removed or modified, a new property
-set should be created and associated with a different device ID.
+All property set definitions, once registered and in the database, are
+essentially immutable.  It is not possible to remove existing content
+from the database, and modifications are limited to a very specific set
+of possible changes.  Section 8 of the Property Ruleset [2], provides
+further details.
 
 
-9. References
+5. References
 -------------
 [1]
 http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
 
-[2] See document entitled "_DSD Property Database Ruleset".
+[2] See document entitled "_DSD Property Registration Ruleset"
 
-[3]
+[3] See document entitled "_DSD Formal Language Ruleset"
+
+[4] https://opensource.org/licenses/BSD-2-Clause
+
+[5]
 http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf
 
-[4] See document entitled "_DSD Formal Language Ruleset".
 
-
-10. Contributors
-----------------
+6. Contributors
+---------------
 In alphabetical order, by first name:
 
 Al Stone <ahs3@redhat.com>
@@ -243,7 +253,6 @@ David Woodhouse <david.woodhouse@intel.com>
 Mark Doran <mark.doran@intel.com>
 Rafael Wysocki <rafael.j.wysocki@intel.com>
 Robert Gough <robert.gough@intel.com>
-
 
 
 
