@@ -1,104 +1,168 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [Linaro-acpi] [PATCH V8 1/8] ACPI: I/O Remapping Table (IORT)
- initial support
-Date: Mon, 5 Sep 2016 08:12:44 +0200
-Message-ID: <e287da4e-63bd-2d90-4fdd-dccce9b86459@semihalf.com>
-References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
- <1470909998-16710-2-git-send-email-tn@semihalf.com>
- <CADyBb7u+PMFZ8kbSsxPpe8Ws3ik3HKpYakf066-sFd-9gv8_-w@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v4 00/15] ACPI IORT ARM SMMU v3 support
+Date: Mon, 5 Sep 2016 17:41:37 +0800
+Message-ID: <e12c4831-f625-ca39-0f8c-9ff3f8ebaa53@linaro.org>
+References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CADyBb7u+PMFZ8kbSsxPpe8Ws3ik3HKpYakf066-sFd-9gv8_-w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, jason@lakedaemon.net, "Rafael J. Wysocki" <rjw@rjwysocki.net>, helgaas@kernel.org, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, okaya@codeaurora.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, robert.richter@caviumnetworks.com, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, mw@semihalf.com, Andrea Gallo <andrea.gallo@linaro.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f179.google.com ([209.85.192.179]:33152 "EHLO
+        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932413AbcIEJlr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Sep 2016 05:41:47 -0400
+Received: by mail-pf0-f179.google.com with SMTP id g202so40422173pfb.0
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Sep 2016 02:41:47 -0700 (PDT)
+In-Reply-To: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 02.09.2016 13:52, Fu Wei wrote:
-> Hi Tomasz,
+On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
+> This patch series is v4 of a previous posting:
 >
-> On 11 August 2016 at 18:06, Tomasz Nowicki <tn@semihalf.com> wrote:
->> IORT shows representation of IO topology for ARM based systems.
->> It describes how various components are connected together on
->> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
->> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
->>
->> Initial support allows to detect IORT table presence and save its
->> root pointer obtained through acpi_get_table(). The pointer validity
->> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
->> is not set while using IORT nodes we would dereference unmapped pointers.
->>
->> For the aforementioned reason call iort_table_detect() from acpi_init()
->> which guarantees acpi_gbl_permanent_mmap to be set at that point.
->>
->> Add generic helpers which are helpful for scanning and retrieving
->> information from IORT table content. List of the most important helpers:
->> - iort_find_dev_node() finds IORT node for a given device
->> - iort_node_map_rid() maps device RID and returns IORT node which provides
->>   final translation
->>
->> IORT support is placed under drivers/acpi/arm64/ new directory due to its
->> ARM64 specific nature. The code there is considered only for ARM64.
->> The long term plan is to keep all ARM64 specific tables support
->> in this place e.g. GTDT table.
->>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  drivers/acpi/Kconfig        |   5 +
->>  drivers/acpi/Makefile       |   2 +
->>  drivers/acpi/arm64/Kconfig  |   6 ++
->>  drivers/acpi/arm64/Makefile |   1 +
->>  drivers/acpi/arm64/iort.c   | 218 ++++++++++++++++++++++++++++++++++++++++++++
->>  drivers/acpi/bus.c          |   2 +
->>  include/linux/iort.h        |  30 ++++++
->>  7 files changed, 264 insertions(+)
->>  create mode 100644 drivers/acpi/arm64/Kconfig
->>  create mode 100644 drivers/acpi/arm64/Makefile
->>  create mode 100644 drivers/acpi/arm64/iort.c
->>  create mode 100644 include/linux/iort.h
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 445ce28..6cef2d1 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -521,4 +521,9 @@ config ACPI_CONFIGFS
->>           userspace. The configurable ACPI groups will be visible under
->>           /config/acpi, assuming configfs is mounted under /config.
->>
->> +if ARM64
->> +source "drivers/acpi/arm64/Kconfig"
->> +
->> +endif
->> +
->>  endif  # ACPI
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 5ae9d85..e5ada78 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -105,3 +105,5 @@ obj-$(CONFIG_ACPI_CONFIGFS) += acpi_configfs.o
->>
->>  video-objs                     += acpi_video.o video_detect.o
->>  obj-y                          += dptf/
->> +
->> +obj-$(CONFIG_ARM64)            += arm64/
->> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
->> new file mode 100644
->> index 0000000..fc818dc
->> --- /dev/null
->> +++ b/drivers/acpi/arm64/Kconfig
->> @@ -0,0 +1,6 @@
->> +#
->> +# ACPI Configuration for ARM64
->> +#
->> +
->> +config IORT_TABLE
+> https://lkml.org/lkml/2016/7/20/248
 >
-> Sorry for nit-picking, but is that better to use ACPI_IORT
-> or maybe ARM64__IORT ??
+> v3 -> v4
+> 	- Added single mapping API (for IORT named components)
 
-ACPI_IORT sounds good.
+Thanks, and it works for my platform msi patch set too :)
 
-Tomasz
+> 	- Fixed arm_smmu_iort_xlate() return value
+> 	- Reworked fwnode registration and platform device creation
+> 	  ordering to fix probe ordering dependencies
+> 	- Added code to keep device_node ref count with new iommu
+> 	  fwspec API
+> 	- Added patch to make iommu_fwspec arch agnostic
+> 	- Dropped RFC status
+> 	- Rebased against v4.8-rc2
+>
+
+[...]
+>
+> The ACPI IORT table provides information that allows instantiating
+> ARM SMMU devices and carrying out id mappings between components on
+> ARM based systems (devices, IOMMUs, interrupt controllers).
+>
+> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>
+> Building on basic IORT support, available through [2],
+> this patchset enables ARM SMMU v3 support on ACPI systems.
+>
+> Most of the code is aimed at building the required generic ACPI
+> infrastructure to create and enable IOMMU components and to bring
+> the IOMMU infrastructure for ACPI on par with DT, which is going to
+> make future ARM SMMU components easier to integrate.
+
+[...]
+>
+> This patchset is built on top and depends on these two patch series:
+>
+> [1] R.Murphy "Generic DT bindings for PCI and ARM SMMU v3" v4
+>     https://marc.info/?l=devicetree&m=146739193215518&w=2
+>
+> [2] T.Nowicki "Introduce ACPI world to ITS irqchip" v8
+>     https://marc.info/?l=linux-kernel&m=147091000919640&w=2
+>
+> and is provided for early review/testing purposes here:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v4
+>
+> Tested on FVP models for ARM SMMU v3 probing path.
+
+I tested this patch set on Hisilicon D03 board, with the ehci platform
+driver loaded, on D03, ehci is using stream id 0x40080 when SMMU is
+enabled, here is the IORT table entries I used:
+
+[0004]                          Signature : "IORT"    [IO Remapping Table]
+[0004]                       Table Length : 0000029e
+[0001]                           Revision : 00
+[0001]                           Checksum : BC
+[0006]                             Oem ID : "HISI "
+[0008]                       Oem Table ID : "HISI1610"
+[0004]                       Oem Revision : 00000000
+[0004]                    Asl Compiler ID : "INTL"
+[0004]              Asl Compiler Revision : 20151124
+
+[0004]                         Node Count : 00000008
+[0004]                        Node Offset : 00000034
+[0004]                           Reserved : 00000000
+[0004]                   Optional Padding : 00 00 00 00
+
+/* ITS 0, for dsa */
+[0001]                               Type : 00
+[0002]                             Length : 0018
+[0001]                           Revision : 00
+[0004]                           Reserved : 00000000
+[0004]                      Mapping Count : 00000000
+[0004]                     Mapping Offset : 00000000
+
+[0004]                           ItsCount : 00000001
+[0004]                        Identifiers : 00000000
+
+/* SMMU PCIE */
+[0001]                               Type : 04
+[0002]                             Length : 003C
+[0001]                           Revision : 00
+[0004]                           Reserved : 00000000
+[0004]                      Mapping Count : 00000001
+[0004]                     Mapping Offset : 0000003C
+
+[0008]                       Base Address : A0040000
+[0004]              Flags (decoded below) : 00000001
+                           COHACC Override : 1
+                             HTTU Override : 0
+[0004]                           Reserved : 00000000
+[0008]                      VATOS Address : 0
+[0004]                              Model : 00000000
+[0004]                    Event Interrupt : 00000000
+[0004]                      PRI Interrupt : 00000000
+[0004]                     GERR Interrupt : 00000000
+[0004]                     Sync Interrupt : 00000000
+
+[...]
+
+/* usb named component */
+[0001]                               Type : 01
+[0002]                             Length : 0046
+[0001]                           Revision : 00
+[0004]                           Reserved : 00000000
+[0004]                      Mapping Count : 00000001
+[0004]                     Mapping Offset : 00000032
+
+[0004]                         Node Flags : 00000000
+[0008]                  Memory Properties : [IORT Memory Access Properties]
+[0004]                    Cache Coherency : 00000000
+[0001]              Hints (decoded below) : 00
+                                 Transient : 0
+                            Write Allocate : 0
+                             Read Allocate : 0
+                                  Override : 0
+[0002]                           Reserved : 0000
+[0001]       Memory Flags (decoded below) : 00
+                                 Coherency : 0
+                          Device Attribute : 0
+[0001]                  Memory Size Limit : 00
+[0016]                        Device Name : "\_SB_.USB0"
+[0004]                            Padding : 00 00 00 00
+
+[0004]                         Input base : 00000000
+[0004]                           ID Count : 00000001
+[0004]                        Output Base : 00040080
+[0004]                   Output Reference : 0000004C /* point to smmu 
+pcie */
+[0004]              Flags (decoded below) : 00000001
+                            Single Mapping : 1
+
+I mounted a USB storage and copy the data (should trigger the DMA :)),
+and it works fine (if the wrong stream id is configured, I can't
+find the USB storage). So with this patch set:
+
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+I think I also test Robin's SMMUv3 patchset for supporting no-pci
+devices.
+
+Thanks
+Hanjun
