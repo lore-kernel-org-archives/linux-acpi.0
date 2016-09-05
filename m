@@ -1,55 +1,50 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 00/21] ACPI-video: Fine-tuning for several function
- implementations
-Date: Mon, 5 Sep 2016 18:42:19 +0200
-Message-ID: <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
+Subject: [PATCH 01/21] ACPI-video: Use kmalloc_array() in
+ acpi_video_get_levels()
+Date: Mon, 5 Sep 2016 18:45:05 +0200
+Message-ID: <3af3b2e0-7cca-033c-da7e-caa1c62e20bb@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
+ <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:56606 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752756AbcIEQmo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Sep 2016 12:42:44 -0400
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 5 Sep 2016 18:22:11 +0200
+Date: Mon, 5 Sep 2016 11:33:30 +0200
 
-Several update suggestions were taken into account
-from static source code analysis.
+A multiplication for the size determination of a memory allocation
+indicated that an array data structure should be processed.
+Thus use the corresponding function "kmalloc_array".
 
-Markus Elfring (21):
-  Use kmalloc_array() in acpi_video_get_levels()
-  Return directly after a failed device query
-  Delete an error message for a failed kzalloc() call
-  Rename jump labels in acpi_video_get_levels()
-  Delete an unnecessary initialisation in acpi_video_get_levels()
-  Move four assignments in acpi_video_get_levels()
-  Rename jump labels in acpi_video_bus_add()
-  Improve a size determination in acpi_video_bus_add()
-  Rename jump labels in acpi_video_register()
-  Return directly after a failed input_allocate_device()
-  Rename jump labels in acpi_video_bus_add_notify_handler()
-  Delete unnecessary if statement in acpi_video_switch_brightness()
-  Improve a jump target in acpi_video_switch_brightness()
-  Improve a size determination in acpi_video_device_enumerate()
-  Delete an unnecessary initialisation in acpi_video_device_enumerate()
-  Rename jump labels in acpi_video_device_enumerate()
-  Delete an unnecessary initialisation in acpi_video_init_brightness()
-  Rename jump labels in acpi_video_init_brightness()
-  Rename a jump label in acpi_video_device_lcd_query_levels()
-  Improve a size determination in acpi_video_dev_register_backlight()
-  Improve a size determination in acpi_video_bus_get_one_device()
+This issue was detected by using the Coccinelle software.
 
- drivers/acpi/acpi_video.c | 114 +++++++++++++++++++++-------------------------
- 1 file changed, 52 insertions(+), 62 deletions(-)
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/acpi/acpi_video.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index c5557d0..3d39b53 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -784,8 +784,9 @@ int acpi_video_get_levels(struct acpi_device *device,
+ 		goto out;
+ 	}
+ 
+-	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
+-				GFP_KERNEL);
++	br->levels = kmalloc_array(obj->package.count + 2,
++				   sizeof(*br->levels),
++				   GFP_KERNEL);
+ 	if (!br->levels) {
+ 		result = -ENOMEM;
+ 		goto out_free;
 -- 
 2.10.0
 
