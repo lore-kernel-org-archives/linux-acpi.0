@@ -1,95 +1,45 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH v4 1/2] serial: 8250_dw: make dw8250_set_termios as
- default set_termios callback
-Date: Mon, 5 Sep 2016 09:28:53 +0800
-Message-ID: <793806a7-f57d-def2-8b22-31c6479ad5ec@huawei.com>
-References: <1472614152-43136-1-git-send-email-wangkefeng.wang@huawei.com>
- <1472614152-43136-2-git-send-email-wangkefeng.wang@huawei.com>
- <20160831120756.GG1751@kuha.fi.intel.com>
- <20160902112106.GB21737@kuha.fi.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC PATCH V5 1/5] PCI: Embed pci_ecam_ops in pci_config_window
+ structure
+Date: Sun, 4 Sep 2016 21:22:03 -0500
+Message-ID: <20160905022203.GB30488@localhost>
+References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
+ <1470661541-26270-2-git-send-email-tn@semihalf.com>
+ <20160901182345.GA18461@localhost>
+ <20160902153845.GA11234@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:10280 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754244AbcIEB3l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Sep 2016 21:29:41 -0400
-In-Reply-To: <20160902112106.GB21737@kuha.fi.intel.com>
+Received: from mail.kernel.org ([198.145.29.136]:52280 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751501AbcIECWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 4 Sep 2016 22:22:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20160902153845.GA11234@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jiri Slaby <jslaby@suse.com>, guohanjun@huawei.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org, z.liuxinliang@hisilicon.com, linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-
-
-On 2016/9/2 19:21, Heikki Krogerus wrote:
-> On Wed, Aug 31, 2016 at 03:07:56PM +0300, Heikki Krogerus wrote:
->> Hi,
->>
->> On Wed, Aug 31, 2016 at 11:29:11AM +0800, Kefeng Wang wrote:
->>> Make dw8250_set_termios() handle all cases of dw8250_data->clk properly,
->>> then we can safely use dw8250_set_termios() as the default set_termios
->>> callback instead of serial8250_do_set_termios(), so do it.
->>>
->>> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
->>> ---
->>>  drivers/tty/serial/8250/8250_dw.c | 5 ++---
->>>  1 file changed, 2 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
->>> index 5c0c123..adecece 100644
->>> --- a/drivers/tty/serial/8250/8250_dw.c
->>> +++ b/drivers/tty/serial/8250/8250_dw.c
->>> @@ -235,7 +235,7 @@ static void dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
->>>  	unsigned int rate;
->>>  	int ret;
->>>  
->>> -	if (IS_ERR(d->clk) || !old)
->>> +	if (IS_ERR_OR_NULL(d->clk) || !old)
->>>  		goto out;
->>
->> This part is fine, but...
->>
->>>  	clk_disable_unprepare(d->clk);
->>> @@ -308,13 +308,11 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
->>>  			p->serial_in = dw8250_serial_in32;
->>>  			data->uart_16550_compatible = true;
->>>  		}
->>> -		p->set_termios = dw8250_set_termios;
->>>  	}
->>>  
->>>  	/* Platforms with iDMA */
->>>  	if (platform_get_resource_byname(to_platform_device(p->dev),
->>>  					 IORESOURCE_MEM, "lpss_priv")) {
->>> -		p->set_termios = dw8250_set_termios;
->>>  		data->dma.rx_param = p->dev->parent;
->>>  		data->dma.tx_param = p->dev->parent;
->>>  		data->dma.fn = dw8250_idma_filter;
->>> @@ -391,6 +389,7 @@ static int dw8250_probe(struct platform_device *pdev)
->>>  	p->iotype	= UPIO_MEM;
->>>  	p->serial_in	= dw8250_serial_in;
->>>  	p->serial_out	= dw8250_serial_out;
->>> +	p->set_termios	= dw8250_set_termios;
->>
->> I'm a bit worried about this. If I remember correctly, we didn't set
->> the set_termios hook by default in the past because somebody was using
->> a type of clk that can't handle rate rounding and ended up using
->> improper clock frequency for some baud rates. Unfortunately I can't
->> remember who had that problem and on which platform.
->>
->> On the other hand, I'm not sure if drivers should worry about things
->> like that. This should be done the other way around. The platform
->> with the problem should unset the p->set_termios hook in a quirk, but
->> by default everybody would use dw8250_set_termios.
+On Fri, Sep 02, 2016 at 04:38:45PM +0100, Lorenzo Pieralisi wrote:
+> On Thu, Sep 01, 2016 at 01:23:45PM -0500, Bjorn Helgaas wrote:
+> > On Mon, Aug 08, 2016 at 03:05:37PM +0200, Tomasz Nowicki wrote:
+> > > pci_config_window keeps pointer to pci_ecam_ops and every time
+> > > we want to deallocate pci_config_window (pci_ecam_free()) we need to make
+> > > sure to free pci_ecam_ops in case it was dynamically allocated prior to
+> > > pci_ecam_create() call.
+> > 
+> > I think this is a theoretical problem, right?  All the current callers
+> > pass a pointer to a static pci_ecam_ops struct that does not need to
+> > be deallocated.
+> > 
+> > I see that the next patch uses a pci_ecam_ops struct on the stack,
 > 
-> No comments... I would suggest we skip this for now. I don't think
-> it's necessary for Hisilicon Hip05 SoC support, so perhaps you can
-> just propose this change separately.
+> I asked Tomasz why we need to have pci_ecam_ops on the stack in the
+> first place since I do not think it is needed, or nicer (actually I
+> think it is not nice at all, what's the problem in making it static ?).
 
-OK,  will send it separately, like you said, if some platform has issue
-with this change, let's work around it in dw8250_quirks().
+If it's useful to copy the struct instead of saving the pointer, that's
+fine.  I just want the changelog to match the diff.
 
-Thanks,
-Kefeng
-
+Bjorn
