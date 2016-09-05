@@ -1,96 +1,109 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH] drivers: acpi: fix GIC irq model default PCI IRQ polarity
-Date: Mon, 5 Sep 2016 15:32:01 +0100
-Message-ID: <57CD81E1.4090705@arm.com>
-References: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v4 05/15] drivers: platform: add fwnode base platform
+	devices retrieval
+Date: Mon, 5 Sep 2016 15:57:51 +0100
+Message-ID: <20160905145751.GA7480@red-moon>
+References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1471274620-20754-6-git-send-email-lorenzo.pieralisi@arm.com>
+	<7659b956-c49d-bd0d-7a1d-8dfc3da6f409@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58054 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755307AbcIEOcJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 5 Sep 2016 10:32:09 -0400
-In-Reply-To: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <7659b956-c49d-bd0d-7a1d-8dfc3da6f409-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Punit Agrawal <punit.agrawal@arm.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 05/09/16 15:12, Lorenzo Pieralisi wrote:
-> On ACPI ARM based systems the GIC interrupt controller
-> and corresponding interrupt model permit only the high
-> polarity for level interrupts.
+On Mon, Sep 05, 2016 at 09:19:43PM +0800, Hanjun Guo wrote:
+> On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
+> >The platform device kernel API does not provide functions to
+> >retrieve a platform device through the corresponding struct
+> >device fwnode pointer.
+> >
+> >Implement the fwnode platform_device look-up in drivers core
+> >code by using the bus_find_device() API and a corresponding
+> >matching function. The OF equivalent (eg of_find_device_by_node())
+> >will reuse the newly introduced function when OF code will
+> >take care of setting up the device->fwnode value that is
+> >currently left dangling for platform devices instantiated out
+> >of device tree nodes.
+> >
+> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> >Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+> >Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> >---
+> > drivers/base/platform.c         | 23 +++++++++++++++++++++++
+> > include/linux/platform_device.h |  3 +++
+> > 2 files changed, 26 insertions(+)
+> >
+> >diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> >index 6482d47..3ef150d 100644
+> >--- a/drivers/base/platform.c
+> >+++ b/drivers/base/platform.c
+> >@@ -760,6 +760,29 @@ err_out:
+> > }
+> > EXPORT_SYMBOL_GPL(__platform_create_bundle);
+> >
+> >+static int fwnode_dev_match(struct device *dev, void *data)
+> >+{
+> >+	return dev->fwnode == data;
+> >+}
+> >+
+> >+/**
+> >+ * platform_find_device_by_fwnode() - Find the platform_device associated
+> >+ *				      with a fwnode
+> >+ * @fwnode: Pointer to firmware node
+> >+ *
+> >+ * Returns platform_device pointer, or NULL if not found
+> >+ */
+> >+struct platform_device *
+> >+platform_find_device_by_fwnode(struct fwnode_handle *fwnode)
+> >+{
+> >+	struct device *dev;
+> >+
+> >+	dev = bus_find_device(&platform_bus_type, NULL, fwnode,
+> >+			      fwnode_dev_match);
+> >+	return dev ? to_platform_device(dev) : NULL;
+> >+}
+> >+EXPORT_SYMBOL(platform_find_device_by_fwnode);
 > 
-> ACPI firmware describes PCI legacy IRQs through entries
-> in the _PRT objects. Entries in the _PRT can be of two types:
+> As SMMU is registered as platform devices, I think we need such
+> API to retrieve the platform device with fwnode handle, actually
+> Kefeng introduced a similar patch [1], but your patch is more
+> generic, so this patch make sense to me,
 > 
-> - Static: not configurable, trigger/polarity default to level-low,
->   _PRT entry defines the global GSI interrupt number
-> - Configurable: _PRT interrupt entry contains a reference to the
->   corresponding PCI interrupt link device (that in turn provides the
->   interrupt descriptor through its _CRS/_PRS methods)
-> 
-> Configurable IRQ entries are not currently allowed by the ACPI
-> specification on ARM, since they can only be used for interrupt
-> pins that are routable, and ARM platforms GIC configurations
-> do not allow dynamic IRQ routing, routing is statically laid out
-> at synthesis time; therefore PCI interrupt links cannot be used
-> for PCI legacy IRQ descriptions in the _PRT on ARM systems.
-> 
-> On the other hand, current core ACPI code handling PCI legacy IRQs
-> consider IRQ trigger/polarity for static _PRT entries as level-low.
-> 
-> On ARM systems with a GIC interrupt controller and corresponding
-> ACPI interrupt model this does not work in that GIC interrupt
-> controller is only capable of handling level interrupts whose
-> polarity is high (for PCI legacy IRQs - that are level-low by
-> specification - this means that the legacy IRQs are inverted before
-> reaching the interrupt controller pin), resulting in IRQ allocation
-> failures such as:
-> 
-> genirq: Setting trigger mode 8 for irq 18 failed (gic_set_type+0x0/0x48)
-> 
-> Change the default polarity for PCI legacy IRQs to high on systems
-> booting wth ACPI on platforms with a GIC interrupt controller model,
-> fixing the discrepancy between specification and HW behaviour.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Duc Dang <dhdang@apm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  drivers/acpi/pci_irq.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 2c45dd3..c576a6f 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -411,7 +411,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  	int gsi;
->  	u8 pin;
->  	int triggering = ACPI_LEVEL_SENSITIVE;
-> -	int polarity = ACPI_ACTIVE_LOW;
-> +	/*
-> +	 * On ARM systems with the GIC interrupt model, level interrupts
-> +	 * are always polarity high by specification; PCI legacy
-> +	 * IRQs lines are inverted before reaching the interrupt
-> +	 * controller and must therefore be considered active high
-> +	 * as default.
-> +	 */
-> +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
->  	char *link = NULL;
->  	char link_desc[16];
->  	int rc;
-> 
+> Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+Thanks ! Strictly speaking, with Robin's new series:
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+https://lists.linuxfoundation.org/pipermail/iommu/2016-August/018230.html
+
+
+(and corresponding v5 of this one that I have rebased on top of it) we
+do not need this patch any longer and it is not really that generic
+keeping in mind that it can't be used for DT matching (because in DT
+dev->fwnode is dangling); I will see if I keep this patch according
+to dependencies.
+
+Side note: I have a problem with [1], since that code is there to
+implement DT phandles in ACPI IIUC and we must really prevent that :)
+
+Thanks !
+Lorenzo
+
+> Thanks
+> Hanjun
+> 
+> [1]: https://patchwork.kernel.org/patch/7743661/
+> 
