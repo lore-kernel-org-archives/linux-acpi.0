@@ -1,109 +1,142 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v4 05/15] drivers: platform: add fwnode base platform
-	devices retrieval
-Date: Mon, 5 Sep 2016 15:57:51 +0100
-Message-ID: <20160905145751.GA7480@red-moon>
-References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1471274620-20754-6-git-send-email-lorenzo.pieralisi@arm.com>
-	<7659b956-c49d-bd0d-7a1d-8dfc3da6f409@linaro.org>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH V8 1/8] ACPI: I/O Remapping Table (IORT)
+ initial support
+Date: Mon, 5 Sep 2016 23:31:32 +0800
+Message-ID: <CADyBb7uT3sOsnQmWTYDsBXBt+D60PgECxsCaziTb9Zw0bigHpg@mail.gmail.com>
+References: <1470909998-16710-1-git-send-email-tn@semihalf.com>
+ <1470909998-16710-2-git-send-email-tn@semihalf.com> <CADyBb7u+PMFZ8kbSsxPpe8Ws3ik3HKpYakf066-sFd-9gv8_-w@mail.gmail.com>
+ <e287da4e-63bd-2d90-4fdd-dccce9b86459@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <7659b956-c49d-bd0d-7a1d-8dfc3da6f409-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:34368 "EHLO
+        mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934114AbcIEPbe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Sep 2016 11:31:34 -0400
+Received: by mail-oi0-f50.google.com with SMTP id m11so122903037oif.1
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Sep 2016 08:31:33 -0700 (PDT)
+In-Reply-To: <e287da4e-63bd-2d90-4fdd-dccce9b86459@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, jason@lakedaemon.net, "Rafael J. Wysocki" <rjw@rjwysocki.net>, helgaas@kernel.org, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, okaya@codeaurora.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, robert.richter@caviumnetworks.com, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, Marcin Wojtas <mw@semihalf.com>, Andrea Gallo <andrea.gallo@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-On Mon, Sep 05, 2016 at 09:19:43PM +0800, Hanjun Guo wrote:
-> On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
-> >The platform device kernel API does not provide functions to
-> >retrieve a platform device through the corresponding struct
-> >device fwnode pointer.
-> >
-> >Implement the fwnode platform_device look-up in drivers core
-> >code by using the bus_find_device() API and a corresponding
-> >matching function. The OF equivalent (eg of_find_device_by_node())
-> >will reuse the newly introduced function when OF code will
-> >take care of setting up the device->fwnode value that is
-> >currently left dangling for platform devices instantiated out
-> >of device tree nodes.
-> >
-> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> >Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-> >Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> >---
-> > drivers/base/platform.c         | 23 +++++++++++++++++++++++
-> > include/linux/platform_device.h |  3 +++
-> > 2 files changed, 26 insertions(+)
-> >
-> >diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> >index 6482d47..3ef150d 100644
-> >--- a/drivers/base/platform.c
-> >+++ b/drivers/base/platform.c
-> >@@ -760,6 +760,29 @@ err_out:
-> > }
-> > EXPORT_SYMBOL_GPL(__platform_create_bundle);
-> >
-> >+static int fwnode_dev_match(struct device *dev, void *data)
-> >+{
-> >+	return dev->fwnode == data;
-> >+}
-> >+
-> >+/**
-> >+ * platform_find_device_by_fwnode() - Find the platform_device associated
-> >+ *				      with a fwnode
-> >+ * @fwnode: Pointer to firmware node
-> >+ *
-> >+ * Returns platform_device pointer, or NULL if not found
-> >+ */
-> >+struct platform_device *
-> >+platform_find_device_by_fwnode(struct fwnode_handle *fwnode)
-> >+{
-> >+	struct device *dev;
-> >+
-> >+	dev = bus_find_device(&platform_bus_type, NULL, fwnode,
-> >+			      fwnode_dev_match);
-> >+	return dev ? to_platform_device(dev) : NULL;
-> >+}
-> >+EXPORT_SYMBOL(platform_find_device_by_fwnode);
-> 
-> As SMMU is registered as platform devices, I think we need such
-> API to retrieve the platform device with fwnode handle, actually
-> Kefeng introduced a similar patch [1], but your patch is more
-> generic, so this patch make sense to me,
-> 
-> Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Hi Tomasz,
 
-Thanks ! Strictly speaking, with Robin's new series:
+On 5 September 2016 at 14:12, Tomasz Nowicki <tn@semihalf.com> wrote:
+> On 02.09.2016 13:52, Fu Wei wrote:
+>>
+>> Hi Tomasz,
+>>
+>> On 11 August 2016 at 18:06, Tomasz Nowicki <tn@semihalf.com> wrote:
+>>>
+>>> IORT shows representation of IO topology for ARM based systems.
+>>> It describes how various components are connected together on
+>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+>>>
+>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>>>
+>>> Initial support allows to detect IORT table presence and save its
+>>> root pointer obtained through acpi_get_table(). The pointer validity
+>>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+>>> is not set while using IORT nodes we would dereference unmapped pointers.
+>>>
+>>> For the aforementioned reason call iort_table_detect() from acpi_init()
+>>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
+>>>
+>>> Add generic helpers which are helpful for scanning and retrieving
+>>> information from IORT table content. List of the most important helpers:
+>>> - iort_find_dev_node() finds IORT node for a given device
+>>> - iort_node_map_rid() maps device RID and returns IORT node which
+>>> provides
+>>>   final translation
+>>>
+>>> IORT support is placed under drivers/acpi/arm64/ new directory due to its
+>>> ARM64 specific nature. The code there is considered only for ARM64.
+>>> The long term plan is to keep all ARM64 specific tables support
+>>> in this place e.g. GTDT table.
+>>>
+>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>  drivers/acpi/Kconfig        |   5 +
+>>>  drivers/acpi/Makefile       |   2 +
+>>>  drivers/acpi/arm64/Kconfig  |   6 ++
+>>>  drivers/acpi/arm64/Makefile |   1 +
+>>>  drivers/acpi/arm64/iort.c   | 218
+>>> ++++++++++++++++++++++++++++++++++++++++++++
+>>>  drivers/acpi/bus.c          |   2 +
+>>>  include/linux/iort.h        |  30 ++++++
+>>>  7 files changed, 264 insertions(+)
+>>>  create mode 100644 drivers/acpi/arm64/Kconfig
+>>>  create mode 100644 drivers/acpi/arm64/Makefile
+>>>  create mode 100644 drivers/acpi/arm64/iort.c
+>>>  create mode 100644 include/linux/iort.h
+>>>
+>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>>> index 445ce28..6cef2d1 100644
+>>> --- a/drivers/acpi/Kconfig
+>>> +++ b/drivers/acpi/Kconfig
+>>> @@ -521,4 +521,9 @@ config ACPI_CONFIGFS
+>>>           userspace. The configurable ACPI groups will be visible under
+>>>           /config/acpi, assuming configfs is mounted under /config.
+>>>
+>>> +if ARM64
+>>> +source "drivers/acpi/arm64/Kconfig"
+>>> +
+>>> +endif
+>>> +
+>>>  endif  # ACPI
+>>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>>> index 5ae9d85..e5ada78 100644
+>>> --- a/drivers/acpi/Makefile
+>>> +++ b/drivers/acpi/Makefile
+>>> @@ -105,3 +105,5 @@ obj-$(CONFIG_ACPI_CONFIGFS) += acpi_configfs.o
+>>>
+>>>  video-objs                     += acpi_video.o video_detect.o
+>>>  obj-y                          += dptf/
+>>> +
+>>> +obj-$(CONFIG_ARM64)            += arm64/
+>>> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+>>> new file mode 100644
+>>> index 0000000..fc818dc
+>>> --- /dev/null
+>>> +++ b/drivers/acpi/arm64/Kconfig
+>>> @@ -0,0 +1,6 @@
+>>> +#
+>>> +# ACPI Configuration for ARM64
+>>> +#
+>>> +
+>>> +config IORT_TABLE
+>>
+>>
+>> Sorry for nit-picking, but is that better to use ACPI_IORT
+>> or maybe ARM64__IORT ??
+>
+>
+> ACPI_IORT sounds good.
 
-https://lists.linuxfoundation.org/pipermail/iommu/2016-August/018230.html
+Thanks, Tomasz :-)
+I have rebaseed my GTDT patchset on your v8 patchset,
+But before I post my new patchset, I  hope we can harmonize with each
+other on these:
+
+1. ACPI_IORT --  ACPI_GTDT
+2. for the file name,  maybe can follow "/drivers/acpi/acpi_*.c" like
+acpi_iort.c and acpi_gtdt.c
+or  follow "/drivers/acpi/apei/*.c" like iort.c and gtdt.c.
+
+looking forward to you new patchset :-)
+Thanks :-)
+
+>
+> Tomasz
 
 
-(and corresponding v5 of this one that I have rebased on top of it) we
-do not need this patch any longer and it is not really that generic
-keeping in mind that it can't be used for DT matching (because in DT
-dev->fwnode is dangling); I will see if I keep this patch according
-to dependencies.
 
-Side note: I have a problem with [1], since that code is there to
-implement DT phandles in ACPI IIUC and we must really prevent that :)
+-- 
+Best regards,
 
-Thanks !
-Lorenzo
-
-> Thanks
-> Hanjun
-> 
-> [1]: https://patchwork.kernel.org/patch/7743661/
-> 
+Fu Wei
+Software Engineer
+Red Hat
