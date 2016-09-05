@@ -1,97 +1,55 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] drivers: acpi: fix GIC irq model default PCI IRQ polarity
-Date: Mon, 5 Sep 2016 22:37:29 +0200
-Message-ID: <CAJZ5v0hHW2ovycYRpyVLxg3As0w9ETiu2nuum8J=Ro5YPk1E4g@mail.gmail.com>
-References: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 00/21] ACPI-video: Fine-tuning for several function implementations
+Date: Mon, 5 Sep 2016 23:41:10 +0200
+Message-ID: <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
+References: <566ABCD9.1060404@users.sourceforge.net> <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Linux PCI <linux-pci@vger.kernel.org>, Duc Dang <dhdang@apm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36803 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932217AbcIEVlN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Sep 2016 17:41:13 -0400
+In-Reply-To: <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-On Mon, Sep 5, 2016 at 4:12 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On ACPI ARM based systems the GIC interrupt controller
-> and corresponding interrupt model permit only the high
-> polarity for level interrupts.
+On Mon, Sep 5, 2016 at 6:42 PM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 5 Sep 2016 18:22:11 +0200
 >
-> ACPI firmware describes PCI legacy IRQs through entries
-> in the _PRT objects. Entries in the _PRT can be of two types:
+> Several update suggestions were taken into account
+> from static source code analysis.
 >
-> - Static: not configurable, trigger/polarity default to level-low,
->   _PRT entry defines the global GSI interrupt number
-> - Configurable: _PRT interrupt entry contains a reference to the
->   corresponding PCI interrupt link device (that in turn provides the
->   interrupt descriptor through its _CRS/_PRS methods)
->
-> Configurable IRQ entries are not currently allowed by the ACPI
-> specification on ARM, since they can only be used for interrupt
-> pins that are routable, and ARM platforms GIC configurations
-> do not allow dynamic IRQ routing, routing is statically laid out
-> at synthesis time; therefore PCI interrupt links cannot be used
-> for PCI legacy IRQ descriptions in the _PRT on ARM systems.
->
-> On the other hand, current core ACPI code handling PCI legacy IRQs
-> consider IRQ trigger/polarity for static _PRT entries as level-low.
->
-> On ARM systems with a GIC interrupt controller and corresponding
-> ACPI interrupt model this does not work in that GIC interrupt
-> controller is only capable of handling level interrupts whose
-> polarity is high (for PCI legacy IRQs - that are level-low by
-> specification - this means that the legacy IRQs are inverted before
-> reaching the interrupt controller pin), resulting in IRQ allocation
-> failures such as:
->
-> genirq: Setting trigger mode 8 for irq 18 failed (gic_set_type+0x0/0x48)
->
-> Change the default polarity for PCI legacy IRQs to high on systems
-> booting wth ACPI on platforms with a GIC interrupt controller model,
-> fixing the discrepancy between specification and HW behaviour.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Duc Dang <dhdang@apm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  drivers/acpi/pci_irq.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 2c45dd3..c576a6f 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -411,7 +411,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->         int gsi;
->         u8 pin;
->         int triggering = ACPI_LEVEL_SENSITIVE;
-> -       int polarity = ACPI_ACTIVE_LOW;
-> +       /*
-> +        * On ARM systems with the GIC interrupt model, level interrupts
-> +        * are always polarity high by specification; PCI legacy
-> +        * IRQs lines are inverted before reaching the interrupt
-> +        * controller and must therefore be considered active high
-> +        * as default.
-> +        */
-> +       int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> +                                     ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
->         char *link = NULL;
->         char link_desc[16];
->         int rc;
-> --
+> Markus Elfring (21):
+>   Use kmalloc_array() in acpi_video_get_levels()
+>   Return directly after a failed device query
+>   Delete an error message for a failed kzalloc() call
+>   Rename jump labels in acpi_video_get_levels()
+>   Delete an unnecessary initialisation in acpi_video_get_levels()
+>   Move four assignments in acpi_video_get_levels()
+>   Rename jump labels in acpi_video_bus_add()
+>   Improve a size determination in acpi_video_bus_add()
+>   Rename jump labels in acpi_video_register()
+>   Return directly after a failed input_allocate_device()
+>   Rename jump labels in acpi_video_bus_add_notify_handler()
+>   Delete unnecessary if statement in acpi_video_switch_brightness()
+>   Improve a jump target in acpi_video_switch_brightness()
+>   Improve a size determination in acpi_video_device_enumerate()
+>   Delete an unnecessary initialisation in acpi_video_device_enumerate()
+>   Rename jump labels in acpi_video_device_enumerate()
+>   Delete an unnecessary initialisation in acpi_video_init_brightness()
+>   Rename jump labels in acpi_video_init_brightness()
+>   Rename a jump label in acpi_video_device_lcd_query_levels()
+>   Improve a size determination in acpi_video_dev_register_backlight()
+>   Improve a size determination in acpi_video_bus_get_one_device()
 
-Bjorn, any objections?
+I'd prefer this to be combined into fewer patches that each will
+address several issues of one type, ie. put all label renames into one
+patch, all size determination improvements into another one and so on.
+
+Thanks,
+Rafael
