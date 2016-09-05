@@ -1,148 +1,80 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v4 04/15] drivers: acpi: iort: add support for IOMMU
- fwnode registration
-Date: Mon, 5 Sep 2016 21:00:09 +0800
-Message-ID: <408a90be-df15-b4fb-169d-81c1743c6c16@linaro.org>
+Subject: Re: [PATCH v4 05/15] drivers: platform: add fwnode base platform
+ devices retrieval
+Date: Mon, 5 Sep 2016 21:19:43 +0800
+Message-ID: <7659b956-c49d-bd0d-7a1d-8dfc3da6f409@linaro.org>
 References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1471274620-20754-5-git-send-email-lorenzo.pieralisi@arm.com>
+ <1471274620-20754-6-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1471274620-20754-5-git-send-email-lorenzo.pieralisi@arm.com>
+In-Reply-To: <1471274620-20754-6-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
-Cc: Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
 On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
-> The ACPI IORT table provide entries for IOMMU (aka SMMU in ARM world)
-> components that allow creating the kernel data structures required to
-> probe and initialize the IOMMU devices.
+> The platform device kernel API does not provide functions to
+> retrieve a platform device through the corresponding struct
+> device fwnode pointer.
 >
-> This patch provides support in the IORT kernel code to register IOMMU
-> components and their respective fwnode.
+> Implement the fwnode platform_device look-up in drivers core
+> code by using the bus_find_device() API and a corresponding
+> matching function. The OF equivalent (eg of_find_device_by_node())
+> will reuse the newly introduced function when OF code will
+> take care of setting up the device->fwnode value that is
+> currently left dangling for platform devices instantiated out
+> of device tree nodes.
 >
 > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 > ---
->  drivers/acpi/arm64/iort.c | 65 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/iort.h      |  8 ++++++
->  2 files changed, 73 insertions(+)
+>  drivers/base/platform.c         | 23 +++++++++++++++++++++++
+>  include/linux/platform_device.h |  3 +++
+>  2 files changed, 26 insertions(+)
 >
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index cad7d1d..01a5258 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -20,7 +20,9 @@
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 6482d47..3ef150d 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -760,6 +760,29 @@ err_out:
+>  }
+>  EXPORT_SYMBOL_GPL(__platform_create_bundle);
 >
->  #include <linux/iort.h>
->  #include <linux/kernel.h>
-> +#include <linux/list.h>
->  #include <linux/pci.h>
-> +#include <linux/slab.h>
->
->  struct iort_its_msi_chip {
->  	struct list_head	list;
-> @@ -28,6 +30,69 @@ struct iort_its_msi_chip {
->  	u32			translation_id;
->  };
->
-> +struct iort_fwnode {
-> +	struct list_head list;
-> +	struct acpi_iort_node *iort_node;
-> +	struct fwnode_handle *fwnode;
-> +};
-> +static LIST_HEAD(iort_fwnode_list);
-> +static DEFINE_SPINLOCK(iort_fwnode_lock);
+> +static int fwnode_dev_match(struct device *dev, void *data)
+> +{
+> +	return dev->fwnode == data;
+> +}
 > +
 > +/**
-> + * iort_set_fwnode() - Create iort_fwnode and use it to register
-> + *		       iommu data in the iort_fwnode_list
+> + * platform_find_device_by_fwnode() - Find the platform_device associated
+> + *				      with a fwnode
+> + * @fwnode: Pointer to firmware node
 > + *
-> + * @node: IORT table node associated with the IOMMU
-> + * @fwnode: fwnode associated with the IORT node
-> + *
-> + * Returns: 0 on success
-> + *          <0 on failure
+> + * Returns platform_device pointer, or NULL if not found
 > + */
-> +int iort_set_fwnode(struct acpi_iort_node *iort_node,
-> +		    struct fwnode_handle *fwnode)
+> +struct platform_device *
+> +platform_find_device_by_fwnode(struct fwnode_handle *fwnode)
 > +{
-> +	struct iort_fwnode *np;
+> +	struct device *dev;
 > +
-> +	np = kzalloc(sizeof(struct iort_fwnode), GFP_ATOMIC);
-> +
-> +	if (WARN_ON(!np))
-> +		return -ENOMEM;
-> +
-> +	INIT_LIST_HEAD(&np->list);
-> +	np->iort_node = iort_node;
-> +	np->fwnode = fwnode;
-> +
-> +	spin_lock(&iort_fwnode_lock);
-> +	list_add_tail(&np->list, &iort_fwnode_list);
-> +	spin_unlock(&iort_fwnode_lock);
-> +
-> +	return 0;
+> +	dev = bus_find_device(&platform_bus_type, NULL, fwnode,
+> +			      fwnode_dev_match);
+> +	return dev ? to_platform_device(dev) : NULL;
 > +}
-> +
-> +/**
-> + * iort_get_fwnode() - Retrieve fwnode associated with an IORT node
-> + *
-> + * @node: IORT table node to be looked-up
-> + *
-> + * Returns: fwnode_handle pointer on success, NULL on failure
-> +*/
-> +struct fwnode_handle *iort_get_fwnode(struct acpi_iort_node *node)
-> +{
-> +	struct iort_fwnode *curr;
-> +	struct fwnode_handle *fwnode = NULL;
-> +
-> +	spin_lock(&iort_fwnode_lock);
-> +	list_for_each_entry(curr, &iort_fwnode_list, list) {
-> +		if (curr->iort_node == node) {
-> +			fwnode = curr->fwnode;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&iort_fwnode_lock);
-> +
-> +	return fwnode;
-> +}
-> +
->  typedef acpi_status (*iort_find_node_callback)
->  	(struct acpi_iort_node *node, void *context);
->
-> diff --git a/include/linux/iort.h b/include/linux/iort.h
-> index 9bb30c5..666a3de 100644
-> --- a/include/linux/iort.h
-> +++ b/include/linux/iort.h
-> @@ -30,12 +30,20 @@ struct fwnode_handle *iort_find_domain_token(int trans_id);
->  void iort_table_detect(void);
->  u32 iort_msi_map_rid(struct device *dev, u32 req_id);
->  struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
-> +int iort_set_fwnode(struct acpi_iort_node *iort_node,
-> +		    struct fwnode_handle *fwnode);
-> +struct fwnode_handle *iort_get_fwnode(struct acpi_iort_node *node);
->  #else
->  static inline void iort_table_detect(void) { }
->  static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
->  { return req_id; }
->  static inline struct irq_domain *
->  iort_get_device_domain(struct device *dev, u32 req_id) { return NULL; }
-> +static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
-> +				  struct fwnode_handle *fwnode)
-> +{ return -ENODEV; }
-> +static inline struct fwnode_handle *
-> +iort_get_fwnode(struct acpi_iort_node *node) { return NULL; }
->  #endif
->
->  #define IORT_ACPI_DECLARE(name, table_id, fn)		\
+> +EXPORT_SYMBOL(platform_find_device_by_fwnode);
+
+As SMMU is registered as platform devices, I think we need such
+API to retrieve the platform device with fwnode handle, actually
+Kefeng introduced a similar patch [1], but your patch is more
+generic, so this patch make sense to me,
 
 Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
 Hanjun
+
+[1]: https://patchwork.kernel.org/patch/7743661/
