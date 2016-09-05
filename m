@@ -1,258 +1,296 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [RFC PATCH V5 3/5] PCI: Check platform specific ECAM quirks
-Date: Sun, 4 Sep 2016 21:59:08 -0500
-Message-ID: <20160905025908.GG30488@localhost>
-References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
- <1470661541-26270-4-git-send-email-tn@semihalf.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/4] ACPI / EC: Cleanup first_ec/boot_ec code
+Date: Mon, 5 Sep 2016 05:57:47 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A17F533@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1472802172.git.lv.zheng@intel.com>
+ <329458b814b546daf26e058d303729fdc936730f.1472802172.git.lv.zheng@intel.com>
+ <20160903162142.GA5252@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:56026 "EHLO mail.kernel.org"
+Received: from mga07.intel.com ([134.134.136.100]:64317 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932169AbcIEC7O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 4 Sep 2016 22:59:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1470661541-26270-4-git-send-email-tn@semihalf.com>
+        id S1753023AbcIEF5x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Sep 2016 01:57:53 -0400
+In-Reply-To: <20160903162142.GA5252@al>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Peter Wu <peter@lekensteyn.nl>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Luya Tshimbalanga <luya@fedoraproject.org>
 
-On Mon, Aug 08, 2016 at 03:05:39PM +0200, Tomasz Nowicki wrote:
-> Some platforms may not be fully compliant with generic set of PCI config
-> accessors. For these cases we implement the way to overwrite accessors
-> set. Algorithm traverses available quirk list (static array),
-> matches against <oem_id, oem_table_id, rev, domain, bus number range> and
-> returns pci_config_window structure with fancy PCI config ops.
-> oem_id, oem_table_id and rev come from MCFG table standard header.
+Hi, Peter
+
+> From: Peter Wu [mailto:peter@lekensteyn.nl]
+> Subject: Re: [PATCH 1/4] ACPI / EC: Cleanup first_ec/boot_ec code
 > 
-> It is possible to define custom init call which is responsible for
-> setting up PCI configuration access accordingly to quirk requirements.
-> If custom init call is not defined, use standard pci_acpi_setup_ecam_mapping().
+> On Fri, Sep 02, 2016 at 03:46:31PM +0800, Lv Zheng wrote:
+> > In order to support full ECDT (driving the ECDT EC after probing the
+> > namespace EC), we need to change our EC device alloc/free algorithm, ensure
+> > not to free old boot EC before qualifying new boot EC.
+> > This patch achieves this by cleaning up first_ec/boot_ec logic:
+> > 1. first_ec: used to perform transactions, so it is assigned in new
+> >    acpi_ec_setup() function.
+> > 2. boot_ec: used to track early EC device, so it is assigned in new
+> >    acpi_config_boot_ec() function which explictly tells the driver to save
+> >    the EC device as early EC device.
+> >
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=115021
+> > Reported-and-tested-by: Luya Tshimbalanga <luya@fedoraproject.org>
+> > Suggested-by: Peter Wu <peter@lekensteyn.nl>
+> > Cc: Peter Wu <peter@lekensteyn.nl>
+> > Cc: Luya Tshimbalanga <luya@fedoraproject.org>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 > 
-> pci_generic_ecam_ops will be used for platforms free from quirks.
+> Good idea, the previous acpi_ec_alloc function contained an implicit
+> assumption which was slightly harder to follow. See below for one
+> concern.
 > 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> Signed-off-by: Christopher Covington <cov@codeaurora.org>
-> ---
->  drivers/pci/host/Makefile      |  1 +
->  drivers/pci/host/mcfg-quirks.c | 86 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/host/mcfg-quirks.h | 20 ++++++++++
->  include/linux/pci-acpi.h       |  2 +
->  4 files changed, 109 insertions(+)
->  create mode 100644 drivers/pci/host/mcfg-quirks.c
->  create mode 100644 drivers/pci/host/mcfg-quirks.h
+> > ---
+> >  drivers/acpi/ec.c |   96 +++++++++++++++++++++++++++++++++++------------------
+> >  1 file changed, 63 insertions(+), 33 deletions(-)
+> >
+> > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> > index e7bd57c..4a5f3ab 100644
+> > --- a/drivers/acpi/ec.c
+> > +++ b/drivers/acpi/ec.c
+> > @@ -179,6 +179,7 @@ static void acpi_ec_event_processor(struct work_struct *work);
+> >
+> >  struct acpi_ec *boot_ec, *first_ec;
+> >  EXPORT_SYMBOL(first_ec);
+> > +static bool boot_ec_is_ecdt = false;
+> >  static struct workqueue_struct *ec_query_wq;
+> >
+> >  static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
+> > @@ -1228,7 +1229,16 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+> >  static acpi_status
+> >  ec_parse_io_ports(struct acpi_resource *resource, void *context);
+> >
+> > -static struct acpi_ec *make_acpi_ec(void)
+> > +static void acpi_ec_free(struct acpi_ec *ec)
+> > +{
+> > +	if (first_ec == ec)
+> > +		first_ec = NULL;
+> > +	if (boot_ec == ec)
+> > +		boot_ec = NULL;
+> > +	kfree(ec);
+> > +}
+> > +
+> > +static struct acpi_ec *acpi_ec_alloc(void)
+> >  {
+> >  	struct acpi_ec *ec = kzalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+> >
+> > @@ -1290,6 +1300,11 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+> >  	return AE_CTRL_TERMINATE;
+> >  }
+> >
+> > +/*
+> > + * Note: This function returns an error code only when the address space
+> > + *       handler is not installed, which means "not able to handle
+> > + *       transactions".
+> > + */
+> >  static int ec_install_handlers(struct acpi_ec *ec)
+> >  {
+> >  	acpi_status status;
+> > @@ -1365,21 +1380,49 @@ static void ec_remove_handlers(struct acpi_ec *ec)
+> >  	}
+> >  }
+> >
+> > -static struct acpi_ec *acpi_ec_alloc(void)
+> > +static int acpi_ec_setup(struct acpi_ec *ec)
+> >  {
+> > -	struct acpi_ec *ec;
+> > +	int ret;
+> >
+> > -	/* Check for boot EC */
+> > -	if (boot_ec) {
+> > -		ec = boot_ec;
+> > -		boot_ec = NULL;
+> > -		ec_remove_handlers(ec);
+> > -		if (first_ec == ec)
+> > -			first_ec = NULL;
+> > -	} else {
+> > -		ec = make_acpi_ec();
+> > +	ret = ec_install_handlers(ec);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	/* First EC capable of handling transactions */
+> > +	if (!first_ec) {
+> > +		first_ec = ec;
+> > +		acpi_handle_info(first_ec->handle, "Used as first EC\n");
+> >  	}
+> > -	return ec;
+> > +
+> > +	acpi_handle_info(ec->handle,
+> > +			 "GPE=0x%lx, EC_CMD/EC_SC=0x%lx, EC_DATA=0x%lx\n",
+> > +			 ec->gpe, ec->command_addr, ec->data_addr);
+> > +	return ret;
+> > +}
+> > +
+> > +static int acpi_config_boot_ec(struct acpi_ec *ec, bool is_ecdt)
+> > +{
+> > +	int ret;
+> > +
+> > +	if (boot_ec)
+> > +		ec_remove_handlers(boot_ec);
+> > +
+> > +	/* Unset old boot EC */
+> > +	if (boot_ec != ec)
+> > +		acpi_ec_free(boot_ec);
+> > +
+> > +	ret = acpi_ec_setup(ec);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	/* Set new boot EC */
+> > +	if (!boot_ec) {
+> > +		boot_ec = ec;
+> > +		boot_ec_is_ecdt = is_ecdt;
+> > +		acpi_handle_info(boot_ec->handle, "Used as boot %s EC\n",
+> > +				 is_ecdt ? "ECDT" : "DSDT");
+> > +	}
+> > +	return ret;
+> >  }
+> >
+> >  static int acpi_ec_add(struct acpi_device *device)
+> > @@ -1395,7 +1438,7 @@ static int acpi_ec_add(struct acpi_device *device)
+> >  		return -ENOMEM;
+> >  	if (ec_parse_device(device->handle, 0, ec, NULL) !=
+> >  		AE_CTRL_TERMINATE) {
+> > -			kfree(ec);
+> > +			acpi_ec_free(ec);
+> >  			return -EINVAL;
+> >  	}
+> >
+> > @@ -1403,8 +1446,6 @@ static int acpi_ec_add(struct acpi_device *device)
+> >  	acpi_walk_namespace(ACPI_TYPE_METHOD, ec->handle, 1,
+> >  			    acpi_ec_register_query_methods, NULL, ec, NULL);
+> >
+> > -	if (!first_ec)
+> > -		first_ec = ec;
+> >  	device->driver_data = ec;
+> >
+> >  	ret = !!request_region(ec->data_addr, 1, "EC data");
+> > @@ -1412,10 +1453,7 @@ static int acpi_ec_add(struct acpi_device *device)
+> >  	ret = !!request_region(ec->command_addr, 1, "EC cmd");
+> >  	WARN(!ret, "Could not request EC cmd io port 0x%lx", ec->command_addr);
+> >
+> > -	pr_info("GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+> > -			  ec->gpe, ec->command_addr, ec->data_addr);
+> > -
+> > -	ret = ec_install_handlers(ec);
+> > +	ret = acpi_config_boot_ec(ec, false);
+> >
+> >  	/* Reprobe devices depending on the EC */
+> >  	acpi_walk_dep_device_list(ec->handle);
+> > @@ -1442,9 +1480,7 @@ static int acpi_ec_remove(struct acpi_device *device)
+> >  	release_region(ec->data_addr, 1);
+> >  	release_region(ec->command_addr, 1);
+> >  	device->driver_data = NULL;
+> > -	if (ec == first_ec)
+> > -		first_ec = NULL;
+> > -	kfree(ec);
+> > +	acpi_ec_free(ec);
+> >  	return 0;
+> >  }
+> >
+> > @@ -1496,13 +1532,10 @@ int __init acpi_ec_dsdt_probe(void)
+> >  		ret = -ENODEV;
+> >  		goto error;
+> >  	}
+> > -	ret = ec_install_handlers(ec);
+> > -
+> > +	ret = acpi_config_boot_ec(ec, false);
+> >  error:
+> >  	if (ret)
+> > -		kfree(ec);
+> > -	else
+> > -		first_ec = boot_ec = ec;
+> > +		acpi_ec_free(ec);
+> >  	return ret;
+> >  }
+> >
+> > @@ -1600,7 +1633,6 @@ int __init acpi_ec_ecdt_probe(void)
+> >  		goto error;
+> >  	}
+> >
+> > -	pr_info("EC description table is found, configuring boot EC\n");
+> >  	if (EC_FLAGS_CORRECT_ECDT) {
+> >  		ec->command_addr = ecdt_ptr->data.address;
+> >  		ec->data_addr = ecdt_ptr->control.address;
+> > @@ -1610,12 +1642,10 @@ int __init acpi_ec_ecdt_probe(void)
+> >  	}
+> >  	ec->gpe = ecdt_ptr->gpe;
+> >  	ec->handle = ACPI_ROOT_OBJECT;
+> > -	ret = ec_install_handlers(ec);
+> > +	ret = acpi_config_boot_ec(ec, true);
 > 
-> diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
-> index 8843410..500cf78 100644
-> --- a/drivers/pci/host/Makefile
-> +++ b/drivers/pci/host/Makefile
-> @@ -31,3 +31,4 @@ obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
->  obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
->  obj-$(CONFIG_PCIE_ARMADA_8K) += pcie-armada8k.o
->  obj-$(CONFIG_PCIE_ARTPEC6) += pcie-artpec6.o
-> +obj-$(CONFIG_ACPI_MCFG) += mcfg-quirks.o
-> diff --git a/drivers/pci/host/mcfg-quirks.c b/drivers/pci/host/mcfg-quirks.c
-> new file mode 100644
-> index 0000000..aa9907b
-> --- /dev/null
-> +++ b/drivers/pci/host/mcfg-quirks.c
-> @@ -0,0 +1,86 @@
-> +/*
-> + * Copyright (C) 2016 Semihalf
-> + *	Author: Tomasz Nowicki <tn@semihalf.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, version 2, as
-> + * published by the Free Software Foundation (the "GPL").
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License version 2 (GPLv2) for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * version 2 (GPLv2) along with this source code.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/ioport.h>
-> +#include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
-> +#include <linux/pci-ecam.h>
-> +
-> +#include "mcfg-quirks.h"
-> +
-> +struct pci_cfg_fixup {
-> +	char oem_id[ACPI_OEM_ID_SIZE + 1];
-> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> +	u32 oem_revision;
-> +	struct resource domain_range;
-> +	struct resource bus_range;
-> +	struct pci_ops *ops;
-> +	struct pci_config_window *(*init)(struct acpi_pci_root *root,
-> +					  struct pci_ops *ops);
-> +};
-> +
-> +#define MCFG_DOM_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
-> +						((end) - (start) + 1), NULL, 0)
-> +#define MCFG_DOM_ANY			MCFG_DOM_RANGE(0x0, 0xffff)
-> +#define MCFG_BUS_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
-> +						((end) - (start) + 1),	\
-> +						NULL, IORESOURCE_BUS)
-> +#define MCFG_BUS_ANY			MCFG_BUS_RANGE(0x0, 0xff)
-> +
-> +static struct pci_cfg_fixup mcfg_quirks[] __initconst = {
-> +/*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, pci_ops, init_hook }, */
-> +};
-> +
-> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
-> +				 struct acpi_table_header *mcfg_header)
-> +{
-> +	return (!memcmp(f->oem_id, mcfg_header->oem_id, ACPI_OEM_ID_SIZE) &&
-> +		!memcmp(f->oem_table_id, mcfg_header->oem_table_id,
-> +			ACPI_OEM_TABLE_ID_SIZE) &&
-> +		f->oem_revision == mcfg_header->oem_revision);
-> +}
-> +
-> +struct pci_config_window *pci_mcfg_match_quirks(struct acpi_pci_root *root)
-> +{
-> +	struct resource dom_res = MCFG_DOM_RANGE(root->segment, root->segment);
-> +	struct resource *bus_res = &root->secondary;
-> +	struct pci_cfg_fixup *f = mcfg_quirks;
-> +	struct acpi_table_header *mcfg_header;
-> +	acpi_status status;
-> +	int i;
-> +
-> +	status = acpi_get_table(ACPI_SIG_MCFG, 0, &mcfg_header);
-> +	if (ACPI_FAILURE(status))
-> +		return NULL;
-
-I remember working out why pci_mcfg_parse() has to cache the data from
-MCFG, but I don't remember the actual reason...  a comment there would
-have been helpful.  Anyway, now I wonder why it's OK to call
-acpi_get_table(ACPI_SIG_MCFG) again here.  I guess I'd be inclined to
-just cache the OEM info along with the rest of the data so you don't
-have to get the table again here.
-
-> +	/*
-> +	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
-> +	 * table ID, and OEM revision from MCFG table standard header.
-> +	 */
-> +	for (i = 0; i < ARRAY_SIZE(mcfg_quirks); i++, f++) {
-> +		if (resource_contains(&f->domain_range, &dom_res) &&
-> +		    resource_contains(&f->bus_range, bus_res) &&
-> +		    pci_mcfg_fixup_match(f, mcfg_header)) {
-> +			dev_info(&root->device->dev, "Applying PCI MCFG quirks for %s %s rev: %d\n",
-> +				 f->oem_id, f->oem_table_id, f->oem_revision);
-> +			return f->init ? f->init(root, f->ops) :
-> +				pci_acpi_setup_ecam_mapping(root, f->ops);
-> +		}
-> +	}
-> +	return pci_acpi_setup_ecam_mapping(root, &pci_generic_ecam_ops.pci_ops);
-
-I think the scope of these MCFG quirks is to:
-
-  1) Override (or even fabricate) a MEM resource to be used as ECAM
-     space, and
-
-  2) Supply a pci_ecam_ops structure if we need something other than
-     pci_generic_ecam_ops
-
-Today, pci_mcfg_lookup() merely returns a physical address.  I didn't
-chase down where (or whether) that is turned into a struct resource
-that we put in the iomem tree.  I wonder if pci_mcfg_lookup() could be
-extended to return a resource and a pci_ecam_ops pointer, and handle
-the quirk application internally, e.g.,
-
-  int pci_mcfg_lookup(u16 seg, struct resource *bus_res,
-                      struct resource *cfgres, struct pci_ecam_ops **ecam_ops)
-  {
-    struct resource res;
-    struct pci_ecam_ops *ops;
-    struct mcfg_entry *e;
-
-    memset(&res, 0, sizeof(res));
-    res.flags = IORESOURCE_MEM;
-
-    e = pci_mcfg_list_search(seg, bus_res);
-    if (e) {
-      res.start = e->addr;
-      res.end = res.start + ...;
-    }
-
-    ops = &pci_generic_ecam_ops;
-    ret = pci_mcfg_match_quirks(seg, bus_res, &res, &ops);
-    if (ret)
-      return ret;
-
-    *cfgres = res;
-    *ecam_ops = ops;
-    return 0;
-  }
-
-Then the quirks would see any mem resource we discovered via MCFG, and
-they would see the default pci_ecam_ops, and they could override
-whatever they needed to.
-
-That would make pci_acpi_setup_ecam_mapping() look something like this:
-
-  pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
-  {
-    struct resource cfgres;
-    struct pci_ecam_ops *ecam_ops;
-
-    ret = pci_mcfg_lookup(root->segment, &root->secondary, &cfgres, &ecam_ops);
-    if (ret) {
-      dev_err(..., "ECAM region not found\n");
-      return ret;
-    }
-
-    cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res,
-                          ecam_ops);
-  }
-
-> +}
-> diff --git a/drivers/pci/host/mcfg-quirks.h b/drivers/pci/host/mcfg-quirks.h
-> new file mode 100644
-> index 0000000..45cbd16
-> --- /dev/null
-> +++ b/drivers/pci/host/mcfg-quirks.h
-> @@ -0,0 +1,20 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, version 2, as
-> + * published by the Free Software Foundation (the "GPL").
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License version 2 (GPLv2) for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * version 2 (GPLv2) along with this source code.
-> + */
-> +
-> +#ifndef __MCFG_QUIRKS_H__
-> +#define __MCFG_QUIRKS_H__
-> +
-> +/* MCFG quirks initialize call list */
-> +
-> +#endif /* __MCFG_QUIRKS_H__ */
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index e9bfe00..28cdce4 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -25,6 +25,8 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
->  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
->  
->  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
-> +extern struct pci_config_window *
-> +pci_mcfg_match_quirks(struct acpi_pci_root *root);
->  
->  extern struct pci_config_window *
->  pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root, struct pci_ops *ops);
-> -- 
-> 1.9.1
+> acpi_ec_ecdt_probe is called very early, so boot_ec, etc. are NULL and
+> it will invoke acpi_ec_setup. This calls acpi_ec_start, but since no GPE
+> handler is yet registered, it will have no effect. Next it will try to
+> register an address space handler, given the root handle. Does this
+> work?
 > 
+> There is no \_REG method, so I would have expected "Fail in evaluating
+> the _REG object of EC device. Broken bios is suspected", but this
+> message was not shown (perhaps it returned AE_BAD_PARAMETER or
+> something?).
+> 
+> Assuming that the handler registration failed (AE_BAD_PARAMETER), then
+> acpi_config_boot_ec will have no effect. If it actually did register a
+> handler, I would expect messages like "\: Used as boot ECDT to handle
+> transactions" which is a bit strange.
+
+Your ECDT understanding is very different from mine.
+I actually think there is an "early operation region" concept in ACPI.
+The early operation region can be accessed during the table loading.
+It means:
+If (SREG == One)
+{
+	Name(OBJ1, One)
+}
+Can be executed during the table loading.
+This brought a great convenience to the BIOS configurable options.
+
+So what kind of operation regions can be accessed during the table loading?
+Actually they are:
+1. SystemPort/SystemMemory
+2. PCI_Config brought by the PCI root bridge
+2. any other early operation regions made available by the data tables.
+ECDT is a kind of such data table.
+There are spec words in _REG section talking about this.
+
+So if ECDT is not invented for this purpose, why it will be useful?
+If the namespace has been initialized, OSPM ACPI core should always be able to use the namespace EC.
+Like what we do in acpi_ec_dsdt_probe().
+
+Since ECDT is used before table loading, we'll put acpi_ec_ecdt_probe() before acpi_load_tables().
+At that time, the namespace is empty, it is not possible to use any handle other than ACPI_ROOT_OBJECT.
+
+Thanks and best regards
+Lv
+
+> 
+> Other than that it looks good to me.
+> 
+> (Aside, I think there is also an implicit assumption that
+> acpi_ec_submit_query never submits work during enumeration, I suspect a
+> possible use-after-free of ec->work is possible otherwise when
+> acpi_ec_free is called.)
+> 
+> Peter
+> 
+> >  error:
+> >  	if (ret)
+> > -		kfree(ec);
+> > -	else
+> > -		first_ec = boot_ec = ec;
+> > +		acpi_ec_free(ec);
+> >  	return ret;
+> >  }
+> >
+> > --
+> > 1.7.10
+> >
