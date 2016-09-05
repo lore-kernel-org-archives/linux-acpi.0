@@ -1,118 +1,148 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v10 1/4] of/serial: move earlycon early_param handling to
- serial
-Date: Mon,  5 Sep 2016 15:36:12 +0300
-Message-ID: <20160905123617.18775-2-aleksey.makarov@linaro.org>
-References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v4 04/15] drivers: acpi: iort: add support for IOMMU
+ fwnode registration
+Date: Mon, 5 Sep 2016 21:00:09 +0800
+Message-ID: <408a90be-df15-b4fb-169d-81c1743c6c16@linaro.org>
+References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1471274620-20754-5-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160905123617.18775-1-aleksey.makarov@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>, Frank Rowand <frowand.list@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Len Brown <lenb@kernel.org>, devicetree@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Leif Lindholm <leif.lindholm@linaro.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, Rob Herring <robh+dt@kernel.org>, Christopher Covington <cov@codeaurora.org>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1471274620-20754-5-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Leif Lindholm <leif.lindholm@linaro.org>
+On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
+> The ACPI IORT table provide entries for IOMMU (aka SMMU in ARM world)
+> components that allow creating the kernel data structures required to
+> probe and initialize the IOMMU devices.
+>
+> This patch provides support in the IORT kernel code to register IOMMU
+> components and their respective fwnode.
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+>  drivers/acpi/arm64/iort.c | 65 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/iort.h      |  8 ++++++
+>  2 files changed, 73 insertions(+)
+>
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index cad7d1d..01a5258 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -20,7 +20,9 @@
+>
+>  #include <linux/iort.h>
+>  #include <linux/kernel.h>
+> +#include <linux/list.h>
+>  #include <linux/pci.h>
+> +#include <linux/slab.h>
+>
+>  struct iort_its_msi_chip {
+>  	struct list_head	list;
+> @@ -28,6 +30,69 @@ struct iort_its_msi_chip {
+>  	u32			translation_id;
+>  };
+>
+> +struct iort_fwnode {
+> +	struct list_head list;
+> +	struct acpi_iort_node *iort_node;
+> +	struct fwnode_handle *fwnode;
+> +};
+> +static LIST_HEAD(iort_fwnode_list);
+> +static DEFINE_SPINLOCK(iort_fwnode_lock);
+> +
+> +/**
+> + * iort_set_fwnode() - Create iort_fwnode and use it to register
+> + *		       iommu data in the iort_fwnode_list
+> + *
+> + * @node: IORT table node associated with the IOMMU
+> + * @fwnode: fwnode associated with the IORT node
+> + *
+> + * Returns: 0 on success
+> + *          <0 on failure
+> + */
+> +int iort_set_fwnode(struct acpi_iort_node *iort_node,
+> +		    struct fwnode_handle *fwnode)
+> +{
+> +	struct iort_fwnode *np;
+> +
+> +	np = kzalloc(sizeof(struct iort_fwnode), GFP_ATOMIC);
+> +
+> +	if (WARN_ON(!np))
+> +		return -ENOMEM;
+> +
+> +	INIT_LIST_HEAD(&np->list);
+> +	np->iort_node = iort_node;
+> +	np->fwnode = fwnode;
+> +
+> +	spin_lock(&iort_fwnode_lock);
+> +	list_add_tail(&np->list, &iort_fwnode_list);
+> +	spin_unlock(&iort_fwnode_lock);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * iort_get_fwnode() - Retrieve fwnode associated with an IORT node
+> + *
+> + * @node: IORT table node to be looked-up
+> + *
+> + * Returns: fwnode_handle pointer on success, NULL on failure
+> +*/
+> +struct fwnode_handle *iort_get_fwnode(struct acpi_iort_node *node)
+> +{
+> +	struct iort_fwnode *curr;
+> +	struct fwnode_handle *fwnode = NULL;
+> +
+> +	spin_lock(&iort_fwnode_lock);
+> +	list_for_each_entry(curr, &iort_fwnode_list, list) {
+> +		if (curr->iort_node == node) {
+> +			fwnode = curr->fwnode;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&iort_fwnode_lock);
+> +
+> +	return fwnode;
+> +}
+> +
+>  typedef acpi_status (*iort_find_node_callback)
+>  	(struct acpi_iort_node *node, void *context);
+>
+> diff --git a/include/linux/iort.h b/include/linux/iort.h
+> index 9bb30c5..666a3de 100644
+> --- a/include/linux/iort.h
+> +++ b/include/linux/iort.h
+> @@ -30,12 +30,20 @@ struct fwnode_handle *iort_find_domain_token(int trans_id);
+>  void iort_table_detect(void);
+>  u32 iort_msi_map_rid(struct device *dev, u32 req_id);
+>  struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+> +int iort_set_fwnode(struct acpi_iort_node *iort_node,
+> +		    struct fwnode_handle *fwnode);
+> +struct fwnode_handle *iort_get_fwnode(struct acpi_iort_node *node);
+>  #else
+>  static inline void iort_table_detect(void) { }
+>  static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+>  { return req_id; }
+>  static inline struct irq_domain *
+>  iort_get_device_domain(struct device *dev, u32 req_id) { return NULL; }
+> +static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
+> +				  struct fwnode_handle *fwnode)
+> +{ return -ENODEV; }
+> +static inline struct fwnode_handle *
+> +iort_get_fwnode(struct acpi_iort_node *node) { return NULL; }
+>  #endif
+>
+>  #define IORT_ACPI_DECLARE(name, table_id, fn)		\
 
-We have multiple "earlycon" early_param handlers - merge the DT one into
-the main earlycon one.  It's a cleanup that also will be useful
-to defer setting up DT console until ACPI/DT decision is made.
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Rename the exported function to avoid clashing with the function from
-arch/microblaze/kernel/prom.c
-
-Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Tested-by: Christopher Covington <cov@codeaurora.org>
----
- drivers/of/fdt.c              | 11 +----------
- drivers/tty/serial/earlycon.c |  2 +-
- include/linux/of_fdt.h        |  3 +++
- 3 files changed, 5 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
-index 085c638..c89d5d2 100644
---- a/drivers/of/fdt.c
-+++ b/drivers/of/fdt.c
-@@ -924,7 +924,7 @@ static inline void early_init_dt_check_for_initrd(unsigned long node)
- 
- #ifdef CONFIG_SERIAL_EARLYCON
- 
--static int __init early_init_dt_scan_chosen_serial(void)
-+int __init early_init_dt_scan_chosen_stdout(void)
- {
- 	int offset;
- 	const char *p, *q, *options = NULL;
-@@ -968,15 +968,6 @@ static int __init early_init_dt_scan_chosen_serial(void)
- 	}
- 	return -ENODEV;
- }
--
--static int __init setup_of_earlycon(char *buf)
--{
--	if (buf)
--		return 0;
--
--	return early_init_dt_scan_chosen_serial();
--}
--early_param("earlycon", setup_of_earlycon);
- #endif
- 
- /**
-diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-index 067783f..7aae655 100644
---- a/drivers/tty/serial/earlycon.c
-+++ b/drivers/tty/serial/earlycon.c
-@@ -209,7 +209,7 @@ static int __init param_setup_earlycon(char *buf)
- 	 * don't generate a warning from parse_early_params() in that case
- 	 */
- 	if (!buf || !buf[0])
--		return 0;
-+		return early_init_dt_scan_chosen_stdout();
- 
- 	err = setup_earlycon(buf);
- 	if (err == -ENOENT || err == -EALREADY)
-diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
-index 26c3302..4341f32 100644
---- a/include/linux/of_fdt.h
-+++ b/include/linux/of_fdt.h
-@@ -14,6 +14,7 @@
- 
- #include <linux/types.h>
- #include <linux/init.h>
-+#include <linux/errno.h>
- 
- /* Definitions used by the flattened device tree */
- #define OF_DT_HEADER		0xd00dfeed	/* marker */
-@@ -66,6 +67,7 @@ extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
- 				     int depth, void *data);
- extern int early_init_dt_scan_memory(unsigned long node, const char *uname,
- 				     int depth, void *data);
-+extern int early_init_dt_scan_chosen_stdout(void);
- extern void early_init_fdt_scan_reserved_mem(void);
- extern void early_init_fdt_reserve_self(void);
- extern void early_init_dt_add_memory_arch(u64 base, u64 size);
-@@ -94,6 +96,7 @@ extern void early_get_first_memblock_info(void *, phys_addr_t *);
- extern u64 of_flat_dt_translate_address(unsigned long node);
- extern void of_fdt_limit_memory(int limit);
- #else /* CONFIG_OF_FLATTREE */
-+static inline int early_init_dt_scan_chosen_stdout(void) { return -ENODEV; }
- static inline void early_init_fdt_scan_reserved_mem(void) {}
- static inline void early_init_fdt_reserve_self(void) {}
- static inline const char *of_flat_dt_get_machine_name(void) { return NULL; }
--- 
-2.9.3
+Thanks
+Hanjun
