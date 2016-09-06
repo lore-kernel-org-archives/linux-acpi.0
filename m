@@ -1,246 +1,313 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V10 5/8] irqchip/gicv3-its: Refactor ITS DT init code to prepare for ACPI
-Date: Tue,  6 Sep 2016 11:08:55 +0200
-Message-ID: <1473152938-17388-6-git-send-email-tn@semihalf.com>
-References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1473152938-17388-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
+From: Peter Wu <peter@lekensteyn.nl>
+Subject: Re: [PATCH 1/4] ACPI / EC: Cleanup first_ec/boot_ec code
+Date: Tue, 6 Sep 2016 11:35:36 +0200
+Message-ID: <20160906093536.GA5696@al>
+References: <cover.1472802172.git.lv.zheng@intel.com>
+ <329458b814b546daf26e058d303729fdc936730f.1472802172.git.lv.zheng@intel.com>
+ <20160903162142.GA5252@al>
+ <1AE640813FDE7649BE1B193DEA596E886A17F533@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lekensteyn.nl ([178.21.112.251]:47252 "EHLO lekensteyn.nl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933143AbcIFJft (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Sep 2016 05:35:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A17F533@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Luya Tshimbalanga <luya@fedoraproject.org>
 
-In order to add ACPI support we need to isolate ACPI&DT common code and
-move DT logic to corresponding functions. To achieve this we are using
-firmware agnostic handle which can be unpacked to either DT or ACPI node.
+On Mon, Sep 05, 2016 at 05:57:47AM +0000, Zheng, Lv wrote:
+> Hi, Peter
+> 
+> > From: Peter Wu [mailto:peter@lekensteyn.nl]
+> > Subject: Re: [PATCH 1/4] ACPI / EC: Cleanup first_ec/boot_ec code
+> > 
+> > On Fri, Sep 02, 2016 at 03:46:31PM +0800, Lv Zheng wrote:
+> > > In order to support full ECDT (driving the ECDT EC after probing the
+> > > namespace EC), we need to change our EC device alloc/free algorithm, ensure
+> > > not to free old boot EC before qualifying new boot EC.
+> > > This patch achieves this by cleaning up first_ec/boot_ec logic:
+> > > 1. first_ec: used to perform transactions, so it is assigned in new
+> > >    acpi_ec_setup() function.
+> > > 2. boot_ec: used to track early EC device, so it is assigned in new
+> > >    acpi_config_boot_ec() function which explictly tells the driver to save
+> > >    the EC device as early EC device.
+> > >
+> > > Link: https://bugzilla.kernel.org/show_bug.cgi?id=115021
+> > > Reported-and-tested-by: Luya Tshimbalanga <luya@fedoraproject.org>
+> > > Suggested-by: Peter Wu <peter@lekensteyn.nl>
+> > > Cc: Peter Wu <peter@lekensteyn.nl>
+> > > Cc: Luya Tshimbalanga <luya@fedoraproject.org>
+> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > 
+> > Good idea, the previous acpi_ec_alloc function contained an implicit
+> > assumption which was slightly harder to follow. See below for one
+> > concern.
+> > 
+> > > ---
+> > >  drivers/acpi/ec.c |   96 +++++++++++++++++++++++++++++++++++------------------
+> > >  1 file changed, 63 insertions(+), 33 deletions(-)
+> > >
+> > > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> > > index e7bd57c..4a5f3ab 100644
+> > > --- a/drivers/acpi/ec.c
+> > > +++ b/drivers/acpi/ec.c
+> > > @@ -179,6 +179,7 @@ static void acpi_ec_event_processor(struct work_struct *work);
+> > >
+> > >  struct acpi_ec *boot_ec, *first_ec;
+> > >  EXPORT_SYMBOL(first_ec);
+> > > +static bool boot_ec_is_ecdt = false;
+> > >  static struct workqueue_struct *ec_query_wq;
+> > >
+> > >  static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
+> > > @@ -1228,7 +1229,16 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+> > >  static acpi_status
+> > >  ec_parse_io_ports(struct acpi_resource *resource, void *context);
+> > >
+> > > -static struct acpi_ec *make_acpi_ec(void)
+> > > +static void acpi_ec_free(struct acpi_ec *ec)
+> > > +{
+> > > +	if (first_ec == ec)
+> > > +		first_ec = NULL;
+> > > +	if (boot_ec == ec)
+> > > +		boot_ec = NULL;
+> > > +	kfree(ec);
+> > > +}
+> > > +
+> > > +static struct acpi_ec *acpi_ec_alloc(void)
+> > >  {
+> > >  	struct acpi_ec *ec = kzalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+> > >
+> > > @@ -1290,6 +1300,11 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+> > >  	return AE_CTRL_TERMINATE;
+> > >  }
+> > >
+> > > +/*
+> > > + * Note: This function returns an error code only when the address space
+> > > + *       handler is not installed, which means "not able to handle
+> > > + *       transactions".
+> > > + */
+> > >  static int ec_install_handlers(struct acpi_ec *ec)
+> > >  {
+> > >  	acpi_status status;
+> > > @@ -1365,21 +1380,49 @@ static void ec_remove_handlers(struct acpi_ec *ec)
+> > >  	}
+> > >  }
+> > >
+> > > -static struct acpi_ec *acpi_ec_alloc(void)
+> > > +static int acpi_ec_setup(struct acpi_ec *ec)
+> > >  {
+> > > -	struct acpi_ec *ec;
+> > > +	int ret;
+> > >
+> > > -	/* Check for boot EC */
+> > > -	if (boot_ec) {
+> > > -		ec = boot_ec;
+> > > -		boot_ec = NULL;
+> > > -		ec_remove_handlers(ec);
+> > > -		if (first_ec == ec)
+> > > -			first_ec = NULL;
+> > > -	} else {
+> > > -		ec = make_acpi_ec();
+> > > +	ret = ec_install_handlers(ec);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	/* First EC capable of handling transactions */
+> > > +	if (!first_ec) {
+> > > +		first_ec = ec;
+> > > +		acpi_handle_info(first_ec->handle, "Used as first EC\n");
+> > >  	}
+> > > -	return ec;
+> > > +
+> > > +	acpi_handle_info(ec->handle,
+> > > +			 "GPE=0x%lx, EC_CMD/EC_SC=0x%lx, EC_DATA=0x%lx\n",
+> > > +			 ec->gpe, ec->command_addr, ec->data_addr);
+> > > +	return ret;
+> > > +}
+> > > +
+> > > +static int acpi_config_boot_ec(struct acpi_ec *ec, bool is_ecdt)
+> > > +{
+> > > +	int ret;
+> > > +
+> > > +	if (boot_ec)
+> > > +		ec_remove_handlers(boot_ec);
+> > > +
+> > > +	/* Unset old boot EC */
+> > > +	if (boot_ec != ec)
+> > > +		acpi_ec_free(boot_ec);
+> > > +
+> > > +	ret = acpi_ec_setup(ec);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	/* Set new boot EC */
+> > > +	if (!boot_ec) {
+> > > +		boot_ec = ec;
+> > > +		boot_ec_is_ecdt = is_ecdt;
+> > > +		acpi_handle_info(boot_ec->handle, "Used as boot %s EC\n",
+> > > +				 is_ecdt ? "ECDT" : "DSDT");
+> > > +	}
+> > > +	return ret;
+> > >  }
+> > >
+> > >  static int acpi_ec_add(struct acpi_device *device)
+> > > @@ -1395,7 +1438,7 @@ static int acpi_ec_add(struct acpi_device *device)
+> > >  		return -ENOMEM;
+> > >  	if (ec_parse_device(device->handle, 0, ec, NULL) !=
+> > >  		AE_CTRL_TERMINATE) {
+> > > -			kfree(ec);
+> > > +			acpi_ec_free(ec);
+> > >  			return -EINVAL;
+> > >  	}
+> > >
+> > > @@ -1403,8 +1446,6 @@ static int acpi_ec_add(struct acpi_device *device)
+> > >  	acpi_walk_namespace(ACPI_TYPE_METHOD, ec->handle, 1,
+> > >  			    acpi_ec_register_query_methods, NULL, ec, NULL);
+> > >
+> > > -	if (!first_ec)
+> > > -		first_ec = ec;
+> > >  	device->driver_data = ec;
+> > >
+> > >  	ret = !!request_region(ec->data_addr, 1, "EC data");
+> > > @@ -1412,10 +1453,7 @@ static int acpi_ec_add(struct acpi_device *device)
+> > >  	ret = !!request_region(ec->command_addr, 1, "EC cmd");
+> > >  	WARN(!ret, "Could not request EC cmd io port 0x%lx", ec->command_addr);
+> > >
+> > > -	pr_info("GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+> > > -			  ec->gpe, ec->command_addr, ec->data_addr);
+> > > -
+> > > -	ret = ec_install_handlers(ec);
+> > > +	ret = acpi_config_boot_ec(ec, false);
+> > >
+> > >  	/* Reprobe devices depending on the EC */
+> > >  	acpi_walk_dep_device_list(ec->handle);
+> > > @@ -1442,9 +1480,7 @@ static int acpi_ec_remove(struct acpi_device *device)
+> > >  	release_region(ec->data_addr, 1);
+> > >  	release_region(ec->command_addr, 1);
+> > >  	device->driver_data = NULL;
+> > > -	if (ec == first_ec)
+> > > -		first_ec = NULL;
+> > > -	kfree(ec);
+> > > +	acpi_ec_free(ec);
+> > >  	return 0;
+> > >  }
+> > >
+> > > @@ -1496,13 +1532,10 @@ int __init acpi_ec_dsdt_probe(void)
+> > >  		ret = -ENODEV;
+> > >  		goto error;
+> > >  	}
+> > > -	ret = ec_install_handlers(ec);
+> > > -
+> > > +	ret = acpi_config_boot_ec(ec, false);
+> > >  error:
+> > >  	if (ret)
+> > > -		kfree(ec);
+> > > -	else
+> > > -		first_ec = boot_ec = ec;
+> > > +		acpi_ec_free(ec);
+> > >  	return ret;
+> > >  }
+> > >
+> > > @@ -1600,7 +1633,6 @@ int __init acpi_ec_ecdt_probe(void)
+> > >  		goto error;
+> > >  	}
+> > >
+> > > -	pr_info("EC description table is found, configuring boot EC\n");
+> > >  	if (EC_FLAGS_CORRECT_ECDT) {
+> > >  		ec->command_addr = ecdt_ptr->data.address;
+> > >  		ec->data_addr = ecdt_ptr->control.address;
+> > > @@ -1610,12 +1642,10 @@ int __init acpi_ec_ecdt_probe(void)
+> > >  	}
+> > >  	ec->gpe = ecdt_ptr->gpe;
+> > >  	ec->handle = ACPI_ROOT_OBJECT;
+> > > -	ret = ec_install_handlers(ec);
+> > > +	ret = acpi_config_boot_ec(ec, true);
+> > 
+> > acpi_ec_ecdt_probe is called very early, so boot_ec, etc. are NULL and
+> > it will invoke acpi_ec_setup. This calls acpi_ec_start, but since no GPE
+> > handler is yet registered, it will have no effect. Next it will try to
+> > register an address space handler, given the root handle. Does this
+> > work?
+> > 
+> > There is no \_REG method, so I would have expected "Fail in evaluating
+> > the _REG object of EC device. Broken bios is suspected", but this
+> > message was not shown (perhaps it returned AE_BAD_PARAMETER or
+> > something?).
+> > 
+> > Assuming that the handler registration failed (AE_BAD_PARAMETER), then
+> > acpi_config_boot_ec will have no effect. If it actually did register a
+> > handler, I would expect messages like "\: Used as boot ECDT to handle
+> > transactions" which is a bit strange.
+> 
+> Your ECDT understanding is very different from mine.
+> I actually think there is an "early operation region" concept in ACPI.
+> The early operation region can be accessed during the table loading.
+> It means:
+> If (SREG == One)
+> {
+> 	Name(OBJ1, One)
+> }
+> Can be executed during the table loading.
+> This brought a great convenience to the BIOS configurable options.
+> 
+> So what kind of operation regions can be accessed during the table loading?
+> Actually they are:
+> 1. SystemPort/SystemMemory
+> 2. PCI_Config brought by the PCI root bridge
+> 2. any other early operation regions made available by the data tables.
+> ECDT is a kind of such data table.
+> There are spec words in _REG section talking about this.
+> 
+> So if ECDT is not invented for this purpose, why it will be useful?
+> If the namespace has been initialized, OSPM ACPI core should always be able to use the namespace EC.
+> Like what we do in acpi_ec_dsdt_probe().
+> 
+> Since ECDT is used before table loading, we'll put acpi_ec_ecdt_probe() before acpi_load_tables().
+> At that time, the namespace is empty, it is not possible to use any handle other than ACPI_ROOT_OBJECT.
 
-No functional changes other than a very minor one:
-1. Terminate its_init call with -ENODEV for non-DT case which allows
-to remove hack from its-gic-v3.c.
-2. Fix ITS base register address type (from 'unsigned long' to 'phys_addr_t'),
-as a bonus we get nice string formatting.
-3. Since there is only one of ITS parent domain convert it to static global
-variable and drop the parameter from its_probe_one. Users can refer to it
-in more convenient way then.
+I see, thanks for the detailed explanation. Originally I was concerned
+about the slightly misleading kernel log messages that would refer to
+"\" as the EC handle (which is bogus), but this seems unavoidable at
+this stage.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- drivers/irqchip/irq-gic-v3-its.c   | 65 ++++++++++++++++++++++----------------
- drivers/irqchip/irq-gic-v3.c       |  7 ++--
- include/linux/irqchip/arm-gic-v3.h |  4 +--
- 3 files changed, 42 insertions(+), 34 deletions(-)
+For example, initially it would print:
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 943442d..c7518c7 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -75,7 +75,7 @@ struct its_node {
- 	raw_spinlock_t		lock;
- 	struct list_head	entry;
- 	void __iomem		*base;
--	unsigned long		phys_base;
-+	phys_addr_t		phys_base;
- 	struct its_cmd_block	*cmd_base;
- 	struct its_cmd_block	*cmd_write;
- 	struct its_baser	tables[GITS_BASER_NR_REGS];
-@@ -115,6 +115,7 @@ struct its_device {
- static LIST_HEAD(its_nodes);
- static DEFINE_SPINLOCK(its_lock);
- static struct rdists *gic_rdists;
-+static struct irq_domain *its_parent;
- 
- #define gic_data_rdist()		(raw_cpu_ptr(gic_rdists->rdist))
- #define gic_data_rdist_rd_base()	(gic_data_rdist()->rd_base)
-@@ -1614,8 +1615,7 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
- }
- 
--static int its_init_domain(struct device_node *node, struct its_node *its,
--			   struct irq_domain *parent)
-+static int its_init_domain(struct fwnode_handle *handle, struct its_node *its)
- {
- 	struct irq_domain *inner_domain;
- 	struct msi_domain_info *info;
-@@ -1624,13 +1624,13 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
- 	if (!info)
- 		return -ENOMEM;
- 
--	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
-+	inner_domain = irq_domain_create_tree(handle, &its_domain_ops, its);
- 	if (!inner_domain) {
- 		kfree(info);
- 		return -ENOMEM;
- 	}
- 
--	inner_domain->parent = parent;
-+	inner_domain->parent = its_parent;
- 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
- 	info->ops = &its_msi_domain_ops;
- 	info->data = its;
-@@ -1639,43 +1639,35 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
- 	return 0;
- }
- 
--static int __init its_probe(struct device_node *node,
--			    struct irq_domain *parent)
-+static int __init its_probe_one(struct resource *res,
-+				struct fwnode_handle *handle, int numa_node)
- {
--	struct resource res;
- 	struct its_node *its;
- 	void __iomem *its_base;
- 	u32 val;
- 	u64 baser, tmp;
- 	int err;
- 
--	err = of_address_to_resource(node, 0, &res);
--	if (err) {
--		pr_warn("%s: no regs?\n", node->full_name);
--		return -ENXIO;
--	}
--
--	its_base = ioremap(res.start, resource_size(&res));
-+	its_base = ioremap(res->start, resource_size(res));
- 	if (!its_base) {
--		pr_warn("%s: unable to map registers\n", node->full_name);
-+		pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
- 		return -ENOMEM;
- 	}
- 
- 	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
- 	if (val != 0x30 && val != 0x40) {
--		pr_warn("%s: no ITS detected, giving up\n", node->full_name);
-+		pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
- 		err = -ENODEV;
- 		goto out_unmap;
- 	}
- 
- 	err = its_force_quiescent(its_base);
- 	if (err) {
--		pr_warn("%s: failed to quiesce, giving up\n",
--			node->full_name);
-+		pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
- 		goto out_unmap;
- 	}
- 
--	pr_info("ITS: %s\n", node->full_name);
-+	pr_info("ITS %pR\n", res);
- 
- 	its = kzalloc(sizeof(*its), GFP_KERNEL);
- 	if (!its) {
-@@ -1687,9 +1679,9 @@ static int __init its_probe(struct device_node *node,
- 	INIT_LIST_HEAD(&its->entry);
- 	INIT_LIST_HEAD(&its->its_device_list);
- 	its->base = its_base;
--	its->phys_base = res.start;
-+	its->phys_base = res->start;
- 	its->ite_size = ((readl_relaxed(its_base + GITS_TYPER) >> 4) & 0xf) + 1;
--	its->numa_node = of_node_to_nid(node);
-+	its->numa_node = numa_node;
- 
- 	its->cmd_base = kzalloc(ITS_CMD_QUEUE_SZ, GFP_KERNEL);
- 	if (!its->cmd_base) {
-@@ -1736,7 +1728,7 @@ static int __init its_probe(struct device_node *node,
- 	writeq_relaxed(0, its->base + GITS_CWRITER);
- 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
- 
--	err = its_init_domain(node, its, parent);
-+	err = its_init_domain(handle, its);
- 	if (err)
- 		goto out_free_tables;
- 
-@@ -1754,7 +1746,7 @@ out_free_its:
- 	kfree(its);
- out_unmap:
- 	iounmap(its_base);
--	pr_err("ITS: failed probing %s (%d)\n", node->full_name, err);
-+	pr_err("ITS@%pa: failed probing (%d)\n", &res->start, err);
- 	return err;
- }
- 
-@@ -1782,10 +1774,10 @@ static struct of_device_id its_device_id[] = {
- 	{},
- };
- 
--int __init its_init(struct device_node *node, struct rdists *rdists,
--	     struct irq_domain *parent_domain)
-+static int __init its_of_probe(struct device_node *node)
- {
- 	struct device_node *np;
-+	struct resource res;
- 
- 	for (np = of_find_matching_node(node, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
-@@ -1795,8 +1787,27 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
- 			continue;
- 		}
- 
--		its_probe(np, parent_domain);
-+		if (of_address_to_resource(np, 0, &res)) {
-+			pr_warn("%s: no regs?\n", np->full_name);
-+			continue;
-+		}
-+
-+		its_probe_one(&res, &np->fwnode, of_node_to_nid(np));
- 	}
-+	return 0;
-+}
-+
-+int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
-+		    struct irq_domain *parent_domain)
-+{
-+	struct device_node *of_node;
-+
-+	its_parent = parent_domain;
-+	of_node = to_of_node(handle);
-+	if (of_node)
-+		its_of_probe(of_node);
-+	else
-+		return -ENODEV;
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index ede5672..1efc02a 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -910,7 +910,6 @@ static int __init gic_init_bases(void __iomem *dist_base,
- 				 u64 redist_stride,
- 				 struct fwnode_handle *handle)
- {
--	struct device_node *node;
- 	u32 typer;
- 	int gic_irqs;
- 	int err;
-@@ -951,10 +950,8 @@ static int __init gic_init_bases(void __iomem *dist_base,
- 
- 	set_handle_irq(gic_handle_irq);
- 
--	node = to_of_node(handle);
--	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
--	    node) /* Temp hack to prevent ITS init for ACPI */
--		its_init(node, &gic_data.rdists, gic_data.domain);
-+	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
-+		its_init(handle, &gic_data.rdists, gic_data.domain);
- 
- 	gic_smp_init();
- 	gic_dist_init();
-diff --git a/include/linux/irqchip/arm-gic-v3.h b/include/linux/irqchip/arm-gic-v3.h
-index 99ac022..8361c8d 100644
---- a/include/linux/irqchip/arm-gic-v3.h
-+++ b/include/linux/irqchip/arm-gic-v3.h
-@@ -430,9 +430,9 @@ struct rdists {
- };
- 
- struct irq_domain;
--struct device_node;
-+struct fwnode_handle;
- int its_cpu_init(void);
--int its_init(struct device_node *node, struct rdists *rdists,
-+int its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 	     struct irq_domain *domain);
- 
- static inline bool gic_enable_sre(void)
--- 
-1.9.1
+    \: GPE=0x15, EC_CMD/EC_....
+
+instead of something like:
+
+    \_SB.PCI0.SBRG.EC0: GPE=0x15, EC_CMD/EC_....
+
+Kind regards,
+Peter
+
+> Thanks and best regards
+> Lv
+> 
+> > 
+> > Other than that it looks good to me.
+> > 
+> > (Aside, I think there is also an implicit assumption that
+> > acpi_ec_submit_query never submits work during enumeration, I suspect a
+> > possible use-after-free of ec->work is possible otherwise when
+> > acpi_ec_free is called.)
+> > 
+> > Peter
+> > 
+> > >  error:
+> > >  	if (ret)
+> > > -		kfree(ec);
+> > > -	else
+> > > -		first_ec = boot_ec = ec;
+> > > +		acpi_ec_free(ec);
+> > >  	return ret;
+> > >  }
+> > >
+> > > --
+> > > 1.7.10
+> > >
