@@ -1,99 +1,293 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [PATCH] drivers: acpi: fix GIC irq model default PCI IRQ polarity
-Date: Mon, 5 Sep 2016 23:16:26 -0700
-Message-ID: <CADaLNDmAZ-fiiNoJhqJ9iaZAj4qTJ9vYc1efiU_d73xETG+U7A@mail.gmail.com>
-References: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V9 1/8] ACPI: I/O Remapping Table (IORT) initial support
+Date: Tue, 6 Sep 2016 09:24:35 +0200
+Message-ID: <a950814b-6bfb-7435-b137-c42cf2c1908c@semihalf.com>
+References: <1473105940-9761-1-git-send-email-tn@semihalf.com>
+ <1473105940-9761-2-git-send-email-tn@semihalf.com>
+ <CAJZ5v0iJGycCVaQ9gdpWL55wFcX5X=RXTze_-Fw+5TaSvjH3yQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:35128 "EHLO
-        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932299AbcIFGQ6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2016 02:16:58 -0400
-Received: by mail-vk0-f47.google.com with SMTP id j189so82387614vkc.2
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Sep 2016 23:16:58 -0700 (PDT)
-In-Reply-To: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mail-yw0-f176.google.com ([209.85.161.176]:34969 "EHLO
+        mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932685AbcIFHYr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2016 03:24:47 -0400
+Received: by mail-yw0-f176.google.com with SMTP id j1so29042393ywb.2
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2016 00:24:45 -0700 (PDT)
+In-Reply-To: <CAJZ5v0iJGycCVaQ9gdpWL55wFcX5X=RXTze_-Fw+5TaSvjH3yQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, Punit Agrawal <punit.agrawal@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, shijie.huang@arm.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Andrea Gallo <andrea.gallo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.o>
 
-On Mon, Sep 5, 2016 at 7:12 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On ACPI ARM based systems the GIC interrupt controller
-> and corresponding interrupt model permit only the high
-> polarity for level interrupts.
->
-> ACPI firmware describes PCI legacy IRQs through entries
-> in the _PRT objects. Entries in the _PRT can be of two types:
->
-> - Static: not configurable, trigger/polarity default to level-low,
->   _PRT entry defines the global GSI interrupt number
-> - Configurable: _PRT interrupt entry contains a reference to the
->   corresponding PCI interrupt link device (that in turn provides the
->   interrupt descriptor through its _CRS/_PRS methods)
->
-> Configurable IRQ entries are not currently allowed by the ACPI
-> specification on ARM, since they can only be used for interrupt
-> pins that are routable, and ARM platforms GIC configurations
-> do not allow dynamic IRQ routing, routing is statically laid out
-> at synthesis time; therefore PCI interrupt links cannot be used
-> for PCI legacy IRQ descriptions in the _PRT on ARM systems.
->
-> On the other hand, current core ACPI code handling PCI legacy IRQs
-> consider IRQ trigger/polarity for static _PRT entries as level-low.
->
-> On ARM systems with a GIC interrupt controller and corresponding
-> ACPI interrupt model this does not work in that GIC interrupt
-> controller is only capable of handling level interrupts whose
-> polarity is high (for PCI legacy IRQs - that are level-low by
-> specification - this means that the legacy IRQs are inverted before
-> reaching the interrupt controller pin), resulting in IRQ allocation
-> failures such as:
->
-> genirq: Setting trigger mode 8 for irq 18 failed (gic_set_type+0x0/0x48)
->
-> Change the default polarity for PCI legacy IRQs to high on systems
-> booting wth ACPI on platforms with a GIC interrupt controller model,
-> fixing the discrepancy between specification and HW behaviour.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Duc Dang <dhdang@apm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  drivers/acpi/pci_irq.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 2c45dd3..c576a6f 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -411,7 +411,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->         int gsi;
->         u8 pin;
->         int triggering = ACPI_LEVEL_SENSITIVE;
-> -       int polarity = ACPI_ACTIVE_LOW;
-> +       /*
-> +        * On ARM systems with the GIC interrupt model, level interrupts
-> +        * are always polarity high by specification; PCI legacy
-> +        * IRQs lines are inverted before reaching the interrupt
-> +        * controller and must therefore be considered active high
-> +        * as default.
-> +        */
-> +       int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> +                                     ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
->         char *link = NULL;
->         char link_desc[16];
->         int rc;
+Hi Rafael,
 
-Tested-by: Duc Dang <dhdang@apm.com>
-
-> --
-> 2.6.4
+On 05.09.2016 22:29, Rafael J. Wysocki wrote:
+> On Mon, Sep 5, 2016 at 10:05 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+>> IORT shows representation of IO topology for ARM based systems.
+>> It describes how various components are connected together on
+>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>>
+>> Initial support allows to detect IORT table presence and save its
+>> root pointer obtained through acpi_get_table(). The pointer validity
+>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+>> is not set while using IORT nodes we would dereference unmapped pointers.
+>>
+>> For the aforementioned reason call iort_table_detect() from acpi_init()
+>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
+>>
+>> Add generic helpers which are helpful for scanning and retrieving
+>> information from IORT table content. List of the most important helpers:
+>> - iort_find_dev_node() finds IORT node for a given device
+>> - iort_node_map_rid() maps device RID and returns IORT node which provides
+>>   final translation
+>>
+>> IORT support is placed under drivers/acpi/arm64/ new directory due to its
+>> ARM64 specific nature. The code there is considered only for ARM64.
+>> The long term plan is to keep all ARM64 specific tables support
+>> in this place e.g. GTDT table.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 >
-Regards,
-Duc Dang.
+> Some cosmetic stuff below.
+>
+
+[...]
+
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> new file mode 100644
+>> index 0000000..82d5e7d
+>> --- /dev/null
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -0,0 +1,221 @@
+>> +/*
+>> + * Copyright (C) 2016, Semihalf
+>> + *     Author: Tomasz Nowicki <tn@semihalf.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify it
+>> + * under the terms and conditions of the GNU General Public License,
+>> + * version 2, as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope it will be useful, but WITHOUT
+>> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+>> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+>> + * more details.
+>> + *
+>> + * This file implements early detection/parsing of I/O mapping
+>> + * reported to OS through firmware via I/O Remapping Table (IORT)
+>> + * IORT document number: ARM DEN 0049A
+>> + */
+>> +
+>> +#define pr_fmt(fmt)    "ACPI: IORT: " fmt
+>> +
+>> +#include <linux/iort.h>
+>
+> Do we need a separate header file for this?
+
+IMO yes. It's well isolated functionality and more will be added in 
+patch 2 and IOMMU support by Lorenzo. Also, it's the same convention as 
+for DMAR support.
+
+>
+>> +#include <linux/kernel.h>
+>> +#include <linux/pci.h>
+>> +
+>> +typedef acpi_status (*iort_find_node_callback)
+>> +       (struct acpi_iort_node *node, void *context);
+>> +
+>> +/* Root pointer to the mapped IORT table */
+>> +static struct acpi_table_header *iort_table;
+>> +
+>> +static struct acpi_iort_node *
+>> +iort_scan_node(enum acpi_iort_node_type type,
+>
+> Please do not break function headers like this.  Specifically, the
+> return type and the name should be located in the same line.
+
+OK
+
+>
+>> +              iort_find_node_callback callback, void *context)
+>> +{
+>> +       struct acpi_iort_node *iort_node, *iort_end;
+>> +       struct acpi_table_iort *iort;
+>> +       int i;
+>> +
+>> +       if (!iort_table)
+>> +               return NULL;
+>> +
+>> +       /* Get the first IORT node */
+>> +       iort = (struct acpi_table_iort *)iort_table;
+>> +       iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort,
+>> +                                iort->node_offset);
+>> +       iort_end = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+>> +                               iort_table->length);
+>> +
+>> +       for (i = 0; i < iort->node_count; i++) {
+>> +               if (WARN_TAINT(iort_node >= iort_end, TAINT_FIRMWARE_WORKAROUND,
+>> +                              "IORT node pointer overflows, bad table!\n"))
+>> +                       return NULL;
+>> +
+>> +               if (iort_node->type == type) {
+>> +                       if (ACPI_SUCCESS(callback(iort_node, context)))
+>> +                               return iort_node;
+>
+> It's better to write this as
+>
+> if (iort_node->type == type && ACPI_SUCCESS(callback(iort_node, context))
+>         return iort_node;
+
+OK
+
+>
+>> +               }
+>> +
+>> +               iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+>> +                                        iort_node->length);
+>> +       }
+>> +
+>> +       return NULL;
+>> +}
+>> +
+>> +static acpi_status
+>> +iort_match_node_callback(struct acpi_iort_node *node, void *context)
+>> +{
+>> +       struct device *dev = context;
+>> +
+>> +       switch (node->type) {
+>> +       case ACPI_IORT_NODE_NAMED_COMPONENT: {
+>> +               struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>> +               struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
+>> +               struct acpi_iort_named_component *ncomp;
+>> +
+>> +               if (!adev)
+>> +                       break;
+>> +
+>> +               ncomp = (struct acpi_iort_named_component *)node->node_data;
+>> +
+>> +               if (ACPI_FAILURE(acpi_get_name(adev->handle,
+>> +                                              ACPI_FULL_PATHNAME, &buffer))) {
+>> +                       dev_warn(dev, "Can't get device full path name\n");
+>
+> I'd switch the branches so that the one to be executed on success goes first.
+>
+> Also consider using acpi_status variables for things like this.
+>
+>         status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buffer);
+>         if (ACPI_SUCCESS(status)) {
+>
+> is much easier to follow than what you are doing here.
+
+Agree, actually I rewrite this function as follow:
+
+static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+					    void *context)
+{
+	struct device *dev = context;
+	acpi_status status = AE_NOT_FOUND;
+
+	switch (node->type) {
+	case ACPI_IORT_NODE_NAMED_COMPONENT: {
+		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
+		struct acpi_iort_named_component *ncomp;
+
+		if (!adev)
+			break;
+
+		status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buf);
+		if (ACPI_FAILURE(status)) {
+			dev_warn(dev, "Can't get device full path name\n");
+			break;
+		}
+
+		ncomp = (struct acpi_iort_named_component *)node->node_data;
+		if (!strcmp(ncomp->device_name, buf.pointer))
+			status = AE_OK;
+
+		acpi_os_free(buf.pointer);
+		break;
+	}
+	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX: {
+		struct acpi_iort_root_complex *pci_rc;
+		struct pci_bus *bus;
+
+		bus = to_pci_bus(dev);
+		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
+
+		/*
+		 * It is assumed that PCI segment numbers maps one-to-one
+		 * with root complexes. Each segment number can represent only
+		 * one root complex.
+		 */
+		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
+			status = AE_OK;
+
+		break;
+	}
+	}
+
+	return status;
+}
+
+>
+>> +               } else {
+>> +                       int match;
+>> +
+>> +                       match = !strcmp(ncomp->device_name, buffer.pointer);
+>> +                       acpi_os_free(buffer.pointer);
+>> +
+>> +                       if (match)
+>> +                               return AE_OK;
+>> +               }
+>> +
+>> +               break;
+>> +       }
+>> +       case ACPI_IORT_NODE_PCI_ROOT_COMPLEX: {
+>
+> What is the brace for?
+
+To create namespace for below local variables. The same for 
+ACPI_IORT_NODE_NAMED_COMPONENT case.
+
+>
+>> +               struct acpi_iort_root_complex *pci_rc;
+>> +               struct pci_bus *bus;
+>> +
+>> +               bus = to_pci_bus(dev);
+>> +               pci_rc = (struct acpi_iort_root_complex *)node->node_data;
+>> +
+>> +               /*
+>> +                * It is assumed that PCI segment numbers maps one-to-one
+>> +                * with root complexes. Each segment number can represent only
+>> +                * one root complex.
+>> +                */
+>> +               if (pci_rc->pci_segment_number == pci_domain_nr(bus))
+>> +                       return AE_OK;
+>> +
+>> +               break;
+>> +       }
+>> +       }
+>> +
+>> +       return AE_NOT_FOUND;
+>> +}
+>> +
+
+[...]
+
+>> diff --git a/include/linux/iort.h b/include/linux/iort.h
+>> new file mode 100644
+>> index 0000000..f4d5d45
+>> --- /dev/null
+>> +++ b/include/linux/iort.h
+>
+> If the new file header is necessary, it should be called acpi_iort.h IMO.
+
+OK
+
+Thanks,
+Tomasz
