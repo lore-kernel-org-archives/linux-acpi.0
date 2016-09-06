@@ -1,54 +1,57 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2] drivers: acpi: fix GIC irq model default PCI IRQ polarity
-Date: Tue, 6 Sep 2016 23:02:08 +0200
-Message-ID: <CAJZ5v0i1VV1poabr3ZUvDdSGR9NN=tj6GoXM98rsrU6M-f_pOA@mail.gmail.com>
-References: <1473180663-20590-1-git-send-email-lorenzo.pieralisi@arm.com> <20160906171401.GA7554@localhost>
+Subject: Re: ACPI-video: Fine-tuning for several function implementations
+Date: Tue, 6 Sep 2016 23:05:59 +0200
+Message-ID: <CAJZ5v0hyhdUknW8RqpT6f4zAuPuMN1EN=P7C54Aa+VqEK2pcGw@mail.gmail.com>
+References: <566ABCD9.1060404@users.sourceforge.net> <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
+ <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
+ <3e0cdc5b-fd15-515a-82f2-2f44792664ed@users.sourceforge.net>
+ <CAJZ5v0gWgxbtJ4m0eDkdOaR_usjTqmcWBWds5qprr+ydHhEjnA@mail.gmail.com> <6882cbb1-3f61-fb64-2972-30c277f28580@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160906171401.GA7554@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Punit Agrawal <punit.agrawal@arm.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:37280 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935627AbcIFVGb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2016 17:06:31 -0400
+In-Reply-To: <6882cbb1-3f61-fb64-2972-30c277f28580@users.sourceforge.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-On Tue, Sep 6, 2016 at 7:14 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, Sep 06, 2016 at 05:51:03PM +0100, Lorenzo Pieralisi wrote:
->> On ACPI ARM based systems the GIC interrupt controller
->> and corresponding interrupt model permit only the high
->> polarity for level interrupts.
->>
->> ACPI firmware describes PCI legacy IRQs through entries
->> in the _PRT objects. Entries in the _PRT can be of two types:
->>
->> - Static: not configurable, trigger/polarity default to level-low,
->>   _PRT entry defines the global GSI interrupt number
->> - Configurable: _PRT interrupt entry contains a reference to the
->>   corresponding PCI interrupt link device (that in turn provides the
->>   interrupt descriptor through its _CRS/_PRS methods)
->>
->> Configurable IRQ entries are not currently allowed by the ACPI
->> specification on ARM since they can only be used for interrupt pins that
->> are routable, as per ACPI specifications (version 6.1, 6.2.13):
->>
->> "[...] There are two ways that _PRT can be used. Typically, the
->> interrupt input that a given PCI interrupt is on is configurable. For
->> example, a given PCI interrupt might be configured for either IRQ 10 or
->> 11 on an 8259 interrupt controller. In this model, each interrupt is
->> represented in the ACPI namespace as a PCI Interrupt Link Device. [...]"
+On Tue, Sep 6, 2016 at 4:10 PM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+>> Anyway, if there's something I don't like in particular, I'll let you know.
 >
-> Thanks for the reference!  I wouldn't read that as actually
-> *disallowing* Interrupt Links for non-configurable interrupts.
+> Thanks for your general interest.
 >
-> But regardless, I do understand that even if we assume Interrupt Links
-> are allowed, there is firmware in the field that doesn't use them, and
-> I think this patch is really targeted at *them*.
+> I hope that occasional disagreements can be resolved in constructive ways.
+>
+>
+>> However, it's a pain to review 20 patches if you could review 4 instead.
+>
+> Are there any more possibilities to improve the convenience for this
+> change review process with advanced tools?
+>
+>
+>> Please take the reviewers' time into consideration too.
+>
+> I am trying this to some degree.
+>
+> But I guess that it is hard to do something about corresponding efforts
+> when various contributors can easily spot many software update opportunities
+> in the discussed source files, isn't it?
 
-Right.  That's my understanding too.
+OK, look.
 
-So, generally speaking, it would be good to make interrupt links work
-without _PRS, _SRS under them etc. and use link objects to address
-this case in the future.
+Your patches happen to modify code maintained by me.  From my
+perspective the value of the changes made by them is marginal.
+Nevertheless, I might take them if you made my life somewhat easier,
+so I've tried to tell you politely how to do that.
+
+If you're not willing to do it, though, this is where it ends.  And
+attempts to convince me that I may not want my life to be easier after
+all are not likely to succeed.
 
 Thanks,
 Rafael
