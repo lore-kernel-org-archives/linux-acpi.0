@@ -1,95 +1,102 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: DAX can not work on virtual nvdimm device
-Date: Tue, 6 Sep 2016 17:06:20 +0200
-Message-ID: <20160906150620.GJ28922@quack2.suse.cz>
-References: <436d7526-bf06-633d-afce-4333552d9e31@linux.intel.com>
- <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
- <20160819183047.GA7216@linux.intel.com>
- <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
- <20160829193014.GB16738@linux.intel.com>
- <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
- <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
- <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
- <20160902025738.GA26108@linux.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] drivers: acpi: fix GIC irq model default PCI IRQ polarity
+Date: Tue, 6 Sep 2016 10:11:18 -0500
+Message-ID: <20160906151118.GA1214@localhost>
+References: <1473084758-7377-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <CAJZ5v0hHW2ovycYRpyVLxg3As0w9ETiu2nuum8J=Ro5YPk1E4g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:43622 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756026AbcIFPLb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Sep 2016 11:11:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20160902025738.GA26108-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Yumei Huang <yuhuang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org" <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAJZ5v0hHW2ovycYRpyVLxg3As0w9ETiu2nuum8J=Ro5YPk1E4g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Linux PCI <linux-pci@vger.kernel.org>, Duc Dang <dhdang@apm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu 01-09-16 20:57:38, Ross Zwisler wrote:
-> On Wed, Aug 31, 2016 at 04:44:47PM +0800, Xiao Guangrong wrote:
-> > On 08/31/2016 01:09 AM, Dan Williams wrote:
-> > > 
-> > > Can you post your exact reproduction steps?  This test is not failing for me.
-> > > 
-> > 
-> > Sure.
-> > 
-> > 1. make the guest kernel based on your tree, the top commit is
-> >    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
-> >    the config file can be found in this thread.
-> > 
-> > 2. add guest kernel command line: memmap=6G!10G
-> > 
-> > 3: start the guest:
-> >    x86_64-softmmu/qemu-system-x86_64 -machine pc,nvdimm --enable-kvm \
-> >    -smp 16 -m 32G,maxmem=100G,slots=100 /other/VMs/centos6.img -monitor stdio
-> > 
-> > 4: in guest:
-> >    mkfs.ext4 /dev/pmem0
-> >    mount -o dax /dev/pmem0  /mnt/pmem/
-> >    echo > /mnt/pmem/xxx
-> >    ./mmap /mnt/pmem/xxx
-> >    ./read /mnt/pmem/xxx
-> > 
-> >   The source code of mmap and read has been attached in this mail.
-> > 
-> >   Hopefully, you can detect the error triggered by read test.
-> > 
-> > Thanks!
+On Mon, Sep 05, 2016 at 10:37:29PM +0200, Rafael J. Wysocki wrote:
+> On Mon, Sep 5, 2016 at 4:12 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+> > On ACPI ARM based systems the GIC interrupt controller
+> > and corresponding interrupt model permit only the high
+> > polarity for level interrupts.
+> >
+> > ACPI firmware describes PCI legacy IRQs through entries
+> > in the _PRT objects. Entries in the _PRT can be of two types:
+> >
+> > - Static: not configurable, trigger/polarity default to level-low,
+> >   _PRT entry defines the global GSI interrupt number
+> > - Configurable: _PRT interrupt entry contains a reference to the
+> >   corresponding PCI interrupt link device (that in turn provides the
+> >   interrupt descriptor through its _CRS/_PRS methods)
+> >
+> > Configurable IRQ entries are not currently allowed by the ACPI
+> > specification on ARM, since they can only be used for interrupt
+> > pins that are routable, and ARM platforms GIC configurations
+> > do not allow dynamic IRQ routing, routing is statically laid out
+> > at synthesis time; therefore PCI interrupt links cannot be used
+> > for PCI legacy IRQ descriptions in the _PRT on ARM systems.
+> >
+> > On the other hand, current core ACPI code handling PCI legacy IRQs
+> > consider IRQ trigger/polarity for static _PRT entries as level-low.
+> >
+> > On ARM systems with a GIC interrupt controller and corresponding
+> > ACPI interrupt model this does not work in that GIC interrupt
+> > controller is only capable of handling level interrupts whose
+> > polarity is high (for PCI legacy IRQs - that are level-low by
+> > specification - this means that the legacy IRQs are inverted before
+> > reaching the interrupt controller pin), resulting in IRQ allocation
+> > failures such as:
+> >
+> > genirq: Setting trigger mode 8 for irq 18 failed (gic_set_type+0x0/0x48)
+> >
+> > Change the default polarity for PCI legacy IRQs to high on systems
+> > booting wth ACPI on platforms with a GIC interrupt controller model,
+> > fixing the discrepancy between specification and HW behaviour.
+> >
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: Punit Agrawal <punit.agrawal@arm.com>
+> > Cc: Duc Dang <dhdang@apm.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > Cc: Sinan Kaya <okaya@codeaurora.org>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Marc Zyngier <marc.zyngier@arm.com>
+> > ---
+> >  drivers/acpi/pci_irq.c | 10 +++++++++-
+> >  1 file changed, 9 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> > index 2c45dd3..c576a6f 100644
+> > --- a/drivers/acpi/pci_irq.c
+> > +++ b/drivers/acpi/pci_irq.c
+> > @@ -411,7 +411,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> >         int gsi;
+> >         u8 pin;
+> >         int triggering = ACPI_LEVEL_SENSITIVE;
+> > -       int polarity = ACPI_ACTIVE_LOW;
+> > +       /*
+> > +        * On ARM systems with the GIC interrupt model, level interrupts
+> > +        * are always polarity high by specification; PCI legacy
+> > +        * IRQs lines are inverted before reaching the interrupt
+> > +        * controller and must therefore be considered active high
+> > +        * as default.
+> > +        */
+> > +       int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
+> > +                                     ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
+> >         char *link = NULL;
+> >         char link_desc[16];
+> >         int rc;
+> > --
 > 
-> Okay, I think I've isolated this issue.  Xiao's VM was an old CentOS 6 system,
-> and for some reason ext4+DAX with the old tools found in that VM fails.  I was
-> able to reproduce this failure with a freshly installed CentOS 6.8 VM.
-> 
-> You can see the failure with his tests, or perhaps more easily with this
-> series of commands:
-> 
->   # mkfs.ext4 /dev/pmem0
->   # mount -o dax /dev/pmem0  /mnt/pmem/
->   # touch /mnt/pmem/x
->   # md5sum /mnt/pmem/x
->   md5sum: /mnt/pmem/x: Bad address
-> 
-> This sequence of commands works fine in the old CentOS 6 system if you use XFS
-> instead of ext4, and it works fine with both ext4 and XFS in CentOS 7 and
-> with recent versions of Fedora.
-> 
-> I've added the ext4 folks to this mail in case they care, but my guess is that
-> the tools in CentOS 6 are so old that it's not worth worrying about.  For
-> reference, the kernel in CentOS 6 is based on 2.6.32.  :)  DAX was introduced
-> in v4.0.
+> Bjorn, any objections?
 
-Hum, can you post 'dumpe2fs -h /dev/pmem0' output from that system when the
-md5sum fails? Because the only idea I have is that mkfs.ext4 in CentOS 6
-creates the filesystem with a different set of features than more recent
-e2fsprogs and so we hit some untested path...
+Looks OK to me.
 
-								Honza
--- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+I never did figure out exactly what in the ACPI spec prohibited the
+use of interrupt links, so a spec reference there would be nice.
+
+Bjorn
