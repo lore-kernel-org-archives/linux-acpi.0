@@ -1,83 +1,40 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that
- might be reused for ACPI
-Date: Tue, 6 Sep 2016 11:50:17 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1609061149090.5647@nanos>
-References: <1473152938-17388-1-git-send-email-tn@semihalf.com> <1473152938-17388-8-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH V10 2/8] ACPI: Add new IORT functions to support MSI
+ domain handling
+Date: Tue, 6 Sep 2016 12:20:09 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1609061219230.5647@nanos>
+References: <1473152938-17388-1-git-send-email-tn@semihalf.com> <1473152938-17388-3-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1473152938-17388-8-git-send-email-tn@semihalf.com>
+In-Reply-To: <1473152938-17388-3-git-send-email-tn@semihalf.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
 Cc: marc.zyngier@arm.com, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
-> -static int __init its_pci_msi_init(void)
-> +static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
-> +				       const char *name)
->  {
-> -	struct device_node *np;
->  	struct irq_domain *parent;
->  
-> +	parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
-> +	if (!parent || !msi_get_domain_info(parent)) {
-> +		pr_err("%s: Unable to locate ITS domain\n", name);
-> +		return -ENXIO;
-> +	}
-> +
-> +	if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
-> +				       parent)) {
-> +		pr_err("%s: Unable to create PCI domain\n", name);
-> +		return -ENOMEM;
-
-So you have error codes here.
-
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init its_pci_of_msi_init(void)
+> +/**
+> + * iort_get_device_domain() - Find MSI domain related to a device
+> + * @dev: The device.
+> + * @req_id: Requester ID for the device.
+> + *
+> + * Returns: the MSI domain for this device, NULL otherwise
+> + */
+> +struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
 > +{
-> +	struct device_node *np;
+> +	static struct fwnode_handle *handle;
+
+static ??????
+
+> +	int its_id;
 > +
->  	for (np = of_find_matching_node(NULL, its_device_id); np;
->  	     np = of_find_matching_node(np, its_device_id)) {
->  		if (!of_property_read_bool(np, "msi-controller"))
->  			continue;
->  
-> -		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
-> -		if (!parent || !msi_get_domain_info(parent)) {
-> -			pr_err("%s: unable to locate ITS domain\n",
-> -			       np->full_name);
-> +		if (its_pci_msi_init_one(of_node_to_fwnode(np), np->full_name))
->  			continue;
-> -		}
-> -
-> -		if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
-> -					       &its_pci_msi_domain_info,
-> -					       parent)) {
-> -			pr_err("%s: unable to create PCI domain\n",
-> -			       np->full_name);
-> -			continue;
-> -		}
->  
->  		pr_info("PCI/MSI: %s domain created\n", np->full_name);
->  	}
->  
->  	return 0;
-
-And no matter what you return success
-
->  }
+> +	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
+> +		return NULL;
 > +
-> +static int __init its_pci_msi_init(void)
-> +{
-> +	its_pci_of_msi_init();
+> +	handle = iort_find_domain_token(its_id);
 
-Which you subsequently ignore here. What's the point?
+You reevaluate that on every call.
 
 Thanks,
 
