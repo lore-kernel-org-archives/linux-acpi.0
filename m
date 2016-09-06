@@ -1,100 +1,52 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that
- might be reused for ACPI
-Date: Tue, 6 Sep 2016 12:22:57 +0200
-Message-ID: <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
+Subject: Re: [PATCH V10 2/8] ACPI: Add new IORT functions to support MSI
+ domain handling
+Date: Tue, 6 Sep 2016 12:27:11 +0200
+Message-ID: <f469f024-b1c9-8616-c841-663e3e3d0731@semihalf.com>
 References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
- <1473152938-17388-8-git-send-email-tn@semihalf.com>
- <alpine.DEB.2.20.1609061149090.5647@nanos>
+ <1473152938-17388-3-git-send-email-tn@semihalf.com>
+ <alpine.DEB.2.20.1609061219230.5647@nanos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f181.google.com ([209.85.161.181]:33474 "EHLO
-        mail-yw0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933887AbcIFKXH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2016 06:23:07 -0400
-Received: by mail-yw0-f181.google.com with SMTP id l8so51885245ywb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2016 03:23:06 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.20.1609061149090.5647@nanos>
+Received: from mail-yw0-f173.google.com ([209.85.161.173]:35628 "EHLO
+        mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755338AbcIFK1V (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2016 06:27:21 -0400
+Received: by mail-yw0-f173.google.com with SMTP id j1so31091862ywb.2
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2016 03:27:20 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.20.1609061219230.5647@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>
 Cc: marc.zyngier@arm.com, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-Hi Thomas,
-
-On 06.09.2016 11:50, Thomas Gleixner wrote:
+On 06.09.2016 12:20, Thomas Gleixner wrote:
 > On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
->> -static int __init its_pci_msi_init(void)
->> +static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
->> +				       const char *name)
->>  {
->> -	struct device_node *np;
->>  	struct irq_domain *parent;
->>
->> +	parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
->> +	if (!parent || !msi_get_domain_info(parent)) {
->> +		pr_err("%s: Unable to locate ITS domain\n", name);
->> +		return -ENXIO;
->> +	}
->> +
->> +	if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
->> +				       parent)) {
->> +		pr_err("%s: Unable to create PCI domain\n", name);
->> +		return -ENOMEM;
->
-> So you have error codes here.
->
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int __init its_pci_of_msi_init(void)
+>> +/**
+>> + * iort_get_device_domain() - Find MSI domain related to a device
+>> + * @dev: The device.
+>> + * @req_id: Requester ID for the device.
+>> + *
+>> + * Returns: the MSI domain for this device, NULL otherwise
+>> + */
+>> +struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
 >> +{
->> +	struct device_node *np;
+>> +	static struct fwnode_handle *handle;
+>
+> static ??????
+>
+>> +	int its_id;
 >> +
->>  	for (np = of_find_matching_node(NULL, its_device_id); np;
->>  	     np = of_find_matching_node(np, its_device_id)) {
->>  		if (!of_property_read_bool(np, "msi-controller"))
->>  			continue;
->>
->> -		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
->> -		if (!parent || !msi_get_domain_info(parent)) {
->> -			pr_err("%s: unable to locate ITS domain\n",
->> -			       np->full_name);
->> +		if (its_pci_msi_init_one(of_node_to_fwnode(np), np->full_name))
->>  			continue;
->> -		}
->> -
->> -		if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
->> -					       &its_pci_msi_domain_info,
->> -					       parent)) {
->> -			pr_err("%s: unable to create PCI domain\n",
->> -			       np->full_name);
->> -			continue;
->> -		}
->>
->>  		pr_info("PCI/MSI: %s domain created\n", np->full_name);
->>  	}
->>
->>  	return 0;
->
-> And no matter what you return success
->
->>  }
+>> +	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
+>> +		return NULL;
 >> +
->> +static int __init its_pci_msi_init(void)
->> +{
->> +	its_pci_of_msi_init();
+>> +	handle = iort_find_domain_token(its_id);
 >
-> Which you subsequently ignore here. What's the point?
+> You reevaluate that on every call.
 >
 
-Well, this patch is meant to refactor the code. It does not change the 
-error handing nor the functionality. However, you have got a point but 
-IMO it should be fixed in separate patch if possible.
+Obviously it is the bug. Thanks for spotting this.
 
-Thanks,
 Tomasz
