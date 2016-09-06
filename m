@@ -1,104 +1,110 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that
- might be reused for ACPI
-Date: Tue, 6 Sep 2016 13:29:09 +0200
-Message-ID: <CAJZ5v0iYc=1CN546MaabJdoNBUW8JbeD_qt8hSSDBPLJnB8Hug@mail.gmail.com>
-References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
- <1473152938-17388-8-git-send-email-tn@semihalf.com> <alpine.DEB.2.20.1609061149090.5647@nanos>
- <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
+From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 05/15] drivers: platform: add fwnode base platform
+	devices retrieval
+Date: Tue, 6 Sep 2016 20:08:12 +0800
+Message-ID: <06a6d839-639f-8a86-14a5-4c43bff593b7@linaro.org>
+References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1471274620-20754-6-git-send-email-lorenzo.pieralisi@arm.com>
+	<7659b956-c49d-bd0d-7a1d-8dfc3da6f409@linaro.org>
+	<20160905145751.GA7480@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, shijie.huang@arm.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Andrea Gallo <andrea.gallo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>Linu
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20160905145751.GA7480@red-moon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 6, 2016 at 12:22 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> Hi Thomas,
->
->
-> On 06.09.2016 11:50, Thomas Gleixner wrote:
->>
->> On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
+On 2016/9/5 22:57, Lorenzo Pieralisi wrote:
+> On Mon, Sep 05, 2016 at 09:19:43PM +0800, Hanjun Guo wrote:
+>> On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
+>>> The platform device kernel API does not provide functions to
+>>> retrieve a platform device through the corresponding struct
+>>> device fwnode pointer.
 >>>
->>> -static int __init its_pci_msi_init(void)
->>> +static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
->>> +                                      const char *name)
->>>  {
->>> -       struct device_node *np;
->>>         struct irq_domain *parent;
+>>> Implement the fwnode platform_device look-up in drivers core
+>>> code by using the bus_find_device() API and a corresponding
+>>> matching function. The OF equivalent (eg of_find_device_by_node())
+>>> will reuse the newly introduced function when OF code will
+>>> take care of setting up the device->fwnode value that is
+>>> currently left dangling for platform devices instantiated out
+>>> of device tree nodes.
 >>>
->>> +       parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
->>> +       if (!parent || !msi_get_domain_info(parent)) {
->>> +               pr_err("%s: Unable to locate ITS domain\n", name);
->>> +               return -ENXIO;
->>> +       }
->>> +
->>> +       if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
->>> +                                      parent)) {
->>> +               pr_err("%s: Unable to create PCI domain\n", name);
->>> +               return -ENOMEM;
->>
->>
->> So you have error codes here.
->>
->>> +       }
->>> +
->>> +       return 0;
+>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+>>> Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+>>> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+>>> ---
+>>> drivers/base/platform.c         | 23 +++++++++++++++++++++++
+>>> include/linux/platform_device.h |  3 +++
+>>> 2 files changed, 26 insertions(+)
+>>>
+>>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+>>> index 6482d47..3ef150d 100644
+>>> --- a/drivers/base/platform.c
+>>> +++ b/drivers/base/platform.c
+>>> @@ -760,6 +760,29 @@ err_out:
+>>> }
+>>> EXPORT_SYMBOL_GPL(__platform_create_bundle);
+>>>
+>>> +static int fwnode_dev_match(struct device *dev, void *data)
+>>> +{
+>>> +	return dev->fwnode == data;
 >>> +}
 >>> +
->>> +static int __init its_pci_of_msi_init(void)
+>>> +/**
+>>> + * platform_find_device_by_fwnode() - Find the platform_device associated
+>>> + *				      with a fwnode
+>>> + * @fwnode: Pointer to firmware node
+>>> + *
+>>> + * Returns platform_device pointer, or NULL if not found
+>>> + */
+>>> +struct platform_device *
+>>> +platform_find_device_by_fwnode(struct fwnode_handle *fwnode)
 >>> +{
->>> +       struct device_node *np;
+>>> +	struct device *dev;
 >>> +
->>>         for (np = of_find_matching_node(NULL, its_device_id); np;
->>>              np = of_find_matching_node(np, its_device_id)) {
->>>                 if (!of_property_read_bool(np, "msi-controller"))
->>>                         continue;
->>>
->>> -               parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
->>> -               if (!parent || !msi_get_domain_info(parent)) {
->>> -                       pr_err("%s: unable to locate ITS domain\n",
->>> -                              np->full_name);
->>> +               if (its_pci_msi_init_one(of_node_to_fwnode(np),
->>> np->full_name))
->>>                         continue;
->>> -               }
->>> -
->>> -               if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
->>> -                                              &its_pci_msi_domain_info,
->>> -                                              parent)) {
->>> -                       pr_err("%s: unable to create PCI domain\n",
->>> -                              np->full_name);
->>> -                       continue;
->>> -               }
->>>
->>>                 pr_info("PCI/MSI: %s domain created\n", np->full_name);
->>>         }
->>>
->>>         return 0;
+>>> +	dev = bus_find_device(&platform_bus_type, NULL, fwnode,
+>>> +			      fwnode_dev_match);
+>>> +	return dev ? to_platform_device(dev) : NULL;
+>>> +}
+>>> +EXPORT_SYMBOL(platform_find_device_by_fwnode);
 >>
+>> As SMMU is registered as platform devices, I think we need such
+>> API to retrieve the platform device with fwnode handle, actually
+>> Kefeng introduced a similar patch [1], but your patch is more
+>> generic, so this patch make sense to me,
 >>
->> And no matter what you return success
->>
->>>  }
->>> +
->>> +static int __init its_pci_msi_init(void)
->>> +{
->>> +       its_pci_of_msi_init();
->>
->>
->> Which you subsequently ignore here. What's the point?
->>
+>> Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 >
-> Well, this patch is meant to refactor the code. It does not change the error
-> handing nor the functionality. However, you have got a point but IMO it
-> should be fixed in separate patch if possible.
+> Thanks ! Strictly speaking, with Robin's new series:
+>
+> https://lists.linuxfoundation.org/pipermail/iommu/2016-August/018230.html
+>
+>
+> (and corresponding v5 of this one that I have rebased on top of it) we
+> do not need this patch any longer and it is not really that generic
+> keeping in mind that it can't be used for DT matching (because in DT
+> dev->fwnode is dangling); I will see if I keep this patch according
+> to dependencies.
 
-But you are refactoring the code, so it would make sense to clean it
-up while at it.  Perhaps add one more patch to the series?
+OK, I think I will wait for your new version, then try another test
+and review it, does it make sense?
 
-Thanks,
-Rafael
+>
+> Side note: I have a problem with [1], since that code is there to
+> implement DT phandles in ACPI IIUC and we must really prevent that :)
+
+Agreed :)
+
+Thanks
+Hanjun
