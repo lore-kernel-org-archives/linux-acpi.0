@@ -1,92 +1,80 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that might be reused for ACPI
-Date: Tue,  6 Sep 2016 11:08:57 +0200
-Message-ID: <1473152938-17388-8-git-send-email-tn@semihalf.com>
+Subject: [PATCH V10 3/8] PCI/MSI: Setup MSI domain on a per-device basis using
+ IORT ACPI table
+Date: Tue,  6 Sep 2016 11:08:53 +0200
+Message-ID: <1473152938-17388-4-git-send-email-tn@semihalf.com>
 References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1473152938-17388-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
+Cc: graeme.gregory@linaro.org, al.stone@linaro.org, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Firmware agnostic code lands in common functions which do necessary
-domain initialization based on unique domain handler. DT specific
-code goes to DT specific init call.
+It is possible to provide information about which MSI controller to
+use on a per-device basis for DT. This patch supply this with ACPI support.
+
+Currently, IORT is the only one ACPI table which can provide such mapping.
+In order to plug IORT into MSI infrastructure we are adding ACPI
+equivalents for finding PCI device domain and its RID translation
+(pci_msi_domain_get_msi_rid and pci_msi_domain_get_msi_rid calls).
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/irqchip/irq-gic-v3-its-pci-msi.c | 44 +++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ drivers/pci/msi.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-index aee60ed..d2c2496 100644
---- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-@@ -106,34 +106,48 @@ static struct of_device_id its_device_id[] = {
- 	{},
- };
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index 98f1222..137b4c5 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -19,6 +19,7 @@
+ #include <linux/smp.h>
+ #include <linux/errno.h>
+ #include <linux/io.h>
++#include <linux/acpi_iort.h>
+ #include <linux/slab.h>
+ #include <linux/irqdomain.h>
+ #include <linux/of_irq.h>
+@@ -1502,8 +1503,8 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
+ 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
  
--static int __init its_pci_msi_init(void)
-+static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
-+				       const char *name)
- {
--	struct device_node *np;
- 	struct irq_domain *parent;
+ 	of_node = irq_domain_get_of_node(domain);
+-	if (of_node)
+-		rid = of_msi_map_rid(&pdev->dev, of_node, rid);
++	rid = of_node ? of_msi_map_rid(&pdev->dev, of_node, rid) :
++			iort_msi_map_rid(&pdev->dev, rid);
  
-+	parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
-+	if (!parent || !msi_get_domain_info(parent)) {
-+		pr_err("%s: Unable to locate ITS domain\n", name);
-+		return -ENXIO;
-+	}
-+
-+	if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
-+				       parent)) {
-+		pr_err("%s: Unable to create PCI domain\n", name);
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init its_pci_of_msi_init(void)
-+{
-+	struct device_node *np;
-+
- 	for (np = of_find_matching_node(NULL, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
- 		if (!of_property_read_bool(np, "msi-controller"))
- 			continue;
- 
--		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
--		if (!parent || !msi_get_domain_info(parent)) {
--			pr_err("%s: unable to locate ITS domain\n",
--			       np->full_name);
-+		if (its_pci_msi_init_one(of_node_to_fwnode(np), np->full_name))
- 			continue;
--		}
--
--		if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
--					       &its_pci_msi_domain_info,
--					       parent)) {
--			pr_err("%s: unable to create PCI domain\n",
--			       np->full_name);
--			continue;
--		}
- 
- 		pr_info("PCI/MSI: %s domain created\n", np->full_name);
- 	}
- 
- 	return 0;
+ 	return rid;
  }
-+
-+static int __init its_pci_msi_init(void)
-+{
-+	its_pci_of_msi_init();
-+
-+	return 0;
-+}
- early_initcall(its_pci_msi_init);
+@@ -1519,9 +1520,13 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
+  */
+ struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev)
+ {
++	struct irq_domain *dom;
+ 	u32 rid = 0;
+ 
+ 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
+-	return of_msi_map_get_device_domain(&pdev->dev, rid);
++	dom = of_msi_map_get_device_domain(&pdev->dev, rid);
++	if (!dom)
++		dom = iort_get_device_domain(&pdev->dev, rid);
++	return dom;
+ }
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
 -- 
 1.9.1
