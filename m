@@ -1,70 +1,233 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 0/2] acpi, nfit: nvdimm notification support + tests
-Date: Tue, 06 Sep 2016 10:12:09 -0700
-Message-ID: <147318192936.31512.1001529917260869136.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 1/2] acpi, nfit: add dimm device notification support
+Date: Tue, 06 Sep 2016 10:12:14 -0700
+Message-ID: <147318193462.31512.13381707676673705142.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <147318192936.31512.1001529917260869136.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:51433 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936286AbcIFRPJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Sep 2016 13:15:09 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <147318192936.31512.1001529917260869136.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Toshi Kani <toshi.kani@hpe.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-While testing v1, I was able to produce the following crash when
-removing the nfit module:
+Per "ACPI 6.1 Section 9.20.3" NVDIMM devices, children of the ACPI0012
+NVDIMM Root device, can receive health event notifications.
 
- general protection fault: 0000 [#1] SMP
- [..]
- RIP: 0010:[<ffffffff81319f7e>]  [<ffffffff81319f7e>] kernfs_put+0x1e/0x1b0
- RSP: 0018:ffff880461107d50  EFLAGS: 00010286
- RAX: ffff880a67df1b60 RBX: ffff880a67df1b00 RCX: 0000000000000006
- RDX: 0000000000000006 RSI: ffff8804683bb940 RDI: 6b6b6b6b6b6b6b6b
- RBP: ffff880461107d88 R08: 0000000000000000 R09: 0000000000000000
- R10: 0000000000000000 R11: 0000000000000000 R12: 6b6b6b6b6b6b6b6b
- R13: ffff880a68cf5a80 R14: ffff880a61c66738 R15: 6b6b6b6b6b6b6b6b
- FS:  00007fbc62a47700(0000) GS:ffff880a6f0c0000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 0000558e4f0093c0 CR3: 000000046640c000 CR4: 00000000001406e0
- Stack:
-  ffff88046f408b40 00000000ba9be0cd ffff880a67df1b00 ffff880a68cf5b80
-  ffff880a68cf5a80 ffff880a61c66738 6b6b6b6b6b6b6b6b ffff880461107dc0
-  ffffffffa004742c ffff880a67e01778 ffff880461107e00 ffff880469d28290
- Call Trace:
-  [<ffffffffa004742c>] acpi_nfit_destruct+0x6c/0x100 [nfit]
-  [<ffffffff815fdecf>] devm_action_release+0xf/0x20
-  [<ffffffff815fe9a9>] release_nodes+0x129/0x230
-  [<ffffffff815fed1c>] devres_release_all+0x3c/0x60
-  [<ffffffff815f9c79>] __device_release_driver+0xa9/0x160
-  [<ffffffff815fa8bb>] driver_detach+0xbb/0xc0
-  [<ffffffff815f9618>] bus_remove_driver+0x58/0xd0
-  [<ffffffff815fb32c>] driver_unregister+0x2c/0x50
-  [<ffffffff8153efd9>] acpi_bus_unregister_driver+0x15/0x17
-  [<ffffffffa004c177>] nfit_exit+0x15/0xe9e [nfit]
-  [<ffffffff8114d99a>] SyS_delete_module+0x1ba/0x220
-  [<ffffffff81a0437c>] entry_SYSCALL_64_fastpath+0x1f/0xbd
+Given that these devices are precluded from registering a notification
+handler via acpi_driver.acpi_device_ops (due to no _HID), we use
+acpi_install_notify_handler() directly.  The registered handler,
+acpi_nvdimm_notify(), triggers a poll(2) event on the nmemX/nfit/flags
+sysfs attribute when a health event notification is received.
 
-This was due to the fact that all 'nfit_mem' objects are already freed
-by the time we reach acpi_nfit_destruct().  Instead, we now register
-shutdown_dimm_notification() via devm_add_action_or_reset() to fire
-before 'nfit_mem' instances are torn down.
-
-I maintained the reviewed-by's and acked-by's from v1.
-
+Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Tested-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Reviewed-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Acked-by: Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Reviewed-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/acpi/nfit/core.c   |   95 ++++++++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/nfit/nfit.h   |    5 ++
+ drivers/nvdimm/dimm_devs.c |    6 +++
+ include/linux/libnvdimm.h  |    1 
+ 4 files changed, 103 insertions(+), 4 deletions(-)
 
-Dan Williams (2):
-      acpi, nfit: add dimm device notification support
-      tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
-
-
- drivers/acpi/nfit/core.c         |   99 ++++++++++++++++++++++++++++++++++++--
- drivers/acpi/nfit/nfit.h         |    6 ++
- drivers/nvdimm/dimm_devs.c       |    6 ++
- include/linux/libnvdimm.h        |    1 
- tools/testing/nvdimm/test/nfit.c |   45 +++++++++++++++++
- 5 files changed, 153 insertions(+), 4 deletions(-)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 8120e8218f93..4af1db1cb599 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1248,6 +1248,43 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
+ 	return NULL;
+ }
+ 
++static void __acpi_nvdimm_notify(struct device *dev, u32 event)
++{
++	struct nfit_mem *nfit_mem;
++	struct acpi_nfit_desc *acpi_desc;
++
++	dev_dbg(dev->parent, "%s: %s: event: %d\n", dev_name(dev), __func__,
++			event);
++
++	if (event != NFIT_NOTIFY_DIMM_HEALTH) {
++		dev_dbg(dev->parent, "%s: unknown event: %d\n", dev_name(dev),
++				event);
++		return;
++	}
++
++	acpi_desc = dev_get_drvdata(dev->parent);
++	if (!acpi_desc)
++		return;
++
++	/*
++	 * If we successfully retrieved acpi_desc, then we know nfit_mem data
++	 * is still valid.
++	 */
++	nfit_mem = dev_get_drvdata(dev);
++	if (nfit_mem && nfit_mem->flags_attr)
++		sysfs_notify_dirent(nfit_mem->flags_attr);
++}
++
++static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
++{
++	struct acpi_device *adev = data;
++	struct device *dev = &adev->dev;
++
++	device_lock(dev->parent);
++	__acpi_nvdimm_notify(dev, event);
++	device_unlock(dev->parent);
++}
++
+ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_mem *nfit_mem, u32 device_handle)
+ {
+@@ -1272,6 +1309,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		return force_enable_dimms ? 0 : -ENODEV;
+ 	}
+ 
++	if (ACPI_FAILURE(acpi_install_notify_handler(adev_dimm->handle,
++		ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify, adev_dimm))) {
++		dev_err(dev, "%s: notification registration failed\n",
++				dev_name(&adev_dimm->dev));
++		return -ENXIO;
++	}
++
+ 	/*
+ 	 * Until standardization materializes we need to consider 4
+ 	 * different command sets.  Note, that checking for function0 (bit0)
+@@ -1310,18 +1354,38 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	return 0;
+ }
+ 
++static void shutdown_dimm_notify(void *data)
++{
++	struct acpi_nfit_desc *acpi_desc = data;
++	struct nfit_mem *nfit_mem;
++
++	mutex_lock(&acpi_desc->init_mutex);
++	/*
++	 * Clear out the nfit_mem->flags_attr and shut down dimm event
++	 * notifications.
++	 */
++	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		if (nfit_mem->flags_attr) {
++			sysfs_put(nfit_mem->flags_attr);
++			nfit_mem->flags_attr = NULL;
++		}
++		acpi_remove_notify_handler(nfit_mem->adev->handle,
++				ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
++	}
++	mutex_unlock(&acpi_desc->init_mutex);
++}
++
+ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_mem *nfit_mem;
+-	int dimm_count = 0;
++	int dimm_count = 0, rc;
++	struct nvdimm *nvdimm;
+ 
+ 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
+ 		struct acpi_nfit_flush_address *flush;
+ 		unsigned long flags = 0, cmd_mask;
+-		struct nvdimm *nvdimm;
+ 		u32 device_handle;
+ 		u16 mem_flags;
+-		int rc;
+ 
+ 		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
+ 		nvdimm = acpi_nfit_dimm_by_handle(acpi_desc, device_handle);
+@@ -1374,7 +1438,30 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 
+ 	}
+ 
+-	return nvdimm_bus_check_dimm_count(acpi_desc->nvdimm_bus, dimm_count);
++	rc = nvdimm_bus_check_dimm_count(acpi_desc->nvdimm_bus, dimm_count);
++	if (rc)
++		return rc;
++
++	/*
++	 * Now that dimms are successfully registered, and async registration
++	 * is flushed, attempt to enable event notification.
++	 */
++	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		struct kernfs_node *nfit_kernfs;
++
++		nvdimm = nfit_mem->nvdimm;
++		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
++		if (nfit_kernfs)
++			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
++					"flags");
++		sysfs_put(nfit_kernfs);
++		if (!nfit_mem->flags_attr)
++			dev_warn(acpi_desc->dev, "%s: notifications disabled\n",
++					nvdimm_name(nvdimm));
++	}
++
++	return devm_add_action_or_reset(acpi_desc->dev, shutdown_dimm_notify,
++			acpi_desc);
+ }
+ 
+ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 52370347fb0e..13195824778c 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -82,6 +82,10 @@ enum nfit_root_notifiers {
+ 	NFIT_NOTIFY_UPDATE = 0x80,
+ };
+ 
++enum nfit_dimm_notifiers {
++	NFIT_NOTIFY_DIMM_HEALTH = 0x81,
++};
++
+ struct nfit_spa {
+ 	struct list_head list;
+ 	struct nd_region *nd_region;
+@@ -128,6 +132,7 @@ struct nfit_mem {
+ 	struct acpi_nfit_system_address *spa_bdw;
+ 	struct acpi_nfit_interleave *idt_dcr;
+ 	struct acpi_nfit_interleave *idt_bdw;
++	struct kernfs_node *flags_attr;
+ 	struct nfit_flush *nfit_flush;
+ 	struct list_head list;
+ 	struct acpi_device *adev;
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index d9bba5edd8dc..ce75cc3f41fb 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -263,6 +263,12 @@ const char *nvdimm_name(struct nvdimm *nvdimm)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_name);
+ 
++struct kobject *nvdimm_kobj(struct nvdimm *nvdimm)
++{
++	return &nvdimm->dev.kobj;
++}
++EXPORT_SYMBOL_GPL(nvdimm_kobj);
++
+ unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm)
+ {
+ 	return nvdimm->cmd_mask;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index b519e137b9b7..ad18d0531b6e 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -139,6 +139,7 @@ struct nd_blk_region *to_nd_blk_region(struct device *dev);
+ struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
+ struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus);
+ const char *nvdimm_name(struct nvdimm *nvdimm);
++struct kobject *nvdimm_kobj(struct nvdimm *nvdimm);
+ unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
+ void *nvdimm_provider_data(struct nvdimm *nvdimm);
+ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
