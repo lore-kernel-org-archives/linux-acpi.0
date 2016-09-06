@@ -1,40 +1,43 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/7] ACPI-APEI-HEST: Fine-tuning for three function implementations
-Date: Mon, 5 Sep 2016 23:43:12 +0200
-Message-ID: <CAJZ5v0hcD8pi8y+jAtF70cJp8uYyUdOeDJKuR3z=JpB6Z_Qnfw@mail.gmail.com>
-References: <566ABCD9.1060404@users.sourceforge.net> <9834b713-2c7b-ad6d-76a5-b1db40f561fc@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: ACPI-video: Fine-tuning for several function implementations
+Date: Tue, 6 Sep 2016 05:28:01 +0200
+Message-ID: <3e0cdc5b-fd15-515a-82f2-2f44792664ed@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
+ <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:36706 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932217AbcIEVnO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Sep 2016 17:43:14 -0400
-In-Reply-To: <9834b713-2c7b-ad6d-76a5-b1db40f561fc@users.sourceforge.net>
+Received: from mout.web.de ([212.227.15.3]:62090 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753565AbcIFD2i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Sep 2016 23:28:38 -0400
+In-Reply-To: <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, trivial@kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-On Mon, Sep 5, 2016 at 10:12 PM, SF Markus Elfring
-<elfring@users.sourceforge.net> wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 5 Sep 2016 22:05:05 +0200
->
-> Some update suggestions were taken into account
-> from static source code analysis.
->
-> Markus Elfring (7):
->   Fix a typo in a comment line
->   Use kmalloc_array() in hest_ghes_dev_register()
->   Move an assignment in hest_ghes_dev_register()
->   Rename jump labels in hest_ghes_dev_register()
->   Rename jump labels in acpi_hest_init()
->   Reduce the scope for a variable in acpi_hest_init()
->   Rename jump labels in hest_parse_ghes()
+> I'd prefer this to be combined into fewer patches
+> that each will address several issues of one type,
 
-Like in the other patch series I've just commented, please put all
-label renames into one patch.
+I understand your concern a bit in principle.
 
-Thanks,
-Rafael
+
+> ie. put all label renames into one patch,
+
+Are any of my update suggestions controversial here?
+
+
+> all size determination improvements into another one and so on.
+
+I am unsure about the acceptance for the selected software change opportunities.
+So I chose a very specific patch granularity intentionally.
+
+I tend to provide some change ideas for each affected function
+implementation individually. I imagine that this way should support
+the recombination of update steps to some degree already, shouldn't it?
+
+Regards,
+Markus
