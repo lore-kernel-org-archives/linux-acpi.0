@@ -1,116 +1,70 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] drivers: acpi: fix GIC irq model default PCI IRQ
- polarity
-Date: Tue, 6 Sep 2016 12:14:01 -0500
-Message-ID: <20160906171401.GA7554@localhost>
-References: <1473180663-20590-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v2 0/2] acpi, nfit: nvdimm notification support + tests
+Date: Tue, 06 Sep 2016 10:12:09 -0700
+Message-ID: <147318192936.31512.1001529917260869136.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1473180663-20590-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Punit Agrawal <punit.agrawal@arm.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:51433 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936286AbcIFRPJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Sep 2016 13:15:09 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Toshi Kani <toshi.kani@hpe.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Sep 06, 2016 at 05:51:03PM +0100, Lorenzo Pieralisi wrote:
-> On ACPI ARM based systems the GIC interrupt controller
-> and corresponding interrupt model permit only the high
-> polarity for level interrupts.
-> 
-> ACPI firmware describes PCI legacy IRQs through entries
-> in the _PRT objects. Entries in the _PRT can be of two types:
-> 
-> - Static: not configurable, trigger/polarity default to level-low,
->   _PRT entry defines the global GSI interrupt number
-> - Configurable: _PRT interrupt entry contains a reference to the
->   corresponding PCI interrupt link device (that in turn provides the
->   interrupt descriptor through its _CRS/_PRS methods)
-> 
-> Configurable IRQ entries are not currently allowed by the ACPI
-> specification on ARM since they can only be used for interrupt pins that
-> are routable, as per ACPI specifications (version 6.1, 6.2.13):
-> 
-> "[...] There are two ways that _PRT can be used. Typically, the
-> interrupt input that a given PCI interrupt is on is configurable. For
-> example, a given PCI interrupt might be configured for either IRQ 10 or
-> 11 on an 8259 interrupt controller. In this model, each interrupt is
-> represented in the ACPI namespace as a PCI Interrupt Link Device. [...]"
+While testing v1, I was able to produce the following crash when
+removing the nfit module:
 
-Thanks for the reference!  I wouldn't read that as actually
-*disallowing* Interrupt Links for non-configurable interrupts.
+ general protection fault: 0000 [#1] SMP
+ [..]
+ RIP: 0010:[<ffffffff81319f7e>]  [<ffffffff81319f7e>] kernfs_put+0x1e/0x1b0
+ RSP: 0018:ffff880461107d50  EFLAGS: 00010286
+ RAX: ffff880a67df1b60 RBX: ffff880a67df1b00 RCX: 0000000000000006
+ RDX: 0000000000000006 RSI: ffff8804683bb940 RDI: 6b6b6b6b6b6b6b6b
+ RBP: ffff880461107d88 R08: 0000000000000000 R09: 0000000000000000
+ R10: 0000000000000000 R11: 0000000000000000 R12: 6b6b6b6b6b6b6b6b
+ R13: ffff880a68cf5a80 R14: ffff880a61c66738 R15: 6b6b6b6b6b6b6b6b
+ FS:  00007fbc62a47700(0000) GS:ffff880a6f0c0000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 0000558e4f0093c0 CR3: 000000046640c000 CR4: 00000000001406e0
+ Stack:
+  ffff88046f408b40 00000000ba9be0cd ffff880a67df1b00 ffff880a68cf5b80
+  ffff880a68cf5a80 ffff880a61c66738 6b6b6b6b6b6b6b6b ffff880461107dc0
+  ffffffffa004742c ffff880a67e01778 ffff880461107e00 ffff880469d28290
+ Call Trace:
+  [<ffffffffa004742c>] acpi_nfit_destruct+0x6c/0x100 [nfit]
+  [<ffffffff815fdecf>] devm_action_release+0xf/0x20
+  [<ffffffff815fe9a9>] release_nodes+0x129/0x230
+  [<ffffffff815fed1c>] devres_release_all+0x3c/0x60
+  [<ffffffff815f9c79>] __device_release_driver+0xa9/0x160
+  [<ffffffff815fa8bb>] driver_detach+0xbb/0xc0
+  [<ffffffff815f9618>] bus_remove_driver+0x58/0xd0
+  [<ffffffff815fb32c>] driver_unregister+0x2c/0x50
+  [<ffffffff8153efd9>] acpi_bus_unregister_driver+0x15/0x17
+  [<ffffffffa004c177>] nfit_exit+0x15/0xe9e [nfit]
+  [<ffffffff8114d99a>] SyS_delete_module+0x1ba/0x220
+  [<ffffffff81a0437c>] entry_SYSCALL_64_fastpath+0x1f/0xbd
 
-But regardless, I do understand that even if we assume Interrupt Links
-are allowed, there is firmware in the field that doesn't use them, and
-I think this patch is really targeted at *them*.
+This was due to the fact that all 'nfit_mem' objects are already freed
+by the time we reach acpi_nfit_destruct().  Instead, we now register
+shutdown_dimm_notification() via devm_add_action_or_reset() to fire
+before 'nfit_mem' instances are torn down.
 
-> ARM platforms GIC configurations do not allow dynamic IRQ routing,
-> since routing is statically laid out at synthesis time; therefore PCI
-> interrupt links cannot be used for PCI legacy IRQ descriptions in the
-> _PRT on ARM systems.
-> 
-> On the other hand, current core ACPI code handling PCI legacy IRQs
-> consider IRQ trigger/polarity for static _PRT entries as level-low.
-> 
-> On ARM systems with a GIC interrupt controller and corresponding
-> ACPI interrupt model this does not work in that GIC interrupt
-> controller is only capable of handling level interrupts whose
-> polarity is high (for PCI legacy IRQs - that are level-low by
-> specification - this means that the legacy IRQs are inverted before
-> reaching the interrupt controller pin), resulting in IRQ allocation
-> failures such as:
-> 
-> genirq: Setting trigger mode 8 for irq 18 failed (gic_set_type+0x0/0x48)
-> 
-> Change the default polarity for PCI legacy IRQs to high on systems
-> booting wth ACPI on platforms with a GIC interrupt controller model,
-> fixing the discrepancy between specification and HW behaviour.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Duc Dang <dhdang@apm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> ---
-> v1 -> v2:
-> 
-> - Added ACPI specs PCI Interrupt Link device usage restrictions in
->   the patch commit log for explanation
-> - Added review tags
-> 
->  drivers/acpi/pci_irq.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 2c45dd3..c576a6f 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -411,7 +411,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  	int gsi;
->  	u8 pin;
->  	int triggering = ACPI_LEVEL_SENSITIVE;
-> -	int polarity = ACPI_ACTIVE_LOW;
-> +	/*
-> +	 * On ARM systems with the GIC interrupt model, level interrupts
-> +	 * are always polarity high by specification; PCI legacy
-> +	 * IRQs lines are inverted before reaching the interrupt
-> +	 * controller and must therefore be considered active high
-> +	 * as default.
-> +	 */
-> +	int polarity = acpi_irq_model == ACPI_IRQ_MODEL_GIC ?
-> +				      ACPI_ACTIVE_HIGH : ACPI_ACTIVE_LOW;
->  	char *link = NULL;
->  	char link_desc[16];
->  	int rc;
-> -- 
-> 2.6.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I maintained the reviewed-by's and acked-by's from v1.
+
+---
+
+Dan Williams (2):
+      acpi, nfit: add dimm device notification support
+      tools/testing/nvdimm: unit test for acpi_nvdimm_notify()
+
+
+ drivers/acpi/nfit/core.c         |   99 ++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/nfit/nfit.h         |    6 ++
+ drivers/nvdimm/dimm_devs.c       |    6 ++
+ include/linux/libnvdimm.h        |    1 
+ tools/testing/nvdimm/test/nfit.c |   45 +++++++++++++++++
+ 5 files changed, 153 insertions(+), 4 deletions(-)
