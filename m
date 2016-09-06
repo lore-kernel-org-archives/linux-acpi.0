@@ -1,191 +1,62 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 2/2] tools/testing/nvdimm: unit test for
- acpi_nvdimm_notify()
-Date: Tue, 06 Sep 2016 10:12:19 -0700
-Message-ID: <147318193977.31512.6886142718841435640.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <147318192936.31512.1001529917260869136.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [RFC PATCH V5 3/5] PCI: Check platform specific ECAM quirks
+Date: Tue, 6 Sep 2016 19:49:49 +0200
+Message-ID: <34416dae-31e6-93b6-2ba8-f42ba61ede4f@semihalf.com>
+References: <1470661541-26270-1-git-send-email-tn@semihalf.com>
+ <1470661541-26270-4-git-send-email-tn@semihalf.com>
+ <20160905022529.GD30488@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <147318192936.31512.1001529917260869136.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:36807 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938778AbcIFRuS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Sep 2016 13:50:18 -0400
+Received: by mail-lf0-f53.google.com with SMTP id g62so151883708lfe.3
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Sep 2016 10:50:18 -0700 (PDT)
+In-Reply-To: <20160905022529.GD30488@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Trigger an nmemX/nfit/flags attribute to fire an event whenever a
-smart-threshold DSM is received.
+On 05.09.2016 04:25, Bjorn Helgaas wrote:
+> On Mon, Aug 08, 2016 at 03:05:39PM +0200, Tomasz Nowicki wrote:
+>> Some platforms may not be fully compliant with generic set of PCI config
+>> accessors. For these cases we implement the way to overwrite accessors
+>> set. Algorithm traverses available quirk list (static array),
+>> matches against <oem_id, oem_table_id, rev, domain, bus number range> and
+>> returns pci_config_window structure with fancy PCI config ops.
+>> oem_id, oem_table_id and rev come from MCFG table standard header.
+>>
+>> It is possible to define custom init call which is responsible for
+>> setting up PCI configuration access accordingly to quirk requirements.
+>> If custom init call is not defined, use standard pci_acpi_setup_ecam_mapping().
+>>
+>> pci_generic_ecam_ops will be used for platforms free from quirks.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+>> Signed-off-by: Christopher Covington <cov@codeaurora.org>
+>> ---
+>>  drivers/pci/host/Makefile      |  1 +
+>>  drivers/pci/host/mcfg-quirks.c | 86 ++++++++++++++++++++++++++++++++++++++++++
+>>  drivers/pci/host/mcfg-quirks.h | 20 ++++++++++
+>>  include/linux/pci-acpi.h       |  2 +
+>>  4 files changed, 109 insertions(+)
+>>  create mode 100644 drivers/pci/host/mcfg-quirks.c
+>>  create mode 100644 drivers/pci/host/mcfg-quirks.h
+>
+> If the object is to work around defects in the ACPI MCFG table, I
+> think I'd put the quirks closer to drivers/acpi/pci_mcfg.c, where we
+> parse that table.  What if we actually put them directly *in*
+> drivers/acpi/pci_mcfg.c?
 
-Reviewed-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Acked-by: Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/nfit/core.c         |   10 ++++++--
- drivers/acpi/nfit/nfit.h         |    1 +
- tools/testing/nvdimm/test/nfit.c |   45 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+), 3 deletions(-)
+Then we need to export quirk init calls or ecam ops from 
+drivers/pci/host/* directory.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4af1db1cb599..ceb6671ab355 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1248,7 +1248,7 @@ static struct nvdimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
- 	return NULL;
- }
- 
--static void __acpi_nvdimm_notify(struct device *dev, u32 event)
-+void __acpi_nvdimm_notify(struct device *dev, u32 event)
- {
- 	struct nfit_mem *nfit_mem;
- 	struct acpi_nfit_desc *acpi_desc;
-@@ -1274,6 +1274,7 @@ static void __acpi_nvdimm_notify(struct device *dev, u32 event)
- 	if (nfit_mem && nfit_mem->flags_attr)
- 		sysfs_notify_dirent(nfit_mem->flags_attr);
- }
-+EXPORT_SYMBOL_GPL(__acpi_nvdimm_notify);
- 
- static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
- {
-@@ -1365,12 +1366,15 @@ static void shutdown_dimm_notify(void *data)
- 	 * notifications.
- 	 */
- 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct acpi_device *adev_dimm = nfit_mem->adev;
-+
- 		if (nfit_mem->flags_attr) {
- 			sysfs_put(nfit_mem->flags_attr);
- 			nfit_mem->flags_attr = NULL;
- 		}
--		acpi_remove_notify_handler(nfit_mem->adev->handle,
--				ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
-+		if (adev_dimm)
-+			acpi_remove_notify_handler(adev_dimm->handle,
-+					ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
- 	}
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 13195824778c..bb101170cd0b 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -233,5 +233,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- const u8 *to_nfit_uuid(enum nfit_uuids id);
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
- void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event);
-+void __acpi_nvdimm_notify(struct device *dev, u32 event);
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 8d79c75d3cae..99ea68674f0a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -161,6 +161,7 @@ struct nfit_test {
- 		unsigned long deadline;
- 		spinlock_t lock;
- 	} ars_state;
-+	struct device *dimm_dev[NUM_DCR];
- };
- 
- static struct nfit_test *to_nfit_test(struct device *dev)
-@@ -430,6 +431,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			break;
- 		case ND_CMD_SMART_THRESHOLD:
- 			rc = nfit_test_cmd_smart_threshold(buf, buf_len);
-+			device_lock(&t->pdev.dev);
-+			__acpi_nvdimm_notify(t->dimm_dev[i], 0x81);
-+			device_unlock(&t->pdev.dev);
- 			break;
- 		default:
- 			return -ENOTTY;
-@@ -566,6 +570,18 @@ static int ars_state_init(struct device *dev, struct ars_state *ars_state)
- 	return 0;
- }
- 
-+static void put_dimms(void *data)
-+{
-+	struct device **dimm_dev = data;
-+	int i;
-+
-+	for (i = 0; i < NUM_DCR; i++)
-+		if (dimm_dev[i])
-+			device_unregister(dimm_dev[i]);
-+}
-+
-+static struct class *nfit_test_dimm;
-+
- static int nfit_test0_alloc(struct nfit_test *t)
- {
- 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
-@@ -621,6 +637,15 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (!t->_fit)
- 		return -ENOMEM;
- 
-+	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t->dimm_dev))
-+		return -ENOMEM;
-+	for (i = 0; i < NUM_DCR; i++) {
-+		t->dimm_dev[i] = device_create(nfit_test_dimm, &t->pdev.dev, 0,
-+				NULL, "test_dimm%d", i);
-+		if (!t->dimm_dev[i])
-+			return -ENOMEM;
-+	}
-+
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -1414,6 +1439,7 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct device *dev = &pdev->dev;
- 	struct nfit_test *nfit_test;
-+	struct nfit_mem *nfit_mem;
- 	union acpi_object *obj;
- 	int rc;
- 
-@@ -1493,6 +1519,20 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	obj->buffer.pointer = nfit_test->nfit_buf;
- 	*(nfit_test->_fit) = obj;
- 	__acpi_nfit_notify(&pdev->dev, nfit_test, 0x80);
-+
-+	/* associate dimm devices with nfit_mem data for notification testing */
-+	mutex_lock(&acpi_desc->init_mutex);
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		u32 nfit_handle = __to_nfit_memdev(nfit_mem)->device_handle;
-+		int i;
-+
-+		for (i = 0; i < NUM_DCR; i++)
-+			if (nfit_handle == handle[i])
-+				dev_set_drvdata(nfit_test->dimm_dev[i],
-+						nfit_mem);
-+	}
-+	mutex_unlock(&acpi_desc->init_mutex);
-+
- 	return 0;
- }
- 
-@@ -1526,6 +1566,10 @@ static __init int nfit_test_init(void)
- {
- 	int rc, i;
- 
-+	nfit_test_dimm = class_create(THIS_MODULE, "nfit_test_dimm");
-+	if (IS_ERR(nfit_test_dimm))
-+		return PTR_ERR(nfit_test_dimm);
-+
- 	nfit_test_setup(nfit_test_lookup);
- 
- 	for (i = 0; i < NUM_NFITS; i++) {
-@@ -1592,6 +1636,7 @@ static __exit void nfit_test_exit(void)
- 	for (i = 0; i < NUM_NFITS; i++)
- 		platform_device_unregister(&instances[i]->pdev);
- 	nfit_test_teardown();
-+	class_destroy(nfit_test_dimm);
- }
- 
- module_init(nfit_test_init);
+Currently we keep mcfg quirk handling code and related drivers in one 
+place drivers/pci/host/
+
+Tomasz
