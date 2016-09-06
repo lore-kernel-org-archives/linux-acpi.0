@@ -1,110 +1,127 @@
-From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 05/15] drivers: platform: add fwnode base platform
-	devices retrieval
-Date: Tue, 6 Sep 2016 20:08:12 +0800
-Message-ID: <06a6d839-639f-8a86-14a5-4c43bff593b7@linaro.org>
-References: <1471274620-20754-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1471274620-20754-6-git-send-email-lorenzo.pieralisi@arm.com>
-	<7659b956-c49d-bd0d-7a1d-8dfc3da6f409@linaro.org>
-	<20160905145751.GA7480@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20160905145751.GA7480@red-moon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: fu.wei@linaro.org
+Subject: [PATCH v11 0/8] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Tue,  6 Sep 2016 21:25:44 +0800
+Message-ID: <1473168352-5156-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:44412 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755852AbcIFN0e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Sep 2016 09:26:34 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, linux@roeck-us.net, linux-watchdog@vger.kernel.org, Fu Wei <fu.wei@linaro.org>
 
-On 2016/9/5 22:57, Lorenzo Pieralisi wrote:
-> On Mon, Sep 05, 2016 at 09:19:43PM +0800, Hanjun Guo wrote:
->> On 2016/8/15 23:23, Lorenzo Pieralisi wrote:
->>> The platform device kernel API does not provide functions to
->>> retrieve a platform device through the corresponding struct
->>> device fwnode pointer.
->>>
->>> Implement the fwnode platform_device look-up in drivers core
->>> code by using the bus_find_device() API and a corresponding
->>> matching function. The OF equivalent (eg of_find_device_by_node())
->>> will reuse the newly introduced function when OF code will
->>> take care of setting up the device->fwnode value that is
->>> currently left dangling for platform devices instantiated out
->>> of device tree nodes.
->>>
->>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
->>> Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
->>> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
->>> ---
->>> drivers/base/platform.c         | 23 +++++++++++++++++++++++
->>> include/linux/platform_device.h |  3 +++
->>> 2 files changed, 26 insertions(+)
->>>
->>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
->>> index 6482d47..3ef150d 100644
->>> --- a/drivers/base/platform.c
->>> +++ b/drivers/base/platform.c
->>> @@ -760,6 +760,29 @@ err_out:
->>> }
->>> EXPORT_SYMBOL_GPL(__platform_create_bundle);
->>>
->>> +static int fwnode_dev_match(struct device *dev, void *data)
->>> +{
->>> +	return dev->fwnode == data;
->>> +}
->>> +
->>> +/**
->>> + * platform_find_device_by_fwnode() - Find the platform_device associated
->>> + *				      with a fwnode
->>> + * @fwnode: Pointer to firmware node
->>> + *
->>> + * Returns platform_device pointer, or NULL if not found
->>> + */
->>> +struct platform_device *
->>> +platform_find_device_by_fwnode(struct fwnode_handle *fwnode)
->>> +{
->>> +	struct device *dev;
->>> +
->>> +	dev = bus_find_device(&platform_bus_type, NULL, fwnode,
->>> +			      fwnode_dev_match);
->>> +	return dev ? to_platform_device(dev) : NULL;
->>> +}
->>> +EXPORT_SYMBOL(platform_find_device_by_fwnode);
->>
->> As SMMU is registered as platform devices, I think we need such
->> API to retrieve the platform device with fwnode handle, actually
->> Kefeng introduced a similar patch [1], but your patch is more
->> generic, so this patch make sense to me,
->>
->> Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->
-> Thanks ! Strictly speaking, with Robin's new series:
->
-> https://lists.linuxfoundation.org/pipermail/iommu/2016-August/018230.html
->
->
-> (and corresponding v5 of this one that I have rebased on top of it) we
-> do not need this patch any longer and it is not really that generic
-> keeping in mind that it can't be used for DT matching (because in DT
-> dev->fwnode is dangling); I will see if I keep this patch according
-> to dependencies.
+From: Fu Wei <fu.wei@linaro.org>
 
-OK, I think I will wait for your new version, then try another test
-and review it, does it make sense?
+This patchset:
+    (1)Preparation for adding GTDT support in arm_arch_timer:
+        1. Move some enums and marcos to header file;
+        2. Add a new enum for spi type;
+        3. Improve printk relevant code.
 
->
-> Side note: I have a problem with [1], since that code is there to
-> implement DT phandles in ACPI IIUC and we must really prevent that :)
+    (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
 
-Agreed :)
+    (3)Simplify ACPI code for arm_arch_timer
 
-Thanks
-Hanjun
+    (4)Add GTDT support for ARM memory-mapped timer
+
+This patchset depends on the following patchset:
+[PATCH V9 0/8] Introduce ACPI world to ITS irqchip
+https://lkml.org/lkml/2016/9/5/847
+
+This patchset has been tested on the following platforms:
+    (1)ARM Foundation v8 model
+
+Changelog:
+V11: https://lkml.org/lkml/2016/9/6/
+     Rebase to latest Linux 4.8-rc5
+     Delete typedef (suggested by checkpatch.pl)
+
+V10: https://lkml.org/lkml/2016/7/26/215
+     Drop the "readq" patch.
+     Rebase to latest Linux 4.7.
+
+V9: https://lkml.org/lkml/2016/7/25/345
+    Improve pr_err message in acpi gtdt driver.
+    Update Commit message for 7/9
+    shorten the irq mapping function name
+    Improve GTDT driver for memory-mapped timer
+
+v8: https://lkml.org/lkml/2016/7/19/660
+    Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+    and also improve printk message.
+    Simplify is_timer_block and is_watchdog.
+    Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+    Delete __init in include/linux/acpi.h for GTDT API
+    Make ARM64 select GTDT.
+    Delete "#include <linux/module.h>" from acpi_gtdt.c
+    Simplify GT block parse code.
+
+v7: https://lkml.org/lkml/2016/7/13/769
+    Move the GTDT driver to drivers/acpi/arm64
+    Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+    Merge 3 patches of GTDT parser driver.
+    Fix the for_each_platform_timer bug.
+
+v6: https://lkml.org/lkml/2016/6/29/580
+    split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+    and SBSA Generic Watchdog timer
+    Improve driver by suggestions and example code from Daniel Lezcano
+
+v5: https://lkml.org/lkml/2016/5/24/356
+    Sorting out all patches, simplify the API of GTDT driver:
+    GTDT driver just fills the data struct for arm_arch_timer driver.
+
+v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+    Delete the kvm relevant patches
+    Separate two patches for sorting out the code for arm_arch_timer.
+    Improve irq info export code to allow missing irq info in GTDT table.
+
+v3: https://lkml.org/lkml/2016/2/1/658
+    Improve GTDT driver code:
+      (1)improve pr_* by defining pr_fmt(fmt)
+      (2)simplify gtdt_sbsa_gwdt_init
+      (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+      to get GTDT table.
+    Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+    Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+
+v2: https://lkml.org/lkml/2015/12/2/10
+    Rebase to latest kernel version(4.4-rc3).
+    Fix the bug about the config problem,
+    use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+
+v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+
+Fu Wei (8):
+  clocksource/drivers/arm_arch_timer: Move enums and defines to header
+    file
+  clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+  clocksource/drivers/arm_arch_timer: Improve printk relevant code
+  acpi/arm64: Add GTDT table parse driver
+  clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+  acpi/arm64: Add memory-mapped timer support in GTDT driver
+  clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+    timer
+  acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+
+ arch/arm64/Kconfig                   |   1 +
+ drivers/acpi/arm64/Kconfig           |   3 +
+ drivers/acpi/arm64/Makefile          |   1 +
+ drivers/acpi/arm64/gtdt.c            | 309 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/Kconfig          |   2 +-
+ drivers/clocksource/arm_arch_timer.c | 225 +++++++++++++++++--------
+ drivers/watchdog/Kconfig             |   1 +
+ include/clocksource/arm_arch_timer.h |  32 ++++
+ include/linux/acpi.h                 |   7 +
+ 9 files changed, 510 insertions(+), 71 deletions(-)
+ create mode 100644 drivers/acpi/arm64/gtdt.c
+
+-- 
+2.7.4
+
