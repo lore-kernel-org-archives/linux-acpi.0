@@ -1,36 +1,104 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: ACPI-APEI-HEST: Fine-tuning for three function implementations
-Date: Tue, 6 Sep 2016 13:25:03 +0200
-Message-ID: <CAJZ5v0i5EW1UpLfaogyD-s4P4vXdgWndwjOpF5ykPDXE=eZVSA@mail.gmail.com>
-References: <566ABCD9.1060404@users.sourceforge.net> <9834b713-2c7b-ad6d-76a5-b1db40f561fc@users.sourceforge.net>
- <CAJZ5v0hcD8pi8y+jAtF70cJp8uYyUdOeDJKuR3z=JpB6Z_Qnfw@mail.gmail.com> <06ab72bc-6e00-1829-f1bf-67f0a31aff38@users.sourceforge.net>
+Subject: Re: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that
+ might be reused for ACPI
+Date: Tue, 6 Sep 2016 13:29:09 +0200
+Message-ID: <CAJZ5v0iYc=1CN546MaabJdoNBUW8JbeD_qt8hSSDBPLJnB8Hug@mail.gmail.com>
+References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
+ <1473152938-17388-8-git-send-email-tn@semihalf.com> <alpine.DEB.2.20.1609061149090.5647@nanos>
+ <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <06ab72bc-6e00-1829-f1bf-67f0a31aff38@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, trivial@kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, shijie.huang@arm.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Andrea Gallo <andrea.gallo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>Linu
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 6, 2016 at 5:38 AM, SF Markus Elfring
-<elfring@users.sourceforge.net> wrote:
->> Like in the other patch series I've just commented,
->
-> Thanks for your quick response.
+On Tue, Sep 6, 2016 at 12:22 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+> Hi Thomas,
 >
 >
->> please put all label renames into one patch.
+> On 06.09.2016 11:50, Thomas Gleixner wrote:
+>>
+>> On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
+>>>
+>>> -static int __init its_pci_msi_init(void)
+>>> +static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
+>>> +                                      const char *name)
+>>>  {
+>>> -       struct device_node *np;
+>>>         struct irq_domain *parent;
+>>>
+>>> +       parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
+>>> +       if (!parent || !msi_get_domain_info(parent)) {
+>>> +               pr_err("%s: Unable to locate ITS domain\n", name);
+>>> +               return -ENXIO;
+>>> +       }
+>>> +
+>>> +       if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
+>>> +                                      parent)) {
+>>> +               pr_err("%s: Unable to create PCI domain\n", name);
+>>> +               return -ENOMEM;
+>>
+>>
+>> So you have error codes here.
+>>
+>>> +       }
+>>> +
+>>> +       return 0;
+>>> +}
+>>> +
+>>> +static int __init its_pci_of_msi_init(void)
+>>> +{
+>>> +       struct device_node *np;
+>>> +
+>>>         for (np = of_find_matching_node(NULL, its_device_id); np;
+>>>              np = of_find_matching_node(np, its_device_id)) {
+>>>                 if (!of_property_read_bool(np, "msi-controller"))
+>>>                         continue;
+>>>
+>>> -               parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
+>>> -               if (!parent || !msi_get_domain_info(parent)) {
+>>> -                       pr_err("%s: unable to locate ITS domain\n",
+>>> -                              np->full_name);
+>>> +               if (its_pci_msi_init_one(of_node_to_fwnode(np),
+>>> np->full_name))
+>>>                         continue;
+>>> -               }
+>>> -
+>>> -               if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
+>>> -                                              &its_pci_msi_domain_info,
+>>> -                                              parent)) {
+>>> -                       pr_err("%s: unable to create PCI domain\n",
+>>> -                              np->full_name);
+>>> -                       continue;
+>>> -               }
+>>>
+>>>                 pr_info("PCI/MSI: %s domain created\n", np->full_name);
+>>>         }
+>>>
+>>>         return 0;
+>>
+>>
+>> And no matter what you return success
+>>
+>>>  }
+>>> +
+>>> +static int __init its_pci_msi_init(void)
+>>> +{
+>>> +       its_pci_of_msi_init();
+>>
+>>
+>> Which you subsequently ignore here. What's the point?
+>>
 >
-> Could you accept these update suggestions generally?
->
->
-> I would prefer to avoid squashing special changes together by default.
+> Well, this patch is meant to refactor the code. It does not change the error
+> handing nor the functionality. However, you have got a point but IMO it
+> should be fixed in separate patch if possible.
 
-Well, as I said elsewhere, if you make the same type of change in
-multiple places in one piece of code (or code maintained by the same
-maintainer), you make it easier to review those changes if they go in
-one patch.
+But you are refactoring the code, so it would make sense to clean it
+up while at it.  Perhaps add one more patch to the series?
 
 Thanks,
 Rafael
