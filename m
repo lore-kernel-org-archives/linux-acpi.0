@@ -1,117 +1,43 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that
- might be reused for ACPI
-Date: Wed, 7 Sep 2016 09:49:31 +0200
-Message-ID: <c3228e58-5fbe-692f-5047-df4cff12d1f8@semihalf.com>
-References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
- <1473152938-17388-8-git-send-email-tn@semihalf.com>
- <alpine.DEB.2.20.1609061149090.5647@nanos>
- <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
- <CAJZ5v0iYc=1CN546MaabJdoNBUW8JbeD_qt8hSSDBPLJnB8Hug@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iYc=1CN546MaabJdoNBUW8JbeD_qt8hSSDBPLJnB8Hug@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, shijie.huang@arm.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Andrea Gallo <andrea.gallo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.o>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/4] ACPI / EC: Fix ECDT and boot_ec support
+Date: Wed,  7 Sep 2016 16:49:59 +0800
+Message-ID: <cover.1473238007.git.lv.zheng@intel.com>
+References: <cover.1472802172.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:2057 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754707AbcIGIuH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Sep 2016 04:50:07 -0400
+In-Reply-To: <cover.1472802172.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 06.09.2016 13:29, Rafael J. Wysocki wrote:
-> On Tue, Sep 6, 2016 at 12:22 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
->> Hi Thomas,
->>
->>
->> On 06.09.2016 11:50, Thomas Gleixner wrote:
->>>
->>> On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
->>>>
->>>> -static int __init its_pci_msi_init(void)
->>>> +static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
->>>> +                                      const char *name)
->>>>  {
->>>> -       struct device_node *np;
->>>>         struct irq_domain *parent;
->>>>
->>>> +       parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
->>>> +       if (!parent || !msi_get_domain_info(parent)) {
->>>> +               pr_err("%s: Unable to locate ITS domain\n", name);
->>>> +               return -ENXIO;
->>>> +       }
->>>> +
->>>> +       if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
->>>> +                                      parent)) {
->>>> +               pr_err("%s: Unable to create PCI domain\n", name);
->>>> +               return -ENOMEM;
->>>
->>>
->>> So you have error codes here.
->>>
->>>> +       }
->>>> +
->>>> +       return 0;
->>>> +}
->>>> +
->>>> +static int __init its_pci_of_msi_init(void)
->>>> +{
->>>> +       struct device_node *np;
->>>> +
->>>>         for (np = of_find_matching_node(NULL, its_device_id); np;
->>>>              np = of_find_matching_node(np, its_device_id)) {
->>>>                 if (!of_property_read_bool(np, "msi-controller"))
->>>>                         continue;
->>>>
->>>> -               parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
->>>> -               if (!parent || !msi_get_domain_info(parent)) {
->>>> -                       pr_err("%s: unable to locate ITS domain\n",
->>>> -                              np->full_name);
->>>> +               if (its_pci_msi_init_one(of_node_to_fwnode(np),
->>>> np->full_name))
->>>>                         continue;
->>>> -               }
->>>> -
->>>> -               if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
->>>> -                                              &its_pci_msi_domain_info,
->>>> -                                              parent)) {
->>>> -                       pr_err("%s: unable to create PCI domain\n",
->>>> -                              np->full_name);
->>>> -                       continue;
->>>> -               }
->>>>
->>>>                 pr_info("PCI/MSI: %s domain created\n", np->full_name);
->>>>         }
->>>>
->>>>         return 0;
->>>
->>>
->>> And no matter what you return success
->>>
->>>>  }
->>>> +
->>>> +static int __init its_pci_msi_init(void)
->>>> +{
->>>> +       its_pci_of_msi_init();
->>>
->>>
->>> Which you subsequently ignore here. What's the point?
->>>
->>
->> Well, this patch is meant to refactor the code. It does not change the error
->> handing nor the functionality. However, you have got a point but IMO it
->> should be fixed in separate patch if possible.
->
-> But you are refactoring the code, so it would make sense to clean it
-> up while at it.  Perhaps add one more patch to the series?
->
+Linux uses ECDT only in boot stage (before the namespace is fully
+initialized), but there are cases reported that Windows allows ECDT to be
+used for OSPM runtime, responding EC events by evaluating _Qxx methods
+under the device node indicated in the ECDT.
 
-I have a look at the code again and come to the conclusion the code is 
-fine now. We iterate over available its nodes and try to probe driver. 
-There might be an error for one of it (print error message) but we keep 
-trying for the rest. One of it might be probed successfully. So there is 
-no reason to escape in half way. Since its_pci_of_msi_init() always 
-returns 0 I can remove return statement so we would have:
-void its_pci_of_msi_init(void) instead.
+This patchset changes Linux ECDT support to follow Windows behavior and
+also fixes related boot_ec support.
 
-Thanks,
-Tomasz
+v2:
+ Rebased on top of recent linux-pm.git/linux-next.
+ Addressed 1 comment from Peter Wu.
+ Update patch SOBs.
+
+Lv Zheng (4):
+  ACPI / EC: Cleanup first_ec/boot_ec code
+  ACPI / EC: Fix a memory leakage issue in acpi_ec_add()
+  ACPI / EC: Fix a gap that ECDT EC cannot handle EC events
+  ACPI / EC: Fix issues related to boot_ec
+
+ drivers/acpi/ec.c       |  240 +++++++++++++++++++++++++++++++++++++----------
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/scan.c     |    1 +
+ 3 files changed, 195 insertions(+), 47 deletions(-)
+
+-- 
+1.7.10
+
