@@ -1,97 +1,60 @@
-From: Aleksey Makarov <amakarov.linux@gmail.com>
-Subject: Re: [PATCH v10 3/4] ARM64: ACPI: enable ACPI_SPCR_TABLE
-Date: Wed, 7 Sep 2016 12:30:19 +0300
-Message-ID: <7e5486cc-4080-2d1e-8f6d-98874379887d@gmail.com>
-References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
- <20160905123617.18775-4-aleksey.makarov@linaro.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V10 2/8] ACPI: Add new IORT functions to support MSI
+ domain handling
+Date: Wed, 7 Sep 2016 12:35:57 +0200
+Message-ID: <4ef60b61-666c-2be0-1fad-81aa441360bd@semihalf.com>
+References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
+ <1473152938-17388-3-git-send-email-tn@semihalf.com>
+ <alpine.DEB.2.20.1609061219230.5647@nanos>
+ <f469f024-b1c9-8616-c841-663e3e3d0731@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35558 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964985AbcIGJdW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2016 05:33:22 -0400
-In-Reply-To: <20160905123617.18775-4-aleksey.makarov@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <f469f024-b1c9-8616-c841-663e3e3d0731@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: Thomas Gleixner <tglx@linutronix.de>, marc.zyngier@arm.com, jason@lakedaemon.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 
+Rafael,
 
-On 09/05/2016 03:36 PM, Aleksey Makarov wrote:
-> SBBR mentions SPCR as a mandatory ACPI table.  So enable it for ARM64
-> 
-> Earlycon should be set up as early as possible.  ACPI boot tables are
-> mapped in arch/arm64/kernel/acpi.c:acpi_boot_table_init() that
-> is called from setup_arch() and that's where we parse SPCR.
-> So it has to be opted-in per-arch.
-> 
-> When ACPI_SPCR_TABLE is defined initialization of DT earlycon is
-> deferred until the DT/ACPI decision is done.  Initialize DT earlycon
-> if ACPI is disabled.
+There are two fixes for iort.c:
+1. patch 1 - convert switch to if-else in iort_match_node_callback()
+2. patch 2 - remove static local variable for iort_get_device_domain()
 
-Hi Will, Catalin,
+Do you want me to repost these patches to get your ACK, or you want new V11?
 
-Can you review this patch and consider ACKing it please?
+Thanks,
+Tomasz
 
-Thank you
-Aleksey Makarov
-
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> Tested-by: Christopher Covington <cov@codeaurora.org>
-> ---
->  arch/arm64/Kconfig       |  1 +
->  arch/arm64/kernel/acpi.c | 11 ++++++++++-
->  2 files changed, 11 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index bc3f00f..11a2d36 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -4,6 +4,7 @@ config ARM64
->  	select ACPI_GENERIC_GSI if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->  	select ACPI_MCFG if ACPI
-> +	select ACPI_SPCR_TABLE if ACPI
->  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->  	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index 3e4f1a4..252a6d9 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -24,6 +24,7 @@
->  #include <linux/memblock.h>
->  #include <linux/of_fdt.h>
->  #include <linux/smp.h>
-> +#include <linux/serial_core.h>
->  
->  #include <asm/cputype.h>
->  #include <asm/cpu_ops.h>
-> @@ -206,7 +207,7 @@ void __init acpi_boot_table_init(void)
->  	if (param_acpi_off ||
->  	    (!param_acpi_on && !param_acpi_force &&
->  	     of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
-> -		return;
-> +		goto done;
->  
->  	/*
->  	 * ACPI is disabled at this point. Enable it in order to parse
-> @@ -226,6 +227,14 @@ void __init acpi_boot_table_init(void)
->  		if (!param_acpi_force)
->  			disable_acpi();
->  	}
-> +
-> +done:
-> +	if (acpi_disabled) {
-> +		if (earlycon_init_is_deferred)
-> +			early_init_dt_scan_chosen_stdout();
-> +	} else {
-> +		parse_spcr(earlycon_init_is_deferred);
-> +	}
->  }
->  
->  #ifdef CONFIG_ACPI_APEI
-> 
+On 06.09.2016 12:27, Tomasz Nowicki wrote:
+> On 06.09.2016 12:20, Thomas Gleixner wrote:
+>> On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
+>>> +/**
+>>> + * iort_get_device_domain() - Find MSI domain related to a device
+>>> + * @dev: The device.
+>>> + * @req_id: Requester ID for the device.
+>>> + *
+>>> + * Returns: the MSI domain for this device, NULL otherwise
+>>> + */
+>>> +struct irq_domain *iort_get_device_domain(struct device *dev, u32
+>>> req_id)
+>>> +{
+>>> +    static struct fwnode_handle *handle;
+>>
+>> static ??????
+>>
+>>> +    int its_id;
+>>> +
+>>> +    if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
+>>> +        return NULL;
+>>> +
+>>> +    handle = iort_find_domain_token(its_id);
+>>
+>> You reevaluate that on every call.
+>>
+>
+> Obviously it is the bug. Thanks for spotting this.
+>
+> Tomasz
