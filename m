@@ -1,94 +1,158 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/14] ACPICA: Update return value for intenal _OSI method
-Date: Wed,  7 Sep 2016 14:06:47 +0800
-Message-ID: <29ff63f78265023af4cc5c5c5d3500fa5d413c63.1473226204.git.lv.zheng@intel.com>
+Subject: [PATCH 10/14] ACPICA: Namespace: Add acpi_ns_get_node_unlocked()
+Date: Wed,  7 Sep 2016 14:07:02 +0800
+Message-ID: <48958b2ab0752e16fa3265300e729ce1f5265388.1473226204.git.lv.zheng@intel.com>
 References: <cover.1473226203.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:39374 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:3204 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752767AbcIGGHK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Sep 2016 02:07:10 -0400
+        id S1752707AbcIGGHJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Sep 2016 02:07:09 -0400
 In-Reply-To: <cover.1473226203.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 3ef1a1bf5612fe1a629424c09eaaeb6f299d313c
 
-ACPICA commit 82101009c7c04845edb3495e66a274a613758bca
+Add acpi_ns_get_node_unlocked() to be used when ACPI_MTX_NAMESPACE is
+locked. Lv Zheng.
 
-Instead of 0xFFFFFFFF, _OSI is now defined to return "Ones".
-This is for compatibility with Windows. The ACPI spec will
-be updated to reflect this.
-
-Link: https://github.com/acpica/acpica/commit/82101009
-Reported-by: Daniel Drake <drake@endlessm.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/3ef1a1bf
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Tested-by: Greg White <gwhite@kupulau.com>
+Tested-by: Dutch Guy <lucht_piloot@gmx.net>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/utosi.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/acnamesp.h |    5 +++
+ drivers/acpi/acpica/nsutils.c  |   66 ++++++++++++++++++++++++++++++----------
+ 2 files changed, 55 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
-index 3f5fed6..f0484b0 100644
---- a/drivers/acpi/acpica/utosi.c
-+++ b/drivers/acpi/acpica/utosi.c
-@@ -390,11 +390,22 @@ struct acpi_interface_info *acpi_ut_get_interface(acpi_string interface_name)
-  * PARAMETERS:  walk_state          - Current walk state
+diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
+index 829672a..bb7fca1 100644
+--- a/drivers/acpi/acpica/acnamesp.h
++++ b/drivers/acpi/acpica/acnamesp.h
+@@ -299,6 +299,11 @@ u8
+ acpi_ns_pattern_match(struct acpi_namespace_node *obj_node, char *search_for);
+ 
+ acpi_status
++acpi_ns_get_node_unlocked(struct acpi_namespace_node *prefix_node,
++			  const char *external_pathname,
++			  u32 flags, struct acpi_namespace_node **out_node);
++
++acpi_status
+ acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+ 		 const char *external_pathname,
+ 		 u32 flags, struct acpi_namespace_node **out_node);
+diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
+index 784a30b..691814d 100644
+--- a/drivers/acpi/acpica/nsutils.c
++++ b/drivers/acpi/acpica/nsutils.c
+@@ -662,7 +662,7 @@ u32 acpi_ns_opens_scope(acpi_object_type type)
+ 
+ /*******************************************************************************
   *
-  * RETURN:      Status
-+ *              Integer: TRUE (0) if input string is matched
-+ *                       FALSE (-1) if string is not matched
+- * FUNCTION:    acpi_ns_get_node
++ * FUNCTION:    acpi_ns_get_node_unlocked
   *
-  * DESCRIPTION: Implementation of the _OSI predefined control method. When
-  *              an invocation of _OSI is encountered in the system AML,
-  *              control is transferred to this function.
+  * PARAMETERS:  *pathname   - Name to be found, in external (ASL) format. The
+  *                            \ (backslash) and ^ (carat) prefixes, and the
+@@ -678,20 +678,21 @@ u32 acpi_ns_opens_scope(acpi_object_type type)
+  * DESCRIPTION: Look up a name relative to a given scope and return the
+  *              corresponding Node. NOTE: Scope can be null.
   *
-+ * (August 2016)
-+ * Note:  _OSI is now defined to return "Ones" to indicate a match, for
-+ * compatibility with other ACPI implementations. On a 32-bit DSDT, Ones
-+ * is 0xFFFFFFFF. On a 64-bit DSDT, Ones is 0xFFFFFFFFFFFFFFFF
-+ * (ACPI_UINT64_MAX).
-+ *
-+ * This function always returns ACPI_UINT64_MAX for TRUE, and later code
-+ * will truncate this to 32 bits if necessary.
-+ *
+- * MUTEX:       Locks namespace
++ * MUTEX:       Doesn't locks namespace
+  *
   ******************************************************************************/
  
- acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
-@@ -404,7 +415,7 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
- 	struct acpi_interface_info *interface_info;
- 	acpi_interface_handler interface_handler;
+ acpi_status
+-acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+-		 const char *pathname,
+-		 u32 flags, struct acpi_namespace_node **return_node)
++acpi_ns_get_node_unlocked(struct acpi_namespace_node *prefix_node,
++			  const char *pathname,
++			  u32 flags, struct acpi_namespace_node **return_node)
+ {
+ 	union acpi_generic_state scope_info;
  	acpi_status status;
--	u32 return_value;
-+	u64 return_value;
+ 	char *internal_path;
  
- 	ACPI_FUNCTION_TRACE(ut_osi_implementation);
+-	ACPI_FUNCTION_TRACE_PTR(ns_get_node, ACPI_CAST_PTR(char, pathname));
++	ACPI_FUNCTION_TRACE_PTR(ns_get_node_unlocked,
++				ACPI_CAST_PTR(char, pathname));
  
-@@ -444,7 +455,7 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
- 			acpi_gbl_osi_data = interface_info->value;
- 		}
+ 	/* Simplest case is a null pathname */
  
--		return_value = ACPI_UINT32_MAX;
-+		return_value = ACPI_UINT64_MAX;
+@@ -718,13 +719,6 @@ acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+ 		return_ACPI_STATUS(status);
  	}
  
- 	acpi_os_release_mutex(acpi_gbl_osi_mutex);
-@@ -456,9 +467,10 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
- 	 */
- 	interface_handler = acpi_gbl_interface_handler;
- 	if (interface_handler) {
--		return_value =
--		    interface_handler(string_desc->string.pointer,
--				      return_value);
-+		if (interface_handler
-+		    (string_desc->string.pointer, (u32)return_value)) {
-+			return_value = ACPI_UINT64_MAX;
-+		}
+-	/* Must lock namespace during lookup */
+-
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+-	if (ACPI_FAILURE(status)) {
+-		goto cleanup;
+-	}
+-
+ 	/* Setup lookup scope (search starting point) */
+ 
+ 	scope_info.scope.node = prefix_node;
+@@ -740,9 +734,49 @@ acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+ 				  pathname, acpi_format_exception(status)));
  	}
  
- 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INFO,
+-	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+-
+-cleanup:
+ 	ACPI_FREE(internal_path);
+ 	return_ACPI_STATUS(status);
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_get_node
++ *
++ * PARAMETERS:  *pathname   - Name to be found, in external (ASL) format. The
++ *                            \ (backslash) and ^ (carat) prefixes, and the
++ *                            . (period) to separate segments are supported.
++ *              prefix_node  - Root of subtree to be searched, or NS_ALL for the
++ *                            root of the name space. If Name is fully
++ *                            qualified (first s8 is '\'), the passed value
++ *                            of Scope will not be accessed.
++ *              flags       - Used to indicate whether to perform upsearch or
++ *                            not.
++ *              return_node - Where the Node is returned
++ *
++ * DESCRIPTION: Look up a name relative to a given scope and return the
++ *              corresponding Node. NOTE: Scope can be null.
++ *
++ * MUTEX:       Locks namespace
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
++		 const char *pathname,
++		 u32 flags, struct acpi_namespace_node **return_node)
++{
++	acpi_status status;
++
++	ACPI_FUNCTION_TRACE_PTR(ns_get_node, ACPI_CAST_PTR(char, pathname));
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	status = acpi_ns_get_node_unlocked(prefix_node, pathname,
++					   flags, return_node);
++
++	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++	return_ACPI_STATUS(status);
++}
 -- 
 1.7.10
 
