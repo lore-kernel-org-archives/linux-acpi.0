@@ -1,152 +1,70 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 4/4] ACPI / EC: Fix issues related to boot_ec
-Date: Wed,  7 Sep 2016 16:50:27 +0800
-Message-ID: <cc1a9232a17c5f9df7c4547a2e87f48288574db4.1473238007.git.lv.zheng@intel.com>
-References: <cover.1472802172.git.lv.zheng@intel.com> <cover.1473238007.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1473238007.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v11 5/8] clocksource/drivers/arm_arch_timer: Simplify ACPI
+ support code.
+Date: Wed, 7 Sep 2016 17:23:43 +0800
+Message-ID: <CADyBb7uX79UP=mUxvP-EPGi56-46y2SCMPsWO=Uw-=N0GQERhA@mail.gmail.com>
+References: <1473168352-5156-1-git-send-email-fu.wei@linaro.org>
+ <1473168352-5156-6-git-send-email-fu.wei@linaro.org> <alpine.DEB.2.20.1609061635000.5647@nanos>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:36812 "EHLO
+        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751606AbcIGJXo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2016 05:23:44 -0400
+Received: by mail-oi0-f43.google.com with SMTP id w78so17187839oie.3
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Sep 2016 02:23:44 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.20.1609061635000.5647@nanos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim
 
-There are issues related to the boot_ec:
-1. If acpi_ec_remove() is invoked, boot_ec will also be freed, this is not
-   expected as the boot_ec could be enumerated via ECDT.
-2. Address space handler installation/unstallation lead to unexpected _REG
-   evaluations.
-This patch adds acpi_is_boot_ec() check to be used to fix the above issues.
-However, since acpi_ec_remove() actually won't be invoked, this patch
-doesn't handle the reference counting of "struct acpi_ec", it only ensures
-the correctness of the boot_ec destruction during the boot.
+Hi Thomas
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=153511
-Reported-and-tested-by: Jonh Henderson <jw.hendy@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Peter Wu <peter@lekensteyn.nl>
----
- drivers/acpi/ec.c |   63 +++++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 49 insertions(+), 14 deletions(-)
+On 6 September 2016 at 22:36, Thomas Gleixner <tglx@linutronix.de> wrote:
+> On Tue, 6 Sep 2016, fu.wei@linaro.org wrote:
+>> +     if (timer_count < 0)
+>> +             pr_err("Failed to get platform timer info, skipping.\n");
+>
+> So this prints something about skipping. But then it continues as if
+> nothing went wrong. That's either wrong or confusing or both.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 2ae9194..6805310 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1536,6 +1536,37 @@ static int acpi_config_boot_ec(struct acpi_ec *ec, acpi_handle handle,
- 	return ret;
- }
- 
-+static bool acpi_ec_ecdt_get_handle(acpi_handle *phandle)
-+{
-+	struct acpi_table_ecdt *ecdt_ptr;
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	status = acpi_get_table(ACPI_SIG_ECDT, 1,
-+				(struct acpi_table_header **)&ecdt_ptr);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	status = acpi_get_handle(NULL, ecdt_ptr->id, &handle);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	*phandle = handle;
-+	return true;
-+}
-+
-+static bool acpi_is_boot_ec(struct acpi_ec *ec)
-+{
-+	if (!boot_ec)
-+		return false;
-+	if (ec->handle == boot_ec->handle &&
-+	    ec->gpe == boot_ec->gpe &&
-+	    ec->command_addr == boot_ec->command_addr &&
-+	    ec->data_addr == boot_ec->data_addr)
-+		return true;
-+	return false;
-+}
-+
- static int acpi_ec_add(struct acpi_device *device)
- {
- 	struct acpi_ec *ec = NULL;
-@@ -1553,7 +1584,14 @@ static int acpi_ec_add(struct acpi_device *device)
- 			goto err_alloc;
- 	}
- 
--	ret = acpi_config_boot_ec(ec, device->handle, true, false);
-+	if (acpi_is_boot_ec(ec)) {
-+		boot_ec_is_ecdt = false;
-+		acpi_handle_debug(ec->handle, "duplicated.\n");
-+		acpi_ec_free(ec);
-+		ec = boot_ec;
-+		ret = acpi_config_boot_ec(ec, ec->handle, true, false);
-+	} else
-+		ret = acpi_ec_setup(ec, true);
- 	if (ret)
- 		goto err_query;
- 
-@@ -1566,12 +1604,15 @@ static int acpi_ec_add(struct acpi_device *device)
- 
- 	/* Reprobe devices depending on the EC */
- 	acpi_walk_dep_device_list(ec->handle);
-+	acpi_handle_debug(ec->handle, "enumerated.\n");
- 	return 0;
- 
- err_query:
--	acpi_ec_remove_query_handlers(ec, true, 0);
-+	if (ec != boot_ec)
-+		acpi_ec_remove_query_handlers(ec, true, 0);
- err_alloc:
--	acpi_ec_free(ec);
-+	if (ec != boot_ec)
-+		acpi_ec_free(ec);
- 	return ret;
- }
- 
-@@ -1583,11 +1624,13 @@ static int acpi_ec_remove(struct acpi_device *device)
- 		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
--	ec_remove_handlers(ec);
- 	release_region(ec->data_addr, 1);
- 	release_region(ec->command_addr, 1);
- 	device->driver_data = NULL;
--	acpi_ec_free(ec);
-+	if (ec != boot_ec) {
-+		ec_remove_handlers(ec);
-+		acpi_ec_free(ec);
-+	}
- 	return 0;
- }
- 
-@@ -1659,8 +1702,6 @@ error:
-  */
- int __init acpi_ec_ecdt_start(void)
- {
--	struct acpi_table_ecdt *ecdt_ptr;
--	acpi_status status;
- 	acpi_handle handle;
- 
- 	if (!boot_ec)
-@@ -1672,17 +1713,11 @@ int __init acpi_ec_ecdt_start(void)
- 	if (!boot_ec_is_ecdt)
- 		return -ENODEV;
- 
--	status = acpi_get_table(ACPI_SIG_ECDT, 1,
--				(struct acpi_table_header **)&ecdt_ptr);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
- 	/*
- 	 * At this point, the namespace and the GPE is initialized, so
- 	 * start to find the namespace objects and handle the events.
- 	 */
--	status = acpi_get_handle(NULL, ecdt_ptr->id, &handle);
--	if (ACPI_FAILURE(status))
-+	if (!acpi_ec_ecdt_get_handle(&handle))
- 		return -ENODEV;
- 	return acpi_config_boot_ec(boot_ec, handle, true, true);
- }
--- 
-1.7.10
+yes, you are right, this info is confusing.
+maybe we just delete the "skipping" ?
+
+=E2=80=9Ctimer_count < 0=E2=80=9D is caused by some firmware bug, in gtdt.c=
+:
+----
+int __init acpi_gtdt_init(struct acpi_table_header *table)
+{
+......
+        if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
+        pr_err(FW_BUG "Failed to retrieve timer info from firmware:
+invalid data.\n");
+        return -EINVAL;
+......
+}
+----
+
+But in this situation( without platform timers ), system still can work.
+So I thing we just need to print a error.
+
+>
+>> -     arch_timer_init();
+>> -     return 0;
+>> +     return arch_timer_init();
+>
+> Thanks,
+>
+>         tglx
+
+
+
+--=20
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
