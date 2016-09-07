@@ -1,43 +1,32 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [UPDATE PATCH V10 2/8] ACPI: Add new IORT functions to support
- MSI domain handling
-Date: Wed, 7 Sep 2016 15:01:44 +0200
-Message-ID: <c9c233c4-bb19-df6f-f848-7306af713eb5@semihalf.com>
-References: <1473152938-17388-3-git-send-email-tn@semihalf.com>
- <1473249493-20271-1-git-send-email-tn@semihalf.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 11/21] ACPI: processor: Convert to hotplug state machine
+Date: Wed, 7 Sep 2016 16:01:02 +0200
+Message-ID: <20160907140102.pcjxtqs7pvkvusao@linutronix.de>
+References: <20160906170457.32393-1-bigeasy@linutronix.de>
+ <20160906170457.32393-12-bigeasy@linutronix.de>
+ <CAJZ5v0haVNDoOJco7kB=YEn=6GZciUdMXz124PBXVkAaQB5PGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1473249493-20271-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from Galois.linutronix.de ([146.0.238.70]:39831 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752699AbcIGOBf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2016 10:01:35 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0haVNDoOJco7kB=YEn=6GZciUdMXz124PBXVkAaQB5PGQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, rt@linutronix.de, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 07.09.2016 13:58, Tomasz Nowicki wrote:
-> For ITS, MSI functionality consists on building domain stack and
-> during that process we need to reference to domain stack components
-> e.g. before we create new DOMAIN_BUS_PCI_MSI domain we need to specify
-> its DOMAIN_BUS_NEXUS parent domain. In order to manage that process
-> properly, maintain list which elements contain domain token
-> (unique for MSI domain stack) and ITS ID: iort_register_domain_token()
-> and iort_deregister_domain_token(). Then retrieve domain token
-> any time later with ITS ID being key off: iort_find_domain_token().
-> With domain token and domain type we are able to find corresponding
-> IRQ domain.
->
-> Since IORT is prepared to describe MSI domain on a per-device basis,
-> use existing IORT helpers and implement two calls:
-> 1. iort_msi_map_rid() to map MSI RID for a device
-> 2. iort_get_device_domain() to find domain token for a device
->
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
->
-> Conflicts:
-> 	drivers/acpi/arm64/iort.c
+On 2016-09-06 23:08:28 [+0200], Rafael J. Wysocki wrote:
+> This appears to be part of a series, but what if it goes in
+> separately?  Would that be a problem?
 
-Rebase leftover ^^^,  sorry.
+You would have to deal with conflicts in cpuhotplug.h. All other
+requirements are merged.
 
-Tomasz
+> Thanks,
+> Rafael
+
+Sebastian
