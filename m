@@ -1,99 +1,117 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: ACPI-video: Fine-tuning for several function implementations
-Date: Wed, 7 Sep 2016 08:40:50 +0200
-Message-ID: <df98177a-58e6-b5a3-d6b6-307625ba17b5@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <897ebf36-2fe5-e109-adf6-b81b6e863d9a@users.sourceforge.net>
- <CAJZ5v0hug9QfZHQosCFFXEcFMsDd=YvXkqMmQya3RSqmOnY4dg@mail.gmail.com>
- <3e0cdc5b-fd15-515a-82f2-2f44792664ed@users.sourceforge.net>
- <CAJZ5v0gWgxbtJ4m0eDkdOaR_usjTqmcWBWds5qprr+ydHhEjnA@mail.gmail.com>
- <6882cbb1-3f61-fb64-2972-30c277f28580@users.sourceforge.net>
- <CAJZ5v0hyhdUknW8RqpT6f4zAuPuMN1EN=P7C54Aa+VqEK2pcGw@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V10 7/8] irqchip/gicv3-its: Factor out PCI-MSI part that
+ might be reused for ACPI
+Date: Wed, 7 Sep 2016 09:49:31 +0200
+Message-ID: <c3228e58-5fbe-692f-5047-df4cff12d1f8@semihalf.com>
+References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
+ <1473152938-17388-8-git-send-email-tn@semihalf.com>
+ <alpine.DEB.2.20.1609061149090.5647@nanos>
+ <292d1dd1-0084-d796-b852-6cad2099eb66@semihalf.com>
+ <CAJZ5v0iYc=1CN546MaabJdoNBUW8JbeD_qt8hSSDBPLJnB8Hug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hyhdUknW8RqpT6f4zAuPuMN1EN=P7C54Aa+VqEK2pcGw@mail.gmail.com>
-Sender: kernel-janitors-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0iYc=1CN546MaabJdoNBUW8JbeD_qt8hSSDBPLJnB8Hug@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, shijie.huang@arm.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Andrea Gallo <andrea.gallo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.o>
 List-Id: linux-acpi@vger.kernel.org
 
-> Your patches happen to modify code maintained by me.  From my
-> perspective the value of the changes made by them is marginal.
+On 06.09.2016 13:29, Rafael J. Wysocki wrote:
+> On Tue, Sep 6, 2016 at 12:22 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+>> Hi Thomas,
+>>
+>>
+>> On 06.09.2016 11:50, Thomas Gleixner wrote:
+>>>
+>>> On Tue, 6 Sep 2016, Tomasz Nowicki wrote:
+>>>>
+>>>> -static int __init its_pci_msi_init(void)
+>>>> +static int __init its_pci_msi_init_one(struct fwnode_handle *handle,
+>>>> +                                      const char *name)
+>>>>  {
+>>>> -       struct device_node *np;
+>>>>         struct irq_domain *parent;
+>>>>
+>>>> +       parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
+>>>> +       if (!parent || !msi_get_domain_info(parent)) {
+>>>> +               pr_err("%s: Unable to locate ITS domain\n", name);
+>>>> +               return -ENXIO;
+>>>> +       }
+>>>> +
+>>>> +       if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
+>>>> +                                      parent)) {
+>>>> +               pr_err("%s: Unable to create PCI domain\n", name);
+>>>> +               return -ENOMEM;
+>>>
+>>>
+>>> So you have error codes here.
+>>>
+>>>> +       }
+>>>> +
+>>>> +       return 0;
+>>>> +}
+>>>> +
+>>>> +static int __init its_pci_of_msi_init(void)
+>>>> +{
+>>>> +       struct device_node *np;
+>>>> +
+>>>>         for (np = of_find_matching_node(NULL, its_device_id); np;
+>>>>              np = of_find_matching_node(np, its_device_id)) {
+>>>>                 if (!of_property_read_bool(np, "msi-controller"))
+>>>>                         continue;
+>>>>
+>>>> -               parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
+>>>> -               if (!parent || !msi_get_domain_info(parent)) {
+>>>> -                       pr_err("%s: unable to locate ITS domain\n",
+>>>> -                              np->full_name);
+>>>> +               if (its_pci_msi_init_one(of_node_to_fwnode(np),
+>>>> np->full_name))
+>>>>                         continue;
+>>>> -               }
+>>>> -
+>>>> -               if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
+>>>> -                                              &its_pci_msi_domain_info,
+>>>> -                                              parent)) {
+>>>> -                       pr_err("%s: unable to create PCI domain\n",
+>>>> -                              np->full_name);
+>>>> -                       continue;
+>>>> -               }
+>>>>
+>>>>                 pr_info("PCI/MSI: %s domain created\n", np->full_name);
+>>>>         }
+>>>>
+>>>>         return 0;
+>>>
+>>>
+>>> And no matter what you return success
+>>>
+>>>>  }
+>>>> +
+>>>> +static int __init its_pci_msi_init(void)
+>>>> +{
+>>>> +       its_pci_of_msi_init();
+>>>
+>>>
+>>> Which you subsequently ignore here. What's the point?
+>>>
+>>
+>> Well, this patch is meant to refactor the code. It does not change the error
+>> handing nor the functionality. However, you have got a point but IMO it
+>> should be fixed in separate patch if possible.
+>
+> But you are refactoring the code, so it would make sense to clean it
+> up while at it.  Perhaps add one more patch to the series?
+>
 
-Thanks for another bit of interesting information.
+I have a look at the code again and come to the conclusion the code is 
+fine now. We iterate over available its nodes and try to probe driver. 
+There might be an error for one of it (print error message) but we keep 
+trying for the rest. One of it might be probed successfully. So there is 
+no reason to escape in half way. Since its_pci_of_msi_init() always 
+returns 0 I can remove return statement so we would have:
+void its_pci_of_msi_init(void) instead.
 
-
-> Nevertheless, I might take them if you made my life somewhat easier,
-
-I am also looking for further approaches to help you there.
-
-
-> so I've tried to tell you politely how to do that.
-
-This feedback is generally fine.
-
-
-> If you're not willing to do it,
-
-My willingness is depending on also some factors.
-
-
-> though, this is where it ends.
-
-I hope that a bit more clarification can improve the situation.
-
-
-> And attempts to convince me that I may not want my life to be easier
-> after all are not likely to succeed.
-
-We usually want that life will become more comfortable.
-
-I chose to contribute something to Linux source files for this purpose.
-My knowledge evolved in the way that I am using some tools for
-static source code analysis. Such advanced tools can point various
-change opportunities out. I picked a few special search patterns up.
-It happened then that hundreds of source files were found which contain
-update candidates. I am trying to inform the corresponding developers
-about improvement possibilities in affected systems.
-
-
-Further challenges are relevant then as usual.
-
-* Handling of the search process and their results
-
-* Communication between contributors
-
-
-Search patterns can occasionally be categorised as "too special".
-The software technology contains also the risk for showing "false positives".
-
-The reactions of code reviewers are varying between rejection and acceptance.
-Now I would like to determine again which details of the proposed changes
-have got a higher chance for acceptance.
-
-The discussed concrete patch series is just another example for usual
-difficulties or more interesting software development challenges.
-I hope that they can be resolved in a systematic way.
-I sent analysis results as a series of small software updates. I find
-it important to understand them also in the way that they belong to
-software design patterns. I can imagine that it is harder to recognise
-the involved patterns from the presented combination of update steps.
-
-Would you like to check and clarify these patterns once more
-before the desired improvements will happen (in a software area you maintain)?
-
-
-So there are further constraints to consider. My software development experience
-leaded me to a very specific kind of patch granularity here.
-My software development interest evolved also in the way that I dared
-to fiddle with the source files "drivers/acpi/processor_perflib.c"
-and "drivers/acpi/processor_throttling.c" yesterday.
-The consequence is that I would to publish a corresponding series
-of 30 update steps for integration into another source code repository.
-It seems that I need to wait a bit more for the next contribution attempt
-before the change acceptance will fit to such an approach.
-
-Regards,
-Markus
+Thanks,
+Tomasz
