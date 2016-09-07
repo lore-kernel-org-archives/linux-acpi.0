@@ -1,70 +1,97 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v11 5/8] clocksource/drivers/arm_arch_timer: Simplify ACPI
- support code.
-Date: Wed, 7 Sep 2016 17:23:43 +0800
-Message-ID: <CADyBb7uX79UP=mUxvP-EPGi56-46y2SCMPsWO=Uw-=N0GQERhA@mail.gmail.com>
-References: <1473168352-5156-1-git-send-email-fu.wei@linaro.org>
- <1473168352-5156-6-git-send-email-fu.wei@linaro.org> <alpine.DEB.2.20.1609061635000.5647@nanos>
+From: Aleksey Makarov <amakarov.linux@gmail.com>
+Subject: Re: [PATCH v10 3/4] ARM64: ACPI: enable ACPI_SPCR_TABLE
+Date: Wed, 7 Sep 2016 12:30:19 +0300
+Message-ID: <7e5486cc-4080-2d1e-8f6d-98874379887d@gmail.com>
+References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
+ <20160905123617.18775-4-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f43.google.com ([209.85.218.43]:36812 "EHLO
-        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751606AbcIGJXo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2016 05:23:44 -0400
-Received: by mail-oi0-f43.google.com with SMTP id w78so17187839oie.3
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Sep 2016 02:23:44 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.20.1609061635000.5647@nanos>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35558 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964985AbcIGJdW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Sep 2016 05:33:22 -0400
+In-Reply-To: <20160905123617.18775-4-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim
-
-Hi Thomas
-
-On 6 September 2016 at 22:36, Thomas Gleixner <tglx@linutronix.de> wrote:
-> On Tue, 6 Sep 2016, fu.wei@linaro.org wrote:
->> +     if (timer_count < 0)
->> +             pr_err("Failed to get platform timer info, skipping.\n");
->
-> So this prints something about skipping. But then it continues as if
-> nothing went wrong. That's either wrong or confusing or both.
-
-yes, you are right, this info is confusing.
-maybe we just delete the "skipping" ?
-
-=E2=80=9Ctimer_count < 0=E2=80=9D is caused by some firmware bug, in gtdt.c=
-:
-----
-int __init acpi_gtdt_init(struct acpi_table_header *table)
-{
-......
-        if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
-        pr_err(FW_BUG "Failed to retrieve timer info from firmware:
-invalid data.\n");
-        return -EINVAL;
-......
-}
-----
-
-But in this situation( without platform timers ), system still can work.
-So I thing we just need to print a error.
-
->
->> -     arch_timer_init();
->> -     return 0;
->> +     return arch_timer_init();
->
-> Thanks,
->
->         tglx
+To: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 
 
+On 09/05/2016 03:36 PM, Aleksey Makarov wrote:
+> SBBR mentions SPCR as a mandatory ACPI table.  So enable it for ARM64
+> 
+> Earlycon should be set up as early as possible.  ACPI boot tables are
+> mapped in arch/arm64/kernel/acpi.c:acpi_boot_table_init() that
+> is called from setup_arch() and that's where we parse SPCR.
+> So it has to be opted-in per-arch.
+> 
+> When ACPI_SPCR_TABLE is defined initialization of DT earlycon is
+> deferred until the DT/ACPI decision is done.  Initialize DT earlycon
+> if ACPI is disabled.
 
---=20
-Best regards,
+Hi Will, Catalin,
 
-Fu Wei
-Software Engineer
-Red Hat
+Can you review this patch and consider ACKing it please?
+
+Thank you
+Aleksey Makarov
+
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> Tested-by: Christopher Covington <cov@codeaurora.org>
+> ---
+>  arch/arm64/Kconfig       |  1 +
+>  arch/arm64/kernel/acpi.c | 11 ++++++++++-
+>  2 files changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index bc3f00f..11a2d36 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -4,6 +4,7 @@ config ARM64
+>  	select ACPI_GENERIC_GSI if ACPI
+>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>  	select ACPI_MCFG if ACPI
+> +	select ACPI_SPCR_TABLE if ACPI
+>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>  	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 3e4f1a4..252a6d9 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/memblock.h>
+>  #include <linux/of_fdt.h>
+>  #include <linux/smp.h>
+> +#include <linux/serial_core.h>
+>  
+>  #include <asm/cputype.h>
+>  #include <asm/cpu_ops.h>
+> @@ -206,7 +207,7 @@ void __init acpi_boot_table_init(void)
+>  	if (param_acpi_off ||
+>  	    (!param_acpi_on && !param_acpi_force &&
+>  	     of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+> -		return;
+> +		goto done;
+>  
+>  	/*
+>  	 * ACPI is disabled at this point. Enable it in order to parse
+> @@ -226,6 +227,14 @@ void __init acpi_boot_table_init(void)
+>  		if (!param_acpi_force)
+>  			disable_acpi();
+>  	}
+> +
+> +done:
+> +	if (acpi_disabled) {
+> +		if (earlycon_init_is_deferred)
+> +			early_init_dt_scan_chosen_stdout();
+> +	} else {
+> +		parse_spcr(earlycon_init_is_deferred);
+> +	}
+>  }
+>  
+>  #ifdef CONFIG_ACPI_APEI
+> 
