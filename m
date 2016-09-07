@@ -1,46 +1,183 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/14] ACPICA: Add a couple of casts to uthex.c
-Date: Wed,  7 Sep 2016 14:06:10 +0800
-Message-ID: <b5cff617f956839ca7ba3533ff76de93c3de99f3.1473226204.git.lv.zheng@intel.com>
+Subject: [PATCH 04/14] ACPICA: Tables: Remove acpi_tb_install_fixed_table()
+Date: Wed,  7 Sep 2016 14:06:17 +0800
+Message-ID: <52d5d6e6bd7c73493d7dd31a189ab69f5e861c52.1473226204.git.lv.zheng@intel.com>
 References: <cover.1473226203.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:34577 "EHLO mga03.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:42549 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751100AbcIGGGQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Sep 2016 02:06:16 -0400
+        id S1751936AbcIGGGX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Sep 2016 02:06:23 -0400
 In-Reply-To: <cover.1473226203.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 42c7b848d2faa02c7691ef2c53ea741c23cd4665
 
-ACPICA commit 2ba5d3fdaa24d66d67694cbae6ec66971a7a67c1
+acpi_tb_install_fixed_table() is now redundant as we've removed the fixed
+table indexing mechanism:
+  Commit: 8ec3f459073e67e5c6d78507dec693064b3040a2
+  Subject: ACPICA: Tables: Fix global table list issues by removing
+           fixed table indexes
+This patch cleans up the code accordingly.
 
-Required in some environments.
+No functional change. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/2ba5d3fd
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://bugs.acpica.org/show_bug.cgi?id=1320
+Link: https://github.com/acpica/acpica/commit/42c7b848
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/uthex.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/actables.h |    7 +----
+ drivers/acpi/acpica/tbfadt.c   |   24 ++++++++-------
+ drivers/acpi/acpica/tbinstal.c |   65 +---------------------------------------
+ 3 files changed, 16 insertions(+), 80 deletions(-)
 
-diff --git a/drivers/acpi/acpica/uthex.c b/drivers/acpi/acpica/uthex.c
-index 3a4ca95..36d2fc7 100644
---- a/drivers/acpi/acpica/uthex.c
-+++ b/drivers/acpi/acpica/uthex.c
-@@ -92,7 +92,8 @@ acpi_status acpi_ut_ascii_to_hex_byte(char *two_ascii_chars, u8 *return_byte)
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index 86d4d62..9469cd4 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -155,12 +155,7 @@ void
+ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
+ 				    u8 override, u32 *table_index);
  
- 	/* Both ASCII characters must be valid hex digits */
+-acpi_status
+-acpi_tb_install_fixed_table(acpi_physical_address address,
+-			    char *signature, u32 *table_index);
+-
+-acpi_status ACPI_INIT_FUNCTION
+-acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
++acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
  
--	if (!isxdigit(two_ascii_chars[0]) || !isxdigit(two_ascii_chars[1])) {
-+	if (!isxdigit((int)two_ascii_chars[0]) ||
-+	    !isxdigit((int)two_ascii_chars[1])) {
- 		return (AE_BAD_HEX_CONSTANT);
+ /*
+  * tbxfload
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 016bcdc..e678d6f 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -344,23 +344,27 @@ void acpi_tb_parse_fadt(void)
+ 
+ 	/* Obtain the DSDT and FACS tables via their addresses within the FADT */
+ 
+-	acpi_tb_install_fixed_table((acpi_physical_address)acpi_gbl_FADT.Xdsdt,
+-				    ACPI_SIG_DSDT, &acpi_gbl_dsdt_index);
++	acpi_tb_install_standard_table((acpi_physical_address)acpi_gbl_FADT.
++				       Xdsdt,
++				       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
++				       FALSE, TRUE, &acpi_gbl_dsdt_index);
+ 
+ 	/* If Hardware Reduced flag is set, there is no FACS */
+ 
+ 	if (!acpi_gbl_reduced_hardware) {
+ 		if (acpi_gbl_FADT.facs) {
+-			acpi_tb_install_fixed_table((acpi_physical_address)
+-						    acpi_gbl_FADT.facs,
+-						    ACPI_SIG_FACS,
+-						    &acpi_gbl_facs_index);
++			acpi_tb_install_standard_table((acpi_physical_address)
++						       acpi_gbl_FADT.facs,
++						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
++						       FALSE, TRUE,
++						       &acpi_gbl_facs_index);
+ 		}
+ 		if (acpi_gbl_FADT.Xfacs) {
+-			acpi_tb_install_fixed_table((acpi_physical_address)
+-						    acpi_gbl_FADT.Xfacs,
+-						    ACPI_SIG_FACS,
+-						    &acpi_gbl_xfacs_index);
++			acpi_tb_install_standard_table((acpi_physical_address)
++						       acpi_gbl_FADT.Xfacs,
++						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
++						       FALSE, TRUE,
++						       &acpi_gbl_xfacs_index);
+ 		}
  	}
+ }
+diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
+index 8b13052..d461864 100644
+--- a/drivers/acpi/acpica/tbinstal.c
++++ b/drivers/acpi/acpica/tbinstal.c
+@@ -157,68 +157,6 @@ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
  
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_tb_install_fixed_table
+- *
+- * PARAMETERS:  address                 - Physical address of DSDT or FACS
+- *              signature               - Table signature, NULL if no need to
+- *                                        match
+- *              table_index             - Where the table index is returned
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Install a fixed ACPI table (DSDT/FACS) into the global data
+- *              structure.
+- *
+- ******************************************************************************/
+-
+-acpi_status
+-acpi_tb_install_fixed_table(acpi_physical_address address,
+-			    char *signature, u32 *table_index)
+-{
+-	struct acpi_table_desc new_table_desc;
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_TRACE(tb_install_fixed_table);
+-
+-	if (!address) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Null physical address for ACPI table [%s]",
+-			    signature));
+-		return (AE_NO_MEMORY);
+-	}
+-
+-	/* Fill a table descriptor for validation */
+-
+-	status = acpi_tb_acquire_temp_table(&new_table_desc, address,
+-					    ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Could not acquire table length at %8.8X%8.8X",
+-			    ACPI_FORMAT_UINT64(address)));
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	/* Validate and verify a table before installation */
+-
+-	status = acpi_tb_verify_temp_table(&new_table_desc, signature);
+-	if (ACPI_FAILURE(status)) {
+-		goto release_and_exit;
+-	}
+-
+-	/* Add the table to the global root table list */
+-
+-	acpi_tb_install_table_with_override(&new_table_desc, TRUE, table_index);
+-
+-release_and_exit:
+-
+-	/* Release the temporary table descriptor */
+-
+-	acpi_tb_release_temp_table(&new_table_desc);
+-	return_ACPI_STATUS(status);
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_tb_install_standard_table
+  *
+  * PARAMETERS:  address             - Address of the table (might be a virtual
+@@ -230,8 +168,7 @@ release_and_exit:
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: This function is called to install an ACPI table that is
+- *              neither DSDT nor FACS (a "standard" table.)
++ * DESCRIPTION: This function is called to verify and install an ACPI table.
+  *              When this function is called by "Load" or "LoadTable" opcodes,
+  *              or by acpi_load_table() API, the "Reload" parameter is set.
+  *              After sucessfully returning from this function, table is
 -- 
 1.7.10
 
