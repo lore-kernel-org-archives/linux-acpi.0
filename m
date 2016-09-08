@@ -1,49 +1,223 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH v10 3/4] ARM64: ACPI: enable ACPI_SPCR_TABLE
-Date: Thu, 08 Sep 2016 12:34:16 -0400
-Message-ID: <1473352456.21193.8.camel@redhat.com>
-References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
-         <20160905123617.18775-4-aleksey.makarov@linaro.org>
-         <7e5486cc-4080-2d1e-8f6d-98874379887d@gmail.com>
-         <20160908111654.GH1493@arm.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v2 2/8] sched: Extend scheduler's asym packing
+Date: Thu, 8 Sep 2016 11:03:26 -0700
+Message-ID: <20160908180325.GA23509@linux.intel.com>
+References: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <1472762024-88771-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <20160908080111.GT10153@twins.programming.kicks-ass.net>
+Reply-To: tim.c.chen@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57768 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:58403 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941095AbcIHQeX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Sep 2016 12:34:23 -0400
-In-Reply-To: <20160908111654.GH1493@arm.com>
+        id S1753256AbcIHSDZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Sep 2016 14:03:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20160908080111.GT10153@twins.programming.kicks-ass.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Aleksey Makarov <amakarov.linux@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 2016-09-08 at 12:16 +0100, Will Deacon wrote:
-> On Wed, Sep 07, 2016 at 12:30:19PM +0300, Aleksey Makarov wrote:
-> > 
-> > 
-> > On 09/05/2016 03:36 PM, Aleksey Makarov wrote:
-> > > 
-> > > SBBR mentions SPCR as a mandatory ACPI table.  So enable it for ARM64
-> > > 
-> > > Earlycon should be set up as early as possible.  ACPI boot tables are
-> > > mapped in arch/arm64/kernel/acpi.c:acpi_boot_table_init() that
-> > > is called from setup_arch() and that's where we parse SPCR.
-> > > So it has to be opted-in per-arch.
-> > > 
-> > > When ACPI_SPCR_TABLE is defined initialization of DT earlycon is
-> > > deferred until the DT/ACPI decision is done.  Initialize DT earlycon
-> > > if ACPI is disabled.
-> > Hi Will, Catalin,
-> > 
-> > Can you review this patch and consider ACKing it please?
-> Hanjun, Al, Mark, Graeme -- any comments on this?
+On Thu, Sep 08, 2016 at 10:01:11AM +0200, Peter Zijlstra wrote:
+> On Thu, Sep 01, 2016 at 01:33:38PM -0700, Srinivas Pandruvada wrote:
+> > +++ b/kernel/sched/sched.h
+> > @@ -532,6 +532,17 @@ struct dl_rq {
+> >  
+> >  #ifdef CONFIG_SMP
+> >  
+> > +static inline bool sched_asym_prefer(int a, int b)
+> > +{
+> > +	return arch_asym_cpu_priority(a) > arch_asym_cpu_priority(b);
+> > +}
+> > +
+> > +/*
+> > + * Return lowest numbered cpu in the group as the most preferred cpu
+> > + * for ASYM_PACKING for default case.
+> > + */
+> > +#define group_priority_cpu(group) group->asym_prefer_cpu
+> > +
 > 
-> Will
+> Both these are no longer used outside of sched/fair.c, and should
+> probably be moved there. Also the later has no reason for being a macro.
 
-I think there is a problem still with systems using 32-bit access to 8250
-UARTs (i.e. Mustang) but that will need a DBG2 table spec change and
-followup patch to resolve.
+Peter,
+
+The sched_asym_prefer is used in sched/core.c to set asym_prefer_cpu
+in a group. So we will still need the definition in sched.h.  I've removed
+the group_priority_cpu macro.
+
+Updated patch below.
+
+Thanks.
+
+Tim
+
+--->8---
+
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: [PATCH 2/8] sched: Extend scheduler's asym packing
+
+We generalize the scheduler's asym packing to provide an ordering
+of the cpu beyond just the cpu number.  This allows the use of the
+ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
+sched domain. The preference is defined with the cpu priority
+given by arch_asym_cpu_priority(cpu).
+
+We also record the most preferred cpu in a sched group when
+we build the cpu's capacity for fast lookup of preferred cpu
+during load balancing.
+
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ include/linux/sched.h |  2 ++
+ kernel/sched/core.c   | 18 ++++++++++++++++++
+ kernel/sched/fair.c   | 35 ++++++++++++++++++++++++-----------
+ kernel/sched/sched.h  |  6 ++++++
+ 4 files changed, 50 insertions(+), 11 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 62c68e5..aeea288 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1052,6 +1052,8 @@ static inline int cpu_numa_flags(void)
+ }
+ #endif
+ 
++int arch_asym_cpu_priority(int cpu);
++
+ struct sched_domain_attr {
+ 	int relax_domain_level;
+ };
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index e86c4a5..08135ca 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -6237,7 +6237,25 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
+ 	WARN_ON(!sg);
+ 
+ 	do {
++		int cpu, max_cpu = -1, prev_cpu = -1;
++
+ 		sg->group_weight = cpumask_weight(sched_group_cpus(sg));
++
++		if (!(sd->flags & SD_ASYM_PACKING))
++			goto next;
++
++		for_each_cpu(cpu, sched_group_cpus(sg)) {
++			if (prev_cpu < 0) {
++				prev_cpu = cpu;
++				max_cpu = cpu;
++			} else {
++				if (sched_asym_prefer(cpu, max_cpu))
++					max_cpu = cpu;
++			}
++		}
++		sg->asym_prefer_cpu = max_cpu;
++
++next:
+ 		sg = sg->next;
+ 	} while (sg != sd->groups);
+ 
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index 039de34..8e2a078 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -100,6 +100,16 @@ const_debug unsigned int sysctl_sched_migration_cost = 500000UL;
+  */
+ unsigned int __read_mostly sysctl_sched_shares_window = 10000000UL;
+ 
++#ifdef CONFIG_SMP
++/*
++ * For asym packing, by default the lower numbered cpu has higher priority.
++ */
++int __weak arch_asym_cpu_priority(int cpu)
++{
++	return -cpu;
++}
++#endif
++
+ #ifdef CONFIG_CFS_BANDWIDTH
+ /*
+  * Amount of runtime to allocate from global (tg) to local (per-cfs_rq) pool
+@@ -6862,16 +6872,18 @@ static bool update_sd_pick_busiest(struct lb_env *env,
+ 	if (env->idle == CPU_NOT_IDLE)
+ 		return true;
+ 	/*
+-	 * ASYM_PACKING needs to move all the work to the lowest
+-	 * numbered CPUs in the group, therefore mark all groups
+-	 * higher than ourself as busy.
++	 * ASYM_PACKING needs to move all the work to the highest
++	 * prority CPUs in the group, therefore mark all groups
++	 * of lower priority than ourself as busy.
+ 	 */
+-	if (sgs->sum_nr_running && env->dst_cpu < group_first_cpu(sg)) {
++	if (sgs->sum_nr_running &&
++	    sched_asym_prefer(env->dst_cpu, sg->asym_prefer_cpu)) {
+ 		if (!sds->busiest)
+ 			return true;
+ 
+-		/* Prefer to move from highest possible cpu's work */
+-		if (group_first_cpu(sds->busiest) < group_first_cpu(sg))
++		/* Prefer to move from lowest priority cpu's work */
++		if (sched_asym_prefer(sds->busiest->asym_prefer_cpu,
++				      sg->asym_prefer_cpu))
+ 			return true;
+ 	}
+ 
+@@ -7023,8 +7035,8 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
+ 	if (!sds->busiest)
+ 		return 0;
+ 
+-	busiest_cpu = group_first_cpu(sds->busiest);
+-	if (env->dst_cpu > busiest_cpu)
++	busiest_cpu = sds->busiest->asym_prefer_cpu;
++	if (sched_asym_prefer(busiest_cpu, env->dst_cpu))
+ 		return 0;
+ 
+ 	env->imbalance = DIV_ROUND_CLOSEST(
+@@ -7365,10 +7377,11 @@ static int need_active_balance(struct lb_env *env)
+ 
+ 		/*
+ 		 * ASYM_PACKING needs to force migrate tasks from busy but
+-		 * higher numbered CPUs in order to pack all tasks in the
+-		 * lowest numbered CPUs.
++		 * lower priority CPUs in order to pack all tasks in the
++		 * highest priority CPUs.
+ 		 */
+-		if ((sd->flags & SD_ASYM_PACKING) && env->src_cpu > env->dst_cpu)
++		if ((sd->flags & SD_ASYM_PACKING) &&
++		    sched_asym_prefer(env->dst_cpu, env->src_cpu))
+ 			return 1;
+ 	}
+ 
+diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+index c64fc51..b6f449d 100644
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -532,6 +532,11 @@ struct dl_rq {
+ 
+ #ifdef CONFIG_SMP
+ 
++static inline bool sched_asym_prefer(int a, int b)
++{
++	return arch_asym_cpu_priority(a) > arch_asym_cpu_priority(b);
++}
++
+ /*
+  * We add the notion of a root-domain which will be used to define per-domain
+  * variables. Each exclusive cpuset essentially defines an island domain by
+@@ -884,6 +889,7 @@ struct sched_group {
+ 
+ 	unsigned int group_weight;
+ 	struct sched_group_capacity *sgc;
++	int asym_prefer_cpu;		/* cpu of highest priority in group */
+ 
+ 	/*
+ 	 * The CPUs this group covers.
+-- 
+2.5.5
 
