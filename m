@@ -1,50 +1,53 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH v10 3/4] ARM64: ACPI: enable ACPI_SPCR_TABLE
-Date: Thu, 8 Sep 2016 14:25:26 +0100
-Message-ID: <20160908132526.GA2171@xora-monster>
+Date: Thu, 8 Sep 2016 21:35:27 +0800
+Message-ID: <b1064bed-3823-392d-e4c1-cf82f06712ff@linaro.org>
 References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
  <20160905123617.18775-4-aleksey.makarov@linaro.org>
  <7e5486cc-4080-2d1e-8f6d-98874379887d@gmail.com>
  <20160908111654.GH1493@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:56622 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935974AbcIHNZ3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Sep 2016 09:25:29 -0400
-Content-Disposition: inline
+Received: from mail-pf0-f174.google.com ([209.85.192.174]:33805 "EHLO
+        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756863AbcIHNhM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Sep 2016 09:37:12 -0400
+Received: by mail-pf0-f174.google.com with SMTP id p64so18450634pfb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Sep 2016 06:37:12 -0700 (PDT)
 In-Reply-To: <20160908111654.GH1493@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Aleksey Makarov <amakarov.linux@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kerne
+To: Will Deacon <will.deacon@arm.com>, Aleksey Makarov <amakarov.linux@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 
-On Thu, Sep 08, 2016 at 12:16:55PM +0100, Will Deacon wrote:
+On 2016/9/8 19:16, Will Deacon wrote:
 > On Wed, Sep 07, 2016 at 12:30:19PM +0300, Aleksey Makarov wrote:
-> > 
-> > On 09/05/2016 03:36 PM, Aleksey Makarov wrote:
-> > > SBBR mentions SPCR as a mandatory ACPI table.  So enable it for ARM64
-> > > 
-> > > Earlycon should be set up as early as possible.  ACPI boot tables are
-> > > mapped in arch/arm64/kernel/acpi.c:acpi_boot_table_init() that
-> > > is called from setup_arch() and that's where we parse SPCR.
-> > > So it has to be opted-in per-arch.
-> > > 
-> > > When ACPI_SPCR_TABLE is defined initialization of DT earlycon is
-> > > deferred until the DT/ACPI decision is done.  Initialize DT earlycon
-> > > if ACPI is disabled.
-> > 
-> > Hi Will, Catalin,
-> > 
-> > Can you review this patch and consider ACKing it please?
-> 
+>>
+>> On 09/05/2016 03:36 PM, Aleksey Makarov wrote:
+>>> SBBR mentions SPCR as a mandatory ACPI table.  So enable it for ARM64
+>>>
+>>> Earlycon should be set up as early as possible.  ACPI boot tables are
+>>> mapped in arch/arm64/kernel/acpi.c:acpi_boot_table_init() that
+>>> is called from setup_arch() and that's where we parse SPCR.
+>>> So it has to be opted-in per-arch.
+>>>
+>>> When ACPI_SPCR_TABLE is defined initialization of DT earlycon is
+>>> deferred until the DT/ACPI decision is done.  Initialize DT earlycon
+>>> if ACPI is disabled.
+>>
+>> Hi Will, Catalin,
+>>
+>> Can you review this patch and consider ACKing it please?
+>
 > Hanjun, Al, Mark, Graeme -- any comments on this?
-> 
-We have been using this series internally for a long while for boards
-with SBSA UART. So IMO it is good to go. We have worked with some OEMs
-to fix firmware bugs discovered with this patch series so it should work
-with machines in the wild.
 
-Graeme
+We tested this patch on D02, although d02 is 8250 based
+uart, but this patch is the core part, which makes sense
+to me,
 
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
