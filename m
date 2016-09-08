@@ -1,55 +1,97 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 5/8] sched,x86: Enable Turbo Boost Max Technology
-Date: Thu, 08 Sep 2016 23:22 +0200
-Message-ID: <3062542.GzMooo3y72@vostro.rjw.lan>
-References: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com> <20160908182215.GA10153@twins.programming.kicks-ass.net> <1473359328.154359.61.camel@linux.intel.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: =?UTF-8?q?=5BPATCH=20v3=200/8=5D=20Support=20Intel=C2=AE=20Turbo=20Boost=20Max=20Technology=203=2E0?=
+Date: Thu,  8 Sep 2016 15:26:47 -0700
+Message-ID: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1473359328.154359.61.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Tim Chen <tim.c.chen@linux.intel.com>, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:37131 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758357AbcIHW1C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Sep 2016 18:27:02 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
+Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-On Thursday, September 08, 2016 11:28:48 AM Srinivas Pandruvada wrote:
-> On Thu, 2016-09-08 at 20:22 +0200, Peter Zijlstra wrote:
-> > On Thu, Sep 08, 2016 at 11:09:28AM -0700, Tim Chen wrote:
-> > > 
-> > > On Thu, Sep 08, 2016 at 09:59:55AM +0200, Peter Zijlstra wrote:
-> > > > 
-> > > > I think there's a race here, if two tasks were to write to the
-> > > > sysctl
-> > > > they'd both change the value before getting stuck on the mutex in
-> > > > enable_sched_itmt().
-> > > > 
-> > > > One way around that is doing something like:
-> > > > 
-> > > > 
-> > > > 	struct ctl_table t;
-> > > > 	int val = sysctl_sched_itmt_enabled;
-> > > > 
-> > > > 	t = *table;
-> > > > 	t.data = &val;
-> > > > 
-> > > > 	proc_dointvec_minmax(&t, ...);
-> > > > 
-> > > > 	/* and update the sysctl_sched_itmt_enabled value inside the
-> > > > mutex */
-> > > > 	enable_sched_itmi(val);
-> > > 
-> > > Peter,
-> > > 
-> > > Since enable_sched_itmt is only used by sched_itmt_update_handler,
-> > > I've moved the mutex locking to sched_itmt_update_handler to
-> > > eliminate
-> > > the race condition in the code path you mentioned.
-> > 
-> > That is indeed simpler. Thanks!
-> Do we need to send v3 to include these changes?
+v3:
+- Fix race clash when more than one program are enabling/disabling ITMT
+- Remove group_priority_cpu macro to simplify code.
+- Error reported by 0-day for compile issue on ARM
 
-Yes, please.
+v2
+- The patchset is split into two parts so that CPPC changes can be merged first
+ 1. Only ACPI CPPC changes (It is posted separately)
+ 2. ITMT changes (scheduler and Intel P-State)
 
-Thanks,
-Rafael
+- Changes in patch: sched,x86: Enable Turbo Boost Max Technology
+ 1. Use arch_update_cpu_topology to indicate need to completely
+    rebuild sched domain when ITMT related sched domain flags change
+ 2. Enable client (single node) platform capable of ITMT with ITMT
+    scheduling by default
+ 3. Implement arch_asym_cpu_priority to provide the cpu priority
+    value to scheduler for asym packing.
+ 4. Fix a compile bug for i386 architecture.
+
+- Changes in patch: sched: Extend scheduler's asym packing
+ 1. Use arch_asym_cpu_priority() to provide cpu priority
+    value used for asym packing to the scheduler.
+
+- Changes in acpi: bus: Enable HWP CPPC objects and
+  acpi: bus: Set _OSC for diverse core support
+  Minor code cleanup by removing #ifdef
+- Changes in Kconfig for Intel P-State
+  Avoid building CPPC lib for i386 for issue reported by 0-day
+
+- Feature is enabled by default for single socket systems
+
+With Intel® Turbo Boost Max Technology 3.0 (ITMT), single-threaded performance is
+optimized by identifying processor's fastest core and running critical workloads
+on it.
+Refere to:
+http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html
+
+This patchset consist of all changes required to support ITMT feature:
+- Use CPPC information in Intel P-State driver to get performance information
+- Scheduler enhancements
+- cppc lib patches (split in to a seprate series)
+
+This featured can be enabled by writing at runtime
+# echo 1 > /proc/sys/kernel/sched_itmt_enabled
+This featured can be disabled by writing at runtime
+# echo 0 > /proc/sys/kernel/sched_itmt_enabled
+
+Srinivas Pandruvada (3):
+  acpi: bus: Enable HWP CPPC objects
+  acpi: bus: Set _OSC for diverse core support
+  cpufreq: intel_pstate: Use CPPC to get max performance
+
+Tim Chen (5):
+  sched, x86: Add SD_ASYM_PACKING flags to x86 cpu topology for ITMT
+  sched: Extend scheduler's asym packing
+  x86, cpu: provide a function topology_num_packages to enumerate
+    #packages
+  sched, x86: use arch_update_cpu_topology to indicate x86 need sched
+    domain rebuild
+  sched,x86: Enable Turbo Boost Max Technology
+
+ arch/x86/Kconfig                |   9 +++
+ arch/x86/include/asm/topology.h |  25 ++++++
+ arch/x86/kernel/Makefile        |   1 +
+ arch/x86/kernel/itmt.c          | 164 ++++++++++++++++++++++++++++++++++++++++
+ arch/x86/kernel/smpboot.c       |  92 +++++++++++++++++-----
+ drivers/acpi/bus.c              |  10 +++
+ drivers/cpufreq/Kconfig.x86     |   1 +
+ drivers/cpufreq/intel_pstate.c  |  75 +++++++++++++++++-
+ include/linux/acpi.h            |   1 +
+ include/linux/sched.h           |   2 +
+ kernel/sched/core.c             |  21 +++++
+ kernel/sched/fair.c             |  35 ++++++---
+ kernel/sched/sched.h            |   6 ++
+ 13 files changed, 410 insertions(+), 32 deletions(-)
+ create mode 100644 arch/x86/kernel/itmt.c
+
+-- 
+2.7.4
+
