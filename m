@@ -1,33 +1,93 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 11/21] ACPI: processor: Convert to hotplug state machine
-Date: Wed, 07 Sep 2016 17:59:22 +0200
-Message-ID: <9098385.Dq4gL67fhY@vostro.rjw.lan>
-References: <20160906170457.32393-1-bigeasy@linutronix.de> <CAJZ5v0haVNDoOJco7kB=YEn=6GZciUdMXz124PBXVkAaQB5PGQ@mail.gmail.com> <20160907140102.pcjxtqs7pvkvusao@linutronix.de>
+From: <jlaufman@realtracs.com>
+Subject: linux-acpi
+Date: Thu, 08 Sep 2016 05:55:31 0000
+Message-ID: <000101d20995$9bab2d32$c0a80001@host86-191-179-152.range86-191.btcentralplus.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160907140102.pcjxtqs7pvkvusao@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, rt@linutronix.de, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: application/zip; name="63394433-linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from host86-191-179-152.range86-191.btcentralplus.com ([86.191.179.152]:33319
+        "HELO host86-191-179-152.range86-191.btcentralplus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+        id S1751725AbcIGXzf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Sep 2016 19:55:35 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday, September 07, 2016 04:01:02 PM Sebastian Andrzej Siewior wrote:
-> On 2016-09-06 23:08:28 [+0200], Rafael J. Wysocki wrote:
-> > This appears to be part of a series, but what if it goes in
-> > separately?  Would that be a problem?
-> 
-> You would have to deal with conflicts in cpuhotplug.h. All other
-> requirements are merged.
-
-OK
-
-Please feel free to add
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-and route it via tip.
-
-Thanks,
-Rafael
+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
