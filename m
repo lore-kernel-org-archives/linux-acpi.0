@@ -1,45 +1,62 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: [PATCH] ACPICA / Interpreter: Remove redundant newline
-Date: Fri,  9 Sep 2016 18:12:53 +0200
-Message-ID: <20160909161253.30952-1-bp@alien8.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:51494 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752344AbcIIQM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Sep 2016 12:12:58 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: DAX can not work on virtual nvdimm device
+Date: Fri, 9 Sep 2016 10:34:21 -0600
+Message-ID: <20160909163421.GB18554@linux.intel.com>
+References: <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
+ <20160829193014.GB16738@linux.intel.com>
+ <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
+ <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
+ <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
+ <20160902025738.GA26108@linux.intel.com>
+ <20160906150620.GJ28922@quack2.suse.cz>
+ <20160908204708.GA15167@linux.intel.com>
+ <20160909091925.GF22777@quack2.suse.cz>
+ <20160909140327.r2j64s5xdaxnnxhx@thunk.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160909140327.r2j64s5xdaxnnxhx-AKGzg7BKzIDYtjvyW6yDsg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yumei Huang <yuhuang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, KVM <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org" <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-From: Borislav Petkov <bp@suse.de>
+On Fri, Sep 09, 2016 at 10:03:27AM -0400, Theodore Ts'o wrote:
+> On Fri, Sep 09, 2016 at 11:19:25AM +0200, Jan Kara wrote:
+> > > > > > 1. make the guest kernel based on your tree, the top commit is
+> > > > > >    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
+> > > > > >    the config file can be found in this thread.
+> 
+> What git tree is 10d7902fa0e82b from?
 
-acpi_info() already issues a '\n' so remove it in the call.
+It's from djbw's libnvdimm tree.
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: devel@acpica.org
----
- drivers/acpi/acpica/tbxfload.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/
 
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index ac71abcd32bb..e7119b7ccd79 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -240,7 +240,7 @@ acpi_status acpi_tb_load_namespace(void)
- 	}
- 
- 	if (!tables_failed) {
--		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded\n", tables_loaded));
-+		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded", tables_loaded));
- 	} else {
- 		ACPI_ERROR((AE_INFO,
- 			    "%u table load failures, %u successful",
--- 
-2.10.0
+I don't think that commit is relevant, though.  I believe this should
+reproduce with a vanilla v4.7 tree.  I can verify if you'd like.
 
+> > Hum, nothing unusual in there. I've tried reproducing on a local SLE11 SP3
+> > machine (which is from about the same time) but everything works as
+> > expected there. Shrug...
+> 
+> I just tried reproducing it via "gce-xfstests --pmem-device shell"
+> with a downgraded e2fsprogs to stock upstream 1.42.12, and I can't
+> reproduce it with the ext4.git tree.  I'm not sure whether the git
+> commit is critical, though.  Is this a regression that was working
+> before?
+
+I'm not sure if we've ever tested Centos6/RHEL6 with DAX.  It could be that it
+has never worked.
+
+> Or it's possible that Red Hat did something weird with the CentOS 6
+> e2fsprogs....
