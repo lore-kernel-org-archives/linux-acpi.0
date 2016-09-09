@@ -1,210 +1,159 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V10 1/8] ACPI: I/O Remapping Table (IORT) initial support
-Date: Fri, 9 Sep 2016 09:45:07 +0100
-Message-ID: <20160909084507.GA19669@red-moon>
-References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
- <1473152938-17388-2-git-send-email-tn@semihalf.com>
- <20160909030938.GA8544@arm.com>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: DAX can not work on virtual nvdimm device
+Date: Fri, 9 Sep 2016 11:19:25 +0200
+Message-ID: <20160909091925.GF22777@quack2.suse.cz>
+References: <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
+ <20160819183047.GA7216@linux.intel.com>
+ <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
+ <20160829193014.GB16738@linux.intel.com>
+ <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
+ <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
+ <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
+ <20160902025738.GA26108@linux.intel.com>
+ <20160906150620.GJ28922@quack2.suse.cz>
+ <20160908204708.GA15167@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160909030938.GA8544@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dennis Chen <dennis.chen@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, nd@arm.com
+In-Reply-To: <20160908204708.GA15167-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Yumei Huang <yuhuang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, KVM <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org" <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 09, 2016 at 11:09:40AM +0800, Dennis Chen wrote:
-> Hi Tomasz,
+On Thu 08-09-16 14:47:08, Ross Zwisler wrote:
+> On Tue, Sep 06, 2016 at 05:06:20PM +0200, Jan Kara wrote:
+> > On Thu 01-09-16 20:57:38, Ross Zwisler wrote:
+> > > On Wed, Aug 31, 2016 at 04:44:47PM +0800, Xiao Guangrong wrote:
+> > > > On 08/31/2016 01:09 AM, Dan Williams wrote:
+> > > > > 
+> > > > > Can you post your exact reproduction steps?  This test is not failing for me.
+> > > > > 
+> > > > 
+> > > > Sure.
+> > > > 
+> > > > 1. make the guest kernel based on your tree, the top commit is
+> > > >    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
+> > > >    the config file can be found in this thread.
+> > > > 
+> > > > 2. add guest kernel command line: memmap=6G!10G
+> > > > 
+> > > > 3: start the guest:
+> > > >    x86_64-softmmu/qemu-system-x86_64 -machine pc,nvdimm --enable-kvm \
+> > > >    -smp 16 -m 32G,maxmem=100G,slots=100 /other/VMs/centos6.img -monitor stdio
+> > > > 
+> > > > 4: in guest:
+> > > >    mkfs.ext4 /dev/pmem0
+> > > >    mount -o dax /dev/pmem0  /mnt/pmem/
+> > > >    echo > /mnt/pmem/xxx
+> > > >    ./mmap /mnt/pmem/xxx
+> > > >    ./read /mnt/pmem/xxx
+> > > > 
+> > > >   The source code of mmap and read has been attached in this mail.
+> > > > 
+> > > >   Hopefully, you can detect the error triggered by read test.
+> > > > 
+> > > > Thanks!
+> > > 
+> > > Okay, I think I've isolated this issue.  Xiao's VM was an old CentOS 6 system,
+> > > and for some reason ext4+DAX with the old tools found in that VM fails.  I was
+> > > able to reproduce this failure with a freshly installed CentOS 6.8 VM.
+> > > 
+> > > You can see the failure with his tests, or perhaps more easily with this
+> > > series of commands:
+> > > 
+> > >   # mkfs.ext4 /dev/pmem0
+> > >   # mount -o dax /dev/pmem0  /mnt/pmem/
+> > >   # touch /mnt/pmem/x
+> > >   # md5sum /mnt/pmem/x
+> > >   md5sum: /mnt/pmem/x: Bad address
+> > > 
+> > > This sequence of commands works fine in the old CentOS 6 system if you use XFS
+> > > instead of ext4, and it works fine with both ext4 and XFS in CentOS 7 and
+> > > with recent versions of Fedora.
+> > > 
+> > > I've added the ext4 folks to this mail in case they care, but my guess is that
+> > > the tools in CentOS 6 are so old that it's not worth worrying about.  For
+> > > reference, the kernel in CentOS 6 is based on 2.6.32.  :)  DAX was introduced
+> > > in v4.0.
+> > 
+> > Hum, can you post 'dumpe2fs -h /dev/pmem0' output from that system when the
+> > md5sum fails? Because the only idea I have is that mkfs.ext4 in CentOS 6
+> > creates the filesystem with a different set of features than more recent
+> > e2fsprogs and so we hit some untested path...
 > 
-> On Tue, Sep 06, 2016 at 11:08:51AM +0200, Tomasz Nowicki wrote:
-> [...]
-> > +static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
-> > +		       u32 *rid_out)
-> > +{
-> > +	/* Single mapping does not care for input id */
-> > +	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
-> > +		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
-> > +		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-> > +			*rid_out = map->output_base;
-> > +			return 0;
-> > +		}
-> > +
-> > +		pr_warn(FW_BUG "[map %p] SINGLE MAPPING flag not allowed for node type %d, skipping ID map\n",
-> > +			map, type);
-> > +		return -ENXIO;
-> > +	}
-> > +
-> > +	if (rid_in < map->input_base ||
-> > +	    (rid_in >= map->input_base + map->id_count))
-> > +		return -ENXIO;
-> > +
-> > +	*rid_out = map->output_base + (rid_in - map->input_base);
-> > +	return 0;
-> > +}
-> > +
-> > +static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
-> > +						u32 rid_in, u32 *rid_out,
-> > +						u8 type)
-> > +{
-> > +	u32 rid = rid_in;
-> > +
-> > +	/* Parse the ID mapping tree to find specified node type */
-> > +	while (node) {
-> > +		struct acpi_iort_id_mapping *map;
-> > +		int i;
-> > +
-> > +		if (node->type == type) {
-> > +			if (rid_out)
-> > +				*rid_out = rid;
-> > +			return node;
-> > +		}
-> > +
-> > +		if (!node->mapping_offset || !node->mapping_count)
-> > +			goto fail_map;
-> If node->mapping_count is zero, then node->mapping_offset must be zero. A firmware bug
-> otherwise?
+> Sure, here's the output:
+> 
+> # dumpe2fs -h /dev/pmem0 
+> dumpe2fs 1.41.12 (17-May-2010)
+> Filesystem volume name:   <none>
+> Last mounted on:          /mnt/pmem
+> Filesystem UUID:          4cd8a836-cc54-4c59-ae0a-4a26bab0f8bc
+> Filesystem magic number:  0xEF53
+> Filesystem revision #:    1 (dynamic)
+> Filesystem features:      has_journal ext_attr resize_inode dir_index filetype
+> needs_recovery extent flex_bg sparse_super large_file huge_file uninit_bg
+> dir_nlink extra_isize
+> Filesystem flags:         signed_directory_hash 
+> Default mount options:    (none)
+> Filesystem state:         clean
+> Errors behavior:          Continue
+> Filesystem OS type:       Linux
+> Inode count:              1048576
+> Block count:              4194304
+> Reserved block count:     209715
+> Free blocks:              4084463
+> Free inodes:              1048565
+> First block:              0
+> Block size:               4096
+> Fragment size:            4096
+> Reserved GDT blocks:      1023
+> Blocks per group:         32768
+> Fragments per group:      32768
+> Inodes per group:         8192
+> Inode blocks per group:   512
+> RAID stride:              1
+> Flex block group size:    16
+> Filesystem created:       Thu Sep  8 14:45:31 2016
+> Last mount time:          Thu Sep  8 14:45:39 2016
+> Last write time:          Thu Sep  8 14:45:39 2016
+> Mount count:              1
+> Maximum mount count:      21
+> Last checked:             Thu Sep  8 14:45:31 2016
+> Check interval:           15552000 (6 months)
+> Next check after:         Tue Mar  7 13:45:31 2017
+> Lifetime writes:          388 MB
+> Reserved blocks uid:      0 (user root)
+> Reserved blocks gid:      0 (group root)
+> First inode:              11
+> Inode size:	          256
+> Required extra isize:     28
+> Desired extra isize:      28
+> Journal inode:            8
+> Default directory hash:   half_md4
+> Directory Hash Seed:      19cad581-c46a-4212-bfa0-d527ff55db49
+> Journal backup:           inode blocks
+> Journal features:         (none)
+> Journal size:             128M
+> Journal length:           32768
+> Journal sequence:         0x00000002
+> Journal start:            1
 
-So ? This function is there to map RIDs, not to validate all firmware
-permutations and current code behaviour seems correct to me.
+Hum, nothing unusual in there. I've tried reproducing on a local SLE11 SP3
+machine (which is from about the same time) but everything works as
+expected there. Shrug...
 
-> > +
-> > +		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
-> > +				   node->mapping_offset);
-> > +
-> > +		/* Firmware bug! */
-> > +		if (!map->output_reference) {
-> > +			pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
-> > +			       node, node->type);
-> > +			goto fail_map;
-> > +		}
-> > +
-> > +		/* Do the RID translation */
-> > +		for (i = 0; i < node->mapping_count; i++, map++) {
-> > +			if (!iort_id_map(map, node->type, rid, &rid))
-> > +				break;
-> > +		}
-> >
-> Just curious about if there is kind of possibility that we can get
-> some reduplicated DeviceIDs with a deliberate ID mapping design in FW
-> for the SMMU/RC node. For instance, for a system with 2 PCIe RCs both
-> behind an individual SMMU device, how to make sure the StreamID mapped
-> is unique across the entire system, the same for DeviceID mapped.
-> Anyway, this is my personal confusion, maybe it's not a problem at all
-> for current design ;-)
-
-Are you asking if FW can contain bugs ? Yes it can. I do not see
-how your comment is related to this patch though.
-
-Lorenzo
-
-> Thanks,
-> Dennis
-> > +
-> > +		if (i == node->mapping_count)
-> > +			goto fail_map;
-> > +
-> > +		node = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
-> > +				    map->output_reference);
-> > +	}
-> > +
-> > +fail_map:
-> > +	/* Map input RID to output RID unchanged on mapping failure*/
-> > +	if (rid_out)
-> > +		*rid_out = rid_in;
-> > +
-> > +	return NULL;
-> > +}
-> > +
-> > +static struct acpi_iort_node *iort_find_dev_node(struct device *dev)
-> > +{
-> > +	struct pci_bus *pbus;
-> > +
-> > +	if (!dev_is_pci(dev))
-> > +		return iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> > +				      iort_match_node_callback, dev);
-> > +
-> > +	/* Find a PCI root bus */
-> > +	pbus = to_pci_dev(dev)->bus;
-> > +	while (!pci_is_root_bus(pbus))
-> > +		pbus = pbus->parent;
-> > +
-> > +	return iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> > +			      iort_match_node_callback, &pbus->dev);
-> > +}
-> > +
-> > +void __init acpi_iort_init(void)
-> > +{
-> > +	acpi_status status;
-> > +
-> > +	status = acpi_get_table(ACPI_SIG_IORT, 0, &iort_table);
-> > +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-> > +		const char *msg = acpi_format_exception(status);
-> > +		pr_err("Failed to get table, %s\n", msg);
-> > +	}
-> > +}
-> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > index 85b7d07..e56e643 100644
-> > --- a/drivers/acpi/bus.c
-> > +++ b/drivers/acpi/bus.c
-> > @@ -36,6 +36,7 @@
-> >  #ifdef CONFIG_X86
-> >  #include <asm/mpspec.h>
-> >  #endif
-> > +#include <linux/acpi_iort.h>
-> >  #include <linux/pci.h>
-> >  #include <acpi/apei.h>
-> >  #include <linux/dmi.h>
-> > @@ -1186,6 +1187,7 @@ static int __init acpi_init(void)
-> >  	}
-> >  
-> >  	pci_mmcfg_late_init();
-> > +	acpi_iort_init();
-> >  	acpi_scan_init();
-> >  	acpi_ec_init();
-> >  	acpi_debugfs_init();
-> > diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> > new file mode 100644
-> > index 0000000..fcacaf7
-> > --- /dev/null
-> > +++ b/include/linux/acpi_iort.h
-> > @@ -0,0 +1,30 @@
-> > +/*
-> > + * Copyright (C) 2016, Semihalf
-> > + *	Author: Tomasz Nowicki <tn@semihalf.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify it
-> > + * under the terms and conditions of the GNU General Public License,
-> > + * version 2, as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope it will be useful, but WITHOUT
-> > + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> > + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> > + * more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License along with
-> > + * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-> > + * Place - Suite 330, Boston, MA 02111-1307 USA.
-> > + */
-> > +
-> > +#ifndef __ACPI_IORT_H__
-> > +#define __ACPI_IORT_H__
-> > +
-> > +#include <linux/acpi.h>
-> > +
-> > +#ifdef CONFIG_ACPI_IORT
-> > +void acpi_iort_init(void);
-> > +#else
-> > +static inline void acpi_iort_init(void) { }
-> > +#endif
-> > +
-> > +#endif /* __ACPI_IORT_H__ */
-> > -- 
-> > 1.9.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
+								Honza
+-- 
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
