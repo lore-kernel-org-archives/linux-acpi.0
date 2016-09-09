@@ -1,39 +1,49 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] ACPICA / Interpreter: Remove redundant newline
-Date: Fri, 9 Sep 2016 20:40:42 +0200
-Message-ID: <20160909184042.srv6jrio6s5umear@pd.tnic>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA / Interpreter: Remove redundant newline
+Date: Fri, 9 Sep 2016 18:45:23 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4F34E9@ORSMSX110.amr.corp.intel.com>
 References: <20160909161253.30952-1-bp@alien8.de>
  <94F2FBAB4432B54E8AACC7DFDE6C92E37E4F34B4@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:45603 "EHLO mail.skyhub.de"
+Received: from mga02.intel.com ([134.134.136.20]:60494 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752015AbcIISks (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Sep 2016 14:40:48 -0400
-Content-Disposition: inline
+        id S1753119AbcIISp0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Sep 2016 14:45:26 -0400
 In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4F34B4@ORSMSX110.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "Moore, Robert" <robert.moore@intel.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>
 
-On Fri, Sep 09, 2016 at 06:26:17PM +0000, Moore, Robert wrote:
-> Is this a big deal?
-> 
-> We do this on purpose for AcpiExec, to make the screen output more readable.
+Well, I never thought I would write a couple lines of code like this, but here is a solution that should make everyone happy.
 
-Please do not top-post.
+diff --git a/source/components/tables/tbxfload.c b/source/components/tables/tbxfload.c
+index 6a937b1..73ee1a2 100644
+--- a/source/components/tables/tbxfload.c
++++ b/source/components/tables/tbxfload.c
+@@ -334,7 +334,7 @@ AcpiTbLoadNamespace (
+     if (!TablesFailed)
+     {
+         ACPI_INFO ((
+-            "%u ACPI AML tables successfully acquired and loaded\n",
++            "%u ACPI AML tables successfully acquired and loaded",
+             TablesLoaded));
+     }
+     else
+@@ -348,6 +348,11 @@ AcpiTbLoadNamespace (
+         Status = AE_CTRL_TERMINATE;
+     }
+ 
++#ifdef ACPI_APPLICATION
++    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT, "\n"));
++#endif
++
++
+ UnlockAndExit:
+     (void) AcpiUtReleaseMutex (ACPI_MTX_TABLES);
+     return_ACPI_STATUS (Status);
 
-What do you mean "big deal"? All other ACPI_INFO calls don't have a "\n"
-at the end except this one. How does one "\n" make some output more
-readable?
-
-(Btw, I have no idea what AcpiExec is. Grepping the kernel tree doesn't
-give any results).
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
