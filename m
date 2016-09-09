@@ -1,183 +1,212 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v3 1/8] sched, x86: Add SD_ASYM_PACKING flags to x86 cpu topology for ITMT
-Date: Thu,  8 Sep 2016 15:26:48 -0700
-Message-ID: <1473373615-51427-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
-Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+From: Dennis Chen <dennis.chen@arm.com>
+Subject: Re: [PATCH V10 1/8] ACPI: I/O Remapping Table (IORT) initial support
+Date: Fri, 9 Sep 2016 11:09:40 +0800
+Message-ID: <20160909030938.GA8544@arm.com>
+References: <1473152938-17388-1-git-send-email-tn@semihalf.com>
+ <1473152938-17388-2-git-send-email-tn@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1473152938-17388-2-git-send-email-tn@semihalf.com>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, nd@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Tim Chen <tim.c.chen@linux.intel.com>
+Hi Tomasz,
 
-We uses ASYM_PACKING feature in the scheduler to move tasks to more
-capable cpus that can be boosted to higher frequency. This is enabled by
-Intel Turbo Boost Max Technology 3.0 (ITMT).  We mark the sched domain
-topology level with SD_ASYM_PACKING flag for such systems to indicate
-scheduler can use the ASYM_PACKING feature to move load to the
-more capable cpus.
+On Tue, Sep 06, 2016 at 11:08:51AM +0200, Tomasz Nowicki wrote:
+[...]
+> +static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 ri=
+d_in,
+> +=09=09       u32 *rid_out)
+> +{
+> +=09/* Single mapping does not care for input id */
+> +=09if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+> +=09=09if (type =3D=3D ACPI_IORT_NODE_NAMED_COMPONENT ||
+> +=09=09    type =3D=3D ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> +=09=09=09*rid_out =3D map->output_base;
+> +=09=09=09return 0;
+> +=09=09}
+> +
+> +=09=09pr_warn(FW_BUG "[map %p] SINGLE MAPPING flag not allowed for node =
+type %d, skipping ID map\n",
+> +=09=09=09map, type);
+> +=09=09return -ENXIO;
+> +=09}
+> +
+> +=09if (rid_in < map->input_base ||
+> +=09    (rid_in >=3D map->input_base + map->id_count))
+> +=09=09return -ENXIO;
+> +
+> +=09*rid_out =3D map->output_base + (rid_in - map->input_base);
+> +=09return 0;
+> +}
+> +
+> +static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *n=
+ode,
+> +=09=09=09=09=09=09u32 rid_in, u32 *rid_out,
+> +=09=09=09=09=09=09u8 type)
+> +{
+> +=09u32 rid =3D rid_in;
+> +
+> +=09/* Parse the ID mapping tree to find specified node type */
+> +=09while (node) {
+> +=09=09struct acpi_iort_id_mapping *map;
+> +=09=09int i;
+> +
+> +=09=09if (node->type =3D=3D type) {
+> +=09=09=09if (rid_out)
+> +=09=09=09=09*rid_out =3D rid;
+> +=09=09=09return node;
+> +=09=09}
+> +
+> +=09=09if (!node->mapping_offset || !node->mapping_count)
+> +=09=09=09goto fail_map;
+If node->mapping_count is zero, then node->mapping_offset must be zero. A f=
+irmware bug
+otherwise?
+> +
+> +=09=09map =3D ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
+> +=09=09=09=09   node->mapping_offset);
+> +
+> +=09=09/* Firmware bug! */
+> +=09=09if (!map->output_reference) {
+> +=09=09=09pr_err(FW_BUG "[node %p type %d] ID map has NULL parent referen=
+ce\n",
+> +=09=09=09       node, node->type);
+> +=09=09=09goto fail_map;
+> +=09=09}
+> +
+> +=09=09/* Do the RID translation */
+> +=09=09for (i =3D 0; i < node->mapping_count; i++, map++) {
+> +=09=09=09if (!iort_id_map(map, node->type, rid, &rid))
+> +=09=09=09=09break;
+> +=09=09}
+>
+Just curious about if there is kind of possibility that we can get some red=
+uplicated DeviceIDs
+with a deliberate ID mapping design in FW for the SMMU/RC node. For instanc=
+e, for a system with 2
+PCIe RCs both behind an individual SMMU device, how to make sure the Stream=
+ID mapped is unique=20
+across the entire system, the same for DeviceID mapped.=20
+Anyway, this is my personal confusion, maybe it's not a problem at all for =
+current design ;-)
 
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- arch/x86/include/asm/topology.h |  4 +++
- arch/x86/kernel/smpboot.c       | 77 +++++++++++++++++++++++++++++++----------
- kernel/sched/core.c             |  3 ++
- 3 files changed, 66 insertions(+), 18 deletions(-)
-
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index cf75871..98b669d 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -146,4 +146,8 @@ struct pci_bus;
- int x86_pci_root_bus_node(int bus);
- void x86_pci_root_bus_resources(int bus, struct list_head *resources);
- 
-+#ifdef CONFIG_SCHED_ITMT
-+extern unsigned int __read_mostly sysctl_sched_itmt_enabled;
-+#endif /* CONFIG_SCHED_ITMT */
-+
- #endif /* _ASM_X86_TOPOLOGY_H */
-diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index 4296beb..3782bd4 100644
---- a/arch/x86/kernel/smpboot.c
-+++ b/arch/x86/kernel/smpboot.c
-@@ -109,6 +109,8 @@ static bool logical_packages_frozen __read_mostly;
- /* Maximum number of SMT threads on any online core */
- int __max_smt_threads __read_mostly;
- 
-+unsigned int __read_mostly sysctl_sched_itmt_enabled;
-+
- static inline void smpboot_setup_warm_reset_vector(unsigned long start_eip)
- {
- 	unsigned long flags;
-@@ -471,31 +473,57 @@ static bool match_die(struct cpuinfo_x86 *c, struct cpuinfo_x86 *o)
- 	return false;
- }
- 
--static struct sched_domain_topology_level numa_inside_package_topology[] = {
-+#ifdef CONFIG_SCHED_ITMT
-+static int x86_core_flags(void)
-+{
-+	int flags = cpu_core_flags();
-+
-+	if (sysctl_sched_itmt_enabled)
-+		flags |= SD_ASYM_PACKING;
-+
-+	return flags;
-+}
-+
-+static int x86_smt_flags(void)
-+{
-+	int flags = cpu_smt_flags();
-+
-+	if (sysctl_sched_itmt_enabled)
-+		flags |= SD_ASYM_PACKING;
-+
-+	return flags;
-+}
-+#else
-+#define x86_core_flags cpu_core_flags
-+#define x86_smt_flags cpu_smt_flags
-+#endif
-+
-+static struct sched_domain_topology_level x86_topology[] = {
-+#ifdef CONFIG_SCHED_SMT
-+	{ cpu_smt_mask, x86_smt_flags, SD_INIT_NAME(SMT) },
-+#endif
-+#ifdef CONFIG_SCHED_MC
-+	{ cpu_coregroup_mask, x86_core_flags, SD_INIT_NAME(MC) },
-+#endif
-+	{ cpu_cpu_mask, SD_INIT_NAME(DIE) },
-+	{ NULL, },
-+};
-+
-+static struct sched_domain_topology_level x86_numa_in_package_topology[] = {
- #ifdef CONFIG_SCHED_SMT
--	{ cpu_smt_mask, cpu_smt_flags, SD_INIT_NAME(SMT) },
-+	{ cpu_smt_mask, x86_smt_flags, SD_INIT_NAME(SMT) },
- #endif
- #ifdef CONFIG_SCHED_MC
--	{ cpu_coregroup_mask, cpu_core_flags, SD_INIT_NAME(MC) },
-+	{ cpu_coregroup_mask, x86_core_flags, SD_INIT_NAME(MC) },
- #endif
- 	{ NULL, },
- };
-+
- /*
-- * set_sched_topology() sets the topology internal to a CPU.  The
-- * NUMA topologies are layered on top of it to build the full
-- * system topology.
-- *
-- * If NUMA nodes are observed to occur within a CPU package, this
-- * function should be called.  It forces the sched domain code to
-- * only use the SMT level for the CPU portion of the topology.
-- * This essentially falls back to relying on NUMA information
-- * from the SRAT table to describe the entire system topology
-- * (except for hyperthreads).
-+ * Set if a package/die has multiple NUMA nodes inside.
-+ * AMD Magny-Cours and Intel Cluster-on-Die have this.
-  */
--static void primarily_use_numa_for_topology(void)
--{
--	set_sched_topology(numa_inside_package_topology);
--}
-+static bool x86_has_numa_in_package;
- 
- void set_cpu_sibling_map(int cpu)
- {
-@@ -558,7 +586,7 @@ void set_cpu_sibling_map(int cpu)
- 				c->booted_cores = cpu_data(i).booted_cores;
- 		}
- 		if (match_die(c, o) && !topology_same_node(c, o))
--			primarily_use_numa_for_topology();
-+			x86_has_numa_in_package = true;
- 	}
- 
- 	threads = cpumask_weight(topology_sibling_cpumask(cpu));
-@@ -1304,6 +1332,16 @@ void __init native_smp_prepare_cpus(unsigned int max_cpus)
- 		zalloc_cpumask_var(&per_cpu(cpu_core_map, i), GFP_KERNEL);
- 		zalloc_cpumask_var(&per_cpu(cpu_llc_shared_map, i), GFP_KERNEL);
- 	}
-+
-+	/*
-+	 * Set 'default' x86 topology, this matches default_topology() in that
-+	 * it has NUMA nodes as a topology level. See also
-+	 * native_smp_cpus_done().
-+	 *
-+	 * Must be done before set_cpus_sibling_map() is ran.
-+	 */
-+	set_sched_topology(x86_topology);
-+
- 	set_cpu_sibling_map(0);
- 
- 	switch (smp_sanity_check(max_cpus)) {
-@@ -1370,6 +1408,9 @@ void __init native_smp_cpus_done(unsigned int max_cpus)
- {
- 	pr_debug("Boot done\n");
- 
-+	if (x86_has_numa_in_package)
-+		set_sched_topology(x86_numa_in_package_topology);
-+
- 	nmi_selftest();
- 	impress_friends();
- 	setup_ioapic_dest();
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 2a906f2..e86c4a5 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -6487,6 +6487,9 @@ static struct sched_domain_topology_level *sched_domain_topology =
- 
- void set_sched_topology(struct sched_domain_topology_level *tl)
- {
-+	if (WARN_ON_ONCE(sched_smp_initialized))
-+		return;
-+
- 	sched_domain_topology = tl;
- }
- 
--- 
-2.7.4
+Thanks,
+Dennis
+> +
+> +=09=09if (i =3D=3D node->mapping_count)
+> +=09=09=09goto fail_map;
+> +
+> +=09=09node =3D ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+> +=09=09=09=09    map->output_reference);
+> +=09}
+> +
+> +fail_map:
+> +=09/* Map input RID to output RID unchanged on mapping failure*/
+> +=09if (rid_out)
+> +=09=09*rid_out =3D rid_in;
+> +
+> +=09return NULL;
+> +}
+> +
+> +static struct acpi_iort_node *iort_find_dev_node(struct device *dev)
+> +{
+> +=09struct pci_bus *pbus;
+> +
+> +=09if (!dev_is_pci(dev))
+> +=09=09return iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +=09=09=09=09      iort_match_node_callback, dev);
+> +
+> +=09/* Find a PCI root bus */
+> +=09pbus =3D to_pci_dev(dev)->bus;
+> +=09while (!pci_is_root_bus(pbus))
+> +=09=09pbus =3D pbus->parent;
+> +
+> +=09return iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +=09=09=09      iort_match_node_callback, &pbus->dev);
+> +}
+> +
+> +void __init acpi_iort_init(void)
+> +{
+> +=09acpi_status status;
+> +
+> +=09status =3D acpi_get_table(ACPI_SIG_IORT, 0, &iort_table);
+> +=09if (ACPI_FAILURE(status) && status !=3D AE_NOT_FOUND) {
+> +=09=09const char *msg =3D acpi_format_exception(status);
+> +=09=09pr_err("Failed to get table, %s\n", msg);
+> +=09}
+> +}
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 85b7d07..e56e643 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -36,6 +36,7 @@
+>  #ifdef CONFIG_X86
+>  #include <asm/mpspec.h>
+>  #endif
+> +#include <linux/acpi_iort.h>
+>  #include <linux/pci.h>
+>  #include <acpi/apei.h>
+>  #include <linux/dmi.h>
+> @@ -1186,6 +1187,7 @@ static int __init acpi_init(void)
+>  =09}
+> =20
+>  =09pci_mmcfg_late_init();
+> +=09acpi_iort_init();
+>  =09acpi_scan_init();
+>  =09acpi_ec_init();
+>  =09acpi_debugfs_init();
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> new file mode 100644
+> index 0000000..fcacaf7
+> --- /dev/null
+> +++ b/include/linux/acpi_iort.h
+> @@ -0,0 +1,30 @@
+> +/*
+> + * Copyright (C) 2016, Semihalf
+> + *=09Author: Tomasz Nowicki <tn@semihalf.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify =
+it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOU=
+T
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License=
+ for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License alo=
+ng with
+> + * this program; if not, write to the Free Software Foundation, Inc., 59=
+ Temple
+> + * Place - Suite 330, Boston, MA 02111-1307 USA.
+> + */
+> +
+> +#ifndef __ACPI_IORT_H__
+> +#define __ACPI_IORT_H__
+> +
+> +#include <linux/acpi.h>
+> +
+> +#ifdef CONFIG_ACPI_IORT
+> +void acpi_iort_init(void);
+> +#else
+> +static inline void acpi_iort_init(void) { }
+> +#endif
+> +
+> +#endif /* __ACPI_IORT_H__ */
+> --=20
+> 1.9.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
