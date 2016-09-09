@@ -1,149 +1,117 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
-Date: Fri,  9 Sep 2016 21:24:04 +0200
-Message-ID: <1473449047-10499-3-git-send-email-tn@semihalf.com>
+Subject: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific register range for ACPI case
+Date: Fri,  9 Sep 2016 21:24:05 +0200
+Message-ID: <1473449047-10499-4-git-send-email-tn@semihalf.com>
 References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1473449047-10499-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
 Cc: arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Some platforms may not be fully compliant with generic set of PCI config
-accessors. For these cases we implement the way to overwrite CFG accessors
-set and configuration space range.
-
-In first place pci_mcfg_parse() saves machine's IDs and revision number
-(these come from MCFG header) in order to match against known quirk entries.
-Then the algorithm traverses available quirk list (static array),
-matches against <oem_id, oem_table_id, rev, domain, bus number range> and
-returns custom PCI config ops and/or CFG resource structure.
-
-When adding new quirk there are two possibilities:
-1. Override default pci_generic_ecam_ops ops but CFG resource comes from MCFG
-{ "OEM_ID", "OEM_TABLE_ID", <REV>, <DOMAIN>, <BUS_NR>, &foo_ops, MCFG_RES_EMPTY },
-2. Override default pci_generic_ecam_ops ops and CFG resource. For this case
-it is also allowed get CFG resource from quirk entry w/o having it in MCFG.
-{ "OEM_ID", "OEM_TABLE_ID", <REV>, <DOMAIN>, <BUS_NR>, &boo_ops,
-  DEFINE_RES_MEM(START, SIZE) },
-
-pci_generic_ecam_ops and MCFG entries will be used for platforms
-free from quirks.
+thunder-pem driver stands for being ACPI based PCI host controller.
+However, there is no standard way to describe its PEM-specific register
+ranges in ACPI tables. Thus we add thunder_pem_init() ACPI extension
+to obtain hardcoded addresses from static resource array.
+Although it is not pretty, it prevents from creating standard mechanism to
+handle similar cases in future.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-Signed-off-by: Christopher Covington <cov@codeaurora.org>
 ---
- drivers/acpi/pci_mcfg.c | 80 +++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 74 insertions(+), 6 deletions(-)
+ drivers/pci/host/pci-thunder-pem.c | 61 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 48 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index ffcc651..2b8acc7 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -32,6 +32,59 @@ struct mcfg_entry {
- 	u8			bus_start;
- 	u8			bus_end;
- };
-+struct mcfg_fixup {
-+	char oem_id[ACPI_OEM_ID_SIZE + 1];
-+	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-+	u32 oem_revision;
-+	u16 seg;
-+	struct resource bus_range;
-+	struct pci_ecam_ops *ops;
-+	struct resource cfgres;
-+};
-+
-+#define MCFG_DOM_ANY			(-1)
-+#define MCFG_BUS_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
-+						((end) - (start) + 1),	\
-+						NULL, IORESOURCE_BUS)
-+#define MCFG_BUS_ANY		MCFG_BUS_RANGE(0x0, 0xff)
-+#define MCFG_RES_EMPTY		DEFINE_RES_NAMED(0, 0, NULL, 0)
-+
-+static struct mcfg_fixup mcfg_quirks[] = {
-+/*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
-+};
-+
-+static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-+static char mcfg_oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
-+static u32 mcfg_oem_revision;
-+
-+static void pci_mcfg_match_quirks(struct acpi_pci_root *root,
-+				  struct resource *cfgres,
-+				  struct pci_ecam_ops **ecam_ops)
-+{
-+	struct mcfg_fixup *f;
-+	int i;
-+
-+	/*
-+	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
-+	 * table ID, and OEM revision from MCFG table standard header.
-+	 */
-+	for (i = 0, f = mcfg_quirks; i < ARRAY_SIZE(mcfg_quirks); i++, f++) {
-+		if (f->seg == root->segment &&
-+		    resource_contains(&f->bus_range, &root->secondary) &&
-+		    !memcmp(f->oem_id, mcfg_oem_id, ACPI_OEM_ID_SIZE) &&
-+		    !memcmp(f->oem_table_id, mcfg_oem_table_id,
-+		            ACPI_OEM_TABLE_ID_SIZE) &&
-+		    f->oem_revision == mcfg_oem_revision) {
-+			if (f->cfgres.start)
-+				*cfgres = f->cfgres;
-+			if (f->ops)
-+				*ecam_ops =  f->ops;
-+			dev_info(&root->device->dev, "Applying PCI MCFG quirks for %s %s rev: %d\n",
-+				 f->oem_id, f->oem_table_id, f->oem_revision);
-+			return;
-+		}
-+	}
-+}
+diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+index 6abaf80..b048761 100644
+--- a/drivers/pci/host/pci-thunder-pem.c
++++ b/drivers/pci/host/pci-thunder-pem.c
+@@ -18,6 +18,7 @@
+ #include <linux/init.h>
+ #include <linux/of_address.h>
+ #include <linux/of_pci.h>
++#include <linux/pci-acpi.h>
+ #include <linux/pci-ecam.h>
+ #include <linux/platform_device.h>
  
- /* List to save MCFG entries */
- static LIST_HEAD(pci_mcfg_list);
-@@ -61,14 +114,24 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
- 
- 	}
- 
--	if (!root->mcfg_addr)
--		return -ENXIO;
--
- skip_lookup:
- 	memset(&res, 0, sizeof(res));
--	res.start = root->mcfg_addr + (bus_res->start << 20);
--	res.end = res.start + (resource_size(bus_res) << 20) - 1;
--	res.flags = IORESOURCE_MEM;
-+	if (root->mcfg_addr) {
-+		res.start = root->mcfg_addr + (bus_res->start << 20);
-+		res.end = res.start + (resource_size(bus_res) << 20) - 1;
-+		res.flags = IORESOURCE_MEM;
-+	}
-+
-+	/*
-+	 * Let to override default ECAM ops and CFG resource range.
-+	 * Also, this might even retrieve CFG resource range in case MCFG
-+	 * does not have it. Invalid CFG start address means MCFG firmware bug
-+	 * or we need another quirk in array.
-+	 */
-+	pci_mcfg_match_quirks(root, &res, &ops);
-+	if (!res.start)
-+		return -ENXIO;
-+
- 	*cfgres = res;
- 	*ecam_ops = ops;
- 	return 0;
-@@ -101,6 +164,11 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
- 		list_add(&e->list, &pci_mcfg_list);
- 	}
- 
-+	/* Save MCFG IDs and revision for quirks matching */
-+	memcpy(mcfg_oem_id, header->oem_id, ACPI_OEM_ID_SIZE);
-+	memcpy(mcfg_oem_table_id, header->oem_table_id, ACPI_OEM_TABLE_ID_SIZE);
-+	mcfg_oem_revision = header->revision;
-+
- 	pr_info("MCFG table detected, %d entries\n", n);
- 	return 0;
+@@ -284,6 +285,40 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
+ 	return pci_generic_config_write(bus, devfn, where, size, val);
  }
+ 
++#ifdef CONFIG_ACPI
++static struct resource thunder_pem_reg_res[] = {
++	[4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
++	[5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
++	[6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
++	[7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
++	[8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
++	[9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
++	[14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
++	[15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
++	[16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
++	[17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
++	[18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
++	[19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
++};
++
++static struct resource *thunder_pem_acpi_res(struct pci_config_window *cfg)
++{
++	struct acpi_device *adev = to_acpi_device(cfg->parent);
++	struct acpi_pci_root *root = acpi_driver_data(adev);
++
++	if ((root->segment >= 4 && root->segment <= 9) ||
++	    (root->segment >= 14 && root->segment <= 19))
++		return &thunder_pem_reg_res[root->segment];
++
++	return NULL;
++}
++#else
++static struct resource *thunder_pem_acpi_res(struct pci_config_window *cfg)
++{
++	return NULL;
++}
++#endif
++
+ static int thunder_pem_init(struct pci_config_window *cfg)
+ {
+ 	struct device *dev = cfg->parent;
+@@ -292,24 +327,24 @@ static int thunder_pem_init(struct pci_config_window *cfg)
+ 	struct thunder_pem_pci *pem_pci;
+ 	struct platform_device *pdev;
+ 
+-	/* Only OF support for now */
+-	if (!dev->of_node)
+-		return -EINVAL;
+-
+ 	pem_pci = devm_kzalloc(dev, sizeof(*pem_pci), GFP_KERNEL);
+ 	if (!pem_pci)
+ 		return -ENOMEM;
+ 
+-	pdev = to_platform_device(dev);
+-
+-	/*
+-	 * The second register range is the PEM bridge to the PCIe
+-	 * bus.  It has a different config access method than those
+-	 * devices behind the bridge.
+-	 */
+-	res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (acpi_disabled) {
++		pdev = to_platform_device(dev);
++
++		/*
++		 * The second register range is the PEM bridge to the PCIe
++		 * bus.  It has a different config access method than those
++		 * devices behind the bridge.
++		 */
++		res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	} else {
++		res_pem = thunder_pem_acpi_res(cfg);
++	}
+ 	if (!res_pem) {
+-		dev_err(dev, "missing \"reg[1]\"property\n");
++		dev_err(dev, "missing configuration region\n");
+ 		return -EINVAL;
+ 	}
+ 
 -- 
 1.9.1
