@@ -1,62 +1,55 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: DAX can not work on virtual nvdimm device
-Date: Fri, 9 Sep 2016 10:34:21 -0600
-Message-ID: <20160909163421.GB18554@linux.intel.com>
-References: <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
- <20160829193014.GB16738@linux.intel.com>
- <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
- <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
- <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
- <20160902025738.GA26108@linux.intel.com>
- <20160906150620.GJ28922@quack2.suse.cz>
- <20160908204708.GA15167@linux.intel.com>
- <20160909091925.GF22777@quack2.suse.cz>
- <20160909140327.r2j64s5xdaxnnxhx@thunk.org>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v8 8/9] arm64: pmu: Detect and enable multiple PMUs in an
+ ACPI system
+Date: Fri, 9 Sep 2016 18:26:09 +0100
+Message-ID: <20160909172609.GD11418@arm.com>
+References: <1472507300-9844-1-git-send-email-jeremy.linton@arm.com>
+ <1472507300-9844-9-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:50084 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751987AbcIIR0L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Sep 2016 13:26:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20160909140327.r2j64s5xdaxnnxhx-AKGzg7BKzIDYtjvyW6yDsg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yumei Huang <yuhuang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, KVM <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org" <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1472507300-9844-9-git-send-email-jeremy.linton@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Fri, Sep 09, 2016 at 10:03:27AM -0400, Theodore Ts'o wrote:
-> On Fri, Sep 09, 2016 at 11:19:25AM +0200, Jan Kara wrote:
-> > > > > > 1. make the guest kernel based on your tree, the top commit is
-> > > > > >    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
-> > > > > >    the config file can be found in this thread.
-> 
-> What git tree is 10d7902fa0e82b from?
+On Mon, Aug 29, 2016 at 04:48:19PM -0500, Jeremy Linton wrote:
+> +/* Count number and type of CPU cores in the system. */
+> +static void __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
+> +{
+> +	int i;
+> +	bool alloc_failure = false;
+> +
+> +	for_each_possible_cpu(i) {
+> +		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
+> +		u32 partnum = MIDR_PARTNUM(cinfo->reg_midr);
+> +		struct pmu_types *pmu;
+> +
+> +		list_for_each_entry(pmu, pmus, list) {
+> +			if (pmu->cpu_type == partnum) {
+> +				pmu->cpu_count++;
+> +				break;
+> +			}
+> +		}
+> +
+> +		/* we didn't find the CPU type, add an entry to identify it */
+> +		if ((&pmu->list == pmus) && (!alloc_failure)) {
+> +			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
+> +			if (!pmu) {
+> +				pr_warn("Unable to allocate pmu_types\n");
+> +				/*
+> +				 * continue to count cpus for any pmu_types
+> +				 * already allocated, but don't allocate any
+> +				 * more pmu_types. This avoids undercounting.
+> +				 */
+> +				alloc_failure = true;
 
-It's from djbw's libnvdimm tree.
+I thought we were ripping this out?
 
-https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/
-
-I don't think that commit is relevant, though.  I believe this should
-reproduce with a vanilla v4.7 tree.  I can verify if you'd like.
-
-> > Hum, nothing unusual in there. I've tried reproducing on a local SLE11 SP3
-> > machine (which is from about the same time) but everything works as
-> > expected there. Shrug...
-> 
-> I just tried reproducing it via "gce-xfstests --pmem-device shell"
-> with a downgraded e2fsprogs to stock upstream 1.42.12, and I can't
-> reproduce it with the ext4.git tree.  I'm not sure whether the git
-> commit is critical, though.  Is this a regression that was working
-> before?
-
-I'm not sure if we've ever tested Centos6/RHEL6 with DAX.  It could be that it
-has never worked.
-
-> Or it's possible that Red Hat did something weird with the CentOS 6
-> e2fsprogs....
+Will
