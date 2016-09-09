@@ -1,135 +1,194 @@
-From: Aaron Durbin <adurbin@google.com>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Fri, 9 Sep 2016 09:16:32 -0500
-Message-ID: <CAE2855v-F509PTUmNXTZ+UhcH2upmAXwv0FL8+d1RNdfmBD7Fw@mail.gmail.com>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
- <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
- <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
- <20160816091502.GB1751@lahna.fi.intel.com> <CAE2855ts_Xw2ahGRYpVWHAqCEvzNYV7BmOVejeErJ_e2oXZ1qg@mail.gmail.com>
- <CAE2855u7vLDVSJ04gr8yrg+U=W2DwwNk2+8jGhb-_isixDWvHw@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v5 00/14] ACPI IORT ARM SMMU support
+Date: Fri,  9 Sep 2016 15:23:29 +0100
+Message-ID: <20160909142343.13314-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f46.google.com ([209.85.218.46]:36774 "EHLO
-        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751222AbcIIOQe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Sep 2016 10:16:34 -0400
-Received: by mail-oi0-f46.google.com with SMTP id q188so28918893oia.3
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Sep 2016 07:16:33 -0700 (PDT)
-In-Reply-To: <CAE2855u7vLDVSJ04gr8yrg+U=W2DwwNk2+8jGhb-_isixDWvHw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Fri, Sep 9, 2016 at 9:12 AM, Aaron Durbin <adurbin@google.com> wrote:
-> On Wed, Aug 17, 2016 at 6:02 PM, Aaron Durbin <adurbin@google.com> wrote:
->> On Tue, Aug 16, 2016 at 2:15 AM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->>> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
->>>> Was anyone able to take a look into a solution for the current
->>>> problem?  Again, please feel free to ask if anyone would like help
->>>> testing potential solutions.
->>>
->>> Below is one proposal for fixing the issue. It is just a prototype and
->>> I'm not sure if it takes everything needed into account. Would you be
->>> able to try it out and let us know if it works for you?
->>
->> Yes. I'll give it a go. I'm traveling this week so it won't likely be
->> til early next week. Thanks for the proposed fix. I'll report back on
->> my findings.
->>
->
-> Sorry for the late response. I tried the patch and it works with ACPI
-> devices in a hierarchy below PCI devices. I didn't have any ACPI
-> drivers probed but I was able to hang 2 ACPI devices off of a BAR that
-> had a driver for the PCI device without any resource conflicts
-> (snippet from /proc/iomem):
->
->     c2a43000-c2a43fff : 0000:00:1b.0
->       c2a43000-c2a437ff : GOOG1234:00
->       c2a43800-c2a43fff : GOOG1235:00
->
-> One observation that I don't think matters much, but I wanted to write
-> it down in case anyone pulls this thread up again. In the case of
-> finding the parent resource, the ACPI devcie's resources won't show up
-> in the resource tree until the pci parent devices' resources are
-> inserted.
->
+This patch series is v5 of a previous posting:
 
-I forgot to say thanks for helping in sorting this issue out. It's
-very much appreciated.
+https://lkml.org/lkml/2016/8/15/394
 
--Aaron
+v4 -> v5
+	- Added SMMUv1/v2 support
+	- Rebased against v4.8-rc5 and dependencies series
+	- Consolidated IORT platform devices creation
 
->
->>>
->>> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
->>> index 159f7f19abce..72068415f806 100644
->>> --- a/drivers/acpi/acpi_platform.c
->>> +++ b/drivers/acpi/acpi_platform.c
->>> @@ -18,6 +18,7 @@
->>>  #include <linux/module.h>
->>>  #include <linux/dma-mapping.h>
->>>  #include <linux/platform_device.h>
->>> +#include <linux/pci.h>
->>>
->>>  #include "internal.h"
->>>
->>> @@ -30,6 +31,35 @@ static const struct acpi_device_id forbidden_id_list[] = {
->>>         {"", 0},
->>>  };
->>>
->>> +static struct resource *acpi_find_parent_resource(struct acpi_device *adev,
->>> +                                                 struct resource *res)
->>> +{
->>> +       struct device *parent;
->>> +
->>> +       parent = acpi_get_first_physical_node(adev->parent);
->>> +       if (!parent)
->>> +               return NULL;
->>> +
->>> +#if IS_ENABLED(CONFIG_PCI)
->>> +       if (dev_is_pci(parent)) {
->>> +               struct pci_dev *pdev = to_pci_dev(parent);
->>> +
->>> +               if (!pci_is_bridge(pdev)) {
->>> +                       int i;
->>> +
->>> +                       for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
->>> +                               struct resource *r = &pdev->resource[i];
->>> +
->>> +                               if (r->start && resource_contains(r, res))
->>> +                                       return r;
->>> +                       }
->>> +               }
->>> +       }
->>> +#endif
->>> +
->>> +       return NULL;
->>> +}
->>> +
->>>  /**
->>>   * acpi_create_platform_device - Create platform device for ACPI device node
->>>   * @adev: ACPI device node to create a platform device for.
->>> @@ -69,8 +99,17 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
->>>                         return ERR_PTR(-ENOMEM);
->>>                 }
->>>                 count = 0;
->>> -               list_for_each_entry(rentry, &resource_list, node)
->>> -                       resources[count++] = *rentry->res;
->>> +               list_for_each_entry(rentry, &resource_list, node) {
->>> +                       struct resource *res = &resources[count++];
->>> +
->>> +                       *res = *rentry->res;
->>> +                       /*
->>> +                        * If the device has parent we need to take its
->>> +                        * resources into account as well because this
->>> +                        * device might consume part of those.
->>> +                        */
->>> +                       res->parent = acpi_find_parent_resource(adev, res);
->>> +               }
->>>
->>>                 acpi_dev_free_resource_list(&resource_list);
->>>         }
+v3 -> v4
+	- Added single mapping API (for IORT named components)
+	- Fixed arm_smmu_iort_xlate() return value
+	- Reworked fwnode registration and platform device creation
+	  ordering to fix probe ordering dependencies
+	- Added code to keep device_node ref count with new iommu
+	  fwspec API
+	- Added patch to make iommu_fwspec arch agnostic
+	- Dropped RFC status
+	- Rebased against v4.8-rc2
+
+v2 -> v3
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc3)
+	- Added back reliance on ACPI early probing infrastructure
+	- Patch[1-3] merged through other dependent series
+	- Added back IOMMU fwnode generalization
+	- Move SMMU v3 static functions configuration to IORT code
+	- Implemented generic IOMMU fwspec API
+	- Added code to implement fwnode platform device look-up
+
+v1 -> v2:
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc1)
+	- Removed IOMMU fwnode generalization
+	- Implemented ARM SMMU v3 ACPI probing instead of ARM SMMU v2
+	  owing to patch series dependencies [1]
+	- Moved platform device creation logic to IORT code to
+	  generalize its usage for ARM SMMU v1-v2-v3 components
+	- Removed reliance on ACPI early device probing
+	- Created IORT specific iommu_xlate() translation hook leaving
+	  OF code unchanged according to v1 reviews
+
+The ACPI IORT table provides information that allows instantiating
+ARM SMMU devices and carrying out id mappings between components on
+ARM based systems (devices, IOMMUs, interrupt controllers).
+
+http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+
+Building on basic IORT support, available through [2],
+this patchset enables ARM SMMUs support on ACPI systems.
+
+Most of the code is aimed at building the required generic ACPI
+infrastructure to create and enable IOMMU components and to bring
+the IOMMU infrastructure for ACPI on par with DT, which is going to
+make future ARM SMMU components easier to integrate.
+
+PATCH (1) adds a FWNODE_IOMMU type to the struct fwnode_handle type.
+          It is required to attach a fwnode identifier to platform
+          devices allocated/detected through IORT tables entries;
+          IOMMU devices have to have an identifier to look them up
+          eg IOMMU core layer carrying out id translation. This can be
+          done through a fwnode_handle (ie IOMMU platform devices created
+          out of IORT tables are not ACPI devices hence they can't be
+          allocated as such, otherwise they would have a fwnode_handle of
+          type FWNODE_ACPI).
+
+PATCH (2) Add kernel infrastructure to make the struct iommu_fwspec
+          handling arch agnostic and generic.
+
+PATCH (3) makes use of the ACPI early probing API to add a linker script
+          section for probing devices via IORT ACPI kernel code.
+
+PATCH (4) provides IORT support for registering IOMMU IORT node through
+          their fwnode handle.
+
+PATCH (5) extends iommu_fwspec so that it can be used on ACPI based
+          system by creating a generic IOMMU fwspec kernel layer.
+
+PATCH (6) implements the of_dma_configure() API in ACPI world -
+          acpi_dma_configure() - and patches PCI and ACPI core code to
+          start making use of it.
+
+PATCH (7) creates the kernel infrastructure required to create ARM SMMU
+          platform devices for IORT nodes.
+
+PATCH (8) refactors the ARM SMMU v3 driver so that the init functions are
+          split in a way that groups together code that probes through DT
+          and code that carries out HW registers FW agnostic probing, in
+          preparation for adding the ACPI probing path.
+
+PATCH (9) Building on patch (7), it adds ARM SMMU v3 IORT IOMMU
+          operations to create and probe ARM SMMU v3 components.
+
+PATCH (10) refactors the ARM SMMU v1/v2 driver so that the init functions
+           are split in a way that groups together code that probes
+           through DT and code that carries out HW registers FW agnostic
+           probing, in preparation for adding the ACPI probing path.
+
+PATCH (11) Building on patch (7), it adds ARM SMMU v1/v2 IORT IOMMU
+           operations to create and probe ARM SMMU v1/v2 components.
+
+PATCH (12) Extend the IORT iort_node_map_rid() to work on a type mask
+           instead of a single type so that the translation API can
+           be used on a range of components.
+
+PATCH (13) Add IORT API to carry out id mappings for components that do
+           do not have an input identifier/RIDs (ie named components).
+
+PATCH (14) provides IORT infrastructure to carry out IOMMU configuration
+           for devices and hook it up to the previously introduced ACPI
+           DMA configure API.
+
+This patchset is built on top and depends on these two patch series:
+
+[1] R.Murphy "Generic DT bindings for PCI IOMMUS and ARM SMMU" v6
+    https://marc.info/?l=devicetree&m=147317605521320&w=2
+
+[2] T.Nowicki "Introduce ACPI world to ITS irqchip" v10
+    https://marc.info/?l=linux-acpi&m=147315429713512&w=2
+
+and is provided for review/testing purposes here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v5
+
+Tested on Juno and FVP models for ARM SMMU v1 and v3 probing path.
+
+Lorenzo Pieralisi (14):
+  drivers: iommu: add FWNODE_IOMMU fwnode type
+  drivers: iommu: implement arch_{set/get}_iommu_fwspec API
+  drivers: acpi: iort: introduce linker section for IORT entries probing
+  drivers: acpi: iort: add support for IOMMU fwnode registration
+  drivers: iommu: make iommu_fwspec OF agnostic
+  drivers: acpi: implement acpi_dma_configure
+  drivers: acpi: iort: add support for ARM SMMU platform devices
+    creation
+  drivers: iommu: arm-smmu-v3: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu-v3: add IORT configuration
+  drivers: iommu: arm-smmu: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu: add IORT configuration
+  drivers: acpi: iort: replace rid map type with type mask
+  drivers: acpi: iort: add single mapping function
+  drivers: acpi: iort: introduce iort_iommu_configure
+
+ arch/arm/Kconfig                      |   1 +
+ arch/arm/include/asm/iommu-fwspec.h   |  30 ++
+ arch/arm64/Kconfig                    |   1 +
+ arch/arm64/include/asm/iommu-fwspec.h |  30 ++
+ drivers/acpi/arm64/iort.c             | 525 +++++++++++++++++++++++++++++++++-
+ drivers/acpi/glue.c                   |   4 +-
+ drivers/acpi/scan.c                   |  29 ++
+ drivers/iommu/Kconfig                 |   7 +
+ drivers/iommu/Makefile                |   1 +
+ drivers/iommu/arm-smmu-v3.c           | 141 +++++++--
+ drivers/iommu/arm-smmu.c              | 209 +++++++++++---
+ drivers/iommu/iommu-fwspec.c          | 126 ++++++++
+ drivers/iommu/of_iommu.c              |  93 ------
+ drivers/pci/probe.c                   |   3 +-
+ include/acpi/acpi_bus.h               |   2 +
+ include/asm-generic/vmlinux.lds.h     |   1 +
+ include/linux/acpi.h                  |   5 +
+ include/linux/acpi_iort.h             |  21 ++
+ include/linux/fwnode.h                |   1 +
+ include/linux/iommu-fwspec.h          |  70 +++++
+ include/linux/iommu.h                 |  25 ++
+ include/linux/of_iommu.h              |  28 +-
+ 22 files changed, 1187 insertions(+), 166 deletions(-)
+ create mode 100644 arch/arm/include/asm/iommu-fwspec.h
+ create mode 100644 arch/arm64/include/asm/iommu-fwspec.h
+ create mode 100644 drivers/iommu/iommu-fwspec.c
+ create mode 100644 include/linux/iommu-fwspec.h
+
+-- 
+2.10.0
