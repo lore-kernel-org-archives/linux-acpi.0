@@ -1,159 +1,400 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: DAX can not work on virtual nvdimm device
-Date: Fri, 9 Sep 2016 11:19:25 +0200
-Message-ID: <20160909091925.GF22777@quack2.suse.cz>
-References: <CAPcyv4hVgi6Hw8Beg=Nt78+U0QNJN9mBGWEp3V6bg86NaM3Q6Q@mail.gmail.com>
- <20160819183047.GA7216@linux.intel.com>
- <600ac51c-0f61-6e53-9bfa-669c85494d1f@linux.intel.com>
- <20160829193014.GB16738@linux.intel.com>
- <61d5c470-a8bf-86d5-d1fe-b4b577a85967@linux.intel.com>
- <CAPcyv4hrFSxNcmmVLVZT4fK3+hspPCDKW0rVBj1=3GkJRgZ29Q@mail.gmail.com>
- <25098f37-53f7-6d5d-0b1a-8469bab51a9f@linux.intel.com>
- <20160902025738.GA26108@linux.intel.com>
- <20160906150620.GJ28922@quack2.suse.cz>
- <20160908204708.GA15167@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [UPDATE PATCH V10 1/8] ACPI: I/O Remapping Table (IORT) initial
+ support
+Date: Fri, 9 Sep 2016 10:20:12 +0100
+Message-ID: <20160909092012.GC19669@red-moon>
+References: <1473152938-17388-2-git-send-email-tn@semihalf.com>
+ <1473249412-20226-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:36612 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752900AbcIIJT6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Sep 2016 05:19:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20160908204708.GA15167-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Yumei Huang <yuhuang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, KVM <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org" <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1473249412-20226-1-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, rjw@rjwysocki.net
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On Thu 08-09-16 14:47:08, Ross Zwisler wrote:
-> On Tue, Sep 06, 2016 at 05:06:20PM +0200, Jan Kara wrote:
-> > On Thu 01-09-16 20:57:38, Ross Zwisler wrote:
-> > > On Wed, Aug 31, 2016 at 04:44:47PM +0800, Xiao Guangrong wrote:
-> > > > On 08/31/2016 01:09 AM, Dan Williams wrote:
-> > > > > 
-> > > > > Can you post your exact reproduction steps?  This test is not failing for me.
-> > > > > 
-> > > > 
-> > > > Sure.
-> > > > 
-> > > > 1. make the guest kernel based on your tree, the top commit is
-> > > >    10d7902fa0e82b (dax: unmap/truncate on device shutdown) and
-> > > >    the config file can be found in this thread.
-> > > > 
-> > > > 2. add guest kernel command line: memmap=6G!10G
-> > > > 
-> > > > 3: start the guest:
-> > > >    x86_64-softmmu/qemu-system-x86_64 -machine pc,nvdimm --enable-kvm \
-> > > >    -smp 16 -m 32G,maxmem=100G,slots=100 /other/VMs/centos6.img -monitor stdio
-> > > > 
-> > > > 4: in guest:
-> > > >    mkfs.ext4 /dev/pmem0
-> > > >    mount -o dax /dev/pmem0  /mnt/pmem/
-> > > >    echo > /mnt/pmem/xxx
-> > > >    ./mmap /mnt/pmem/xxx
-> > > >    ./read /mnt/pmem/xxx
-> > > > 
-> > > >   The source code of mmap and read has been attached in this mail.
-> > > > 
-> > > >   Hopefully, you can detect the error triggered by read test.
-> > > > 
-> > > > Thanks!
-> > > 
-> > > Okay, I think I've isolated this issue.  Xiao's VM was an old CentOS 6 system,
-> > > and for some reason ext4+DAX with the old tools found in that VM fails.  I was
-> > > able to reproduce this failure with a freshly installed CentOS 6.8 VM.
-> > > 
-> > > You can see the failure with his tests, or perhaps more easily with this
-> > > series of commands:
-> > > 
-> > >   # mkfs.ext4 /dev/pmem0
-> > >   # mount -o dax /dev/pmem0  /mnt/pmem/
-> > >   # touch /mnt/pmem/x
-> > >   # md5sum /mnt/pmem/x
-> > >   md5sum: /mnt/pmem/x: Bad address
-> > > 
-> > > This sequence of commands works fine in the old CentOS 6 system if you use XFS
-> > > instead of ext4, and it works fine with both ext4 and XFS in CentOS 7 and
-> > > with recent versions of Fedora.
-> > > 
-> > > I've added the ext4 folks to this mail in case they care, but my guess is that
-> > > the tools in CentOS 6 are so old that it's not worth worrying about.  For
-> > > reference, the kernel in CentOS 6 is based on 2.6.32.  :)  DAX was introduced
-> > > in v4.0.
-> > 
-> > Hum, can you post 'dumpe2fs -h /dev/pmem0' output from that system when the
-> > md5sum fails? Because the only idea I have is that mkfs.ext4 in CentOS 6
-> > creates the filesystem with a different set of features than more recent
-> > e2fsprogs and so we hit some untested path...
+Hi Rafael,
+
+On Wed, Sep 07, 2016 at 01:56:52PM +0200, Tomasz Nowicki wrote:
+> IORT shows representation of IO topology for ARM based systems.
+> It describes how various components are connected together on
+> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
 > 
-> Sure, here's the output:
+> Initial support allows to detect IORT table presence and save its
+> root pointer obtained through acpi_get_table(). The pointer validity
+> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+> is not set while using IORT nodes we would dereference unmapped pointers.
 > 
-> # dumpe2fs -h /dev/pmem0 
-> dumpe2fs 1.41.12 (17-May-2010)
-> Filesystem volume name:   <none>
-> Last mounted on:          /mnt/pmem
-> Filesystem UUID:          4cd8a836-cc54-4c59-ae0a-4a26bab0f8bc
-> Filesystem magic number:  0xEF53
-> Filesystem revision #:    1 (dynamic)
-> Filesystem features:      has_journal ext_attr resize_inode dir_index filetype
-> needs_recovery extent flex_bg sparse_super large_file huge_file uninit_bg
-> dir_nlink extra_isize
-> Filesystem flags:         signed_directory_hash 
-> Default mount options:    (none)
-> Filesystem state:         clean
-> Errors behavior:          Continue
-> Filesystem OS type:       Linux
-> Inode count:              1048576
-> Block count:              4194304
-> Reserved block count:     209715
-> Free blocks:              4084463
-> Free inodes:              1048565
-> First block:              0
-> Block size:               4096
-> Fragment size:            4096
-> Reserved GDT blocks:      1023
-> Blocks per group:         32768
-> Fragments per group:      32768
-> Inodes per group:         8192
-> Inode blocks per group:   512
-> RAID stride:              1
-> Flex block group size:    16
-> Filesystem created:       Thu Sep  8 14:45:31 2016
-> Last mount time:          Thu Sep  8 14:45:39 2016
-> Last write time:          Thu Sep  8 14:45:39 2016
-> Mount count:              1
-> Maximum mount count:      21
-> Last checked:             Thu Sep  8 14:45:31 2016
-> Check interval:           15552000 (6 months)
-> Next check after:         Tue Mar  7 13:45:31 2017
-> Lifetime writes:          388 MB
-> Reserved blocks uid:      0 (user root)
-> Reserved blocks gid:      0 (group root)
-> First inode:              11
-> Inode size:	          256
-> Required extra isize:     28
-> Desired extra isize:      28
-> Journal inode:            8
-> Default directory hash:   half_md4
-> Directory Hash Seed:      19cad581-c46a-4212-bfa0-d527ff55db49
-> Journal backup:           inode blocks
-> Journal features:         (none)
-> Journal size:             128M
-> Journal length:           32768
-> Journal sequence:         0x00000002
-> Journal start:            1
+> For the aforementioned reason call iort_table_detect() from acpi_init()
+> which guarantees acpi_gbl_permanent_mmap to be set at that point.
+> 
+> Add generic helpers which are helpful for scanning and retrieving
+> information from IORT table content. List of the most important helpers:
+> - iort_find_dev_node() finds IORT node for a given device
+> - iort_node_map_rid() maps device RID and returns IORT node which provides
+>   final translation
+> 
+> IORT support is placed under drivers/acpi/arm64/ new directory due to its
+> ARM64 specific nature. The code there is considered only for ARM64.
+> The long term plan is to keep all ARM64 specific tables support
+> in this place e.g. GTDT table.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
 
-Hum, nothing unusual in there. I've tried reproducing on a local SLE11 SP3
-machine (which is from about the same time) but everything works as
-expected there. Shrug...
+Apart from the minor commit logs oversights we consider these two
+patches ready to go, please let us know if there is something you want
+changed since we are at risk of missing yet another merge window.
 
-								Honza
--- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+It is ARM64 specific code, we created and moved the code to its
+ARM64 specific directory and we are happy to maintain it as such,
+we need your ACK to get this done so if there is something you
+want changed please let us know otherwise I would ask your ACK
+on these two patches to give Marc a go-ahead for -next and
+hopefully 4.9.
+
+Thanks !
+Lorenzo
+
+>  drivers/acpi/Kconfig        |   4 +
+>  drivers/acpi/Makefile       |   2 +
+>  drivers/acpi/arm64/Kconfig  |   6 ++
+>  drivers/acpi/arm64/Makefile |   1 +
+>  drivers/acpi/arm64/iort.c   | 213 ++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/bus.c          |   2 +
+>  include/linux/acpi_iort.h   |  30 +++++++
+>  7 files changed, 258 insertions(+)
+>  create mode 100644 drivers/acpi/arm64/Kconfig
+>  create mode 100644 drivers/acpi/arm64/Makefile
+>  create mode 100644 drivers/acpi/arm64/iort.c
+>  create mode 100644 include/linux/acpi_iort.h
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 445ce28..d5c0614 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -521,4 +521,8 @@ config ACPI_CONFIGFS
+>  	  userspace. The configurable ACPI groups will be visible under
+>  	  /config/acpi, assuming configfs is mounted under /config.
+>  
+> +if ARM64
+> +source "drivers/acpi/arm64/Kconfig"
+> +endif
+> +
+>  endif	# ACPI
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 5ae9d85..e5ada78 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -105,3 +105,5 @@ obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
+>  
+>  video-objs			+= acpi_video.o video_detect.o
+>  obj-y				+= dptf/
+> +
+> +obj-$(CONFIG_ARM64)		+= arm64/
+> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+> new file mode 100644
+> index 0000000..4616da4
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/Kconfig
+> @@ -0,0 +1,6 @@
+> +#
+> +# ACPI Configuration for ARM64
+> +#
+> +
+> +config ACPI_IORT
+> +	bool
+> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+> new file mode 100644
+> index 0000000..72331f2
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_ACPI_IORT) 	+= iort.o
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> new file mode 100644
+> index 0000000..e28e256
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -0,0 +1,213 @@
+> +/*
+> + * Copyright (C) 2016, Semihalf
+> + *	Author: Tomasz Nowicki <tn@semihalf.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * This file implements early detection/parsing of I/O mapping
+> + * reported to OS through firmware via I/O Remapping Table (IORT)
+> + * IORT document number: ARM DEN 0049A
+> + */
+> +
+> +#define pr_fmt(fmt)	"ACPI: IORT: " fmt
+> +
+> +#include <linux/acpi_iort.h>
+> +#include <linux/kernel.h>
+> +#include <linux/pci.h>
+> +
+> +typedef acpi_status (*iort_find_node_callback)
+> +	(struct acpi_iort_node *node, void *context);
+> +
+> +/* Root pointer to the mapped IORT table */
+> +static struct acpi_table_header *iort_table;
+> +
+> +static LIST_HEAD(iort_msi_chip_list);
+> +static DEFINE_SPINLOCK(iort_msi_chip_lock);
+> +
+> +static struct acpi_iort_node *iort_scan_node(enum acpi_iort_node_type type,
+> +					     iort_find_node_callback callback,
+> +					     void *context)
+> +{
+> +	struct acpi_iort_node *iort_node, *iort_end;
+> +	struct acpi_table_iort *iort;
+> +	int i;
+> +
+> +	if (!iort_table)
+> +		return NULL;
+> +
+> +	/* Get the first IORT node */
+> +	iort = (struct acpi_table_iort *)iort_table;
+> +	iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort,
+> +				 iort->node_offset);
+> +	iort_end = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+> +				iort_table->length);
+> +
+> +	for (i = 0; i < iort->node_count; i++) {
+> +		if (WARN_TAINT(iort_node >= iort_end, TAINT_FIRMWARE_WORKAROUND,
+> +			       "IORT node pointer overflows, bad table!\n"))
+> +			return NULL;
+> +
+> +		if (iort_node->type == type &&
+> +		    ACPI_SUCCESS(callback(iort_node, context)))
+> +				return iort_node;
+> +
+> +		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+> +					 iort_node->length);
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+> +					    void *context)
+> +{
+> +	struct device *dev = context;
+> +	acpi_status status = AE_NOT_FOUND;
+> +
+> +	if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
+> +		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+> +		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
+> +		struct acpi_iort_named_component *ncomp;
+> +
+> +		if (!adev)
+> +			goto out;
+> +
+> +		status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buf);
+> +		if (ACPI_FAILURE(status)) {
+> +			dev_warn(dev, "Can't get device full path name\n");
+> +			goto out;
+> +		}
+> +
+> +		ncomp = (struct acpi_iort_named_component *)node->node_data;
+> +		if (!strcmp(ncomp->device_name, buf.pointer))
+> +			status = AE_OK;
+> +
+> +		acpi_os_free(buf.pointer);
+> +	} else if (node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> +		struct acpi_iort_root_complex *pci_rc;
+> +		struct pci_bus *bus;
+> +
+> +		bus = to_pci_bus(dev);
+> +		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
+> +
+> +		/*
+> +		 * It is assumed that PCI segment numbers maps one-to-one
+> +		 * with root complexes. Each segment number can represent only
+> +		 * one root complex.
+> +		 */
+> +		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
+> +			status = AE_OK;
+> +	}
+> +out:
+> +	return status;
+> +}
+> +
+> +static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+> +		       u32 *rid_out)
+> +{
+> +	/* Single mapping does not care for input id */
+> +	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+> +		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+> +		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> +			*rid_out = map->output_base;
+> +			return 0;
+> +		}
+> +
+> +		pr_warn(FW_BUG "[map %p] SINGLE MAPPING flag not allowed for node type %d, skipping ID map\n",
+> +			map, type);
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (rid_in < map->input_base ||
+> +	    (rid_in >= map->input_base + map->id_count))
+> +		return -ENXIO;
+> +
+> +	*rid_out = map->output_base + (rid_in - map->input_base);
+> +	return 0;
+> +}
+> +
+> +static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
+> +						u32 rid_in, u32 *rid_out,
+> +						u8 type)
+> +{
+> +	u32 rid = rid_in;
+> +
+> +	/* Parse the ID mapping tree to find specified node type */
+> +	while (node) {
+> +		struct acpi_iort_id_mapping *map;
+> +		int i;
+> +
+> +		if (node->type == type) {
+> +			if (rid_out)
+> +				*rid_out = rid;
+> +			return node;
+> +		}
+> +
+> +		if (!node->mapping_offset || !node->mapping_count)
+> +			goto fail_map;
+> +
+> +		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
+> +				   node->mapping_offset);
+> +
+> +		/* Firmware bug! */
+> +		if (!map->output_reference) {
+> +			pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
+> +			       node, node->type);
+> +			goto fail_map;
+> +		}
+> +
+> +		/* Do the RID translation */
+> +		for (i = 0; i < node->mapping_count; i++, map++) {
+> +			if (!iort_id_map(map, node->type, rid, &rid))
+> +				break;
+> +		}
+> +
+> +		if (i == node->mapping_count)
+> +			goto fail_map;
+> +
+> +		node = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+> +				    map->output_reference);
+> +	}
+> +
+> +fail_map:
+> +	/* Map input RID to output RID unchanged on mapping failure*/
+> +	if (rid_out)
+> +		*rid_out = rid_in;
+> +
+> +	return NULL;
+> +}
+> +
+> +static struct acpi_iort_node *iort_find_dev_node(struct device *dev)
+> +{
+> +	struct pci_bus *pbus;
+> +
+> +	if (!dev_is_pci(dev))
+> +		return iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +				      iort_match_node_callback, dev);
+> +
+> +	/* Find a PCI root bus */
+> +	pbus = to_pci_dev(dev)->bus;
+> +	while (!pci_is_root_bus(pbus))
+> +		pbus = pbus->parent;
+> +
+> +	return iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +			      iort_match_node_callback, &pbus->dev);
+> +}
+> +
+> +void __init acpi_iort_init(void)
+> +{
+> +	acpi_status status;
+> +
+> +	status = acpi_get_table(ACPI_SIG_IORT, 0, &iort_table);
+> +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> +		const char *msg = acpi_format_exception(status);
+> +		pr_err("Failed to get table, %s\n", msg);
+> +	}
+> +}
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 85b7d07..e56e643 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -36,6 +36,7 @@
+>  #ifdef CONFIG_X86
+>  #include <asm/mpspec.h>
+>  #endif
+> +#include <linux/acpi_iort.h>
+>  #include <linux/pci.h>
+>  #include <acpi/apei.h>
+>  #include <linux/dmi.h>
+> @@ -1186,6 +1187,7 @@ static int __init acpi_init(void)
+>  	}
+>  
+>  	pci_mmcfg_late_init();
+> +	acpi_iort_init();
+>  	acpi_scan_init();
+>  	acpi_ec_init();
+>  	acpi_debugfs_init();
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> new file mode 100644
+> index 0000000..fcacaf7
+> --- /dev/null
+> +++ b/include/linux/acpi_iort.h
+> @@ -0,0 +1,30 @@
+> +/*
+> + * Copyright (C) 2016, Semihalf
+> + *	Author: Tomasz Nowicki <tn@semihalf.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+> + * Place - Suite 330, Boston, MA 02111-1307 USA.
+> + */
+> +
+> +#ifndef __ACPI_IORT_H__
+> +#define __ACPI_IORT_H__
+> +
+> +#include <linux/acpi.h>
+> +
+> +#ifdef CONFIG_ACPI_IORT
+> +void acpi_iort_init(void);
+> +#else
+> +static inline void acpi_iort_init(void) { }
+> +#endif
+> +
+> +#endif /* __ACPI_IORT_H__ */
+> -- 
+> 1.9.1
+> 
