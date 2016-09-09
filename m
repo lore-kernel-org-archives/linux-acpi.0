@@ -1,134 +1,108 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 1/5] PCI/ACPI: Extend pci_mcfg_lookup() responsibilities
-Date: Fri,  9 Sep 2016 21:24:03 +0200
-Message-ID: <1473449047-10499-2-git-send-email-tn@semihalf.com>
+Subject: [PATCH V6 4/5] PCI: thunder: Enable ACPI PCI controller for ThunderX pass2.x silicon version
+Date: Fri,  9 Sep 2016 21:24:06 +0200
+Message-ID: <1473449047-10499-5-git-send-email-tn@semihalf.com>
 References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:36213 "EHLO
+        mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754755AbcIITY7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Sep 2016 15:24:59 -0400
+Received: by mail-lf0-f42.google.com with SMTP id g62so50748102lfe.3
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Sep 2016 12:24:58 -0700 (PDT)
 In-Reply-To: <1473449047-10499-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
 Cc: arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-In preparation for adding MCFG platform specific quirk handling move
-CFG resource calculation and ECAM ops assignment to pci_mcfg_lookup().
-It becomes the gate for further ops and CFG resource manipulation
-in arch-agnostic code (drivers/acpi/pci_mcfg.c).
+ThunderX PCIe controller to off-chip devices (so-called PEM) is not fully
+compliant with ECAM standard. It uses non-standard configuration space
+accessors (see pci_thunder_pem_ops) and custom configuration space granulation
+(see bus_shift = 24). In order to access configuration space and
+probe PEM as ACPI based PCI host controller we need to add MCFG quirk
+infrastructure. This involves:
+1. Export PEM pci_thunder_pem_ops structure so it is visible to MCFG quirk
+   code.
+2. New quirk entries for each PEM segment. Each contains platform IDs,
+   mentioned pci_thunder_pem_ops and CFG resources.
 
-No functionality changes in this patch.
+Quirk is considered for ThunderX silicon pass2.x only which is identified
+via MCFG revision 1.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- arch/arm64/kernel/pci.c  | 17 +++++------------
- drivers/acpi/pci_mcfg.c  | 28 +++++++++++++++++++++++++---
- include/linux/pci-acpi.h |  4 +++-
- 3 files changed, 33 insertions(+), 16 deletions(-)
+ drivers/acpi/pci_mcfg.c            | 27 +++++++++++++++++++++++++++
+ drivers/pci/host/pci-thunder-pem.c |  2 +-
+ include/linux/pci-ecam.h           |  4 ++++
+ 3 files changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index acf3872..fb439c7 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -125,24 +125,17 @@ pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
- 	u16 seg = root->segment;
- 	struct pci_config_window *cfg;
- 	struct resource cfgres;
--	unsigned int bsz;
-+	struct pci_ecam_ops *ecam_ops;
-+	int ret;
- 
--	/* Use address from _CBA if present, otherwise lookup MCFG */
--	if (!root->mcfg_addr)
--		root->mcfg_addr = pci_mcfg_lookup(seg, bus_res);
--
--	if (!root->mcfg_addr) {
-+	ret = pci_mcfg_lookup(root, &cfgres, &ecam_ops);
-+	if (ret) {
- 		dev_err(&root->device->dev, "%04x:%pR ECAM region not found\n",
- 			seg, bus_res);
- 		return NULL;
- 	}
- 
--	bsz = 1 << pci_generic_ecam_ops.bus_shift;
--	cfgres.start = root->mcfg_addr + bus_res->start * bsz;
--	cfgres.end = cfgres.start + resource_size(bus_res) * bsz - 1;
--	cfgres.flags = IORESOURCE_MEM;
--	cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res,
--			      &pci_generic_ecam_ops);
-+	cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res, ecam_ops);
- 	if (IS_ERR(cfg)) {
- 		dev_err(&root->device->dev, "%04x:%pR error %ld mapping ECAM\n",
- 			seg, bus_res, PTR_ERR(cfg));
 diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index b5b376e..ffcc651 100644
+index 2b8acc7..1f73d7b 100644
 --- a/drivers/acpi/pci_mcfg.c
 +++ b/drivers/acpi/pci_mcfg.c
-@@ -22,6 +22,7 @@
- #include <linux/kernel.h>
- #include <linux/pci.h>
- #include <linux/pci-acpi.h>
-+#include <linux/pci-ecam.h>
+@@ -51,6 +51,33 @@ struct mcfg_fixup {
  
- /* Structure to hold entries from the MCFG table */
- struct mcfg_entry {
-@@ -35,9 +36,18 @@ struct mcfg_entry {
- /* List to save MCFG entries */
- static LIST_HEAD(pci_mcfg_list);
+ static struct mcfg_fixup mcfg_quirks[] = {
+ /*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
++#ifdef CONFIG_PCI_HOST_THUNDER_PEM
++	/* SoC pass2.x */
++	{ "CAVIUM", "THUNDERX", 1, 4, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x88001f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 5, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x884057000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 6, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x88808f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 7, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x89001f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 8, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x894057000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 9, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x89808f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 14, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x98001f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 15, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x984057000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 16, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x98808f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 17, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x99001f000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 18, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x994057000000UL, 0x39 * SZ_16M) },
++	{ "CAVIUM", "THUNDERX", 1, 19, MCFG_BUS_ANY, &pci_thunder_pem_ops,
++	  DEFINE_RES_MEM(0x99808f000000UL, 0x39 * SZ_16M) },
++#endif
+ };
  
--phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
-+int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
-+		    struct pci_ecam_ops **ecam_ops)
- {
-+	struct pci_ecam_ops *ops = &pci_generic_ecam_ops;
-+	struct resource *bus_res = &root->secondary;
-+	u16 seg = root->segment;
- 	struct mcfg_entry *e;
-+	struct resource res;
-+
-+	/* Use address from _CBA if present, otherwise lookup MCFG */
-+	if (root->mcfg_addr)
-+		goto skip_lookup;
- 
- 	/*
- 	 * We expect exact match, unless MCFG entry end bus covers more than
-@@ -45,10 +55,22 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
- 	 */
- 	list_for_each_entry(e, &pci_mcfg_list, list) {
- 		if (e->segment == seg && e->bus_start == bus_res->start &&
--		    e->bus_end >= bus_res->end)
--			return e->addr;
-+		    e->bus_end >= bus_res->end) {
-+			root->mcfg_addr = e->addr;
-+		}
-+
- 	}
- 
-+	if (!root->mcfg_addr)
-+		return -ENXIO;
-+
-+skip_lookup:
-+	memset(&res, 0, sizeof(res));
-+	res.start = root->mcfg_addr + (bus_res->start << 20);
-+	res.end = res.start + (resource_size(bus_res) << 20) - 1;
-+	res.flags = IORESOURCE_MEM;
-+	*cfgres = res;
-+	*ecam_ops = ops;
+ static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+index b048761..d7c10cc 100644
+--- a/drivers/pci/host/pci-thunder-pem.c
++++ b/drivers/pci/host/pci-thunder-pem.c
+@@ -367,7 +367,7 @@ static int thunder_pem_init(struct pci_config_window *cfg)
  	return 0;
  }
  
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 7d63a66..7a4e83a 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -24,7 +24,9 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
- }
- extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+-static struct pci_ecam_ops pci_thunder_pem_ops = {
++struct pci_ecam_ops pci_thunder_pem_ops = {
+ 	.bus_shift	= 24,
+ 	.init		= thunder_pem_init,
+ 	.pci_ops	= {
+diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
+index 7adad20..65505ea 100644
+--- a/include/linux/pci-ecam.h
++++ b/include/linux/pci-ecam.h
+@@ -58,6 +58,10 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+ 			       int where);
+ /* default ECAM ops */
+ extern struct pci_ecam_ops pci_generic_ecam_ops;
++/* ECAM ops for known quirks */
++#ifdef CONFIG_PCI_HOST_THUNDER_PEM
++extern struct pci_ecam_ops pci_thunder_pem_ops;
++#endif
  
--extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
-+struct pci_ecam_ops;
-+extern int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
-+			   struct pci_ecam_ops **ecam_ops);
- 
- static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
- {
+ #ifdef CONFIG_PCI_HOST_GENERIC
+ /* for DT-based PCI controllers that support ECAM */
 -- 
 1.9.1
+
