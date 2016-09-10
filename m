@@ -1,89 +1,47 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 26/30] ACPI-processor: Fix jump targets in
+Subject: [PATCH 27/30] ACPI-processor: Delete an unnecessary initialisation in
  acpi_processor_reevaluate_tstate()
-Date: Sat, 10 Sep 2016 12:08:24 +0200
-Message-ID: <ead11eae-dfb3-61db-a425-1d4531861c44@users.sourceforge.net>
+Date: Sat, 10 Sep 2016 12:09:39 +0200
+Message-ID: <a6081414-e656-534c-6cf0-2e0cd8115810@users.sourceforge.net>
 References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.web.de ([212.227.17.11]:54647 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752481AbcIJKJt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Sep 2016 06:09:49 -0400
 In-Reply-To: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Sep 2016 21:40:40 +0200
+Date: Tue, 6 Sep 2016 21:42:34 +0200
 
-1. Adjust jump targets according to the current Linux coding
-   style convention.
-
-2. Delete a duplicate check then at the end.
-
-3. Do not use curly brackets at two source code places
-   where a single statement should be sufficient.
+The local variable "result" will be set to an appropriate value
+a bit later. Thus omit the explicit initialisation at the beginning.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/processor_throttling.c | 23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/acpi/processor_throttling.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 0b4e058..994f21c 100644
+index 994f21c..d22bcfc 100644
 --- a/drivers/acpi/processor_throttling.c
 +++ b/drivers/acpi/processor_throttling.c
-@@ -379,23 +379,19 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
+@@ -377,7 +377,7 @@ int acpi_processor_tstate_has_changed(struct acpi_processor *pr)
+ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
+ 					unsigned long action)
  {
- 	int result = 0;
+-	int result = 0;
++	int result;
  
--	if (action == CPU_DEAD) {
-+	if (action == CPU_DEAD)
+ 	if (action == CPU_DEAD)
  		/* When one CPU is offline, the T-state throttling
- 		 * will be invalidated.
- 		 */
--		pr->flags.throttling = 0;
--		return;
--	}
-+		goto disable_throttling;
- 	/* the following is to recheck whether the T-state is valid for
- 	 * the online CPU
- 	 */
--	if (!pr->throttling.state_count) {
-+	if (!pr->throttling.state_count)
- 		/* If the number of T-state is invalid, it is
- 		 * invalidated.
- 		 */
--		pr->flags.throttling = 0;
--		return;
--	}
-+		goto disable_throttling;
- 	pr->flags.throttling = 1;
- 
- 	/* Disable throttling (if enabled).  We'll let subsequent
-@@ -405,17 +401,16 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
- 
- 	result = acpi_processor_get_throttling(pr);
- 	if (result)
--		goto end;
-+		goto disable_throttling;
- 
- 	if (pr->throttling.state) {
- 		result = acpi_processor_set_throttling(pr, 0, false);
- 		if (result)
--			goto end;
-+			goto disable_throttling;
- 	}
--
--end:
--	if (result)
--		pr->flags.throttling = 0;
-+	return;
-+ disable_throttling:
-+	pr->flags.throttling = 0;
- }
- /*
-  * _PTC - Processor Throttling Control (and status) register location
 -- 
 2.10.0
+
