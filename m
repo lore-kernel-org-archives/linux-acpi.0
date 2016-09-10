@@ -1,67 +1,47 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v3 3/8] x86, cpu: provide a function topology_num_packages
- to enumerate #packages
-Date: Sat, 10 Sep 2016 15:28:53 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1609101513410.2804@nanos>
-References: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1473373615-51427-4-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: 584c5c422f6c ("x86/ioapic: Support hot-removal of IOAPICs
+ present during boot")
+Date: Sat, 10 Sep 2016 16:30:31 +0200
+Message-ID: <20160910143031.5s4psayo4wqrmpt2@pd.tnic>
+References: <20160910112744.4a6inn5bnjxsseak@pd.tnic>
+ <1473513090-30218-1-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:51180 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753012AbcIJNbZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Sep 2016 09:31:25 -0400
-In-Reply-To: <1473373615-51427-4-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from mail.skyhub.de ([78.46.96.112]:33563 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753252AbcIJOhh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Sep 2016 10:37:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1473513090-30218-1-git-send-email-rui.y.wang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: bhelgaas@google.com, torvalds@linux-foundation.org, peterz@infradead.org, tglx@linutronix.de, helgaas@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, rjw@rjwysocki.net, tony.luck@intel.com, mingo@kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-B1;2802;0cOn Thu, 8 Sep 2016, Srinivas Pandruvada wrote:
+On Sat, Sep 10, 2016 at 09:11:30PM +0800, Rui Wang wrote:
+> Thanks for the analysis. Looks like acpi_gbl_root_node == 0. It is
 
-> From: Tim Chen <tim.c.chen@linux.intel.com>
+Is ACPI_HANDLE(root_bus->bridge) == ACPI_ROOT_OBJECT?
 
-$subject: x86, cpu: provide a function topology_num_packages  to enumerate #packages
+Because this is what the code does but I can't see it from the code that
+the handle is of type ACPI_ROOT_OBJECT...
 
-- we switched to the prefix scheme 'x86/subsys'. Please use this.
+> initialized earlier than where we call acpi_ioapic_add().
+> start_kernel()
+> 	->acpi_early_init()
+> 		->acpi_initialize_subsystem()
+> 			 ->acpi_ns_root_initialize()
+> 				-> acpi_gbl_root_node = ...
+> 
+> 
+> But acpi_gbl_root_node can be 0 if acpi_disabled == 1.
+> Do you somehow have acpi turned off (!CONFIG_ACPI or booting with acpi=off)?
 
-- this is not related to x86/cpu. x86/topology is the proper prefix.
+Nope.
 
-- Sentence after ':' starts with an uppercase letter.
+-- 
+Regards/Gruss,
+    Boris.
 
-- please make the subject line short and descriptive. 
-
-  x86/topology: Provide topology_num_packages()
-
-  is completely sufficient, because it's entirely clear that it is a
-  function and the function name is self explaining.
-
-> We compute the the number of active packages during boot and
-> topology update.
-
-We? We do not do anything..... and how is that information useful for the
-reader?
-
-> Provide a function to export this info for functions that need this
-> topology info.
-
-Well, it's obvious that a new function is going to be used by something
-which needs it.
-
-In changelogs/comments there is only one thing worse than superflous
-informatioin: wrong information.
-
-If you have nothing to say, then omit it instead of forcing the reader to
-parse incoherent blurbs for nothing.
-
->  int topology_update_package_map(unsigned int apicid, unsigned int cpu);
-> +extern int topology_num_packages(void);
->  extern int topology_phys_to_logical_pkg(unsigned int pkg);
->  #else
->  #define topology_max_packages()			(1)
-
-stub function for the !SMP case is missing....
-
-Thanks,
-
-	tglx
+ECO tip #101: Trim your mails when you reply.
