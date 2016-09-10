@@ -1,40 +1,75 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH] x86/ioapic: Ignore root bridges without a companion ACPI device
-Date: Sat, 10 Sep 2016 23:40:45 +0800
-Message-ID: <1473522046-31329-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: bhelgaas@google.com, tglx@linutronix.de, rjw@rjwysocki.net, mingo@kernel.org, bp@alien8.de
-Cc: torvalds@linux-foundation.org, peterz@infradead.org, helgaas@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, tony.luck@intel.com, x86@kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v3 4/8] sched, x86: use arch_update_cpu_topology to
+ indicate x86 need sched domain rebuild
+Date: Sat, 10 Sep 2016 18:20:53 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1609101532450.2804@nanos>
+References: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1473373615-51427-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from Galois.linutronix.de ([146.0.238.70]:51312 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754821AbcIJQXY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Sep 2016 12:23:24 -0400
+In-Reply-To: <1473373615-51427-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com
 
-Some PCI root bridges don't have a corresponding ACPI device.
-This can be the case on some old platforms. Don't call acpi_ioapic_add()
-on these bridges because they can't support ioapic hotplug.
+On Thu, 8 Sep 2016, Srinivas Pandruvada wrote:
 
-v2: Per Boris's review, removed the unnecessary local var; refined comment
+How is this related to sched? And please stop writing lengthy sentences in
+the subject line.
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
-Reviewed-by: Borislav Petkov <bp@alien8.de>
----
- drivers/pci/setup-bus.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+> From: Tim Chen <tim.c.chen@linux.intel.com>
+> 
+> Provides x86 with arch_update_cpu_topology function. This function
+> allows us to indicate that a condition is detected that the sched
+> domain of x86 needs a complete rebuild.
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index ec538d3..8b4e231 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1855,7 +1855,10 @@ void __init pci_assign_unassigned_resources(void)
- 
- 	list_for_each_entry(root_bus, &pci_root_buses, node) {
- 		pci_assign_unassigned_root_bus_resources(root_bus);
--		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
-+
-+		/* make sure the root bridge has a companion ACPI device */
-+		if (ACPI_HANDLE(root_bus->bridge))
-+			acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
- 	}
- }
- 
--- 
-1.8.3.1
+scheduler domains are not x86 specific .... 
+
+> This is done by setting the x86_topology_update flag.
+
+So without reading the patch I expect that the function sets the
+x86_topology_update flag. Crap.
+
+What you really want to say is:
+
+  The scheduler calls arch_update_cpu_topology() to check whether the
+  scheduler domains have to be rebuilt.
+
+  So far x86 has no requirement for this, but the upcoming IMTI support
+  makes this necessary.
+
+  Request the rebuild when the x86 internal update flag is set.
+
+Or something along these lines. Changelog is a important part of a patch,
+really..
+
+> +/* Flag to indicate if a complete sched domain rebuild is required */
+> +bool x86_topology_update;
+> +
+> +int arch_update_cpu_topology(void)
+> +{
+> +	if (x86_topology_update) {
+> +		x86_topology_update = false;
+> +		return 1;
+> +	} else
+> +		return 0;
+
+That lacks braces around the else path, but why aren't you just doing the
+obvious:
+
+	if (!x86_topology_update)
+		return false;
+	
+	x86_topology_update = false;
+	return true;
+
+That would be too simple to read, right?;
+
+Thanks,
+
+	tglx
