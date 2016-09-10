@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 09/30] ACPI-processor: Improve a size determination in
- acpi_processor_get_psd()
-Date: Sat, 10 Sep 2016 11:50:13 +0200
-Message-ID: <e40acdeb-e2ba-0812-c1e0-f4f9175d819d@users.sourceforge.net>
+Subject: [PATCH 10/30] ACPI-processor: Rename jump labels in
+ acpi_processor_get_performance_control()
+Date: Sat, 10 Sep 2016 11:51:54 +0200
+Message-ID: <519ba472-04d6-e82a-4572-d911d56909bb@users.sourceforge.net>
 References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,29 +15,52 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia 
 List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Sep 2016 18:48:37 +0200
+Date: Tue, 6 Sep 2016 18:50:48 +0200
 
-Replace the specification of a data structure by pointer dereferences
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Adjust jump labels according to the current Linux coding style convention.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/processor_perflib.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_perflib.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index 3f94279..b7e2f51 100644
+index b7e2f51..3a48c3a 100644
 --- a/drivers/acpi/processor_perflib.c
 +++ b/drivers/acpi/processor_perflib.c
-@@ -556,7 +556,7 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
+@@ -240,7 +240,7 @@ static int acpi_processor_get_performance_control(struct acpi_processor *pr)
+ 	    || (pct->package.count != 2)) {
+ 		printk(KERN_ERR PREFIX "Invalid _PCT data\n");
+ 		result = -EFAULT;
+-		goto end;
++		goto free_buffer;
+ 	}
  
- 	pdomain = &(pr->performance->domain_info);
+ 	/*
+@@ -254,7 +254,7 @@ static int acpi_processor_get_performance_control(struct acpi_processor *pr)
+ 	    || (obj.buffer.pointer == NULL)) {
+ 		printk(KERN_ERR PREFIX "Invalid _PCT data (control_register)\n");
+ 		result = -EFAULT;
+-		goto end;
++		goto free_buffer;
+ 	}
+ 	memcpy(&pr->performance->control_register, obj.buffer.pointer,
+ 	       sizeof(struct acpi_pct_register));
+@@ -270,13 +270,12 @@ static int acpi_processor_get_performance_control(struct acpi_processor *pr)
+ 	    || (obj.buffer.pointer == NULL)) {
+ 		printk(KERN_ERR PREFIX "Invalid _PCT data (status_register)\n");
+ 		result = -EFAULT;
+-		goto end;
++		goto free_buffer;
+ 	}
  
--	state.length = sizeof(struct acpi_psd_package);
-+	state.length = sizeof(*pdomain);
- 	state.pointer = pdomain;
+ 	memcpy(&pr->performance->status_register, obj.buffer.pointer,
+ 	       sizeof(struct acpi_pct_register));
+-
+-      end:
++ free_buffer:
+ 	kfree(buffer.pointer);
  
- 	status = acpi_extract_package(&(psd->package.elements[0]),
+ 	return result;
 -- 
 2.10.0
