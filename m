@@ -1,85 +1,53 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v3 8/8] cpufreq: intel_pstate: Use CPPC to get max
- performance
-Date: Sat, 10 Sep 2016 18:22:55 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1609101654160.2804@nanos>
-References: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1473373615-51427-9-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] x86/ioapic: Ignore root bridges without a companion ACPI
+ device
+Date: Sat, 10 Sep 2016 19:27:24 +0200
+Message-ID: <20160910172724.fayvcuapvadjbpsd@pd.tnic>
+References: <1473522046-31329-1-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1473373615-51427-9-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1473522046-31329-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: bhelgaas@google.com, tglx@linutronix.de, rjw@rjwysocki.net, mingo@kernel.org, torvalds@linux-foundation.org, peterz@infradead.org, helgaas@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, tony.luck@intel.com, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 8 Sep 2016, Srinivas Pandruvada wrote:
-> +
-> +/* Call set_sched_itmt from a work function to be able to use hotplug locks */
-
-And why can't the function below not do that? Is the reader required to
-figure that out himslf?
-
-> +static void intel_pstste_sched_itmt_work_fn(struct work_struct *work)
-> +{
-> +	set_sched_itmt(true);
-> +}
-> +
-> +static DECLARE_WORK(sched_itmt_work, intel_pstste_sched_itmt_work_fn);
+On Sat, Sep 10, 2016 at 11:40:45PM +0800, Rui Wang wrote:
+> Some PCI root bridges don't have a corresponding ACPI device.
+> This can be the case on some old platforms. Don't call acpi_ioapic_add()
+> on these bridges because they can't support ioapic hotplug.
+> 
+> v2: Per Boris's review, removed the unnecessary local var; refined comment
+> 
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> Reviewed-by: Borislav Petkov <bp@alien8.de>
+>
+> ---
+>  drivers/pci/setup-bus.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index ec538d3..8b4e231 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -1855,7 +1855,10 @@ void __init pci_assign_unassigned_resources(void)
 >  
->  static bool intel_pstate_get_ppc_enable_status(void)
->  {
-> @@ -377,14 +391,63 @@ static void intel_pstate_init_acpi_perf_limits(struct cpufreq_policy *policy)
->  	int ret;
->  	int i;
->  
-> -	if (hwp_active)
-> +	cpu = all_cpu_data[policy->cpu];
+>  	list_for_each_entry(root_bus, &pci_root_buses, node) {
+>  		pci_assign_unassigned_root_bus_resources(root_bus);
+> -		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
 > +
-> +	if (hwp_active) {
+> +		/* make sure the root bridge has a companion ACPI device */
+> +		if (ACPI_HANDLE(root_bus->bridge))
+> +			acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
 
-Please split this out into a seperate function.
+Reported-and-tested-by: Borislav Petkov <bp@suse.de>
 
-> +		struct cppc_perf_caps *perf_caps;
-> +
-> +		cpu->cppc_data = kzalloc(sizeof(struct cppc_cpudata),
-> +					 GFP_KERNEL);
-> +		if (!cpu->cppc_data)
-> +			return;
-> +
-> +		perf_caps = &cpu->cppc_data->perf_caps;
-> +		ret = cppc_get_perf_caps(policy->cpu, perf_caps);
-> +		if (ret) {
-> +			kfree(cpu->cppc_data);
-> +			return;
-> +		}
-> +
-> +		cpu->valid_cppc_table = true;
-> +		pr_debug("cpu:%d H:0x%x N:0x%x L:0x%x\n", policy->cpu,
-> +			 perf_caps->highest_perf, perf_caps->nominal_perf,
-> +			 perf_caps->lowest_perf);
-> +
-> +		cpumask_set_cpu(policy->cpu, &cppc_rd_cpu_mask);
-> +		if (cpumask_subset(topology_core_cpumask(policy->cpu),
-> +				   &cppc_rd_cpu_mask)) {
-> +			int cpu_index;
-> +			int max_prio;
-> +			bool itmt_support = false;
-> +
-> +			cpu = all_cpu_data[0];
-> +			max_prio = cpu->cppc_data->perf_caps.highest_perf;
-> +			for_each_cpu(cpu_index, &cppc_rd_cpu_mask) {
-> +				cpu = all_cpu_data[cpu_index];
-> +				perf_caps = &cpu->cppc_data->perf_caps;
-> +				if (max_prio != perf_caps->highest_perf) {
-> +					itmt_support = true;
-> +					break;
-> +				}
-> +			}
+Thanks Rui!
 
-20 lines of magic logic w/o a userful comment. Darn, you yourself will have
-forgotten the magic within 3 month ....
+-- 
+Regards/Gruss,
+    Boris.
 
-Thanks,
-
-	tglx
+ECO tip #101: Trim your mails when you reply.
