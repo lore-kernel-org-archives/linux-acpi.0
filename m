@@ -1,74 +1,74 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: Re: 584c5c422f6c ("x86/ioapic: Support hot-removal of IOAPICs present during boot")
-Date: Sat, 10 Sep 2016 23:03:29 +0800
-Message-ID: <1473519809-31107-1-git-send-email-rui.y.wang@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: 584c5c422f6c ("x86/ioapic: Support hot-removal of IOAPICs
+ present during boot")
+Date: Sat, 10 Sep 2016 17:23:02 +0200
+Message-ID: <20160910152301.exha54snrq5cydkb@pd.tnic>
 References: <20160910143031.5s4psayo4wqrmpt2@pd.tnic>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:22017 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754091AbcIJPSh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Sep 2016 11:18:37 -0400
-In-Reply-To: <20160910143031.5s4psayo4wqrmpt2@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+ <1473519809-31107-1-git-send-email-rui.y.wang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1473519809-31107-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: bhelgaas@google.com, torvalds@linux-foundation.org, peterz@infradead.org, tglx@linutronix.de, helgaas@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, rjw@rjwysocki.net, tony.luck@intel.com, mingo@kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de
-Cc: bhelgaas@google.com, torvalds@linux-foundation.org, peterz@infradead.org, tglx@linutronix.de, helgaas@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, rjw@rjwysocki.net, tony.luck@intel.com, mingo@kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 
-On Sat, Sep 10, 2016 10:31 PM, Borislav Petkov wrote:
+On Sat, Sep 10, 2016 at 11:03:29PM +0800, Rui Wang wrote:
+> From b37d806c78e5eea70dbb890c1e3dbb8b7e5038e6 Mon Sep 17 00:00:00 2001
+> From: Rui Wang <rui.y.wang@intel.com>
+> Date: Sat, 10 Sep 2016 10:56:34 -0400
+> Subject: [PATCH] x86/ioapic: Ignore root bridges without a companion ACPI device
 > 
-> On Sat, Sep 10, 2016 at 09:11:30PM +0800, Rui Wang wrote:
-> > Thanks for the analysis. Looks like acpi_gbl_root_node == 0. It is
+> Some PCI root bridges don't have a corresponding ACPI device.
+
+Please say here that this is can be the case on some old platforms. Mine
+is a couple of years old dell workstation box.
+
+> Don't call acpi_ioapic_add() on these bridges because they can't
+> support ioapic hotplug.
+
+Right, exactly.
+
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> ---
+>  drivers/pci/setup-bus.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
-> Is ACPI_HANDLE(root_bus->bridge) == ACPI_ROOT_OBJECT?
-> 
-> Because this is what the code does but I can't see it from the code that the
-> handle is of type ACPI_ROOT_OBJECT...
-> 
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index ec538d3..2b05ac6 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -1852,10 +1852,15 @@ dump:
+>  void __init pci_assign_unassigned_resources(void)
+>  {
+>  	struct pci_bus *root_bus;
+> +	acpi_handle root_handle;
+>  
+>  	list_for_each_entry(root_bus, &pci_root_buses, node) {
+>  		pci_assign_unassigned_root_bus_resources(root_bus);
+> -		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
+> +		root_handle = ACPI_HANDLE(root_bus->bridge);
+> +
+> +		/* make sure the root bridge has a companion ACPI device */
+> +		if (root_handle)
+> +			acpi_ioapic_add(root_handle);
 
-I seem to have the clue. It is because ACPI_HANDLE(root_bus->bridge) == NULL.
-Then this root bridge doesn't have a corresponding ACPI device. In this case
-we shouldn't call acpi_ioapic_add(). This can be true for some old platforms.
+Just do:
 
-If that's the case then the patch below can fix it.
+		if (ACPI_HANDLE(root_bus->bridge))
+			acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
 
-Thanks
-Rui
+no need for the local variable - gcc is smart enough to fetch it only
+once :)
 
->From b37d806c78e5eea70dbb890c1e3dbb8b7e5038e6 Mon Sep 17 00:00:00 2001
-From: Rui Wang <rui.y.wang@intel.com>
-Date: Sat, 10 Sep 2016 10:56:34 -0400
-Subject: [PATCH] x86/ioapic: Ignore root bridges without a companion ACPI device
+Anyway, I'll run it later to verify.
 
-Some PCI root bridges don't have a corresponding ACPI device.
-Don't call acpi_ioapic_add() on these bridges because they can't
-support ioapic hotplug.
+Thanks.
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- drivers/pci/setup-bus.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index ec538d3..2b05ac6 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1852,10 +1852,15 @@ dump:
- void __init pci_assign_unassigned_resources(void)
- {
- 	struct pci_bus *root_bus;
-+	acpi_handle root_handle;
- 
- 	list_for_each_entry(root_bus, &pci_root_buses, node) {
- 		pci_assign_unassigned_root_bus_resources(root_bus);
--		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
-+		root_handle = ACPI_HANDLE(root_bus->bridge);
-+
-+		/* make sure the root bridge has a companion ACPI device */
-+		if (root_handle)
-+			acpi_ioapic_add(root_handle);
- 	}
- }
- 
 -- 
-1.8.3.1
+Regards/Gruss,
+    Boris.
 
+ECO tip #101: Trim your mails when you reply.
