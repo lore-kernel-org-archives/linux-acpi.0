@@ -1,48 +1,47 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 17/30] ACPI-processor: Improve another size determination in
- acpi_processor_get_throttling_states()
-Date: Sat, 10 Sep 2016 11:59:28 +0200
-Message-ID: <2b499c49-838a-06b6-b537-ec24bbf00f90@users.sourceforge.net>
+Subject: [PATCH 19/30] ACPI-processor: Delete two unnecessary initialisations
+ in acpi_processor_get_throttling_states()
+Date: Sat, 10 Sep 2016 12:01:32 +0200
+Message-ID: <4634cdd9-feed-81ed-e5a1-4ed0dc612099@users.sourceforge.net>
 References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:63047 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755605AbcIJJ7i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Sep 2016 05:59:38 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Sep 2016 19:19:27 +0200
+Date: Tue, 6 Sep 2016 20:00:43 +0200
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+The local variables "tss" and "status" will be set to an appropriate value
+a bit later. Thus omit the explicit initialisation at the beginning.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/processor_throttling.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_throttling.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 0a46b7f..c5ddf96 100644
+index 665e8de..8847bca 100644
 --- a/drivers/acpi/processor_throttling.c
 +++ b/drivers/acpi/processor_throttling.c
-@@ -548,7 +548,7 @@ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
- 		    (struct acpi_processor_tx_tss *)&(pr->throttling.
- 						      states_tss[i]);
+@@ -507,11 +507,11 @@ static int acpi_processor_get_throttling_control(struct acpi_processor *pr)
+ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
+ {
+ 	int result = 0;
+-	acpi_status status = AE_OK;
++	acpi_status status;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_buffer format = { sizeof("NNNNN"), "NNNNN" };
+ 	struct acpi_buffer state = { 0, NULL };
+-	union acpi_object *tss = NULL;
++	union acpi_object *tss;
+ 	int i;
  
--		state.length = sizeof(struct acpi_processor_tx_tss);
-+		state.length = sizeof(*tx);
- 		state.pointer = tx;
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Extracting state %d\n", i));
+ 	status = acpi_evaluate_object(pr->handle, "_TSS", NULL, &buffer);
 -- 
 2.10.0
-
