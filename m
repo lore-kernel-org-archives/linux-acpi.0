@@ -1,59 +1,54 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 00/30] ACPI-processor: Fine-tuning for several function
- implementations
-Date: Sat, 10 Sep 2016 11:30:08 +0200
-Message-ID: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
+Subject: [PATCH 1/30] ACPI-processor: Use kmalloc_array() in
+ acpi_processor_get_performance_states()
+Date: Sat, 10 Sep 2016 11:35:38 +0200
+Message-ID: <b9ad0591-b67f-bc28-26da-4da394776b84@users.sourceforge.net>
+References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Sender: kernel-janitors-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 9 Sep 2016 20:15:05 +0200
+Date: Tue, 6 Sep 2016 10:20:10 +0200
 
-Several update suggestions were taken into account
-from static source code analysis.
+* A multiplication for the size determination of a memory allocation
+  indicated that an array data structure should be processed.
+  Thus reuse the corresponding function "kmalloc_array".
 
-Markus Elfring (30):
-  Use kmalloc_array() in acpi_processor_get_performance_states()
-  Improve two size determinations in acpi_processor_get_performance_states()
-  Rename jump labels in acpi_processor_get_performance_states()
-  Delete two unnecessary initialisations in acpi_processor_get_performance_states()
-  Rename jump labels in acpi_processor_preregister_performance()
-  Move a success indication in acpi_processor_preregister_performance()
-  Rename jump labels in acpi_processor_get_psd()
-  Delete two unnecessary initialisations in acpi_processor_get_psd()
-  Improve a size determination in acpi_processor_get_psd()
-  Rename jump labels in acpi_processor_get_performance_control()
-  Delete two unnecessary initialisations in acpi_processor_get_performance_control()
-  Rename jump labels in acpi_processor_ppc_notifier()
-  Delete an unnecessary initialisation in acpi_processor_ppc_notifier()
-  Delete an unnecessary initialisation in acpi_processor_get_performance_info()
-  Delete an unnecessary initialisation in acpi_processor_get_platform_limit()
-  Use kmalloc_array() in acpi_processor_get_throttling_states()
-  Improve another size determination in acpi_processor_get_throttling_states()
-  Rename jump labels in acpi_processor_get_throttling_states()
-  Delete two unnecessary initialisations in acpi_processor_get_throttling_states()
-  Fix jump targets in acpi_processor_get_throttling_info()
-  Rename jump labels in acpi_processor_get_tsd()
-  Delete two unnecessary initialisations in acpi_processor_get_tsd()
-  Improve a size determination in acpi_processor_get_tsd()
-  Rename jump labels in acpi_processor_get_throttling_control()
-  Delete two unnecessary initialisations in acpi_processor_get_throttling_control()
-  Fix jump targets in acpi_processor_reevaluate_tstate()
-  Delete an unnecessary initialisation in acpi_processor_reevaluate_tstate()
-  Rename a jump label in acpi_processor_get_platform_limit()
-  Delete an unnecessary initialisation in acpi_processor_get_platform_limit()
-  Improve jump targets in acpi_processor_update_tsd_coord()
+  This issue was detected by using the Coccinelle software.
 
- drivers/acpi/processor_perflib.c    |  87 +++++++++++++--------------
- drivers/acpi/processor_throttling.c | 116 ++++++++++++++++--------------------
- 2 files changed, 93 insertions(+), 110 deletions(-)
+* Replace the specification of a data structure by a pointer dereference
+  to make the corresponding size determination a bit safer according to
+  the Linux coding style convention.
 
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/acpi/processor_perflib.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index bb01dea..78f9025 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -346,9 +346,9 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
+ 			  pss->package.count));
+ 
+ 	pr->performance->state_count = pss->package.count;
+-	pr->performance->states =
+-	    kmalloc(sizeof(struct acpi_processor_px) * pss->package.count,
+-		    GFP_KERNEL);
++	pr->performance->states = kmalloc_array(pss->package.count,
++						sizeof(*pr->performance->states),
++						GFP_KERNEL);
+ 	if (!pr->performance->states) {
+ 		result = -ENOMEM;
+ 		goto end;
 -- 
 2.10.0
 
