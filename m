@@ -1,17 +1,17 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 18/30] ACPI-processor: Rename jump labels in
- acpi_processor_get_throttling_states()
-Date: Sat, 10 Sep 2016 12:00:28 +0200
-Message-ID: <c0c1a848-a784-a60b-b110-1cd5d5c943d5@users.sourceforge.net>
+Subject: [PATCH 20/30] ACPI-processor: Fix jump targets in
+ acpi_processor_get_throttling_info()
+Date: Sat, 10 Sep 2016 12:02:22 +0200
+Message-ID: <c7e47193-19f9-d165-a20f-f86688eb774e@users.sourceforge.net>
 References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:54509 "EHLO mout.web.de"
+Received: from mout.web.de ([217.72.192.78]:57682 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752805AbcIJKBh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Sep 2016 06:01:37 -0400
+        id S1755315AbcIJKCe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Sep 2016 06:02:34 -0400
 In-Reply-To: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,60 +19,61 @@ To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki"
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Sep 2016 19:26:33 +0200
+Date: Tue, 6 Sep 2016 20:32:46 +0200
 
-Adjust jump labels according to the current Linux coding style convention.
+1. Adjust jump targets according to the current Linux coding
+   style convention.
+
+2. Delete a duplicate check then at the end.
+
+3. Omit the explicit initialisation for the local variable "result"
+   at the beginning which became unnecessary with this refactoring.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/processor_throttling.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/acpi/processor_throttling.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index c5ddf96..665e8de 100644
+index 8847bca..24bd97f 100644
 --- a/drivers/acpi/processor_throttling.c
 +++ b/drivers/acpi/processor_throttling.c
-@@ -526,7 +526,7 @@ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
- 	if (!tss || (tss->type != ACPI_TYPE_PACKAGE)) {
- 		printk(KERN_ERR PREFIX "Invalid _TSS data\n");
- 		result = -EFAULT;
+@@ -1184,7 +1184,7 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+ 
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ {
+-	int result = 0;
++	int result;
+ 	struct acpi_processor_throttling *pthrottling;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -1249,7 +1249,7 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ 
+ 	result = acpi_processor_get_throttling(pr);
+ 	if (result)
 -		goto end;
-+		goto free_buffer;
- 	}
++		goto disable_throttling;
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d throttling states\n",
-@@ -539,7 +539,7 @@ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
- 						  GFP_KERNEL);
- 	if (!pr->throttling.states_tss) {
- 		result = -ENOMEM;
--		goto end;
-+		goto free_buffer;
- 	}
- 
- 	for (i = 0; i < pr->throttling.state_count; i++) {
-@@ -559,7 +559,7 @@ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
- 			ACPI_EXCEPTION((AE_INFO, status, "Invalid _TSS data"));
- 			result = -EFAULT;
- 			kfree(pr->throttling.states_tss);
+ 	if (pr->throttling.state) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -1257,13 +1257,11 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ 				  pr->throttling.state));
+ 		result = acpi_processor_set_throttling(pr, 0, false);
+ 		if (result)
 -			goto end;
-+			goto free_buffer;
- 		}
- 
- 		if (!tx->freqpercentage) {
-@@ -567,11 +567,10 @@ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
- 			       "Invalid _TSS data: freq is zero\n");
- 			result = -EFAULT;
- 			kfree(pr->throttling.states_tss);
--			goto end;
-+			goto free_buffer;
- 		}
++			goto disable_throttling;
  	}
 -
 -      end:
-+ free_buffer:
- 	kfree(buffer.pointer);
- 
+-	if (result)
+-		pr->flags.throttling = 0;
+-
++	return 0;
++ disable_throttling:
++	pr->flags.throttling = 0;
  	return result;
+ }
+ 
 -- 
 2.10.0
 
