@@ -1,47 +1,82 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 13/30] ACPI-processor: Delete an unnecessary initialisation in
- acpi_processor_ppc_notifier()
-Date: Sat, 10 Sep 2016 11:55:30 +0200
-Message-ID: <9965aba5-4da1-6a28-8940-04228586b525@users.sourceforge.net>
+From: Paolo Bonzini <pbonzini@redhat.com>
+Subject: Re: [PATCH 00/30] ACPI-processor: Fine-tuning for several function
+ implementations
+Date: Sat, 10 Sep 2016 05:55:37 -0400 (EDT)
+Message-ID: <1722139165.10015670.1473501337309.JavaMail.zimbra@redhat.com>
 References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:61992 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752102AbcIJJzj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Sep 2016 05:55:39 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Sep 2016 19:06:18 +0200
+I have nothing to do with ACPI.  Please stop spamming me, or you'll end
+up on a kill file...
 
-The local variable "ppc" will be set to an appropriate value a bit later.
-Thus omit the explicit initialisation at the beginning.
+Paolo
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/acpi/processor_perflib.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index 86256bd..43f8eef 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -73,7 +73,7 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
- {
- 	struct cpufreq_policy *policy = data;
- 	struct acpi_processor *pr;
--	unsigned int ppc = 0;
-+	unsigned int ppc;
- 
- 	if (event == CPUFREQ_START && ignore_ppc <= 0) {
- 		ignore_ppc = 0;
--- 
-2.10.0
-
+----- Original Message -----
+> From: "SF Markus Elfring" <elfring@users.sourceforge.net>
+> To: linux-acpi@vger.kernel.org, "Len Brown" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: "LKML" <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, "Julia Lawall" <julia.lawall@lip6.fr>,
+> "Paolo Bonzini" <pbonzini@redhat.com>
+> Sent: Saturday, September 10, 2016 11:30:08 AM
+> Subject: [PATCH 00/30] ACPI-processor: Fine-tuning for several function implementations
+> 
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 9 Sep 2016 20:15:05 +0200
+> 
+> Several update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (30):
+>   Use kmalloc_array() in acpi_processor_get_performance_states()
+>   Improve two size determinations in acpi_processor_get_performance_states()
+>   Rename jump labels in acpi_processor_get_performance_states()
+>   Delete two unnecessary initialisations in
+>   acpi_processor_get_performance_states()
+>   Rename jump labels in acpi_processor_preregister_performance()
+>   Move a success indication in acpi_processor_preregister_performance()
+>   Rename jump labels in acpi_processor_get_psd()
+>   Delete two unnecessary initialisations in acpi_processor_get_psd()
+>   Improve a size determination in acpi_processor_get_psd()
+>   Rename jump labels in acpi_processor_get_performance_control()
+>   Delete two unnecessary initialisations in
+>   acpi_processor_get_performance_control()
+>   Rename jump labels in acpi_processor_ppc_notifier()
+>   Delete an unnecessary initialisation in acpi_processor_ppc_notifier()
+>   Delete an unnecessary initialisation in
+>   acpi_processor_get_performance_info()
+>   Delete an unnecessary initialisation in acpi_processor_get_platform_limit()
+>   Use kmalloc_array() in acpi_processor_get_throttling_states()
+>   Improve another size determination in
+>   acpi_processor_get_throttling_states()
+>   Rename jump labels in acpi_processor_get_throttling_states()
+>   Delete two unnecessary initialisations in
+>   acpi_processor_get_throttling_states()
+>   Fix jump targets in acpi_processor_get_throttling_info()
+>   Rename jump labels in acpi_processor_get_tsd()
+>   Delete two unnecessary initialisations in acpi_processor_get_tsd()
+>   Improve a size determination in acpi_processor_get_tsd()
+>   Rename jump labels in acpi_processor_get_throttling_control()
+>   Delete two unnecessary initialisations in
+>   acpi_processor_get_throttling_control()
+>   Fix jump targets in acpi_processor_reevaluate_tstate()
+>   Delete an unnecessary initialisation in acpi_processor_reevaluate_tstate()
+>   Rename a jump label in acpi_processor_get_platform_limit()
+>   Delete an unnecessary initialisation in acpi_processor_get_platform_limit()
+>   Improve jump targets in acpi_processor_update_tsd_coord()
+> 
+>  drivers/acpi/processor_perflib.c    |  87 +++++++++++++--------------
+>  drivers/acpi/processor_throttling.c | 116
+>  ++++++++++++++++--------------------
+>  2 files changed, 93 insertions(+), 110 deletions(-)
+> 
+> --
+> 2.10.0
+> 
+> 
