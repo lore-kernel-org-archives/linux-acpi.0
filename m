@@ -1,50 +1,89 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 25/30] ACPI-processor: Delete two unnecessary initialisations
- in acpi_processor_get_throttling_control()
-Date: Sat, 10 Sep 2016 12:07:26 +0200
-Message-ID: <63843eeb-0b23-cf80-77d7-3317ac09af78@users.sourceforge.net>
+Subject: [PATCH 26/30] ACPI-processor: Fix jump targets in
+ acpi_processor_reevaluate_tstate()
+Date: Sat, 10 Sep 2016 12:08:24 +0200
+Message-ID: <ead11eae-dfb3-61db-a425-1d4531861c44@users.sourceforge.net>
 References: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:64463 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752538AbcIJKHh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Sep 2016 06:07:37 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <f9e5eb7c-54df-931c-e419-f9253e2abf20@users.sourceforge.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 6 Sep 2016 21:17:12 +0200
+Date: Tue, 6 Sep 2016 21:40:40 +0200
 
-The local variables "ptc" and "status" will be set to an appropriate value
-a bit later. Thus omit the explicit initialisation at the beginning.
+1. Adjust jump targets according to the current Linux coding
+   style convention.
+
+2. Delete a duplicate check then at the end.
+
+3. Do not use curly brackets at two source code places
+   where a single statement should be sufficient.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/processor_throttling.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_throttling.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index cdcd5d6f..0b4e058 100644
+index 0b4e058..994f21c 100644
 --- a/drivers/acpi/processor_throttling.c
 +++ b/drivers/acpi/processor_throttling.c
-@@ -423,9 +423,9 @@ end:
- static int acpi_processor_get_throttling_control(struct acpi_processor *pr)
+@@ -379,23 +379,19 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
  {
  	int result = 0;
--	acpi_status status = 0;
-+	acpi_status status;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *ptc = NULL;
-+	union acpi_object *ptc;
- 	union acpi_object obj = { 0 };
- 	struct acpi_processor_throttling *throttling;
  
+-	if (action == CPU_DEAD) {
++	if (action == CPU_DEAD)
+ 		/* When one CPU is offline, the T-state throttling
+ 		 * will be invalidated.
+ 		 */
+-		pr->flags.throttling = 0;
+-		return;
+-	}
++		goto disable_throttling;
+ 	/* the following is to recheck whether the T-state is valid for
+ 	 * the online CPU
+ 	 */
+-	if (!pr->throttling.state_count) {
++	if (!pr->throttling.state_count)
+ 		/* If the number of T-state is invalid, it is
+ 		 * invalidated.
+ 		 */
+-		pr->flags.throttling = 0;
+-		return;
+-	}
++		goto disable_throttling;
+ 	pr->flags.throttling = 1;
+ 
+ 	/* Disable throttling (if enabled).  We'll let subsequent
+@@ -405,17 +401,16 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
+ 
+ 	result = acpi_processor_get_throttling(pr);
+ 	if (result)
+-		goto end;
++		goto disable_throttling;
+ 
+ 	if (pr->throttling.state) {
+ 		result = acpi_processor_set_throttling(pr, 0, false);
+ 		if (result)
+-			goto end;
++			goto disable_throttling;
+ 	}
+-
+-end:
+-	if (result)
+-		pr->flags.throttling = 0;
++	return;
++ disable_throttling:
++	pr->flags.throttling = 0;
+ }
+ /*
+  * _PTC - Processor Throttling Control (and status) register location
 -- 
 2.10.0
-
