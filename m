@@ -1,33 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RESEND PATCH v3] mailbox: pcc: Support HW-Reduced Communication Subspace type 2
-Date: Tue, 13 Sep 2016 00:07:05 +0200
-Message-ID: <1758134.zE8G7Zy4qD@vostro.rjw.lan>
-References: <1471306445-943-1-git-send-email-hotran@apm.com>
+Subject: Re: [PATCH V3 0/7] CPPC enhancements
+Date: Tue, 13 Sep 2016 00:07:55 +0200
+Message-ID: <2522176.850UacRmuH@vostro.rjw.lan>
+References: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50300 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61056 "HELO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1756226AbcILWA7 (ORCPT
+        by vger.kernel.org with SMTP id S1755650AbcILWBt (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 18:00:59 -0400
-In-Reply-To: <1471306445-943-1-git-send-email-hotran@apm.com>
+        Mon, 12 Sep 2016 18:01:49 -0400
+In-Reply-To: <1471379984-15712-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hoan Tran <hotran@apm.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, alexey.klimov@arm.com, Prakash Prashanth <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>
+To: Prashanth Prakash <pprakash@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org
 
-On Monday, August 15, 2016 05:14:05 PM Hoan Tran wrote:
-> ACPI 6.1 has a PCC HW-Reduced Communication Subspace type 2 intended for
-> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
-> to acknowledge doorbell interrupt. This patch provides the implementation
-> for the Communication Subspace Type 2.
+On Tuesday, August 16, 2016 02:39:37 PM Prashanth Prakash wrote:
+> Hi,
 > 
-> Signed-off-by: Hoan Tran <hotran@apm.com>
-> Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+> This series has patches related to cppc that either improves the performance
+> or adds some features.
+> 
+> v3:
+>   * Fixed the error path in send_pcc_cmd in CPPC batching patch
+>   * Included a patch to consolidate all the global variables
+>   * Included a patch to check for PCC error bit (Alexey)
+> v2:
+>   * Sysfs entry for counter wraparound time(Alexey)
+>   * Updated latency calculation to sum of Nominal and MRTT(Alexey)
+>   * Moved refernce_perf from perf_caps to fb_ctrs
+>   * Addressed review comments from Hoan and few minor cleanups
+> v1:
+>   * Pulled in the CPPC batching path to this series
+>   * Addressed POSTCHANGE issue(Alexey) and switch to RW semaphore(Hoan)
+> 
+> Thanks,
+> Prashanth
+> Ashwin Chaugule (2):
+>   ACPI/CPPC: restructure read/writes for efficient sys mapped reg ops
+>   ACPI/CPPC: add sysfs support to compute delivered performance
+> 
+> Prashanth Prakash (5):
+>   ACPI/CPPC: acquire pcc_lock only while accessing PCC subspace
+>   ACPI/CPPC: support for batching CPPC requests
+>   ACPI/CPPC: set a non-zero value for transition_latency
+>   ACPI/CPPC: move all PCC related information into pcc_data
+>   ACPI/CPPC: check for error bit in PCC status field
+> 
+>  drivers/acpi/cppc_acpi.c       | 600 +++++++++++++++++++++++++++++++----------
+>  drivers/cpufreq/cppc_cpufreq.c |   1 +
+>  include/acpi/cppc_acpi.h       |  14 +-
+>  3 files changed, 466 insertions(+), 149 deletions(-)
 
-Applied.
+All applied.
 
 Thanks,
 Rafael
