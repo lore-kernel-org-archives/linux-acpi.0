@@ -1,65 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/5] ACPI / EC: Move the event handling out of the noirq stage
-Date: Mon, 12 Sep 2016 23:59:57 +0200
-Message-ID: <1572371.0aYBz9LIr7@vostro.rjw.lan>
-References: <bd9df7ba491b33cfbaa46f4cc6a6325f74153e36.1469093001.git.lv.zheng@intel.com> <cover.1470205312.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH 2/6] ACPI / bus: Make acpi_get_first_physical_node() public
+Date: Tue, 13 Sep 2016 00:03:17 +0200
+Message-ID: <2217381.Z7p9ENgOTx@vostro.rjw.lan>
+References: <cover.1469616641.git.lukas@wunner.de> <a0bb3346635e3bd8caf6cf735ceba684e3fde2fa.1469616641.git.lukas@wunner.de> <1821462.QyPXGhZaWJ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1470205312.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1821462.QyPXGhZaWJ-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pierre Moreau <pierre.morrow-GANU6spQydw@public.gmane.org>, Aleksey Makarov <aleksey.makarov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, August 03, 2016 04:01:09 PM Lv Zheng wrote:
-> There is a known issue in the EC driver.
+On Wednesday, August 17, 2016 02:38:15 AM Rafael J. Wysocki wrote:
+> On Thursday, July 28, 2016 02:25:41 AM Lukas Wunner wrote:
+> > Following the fwnode of a device is currently a one-way road: We provide
+> > ACPI_COMPANION() to obtain the fwnode but there's no (public) method to
+> > do the reverse. Granted, there may be multiple physical_nodes, but often
+> > the first one in the list is sufficient.
+> > 
+> > A handy function to obtain it was introduced with commit 3b95bd160547
+> > ("ACPI: introduce a function to find the first physical device"), but
+> > currently it's only available internally.
+> > 
+> > We're about to add an EFI Device Path parser which needs this function.
+> > Consider the following device path: ACPI(PNP0A03,0)/PCI(28,2)/PCI(0,0)
+> > The PCI root is encoded as an ACPI device in the path, so the parser
+> > has to find the corresponding ACPI device, then find its physical node,
+> > find the PCI bridge in slot 1c (decimal 28), function 2 below it and
+> > finally find the PCI device in slot 0, function 0.
+> > 
+> > To this end, make acpi_get_first_physical_node() public.
+> > 
+> > Cc: Aleksey Makarov <aleksey.makarov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
 > 
-> 1. During the suspend/resume process, the EC driver is required to work
->    even in the noirq stage. And currently the event handling is
->    disabled/enabled in the noirq stage.
-> 2. Unfortunately, the EC driver only implements the polling mode for
->    handling the transactions, and is not prepared to handle events in the
->    polling mode.
-> The result of the above conflict is: if an SCI_EVT is indicated during the
-> noirq stage (especially after resuming), the EC driver is not able to
-> detect the SCI_EVT unless:
-> 1. GPE STS not cleared: When the GPE is enabled, advance_transaction() will
->                         be invoked to poll SCI_EVT.
-> 2. EC transaction occurred: When an EC transaction ocurred,
->                             advance_transaction() will be invoked in the
->                             polling mode.
-> If an SCI_EVT ocurred during noirq stage and the above 2 triggering sources
-> cannot handle it, then a problem could be seen by the users:
->  If SCI_EVT is left set after resuming and there is still no EC
->  transactions, this event cannot be handled.
-> 
-> This patchset tries to disable/enable the event handling out of the noirq
-> stage to fix this issue.
-> 
-> Though it is always correct to enable the event handling in a later stage
-> during resuming as long as the event won't be lost, it may not be correct
-> to disable the event handling in an earlier stage during suspending. This
-> patchset thus put a boot parameter for the suspending part tuning in order
-> to be able to respond to the possible regressions.
-> 
-> Since the event handling is disabled for a longer period during
-> suspend/resume, this patchset can also tune the suspend/resume speed
-> faster.
-> 
-> Lv Zheng (5):
->   ACPI / EC: Add EC_FLAGS_QUERY_ENABLED to reveal a hidden logic
->   ACPI / EC: Fix an issue that SCI_EVT cannot be detected after event
->     is enabled
->   ACPI / EC: Add PM operations to improve event handling for resume
->     process
->   ACPI / EC: Add PM operations to improve event handling for suspend
->     process
->   ACPI / EC: Enable event freeze mode to improve event handling
->     efficiency for suspend process
+> ACK
 
-Wholes series applied.
+I've applied this one, thanks!
 
-Thanks,
 Rafael
