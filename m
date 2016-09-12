@@ -1,50 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/4] ACPI / EC: Fix ECDT and boot_ec support
-Date: Mon, 12 Sep 2016 23:55:25 +0200
-Message-ID: <5383321.UbK7QLv2A9@vostro.rjw.lan>
-References: <cover.1472802172.git.lv.zheng@intel.com> <cover.1473238007.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v3 0/5] ACPI / EC: Move the event handling out of the noirq stage
+Date: Mon, 12 Sep 2016 23:59:57 +0200
+Message-ID: <1572371.0aYBz9LIr7@vostro.rjw.lan>
+References: <bd9df7ba491b33cfbaa46f4cc6a6325f74153e36.1469093001.git.lv.zheng@intel.com> <cover.1470205312.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60816 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1751227AbcILVtT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 17:49:19 -0400
-In-Reply-To: <cover.1473238007.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1470205312.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, September 07, 2016 04:49:59 PM Lv Zheng wrote:
-> Linux uses ECDT only in boot stage (before the namespace is fully
-> initialized), but there are cases reported that Windows allows ECDT to be
-> used for OSPM runtime, responding EC events by evaluating _Qxx methods
-> under the device node indicated in the ECDT.
+On Wednesday, August 03, 2016 04:01:09 PM Lv Zheng wrote:
+> There is a known issue in the EC driver.
 > 
-> This patchset changes Linux ECDT support to follow Windows behavior and
-> also fixes related boot_ec support.
+> 1. During the suspend/resume process, the EC driver is required to work
+>    even in the noirq stage. And currently the event handling is
+>    disabled/enabled in the noirq stage.
+> 2. Unfortunately, the EC driver only implements the polling mode for
+>    handling the transactions, and is not prepared to handle events in the
+>    polling mode.
+> The result of the above conflict is: if an SCI_EVT is indicated during the
+> noirq stage (especially after resuming), the EC driver is not able to
+> detect the SCI_EVT unless:
+> 1. GPE STS not cleared: When the GPE is enabled, advance_transaction() will
+>                         be invoked to poll SCI_EVT.
+> 2. EC transaction occurred: When an EC transaction ocurred,
+>                             advance_transaction() will be invoked in the
+>                             polling mode.
+> If an SCI_EVT ocurred during noirq stage and the above 2 triggering sources
+> cannot handle it, then a problem could be seen by the users:
+>  If SCI_EVT is left set after resuming and there is still no EC
+>  transactions, this event cannot be handled.
 > 
-> v2:
->  Rebased on top of recent linux-pm.git/linux-next.
->  Addressed 1 comment from Peter Wu.
->  Update patch SOBs.
+> This patchset tries to disable/enable the event handling out of the noirq
+> stage to fix this issue.
 > 
-> Lv Zheng (4):
->   ACPI / EC: Cleanup first_ec/boot_ec code
->   ACPI / EC: Fix a memory leakage issue in acpi_ec_add()
->   ACPI / EC: Fix a gap that ECDT EC cannot handle EC events
->   ACPI / EC: Fix issues related to boot_ec
+> Though it is always correct to enable the event handling in a later stage
+> during resuming as long as the event won't be lost, it may not be correct
+> to disable the event handling in an earlier stage during suspending. This
+> patchset thus put a boot parameter for the suspending part tuning in order
+> to be able to respond to the possible regressions.
 > 
->  drivers/acpi/ec.c       |  240 +++++++++++++++++++++++++++++++++++++----------
->  drivers/acpi/internal.h |    1 +
->  drivers/acpi/scan.c     |    1 +
->  3 files changed, 195 insertions(+), 47 deletions(-)
+> Since the event handling is disabled for a longer period during
+> suspend/resume, this patchset can also tune the suspend/resume speed
+> faster.
+> 
+> Lv Zheng (5):
+>   ACPI / EC: Add EC_FLAGS_QUERY_ENABLED to reveal a hidden logic
+>   ACPI / EC: Fix an issue that SCI_EVT cannot be detected after event
+>     is enabled
+>   ACPI / EC: Add PM operations to improve event handling for resume
+>     process
+>   ACPI / EC: Add PM operations to improve event handling for suspend
+>     process
+>   ACPI / EC: Enable event freeze mode to improve event handling
+>     efficiency for suspend process
 
-Whole series applied.
+Wholes series applied.
 
 Thanks,
 Rafael
-
