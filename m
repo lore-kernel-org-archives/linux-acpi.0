@@ -1,55 +1,73 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] gpiolib: Forbid irqchip default trigger for ACPI enumerated devices
-Date: Mon, 12 Sep 2016 14:29:51 +0300
-Message-ID: <20160912112951.76598-1-mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Mon, 12 Sep 2016 14:26:53 +0200
+Message-ID: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+ <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
+ <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
+ <20160816091502.GB1751@lahna.fi.intel.com> <CAE2855ts_Xw2ahGRYpVWHAqCEvzNYV7BmOVejeErJ_e2oXZ1qg@mail.gmail.com>
+ <CAE2855u7vLDVSJ04gr8yrg+U=W2DwwNk2+8jGhb-_isixDWvHw@mail.gmail.com> <20160912081050.GV15313@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:27850 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753421AbcILL3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 07:29:55 -0400
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:34381 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758208AbcILM04 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2016 08:26:56 -0400
+In-Reply-To: <20160912081050.GV15313@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Aaron Durbin <adurbin@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Follow DT and forbid default trigger if the GPIO irqchip device is
-enumerated from ACPI. Triggering for these devices will be configured
-automatically from ACPI interrupt resources provided by the BIOS.
+On Mon, Sep 12, 2016 at 10:10 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Fri, Sep 09, 2016 at 09:12:49AM -0500, Aaron Durbin wrote:
+>> On Wed, Aug 17, 2016 at 6:02 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> > On Tue, Aug 16, 2016 at 2:15 AM, Mika Westerberg
+>> > <mika.westerberg@linux.intel.com> wrote:
+>> >> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
+>> >>> Was anyone able to take a look into a solution for the current
+>> >>> problem?  Again, please feel free to ask if anyone would like help
+>> >>> testing potential solutions.
+>> >>
+>> >> Below is one proposal for fixing the issue. It is just a prototype and
+>> >> I'm not sure if it takes everything needed into account. Would you be
+>> >> able to try it out and let us know if it works for you?
+>> >
+>> > Yes. I'll give it a go. I'm traveling this week so it won't likely be
+>> > til early next week. Thanks for the proposed fix. I'll report back on
+>> > my findings.
+>> >
+>>
+>> Sorry for the late response. I tried the patch and it works with ACPI
+>> devices in a hierarchy below PCI devices. I didn't have any ACPI
+>> drivers probed but I was able to hang 2 ACPI devices off of a BAR that
+>> had a driver for the PCI device without any resource conflicts
+>> (snippet from /proc/iomem):
+>>
+>>     c2a43000-c2a43fff : 0000:00:1b.0
+>>       c2a43000-c2a437ff : GOOG1234:00
+>>       c2a43800-c2a43fff : GOOG1235:00
+>
+> Thanks for testing.
+>
+>> One observation that I don't think matters much, but I wanted to write
+>> it down in case anyone pulls this thread up again. In the case of
+>> finding the parent resource, the ACPI devcie's resources won't show up
+>> in the resource tree until the pci parent devices' resources are
+>> inserted.
+>
+> Right, that's expected as the parent PCI device resources will be
+> allocated a bit later when pcibios_resource_survey_bus() is called.
+>
+> Rafael, Bjorn,
+>
+> What do you think? Should I clean up the code and send it out as a
+> formal patch?
 
-Suggested-by: Linus Walleij <linus.walleij@linaro.org>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-This is on top of Marc's patch here:
+Yes, please, unless Bjorn disagrees. :-)
 
-  https://lkml.org/lkml/2016/9/7/121
-
- drivers/gpio/gpiolib.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 5707b5d12b28..0efb67f387ea 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1618,13 +1618,18 @@ int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
- 		of_node = gpiochip->of_node;
- #endif
- 	/*
--	 * Specifying a default trigger is a terrible idea if DT is
-+	 * Specifying a default trigger is a terrible idea if DT or ACPI is
- 	 * used to configure the interrupts, as you may end-up with
- 	 * conflicting triggers. Tell the user, and reset to NONE.
- 	 */
- 	if (WARN(of_node && type != IRQ_TYPE_NONE,
- 		 "%s: Ignoring %d default trigger\n", of_node->full_name, type))
- 		type = IRQ_TYPE_NONE;
-+	if (has_acpi_companion(gpiochip->parent) && type != IRQ_TYPE_NONE) {
-+		acpi_handle_warn(ACPI_HANDLE(gpiochip->parent),
-+				 "Ignoring %d default trigger\n", type);
-+		type = IRQ_TYPE_NONE;
-+	}
- 
- 	gpiochip->irqchip = irqchip;
- 	gpiochip->irq_handler = handler;
--- 
-2.9.3
-
+Thanks,
+Rafael
