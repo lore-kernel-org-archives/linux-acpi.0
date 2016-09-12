@@ -1,20 +1,20 @@
 From: "Shah, Nehal-bakulchandra" <Nehal-bakulchandra.Shah@amd.com>
 Subject: ACPI/APD Making Module
-Date: Mon, 12 Sep 2016 04:07:53 +0000
-Message-ID: <MWHPR12MB1774F1CB030AAA74A3DEB053A0FF0@MWHPR12MB1774.namprd12.prod.outlook.com>
+Date: Mon, 12 Sep 2016 04:09:36 +0000
+Message-ID: <MWHPR12MB1774E8455E7702E1EDD73CD0A0FF0@MWHPR12MB1774.namprd12.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2nam01on0050.outbound.protection.outlook.com ([104.47.34.50]:62080
+Received: from mail-by2nam01on0045.outbound.protection.outlook.com ([104.47.34.45]:41136
         "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753016AbcILFkK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 01:40:10 -0400
+        id S1756628AbcILFmZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Sep 2016 01:42:25 -0400
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.or" <linux-kernel@vger.kernel.or>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
 Hi,
 Current implementation of acpi_apd.c makes AMD I2C,GPIO and UART from acpi =
