@@ -1,23 +1,26 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] x86/ioapic: Ignore root bridges without a companion
- ACPI device
-Date: Mon, 12 Sep 2016 21:43:23 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F3A1C7E09@ORSMSX114.amr.corp.intel.com>
+From: Jon Derrick <jonathan.derrick@intel.com>
+Subject: Re: [PATCH] x86/ioapic: Ignore root bridges without a companion ACPI
+ device
+Date: Mon, 12 Sep 2016 15:46:15 -0600
+Message-ID: <20160912214614.GA1891@localhost.localdomain>
 References: <1473522046-31329-1-git-send-email-rui.y.wang@intel.com>
  <20160912212537.GA1740@localhost.localdomain>
+ <3908561D78D1C84285E8C5FCA982C28F3A1C7E09@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160912212537.GA1740@localhost.localdomain>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Derrick, Jonathan" <jonathan.derrick@intel.com>, "Wang, Rui Y" <rui.y.wang@intel.com>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mingo@kernel.org" <mingo@kernel.org>, "bp@alien8.de" <bp@alien8.de>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "peterz@infradead.org" <peterz@infradead.org>, "helgaas@kernel.org" <helgaas@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F3A1C7E09@ORSMSX114.amr.corp.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Wang, Rui Y" <rui.y.wang@intel.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mingo@kernel.org" <mingo@kernel.org>, "bp@alien8.de" <bp@alien8.de>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "peterz@infradead.org" <peterz@infradead.org>, "helgaas@kernel.org" <helgaas@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> What branch is this based on? I can't find the relevant code/commits
+On Mon, Sep 12, 2016 at 03:43:23PM -0600, Luck, Tony wrote:
+> > What branch is this based on? I can't find the relevant code/commits
+> 
+> tip tree. branch x86/apic
+> 
+> -Tony
 
-tip tree. branch x86/apic
-
--Tony
+Cheers!
