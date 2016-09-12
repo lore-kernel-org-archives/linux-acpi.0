@@ -1,82 +1,61 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [UPDATE PATCH V10 1/8] ACPI: I/O Remapping Table (IORT) initial
- support
-Date: Mon, 12 Sep 2016 14:04:29 +0100
-Message-ID: <57D6A7DD.1060305@arm.com>
-References: <1473152938-17388-2-git-send-email-tn@semihalf.com>
- <1473249412-20226-1-git-send-email-tn@semihalf.com>
- <20160909092012.GC19669@red-moon>
- <38e36eee-cece-75db-4781-5727dd11c93d@semihalf.com>
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: Re: [PATCH 00/26] constify local structures
+Date: Mon, 12 Sep 2016 16:16:25 +0300
+Message-ID: <20160912131625.GD957@intel.com>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
+ <20160911172105.GB5493@intel.com>
+ <alpine.DEB.2.10.1609121051050.3049@hadrien>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <38e36eee-cece-75db-4781-5727dd11c93d@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rjw@rjwysocki.net
-Cc: tglx@linutronix.de, jason@lakedaemon.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.10.1609121051050.3049@hadrien>
+Sender: linux-pm-owner@vger.kernel.org
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: linux-renesas-soc@vger.kernel.org, joe@perches.com, kernel-janitors@vger.kernel.org, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-media@vger.kernel.org, linux-can@vger.kernel.org, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devel@driverdev.osuosl.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-wireless@vger.kernel.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org, linux-spi@vger.kernel.orgl
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/09/16 13:37, Tomasz Nowicki wrote:
-> Hi Rafael,
+On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
 > 
-> On 09.09.2016 11:20, Lorenzo Pieralisi wrote:
->> Hi Rafael,
->>
->> On Wed, Sep 07, 2016 at 01:56:52PM +0200, Tomasz Nowicki wrote:
->>> IORT shows representation of IO topology for ARM based systems.
->>> It describes how various components are connected together on
->>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
->>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
->>>
->>> Initial support allows to detect IORT table presence and save its
->>> root pointer obtained through acpi_get_table(). The pointer validity
->>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
->>> is not set while using IORT nodes we would dereference unmapped pointers.
->>>
->>> For the aforementioned reason call iort_table_detect() from acpi_init()
->>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
->>>
->>> Add generic helpers which are helpful for scanning and retrieving
->>> information from IORT table content. List of the most important helpers:
->>> - iort_find_dev_node() finds IORT node for a given device
->>> - iort_node_map_rid() maps device RID and returns IORT node which provides
->>>   final translation
->>>
->>> IORT support is placed under drivers/acpi/arm64/ new directory due to its
->>> ARM64 specific nature. The code there is considered only for ARM64.
->>> The long term plan is to keep all ARM64 specific tables support
->>> in this place e.g. GTDT table.
->>>
->>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
->>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>> ---
->>
->> Apart from the minor commit logs oversights we consider these two
->> patches ready to go, please let us know if there is something you want
->> changed since we are at risk of missing yet another merge window.
->>
->> It is ARM64 specific code, we created and moved the code to its
->> ARM64 specific directory and we are happy to maintain it as such,
->> we need your ACK to get this done so if there is something you
->> want changed please let us know otherwise I would ask your ACK
->> on these two patches to give Marc a go-ahead for -next and
->> hopefully 4.9.
 > 
-> Kindly reminder. Is there anything we need to do more about these 
-> patches? Please let us know. Note this is the major thing for incoming 
-> IORT more advance feature.
+> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+> 
+> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
+> > > Constify local structures.
+> > >
+> > > The semantic patch that makes this change is as follows:
+> > > (http://coccinelle.lip6.fr/)
+> >
+> > Just my two cents but:
+> >
+> > 1. You *can* use a static analysis too to find bugs or other issues.
+> > 2. However, you should manually do the commits and proper commit
+> >    messages to subsystems based on your findings. And I generally think
+> >    that if one contributes code one should also at least smoke test changes
+> >    somehow.
+> >
+> > I don't know if I'm alone with my opinion. I just think that one should
+> > also do the analysis part and not blindly create and submit patches.
+> 
+> All of the patches are compile tested.  And the individual patches are
 
-May I convey a slight sense of urgency here? I'd like to cut the irqchip
-branch for 4.9 pretty soon (this week), in order to let it sink in -next
-for a few days at the very least.
+Compile-testing is not testing. If you are not able to test a commit,
+you should explain why.
 
-It'd be a bit disappointing if these patches missed the boat this time
-again.
+> submitted to the relevant maintainers.  The individual commit messages
+> give a more detailed explanation of the strategy used to decide that the
+> structure was constifiable.  It seemed redundant to put that in the cover
+> letter, which will not be committed anyway.
 
-Thanks,
+I don't mean to be harsh but I do not care about your thought process
+*that much* when I review a commit (sometimes it might make sense to
+explain that but it depends on the context).
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+I mostly only care why a particular change makes sense for this
+particular subsystem. The report given by a static analysis tool can
+be a starting point for making a commit but it's not sufficient.
+Based on the report you should look subsystems as individuals.
+
+> julia
+
+/Jarkko
