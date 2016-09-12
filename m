@@ -1,73 +1,70 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Mon, 12 Sep 2016 14:26:53 +0200
-Message-ID: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
- <3861743.KWBechkp08@vostro.rjw.lan> <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
- <CAE2855uNKxtSJSGdF9T7LcGV+F6HzqJhmgDEdgAEwrY=HjPnrQ@mail.gmail.com>
- <20160816091502.GB1751@lahna.fi.intel.com> <CAE2855ts_Xw2ahGRYpVWHAqCEvzNYV7BmOVejeErJ_e2oXZ1qg@mail.gmail.com>
- <CAE2855u7vLDVSJ04gr8yrg+U=W2DwwNk2+8jGhb-_isixDWvHw@mail.gmail.com> <20160912081050.GV15313@lahna.fi.intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [UPDATE PATCH V10 1/8] ACPI: I/O Remapping Table (IORT) initial
+ support
+Date: Mon, 12 Sep 2016 14:37:06 +0200
+Message-ID: <38e36eee-cece-75db-4781-5727dd11c93d@semihalf.com>
+References: <1473152938-17388-2-git-send-email-tn@semihalf.com>
+ <1473249412-20226-1-git-send-email-tn@semihalf.com>
+ <20160909092012.GC19669@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:34381 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758208AbcILM04 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2016 08:26:56 -0400
-In-Reply-To: <20160912081050.GV15313@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160909092012.GC19669@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rjw@rjwysocki.net
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Aaron Durbin <adurbin@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Mon, Sep 12, 2016 at 10:10 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Fri, Sep 09, 2016 at 09:12:49AM -0500, Aaron Durbin wrote:
->> On Wed, Aug 17, 2016 at 6:02 PM, Aaron Durbin <adurbin@google.com> wrote:
->> > On Tue, Aug 16, 2016 at 2:15 AM, Mika Westerberg
->> > <mika.westerberg@linux.intel.com> wrote:
->> >> On Fri, Aug 12, 2016 at 11:45:30AM -0500, Aaron Durbin wrote:
->> >>> Was anyone able to take a look into a solution for the current
->> >>> problem?  Again, please feel free to ask if anyone would like help
->> >>> testing potential solutions.
->> >>
->> >> Below is one proposal for fixing the issue. It is just a prototype and
->> >> I'm not sure if it takes everything needed into account. Would you be
->> >> able to try it out and let us know if it works for you?
->> >
->> > Yes. I'll give it a go. I'm traveling this week so it won't likely be
->> > til early next week. Thanks for the proposed fix. I'll report back on
->> > my findings.
->> >
->>
->> Sorry for the late response. I tried the patch and it works with ACPI
->> devices in a hierarchy below PCI devices. I didn't have any ACPI
->> drivers probed but I was able to hang 2 ACPI devices off of a BAR that
->> had a driver for the PCI device without any resource conflicts
->> (snippet from /proc/iomem):
->>
->>     c2a43000-c2a43fff : 0000:00:1b.0
->>       c2a43000-c2a437ff : GOOG1234:00
->>       c2a43800-c2a43fff : GOOG1235:00
->
-> Thanks for testing.
->
->> One observation that I don't think matters much, but I wanted to write
->> it down in case anyone pulls this thread up again. In the case of
->> finding the parent resource, the ACPI devcie's resources won't show up
->> in the resource tree until the pci parent devices' resources are
->> inserted.
->
-> Right, that's expected as the parent PCI device resources will be
-> allocated a bit later when pcibios_resource_survey_bus() is called.
->
-> Rafael, Bjorn,
->
-> What do you think? Should I clean up the code and send it out as a
-> formal patch?
+Hi Rafael,
 
-Yes, please, unless Bjorn disagrees. :-)
+On 09.09.2016 11:20, Lorenzo Pieralisi wrote:
+> Hi Rafael,
+>
+> On Wed, Sep 07, 2016 at 01:56:52PM +0200, Tomasz Nowicki wrote:
+>> IORT shows representation of IO topology for ARM based systems.
+>> It describes how various components are connected together on
+>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>>
+>> Initial support allows to detect IORT table presence and save its
+>> root pointer obtained through acpi_get_table(). The pointer validity
+>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+>> is not set while using IORT nodes we would dereference unmapped pointers.
+>>
+>> For the aforementioned reason call iort_table_detect() from acpi_init()
+>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
+>>
+>> Add generic helpers which are helpful for scanning and retrieving
+>> information from IORT table content. List of the most important helpers:
+>> - iort_find_dev_node() finds IORT node for a given device
+>> - iort_node_map_rid() maps device RID and returns IORT node which provides
+>>   final translation
+>>
+>> IORT support is placed under drivers/acpi/arm64/ new directory due to its
+>> ARM64 specific nature. The code there is considered only for ARM64.
+>> The long term plan is to keep all ARM64 specific tables support
+>> in this place e.g. GTDT table.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> ---
+>
+> Apart from the minor commit logs oversights we consider these two
+> patches ready to go, please let us know if there is something you want
+> changed since we are at risk of missing yet another merge window.
+>
+> It is ARM64 specific code, we created and moved the code to its
+> ARM64 specific directory and we are happy to maintain it as such,
+> we need your ACK to get this done so if there is something you
+> want changed please let us know otherwise I would ask your ACK
+> on these two patches to give Marc a go-ahead for -next and
+> hopefully 4.9.
+
+Kindly reminder. Is there anything we need to do more about these 
+patches? Please let us know. Note this is the major thing for incoming 
+IORT more advance feature.
 
 Thanks,
-Rafael
+Tomasz
