@@ -1,81 +1,166 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] drivers: acpi: fix GIC irq model default PCI IRQ polarity
-Date: Tue, 13 Sep 2016 00:16:45 +0200
-Message-ID: <1512953.mRIMTKV6b1@vostro.rjw.lan>
-References: <1473180663-20590-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
+Date: Mon, 12 Sep 2016 15:24:05 -0700
+Message-ID: <CADaLNDk0JPJYT_pqjWYwrMBvbyWkpL+6=dEDU9H9qDGMhnQvyw@mail.gmail.com>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com> <1473449047-10499-3-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:65212 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1751581AbcILWKk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 18:10:40 -0400
-In-Reply-To: <1473180663-20590-1-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mail-vk0-f42.google.com ([209.85.213.42]:34016 "EHLO
+        mail-vk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752834AbcILWYg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2016 18:24:36 -0400
+Received: by mail-vk0-f42.google.com with SMTP id v189so156566667vkv.1
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Sep 2016 15:24:36 -0700 (PDT)
+In-Reply-To: <1473449047-10499-3-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Punit Agrawal <punit.agrawal@arm.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <bhelgaas@google.com>, Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linaro-acpi@list
 
-On Tuesday, September 06, 2016 05:51:03 PM Lorenzo Pieralisi wrote:
-> On ACPI ARM based systems the GIC interrupt controller
-> and corresponding interrupt model permit only the high
-> polarity for level interrupts.
-> 
-> ACPI firmware describes PCI legacy IRQs through entries
-> in the _PRT objects. Entries in the _PRT can be of two types:
-> 
-> - Static: not configurable, trigger/polarity default to level-low,
->   _PRT entry defines the global GSI interrupt number
-> - Configurable: _PRT interrupt entry contains a reference to the
->   corresponding PCI interrupt link device (that in turn provides the
->   interrupt descriptor through its _CRS/_PRS methods)
-> 
-> Configurable IRQ entries are not currently allowed by the ACPI
-> specification on ARM since they can only be used for interrupt pins that
-> are routable, as per ACPI specifications (version 6.1, 6.2.13):
-> 
-> "[...] There are two ways that _PRT can be used. Typically, the
-> interrupt input that a given PCI interrupt is on is configurable. For
-> example, a given PCI interrupt might be configured for either IRQ 10 or
-> 11 on an 8259 interrupt controller. In this model, each interrupt is
-> represented in the ACPI namespace as a PCI Interrupt Link Device. [...]"
-> 
-> ARM platforms GIC configurations do not allow dynamic IRQ routing,
-> since routing is statically laid out at synthesis time; therefore PCI
-> interrupt links cannot be used for PCI legacy IRQ descriptions in the
-> _PRT on ARM systems.
-> 
-> On the other hand, current core ACPI code handling PCI legacy IRQs
-> consider IRQ trigger/polarity for static _PRT entries as level-low.
-> 
-> On ARM systems with a GIC interrupt controller and corresponding
-> ACPI interrupt model this does not work in that GIC interrupt
-> controller is only capable of handling level interrupts whose
-> polarity is high (for PCI legacy IRQs - that are level-low by
-> specification - this means that the legacy IRQs are inverted before
-> reaching the interrupt controller pin), resulting in IRQ allocation
-> failures such as:
-> 
-> genirq: Setting trigger mode 8 for irq 18 failed (gic_set_type+0x0/0x48)
-> 
-> Change the default polarity for PCI legacy IRQs to high on systems
-> booting wth ACPI on platforms with a GIC interrupt controller model,
-> fixing the discrepancy between specification and HW behaviour.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Duc Dang <dhdang@apm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
+On Fri, Sep 9, 2016 at 12:24 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+>
+> Some platforms may not be fully compliant with generic set of PCI config
+> accessors. For these cases we implement the way to overwrite CFG accessors
+> set and configuration space range.
+>
+> In first place pci_mcfg_parse() saves machine's IDs and revision number
+> (these come from MCFG header) in order to match against known quirk entries.
+> Then the algorithm traverses available quirk list (static array),
+> matches against <oem_id, oem_table_id, rev, domain, bus number range> and
+> returns custom PCI config ops and/or CFG resource structure.
+>
+> When adding new quirk there are two possibilities:
+> 1. Override default pci_generic_ecam_ops ops but CFG resource comes from MCFG
+> { "OEM_ID", "OEM_TABLE_ID", <REV>, <DOMAIN>, <BUS_NR>, &foo_ops, MCFG_RES_EMPTY },
+> 2. Override default pci_generic_ecam_ops ops and CFG resource. For this case
+> it is also allowed get CFG resource from quirk entry w/o having it in MCFG.
+> { "OEM_ID", "OEM_TABLE_ID", <REV>, <DOMAIN>, <BUS_NR>, &boo_ops,
+>   DEFINE_RES_MEM(START, SIZE) },
+>
+> pci_generic_ecam_ops and MCFG entries will be used for platforms
+> free from quirks.
+>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> Signed-off-by: Christopher Covington <cov@codeaurora.org>
+> ---
+>  drivers/acpi/pci_mcfg.c | 80 +++++++++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 74 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index ffcc651..2b8acc7 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -32,6 +32,59 @@ struct mcfg_entry {
+>         u8                      bus_start;
+>         u8                      bus_end;
+>  };
+> +struct mcfg_fixup {
+> +       char oem_id[ACPI_OEM_ID_SIZE + 1];
+> +       char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+> +       u32 oem_revision;
+> +       u16 seg;
+> +       struct resource bus_range;
+> +       struct pci_ecam_ops *ops;
+> +       struct resource cfgres;
+> +};
+> +
+> +#define MCFG_DOM_ANY                   (-1)
+> +#define MCFG_BUS_RANGE(start, end)     DEFINE_RES_NAMED((start),       \
+> +                                               ((end) - (start) + 1),  \
+> +                                               NULL, IORESOURCE_BUS)
+> +#define MCFG_BUS_ANY           MCFG_BUS_RANGE(0x0, 0xff)
+> +#define MCFG_RES_EMPTY         DEFINE_RES_NAMED(0, 0, NULL, 0)
+> +
+> +static struct mcfg_fixup mcfg_quirks[] = {
+> +/*     { OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
+> +};
+> +
+> +static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+> +static char mcfg_oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
+> +static u32 mcfg_oem_revision;
+> +
+> +static void pci_mcfg_match_quirks(struct acpi_pci_root *root,
+> +                                 struct resource *cfgres,
+> +                                 struct pci_ecam_ops **ecam_ops)
+> +{
+> +       struct mcfg_fixup *f;
+> +       int i;
+> +
+> +       /*
+> +        * First match against PCI topology <domain:bus> then use OEM ID, OEM
+> +        * table ID, and OEM revision from MCFG table standard header.
+> +        */
+> +       for (i = 0, f = mcfg_quirks; i < ARRAY_SIZE(mcfg_quirks); i++, f++) {
+> +               if (f->seg == root->segment &&
 
-Applied.
+Is dropping the comparison with MCFG_DOM_ANY intended? It is useful if
+all the controllers (segs) can use the same quirk (X-Gene case).
+If you decide to drop it, then we can remove MCFG_DOM_ANY definition as well.
 
-Thanks,
-Rafael
-
+> +                   resource_contains(&f->bus_range, &root->secondary) &&
+> +                   !memcmp(f->oem_id, mcfg_oem_id, ACPI_OEM_ID_SIZE) &&
+> +                   !memcmp(f->oem_table_id, mcfg_oem_table_id,
+> +                           ACPI_OEM_TABLE_ID_SIZE) &&
+> +                   f->oem_revision == mcfg_oem_revision) {
+> +                       if (f->cfgres.start)
+> +                               *cfgres = f->cfgres;
+> +                       if (f->ops)
+> +                               *ecam_ops =  f->ops;
+> +                       dev_info(&root->device->dev, "Applying PCI MCFG quirks for %s %s rev: %d\n",
+> +                                f->oem_id, f->oem_table_id, f->oem_revision);
+> +                       return;
+> +               }
+> +       }
+> +}
+>
+>  /* List to save MCFG entries */
+>  static LIST_HEAD(pci_mcfg_list);
+> @@ -61,14 +114,24 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
+>
+>         }
+>
+> -       if (!root->mcfg_addr)
+> -               return -ENXIO;
+> -
+>  skip_lookup:
+>         memset(&res, 0, sizeof(res));
+> -       res.start = root->mcfg_addr + (bus_res->start << 20);
+> -       res.end = res.start + (resource_size(bus_res) << 20) - 1;
+> -       res.flags = IORESOURCE_MEM;
+> +       if (root->mcfg_addr) {
+> +               res.start = root->mcfg_addr + (bus_res->start << 20);
+> +               res.end = res.start + (resource_size(bus_res) << 20) - 1;
+> +               res.flags = IORESOURCE_MEM;
+> +       }
+> +
+> +       /*
+> +        * Let to override default ECAM ops and CFG resource range.
+> +        * Also, this might even retrieve CFG resource range in case MCFG
+> +        * does not have it. Invalid CFG start address means MCFG firmware bug
+> +        * or we need another quirk in array.
+> +        */
+> +       pci_mcfg_match_quirks(root, &res, &ops);
+> +       if (!res.start)
+> +               return -ENXIO;
+> +
+>         *cfgres = res;
+>         *ecam_ops = ops;
+>         return 0;
+> @@ -101,6 +164,11 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
+>                 list_add(&e->list, &pci_mcfg_list);
+>         }
+>
+> +       /* Save MCFG IDs and revision for quirks matching */
+> +       memcpy(mcfg_oem_id, header->oem_id, ACPI_OEM_ID_SIZE);
+> +       memcpy(mcfg_oem_table_id, header->oem_table_id, ACPI_OEM_TABLE_ID_SIZE);
+> +       mcfg_oem_revision = header->revision;
+> +
+>         pr_info("MCFG table detected, %d entries\n", n);
+>         return 0;
+>  }
+> --
+> 1.9.1
+Regards,
+Duc Dang.
