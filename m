@@ -1,68 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/3] Correct errors in acpi_parse_entries_array()
-Date: Tue, 13 Sep 2016 00:10:57 +0200
-Message-ID: <2194773.SQX6EZDjzC@vostro.rjw.lan>
-References: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
+Subject: Re: [PATCHv2 0/3] serial: dw8250: ACPI tuning
+Date: Tue, 13 Sep 2016 00:11:48 +0200
+Message-ID: <2065510.Ra7hIhvnf9@vostro.rjw.lan>
+References: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1471654093-6962-1-git-send-email-ahs3@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42064 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1755824AbcILWFm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Sep 2016 18:05:42 -0400
+In-Reply-To: <1471941208-27963-1-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, August 19, 2016 06:48:10 PM Al Stone wrote:
-> Several strange things were found while prototyping a way to correctly
-> report whether or not an IORT is needed by an arm64 platform.  What the
-> prototype needed to do was iterate over the MADT subtables and look for
-> certain types of subtable, count how many there were by type, and capture
-> some info about some of the subtables.
+On Tuesday, August 23, 2016 11:33:25 AM Heikki Krogerus wrote:
+> Hi,
 > 
-> When I first read through the acpi_parse_entries_array() function, the
-> comments seemed to describe precisely what I needed to do.  However, what
-> I found in trying to use the function is that that is not exactly how it
-> works.
-> 
-> So, the first patch fixes the counts of subtable types found so they are
-> correct.  Fortunately, nothing has relied on them being correct in the 
-> past, just non-zero or not.  This has also been noted by Baoquan He in a
-> patch he recently submitted.
-> 
-> The second patch fixes a problem where iterating over the subtables would
-> end earlier than necessary, again throwing off the counts; in this case,
-> I only needed to know how many of certain types of subtables were present,
-> but would never be able to get to a complete count.
-> 
-> The third patch removes part of a message that always reported an incorrect
-> value for the number of subtables skipped when there's a limit.  It always
-> reported zero, so it's never really been useful.
-> 
-> Longer term, I would like to simplify the way MADT and other ACPI tables
-> with subtables are parsed; mostly, I want to get rid of the need for using
-> file scoped variables.  The acpi_parse_entries_array() function can be a
-> good basis to build upon, as long as it works as expected.
+> Since we now have the build-in properties available, using those when
+> ever possible to get the details the driver expects and when they are
+> not being provided by the fw. Right now there is only one exception
+> ACPI enumerated board where we have no means to provide the properties
+> with build-in ones, so simply handling that as an exception in
+> dw8250_quirks().
 > 
 > Changes since v1:
->   -- Much rewrite of the cover letter and changelogs to make sure the 
->      motivation for the changes was captured (Rafael)
->   -- Verified that the changes in semantics for the function are harmless;
->      direct calls, parents/grandparents/.. of the direct calls were checked
->      to make sure they did not depend on the current behavior in such a way
->      as to break them with these changes (Rafael)
->   -- Patch 3/3 was simplified; on further investigation, should additional
->      callbacks be made to get the total skipped, there could be side effects
->      or dependencies between callbacks that would make the original plan of
->      iterating over all callbacks risky, for very little value (Rafael)
+> - Fix a compiler error in acpi_apd.c found by kbuild test robot
+> - ACK from Mika
 > 
-> Al Stone (3):
->   ACPI: fix incorrect counts returned by acpi_parse_entries_array()
->   ACPI: fix acpi_parse_entries_array() so it traverses all subtables
->   ACPI: do not report the number of entries ignored by
->     acpi_parse_entries()
+> 
+> Heikki Krogerus (3):
+>   ACPI / APD: Provide build-in properties of the UART
+>   ACPI / LPSS: Provide build-in properties of the UART
+>   serial: 8250_dw: Add quirk for APM X-Gene SoC
 
-All applied.
+Whole series applied.
 
 Thanks,
 Rafael
+
