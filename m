@@ -1,82 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/14] ACPICA: 20160831 Release
-Date: Mon, 12 Sep 2016 23:54:58 +0200
-Message-ID: <7319979.1aYLGgGL7v@vostro.rjw.lan>
-References: <cover.1473226203.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2 0/4] ACPI / EC: Fix ECDT and boot_ec support
+Date: Mon, 12 Sep 2016 23:55:25 +0200
+Message-ID: <5383321.UbK7QLv2A9@vostro.rjw.lan>
+References: <cover.1472802172.git.lv.zheng@intel.com> <cover.1473238007.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57708 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60816 "HELO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1750998AbcILVsy (ORCPT
+        by vger.kernel.org with SMTP id S1751227AbcILVtT (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 17:48:54 -0400
-In-Reply-To: <cover.1473226203.git.lv.zheng@intel.com>
+        Mon, 12 Sep 2016 17:49:19 -0400
+In-Reply-To: <cover.1473238007.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, September 07, 2016 02:05:34 PM Lv Zheng wrote:
-> The 20160831 ACPICA kernel-resident subsystem updates are linuxized based
-> on the linux-pm/linux-next branch.
+On Wednesday, September 07, 2016 04:49:59 PM Lv Zheng wrote:
+> Linux uses ECDT only in boot stage (before the namespace is fully
+> initialized), but there are cases reported that Windows allows ECDT to be
+> used for OSPM runtime, responding EC events by evaluating _Qxx methods
+> under the device node indicated in the ECDT.
 > 
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + allyes
-> 2. i386 + allno
-> 3. i386 + default + ACPI_DEBUGGER=y
-> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
-> 6. i386 + default + ACPI=n
-> 7. x86_64 + allyes
-> 8. x86_64 + allno
-> 9. x86_64 + default + ACPI_DEBUGGER=y
-> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
-> 12.x86_64 + default + ACPI=n
-> Boot tests are performed as follows:
-> 1. i386 + default + ACPI_DEBUGGER=y
-> 2. x86_64 + default + ACPI_DEBUGGER=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All "drivers/acpi" configurations
->    All "drivers/platform" drivers
->    All other drivers that link the APIs provided by ACPICA subsystem
+> This patchset changes Linux ECDT support to follow Windows behavior and
+> also fixes related boot_ec support.
 > 
-> The divergences checking result:
-> Before applying (20160629 Release):
->   508 lines
-> After applying (20160831 Release):
->   508 lines
+> v2:
+>  Rebased on top of recent linux-pm.git/linux-next.
+>  Addressed 1 comment from Peter Wu.
+>  Update patch SOBs.
 > 
-> Bob Moore (5):
->   ACPICA: Debugger: Add subcommand for predefined name execution
->   ACPICA: Cleanup for all string-to-integer conversions
->   ACPICA: Add a couple of casts to uthex.c
->   ACPICA: Update return value for intenal _OSI method
->   ACPICA: Update version to 20160831
+> Lv Zheng (4):
+>   ACPI / EC: Cleanup first_ec/boot_ec code
+>   ACPI / EC: Fix a memory leakage issue in acpi_ec_add()
+>   ACPI / EC: Fix a gap that ECDT EC cannot handle EC events
+>   ACPI / EC: Fix issues related to boot_ec
 > 
-> Lv Zheng (9):
->   ACPICA: Tables: Remove acpi_tb_install_fixed_table()
->   ACPICA: Tables: Remove wrong table event macros
->   ACPICA: Tables: Add new table events indicating table
->     installation/uninstallation
->   ACPICA: Tables: Override all 64-bit GAS fields when
->     acpi_gbl_use32_bit_fadt_addresses is TRUE
->   ACPICA: Interpreter: Fix MLC issues by switching to new term_list
->     grammar for table loading
->   ACPICA: Namespace: Add acpi_ns_get_node_unlocked()
->   ACPICA: Namespace: Fix dynamic table loading issues by tuning
->     namespace/interpreter locks
->   ACPICA: Dispatcher: Fix a mutex issue for method auto serialization
->   ACPICA: Tables: Tune table mutex to be a leaf lock
+>  drivers/acpi/ec.c       |  240 +++++++++++++++++++++++++++++++++++++----------
+>  drivers/acpi/internal.h |    1 +
+>  drivers/acpi/scan.c     |    1 +
+>  3 files changed, 195 insertions(+), 47 deletions(-)
 
-All applied.
+Whole series applied.
 
 Thanks,
 Rafael
