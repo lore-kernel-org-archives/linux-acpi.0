@@ -1,66 +1,45 @@
 From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH 1/2] PCI/AER: Remove duplicate AER severity translation
-Date: Mon, 12 Sep 2016 14:57:24 -0600
-Message-ID: <1473713845-23613-2-git-send-email-tbaicar@codeaurora.org>
+Subject: [PATCH 2/2] acpi: apei: send correct severity to calculate AER severity
+Date: Mon, 12 Sep 2016 14:57:25 -0600
+Message-ID: <1473713845-23613-3-git-send-email-tbaicar@codeaurora.org>
 References: <1473713845-23613-1-git-send-email-tbaicar@codeaurora.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:40770 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756703AbcILU57 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Sep 2016 16:57:59 -0400
 In-Reply-To: <1473713845-23613-1-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, matt.fleming@intel.com, paul.gortmaker@windriver.com, bp@suse.de, zjzhang@codeaurora.org, sudipm.mukherjee@gmail.com, axboe@fb.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 Cc: Tyler Baicar <tbaicar@codeaurora.org>
-List-Id: linux-acpi@vger.kernel.org
 
-Currently the AER severity is being translated twice in
-the code flow for PCIe errors. It is first translated in
-ghes_do_proc() before calling into the AER driver. Then it
-is translated again when the AER driver calls cper_print_aer().
-This causes the severity that is used in cper_print_aer() to
-be incorrect. Remove the second translation that is in
-cper_print_aer() since this function is already recieving the
-correct AER severity.
+Currently the AER severity is calculated by calling
+cper_severity_to_aer(), but the parameter sent is actually the
+GHES severity. This causes the AER severity to be incorrect.
+Fix the parameter to be the CPER severity instead of the GHES
+severity.
 
 Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
 ---
- drivers/pci/pcie/aer/aerdrv_errprint.c | 6 ++----
- include/linux/aer.h                    | 2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/acpi/apei/ghes.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 167fe41..54c4b69 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -219,15 +219,13 @@ int cper_severity_to_aer(int cper_severity)
- }
- EXPORT_SYMBOL_GPL(cper_severity_to_aer);
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 60746ef..f0a029e 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -457,7 +457,7 @@ static void ghes_do_proc(struct ghes *ghes,
  
--void cper_print_aer(struct pci_dev *dev, int cper_severity,
-+void cper_print_aer(struct pci_dev *dev, int aer_severity,
- 		    struct aer_capability_regs *aer)
- {
--	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
-+	int layer, agent, status_strs_size, tlp_header_valid = 0;
- 	u32 status, mask;
- 	const char **status_strs;
+ 				devfn = PCI_DEVFN(pcie_err->device_id.device,
+ 						  pcie_err->device_id.function);
+-				aer_severity = cper_severity_to_aer(sev);
++				aer_severity = cper_severity_to_aer(gdata->error_severity);
  
--	aer_severity = cper_severity_to_aer(cper_severity);
--
- 	if (aer_severity == AER_CORRECTABLE) {
- 		status = aer->cor_status;
- 		mask = aer->cor_mask;
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index 1640493..04602cb 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -63,7 +63,7 @@ static inline int pci_cleanup_aer_error_status_regs(struct pci_dev *dev)
- }
- #endif
- 
--void cper_print_aer(struct pci_dev *dev, int cper_severity,
-+void cper_print_aer(struct pci_dev *dev, int aer_severity,
- 		    struct aer_capability_regs *aer);
- int cper_severity_to_aer(int cper_severity);
- void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+ 				/*
+ 				 * If firmware reset the component to contain
 -- 
 Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project.
+
