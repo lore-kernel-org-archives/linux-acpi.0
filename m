@@ -1,44 +1,108 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 4/6] driver core: Don't leak secondary fwnode on device removal
-Date: Tue, 13 Sep 2016 00:03:38 +0200
-Message-ID: <2138721.OSYGqcTspe@vostro.rjw.lan>
-References: <cover.1469616641.git.lukas@wunner.de> <6868582.iUcUV1Tb36@vostro.rjw.lan> <20160830090325.GA25024@wunner.de>
+Subject: Re: [PATCH] ACPI / battery: Add sysfs representation after checking _BST
+Date: Tue, 13 Sep 2016 00:04:32 +0200
+Message-ID: <2539225.9WgVDR0Yhb@vostro.rjw.lan>
+References: <1470842655-23882-1-git-send-email-carlosg@gnome.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43345 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50144 "HELO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1752078AbcILV5c (ORCPT
+        by vger.kernel.org with SMTP id S1752078AbcILV60 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 17:57:32 -0400
-In-Reply-To: <20160830090325.GA25024@wunner.de>
+        Mon, 12 Sep 2016 17:58:26 -0400
+In-Reply-To: <1470842655-23882-1-git-send-email-carlosg@gnome.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, Pierre Moreau <pierre.morrow@free.fr>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org
+To: Carlos Garnacho <carlosg@gnome.org>
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com
 
-On Tuesday, August 30, 2016 11:03:25 AM Lukas Wunner wrote:
-> On Wed, Aug 17, 2016 at 02:38:50AM +0200, Rafael J. Wysocki wrote:
-> > On Thursday, July 28, 2016 02:25:41 AM Lukas Wunner wrote:
-> > > If device_add_property_set() is called for a device, a secondary fwnode
-> > > is allocated and assigned to the device but currently not freed once the
-> > > device is removed.
-> > > 
-> > > This can be triggered on Apple Macs if a Thunderbolt device is plugged
-> > > in on boot since Apple's NHI EFI driver sets a number of properties for
-> > > that device which are leaked on unplug.
-> > > 
-> > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > Cc: Andreas Noever <andreas.noever@gmail.com>
-> > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> > 
-> > ACK, or I can apply it directly if you want me to do that.
+On Wednesday, August 10, 2016 05:24:15 PM Carlos Garnacho wrote:
+> Thus move sysfs_add_battery() after acpi_battery_get_state(), which doesn't
+> require the power_supply. Prevents possible hanged tasks if
+> acpi_battery_get_state() fails consistently (and takes a long time in doing
+> so) when called inside acpi_battery_add().
 > 
-> Yes, if you could apply it directly I'd be grateful.
+> In this situation the battery module first calls sysfs_add_battery(),
+> which creates a power_supply, which spawns an async
+> power_supply_deferred_register_work() task, which shall try to hold the
+> parent battery device mutex (being already held) so this register work
+> is set up after device initialization. If initialization takes long enough
+> the thread will be eventually run and try to hold the mutex before
+> acpi_battery_add() had the chance to finish.
+> 
+> Eventually the 5 retries in acpi_battery_update_retry() fail, the error
+> state is propagated, and results in sysfs_remove_battery() being called
+> within the error handling paths of acpi_battery_add(), and the power_supply
+> tear down too.
+> 
+> This triggers a cancel_delayed_work_sync() of the deferred_register_work
+> task, which ends up in schedule(). The end result is that the deferred
+> task is blocked trying to acquire the parent device mutex, which is not
+> released because the thread doing initialization (and failure handling)
+> went to sleep awaiting for the deferred task to be cancelled.
+> 
+> The hanged tasks look like this:
+> 
+> INFO: task kworker/u8:0:6 blocked for more than 120 seconds.
+>  ...
+> Call Trace:
+>  [<ffffffff815daec5>] schedule+0x35/0x80
+>  [<ffffffff815dda3c>] schedule_timeout+0x1ec/0x250
+>  [<ffffffff810a0572>] ? check_preempt_curr+0x52/0x90
+>  [<ffffffff810a05c9>] ? ttwu_do_wakeup+0x19/0xe0
+>  [<ffffffff815db915>] wait_for_common+0xc5/0x190
+>  [<ffffffff810a1500>] ? wake_up_q+0x70/0x70
+>  [<ffffffff815db9fd>] wait_for_completion+0x1d/0x20
+>  [<ffffffff8108ffb1>] flush_work+0x111/0x1c0
+>  [<ffffffff8108dfe0>] ? flush_workqueue_prep_pwqs+0x1a0/0x1a0
+>  [<ffffffff810909af>] __cancel_work_timer+0x9f/0x1d0
+>  [<ffffffff81090b13>] cancel_delayed_work_sync+0x13/0x20
+>  [<ffffffff8147ac67>] power_supply_unregister+0x37/0xc0
+>  [<ffffffffa058b03d>] sysfs_remove_battery+0x3d/0x52 [battery]
+>  [<ffffffffa058bf3a>] acpi_battery_add+0x112/0x181 [battery]
+>  [<ffffffff81366db6>] acpi_device_probe+0x54/0x19b
+>  [<ffffffff81427e9c>] driver_probe_device+0x22c/0x440
+>  [<ffffffff81428181>] __driver_attach+0xd1/0xf0
+>  [<ffffffff814280b0>] ? driver_probe_device+0x440/0x440
+>  [<ffffffff8142591c>] bus_for_each_dev+0x6c/0xc0
+>  [<ffffffff8142758e>] driver_attach+0x1e/0x20
+>  [<ffffffff81426fc3>] bus_add_driver+0x1c3/0x280
+>  [<ffffffff81428b00>] driver_register+0x60/0xe0
+>  [<ffffffff81366c80>] acpi_bus_register_driver+0x3b/0x43
+>  [<ffffffffa0591040>] acpi_battery_init_async+0x1c/0x1e [battery]
+>  [<ffffffff81099268>] async_run_entry_fn+0x48/0x150
+>  [<ffffffff81090d09>] process_one_work+0x1e9/0x440
+>  [<ffffffff81090fab>] worker_thread+0x4b/0x4f0
+>  [<ffffffff81090f60>] ? process_one_work+0x440/0x440
+>  [<ffffffff81096b58>] kthread+0xd8/0xf0
+>  [<ffffffff815de97f>] ret_from_fork+0x1f/0x40
+>  [<ffffffff81096a80>] ? kthread_worker_fn+0x180/0x180
+> 
+> INFO: task kworker/u8:4:282 blocked for more than 120 seconds.
+>  ...
+> Call Trace:
+>  [<ffffffff810ad745>] ? put_prev_entity+0x35/0x8b0
+>  [<ffffffff815daec5>] schedule+0x35/0x80
+>  [<ffffffff815db14e>] schedule_preempt_disabled+0xe/0x10
+>  [<ffffffff815dc533>] __mutex_lock_slowpath+0xb3/0x120
+>  [<ffffffff815dc5bf>] mutex_lock+0x1f/0x30
+>  [<ffffffff8147a59b>] power_supply_deferred_register_work+0x2b/0x50
+>  [<ffffffff81090d09>] process_one_work+0x1e9/0x440
+>  [<ffffffff81090fab>] worker_thread+0x4b/0x4f0
+>  [<ffffffff81090f60>] ? process_one_work+0x440/0x440
+>  [<ffffffff81090f60>] ? process_one_work+0x440/0x440
+>  [<ffffffff81096b58>] kthread+0xd8/0xf0
+>  [<ffffffff815de97f>] ret_from_fork+0x1f/0x40
+>  [<ffffffff81096a80>] ? kthread_worker_fn+0x180/0x180
+> 
+> Making sysfs_add_battery() the last operation here means that the
+> power_supply won't be created yet when the acpi_add_battery() failure
+> handling happens, the deferred task won't even spawn, and
+> sysfs_remove_battery will just skip over the NULL battery->bat.
+> 
+> Signed-off-by: Carlos Garnacho <carlosg@gnome.org>
 
 Applied.
 
