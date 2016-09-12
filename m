@@ -1,66 +1,82 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial
- support
-Date: Mon, 12 Sep 2016 20:36:07 +0100
-Message-ID: <20160912203607.591773e6@why.wild-wind.fr.eu.org>
-References: <1473705147-6588-2-git-send-email-tn@semihalf.com>
-        <1473706460-9037-1-git-send-email-tn@semihalf.com>
-        <87c1d6a4-a760-9f8a-ddbe-7cf6655d575b@semihalf.com>
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: Re: [PATCH 00/26] constify local structures
+Date: Mon, 12 Sep 2016 23:14:50 +0300
+Message-ID: <20160912201450.GA8889@intel.com>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
+ <20160911172105.GB5493@intel.com>
+ <alpine.DEB.2.10.1609121051050.3049@hadrien>
+ <20160912131625.GD957@intel.com> <877fah5j35.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <87c1d6a4-a760-9f8a-ddbe-7cf6655d575b@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <877fah5j35.fsf@linux.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Felipe Balbi <felipe.balbi@linux.intel.com>
+Cc: alsa-devel@alsa-project.org, Mustafa Ismail <mustafa.ismail@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, kernel-janitors@vger.kernel.org, linux-fbdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, tpmdd-devel@lists.sourceforge.net, linux-media@vger.kernel.org, linux-pm@vger.kernel.org, linux-can@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Shiraz Saleem <shiraz.saleem@intel.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, netdev@vger.kernel.org, Chien Tin Tung <chien.tin.tung@intel.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-usb@vger.kernel.org, joe@perches.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 12 Sep 2016 20:58:42 +0200
-Tomasz Nowicki <tn@semihalf.com> wrote:
-
-> On 12.09.2016 20:54, Tomasz Nowicki wrote:
-> > IORT shows representation of IO topology for ARM based systems.
-> > It describes how various components are connected together on
-> > parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
-> > http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
-> >
-> > Initial support allows to detect IORT table presence and save its
-> > root pointer obtained through acpi_get_table(). The pointer validity
-> > depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
-> > is not set while using IORT nodes we would dereference unmapped pointers.
-> >
-> > For the aforementioned reason call acpi_iort_init() from acpi_init()
-> > which guarantees acpi_gbl_permanent_mmap to be set at that point.
-> >
-> > Add generic helpers which are helpful for scanning and retrieving
-> > information from IORT table content. List of the most important helpers:
-> > - iort_find_dev_node() finds IORT node for a given device
-> > - iort_node_map_rid() maps device RID and returns IORT node which provides
-> >   final translation
-> >
-> > IORT support is placed under drivers/acpi/arm64/ new directory due to its
-> > ARM64 specific nature. The code there is considered only for ARM64.
-> > The long term plan is to keep all ARM64 specific tables support
-> > in this place e.g. GTDT table.
-> >
-> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>  
+On Mon, Sep 12, 2016 at 04:43:58PM +0300, Felipe Balbi wrote:
 > 
-> Hi Marc,
+> Hi,
 > 
-> Series with updated patch 1 can be found:
-> https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v11)
+> Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
+> > On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
+> >> 
+> >> 
+> >> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+> >> 
+> >> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
+> >> > > Constify local structures.
+> >> > >
+> >> > > The semantic patch that makes this change is as follows:
+> >> > > (http://coccinelle.lip6.fr/)
+> >> >
+> >> > Just my two cents but:
+> >> >
+> >> > 1. You *can* use a static analysis too to find bugs or other issues.
+> >> > 2. However, you should manually do the commits and proper commit
+> >> >    messages to subsystems based on your findings. And I generally think
+> >> >    that if one contributes code one should also at least smoke test changes
+> >> >    somehow.
+> >> >
+> >> > I don't know if I'm alone with my opinion. I just think that one should
+> >> > also do the analysis part and not blindly create and submit patches.
+> >> 
+> >> All of the patches are compile tested.  And the individual patches are
+> >
+> > Compile-testing is not testing. If you are not able to test a commit,
+> > you should explain why.
 > 
-> Sorry for zillions of patch updates...
+> Dude, Julia has been doing semantic patching for years already and
+> nobody has raised any concerns so far. There's already an expectation
+> that Coccinelle *works* and Julia's sematic patches are sound.
+> 
+> Besides, adding 'const' is something that causes virtually no functional
+> changes to the point that build-testing is really all you need. Any
+> problems caused by adding 'const' to a definition will be seen by build
+> errors or warnings.
+> 
+> Really, just stop with the pointless discussion and go read a bit about
+> Coccinelle and what semantic patches are giving you. The work done by
+> Julia and her peers are INRIA have measurable benefits.
+> 
+> You're really making a thunderstorm in a glass of water.
 
-I've swapped the two patches and pushed the result out again, but from
-now on, please send updates on top of irq/irqchip-4.9.
+Hmm... I've been using coccinelle in cyclic basis for some time now.
+My comment was oversized but I didn't mean it to be impolite or attack
+of any kind for that matter.
 
-Thanks,
+> -- 
+> balbi
 
-	M.
--- 
-Without deviation from the norm, progress is not possible.
+/Jarkko
