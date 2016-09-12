@@ -1,86 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [UPDATE PATCH V10 1/8] ACPI: I/O Remapping Table (IORT) initial support
-Date: Mon, 12 Sep 2016 15:43:52 +0200
-Message-ID: <6844783.vEMDYH8fjO@vostro.rjw.lan>
-References: <1473152938-17388-2-git-send-email-tn@semihalf.com> <38e36eee-cece-75db-4781-5727dd11c93d@semihalf.com> <57D6A7DD.1060305@arm.com>
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Subject: Re: [PATCH 00/26] constify local structures
+Date: Mon, 12 Sep 2016 16:43:58 +0300
+Message-ID: <877fah5j35.fsf@linux.intel.com>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr> <20160911172105.GB5493@intel.com> <alpine.DEB.2.10.1609121051050.3049@hadrien> <20160912131625.GD957@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63347 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1755984AbcILNhs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Sep 2016 09:37:48 -0400
-In-Reply-To: <57D6A7DD.1060305@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160912131625.GD957@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Julia Lawall <julia.lawall@lip6.fr>
+Cc: linux-renesas-soc@vger.kernel.org, joe@perches.com, kernel-janitors@vger.kernel.org, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-media@vger.kernel.org, linux-can@vger.kernel.org, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devel@driverdev.osuosl.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-wireless@vger.kernel.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org, linux-spi@vger.kernel.orgl
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, helgaas@kernel.org, rafael@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, shijie.huang@arm.com, robert.richter@caviumnetworks.com, mw@semihalf.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, al.stone@linaro.org, graeme.gregory@linaro.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On Monday, September 12, 2016 02:04:29 PM Marc Zyngier wrote:
-> On 12/09/16 13:37, Tomasz Nowicki wrote:
-> > Hi Rafael,
-> > 
-> > On 09.09.2016 11:20, Lorenzo Pieralisi wrote:
-> >> Hi Rafael,
-> >>
-> >> On Wed, Sep 07, 2016 at 01:56:52PM +0200, Tomasz Nowicki wrote:
-> >>> IORT shows representation of IO topology for ARM based systems.
-> >>> It describes how various components are connected together on
-> >>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
-> >>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
-> >>>
-> >>> Initial support allows to detect IORT table presence and save its
-> >>> root pointer obtained through acpi_get_table(). The pointer validity
-> >>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
-> >>> is not set while using IORT nodes we would dereference unmapped pointers.
-> >>>
-> >>> For the aforementioned reason call iort_table_detect() from acpi_init()
-> >>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
-> >>>
-> >>> Add generic helpers which are helpful for scanning and retrieving
-> >>> information from IORT table content. List of the most important helpers:
-> >>> - iort_find_dev_node() finds IORT node for a given device
-> >>> - iort_node_map_rid() maps device RID and returns IORT node which provides
-> >>>   final translation
-> >>>
-> >>> IORT support is placed under drivers/acpi/arm64/ new directory due to its
-> >>> ARM64 specific nature. The code there is considered only for ARM64.
-> >>> The long term plan is to keep all ARM64 specific tables support
-> >>> in this place e.g. GTDT table.
-> >>>
-> >>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> >>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>> ---
-> >>
-> >> Apart from the minor commit logs oversights we consider these two
-> >> patches ready to go, please let us know if there is something you want
-> >> changed since we are at risk of missing yet another merge window.
-> >>
-> >> It is ARM64 specific code, we created and moved the code to its
-> >> ARM64 specific directory and we are happy to maintain it as such,
-> >> we need your ACK to get this done so if there is something you
-> >> want changed please let us know otherwise I would ask your ACK
-> >> on these two patches to give Marc a go-ahead for -next and
-> >> hopefully 4.9.
-> > 
-> > Kindly reminder. Is there anything we need to do more about these 
-> > patches? Please let us know. Note this is the major thing for incoming 
-> > IORT more advance feature.
-> 
-> May I convey a slight sense of urgency here? I'd like to cut the irqchip
-> branch for 4.9 pretty soon (this week), in order to let it sink in -next
-> for a few days at the very least.
-> 
-> It'd be a bit disappointing if these patches missed the boat this time
-> again.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Both [1-2/8] are fine by me.
 
-Please feel free to add my ACKs to those when you apply them.
+Hi,
 
-Thanks,
-Rafael
+Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
+> On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
+>>=20
+>>=20
+>> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+>>=20
+>> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
+>> > > Constify local structures.
+>> > >
+>> > > The semantic patch that makes this change is as follows:
+>> > > (http://coccinelle.lip6.fr/)
+>> >
+>> > Just my two cents but:
+>> >
+>> > 1. You *can* use a static analysis too to find bugs or other issues.
+>> > 2. However, you should manually do the commits and proper commit
+>> >    messages to subsystems based on your findings. And I generally think
+>> >    that if one contributes code one should also at least smoke test ch=
+anges
+>> >    somehow.
+>> >
+>> > I don't know if I'm alone with my opinion. I just think that one should
+>> > also do the analysis part and not blindly create and submit patches.
+>>=20
+>> All of the patches are compile tested.  And the individual patches are
+>
+> Compile-testing is not testing. If you are not able to test a commit,
+> you should explain why.
 
+Dude, Julia has been doing semantic patching for years already and
+nobody has raised any concerns so far. There's already an expectation
+that Coccinelle *works* and Julia's sematic patches are sound.
+
+Besides, adding 'const' is something that causes virtually no functional
+changes to the point that build-testing is really all you need. Any
+problems caused by adding 'const' to a definition will be seen by build
+errors or warnings.
+
+Really, just stop with the pointless discussion and go read a bit about
+Coccinelle and what semantic patches are giving you. The work done by
+Julia and her peers are INRIA have measurable benefits.
+
+You're really making a thunderstorm in a glass of water.
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJX1rEeAAoJEMy+uJnhGpkGoEAQAJuttoDMSYPwtz/VwCtE7bUk
+aXQ+cEoH0/iubhhEjft1l3lvO/wFT9jhKieX1Q8qZQtvbIQAhlPcBsF0n5Nj0U1b
+jF3w2wGm4i9Li6Njgy6GFnIRLkvWFdTj/y9VpFi/qhcarubD1XWn1rmeCz6z8s9w
+uJ19WNX7htXt2iWA5vqAewHen7xufj7nuIZLfU8E227g5N+ePuVNjRwc6zFoD0ZV
+iGAIinF/NU+r62zSUxZEUsO1UBxPHITIEFJgO8yOXebQ1iN05oqE/I9yIfQF5Jgw
+YU0XIH1tO7hCrFmhJkU9moQeRoRPdvXAV1yAslK+PqzaafW6Z5apOKS1IVeF0peb
+Z1T6Mhf1D8n0zU2KeShU9Ycygz1C+QBMWaLPlSPYVbHBW8RwGiDJP8H9eDBLH++J
+BjuieYb0HsZYy+8P2PAZOIi0EyyT51p1WfldSYyyI/MH9uTuk/ifdwBESdlkZdBt
+3PVZRhRjxSuVC9n4pj+b+CmO02G1WE7hS+EvGMEicP7oCOYIh93VPldGE2Aaltwe
+dedqi7JY2WvfDE1kVKjHsIpyraUrN8/kc6OpGuUXsoeyVmAIbrCXLAJpKS43Aw9r
+UU7dmuGvrRr8oBxytzoFA7FB8fTzmlTPPurzhOdrSvYvRQGYvOMgz2F9C/BBkimU
+wx96Gkyu+FMi4THwN7uU
+=p41K
+-----END PGP SIGNATURE-----
+--=-=-=--
