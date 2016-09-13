@@ -1,117 +1,299 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v12 7/8] clocksource/drivers/arm_arch_timer: Add GTDT
- support for memory-mapped timer
-Date: Tue, 13 Sep 2016 19:31:36 +0800
-Message-ID: <cc5a4eea-a8d9-3657-1938-610d2b4e855e@linaro.org>
-References: <1473763144-5653-1-git-send-email-fu.wei@linaro.org>
- <1473763144-5653-8-git-send-email-fu.wei@linaro.org>
- <57D7DC59.6000705@arm.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v12 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Tue, 13 Sep 2016 19:33:54 +0800
+Message-ID: <1c2fb3fb-be7b-8980-e70d-e57080888c94@cn.fujitsu.com>
+References: <1472114120-3281-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <5cdaa83f-142b-b9a0-6b7b-57c9162fc537@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57D7DC59.6000705-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5cdaa83f-142b-b9a0-6b7b-57c9162fc537@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marc,
+Ping...
 
-
-On 09/13/2016 07:00 PM, Marc Zyngier wrote:
-> Argh, new version...
+At 09/02/2016 02:57 PM, Dou Liyang wrote:
+> Ping...
 >
-> On 13/09/16 11:39, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> At 08/25/2016 04:35 PM, Dou Liyang wrote:
+>> [Summary]
 >>
->> The patch add memory-mapped timer register support by using the information
->> provided by the new GTDT driver of ACPI.
+>> Use ACPI tables: MADT, DSDT.
+>> 1. Create cpuid in order based on Local Apic ID in MADT(apicid).
+>> 2. Obtain the nodeid by the proc_id in DSDT.
+>> 3. Make the cpuid <-> nodeid mapping persistent.
 >>
->> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> ---
->>  drivers/clocksource/arm_arch_timer.c | 127 ++++++++++++++++++++++++++++++++++-
->>  1 file changed, 124 insertions(+), 3 deletions(-)
+>> The mapping relations:
 >>
->> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
->> index 0197ef9..d33802b 100644
->> --- a/drivers/clocksource/arm_arch_timer.c
->> +++ b/drivers/clocksource/arm_arch_timer.c
->> @@ -888,7 +888,128 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
->>  		       arch_timer_mem_init);
->>  
->>  #ifdef CONFIG_ACPI_GTDT
->> -/* Initialize per-processor generic timer */
->> +static struct gt_timer_data __init *arch_timer_mem_get_timer(
->> +						struct gt_block_data *gt_blocks)
->> +{
->> +	struct gt_block_data *gt_block = gt_blocks;
->> +	struct gt_timer_data *best_frame = NULL;
->> +	void __iomem *cntctlbase;
->> +	u32 cnttidr;
->> +	int i;
->> +
->> +	/*
->> +	 * According to ARMv8 Architecture Reference Manual(ARM),
->> +	 * the size of CNTCTLBase frame of memory-mapped timer
->> +	 * is SZ_4K(Offset 0x000 – 0xFFF).
->> +	 */
->> +	cntctlbase = ioremap(gt_block->cntctlbase_phy, SZ_4K);
->> +	if (!cntctlbase) {
->> +		pr_err("Failed to map mem timer control frame base address\n");
->> +		return NULL;
->> +	}
->> +	cnttidr = readl_relaxed(cntctlbase + CNTTIDR);
->> +
->> +	/*
->> +	 * Try to find a virtual capable frame. Otherwise fall back to a
->> +	 * physical capable frame.
->> +	 */
->> +	for (i = 0; i < gt_block->timer_count; i++) {
->> +		int n;
->> +		u32 cntacr;
->> +
->> +		n = gt_block->timer[i].frame_nr;
->> +
->> +		/* Try enabling everything, and see what sticks */
->> +		cntacr = CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT |
->> +			 CNTACR_RWVT | CNTACR_RVOFF | CNTACR_RVCT;
->> +		writel_relaxed(cntacr, cntctlbase + CNTACR(n));
->> +		cntacr = readl_relaxed(cntctlbase + CNTACR(n));
->> +
->> +		if ((cnttidr & CNTTIDR_VIRT(n)) &&
->> +		    !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT))) {
->> +			best_frame = &gt_block->timer[i];
->> +			arch_timer_mem_use_virtual = true;
->> +			break;
->> +		}
->> +
->> +		if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
->> +			continue;
->> +
->> +		best_frame = &gt_block->timer[i];
->> +	}
->> +	iounmap(cntctlbase);
-> As I just said in my reply to the same patch in v11, all of this is
-> duplicating existing infrastructure that already exists for DT. Please
-> consider decoupling the core driver code from the firmware side and make
-> this reusable.
-
-Great thanks for your help, I am working on it now.
-Any suggestion for other arm_arch_timer patches?
-
-> Thanks,
+>> proc_id in DSDT <--> Processor ID in MADT(acpiid) <--> Local Apic ID
+>> in MADT(apicid)
+>>         ^                                                        ^
+>>         |                                                        |
+>>         v                                                        v 
+>>    pxm in DSDT                                                 cpuid
+>>         ^
+>>         |
+>>         v
+>>      nodeid
+>>
+>> [Problem]
+>>
+>> cpuid <-> nodeid mapping is firstly established at boot time. And
+>> workqueue caches
+>> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+>>
+>> When doing node online/offline, cpuid <-> nodeid mapping is
+>> established/destroyed,
+>> which means, cpuid <-> nodeid mapping will change if node hotplug
+>> happens. But
+>> workqueue does not update wq_numa_possible_cpumask.
+>>
+>> So here is the problem:
+>>
+>> Assume we have the following cpuid <-> nodeid in the beginning:
+>>
+>>   Node | CPU
+>> ------------------------
+>> node 0 |  0-14, 60-74
+>> node 1 | 15-29, 75-89
+>> node 2 | 30-44, 90-104
+>> node 3 | 45-59, 105-119
+>>
+>> and we hot-remove node2 and node3, it becomes:
+>>
+>>   Node | CPU
+>> ------------------------
+>> node 0 |  0-14, 60-74
+>> node 1 | 15-29, 75-89
+>>
+>> and we hot-add node4 and node5, it becomes:
+>>
+>>   Node | CPU
+>> ------------------------
+>> node 0 |  0-14, 60-74
+>> node 1 | 15-29, 75-89
+>> node 4 | 30-59
+>> node 5 | 90-119
+>>
+>> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and
+>> the like.
+>>
+>> When a pool workqueue is initialized, if its cpumask belongs to a
+>> node, its
+>> pool->node will be mapped to that node. And memory used by this
+>> workqueue will
+>> also be allocated on that node.
+>>
+>> static struct worker_pool *get_unbound_pool(const struct
+>> workqueue_attrs *attrs){
+>> ...
+>>         /* if cpumask is contained inside a NUMA node, we belong to
+>> that node */
+>>         if (wq_numa_enabled) {
+>>                 for_each_node(node) {
+>>                         if (cpumask_subset(pool->attrs->cpumask,
+>>
+>> wq_numa_possible_cpumask[node])) {
+>>                                 pool->node = node;
+>>                                 break;
+>>                         }
+>>                 }
+>>         }
+>>
+>> Since wq_numa_possible_cpumask is not updated, it could be mapped to
+>> an offline node,
+>> which will lead to memory allocation failure:
+>>
+>>  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+>>   cache: kmalloc-192, object size: 192, buffer size: 192, default
+>> order: 1, min order: 0
+>>   node 0: slabs: 6172, objs: 259224, free: 245741
+>>   node 1: slabs: 3261, objs: 136962, free: 127656
+>>
+>> It happens here:
+>>
+>> create_worker(struct worker_pool *pool)
+>>  |--> worker = alloc_worker(pool->node);
+>>
+>> static struct worker *alloc_worker(int node)
+>> {
+>>         struct worker *worker;
+>>
+>>         worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); -->
+>> Here, useing the wrong node.
+>>
+>>         ......
+>>
+>>         return worker;
+>> }
+>>
+>>
+>> [Solution]
+>>
+>> There are four mappings in the kernel:
+>> 1. nodeid (logical node id)   <->   pxm
+>> 2. apicid (physical cpu id)   <->   nodeid
+>> 3. cpuid (logical cpu id)     <->   apicid
+>> 4. cpuid (logical cpu id)     <->   nodeid
+>>
+>> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and
+>> nodeid <-> pxm
+>>    mapping is setup at boot time. This mapping is persistent, won't
+>> change.
+>>
+>> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is
+>> setup at boot
+>>    time and CPU hotadd time, and cleared at CPU hotremove time. This
+>> mapping is also
+>>    persistent.
+>>
+>> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time.
+>> cpuid is
+>>    allocated, lower ids first, and released at CPU hotremove time,
+>> reused for other
+>>    hotadded CPUs. So this mapping is not persistent.
+>>
+>> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd
+>> time, and
+>>    cleared at CPU hotremove time. As a result of 3, this mapping is
+>> not persistent.
+>>
+>> To fix this problem, we establish cpuid <-> nodeid mapping for all the
+>> possible
+>> cpus at boot time, and make it persistent. And according to
+>> init_cpu_to_node(),
+>> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and
+>> cpuid <-> apicid
+>> mapping. So the key point is obtaining all cpus' apicid.
+>>
+>> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or
+>> found in
+>> MADT (Multiple APIC Description Table). So we finish the job in the
+>> following steps:
+>>
+>> 1. Enable apic registeration flow to handle both enabled and disabled
+>> cpus.
+>>    This is done by introducing an extra parameter to
+>> generic_processor_info to let the
+>>    caller control if disabled cpus are ignored.
+>>
+>> 2. Introduce a new array storing all possible cpuid <-> apicid
+>> mapping. And also modify
+>>    the way cpuid is calculated. Establish all possible cpuid <->
+>> apicid mapping when
+>>    registering local apic. Store the mapping in this array.
+>>
+>> 3. Enable _MAT and MADT relative apis to return non-presnet or
+>> disabled cpus' apicid.
+>>    This is also done by introducing an extra parameter to these apis
+>> to let the caller
+>>    control if disabled cpus are ignored.
+>>
+>> 4. Establish all possible cpuid <-> nodeid mapping.
+>>    This is done via an additional acpi namespace walk for processors.
+>>
+>>
+>> For previous discussion, please refer to:
+>> https://lkml.org/lkml/2015/2/27/145
+>> https://lkml.org/lkml/2015/3/25/989
+>> https://lkml.org/lkml/2015/5/14/244
+>> https://lkml.org/lkml/2015/7/7/200
+>> https://lkml.org/lkml/2015/9/27/209
+>> https://lkml.org/lkml/2016/5/19/212
+>> https://lkml.org/lkml/2016/7/19/181
+>> https://lkml.org/lkml/2016/7/25/99
+>> https://lkml.org/lkml/2016/7/26/52
+>> https://lkml.org/lkml/2016/8/8/96
+>>
+>> Change log v11 -> v12:
+>> 1. Rebase
+>> 2. Add a short summary
+>>
+>> Change log v10 -> v11:
+>> 1. Reduce the number of repeat judgment of online/offline
+>> 2. Seperate out the functionality in the enable or disable situation
+>>
+>> Change log v9 -> v10:
+>> 1. Providing an empty definition of acpi_set_processor_mapping() for
+>> CONFIG_ACPI_HOTPLUG_CPU unset. In patch 5.
+>> 2. Fix auto build test ERROR on ia64/next. In patch 5.
+>> 3. Fix some comment.
+>>
+>> Change log v8 -> v9:
+>> 1. Providing an empty definition of acpi_set_processor_mapping() for
+>> CONFIG_ACPI_HOTPLUG_CPU unset.
+>>
+>> Change log v7 -> v8:
+>> 1. Provide the mechanism to validate processors in the ACPI tables.
+>> 2. Provide the interface to validate the proc_id when setting the
+>> mapping.
+>>
+>> Change log v6 -> v7:
+>> 1. Fix arm64 build failure.
+>>
+>> Change log v5 -> v6:
+>> 1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
+>>
+>> Change log v4 -> v5:
+>> 1. Remove useless code in patch 1.
+>> 2. Small improvement of commit message.
+>>
+>> Change log v3 -> v4:
+>> 1. Fix the kernel panic at boot time. The cause is that I tried to
+>> build zonelists
+>>    before per cpu areas were initialized.
+>>
+>> Change log v2 -> v3:
+>> 1. Online memory-less nodes at boot time to map cpus of memory-less
+>> nodes.
+>> 2. Build zonelists for memory-less nodes so that memory allocator will
+>> fall
+>>    back to proper nodes automatically.
+>>
+>> Change log v1 -> v2:
+>> 1. Split code movement and actual changes. Add patch 1.
+>> 2. Synchronize best near online node record when node hotplug happens.
+>> In patch 2.
+>> 3. Fix some comment.
+>>
+>> Dou Liyang (2):
+>>   acpi: Provide the mechanism to validate processors in the ACPI tables
+>>   acpi: Provide the interface to validate the proc_id
+>>
+>> Gu Zheng (4):
+>>   x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+>>     boot time.
+>>   x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+>>     persistent cpuid <-> apicid mapping.
+>>   x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+>>   x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+>>     booting.
+>>
+>> Tang Chen (1):
+>>   x86, memhp, numa: Online memory-less nodes at boot time.
+>>
+>>  arch/ia64/kernel/acpi.c       |   3 +-
+>>  arch/x86/include/asm/mpspec.h |   1 +
+>>  arch/x86/kernel/acpi/boot.c   |  11 ++--
+>>  arch/x86/kernel/apic/apic.c   |  77 +++++++++++++++++++++++--
+>>  arch/x86/mm/numa.c            |  27 +++++----
+>>  drivers/acpi/acpi_processor.c | 105 ++++++++++++++++++++++++++++++++-
+>>  drivers/acpi/bus.c            |   1 +
+>>  drivers/acpi/processor_core.c | 131
+>> +++++++++++++++++++++++++++++++++++-------
+>>  include/linux/acpi.h          |   6 ++
+>>  9 files changed, 311 insertions(+), 51 deletions(-)
+>>
 >
-> 	M.
+>
 
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
