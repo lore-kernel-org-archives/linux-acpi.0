@@ -1,93 +1,38 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v11 5/8] clocksource/drivers/arm_arch_timer: Simplify ACPI
- support code.
-Date: Tue, 13 Sep 2016 17:22:42 +0800
-Message-ID: <CADyBb7v-b1bKGBdH6J78UhfCcQd=BJLFoZ16GNgmrd2EucjYDA@mail.gmail.com>
-References: <1473168352-5156-1-git-send-email-fu.wei@linaro.org>
- <1473168352-5156-6-git-send-email-fu.wei@linaro.org> <alpine.DEB.2.20.1609061635000.5647@nanos>
- <CADyBb7uX79UP=mUxvP-EPGi56-46y2SCMPsWO=Uw-=N0GQERhA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/3] ACPI / sysfs: Cleanup sysfs table handling code
+Date: Tue, 13 Sep 2016 17:48:14 +0800
+Message-ID: <cover.1473759814.git.lv.zheng@intel.com>
+References: <cover.1471337441.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:35246 "EHLO
-        mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756709AbcIMJWn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Sep 2016 05:22:43 -0400
-Received: by mail-oi0-f50.google.com with SMTP id w11so1019542oia.2
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Sep 2016 02:22:43 -0700 (PDT)
-In-Reply-To: <CADyBb7uX79UP=mUxvP-EPGi56-46y2SCMPsWO=Uw-=N0GQERhA@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:39000 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752883AbcIMJsV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Sep 2016 05:48:21 -0400
+In-Reply-To: <cover.1471337441.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei Huang <wei@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi Thomas, Daniel,
+There are issues in sysfs table handling code:
+1. It cannot handle table loaded by LoadTable opcode executed after
+   acpi_sysfs_init();
+2. Its signature handling code is not correct.
+This patchset fixes these issues.
 
-For these  arm_arch_timer patches, do you have any other suggestion or comm=
-ent?
-I have deleted "skipping" in the error message.
+This patchset also contains a regression fix, fixing a mistake caused in
+ACPICA upstream due to a rebase problem, the wrong commit is released in
+the ACPICA 20160831 release cycle.
 
-I have prepared v12 (rebase to rc6 and on the top of IORT v11),
-should I send it now (if you are OK with my arm_arch_timer patches ),
-or anything I can do to improve this patchset ?
+Lv Zheng (3):
+  ACPICA: Tables: Fix a regression in acpi_tb_find_table()
+  ACPI / sysfs: Fix an issue for LoadTable opcode
+  ACPI / sysfs: Update sysfs signature handling code
 
-Thanks.
+ drivers/acpi/acpica/tbfind.c |    2 +-
+ drivers/acpi/sysfs.c         |   66 +++++++++++++++++++++++-------------------
+ 2 files changed, 37 insertions(+), 31 deletions(-)
 
-On 7 September 2016 at 17:23, Fu Wei <fu.wei@linaro.org> wrote:
-> Hi Thomas
->
-> On 6 September 2016 at 22:36, Thomas Gleixner <tglx@linutronix.de> wrote:
->> On Tue, 6 Sep 2016, fu.wei@linaro.org wrote:
->>> +     if (timer_count < 0)
->>> +             pr_err("Failed to get platform timer info, skipping.\n");
->>
->> So this prints something about skipping. But then it continues as if
->> nothing went wrong. That's either wrong or confusing or both.
->
-> yes, you are right, this info is confusing.
-> maybe we just delete the "skipping" ?
->
-> =E2=80=9Ctimer_count < 0=E2=80=9D is caused by some firmware bug, in gtdt=
-.c:
-> ----
-> int __init acpi_gtdt_init(struct acpi_table_header *table)
-> {
-> ......
->         if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
->         pr_err(FW_BUG "Failed to retrieve timer info from firmware:
-> invalid data.\n");
->         return -EINVAL;
-> ......
-> }
-> ----
->
-> But in this situation( without platform timers ), system still can work.
-> So I thing we just need to print a error.
->
->>
->>> -     arch_timer_init();
->>> -     return 0;
->>> +     return arch_timer_init();
->>
->> Thanks,
->>
->>         tglx
->
->
->
-> --
-> Best regards,
->
-> Fu Wei
-> Software Engineer
-> Red Hat
+-- 
+1.7.10
 
-
-
---=20
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
