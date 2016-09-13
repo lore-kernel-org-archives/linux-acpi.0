@@ -1,47 +1,89 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v11 5/8] clocksource/drivers/arm_arch_timer: Simplify ACPI
- support code.
-Date: Tue, 13 Sep 2016 19:51:37 +0800
-Message-ID: <1919ec70-6f24-365c-b5f2-6db56bb81e3f@linaro.org>
-References: <1473168352-5156-1-git-send-email-fu.wei@linaro.org>
- <1473168352-5156-6-git-send-email-fu.wei@linaro.org>
- <alpine.DEB.2.20.1609061635000.5647@nanos>
- <CADyBb7uX79UP=mUxvP-EPGi56-46y2SCMPsWO=Uw-=N0GQERhA@mail.gmail.com>
- <CADyBb7v-b1bKGBdH6J78UhfCcQd=BJLFoZ16GNgmrd2EucjYDA@mail.gmail.com>
- <57D7E543.3060301@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57D7E543.3060301-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei Huang <wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Catalin Marinas <catalin.mari>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 1/2] PCI: Add pci_find_resource()
+Date: Tue, 13 Sep 2016 15:19:41 +0300
+Message-ID: <20160913121942.80356-1-mika.westerberg@linux.intel.com>
+References: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:20561 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751676AbcIMMUQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Sep 2016 08:20:16 -0400
+In-Reply-To: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Aaron Durbin <adurbin@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Timur
+Add a new helper function pci_find_resource() that can be used to find out
+whether a given resource (for example from a child device) is contained
+within given PCI device's standard resources.
 
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/pci/pci.c   | 27 +++++++++++++++++++++++++++
+ include/linux/pci.h |  4 ++++
+ 2 files changed, 31 insertions(+)
 
-On 09/13/2016 07:38 PM, Timur Tabi wrote:
-> Fu Wei wrote:
->> I have prepared v12 (rebase to rc6 and on the top of IORT v11),
->> should I send it now
->
-> Yes.
->
-> Please don't wait to release new versions of your patches.  Time is running out to get these into 4.9.
->
-yes, v12 is posted
-working on v13(improving memory-mapped timer code following Marc's suggestion)
-
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index aab9d5115a5f..491f879f34cb 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -480,6 +480,33 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+ EXPORT_SYMBOL(pci_find_parent_resource);
+ 
+ /**
++ * pci_find_resource - Return matching PCI device resource
++ * @dev: PCI device to query
++ * @res: Resource to look for
++ *
++ * Goes over standard PCI resources (BARs) and checks if the given resource
++ * is partially or fully contained in any of them. In that case the
++ * matching resource is returned, %NULL otherwise.
++ */
++struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res)
++{
++	int i;
++
++	if (!res)
++		return NULL;
++
++	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
++		struct resource *r = &dev->resource[i];
++
++		if (r->start && resource_contains(r, res))
++			return r;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(pci_find_resource);
++
++/**
+  * pci_find_pcie_root_port - return PCIe Root Port
+  * @dev: PCI device to query
+  *
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 0ab835965669..a917d4b20554 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1126,6 +1126,7 @@ void pdev_enable_device(struct pci_dev *);
+ int pci_enable_resources(struct pci_dev *, int mask);
+ void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
+ 		    int (*)(const struct pci_dev *, u8, u8));
++struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res);
+ #define HAVE_PCI_REQ_REGIONS	2
+ int __must_check pci_request_regions(struct pci_dev *, const char *);
+ int __must_check pci_request_regions_exclusive(struct pci_dev *, const char *);
+@@ -1542,6 +1543,9 @@ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
+ 				  int enable)
+ { return 0; }
+ 
++static inline struct resource *pci_find_resource(struct pci_dev *dev,
++						 struct resource *res)
++{ return NULL; }
+ static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
+ { return -EIO; }
+ static inline void pci_release_regions(struct pci_dev *dev) { }
 -- 
-Best regards,
+2.9.3
 
-Fu Wei
-Software Engineer
-Red Hat 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
