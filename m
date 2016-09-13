@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 2/4] mfd: lpc_ich: Do not create iTCO watchdog when WDAT table exists
-Date: Tue, 13 Sep 2016 18:23:34 +0300
-Message-ID: <20160913152336.75405-3-mika.westerberg@linux.intel.com>
+Subject: [PATCH 4/4] platform/x86: intel_pmc_ipc: Do not create iTCO watchdog when WDAT table exists
+Date: Tue, 13 Sep 2016 18:23:36 +0300
+Message-ID: <20160913152336.75405-5-mika.westerberg@linux.intel.com>
 References: <20160913152336.75405-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160913152336.75405-1-mika.westerberg@linux.intel.com>
@@ -13,29 +13,39 @@ List-Id: linux-acpi@vger.kernel.org
 ACPI WDAT table is the preferred way to use hardware watchdog over the
 native iTCO_wdt. Windows only uses this table for its hardware watchdog
 implementation so we should be relatively safe to trust it has been
-validated by OEMs
+validated by OEMs.
 
-Prevent iTCO watchdog creation if we detect that there is ACPI WDAT table.
+Prevent iTCO watchdog creation if we detect that there is an ACPI WDAT
+table.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/mfd/lpc_ich.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/platform/x86/intel_pmc_ipc.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mfd/lpc_ich.c b/drivers/mfd/lpc_ich.c
-index bd3aa4578346..c8dee47b45d9 100644
---- a/drivers/mfd/lpc_ich.c
-+++ b/drivers/mfd/lpc_ich.c
-@@ -984,6 +984,10 @@ static int lpc_ich_init_wdt(struct pci_dev *dev)
+diff --git a/drivers/platform/x86/intel_pmc_ipc.c b/drivers/platform/x86/intel_pmc_ipc.c
+index b86e1bcaa055..a511d518206b 100644
+--- a/drivers/platform/x86/intel_pmc_ipc.c
++++ b/drivers/platform/x86/intel_pmc_ipc.c
+@@ -651,11 +651,15 @@ static int ipc_create_pmc_devices(void)
+ {
  	int ret;
- 	struct resource *res;
  
+-	ret = ipc_create_tco_device();
+-	if (ret) {
+-		dev_err(ipcdev.dev, "Failed to add tco platform device\n");
+-		return ret;
 +	/* If we have ACPI based watchdog use that instead */
-+	if (acpi_has_watchdog())
-+		return -ENODEV;
++	if (!acpi_has_watchdog()) {
++		ret = ipc_create_tco_device();
++		if (ret) {
++			dev_err(ipcdev.dev, "Failed to add tco platform device\n");
++			return ret;
++		}
+ 	}
 +
- 	/* Setup power management base register */
- 	pci_read_config_dword(dev, priv->abase, &base_addr_cfg);
- 	base_addr = base_addr_cfg & 0x0000ff80;
+ 	ret = ipc_create_punit_device();
+ 	if (ret) {
+ 		dev_err(ipcdev.dev, "Failed to add punit platform device\n");
 -- 
 2.9.3
