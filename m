@@ -1,337 +1,113 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v5 05/14] drivers: iommu: make iommu_fwspec OF agnostic
-Date: Tue, 13 Sep 2016 14:55:17 +0100
-Message-ID: <20160913135517.GA2334@red-moon>
-References: <20160909142343.13314-1-lorenzo.pieralisi@arm.com>
-	<20160909142343.13314-6-lorenzo.pieralisi@arm.com>
-	<4e8110c4-edf3-15db-206c-b83794f138a0@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 1/2] PCI: Add pci_find_resource()
+Date: Tue, 13 Sep 2016 17:11:49 +0300
+Message-ID: <1473775909.11323.274.camel@linux.intel.com>
+References: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+         <20160913121942.80356-1-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4e8110c4-edf3-15db-206c-b83794f138a0-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160913121942.80356-1-mika.westerberg@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Aaron Durbin <adurbin@google.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 13, 2016 at 02:38:35PM +0100, Robin Murphy wrote:
-> >  static int arm_smmu_match_node(struct device *dev, void *data)
-> >  {
-> > -	return dev->of_node == data;
-> > +	struct fwnode_handle *fwnode;
-> > +
-> > +	fwnode = dev->of_node ? &dev->of_node->fwnode : dev->fwnode;
-> > +
-> > +	return fwnode == data;
-> >  }
+On Tue, 2016-09-13 at 15:19 +0300, Mika Westerberg wrote:
+> Add a new helper function pci_find_resource() that can be used to find
+> out
+> whether a given resource (for example from a child device) is
+> contained
+> within given PCI device's standard resources.
 > 
-> Maybe we should hoist the dev_fwnode() helper from property.c up to
-> property.h so we can just have "return dev_fwnode(dev) == data;" here?
-
-Yes, that's one way of doing it. The other would be initializing
-dev->fwnode to &dev->of_node->fwnode in the DT probe path but first
-I need to understand why that is not done in the first place.
-
-[...]
-
-> > +int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
-> > +{
-> > +	struct iommu_fwspec *fwspec = arch_get_iommu_fwspec(dev);
-> > +	size_t size;
-> > +
-> > +	if (!fwspec)
-> > +		return -EINVAL;
-> > +
-> > +	size = offsetof(struct iommu_fwspec, ids[fwspec->num_ids + 1]);
-> > +	fwspec = krealloc(fwspec, size, GFP_KERNEL);
-> > +	if (!fwspec)
-> > +		return -ENOMEM;
-> > +
-> > +	while (num_ids--)
-> > +		fwspec->ids[fwspec->num_ids++] = *ids++;
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/pci/pci.c   | 27 +++++++++++++++++++++++++++
+>  include/linux/pci.h |  4 ++++
+>  2 files changed, 31 insertions(+)
 > 
-> You've still got the +1 bug and incomprehensible loop from the old code
-> here, rather than the fixed version being removed below. Although now
-> that I've taken the plunge and done it properly in core code from the
-> outset, that should hopefully become moot.
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index aab9d5115a5f..491f879f34cb 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -480,6 +480,33 @@ struct resource *pci_find_parent_resource(const
+> struct pci_dev *dev,
+>  EXPORT_SYMBOL(pci_find_parent_resource);
+>  
+>  /**
+> + * pci_find_resource - Return matching PCI device resource
+> + * @dev: PCI device to query
+> + * @res: Resource to look for
+> + *
+> + * Goes over standard PCI resources (BARs) and checks if the given
+> resource
+> + * is partially or fully contained in any of them. In that case the
+> + * matching resource is returned, %NULL otherwise.
+> + */
+> +struct resource *pci_find_resource(struct pci_dev *dev, struct
+> resource *res)
+> +{
+> +	int i;
+> +
 
-Gah sorry, rebase mistake. I will wait for the dust to settle before
-churning out a new series, it is hard to respin without a stable
-base (hopefully your series will make this patch useless).
+> +	if (!res)
+> +		return NULL;
 
-Thanks !
-Lorenzo
+Shouldn't it be a problem of caller to supply valid pointer?
+Seems other function(s) has(ve) this assumption.
 
-> Robin.
-> 
-> > +
-> > +	arch_set_iommu_fwspec(dev, fwspec);
-> > +	return 0;
-> > +}
-> > +
-> > +inline struct iommu_fwspec *dev_iommu_fwspec(struct device *dev)
-> > +{
-> > +	return arch_get_iommu_fwspec(dev);
-> > +}
-> > diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> > index 38669b8..ab3c069 100644
-> > --- a/drivers/iommu/of_iommu.c
-> > +++ b/drivers/iommu/of_iommu.c
-> > @@ -96,45 +96,6 @@ int of_get_dma_window(struct device_node *dn, const char *prefix, int index,
-> >  }
-> >  EXPORT_SYMBOL_GPL(of_get_dma_window);
-> >  
-> > -struct of_iommu_node {
-> > -	struct list_head list;
-> > -	struct device_node *np;
-> > -	const struct iommu_ops *ops;
-> > -};
-> > -static LIST_HEAD(of_iommu_list);
-> > -static DEFINE_SPINLOCK(of_iommu_lock);
-> > -
-> > -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops)
-> > -{
-> > -	struct of_iommu_node *iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
-> > -
-> > -	if (WARN_ON(!iommu))
-> > -		return;
-> > -
-> > -	of_node_get(np);
-> > -	INIT_LIST_HEAD(&iommu->list);
-> > -	iommu->np = np;
-> > -	iommu->ops = ops;
-> > -	spin_lock(&of_iommu_lock);
-> > -	list_add_tail(&iommu->list, &of_iommu_list);
-> > -	spin_unlock(&of_iommu_lock);
-> > -}
-> > -
-> > -const struct iommu_ops *of_iommu_get_ops(struct device_node *np)
-> > -{
-> > -	struct of_iommu_node *node;
-> > -	const struct iommu_ops *ops = NULL;
-> > -
-> > -	spin_lock(&of_iommu_lock);
-> > -	list_for_each_entry(node, &of_iommu_list, list)
-> > -		if (node->np == np) {
-> > -			ops = node->ops;
-> > -			break;
-> > -		}
-> > -	spin_unlock(&of_iommu_lock);
-> > -	return ops;
-> > -}
-> > -
-> >  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> >  {
-> >  	struct of_phandle_args *iommu_spec = data;
-> > @@ -226,57 +187,3 @@ static int __init of_iommu_init(void)
-> >  	return 0;
-> >  }
-> >  postcore_initcall_sync(of_iommu_init);
-> > -
-> > -int iommu_fwspec_init(struct device *dev, struct device_node *iommu_np)
-> > -{
-> > -	struct iommu_fwspec *fwspec = arch_get_iommu_fwspec(dev);
-> > -
-> > -	if (fwspec)
-> > -		return 0;
-> > -
-> > -	fwspec = kzalloc(sizeof(*fwspec), GFP_KERNEL);
-> > -	if (!fwspec)
-> > -		return -ENOMEM;
-> > -
-> > -	fwspec->iommu_np = of_node_get(iommu_np);
-> > -	fwspec->iommu_ops = of_iommu_get_ops(iommu_np);
-> > -	arch_set_iommu_fwspec(dev, fwspec);
-> > -	return 0;
-> > -}
-> > -
-> > -void iommu_fwspec_free(struct device *dev)
-> > -{
-> > -	struct iommu_fwspec *fwspec = arch_get_iommu_fwspec(dev);
-> > -
-> > -	if (fwspec) {
-> > -		of_node_put(fwspec->iommu_np);
-> > -		kfree(fwspec);
-> > -	}
-> > -}
-> > -
-> > -int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
-> > -{
-> > -	struct iommu_fwspec *fwspec = arch_get_iommu_fwspec(dev);
-> > -	size_t size;
-> > -	int i;
-> > -
-> > -	if (!fwspec)
-> > -		return -EINVAL;
-> > -
-> > -	size = offsetof(struct iommu_fwspec, ids[fwspec->num_ids + num_ids]);
-> > -	fwspec = krealloc(fwspec, size, GFP_KERNEL);
-> > -	if (!fwspec)
-> > -		return -ENOMEM;
-> > -
-> > -	for (i = 0; i < num_ids; i++)
-> > -		fwspec->ids[fwspec->num_ids + i] = ids[i];
-> > -
-> > -	fwspec->num_ids += num_ids;
-> > -	arch_set_iommu_fwspec(dev, fwspec);
-> > -	return 0;
-> > -}
-> > -
-> > -inline struct iommu_fwspec *dev_iommu_fwspec(struct device *dev)
-> > -{
-> > -	return arch_get_iommu_fwspec(dev);
-> > -}
-> > diff --git a/include/linux/iommu-fwspec.h b/include/linux/iommu-fwspec.h
-> > new file mode 100644
-> > index 0000000..f88b635
-> > --- /dev/null
-> > +++ b/include/linux/iommu-fwspec.h
-> > @@ -0,0 +1,70 @@
-> > +#ifndef __IOMMU_FWSPEC_H
-> > +#define __IOMMU_FWSPEC_H
-> > +
-> > +#include <linux/device.h>
-> > +#include <linux/iommu.h>
-> > +
-> > +struct iommu_fwspec {
-> > +	const struct iommu_ops	*iommu_ops;
-> > +	struct fwnode_handle	*iommu_fwnode;
-> > +	void			*iommu_priv;
-> > +	unsigned int		num_ids;
-> > +	u32			ids[];
-> > +};
-> > +
-> > +#ifdef CONFIG_IOMMU_FWSPEC
-> > +int iommu_fwspec_init(struct device *dev,
-> > +		      struct fwnode_handle *iommu_fwnode);
-> > +void iommu_fwspec_free(struct device *dev);
-> > +int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
-> > +struct iommu_fwspec *dev_iommu_fwspec(struct device *dev);
-> > +
-> > +void fwspec_iommu_set_ops(struct fwnode_handle *fwnode,
-> > +			  const struct iommu_ops *ops);
-> > +const struct iommu_ops *fwspec_iommu_get_ops(struct fwnode_handle *fwnode);
-> > +
-> > +#ifdef CONFIG_HAVE_IOMMU_FWSPEC
-> > +#include <asm/iommu-fwspec.h>
-> > +#else /* !CONFIG_HAVE_IOMMU_FWSPEC */
-> > +static inline void arch_set_iommu_fwspec(struct device *dev,
-> > +					 struct iommu_fwspec *fwspec) {}
-> > +
-> > +static inline struct iommu_fwspec *
-> > +arch_get_iommu_fwspec(struct device *dev) { return NULL; }
-> > +#endif
-> > +#else /* CONFIG_IOMMU_FWSPEC */
-> > +static inline int iommu_fwspec_init(struct device *dev,
-> > +				    struct fwnode_handle *iommu_fwnode)
-> > +{
-> > +	return -ENODEV;
-> > +}
-> > +
-> > +static inline void iommu_fwspec_free(struct device *dev)
-> > +{
-> > +}
-> > +
-> > +static inline int iommu_fwspec_add_ids(struct device *dev, u32 *ids,
-> > +				       int num_ids)
-> > +{
-> > +	return -ENODEV;
-> > +}
-> > +
-> > +static inline struct iommu_fwspec *dev_iommu_fwspec(struct device *dev)
-> > +{
-> > +	return NULL;
-> > +}
-> > +
-> > +static inline void fwspec_iommu_set_ops(struct fwnode_handle *fwnode,
-> > +					const struct iommu_ops *ops)
-> > +{
-> > +}
-> > +
-> > +static inline const struct iommu_ops *
-> > +fwspec_iommu_get_ops(struct fwnode_handle *fwnode)
-> > +{
-> > +	return NULL;
-> > +}
-> > +
-> > +#endif /* CONFIG_IOMMU_FWSPEC */
-> > +
-> > +#endif /* __IOMMU_FWSPEC_H */
-> > diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
-> > index 358db49..4b02861 100644
-> > --- a/include/linux/of_iommu.h
-> > +++ b/include/linux/of_iommu.h
-> > @@ -3,6 +3,7 @@
-> >  
-> >  #include <linux/device.h>
-> >  #include <linux/iommu.h>
-> > +#include <linux/iommu-fwspec.h>
-> >  #include <linux/of.h>
-> >  
-> >  #ifdef CONFIG_OF_IOMMU
-> > @@ -14,14 +15,6 @@ extern int of_get_dma_window(struct device_node *dn, const char *prefix,
-> >  extern const struct iommu_ops *of_iommu_configure(struct device *dev,
-> >  					struct device_node *master_np);
-> >  
-> > -struct iommu_fwspec {
-> > -	const struct iommu_ops	*iommu_ops;
-> > -	struct device_node	*iommu_np;
-> > -	void			*iommu_priv;
-> > -	unsigned int		num_ids;
-> > -	u32			ids[];
-> > -};
-> > -
-> >  #else
-> >  
-> >  static inline int of_get_dma_window(struct device_node *dn, const char *prefix,
-> > @@ -36,28 +29,19 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
-> >  {
-> >  	return NULL;
-> >  }
-> > -
-> > -struct iommu_fwspec;
-> > -
-> >  #endif	/* CONFIG_OF_IOMMU */
-> >  
-> > -int iommu_fwspec_init(struct device *dev, struct device_node *iommu_np);
-> > -void iommu_fwspec_free(struct device *dev);
-> > -int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
-> > -struct iommu_fwspec *dev_iommu_fwspec(struct device *dev);
-> > -
-> > -#ifdef CONFIG_HAVE_IOMMU_FWSPEC
-> > -#include <asm/iommu-fwspec.h>
-> > -#else /* !CONFIG_HAVE_IOMMU_FWSPEC */
-> > -static inline void arch_set_iommu_fwspec(struct device *dev,
-> > -					 struct iommu_fwspec *fwspec) {}
-> > -
-> > -static inline struct iommu_fwspec *
-> > -arch_get_iommu_fwspec(struct device *dev) { return NULL; }
-> > -#endif
-> > +static inline void of_iommu_set_ops(struct device_node *np,
-> > +				    const struct iommu_ops *ops)
-> > +{
-> > +	fwspec_iommu_set_ops(&np->fwnode, ops);
-> > +}
-> >  
-> > -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
-> > -const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
-> > +static inline const struct iommu_ops *
-> > +of_iommu_get_ops(struct device_node *np)
-> > +{
-> > +	return fwspec_iommu_get_ops(&np->fwnode);
-> > +}
-> >  
-> >  extern struct of_device_id __iommu_of_table;
-> >  
-> > 
-> 
+> +
+> +	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
+> +		struct resource *r = &dev->resource[i];
+> +
+> +		if (r->start && resource_contains(r, res))
+> +			return r;
+
+I'm not sure what we have to return in case of
+1) r->start == 0, r->end > 0
+2) r->start > 0, r->end == 0
+
+assuming that all previous checks are positive.
+
+> +	}
+> +
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL(pci_find_resource);
+> +
+> +/**
+>   * pci_find_pcie_root_port - return PCIe Root Port
+>   * @dev: PCI device to query
+>   *
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 0ab835965669..a917d4b20554 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1126,6 +1126,7 @@ void pdev_enable_device(struct pci_dev *);
+>  int pci_enable_resources(struct pci_dev *, int mask);
+>  void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
+>  		    int (*)(const struct pci_dev *, u8, u8));
+> +struct resource *pci_find_resource(struct pci_dev *dev, struct
+> resource *res);
+>  #define HAVE_PCI_REQ_REGIONS	2
+>  int __must_check pci_request_regions(struct pci_dev *, const char *);
+>  int __must_check pci_request_regions_exclusive(struct pci_dev *,
+> const char *);
+> @@ -1542,6 +1543,9 @@ static inline int pci_enable_wake(struct pci_dev
+> *dev, pci_power_t state,
+>  				  int enable)
+>  { return 0; }
+>  
+> +static inline struct resource *pci_find_resource(struct pci_dev *dev,
+> +						 struct resource
+> *res)
+> +{ return NULL; }
+>  static inline int pci_request_regions(struct pci_dev *dev, const char
+> *res_name)
+>  { return -EIO; }
+>  static inline void pci_release_regions(struct pci_dev *dev) { }
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
