@@ -1,81 +1,45 @@
-From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5 07/14] drivers: acpi: iort: add support for ARM SMMU
-	platform devices creation
-Date: Tue, 13 Sep 2016 16:48:15 +0800
-Message-ID: <93e202e3-2f61-a79e-2592-9f0e0355767e@linaro.org>
-References: <20160909142343.13314-1-lorenzo.pieralisi@arm.com>
-	<20160909142343.13314-8-lorenzo.pieralisi@arm.com>
-	<7a63cf312b6e9714cdce1d0aca88cf4d@codeaurora.org>
-	<fb4acfd5-b7fd-636f-53f3-13dc6fb8b713@linaro.org>
-	<20160913082441.GA28804@red-moon>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH 0/2] Correct AER severity for printing AER information
+Date: Tue, 13 Sep 2016 10:45:31 +0200
+Message-ID: <20160913084531.GA19076@nazgul.tnic>
+References: <1473713845-23613-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20160913082441.GA28804@red-moon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1473713845-23613-1-git-send-email-tbaicar@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, matt.fleming@intel.com, paul.gortmaker@windriver.com, zjzhang@codeaurora.org, sudipm.mukherjee@gmail.com, axboe@fb.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2016/9/13 16:24, Lorenzo Pieralisi wrote:
-> On Tue, Sep 13, 2016 at 04:15:31PM +0800, Hanjun Guo wrote:
->
-> [...]
->
->>>> +static acpi_status __init iort_match_iommu_callback(struct
->>>> acpi_iort_node *node,
->>>> +                            void *context)
->>>> +{
->>>> +    int ret;
->>>> +    struct fwnode_handle *fwnode;
->>>> +
->>>> +    fwnode = iort_get_fwnode(node);
->>>> +
->>>> +    if (!fwnode)
->>>> +        return AE_NOT_FOUND;
->>>> +
->>>> +    ret = iort_add_smmu_platform_device(fwnode, node);
->>>> +    if (ret) {
->>>> +        pr_err("Error in platform device creation\n");
->>>> +        return AE_ERROR;
->>>> +    }
->>>> +
->>>> +    return AE_OK;
->>>> +}
->>>> +
->>>> +static void __init iort_smmu_init(void)
->>>> +{
->>>> +    iort_scan_node(ACPI_IORT_NODE_SMMU, iort_match_iommu_callback,
->>>> NULL);
->>>> +    iort_scan_node(ACPI_IORT_NODE_SMMU_V3, iort_match_iommu_callback,
->>>> NULL);
->>>
->>> Since iort_scan_node() returns after the first successful match it finds,
->>> only the first SMMU_V3 in my IORT is being enumerated. I think you need
->>> to go back to the "iterator" like approach you had been using or make
->>> iort_match_iommu_callback() always return a non-AE_OK value so the scan
->>> continues and has a chance to visit all of the SMMU_V3 nodes.
->>
->> Please use the updated version of IORT patch (aka Tomasz's v11)
->> then things will work fine.
->
-> Nate is right, I was too keen on using iort_scan_node(), it does
-> not really work here (unless as he said I return a value !AE_OK in
-> the callback, which is horrible), I reverted back to the iterator
-> approach and I can push out a fixed up branch if useful before next
-> posting.
+On Mon, Sep 12, 2016 at 02:57:23PM -0600, Tyler Baicar wrote:
+> AER severity handling has two issues that cause the AER information to
+> be printed incorrectly. The first issue is that the function to calculate
+> the AER severity is called twice in the code path to print the AER
+> information. The second issue is that the original call to calculate the
+> AER severity expects the CPER severity but is recieving the GHES
+> severity.
+> 
+> Tyler Baicar (2):
+>   PCI/AER: Remove duplicate AER severity translation
+>   acpi: apei: send correct severity to calculate AER severity
+> 
+>  drivers/acpi/apei/ghes.c               | 2 +-
+>  drivers/pci/pcie/aer/aerdrv_errprint.c | 6 ++----
+>  include/linux/aer.h                    | 2 +-
+>  3 files changed, 4 insertions(+), 6 deletions(-)
 
-Ah, sorry, I just noticed "the first SMMU_V3" which is pretty similar
-with the second problem which is noticed by Nate...
+For both:
 
-Thanks
-Hanjun
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+--
