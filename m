@@ -1,89 +1,130 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 1/2] PCI: Add pci_find_resource()
-Date: Tue, 13 Sep 2016 15:19:41 +0300
-Message-ID: <20160913121942.80356-1-mika.westerberg@linux.intel.com>
+Subject: [PATCH 2/2] ACPI / platform: Pay attention to parent device's resources
+Date: Tue, 13 Sep 2016 15:19:42 +0300
+Message-ID: <20160913121942.80356-2-mika.westerberg@linux.intel.com>
 References: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+ <20160913121942.80356-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:20561 "EHLO mga06.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:23085 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751676AbcIMMUQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Sep 2016 08:20:16 -0400
-In-Reply-To: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+        id S1753684AbcIMMUr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Sep 2016 08:20:47 -0400
+In-Reply-To: <20160913121942.80356-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
 Cc: Aaron Durbin <adurbin@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Add a new helper function pci_find_resource() that can be used to find out
-whether a given resource (for example from a child device) is contained
-within given PCI device's standard resources.
+Given following simplified device hierarchy:
 
+  // PCI device having BAR0 (RMEM) split between 4 GPIO devices.
+  Device (P2S)
+  {
+      Name (_ADR, 0x000d0000)
+
+      Device (GPO0)
+      {
+          Name (_HID, "INT3452")
+          Name (_UID, 1)
+          Name (_CRS, ResourceTemplate () {
+              Memory32Fixed (ReadWrite, 0, 0x4000, RMEM + 0x0000)
+          })
+      }
+
+      Device (GPO1)
+      {
+          Name (_HID, "INT3452")
+          Name (_UID, 2)
+          Name (_CRS, ResourceTemplate () {
+              Memory32Fixed (ReadWrite, 0, 0x4000, RMEM + 0x4000)
+          })
+      }
+
+      Device (GPO2)
+      {
+          Name (_HID, "INT3452")
+          Name (_UID, 3)
+          Name (_CRS, ResourceTemplate () {
+              Memory32Fixed (ReadWrite, 0, 0x4000, RMEM + 0x8000)
+          })
+      }
+
+      Device (GPO3)
+      {
+          Name (_HID, "INT3452")
+          Name (_UID, 4)
+          Name (_CRS, ResourceTemplate () {
+              Memory32Fixed (ReadWrite, 0, 0x4000, RMEM + 0xc000)
+          })
+      }
+  }
+
+The current ACPI platform enumeration code allocates resources from the
+global MMIO resource pool (/proc/iomem) for all the four GPIO devices.
+After this PCI core calls pcibios_resource_survey() to allocate resources
+for all PCI devices including the parent device for these GPIO devices
+(P2S). Since that resource range has already been reserved the allocation
+fails.
+
+The reason for this is that we never bother with parent device's resources
+when ACPI platform devices are created.
+
+Fix this by checking whether there is a parent device and in that case make
+sure we assign correct parent resource to the resources for the child ACPI
+platform device. Currently we only deal with parent devices if they are PCI
+devices but we may expand this later to cover other bus types as well.
+
+Reported-by: Aaron Durbin <adurbin@google.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pci/pci.c   | 27 +++++++++++++++++++++++++++
- include/linux/pci.h |  4 ++++
- 2 files changed, 31 insertions(+)
+ drivers/acpi/acpi_platform.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index aab9d5115a5f..491f879f34cb 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -480,6 +480,33 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
- EXPORT_SYMBOL(pci_find_parent_resource);
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 159f7f19abce..b200ae1f3c6f 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/dma-mapping.h>
++#include <linux/pci.h>
+ #include <linux/platform_device.h>
  
- /**
-+ * pci_find_resource - Return matching PCI device resource
-+ * @dev: PCI device to query
-+ * @res: Resource to look for
-+ *
-+ * Goes over standard PCI resources (BARs) and checks if the given resource
-+ * is partially or fully contained in any of them. In that case the
-+ * matching resource is returned, %NULL otherwise.
-+ */
-+struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res)
+ #include "internal.h"
+@@ -30,6 +31,22 @@ static const struct acpi_device_id forbidden_id_list[] = {
+ 	{"", 0},
+ };
+ 
++static void acpi_platform_fill_resource(struct acpi_device *adev,
++	const struct resource *src, struct resource *dest)
 +{
-+	int i;
++	struct device *parent;
 +
-+	if (!res)
-+		return NULL;
++	*dest = *src;
 +
-+	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
-+		struct resource *r = &dev->resource[i];
-+
-+		if (r->start && resource_contains(r, res))
-+			return r;
-+	}
-+
-+	return NULL;
++	/*
++	 * If the device has parent we need to take its resources into
++	 * account as well because this device might consume part of those.
++	 */
++	parent = acpi_get_first_physical_node(adev->parent);
++	if (parent && dev_is_pci(parent))
++		dest->parent = pci_find_resource(to_pci_dev(parent), dest);
 +}
-+EXPORT_SYMBOL(pci_find_resource);
 +
-+/**
-  * pci_find_pcie_root_port - return PCIe Root Port
-  * @dev: PCI device to query
-  *
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 0ab835965669..a917d4b20554 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1126,6 +1126,7 @@ void pdev_enable_device(struct pci_dev *);
- int pci_enable_resources(struct pci_dev *, int mask);
- void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
- 		    int (*)(const struct pci_dev *, u8, u8));
-+struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res);
- #define HAVE_PCI_REQ_REGIONS	2
- int __must_check pci_request_regions(struct pci_dev *, const char *);
- int __must_check pci_request_regions_exclusive(struct pci_dev *, const char *);
-@@ -1542,6 +1543,9 @@ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
- 				  int enable)
- { return 0; }
+ /**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
+@@ -70,7 +87,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 		}
+ 		count = 0;
+ 		list_for_each_entry(rentry, &resource_list, node)
+-			resources[count++] = *rentry->res;
++			acpi_platform_fill_resource(adev, rentry->res,
++						    &resources[count++]);
  
-+static inline struct resource *pci_find_resource(struct pci_dev *dev,
-+						 struct resource *res)
-+{ return NULL; }
- static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
- { return -EIO; }
- static inline void pci_release_regions(struct pci_dev *dev) { }
+ 		acpi_dev_free_resource_list(&resource_list);
+ 	}
 -- 
 2.9.3
 
