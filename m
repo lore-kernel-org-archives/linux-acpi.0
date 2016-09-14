@@ -1,7 +1,7 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH v2 02/11] ACPI: platform-msi: retrieve dev id from IORT
-Date: Wed, 14 Sep 2016 22:21:10 +0800
-Message-ID: <1473862879-7769-3-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH v2 10/11] irqchip: mbigen: Add ACPI support
+Date: Wed, 14 Sep 2016 22:21:18 +0800
+Message-ID: <1473862879-7769-11-git-send-email-guohanjun@huawei.com>
 References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,114 +14,160 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-For devices connecting to ITS, it needs dev id to identify
-itself, and this dev id is represented in the IORT table in
-named componant node [1] for platform devices, so in this
-patch we will scan the IORT to retrieve device's dev id.
+With the preparation of platform msi support and interrupt producer
+in DSDT, we can add mbigen ACPI support now.
 
-Introduce iort_pmsi_get_dev_id() with pointer dev passed
-in for that purpose.
+We are using _PRS methd to indicate number of irq pins instead
+of num_pins in DT.
 
-[1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
+For mbi-gen,
+    Device(MBI0) {
+          Name(_HID, "HISI0152")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+          })
+
+          Name (_PRS, ResourceTemplate() {
+		  Interrupt(ResourceProducer,...) {12,14,....}
+          })
+    }
+
+For devices,
+
+   Device(COM0) {
+          Name(_HID, "ACPIIDxx")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+          })
+    }
+
+With the helpe of platform msi and interrupt producer, then devices
+will get the virq from mbi-gen's irqdomain.
 
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ma Jun <majun258@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/arm64/iort.c                     | 26 ++++++++++++++++++++++++++
- drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +++-
- include/linux/acpi_iort.h                     |  8 ++++++++
- 3 files changed, 37 insertions(+), 1 deletion(-)
+ drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 67 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index cee82d4..13a1905 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -408,6 +408,32 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index 9484ea0..ca6add1 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -16,6 +16,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqchip.h>
+ #include <linux/module.h>
+@@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
+ 				    unsigned long *hwirq,
+ 				    unsigned int *type)
+ {
+-	if (is_of_node(fwspec->fwnode)) {
++	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
+ 		if (fwspec->param_count != 2)
+ 			return -EINVAL;
+ 
+@@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
+ 	return 0;
  }
  
- /**
-+ * iort_pmsi_get_dev_id() - Get the device id for a device
-+ * @dev: The device for which the mapping is to be done.
-+ * @dev_id: The device ID found.
-+ *
-+ * Returns: 0 for successful find a dev id, errors otherwise
-+ */
-+int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
++#ifdef CONFIG_ACPI
++static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
++					     void *context)
 +{
-+	struct acpi_iort_node *node;
++	struct acpi_resource_extended_irq *ext_irq;
++	u32 *num_irqs = context;
 +
-+	if (!iort_table)
-+		return -ENODEV;
-+
-+	node = iort_find_dev_node(dev);
-+	if (!node) {
-+		dev_err(dev, "can't find related IORT node\n");
-+		return -ENODEV;
++	switch (ares->type) {
++	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
++		ext_irq = &ares->data.extended_irq;
++		*num_irqs += ext_irq->interrupt_count;
++		break;
++	default:
++		break;
 +	}
 +
-+	if( !iort_node_get_id(node, dev_id, IORT_MSI_TYPE, 0))
-+		return -ENODEV;
++	return AE_OK;
++}
++
++static int mbigen_acpi_create_domain(struct platform_device *pdev,
++				     struct mbigen_device *mgn_chip)
++{
++	struct irq_domain *domain;
++	u32 num_msis = 0;
++	acpi_status status;
++
++	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__PRS,
++				     mbigen_acpi_process_resource, &num_msis);
++        if (ACPI_FAILURE(status) || num_msis == 0)
++		return -EINVAL;
++
++	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
++						   mbigen_write_msg,
++						   &mbigen_domain_ops,
++						   mgn_chip);
++	if (!domain)
++		return -ENOMEM;
 +
 +	return 0;
 +}
-+
-+/**
-  * iort_dev_find_its_id() - Find the ITS identifier for a device
-  * @dev: The device.
-  * @idx: Index of the ITS identifier list.
-diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-index 3c94278..3646c23 100644
---- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-@@ -16,6 +16,7 @@
-  */
- 
- #include <linux/device.h>
-+#include <linux/acpi_iort.h>
- #include <linux/msi.h>
- #include <linux/of.h>
- #include <linux/of_irq.h>
-@@ -56,7 +57,8 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
- 
- 	msi_info = msi_get_domain_info(domain->parent);
- 
--	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
-+	ret = dev->of_node ? of_pmsi_get_dev_id(domain, dev, &dev_id) :
-+		iort_pmsi_get_dev_id(dev, &dev_id);
- 	if (ret)
- 		return ret;
- 
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index 167649a..bfaf75f 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -32,6 +32,7 @@ struct fwnode_handle *iort_find_domain_token(int trans_id);
- #ifdef CONFIG_ACPI_IORT
- void acpi_iort_init(void);
- u32 iort_msi_map_rid(struct device *dev, u32 req_id);
-+int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
- struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
- int iort_set_fwnode(struct acpi_iort_node *iort_node,
- 		    struct fwnode_handle *fwnode);
-@@ -42,9 +43,16 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev);
- static inline void acpi_iort_init(void) { }
- static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
- { return req_id; }
-+
- static inline struct irq_domain *iort_get_device_domain(struct device *dev,
- 							u32 req_id)
- { return NULL; }
-+
-+static inline int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
++#else
++static int mbigen_acpi_create_domain(struct platform_device *pdev,
++				     struct mbigen_device *mgn_chip)
 +{
 +	return -ENODEV;
 +}
++#endif
 +
- static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
- 				  struct fwnode_handle *fwnode)
- { return -ENODEV; }
+ static int mbigen_device_probe(struct platform_device *pdev)
+ {
+ 	struct mbigen_device *mgn_chip;
+@@ -288,9 +337,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ 	if (IS_ERR(mgn_chip->base))
+ 		return PTR_ERR(mgn_chip->base);
+ 
+-	err = mbigen_of_create_domain(pdev, mgn_chip);
+-	if (err)
++	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
++		err = mbigen_of_create_domain(pdev, mgn_chip);
++	else if (ACPI_COMPANION(&pdev->dev))
++		err = mbigen_acpi_create_domain(pdev, mgn_chip);
++	else
++		err = -EINVAL;
++
++	if (err) {
++		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
+ 		return err;
++	}
+ 
+ 	platform_set_drvdata(pdev, mgn_chip);
+ 	return 0;
+@@ -302,10 +359,17 @@ static const struct of_device_id mbigen_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, mbigen_of_match);
+ 
++static const struct acpi_device_id mbigen_acpi_match[] = {
++        { "HISI0152", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
++
+ static struct platform_driver mbigen_platform_driver = {
+ 	.driver = {
+ 		.name		= "Hisilicon MBIGEN-V2",
+ 		.of_match_table	= mbigen_of_match,
++		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
+ 	},
+ 	.probe			= mbigen_device_probe,
+ };
 -- 
 1.7.12.4
