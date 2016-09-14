@@ -1,91 +1,127 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA / Interpreter: Remove redundant newline
-Date: Wed, 14 Sep 2016 14:03:42 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4FC413@ORSMSX110.amr.corp.intel.com>
-References: <20160909161253.30952-1-bp@alien8.de>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E4F34B4@ORSMSX110.amr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E4F34E9@ORSMSX110.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A1849EF@SHSMSX101.ccr.corp.intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [RFC PATCH v2 02/11] ACPI: platform-msi: retrieve dev id from IORT
+Date: Wed, 14 Sep 2016 22:21:10 +0800
+Message-ID: <1473862879-7769-3-git-send-email-guohanjun@huawei.com>
+References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:2973 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762136AbcINODo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 10:03:44 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A1849EF@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Borislav Petkov <bp@alien8.de>, LKML <linux-kernel@vger.kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>
 
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
+For devices connecting to ITS, it needs dev id to identify
+itself, and this dev id is represented in the IORT table in
+named componant node [1] for platform devices, so in this
+patch we will scan the IORT to retrieve device's dev id.
 
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Tuesday, September 13, 2016 8:11 PM
-> To: Moore, Robert <robert.moore@intel.com>; Moore, Robert
-> <robert.moore@intel.com>; Borislav Petkov <bp@alien8.de>; LKML <linux-
-> kernel@vger.kernel.org>
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; Box, David E <david.e.box@intel.com>
-> Subject: RE: [PATCH] ACPICA / Interpreter: Remove redundant newline
-> 
-> Hi,
-> 
-> > From: linux-acpi-owner@vger.kernel.org
-> > [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Moore, Robert
-> > David E <david.e.box@intel.com>
-> > Subject: RE: [PATCH] ACPICA / Interpreter: Remove redundant newline
-> >
-> > Well, I never thought I would write a couple lines of code like this,
-> > but here is a solution that should make everyone happy.
-> >
-> > diff --git a/source/components/tables/tbxfload.c
-> > b/source/components/tables/tbxfload.c
-> > index 6a937b1..73ee1a2 100644
-> > --- a/source/components/tables/tbxfload.c
-> > +++ b/source/components/tables/tbxfload.c
-> > @@ -334,7 +334,7 @@ AcpiTbLoadNamespace (
-> >      if (!TablesFailed)
-> >      {
-> >          ACPI_INFO ((
-> > -            "%u ACPI AML tables successfully acquired and loaded\n",
-> > +            "%u ACPI AML tables successfully acquired and loaded",
-> >              TablesLoaded));
-> >      }
-> >      else
-> > @@ -348,6 +348,11 @@ AcpiTbLoadNamespace (
-> >          Status = AE_CTRL_TERMINATE;
-> >      }
-> >
-> > +#ifdef ACPI_APPLICATION
-> > +    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT, "\n")); #endif
-> > +
-> > +
-> 
-[Moore, Robert] 
+Introduce iort_pmsi_get_dev_id() with pointer dev passed
+in for that purpose.
 
-I have no problem with this, I just want to get it over with.
-It is not a big deal, let's leave it at that and not make it a big issue.
+[1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
 
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/arm64/iort.c                     | 26 ++++++++++++++++++++++++++
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +++-
+ include/linux/acpi_iort.h                     |  8 ++++++++
+ 3 files changed, 37 insertions(+), 1 deletion(-)
 
-
-
-
-> IMO, these lines should be in ACPICA upstream, in a file under
-> tools/acpiexec.
-> 
-> Thanks
-> Lv
-> 
-> >  UnlockAndExit:
-> >      (void) AcpiUtReleaseMutex (ACPI_MTX_TABLES);
-> >      return_ACPI_STATUS (Status);
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index cee82d4..13a1905 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -408,6 +408,32 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+ }
+ 
+ /**
++ * iort_pmsi_get_dev_id() - Get the device id for a device
++ * @dev: The device for which the mapping is to be done.
++ * @dev_id: The device ID found.
++ *
++ * Returns: 0 for successful find a dev id, errors otherwise
++ */
++int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
++{
++	struct acpi_iort_node *node;
++
++	if (!iort_table)
++		return -ENODEV;
++
++	node = iort_find_dev_node(dev);
++	if (!node) {
++		dev_err(dev, "can't find related IORT node\n");
++		return -ENODEV;
++	}
++
++	if( !iort_node_get_id(node, dev_id, IORT_MSI_TYPE, 0))
++		return -ENODEV;
++
++	return 0;
++}
++
++/**
+  * iort_dev_find_its_id() - Find the ITS identifier for a device
+  * @dev: The device.
+  * @idx: Index of the ITS identifier list.
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 3c94278..3646c23 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/acpi_iort.h>
+ #include <linux/msi.h>
+ #include <linux/of.h>
+ #include <linux/of_irq.h>
+@@ -56,7 +57,8 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+ 
+ 	msi_info = msi_get_domain_info(domain->parent);
+ 
+-	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
++	ret = dev->of_node ? of_pmsi_get_dev_id(domain, dev, &dev_id) :
++		iort_pmsi_get_dev_id(dev, &dev_id);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index 167649a..bfaf75f 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -32,6 +32,7 @@ struct fwnode_handle *iort_find_domain_token(int trans_id);
+ #ifdef CONFIG_ACPI_IORT
+ void acpi_iort_init(void);
+ u32 iort_msi_map_rid(struct device *dev, u32 req_id);
++int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
+ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+ int iort_set_fwnode(struct acpi_iort_node *iort_node,
+ 		    struct fwnode_handle *fwnode);
+@@ -42,9 +43,16 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev);
+ static inline void acpi_iort_init(void) { }
+ static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+ { return req_id; }
++
+ static inline struct irq_domain *iort_get_device_domain(struct device *dev,
+ 							u32 req_id)
+ { return NULL; }
++
++static inline int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
++{
++	return -ENODEV;
++}
++
+ static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
+ 				  struct fwnode_handle *fwnode)
+ { return -ENODEV; }
+-- 
+1.7.12.4
