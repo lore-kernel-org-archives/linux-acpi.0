@@ -1,152 +1,67 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 06/10] arm64: pmu: Cache PMU interrupt numbers from MADT parse
-Date: Wed, 14 Sep 2016 17:32:34 -0500
-Message-ID: <1473892358-22574-7-git-send-email-jeremy.linton@arm.com>
-References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54122 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756287AbcINWc6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 18:32:58 -0400
-In-Reply-To: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 1/2] PCI: Add pci_find_resource()
+Date: Thu, 15 Sep 2016 00:47:21 +0200
+Message-ID: <CAJZ5v0jqk_5wr1qDhiX9+V3o3f1J74hBm8Pf=6gt4kmvX0_5EQ@mail.gmail.com>
+References: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
+ <20160913121942.80356-1-mika.westerberg@linux.intel.com> <20160914221654.GG16581@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160914221654.GG16581@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Aaron Durbin <adurbin@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-From: Mark Salter <msalter@redhat.com>
+On Thu, Sep 15, 2016 at 12:16 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Tue, Sep 13, 2016 at 03:19:41PM +0300, Mika Westerberg wrote:
+>> Add a new helper function pci_find_resource() that can be used to find out
+>> whether a given resource (for example from a child device) is contained
+>> within given PCI device's standard resources.
+>>
+>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+>
+> I think the ACPI part of this series is more interesting than the PCI
+> part, so I propose that Rafael merge the series if he likes it.
 
-In the case of ACPI, the PMU IRQ information is contained in the
-MADT table. Also, since the PMU does not exist as a device in the
-ACPI DSDT table, it is necessary to create a platform device so
-that the appropriate driver probing is triggered. Since the platform
-device creation needs to happen after the CPU's have been started, and
-the MADT parsing needs to happen before, we save off the interrupt
-numbers discovered during the parsing.
+I do, thanks!
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- arch/arm64/kernel/smp.c      |  5 +++++
- drivers/perf/Kconfig         |  4 ++++
- drivers/perf/Makefile        |  1 +
- drivers/perf/arm_pmu_acpi.c  | 40 ++++++++++++++++++++++++++++++++++++++++
- include/linux/perf/arm_pmu.h |  7 +++++++
- 5 files changed, 57 insertions(+)
- create mode 100644 drivers/perf/arm_pmu_acpi.c
+>
+>> ---
+>>  drivers/pci/pci.c   | 27 +++++++++++++++++++++++++++
+>>  include/linux/pci.h |  4 ++++
+>>  2 files changed, 31 insertions(+)
+>>
+>> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+>> index aab9d5115a5f..491f879f34cb 100644
+>> --- a/drivers/pci/pci.c
+>> +++ b/drivers/pci/pci.c
+>> @@ -480,6 +480,33 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+>>  EXPORT_SYMBOL(pci_find_parent_resource);
+>>
+>>  /**
+>> + * pci_find_resource - Return matching PCI device resource
+>> + * @dev: PCI device to query
+>> + * @res: Resource to look for
+>> + *
+>> + * Goes over standard PCI resources (BARs) and checks if the given resource
+>> + * is partially or fully contained in any of them. In that case the
+>> + * matching resource is returned, %NULL otherwise.
+>> + */
+>> +struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res)
+>> +{
+>> +     int i;
+>> +
+>> +     if (!res)
+>> +             return NULL;
+>
+> I agree that this test for !res is unnecessary.
 
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index a6552fe..dc333c6 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -37,6 +37,7 @@
- #include <linux/completion.h>
- #include <linux/of.h>
- #include <linux/irq_work.h>
-+#include <linux/perf/arm_pmu.h>
- 
- #include <asm/alternative.h>
- #include <asm/atomic.h>
-@@ -540,6 +541,7 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
- 			return;
- 		}
- 		bootcpu_valid = true;
-+		arm_pmu_parse_acpi(0, processor);
- 		return;
- 	}
- 
-@@ -560,6 +562,9 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
- 	 */
- 	acpi_set_mailbox_entry(cpu_count, processor);
- 
-+	/* get PMU irq info */
-+	arm_pmu_parse_acpi(cpu_count, processor);
-+
- 	early_map_cpu_to_node(cpu_count, acpi_numa_get_nid(cpu_count, hwid));
- 
- 	cpu_count++;
-diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-index 04e2653..818fa3b 100644
---- a/drivers/perf/Kconfig
-+++ b/drivers/perf/Kconfig
-@@ -12,4 +12,8 @@ config ARM_PMU
- 	  Say y if you want to use CPU performance monitors on ARM-based
- 	  systems.
- 
-+config ARM_PMU_ACPI
-+	def_bool y
-+	depends on ARM_PMU && ACPI
-+
- endmenu
-diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
-index acd2397..fd8090d 100644
---- a/drivers/perf/Makefile
-+++ b/drivers/perf/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_ARM_PMU) += arm_pmu.o
-+obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-new file mode 100644
-index 0000000..dbd4e10
---- /dev/null
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -0,0 +1,40 @@
-+/*
-+ * ARM ACPI PMU support
-+ *
-+ * Copyright (C) 2015 Red Hat Inc.
-+ * Author: Mark Salter <msalter@redhat.com>
-+ *
-+ * This work is licensed under the terms of the GNU GPL, version 2.  See
-+ * the COPYING file in the top-level directory.
-+ *
-+ */
-+
-+#include <asm/cpu.h>
-+#include <linux/acpi.h>
-+#include <linux/irq.h>
-+#include <linux/irqdesc.h>
-+#include <linux/list.h>
-+#include <linux/perf/arm_pmu.h>
-+#include <linux/platform_device.h>
-+
-+struct pmu_irq {
-+	int  gsi;
-+	int  trigger;
-+	bool registered;
-+};
-+
-+static struct pmu_irq pmu_irqs[NR_CPUS];
-+
-+/*
-+ * Called from acpi_verify_and_map_madt()'s MADT parsing during boot.
-+ * This routine saves off the GSI's and their trigger state for use when we are
-+ * ready to build the PMU platform device.
-+*/
-+void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
-+{
-+	pmu_irqs[cpu].gsi = gic->performance_interrupt;
-+	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
-+		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
-+	else
-+		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
-+}
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index eab9014..535c9e2 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -155,4 +155,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 
- #endif /* CONFIG_ARM_PMU */
- 
-+#ifdef CONFIG_ARM_PMU_ACPI
-+struct acpi_madt_generic_interrupt;
-+void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
-+#else
-+#define arm_pmu_parse_acpi(a, b) do { } while (0)
-+#endif /* CONFIG_ARM_PMU_ACPI */
-+
- #endif /* __ARM_PMU_H__ */
--- 
-2.5.5
+Right.
 
+I'm assuming the patch will be updated to drop this check.
+
+Thanks,
+Rafael
