@@ -1,101 +1,95 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH v2 09/11] irqchip: mbigen: introduce mbigen_of_create_domain()
-Date: Wed, 14 Sep 2016 22:21:17 +0800
-Message-ID: <1473862879-7769-10-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH v2 03/11] irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare for ACPI
+Date: Wed, 14 Sep 2016 22:21:11 +0800
+Message-ID: <1473862879-7769-4-git-send-email-guohanjun@huawei.com>
 References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:32360 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933131AbcINOXq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 10:23:46 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Introduce mbigen_of_create_domain() to consolidate OF related
-code and prepare for ACPI later.
+Introduce its_pmsi_init_one() to refactor the code to isolate
+ACPI&DT common code to prepare for ACPI later.
 
 Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ma Jun <majun258@huawei.com>
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-mbigen.c | 42 +++++++++++++++++++++++++++---------------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 45 ++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-index c01ab41..9484ea0 100644
---- a/drivers/irqchip/irq-mbigen.c
-+++ b/drivers/irqchip/irq-mbigen.c
-@@ -236,27 +236,15 @@ static struct irq_domain_ops mbigen_domain_ops = {
- 	.free		= irq_domain_free_irqs_common,
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 3646c23..a80ecd7 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -84,34 +84,43 @@ static struct of_device_id its_device_id[] = {
+ 	{},
  };
  
--static int mbigen_device_probe(struct platform_device *pdev)
-+static int mbigen_of_create_domain(struct platform_device *pdev,
-+				   struct mbigen_device *mgn_chip)
+-static int __init its_pmsi_init(void)
++static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
++				const char *name)
  {
--	struct mbigen_device *mgn_chip;
-+	struct device *parent;
- 	struct platform_device *child;
- 	struct irq_domain *domain;
- 	struct device_node *np;
--	struct device *parent;
--	struct resource *res;
- 	u32 num_pins;
+-	struct device_node *np;
+ 	struct irq_domain *parent;
  
--	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
--	if (!mgn_chip)
--		return -ENOMEM;
--
--	mgn_chip->pdev = pdev;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	mgn_chip->base = devm_ioremap_resource(&pdev->dev, res);
--	if (IS_ERR(mgn_chip->base))
--		return PTR_ERR(mgn_chip->base);
--
- 	for_each_child_of_node(pdev->dev.of_node, np) {
- 		if (!of_property_read_bool(np, "interrupt-controller"))
- 			continue;
-@@ -280,6 +268,30 @@ static int mbigen_device_probe(struct platform_device *pdev)
- 			return -ENOMEM;
- 	}
- 
++	parent = irq_find_matching_fwnode(fwnode, DOMAIN_BUS_NEXUS);
++	if (!parent || !msi_get_domain_info(parent)) {
++		pr_err("%s: unable to locate ITS domain\n", name);
++		return -ENXIO;
++	}
++
++	if (!platform_msi_create_irq_domain(fwnode, &its_pmsi_domain_info,
++					    parent)) {
++		pr_err("%s: unable to create platform domain\n", name);
++		return -ENXIO;
++	}
++
++	pr_info("Platform MSI: %s domain created\n", name);
 +	return 0;
 +}
 +
-+static int mbigen_device_probe(struct platform_device *pdev)
++static void __init its_pmsi_of_init(void)
 +{
-+	struct mbigen_device *mgn_chip;
-+	struct resource *res;
-+	int err;
++	struct device_node *np;
 +
-+	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
-+	if (!mgn_chip)
-+		return -ENOMEM;
-+
-+	mgn_chip->pdev = pdev;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	mgn_chip->base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(mgn_chip->base))
-+		return PTR_ERR(mgn_chip->base);
-+
-+	err = mbigen_of_create_domain(pdev, mgn_chip);
-+	if (err)
-+		return err;
-+
- 	platform_set_drvdata(pdev, mgn_chip);
+ 	for (np = of_find_matching_node(NULL, its_device_id); np;
+ 	     np = of_find_matching_node(np, its_device_id)) {
+ 		if (!of_property_read_bool(np, "msi-controller"))
+ 			continue;
+ 
+-		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
+-		if (!parent || !msi_get_domain_info(parent)) {
+-			pr_err("%s: unable to locate ITS domain\n",
+-			       np->full_name);
+-			continue;
+-		}
+-
+-		if (!platform_msi_create_irq_domain(of_node_to_fwnode(np),
+-						    &its_pmsi_domain_info,
+-						    parent)) {
+-			pr_err("%s: unable to create platform domain\n",
+-			       np->full_name);
+-			continue;
+-		}
+-
+-		pr_info("Platform MSI: %s domain created\n", np->full_name);
++		its_pmsi_init_one(of_node_to_fwnode(np), np->full_name);
+ 	}
++}
+ 
++static int __init its_pmsi_init(void)
++{
++	its_pmsi_of_init();
  	return 0;
  }
+ early_initcall(its_pmsi_init);
 -- 
 1.7.12.4
-
