@@ -1,280 +1,244 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
-Date: Wed, 14 Sep 2016 13:40:16 +0100
-Message-ID: <20160914124016.GA4123@red-moon>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-3-git-send-email-tn@semihalf.com>
- <57D76626.1050109@huawei.com>
- <bac9f822-ce0a-7070-94df-4d66fc30f774@semihalf.com>
- <57D7E53F.1000106@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/4] PCI: Query platform firmware for device power state
+Date: Wed, 14 Sep 2016 15:01:33 +0200
+Message-ID: <1707182.o83Q5WOaET@vostro.rjw.lan>
+References: <cover.1472554278.git.lukas@wunner.de> <5506823.86CoiunRKu@vostro.rjw.lan> <20160914105024.GC1597@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39940 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1761361AbcINMkE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 08:40:04 -0400
-Content-Disposition: inline
-In-Reply-To: <57D7E53F.1000106@huawei.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59861 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1761906AbcINMz1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Sep 2016 08:55:27 -0400
+In-Reply-To: <20160914105024.GC1597@wunner.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 
-On Tue, Sep 13, 2016 at 07:38:39PM +0800, Dongdong Liu wrote:
-> Hi Tomasz
+On Wednesday, September 14, 2016 12:50:24 PM Lukas Wunner wrote:
+> On Wed, Sep 14, 2016 at 02:21:30AM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
+> > > Usually the most accurate way to determine a PCI device's power state is
+> > > to read its PM Control & Status Register.  There are two cases however
+> > > when this is not an option:  If the device doesn't have the PM
+> > > capability at all, or if it is in D3cold.
+> > > 
+> > > In D3cold, reading from config space typically results in a fabricated
+> > > "all ones" response.  But in D3hot, the two bits representing the power
+> > > state in the PMCSR are *also* set to 1.  Thus D3hot and D3cold are not
+> > > discernible by just reading the PMCSR.
+> > > 
+> > > A (supposedly) reliable way to detect D3cold is to query the platform
+> > > firmware for its opinion on the device's power state.  To this end,
+> > > add a ->get_power callback to struct pci_platform_pm_ops, and an
+> > > implementation to acpi_pci_platform_pm.  (The only pci_platform_pm_ops
+> > > existing so far).
+> > > 
+> > > Amend pci_update_current_state() to query the platform firmware before
+> > > reading the PMCSR.
+> > > 
+> > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > > ---
+> > >  drivers/pci/pci-acpi.c | 23 +++++++++++++++++++++++
+> > >  drivers/pci/pci.c      | 21 ++++++++++++++++-----
+> > >  drivers/pci/pci.h      |  3 +++
+> > >  3 files changed, 42 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > > index 9a033e8..89f2707 100644
+> > > --- a/drivers/pci/pci-acpi.c
+> > > +++ b/drivers/pci/pci-acpi.c
+> > > @@ -452,6 +452,28 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+> > >  	return error;
+> > >  }
+> > >  
+> > > +static pci_power_t acpi_pci_get_power_state(struct pci_dev *dev)
+> > > +{
+> > > +	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> > > +	static const pci_power_t state_conv[] = {
+> > > +		[ACPI_STATE_D0]      = PCI_D0,
+> > > +		[ACPI_STATE_D1]      = PCI_D1,
+> > > +		[ACPI_STATE_D2]      = PCI_D2,
+> > > +		[ACPI_STATE_D3_HOT]  = PCI_D3hot,
+> > > +		[ACPI_STATE_D3_COLD] = PCI_D3cold,
+> > > +	};
+> > > +	int state;
+> > 
+> > ACPI_STATE_D3_HOT and ACPI_STATE_D3_COLD were introduced in ACPI 4.0.  For
+> > systems predating that, ACPI_STATE_D3_HOT is the deepest state returned by
+> > acpi_device_get_power().
 > 
-> ?? 2016/9/13 14:32, Tomasz Nowicki ????:
-> >Hi Liu,
-> >
-> >On 13.09.2016 04:36, Dongdong Liu wrote:
-> >>Hi Tomasz
-> >>
-> >>?? 2016/9/10 3:24, Tomasz Nowicki ????:
-> >>>Some platforms may not be fully compliant with generic set of PCI config
-> >>>accessors. For these cases we implement the way to overwrite CFG
-> >>>accessors
-> >>>set and configuration space range.
-> >>>
-> >>>In first place pci_mcfg_parse() saves machine's IDs and revision number
-> >>>(these come from MCFG header) in order to match against known quirk
-> >>>entries.
-> >>>Then the algorithm traverses available quirk list (static array),
-> >>>matches against <oem_id, oem_table_id, rev, domain, bus number range> and
-> >>>returns custom PCI config ops and/or CFG resource structure.
-> >>>
-> >>>When adding new quirk there are two possibilities:
-> >>>1. Override default pci_generic_ecam_ops ops but CFG resource comes
-> >>>from MCFG
-> >>>{ "OEM_ID", "OEM_TABLE_ID", <REV>, <DOMAIN>, <BUS_NR>, &foo_ops,
-> >>>MCFG_RES_EMPTY },
-> >>>2. Override default pci_generic_ecam_ops ops and CFG resource. For
-> >>>this case
-> >>>it is also allowed get CFG resource from quirk entry w/o having it in
-> >>>MCFG.
-> >>>{ "OEM_ID", "OEM_TABLE_ID", <REV>, <DOMAIN>, <BUS_NR>, &boo_ops,
-> >>>   DEFINE_RES_MEM(START, SIZE) },
-> >>>
-> >>>pci_generic_ecam_ops and MCFG entries will be used for platforms
-> >>>free from quirks.
-> >>>
-> >>>Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> >>>Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> >>>Signed-off-by: Christopher Covington <cov@codeaurora.org>
-> >>>---
-> >>>  drivers/acpi/pci_mcfg.c | 80
-> >>>+++++++++++++++++++++++++++++++++++++++++++++----
-> >>>  1 file changed, 74 insertions(+), 6 deletions(-)
-> >>>
-> >>>diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> >>>index ffcc651..2b8acc7 100644
-> >>>--- a/drivers/acpi/pci_mcfg.c
-> >>>+++ b/drivers/acpi/pci_mcfg.c
-> >>>@@ -32,6 +32,59 @@ struct mcfg_entry {
-> >>>      u8            bus_start;
-> >>>      u8            bus_end;
-> >>>  };
-> >>>+struct mcfg_fixup {
-> >>>+    char oem_id[ACPI_OEM_ID_SIZE + 1];
-> >>>+    char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> >>>+    u32 oem_revision;
-> >>>+    u16 seg;
-> >>>+    struct resource bus_range;
-> >>>+    struct pci_ecam_ops *ops;
-> >>>+    struct resource cfgres;
-> >>>+};
-> >>>+
-> >>>+#define MCFG_DOM_ANY            (-1)
-> >>>+#define MCFG_BUS_RANGE(start, end)    DEFINE_RES_NAMED((start),    \
-> >>>+                        ((end) - (start) + 1),    \
-> >>>+                        NULL, IORESOURCE_BUS)
-> >>>+#define MCFG_BUS_ANY        MCFG_BUS_RANGE(0x0, 0xff)
-> >>>+#define MCFG_RES_EMPTY        DEFINE_RES_NAMED(0, 0, NULL, 0)
-> >>>+
-> >>>+static struct mcfg_fixup mcfg_quirks[] = {
-> >>>+/*    { OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
-> >>>+};
-> >>>+
-> >>>+static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-> >>>+static char mcfg_oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
-> >>>+static u32 mcfg_oem_revision;
-> >>>+
-> >>>+static void pci_mcfg_match_quirks(struct acpi_pci_root *root,
-> >>>+                  struct resource *cfgres,
-> >>>+                  struct pci_ecam_ops **ecam_ops)
-> >>>+{
-> >>>+    struct mcfg_fixup *f;
-> >>>+    int i;
-> >>>+
-> >>>+    /*
-> >>>+     * First match against PCI topology <domain:bus> then use OEM ID,
-> >>>OEM
-> >>>+     * table ID, and OEM revision from MCFG table standard header.
-> >>>+     */
-> >>>+    for (i = 0, f = mcfg_quirks; i < ARRAY_SIZE(mcfg_quirks); i++,
-> >>>f++) {
-> >>>+        if (f->seg == root->segment &&
-> >>
-> >>why not use MCFG_DOM_RANGE, I think MCFG_DOM_RANGE is better.
-> >>if drop MCFG_DOM_RANGE, mcfg_quirks[] will be more complex.
-> >>
-> >>static struct mcfg_fixup mcfg_quirks[] = {
-> >>/*    { OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
-> >>#ifdef CONFIG_PCI_HOST_THUNDER_ECAM
-> >>    /* SoC pass1.x */
-> >>    { "CAVIUM", "THUNDERX", 2, 0, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 1, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 2, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 3, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 10, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 11, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 12, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>    { "CAVIUM", "THUNDERX", 2, 13, MCFG_BUS_ANY, &pci_thunder_ecam_ops,
-> >>      MCFG_RES_EMPTY},
-> >>#endif
-> >>.....
-> >>};
-> >>
-> >>As PATCH v5 we only need define mcfg_quirks as below, It looks better.
-> >>static struct pci_cfg_fixup mcfg_quirks[] __initconst = {
-> >>/*    { OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, pci_ops, init_hook
-> >>}, */
-> >>#ifdef CONFIG_PCI_HOST_THUNDER_PEM
-> >>    /* Pass2.0 */
-> >>    { "CAVIUM", "THUNDERX", 1, MCFG_DOM_RANGE(4, 9), MCFG_BUS_ANY, NULL,
-> >>      thunder_pem_cfg_init },
-> >>    { "CAVIUM", "THUNDERX", 1, MCFG_DOM_RANGE(14, 19), MCFG_BUS_ANY, NULL,
-> >>      thunder_pem_cfg_init },
-> >>#endif
-> >>#ifdef CONFIG_PCI_HISI_ACPI
-> >>    { "HISI  ", "HIP05   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
-> >>      NULL, hisi_pcie_acpi_hip05_init},
-> >>    { "HISI  ", "HIP06   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
-> >>      NULL, hisi_pcie_acpi_hip06_init},
-> >>    { "HISI  ", "HIP07   ", 0, MCFG_DOM_RANGE(0, 15), MCFG_BUS_ANY,
-> >>      NULL, hisi_pcie_acpi_hip07_init},
-> >>#endif
-> >>};
-> >
-> >Note this series disallow hisi_pcie_acpi_hip07_init() call. According to the Bjorn suggestion I rework quirk code to override ops and CFG resources only. Giving that I do not see the way to use MCFG_DOM_RANGE macro. For HISI you would need to get CFG range for each possible case:
-> >
-> >#ifdef CONFIG_PCI_HISI_ACPI
-> >     { "HISI  ", "HIP05   ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_ops,
-> >       DEFINE_RES_MEM(start0, size0)},
-> >     { "HISI  ", "HIP05   ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_ops,
-> >       DEFINE_RES_MEM(start1, size1)},
-> >     { "HISI  ", "HIP05   ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_ops,
-> >       DEFINE_RES_MEM(start2, size2)},
-> >     { "HISI  ", "HIP05   ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_ops,
-> >       DEFINE_RES_MEM(start3, size3)},
-> >[...]
-> >#endif
-> >
-> >Indeed there are more entries here but you do not have to define the same resource array in driver.
+> Would it be possible to detect the ACPI spec version the platform
+> firmware conforms to, and amend acpi_device_get_power() to return
+> ACPI_STATE_D3_COLD if the device is in D3?
 > 
-> Our host bridge is non ECAM only for the RC bus config space;
-> for any other bus underneath the root bus we support ECAM access.
-> 
-> RC config resource with hardcode as DEFINE_RES_MEM(0xb0070000, SZ_4K),
-> EP config resource we get it from MCFG table.
-> So we need to override ops, but config resource we only need to hardcode with RC config resource.
-> 
-> Our host controller ACPI support patch can be found:
-> https://lkml.org/lkml/2016/8/31/340
-> This patch is based on RFC V5 quirk mechanism.
-> 
-> Based on V6 quirk mechanism, we have to change it as below:
+> Then we could avoid the unnecessary runtime resume after direct_complete
+> also for these older machines.
 
-That's because you are hacking around the quirk mechanism to define
-resources that have nothing to do with PCI config regions (that you
-ioremap and use to check the PCI link status) and of top of that you are
-*still* using the MCFG to describe config regions that are NOT ECAM
-compliant, which is the exact opposite of what this patchset is meant
-to achieve.
+Well, please see below.
 
-If a config region is not ECAM compliant having it defined in the MCFG
-is a firmware bug and the way you are using this patchset is not what
-we designed it for, please correct me if I am wrong.
+> Can the revision in the FADT (offset 8) be used as a proxy?
+> => E.g. the old Clevo B7130 has revision 3 in the FADT and uses
+>    a _DSM and _PS3 to put the discrete GPU in D3cold:
+>    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_B7130
+> => Whereas the newer Clevo P651RA has revision 5 in the FADT and uses
+>    _PR3 to put the discrete GPU in D3cold:
+>    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_P651RA
+> 
+> However the FADT revision was already 4 in the ACPI 3.0 spec,
+> so we can only use it to discern ACPI 2.0 vs 3.0, not 3.0 vs 4.0,
+> which is what we'd actually want.  And there's a comment in
+> acpica/tbfadt.c that "The FADT revision value is unreliable."
+> 
+> Do you know of a better way to discern ACPI 3.0 vs 4.0?
+
+I'm not sure if there is a reliable way to be honest.
+
+Also even if the FADT etc tells you something, there's no guarantee that AML
+actually follows that.
+
+In fact, whether or not acpi_device_get_power() will ever return D3cold
+for a device depends on whether or not _PR3 is there.  If it's not there,
+the deepest state returned will be D3hot in any case.
+
+So I'm not sure how useful that is in the context of D3cold detection?
+
+> > 
+> > > +
+> > > +	if (!adev || !acpi_device_power_manageable(adev))
+> > > +		return PCI_UNKNOWN;
+> > > +
+> > > +	if (acpi_device_get_power(adev, &state) || state < ACPI_STATE_D0
+> > > +						|| state > ACPI_STATE_D3_COLD)
+> > 
+> > If the device is power-manageable by ACPI (you've just checked that) and
+> > acpi_device_get_power() returns success (0), the returned state is guaranteed
+> > to be within the boundaries (if it isn't, there is a bug that needs to be
+> > fixed).
+> 
+> No, acpi_device_get_power() can also return ACPI_STATE_UNKNOWN, which has
+> the value 0xff.
+
+That would be the case without power resources or _PSC, right?
+
+> I could add that to state_conv[] above but then I'd have
+> an array with 256 integers on the stack, most of them 0, which I don't want.
+> I could check for != ACPI_STATE_UNKNOWN but checking the boundaries seemed
+> safer.
+
+Well, I'm not sure in what way it is safer and you get one check instead of
+two. :-)
+
+> So I maintain that the code is correct.
+
+It simply contains an redundant check.
+
+> > 
+> > > +		return PCI_UNKNOWN;
+> > > +
+> > > +	return state_conv[state];
+> > > +}
+> > > +
+> > >  static bool acpi_pci_can_wakeup(struct pci_dev *dev)
+> > >  {
+> > >  	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> > > @@ -534,6 +556,7 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
+> > >  static const struct pci_platform_pm_ops acpi_pci_platform_pm = {
+> > >  	.is_manageable = acpi_pci_power_manageable,
+> > >  	.set_state = acpi_pci_set_power_state,
+> > > +	.get_state = acpi_pci_get_power_state,
+> > >  	.choose_state = acpi_pci_choose_state,
+> > >  	.sleep_wake = acpi_pci_sleep_wake,
+> > >  	.run_wake = acpi_pci_run_wake,
+> > > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> > > index 72a9d3a..e52e3d4 100644
+> > > --- a/drivers/pci/pci.c
+> > > +++ b/drivers/pci/pci.c
+> > > @@ -552,8 +552,9 @@ static const struct pci_platform_pm_ops *pci_platform_pm;
+> > >  
+> > >  int pci_set_platform_pm(const struct pci_platform_pm_ops *ops)
+> > >  {
+> > > -	if (!ops->is_manageable || !ops->set_state || !ops->choose_state ||
+> > > -	    !ops->sleep_wake || !ops->run_wake || !ops->need_resume)
+> > > +	if (!ops->is_manageable || !ops->set_state  || !ops->get_state ||
+> > > +	    !ops->choose_state  || !ops->sleep_wake || !ops->run_wake  ||
+> > > +	    !ops->need_resume)
+> > >  		return -EINVAL;
+> > >  	pci_platform_pm = ops;
+> > >  	return 0;
+> > > @@ -570,6 +571,11 @@ static inline int platform_pci_set_power_state(struct pci_dev *dev,
+> > >  	return pci_platform_pm ? pci_platform_pm->set_state(dev, t) : -ENOSYS;
+> > >  }
+> > >  
+> > > +static inline pci_power_t platform_pci_get_power_state(struct pci_dev *dev)
+> > > +{
+> > > +	return pci_platform_pm ? pci_platform_pm->get_state(dev) : PCI_UNKNOWN;
+> > > +}
+> > > +
+> > >  static inline pci_power_t platform_pci_choose_state(struct pci_dev *dev)
+> > >  {
+> > >  	return pci_platform_pm ?
+> > > @@ -701,14 +707,19 @@ static int pci_raw_set_power_state(struct pci_dev *dev, pci_power_t state)
+> > >  }
+> > >  
+> > >  /**
+> > > - * pci_update_current_state - Read PCI power state of given device from its
+> > > - *                            PCI PM registers and cache it
+> > > + * pci_update_current_state - Read power state of given device and cache it
+> > >   * @dev: PCI device to handle.
+> > >   * @state: State to cache in case the device doesn't have the PM capability
+> > > + *
+> > > + * The power state is read from the PMCSR register, which however is
+> > > + * inaccessible in D3cold. The platform firmware is therefore queried first
+> > > + * to detect accessibility of the register.
+> > >   */
+> > >  void pci_update_current_state(struct pci_dev *dev, pci_power_t state)
+> > >  {
+> > > -	if (dev->pm_cap) {
+> > > +	if (platform_pci_get_power_state(dev) == PCI_D3cold) {
+> > > +		dev->current_state = PCI_D3cold;
+> > > +	} else if (dev->pm_cap) {
+> > 
+> > Why exactly do you need to change this function?
+> 
+> It would be pointless to add the ->platform_pci_get_power_state
+> hook without using it anywhere, wouldn't it?
+
+That depends on what you want to do with it next.  Callers may be added in
+separate patches, no problem with that.
+
+> I am adding this here so that I can call pci_update_current_state()
+> in patch [3/4] to compare the device's state after system sleep with
+> the one before, and be able to discern D3hot and D3cold properly
+> (as explained in the commit message above).
+> 
+> That said, I need to amend the patch to remove this portion in
+> pci_update_current_state():
+> 
+>                 if (dev->current_state == PCI_D3cold)
+>                         return;
+> 
+> because otherwise we'd never try to read the PMCSR if the firmware
+> says the device is in <= D3hot.
+
+pci_update_current_state() is called in a few places with assumptions that need
+to be re-evaluated to see if they still hold after the changes.  They probably
+do, but then again, these call sites need to be double checked.  If you did
+that, then fine.
+
+But I would say that (a) the next patch will add detection of the real
+post-resume power state of "direct_complete" devices and it will use
+pci_update_current_state() for that (to be consistent with the rest of
+the code), so (b) pci_update_current_state() needs to ask ACPI about its
+view on the power state of the device for this purpose.
+
+And if you want to change that logic for PCI, it would be good to change it
+in the same way for acpi_general_pm_domain which has exactly the same problem.
 
 Thanks,
-Lorenzo
+Rafael
 
-> 
-> #ifdef CONFIG_PCI_HISI_ACPI
-> 	{ "HISI ", "HIP05 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP05 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP05 ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP05 ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
->          MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP07 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP07 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
-> 	  MCFG_RES_EMPTY},
-> 	....
-> 	
-> 	{ "HISI ", "HIP07 ", 0, 15, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
-> 	  MCFG_RES_EMPTY},
-> 
-> #endif
-> 
-> struct pci_ecam_ops hisi_pci_hip05_ops = {
-> 	.bus_shift	= 20,
-> 	.init		=  hisi_pci_hip05_init,
-> 	.pci_ops	= {
-> 		.map_bus	= pci_ecam_map_bus,
-> 		.read		= hisi_pcie_acpi_rd_conf,
-> 		.write		= hisi_pcie_acpi_wr_conf,
-> 	}
-> };
-> 
-> struct pci_ecam_ops hisi_pci_hip06_ops = {
-> 	.bus_shift = 20,
-> 	.init = hisi_pci_hip06_init,
-> 	.pci_ops = {
-> 		.map_bus = pci_ecam_map_bus,
-> 		.read = hisi_pcie_acpi_rd_conf,
-> 		.write = hisi_pcie_acpi_wr_conf,
-> 	}
-> };
-> 
-> hisi_pci_hipxx_init function is used to get RC config resource with hardcode.
-> .....
-> 
-> So I hope we can use MCFG_DOM_RANGE, Then I can change it as below.
-> 
-> #ifdef CONFIG_PCI_HISI_ACPI
-> 	{ "HISI  ", "HIP05   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
-> 	 &hisi_pcie_hip05_ops, MCFG_RES_EMPTY},
-> 	{ "HISI  ", "HIP06   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
-> 	 &hisi_pcie_hip06_ops, MCFG_RES_EMPTY},
-> 	{ "HISI  ", "HIP07   ", 0, MCFG_DOM_RANGE(0, 15), MCFG_BUS_ANY,
-> 	  &hisi_pcie_hip07_ops, MCFG_RES_EMPTY},
-> #endif
-> 
-> Thanks
-> Dongdong
-> >
-> >Thanks,
-> >Tomasz
-> >
-> >.
-> >
-> 
