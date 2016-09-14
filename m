@@ -1,134 +1,115 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 07/10] arm: arm64: pmu: Assign platform PMU CPU affinity
-Date: Wed, 14 Sep 2016 17:32:35 -0500
-Message-ID: <1473892358-22574-8-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v9 02/10] arm64: pmu: Probe default hw/cache counters
+Date: Wed, 14 Sep 2016 17:32:30 -0500
+Message-ID: <1473892358-22574-3-git-send-email-jeremy.linton@arm.com>
 References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54128 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:54076 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762080AbcINWc6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 18:32:58 -0400
+        id S1757190AbcINWc5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Sep 2016 18:32:57 -0400
 In-Reply-To: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On systems with multiple PMU types the PMU to CPU affinity
-needs to be detected and set. The CPU to interrupt affinity
-should also be set.
+ARMv8 machines can identify the micro/arch defined counters
+that are available on a machine. Add all these counters to the
+default armv8 perf map. At run-time disable the counters which
+are not available on the given PMU.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
 ---
- drivers/perf/arm_pmu.c | 63 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 53 insertions(+), 10 deletions(-)
+ arch/arm64/kernel/perf_event.c | 45 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 41 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 58117d7..63f16a5 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -11,6 +11,7 @@
-  */
- #define pr_fmt(fmt) "hw perfevents: " fmt
+diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
+index 3aac598..f650548 100644
+--- a/arch/arm64/kernel/perf_event.c
++++ b/arch/arm64/kernel/perf_event.c
+@@ -191,13 +191,23 @@
+ #define ARMV8_THUNDER_PERFCTR_L1I_CACHE_PREF_MISS		0xED
  
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpumask.h>
- #include <linux/cpu_pm.h>
-@@ -24,6 +25,7 @@
- #include <linux/irq.h>
- #include <linux/irqdesc.h>
+ /* PMUv3 HW events mapping. */
++
++/*
++ * ARMv8 Architectural defined events, not all of these may
++ * be supported on any given implementation. Undefined events will
++ * be disabled at run-time.
++ */
+ static const unsigned armv8_pmuv3_perf_map[PERF_COUNT_HW_MAX] = {
+ 	PERF_MAP_ALL_UNSUPPORTED,
+ 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV8_PMUV3_PERFCTR_CPU_CYCLES,
+ 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV8_PMUV3_PERFCTR_INST_RETIRED,
+ 	[PERF_COUNT_HW_CACHE_REFERENCES]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE,
+ 	[PERF_COUNT_HW_CACHE_MISSES]		= ARMV8_PMUV3_PERFCTR_L1D_CACHE_REFILL,
++	[PERF_COUNT_HW_BRANCH_INSTRUCTIONS]	= ARMV8_PMUV3_PERFCTR_PC_WRITE_RETIRED,
+ 	[PERF_COUNT_HW_BRANCH_MISSES]		= ARMV8_PMUV3_PERFCTR_BR_MIS_PRED,
++	[PERF_COUNT_HW_BUS_CYCLES]		= ARMV8_PMUV3_PERFCTR_BUS_CYCLES,
++	[PERF_COUNT_HW_STALLED_CYCLES_FRONTEND]	= ARMV8_PMUV3_PERFCTR_STALL_FRONTEND,
++	[PERF_COUNT_HW_STALLED_CYCLES_BACKEND]	= ARMV8_PMUV3_PERFCTR_STALL_BACKEND,
+ };
  
-+#include <asm/cpu.h>
- #include <asm/cputype.h>
- #include <asm/irq_regs.h>
+ /* ARM Cortex-A53 HW events mapping. */
+@@ -259,6 +269,15 @@ static const unsigned armv8_pmuv3_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
+ 	[C(L1D)][C(OP_WRITE)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE,
+ 	[C(L1D)][C(OP_WRITE)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE_REFILL,
  
-@@ -876,25 +878,67 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
- }
++	[C(L1I)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1I_CACHE,
++	[C(L1I)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1I_CACHE_REFILL,
++
++	[C(DTLB)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1D_TLB_REFILL,
++	[C(DTLB)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1D_TLB,
++
++	[C(ITLB)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1I_TLB_REFILL,
++	[C(ITLB)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1I_TLB,
++
+ 	[C(BPU)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_BR_PRED,
+ 	[C(BPU)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_BR_MIS_PRED,
+ 	[C(BPU)][C(OP_WRITE)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_BR_PRED,
+@@ -906,9 +925,22 @@ static void armv8pmu_reset(void *info)
  
- /*
-- * CPU PMU identification and probing.
-+ * CPU PMU identification and probing. Its possible to have
-+ * multiple CPU types in an ARM machine. Assure that we are
-+ * picking the right PMU types based on the CPU in question
-  */
--static int probe_current_pmu(struct arm_pmu *pmu,
--			     const struct pmu_probe_info *info)
-+static int probe_plat_pmu(struct arm_pmu *pmu,
-+			     const struct pmu_probe_info *info,
-+			     unsigned int pmuid)
+ static int armv8_pmuv3_map_event(struct perf_event *event)
  {
--	int cpu = get_cpu();
--	unsigned int cpuid = read_cpuid_id();
- 	int ret = -ENODEV;
-+	int cpu;
-+	int aff_ctr = 0;
-+	static int duplicate_pmus;
-+	struct platform_device *pdev = pmu->plat_device;
-+	int irq = platform_get_irq(pdev, 0);
- 
--	pr_info("probing PMU on CPU %d\n", cpu);
-+	if (irq >= 0 && !irq_is_percpu(irq)) {
-+		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
-+					    GFP_KERNEL);
-+		if (!pmu->irq_affinity)
-+			return -ENOMEM;
-+	}
- 
-+	for_each_possible_cpu(cpu) {
-+		unsigned int cpuid = read_specific_cpuid(cpu);
+-	return armpmu_map_event(event, &armv8_pmuv3_perf_map,
+-				&armv8_pmuv3_perf_cache_map,
+-				ARMV8_PMU_EVTYPE_EVENT);
++	int hw_event_id;
++	struct arm_pmu *armpmu = to_arm_pmu(event->pmu);
 +
-+		if (cpuid == pmuid) {
-+			cpumask_set_cpu(cpu, &pmu->supported_cpus);
-+			if (pmu->irq_affinity) {
-+				pmu->irq_affinity[aff_ctr] = cpu;
-+				aff_ctr++;
-+			}
-+		}
++	hw_event_id = armpmu_map_event(event, &armv8_pmuv3_perf_map,
++				       &armv8_pmuv3_perf_cache_map,
++				       ARMV8_PMU_EVTYPE_EVENT);
++	if (hw_event_id < 0)
++		return hw_event_id;
++
++	/* disable micro/arch events not supported by this PMU */
++	if ((hw_event_id < ARMV8_PMUV3_MAX_COMMON_EVENTS) &&
++		!test_bit(hw_event_id, armpmu->pmceid_bitmap)) {
++			return -EOPNOTSUPP;
 +	}
 +
-+	/* find the type of PMU given the CPU */
- 	for (; info->init != NULL; info++) {
--		if ((cpuid & info->mask) != info->cpuid)
-+		if ((pmuid & info->mask) != info->cpuid)
- 			continue;
- 		ret = info->init(pmu);
-+		/*
-+		 * if this pmu declaration is unspecified and we have
-+		 * previously found a PMU on this platform then append
-+		 * a PMU number to the pmu name. This avoids changing
-+		 * the names of PMUs that are specific to a class of CPUs.
-+		 * The assumption is that if we match a specific PMU in the
-+		 * provided pmu_probe_info then it's unique, and another PMU
-+		 * in the system will match a different entry rather than
-+		 * needing the _number to assure its unique.
-+		 */
-+		if ((!info->cpuid) && (duplicate_pmus)) {
-+			pmu->name = kasprintf(GFP_KERNEL, "%s_%d",
-+					    pmu->name, duplicate_pmus);
-+			if (!pmu->name) {
-+				kfree(pmu->irq_affinity);
-+				ret = -ENOMEM;
-+			}
-+		}
-+		duplicate_pmus++;
- 		break;
- 	}
- 
--	put_cpu();
- 	return ret;
++	return hw_event_id;
  }
  
-@@ -1030,8 +1074,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		if (!ret)
- 			ret = init_fn(pmu);
- 	} else if (probe_table) {
--		cpumask_setall(&pmu->supported_cpus);
--		ret = probe_current_pmu(pmu, probe_table);
-+		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
- 	}
+ static int armv8_a53_map_event(struct perf_event *event)
+@@ -1045,8 +1077,13 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
+ 	{},
+ };
  
- 	if (ret) {
++/*
++ * Non DT systems have their micro/arch events probed at run-time.
++ * A fairly complete list of generic events are provided and ones that
++ * aren't supported by the current PMU are disabled.
++ */
+ static const struct pmu_probe_info armv8_pmu_probe_table[] = {
+-	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
++	PMU_PROBE(0, 0, armv8_pmuv3_init), /* enable all defined counters */
+ 	{ /* sentinel value */ }
+ };
+ 
 -- 
 2.5.5
 
