@@ -1,41 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 24/26] ACPI / APD: constify local structures
-Date: Wed, 14 Sep 2016 02:54:21 +0200
-Message-ID: <3479523.AUgAeqlLYs@vostro.rjw.lan>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr> <1473599168-30561-25-git-send-email-Julia.Lawall@lip6.fr>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/2] nfit: fail DSMs that return an unknown status value
+Date: Tue, 13 Sep 2016 18:28:47 -0700
+Message-ID: <147381652762.13555.2547727388390513900.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57582 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S932856AbcINAsO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Sep 2016 20:48:14 -0400
-In-Reply-To: <1473599168-30561-25-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: joe@perches.com, kernel-janitors@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sunday, September 11, 2016 03:06:06 PM Julia Lawall wrote:
-> For structure types defined in the same file or local header files, find
-> top-level static structure declarations that have the following
-> properties:
-> 1. Never reassigned.
-> 2. Address never taken
-> 3. Not passed to a top-level macro call
-> 4. No pointer or array-typed field passed to a function or stored in a
-> variable.
-> Declare structures having all of these properties as const.
-> 
-> Done using Coccinelle.
-> Based on a suggestion by Joe Perches <joe@perches.com>.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+When the kernel knows the format of a DSM and is consuming the data
+internal to the kernel, it needs to be careful to fail DSMs that return
+an error.  Recall that DSMs, ACPI Device Specific Methods, are used by
+the kernel to manipulate namespace label data, and scan for media
+errors.  For example, if a namespace label read command fails the
+returned data is undefined and should not be consumed by the libnvdimm
+core to make namespace provisioning decisions.
 
-Applied.
+Also, add new unit test capability to allow dynamic failure injection
+for DSMs sent to nfit_test devices.
 
-Thanks,
-Rafael
+---
 
+Dan Williams (2):
+      nfit: fail DSMs that return non-zero status by default
+      tools/testing/nvdimm: test get_config_size DSM failures
+
+
+ drivers/acpi/nfit/core.c         |   48 +++++++++++++----------
+ tools/testing/nvdimm/test/nfit.c |   79 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 105 insertions(+), 22 deletions(-)
