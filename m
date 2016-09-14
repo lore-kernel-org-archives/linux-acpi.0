@@ -1,103 +1,98 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 1/2] PCI: Add pci_find_resource()
-Date: Wed, 14 Sep 2016 17:16:54 -0500
-Message-ID: <20160914221654.GG16581@localhost>
-References: <CAJZ5v0gRm++9zcAtXc1jYKsrg=tw2K3Wd=kQRS=RbRxXRDj8yA@mail.gmail.com>
- <20160913121942.80356-1-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v9 00/10] Enable PMUs in ACPI systems
+Date: Wed, 14 Sep 2016 17:32:28 -0500
+Message-ID: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:42966 "EHLO mail.kernel.org"
+Received: from foss.arm.com ([217.140.101.70]:54052 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1763811AbcINWQ7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 18:16:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20160913121942.80356-1-mika.westerberg@linux.intel.com>
+        id S1756435AbcINWc5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Sep 2016 18:32:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Aaron Durbin <adurbin@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Tue, Sep 13, 2016 at 03:19:41PM +0300, Mika Westerberg wrote:
-> Add a new helper function pci_find_resource() that can be used to find out
-> whether a given resource (for example from a child device) is contained
-> within given PCI device's standard resources.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+This patch expands and reworks the patches published by Mark Salter
+in order to clean up a few of the previous review comments, as well as
+add support for newer CPUs and big/little configurations.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+v9:
+Add/cleanup an additional hotplug patch I've had sitting around. This
+patch brings the ACPI PMU mostly on par with the DT functionality with
+respect to having CPUs offline during boot. This should help clarify
+some of the code structuring.
+Cleanup the list of PMU types early if we fail to allocate memory for an
+additional pmu type.
 
-I think the ACPI part of this series is more interesting than the PCI
-part, so I propose that Rafael merge the series if he likes it.
+v8:
+Rebase to 4.8rc4
+Assorted minor comment/hunk placement/etc tweaks per Punit Agrawal
 
-> ---
->  drivers/pci/pci.c   | 27 +++++++++++++++++++++++++++
->  include/linux/pci.h |  4 ++++
->  2 files changed, 31 insertions(+)
-> 
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index aab9d5115a5f..491f879f34cb 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -480,6 +480,33 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
->  EXPORT_SYMBOL(pci_find_parent_resource);
->  
->  /**
-> + * pci_find_resource - Return matching PCI device resource
-> + * @dev: PCI device to query
-> + * @res: Resource to look for
-> + *
-> + * Goes over standard PCI resources (BARs) and checks if the given resource
-> + * is partially or fully contained in any of them. In that case the
-> + * matching resource is returned, %NULL otherwise.
-> + */
-> +struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res)
-> +{
-> +	int i;
-> +
-> +	if (!res)
-> +		return NULL;
+v7:
+Rebase to 4.8rc3
+Remove cpu affinity sysfs entry. While providing a CPU mask for
+ARMv8 PMU's is really helpful in big/little environments, reworking
+the PMU code to support the cpumask attribute for !arm64 PMUs is out
+of the scope of this patch set.
+Fix CPU miscount problem where an alloc failure followed by successfully
+allocating the structure can result in under counting the CPUs associated
+with the PMU. This bug was created in v6 with the conversion to a linked
+list.
+Remove initial platform device creation code by Mark Salter, and re-squash
+multiple platform device creation code together with helper routines.
+Other minor tweakage.
 
-I agree that this test for !res is unnecessary.
+v6:
+Added cpu affinity sysfs entry
+Converted pmu_types array, to linked list
+Restrict use of the armv8_pmu_probe_table to ACPI systems
+Rename MADT parsing routines in smp.c
+Convert sysfs PMU name to use index rather than partnum
+Remove pr_devel statements
+Other Minor cleanups
+Add Partial Ack-by Will Deacon
 
-> +
-> +	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
-> +		struct resource *r = &dev->resource[i];
-> +
-> +		if (r->start && resource_contains(r, res))
-> +			return r;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL(pci_find_resource);
-> +
-> +/**
->   * pci_find_pcie_root_port - return PCIe Root Port
->   * @dev: PCI device to query
->   *
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 0ab835965669..a917d4b20554 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -1126,6 +1126,7 @@ void pdev_enable_device(struct pci_dev *);
->  int pci_enable_resources(struct pci_dev *, int mask);
->  void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
->  		    int (*)(const struct pci_dev *, u8, u8));
-> +struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res);
->  #define HAVE_PCI_REQ_REGIONS	2
->  int __must_check pci_request_regions(struct pci_dev *, const char *);
->  int __must_check pci_request_regions_exclusive(struct pci_dev *, const char *);
-> @@ -1542,6 +1543,9 @@ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
->  				  int enable)
->  { return 0; }
->  
-> +static inline struct resource *pci_find_resource(struct pci_dev *dev,
-> +						 struct resource *res)
-> +{ return NULL; }
->  static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
->  { return -EIO; }
->  static inline void pci_release_regions(struct pci_dev *dev) { }
-> -- 
-> 2.9.3
-> 
+v5:
+Remove list of CPU types for ACPI systems. We now match a generic
+event list, and use the PMCIED[01] to select events which exist on
+the given PMU. This avoids the need to update the kernel every time
+a new CPU is released.
+Update the maintainers list to include the new file.
+
+v4:
+Correct build issues with ARM (!ARM64) kernels.
+Add ThunderX to list of PMU types.
+
+v3:
+Enable ARM performance monitoring units on ACPI/arm64 machines.
+
+Jeremy Linton (8):
+  arm64: pmu: Probe default hw/cache counters
+  arm64: pmu: Hoist pmu platform device name
+  arm64: Rename the common MADT parse routine
+  arm: arm64: Add routine to determine cpuid of other cpus
+  arm: arm64: pmu: Assign platform PMU CPU affinity
+  arm64: pmu: Detect and enable multiple PMUs in an ACPI system
+  arm: pmu: Add PMU definitions for hot-plugged CPUs
+  MAINTAINERS: Tweak ARM PMU maintainers
+
+Mark Salter (2):
+  arm64: pmu: add fallback probe table
+  arm64: pmu: Cache PMU interrupt numbers from MADT parse
+
+ MAINTAINERS                      |   3 +-
+ arch/arm/include/asm/cputype.h   |   2 +
+ arch/arm64/include/asm/cputype.h |   3 +
+ arch/arm64/kernel/perf_event.c   |  58 ++++++++-
+ arch/arm64/kernel/smp.c          |  18 ++-
+ drivers/perf/Kconfig             |   4 +
+ drivers/perf/Makefile            |   1 +
+ drivers/perf/arm_pmu.c           | 110 ++++++++++++++--
+ drivers/perf/arm_pmu_acpi.c      | 264 +++++++++++++++++++++++++++++++++++++++
+ include/linux/perf/arm_pmu.h     |  13 ++
+ 10 files changed, 452 insertions(+), 24 deletions(-)
+ create mode 100644 drivers/perf/arm_pmu_acpi.c
+
+-- 
+2.5.5
+
