@@ -1,115 +1,306 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 02/10] arm64: pmu: Probe default hw/cache counters
-Date: Wed, 14 Sep 2016 17:32:30 -0500
-Message-ID: <1473892358-22574-3-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v9 08/10] arm64: pmu: Detect and enable multiple PMUs in an ACPI system
+Date: Wed, 14 Sep 2016 17:32:36 -0500
+Message-ID: <1473892358-22574-9-git-send-email-jeremy.linton@arm.com>
 References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54076 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:54126 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757190AbcINWc5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 18:32:57 -0400
+        id S1761905AbcINWc6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Sep 2016 18:32:58 -0400
 In-Reply-To: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-ARMv8 machines can identify the micro/arch defined counters
-that are available on a machine. Add all these counters to the
-default armv8 perf map. At run-time disable the counters which
-are not available on the given PMU.
+Its possible that an ACPI system has multiple CPU types in it
+with differing PMU counters. Iterate the CPU's and make a determination
+about how many of each type exist in the system. Then take and create
+a PMU platform device for each type, and assign it the interrupts parsed
+from the MADT. Creating a platform device is necessary because the PMUs
+are not described as devices in the DSDT table.
+
+This code is loosely based on earlier work by Mark Salter.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
 ---
- arch/arm64/kernel/perf_event.c | 45 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 41 insertions(+), 4 deletions(-)
+ drivers/perf/arm_pmu.c      |   8 +-
+ drivers/perf/arm_pmu_acpi.c | 224 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 231 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-index 3aac598..f650548 100644
---- a/arch/arm64/kernel/perf_event.c
-+++ b/arch/arm64/kernel/perf_event.c
-@@ -191,13 +191,23 @@
- #define ARMV8_THUNDER_PERFCTR_L1I_CACHE_PREF_MISS		0xED
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 63f16a5..47ab4e9 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -1074,7 +1074,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 		if (!ret)
+ 			ret = init_fn(pmu);
+ 	} else if (probe_table) {
+-		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
++		if (acpi_disabled) {
++			/* use the current cpu. */
++			ret = probe_plat_pmu(pmu, probe_table,
++					     read_cpuid_id());
++		} else {
++			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
++		}
+ 	}
  
- /* PMUv3 HW events mapping. */
+ 	if (ret) {
+diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+index dbd4e10..7c56ee4 100644
+--- a/drivers/perf/arm_pmu_acpi.c
++++ b/drivers/perf/arm_pmu_acpi.c
+@@ -2,13 +2,17 @@
+  * ARM ACPI PMU support
+  *
+  * Copyright (C) 2015 Red Hat Inc.
++ * Copyright (C) 2016 ARM Ltd.
+  * Author: Mark Salter <msalter@redhat.com>
++ *	   Jeremy Linton <jeremy.linton@arm.com>
+  *
+  * This work is licensed under the terms of the GNU GPL, version 2.  See
+  * the COPYING file in the top-level directory.
+  *
+  */
+ 
++#define pr_fmt(fmt) "ACPI-PMU: " fmt
 +
-+/*
-+ * ARMv8 Architectural defined events, not all of these may
-+ * be supported on any given implementation. Undefined events will
-+ * be disabled at run-time.
-+ */
- static const unsigned armv8_pmuv3_perf_map[PERF_COUNT_HW_MAX] = {
- 	PERF_MAP_ALL_UNSUPPORTED,
- 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV8_PMUV3_PERFCTR_CPU_CYCLES,
- 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV8_PMUV3_PERFCTR_INST_RETIRED,
- 	[PERF_COUNT_HW_CACHE_REFERENCES]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE,
- 	[PERF_COUNT_HW_CACHE_MISSES]		= ARMV8_PMUV3_PERFCTR_L1D_CACHE_REFILL,
-+	[PERF_COUNT_HW_BRANCH_INSTRUCTIONS]	= ARMV8_PMUV3_PERFCTR_PC_WRITE_RETIRED,
- 	[PERF_COUNT_HW_BRANCH_MISSES]		= ARMV8_PMUV3_PERFCTR_BR_MIS_PRED,
-+	[PERF_COUNT_HW_BUS_CYCLES]		= ARMV8_PMUV3_PERFCTR_BUS_CYCLES,
-+	[PERF_COUNT_HW_STALLED_CYCLES_FRONTEND]	= ARMV8_PMUV3_PERFCTR_STALL_FRONTEND,
-+	[PERF_COUNT_HW_STALLED_CYCLES_BACKEND]	= ARMV8_PMUV3_PERFCTR_STALL_BACKEND,
+ #include <asm/cpu.h>
+ #include <linux/acpi.h>
+ #include <linux/irq.h>
+@@ -23,6 +27,12 @@ struct pmu_irq {
+ 	bool registered;
  };
  
- /* ARM Cortex-A53 HW events mapping. */
-@@ -259,6 +269,15 @@ static const unsigned armv8_pmuv3_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
- 	[C(L1D)][C(OP_WRITE)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE,
- 	[C(L1D)][C(OP_WRITE)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1D_CACHE_REFILL,
++struct pmu_types {
++	struct list_head list;
++	int		 cpu_type;
++	int		 cpu_count;
++};
++
+ static struct pmu_irq pmu_irqs[NR_CPUS];
  
-+	[C(L1I)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1I_CACHE,
-+	[C(L1I)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1I_CACHE_REFILL,
+ /*
+@@ -38,3 +48,217 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+ 	else
+ 		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
+ }
 +
-+	[C(DTLB)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1D_TLB_REFILL,
-+	[C(DTLB)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1D_TLB,
++static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
++{
++	struct pmu_types *pmu, *safe_temp;
 +
-+	[C(ITLB)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_L1I_TLB_REFILL,
-+	[C(ITLB)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_L1I_TLB,
++	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
++		list_del(&pmu->list);
++		kfree(pmu);
++	}
++}
 +
- 	[C(BPU)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_BR_PRED,
- 	[C(BPU)][C(OP_READ)][C(RESULT_MISS)]	= ARMV8_PMUV3_PERFCTR_BR_MIS_PRED,
- 	[C(BPU)][C(OP_WRITE)][C(RESULT_ACCESS)]	= ARMV8_PMUV3_PERFCTR_BR_PRED,
-@@ -906,9 +925,22 @@ static void armv8pmu_reset(void *info)
- 
- static int armv8_pmuv3_map_event(struct perf_event *event)
- {
--	return armpmu_map_event(event, &armv8_pmuv3_perf_map,
--				&armv8_pmuv3_perf_cache_map,
--				ARMV8_PMU_EVTYPE_EVENT);
-+	int hw_event_id;
-+	struct arm_pmu *armpmu = to_arm_pmu(event->pmu);
++/* Count number and type of CPU cores in the system. */
++static bool __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
++{
++	int i;
++	bool unused_madt_entries = false;
 +
-+	hw_event_id = armpmu_map_event(event, &armv8_pmuv3_perf_map,
-+				       &armv8_pmuv3_perf_cache_map,
-+				       ARMV8_PMU_EVTYPE_EVENT);
-+	if (hw_event_id < 0)
-+		return hw_event_id;
++	for_each_possible_cpu(i) {
++		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
++		u32 partnum = MIDR_PARTNUM(cinfo->reg_midr);
++		struct pmu_types *pmu;
 +
-+	/* disable micro/arch events not supported by this PMU */
-+	if ((hw_event_id < ARMV8_PMUV3_MAX_COMMON_EVENTS) &&
-+		!test_bit(hw_event_id, armpmu->pmceid_bitmap)) {
-+			return -EOPNOTSUPP;
++		if (cinfo->reg_midr == 0) {
++			unused_madt_entries = true;
++			continue;
++		}
++
++		list_for_each_entry(pmu, pmus, list) {
++			if (pmu->cpu_type == partnum) {
++				pmu->cpu_count++;
++				break;
++			}
++		}
++
++		/* we didn't find the CPU type, add an entry to identify it */
++		if (&pmu->list == pmus) {
++			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
++			if (!pmu) {
++				pr_err("Unable to allocate pmu_types\n");
++				/*
++				 * Instead of waiting to cleanup possible
++				 * allocation failures in the caller clean
++				 * them up immediately. Functionally this
++				 * doesn't make any difference, except in
++				 * genuine heterogeneous systems where it
++				 * guarantees the whole subsystem is
++				 * disabled rather than running with just
++				 * a single set of homogeneous CPU's PMU
++				 * active. That assumes there aren't
++				 * any further memory allocation failures.
++				 */
++				arm_pmu_acpi_handle_alloc_failure(pmus);
++				break;
++			} else {
++				pmu->cpu_type = partnum;
++				pmu->cpu_count++;
++				list_add_tail(&pmu->list, pmus);
++			}
++		}
 +	}
 +
-+	return hw_event_id;
- }
- 
- static int armv8_a53_map_event(struct perf_event *event)
-@@ -1045,8 +1077,13 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
- 	{},
- };
- 
++	return unused_madt_entries;
++}
++
 +/*
-+ * Non DT systems have their micro/arch events probed at run-time.
-+ * A fairly complete list of generic events are provided and ones that
-+ * aren't supported by the current PMU are disabled.
++ * Registers the group of PMU interfaces which correspond to the 'last_cpu_id'.
++ * This group utilizes 'count' resources in the 'res'.
 + */
- static const struct pmu_probe_info armv8_pmu_probe_table[] = {
--	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
-+	PMU_PROBE(0, 0, armv8_pmuv3_init), /* enable all defined counters */
- 	{ /* sentinel value */ }
- };
- 
++static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
++					    int last_cpu_id)
++{
++	int i;
++	int err = -ENOMEM;
++	bool free_gsi = false;
++	struct platform_device *pdev;
++
++	if (count) {
++		pdev = platform_device_alloc(ARMV8_PMU_PDEV_NAME, last_cpu_id);
++		if (pdev) {
++			err = platform_device_add_resources(pdev, res, count);
++			if (!err) {
++				err = platform_device_add(pdev);
++				if (err) {
++					pr_warn("Unable to register PMU device\n");
++					free_gsi = true;
++				}
++			} else {
++				pr_warn("Unable to add resources to device\n");
++				free_gsi = true;
++				platform_device_put(pdev);
++			}
++		} else {
++			pr_warn("Unable to allocate platform device\n");
++			free_gsi = true;
++		}
++	}
++
++	/* unmark (and possibly unregister) registered GSIs */
++	for_each_possible_cpu(i) {
++		if (pmu_irqs[i].registered) {
++			if (free_gsi)
++				acpi_unregister_gsi(pmu_irqs[i].gsi);
++			pmu_irqs[i].registered = false;
++		}
++	}
++
++	return err;
++}
++
++int arm_pmu_acpi_retrieve_irq(struct resource *res, int cpu)
++{
++	int irq = -ENODEV;
++
++	if (pmu_irqs[cpu].registered) {
++		pr_info("CPU %d's interrupt is already registered\n", cpu);
++	} else {
++		irq = acpi_register_gsi(NULL, pmu_irqs[cpu].gsi,
++					pmu_irqs[cpu].trigger,
++					ACPI_ACTIVE_HIGH);
++		pmu_irqs[cpu].registered = true;
++		res->start = irq;
++		res->end = irq;
++		res->flags = IORESOURCE_IRQ;
++		if (pmu_irqs[cpu].trigger == ACPI_EDGE_SENSITIVE)
++			res->flags |= IORESOURCE_IRQ_HIGHEDGE;
++		else
++			res->flags |= IORESOURCE_IRQ_HIGHLEVEL;
++	}
++	return irq;
++}
++
++/*
++ * For the given cpu/pmu type, walk all known GSIs, register them, and add
++ * them to the resource structure. Return the number of GSI's contained
++ * in the res structure, and the id of the last CPU/PMU we added.
++ */
++static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
++				       struct resource *res, int *last_cpu_id)
++{
++	int i, count;
++
++	/* lets group all the PMU's from similar CPU's together */
++	count = 0;
++	for_each_possible_cpu(i) {
++		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
++
++		if (pmus->cpu_type == MIDR_PARTNUM(cinfo->reg_midr)) {
++			if ((pmu_irqs[i].gsi == 0) && (cinfo->reg_midr != 0)) {
++				pr_info("CPU %d is assigned interrupt 0\n", i);
++				continue;
++			}
++			/* likely not online */
++			if (!cinfo->reg_midr)
++				continue;
++
++			arm_pmu_acpi_retrieve_irq(&res[count], i);
++			count++;
++			(*last_cpu_id) = cinfo->reg_midr;
++		}
++	}
++	return count;
++}
++
++static int __init pmu_acpi_init(void)
++{
++	struct resource	*res;
++	int err = -ENOMEM;
++	int count, cpu_id;
++	struct pmu_types *pmu, *safe_temp;
++	bool unused_madt_entries;
++	LIST_HEAD(pmus);
++
++	if (acpi_disabled)
++		return 0;
++
++	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
++
++	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
++		if (unused_madt_entries)
++			pmu->cpu_count = num_possible_cpus();
++
++		res = kcalloc(pmu->cpu_count,
++				  sizeof(struct resource), GFP_KERNEL);
++
++		/* for a given PMU type collect all the GSIs. */
++		if (res) {
++			count = arm_pmu_acpi_gsi_res(pmu, res,
++						     &cpu_id);
++			/*
++			 * register this set of interrupts
++			 * with a new PMU device
++			 */
++			if (count) {
++				if (unused_madt_entries)
++					count = num_possible_cpus();
++				err = arm_pmu_acpi_register_pmu(count, res,
++								cpu_id);
++				if (!err)
++					pr_info("Register %d devices for %X\n",
++						count, pmu->cpu_type);
++				kfree(res);
++			}
++		} else {
++			pr_warn("PMU unable to allocate interrupt resource\n");
++		}
++
++		list_del(&pmu->list);
++		kfree(pmu);
++	}
++
++	return err;
++}
++
++arch_initcall(pmu_acpi_init);
 -- 
 2.5.5
 
