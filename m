@@ -1,9 +1,9 @@
 From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH 0/2] Correct AER severity for printing AER information
-Date: Wed, 14 Sep 2016 15:12:50 -0600
-Message-ID: <1473887572-23347-1-git-send-email-tbaicar@codeaurora.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Subject: [PATCH V2 0/2] Correct AER severity for printing AER information
+Date: Wed, 14 Sep 2016 15:14:44 -0600
+Message-ID: <1473887686-24420-1-git-send-email-tbaicar@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, paul.gortmaker@windriver.com, sudipm.mukherjee@gmail.com, axboe@fb.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 Cc: bp@suse.de, Tyler Baicar <tbaicar@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
