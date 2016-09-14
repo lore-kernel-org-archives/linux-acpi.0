@@ -1,138 +1,116 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH v2 05/11] ACPI: platform: setup MSI domain for ACPI based
- platform device
-Date: Wed, 14 Sep 2016 22:21:13 +0800
-Message-ID: <1473862879-7769-6-git-send-email-guohanjun@huawei.com>
-References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH v2 00/11] ACPI platform MSI, interrupt producer/consumer and its example mbi-gen
+Date: Wed, 14 Sep 2016 22:21:08 +0800
+Message-ID: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-With the platform msi domain created, we can set up the msi domain
-for a platform device when it's probed.
+With platform msi support landed in the kernel, and the introduction
+of IORT for GICv3 ITS (PCI MSI) [1], the framework for platform msi
+is ready, this patch set add few patches to enable the ACPI platform
+msi support.
 
-This patch introduces acpi_configure_msi_domain(), which retrieves
-the domain from iort and set it to platform device.
+For platform device connecting to ITS on arm platform, we have IORT
+table with the named componant node to describe the mappings of paltform
+device and ITS, so we can retrieve the dev id and find its parent
+irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
 
-As some platform devices such as an irqchip needs the msi irqdomain
-to be the interrupt parent domain, we need to get irqdomain before
-platform device is probed.
+With acpi platform msi supported, we add the ACPI support for irqchip
+mbi-gen, which use this framework to form its stacked irqdomain, below
+is the mbi-gen's topology in the system:
 
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/arm64/iort.c   |  5 ++++-
- drivers/base/platform-msi.c | 15 ++++++++++++++-
- drivers/base/platform.c     |  2 ++
- include/linux/msi.h         |  1 +
- 4 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 13a1905..bccd3cc 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -478,6 +478,7 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
- {
- 	struct fwnode_handle *handle;
- 	int its_id;
-+	enum irq_domain_bus_token bus_token;
- 
- 	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
- 		return NULL;
-@@ -486,7 +487,9 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
- 	if (!handle)
- 		return NULL;
- 
--	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
-+	bus_token = dev_is_pci(dev) ?
-+			DOMAIN_BUS_PCI_MSI : DOMAIN_BUS_PLATFORM_MSI;
-+	return irq_find_matching_fwnode(handle, bus_token);
- }
- 
- static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
-index 279e539..f6eae18 100644
---- a/drivers/base/platform-msi.c
-+++ b/drivers/base/platform-msi.c
-@@ -17,8 +17,8 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi_iort.h>
- #include <linux/device.h>
--#include <linux/idr.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
- #include <linux/msi.h>
-@@ -416,3 +416,16 @@ int platform_msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
- 
- 	return err;
- }
-+
-+int acpi_configure_msi_domain(struct device *dev)
-+{
-+	struct irq_domain *d = NULL;
-+
-+	d = iort_get_device_domain(dev, 0);
-+	if (d) {
-+		dev_set_msi_domain(dev, d);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 6482d47..ea01a37 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -24,6 +24,7 @@
- #include <linux/pm_domain.h>
- #include <linux/idr.h>
- #include <linux/acpi.h>
-+#include <linux/msi.h>
- #include <linux/clk/clk-conf.h>
- #include <linux/limits.h>
- #include <linux/property.h>
-@@ -500,6 +501,7 @@ struct platform_device *platform_device_register_full(
- 	pdev->dev.parent = pdevinfo->parent;
- 	pdev->dev.fwnode = pdevinfo->fwnode;
- 
-+	acpi_configure_msi_domain(&pdev->dev);
- 	if (pdevinfo->dma_mask) {
- 		/*
- 		 * This memory isn't freed when the device is put,
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index e8c81fb..1e93a78 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -308,6 +308,7 @@ int platform_msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
- void platform_msi_domain_free(struct irq_domain *domain, unsigned int virq,
- 			      unsigned int nvec);
- void *platform_msi_get_host_data(struct irq_domain *domain);
-+int acpi_configure_msi_domain(struct device *dev);
- #endif /* CONFIG_GENERIC_MSI_IRQ_DOMAIN */
- 
- #ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
+  | ---------------|                  |------------------|
+  |                |       MSI        |                  |     wired interrupt(s)
+  |       ITS      |<-----------------|   MBI-GEN        |<----------------------------- IO device(s)
+  |                |                  |                  |<----------------------------- IO device(s)
+  ------------------                  -------------------
+
+So with ACPI platform MSI support, we can build the stacked domain for
+mbi-gen which represented its mappings with the named componant in IORT,
+but we still missing the connectings of devices to mbi-gen as in ACPI
+world devices connect to main interrupt controller in MADT in default.
+
+In ACPI 6.1, section 19.6.62, Interrupt Resource Descriptor Macro,
+
+    Interrupt (ResourceUsage, EdgeLevel, ActiveLevel, Shared,
+    ResourceSourceIndex, ResourceSource, DescriptorName)
+    { InterruptList } => Buffer
+    
+For the arguement ResourceUsage and DescriptorName, which means:
+    
+ResourceUsage describes whether the device consumes the specified
+interrupt ( ResourceConsumer ) or produces it for use by a child
+device ( ResourceProducer ).
+If nothing is specified, then ResourceConsumer is assumed.
+    
+DescriptorName evaluates to a name string which refers to the
+entire resource descriptor.
+    
+So it can be used for devices connecting to a specific interrupt
+prodcucer instead of the main interrupt controller in MADT, we can
+define:
+
+Interrupt(ResourceConsumer,..., "\_SB.IRQP") {12,14,....},
+
+then get the interrupt producer with the full path name "\_SB.IRQP".
+
+
+v2:
+  - Fix the bug of if multi Interrupt() resoures in single _PRS,
+    we need to calculate all the irq numbers (I missed it in previous
+    version);
+
+  - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
+    SMMu patches (also Robin's SMMu patches)
+
+  - Add patch irqchip: mbigen: promote mbigen init.
+
+This is the RFC version 2 and we still needs to address:
+  -  we need to deal with the device topology as:
+     NC (named componant) -> SMMU -> ITS.
+
+Comments are warmly welcomed!
+
+Thanks
+Hanjun
+
+
+Hanjun Guo (9):
+  irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+  ACPI: platform-msi: retrieve dev id from IORT
+  irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
+    for ACPI
+  irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
+    domain
+  ACPI: platform: setup MSI domain for ACPI based platform device
+  msi: platform: make platform_msi_create_device_domain() ACPI aware
+  ACPI: irq: introduce interrupt producer
+  irqchip: mbigen: Add ACPI support
+  irqchip: mbigen: promote mbigen init
+
+Kefeng Wang (2):
+  irqchip: mbigen: drop module owner
+  irqchip: mbigen: introduce mbigen_of_create_domain()
+
+ drivers/acpi/arm64/iort.c                     |  31 ++++++-
+ drivers/acpi/gsi.c                            |  10 ++-
+ drivers/acpi/resource.c                       |  85 +++++++++++++------
+ drivers/base/platform-msi.c                   |  20 ++++-
+ drivers/base/platform.c                       |   2 +
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 107 ++++++++++++++++++------
+ drivers/irqchip/irq-mbigen.c                  | 115 ++++++++++++++++++++++----
+ include/acpi/acpi_bus.h                       |   1 +
+ include/linux/acpi_iort.h                     |   8 ++
+ include/linux/msi.h                           |   1 +
+ 10 files changed, 305 insertions(+), 75 deletions(-)
+
 -- 
 1.7.12.4
