@@ -1,45 +1,78 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 10/10] MAINTAINERS: Tweak ARM PMU maintainers
-Date: Wed, 14 Sep 2016 17:32:38 -0500
-Message-ID: <1473892358-22574-11-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v9 01/10] arm64: pmu: add fallback probe table
+Date: Wed, 14 Sep 2016 17:32:29 -0500
+Message-ID: <1473892358-22574-2-git-send-email-jeremy.linton@arm.com>
 References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54132 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:54062 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760673AbcINWc6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Sep 2016 18:32:58 -0400
+        id S1756287AbcINWc5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Sep 2016 18:32:57 -0400
 In-Reply-To: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, will.deacon@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-Update the ARM PMU file list, and add the arm mailing list.
+From: Mark Salter <msalter@redhat.com>
 
+In preparation for ACPI support, add a pmu_probe_info table to
+the arm_pmu_device_probe() call. This table gets used when
+probing in the absence of a devicetree node for PMU.
+
+Signed-off-by: Mark Salter <msalter@redhat.com>
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- MAINTAINERS | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm64/kernel/perf_event.c | 13 ++++++++++++-
+ drivers/perf/arm_pmu.c         |  2 +-
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1fbd77d..246b427 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -915,12 +915,13 @@ ARM PMU PROFILING AND DEBUGGING
- M:	Will Deacon <will.deacon@arm.com>
- R:	Mark Rutland <mark.rutland@arm.com>
- S:	Maintained
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- F:	arch/arm*/kernel/perf_*
- F:	arch/arm/oprofile/common.c
- F:	arch/arm*/kernel/hw_breakpoint.c
- F:	arch/arm*/include/asm/hw_breakpoint.h
- F:	arch/arm*/include/asm/perf_event.h
--F:	drivers/perf/arm_pmu.c
-+F:	drivers/perf/arm_pmu*
- F:	include/linux/perf/arm_pmu.h
+diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
+index 838ccf1..3aac598 100644
+--- a/arch/arm64/kernel/perf_event.c
++++ b/arch/arm64/kernel/perf_event.c
+@@ -24,6 +24,7 @@
+ #include <asm/sysreg.h>
+ #include <asm/virt.h>
  
- ARM PORT
++#include <linux/acpi.h>
+ #include <linux/of.h>
+ #include <linux/perf/arm_pmu.h>
+ #include <linux/platform_device.h>
+@@ -1044,9 +1045,19 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
+ 	{},
+ };
+ 
++static const struct pmu_probe_info armv8_pmu_probe_table[] = {
++	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
++	{ /* sentinel value */ }
++};
++
+ static int armv8_pmu_device_probe(struct platform_device *pdev)
+ {
+-	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids, NULL);
++	if (acpi_disabled)
++		return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids,
++					    NULL);
++
++	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids,
++				    armv8_pmu_probe_table);
+ }
+ 
+ static struct platform_driver armv8_pmu_driver = {
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index f5e1008..58117d7 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -1029,7 +1029,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 		ret = of_pmu_irq_cfg(pmu);
+ 		if (!ret)
+ 			ret = init_fn(pmu);
+-	} else {
++	} else if (probe_table) {
+ 		cpumask_setall(&pmu->supported_cpus);
+ 		ret = probe_current_pmu(pmu, probe_table);
+ 	}
 -- 
 2.5.5
 
