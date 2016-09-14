@@ -1,109 +1,117 @@
-From: Dave Lambley <linux@davel.me.uk>
-Subject: [PATCH] Avoid _BIX ACPI method on Lenovo Yoga 300.
-Date: Wed, 14 Sep 2016 09:40:16 +0100
-Message-ID: <1473842416-5156-1-git-send-email-linux@davel.me.uk>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.the-lambleys.org.uk ([212.47.234.164]:35984 "EHLO
-        smtp.the-lambleys.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751621AbcINIt5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 04:49:57 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 3/4] PCI: Avoid unnecessary resume after direct-complete
+Date: Wed, 14 Sep 2016 11:56:40 +0200
+Message-ID: <20160914095640.GB1597@wunner.de>
+References: <cover.1472554278.git.lukas@wunner.de>
+ <4935437e0bfbab9079db2c8b1fbac66cef7dc569.1472554278.git.lukas@wunner.de>
+ <2963851.chF2hIakqz@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2963851.chF2hIakqz@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Dave Lambley <linux@davel.me.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On the (current?) Yoga 300 firmware, the _BIX method fails with an error.
-This prevents the kernel from correctly detecting the presence of a
-battery.
+On Wed, Sep 14, 2016 at 02:50:13AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
+> > Commit 58a1fbbb2ee8 ("PM / PCI / ACPI: Kick devices that might have been
+> > reset by firmware") added a runtime resume for devices that were runtime
+> > suspended when the system entered sleep.
+> > 
+> > The motivation was that devices might be in a reset-power-on state after
+> > waking from system sleep, so their power state as perceived by Linux
+> > (stored in pci_dev->current_state) would no longer reflect reality.
+> > By resuming such devices, we allow them to return to a low-power state
+> > via autosuspend and also bring their current_state in sync with reality.
+> > 
+> > However for devices that are *not* in a reset-power-on state, doing an
+> > unconditional resume wastes energy.  A more refined approach is called
+> > for which issues a runtime resume only if the power state after
+> > direct-complete is shallower than it was before. To achieve this, update
+> > the device's current_state by querying the platform firmware and reading
+> > its PMCSR.
+> > 
+> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > ---
+> >  drivers/pci/pci-driver.c | 15 +++++++++++++--
+> >  1 file changed, 13 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+> > index e39a67c..fd4b9c4 100644
+> > --- a/drivers/pci/pci-driver.c
+> > +++ b/drivers/pci/pci-driver.c
+> > @@ -684,8 +684,19 @@ static int pci_pm_prepare(struct device *dev)
+> >  
+> >  static void pci_pm_complete(struct device *dev)
+> >  {
+> > -	pci_dev_complete_resume(to_pci_dev(dev));
+> > -	pm_complete_with_resume_check(dev);
+> > +	struct pci_dev *pci_dev = to_pci_dev(dev);
+> > +
+> > +	pci_dev_complete_resume(pci_dev);
+> > +	pm_generic_complete(dev);
+> > +
+> > +	/* Resume device if platform firmware has put it in reset-power-on */
+> > +	if (dev->power.direct_complete && pm_resume_via_firmware()) {
+> > +		pci_power_t pre_sleep_state = pci_dev->current_state;
+> > +
+> > +		pci_update_current_state(pci_dev, pci_dev->current_state);
+> 
+> I'm not sure if this can be made reliable enough for all of the systems out
+> there (including the pre-ACPI-4.0 ones and so on).  I'm a bit concerned that
+> we'll uncover firmware issues and such by doing this.
+> 
+> How much of a problem the existing code is in practice?
 
-[   28.641906] ACPI Exception: AE_AML_PACKAGE_LIMIT, Index (0x000000010) is beyond end of object (length 0xD) (20160422/exoparg2-427)
-[   28.641924] ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.H_EC.BAT1._BIX] (Node ffff9145fb0b2230), AE_AML_PACKAGE_LIMIT (20160422/psparse-542)
+Where's your ambition?  Do you want your power management to be as good
+as Apple's or are you going to waste energy for fear of uncovering
+firmware bugs?
 
-Fortunately, the _BIF method can be used to get battery information. This
-change causes the kernel to use the _BIF method to preference on the
-Yogo 300, allowing the battery to be detected correctly.
+I first tried to solve this only for Thunderbolt by opting out of the
+mandatory resume after direct_complete.  It worked, but it was ugly.
 
-Signed-off-by: Dave Lambley <linux@davel.me.uk>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC: Len Brown <lenb@kernel.org>
----
- drivers/acpi/battery.c | 29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+(I have to clear the direct_complete flag in the ->complete hook, but
+the device tree is walked bottom-up during ->complete, and since the
+Thunderbolt controller exposes multiple devices, I have to clear the
+flag for all devices from the bottom-most device, which is the NHI.
+And all the rest of the s/r code lives on the top-most device, which
+is the upstream bridge.)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index ab23479..2b165a8 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -69,6 +69,7 @@ MODULE_LICENSE("GPL");
- static async_cookie_t async_cookie;
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
-+static int battery_avoid_bix;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -434,11 +435,16 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
- {
- 	int result = -EFAULT;
- 	acpi_status status = 0;
--	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags) ?
--			"_BIX" : "_BIF";
-+	bool use_bix = !battery_avoid_bix &&
-+			test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
-+
-+	char *name = use_bix ? "_BIX" : "_BIF";
- 
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 
-+	if (battery_avoid_bix)
-+		dev_dbg(&battery->device->dev, "ACPI _BIX method blacklisted on this hardware, avoiding.");
-+
- 	if (!acpi_battery_present(battery))
- 		return 0;
- 	mutex_lock(&battery->lock);
-@@ -451,11 +457,11 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
- 		return -ENODEV;
- 	}
- 
--	if (battery_bix_broken_package)
-+	if (use_bix && battery_bix_broken_package)
- 		result = extract_package(battery, buffer.pointer,
- 				extended_info_offsets + 1,
- 				ARRAY_SIZE(extended_info_offsets) - 1);
--	else if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
-+	else if (use_bix)
- 		result = extract_package(battery, buffer.pointer,
- 				extended_info_offsets,
- 				ARRAY_SIZE(extended_info_offsets));
-@@ -1134,6 +1140,12 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init
-+battery_avoid_bix_quirk(const struct dmi_system_id *d)
-+{
-+	battery_avoid_bix = 1;
-+	return 0;
-+}
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		.callback = battery_bix_broken_package_quirk,
-@@ -1151,6 +1163,15 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
- 		},
- 	},
-+	{
-+		.callback = battery_avoid_bix_quirk,
-+		.ident = "Lenovo Yogo 3000",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "80M1"),
-+		},
-+	},
-+
- 	{},
- };
- 
--- 
-2.7.4
+You suggested in your e-mail of July 18: "maybe it's better to change
+the PCI bus type to do something different from calling the generic
+function?"
 
+So there, I did what you suggested and tried to fix it not just for
+Thunderbolt but for everyone.
+
+And you're still not happy.
+
+*sigh*
+
+If on pre ACPI 4.0 systems, the device state is incorrectly reported
+as D3hot although the device is still in D3cold, the device will be
+runtime resumed to D0, just as it is now.  In other words, the benefit
+of avoiding an unnecessary runtime resume after direct_complete is
+only granted if the platform firmware reports the device state
+correctly.
+
+Best regards,
+
+Lukas
+
+> 
+> > +		if (pci_dev->current_state < pre_sleep_state)
+> > +			pm_request_resume(dev);
+> > +	}
+> >  }
+> >  
+> >  #else /* !CONFIG_PM_SLEEP */
+> > 
+> 
+> Thanks,
+> Rafael
+> 
