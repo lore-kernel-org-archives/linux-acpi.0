@@ -1,24 +1,22 @@
-From: Hoan Tran <hotran@apm.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
 Subject: Re: [PATCH] ACPI: CPPC: Support PCC with interrupt flag
-Date: Wed, 14 Sep 2016 08:45:14 -0700
-Message-ID: <CAFHUOYx69g7zQwzMQHfBixmbSU3meq0CA3xNz49_kDOPYPrBUQ@mail.gmail.com>
-References: <1469135265-27048-1-git-send-email-hotran@apm.com> <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
+Date: Wed, 14 Sep 2016 09:45:27 -0600
+Message-ID: <733a9b93-fe0d-46d4-9c48-7d7407b4e69f@codeaurora.org>
+References: <1469135265-27048-1-git-send-email-hotran@apm.com>
+ <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f180.google.com ([209.85.161.180]:35827 "EHLO
-        mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754710AbcINPp0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 11:45:26 -0400
-Received: by mail-yw0-f180.google.com with SMTP id u82so24646300ywc.2
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Sep 2016 08:45:26 -0700 (PDT)
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, ashwinch@google.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>, Ashwin Chaugule <ashwinch@google.com>
 
-On Tue, Aug 30, 2016 at 11:20 AM, Hoan Tran <hotran@apm.com> wrote:
+Hi Hoan,
+
+On 8/30/2016 12:20 PM, Hoan Tran wrote:
 > On Thu, Jul 21, 2016 at 2:07 PM, Hoan Tran <hotran@apm.com> wrote:
 >> For PCC mailbox with interrupt flag, CPPC should call mbox_chan_txdone()
 >> function to notify the mailbox framework about TX completion.
@@ -46,21 +44,23 @@ On Tue, Aug 30, 2016 at 11:20 AM, Hoan Tran <hotran@apm.com> wrote:
 >> +       else
 >> +               mbox_client_txdone(pcc_channel, ret);
 >> +
+Firstly, sorry for the delay.
+
+I was wondering if we should call txdone in PCC interrupt routine as done in
+some of the mailbox drivers. But then, since we need to support both polling
+and interrupt, I suppose this makes sense.
+
+Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+
+Thanks,
+Prashanth
 >>         return ret;
 >>  }
 >>
 >> --
 >> 1.9.1
 >>
->
 > Any feedbacks.
 >
 > Thanks
 > Hoan
-
-Hi Rafael,
-
-Do you have any comments on this patch ?
-
-Thanks
-Hoan
