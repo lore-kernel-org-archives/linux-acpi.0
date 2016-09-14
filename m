@@ -1,150 +1,66 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [RFC PATCH v2 05/11] ACPI: platform: setup MSI domain for ACPI
- based platform device
-Date: Wed, 14 Sep 2016 16:45:11 +0100
-Message-ID: <57D97087.5040703@arm.com>
-References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
- <1473862879-7769-6-git-send-email-guohanjun@huawei.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH] ACPI: CPPC: Support PCC with interrupt flag
+Date: Wed, 14 Sep 2016 08:45:14 -0700
+Message-ID: <CAFHUOYx69g7zQwzMQHfBixmbSU3meq0CA3xNz49_kDOPYPrBUQ@mail.gmail.com>
+References: <1469135265-27048-1-git-send-email-hotran@apm.com> <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1473862879-7769-6-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f180.google.com ([209.85.161.180]:35827 "EHLO
+        mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754710AbcINPp0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 11:45:26 -0400
+Received: by mail-yw0-f180.google.com with SMTP id u82so24646300ywc.2
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Sep 2016 08:45:26 -0700 (PDT)
+In-Reply-To: <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>, Ashwin Chaugule <ashwinch@google.com>
 
-On 14/09/16 15:21, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> With the platform msi domain created, we can set up the msi domain
-> for a platform device when it's probed.
-> 
-> This patch introduces acpi_configure_msi_domain(), which retrieves
-> the domain from iort and set it to platform device.
-> 
-> As some platform devices such as an irqchip needs the msi irqdomain
-> to be the interrupt parent domain, we need to get irqdomain before
-> platform device is probed.
-> 
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Greg KH <gregkh@linuxfoundation.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/arm64/iort.c   |  5 ++++-
->  drivers/base/platform-msi.c | 15 ++++++++++++++-
->  drivers/base/platform.c     |  2 ++
->  include/linux/msi.h         |  1 +
->  4 files changed, 21 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 13a1905..bccd3cc 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -478,6 +478,7 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
->  {
->  	struct fwnode_handle *handle;
->  	int its_id;
-> +	enum irq_domain_bus_token bus_token;
->  
->  	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
->  		return NULL;
-> @@ -486,7 +487,9 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
->  	if (!handle)
->  		return NULL;
->  
-> -	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
-> +	bus_token = dev_is_pci(dev) ?
-> +			DOMAIN_BUS_PCI_MSI : DOMAIN_BUS_PLATFORM_MSI;
-> +	return irq_find_matching_fwnode(handle, bus_token);
->  }
->  
->  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
-> index 279e539..f6eae18 100644
-> --- a/drivers/base/platform-msi.c
-> +++ b/drivers/base/platform-msi.c
-> @@ -17,8 +17,8 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi_iort.h>
->  #include <linux/device.h>
-> -#include <linux/idr.h>
->  #include <linux/irq.h>
->  #include <linux/irqdomain.h>
->  #include <linux/msi.h>
-> @@ -416,3 +416,16 @@ int platform_msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
->  
->  	return err;
->  }
-> +
-> +int acpi_configure_msi_domain(struct device *dev)
-> +{
-> +	struct irq_domain *d = NULL;
-> +
-> +	d = iort_get_device_domain(dev, 0);
+On Tue, Aug 30, 2016 at 11:20 AM, Hoan Tran <hotran@apm.com> wrote:
+> On Thu, Jul 21, 2016 at 2:07 PM, Hoan Tran <hotran@apm.com> wrote:
+>> For PCC mailbox with interrupt flag, CPPC should call mbox_chan_txdone()
+>> function to notify the mailbox framework about TX completion.
+>>
+>> Signed-off-by: Hoan Tran <hotran@apm.com>
+>> ---
+>> This patch is tested on top and depends on patch[1]:
+>> [1] http://www.spinics.net/lists/linux-acpi/msg66041.html
+>>  - [PATCH v3] mailbox: pcc: Support HW-Reduced Communication Subspace type 2
+>>
+>>  drivers/acpi/cppc_acpi.c | 6 +++++-
+>>  1 file changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>> index 2e98173..19606aa 100644
+>> --- a/drivers/acpi/cppc_acpi.c
+>> +++ b/drivers/acpi/cppc_acpi.c
+>> @@ -191,7 +191,11 @@ static int send_pcc_cmd(u16 cmd)
+>>                         last_cmd_cmpl_time = ktime_get();
+>>         }
+>>
+>> -       mbox_client_txdone(pcc_channel, ret);
+>> +       if (pcc_channel->mbox->txdone_irq)
+>> +               mbox_chan_txdone(pcc_channel, ret);
+>> +       else
+>> +               mbox_client_txdone(pcc_channel, ret);
+>> +
+>>         return ret;
+>>  }
+>>
+>> --
+>> 1.9.1
+>>
+>
+> Any feedbacks.
+>
+> Thanks
+> Hoan
 
-This looks completely wrong. Why RID 0? As far as I can see, 0 is not a
-special value, and could be something else.
+Hi Rafael,
 
-> +	if (d) {
-> +		dev_set_msi_domain(dev, d);
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
+Do you have any comments on this patch ?
 
-I really hate this, as the platform MSI code is intentionally free of
-any firmware reference. This should live in the ACPI code.
-
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index 6482d47..ea01a37 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -24,6 +24,7 @@
->  #include <linux/pm_domain.h>
->  #include <linux/idr.h>
->  #include <linux/acpi.h>
-> +#include <linux/msi.h>
->  #include <linux/clk/clk-conf.h>
->  #include <linux/limits.h>
->  #include <linux/property.h>
-> @@ -500,6 +501,7 @@ struct platform_device *platform_device_register_full(
->  	pdev->dev.parent = pdevinfo->parent;
->  	pdev->dev.fwnode = pdevinfo->fwnode;
->  
-> +	acpi_configure_msi_domain(&pdev->dev);
-
-It feels odd to put this in the generic code, while you could perfectly
-put the call into acpi_platform.c and keep the firmware stuff away from
-the generic code.
-
->  	if (pdevinfo->dma_mask) {
->  		/*
->  		 * This memory isn't freed when the device is put,
-> diff --git a/include/linux/msi.h b/include/linux/msi.h
-> index e8c81fb..1e93a78 100644
-> --- a/include/linux/msi.h
-> +++ b/include/linux/msi.h
-> @@ -308,6 +308,7 @@ int platform_msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
->  void platform_msi_domain_free(struct irq_domain *domain, unsigned int virq,
->  			      unsigned int nvec);
->  void *platform_msi_get_host_data(struct irq_domain *domain);
-> +int acpi_configure_msi_domain(struct device *dev);
->  #endif /* CONFIG_GENERIC_MSI_IRQ_DOMAIN */
->  
->  #ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-> 
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Thanks
+Hoan
