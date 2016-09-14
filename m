@@ -1,95 +1,46 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [RFC PATCH v2 03/11] irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare for ACPI
-Date: Wed, 14 Sep 2016 22:21:11 +0800
-Message-ID: <1473862879-7769-4-git-send-email-guohanjun@huawei.com>
+Subject: [RFC PATCH v2 08/11] irqchip: mbigen: drop module owner
+Date: Wed, 14 Sep 2016 22:21:16 +0800
+Message-ID: <1473862879-7769-9-git-send-email-guohanjun@huawei.com>
 References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:32363 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933132AbcINOXp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 10:23:45 -0400
 In-Reply-To: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
 
-Introduce its_pmsi_init_one() to refactor the code to isolate
-ACPI&DT common code to prepare for ACPI later.
+Module owner will be set by driver core, so drop it.
 
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ma Jun <majun258@huawei.com>
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 45 ++++++++++++++++-----------
- 1 file changed, 27 insertions(+), 18 deletions(-)
+ drivers/irqchip/irq-mbigen.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-index 3646c23..a80ecd7 100644
---- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-@@ -84,34 +84,43 @@ static struct of_device_id its_device_id[] = {
- 	{},
- };
- 
--static int __init its_pmsi_init(void)
-+static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
-+				const char *name)
- {
--	struct device_node *np;
- 	struct irq_domain *parent;
- 
-+	parent = irq_find_matching_fwnode(fwnode, DOMAIN_BUS_NEXUS);
-+	if (!parent || !msi_get_domain_info(parent)) {
-+		pr_err("%s: unable to locate ITS domain\n", name);
-+		return -ENXIO;
-+	}
-+
-+	if (!platform_msi_create_irq_domain(fwnode, &its_pmsi_domain_info,
-+					    parent)) {
-+		pr_err("%s: unable to create platform domain\n", name);
-+		return -ENXIO;
-+	}
-+
-+	pr_info("Platform MSI: %s domain created\n", name);
-+	return 0;
-+}
-+
-+static void __init its_pmsi_of_init(void)
-+{
-+	struct device_node *np;
-+
- 	for (np = of_find_matching_node(NULL, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
- 		if (!of_property_read_bool(np, "msi-controller"))
- 			continue;
- 
--		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
--		if (!parent || !msi_get_domain_info(parent)) {
--			pr_err("%s: unable to locate ITS domain\n",
--			       np->full_name);
--			continue;
--		}
--
--		if (!platform_msi_create_irq_domain(of_node_to_fwnode(np),
--						    &its_pmsi_domain_info,
--						    parent)) {
--			pr_err("%s: unable to create platform domain\n",
--			       np->full_name);
--			continue;
--		}
--
--		pr_info("Platform MSI: %s domain created\n", np->full_name);
-+		its_pmsi_init_one(of_node_to_fwnode(np), np->full_name);
- 	}
-+}
- 
-+static int __init its_pmsi_init(void)
-+{
-+	its_pmsi_of_init();
- 	return 0;
- }
- early_initcall(its_pmsi_init);
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index 03b79b0..c01ab41 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -293,7 +293,6 @@ MODULE_DEVICE_TABLE(of, mbigen_of_match);
+ static struct platform_driver mbigen_platform_driver = {
+ 	.driver = {
+ 		.name		= "Hisilicon MBIGEN-V2",
+-		.owner		= THIS_MODULE,
+ 		.of_match_table	= mbigen_of_match,
+ 	},
+ 	.probe			= mbigen_device_probe,
 -- 
 1.7.12.4
+
