@@ -1,76 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] PCI: Avoid unnecessary resume after direct-complete
-Date: Wed, 14 Sep 2016 02:50:13 +0200
-Message-ID: <2963851.chF2hIakqz@vostro.rjw.lan>
-References: <cover.1472554278.git.lukas@wunner.de> <4935437e0bfbab9079db2c8b1fbac66cef7dc569.1472554278.git.lukas@wunner.de>
+Subject: Re: [PATCH 24/26] ACPI / APD: constify local structures
+Date: Wed, 14 Sep 2016 02:54:21 +0200
+Message-ID: <3479523.AUgAeqlLYs@vostro.rjw.lan>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr> <1473599168-30561-25-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4935437e0bfbab9079db2c8b1fbac66cef7dc569.1472554278.git.lukas@wunner.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57582 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S932856AbcINAsO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Sep 2016 20:48:14 -0400
+In-Reply-To: <1473599168-30561-25-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: joe@perches.com, kernel-janitors@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
-> Commit 58a1fbbb2ee8 ("PM / PCI / ACPI: Kick devices that might have been
-> reset by firmware") added a runtime resume for devices that were runtime
-> suspended when the system entered sleep.
+On Sunday, September 11, 2016 03:06:06 PM Julia Lawall wrote:
+> For structure types defined in the same file or local header files, find
+> top-level static structure declarations that have the following
+> properties:
+> 1. Never reassigned.
+> 2. Address never taken
+> 3. Not passed to a top-level macro call
+> 4. No pointer or array-typed field passed to a function or stored in a
+> variable.
+> Declare structures having all of these properties as const.
 > 
-> The motivation was that devices might be in a reset-power-on state after
-> waking from system sleep, so their power state as perceived by Linux
-> (stored in pci_dev->current_state) would no longer reflect reality.
-> By resuming such devices, we allow them to return to a low-power state
-> via autosuspend and also bring their current_state in sync with reality.
+> Done using Coccinelle.
+> Based on a suggestion by Joe Perches <joe@perches.com>.
 > 
-> However for devices that are *not* in a reset-power-on state, doing an
-> unconditional resume wastes energy.  A more refined approach is called
-> for which issues a runtime resume only if the power state after
-> direct-complete is shallower than it was before. To achieve this, update
-> the device's current_state by querying the platform firmware and reading
-> its PMCSR.
-> 
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> ---
->  drivers/pci/pci-driver.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-> index e39a67c..fd4b9c4 100644
-> --- a/drivers/pci/pci-driver.c
-> +++ b/drivers/pci/pci-driver.c
-> @@ -684,8 +684,19 @@ static int pci_pm_prepare(struct device *dev)
->  
->  static void pci_pm_complete(struct device *dev)
->  {
-> -	pci_dev_complete_resume(to_pci_dev(dev));
-> -	pm_complete_with_resume_check(dev);
-> +	struct pci_dev *pci_dev = to_pci_dev(dev);
-> +
-> +	pci_dev_complete_resume(pci_dev);
-> +	pm_generic_complete(dev);
-> +
-> +	/* Resume device if platform firmware has put it in reset-power-on */
-> +	if (dev->power.direct_complete && pm_resume_via_firmware()) {
-> +		pci_power_t pre_sleep_state = pci_dev->current_state;
-> +
-> +		pci_update_current_state(pci_dev, pci_dev->current_state);
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-I'm not sure if this can be made reliable enough for all of the systems out
-there (including the pre-ACPI-4.0 ones and so on).  I'm a bit concerned that
-we'll uncover firmware issues and such by doing this.
-
-How much of a problem the existing code is in practice?
-
-> +		if (pci_dev->current_state < pre_sleep_state)
-> +			pm_request_resume(dev);
-> +	}
->  }
->  
->  #else /* !CONFIG_PM_SLEEP */
-> 
+Applied.
 
 Thanks,
 Rafael
+
