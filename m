@@ -1,82 +1,55 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH] ACPI: CPPC: Support PCC with interrupt flag
-Date: Wed, 14 Sep 2016 10:55:46 -0700
-Message-ID: <CAFHUOYxMOpz2xOQuVpi6y3nVrVF_ihzX9jj-0PLwkckrJFJUXw@mail.gmail.com>
-References: <1469135265-27048-1-git-send-email-hotran@apm.com>
- <CAFHUOYxi1=K9RSgxA0HLXH4Tq3iyCLMrYbyGmVowATwWc1KU_g@mail.gmail.com>
- <CAFHUOYx69g7zQwzMQHfBixmbSU3meq0CA3xNz49_kDOPYPrBUQ@mail.gmail.com> <2027903.xXCTulqOxA@vostro.rjw.lan>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH 2/4] mfd: lpc_ich: Do not create iTCO watchdog when WDAT
+ table exists
+Date: Wed, 14 Sep 2016 13:03:41 -0700
+Message-ID: <20160914200341.GA14003@roeck-us.net>
+References: <20160913152336.75405-1-mika.westerberg@linux.intel.com>
+ <20160913152336.75405-3-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.161.173]:35562 "EHLO
-        mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753970AbcINRzs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 13:55:48 -0400
-Received: by mail-yw0-f173.google.com with SMTP id u82so30146227ywc.2
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Sep 2016 10:55:48 -0700 (PDT)
-In-Reply-To: <2027903.xXCTulqOxA@vostro.rjw.lan>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:50479 "EHLO
+        bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933195AbcINUD5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Sep 2016 16:03:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20160913152336.75405-3-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Ashwin Chaugule <ashwinch@google.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Peter Tyser <ptyser@xes-inc.com>, Lee Jones <lee.jones@linaro.org>, Zha Qipeng <qipeng.zha@intel.com>, Darren Hart <dvhart@infradead.org>, Wim Van Sebroeck <wim@iguana.be>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 9:49 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, September 14, 2016 08:45:14 AM Hoan Tran wrote:
->> On Tue, Aug 30, 2016 at 11:20 AM, Hoan Tran <hotran@apm.com> wrote:
->> > On Thu, Jul 21, 2016 at 2:07 PM, Hoan Tran <hotran@apm.com> wrote:
->> >> For PCC mailbox with interrupt flag, CPPC should call mbox_chan_txdone()
->> >> function to notify the mailbox framework about TX completion.
->> >>
->> >> Signed-off-by: Hoan Tran <hotran@apm.com>
->> >> ---
->> >> This patch is tested on top and depends on patch[1]:
->> >> [1] http://www.spinics.net/lists/linux-acpi/msg66041.html
->> >>  - [PATCH v3] mailbox: pcc: Support HW-Reduced Communication Subspace type 2
->> >>
->> >>  drivers/acpi/cppc_acpi.c | 6 +++++-
->> >>  1 file changed, 5 insertions(+), 1 deletion(-)
->> >>
->> >> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> >> index 2e98173..19606aa 100644
->> >> --- a/drivers/acpi/cppc_acpi.c
->> >> +++ b/drivers/acpi/cppc_acpi.c
->> >> @@ -191,7 +191,11 @@ static int send_pcc_cmd(u16 cmd)
->> >>                         last_cmd_cmpl_time = ktime_get();
->> >>         }
->> >>
->> >> -       mbox_client_txdone(pcc_channel, ret);
->> >> +       if (pcc_channel->mbox->txdone_irq)
->> >> +               mbox_chan_txdone(pcc_channel, ret);
->> >> +       else
->> >> +               mbox_client_txdone(pcc_channel, ret);
->> >> +
->> >>         return ret;
->> >>  }
->> >>
->> >> --
->> >> 1.9.1
->> >>
->> >
->> > Any feedbacks.
->> >
->> > Thanks
->> > Hoan
->>
->> Hi Rafael,
->>
->> Do you have any comments on this patch ?
->
-> No, but can you please resend it (with the Reviewed-by tag from Prashanth,
-> preferably)?  And please make sure it applies on my linux-next branch.
+On Tue, Sep 13, 2016 at 06:23:34PM +0300, Mika Westerberg wrote:
+> ACPI WDAT table is the preferred way to use hardware watchdog over the
+> native iTCO_wdt. Windows only uses this table for its hardware watchdog
+> implementation so we should be relatively safe to trust it has been
+> validated by OEMs
+> 
+> Prevent iTCO watchdog creation if we detect that there is ACPI WDAT table.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Rafael,
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
 
-I just resent the patch with Reviewed-by tag
-
-Thanks
-Hoan
-
->
-> Thanks,
-> Rafael
->
+> ---
+>  drivers/mfd/lpc_ich.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/mfd/lpc_ich.c b/drivers/mfd/lpc_ich.c
+> index bd3aa4578346..c8dee47b45d9 100644
+> --- a/drivers/mfd/lpc_ich.c
+> +++ b/drivers/mfd/lpc_ich.c
+> @@ -984,6 +984,10 @@ static int lpc_ich_init_wdt(struct pci_dev *dev)
+>  	int ret;
+>  	struct resource *res;
+>  
+> +	/* If we have ACPI based watchdog use that instead */
+> +	if (acpi_has_watchdog())
+> +		return -ENODEV;
+> +
+>  	/* Setup power management base register */
+>  	pci_read_config_dword(dev, priv->abase, &base_addr_cfg);
+>  	base_addr = base_addr_cfg & 0x0000ff80;
+> -- 
+> 2.9.3
+> 
