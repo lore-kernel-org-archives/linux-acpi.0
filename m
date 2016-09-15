@@ -1,147 +1,91 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/4] PCI: Query platform firmware for device power state
-Date: Thu, 15 Sep 2016 02:49:25 +0200
-Message-ID: <2014949.Ex5rT4Uuyf@vostro.rjw.lan>
-References: <cover.1472554278.git.lukas@wunner.de> <2423504.PN3SurRX7i@vostro.rjw.lan> <20160914225857.GA1966@wunner.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160914225857.GA1966@wunner.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 1/2] PCI: Add pci_find_resource()
+Date: Thu, 15 Sep 2016 11:07:03 +0300
+Message-ID: <20160915080704.129892-1-mika.westerberg@linux.intel.com>
+References: <CAJZ5v0jqk_5wr1qDhiX9+V3o3f1J74hBm8Pf=6gt4kmvX0_5EQ@mail.gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:30295 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933857AbcIOIHJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Sep 2016 04:07:09 -0400
+In-Reply-To: <CAJZ5v0jqk_5wr1qDhiX9+V3o3f1J74hBm8Pf=6gt4kmvX0_5EQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Aaron Durbin <adurbin@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, September 15, 2016 12:58:57 AM Lukas Wunner wrote:
-> On Wed, Sep 14, 2016 at 06:47:40PM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, September 14, 2016 03:01:33 PM Rafael J. Wysocki wrote:
-> > > On Wednesday, September 14, 2016 12:50:24 PM Lukas Wunner wrote:
-> > > > On Wed, Sep 14, 2016 at 02:21:30AM +0200, Rafael J. Wysocki wrote:
-> > > > > On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
-> > > > > > Usually the most accurate way to determine a PCI device's power state
-> > > > > > is to read its PM Control & Status Register.  There are two cases
-> > > > > > however when this is not an option:  If the device doesn't have the
-> > > > > > PM capability at all, or if it is in D3cold.
-> > > > > > 
-> > > > > > In D3cold, reading from config space typically results in a
-> > > > > > fabricated "all ones" response.  But in D3hot, the two bits
-> > > > > > representing the power state in the PMCSR are *also* set to 1.
-> > > > > > Thus D3hot and D3cold are not discernible by just reading the PMCSR.
-> > > > > > 
-> > > > > > A (supposedly) reliable way to detect D3cold is to query the platform
-> > > > > > firmware for its opinion on the device's power state.  To this end,
-> > > > > > add a ->get_power callback to struct pci_platform_pm_ops, and an
-> > > > > > implementation to acpi_pci_platform_pm.  (The only
-> > > > > > pci_platform_pm_ops existing so far).
-> > > > > > 
-> > > > > > Amend pci_update_current_state() to query the platform firmware before
-> > > > > > reading the PMCSR.
-> > > > > > 
-> > > > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > > > > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> > > > > > ---
-> > > > > >  drivers/pci/pci-acpi.c | 23 +++++++++++++++++++++++
-> > > > > >  drivers/pci/pci.c      | 21 ++++++++++++++++-----
-> > > > > >  drivers/pci/pci.h      |  3 +++
-> > > > > >  3 files changed, 42 insertions(+), 5 deletions(-)
-> > > > > > 
-> > > > > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > > > > > index 9a033e8..89f2707 100644
-> > > > > > --- a/drivers/pci/pci-acpi.c
-> > > > > > +++ b/drivers/pci/pci-acpi.c
-> > > > > > @@ -452,6 +452,28 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
-> > > > > >  	return error;
-> > > > > >  }
-> > > > > >  
-> > > > > > +static pci_power_t acpi_pci_get_power_state(struct pci_dev *dev)
-> > > > > > +{
-> > > > > > +	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-> > > > > > +	static const pci_power_t state_conv[] = {
-> > > > > > +		[ACPI_STATE_D0]      = PCI_D0,
-> > > > > > +		[ACPI_STATE_D1]      = PCI_D1,
-> > > > > > +		[ACPI_STATE_D2]      = PCI_D2,
-> > > > > > +		[ACPI_STATE_D3_HOT]  = PCI_D3hot,
-> > > > > > +		[ACPI_STATE_D3_COLD] = PCI_D3cold,
-> > > > > > +	};
-> > > > > > +	int state;
-> > > > > 
-> > > > > ACPI_STATE_D3_HOT and ACPI_STATE_D3_COLD were introduced in ACPI 4.0.
-> > > > > For systems predating that, ACPI_STATE_D3_HOT is the deepest state
-> > > > > returned by acpi_device_get_power().
-> > > > 
-> > > > Would it be possible to detect the ACPI spec version the platform
-> > > > firmware conforms to, and amend acpi_device_get_power() to return
-> > > > ACPI_STATE_D3_COLD if the device is in D3?
-> > > > 
-> > > > Then we could avoid the unnecessary runtime resume after direct_complete
-> > > > also for these older machines.
-> > > 
-> > > Well, please see below.
-> > > 
-> > > > Can the revision in the FADT (offset 8) be used as a proxy?
-> > > > => E.g. the old Clevo B7130 has revision 3 in the FADT and uses
-> > > >    a _DSM and _PS3 to put the discrete GPU in D3cold:
-> > > >    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_B7130
-> > > > => Whereas the newer Clevo P651RA has revision 5 in the FADT and uses
-> > > >    _PR3 to put the discrete GPU in D3cold:
-> > > >    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_P651RA
-> > > > 
-> > > > However the FADT revision was already 4 in the ACPI 3.0 spec,
-> > > > so we can only use it to discern ACPI 2.0 vs 3.0, not 3.0 vs 4.0,
-> > > > which is what we'd actually want.  And there's a comment in
-> > > > acpica/tbfadt.c that "The FADT revision value is unreliable."
-> > > > 
-> > > > Do you know of a better way to discern ACPI 3.0 vs 4.0?
-> > > 
-> > > I'm not sure if there is a reliable way to be honest.
-> > > 
-> > > Also even if the FADT etc tells you something, there's no guarantee that
-> > > AML actually follows that.
-> > > 
-> > > In fact, whether or not acpi_device_get_power() will ever return D3cold
-> > > for a device depends on whether or not _PR3 is there.  If it's not there,
-> > > the deepest state returned will be D3hot in any case.
-> > > 
-> > > So I'm not sure how useful that is in the context of D3cold detection?
-> > 
-> > There is more to this.
-> > 
-> > In fact, we can't really trust _PSC too, because in some ACPI tables it is
-> > implemented to always return 0 (seriously).
-> > 
-> > For this reason, I think the way to go would be to use something like
-> > acpi_device_update_power() to ensure that the device really is in the
-> > state we think it is in.
-> 
-> The patch only trusts the platform firmware to report D3cold correctly.
-> If it reports anything else the patch reads the PMCSR.
-> 
-> Thus if _PSC returns a bogus D0 status, worst that can happen is that we
-> incorrectly assume D3hot while the device is actually in D3cold.  Which
-> is still kind of a bummer.
-> 
-> We've got this handy pci_device_is_present() function which reads the
-> vendor ID and returns false if it's "all ones" (which is what we'd get
-> in D3cold).
-> 
-> What if we ask the platform firmware first.  If it says D3cold, assume
-> that's true.  In all other cases, call pci_device_is_present().  If
-> that returns false, assume D3cold.  Otherwise read the PMCSR.
+Add a new helper function pci_find_resource() that can be used to find out
+whether a given resource (for example from a child device) is contained
+within given PCI device's standard resources.
 
-Sounds reasonable.  We already use pci_device_is_present() for a similar
-purpose in at least one place IIRC.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+Changes from v1:
+  - Removed check for NULL res
+  - Added Bjorn's ACK
 
-> That would also work for devices that are suspended to D3cold in a
-> nonstandard way, such as Thunderbolt.  Having a function that updates
-> the current_state in a robust way and correctly discerns D3cold and
-> D3hot would be really useful I think.
-> 
-> Thanks a lot for sharing these ACPI intricacies, it wasn't clear to me
-> in how far we can trust the platform firmware.
+ drivers/pci/pci.c   | 24 ++++++++++++++++++++++++
+ include/linux/pci.h |  4 ++++
+ 2 files changed, 28 insertions(+)
 
-No problem.  Unfortunately, it often takes me some time to recall those
-things.
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index aab9d5115a5f..415956c5c593 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -480,6 +480,30 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+ EXPORT_SYMBOL(pci_find_parent_resource);
+ 
+ /**
++ * pci_find_resource - Return matching PCI device resource
++ * @dev: PCI device to query
++ * @res: Resource to look for
++ *
++ * Goes over standard PCI resources (BARs) and checks if the given resource
++ * is partially or fully contained in any of them. In that case the
++ * matching resource is returned, %NULL otherwise.
++ */
++struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res)
++{
++	int i;
++
++	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
++		struct resource *r = &dev->resource[i];
++
++		if (r->start && resource_contains(r, res))
++			return r;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(pci_find_resource);
++
++/**
+  * pci_find_pcie_root_port - return PCIe Root Port
+  * @dev: PCI device to query
+  *
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 0ab835965669..a917d4b20554 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1126,6 +1126,7 @@ void pdev_enable_device(struct pci_dev *);
+ int pci_enable_resources(struct pci_dev *, int mask);
+ void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
+ 		    int (*)(const struct pci_dev *, u8, u8));
++struct resource *pci_find_resource(struct pci_dev *dev, struct resource *res);
+ #define HAVE_PCI_REQ_REGIONS	2
+ int __must_check pci_request_regions(struct pci_dev *, const char *);
+ int __must_check pci_request_regions_exclusive(struct pci_dev *, const char *);
+@@ -1542,6 +1543,9 @@ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
+ 				  int enable)
+ { return 0; }
+ 
++static inline struct resource *pci_find_resource(struct pci_dev *dev,
++						 struct resource *res)
++{ return NULL; }
+ static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
+ { return -EIO; }
+ static inline void pci_release_regions(struct pci_dev *dev) { }
+-- 
+2.9.3
 
-Thanks,
-Rafael
