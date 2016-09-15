@@ -1,134 +1,44 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
-Date: Thu, 15 Sep 2016 11:58:58 +0100
-Message-ID: <20160915105849.GA10345@red-moon>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-3-git-send-email-tn@semihalf.com>
- <57D76626.1050109@huawei.com>
- <bac9f822-ce0a-7070-94df-4d66fc30f774@semihalf.com>
- <57D7E53F.1000106@huawei.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2 0/8] =?iso-8859-1?Q?Support_?=
+ =?iso-8859-1?Q?Intel=AE?= Turbo Boost Max Technology 3.0
+Date: Thu, 15 Sep 2016 14:14:30 +0200
+Message-ID: <20160915121430.GD13132@amd>
+References: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33260 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755904AbcIOK6s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Sep 2016 06:58:48 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57455 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756393AbcIOMOe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Sep 2016 08:14:34 -0400
 Content-Disposition: inline
-In-Reply-To: <57D7E53F.1000106@huawei.com>
+In-Reply-To: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, peterz@infradead.org, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tim.c.chen@linux.intel.com
 
-On Tue, Sep 13, 2016 at 07:38:39PM +0800, Dongdong Liu wrote:
+Hi!
 
-[...]
-
-> Our host bridge is non ECAM only for the RC bus config space;
-> for any other bus underneath the root bus we support ECAM access.
+> - Feature is enabled by default for single socket systems
 > 
-> RC config resource with hardcode as DEFINE_RES_MEM(0xb0070000, SZ_4K),
-> EP config resource we get it from MCFG table.
-> So we need to override ops, but config resource we only need to hardcode with RC config resource.
-> 
-> Our host controller ACPI support patch can be found:
-> https://lkml.org/lkml/2016/8/31/340
+> With Intel® Turbo Boost Max Technology 3.0 (ITMT), single-threaded performance is
+> optimized by identifying processor's fastest core and running critical workloads
+> on it.
+> Refere to:
+> http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html
 
-Sorry I misread your code. IIUC you create an array of resources that
-represent non-ECAM config space (and incidentally contain debug
-registers to check the link status - that you need to check for every
-given config access (?)), but you still need to have an MCFG entry that
-covers the bus number subject to quirk to make sure this mechanism
-works. Correct ?
+That does not really explain much.
 
-This also means that, with the MCFG tables you have and current
-mainline kernel you are able to probe a root bridge (because the MCFG
-table covers the bus number that is not ECAM), with enumeration
-going haywire because it is trying to carry out ECAM accesses on
-non-ECAM space.
-
-Is my reading correct ?
-
-Anyway, that's not stricly related to this discussion, it is time we
-converge on this patchset, we can add a domain range if that
-simplifies things.
+How does it work? Do the different cores have different max
+frequencies due to manufacturing differences? Ot is it running the
+workload on coldest core?
 
 Thanks,
-Lorenzo
+								Pavel
 
-> This patch is based on RFC V5 quirk mechanism.
-> 
-> Based on V6 quirk mechanism, we have to change it as below:
-> 
-> #ifdef CONFIG_PCI_HISI_ACPI
-> 	{ "HISI ", "HIP05 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP05 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP05 ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP05 ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP06 ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
->          MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP07 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
-> 	  MCFG_RES_EMPTY},
-> 	{ "HISI ", "HIP07 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
-> 	  MCFG_RES_EMPTY},
-> 	....
-> 	
-> 	{ "HISI ", "HIP07 ", 0, 15, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
-> 	  MCFG_RES_EMPTY},
-> 
-> #endif
-> 
-> struct pci_ecam_ops hisi_pci_hip05_ops = {
-> 	.bus_shift	= 20,
-> 	.init		=  hisi_pci_hip05_init,
-> 	.pci_ops	= {
-> 		.map_bus	= pci_ecam_map_bus,
-> 		.read		= hisi_pcie_acpi_rd_conf,
-> 		.write		= hisi_pcie_acpi_wr_conf,
-> 	}
-> };
-> 
-> struct pci_ecam_ops hisi_pci_hip06_ops = {
-> 	.bus_shift = 20,
-> 	.init = hisi_pci_hip06_init,
-> 	.pci_ops = {
-> 		.map_bus = pci_ecam_map_bus,
-> 		.read = hisi_pcie_acpi_rd_conf,
-> 		.write = hisi_pcie_acpi_wr_conf,
-> 	}
-> };
-> 
-> hisi_pci_hipxx_init function is used to get RC config resource with hardcode.
-> .....
-> 
-> So I hope we can use MCFG_DOM_RANGE, Then I can change it as below.
-> 
-> #ifdef CONFIG_PCI_HISI_ACPI
-> 	{ "HISI  ", "HIP05   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
-> 	 &hisi_pcie_hip05_ops, MCFG_RES_EMPTY},
-> 	{ "HISI  ", "HIP06   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
-> 	 &hisi_pcie_hip06_ops, MCFG_RES_EMPTY},
-> 	{ "HISI  ", "HIP07   ", 0, MCFG_DOM_RANGE(0, 15), MCFG_BUS_ANY,
-> 	  &hisi_pcie_hip07_ops, MCFG_RES_EMPTY},
-> #endif
-> 
-> Thanks
-> Dongdong
-> >
-> >Thanks,
-> >Tomasz
-> >
-> >.
-> >
-> 
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
