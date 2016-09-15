@@ -1,200 +1,388 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [RFC PATCH v2 10/11] irqchip: mbigen: Add ACPI support
-Date: Thu, 15 Sep 2016 09:49:27 +0100
-Message-ID: <57DA6097.8060105@arm.com>
-References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
- <1473862879-7769-11-git-send-email-guohanjun@huawei.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v13 7/8] clocksource/drivers/arm_arch_timer: Add GTDT
+ support for memory-mapped timer
+Date: Thu, 15 Sep 2016 18:49:30 +0800
+Message-ID: <CADyBb7spVBPhhtzuJ6u_c6-KhaZ_2a726raL0fOJNDXPzQTo+g@mail.gmail.com>
+References: <1473883781-9571-1-git-send-email-fu.wei@linaro.org> <1473883781-9571-8-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1473862879-7769-11-git-send-email-guohanjun@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1473883781-9571-8-git-send-email-fu.wei@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei Huang <wei@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>, Wim Van Sebroeck <wim@iguana.be>, Guenter Roeck <linux@roeck-us.net>, linux-watchdog@vger.k
 List-Id: linux-acpi@vger.kernel.org
 
-On 14/09/16 15:21, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> With the preparation of platform msi support and interrupt producer
-> in DSDT, we can add mbigen ACPI support now.
-> 
-> We are using _PRS methd to indicate number of irq pins instead
-> of num_pins in DT.
-> 
-> For mbi-gen,
->     Device(MBI0) {
->           Name(_HID, "HISI0152")
->           Name(_UID, Zero)
->           Name(_CRS, ResourceTemplate() {
->                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->           })
-> 
->           Name (_PRS, ResourceTemplate() {
-> 		  Interrupt(ResourceProducer,...) {12,14,....}
->           })
+HI
 
-Since I know next to nothing about all of this, I'm going to play the
-village idiot. What makes it legal to use _PRS as a way to describe the
-interrupts that are exposed by MBI0? Looking at the 6.0 spec, I do not
-see why the interrupts would be put there instead of _CRS, and why you'd
-have a _PRS at all.
-
-Also, are you going to exhaustively describe all the possible interrupts
-via this method? Knowing that the mbigen can expose thousands of
-interrupts, I find it slightly mad. Can't you express a range?
-
->     }
-> 
-> For devices,
-> 
->    Device(COM0) {
->           Name(_HID, "ACPIIDxx")
->           Name(_UID, Zero)
->           Name(_CRS, ResourceTemplate() {
->                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
->           })
->     }
-> 
-> With the helpe of platform msi and interrupt producer, then devices
-> will get the virq from mbi-gen's irqdomain.
-> 
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ma Jun <majun258@huawei.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+On 15 September 2016 at 04:09,  <fu.wei@linaro.org> wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+>
+> The patch add memory-mapped timer register support by using the informati=
+on
+> provided by the new GTDT driver of ACPI.
+> Also refactor original memory-mapped timer dt support for reusing some co=
+mmon
+> code.
+>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
 > ---
->  drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 67 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-> index 9484ea0..ca6add1 100644
-> --- a/drivers/irqchip/irq-mbigen.c
-> +++ b/drivers/irqchip/irq-mbigen.c
-> @@ -16,6 +16,7 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/interrupt.h>
->  #include <linux/irqchip.h>
->  #include <linux/module.h>
-> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
->  				    unsigned long *hwirq,
->  				    unsigned int *type)
->  {
-> -	if (is_of_node(fwspec->fwnode)) {
-> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
->  		if (fwspec->param_count != 2)
->  			return -EINVAL;
->  
-> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
->  	return 0;
+>  drivers/clocksource/arm_arch_timer.c | 238 +++++++++++++++++++++++++----=
+------
+>  1 file changed, 172 insertions(+), 66 deletions(-)
+>
+> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/a=
+rm_arch_timer.c
+> index 0197ef9..ddca6e3 100644
+> --- a/drivers/clocksource/arm_arch_timer.c
+> +++ b/drivers/clocksource/arm_arch_timer.c
+> @@ -57,6 +57,7 @@
+>  static unsigned arch_timers_present __initdata;
+>
+>  static void __iomem *arch_counter_base;
+> +static void __iomem *cntctlbase __initdata;
+>
+>  struct arch_timer {
+>         void __iomem *base;
+> @@ -656,15 +657,56 @@ out:
+>         return err;
 >  }
->  
-> +#ifdef CONFIG_ACPI
-> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
-> +					     void *context)
-> +{
-> +	struct acpi_resource_extended_irq *ext_irq;
-> +	u32 *num_irqs = context;
-> +
-> +	switch (ares->type) {
-> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> +		ext_irq = &ares->data.extended_irq;
-> +		*num_irqs += ext_irq->interrupt_count;
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
-> +				     struct mbigen_device *mgn_chip)
-> +{
-> +	struct irq_domain *domain;
-> +	u32 num_msis = 0;
-> +	acpi_status status;
-> +
-> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__PRS,
-> +				     mbigen_acpi_process_resource, &num_msis);
-> +        if (ACPI_FAILURE(status) || num_msis == 0)
-> +		return -EINVAL;
-> +
-> +	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
-> +						   mbigen_write_msg,
-> +						   &mbigen_domain_ops,
-> +						   mgn_chip);
-> +	if (!domain)
-> +		return -ENOMEM;
-> +
-> +	return 0;
-> +}
-> +#else
-> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
-> +				     struct mbigen_device *mgn_chip)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif
-> +
->  static int mbigen_device_probe(struct platform_device *pdev)
+>
+> -static int __init arch_timer_mem_register(void __iomem *base, unsigned i=
+nt irq)
+> +static int __init arch_timer_mem_register(struct device_node *np, void *=
+frame)
 >  {
->  	struct mbigen_device *mgn_chip;
-> @@ -288,9 +337,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
->  	if (IS_ERR(mgn_chip->base))
->  		return PTR_ERR(mgn_chip->base);
->  
-> -	err = mbigen_of_create_domain(pdev, mgn_chip);
-> -	if (err)
-> +	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-> +		err = mbigen_of_create_domain(pdev, mgn_chip);
-> +	else if (ACPI_COMPANION(&pdev->dev))
-> +		err = mbigen_acpi_create_domain(pdev, mgn_chip);
-> +	else
-> +		err = -EINVAL;
+> -       int ret;
+> -       irq_handler_t func;
+> +       struct device_node *frame_node =3D NULL;
+> +       struct gt_timer_data *frame_data =3D NULL;
+>         struct arch_timer *t;
+> +       void __iomem *base;
+> +       irq_handler_t func;
+> +       unsigned int irq;
+> +       int ret;
 > +
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
->  		return err;
-> +	}
->  
->  	platform_set_drvdata(pdev, mgn_chip);
->  	return 0;
-> @@ -302,10 +359,17 @@ static const struct of_device_id mbigen_of_match[] = {
->  };
->  MODULE_DEVICE_TABLE(of, mbigen_of_match);
->  
-> +static const struct acpi_device_id mbigen_acpi_match[] = {
-> +        { "HISI0152", 0 },
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
+> +       if (np) {
+> +               frame_node =3D (struct device_node *)frame;
+> +               base =3D of_iomap(frame_node, 0);
+> +               arch_timer_detect_rate(base, np);
+> +               if (arch_timer_mem_use_virtual)
+> +                       irq =3D irq_of_parse_and_map(frame_node, VIRT_SPI=
+);
+> +               else
+> +                       irq =3D irq_of_parse_and_map(frame_node, PHYS_SPI=
+);
+> +       } else {
+> +               frame_data =3D (struct gt_timer_data *)frame;
+> +               /*
+> +                * According to ARMv8 Architecture Reference Manual(ARM),
+> +                * the size of CNTBaseN frames of memory-mapped timer
+> +                * is SZ_4K(Offset 0x000 =E2=80=93 0xFFF).
+> +                */
+> +               base =3D ioremap(frame_data->cntbase_phy, SZ_4K);
+> +               if (arch_timer_mem_use_virtual)
+> +                       irq =3D frame_data->virtual_irq;
+> +               else
+> +                       irq =3D frame_data->irq;
+> +       }
 > +
->  static struct platform_driver mbigen_platform_driver = {
->  	.driver = {
->  		.name		= "Hisilicon MBIGEN-V2",
->  		.of_match_table	= mbigen_of_match,
-> +		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
->  	},
->  	.probe			= mbigen_device_probe,
->  };
-> 
+> +       if (!base) {
+> +               pr_err("Can't map frame's registers\n");
+> +               return -ENXIO;
+> +       }
+> +       if (!irq) {
+> +               pr_err("Frame missing %s irq",
+> +                      arch_timer_mem_use_virtual ? "virt" : "phys");
+> +               ret =3D -EINVAL;
+> +               goto out;
+> +       }
+> +
+> +       arch_counter_base =3D base;
+>
+>         t =3D kzalloc(sizeof(*t), GFP_KERNEL);
+> -       if (!t)
+> +       if (!t) {
+>                 return -ENOMEM;
+                   ^
+                  my bad, it should be "ret =3D "
 
-Thanks,
+> +               goto out;
+> +       }
+>
+>         t->base =3D base;
+>         t->evt.irq =3D irq;
+> @@ -676,11 +718,13 @@ static int __init arch_timer_mem_register(void __io=
+mem *base, unsigned int irq)
+>                 func =3D arch_timer_handler_phys_mem;
+>
+>         ret =3D request_irq(irq, func, IRQF_TIMER, "arch_mem_timer", &t->=
+evt);
+> -       if (ret) {
+> -               pr_err("Failed to request mem timer irq\n");
+> -               kfree(t);
+> -       }
+> +       if (!ret)
+> +               return 0;
+>
+> +       pr_err("Failed to request mem timer irq\n");
+> +       kfree(t);
+> +out:
+> +       iounmap(base);
+>         return ret;
+>  }
+>
+> @@ -769,7 +813,7 @@ static int __init arch_timer_init(void)
+>                 return ret;
+>
+>         arch_timer_kvm_info.virtual_irq =3D arch_timer_ppi[VIRT_PPI];
+> -
+> +
+>         return 0;
+>  }
+>
+> @@ -803,21 +847,56 @@ static int __init arch_timer_of_init(struct device_=
+node *np)
+>  CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_o=
+f_init);
+>  CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_o=
+f_init);
+>
+> -static int __init arch_timer_mem_init(struct device_node *np)
+> +static int __init get_cnttidr(struct device_node *np,
+> +                             struct gt_block_data *gt_block, u32 *cnttid=
+r)
+>  {
+> -       struct device_node *frame, *best_frame =3D NULL;
+> -       void __iomem *cntctlbase, *base;
+> -       unsigned int irq, ret =3D -EINVAL;
+> -       u32 cnttidr;
+> +       if (np)
+> +               cntctlbase =3D of_iomap(np, 0);
+> +       else
+> +               cntctlbase =3D ioremap(gt_block->cntctlbase_phy, SZ_4K);
+> +               /*
+> +                * According to ARMv8 Architecture Reference Manual(ARM),
+> +                * the size of CNTCTLBase frame of memory-mapped timer
+> +                * is SZ_4K(Offset 0x000 =E2=80=93 0xFFF).
+> +                */
+>
+> -       arch_timers_present |=3D ARCH_MEM_TIMER;
+> -       cntctlbase =3D of_iomap(np, 0);
+>         if (!cntctlbase) {
+>                 pr_err("Can't find CNTCTLBase\n");
+>                 return -ENXIO;
+>         }
+>
+> -       cnttidr =3D readl_relaxed(cntctlbase + CNTTIDR);
+> +       *cnttidr =3D readl_relaxed(cntctlbase + CNTTIDR);
+> +       return 0;
+> +}
+> +
+> +static bool __init is_best_frame(u32 cnttidr, int n)
+> +{
+> +       u32 cntacr =3D CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT | CNTACR_R=
+WVT |
+> +                    CNTACR_RVOFF | CNTACR_RVCT;
+> +
+> +       /* Try enabling everything, and see what sticks */
+> +       writel_relaxed(cntacr, cntctlbase + CNTACR(n));
+> +       cntacr =3D readl_relaxed(cntctlbase + CNTACR(n));
+> +
+> +       if ((cnttidr & CNTTIDR_VIRT(n)) &&
+> +           !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT)))
+> +               arch_timer_mem_use_virtual =3D true;
+> +       else if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
+> +               return false;
+> +
+> +       return true;
+> +}
+> +
+> +static int __init arch_timer_mem_init(struct device_node *np)
+> +{
+> +       struct device_node *frame, *best_frame =3D NULL;
+> +       unsigned int ret =3D -EINVAL;
+> +       u32 cnttidr;
+> +
+> +       arch_timers_present |=3D ARCH_MEM_TIMER;
+> +
+> +       if (get_cnttidr(np, NULL, &cnttidr))
+> +               return -ENXIO;
+>
+>         /*
+>          * Try to find a virtual capable frame. Otherwise fall back to a
+> @@ -825,60 +904,22 @@ static int __init arch_timer_mem_init(struct device=
+_node *np)
+>          */
+>         for_each_available_child_of_node(np, frame) {
+>                 int n;
+> -               u32 cntacr;
+> -
+>                 if (of_property_read_u32(frame, "frame-number", &n)) {
+> -                       pr_err("Missing frame-number\n");
+> +                       pr_err("Missing frame-number.\n");
+>                         of_node_put(frame);
+>                         goto out;
+>                 }
+> -
+> -               /* Try enabling everything, and see what sticks */
+> -               cntacr =3D CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT |
+> -                        CNTACR_RWVT | CNTACR_RVOFF | CNTACR_RVCT;
+> -               writel_relaxed(cntacr, cntctlbase + CNTACR(n));
+> -               cntacr =3D readl_relaxed(cntctlbase + CNTACR(n));
+> -
+> -               if ((cnttidr & CNTTIDR_VIRT(n)) &&
+> -                   !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT))) {
+> +               if (is_best_frame(cnttidr, n)) {
+>                         of_node_put(best_frame);
+> -                       best_frame =3D frame;
+> -                       arch_timer_mem_use_virtual =3D true;
+> -                       break;
+> +                       best_frame =3D of_node_get(frame);
+> +                       if (arch_timer_mem_use_virtual)
+> +                               break;
+>                 }
+> -
+> -               if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
+> -                       continue;
+> -
+> -               of_node_put(best_frame);
+> -               best_frame =3D of_node_get(frame);
+> -       }
+> -
+> -       ret=3D -ENXIO;
+> -       base =3D arch_counter_base =3D of_iomap(best_frame, 0);
+> -       if (!base) {
+> -               pr_err("Can't map frame's registers\n");
+> -               goto out;
+> -       }
+> -
+> -       if (arch_timer_mem_use_virtual)
+> -               irq =3D irq_of_parse_and_map(best_frame, VIRT_SPI);
+> -       else
+> -               irq =3D irq_of_parse_and_map(best_frame, PHYS_SPI);
+> -
+> -       ret =3D -EINVAL;
+> -       if (!irq) {
+> -               pr_err("Frame missing %s irq",
+> -                      arch_timer_mem_use_virtual ? "virt" : "phys");
+> -               goto out;
+>         }
+>
+> -       arch_timer_detect_rate(base, np);
+> -       ret =3D arch_timer_mem_register(base, irq);
+> -       if (ret)
+> -               goto out;
+> -
+> -       return arch_timer_common_init();
+> +       ret =3D arch_timer_mem_register(np, best_frame);
+> +       if (!ret)
+> +               ret =3D arch_timer_common_init();
+>  out:
+>         iounmap(cntctlbase);
+>         of_node_put(best_frame);
+> @@ -888,7 +929,72 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,ar=
+mv7-timer-mem",
+>                        arch_timer_mem_init);
+>
+>  #ifdef CONFIG_ACPI_GTDT
+> -/* Initialize per-processor generic timer */
+> +static struct gt_timer_data __init *arch_timer_mem_get_timer(
+> +                                               struct gt_block_data *gt_=
+blocks)
+> +{
+> +       struct gt_block_data *gt_block =3D gt_blocks;
+> +       struct gt_timer_data *best_frame =3D NULL;
+> +       u32 cnttidr;
+> +       int i;
+> +
+> +       if (get_cnttidr(NULL, gt_block, &cnttidr))
+> +               return NULL;
+> +       /*
+> +        * Try to find a virtual capable frame. Otherwise fall back to a
+> +        * physical capable frame.
+> +        */
+> +       for (i =3D 0; i < gt_block->timer_count; i++) {
+> +               if (is_best_frame(cnttidr, gt_block->timer[i].frame_nr)) =
+{
+> +                       best_frame =3D &gt_block->timer[i];
+> +                       if (arch_timer_mem_use_virtual)
+> +                               break;
+> +               }
+> +       }
+> +       iounmap(cntctlbase);
+> +
+> +       return best_frame;
+> +}
+> +
+> +static int __init arch_timer_mem_acpi_init(size_t timer_count)
+> +{
+> +       struct gt_block_data *gt_blocks;
+> +       struct gt_timer_data *gt_timer;
+> +       int ret =3D -EINVAL;
+> +
+> +       /*
+> +        * If we don't have any Platform Timer Structures, just return.
+> +        */
+> +       if (!timer_count)
+> +               return 0;
+> +
+> +       /*
+> +        * before really check all the Platform Timer Structures,
+> +        * we assume they are GT block, and allocate memory for them.
+> +        * We will free these memory once we finish the initialization.
+> +        */
+> +       gt_blocks =3D kcalloc(timer_count, sizeof(*gt_blocks), GFP_KERNEL=
+);
+> +       if (!gt_blocks)
+> +               return -ENOMEM;
+> +
+> +       if (gtdt_arch_timer_mem_init(gt_blocks) > 0) {
+> +               gt_timer =3D arch_timer_mem_get_timer(gt_blocks);
+> +               if (!gt_timer) {
+> +                       pr_err("Failed to get mem timer info.\n");
+> +                       goto error;
+> +               }
+> +               ret =3D arch_timer_mem_register(NULL, gt_timer);
+> +               if (ret) {
+> +                       pr_err("Failed to register mem timer.\n");
+> +                       goto error;
+> +               }
+> +       }
+> +       arch_timers_present |=3D ARCH_MEM_TIMER;
+> +error:
+> +       kfree(gt_blocks);
+> +       return ret;
+> +}
+> +
+> +/* Initialize per-processor generic timer and memory-mapped timer(if pre=
+sent) */
+>  static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+>  {
+>         int timer_count;
+> @@ -912,8 +1018,8 @@ static int __init arch_timer_acpi_init(struct acpi_t=
+able_header *table)
+>         /* Get the frequency from CNTFRQ */
+>         arch_timer_detect_rate(NULL, NULL);
+>
+> -       if (timer_count < 0)
+> -               pr_err("Failed to get platform timer info.\n");
+> +       if (timer_count < 0 || arch_timer_mem_acpi_init((size_t)timer_cou=
+nt))
+> +               pr_err("Failed to initialize memory-mapped timer.\n");
+>
+>         return arch_timer_init();
+>  }
+> --
+> 2.7.4
+>
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+
+
+--=20
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
