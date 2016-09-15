@@ -1,68 +1,174 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 4/4] PCI: Avoid unnecessary resume on shutdown
-Date: Thu, 15 Sep 2016 15:57:18 +0200
-Message-ID: <CAJZ5v0g5BuF_m4J=zq-_bLVFGEKJMdfwk=MyZhNTh3kXVL+kJw@mail.gmail.com>
-References: <cover.1472554278.git.lukas@wunner.de> <9f9152c11c6178bbac53fd3d0ef0d38173ad4b0b.1472554278.git.lukas@wunner.de>
- <2217882.yevB8EWaHc@vostro.rjw.lan> <20160915131125.GA2196@wunner.de>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH v2 05/11] ACPI: platform: setup MSI domain for ACPI
+ based platform device
+Date: Thu, 15 Sep 2016 22:05:34 +0800
+Message-ID: <57DAAAAE.6010206@linaro.org>
+References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com> <1473862879-7769-6-git-send-email-guohanjun@huawei.com> <57D97087.5040703@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160915131125.GA2196@wunner.de>
-Sender: linux-pm-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:34711 "EHLO
+        mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757803AbcIOOHA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Sep 2016 10:07:00 -0400
+Received: by mail-pa0-f41.google.com with SMTP id wk8so16321567pab.1
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Sep 2016 07:06:59 -0700 (PDT)
+In-Reply-To: <57D97087.5040703@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com
 
-On Thu, Sep 15, 2016 at 3:11 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> On Wed, Sep 14, 2016 at 02:29:52AM +0200, Rafael J. Wysocki wrote:
->> On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
->> > We currently perform a mandatory runtime resume of all PCI devices on
->> > ->shutdown.  However it is pointless to wake devices only to immediately
->> > power them down afterwards.  (Or have the firmware reset them, in case
->> > of a reboot.)
->> >
->> > It seems there are only two cases when a runtime resume is actually
->> > necessary:  If the driver has declared a ->shutdown callback or if kexec
->> > is in progress.
->> >
->> > Constrain resume of a device to these cases and let it slumber
->> > otherwise, thereby conserving energy and speeding up shutdown.
->> >
->> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->> > Signed-off-by: Lukas Wunner <lukas@wunner.de>
->> > ---
->> >  drivers/pci/pci-driver.c | 5 +++++
->> >  1 file changed, 5 insertions(+)
->> >
->> > diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
->> > index fd4b9c4..09a4e56 100644
->> > --- a/drivers/pci/pci-driver.c
->> > +++ b/drivers/pci/pci-driver.c
->> > @@ -459,6 +459,11 @@ static void pci_device_shutdown(struct device *dev)
->> >     struct pci_dev *pci_dev = to_pci_dev(dev);
->> >     struct pci_driver *drv = pci_dev->driver;
->> >
->> > +   /* Fast path for suspended devices */
->> > +   if (pm_runtime_suspended(dev) && (!drv || !drv->shutdown) &&
->> > +       !kexec_in_progress)
+Hi Marc,
+
+Thanks for your review, reply inline.
+
+On 09/14/2016 11:45 PM, Marc Zyngier wrote:
+> On 14/09/16 15:21, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
 >>
->> What happens if runtime suspend or resume of the device happens here?
+>> With the platform msi domain created, we can set up the msi domain
+>> for a platform device when it's probed.
+>>
+>> This patch introduces acpi_configure_msi_domain(), which retrieves
+>> the domain from iort and set it to platform device.
+>>
+>> As some platform devices such as an irqchip needs the msi irqdomain
+>> to be the interrupt parent domain, we need to get irqdomain before
+>> platform device is probed.
+>>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> Cc: Greg KH <gregkh@linuxfoundation.org>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Tomasz Nowicki <tn@semihalf.com>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   drivers/acpi/arm64/iort.c   |  5 ++++-
+>>   drivers/base/platform-msi.c | 15 ++++++++++++++-
+>>   drivers/base/platform.c     |  2 ++
+>>   include/linux/msi.h         |  1 +
+>>   4 files changed, 21 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index 13a1905..bccd3cc 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -478,6 +478,7 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+>>   {
+>>   	struct fwnode_handle *handle;
+>>   	int its_id;
+>> +	enum irq_domain_bus_token bus_token;
+>>
+>>   	if (iort_dev_find_its_id(dev, req_id, 0, &its_id))
+>>   		return NULL;
+>> @@ -486,7 +487,9 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+>>   	if (!handle)
+>>   		return NULL;
+>>
+>> -	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+>> +	bus_token = dev_is_pci(dev) ?
+>> +			DOMAIN_BUS_PCI_MSI : DOMAIN_BUS_PLATFORM_MSI;
+>> +	return irq_find_matching_fwnode(handle, bus_token);
+>>   }
+>>
+>>   static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>> diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
+>> index 279e539..f6eae18 100644
+>> --- a/drivers/base/platform-msi.c
+>> +++ b/drivers/base/platform-msi.c
+>> @@ -17,8 +17,8 @@
+>>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>>    */
+>>
+>> +#include <linux/acpi_iort.h>
+>>   #include <linux/device.h>
+>> -#include <linux/idr.h>
+>>   #include <linux/irq.h>
+>>   #include <linux/irqdomain.h>
+>>   #include <linux/msi.h>
+>> @@ -416,3 +416,16 @@ int platform_msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
+>>
+>>   	return err;
+>>   }
+>> +
+>> +int acpi_configure_msi_domain(struct device *dev)
+>> +{
+>> +	struct irq_domain *d = NULL;
+>> +
+>> +	d = iort_get_device_domain(dev, 0);
 >
-> You're right, good point.  How about disabling runtime PM then, like this:
->
->         /* Fast path for suspended devices */
->         if (pm_runtime_status_suspended(dev) && (!drv || !drv->shutdown) &&
->             !kexec_in_progress) {
->                 pm_runtime_disable(dev);
->                 if (pm_runtime_status_suspended(dev))
->                         return;
->                 pm_runtime_enable(dev);
->         }
->
-> All dependents (children, and in the future, consumers) should already
-> have been treated at that point, due to the ordering of devices_kset->list.
+> This looks completely wrong. Why RID 0? As far as I can see, 0 is not a
+> special value, and could be something else.
 
-That should work.
+You are right. I tried to reuse the API of get irqdomain in IORT for
+PCI devices, but for platform device, we don't have req id in named
+component, so I just pass 0 here, I think I need to prepare another
+API for platform devices.
 
-Thanks,
-Rafael
+>
+>> +	if (d) {
+>> +		dev_set_msi_domain(dev, d);
+>> +		return 0;
+>> +	}
+>> +
+>> +	return -EINVAL;
+>> +}
+>
+> I really hate this, as the platform MSI code is intentionally free of
+> any firmware reference. This should live in the ACPI code.
+
+Will do, I think locate it in iort.c is better.
+
+>
+>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+>> index 6482d47..ea01a37 100644
+>> --- a/drivers/base/platform.c
+>> +++ b/drivers/base/platform.c
+>> @@ -24,6 +24,7 @@
+>>   #include <linux/pm_domain.h>
+>>   #include <linux/idr.h>
+>>   #include <linux/acpi.h>
+>> +#include <linux/msi.h>
+>>   #include <linux/clk/clk-conf.h>
+>>   #include <linux/limits.h>
+>>   #include <linux/property.h>
+>> @@ -500,6 +501,7 @@ struct platform_device *platform_device_register_full(
+>>   	pdev->dev.parent = pdevinfo->parent;
+>>   	pdev->dev.fwnode = pdevinfo->fwnode;
+>>
+>> +	acpi_configure_msi_domain(&pdev->dev);
+>
+> It feels odd to put this in the generic code, while you could perfectly
+> put the call into acpi_platform.c and keep the firmware stuff away from
+> the generic code.
+
+My feeling is the same, I'm still trying to find a new way to do it,
+but I can't simply put that in acpi_platform.c, because
+
+acpi_create_platform_device()
+    platform_device_register_full()
+	platform_device_alloc()  --> dev is alloced
+         ...
+         dev.fwnode  is set
+	(I get the msi domain by the fwnode in acpi_configure_msi_domain)
+         ...
+         platform_device_add()  --> which the device is probed.
+
+For devices like irqchip which needs the dev->msi_domain to be
+set before it's really probed, because it needs the msi domain
+to be the parent domain.
+
+If I call the function in acpi_create_platform_device() before
+platform_device_register_full(), we just can't set dev's msi
+domain, but if call it after platform_device_register_full(),
+the irqchip like mbigen will not get its parent domain...
+
+DT is using another API for platform device probe, so has no
+problems like I said above, any suggestions to do it right in
+ACPI?
+
+Thanks
+Hanjun
