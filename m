@@ -1,144 +1,147 @@
-From: Lukas Wunner <lukas@wunner.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [PATCH 2/4] PCI: Query platform firmware for device power state
-Date: Thu, 15 Sep 2016 00:58:57 +0200
-Message-ID: <20160914225857.GA1966@wunner.de>
-References: <cover.1472554278.git.lukas@wunner.de>
- <20160914105024.GC1597@wunner.de>
- <1707182.o83Q5WOaET@vostro.rjw.lan>
- <2423504.PN3SurRX7i@vostro.rjw.lan>
+Date: Thu, 15 Sep 2016 02:49:25 +0200
+Message-ID: <2014949.Ex5rT4Uuyf@vostro.rjw.lan>
+References: <cover.1472554278.git.lukas@wunner.de> <2423504.PN3SurRX7i@vostro.rjw.lan> <20160914225857.GA1966@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2423504.PN3SurRX7i@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160914225857.GA1966@wunner.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
 Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 06:47:40PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, September 14, 2016 03:01:33 PM Rafael J. Wysocki wrote:
-> > On Wednesday, September 14, 2016 12:50:24 PM Lukas Wunner wrote:
-> > > On Wed, Sep 14, 2016 at 02:21:30AM +0200, Rafael J. Wysocki wrote:
-> > > > On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
-> > > > > Usually the most accurate way to determine a PCI device's power state
-> > > > > is to read its PM Control & Status Register.  There are two cases
-> > > > > however when this is not an option:  If the device doesn't have the
-> > > > > PM capability at all, or if it is in D3cold.
+On Thursday, September 15, 2016 12:58:57 AM Lukas Wunner wrote:
+> On Wed, Sep 14, 2016 at 06:47:40PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, September 14, 2016 03:01:33 PM Rafael J. Wysocki wrote:
+> > > On Wednesday, September 14, 2016 12:50:24 PM Lukas Wunner wrote:
+> > > > On Wed, Sep 14, 2016 at 02:21:30AM +0200, Rafael J. Wysocki wrote:
+> > > > > On Wednesday, August 31, 2016 08:15:18 AM Lukas Wunner wrote:
+> > > > > > Usually the most accurate way to determine a PCI device's power state
+> > > > > > is to read its PM Control & Status Register.  There are two cases
+> > > > > > however when this is not an option:  If the device doesn't have the
+> > > > > > PM capability at all, or if it is in D3cold.
+> > > > > > 
+> > > > > > In D3cold, reading from config space typically results in a
+> > > > > > fabricated "all ones" response.  But in D3hot, the two bits
+> > > > > > representing the power state in the PMCSR are *also* set to 1.
+> > > > > > Thus D3hot and D3cold are not discernible by just reading the PMCSR.
+> > > > > > 
+> > > > > > A (supposedly) reliable way to detect D3cold is to query the platform
+> > > > > > firmware for its opinion on the device's power state.  To this end,
+> > > > > > add a ->get_power callback to struct pci_platform_pm_ops, and an
+> > > > > > implementation to acpi_pci_platform_pm.  (The only
+> > > > > > pci_platform_pm_ops existing so far).
+> > > > > > 
+> > > > > > Amend pci_update_current_state() to query the platform firmware before
+> > > > > > reading the PMCSR.
+> > > > > > 
+> > > > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> > > > > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > > > > > ---
+> > > > > >  drivers/pci/pci-acpi.c | 23 +++++++++++++++++++++++
+> > > > > >  drivers/pci/pci.c      | 21 ++++++++++++++++-----
+> > > > > >  drivers/pci/pci.h      |  3 +++
+> > > > > >  3 files changed, 42 insertions(+), 5 deletions(-)
+> > > > > > 
+> > > > > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > > > > > index 9a033e8..89f2707 100644
+> > > > > > --- a/drivers/pci/pci-acpi.c
+> > > > > > +++ b/drivers/pci/pci-acpi.c
+> > > > > > @@ -452,6 +452,28 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+> > > > > >  	return error;
+> > > > > >  }
+> > > > > >  
+> > > > > > +static pci_power_t acpi_pci_get_power_state(struct pci_dev *dev)
+> > > > > > +{
+> > > > > > +	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> > > > > > +	static const pci_power_t state_conv[] = {
+> > > > > > +		[ACPI_STATE_D0]      = PCI_D0,
+> > > > > > +		[ACPI_STATE_D1]      = PCI_D1,
+> > > > > > +		[ACPI_STATE_D2]      = PCI_D2,
+> > > > > > +		[ACPI_STATE_D3_HOT]  = PCI_D3hot,
+> > > > > > +		[ACPI_STATE_D3_COLD] = PCI_D3cold,
+> > > > > > +	};
+> > > > > > +	int state;
 > > > > > 
-> > > > > In D3cold, reading from config space typically results in a
-> > > > > fabricated "all ones" response.  But in D3hot, the two bits
-> > > > > representing the power state in the PMCSR are *also* set to 1.
-> > > > > Thus D3hot and D3cold are not discernible by just reading the PMCSR.
-> > > > > 
-> > > > > A (supposedly) reliable way to detect D3cold is to query the platform
-> > > > > firmware for its opinion on the device's power state.  To this end,
-> > > > > add a ->get_power callback to struct pci_platform_pm_ops, and an
-> > > > > implementation to acpi_pci_platform_pm.  (The only
-> > > > > pci_platform_pm_ops existing so far).
-> > > > > 
-> > > > > Amend pci_update_current_state() to query the platform firmware before
-> > > > > reading the PMCSR.
-> > > > > 
-> > > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > > > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> > > > > ---
-> > > > >  drivers/pci/pci-acpi.c | 23 +++++++++++++++++++++++
-> > > > >  drivers/pci/pci.c      | 21 ++++++++++++++++-----
-> > > > >  drivers/pci/pci.h      |  3 +++
-> > > > >  3 files changed, 42 insertions(+), 5 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > > > > index 9a033e8..89f2707 100644
-> > > > > --- a/drivers/pci/pci-acpi.c
-> > > > > +++ b/drivers/pci/pci-acpi.c
-> > > > > @@ -452,6 +452,28 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
-> > > > >  	return error;
-> > > > >  }
-> > > > >  
-> > > > > +static pci_power_t acpi_pci_get_power_state(struct pci_dev *dev)
-> > > > > +{
-> > > > > +	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-> > > > > +	static const pci_power_t state_conv[] = {
-> > > > > +		[ACPI_STATE_D0]      = PCI_D0,
-> > > > > +		[ACPI_STATE_D1]      = PCI_D1,
-> > > > > +		[ACPI_STATE_D2]      = PCI_D2,
-> > > > > +		[ACPI_STATE_D3_HOT]  = PCI_D3hot,
-> > > > > +		[ACPI_STATE_D3_COLD] = PCI_D3cold,
-> > > > > +	};
-> > > > > +	int state;
+> > > > > ACPI_STATE_D3_HOT and ACPI_STATE_D3_COLD were introduced in ACPI 4.0.
+> > > > > For systems predating that, ACPI_STATE_D3_HOT is the deepest state
+> > > > > returned by acpi_device_get_power().
 > > > > 
-> > > > ACPI_STATE_D3_HOT and ACPI_STATE_D3_COLD were introduced in ACPI 4.0.
-> > > > For systems predating that, ACPI_STATE_D3_HOT is the deepest state
-> > > > returned by acpi_device_get_power().
+> > > > Would it be possible to detect the ACPI spec version the platform
+> > > > firmware conforms to, and amend acpi_device_get_power() to return
+> > > > ACPI_STATE_D3_COLD if the device is in D3?
+> > > > 
+> > > > Then we could avoid the unnecessary runtime resume after direct_complete
+> > > > also for these older machines.
 > > > 
-> > > Would it be possible to detect the ACPI spec version the platform
-> > > firmware conforms to, and amend acpi_device_get_power() to return
-> > > ACPI_STATE_D3_COLD if the device is in D3?
+> > > Well, please see below.
 > > > 
-> > > Then we could avoid the unnecessary runtime resume after direct_complete
-> > > also for these older machines.
-> > 
-> > Well, please see below.
-> > 
-> > > Can the revision in the FADT (offset 8) be used as a proxy?
-> > > => E.g. the old Clevo B7130 has revision 3 in the FADT and uses
-> > >    a _DSM and _PS3 to put the discrete GPU in D3cold:
-> > >    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_B7130
-> > > => Whereas the newer Clevo P651RA has revision 5 in the FADT and uses
-> > >    _PR3 to put the discrete GPU in D3cold:
-> > >    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_P651RA
+> > > > Can the revision in the FADT (offset 8) be used as a proxy?
+> > > > => E.g. the old Clevo B7130 has revision 3 in the FADT and uses
+> > > >    a _DSM and _PS3 to put the discrete GPU in D3cold:
+> > > >    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_B7130
+> > > > => Whereas the newer Clevo P651RA has revision 5 in the FADT and uses
+> > > >    _PR3 to put the discrete GPU in D3cold:
+> > > >    https://github.com/Lekensteyn/acpi-stuff/tree/master/dsl/Clevo_P651RA
+> > > > 
+> > > > However the FADT revision was already 4 in the ACPI 3.0 spec,
+> > > > so we can only use it to discern ACPI 2.0 vs 3.0, not 3.0 vs 4.0,
+> > > > which is what we'd actually want.  And there's a comment in
+> > > > acpica/tbfadt.c that "The FADT revision value is unreliable."
+> > > > 
+> > > > Do you know of a better way to discern ACPI 3.0 vs 4.0?
 > > > 
-> > > However the FADT revision was already 4 in the ACPI 3.0 spec,
-> > > so we can only use it to discern ACPI 2.0 vs 3.0, not 3.0 vs 4.0,
-> > > which is what we'd actually want.  And there's a comment in
-> > > acpica/tbfadt.c that "The FADT revision value is unreliable."
+> > > I'm not sure if there is a reliable way to be honest.
 > > > 
-> > > Do you know of a better way to discern ACPI 3.0 vs 4.0?
+> > > Also even if the FADT etc tells you something, there's no guarantee that
+> > > AML actually follows that.
+> > > 
+> > > In fact, whether or not acpi_device_get_power() will ever return D3cold
+> > > for a device depends on whether or not _PR3 is there.  If it's not there,
+> > > the deepest state returned will be D3hot in any case.
+> > > 
+> > > So I'm not sure how useful that is in the context of D3cold detection?
 > > 
-> > I'm not sure if there is a reliable way to be honest.
+> > There is more to this.
 > > 
-> > Also even if the FADT etc tells you something, there's no guarantee that
-> > AML actually follows that.
+> > In fact, we can't really trust _PSC too, because in some ACPI tables it is
+> > implemented to always return 0 (seriously).
 > > 
-> > In fact, whether or not acpi_device_get_power() will ever return D3cold
-> > for a device depends on whether or not _PR3 is there.  If it's not there,
-> > the deepest state returned will be D3hot in any case.
-> > 
-> > So I'm not sure how useful that is in the context of D3cold detection?
+> > For this reason, I think the way to go would be to use something like
+> > acpi_device_update_power() to ensure that the device really is in the
+> > state we think it is in.
 > 
-> There is more to this.
+> The patch only trusts the platform firmware to report D3cold correctly.
+> If it reports anything else the patch reads the PMCSR.
 > 
-> In fact, we can't really trust _PSC too, because in some ACPI tables it is
-> implemented to always return 0 (seriously).
+> Thus if _PSC returns a bogus D0 status, worst that can happen is that we
+> incorrectly assume D3hot while the device is actually in D3cold.  Which
+> is still kind of a bummer.
 > 
-> For this reason, I think the way to go would be to use something like
-> acpi_device_update_power() to ensure that the device really is in the
-> state we think it is in.
+> We've got this handy pci_device_is_present() function which reads the
+> vendor ID and returns false if it's "all ones" (which is what we'd get
+> in D3cold).
+> 
+> What if we ask the platform firmware first.  If it says D3cold, assume
+> that's true.  In all other cases, call pci_device_is_present().  If
+> that returns false, assume D3cold.  Otherwise read the PMCSR.
 
-The patch only trusts the platform firmware to report D3cold correctly.
-If it reports anything else the patch reads the PMCSR.
+Sounds reasonable.  We already use pci_device_is_present() for a similar
+purpose in at least one place IIRC.
 
-Thus if _PSC returns a bogus D0 status, worst that can happen is that we
-incorrectly assume D3hot while the device is actually in D3cold.  Which
-is still kind of a bummer.
+> That would also work for devices that are suspended to D3cold in a
+> nonstandard way, such as Thunderbolt.  Having a function that updates
+> the current_state in a robust way and correctly discerns D3cold and
+> D3hot would be really useful I think.
+> 
+> Thanks a lot for sharing these ACPI intricacies, it wasn't clear to me
+> in how far we can trust the platform firmware.
 
-We've got this handy pci_device_is_present() function which reads the
-vendor ID and returns false if it's "all ones" (which is what we'd get
-in D3cold).
+No problem.  Unfortunately, it often takes me some time to recall those
+things.
 
-What if we ask the platform firmware first.  If it says D3cold, assume
-that's true.  In all other cases, call pci_device_is_present().  If
-that returns false, assume D3cold.  Otherwise read the PMCSR.
-
-That would also work for devices that are suspended to D3cold in a
-nonstandard way, such as Thunderbolt.  Having a function that updates
-the current_state in a robust way and correctly discerns D3cold and
-D3hot would be really useful I think.
-
-Thanks a lot for sharing these ACPI intricacies, it wasn't clear to me
-in how far we can trust the platform firmware.
-
-Best regards,
-
-Lukas
+Thanks,
+Rafael
