@@ -1,69 +1,183 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [RFC PATCH v2 11/11] irqchip: mbigen: promote mbigen init
-Date: Thu, 15 Sep 2016 16:24:31 +0100
-Message-ID: <57DABD2F.1030606@arm.com>
-References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
- <1473862879-7769-12-git-send-email-guohanjun@huawei.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
+Date: Fri, 16 Sep 2016 09:02:15 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F8730EA@lhreml507-mbx>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+ <1473449047-10499-3-git-send-email-tn@semihalf.com>
+ <57D76626.1050109@huawei.com>
+ <bac9f822-ce0a-7070-94df-4d66fc30f774@semihalf.com>
+ <57D7E53F.1000106@huawei.com> <20160915105849.GA10345@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39680 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751519AbcIOPZD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Sep 2016 11:25:03 -0400
-In-Reply-To: <1473862879-7769-12-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160915105849.GA10345@red-moon>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "liudongdong (C)" <liudongdong3@huawei.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "cov@codeaurora.org" <cov@codeaurora.org>, "dhdang@apm.com" <dhdang@apm.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyi>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 14/09/16 15:21, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
+Hi Lorenzo and Tomasz
+
+Many Thanks for looking at this
+
+> -----Original Message-----
+> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
+> Sent: 15 September 2016 11:59
+> To: liudongdong (C)
+> Cc: Tomasz Nowicki; helgaas@kernel.org; will.deacon@arm.com;
+> catalin.marinas@arm.com; rafael@kernel.org; arnd@arndb.de;
+> hanjun.guo@linaro.org; okaya@codeaurora.org; jchandra@broadcom.com;
+> cov@codeaurora.org; dhdang@apm.com; ard.biesheuvel@linaro.org;
+> robert.richter@caviumnetworks.com; mw@semihalf.com;
+> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
+> msalter@redhat.com; linux-pci@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; linaro-acpi@lists.linaro.org;
+> jcm@redhat.com; andrea.gallo@linaro.org; jeremy.linton@arm.com;
+> Gabriele Paoloni; jhugo@codeaurora.org; linux-acpi@vger.kernel.org;
+> linux-kernel@vger.kernel.org
+> Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM
+> quirks
 > 
-> mbigen is an irqchip and it needs to be probed before
-> devices, same logic is used for SMMU and etc., let's
-> use arch_initcall instead of platform init for mbigen.
+> On Tue, Sep 13, 2016 at 07:38:39PM +0800, Dongdong Liu wrote:
 > 
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ma Jun <majun258@huawei.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/irqchip/irq-mbigen.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+> [...]
 > 
-> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-> index ca6add1..3a33de6 100644
-> --- a/drivers/irqchip/irq-mbigen.c
-> +++ b/drivers/irqchip/irq-mbigen.c
-> @@ -374,7 +374,11 @@ static struct platform_driver mbigen_platform_driver = {
->  	.probe			= mbigen_device_probe,
->  };
->  
-> -module_platform_driver(mbigen_platform_driver);
-> +static __init int mbigen_init(void)
-> +{
-> +	return platform_driver_register(&mbigen_platform_driver);
-> +}
-> +arch_initcall(mbigen_init);
->  
->  MODULE_AUTHOR("Jun Ma <majun258@huawei.com>");
->  MODULE_AUTHOR("Yun Wu <wuyun.wu@huawei.com>");
+> > Our host bridge is non ECAM only for the RC bus config space;
+> > for any other bus underneath the root bus we support ECAM access.
+> >
+> > RC config resource with hardcode as DEFINE_RES_MEM(0xb0070000,
+> SZ_4K),
+> > EP config resource we get it from MCFG table.
+> > So we need to override ops, but config resource we only need to
+> hardcode with RC config resource.
+> >
+> > Our host controller ACPI support patch can be found:
+> > https://lkml.org/lkml/2016/8/31/340
 > 
+> Sorry I misread your code. IIUC you create an array of resources that
+> represent non-ECAM config space (and incidentally contain debug
+> registers to check the link status - that you need to check for every
+> given config access (?)), but you still need to have an MCFG entry that
 
-I've already NACKed such a patch in the past, and I will carry on
-NACKing it until all the other avenues (like properly tracking device
-dependencies) have been explored and have been proven not to be fit for
-purpose.
+The link status check is inherited from the designware framework (see
+http://lxr.free-electrons.com/source/drivers/pci/host/pcie-designware.c#L678)
 
-Rafael had proposed something around this subject last year, and I've
-been repeatedly advising you to work with him and others to make it
-happen. You can choose to ignore this advise, but that doesn't make this
-patch an acceptable approach.
+However I think that in this case we can just check the link status
+in our init function and return an error if the link is down
 
-Thanks,
+> covers the bus number subject to quirk to make sure this mechanism
+> works. Correct ?
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Well we need the quirks for the root bus numbers but if read this v6
+quirk mechanism correctly even if we do not specify an mcfg entry for
+bus 0 oci_mcfg_match_quirks() is called anyway and we can set our
+special configuration space addresses for the root buses (i.e. I think
+we can have a clean MCFG table with entries only for those bus ranges
+that are really ECAM)  
+
+> 
+> This also means that, with the MCFG tables you have and current
+> mainline kernel you are able to probe a root bridge (because the MCFG
+> table covers the bus number that is not ECAM), with enumeration
+> going haywire because it is trying to carry out ECAM accesses on
+> non-ECAM space.
+
+Yes correct, we cannot access the host controller configuration space
+with our current MCFG table and current Linux mainline
+
+> 
+> Is my reading correct ?
+> 
+> Anyway, that's not stricly related to this discussion, it is time we
+> converge on this patchset, we can add a domain range if that
+> simplifies things.
+
+IMO it would be better to have the domain range to avoid
+a very large and repetitive static quirk array
+
+Thanks
+
+Gab
+
+> 
+> Thanks,
+> Lorenzo
+> 
+> > This patch is based on RFC V5 quirk mechanism.
+> >
+> > Based on V6 quirk mechanism, we have to change it as below:
+> >
+> > #ifdef CONFIG_PCI_HISI_ACPI
+> > 	{ "HISI ", "HIP05 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP05 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP05 ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP05 ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_hip05_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP06 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP06 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP06 ", 0, 2, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP06 ", 0, 3, MCFG_BUS_ANY, &hisi_pcie_hip06_ops,
+> >          MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP07 ", 0, 0, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	{ "HISI ", "HIP07 ", 0, 1, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
+> > 	  MCFG_RES_EMPTY},
+> > 	....
+> >
+> > 	{ "HISI ", "HIP07 ", 0, 15, MCFG_BUS_ANY, &hisi_pcie_hip07_ops,
+> > 	  MCFG_RES_EMPTY},
+> >
+> > #endif
+> >
+> > struct pci_ecam_ops hisi_pci_hip05_ops = {
+> > 	.bus_shift	= 20,
+> > 	.init		=  hisi_pci_hip05_init,
+> > 	.pci_ops	= {
+> > 		.map_bus	= pci_ecam_map_bus,
+> > 		.read		= hisi_pcie_acpi_rd_conf,
+> > 		.write		= hisi_pcie_acpi_wr_conf,
+> > 	}
+> > };
+> >
+> > struct pci_ecam_ops hisi_pci_hip06_ops = {
+> > 	.bus_shift = 20,
+> > 	.init = hisi_pci_hip06_init,
+> > 	.pci_ops = {
+> > 		.map_bus = pci_ecam_map_bus,
+> > 		.read = hisi_pcie_acpi_rd_conf,
+> > 		.write = hisi_pcie_acpi_wr_conf,
+> > 	}
+> > };
+> >
+> > hisi_pci_hipxx_init function is used to get RC config resource with
+> hardcode.
+> > .....
+> >
+> > So I hope we can use MCFG_DOM_RANGE, Then I can change it as below.
+> >
+> > #ifdef CONFIG_PCI_HISI_ACPI
+> > 	{ "HISI  ", "HIP05   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
+> > 	 &hisi_pcie_hip05_ops, MCFG_RES_EMPTY},
+> > 	{ "HISI  ", "HIP06   ", 0, MCFG_DOM_RANGE(0, 3), MCFG_BUS_ANY,
+> > 	 &hisi_pcie_hip06_ops, MCFG_RES_EMPTY},
+> > 	{ "HISI  ", "HIP07   ", 0, MCFG_DOM_RANGE(0, 15), MCFG_BUS_ANY,
+> > 	  &hisi_pcie_hip07_ops, MCFG_RES_EMPTY},
+> > #endif
+> >
+> > Thanks
+> > Dongdong
+> > >
+> > >Thanks,
+> > >Tomasz
+> > >
+> > >.
+> > >
+> >
