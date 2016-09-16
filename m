@@ -1,56 +1,63 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: Re: [PATCH v2 0/8] Support =?ISO-8859-1?Q?Intel=AE?= Turbo Boost
- Max Technology 3.0
-Date: Fri, 16 Sep 2016 09:03:47 -0700
-Message-ID: <1474041827.3916.92.camel@linux.intel.com>
-References: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-         <20160915121430.GD13132@amd> <20160915134623.57596f86@lxorguk.ukuu.org.uk>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v9 08/10] arm64: pmu: Detect and enable multiple PMUs in
+ an ACPI system
+Date: Fri, 16 Sep 2016 11:32:02 -0500
+Message-ID: <6e0b08db-2e13-be49-5208-c396bf51fe68@arm.com>
+References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
+ <1473892358-22574-9-git-send-email-jeremy.linton@arm.com>
+ <87y42st1e3.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160915134623.57596f86@lxorguk.ukuu.org.uk>
-Sender: linux-pm-owner@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@ucw.cz>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, peterz@infradead.org, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:33020 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935781AbcIPQcE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 16 Sep 2016 12:32:04 -0400
+In-Reply-To: <87y42st1e3.fsf@e105922-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Thu, 2016-09-15 at 13:46 +0100, One Thousand Gnomes wrote:
-> On Thu, 15 Sep 2016 14:14:30 +0200
-> Pavel Machek <pavel@ucw.cz> wrote:
-> 
-> > 
-> > Hi!
-> > 
-> > > 
-> > > - Feature is enabled by default for single socket systems
-> > > 
-> > > With Intel® Turbo Boost Max Technology 3.0 (ITMT), single-threaded performance is
-> > > optimized by identifying processor's fastest core and running critical workloads
-> > > on it.
-> > > Refere to:
-> > > http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html  
-> > That does not really explain much.
-> > 
-> > How does it work? Do the different cores have different max
-> > frequencies due to manufacturing differences? Ot is it running the
-> > workload on coldest core?
-> That's all down to the CPU, not architectural and may change.
-> 
-> The ACPI tables describe which cores to use, whether that relates to
-> manufacturing, positioning or whatever isn't exposed.
+Hi,
 
-Please refer to patches 
-acpi: Enable HWP CPPC objects 
-acpi: bus: Set _OSC for diverse core support
-cpufreq: intel_pstate: Use CPPC to get max performance
+On 09/16/2016 08:33 AM, Punit Agrawal wrote:
+> Jeremy Linton <jeremy.linton@arm.com> writes:
+>
+>> Its possible that an ACPI system has multiple CPU types in it
+>> with differing PMU counters. Iterate the CPU's and make a determination
+>> about how many of each type exist in the system. Then take and create
+>> a PMU platform device for each type, and assign it the interrupts parsed
+>> from the MADT. Creating a platform device is necessary because the PMUs
+>> are not described as devices in the DSDT table.
+>>
+>> This code is loosely based on earlier work by Mark Salter.
 
-for how the differences in core's capabilities are exposed to OS.
+(trimming)
 
-The asymmetric packing feature in the scheduler defines an
-order of which core should be scheduled with a load first.
-By using this feature, we can put load first on 
-the core that can be boosted to the highest
-frequency.
+>> +
+>> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
+>> +		if (unused_madt_entries)
+>> +			pmu->cpu_count = num_possible_cpus();
+>
+> So if there is any unbooted cpu ...
+>
+>> +
+>> +		res = kcalloc(pmu->cpu_count,
+>> +				  sizeof(struct resource), GFP_KERNEL);
+>
+> ... we allocate potentially large number (num_possible_cpus()) of
+> resources for each PMU.
+>
+> This is needlessly wasteful. Under what conditions have you found
+> reg_midr to be 0?
 
-Tim
+Unused MADT entries, in place for potentially unbooted/hotplug CPUs. In 
+those cases you don't know for sure which PMU the CPU belongs to until 
+it comes online and the MIDR can be read. I'm open to suggestions on how 
+to deal with this, outside of pushing my luck and further breaking the 
+platform device encapsulation by trying to reallocate the resource 
+structure while its active. Besides its only wasteful for 
+ACPI+big.little, which at the moment only applies to a development platform.
+
