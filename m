@@ -1,131 +1,122 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
-Date: Fri, 16 Sep 2016 08:27:40 -0400
-Message-ID: <42c3f965-b40c-f2bb-e12c-34da6af1a4b7@codeaurora.org>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-3-git-send-email-tn@semihalf.com>
- <57D76626.1050109@huawei.com>
- <bac9f822-ce0a-7070-94df-4d66fc30f774@semihalf.com>
- <57D7E53F.1000106@huawei.com> <20160915105849.GA10345@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F8730EA@lhreml507-mbx>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v9 07/10] arm: arm64: pmu: Assign platform PMU CPU
+ affinity
+Date: Fri, 16 Sep 2016 14:29:53 +0100
+Message-ID: <20160916132953.GR3380@arm.com>
+References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
+ <1473892358-22574-8-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57024 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934827AbcIPM2F (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Sep 2016 08:28:05 -0400
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F8730EA@lhreml507-mbx>
+Received: from foss.arm.com ([217.140.101.70]:56934 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761721AbcIPN3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 16 Sep 2016 09:29:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1473892358-22574-8-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "liudongdong (C)" <liudongdong3@huawei.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "dhdang@apm.com" <dhdang@apm.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "msalter@redhat.com" <msa>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On 09/16/2016 05:02 AM, Gabriele Paoloni wrote:
-> Hi Lorenzo and Tomasz
+On Wed, Sep 14, 2016 at 05:32:35PM -0500, Jeremy Linton wrote:
+> On systems with multiple PMU types the PMU to CPU affinity
+> needs to be detected and set. The CPU to interrupt affinity
+> should also be set.
 > 
-> Many Thanks for looking at this
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/perf/arm_pmu.c | 63 ++++++++++++++++++++++++++++++++++++++++++--------
+>  1 file changed, 53 insertions(+), 10 deletions(-)
 > 
->> -----Original Message-----
->> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
->> Sent: 15 September 2016 11:59
->> To: liudongdong (C)
->> Cc: Tomasz Nowicki; helgaas@kernel.org; will.deacon@arm.com;
->> catalin.marinas@arm.com; rafael@kernel.org; arnd@arndb.de;
->> hanjun.guo@linaro.org; okaya@codeaurora.org; jchandra@broadcom.com;
->> cov@codeaurora.org; dhdang@apm.com; ard.biesheuvel@linaro.org;
->> robert.richter@caviumnetworks.com; mw@semihalf.com;
->> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
->> msalter@redhat.com; linux-pci@vger.kernel.org; linux-arm-
->> kernel@lists.infradead.org; linaro-acpi@lists.linaro.org;
->> jcm@redhat.com; andrea.gallo@linaro.org; jeremy.linton@arm.com;
->> Gabriele Paoloni; jhugo@codeaurora.org; linux-acpi@vger.kernel.org;
->> linux-kernel@vger.kernel.org
->> Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM
->> quirks
->>
->> On Tue, Sep 13, 2016 at 07:38:39PM +0800, Dongdong Liu wrote:
->>
->> [...]
->>
->>> Our host bridge is non ECAM only for the RC bus config space;
->>> for any other bus underneath the root bus we support ECAM access.
->>>
->>> RC config resource with hardcode as DEFINE_RES_MEM(0xb0070000,
->> SZ_4K),
->>> EP config resource we get it from MCFG table.
->>> So we need to override ops, but config resource we only need to
->> hardcode with RC config resource.
->>>
->>> Our host controller ACPI support patch can be found:
->>> https://lkml.org/lkml/2016/8/31/340
->>
->> Sorry I misread your code. IIUC you create an array of resources that
->> represent non-ECAM config space (and incidentally contain debug
->> registers to check the link status - that you need to check for every
->> given config access (?)), but you still need to have an MCFG entry that
-> 
-> The link status check is inherited from the designware framework (see
-> http://lxr.free-electrons.com/source/drivers/pci/host/pcie-designware.c#L678)
-> 
-> However I think that in this case we can just check the link status
-> in our init function and return an error if the link is down
-> 
->> covers the bus number subject to quirk to make sure this mechanism
->> works. Correct ?
-> 
-> Well we need the quirks for the root bus numbers but if read this v6
-> quirk mechanism correctly even if we do not specify an mcfg entry for
-> bus 0 oci_mcfg_match_quirks() is called anyway and we can set our
-> special configuration space addresses for the root buses (i.e. I think
-> we can have a clean MCFG table with entries only for those bus ranges
-> that are really ECAM)  
-> 
->>
->> This also means that, with the MCFG tables you have and current
->> mainline kernel you are able to probe a root bridge (because the MCFG
->> table covers the bus number that is not ECAM), with enumeration
->> going haywire because it is trying to carry out ECAM accesses on
->> non-ECAM space.
-> 
-> Yes correct, we cannot access the host controller configuration space
-> with our current MCFG table and current Linux mainline
-> 
->>
->> Is my reading correct ?
->>
->> Anyway, that's not stricly related to this discussion, it is time we
->> converge on this patchset, we can add a domain range if that
->> simplifies things.
-> 
-> IMO it would be better to have the domain range to avoid
-> a very large and repetitive static quirk array
+> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+> index 58117d7..63f16a5 100644
+> --- a/drivers/perf/arm_pmu.c
+> +++ b/drivers/perf/arm_pmu.c
+> @@ -11,6 +11,7 @@
+>   */
+>  #define pr_fmt(fmt) "hw perfevents: " fmt
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/bitmap.h>
+>  #include <linux/cpumask.h>
+>  #include <linux/cpu_pm.h>
+> @@ -24,6 +25,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/irqdesc.h>
+>  
+> +#include <asm/cpu.h>
+>  #include <asm/cputype.h>
+>  #include <asm/irq_regs.h>
+>  
+> @@ -876,25 +878,67 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
+>  }
+>  
+>  /*
+> - * CPU PMU identification and probing.
+> + * CPU PMU identification and probing. Its possible to have
+> + * multiple CPU types in an ARM machine. Assure that we are
+> + * picking the right PMU types based on the CPU in question
+>   */
+> -static int probe_current_pmu(struct arm_pmu *pmu,
+> -			     const struct pmu_probe_info *info)
+> +static int probe_plat_pmu(struct arm_pmu *pmu,
+> +			     const struct pmu_probe_info *info,
+> +			     unsigned int pmuid)
+>  {
+> -	int cpu = get_cpu();
+> -	unsigned int cpuid = read_cpuid_id();
+>  	int ret = -ENODEV;
+> +	int cpu;
+> +	int aff_ctr = 0;
+> +	static int duplicate_pmus;
+> +	struct platform_device *pdev = pmu->plat_device;
+> +	int irq = platform_get_irq(pdev, 0);
+>  
+> -	pr_info("probing PMU on CPU %d\n", cpu);
+> +	if (irq >= 0 && !irq_is_percpu(irq)) {
+> +		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
+> +					    GFP_KERNEL);
+> +		if (!pmu->irq_affinity)
+> +			return -ENOMEM;
+> +	}
+>  
+> +	for_each_possible_cpu(cpu) {
+> +		unsigned int cpuid = read_specific_cpuid(cpu);
+> +
+> +		if (cpuid == pmuid) {
+> +			cpumask_set_cpu(cpu, &pmu->supported_cpus);
+> +			if (pmu->irq_affinity) {
+> +				pmu->irq_affinity[aff_ctr] = cpu;
+> +				aff_ctr++;
+> +			}
+> +		}
+> +	}
+> +
+> +	/* find the type of PMU given the CPU */
+>  	for (; info->init != NULL; info++) {
+> -		if ((cpuid & info->mask) != info->cpuid)
+> +		if ((pmuid & info->mask) != info->cpuid)
+>  			continue;
+>  		ret = info->init(pmu);
+> +		/*
+> +		 * if this pmu declaration is unspecified and we have
+> +		 * previously found a PMU on this platform then append
+> +		 * a PMU number to the pmu name. This avoids changing
+> +		 * the names of PMUs that are specific to a class of CPUs.
+> +		 * The assumption is that if we match a specific PMU in the
+> +		 * provided pmu_probe_info then it's unique, and another PMU
+> +		 * in the system will match a different entry rather than
+> +		 * needing the _number to assure its unique.
+> +		 */
+> +		if ((!info->cpuid) && (duplicate_pmus)) {
 
-The v6 framework requires what, 21 additional lines of quirk data? What
-if you were to define some preprocessor macros to slim it down? I think
-something like the following would bring it down to roughly 7 additional
-lines.
+Hmm, the duplicate_pmus check looks a little odd here. Doesn't it mean
+that you'd end up with things like:
 
-#define PCI_ACPI_QUIRK_QUAD_DOM(rev, dom, ops) \
-    { "HISI ", rev, 0, dom+0, MCFG_BUS_ANY, ops,
-      MCFG_RES_EMPTY}, \
-    { "HISI ", rev, 0, dom+1, MCFG_BUS_ANY, ops,
-      MCFG_RES_EMPTY}, \
-    { "HISI ", rev, 0, dom+2, MCFG_BUS_ANY, ops,
-      MCFG_RES_EMPTY}, \
-    { "HISI ", rev, 0, dom+3, MCFG_BUS_ANY, ops,
-      MCFG_RES_EMPTY},
+"arm,armv8-pmuv3"
+"arm,armv8-pmuv3_1"
 
-PCI_ACPI_QUIRK_QUAD_DOM("HIP05 ", 0, &hisi_pcie_hip05_ops)
-PCI_ACPI_QUIRK_QUAD_DOM("HIP06 ", 0, &hisi_pcie_hip05_ops)
-PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 0, &hisi_pcie_hip06_ops)
-PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 4, &hisi_pcie_hip07_ops)
-PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 8, &hisi_pcie_hip07_ops)
-PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 12, &hisi_pcie_hip07_ops)
+which looks needlessly fiddly to parse. Is this intentional?
 
-Cov
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc. Qualcomm Technologies, Inc. is a member of the Code
-Aurora Forum, a Linux Foundation Collaborative Project.
+Will
