@@ -1,335 +1,168 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH v9 08/10] arm64: pmu: Detect and enable multiple PMUs in an ACPI system
-Date: Fri, 16 Sep 2016 14:33:40 +0100
-Message-ID: <87y42st1e3.fsf@e105922-lin.cambridge.arm.com>
-References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
-        <1473892358-22574-9-git-send-email-jeremy.linton@arm.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM quirks
+Date: Fri, 16 Sep 2016 13:42:02 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F8754AD@lhreml507-mbx>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+ <1473449047-10499-3-git-send-email-tn@semihalf.com>
+ <57D76626.1050109@huawei.com>
+ <bac9f822-ce0a-7070-94df-4d66fc30f774@semihalf.com>
+ <57D7E53F.1000106@huawei.com> <20160915105849.GA10345@red-moon>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F8730EA@lhreml507-mbx>
+ <42c3f965-b40c-f2bb-e12c-34da6af1a4b7@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:59097 "EHLO
-        cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1761721AbcIPNeY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 16 Sep 2016 09:34:24 -0400
-In-Reply-To: <1473892358-22574-9-git-send-email-jeremy.linton@arm.com> (Jeremy
-        Linton's message of "Wed, 14 Sep 2016 17:32:36 -0500")
+Received: from lhrrgout.huawei.com ([194.213.3.17]:3438 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756975AbcIPNnv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Sep 2016 09:43:51 -0400
+In-Reply-To: <42c3f965-b40c-f2bb-e12c-34da6af1a4b7@codeaurora.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
+To: Christopher Covington <cov@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "liudongdong (C)" <liudongdong3@huawei.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "dhdang@apm.com" <dhdang@apm.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "msalter@redhat.com" <msa>
 
-Jeremy Linton <jeremy.linton@arm.com> writes:
+Hi Cov
 
-> Its possible that an ACPI system has multiple CPU types in it
-> with differing PMU counters. Iterate the CPU's and make a determination
-> about how many of each type exist in the system. Then take and create
-> a PMU platform device for each type, and assign it the interrupts parsed
-> from the MADT. Creating a platform device is necessary because the PMUs
-> are not described as devices in the DSDT table.
->
-> This code is loosely based on earlier work by Mark Salter.
->
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  drivers/perf/arm_pmu.c      |   8 +-
->  drivers/perf/arm_pmu_acpi.c | 224 ++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 231 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-> index 63f16a5..47ab4e9 100644
-> --- a/drivers/perf/arm_pmu.c
-> +++ b/drivers/perf/arm_pmu.c
-> @@ -1074,7 +1074,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
->  		if (!ret)
->  			ret = init_fn(pmu);
->  	} else if (probe_table) {
-> -		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
-> +		if (acpi_disabled) {
-> +			/* use the current cpu. */
-> +			ret = probe_plat_pmu(pmu, probe_table,
-> +					     read_cpuid_id());
-> +		} else {
-> +			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
-> +		}
->  	}
->  
->  	if (ret) {
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> index dbd4e10..7c56ee4 100644
-> --- a/drivers/perf/arm_pmu_acpi.c
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -2,13 +2,17 @@
->   * ARM ACPI PMU support
->   *
->   * Copyright (C) 2015 Red Hat Inc.
-> + * Copyright (C) 2016 ARM Ltd.
->   * Author: Mark Salter <msalter@redhat.com>
-> + *	   Jeremy Linton <jeremy.linton@arm.com>
->   *
->   * This work is licensed under the terms of the GNU GPL, version 2.  See
->   * the COPYING file in the top-level directory.
->   *
->   */
->  
-> +#define pr_fmt(fmt) "ACPI-PMU: " fmt
-> +
->  #include <asm/cpu.h>
->  #include <linux/acpi.h>
->  #include <linux/irq.h>
-> @@ -23,6 +27,12 @@ struct pmu_irq {
->  	bool registered;
->  };
->  
-> +struct pmu_types {
-> +	struct list_head list;
-> +	int		 cpu_type;
+> -----Original Message-----
+> From: Christopher Covington [mailto:cov@codeaurora.org]
+> Sent: 16 September 2016 13:28
+> To: Gabriele Paoloni; Lorenzo Pieralisi; liudongdong (C)
+> Cc: Tomasz Nowicki; helgaas@kernel.org; will.deacon@arm.com;
+> catalin.marinas@arm.com; rafael@kernel.org; arnd@arndb.de;
+> hanjun.guo@linaro.org; okaya@codeaurora.org; jchandra@broadcom.com;
+> dhdang@apm.com; ard.biesheuvel@linaro.org;
+> robert.richter@caviumnetworks.com; mw@semihalf.com;
+> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
+> msalter@redhat.com; linux-pci@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; linaro-acpi@lists.linaro.org;
+> jcm@redhat.com; andrea.gallo@linaro.org; jeremy.linton@arm.com;
+> jhugo@codeaurora.org; linux-acpi@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM
+> quirks
+> 
+> On 09/16/2016 05:02 AM, Gabriele Paoloni wrote:
+> > Hi Lorenzo and Tomasz
+> >
+> > Many Thanks for looking at this
+> >
+> >> -----Original Message-----
+> >> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
+> >> Sent: 15 September 2016 11:59
+> >> To: liudongdong (C)
+> >> Cc: Tomasz Nowicki; helgaas@kernel.org; will.deacon@arm.com;
+> >> catalin.marinas@arm.com; rafael@kernel.org; arnd@arndb.de;
+> >> hanjun.guo@linaro.org; okaya@codeaurora.org; jchandra@broadcom.com;
+> >> cov@codeaurora.org; dhdang@apm.com; ard.biesheuvel@linaro.org;
+> >> robert.richter@caviumnetworks.com; mw@semihalf.com;
+> >> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
+> >> msalter@redhat.com; linux-pci@vger.kernel.org; linux-arm-
+> >> kernel@lists.infradead.org; linaro-acpi@lists.linaro.org;
+> >> jcm@redhat.com; andrea.gallo@linaro.org; jeremy.linton@arm.com;
+> >> Gabriele Paoloni; jhugo@codeaurora.org; linux-acpi@vger.kernel.org;
+> >> linux-kernel@vger.kernel.org
+> >> Subject: Re: [PATCH V6 2/5] PCI/ACPI: Check platform specific ECAM
+> >> quirks
+> >>
+> >> On Tue, Sep 13, 2016 at 07:38:39PM +0800, Dongdong Liu wrote:
+> >>
+> >> [...]
+> >>
+> >>> Our host bridge is non ECAM only for the RC bus config space;
+> >>> for any other bus underneath the root bus we support ECAM access.
+> >>>
+> >>> RC config resource with hardcode as DEFINE_RES_MEM(0xb0070000,
+> >> SZ_4K),
+> >>> EP config resource we get it from MCFG table.
+> >>> So we need to override ops, but config resource we only need to
+> >> hardcode with RC config resource.
+> >>>
+> >>> Our host controller ACPI support patch can be found:
+> >>> https://lkml.org/lkml/2016/8/31/340
+> >>
+> >> Sorry I misread your code. IIUC you create an array of resources
+> that
+> >> represent non-ECAM config space (and incidentally contain debug
+> >> registers to check the link status - that you need to check for
+> every
+> >> given config access (?)), but you still need to have an MCFG entry
+> that
+> >
+> > The link status check is inherited from the designware framework (see
+> > http://lxr.free-electrons.com/source/drivers/pci/host/pcie-
+> designware.c#L678)
+> >
+> > However I think that in this case we can just check the link status
+> > in our init function and return an error if the link is down
+> >
+> >> covers the bus number subject to quirk to make sure this mechanism
+> >> works. Correct ?
+> >
+> > Well we need the quirks for the root bus numbers but if read this v6
+> > quirk mechanism correctly even if we do not specify an mcfg entry for
+> > bus 0 oci_mcfg_match_quirks() is called anyway and we can set our
+> > special configuration space addresses for the root buses (i.e. I
+> think
+> > we can have a clean MCFG table with entries only for those bus ranges
+> > that are really ECAM)
+> >
+> >>
+> >> This also means that, with the MCFG tables you have and current
+> >> mainline kernel you are able to probe a root bridge (because the
+> MCFG
+> >> table covers the bus number that is not ECAM), with enumeration
+> >> going haywire because it is trying to carry out ECAM accesses on
+> >> non-ECAM space.
+> >
+> > Yes correct, we cannot access the host controller configuration space
+> > with our current MCFG table and current Linux mainline
+> >
+> >>
+> >> Is my reading correct ?
+> >>
+> >> Anyway, that's not stricly related to this discussion, it is time we
+> >> converge on this patchset, we can add a domain range if that
+> >> simplifies things.
+> >
+> > IMO it would be better to have the domain range to avoid
+> > a very large and repetitive static quirk array
+> 
+> The v6 framework requires what, 21 additional lines of quirk data? What
+> if you were to define some preprocessor macros to slim it down? I think
+> something like the following would bring it down to roughly 7
+> additional
+> lines.
 
-Apologies for not noticing this earlier but cpu_type should be u32 to
-match partnum (which is derived from reg_midr).
+Thanks, yes this would work as well. To be honest this is not a big issue.
+So either we go this way or we introduce domain range...
 
-> +	int		 cpu_count;
-> +};
-> +
->  static struct pmu_irq pmu_irqs[NR_CPUS];
->  
->  /*
-> @@ -38,3 +48,217 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
->  	else
->  		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
->  }
-> +
-> +static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
-> +{
-> +	struct pmu_types *pmu, *safe_temp;
-> +
-> +	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
-> +		list_del(&pmu->list);
-> +		kfree(pmu);
-> +	}
-> +}
-> +
-> +/* Count number and type of CPU cores in the system. */
-> +static bool __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
-> +{
-> +	int i;
-> +	bool unused_madt_entries = false;
-> +
-> +	for_each_possible_cpu(i) {
-> +		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
-> +		u32 partnum = MIDR_PARTNUM(cinfo->reg_midr);
-> +		struct pmu_types *pmu;
-> +
-> +		if (cinfo->reg_midr == 0) {
+Cheers
 
-When can the above condition be true? Worth a comment.
+Gab
 
-> +			unused_madt_entries = true;
-> +			continue;
-> +		}
-> +
-> +		list_for_each_entry(pmu, pmus, list) {
-> +			if (pmu->cpu_type == partnum) {
-> +				pmu->cpu_count++;
-> +				break;
-> +			}
-> +		}
-> +
-> +		/* we didn't find the CPU type, add an entry to identify it */
-> +		if (&pmu->list == pmus) {
-> +			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
-> +			if (!pmu) {
-> +				pr_err("Unable to allocate pmu_types\n");
-> +				/*
-> +				 * Instead of waiting to cleanup possible
-> +				 * allocation failures in the caller clean
-> +				 * them up immediately. Functionally this
-> +				 * doesn't make any difference, except in
-> +				 * genuine heterogeneous systems where it
-> +				 * guarantees the whole subsystem is
-> +				 * disabled rather than running with just
-> +				 * a single set of homogeneous CPU's PMU
-> +				 * active. That assumes there aren't
-> +				 * any further memory allocation failures.
-> +				 */
-> +				arm_pmu_acpi_handle_alloc_failure(pmus);
-> +				break;
-> +			} else {
-> +				pmu->cpu_type = partnum;
-> +				pmu->cpu_count++;
-> +				list_add_tail(&pmu->list, pmus);
-> +			}
-> +		}
-> +	}
-> +
-> +	return unused_madt_entries;
-> +}
-> +
-> +/*
-> + * Registers the group of PMU interfaces which correspond to the 'last_cpu_id'.
-> + * This group utilizes 'count' resources in the 'res'.
-> + */
-> +static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
-> +					    int last_cpu_id)
-> +{
-> +	int i;
-> +	int err = -ENOMEM;
-> +	bool free_gsi = false;
-> +	struct platform_device *pdev;
-> +
-> +	if (count) {
-> +		pdev = platform_device_alloc(ARMV8_PMU_PDEV_NAME, last_cpu_id);
-> +		if (pdev) {
-> +			err = platform_device_add_resources(pdev, res, count);
-> +			if (!err) {
-> +				err = platform_device_add(pdev);
-> +				if (err) {
-> +					pr_warn("Unable to register PMU device\n");
-> +					free_gsi = true;
-> +				}
-> +			} else {
-> +				pr_warn("Unable to add resources to device\n");
-> +				free_gsi = true;
-> +				platform_device_put(pdev);
-> +			}
-> +		} else {
-> +			pr_warn("Unable to allocate platform device\n");
-> +			free_gsi = true;
-> +		}
-> +	}
-
-The above if block is quite hard to review. I've had the same comment on
-previous versions as well.
-
-> +
-> +	/* unmark (and possibly unregister) registered GSIs */
-> +	for_each_possible_cpu(i) {
-> +		if (pmu_irqs[i].registered) {
-> +			if (free_gsi)
-> +				acpi_unregister_gsi(pmu_irqs[i].gsi);
-> +			pmu_irqs[i].registered = false;
-> +		}
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +int arm_pmu_acpi_retrieve_irq(struct resource *res, int cpu)
-
-The return value of this function isn't used anywhere. Any reason it
-can't be void?
-
-> +{
-> +	int irq = -ENODEV;
-> +
-> +	if (pmu_irqs[cpu].registered) {
-> +		pr_info("CPU %d's interrupt is already registered\n", cpu);
-> +	} else {
-> +		irq = acpi_register_gsi(NULL, pmu_irqs[cpu].gsi,
-> +					pmu_irqs[cpu].trigger,
-> +					ACPI_ACTIVE_HIGH);
-> +		pmu_irqs[cpu].registered = true;
-> +		res->start = irq;
-> +		res->end = irq;
-> +		res->flags = IORESOURCE_IRQ;
-> +		if (pmu_irqs[cpu].trigger == ACPI_EDGE_SENSITIVE)
-> +			res->flags |= IORESOURCE_IRQ_HIGHEDGE;
-> +		else
-> +			res->flags |= IORESOURCE_IRQ_HIGHLEVEL;
-> +	}
-> +	return irq;
-> +}
-> +
-> +/*
-> + * For the given cpu/pmu type, walk all known GSIs, register them, and add
-> + * them to the resource structure. Return the number of GSI's contained
-> + * in the res structure, and the id of the last CPU/PMU we added.
-> + */
-> +static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
-> +				       struct resource *res, int *last_cpu_id)
-> +{
-> +	int i, count;
-> +
-> +	/* lets group all the PMU's from similar CPU's together */
-> +	count = 0;
-> +	for_each_possible_cpu(i) {
-> +		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
-> +
-> +		if (pmus->cpu_type == MIDR_PARTNUM(cinfo->reg_midr)) {
-> +			if ((pmu_irqs[i].gsi == 0) && (cinfo->reg_midr != 0)) {
-> +				pr_info("CPU %d is assigned interrupt 0\n", i);
-> +				continue;
-> +			}
-> +			/* likely not online */
-> +			if (!cinfo->reg_midr)
-> +				continue;
-> +
-> +			arm_pmu_acpi_retrieve_irq(&res[count], i);
-> +			count++;
-> +			(*last_cpu_id) = cinfo->reg_midr;
-> +		}
-> +	}
-> +	return count;
-> +}
-> +
-> +static int __init pmu_acpi_init(void)
-> +{
-> +	struct resource	*res;
-> +	int err = -ENOMEM;
-> +	int count, cpu_id;
-> +	struct pmu_types *pmu, *safe_temp;
-> +	bool unused_madt_entries;
-> +	LIST_HEAD(pmus);
-> +
-> +	if (acpi_disabled)
-> +		return 0;
-> +
-> +	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
-> +
-> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
-> +		if (unused_madt_entries)
-> +			pmu->cpu_count = num_possible_cpus();
-
-So if there is any unbooted cpu ...
-
-> +
-> +		res = kcalloc(pmu->cpu_count,
-> +				  sizeof(struct resource), GFP_KERNEL);
-
-... we allocate potentially large number (num_possible_cpus()) of
-resources for each PMU.
-
-This is needlessly wasteful. Under what conditions have you found
-reg_midr to be 0?
-
-> +
-> +		/* for a given PMU type collect all the GSIs. */
-> +		if (res) {
-> +			count = arm_pmu_acpi_gsi_res(pmu, res,
-> +						     &cpu_id);
-> +			/*
-> +			 * register this set of interrupts
-> +			 * with a new PMU device
-> +			 */
-> +			if (count) {
-> +				if (unused_madt_entries)
-> +					count = num_possible_cpus();
-> +				err = arm_pmu_acpi_register_pmu(count, res,
-> +								cpu_id);
-> +				if (!err)
-> +					pr_info("Register %d devices for %X\n",
-> +						count, pmu->cpu_type);
-> +				kfree(res);
-> +			}
-> +		} else {
-> +			pr_warn("PMU unable to allocate interrupt resource\n");
-> +		}
-> +
-> +		list_del(&pmu->list);
-> +		kfree(pmu);
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +arch_initcall(pmu_acpi_init);
+> 
+> #define PCI_ACPI_QUIRK_QUAD_DOM(rev, dom, ops) \
+>     { "HISI ", rev, 0, dom+0, MCFG_BUS_ANY, ops,
+>       MCFG_RES_EMPTY}, \
+>     { "HISI ", rev, 0, dom+1, MCFG_BUS_ANY, ops,
+>       MCFG_RES_EMPTY}, \
+>     { "HISI ", rev, 0, dom+2, MCFG_BUS_ANY, ops,
+>       MCFG_RES_EMPTY}, \
+>     { "HISI ", rev, 0, dom+3, MCFG_BUS_ANY, ops,
+>       MCFG_RES_EMPTY},
+> 
+> PCI_ACPI_QUIRK_QUAD_DOM("HIP05 ", 0, &hisi_pcie_hip05_ops)
+> PCI_ACPI_QUIRK_QUAD_DOM("HIP06 ", 0, &hisi_pcie_hip05_ops)
+> PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 0, &hisi_pcie_hip06_ops)
+> PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 4, &hisi_pcie_hip07_ops)
+> PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 8, &hisi_pcie_hip07_ops)
+> PCI_ACPI_QUIRK_QUAD_DOM("HIP07 ", 12, &hisi_pcie_hip07_ops)
+> 
+> Cov
+> --
+> Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+> Technologies, Inc. Qualcomm Technologies, Inc. is a member of the Code
+> Aurora Forum, a Linux Foundation Collaborative Project.
