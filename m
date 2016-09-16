@@ -1,60 +1,56 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v9 07/10] arm: arm64: pmu: Assign platform PMU CPU
- affinity
-Date: Fri, 16 Sep 2016 16:48:38 +0100
-Message-ID: <20160916154838.GA18914@arm.com>
-References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
- <1473892358-22574-8-git-send-email-jeremy.linton@arm.com>
- <20160916132953.GR3380@arm.com>
- <8d76725a-507b-4d70-8aad-993ccfa488f6@arm.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v2 0/8] Support =?ISO-8859-1?Q?Intel=AE?= Turbo Boost
+ Max Technology 3.0
+Date: Fri, 16 Sep 2016 09:03:47 -0700
+Message-ID: <1474041827.3916.92.camel@linux.intel.com>
+References: <1472762024-88771-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <20160915121430.GD13132@amd> <20160915134623.57596f86@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60220 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932432AbcIPPsi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 16 Sep 2016 11:48:38 -0400
-Content-Disposition: inline
-In-Reply-To: <8d76725a-507b-4d70-8aad-993ccfa488f6@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160915134623.57596f86@lxorguk.ukuu.org.uk>
+Sender: linux-pm-owner@vger.kernel.org
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@ucw.cz>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, peterz@infradead.org, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Fri, Sep 16, 2016 at 10:35:32AM -0500, Jeremy Linton wrote:
-> On 09/16/2016 08:29 AM, Will Deacon wrote:
-> >On Wed, Sep 14, 2016 at 05:32:35PM -0500, Jeremy Linton wrote:
-> >>On systems with multiple PMU types the PMU to CPU affinity
-> >>needs to be detected and set. The CPU to interrupt affinity
-> >>should also be set.
-> >>
-> (trimming)
-> >> 			continue;
-> >> 		ret = info->init(pmu);
-> >>+		/*
-> >>+		 * if this pmu declaration is unspecified and we have
-> >>+		 * previously found a PMU on this platform then append
-> >>+		 * a PMU number to the pmu name. This avoids changing
-> >>+		 * the names of PMUs that are specific to a class of CPUs.
-> >>+		 * The assumption is that if we match a specific PMU in the
-> >>+		 * provided pmu_probe_info then it's unique, and another PMU
-> >>+		 * in the system will match a different entry rather than
-> >>+		 * needing the _number to assure its unique.
-> >>+		 */
-> >>+		if ((!info->cpuid) && (duplicate_pmus)) {
-> >
-> >Hmm, the duplicate_pmus check looks a little odd here. Doesn't it mean
-> >that you'd end up with things like:
-> >
-> >"arm,armv8-pmuv3"
-> >"arm,armv8-pmuv3_1"
-> >
-> >which looks needlessly fiddly to parse. Is this intentional?
+On Thu, 2016-09-15 at 13:46 +0100, One Thousand Gnomes wrote:
+> On Thu, 15 Sep 2016 14:14:30 +0200
+> Pavel Machek <pavel@ucw.cz> wrote:
 > 
-> Well, IIRC, you recommend that format, or maybe I misunderstood. Anyway, per
-> the comment I'm trying to assure that legacy platform devices don't
-> accidentally get a "_X" appended to their name and break something.
+> > 
+> > Hi!
+> > 
+> > > 
+> > > - Feature is enabled by default for single socket systems
+> > > 
+> > > With Intel® Turbo Boost Max Technology 3.0 (ITMT), single-threaded performance is
+> > > optimized by identifying processor's fastest core and running critical workloads
+> > > on it.
+> > > Refere to:
+> > > http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html  
+> > That does not really explain much.
+> > 
+> > How does it work? Do the different cores have different max
+> > frequencies due to manufacturing differences? Ot is it running the
+> > workload on coldest core?
+> That's all down to the CPU, not architectural and may change.
+> 
+> The ACPI tables describe which cores to use, whether that relates to
+> manufacturing, positioning or whatever isn't exposed.
 
-Ah, right, for the old 32-bit platforms that rely on probing, Gotcha.
+Please refer to patches 
+acpi: Enable HWP CPPC objects 
+acpi: bus: Set _OSC for diverse core support
+cpufreq: intel_pstate: Use CPPC to get max performance
 
-Will
+for how the differences in core's capabilities are exposed to OS.
+
+The asymmetric packing feature in the scheduler defines an
+order of which core should be scheduled with a load first.
+By using this feature, we can put load first on 
+the core that can be boosted to the highest
+frequency.
+
+Tim
