@@ -1,60 +1,53 @@
 From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH v2 5/5] PCI: Avoid unnecessary resume on shutdown
-Date: Sun, 18 Sep 2016 05:39:20 +0200
-Message-ID: <760eb8c67a02e35938a4fbd3b31cbe9bb1414c5a.1474130360.git.lukas@wunner.de>
-References: <cover.1474130360.git.lukas@wunner.de>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <cover.1474130360.git.lukas@wunner.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
+Subject: Re: [PATCH 3/4] PCI: Avoid unnecessary resume after direct-complete
+Date: Sun, 18 Sep 2016 14:43:03 +0200
+Message-ID: <20160918124303.GC2169@wunner.de>
+References: <cover.1472554278.git.lukas@wunner.de>
+ <2963851.chF2hIakqz@vostro.rjw.lan>
+ <20160914095640.GB1597@wunner.de>
+ <1922917.c92rJWRLH6@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1922917.c92rJWRLH6@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-We currently perform a mandatory runtime resume of all PCI devices on
-->shutdown.  However it is pointless to wake devices only to immediately
-power them down afterwards.  (Or have the firmware reset them, in case
-of a reboot.)
+On Wed, Sep 14, 2016 at 03:14:37PM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, September 14, 2016 11:56:40 AM Lukas Wunner wrote:
+> > I first tried to solve this only for Thunderbolt by opting out of the
+> > mandatory resume after direct_complete.  It worked, but it was ugly.
+> > 
+> > (I have to clear the direct_complete flag in the ->complete hook, but
+> > the device tree is walked bottom-up during ->complete, and since the
+> > Thunderbolt controller exposes multiple devices, I have to clear the
+> > flag for all devices from the bottom-most device, which is the NHI.
+> > And all the rest of the s/r code lives on the top-most device, which
+> > is the upstream bridge.)
+> > 
+> > You suggested in your e-mail of July 18: "maybe it's better to change
+> > the PCI bus type to do something different from calling the generic
+> > function?"
+> > 
+> > So there, I did what you suggested and tried to fix it not just for
+> > Thunderbolt but for everyone.
+> > 
+> > And you're still not happy.
+> > 
+> > *sigh*
+> 
+> Sorry for disappointing you.
+> 
+> I have concerns, so I talk about them.  Is that wrong?  If so, what's wrong
+> about it?
+> 
+> My time goes into that as well, mind you.
 
-It seems there are only two cases when a runtime resume is actually
-necessary:  If the driver has declared a ->shutdown callback or if kexec
-is in progress.
+Sorry, never mind, just a bout of desperation that I failed to control.
 
-Constrain resume of a device to these cases and let it slumber
-otherwise, thereby conserving energy and speeding up shutdown.
+Kind regards,
 
-To prevent the device from being runtime resumed during the remainder of
-the shutdown process, disable runtime PM for it.
-
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
----
-
-Changes since v1:
-* Disable runtime PM on the device to prevent it from being runtime
-  resumed during the remainder of the shutdown process.
-
- drivers/pci/pci-driver.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-index fd4b9c4..f21c620 100644
---- a/drivers/pci/pci-driver.c
-+++ b/drivers/pci/pci-driver.c
-@@ -459,6 +459,15 @@ static void pci_device_shutdown(struct device *dev)
- 	struct pci_dev *pci_dev = to_pci_dev(dev);
- 	struct pci_driver *drv = pci_dev->driver;
- 
-+	/* Fast path for suspended devices */
-+	if (pm_runtime_status_suspended(dev) && (!drv || !drv->shutdown) &&
-+	    !kexec_in_progress) {
-+		pm_runtime_disable(dev);
-+		if (pm_runtime_status_suspended(dev))
-+			return;
-+		pm_runtime_enable(dev);
-+	}
-+
- 	pm_runtime_resume(dev);
- 
- 	if (drv && drv->shutdown)
--- 
-2.9.3
+Lukas
