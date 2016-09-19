@@ -1,94 +1,51 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [RFC PATCH v2 11/11] irqchip: mbigen: promote mbigen init
-Date: Mon, 19 Sep 2016 11:12:29 +0100
-Message-ID: <57DFBA0D.7040801@arm.com>
-References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
- <1473862879-7769-12-git-send-email-guohanjun@huawei.com>
- <57DABD2F.1030606@arm.com> <3f9b5a3e-13f4-75a4-15bc-f55e26740205@linaro.org>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2 5/5] PCI: Avoid unnecessary resume on shutdown
+Date: Mon, 19 Sep 2016 12:14:02 +0200
+Message-ID: <20160919101402.GA2506@wunner.de>
+References: <cover.1474130360.git.lukas@wunner.de>
+ <760eb8c67a02e35938a4fbd3b31cbe9bb1414c5a.1474130360.git.lukas@wunner.de>
+ <1474276343.2044.4.camel@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58070 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752711AbcISKMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Sep 2016 06:12:34 -0400
-In-Reply-To: <3f9b5a3e-13f4-75a4-15bc-f55e26740205@linaro.org>
+Received: from mailout2.hostsharing.net ([83.223.90.233]:59075 "EHLO
+        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755144AbcISKNo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2016 06:13:44 -0400
+Content-Disposition: inline
+In-Reply-To: <1474276343.2044.4.camel@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com
+To: Oliver Neukum <oneukum@suse.com>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 
-On 19/09/16 10:49, Hanjun Guo wrote:
-> On 2016/9/15 23:24, Marc Zyngier wrote:
->> On 14/09/16 15:21, Hanjun Guo wrote:
->>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>
->>> mbigen is an irqchip and it needs to be probed before
->>> devices, same logic is used for SMMU and etc., let's
->>> use arch_initcall instead of platform init for mbigen.
->>>
->>> Cc: Marc Zyngier <marc.zyngier@arm.com>
->>> Cc: Thomas Gleixner <tglx@linutronix.de>
->>> Cc: Ma Jun <majun258@huawei.com>
->>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>> ---
->>>  drivers/irqchip/irq-mbigen.c | 6 +++++-
->>>  1 file changed, 5 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
->>> index ca6add1..3a33de6 100644
->>> --- a/drivers/irqchip/irq-mbigen.c
->>> +++ b/drivers/irqchip/irq-mbigen.c
->>> @@ -374,7 +374,11 @@ static struct platform_driver mbigen_platform_driver = {
->>>  	.probe			= mbigen_device_probe,
->>>  };
->>>
->>> -module_platform_driver(mbigen_platform_driver);
->>> +static __init int mbigen_init(void)
->>> +{
->>> +	return platform_driver_register(&mbigen_platform_driver);
->>> +}
->>> +arch_initcall(mbigen_init);
->>>
->>>  MODULE_AUTHOR("Jun Ma <majun258@huawei.com>");
->>>  MODULE_AUTHOR("Yun Wu <wuyun.wu@huawei.com>");
->>>
->>
->> I've already NACKed such a patch in the past, and I will carry on
->> NACKing it until all the other avenues (like properly tracking device
->> dependencies) have been explored and have been proven not to be fit for
->> purpose.
+On Mon, Sep 19, 2016 at 11:12:23AM +0200, Oliver Neukum wrote:
+> On Sun, 2016-09-18 at 05:39 +0200, Lukas Wunner wrote:
+> > We currently perform a mandatory runtime resume of all PCI devices on
+> > ->shutdown.  However it is pointless to wake devices only to immediately
+> > power them down afterwards.  (Or have the firmware reset them, in case
+> > of a reboot.)
+> > 
+> > It seems there are only two cases when a runtime resume is actually
+> > necessary:  If the driver has declared a ->shutdown callback or if kexec
+> > is in progress.
+> > 
+> > Constrain resume of a device to these cases and let it slumber
+> > otherwise, thereby conserving energy and speeding up shutdown.
 > 
-> I'd happy to work on this to make progress.
-> 
->>
->> Rafael had proposed something around this subject last year, and I've
-> 
-> Sorry, obviously I missed something, could you give me the link about
-> Rafael's patches? I will pull back and test it on our hardware.
+> What happens if you get a wakeup event while going down?
 
-Please see this discussion from almost a year ago:
+Hm, I should probably disable that with
 
-https://patchwork.kernel.org/patch/7407401/
+	__pci_enable_wake(pci_dev, pci_dev->current_state, true, false);
 
-in which I give the existing pointers and explain why I'm pushing back
-on things like this patch.
 
-> 
->> been repeatedly advising you to work with him and others to make it
->> happen. You can choose to ignore this advise, but that doesn't make this
->> patch an acceptable approach.
-> 
-> OK, I will drop this patch in next version, and work on the generic
-> solution instead.
+> Will it lead to a reboot when a shutdown has been requested?
 
-That'd be the ideal thing, and that's what I suggested when we did meet
-in BKK earlier this year. Obviously, I didn't convey my point clearly
-enough.
+That would depend on the platform, my guess is no, but only someone
+with extensive real world experience with such corner cases can answer
+this. (Rafael?)
 
 Thanks,
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Lukas
