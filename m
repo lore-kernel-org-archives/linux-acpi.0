@@ -1,115 +1,38 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V6 4/5] PCI: thunder: Enable ACPI PCI controller for
- ThunderX pass2.x silicon version
-Date: Mon, 19 Sep 2016 10:45:50 -0500
-Message-ID: <20160919154550.GA13775@localhost>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-5-git-send-email-tn@semihalf.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v3 1/8] sched, x86: Add SD_ASYM_PACKING flags to x86 cpu
+ topology for ITMT
+Date: Mon, 19 Sep 2016 09:01:47 -0700
+Message-ID: <1474300907.3916.104.camel@linux.intel.com>
+References: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <1473373615-51427-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <alpine.DEB.2.20.1609101505290.2804@nanos>
+         <1473713415.3916.48.camel@linux.intel.com>
+         <20160913072613.GB5008@twins.programming.kicks-ass.net>
+         <20160919091141.GA1083@krava>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:44562 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750971AbcISPpz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Sep 2016 11:45:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1473449047-10499-5-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160919091141.GA1083@krava>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Olsa <jolsa@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Sep 09, 2016 at 09:24:06PM +0200, Tomasz Nowicki wrote:
-> ThunderX PCIe controller to off-chip devices (so-called PEM) is not fully
-> compliant with ECAM standard. It uses non-standard configuration space
-> accessors (see pci_thunder_pem_ops) and custom configuration space granulation
-> (see bus_shift = 24). In order to access configuration space and
-> probe PEM as ACPI based PCI host controller we need to add MCFG quirk
-> infrastructure. This involves:
-> 1. Export PEM pci_thunder_pem_ops structure so it is visible to MCFG quirk
->    code.
-> 2. New quirk entries for each PEM segment. Each contains platform IDs,
->    mentioned pci_thunder_pem_ops and CFG resources.
-> 
-> Quirk is considered for ThunderX silicon pass2.x only which is identified
-> via MCFG revision 1.
+On Mon, 2016-09-19 at 11:11 +0200, Jiri Olsa wrote:
+> On Tue, Sep 13, 2016 at 09:26:13AM +0200, Peter Zijlstra wrote:
+> > 
+> > On Mon, Sep 12, 2016 at 01:50:15PM -0700, Tim Chen wrote:
+> > > 
+> > > > 
+> > > > No. We first rework the code so that the IMT stuff can be added in a later
+> > > > patch easily.
+> > > I'll move this patch to come after current patch 5.
+> > Split the patch, one doing the topo cleanup, one adding the
+> > x86_*_flags().
+> hi,
+> could you please CC me on the next version,
+> I'm interested in that cleanup patch..
 
-Is it really the case that silicon pass2.x has MCFG revision 1, and
-silicon pass1.x has MCFG revision 2?  That just seems backwards.
+Sure. Will do.
 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  drivers/acpi/pci_mcfg.c            | 27 +++++++++++++++++++++++++++
->  drivers/pci/host/pci-thunder-pem.c |  2 +-
->  include/linux/pci-ecam.h           |  4 ++++
->  3 files changed, 32 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index 2b8acc7..1f73d7b 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -51,6 +51,33 @@ struct mcfg_fixup {
->  
->  static struct mcfg_fixup mcfg_quirks[] = {
->  /*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
-> +#ifdef CONFIG_PCI_HOST_THUNDER_PEM
-> +	/* SoC pass2.x */
-> +	{ "CAVIUM", "THUNDERX", 1, 4, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x88001f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 5, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x884057000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 6, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x88808f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 7, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x89001f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 8, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x894057000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 9, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x89808f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 14, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x98001f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 15, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x984057000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 16, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x98808f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 17, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x99001f000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 18, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x994057000000UL, 0x39 * SZ_16M) },
-> +	{ "CAVIUM", "THUNDERX", 1, 19, MCFG_BUS_ANY, &pci_thunder_pem_ops,
-> +	  DEFINE_RES_MEM(0x99808f000000UL, 0x39 * SZ_16M) },
-> +#endif
->  };
->  
->  static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-> diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
-> index b048761..d7c10cc 100644
-> --- a/drivers/pci/host/pci-thunder-pem.c
-> +++ b/drivers/pci/host/pci-thunder-pem.c
-> @@ -367,7 +367,7 @@ static int thunder_pem_init(struct pci_config_window *cfg)
->  	return 0;
->  }
->  
-> -static struct pci_ecam_ops pci_thunder_pem_ops = {
-> +struct pci_ecam_ops pci_thunder_pem_ops = {
->  	.bus_shift	= 24,
->  	.init		= thunder_pem_init,
->  	.pci_ops	= {
-> diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-> index 7adad20..65505ea 100644
-> --- a/include/linux/pci-ecam.h
-> +++ b/include/linux/pci-ecam.h
-> @@ -58,6 +58,10 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
->  			       int where);
->  /* default ECAM ops */
->  extern struct pci_ecam_ops pci_generic_ecam_ops;
-> +/* ECAM ops for known quirks */
-> +#ifdef CONFIG_PCI_HOST_THUNDER_PEM
-> +extern struct pci_ecam_ops pci_thunder_pem_ops;
-> +#endif
->  
->  #ifdef CONFIG_PCI_HOST_GENERIC
->  /* for DT-based PCI controllers that support ECAM */
-> -- 
-> 1.9.1
-> 
+Tim
