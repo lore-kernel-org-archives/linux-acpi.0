@@ -1,41 +1,112 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA / Interpreter: Remove redundant newline
-Date: Mon, 19 Sep 2016 09:30:44 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2223F1@SHSMSX101.ccr.corp.intel.com>
-References: <20160909161253.30952-1-bp@alien8.de>
- <1AE640813FDE7649BE1B193DEA596E886A1849D8@SHSMSX101.ccr.corp.intel.com>
- <20160914113031.GA7387@nazgul.tnic>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH v2 05/11] ACPI: platform: setup MSI domain for ACPI
+ based platform device
+Date: Mon, 19 Sep 2016 17:42:16 +0800
+Message-ID: <ab8e5cf0-d5d6-c2c7-11c7-f0b738460f91@linaro.org>
+References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
+ <1473862879-7769-6-git-send-email-guohanjun@huawei.com>
+ <57D97087.5040703@arm.com> <57DAAAAE.6010206@linaro.org>
+ <57DABBB3.3020208@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:9460 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751651AbcISJat (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Sep 2016 05:30:49 -0400
-In-Reply-To: <20160914113031.GA7387@nazgul.tnic>
-Content-Language: en-US
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:34548 "EHLO
+        mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755158AbcISJmj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2016 05:42:39 -0400
+Received: by mail-pa0-f48.google.com with SMTP id wk8so47032520pab.1
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Sep 2016 02:42:39 -0700 (PDT)
+In-Reply-To: <57DABBB3.3020208@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJvcmlzbGF2DQo+
-IFBldGtvdg0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJQ0EgLyBJbnRlcnByZXRlcjogUmVt
-b3ZlIHJlZHVuZGFudCBuZXdsaW5lDQo+IA0KPiBPbiBXZWQsIFNlcCAxNCwgMjAxNiBhdCAwMzow
-OToyNUFNICswMDAwLCBaaGVuZywgTHYgd3JvdGU6DQo+ID4gVGhlIG5ld2xpbmUgaXMgaW50ZW50
-aW9uYWwgZm9yIGFjcGlleGVjLg0KPiA+IFNvIHlvdSBzaG91bGQgZml4IHRoaXMgaXNzdWUgaW4g
-YWNwaWV4ZWMsIGFrYSwgaW4gQUNQSUNBIHVwc3RyZWFtLg0KPiANCj4gSWYgeW91IGVsYWJvcmF0
-ZSBhcyB0byBmcm9tIHdoZXJlIEkgZ2V0IHRoZSBzb3VyY2VzIGFuZCBhZ2FpbnN0IHdoaWNoDQo+
-IGJyYW5jaC92ZXJzaW9uLy4uLj8sIEkgY2FuIHRyeSB0byBzZW5kIHlvdSBhIHBhdGNoLg0KDQpZ
-b3UgY2FuIG9idGFpbiBhIGxvY2FsIGNvcHkgb2YgYWNwaWNhLmdpdCB2aWE6DQokIGdpdCBjbG9u
-ZSBodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYQ0KDQpUaGUgZml4IHBhdGNoIHNob3Vs
-ZCBvbmx5IGJlIHNlbnQgdG8gZGV2ZWxAYWNwaWNhLm9yZy4NCkFuZCB5b3UnbGwgc2VlIGl0IGlu
-IExpbnV4IHVwc3RyZWFtIGFmdGVyIGFuIGFjcGljYSByZWxlYXNlIGN5Y2xlLg0KDQpSZWdhcmRz
-DQpMdg0KDQo+IA0KPiAtLQ0KPiBSZWdhcmRzL0dydXNzLA0KPiAgICAgQm9yaXMuDQo+IA0KPiBF
-Q08gdGlwICMxMDE6IFRyaW0geW91ciBtYWlscyB3aGVuIHlvdSByZXBseS4NCj4gLS0NCj4gLS0N
-Cj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
-aWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
-dmdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
-cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+On 2016/9/15 23:18, Marc Zyngier wrote:
+> On 15/09/16 15:05, Hanjun Guo wrote:
+>> Hi Marc,
+[...]
+>>>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+>>>> index 6482d47..ea01a37 100644
+>>>> --- a/drivers/base/platform.c
+>>>> +++ b/drivers/base/platform.c
+>>>> @@ -24,6 +24,7 @@
+>>>>   #include <linux/pm_domain.h>
+>>>>   #include <linux/idr.h>
+>>>>   #include <linux/acpi.h>
+>>>> +#include <linux/msi.h>
+>>>>   #include <linux/clk/clk-conf.h>
+>>>>   #include <linux/limits.h>
+>>>>   #include <linux/property.h>
+>>>> @@ -500,6 +501,7 @@ struct platform_device *platform_device_register_full(
+>>>>   	pdev->dev.parent = pdevinfo->parent;
+>>>>   	pdev->dev.fwnode = pdevinfo->fwnode;
+>>>>
+>>>> +	acpi_configure_msi_domain(&pdev->dev);
+>>>
+>>> It feels odd to put this in the generic code, while you could perfectly
+>>> put the call into acpi_platform.c and keep the firmware stuff away from
+>>> the generic code.
+>>
+>> My feeling is the same, I'm still trying to find a new way to do it,
+>> but I can't simply put that in acpi_platform.c, because
+>>
+>> acpi_create_platform_device()
+>>     platform_device_register_full()
+>> 	platform_device_alloc()  --> dev is alloced
+>>          ...
+>>          dev.fwnode  is set
+>> 	(I get the msi domain by the fwnode in acpi_configure_msi_domain)
+>>          ...
+>>          platform_device_add()  --> which the device is probed.
+>>
+>> For devices like irqchip which needs the dev->msi_domain to be
+>> set before it's really probed, because it needs the msi domain
+>> to be the parent domain.
+>>
+>> If I call the function in acpi_create_platform_device() before
+>> platform_device_register_full(), we just can't set dev's msi
+>> domain, but if call it after platform_device_register_full(),
+>> the irqchip like mbigen will not get its parent domain...
+>>
+>> DT is using another API for platform device probe, so has no
+>> problems like I said above, any suggestions to do it right in
+>> ACPI?
+>
+> How about having something that's completely generic and solves
+> the problem once and for all? Something like this:
+>
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 6482d47..6f0f90b 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -533,6 +533,9 @@ struct platform_device *platform_device_register_full(
+>  			goto err;
+>  	}
+>
+> +	if (pdevinfo->pre_add_cb)
+> +		pdevinfo->pre_add_cb(&pdev->dev);
+> +
+>  	ret = platform_device_add(pdev);
+>  	if (ret) {
+>  err:
+> diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
+> index 98c2a7c..44ea133 100644
+> --- a/include/linux/platform_device.h
+> +++ b/include/linux/platform_device.h
+> @@ -74,6 +74,7 @@ struct platform_device_info {
+>  		u64 dma_mask;
+>
+>  		struct property_entry *properties;
+> +		void (*pre_add_cb)(struct device *);
+>  };
+>  extern struct platform_device *platform_device_register_full(
+>  		const struct platform_device_info *pdevinfo);
+>
+> Plug pre_add_cb with your ACPI callback where you can do all the
+> processing you want before the device is actually added.
+
+Great, will do, thank you very much!
+
+Hanjun
