@@ -1,159 +1,124 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Mon, 19 Sep 2016 13:09:00 -0500
-Message-ID: <20160919180900.GB13775@localhost>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-4-git-send-email-tn@semihalf.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Mon, 19 Sep 2016 22:36:22 +0200
+Message-ID: <20160919203622.ujh4l5eudrncv3rl@sig21.net>
+References: <20160919112117.55dim46nmqdmqjan@sig21.net>
+ <20160919115619.GF1811@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:39952 "EHLO mail.kernel.org"
+Received: from mail.sig21.net ([80.244.240.74]:54971 "EHLO mail.sig21.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752636AbcISSJG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Sep 2016 14:09:06 -0400
+        id S1752070AbcISUg2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Sep 2016 16:36:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1473449047-10499-4-git-send-email-tn@semihalf.com>
+In-Reply-To: <20160919115619.GF1811@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Sep 09, 2016 at 09:24:05PM +0200, Tomasz Nowicki wrote:
-> thunder-pem driver stands for being ACPI based PCI host controller.
-> However, there is no standard way to describe its PEM-specific register
-> ranges in ACPI tables. Thus we add thunder_pem_init() ACPI extension
-> to obtain hardcoded addresses from static resource array.
-> Although it is not pretty, it prevents from creating standard mechanism to
-> handle similar cases in future.
+On Mon, Sep 19, 2016 at 02:56:19PM +0300, Mika Westerberg wrote:
+> On Mon, Sep 19, 2016 at 01:21:17PM +0200, Johannes Stezenbach wrote:
+> > 
+> > The LID causes a gpio irq:
+> >  158:          2          0          0          0  chv-gpio   43 ACPI:Event
+> > 
+> > However, neither LID nor power button can wake up the
+> > device from "echo freeze >/sys/power/state".  :-(
 > 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  drivers/pci/host/pci-thunder-pem.c | 61 ++++++++++++++++++++++++++++++--------
->  1 file changed, 48 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
-> index 6abaf80..b048761 100644
-> --- a/drivers/pci/host/pci-thunder-pem.c
-> +++ b/drivers/pci/host/pci-thunder-pem.c
-> @@ -18,6 +18,7 @@
->  #include <linux/init.h>
->  #include <linux/of_address.h>
->  #include <linux/of_pci.h>
-> +#include <linux/pci-acpi.h>
->  #include <linux/pci-ecam.h>
->  #include <linux/platform_device.h>
->  
-> @@ -284,6 +285,40 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
->  	return pci_generic_config_write(bus, devfn, where, size, val);
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +static struct resource thunder_pem_reg_res[] = {
-> +	[4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
-> +	[5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
-> +	[6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
-> +	[7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
-> +	[8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
-> +	[9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
-> +	[14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
-> +	[15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
-> +	[16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
-> +	[17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
-> +	[18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
-> +	[19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
+> The cherryview pinctrl driver does not (yet) support wake up events. It
+> currently just sets IRQCHIP_SKIP_SET_WAKE for the irqchip.
 
-1) The "correct" way to discover the resources consumed by an ACPI
-   device is to use the _CRS method.  I know there are some issues
-   there for bridges (not the fault of ThunderX!) because there's not
-   a good way to distinguish windows from resources consumed directly
-   by the bridge.
+OK, but shouldn't the wakeup usually be handled by ACPI?
+Clearly I don't understand this.  I mean on the non-ACPI
+embedded ARM systems I'm used to I need to enable specific
+irqs as wakeup sources, but on ACPI, isn't SCI the implicit
+wakeup irq?  Probably I'm just totally confused, so let
+me ask another way, below.
 
-   But we should either do this correctly, or include a comment about
-   why we're doing it wrong, so we don't give the impression that this
-   is the right way to do it.
+> I can make you a test patch which adds support for wakes for the pinctrl
+> driver if you like to test it out. However, that will happen most likely
+> near end of the week as I have other things right now.
 
-   I seem to recall some discussion about why we're doing it this way,
-   but I don't remember the details.  It'd be nice to include a
-   summary here.
+That would be great!
 
-2) This is a little weird because here we define the resource size as
-   16MB, in the OF case we get the resource size from OF, in either
-   case we ioremap 64K of it, and then as far as I can tell, we only
-   ever access PEM_CFG_WR and PEM_CFG_RD, at offsets 0x28 and 0x30
-   into the space.
 
-   If the hardware actually decodes the entire 16MB, we should ioremap
-   the whole 16MB.  (Strictly speaking, drivers only need to ioremap
-   the parts they're using, but in this case nobody claims the entire
-   resource because of deficiencies in the ACPI and OF cores, so the
-   driver should ioremap the entire thing to help prevent conflicts
-   with other devices.)
+I found in the DSDT:
 
-   It'd be nice if we didn't have the 64KB magic number.  I think
-   using devm_ioremap_resource() would be nice.
+    Scope (_SB.GPO0)
+    {
+        Name (EVBF, Buffer (0x03) {})
+        CreateByteField (EVBF, Zero, EVST)
+        CreateByteField (EVBF, One, ELEN)
+        CreateByteField (EVBF, 0x02, ENVT)
+        Name (LIDZ, One)
+        Method (_E4E, 0, Serialized)  // _Exx: Edge-Triggered GPE
+        {
+            Name (_T_0, Zero)  // _T_x: Emitted by ASL Compiler
+            If (^^PCI0.I2C1.AVBL != One)
+            {
+                Return (Zero)
+            }
 
-> +};
-> +
-> +static struct resource *thunder_pem_acpi_res(struct pci_config_window *cfg)
-> +{
-> +	struct acpi_device *adev = to_acpi_device(cfg->parent);
-> +	struct acpi_pci_root *root = acpi_driver_data(adev);
-> +
-> +	if ((root->segment >= 4 && root->segment <= 9) ||
-> +	    (root->segment >= 14 && root->segment <= 19))
-> +		return &thunder_pem_reg_res[root->segment];
-> +
-> +	return NULL;
-> +}
-> +#else
-> +static struct resource *thunder_pem_acpi_res(struct pci_config_window *cfg)
-> +{
-> +	return NULL;
-> +}
-> +#endif
-> +
->  static int thunder_pem_init(struct pci_config_window *cfg)
->  {
->  	struct device *dev = cfg->parent;
-> @@ -292,24 +327,24 @@ static int thunder_pem_init(struct pci_config_window *cfg)
->  	struct thunder_pem_pci *pem_pci;
->  	struct platform_device *pdev;
->  
-> -	/* Only OF support for now */
-> -	if (!dev->of_node)
-> -		return -EINVAL;
-> -
->  	pem_pci = devm_kzalloc(dev, sizeof(*pem_pci), GFP_KERNEL);
->  	if (!pem_pci)
->  		return -ENOMEM;
->  
-> -	pdev = to_platform_device(dev);
-> -
-> -	/*
-> -	 * The second register range is the PEM bridge to the PCIe
-> -	 * bus.  It has a different config access method than those
-> -	 * devices behind the bridge.
-> -	 */
-> -	res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> +	if (acpi_disabled) {
-> +		pdev = to_platform_device(dev);
-> +
-> +		/*
-> +		 * The second register range is the PEM bridge to the PCIe
-> +		 * bus.  It has a different config access method than those
-> +		 * devices behind the bridge.
-> +		 */
-> +		res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> +	} else {
-> +		res_pem = thunder_pem_acpi_res(cfg);
-> +	}
->  	if (!res_pem) {
-> -		dev_err(dev, "missing \"reg[1]\"property\n");
-> +		dev_err(dev, "missing configuration region\n");
->  		return -EINVAL;
->  	}
->  
-> -- 
-> 1.9.1
-> 
+            EVBF = ^^PCI0.I2C1.ENID /* \_SB_.PCI0.I2C1.ENID */
+...
+            _T_0 = ENVT /* \_SB_.GPO0.ENVT */
+...
+                ElseIf (_T_0 == 0xA9)
+                {
+                    Notify (PWRB, 0x80) // Status Change
+                    Break
+                }
+
+and
+        Device (GPO0)
+        {
+...
+            Method (_AEI, 0, NotSerialized)  // _AEI: ACPI Event Interrupts
+            {
+                Name (WBUF, ResourceTemplate ()
+                {
+                    GpioInt (Edge, ActiveLow, ExclusiveAndWake, PullUp, 0x0000,
+                        "\\_SB.GPO0", 0x00, ResourceConsumer, ,
+                        )
+                        {   // Pin list
+                            0x004E
+                        }
+                })
+                If (OSID == One)
+                {
+                    Return (WBUF) /* \_SB_.GPO0._AEI.WBUF */
+                }
+            }
+
+and OSID is a field in 
+    OperationRegion (GNVS, SystemMemory, 0x7A158000, 0x0362)
+which is inside what /proc/iomem lists as "ACPI no-volatile storage".
+OSID is read a lot in the DSDT but never written to.
+But calling \_SB.GPO0._AEI in acpidbg returns a buffer of size 25.
+
+Now my question is, is this pin 0x004E the same as this
+in /proc/interrupts which fires on LID event?
+
+ 158:          2          0          0          0  chv-gpio   43 ACPI:Event
+
+
+
+The FADT has
+            Control Method Power Button (V1) : 0
+            Control Method Sleep Button (V1) : 1
+
+PWRBTN_EN in PM1 is set.  But PWRBTN press causes thermal irq.
+
+No SCI (irq 9) is ever generated, except by writing to the
+BIOS_RLS bit in SMI_EN register (IO port 0x430).
+
+GPE block addresses in FADT are 0.  GPE0a_EN register (IO 0x428)
+is set to 0x6000 (TCO_EN + PME_B0_EN, but none of the GPIO enables).
+
+Any advice how to continue?
+
+
+Thanks,
+Johannes
