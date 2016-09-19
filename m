@@ -1,31 +1,35 @@
-From: "Jon S. Cunliffe" <jonlci@bankofengland.co.uk>
-Subject: Transaksjon
-Date: Mon, 19 Sep 2016 13:01:19 +0800
-Message-ID: <0ODQ00A52J8LB600@relay1.stonline.sk>
-Reply-To: jonl1963@aol.co.uk
+From: Jiri Olsa <jolsa@redhat.com>
+Subject: Re: [PATCH v3 1/8] sched, x86: Add SD_ASYM_PACKING flags to x86 cpu
+ topology for ITMT
+Date: Mon, 19 Sep 2016 11:11:41 +0200
+Message-ID: <20160919091141.GA1083@krava>
+References: <1473373615-51427-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <1473373615-51427-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <alpine.DEB.2.20.1609101505290.2804@nanos>
+ <1473713415.3916.48.camel@linux.intel.com>
+ <20160913072613.GB5008@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from constance.telekom.sk ([213.81.152.79]:39664 "EHLO smtp.t-com.sk"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751387AbcISGBw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Sep 2016 02:01:52 -0400
-Content-description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160913072613.GB5008@twins.programming.kicks-ass.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tim Chen <tim.c.chen@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <jonlci@bankofengland.co.uk>
 
-Dato: 9/18/2016
- 
-Jeg er Sir Jonathan Stephen Cunliffe, visesentralbanksjef , Finansiell stabilitet, Bank of England. Jeg har et interessant tilbud som er verdt (£ 11.5 millioner) for å dele med deg. Hvis du er interessert, kan du skrive tilbake til min personlige e-post: jonl1963@aol.co.uk for flere detaljer.
- 
-Merk: Dette innlegget ble oversatt av Google oversetter . Hvis du kan snakke, skrive og forstå engelsk, vennligst gi meg beskjed så det vil være bedre for vår kommunikasjon.
- 
-Hilsen,
-Sir Jon S. Cunliffe
+On Tue, Sep 13, 2016 at 09:26:13AM +0200, Peter Zijlstra wrote:
+> On Mon, Sep 12, 2016 at 01:50:15PM -0700, Tim Chen wrote:
+> > > No. We first rework the code so that the IMT stuff can be added in a later
+> > > patch easily.
+> > 
+> > I'll move this patch to come after current patch 5.
+> 
+> Split the patch, one doing the topo cleanup, one adding the
+> x86_*_flags().
 
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+hi,
+could you please CC me on the next version,
+I'm interested in that cleanup patch..
 
+thanks a lot,
+jirka
