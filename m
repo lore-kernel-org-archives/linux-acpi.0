@@ -1,51 +1,109 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 5/5] PCI: Avoid unnecessary resume on shutdown
-Date: Mon, 19 Sep 2016 12:14:02 +0200
-Message-ID: <20160919101402.GA2506@wunner.de>
-References: <cover.1474130360.git.lukas@wunner.de>
- <760eb8c67a02e35938a4fbd3b31cbe9bb1414c5a.1474130360.git.lukas@wunner.de>
- <1474276343.2044.4.camel@suse.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Cherryview wake up events
+Date: Mon, 19 Sep 2016 13:21:17 +0200
+Message-ID: <20160919112117.55dim46nmqdmqjan@sig21.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:59075 "EHLO
-        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755144AbcISKNo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2016 06:13:44 -0400
+Received: from mail.sig21.net ([80.244.240.74]:41099 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750825AbcISLVX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Sep 2016 07:21:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1474276343.2044.4.camel@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oneukum@suse.com>
-Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
+To: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Mon, Sep 19, 2016 at 11:12:23AM +0200, Oliver Neukum wrote:
-> On Sun, 2016-09-18 at 05:39 +0200, Lukas Wunner wrote:
-> > We currently perform a mandatory runtime resume of all PCI devices on
-> > ->shutdown.  However it is pointless to wake devices only to immediately
-> > power them down afterwards.  (Or have the firmware reset them, in case
-> > of a reboot.)
-> > 
-> > It seems there are only two cases when a runtime resume is actually
-> > necessary:  If the driver has declared a ->shutdown callback or if kexec
-> > is in progress.
-> > 
-> > Constrain resume of a device to these cases and let it slumber
-> > otherwise, thereby conserving energy and speeding up shutdown.
-> 
-> What happens if you get a wakeup event while going down?
+Hi,
 
-Hm, I should probably disable that with
+Mika, I've been reading the thread about pinctrl-cherryview
+interrupts, but I have some basic questions in understanding
+the hardware and the relationship between ACPI and Linux drivers,
+so I decided to start a new thread.
+https://lkml.kernel.org/g/20160909085832.GK15313@lahna.fi.intel.com
 
-	__pci_enable_wake(pci_dev, pci_dev->current_state, true, false);
+I have one Asus E200HA (Atom x5-Z8300) where the power button
+doesn't generate any ACPI events (no SCI), instead it causes
+a Thermal Event irq:
 
+ TRM:          3          3          3          4   Thermal event interrupts
 
-> Will it lead to a reboot when a shutdown has been requested?
+[   51.825488] CPU0: Core temperature above threshold, cpu clock throttled (total events = 1)
+[   51.826933] CPU1: Core temperature above threshold, cpu clock throttled (total events = 1)
+[   51.826965] mce: [Hardware Error]: Machine check events logged
+[   51.841180] mce: [Hardware Error]: Machine check events logged
 
-That would depend on the platform, my guess is no, but only someone
-with extensive real world experience with such corner cases can answer
-this. (Rafael?)
+(These events are logged only sometimes, usually a power button
+press only increments the TRM count.)
+
+I would like to understand how this is possible, when I boot
+with apic=debug I can't see anything claiming vector 0xfa.
+
+The LID causes a gpio irq:
+ 158:          2          0          0          0  chv-gpio   43 ACPI:Event
+
+However, neither LID nor power button can wake up the
+device from "echo freeze >/sys/power/state".  :-(
+
+"grep . /sys/firmware/acpi/interrupts/*" shows only zeros.
+
+I put the DSDT and some other tables at:
+https://linuxtv.org/~js/e200ha/
+
+During the last weeks I read what I could about the hardware
+and ACPI, and poked at it with acpidbg, devmem, ioport
+and in kernel source, but to no avail.
+
+On Thu, Sep 15, 2016 at 06:52:10PM +0300, Mika Westerberg wrote:
+> It turns out that for north and southwest communities, they can only
+> generate GPIO interrupts for lower 8 interrupts (IntSel value). The upper
+> part (8-15) can only generate GPEs (General Purpose Events).
+
+I got the Atom Z8000 series datasheet from
+http://www.intel.com/content/www/us/en/processors/atom/atom-technical-resources.html
+and tried to find the source for this.  The closest I
+could find is the GPIO_ROUT PMC register?
+However, the datasheet doesn't tell about the other
+interrupts not covered by GPIO_ROUT, if they are fixed
+IRQ or SCI or "no effect".
+
+I also don't get the mapping from intsel irq to IO-APIC pin
+number.  And also not the mapping between the pin numbers used
+on DSDT GpioInt to the pin numbers in pinctrl-cherryview.c.
+Could you shed a light on this?  Or point out where I can
+find information?
+
+It seems to imply BIOS sets up IntSel.  I'm generally confused
+about the responsibility of BIOS vs. drivers making use of the
+information from DSDT, e.g. Device (GPO1) has a list of
+GpioIo Connections, other devices like PMI2 use GpioInt
+from GPO1.  My E200HA has the INT33F5 TI PMIC
+Controller, which according to Windows driver strings
+seems to be the SND9039.
+Does it mean I need a PMIC driver that reads the _CRS and
+configures the GPIO?
+
+BTW, the datasheet talks about 4 seconds for power button
+override, but it takes 10 seconds.  Maybe it means the
+power button is connected to the TI PMIC, not to the
+Cherryview SoC?
+
+Another question is about the virtual GPIO device that exists
+in hardware and is used by DSDT.  How does that work and
+why does pinctrl-cherryview.c exclude it?
+
+Sorry for so many questions, any info is appreciated,
+and any suggestion what to try to get the thing to
+wake up from freeze.
+
+I was totally unfamiliar with ACPI until now, but I think
+the DSDT has some nasty surprise in several _REG methods
+that use OEM defined OperatingRegionIds to set some availabilty
+flags that are tested in other methods.  So it means if the
+Windows drivers aren't loaded, those methods won't do anything,
+right? Does anyone have suggestions or even examples how to deal with this?
+
 
 Thanks,
-
-Lukas
+Johannes
