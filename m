@@ -1,112 +1,80 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC PATCH v2 05/11] ACPI: platform: setup MSI domain for ACPI
- based platform device
-Date: Mon, 19 Sep 2016 17:42:16 +0800
-Message-ID: <ab8e5cf0-d5d6-c2c7-11c7-f0b738460f91@linaro.org>
+Subject: Re: [RFC PATCH v2 11/11] irqchip: mbigen: promote mbigen init
+Date: Mon, 19 Sep 2016 17:49:29 +0800
+Message-ID: <3f9b5a3e-13f4-75a4-15bc-f55e26740205@linaro.org>
 References: <1473862879-7769-1-git-send-email-guohanjun@huawei.com>
- <1473862879-7769-6-git-send-email-guohanjun@huawei.com>
- <57D97087.5040703@arm.com> <57DAAAAE.6010206@linaro.org>
- <57DABBB3.3020208@arm.com>
+ <1473862879-7769-12-git-send-email-guohanjun@huawei.com>
+ <57DABD2F.1030606@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:34548 "EHLO
-        mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755158AbcISJmj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2016 05:42:39 -0400
-Received: by mail-pa0-f48.google.com with SMTP id wk8so47032520pab.1
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Sep 2016 02:42:39 -0700 (PDT)
-In-Reply-To: <57DABBB3.3020208@arm.com>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:33136 "EHLO
+        mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752771AbcISJtw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Sep 2016 05:49:52 -0400
+Received: by mail-pa0-f42.google.com with SMTP id hm5so14902800pac.0
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Sep 2016 02:49:52 -0700 (PDT)
+In-Reply-To: <57DABD2F.1030606@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, linuxarm@huawei.com
 
-On 2016/9/15 23:18, Marc Zyngier wrote:
-> On 15/09/16 15:05, Hanjun Guo wrote:
->> Hi Marc,
-[...]
->>>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
->>>> index 6482d47..ea01a37 100644
->>>> --- a/drivers/base/platform.c
->>>> +++ b/drivers/base/platform.c
->>>> @@ -24,6 +24,7 @@
->>>>   #include <linux/pm_domain.h>
->>>>   #include <linux/idr.h>
->>>>   #include <linux/acpi.h>
->>>> +#include <linux/msi.h>
->>>>   #include <linux/clk/clk-conf.h>
->>>>   #include <linux/limits.h>
->>>>   #include <linux/property.h>
->>>> @@ -500,6 +501,7 @@ struct platform_device *platform_device_register_full(
->>>>   	pdev->dev.parent = pdevinfo->parent;
->>>>   	pdev->dev.fwnode = pdevinfo->fwnode;
->>>>
->>>> +	acpi_configure_msi_domain(&pdev->dev);
->>>
->>> It feels odd to put this in the generic code, while you could perfectly
->>> put the call into acpi_platform.c and keep the firmware stuff away from
->>> the generic code.
+On 2016/9/15 23:24, Marc Zyngier wrote:
+> On 14/09/16 15:21, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
 >>
->> My feeling is the same, I'm still trying to find a new way to do it,
->> but I can't simply put that in acpi_platform.c, because
+>> mbigen is an irqchip and it needs to be probed before
+>> devices, same logic is used for SMMU and etc., let's
+>> use arch_initcall instead of platform init for mbigen.
 >>
->> acpi_create_platform_device()
->>     platform_device_register_full()
->> 	platform_device_alloc()  --> dev is alloced
->>          ...
->>          dev.fwnode  is set
->> 	(I get the msi domain by the fwnode in acpi_configure_msi_domain)
->>          ...
->>          platform_device_add()  --> which the device is probed.
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Ma Jun <majun258@huawei.com>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  drivers/irqchip/irq-mbigen.c | 6 +++++-
+>>  1 file changed, 5 insertions(+), 1 deletion(-)
 >>
->> For devices like irqchip which needs the dev->msi_domain to be
->> set before it's really probed, because it needs the msi domain
->> to be the parent domain.
+>> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+>> index ca6add1..3a33de6 100644
+>> --- a/drivers/irqchip/irq-mbigen.c
+>> +++ b/drivers/irqchip/irq-mbigen.c
+>> @@ -374,7 +374,11 @@ static struct platform_driver mbigen_platform_driver = {
+>>  	.probe			= mbigen_device_probe,
+>>  };
 >>
->> If I call the function in acpi_create_platform_device() before
->> platform_device_register_full(), we just can't set dev's msi
->> domain, but if call it after platform_device_register_full(),
->> the irqchip like mbigen will not get its parent domain...
+>> -module_platform_driver(mbigen_platform_driver);
+>> +static __init int mbigen_init(void)
+>> +{
+>> +	return platform_driver_register(&mbigen_platform_driver);
+>> +}
+>> +arch_initcall(mbigen_init);
 >>
->> DT is using another API for platform device probe, so has no
->> problems like I said above, any suggestions to do it right in
->> ACPI?
+>>  MODULE_AUTHOR("Jun Ma <majun258@huawei.com>");
+>>  MODULE_AUTHOR("Yun Wu <wuyun.wu@huawei.com>");
+>>
 >
-> How about having something that's completely generic and solves
-> the problem once and for all? Something like this:
->
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index 6482d47..6f0f90b 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -533,6 +533,9 @@ struct platform_device *platform_device_register_full(
->  			goto err;
->  	}
->
-> +	if (pdevinfo->pre_add_cb)
-> +		pdevinfo->pre_add_cb(&pdev->dev);
-> +
->  	ret = platform_device_add(pdev);
->  	if (ret) {
->  err:
-> diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
-> index 98c2a7c..44ea133 100644
-> --- a/include/linux/platform_device.h
-> +++ b/include/linux/platform_device.h
-> @@ -74,6 +74,7 @@ struct platform_device_info {
->  		u64 dma_mask;
->
->  		struct property_entry *properties;
-> +		void (*pre_add_cb)(struct device *);
->  };
->  extern struct platform_device *platform_device_register_full(
->  		const struct platform_device_info *pdevinfo);
->
-> Plug pre_add_cb with your ACPI callback where you can do all the
-> processing you want before the device is actually added.
+> I've already NACKed such a patch in the past, and I will carry on
+> NACKing it until all the other avenues (like properly tracking device
+> dependencies) have been explored and have been proven not to be fit for
+> purpose.
 
-Great, will do, thank you very much!
+I'd happy to work on this to make progress.
 
+>
+> Rafael had proposed something around this subject last year, and I've
+
+Sorry, obviously I missed something, could you give me the link about
+Rafael's patches? I will pull back and test it on our hardware.
+
+> been repeatedly advising you to work with him and others to make it
+> happen. You can choose to ignore this advise, but that doesn't make this
+> patch an acceptable approach.
+
+OK, I will drop this patch in next version, and work on the generic
+solution instead.
+
+Thanks
 Hanjun
