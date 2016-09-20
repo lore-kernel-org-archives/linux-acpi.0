@@ -1,59 +1,99 @@
-From: Johannes Stezenbach <js@sig21.net>
-Subject: Re: Cherryview wake up events
-Date: Tue, 20 Sep 2016 17:59:43 +0200
-Message-ID: <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
-References: <20160919112117.55dim46nmqdmqjan@sig21.net>
- <20160919115619.GF1811@lahna.fi.intel.com>
- <20160919203622.ujh4l5eudrncv3rl@sig21.net>
- <20160920091840.GN1811@lahna.fi.intel.com>
- <20160920101450.ylohouriienzrgtj@sig21.net>
- <20160920104014.GO1811@lahna.fi.intel.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH v9 08/10] arm64: pmu: Detect and enable multiple PMUs in an ACPI system
+Date: Tue, 20 Sep 2016 17:11:24 +0100
+Message-ID: <87y42msg9f.fsf@e105922-lin.cambridge.arm.com>
+References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
+        <1473892358-22574-9-git-send-email-jeremy.linton@arm.com>
+        <87y42st1e3.fsf@e105922-lin.cambridge.arm.com>
+        <6e0b08db-2e13-be49-5208-c396bf51fe68@arm.com>
+        <87bmznu61q.fsf@e105922-lin.cambridge.arm.com>
+        <b8b27aa5-e80e-f7cc-3410-4b2ac44c69e5@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:46817 "EHLO mail.sig21.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751643AbcITP7s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Sep 2016 11:59:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20160920104014.GO1811@lahna.fi.intel.com>
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:55979 "EHLO
+        cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933231AbcITQMF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Sep 2016 12:12:05 -0400
+In-Reply-To: <b8b27aa5-e80e-f7cc-3410-4b2ac44c69e5@arm.com> (Jeremy Linton's
+        message of "Fri, 16 Sep 2016 12:57:20 -0500")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
 
-On Tue, Sep 20, 2016 at 01:40:14PM +0300, Mika Westerberg wrote:
-> Can you check if you have:
-> 
->   Hardware Reduced (V5) : 1
-> 
-> in that FADT table?
+Jeremy Linton <jeremy.linton@arm.com> writes:
 
-Nope, it is "Hardware Reduced (V5) : 0".  Now the FADT is also at
-https://linuxtv.org/~js/e200ha/
+> On 09/16/2016 12:07 PM, Punit Agrawal wrote:
+>> Jeremy Linton <jeremy.linton@arm.com> writes:
+>>
+>>> Hi,
+>>>
+>>> On 09/16/2016 08:33 AM, Punit Agrawal wrote:
+>>>> Jeremy Linton <jeremy.linton@arm.com> writes:
+>>>>
+>>>>> Its possible that an ACPI system has multiple CPU types in it
+>>>>> with differing PMU counters. Iterate the CPU's and make a determination
+>>>>> about how many of each type exist in the system. Then take and create
+>>>>> a PMU platform device for each type, and assign it the interrupts parsed
+>>>>> from the MADT. Creating a platform device is necessary because the PMUs
+>>>>> are not described as devices in the DSDT table.
+>>>>>
+>>>>> This code is loosely based on earlier work by Mark Salter.
+>>>
+>>> (trimming)
+>>>
+>>>>> +
+>>>>> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
+>>>>> +		if (unused_madt_entries)
+>>>>> +			pmu->cpu_count = num_possible_cpus();
+>>>>
+>>>> So if there is any unbooted cpu ...
+>>>>
+>>>>> +
+>>>>> +		res = kcalloc(pmu->cpu_count,
+>>>>> +				  sizeof(struct resource), GFP_KERNEL);
+>>>>
+>>>> ... we allocate potentially large number (num_possible_cpus()) of
+>>>> resources for each PMU.
+>>>>
+>>>> This is needlessly wasteful. Under what conditions have you found
+>>>> reg_midr to be 0?
+>>>
+>>> Unused MADT entries, in place for potentially unbooted/hotplug
+>>> CPUs.
+>>
+>> Is linux able to deal with booting secondaries that have unused MADT
+>> entries?
+>
+> Uh, yah I think so, that is how i've been testing it, maybe we are
+> saying different things. When i'm talking about "unused" I mean MADT
+> entries that don't have started/running cpus. Obviously they stop
+> being unused when a cpu is booted.
+>
+>>
+>>> In those cases you don't know for sure which PMU the CPU belongs
+>>> to until it comes online and the MIDR can be read. I'm open to
+>>> suggestions on how to deal with this, outside of pushing my luck and
+>>> further breaking the platform device encapsulation by trying to
+>>> reallocate the resource structure while its active. Besides its only
+>>> wasteful for ACPI+big.little, which at the moment only applies to a
+>>> development platform.
+>>
+>> I don't have any ideas to solve this problem, but in the interest of
+>> helping review, please move all the changes arising from hotplug/unused
+>> MADT entries in this patch to the next one.
+>
+> Which is sort of the opposite of the last 3 months, of complaints
+> about how hard it was to review this module with multiple patches
+> adding features to the code...
 
-> If yes, it probably does not have the normal Fixed power button but
-> instead it has something called "Windows button array device" with
-> _HID/_CID of PNP0C40. Looking at your dsdt.dsl, this looks to be the
-> case.
-> 
-> That device is driven by soc_button_array.c driver which can be enabled
-> with CONFIG_KEYBOARD_GPIO=y and CONFIG_INPUT_SOC_BUTTON_ARRAY=y. Can you
-> check if you have that enabled already?
-> 
-> You should actually see it in /proc/interrupts with names like "power"
-> and so on.
+My suggestion to move functionality that has concerns and needs rework
+to later patch is aimed at helping get stuff that everybody agrees upon
+merged. But it's only a suggestion...
 
-I added CONFIG_INPUT_SOC_BUTTON_ARRAY=y, but no joy.
-Maybe because the _HID is INTCFD9, only _CID is PNP0C40?
-It also has a _DSM with UUID dfbcf3c5-e7a5-44e6-9c1f-29c76f6e059c.
-
-BTW, lsinput already lists two "Power Button" devices,
-   phys    : "PNP0C0C/button/input0"
-   phys    : "LNXPWRBN/button/input0"
-
-None of them generates events in input-events.
-
-
-Thanks,
-Johannes
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
