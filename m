@@ -1,169 +1,59 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Tue, 20 Sep 2016 16:09:25 +0100
-Message-ID: <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-4-git-send-email-tn@semihalf.com> <20160919180900.GB13775@localhost>
- <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com> <20160920133327.GB13855@localhost>
- <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com> <20160920140518.GD13855@localhost>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Tue, 20 Sep 2016 17:59:43 +0200
+Message-ID: <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
+References: <20160919112117.55dim46nmqdmqjan@sig21.net>
+ <20160919115619.GF1811@lahna.fi.intel.com>
+ <20160919203622.ujh4l5eudrncv3rl@sig21.net>
+ <20160920091840.GN1811@lahna.fi.intel.com>
+ <20160920101450.ylohouriienzrgtj@sig21.net>
+ <20160920104014.GO1811@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160920140518.GD13855@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sig21.net ([80.244.240.74]:46817 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751643AbcITP7s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Sep 2016 11:59:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20160920104014.GO1811@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 20 September 2016 at 15:05, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> Hi Ard,
->
-> On Tue, Sep 20, 2016 at 02:40:13PM +0100, Ard Biesheuvel wrote:
->> On 20 September 2016 at 14:33, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> > [+cc Rafael (maybe already cc'd; I didn't recognize rafael@kernel.org, Duc]
->> >
->> > On Tue, Sep 20, 2016 at 09:23:21AM +0200, Tomasz Nowicki wrote:
->> >> On 19.09.2016 20:09, Bjorn Helgaas wrote:
->> >> >On Fri, Sep 09, 2016 at 09:24:05PM +0200, Tomasz Nowicki wrote:
->> >> >>thunder-pem driver stands for being ACPI based PCI host controller.
->> >> >>However, there is no standard way to describe its PEM-specific register
->> >> >>ranges in ACPI tables. Thus we add thunder_pem_init() ACPI extension
->> >> >>to obtain hardcoded addresses from static resource array.
->> >> >>Although it is not pretty, it prevents from creating standard mechanism to
->> >> >>handle similar cases in future.
->> >> >>
->> >> >>Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> >> >>---
->> >> >> drivers/pci/host/pci-thunder-pem.c | 61 ++++++++++++++++++++++++++++++--------
->> >> >> 1 file changed, 48 insertions(+), 13 deletions(-)
->> >> >>
->> >> >>diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
->> >> >>index 6abaf80..b048761 100644
->> >> >>--- a/drivers/pci/host/pci-thunder-pem.c
->> >> >>+++ b/drivers/pci/host/pci-thunder-pem.c
->> >> >>@@ -18,6 +18,7 @@
->> >> >> #include <linux/init.h>
->> >> >> #include <linux/of_address.h>
->> >> >> #include <linux/of_pci.h>
->> >> >>+#include <linux/pci-acpi.h>
->> >> >> #include <linux/pci-ecam.h>
->> >> >> #include <linux/platform_device.h>
->> >> >>
->> >> >>@@ -284,6 +285,40 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
->> >> >>    return pci_generic_config_write(bus, devfn, where, size, val);
->> >> >> }
->> >> >>
->> >> >>+#ifdef CONFIG_ACPI
->> >> >>+static struct resource thunder_pem_reg_res[] = {
->> >> >>+   [4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
->> >> >>+   [5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
->> >> >>+   [6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
->> >> >>+   [7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
->> >> >>+   [8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
->> >> >>+   [9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
->> >> >>+   [14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
->> >> >>+   [15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
->> >> >>+   [16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
->> >> >>+   [17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
->> >> >>+   [18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
->> >> >>+   [19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
->> >> >
->> >> >1) The "correct" way to discover the resources consumed by an ACPI
->> >> >   device is to use the _CRS method.  I know there are some issues
->> >> >   there for bridges (not the fault of ThunderX!) because there's not
->> >> >   a good way to distinguish windows from resources consumed directly
->> >> >   by the bridge.
->> >> >
->> >> >   But we should either do this correctly, or include a comment about
->> >> >   why we're doing it wrong, so we don't give the impression that this
->> >> >   is the right way to do it.
->> >> >
->> >> >   I seem to recall some discussion about why we're doing it this way,
->> >> >   but I don't remember the details.  It'd be nice to include a
->> >> >   summary here.
->> >>
->> >> OK I will. The reason why we cannot use _CRS for this case is that
->> >> CONSUMER flag was not use consistently for the bridge so far.
->> >
->> > Yes, I'm aware of that problem, but hard-coding resources into drivers
->> > is just a disaster.  The PCI and ACPI cores need generic ways to learn
->> > what resources are consumed by devices.  For PCI devices, that's done
->> > with BARs.  For ACPI devices, it's done with _CRS.  Without generic
->> > resource discovery, we can't manage resources reliably at the system
->> > level [1].
->> >
->> > You have a PNP0A03/PNP0A08 device for the PCI host bridge.  Because of
->> > the BIOS bugs in CONSUMER flag usage, we assume everything in its _CRS
->> > is a window and not consumed by the bridge itself.  What if you added
->> > a companion ACPI device with a _CRS that contained the bridge
->> > resources?  Then you'd have some driver ugliness to find that device,
->> > but at least the ACPI core could tell what resources were in use.
->> >
->> > Maybe Rafael has a better idea?
->>
->> In the discussions leading up to this, we tried very hard to make this
->> arm64/acpi quirks mechanism just as flexible as we need it to be to
->> cover the current crop of incompatible hardware, but not more so.
->> Going forward, we intend to require all arm64/acpi hardware to be spec
->> compliant, and so any parametrization beyond what is required for the
->> currently known broken hardware is only going to make it easier for
->> others to ship with tweaked ACPI descriptions so that an existing
->> quirk is triggered for hardware that it was not intended for. It also
->> implies that we have to deal with the ACPI descriptions as they were
->> shipped with the current hardware.
->>
->> That does not mean, of course, that we should use bare constants
->> rather than symbolic ones, but anything beyond that exceeds the
->> desired scope of quirks handling.
->
-> Symbolic vs bare constants is the least of my worries.  I'm pretty
-> happy with the current quirk implementation.  It's pretty simple and
-> straightforward.
->
+On Tue, Sep 20, 2016 at 01:40:14PM +0300, Mika Westerberg wrote:
+> Can you check if you have:
+> 
+>   Hardware Reduced (V5) : 1
+> 
+> in that FADT table?
 
-OK, good to know that we are on the right track here.
+Nope, it is "Hardware Reduced (V5) : 0".  Now the FADT is also at
+https://linuxtv.org/~js/e200ha/
 
-> Apparently you shipped broken firmware that doesn't accurately
-> describe system resource usage.  Presumably that firmware could be
-> updated, but maybe it's worthwhile to work around it in the kernel,
-> depending on where it got shipped.
->
+> If yes, it probably does not have the normal Fixed power button but
+> instead it has something called "Windows button array device" with
+> _HID/_CID of PNP0C40. Looking at your dsdt.dsl, this looks to be the
+> case.
+> 
+> That device is driven by soc_button_array.c driver which can be enabled
+> with CONFIG_KEYBOARD_GPIO=y and CONFIG_INPUT_SOC_BUTTON_ARRAY=y. Can you
+> check if you have that enabled already?
+> 
+> You should actually see it in /proc/interrupts with names like "power"
+> and so on.
 
-None of these platforms can be fixed entirely in software, and given
-that we will not be adding quirks for new broken hardware, we should
-ask ourselves whether having two versions of a quirk, i.e., one for
-broken hardware + currently shipping firmware, and one for the same
-broken hardware with fixed firmware is really an improvement over what
-has been proposed here.
+I added CONFIG_INPUT_SOC_BUTTON_ARRAY=y, but no joy.
+Maybe because the _HID is INTCFD9, only _CID is PNP0C40?
+It also has a _DSM with UUID dfbcf3c5-e7a5-44e6-9c1f-29c76f6e059c.
 
-> I'd like to step back and come up with some understanding of how
-> non-broken firmware *should* deal with this issue.  Then, if we *do*
-> work around this particular broken firmware in the kernel, it would be
-> nice to do it in a way that fits in with that understanding.
->
-> For example, if a companion ACPI device is the preferred solution, an
-> ACPI quirk could fabricate a device with the required resources.  That
-> would address the problem closer to the source and make it more likely
-> that the rest of the system will work correctly: /proc/iomem could
-> make sense, things that look at _CRS generically would work (e.g,
-> /sys/, an admittedly hypothetical "lsacpi", etc.)
->
-> Hard-coding stuff in drivers is a point solution that doesn't provide
-> any guidance for future platforms and makes it likely that the hack
-> will get copied into even more drivers.
->
+BTW, lsinput already lists two "Power Button" devices,
+   phys    : "PNP0C0C/button/input0"
+   phys    : "LNXPWRBN/button/input0"
 
-OK, I see. But the guidance for future platforms should be 'do not
-rely on quirks', and what I am arguing here is that the more we polish
-up this code and make it clean and reusable, the more likely it is
-that will end up getting abused by new broken hardware that we set out
-to reject entirely in the first place.
+None of them generates events in input-events.
 
-So of course, if the quirk involves claiming resources, let's make
-sure that this occurs in the cleanest and most compliant way possible.
-But any factoring/reuse concerns other than for the current crop of
-broken hardware should be avoided imo.
 
--- 
-Ard.
+Thanks,
+Johannes
