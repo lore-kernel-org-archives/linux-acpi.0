@@ -1,99 +1,202 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH v9 08/10] arm64: pmu: Detect and enable multiple PMUs in an ACPI system
-Date: Tue, 20 Sep 2016 17:11:24 +0100
-Message-ID: <87y42msg9f.fsf@e105922-lin.cambridge.arm.com>
-References: <1473892358-22574-1-git-send-email-jeremy.linton@arm.com>
-        <1473892358-22574-9-git-send-email-jeremy.linton@arm.com>
-        <87y42st1e3.fsf@e105922-lin.cambridge.arm.com>
-        <6e0b08db-2e13-be49-5208-c396bf51fe68@arm.com>
-        <87bmznu61q.fsf@e105922-lin.cambridge.arm.com>
-        <b8b27aa5-e80e-f7cc-3410-4b2ac44c69e5@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
+ register range for ACPI case
+Date: Tue, 20 Sep 2016 14:17:44 -0500
+Message-ID: <20160920191744.GA4941@localhost>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+ <1473449047-10499-4-git-send-email-tn@semihalf.com>
+ <20160919180900.GB13775@localhost>
+ <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com>
+ <20160920133327.GB13855@localhost>
+ <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com>
+ <20160920140518.GD13855@localhost>
+ <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:55979 "EHLO
-        cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933231AbcITQMF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Sep 2016 12:12:05 -0400
-In-Reply-To: <b8b27aa5-e80e-f7cc-3410-4b2ac44c69e5@arm.com> (Jeremy Linton's
-        message of "Fri, 16 Sep 2016 12:57:20 -0500")
+Received: from mail.kernel.org ([198.145.29.136]:40398 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752820AbcITTRu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Sep 2016 15:17:50 -0400
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, mlangsdorf@redhat.com, steve.capper@arm.com
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Jeremy Linton <jeremy.linton@arm.com> writes:
+On Tue, Sep 20, 2016 at 04:09:25PM +0100, Ard Biesheuvel wrote:
+> On 20 September 2016 at 15:05, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > Hi Ard,
+> >
+> > On Tue, Sep 20, 2016 at 02:40:13PM +0100, Ard Biesheuvel wrote:
+> >> On 20 September 2016 at 14:33, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> >> > [+cc Rafael (maybe already cc'd; I didn't recognize rafael@kernel.org, Duc]
+> >> >
+> >> > On Tue, Sep 20, 2016 at 09:23:21AM +0200, Tomasz Nowicki wrote:
+> >> >> On 19.09.2016 20:09, Bjorn Helgaas wrote:
+> >> >> >On Fri, Sep 09, 2016 at 09:24:05PM +0200, Tomasz Nowicki wrote:
+> >> >> >>thunder-pem driver stands for being ACPI based PCI host controller.
+> >> >> >>However, there is no standard way to describe its PEM-specific register
+> >> >> >>ranges in ACPI tables. Thus we add thunder_pem_init() ACPI extension
+> >> >> >>to obtain hardcoded addresses from static resource array.
+> >> >> >>Although it is not pretty, it prevents from creating standard mechanism to
+> >> >> >>handle similar cases in future.
+> >> >> >>
+> >> >> >>Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> >> >> >>---
+> >> >> >> drivers/pci/host/pci-thunder-pem.c | 61 ++++++++++++++++++++++++++++++--------
+> >> >> >> 1 file changed, 48 insertions(+), 13 deletions(-)
+> >> >> >>
+> >> >> >>diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+> >> >> >>index 6abaf80..b048761 100644
+> >> >> >>--- a/drivers/pci/host/pci-thunder-pem.c
+> >> >> >>+++ b/drivers/pci/host/pci-thunder-pem.c
+> >> >> >>@@ -18,6 +18,7 @@
+> >> >> >> #include <linux/init.h>
+> >> >> >> #include <linux/of_address.h>
+> >> >> >> #include <linux/of_pci.h>
+> >> >> >>+#include <linux/pci-acpi.h>
+> >> >> >> #include <linux/pci-ecam.h>
+> >> >> >> #include <linux/platform_device.h>
+> >> >> >>
+> >> >> >>@@ -284,6 +285,40 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
+> >> >> >>    return pci_generic_config_write(bus, devfn, where, size, val);
+> >> >> >> }
+> >> >> >>
+> >> >> >>+#ifdef CONFIG_ACPI
+> >> >> >>+static struct resource thunder_pem_reg_res[] = {
+> >> >> >>+   [4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
+> >> >> >>+   [5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
+> >> >> >>+   [6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
+> >> >> >>+   [7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
+> >> >> >>+   [8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
+> >> >> >>+   [9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
+> >> >> >>+   [14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
+> >> >> >>+   [15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
+> >> >> >>+   [16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
+> >> >> >>+   [17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
+> >> >> >>+   [18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
+> >> >> >>+   [19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
+> >> >> >
+> >> >> >1) The "correct" way to discover the resources consumed by an ACPI
+> >> >> >   device is to use the _CRS method.  I know there are some issues
+> >> >> >   there for bridges (not the fault of ThunderX!) because there's not
+> >> >> >   a good way to distinguish windows from resources consumed directly
+> >> >> >   by the bridge.
+> >> >> >
+> >> >> >   But we should either do this correctly, or include a comment about
+> >> >> >   why we're doing it wrong, so we don't give the impression that this
+> >> >> >   is the right way to do it.
+> >> >> >
+> >> >> >   I seem to recall some discussion about why we're doing it this way,
+> >> >> >   but I don't remember the details.  It'd be nice to include a
+> >> >> >   summary here.
+> >> >>
+> >> >> OK I will. The reason why we cannot use _CRS for this case is that
+> >> >> CONSUMER flag was not use consistently for the bridge so far.
+> >> >
+> >> > Yes, I'm aware of that problem, but hard-coding resources into drivers
+> >> > is just a disaster.  The PCI and ACPI cores need generic ways to learn
+> >> > what resources are consumed by devices.  For PCI devices, that's done
+> >> > with BARs.  For ACPI devices, it's done with _CRS.  Without generic
+> >> > resource discovery, we can't manage resources reliably at the system
+> >> > level [1].
+> >> >
+> >> > You have a PNP0A03/PNP0A08 device for the PCI host bridge.  Because of
+> >> > the BIOS bugs in CONSUMER flag usage, we assume everything in its _CRS
+> >> > is a window and not consumed by the bridge itself.  What if you added
+> >> > a companion ACPI device with a _CRS that contained the bridge
+> >> > resources?  Then you'd have some driver ugliness to find that device,
+> >> > but at least the ACPI core could tell what resources were in use.
+> >> >
+> >> > Maybe Rafael has a better idea?
+> >>
+> >> In the discussions leading up to this, we tried very hard to make this
+> >> arm64/acpi quirks mechanism just as flexible as we need it to be to
+> >> cover the current crop of incompatible hardware, but not more so.
+> >> Going forward, we intend to require all arm64/acpi hardware to be spec
+> >> compliant, and so any parametrization beyond what is required for the
+> >> currently known broken hardware is only going to make it easier for
+> >> others to ship with tweaked ACPI descriptions so that an existing
+> >> quirk is triggered for hardware that it was not intended for. It also
+> >> implies that we have to deal with the ACPI descriptions as they were
+> >> shipped with the current hardware.
+> >>
+> >> That does not mean, of course, that we should use bare constants
+> >> rather than symbolic ones, but anything beyond that exceeds the
+> >> desired scope of quirks handling.
+> >
+> > Symbolic vs bare constants is the least of my worries.  I'm pretty
+> > happy with the current quirk implementation.  It's pretty simple and
+> > straightforward.
+> >
+> 
+> OK, good to know that we are on the right track here.
+> 
+> > Apparently you shipped broken firmware that doesn't accurately
+> > describe system resource usage.  Presumably that firmware could be
+> > updated, but maybe it's worthwhile to work around it in the kernel,
+> > depending on where it got shipped.
+> >
+> 
+> None of these platforms can be fixed entirely in software, and given
+> that we will not be adding quirks for new broken hardware, we should
+> ask ourselves whether having two versions of a quirk, i.e., one for
+> broken hardware + currently shipping firmware, and one for the same
+> broken hardware with fixed firmware is really an improvement over what
+> has been proposed here.
 
-> On 09/16/2016 12:07 PM, Punit Agrawal wrote:
->> Jeremy Linton <jeremy.linton@arm.com> writes:
->>
->>> Hi,
->>>
->>> On 09/16/2016 08:33 AM, Punit Agrawal wrote:
->>>> Jeremy Linton <jeremy.linton@arm.com> writes:
->>>>
->>>>> Its possible that an ACPI system has multiple CPU types in it
->>>>> with differing PMU counters. Iterate the CPU's and make a determination
->>>>> about how many of each type exist in the system. Then take and create
->>>>> a PMU platform device for each type, and assign it the interrupts parsed
->>>>> from the MADT. Creating a platform device is necessary because the PMUs
->>>>> are not described as devices in the DSDT table.
->>>>>
->>>>> This code is loosely based on earlier work by Mark Salter.
->>>
->>> (trimming)
->>>
->>>>> +
->>>>> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
->>>>> +		if (unused_madt_entries)
->>>>> +			pmu->cpu_count = num_possible_cpus();
->>>>
->>>> So if there is any unbooted cpu ...
->>>>
->>>>> +
->>>>> +		res = kcalloc(pmu->cpu_count,
->>>>> +				  sizeof(struct resource), GFP_KERNEL);
->>>>
->>>> ... we allocate potentially large number (num_possible_cpus()) of
->>>> resources for each PMU.
->>>>
->>>> This is needlessly wasteful. Under what conditions have you found
->>>> reg_midr to be 0?
->>>
->>> Unused MADT entries, in place for potentially unbooted/hotplug
->>> CPUs.
->>
->> Is linux able to deal with booting secondaries that have unused MADT
->> entries?
->
-> Uh, yah I think so, that is how i've been testing it, maybe we are
-> saying different things. When i'm talking about "unused" I mean MADT
-> entries that don't have started/running cpus. Obviously they stop
-> being unused when a cpu is booted.
->
->>
->>> In those cases you don't know for sure which PMU the CPU belongs
->>> to until it comes online and the MIDR can be read. I'm open to
->>> suggestions on how to deal with this, outside of pushing my luck and
->>> further breaking the platform device encapsulation by trying to
->>> reallocate the resource structure while its active. Besides its only
->>> wasteful for ACPI+big.little, which at the moment only applies to a
->>> development platform.
->>
->> I don't have any ideas to solve this problem, but in the interest of
->> helping review, please move all the changes arising from hotplug/unused
->> MADT entries in this patch to the next one.
->
-> Which is sort of the opposite of the last 3 months, of complaints
-> about how hard it was to review this module with multiple patches
-> adding features to the code...
+We're talking about two completely different types of quirks:
 
-My suggestion to move functionality that has concerns and needs rework
-to later patch is aimed at helping get stuff that everybody agrees upon
-merged. But it's only a suggestion...
+  1) MCFG quirks to use memory-mapped config space that doesn't quite
+     conform to the ECAM model in the PCIe spec, and
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  2) Some yet-to-be-determined method to describe address space
+     consumed by a bridge.
+
+The first two patches of this series are a nice implementation for 1).
+The third patch (ThunderX-specific) is one possibility for 2), but I
+don't like it because there's no way for generic software like the
+ACPI core to discover these resources.
+
+> > I'd like to step back and come up with some understanding of how
+> > non-broken firmware *should* deal with this issue.  Then, if we *do*
+> > work around this particular broken firmware in the kernel, it would be
+> > nice to do it in a way that fits in with that understanding.
+> >
+> > For example, if a companion ACPI device is the preferred solution, an
+> > ACPI quirk could fabricate a device with the required resources.  That
+> > would address the problem closer to the source and make it more likely
+> > that the rest of the system will work correctly: /proc/iomem could
+> > make sense, things that look at _CRS generically would work (e.g,
+> > /sys/, an admittedly hypothetical "lsacpi", etc.)
+> >
+> > Hard-coding stuff in drivers is a point solution that doesn't provide
+> > any guidance for future platforms and makes it likely that the hack
+> > will get copied into even more drivers.
+> >
+> 
+> OK, I see. But the guidance for future platforms should be 'do not
+> rely on quirks', and what I am arguing here is that the more we polish
+> up this code and make it clean and reusable, the more likely it is
+> that will end up getting abused by new broken hardware that we set out
+> to reject entirely in the first place.
+> 
+> So of course, if the quirk involves claiming resources, let's make
+> sure that this occurs in the cleanest and most compliant way possible.
+> But any factoring/reuse concerns other than for the current crop of
+> broken hardware should be avoided imo.
+
+If future hardware is completely ECAM-compliant and we don't need any
+more MCFG quirks, that would be great.
+
+But we'll still need to describe that memory-mapped config space
+somewhere.  If that's done with PNP0C02 or similar devices (as is done
+on my x86 laptop), we'd be all set.
+
+If we need to work around firmware in the field that doesn't do that,
+one possibility is a PNP quirk along the lines of
+quirk_amd_mmconfig_area().
+
+Bjorn
