@@ -1,47 +1,79 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 3/4] i2c: i801: Do not create iTCO watchdog when WDAT table exists
-Date: Tue, 20 Sep 2016 15:30:53 +0300
-Message-ID: <20160920123054.195021-4-mika.westerberg@linux.intel.com>
-References: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:9911 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753771AbcITMbA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Sep 2016 08:31:00 -0400
-In-Reply-To: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 0/4] ACPI / watchdog: Add support for WDAT (Watchdog Action Table)
+Date: Tue, 20 Sep 2016 15:30:50 +0300
+Message-ID: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Wim Van Sebroeck <wim@iguana.be>
 Cc: Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Peter Tyser <ptyser@xes-inc.com>, Lee Jones <lee.jones@linaro.org>, Zha Qipeng <qipeng.zha@intel.com>, Darren Hart <dvhart@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-ACPI WDAT table is the preferred way to use hardware watchdog over the
-native iTCO_wdt. Windows only uses this table for its hardware watchdog
-implementation so we should be relatively safe to trust it has been
-validated by OEMs
+Hi,
 
-Prevent iTCO watchdog creation if we detect that there is ACPI WDAT table.
+The WDAT (Watchdog Action Table) is a special ACPI table introduced by
+Microsoft [1] that abstracts the watchdog hardware from the OS. Windows
+uses this table for its watchdog implementation instead of a native iTCO
+driver.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/i2c/busses/i2c-i801.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Microsoft re-licensed the WDAT specification to be under Microsoft
+Community Promise license [2] so it should be fine to use it in Linux.
 
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index 5ef9b733d153..26298af73232 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -1486,7 +1486,9 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 		priv->features |= FEATURE_IRQ;
- 		priv->features |= FEATURE_SMBUS_PEC;
- 		priv->features |= FEATURE_BLOCK_BUFFER;
--		priv->features |= FEATURE_TCO;
-+		/* If we have ACPI based watchdog use that instead */
-+		if (!acpi_has_watchdog())
-+			priv->features |= FEATURE_TCO;
- 		priv->features |= FEATURE_HOST_NOTIFY;
- 		break;
- 
+This series brings WDAT table support to Linux.
+
+When the driver is enabled and we find out that there is a WDAT table, the
+driver will take over the native iTCO watchdog driver. Main advantage in
+this is that we do not need to change the native iTCO driver whenever the
+hardware changes. For example in Skylake iTCO moved to sit behind SMBus and
+the NO_REBOOT bit was hidden behind P2SB (Primary to Sideband). In addition
+we can expect this to be tested much better by OEMs who typically validate
+that Windows works fine on their hardware/firmware.
+
+Patch [1/4] adds ACPI enumeration support and the driver itself. It also
+introduces acpi_has_watchdog() which can be used to check if we should use
+ACPI watchdog or native one.
+
+Patches [2-4/4] prevent creation of the native iTCO platform device if we
+detect that the ACPI watchdog (WDAT) should be used instead.
+
+The previous version of the series can be found in [3].
+
+Changes from v1:
+  * Moved wdat_wdt.c to live under drivers/watchdog
+  * Added checks for timer_period, min_count and max_count
+  * Use min_hw_heartbeat_ms and max_hw_heartbeat_ms instead of
+    min/max_timeout
+  * Instead of stopping the watchdog set WDOG_HW_RUNNING
+  * Switched to use devm_watchdog_register_device() and dropped
+    wdat_wdt_remove()
+  * Do not ping watchdog in resume()
+  * Added review tag from Guenter Roeck to patches [2-4/4].
+
+[1] http://msdn.microsoft.com/en-us/windows/hardware/gg463320.aspx
+[2] https://msdn.microsoft.com/en-us/openspecifications/dn646766.aspx
+[3] http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1230607.html
+
+Mika Westerberg (4):
+  ACPI / watchdog: Add support for WDAT hardware watchdog
+  mfd: lpc_ich: Do not create iTCO watchdog when WDAT table exists
+  i2c: i801: Do not create iTCO watchdog when WDAT table exists
+  platform/x86: intel_pmc_ipc: Do not create iTCO watchdog when WDAT
+    table exists
+
+ drivers/acpi/Kconfig                 |   3 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/acpi_watchdog.c         | 123 ++++++++
+ drivers/acpi/internal.h              |  10 +
+ drivers/acpi/scan.c                  |   1 +
+ drivers/i2c/busses/i2c-i801.c        |   4 +-
+ drivers/mfd/lpc_ich.c                |   4 +
+ drivers/platform/x86/intel_pmc_ipc.c |  12 +-
+ drivers/watchdog/Kconfig             |  13 +
+ drivers/watchdog/Makefile            |   1 +
+ drivers/watchdog/wdat_wdt.c          | 525 +++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h                 |   6 +
+ 12 files changed, 698 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/acpi/acpi_watchdog.c
+ create mode 100644 drivers/watchdog/wdat_wdt.c
+
 -- 
 2.9.3
-
