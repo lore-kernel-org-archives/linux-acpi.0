@@ -1,42 +1,62 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V2 0/2] Correct AER severity for printing AER information
-Date: Tue, 20 Sep 2016 14:41:03 -0500
-Message-ID: <20160920194103.GD4941@localhost>
-References: <1473887686-24420-1-git-send-email-tbaicar@codeaurora.org>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Tue, 20 Sep 2016 23:11:53 +0200
+Message-ID: <20160920211153.y7ntwwik2l6ppoqz@sig21.net>
+References: <20160919112117.55dim46nmqdmqjan@sig21.net>
+ <20160919115619.GF1811@lahna.fi.intel.com>
+ <20160919203622.ujh4l5eudrncv3rl@sig21.net>
+ <20160920091840.GN1811@lahna.fi.intel.com>
+ <20160920101450.ylohouriienzrgtj@sig21.net>
+ <20160920104014.GO1811@lahna.fi.intel.com>
+ <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sig21.net ([80.244.240.74]:38097 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751124AbcITVL6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Sep 2016 17:11:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1473887686-24420-1-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, paul.gortmaker@windriver.com, sudipm.mukherjee@gmail.com, axboe@fb.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bp@suse.de
+In-Reply-To: <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Sep 14, 2016 at 03:14:44PM -0600, Tyler Baicar wrote:
-> AER severity handling has two issues that cause the AER information to
-> be printed incorrectly. The first issue is that the function to calculate
-> the AER severity is called twice in the code path to print the AER
-> information. The second issue is that the original call to calculate the
-> AER severity expects the CPER severity but is recieving the GHES
-> severity.
+On Tue, Sep 20, 2016 at 05:59:43PM +0200, Johannes Stezenbach wrote:
+> On Tue, Sep 20, 2016 at 01:40:14PM +0300, Mika Westerberg wrote:
+> > If yes, it probably does not have the normal Fixed power button but
+> > instead it has something called "Windows button array device" with
+> > _HID/_CID of PNP0C40. Looking at your dsdt.dsl, this looks to be the
+> > case.
+> > 
+> > That device is driven by soc_button_array.c driver which can be enabled
+> > with CONFIG_KEYBOARD_GPIO=y and CONFIG_INPUT_SOC_BUTTON_ARRAY=y. Can you
+> > check if you have that enabled already?
+> > 
+> > You should actually see it in /proc/interrupts with names like "power"
+> > and so on.
 > 
-> V2: Fix minor typo in commit text.
-> 
-> V1: https://lkml.org/lkml/2016/9/12/1075
-> 
-> Tyler Baicar (2):
->   PCI/AER: Remove duplicate AER severity translation
->   acpi: apei: send correct severity to calculate AER severity
-> 
->  drivers/acpi/apei/ghes.c               | 2 +-
->  drivers/pci/pcie/aer/aerdrv_errprint.c | 6 ++----
->  include/linux/aer.h                    | 2 +-
->  3 files changed, 4 insertions(+), 6 deletions(-)
+> I added CONFIG_INPUT_SOC_BUTTON_ARRAY=y, but no joy.
+> Maybe because the _HID is INTCFD9, only _CID is PNP0C40?
+> It also has a _DSM with UUID dfbcf3c5-e7a5-44e6-9c1f-29c76f6e059c.
 
-I applied both to pci/aer for v4.9, thanks!
+Or it is because the PNP0C40 device depends on GpioInt from PMIC
+which isn't available...
 
-Rafael, the second one is strictly ACPI, and I'd be happy to let you
-deal with it if you prefer.
+            Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+            {
+                Name (CBUF, ResourceTemplate ()
+                {
+                    GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullUp, 0x0BB8,
+                        "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
+                        )
+                        {   // Pin list
+                            0x0016
+                        }
+                })
+                Return (CBUF) /* \_SB_.TBAD._CRS.CBUF */
+            }
 
-Bjorn
+Thanks,
+Johannes
