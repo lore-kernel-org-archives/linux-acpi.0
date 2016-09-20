@@ -1,117 +1,106 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Tue, 20 Sep 2016 14:40:13 +0100
-Message-ID: <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-4-git-send-email-tn@semihalf.com> <20160919180900.GB13775@localhost>
- <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com> <20160920133327.GB13855@localhost>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 1/4] ACPI / watchdog: Add support for WDAT hardware
+ watchdog
+Date: Tue, 20 Sep 2016 16:50:07 +0300
+Message-ID: <20160920135007.GR1811@lahna.fi.intel.com>
+References: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
+ <20160920123054.195021-2-mika.westerberg@linux.intel.com>
+ <26c6e893-4b57-c7d6-7ab3-16e4f3a8c946@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160920133327.GB13855@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:19179 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752744AbcITN6z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 20 Sep 2016 09:58:55 -0400
+Content-Disposition: inline
+In-Reply-To: <26c6e893-4b57-c7d6-7ab3-16e4f3a8c946@roeck-us.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Wim Van Sebroeck <wim@iguana.be>, Len Brown <lenb@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Peter Tyser <ptyser@xes-inc.com>, Lee Jones <lee.jones@linaro.org>, Zha Qipeng <qipeng.zha@intel.com>, Darren Hart <dvhart@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 20 September 2016 at 14:33, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> [+cc Rafael (maybe already cc'd; I didn't recognize rafael@kernel.org, Duc]
->
-> On Tue, Sep 20, 2016 at 09:23:21AM +0200, Tomasz Nowicki wrote:
->> On 19.09.2016 20:09, Bjorn Helgaas wrote:
->> >On Fri, Sep 09, 2016 at 09:24:05PM +0200, Tomasz Nowicki wrote:
->> >>thunder-pem driver stands for being ACPI based PCI host controller.
->> >>However, there is no standard way to describe its PEM-specific register
->> >>ranges in ACPI tables. Thus we add thunder_pem_init() ACPI extension
->> >>to obtain hardcoded addresses from static resource array.
->> >>Although it is not pretty, it prevents from creating standard mechanism to
->> >>handle similar cases in future.
->> >>
->> >>Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> >>---
->> >> drivers/pci/host/pci-thunder-pem.c | 61 ++++++++++++++++++++++++++++++--------
->> >> 1 file changed, 48 insertions(+), 13 deletions(-)
->> >>
->> >>diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
->> >>index 6abaf80..b048761 100644
->> >>--- a/drivers/pci/host/pci-thunder-pem.c
->> >>+++ b/drivers/pci/host/pci-thunder-pem.c
->> >>@@ -18,6 +18,7 @@
->> >> #include <linux/init.h>
->> >> #include <linux/of_address.h>
->> >> #include <linux/of_pci.h>
->> >>+#include <linux/pci-acpi.h>
->> >> #include <linux/pci-ecam.h>
->> >> #include <linux/platform_device.h>
->> >>
->> >>@@ -284,6 +285,40 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
->> >>    return pci_generic_config_write(bus, devfn, where, size, val);
->> >> }
->> >>
->> >>+#ifdef CONFIG_ACPI
->> >>+static struct resource thunder_pem_reg_res[] = {
->> >>+   [4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
->> >>+   [5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
->> >>+   [6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
->> >>+   [7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
->> >>+   [8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
->> >>+   [9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
->> >>+   [14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
->> >>+   [15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
->> >>+   [16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
->> >>+   [17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
->> >>+   [18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
->> >>+   [19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
->> >
->> >1) The "correct" way to discover the resources consumed by an ACPI
->> >   device is to use the _CRS method.  I know there are some issues
->> >   there for bridges (not the fault of ThunderX!) because there's not
->> >   a good way to distinguish windows from resources consumed directly
->> >   by the bridge.
->> >
->> >   But we should either do this correctly, or include a comment about
->> >   why we're doing it wrong, so we don't give the impression that this
->> >   is the right way to do it.
->> >
->> >   I seem to recall some discussion about why we're doing it this way,
->> >   but I don't remember the details.  It'd be nice to include a
->> >   summary here.
->>
->> OK I will. The reason why we cannot use _CRS for this case is that
->> CONSUMER flag was not use consistently for the bridge so far.
->
-> Yes, I'm aware of that problem, but hard-coding resources into drivers
-> is just a disaster.  The PCI and ACPI cores need generic ways to learn
-> what resources are consumed by devices.  For PCI devices, that's done
-> with BARs.  For ACPI devices, it's done with _CRS.  Without generic
-> resource discovery, we can't manage resources reliably at the system
-> level [1].
->
-> You have a PNP0A03/PNP0A08 device for the PCI host bridge.  Because of
-> the BIOS bugs in CONSUMER flag usage, we assume everything in its _CRS
-> is a window and not consumed by the bridge itself.  What if you added
-> a companion ACPI device with a _CRS that contained the bridge
-> resources?  Then you'd have some driver ugliness to find that device,
-> but at least the ACPI core could tell what resources were in use.
->
-> Maybe Rafael has a better idea?
->
+On Tue, Sep 20, 2016 at 06:37:23AM -0700, Guenter Roeck wrote:
+> > +	for (i = 0; i < tbl->entries; i++) {
+> > +		const struct acpi_generic_address *gas;
+> > +		struct wdat_instruction *instr;
+> > +		struct list_head *instructions;
+> > +		unsigned int action;
+> > +		struct resource r;
+> > +		int j;
+> > +
+> > +		action = entries[i].action;
+> > +		if (action >= MAX_WDAT_ACTIONS) {
+> > +			dev_dbg(&pdev->dev, "Skipping unknown action: %u\n",
+> > +				action);
+> > +			continue;
+> > +		}
+> > +
+> > +		instr = devm_kzalloc(&pdev->dev, sizeof(*instr), GFP_KERNEL);
+> > +		if (!instr)
+> > +			return -ENOMEM;
+> > +
+> > +		INIT_LIST_HEAD(&instr->node);
+> > +		instr->entry = entries[i];
+> > +
+> > +		gas = &entries[i].register_region;
+> > +
+> > +		memset(&r, 0, sizeof(r));
+> > +		r.start = gas->address;
+> > +		r.end = r.start + gas->access_width;
+> > +		if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+> > +			r.flags = IORESOURCE_MEM;
+> > +		} else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+> > +			r.flags = IORESOURCE_IO;
+> > +		} else {
+> > +			dev_dbg(&pdev->dev, "Unsupported address space: %d\n",
+> > +				gas->space_id);
+> > +			continue;
+> > +		}
+> > +
+> > +		/* Find the matching resource */
+> > +		for (j = 0; j < pdev->num_resources; j++) {
+> > +			res = &pdev->resource[j];
+> > +			if (resource_contains(res, &r)) {
+> > +				instr->reg = regs[j] + r.start - res->start;
+> > +				break;
+> > +			}
+> > +		}
+> > +
+> > +		if (!instr->reg) {
+> > +			dev_err(&pdev->dev, "I/O resource not found\n");
+> > +			return -EINVAL;
+> > +		}
+> > +
+> I must be missing something here. What is happening with instr ?
 
-In the discussions leading up to this, we tried very hard to make this
-arm64/acpi quirks mechanism just as flexible as we need it to be to
-cover the current crop of incompatible hardware, but not more so.
-Going forward, we intend to require all arm64/acpi hardware to be spec
-compliant, and so any parametrization beyond what is required for the
-currently known broken hardware is only going to make it easier for
-others to ship with tweaked ACPI descriptions so that an existing
-quirk is triggered for hardware that it was not intended for. It also
-implies that we have to deal with the ACPI descriptions as they were
-shipped with the current hardware.
+Instr contains the actual instruction from WDAT table. There can be
+many.
 
-That does not mean, of course, that we should use bare constants
-rather than symbolic ones, but anything beyond that exceeds the
-desired scope of quirks handling.
+> > +		instructions = wdat->instructions[action];
 
--- 
-Ard.
+This will be NULL first time so...
+
+> > +		if (!instructions) {
+> > +			instructions = devm_kzalloc(&pdev->dev,
+> > +					sizeof(*instructions), GFP_KERNEL);
+> > +			if (!instructions)
+> > +				return -ENOMEM;
+> > +
+> > +			INIT_LIST_HEAD(instructions);
+> > +			wdat->instructions[action] = instructions;
+> 
+> ... and I don't really see how wdat->instructions[action] contains anything but
+> a zero filled array. Confused :-(.
+
+...we allocate entry for that here. Next time it will not be NULL for
+that action.
+
+> 
+> > +		}
+> > +
+> > +		list_add_tail(&instr->node, instructions);
+
+Then we append each instr to the list for this action.
+
+Hope this clarifies :)
