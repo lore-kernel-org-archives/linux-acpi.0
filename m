@@ -1,114 +1,75 @@
-From: Johannes Stezenbach <js@sig21.net>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 Subject: Re: Cherryview wake up events
-Date: Tue, 20 Sep 2016 12:14:50 +0200
-Message-ID: <20160920101450.ylohouriienzrgtj@sig21.net>
+Date: Tue, 20 Sep 2016 13:40:14 +0300
+Message-ID: <20160920104014.GO1811@lahna.fi.intel.com>
 References: <20160919112117.55dim46nmqdmqjan@sig21.net>
  <20160919115619.GF1811@lahna.fi.intel.com>
  <20160919203622.ujh4l5eudrncv3rl@sig21.net>
  <20160920091840.GN1811@lahna.fi.intel.com>
+ <20160920101450.ylohouriienzrgtj@sig21.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:45043 "EHLO mail.sig21.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932560AbcITKPA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 20 Sep 2016 06:15:00 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160920091840.GN1811@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
+In-Reply-To: <20160920101450.ylohouriienzrgtj@sig21.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johannes Stezenbach <js@sig21.net>
 Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 20, 2016 at 12:18:40PM +0300, Mika Westerberg wrote:
-> On Mon, Sep 19, 2016 at 10:36:22PM +0200, Johannes Stezenbach wrote:
-> > Now my question is, is this pin 0x004E the same as this
-> > in /proc/interrupts which fires on LID event?
+On Tue, Sep 20, 2016 at 12:14:50PM +0200, Johannes Stezenbach wrote:
+> On Tue, Sep 20, 2016 at 12:18:40PM +0300, Mika Westerberg wrote:
+> > On Mon, Sep 19, 2016 at 10:36:22PM +0200, Johannes Stezenbach wrote:
+> > > Now my question is, is this pin 0x004E the same as this
+> > > in /proc/interrupts which fires on LID event?
+> > > 
+> > >  158:          2          0          0          0  chv-gpio   43 ACPI:Event
 > > 
-> >  158:          2          0          0          0  chv-gpio   43 ACPI:Event
+> > Yes, it is that one and it triggers \_SB.GPO0._E4E() method to be called
+> > whenever low edge is detected on the GPIO line. This method then handles
+> > many things depending on what the AML code reads from ^^PCI0.I2C1.ENID
+> > notifying the power button device (PWRB) among other things.
 > 
-> Yes, it is that one and it triggers \_SB.GPO0._E4E() method to be called
-> whenever low edge is detected on the GPIO line. This method then handles
-> many things depending on what the AML code reads from ^^PCI0.I2C1.ENID
-> notifying the power button device (PWRB) among other things.
+> Thanks for confirmation, but it circles back to the question
+> how to map the numbers.  Since the document that describes it
+> is not public, it would be useful if you could add comments
+> to pinctrl-cherryview.c that describes it.
+> Or did I just miss something?
 
-Thanks for confirmation, but it circles back to the question
-how to map the numbers.  Since the document that describes it
-is not public, it would be useful if you could add comments
-to pinctrl-cherryview.c that describes it.
-Or did I just miss something?
+I don't think it is relevant here. The driver uses only wired OR
+interrupt which is provided in _CRS of the device.
 
-> I suppose you already have CONFIG_ACPI_I2C_OPREGION=y in your .config?
-> That allows the AML code to access the I2C bus using the I2C driver.
-> 
-> > The FADT has
-> >             Control Method Power Button (V1) : 0
-> >             Control Method Sleep Button (V1) : 1
+> > I suppose you already have CONFIG_ACPI_I2C_OPREGION=y in your .config?
+> > That allows the AML code to access the I2C bus using the I2C driver.
 > > 
-> > PWRBTN_EN in PM1 is set.  But PWRBTN press causes thermal irq.
-> 
-> Yeah, it uses control method power button (PNP0C0C) and ACPI GPIO event
-> to trigger changes in that.
-
-I'm confused again because I thought "Control Method Power Button (V1) : 0"
-means it is a fixed power button, however the DSDT also has
-
-        Device (PWRB)
-        {
-            Name (_HID, EisaId ("PNP0C0C") /* Power Button Device */)  // _HID: Hardware ID
-        }
-
-        Device (SLPB)
-        {
-            Name (_HID, EisaId ("PNP0C0E") /* Sleep Button Device */)  // _HID: Hardware ID
-        }
-
-
-> > No SCI (irq 9) is ever generated, except by writing to the
-> > BIOS_RLS bit in SMI_EN register (IO port 0x430).
+> > > The FADT has
+> > >             Control Method Power Button (V1) : 0
+> > >             Control Method Sleep Button (V1) : 1
+> > > 
+> > > PWRBTN_EN in PM1 is set.  But PWRBTN press causes thermal irq.
 > > 
-> > GPE block addresses in FADT are 0.  GPE0a_EN register (IO 0x428)
-> > is set to 0x6000 (TCO_EN + PME_B0_EN, but none of the GPIO enables).
-> > 
-> > Any advice how to continue?
+> > Yeah, it uses control method power button (PNP0C0C) and ACPI GPIO event
+> > to trigger changes in that.
 > 
-> Please check that you have that CONFIG_ACPI_I2C_OPREGION=y and
-> CONFIG_MFD_AXP20X=y.
-> 
-> You should see the ACPI:Event interrupt count increasing in
-> /proc/interrups when you press power button. When that works then we can
-> start thinking about adding wake support :)
+> I'm confused again because I thought "Control Method Power Button (V1) : 0"
+> means it is a fixed power button, however the DSDT also has
 
-I had CONFIG_ACPI_I2C_OPREGION=y but excluded CONFIG_MFD_AXP20X
-based on \_SB.PIC0.I2C7.PMI1._STA returning 0 in acpidbg,
+I misread it, sorry about that.
 
-            Device (PMI1)
-            {
-                Name (_ADR, Zero)  // _ADR: Address
-                Name (_HID, "INT33F4" /* XPOWER PMIC Controller */)  // _HID: Hardware ID
-                Name (_CID, "INT33F4" /* XPOWER PMIC Controller */)  // _CID: Compatible ID
-                Name (_DDN, "XPOWER PMIC Controller")  // _DDN: DOS Device Name
+Can you check if you have:
 
-but \_SB.PIC0.I2C7.PMI1._STA returns 0xf
+  Hardware Reduced (V5) : 1
 
-            Device (PMI2)
-            {
-                Name (_ADR, Zero)  // _ADR: Address
-                Name (_HID, "INT33F5" /* TI PMIC Controller */)  // _HID: Hardware ID
-                Name (_CID, "INT33F5" /* TI PMIC Controller */)  // _CID: Compatible ID
-                Name (_DDN, "TI PMIC Controller")  // _DDN: DOS Device Name
+in that FADT table?
 
-So I tried CONFIG_MFD_AXP20X=y anyway, but as expected: no change.
+If yes, it probably does not have the normal Fixed power button but
+instead it has something called "Windows button array device" with
+_HID/_CID of PNP0C40. Looking at your dsdt.dsl, this looks to be the
+case.
 
-Since TI doesn't even have a product page for the SND9039
-(only a few references in TI support forum can be found),
-I'm not sure what can be done.  So maybe a better short term
-goal would be to get wakeup by LID working.
+That device is driven by soc_button_array.c driver which can be enabled
+with CONFIG_KEYBOARD_GPIO=y and CONFIG_INPUT_SOC_BUTTON_ARRAY=y. Can you
+check if you have that enabled already?
 
-However, I still wonder why the power button can trigger
-a thermal irq, is it related to the PMIC?  I couldn't
-find out where the thermal irq is routed.
-
-
-Thanks,
-Johannes
+You should actually see it in /proc/interrupts with names like "power"
+and so on.
