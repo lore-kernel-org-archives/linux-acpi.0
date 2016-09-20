@@ -1,828 +1,169 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v2 1/4] ACPI / watchdog: Add support for WDAT hardware
- watchdog
-Date: Tue, 20 Sep 2016 07:49:47 -0700
-Message-ID: <a3178ebc-9fbe-e11d-6544-bf9ccd8c7cfc@roeck-us.net>
-References: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
- <20160920123054.195021-2-mika.westerberg@linux.intel.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
+ register range for ACPI case
+Date: Tue, 20 Sep 2016 16:09:25 +0100
+Message-ID: <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+ <1473449047-10499-4-git-send-email-tn@semihalf.com> <20160919180900.GB13775@localhost>
+ <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com> <20160920133327.GB13855@localhost>
+ <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com> <20160920140518.GD13855@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160920123054.195021-2-mika.westerberg@linux.intel.com>
+In-Reply-To: <20160920140518.GD13855@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Len Brown <lenb@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Peter Tyser <ptyser@xes-inc.com>, Lee Jones <lee.jones@linaro.org>, Zha Qipeng <qipeng.zha@intel.com>, Darren Hart <dvhart@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/20/2016 05:30 AM, Mika Westerberg wrote:
-> Starting from Intel Skylake the iTCO watchdog timer registers were moved to
-> reside in the same register space with SMBus host controller.  Not all
-> needed registers are available though and we need to unhide P2SB (Primary
-> to Sideband) device briefly to be able to read status of required NO_REBOOT
-> bit. The i2c-i801.c SMBus driver used to handle this and creation of the
-> iTCO watchdog platform device.
+On 20 September 2016 at 15:05, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> Hi Ard,
 >
-> Windows, on the other hand, does not use the iTCO watchdog hardware
-> directly even if it is available. Instead it relies on ACPI Watchdog Action
-> Table (WDAT) table to describe the watchdog hardware to the OS. This table
-> contains necessary information about the the hardware and also set of
-> actions which are executed by a driver as needed.
+> On Tue, Sep 20, 2016 at 02:40:13PM +0100, Ard Biesheuvel wrote:
+>> On 20 September 2016 at 14:33, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> > [+cc Rafael (maybe already cc'd; I didn't recognize rafael@kernel.org, Duc]
+>> >
+>> > On Tue, Sep 20, 2016 at 09:23:21AM +0200, Tomasz Nowicki wrote:
+>> >> On 19.09.2016 20:09, Bjorn Helgaas wrote:
+>> >> >On Fri, Sep 09, 2016 at 09:24:05PM +0200, Tomasz Nowicki wrote:
+>> >> >>thunder-pem driver stands for being ACPI based PCI host controller.
+>> >> >>However, there is no standard way to describe its PEM-specific register
+>> >> >>ranges in ACPI tables. Thus we add thunder_pem_init() ACPI extension
+>> >> >>to obtain hardcoded addresses from static resource array.
+>> >> >>Although it is not pretty, it prevents from creating standard mechanism to
+>> >> >>handle similar cases in future.
+>> >> >>
+>> >> >>Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> >> >>---
+>> >> >> drivers/pci/host/pci-thunder-pem.c | 61 ++++++++++++++++++++++++++++++--------
+>> >> >> 1 file changed, 48 insertions(+), 13 deletions(-)
+>> >> >>
+>> >> >>diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+>> >> >>index 6abaf80..b048761 100644
+>> >> >>--- a/drivers/pci/host/pci-thunder-pem.c
+>> >> >>+++ b/drivers/pci/host/pci-thunder-pem.c
+>> >> >>@@ -18,6 +18,7 @@
+>> >> >> #include <linux/init.h>
+>> >> >> #include <linux/of_address.h>
+>> >> >> #include <linux/of_pci.h>
+>> >> >>+#include <linux/pci-acpi.h>
+>> >> >> #include <linux/pci-ecam.h>
+>> >> >> #include <linux/platform_device.h>
+>> >> >>
+>> >> >>@@ -284,6 +285,40 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
+>> >> >>    return pci_generic_config_write(bus, devfn, where, size, val);
+>> >> >> }
+>> >> >>
+>> >> >>+#ifdef CONFIG_ACPI
+>> >> >>+static struct resource thunder_pem_reg_res[] = {
+>> >> >>+   [4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
+>> >> >>+   [5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
+>> >> >>+   [6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
+>> >> >>+   [7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
+>> >> >>+   [8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
+>> >> >>+   [9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
+>> >> >>+   [14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
+>> >> >>+   [15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
+>> >> >>+   [16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
+>> >> >>+   [17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
+>> >> >>+   [18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
+>> >> >>+   [19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
+>> >> >
+>> >> >1) The "correct" way to discover the resources consumed by an ACPI
+>> >> >   device is to use the _CRS method.  I know there are some issues
+>> >> >   there for bridges (not the fault of ThunderX!) because there's not
+>> >> >   a good way to distinguish windows from resources consumed directly
+>> >> >   by the bridge.
+>> >> >
+>> >> >   But we should either do this correctly, or include a comment about
+>> >> >   why we're doing it wrong, so we don't give the impression that this
+>> >> >   is the right way to do it.
+>> >> >
+>> >> >   I seem to recall some discussion about why we're doing it this way,
+>> >> >   but I don't remember the details.  It'd be nice to include a
+>> >> >   summary here.
+>> >>
+>> >> OK I will. The reason why we cannot use _CRS for this case is that
+>> >> CONSUMER flag was not use consistently for the bridge so far.
+>> >
+>> > Yes, I'm aware of that problem, but hard-coding resources into drivers
+>> > is just a disaster.  The PCI and ACPI cores need generic ways to learn
+>> > what resources are consumed by devices.  For PCI devices, that's done
+>> > with BARs.  For ACPI devices, it's done with _CRS.  Without generic
+>> > resource discovery, we can't manage resources reliably at the system
+>> > level [1].
+>> >
+>> > You have a PNP0A03/PNP0A08 device for the PCI host bridge.  Because of
+>> > the BIOS bugs in CONSUMER flag usage, we assume everything in its _CRS
+>> > is a window and not consumed by the bridge itself.  What if you added
+>> > a companion ACPI device with a _CRS that contained the bridge
+>> > resources?  Then you'd have some driver ugliness to find that device,
+>> > but at least the ACPI core could tell what resources were in use.
+>> >
+>> > Maybe Rafael has a better idea?
+>>
+>> In the discussions leading up to this, we tried very hard to make this
+>> arm64/acpi quirks mechanism just as flexible as we need it to be to
+>> cover the current crop of incompatible hardware, but not more so.
+>> Going forward, we intend to require all arm64/acpi hardware to be spec
+>> compliant, and so any parametrization beyond what is required for the
+>> currently known broken hardware is only going to make it easier for
+>> others to ship with tweaked ACPI descriptions so that an existing
+>> quirk is triggered for hardware that it was not intended for. It also
+>> implies that we have to deal with the ACPI descriptions as they were
+>> shipped with the current hardware.
+>>
+>> That does not mean, of course, that we should use bare constants
+>> rather than symbolic ones, but anything beyond that exceeds the
+>> desired scope of quirks handling.
 >
-> This patch implements a new watchdog driver that takes advantage of the
-> ACPI WDAT table. We split the functionality into two parts: first part
-> enumerates the WDAT table and if found, populates resources and creates
-> platform device for the actual driver. The second part is the driver
-> itself.
+> Symbolic vs bare constants is the least of my worries.  I'm pretty
+> happy with the current quirk implementation.  It's pretty simple and
+> straightforward.
 >
-> The reason for the split is that this way we can make the driver itself to
-> be a module and loaded automatically if the WDAT table is found. Otherwise
-> the module is not loaded.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+OK, good to know that we are on the right track here.
 
-> ---
->  drivers/acpi/Kconfig         |   3 +
->  drivers/acpi/Makefile        |   1 +
->  drivers/acpi/acpi_watchdog.c | 123 ++++++++++
->  drivers/acpi/internal.h      |  10 +
->  drivers/acpi/scan.c          |   1 +
->  drivers/watchdog/Kconfig     |  13 ++
->  drivers/watchdog/Makefile    |   1 +
->  drivers/watchdog/wdat_wdt.c  | 525 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h         |   6 +
->  9 files changed, 683 insertions(+)
->  create mode 100644 drivers/acpi/acpi_watchdog.c
->  create mode 100644 drivers/watchdog/wdat_wdt.c
+> Apparently you shipped broken firmware that doesn't accurately
+> describe system resource usage.  Presumably that firmware could be
+> updated, but maybe it's worthwhile to work around it in the kernel,
+> depending on where it got shipped.
 >
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 445ce28475b3..dcfa7e9e92f5 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -462,6 +462,9 @@ source "drivers/acpi/nfit/Kconfig"
->  source "drivers/acpi/apei/Kconfig"
->  source "drivers/acpi/dptf/Kconfig"
+
+None of these platforms can be fixed entirely in software, and given
+that we will not be adding quirks for new broken hardware, we should
+ask ourselves whether having two versions of a quirk, i.e., one for
+broken hardware + currently shipping firmware, and one for the same
+broken hardware with fixed firmware is really an improvement over what
+has been proposed here.
+
+> I'd like to step back and come up with some understanding of how
+> non-broken firmware *should* deal with this issue.  Then, if we *do*
+> work around this particular broken firmware in the kernel, it would be
+> nice to do it in a way that fits in with that understanding.
 >
-> +config ACPI_WATCHDOG
-> +	bool
-> +
->  config ACPI_EXTLOG
->  	tristate "Extended Error Log support"
->  	depends on X86_MCE && X86_LOCAL_APIC
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 5ae9d85c5159..3a1fa8f03749 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -56,6 +56,7 @@ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
->  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->  acpi-y				+= acpi_lpat.o
->  acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
-> +acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+> For example, if a companion ACPI device is the preferred solution, an
+> ACPI quirk could fabricate a device with the required resources.  That
+> would address the problem closer to the source and make it more likely
+> that the rest of the system will work correctly: /proc/iomem could
+> make sense, things that look at _CRS generically would work (e.g,
+> /sys/, an admittedly hypothetical "lsacpi", etc.)
 >
->  # These are (potentially) separate modules
+> Hard-coding stuff in drivers is a point solution that doesn't provide
+> any guidance for future platforms and makes it likely that the hack
+> will get copied into even more drivers.
 >
-> diff --git a/drivers/acpi/acpi_watchdog.c b/drivers/acpi/acpi_watchdog.c
-> new file mode 100644
-> index 000000000000..13caebd679f5
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_watchdog.c
-> @@ -0,0 +1,123 @@
-> +/*
-> + * ACPI watchdog table parsing support.
-> + *
-> + * Copyright (C) 2016, Intel Corporation
-> + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: watchdog: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/ioport.h>
-> +#include <linux/platform_device.h>
-> +
-> +#include "internal.h"
-> +
-> +/**
-> + * Returns true if this system should prefer ACPI based watchdog instead of
-> + * the native one (which are typically the same hardware).
-> + */
-> +bool acpi_has_watchdog(void)
-> +{
-> +	struct acpi_table_header hdr;
-> +
-> +	if (acpi_disabled)
-> +		return false;
-> +
-> +	return ACPI_SUCCESS(acpi_get_table_header(ACPI_SIG_WDAT, 0, &hdr));
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_has_watchdog);
-> +
-> +void __init acpi_watchdog_init(void)
-> +{
-> +	const struct acpi_wdat_entry *entries;
-> +	const struct acpi_table_wdat *wdat;
-> +	struct list_head resource_list;
-> +	struct resource_entry *rentry;
-> +	struct platform_device *pdev;
-> +	struct resource *resources;
-> +	size_t nresources = 0;
-> +	acpi_status status;
-> +	int i;
-> +
-> +	status = acpi_get_table(ACPI_SIG_WDAT, 0,
-> +				(struct acpi_table_header **)&wdat);
-> +	if (ACPI_FAILURE(status)) {
-> +		/* It is fine if there is no WDAT */
-> +		return;
-> +	}
-> +
-> +	/* Watchdog disabled by BIOS */
-> +	if (!(wdat->flags & ACPI_WDAT_ENABLED))
-> +		return;
-> +
-> +	/* Skip legacy PCI WDT devices */
-> +	if (wdat->pci_segment != 0xff || wdat->pci_bus != 0xff ||
-> +	    wdat->pci_device != 0xff || wdat->pci_function != 0xff)
-> +		return;
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +
-> +	entries = (struct acpi_wdat_entry *)(wdat + 1);
-> +	for (i = 0; i < wdat->entries; i++) {
-> +		const struct acpi_generic_address *gas;
-> +		struct resource_entry *rentry;
-> +		struct resource res;
-> +		bool found;
-> +
-> +		gas = &entries[i].register_region;
-> +
-> +		res.start = gas->address;
-> +		if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +			res.flags = IORESOURCE_MEM;
-> +			res.end = res.start + ALIGN(gas->access_width, 4);
-> +		} else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-> +			res.flags = IORESOURCE_IO;
-> +			res.end = res.start + gas->access_width;
-> +		} else {
-> +			pr_warn("Unsupported address space: %u\n",
-> +				gas->space_id);
-> +			goto fail_free_resource_list;
-> +		}
-> +
-> +		found = false;
-> +		resource_list_for_each_entry(rentry, &resource_list) {
-> +			if (resource_contains(rentry->res, &res)) {
-> +				found = true;
-> +				break;
-> +			}
-> +		}
-> +
-> +		if (!found) {
-> +			rentry = resource_list_create_entry(NULL, 0);
-> +			if (!rentry)
-> +				goto fail_free_resource_list;
-> +
-> +			*rentry->res = res;
-> +			resource_list_add_tail(rentry, &resource_list);
-> +			nresources++;
-> +		}
-> +	}
-> +
-> +	resources = kcalloc(nresources, sizeof(*resources), GFP_KERNEL);
-> +	if (!resources)
-> +		goto fail_free_resource_list;
-> +
-> +	i = 0;
-> +	resource_list_for_each_entry(rentry, &resource_list)
-> +		resources[i++] = *rentry->res;
-> +
-> +	pdev = platform_device_register_simple("wdat_wdt", PLATFORM_DEVID_NONE,
-> +					       resources, nresources);
-> +	if (IS_ERR(pdev))
-> +		pr_err("Failed to create platform device\n");
-> +
-> +	kfree(resources);
-> +
-> +fail_free_resource_list:
-> +	resource_list_free(&resource_list);
-> +}
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 940218ff0193..fb9a7ad96756 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -225,4 +225,14 @@ static inline void suspend_nvs_restore(void) {}
->  void acpi_init_properties(struct acpi_device *adev);
->  void acpi_free_properties(struct acpi_device *adev);
->
-> +/*--------------------------------------------------------------------------
-> +				Watchdog
-> +  -------------------------------------------------------------------------- */
-> +
-> +#ifdef CONFIG_ACPI_WATCHDOG
-> +void acpi_watchdog_init(void);
-> +#else
-> +static inline void acpi_watchdog_init(void) {}
-> +#endif
-> +
->  #endif /* _ACPI_INTERNAL_H_ */
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index e878fc799af7..3b85d87021da 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2002,6 +2002,7 @@ int __init acpi_scan_init(void)
->  	acpi_pnp_init();
->  	acpi_int340x_thermal_init();
->  	acpi_amba_init();
-> +	acpi_watchdog_init();
->
->  	acpi_scan_add_handler(&generic_device_handler);
->
-> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-> index 1bffe006ca9a..50dbaa805658 100644
-> --- a/drivers/watchdog/Kconfig
-> +++ b/drivers/watchdog/Kconfig
-> @@ -152,6 +152,19 @@ config TANGOX_WATCHDOG
->
->  	  This driver can be built as a module. The module name is tangox_wdt.
->
-> +config WDAT_WDT
-> +	tristate "ACPI Watchdog Action Table (WDAT)"
-> +	depends on ACPI
-> +	select ACPI_WATCHDOG
-> +	help
-> +	  This driver adds support for systems with ACPI Watchdog Action
-> +	  Table (WDAT) table. Servers typically have this but it can be
-> +	  found on some desktop machines as well. This driver will take
-> +	  over the native iTCO watchdog driver found on many Intel CPUs.
-> +
-> +	  To compile this driver as module, choose M here: the module will
-> +	  be called wdat_wdt.
-> +
->  config WM831X_WATCHDOG
->  	tristate "WM831x watchdog"
->  	depends on MFD_WM831X
-> diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
-> index c22ad3ea3539..cba00430151b 100644
-> --- a/drivers/watchdog/Makefile
-> +++ b/drivers/watchdog/Makefile
-> @@ -202,6 +202,7 @@ obj-$(CONFIG_DA9062_WATCHDOG) += da9062_wdt.o
->  obj-$(CONFIG_DA9063_WATCHDOG) += da9063_wdt.o
->  obj-$(CONFIG_GPIO_WATCHDOG)	+= gpio_wdt.o
->  obj-$(CONFIG_TANGOX_WATCHDOG) += tangox_wdt.o
-> +obj-$(CONFIG_WDAT_WDT) += wdat_wdt.o
->  obj-$(CONFIG_WM831X_WATCHDOG) += wm831x_wdt.o
->  obj-$(CONFIG_WM8350_WATCHDOG) += wm8350_wdt.o
->  obj-$(CONFIG_MAX63XX_WATCHDOG) += max63xx_wdt.o
-> diff --git a/drivers/watchdog/wdat_wdt.c b/drivers/watchdog/wdat_wdt.c
-> new file mode 100644
-> index 000000000000..6b6464596674
-> --- /dev/null
-> +++ b/drivers/watchdog/wdat_wdt.c
-> @@ -0,0 +1,525 @@
-> +/*
-> + * ACPI Hardware Watchdog (WDAT) driver.
-> + *
-> + * Copyright (C) 2016, Intel Corporation
-> + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/ioport.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pm.h>
-> +#include <linux/watchdog.h>
-> +
-> +#define MAX_WDAT_ACTIONS ACPI_WDAT_ACTION_RESERVED
-> +
-> +/**
-> + * struct wdat_instruction - Single ACPI WDAT instruction
-> + * @entry: Copy of the ACPI table instruction
-> + * @reg: Register the instruction is accessing
-> + * @node: Next instruction in action sequence
-> + */
-> +struct wdat_instruction {
-> +	struct acpi_wdat_entry entry;
-> +	void __iomem *reg;
-> +	struct list_head node;
-> +};
-> +
-> +/**
-> + * struct wdat_wdt - ACPI WDAT watchdog device
-> + * @pdev: Parent platform device
-> + * @wdd: Watchdog core device
-> + * @period: How long is one watchdog period in ms
-> + * @stopped_in_sleep: Is this watchdog stopped by the firmware in S1-S5
-> + * @stopped: Was the watchdog stopped by the driver in suspend
-> + * @actions: An array of instruction lists indexed by an action number from
-> + *           the WDAT table. There can be %NULL entries for not implemented
-> + *           actions.
-> + */
-> +struct wdat_wdt {
-> +	struct platform_device *pdev;
-> +	struct watchdog_device wdd;
-> +	unsigned int period;
-> +	bool stopped_in_sleep;
-> +	bool stopped;
-> +	struct list_head *instructions[MAX_WDAT_ACTIONS];
-> +};
-> +
-> +#define to_wdat_wdt(wdd) container_of(wdd, struct wdat_wdt, wdd)
-> +
-> +static bool nowayout = WATCHDOG_NOWAYOUT;
-> +module_param(nowayout, bool, 0);
-> +MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-> +		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-> +
-> +static int wdat_wdt_read(struct wdat_wdt *wdat,
-> +	 const struct wdat_instruction *instr, u32 *value)
-> +{
-> +	const struct acpi_generic_address *gas = &instr->entry.register_region;
-> +
-> +	switch (gas->access_width) {
-> +	case 1:
-> +		*value = ioread8(instr->reg);
-> +		break;
-> +	case 2:
-> +		*value = ioread16(instr->reg);
-> +		break;
-> +	case 3:
-> +		*value = ioread32(instr->reg);
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	dev_dbg(&wdat->pdev->dev, "Read %#x from 0x%08llx\n", *value,
-> +		gas->address);
-> +
-> +	return 0;
-> +}
-> +
-> +static int wdat_wdt_write(struct wdat_wdt *wdat,
-> +	const struct wdat_instruction *instr, u32 value)
-> +{
-> +	const struct acpi_generic_address *gas = &instr->entry.register_region;
-> +
-> +	switch (gas->access_width) {
-> +	case 1:
-> +		iowrite8((u8)value, instr->reg);
-> +		break;
-> +	case 2:
-> +		iowrite16((u16)value, instr->reg);
-> +		break;
-> +	case 3:
-> +		iowrite32(value, instr->reg);
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	dev_dbg(&wdat->pdev->dev, "Wrote %#x to 0x%08llx\n", value,
-> +		gas->address);
-> +
-> +	return 0;
-> +}
-> +
-> +static int wdat_wdt_run_action(struct wdat_wdt *wdat, unsigned int action,
-> +			       u32 param, u32 *retval)
-> +{
-> +	struct wdat_instruction *instr;
-> +
-> +	if (action >= ARRAY_SIZE(wdat->instructions))
-> +		return -EINVAL;
-> +
-> +	if (!wdat->instructions[action])
-> +		return -EOPNOTSUPP;
-> +
-> +	dev_dbg(&wdat->pdev->dev, "Running action %#x\n", action);
-> +
-> +	/* Run each instruction sequentially */
-> +	list_for_each_entry(instr, wdat->instructions[action], node) {
-> +		const struct acpi_wdat_entry *entry = &instr->entry;
-> +		const struct acpi_generic_address *gas;
-> +		u32 flags, value, mask, x, y;
-> +		bool preserve;
-> +		int ret;
-> +
-> +		gas = &entry->register_region;
-> +
-> +		preserve = entry->instruction & ACPI_WDAT_PRESERVE_REGISTER;
-> +		flags = entry->instruction & ~ACPI_WDAT_PRESERVE_REGISTER;
-> +		value = entry->value;
-> +		mask = entry->mask;
-> +
-> +		switch (flags) {
-> +		case ACPI_WDAT_READ_VALUE:
-> +			ret = wdat_wdt_read(wdat, instr, &x);
-> +			if (ret)
-> +				return ret;
-> +			x >>= gas->bit_offset;
-> +			x &= mask;
-> +			if (retval)
-> +				*retval = x == value;
-> +			break;
-> +
-> +		case ACPI_WDAT_READ_COUNTDOWN:
-> +			ret = wdat_wdt_read(wdat, instr, &x);
-> +			if (ret)
-> +				return ret;
-> +			x >>= gas->bit_offset;
-> +			x &= mask;
-> +			if (retval)
-> +				*retval = x;
-> +			break;
-> +
-> +		case ACPI_WDAT_WRITE_VALUE:
-> +			x = value & mask;
-> +			x <<= gas->bit_offset;
-> +			if (preserve) {
-> +				ret = wdat_wdt_read(wdat, instr, &y);
-> +				if (ret)
-> +					return ret;
-> +				y = y & ~(mask << gas->bit_offset);
-> +				x |= y;
-> +			}
-> +			ret = wdat_wdt_write(wdat, instr, x);
-> +			if (ret)
-> +				return ret;
-> +			break;
-> +
-> +		case ACPI_WDAT_WRITE_COUNTDOWN:
-> +			x = param;
-> +			x &= mask;
-> +			x <<= gas->bit_offset;
-> +			if (preserve) {
-> +				ret = wdat_wdt_read(wdat, instr, &y);
-> +				if (ret)
-> +					return ret;
-> +				y = y & ~(mask << gas->bit_offset);
-> +				x |= y;
-> +			}
-> +			ret = wdat_wdt_write(wdat, instr, x);
-> +			if (ret)
-> +				return ret;
-> +			break;
-> +
-> +		default:
-> +			dev_err(&wdat->pdev->dev, "Unknown instruction: %u\n",
-> +				flags);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int wdat_wdt_enable_reboot(struct wdat_wdt *wdat)
-> +{
-> +	int ret;
-> +
-> +	/*
-> +	 * WDAT specification says that the watchdog is required to reboot
-> +	 * the system when it fires. However, it also states that it is
-> +	 * recommeded to make it configurable through hardware register. We
-> +	 * enable reboot now if it is configrable, just in case.
-> +	 */
-> +	ret = wdat_wdt_run_action(wdat, ACPI_WDAT_SET_REBOOT, 0, 0);
-> +	if (ret && ret != -EOPNOTSUPP) {
-> +		dev_err(&wdat->pdev->dev,
-> +			"Failed to enable reboot when watchdog triggers\n");
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void wdat_wdt_boot_status(struct wdat_wdt *wdat)
-> +{
-> +	u32 boot_status = 0;
-> +	int ret;
-> +
-> +	ret = wdat_wdt_run_action(wdat, ACPI_WDAT_GET_STATUS, 0, &boot_status);
-> +	if (ret && ret != -EOPNOTSUPP) {
-> +		dev_err(&wdat->pdev->dev, "Failed to read boot status\n");
-> +		return;
-> +	}
-> +
-> +	if (boot_status)
-> +		wdat->wdd.bootstatus = WDIOF_CARDRESET;
-> +
-> +	/* Clear the boot status in case BIOS did not do it */
-> +	ret = wdat_wdt_run_action(wdat, ACPI_WDAT_SET_STATUS, 0, 0);
-> +	if (ret && ret != -EOPNOTSUPP)
-> +		dev_err(&wdat->pdev->dev, "Failed to clear boot status\n");
-> +}
-> +
-> +static void wdat_wdt_set_running(struct wdat_wdt *wdat)
-> +{
-> +	u32 running = 0;
-> +	int ret;
-> +
-> +	ret = wdat_wdt_run_action(wdat, ACPI_WDAT_GET_RUNNING_STATE, 0,
-> +				  &running);
-> +	if (ret && ret != -EOPNOTSUPP)
-> +		dev_err(&wdat->pdev->dev, "Failed to read running state\n");
-> +
-> +	if (running)
-> +		set_bit(WDOG_HW_RUNNING, &wdat->wdd.status);
-> +}
-> +
-> +static int wdat_wdt_start(struct watchdog_device *wdd)
-> +{
-> +	return wdat_wdt_run_action(to_wdat_wdt(wdd),
-> +				   ACPI_WDAT_SET_RUNNING_STATE, 0, NULL);
-> +}
-> +
-> +static int wdat_wdt_stop(struct watchdog_device *wdd)
-> +{
-> +	return wdat_wdt_run_action(to_wdat_wdt(wdd),
-> +				   ACPI_WDAT_SET_STOPPED_STATE, 0, NULL);
-> +}
-> +
-> +static int wdat_wdt_ping(struct watchdog_device *wdd)
-> +{
-> +	return wdat_wdt_run_action(to_wdat_wdt(wdd), ACPI_WDAT_RESET, 0, NULL);
-> +}
-> +
-> +static int wdat_wdt_set_timeout(struct watchdog_device *wdd,
-> +				unsigned int timeout)
-> +{
-> +	struct wdat_wdt *wdat = to_wdat_wdt(wdd);
-> +	unsigned int periods;
-> +	int ret;
-> +
-> +	periods = timeout * 1000 / wdat->period;
-> +	ret = wdat_wdt_run_action(wdat, ACPI_WDAT_SET_COUNTDOWN, periods, NULL);
-> +	if (!ret)
-> +		wdd->timeout = timeout;
-> +	return ret;
-> +}
-> +
-> +static unsigned int wdat_wdt_get_timeleft(struct watchdog_device *wdd)
-> +{
-> +	struct wdat_wdt *wdat = to_wdat_wdt(wdd);
-> +	u32 periods = 0;
-> +
-> +	wdat_wdt_run_action(wdat, ACPI_WDAT_GET_COUNTDOWN, 0, &periods);
-> +	return periods * wdat->period / 1000;
-> +}
-> +
-> +static const struct watchdog_info wdat_wdt_info = {
-> +	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
-> +	.firmware_version = 0,
-> +	.identity = "wdat_wdt",
-> +};
-> +
-> +static const struct watchdog_ops wdat_wdt_ops = {
-> +	.owner = THIS_MODULE,
-> +	.start = wdat_wdt_start,
-> +	.stop = wdat_wdt_stop,
-> +	.ping = wdat_wdt_ping,
-> +	.set_timeout = wdat_wdt_set_timeout,
-> +	.get_timeleft = wdat_wdt_get_timeleft,
-> +};
-> +
-> +static int wdat_wdt_probe(struct platform_device *pdev)
-> +{
-> +	const struct acpi_wdat_entry *entries;
-> +	const struct acpi_table_wdat *tbl;
-> +	struct wdat_wdt *wdat;
-> +	struct resource *res;
-> +	void __iomem **regs;
-> +	acpi_status status;
-> +	int i, ret;
-> +
-> +	status = acpi_get_table(ACPI_SIG_WDAT, 0,
-> +				(struct acpi_table_header **)&tbl);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	wdat = devm_kzalloc(&pdev->dev, sizeof(*wdat), GFP_KERNEL);
-> +	if (!wdat)
-> +		return -ENOMEM;
-> +
-> +	regs = devm_kcalloc(&pdev->dev, pdev->num_resources, sizeof(*regs),
-> +			    GFP_KERNEL);
-> +	if (!regs)
-> +		return -ENOMEM;
-> +
-> +	/* WDAT specification wants to have >= 1ms period */
-> +	if (tbl->timer_period < 1)
-> +		return -EINVAL;
-> +	if (tbl->min_count > tbl->max_count)
-> +		return -EINVAL;
-> +
-> +	wdat->period = tbl->timer_period;
-> +	wdat->wdd.min_hw_heartbeat_ms = wdat->period * tbl->min_count;
-> +	wdat->wdd.max_hw_heartbeat_ms = wdat->period * tbl->max_count;
-> +	wdat->stopped_in_sleep = tbl->flags & ACPI_WDAT_STOPPED;
-> +	wdat->wdd.info = &wdat_wdt_info;
-> +	wdat->wdd.ops = &wdat_wdt_ops;
-> +	wdat->pdev = pdev;
-> +
-> +	/* Request and map all resources */
-> +	for (i = 0; i < pdev->num_resources; i++) {
-> +		void __iomem *reg;
-> +
-> +		res = &pdev->resource[i];
-> +		if (resource_type(res) == IORESOURCE_MEM) {
-> +			reg = devm_ioremap_resource(&pdev->dev, res);
-> +		} else if (resource_type(res) == IORESOURCE_IO) {
-> +			reg = devm_ioport_map(&pdev->dev, res->start, 1);
-> +		} else {
-> +			dev_err(&pdev->dev, "Unsupported resource\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		if (!reg)
-> +			return -ENOMEM;
-> +
-> +		regs[i] = reg;
-> +	}
-> +
-> +	entries = (struct acpi_wdat_entry *)(tbl + 1);
-> +	for (i = 0; i < tbl->entries; i++) {
-> +		const struct acpi_generic_address *gas;
-> +		struct wdat_instruction *instr;
-> +		struct list_head *instructions;
-> +		unsigned int action;
-> +		struct resource r;
-> +		int j;
-> +
-> +		action = entries[i].action;
-> +		if (action >= MAX_WDAT_ACTIONS) {
-> +			dev_dbg(&pdev->dev, "Skipping unknown action: %u\n",
-> +				action);
-> +			continue;
-> +		}
-> +
-> +		instr = devm_kzalloc(&pdev->dev, sizeof(*instr), GFP_KERNEL);
-> +		if (!instr)
-> +			return -ENOMEM;
-> +
-> +		INIT_LIST_HEAD(&instr->node);
-> +		instr->entry = entries[i];
-> +
-> +		gas = &entries[i].register_region;
-> +
-> +		memset(&r, 0, sizeof(r));
-> +		r.start = gas->address;
-> +		r.end = r.start + gas->access_width;
-> +		if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +			r.flags = IORESOURCE_MEM;
-> +		} else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-> +			r.flags = IORESOURCE_IO;
-> +		} else {
-> +			dev_dbg(&pdev->dev, "Unsupported address space: %d\n",
-> +				gas->space_id);
-> +			continue;
-> +		}
-> +
-> +		/* Find the matching resource */
-> +		for (j = 0; j < pdev->num_resources; j++) {
-> +			res = &pdev->resource[j];
-> +			if (resource_contains(res, &r)) {
-> +				instr->reg = regs[j] + r.start - res->start;
-> +				break;
-> +			}
-> +		}
-> +
-> +		if (!instr->reg) {
-> +			dev_err(&pdev->dev, "I/O resource not found\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		instructions = wdat->instructions[action];
-> +		if (!instructions) {
-> +			instructions = devm_kzalloc(&pdev->dev,
-> +					sizeof(*instructions), GFP_KERNEL);
-> +			if (!instructions)
-> +				return -ENOMEM;
-> +
-> +			INIT_LIST_HEAD(instructions);
-> +			wdat->instructions[action] = instructions;
-> +		}
-> +
-> +		list_add_tail(&instr->node, instructions);
-> +	}
-> +
-> +	wdat_wdt_boot_status(wdat);
-> +	wdat_wdt_set_running(wdat);
-> +
-> +	ret = wdat_wdt_enable_reboot(wdat);
-> +	if (ret)
-> +		return ret;
-> +
-> +	platform_set_drvdata(pdev, wdat);
-> +
-> +	watchdog_set_nowayout(&wdat->wdd, nowayout);
-> +	return devm_watchdog_register_device(&pdev->dev, &wdat->wdd);
-> +}
-> +
-> +#ifdef CONFIG_PM_SLEEP
-> +static int wdat_wdt_suspend_noirq(struct device *dev)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct wdat_wdt *wdat = platform_get_drvdata(pdev);
-> +	int ret;
-> +
-> +	if (!watchdog_active(&wdat->wdd))
-> +		return 0;
-> +
-> +	/*
-> +	 * We need to stop the watchdog if firmare is not doing it or if we
-> +	 * are going suspend to idle (where firmware is not involved). If
-> +	 * firmware is stopping the watchdog we kick it here one more time
-> +	 * to give it some time.
-> +	 */
-> +	wdat->stopped = false;
-> +	if (acpi_target_system_state() == ACPI_STATE_S0 ||
-> +	    !wdat->stopped_in_sleep) {
-> +		ret = wdat_wdt_stop(&wdat->wdd);
-> +		if (!ret)
-> +			wdat->stopped = true;
-> +	} else {
-> +		ret = wdat_wdt_ping(&wdat->wdd);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static int wdat_wdt_resume_noirq(struct device *dev)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct wdat_wdt *wdat = platform_get_drvdata(pdev);
-> +	int ret;
-> +
-> +	if (!watchdog_active(&wdat->wdd))
-> +		return 0;
-> +
-> +	if (!wdat->stopped) {
-> +		/*
-> +		 * Looks like the boot firmware reinitializes the watchdog
-> +		 * before it hands off to the OS on resume from sleep so we
-> +		 * stop and reprogram the watchdog here.
-> +		 */
-> +		ret = wdat_wdt_stop(&wdat->wdd);
-> +		if (ret)
-> +			return ret;
-> +
-> +		ret = wdat_wdt_set_timeout(&wdat->wdd, wdat->wdd.timeout);
-> +		if (ret)
-> +			return ret;
-> +
-> +		ret = wdat_wdt_enable_reboot(wdat);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	return wdat_wdt_start(&wdat->wdd);
-> +}
-> +#endif
-> +
-> +static const struct dev_pm_ops wdat_wdt_pm_ops = {
-> +	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(wdat_wdt_suspend_noirq,
-> +				      wdat_wdt_resume_noirq)
-> +};
-> +
-> +static struct platform_driver wdat_wdt_driver = {
-> +	.probe = wdat_wdt_probe,
-> +	.driver = {
-> +		.name = "wdat_wdt",
-> +		.pm = &wdat_wdt_pm_ops,
-> +	},
-> +};
-> +
-> +module_platform_driver(wdat_wdt_driver);
-> +
-> +MODULE_AUTHOR("Mika Westerberg <mika.westerberg@linux.intel.com>");
-> +MODULE_DESCRIPTION("ACPI Hardware Watchdog (WDAT) driver");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_ALIAS("platform:wdat_wdt");
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index c5eaf2f80a4c..8ff6ca4a2639 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1074,4 +1074,10 @@ void acpi_table_upgrade(void);
->  static inline void acpi_table_upgrade(void) { }
->  #endif
->
-> +#if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
-> +extern bool acpi_has_watchdog(void);
-> +#else
-> +static inline bool acpi_has_watchdog(void) { return false; }
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
->
+
+OK, I see. But the guidance for future platforms should be 'do not
+rely on quirks', and what I am arguing here is that the more we polish
+up this code and make it clean and reusable, the more likely it is
+that will end up getting abused by new broken hardware that we set out
+to reject entirely in the first place.
+
+So of course, if the quirk involves claiming resources, let's make
+sure that this occurs in the cleanest and most compliant way possible.
+But any factoring/reuse concerns other than for the current crop of
+broken hardware should be avoided imo.
+
+-- 
+Ard.
