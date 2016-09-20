@@ -1,138 +1,93 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: Cherryview wake up events
-Date: Tue, 20 Sep 2016 12:18:40 +0300
-Message-ID: <20160920091840.GN1811@lahna.fi.intel.com>
-References: <20160919112117.55dim46nmqdmqjan@sig21.net>
- <20160919115619.GF1811@lahna.fi.intel.com>
- <20160919203622.ujh4l5eudrncv3rl@sig21.net>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH V2 1/3] PCI: hisi: re-architect Hip05/Hip06
+ controllers driver to preapare for ACPI
+Date: Tue, 20 Sep 2016 09:45:13 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F87AAFD@lhreml507-mbx>
+References: <1472644094-82731-1-git-send-email-liudongdong3@huawei.com>
+ <5913196.I3zIbc2qla@wuerfel> <57C822C1.9000203@huawei.com>
+ <6532722.cVEMfv9Kqj@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160919203622.ujh4l5eudrncv3rl@sig21.net>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6532722.cVEMfv9Kqj@wuerfel>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, "liudongdong (C)" <liudongdong3@huawei.com>
+Cc: "helgaas@kernel.org" <helgaas@kernel.org>, "rafael@kernel.org" <rafael@kernel.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 19, 2016 at 10:36:22PM +0200, Johannes Stezenbach wrote:
-> On Mon, Sep 19, 2016 at 02:56:19PM +0300, Mika Westerberg wrote:
-> > On Mon, Sep 19, 2016 at 01:21:17PM +0200, Johannes Stezenbach wrote:
-> > > 
-> > > The LID causes a gpio irq:
-> > >  158:          2          0          0          0  chv-gpio   43 ACPI:Event
-> > > 
-> > > However, neither LID nor power button can wake up the
-> > > device from "echo freeze >/sys/power/state".  :-(
-> > 
-> > The cherryview pinctrl driver does not (yet) support wake up events. It
-> > currently just sets IRQCHIP_SKIP_SET_WAKE for the irqchip.
-> 
-> OK, but shouldn't the wakeup usually be handled by ACPI?
-> Clearly I don't understand this.  I mean on the non-ACPI
-> embedded ARM systems I'm used to I need to enable specific
-> irqs as wakeup sources, but on ACPI, isn't SCI the implicit
-> wakeup irq?  Probably I'm just totally confused, so let
-> me ask another way, below.
-
-It is typically handled by ACPI but it requires some hardware as well.
-Looks like your machine does not use SCIs at all but instead events are
-triggered using GPIO signals instead of GPEs.
-
-> > I can make you a test patch which adds support for wakes for the pinctrl
-> > driver if you like to test it out. However, that will happen most likely
-> > near end of the week as I have other things right now.
-> 
-> That would be great!
-> 
-> 
-> I found in the DSDT:
-> 
->     Scope (_SB.GPO0)
->     {
->         Name (EVBF, Buffer (0x03) {})
->         CreateByteField (EVBF, Zero, EVST)
->         CreateByteField (EVBF, One, ELEN)
->         CreateByteField (EVBF, 0x02, ENVT)
->         Name (LIDZ, One)
->         Method (_E4E, 0, Serialized)  // _Exx: Edge-Triggered GPE
->         {
->             Name (_T_0, Zero)  // _T_x: Emitted by ASL Compiler
->             If (^^PCI0.I2C1.AVBL != One)
->             {
->                 Return (Zero)
->             }
-> 
->             EVBF = ^^PCI0.I2C1.ENID /* \_SB_.PCI0.I2C1.ENID */
-> ...
->             _T_0 = ENVT /* \_SB_.GPO0.ENVT */
-> ...
->                 ElseIf (_T_0 == 0xA9)
->                 {
->                     Notify (PWRB, 0x80) // Status Change
->                     Break
->                 }
-> 
-> and
->         Device (GPO0)
->         {
-> ...
->             Method (_AEI, 0, NotSerialized)  // _AEI: ACPI Event Interrupts
->             {
->                 Name (WBUF, ResourceTemplate ()
->                 {
->                     GpioInt (Edge, ActiveLow, ExclusiveAndWake, PullUp, 0x0000,
->                         "\\_SB.GPO0", 0x00, ResourceConsumer, ,
->                         )
->                         {   // Pin list
->                             0x004E
->                         }
->                 })
->                 If (OSID == One)
->                 {
->                     Return (WBUF) /* \_SB_.GPO0._AEI.WBUF */
->                 }
->             }
-> 
-> and OSID is a field in 
->     OperationRegion (GNVS, SystemMemory, 0x7A158000, 0x0362)
-> which is inside what /proc/iomem lists as "ACPI no-volatile storage".
-> OSID is read a lot in the DSDT but never written to.
-> But calling \_SB.GPO0._AEI in acpidbg returns a buffer of size 25.
-> 
-> Now my question is, is this pin 0x004E the same as this
-> in /proc/interrupts which fires on LID event?
-> 
->  158:          2          0          0          0  chv-gpio   43 ACPI:Event
-
-Yes, it is that one and it triggers \_SB.GPO0._E4E() method to be called
-whenever low edge is detected on the GPIO line. This method then handles
-many things depending on what the AML code reads from ^^PCI0.I2C1.ENID
-notifying the power button device (PWRB) among other things.
-
-I suppose you already have CONFIG_ACPI_I2C_OPREGION=y in your .config?
-That allows the AML code to access the I2C bus using the I2C driver.
-
-> The FADT has
->             Control Method Power Button (V1) : 0
->             Control Method Sleep Button (V1) : 1
-> 
-> PWRBTN_EN in PM1 is set.  But PWRBTN press causes thermal irq.
-
-Yeah, it uses control method power button (PNP0C0C) and ACPI GPIO event
-to trigger changes in that.
-
-> No SCI (irq 9) is ever generated, except by writing to the
-> BIOS_RLS bit in SMI_EN register (IO port 0x430).
-> 
-> GPE block addresses in FADT are 0.  GPE0a_EN register (IO 0x428)
-> is set to 0x6000 (TCO_EN + PME_B0_EN, but none of the GPIO enables).
-> 
-> Any advice how to continue?
-
-Please check that you have that CONFIG_ACPI_I2C_OPREGION=y and
-CONFIG_MFD_AXP20X=y.
-
-You should see the ACPI:Event interrupt count increasing in
-/proc/interrups when you press power button. When that works then we can
-start thinking about adding wake support :)
+SGkgQXJuZCwgdGhhbmtzIGZvciB5b3VyIGNvbW1lbnRzDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNz
+YWdlLS0tLS0NCj4gRnJvbTogQXJuZCBCZXJnbWFubiBbbWFpbHRvOmFybmRAYXJuZGIuZGVdDQo+
+IFNlbnQ6IDAxIFNlcHRlbWJlciAyMDE2IDE1OjAyDQo+IFRvOiBsaXVkb25nZG9uZyAoQykNCj4g
+Q2M6IGhlbGdhYXNAa2VybmVsLm9yZzsgcmFmYWVsQGtlcm5lbC5vcmc7IExvcmVuem8uUGllcmFs
+aXNpQGFybS5jb207DQo+IHRuQHNlbWloYWxmLmNvbTsgV2FuZ3pob3UgKEIpOyBwcmF0eXVzaC5h
+bmFuZEBnbWFpbC5jb207IGxpbnV4LQ0KPiBwY2lAdmdlci5rZXJuZWwub3JnOyBsaW51eC1hY3Bp
+QHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGpjbUBy
+ZWRoYXQuY29tOyBHYWJyaWVsZSBQYW9sb25pOyBDaGVueGluDQo+IChDaGFybGVzKTsgaGFuanVu
+Lmd1b0BsaW5hcm8ub3JnOyBMaW51eGFybQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCBWMiAx
+LzNdIFBDSTogaGlzaTogcmUtYXJjaGl0ZWN0IEhpcDA1L0hpcDA2DQo+IGNvbnRyb2xsZXJzIGRy
+aXZlciB0byBwcmVhcGFyZSBmb3IgQUNQSQ0KPiANCj4gT24gVGh1cnNkYXksIFNlcHRlbWJlciAx
+LCAyMDE2IDg6NDQ6NDkgUE0gQ0VTVCBEb25nZG9uZyBMaXUgd3JvdGU6DQo+ID4g5ZyoIDIwMTYv
+OS8xIDE1OjQxLCBBcm5kIEJlcmdtYW5uIOWGmemBkzoNCj4gPiA+IE9uIFRodXJzZGF5LCBTZXB0
+ZW1iZXIgMSwgMjAxNiAxMDowNToyOSBBTSBDRVNUIERvbmdkb25nIExpdSB3cm90ZToNCj4gPiA+
+PiDlnKggMjAxNi84LzMxIDE5OjQ1LCBBcm5kIEJlcmdtYW5uIOWGmemBkzoNCj4gPiA+Pj4gT24g
+V2VkbmVzZGF5LCBBdWd1c3QgMzEsIDIwMTYgNzo0ODoxMiBQTSBDRVNUIERvbmdkb25nIExpdSB3
+cm90ZToNCj4gPiBJIGtub3cgeW91ciBwb2ludC4NCj4gPg0KPiA+IDEuIEZvciBvdXIgaG9zdCBi
+cmlkZ2UgLCAiLm1hcF9idXMgPSBwY2lfZWNhbV9tYXBfYnVzIiBpcyBvbmx5DQo+IHN1aXRhYmxl
+IGZvcg0KPiA+IGFjY2Vzc2luZyB0aGUgRVAgY29uZmlnIHNwYWNlLg0KPiA+IHBjaV9nZW5lcmlj
+X2NvbmZpZ19yZWFkMzIoKSBuZWVkIHRvIGNhbGwgImFkZHIgPSBidXMtPm9wcy0NCj4gPm1hcF9i
+dXMoYnVzLCBkZXZmbiwgd2hlcmUgJiB+MHgzKTsiLA0KPiA+DQo+ID4gZHJpdmVycy9wY2kvaG9z
+dC9wY2llLWhpc2ktYWNwaS5jDQo+ID4gc3RhdGljIHN0cnVjdCBwY2lfb3BzIGhpc2lfcGNpZV9v
+cHMgPSB7DQo+ID4gCS5tYXBfYnVzID0gcGNpX2VjYW1fbWFwX2J1cywNCj4gPiAJLnJlYWQgPSBo
+aXNpX3BjaWVfYWNwaV9yZF9jb25mLA0KPiA+IAkud3JpdGUgPSBoaXNpX3BjaWVfYWNwaV93cl9j
+b25mLA0KPiA+IH07DQo+ID4NCj4gPiBZZXMsIHdlIGNhbiBjaGFuZ2UgIi5tYXBfYnVzID0gcGNp
+X2VjYW1fbWFwX2J1cyIgdG8gIi5tYXBfYnVzID0NCj4gaGlzaV9wY2lfbWFwX2J1cyIsIGFuZCBp
+bXBsZW50bWVudCBoaXNpX3BjaV9tYXBfYnVzIGFzIGJlbG93LA0KPiA+IHRoZW4gd2Ugd2lsbCBu
+b3QgbmVlZCB0byBjYWxsIGhpc2lfcGNpZV9jb21tb25fY2ZnX3JlYWQoKS4NCj4gPg0KPiA+IHZv
+aWQgX19pb21lbSAqaGlzaV9wY2lfbWFwX2J1cyhzdHJ1Y3QgcGNpX2J1cyAqYnVzLCB1bnNpZ25l
+ZCBpbnQNCj4gZGV2Zm4sIGludCB3aGVyZSkNCj4gPiB7DQo+ID4gCXN0cnVjdCBwY2lfY29uZmln
+X3dpbmRvdyAqY2ZnID0gYnVzLT5zeXNkYXRhOw0KPiA+IAl2b2lkIF9faW9tZW0gKnJlZ19iYXNl
+ID0gY2ZnLT5wcml2Ow0KPiA+DQo+ID4gCS8qIGZvciBSQyBjb25maWcgYWNjZXNzKi8NCj4gPiAJ
+aWYgKGJ1cy0+bnVtYmVyID09IGNmZy0+YnVzci5zdGFydCkNCj4gPiAJCXJldHVybiByZWdfYmFz
+ZSArICh3aGVyZSAmIH4weDMpOw0KPiA+IAllbHNlDQo+ID4gCQkvKiBmb3IgRVAgY29uZmlnIGFj
+Y2VzcyAqLw0KPiA+IAkJcmV0dXJuIHBjaV9lY2FtX21hcF9idXMoYnVzLCBkZXZmbiwgd2hlcmUp
+Ow0KPiA+IH0NCj4gPg0KPiA+IGFuZCBoaXNpX3BjaWVfYWNwaV9yZF9jb25mKCkgbmVlZCB0byBj
+aGFuZ2UgYXMgYmVsb3cuDQo+ID4gc3RhdGljIGludCBoaXNpX3BjaWVfYWNwaV9yZF9jb25mKHN0
+cnVjdCBwY2lfYnVzICpidXMsIHUzMiBkZXZmbiwgaW50DQo+IHdoZXJlLA0KPiA+IAkJCQkgIGlu
+dCBzaXplLCB1MzIgKnZhbCkNCj4gPiB7DQo+ID4gCXN0cnVjdCBwY2lfY29uZmlnX3dpbmRvdyAq
+Y2ZnID0gYnVzLT5zeXNkYXRhOw0KPiA+DQo+ID4gCWlmIChoaXNpX3BjaWVfYWNwaV92YWxpZF9j
+b25maWcoY2ZnLCBidXMsIFBDSV9TTE9UKGRldmZuKSkgPT0gMCkNCj4gPiAJCXJldHVybiBQQ0lC
+SU9TX0RFVklDRV9OT1RfRk9VTkQ7DQo+ID4NCj4gPiAJLyogYWNjZXNzIFJDIGNvbmZpZyBzcGFj
+ZSAqLw0KPiA+IAlpZiAoYnVzLT5udW1iZXIgPT0gY2ZnLT5idXNyLnN0YXJ0KQ0KPiA+IAkJcmV0
+dXJuIHBjaV9nZW5lcmljX2NvbmZpZ19yZWFkMzIoYnVzLCBkZXZmbiwgd2hlcmUsIHNpemUsDQo+
+IHZhbCk7DQo+ID4NCj4gPiAJLyogYWNjZXNzIEVQIGNvbmZpZyBzcGFjZSAqLw0KPiA+IAlyZXR1
+cm4gcGNpX2dlbmVyaWNfY29uZmlnX3JlYWQoYnVzLCBkZXZmbiwgd2hlcmUsIHNpemUsIHZhbCk7
+DQo+ID4gfQ0KPiANCj4gUmlnaHQsIHRoaXMgaXMgd2hhdCBJIGhhZCBpbiBtaW5kLg0KPiANCj4g
+DQo+ID4gMi4gV2UgbmVlZCB0byBiYWNrd2FyZCBjb21wYXRpYmxlIHdpdGggdGhlIG9sZCBkdCB3
+YXkgY29uZmlnIGFjY2Vzcw0KPiBhcyBiZWxvdyBjb2RlLA0KPiA+IHNvIHdlIGhhdmUgdG8gY2Fs
+bCBoaXNpX3BjaWVfY29tbW9uX2NmZ19yZWFkKCkgd2hlbiBhY2Nlc3NpbmcgdGhlIFJDDQo+IGNv
+bmZpZyBzcGFjZS4NCj4gPiBGb3IgdGhpcywgd2UgaGF2ZSB0byBjYWxsIGhpc2lfcGNpZV9jb21t
+b25fY2ZnX3JlYWQoKS4NCj4gPg0KPiA+IGRyaXZlcnMvcGNpL2hvc3QvcGNpZS1oaXNpLmMNCj4g
+PiBzdGF0aWMgaW5saW5lIGludCBoaXNpX3BjaWVfY2ZnX3JlYWQoc3RydWN0IHBjaWVfcG9ydCAq
+cHAsIGludCB3aGVyZSwNCj4gPiAJCWludCBzaXplLCB1MzIgKnZhbCkNCj4gPiB7DQo+ID4gCXN0
+cnVjdCBoaXNpX3BjaWUgKnBjaWUgPSB0b19oaXNpX3BjaWUocHApOw0KPiA+DQo+ID4gCXJldHVy
+biBoaXNpX3BjaWVfY29tbW9uX2NmZ19yZWFkKHBjaWUtPnJlZ19iYXNlLCB3aGVyZSwgc2l6ZSwN
+Cj4gdmFsKTsNCj4gPiB9DQo+ID4NCj4gPiBzdGF0aWMgc3RydWN0IHBjaWVfaG9zdF9vcHMgaGlz
+aV9wY2llX2hvc3Rfb3BzID0gew0KPiA+IAkucmRfb3duX2NvbmYgPSBoaXNpX3BjaWVfY2ZnX3Jl
+YWQsDQo+ID4gCS53cl9vd25fY29uZiA9IGhpc2lfcGNpZV9jZmdfd3JpdGUsDQo+ID4gCS5saW5r
+X3VwID0gaGlzaV9wY2llX2xpbmtfdXAsDQo+ID4gfTsNCj4gDQo+IEkgdGhpbmsgdGhpcyB3b3Vs
+ZCBiZSBlYXNpZXIgaWYgeW91IHNlcGFyYXRlIHRoZSBBQ1BJIGNvZGUgZnJvbSB0aGUNCj4gRFQg
+Y29kZSBhbmQgbm90IHRyeSB0byBoYXZlIGEgY29tbW9uIGZpbGUgdXNlZCBmb3IgYm90aC4NCj4g
+DQo+IFNoYXJpbmcgdGhlIGNvbmZpZyBzcGFjZSBhY2Nlc3NvcnMgcmVhbGx5IGlzbid0IHdvcnRo
+IGl0IHdoZW4gYm90aA0KPiB2YXJpYW50cyBhcmUgZmFpcmx5IHNpbXBsZSB0byBkbywgYnV0IHRo
+ZXkgZG9uJ3QgZml0IGluIGEgY29tbW9uDQo+IG1vZGVsIGJlY2F1c2Ugb25lIGlzIGNhbGxlZCBm
+cm9tIHRoZSBBQ1BJIHF1aXJrcyBhbmQgdGhlIG90aGVyDQo+IGlzIGNhbGxlZCBmcm9tIHRoZSBk
+dy1wY2llIGRyaXZlciB3aXRoIGNvbXBsZXRlbHkgZGlmZmVyZW50IGNhbGxpbmcNCj4gY29udmVu
+dGlvbnMuDQoNCk5vdCBzdXJlIGFib3V0IHRoaXMuLi4NCkZyb20gbXkgcGVyc3BlY3RpdmUgaGF2
+aW5nIHRoZSBzaGFyZWQgY29kZSB3b3VsZCBtYWtlIGNsZWFyIHRoYXQNCnRoZSB0d28gZHJpdmVy
+cyAoQUNQSSBhbmQgRFQpIGFyZSBraW5kIG9mIHJlbGF0ZWQuLi4NCg0KRm9yIGV4YW1wbGUgc2Vl
+IHRoZSByZXBseSBmcm9tIEJqb3JuIHRvIHRoZSB4Z2VuZSBkcml2ZXI6DQpodHRwczovL2xrbWwu
+b3JnL2xrbWwvMjAxNi85LzE5Lzc0OQ0KDQpJIGtub3cgaW4gb3VyIGNhc2UgdGhlIGR1cGxpY2F0
+aW9uIGlzbid0IG11Y2ggYnV0IGFzIEkgc2FpZA0KSSBhbSBhIGJpdCByZWx1Y3RhbnQgdG8gcmV3
+b3JrIHRoaXMuLi4gDQoNClRoeA0KDQpHYWINCg0KPiANCj4gCUFSbmQNCg==
