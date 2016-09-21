@@ -1,46 +1,138 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v10 0/4] ACPI: parse the SPCR table
-Date: Wed, 21 Sep 2016 12:37:49 +0200
-Message-ID: <20160921103749.GA7993@kroah.com>
-References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
- <25d32778-e708-6763-7cb2-4ddbeebc844b@linaro.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V6 0/5] ECAM quirks handling for ARM64 platforms
+Date: Wed, 21 Sep 2016 08:11:07 -0500
+Message-ID: <20160921131107.GB10804@localhost>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+ <20160920192636.GB4941@localhost>
+ <0429663d51ed8e93fb0c96261dd2ecc7@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:57030 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754133AbcIUNLV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Sep 2016 09:11:21 -0400
 Content-Disposition: inline
-In-Reply-To: <25d32778-e708-6763-7cb2-4ddbeebc844b@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+In-Reply-To: <0429663d51ed8e93fb0c96261dd2ecc7@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: cov@codeaurora.org
+Cc: Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 01:27:30PM +0300, Aleksey Makarov wrote:
+On Tue, Sep 20, 2016 at 09:15:14PM -0400, cov@codeaurora.org wrote:
+> Hi Bjorn, Thomasz,
 > 
+> On 2016-09-20 15:26, Bjorn Helgaas wrote:
+> >On Fri, Sep 09, 2016 at 09:24:02PM +0200, Tomasz Nowicki wrote:
+> >>Quirk handling relies on an idea of simple static array which contains
+> >>quirk enties. Each entry consists of identification information
+> >>(IDs from
+> >>standard header of MCFG table) along with custom pci_ecam_ops
+> >>structure and
+> >>configuration space resource structure. This way it is possible find
+> >>corresponding quirk entries and override pci_ecam_ops and PCI
+> >>configuration
+> >>space regions.
+> >>
+> >>As an example, the last 3 patches present quirk handling
+> >>mechanism usage for
+> >>ThunderX.
+> >>
+> >>v5 -> v6
+> >>- rebase against v4.8-rc5
+> >>- drop patch 1 form previous series
+> >>- keep pci_acpi_setup_ecam_mapping() in ARM64 arch directory
+> >>- move quirk code to pci_mcfg.c
+> >>- restrict quirk to override pci_ecam_ops and CFG resource structure
+> >>  only, no init call any more
+> >>- split ThunderX quirks into the smaller chunks
+> >>- add ThunderX pass1.x silicon revision support
+> >>
+> >>v4 -> v5
+> >>- rebase against v4.8-rc1
+> >>- rework to exact MCFG OEM ID, TABLE ID, rev match
+> >>  - use memcmp instead of strncmp
+> >>  - no substring match
+> >>- fix typos and dmesg message
+> >>
+> >>Tomasz Nowicki (5):
+> >>  PCI/ACPI: Extend pci_mcfg_lookup() responsibilities
+> >>  PCI/ACPI: Check platform specific ECAM quirks
+> >>  PCI: thunder-pem: Allow to probe PEM-specific register range
+> >>for ACPI
+> >>    case
+> >>  PCI: thunder: Enable ACPI PCI controller for ThunderX pass2.x
+> >>silicon
+> >>    version
+> >>  PCI: thunder: Enable ACPI PCI controller for ThunderX pass1.x
+> >>silicon
+> >>    version
+> >>
+> >> arch/arm64/kernel/pci.c             |  17 ++--
+> >> drivers/acpi/pci_mcfg.c             | 168
+> >>+++++++++++++++++++++++++++++++++++-
+> >> drivers/pci/host/pci-thunder-ecam.c |   2 +-
+> >> drivers/pci/host/pci-thunder-pem.c  |  63 +++++++++++---
+> >> include/linux/pci-acpi.h            |   4 +-
+> >> include/linux/pci-ecam.h            |   7 ++
+> >> 6 files changed, 230 insertions(+), 31 deletions(-)
+> >
+> >I'm not quite ready to merge these because we haven't resolved the
+> >question of how to expose the resources used by the memory-mapped
+> >config space.  I'm fine with the first two patches (I did make a
+> >couple trivial changes, see below), but there's no point in merging
+> >them until we merge a user for them.
+> >
+> >I pushed the series to pci/ecam-v6 for build testing and discussion.
+> >The diff (the changes I made locally) from v6 as posted by Tomasz is
+> >below.
 > 
-> On 09/05/2016 03:36 PM, Aleksey Makarov wrote:
-> > 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port Console
-> > Redirection Table) [2] as a mandatory ACPI table that specifies the
-> > configuration of serial console.
-> > 
-> > Move "earlycon" early_param handling to earlycon.c to parse this option once
-> > 
-> > Parse SPCR table, setup earlycon and register specified console.
-> > 
-> > Enable parsing this table on ARM64.  Earlycon should be set up as early as
-> > possible.  ACPI boot tables are mapped in
-> > arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch() and
-> > that's where we parse spcr.  So it has to be opted-in per-arch. When
-> > ACPI_SPCR_TABLE is defined initialization of DT earlycon is deferred until the
-> > DT/ACPI decision is done.
-> > 
-> > Implement console_match() for pl011.
+> Rebasing the following simple quirks framework user onto this branch,
+> I have some questions.
 > 
-> Hi Greg,
+> https://source.codeaurora.org/quic/server/kernel/commit/?h=cov/4.8-rc2-testing&id=83b766cafef11c107b10177d0626db311f382299
 > 
-> Can you consider picking this series for 4.9 please?
+> >diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> >index eb14f74..bb3b8ad 100644
+> >--- a/drivers/acpi/pci_mcfg.c
+> >+++ b/drivers/acpi/pci_mcfg.c
+> >@@ -42,86 +42,59 @@ struct mcfg_fixup {
+> > 	struct resource cfgres;
+> > };
+> >
+> >-#define MCFG_DOM_ANY			(-1)
+> 
+> Did you delete this because there were no current users, because you'd
+> prefer users just use "-1", or for some other reason?
 
-I thought you asked Rafael to take them, they are not in my queue
-anymore because of that.  Don't try to shop-around for maintainers
-please, that's kind of rude...
+I removed it because there were no users of it and, more importantly,
+the code doesn't implement support for it.
 
-greg k-h
+> > #define MCFG_BUS_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
+> > 						((end) - (start) + 1),	\
+> > 						NULL, IORESOURCE_BUS)
+> >-#define MCFG_BUS_ANY		MCFG_BUS_RANGE(0x0, 0xff)
+> >-#define MCFG_RES_EMPTY		DEFINE_RES_NAMED(0, 0, NULL, 0)
+> >+#define MCFG_BUS_ANY			MCFG_BUS_RANGE(0x0, 0xff)
+> >
+> > static struct mcfg_fixup mcfg_quirks[] = {
+> >-/*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
+> >+/*	{ OEM_ID, OEM_TABLE_ID, REV, SEGMENT, BUS_RANGE, cfgres, ops }, */
+> 
+> This comment appears to have the order of cfgres and ops reversed.
+
+Fixed, thanks!
+
+> Am I correct in reading that if a user of the framework does not wish to
+> override cfgres they must place a struct resource with .start = 0 at the
+> end of their mcfg_quirks entry? If so, I guess I have the same questions
+> about removing MCFG_RES_EMPTY as I do about removing MCFG_DOM_ANY.
+
+You're right that we only override cfgres if the quirk supplies a
+struct resource with non-zero .start.  I removed MCFG_RES_EMPTY
+because mcfg_quirks[] is a static array and is initialized with all
+members being zero anyway.  If a quirk doesn't need to override
+cfgres, I think it's more readable if the quirk just doesn't mention
+the resource at all.
+
+Bjorn
