@@ -1,67 +1,41 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Wed, 21 Sep 2016 14:10:55 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F87CF8F@lhreml507-mbx>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-4-git-send-email-tn@semihalf.com>
- <20160919180900.GB13775@localhost>
- <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com>
- <20160920133327.GB13855@localhost>
- <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com>
- <20160920140518.GD13855@localhost>
- <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
- <20160920191744.GA4941@localhost>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v10 0/4] ACPI: parse the SPCR table
+Date: Wed, 21 Sep 2016 11:19:35 -0500
+Message-ID: <CAOZdJXV2KyZAbrRxQ_zmFNd3Gn4vyuqSsUfJMTU8wpiOtjyE=g@mail.gmail.com>
+References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
+ <25d32778-e708-6763-7cb2-4ddbeebc844b@linaro.org>
+ <20160921103749.GA7993@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160920191744.GA4941@localhost>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Wangyijing <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>"linux-arm-kernel@lists.infradead.org" <linux>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160921103749.GA7993@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn
+On Wed, Sep 21, 2016 at 5:37 AM, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> I thought you asked Rafael to take them, they are not in my queue
+> anymore because of that.  Don't try to shop-around for maintainers
+> please, that's kind of rude...
 
-[...]
+In Aleksey's defense, these patches have been floating around for far
+too long, so I can understand his frustration.  But as you said, I
+really hope Rafael picks these up for 4.9.  We need these patches for
+ARM server.
 
-
-> 
-> If future hardware is completely ECAM-compliant and we don't need any
-> more MCFG quirks, that would be great.
-> 
-> But we'll still need to describe that memory-mapped config space
-> somewhere.  If that's done with PNP0C02 or similar devices (as is done
-> on my x86 laptop), we'd be all set.
-> 
-> If we need to work around firmware in the field that doesn't do that,
-> one possibility is a PNP quirk along the lines of
-> quirk_amd_mmconfig_area().
-
-So, if my understanding is correct, for platforms that have not been
-shipped yet you propose to use PNP0C02 in the ACPI table in order to
-declare a motherboard reserved resource whereas for shipped platforms
-you propose to have a quirk along pnp_fixups in order to track the
-resource usage even if values are hardcoded...correct?
-
-Before Tomasz came up with this patchset we had a call between the vendors
-involved in this PCI quirks saga and other guys from Linaro and ARM.
-
-Lorenzo summarized the outcome as in the following link
-http://lkml.iu.edu/hypermail/linux/kernel/1606.2/03344.html
-
-Since this quirks mechanism has been discussed for quite a long time now
-IMHO it would be good to have a last call including also you (Bjorn) so
-that we can all agree on what to do and we avoid changing our drivers again
-and again...
-
-What do you think?
-
-Thanks
-
-Gab
-
-> 
-> Bjorn
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
