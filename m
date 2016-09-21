@@ -1,126 +1,57 @@
-From: cov@codeaurora.org
-Subject: Re: [PATCH V6 0/5] ECAM quirks handling for ARM64 platforms
-Date: Tue, 20 Sep 2016 21:15:14 -0400
-Message-ID: <0429663d51ed8e93fb0c96261dd2ecc7@codeaurora.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V6 4/5] PCI: thunder: Enable ACPI PCI controller for
+ ThunderX pass2.x silicon version
+Date: Wed, 21 Sep 2016 10:05:49 +0200
+Message-ID: <c7636112-b080-9101-e504-8a4acd19c96a@semihalf.com>
 References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <20160920192636.GB4941@localhost>
+ <1473449047-10499-5-git-send-email-tn@semihalf.com>
+ <20160919154550.GA13775@localhost>
+ <d06879a2-d6e9-5d62-77c5-47eff33d9584@semihalf.com>
+ <20160920130839.GA13855@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:59227 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755250AbcIUBPQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Sep 2016 21:15:16 -0400
-In-Reply-To: <20160920192636.GB4941@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160920130839.GA13855@localhost>
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn, Thomasz,
+On 20.09.2016 15:08, Bjorn Helgaas wrote:
+> On Tue, Sep 20, 2016 at 09:06:23AM +0200, Tomasz Nowicki wrote:
+>> On 19.09.2016 17:45, Bjorn Helgaas wrote:
+>>> On Fri, Sep 09, 2016 at 09:24:06PM +0200, Tomasz Nowicki wrote:
+>>>> ThunderX PCIe controller to off-chip devices (so-called PEM) is not fully
+>>>> compliant with ECAM standard. It uses non-standard configuration space
+>>>> accessors (see pci_thunder_pem_ops) and custom configuration space granulation
+>>>> (see bus_shift = 24). In order to access configuration space and
+>>>> probe PEM as ACPI based PCI host controller we need to add MCFG quirk
+>>>> infrastructure. This involves:
+>>>> 1. Export PEM pci_thunder_pem_ops structure so it is visible to MCFG quirk
+>>>>   code.
+>>>> 2. New quirk entries for each PEM segment. Each contains platform IDs,
+>>>>   mentioned pci_thunder_pem_ops and CFG resources.
+>>>>
+>>>> Quirk is considered for ThunderX silicon pass2.x only which is identified
+>>>> via MCFG revision 1.
+>>>
+>>> Is it really the case that silicon pass2.x has MCFG revision 1, and
+>>> silicon pass1.x has MCFG revision 2?  That just seems backwards.
+>>
+>> It is weird but silicon pass2.x is more common and it had MCFG
+>> revision 1 from the beginning. Unless it is allowed to use MCFG
+>> revision 0 ? Then we could use MCFG revision 0 for pass1.x
+>
+> There's no reason to avoid revision 0.  The question is really what
+> firmware is already in the field.  We need to accommodate that.  We don't
+> want a situation where kernel version X only works with firmware version Y,
+> but kernel version X+1 only works with firmware version Y+1.
 
-On 2016-09-20 15:26, Bjorn Helgaas wrote:
-> On Fri, Sep 09, 2016 at 09:24:02PM +0200, Tomasz Nowicki wrote:
->> Quirk handling relies on an idea of simple static array which contains
->> quirk enties. Each entry consists of identification information (IDs 
->> from
->> standard header of MCFG table) along with custom pci_ecam_ops 
->> structure and
->> configuration space resource structure. This way it is possible find
->> corresponding quirk entries and override pci_ecam_ops and PCI 
->> configuration
->> space regions.
->> 
->> As an example, the last 3 patches present quirk handling mechanism 
->> usage for
->> ThunderX.
->> 
->> v5 -> v6
->> - rebase against v4.8-rc5
->> - drop patch 1 form previous series
->> - keep pci_acpi_setup_ecam_mapping() in ARM64 arch directory
->> - move quirk code to pci_mcfg.c
->> - restrict quirk to override pci_ecam_ops and CFG resource structure
->>   only, no init call any more
->> - split ThunderX quirks into the smaller chunks
->> - add ThunderX pass1.x silicon revision support
->> 
->> v4 -> v5
->> - rebase against v4.8-rc1
->> - rework to exact MCFG OEM ID, TABLE ID, rev match
->>   - use memcmp instead of strncmp
->>   - no substring match
->> - fix typos and dmesg message
->> 
->> Tomasz Nowicki (5):
->>   PCI/ACPI: Extend pci_mcfg_lookup() responsibilities
->>   PCI/ACPI: Check platform specific ECAM quirks
->>   PCI: thunder-pem: Allow to probe PEM-specific register range for 
->> ACPI
->>     case
->>   PCI: thunder: Enable ACPI PCI controller for ThunderX pass2.x 
->> silicon
->>     version
->>   PCI: thunder: Enable ACPI PCI controller for ThunderX pass1.x 
->> silicon
->>     version
->> 
->>  arch/arm64/kernel/pci.c             |  17 ++--
->>  drivers/acpi/pci_mcfg.c             | 168 
->> +++++++++++++++++++++++++++++++++++-
->>  drivers/pci/host/pci-thunder-ecam.c |   2 +-
->>  drivers/pci/host/pci-thunder-pem.c  |  63 +++++++++++---
->>  include/linux/pci-acpi.h            |   4 +-
->>  include/linux/pci-ecam.h            |   7 ++
->>  6 files changed, 230 insertions(+), 31 deletions(-)
-> 
-> I'm not quite ready to merge these because we haven't resolved the
-> question of how to expose the resources used by the memory-mapped
-> config space.  I'm fine with the first two patches (I did make a
-> couple trivial changes, see below), but there's no point in merging
-> them until we merge a user for them.
-> 
-> I pushed the series to pci/ecam-v6 for build testing and discussion.
-> The diff (the changes I made locally) from v6 as posted by Tomasz is
-> below.
-
-Rebasing the following simple quirks framework user onto this branch,
-I have some questions.
-
-https://source.codeaurora.org/quic/server/kernel/commit/?h=cov/4.8-rc2-testing&id=83b766cafef11c107b10177d0626db311f382299
-
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index eb14f74..bb3b8ad 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -42,86 +42,59 @@ struct mcfg_fixup {
->  	struct resource cfgres;
->  };
-> 
-> -#define MCFG_DOM_ANY			(-1)
-
-Did you delete this because there were no current users, because you'd
-prefer users just use "-1", or for some other reason?
-
->  #define MCFG_BUS_RANGE(start, end)	DEFINE_RES_NAMED((start),	\
->  						((end) - (start) + 1),	\
->  						NULL, IORESOURCE_BUS)
-> -#define MCFG_BUS_ANY		MCFG_BUS_RANGE(0x0, 0xff)
-> -#define MCFG_RES_EMPTY		DEFINE_RES_NAMED(0, 0, NULL, 0)
-> +#define MCFG_BUS_ANY			MCFG_BUS_RANGE(0x0, 0xff)
-> 
->  static struct mcfg_fixup mcfg_quirks[] = {
-> -/*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, cfgres, ops }, */
-> +/*	{ OEM_ID, OEM_TABLE_ID, REV, SEGMENT, BUS_RANGE, cfgres, ops }, */
-
-This comment appears to have the order of cfgres and ops reversed.
-
-Am I correct in reading that if a user of the framework does not wish to
-override cfgres they must place a struct resource with .start = 0 at the
-end of their mcfg_quirks entry? If so, I guess I have the same questions
-about removing MCFG_RES_EMPTY as I do about removing MCFG_DOM_ANY.
+Yes I agree. We have already deployed the firmware where:
+pass2.x has MCFG revision 1
+pass1.x has MCFG revision 2
+so we need to stick to this.
 
 Thanks,
-Cov
+Tomasz
