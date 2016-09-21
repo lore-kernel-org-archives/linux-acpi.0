@@ -1,57 +1,66 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 4/5] PCI: thunder: Enable ACPI PCI controller for
- ThunderX pass2.x silicon version
-Date: Wed, 21 Sep 2016 10:05:49 +0200
-Message-ID: <c7636112-b080-9101-e504-8a4acd19c96a@semihalf.com>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-5-git-send-email-tn@semihalf.com>
- <20160919154550.GA13775@localhost>
- <d06879a2-d6e9-5d62-77c5-47eff33d9584@semihalf.com>
- <20160920130839.GA13855@localhost>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: Cherryview wake up events
+Date: Wed, 21 Sep 2016 12:06:14 +0300
+Message-ID: <20160921090614.GY1811@lahna.fi.intel.com>
+References: <20160919112117.55dim46nmqdmqjan@sig21.net>
+ <20160919115619.GF1811@lahna.fi.intel.com>
+ <20160919203622.ujh4l5eudrncv3rl@sig21.net>
+ <20160920091840.GN1811@lahna.fi.intel.com>
+ <20160920101450.ylohouriienzrgtj@sig21.net>
+ <20160920104014.GO1811@lahna.fi.intel.com>
+ <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
+ <20160920211153.y7ntwwik2l6ppoqz@sig21.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160920130839.GA13855@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, cov@codeaurora.org, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:51385 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753039AbcIUJIr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Sep 2016 05:08:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20160920211153.y7ntwwik2l6ppoqz@sig21.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Johannes Stezenbach <js@sig21.net>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 20.09.2016 15:08, Bjorn Helgaas wrote:
-> On Tue, Sep 20, 2016 at 09:06:23AM +0200, Tomasz Nowicki wrote:
->> On 19.09.2016 17:45, Bjorn Helgaas wrote:
->>> On Fri, Sep 09, 2016 at 09:24:06PM +0200, Tomasz Nowicki wrote:
->>>> ThunderX PCIe controller to off-chip devices (so-called PEM) is not fully
->>>> compliant with ECAM standard. It uses non-standard configuration space
->>>> accessors (see pci_thunder_pem_ops) and custom configuration space granulation
->>>> (see bus_shift = 24). In order to access configuration space and
->>>> probe PEM as ACPI based PCI host controller we need to add MCFG quirk
->>>> infrastructure. This involves:
->>>> 1. Export PEM pci_thunder_pem_ops structure so it is visible to MCFG quirk
->>>>   code.
->>>> 2. New quirk entries for each PEM segment. Each contains platform IDs,
->>>>   mentioned pci_thunder_pem_ops and CFG resources.
->>>>
->>>> Quirk is considered for ThunderX silicon pass2.x only which is identified
->>>> via MCFG revision 1.
->>>
->>> Is it really the case that silicon pass2.x has MCFG revision 1, and
->>> silicon pass1.x has MCFG revision 2?  That just seems backwards.
->>
->> It is weird but silicon pass2.x is more common and it had MCFG
->> revision 1 from the beginning. Unless it is allowed to use MCFG
->> revision 0 ? Then we could use MCFG revision 0 for pass1.x
->
-> There's no reason to avoid revision 0.  The question is really what
-> firmware is already in the field.  We need to accommodate that.  We don't
-> want a situation where kernel version X only works with firmware version Y,
-> but kernel version X+1 only works with firmware version Y+1.
+On Tue, Sep 20, 2016 at 11:11:53PM +0200, Johannes Stezenbach wrote:
+> On Tue, Sep 20, 2016 at 05:59:43PM +0200, Johannes Stezenbach wrote:
+> > On Tue, Sep 20, 2016 at 01:40:14PM +0300, Mika Westerberg wrote:
+> > > If yes, it probably does not have the normal Fixed power button but
+> > > instead it has something called "Windows button array device" with
+> > > _HID/_CID of PNP0C40. Looking at your dsdt.dsl, this looks to be the
+> > > case.
+> > > 
+> > > That device is driven by soc_button_array.c driver which can be enabled
+> > > with CONFIG_KEYBOARD_GPIO=y and CONFIG_INPUT_SOC_BUTTON_ARRAY=y. Can you
+> > > check if you have that enabled already?
+> > > 
+> > > You should actually see it in /proc/interrupts with names like "power"
+> > > and so on.
+> > 
+> > I added CONFIG_INPUT_SOC_BUTTON_ARRAY=y, but no joy.
+> > Maybe because the _HID is INTCFD9, only _CID is PNP0C40?
+> > It also has a _DSM with UUID dfbcf3c5-e7a5-44e6-9c1f-29c76f6e059c.
+> 
+> Or it is because the PNP0C40 device depends on GpioInt from PMIC
+> which isn't available...
+> 
+>             Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+>             {
+>                 Name (CBUF, ResourceTemplate ()
+>                 {
+>                     GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullUp, 0x0BB8,
+>                         "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
+>                         )
+>                         {   // Pin list
+>                             0x0016
+>                         }
+>                 })
+>                 Return (CBUF) /* \_SB_.TBAD._CRS.CBUF */
+>             }
 
-Yes I agree. We have already deployed the firmware where:
-pass2.x has MCFG revision 1
-pass1.x has MCFG revision 2
-so we need to stick to this.
-
-Thanks,
-Tomasz
+Most likely this is the reason. I'll try to find if we have an existing
+driver for this PMIC somewhere. I guess this is the Dollar Cove which is
+successor of Crystal Cove IIRC which is already supported by the
+mainline kernel.
