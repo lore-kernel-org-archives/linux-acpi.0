@@ -1,54 +1,107 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Wed, 21 Sep 2016 14:18:45 -0500
-Message-ID: <20160921191845.GD20006@localhost>
-References: <20160919180900.GB13775@localhost>
- <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com>
- <20160920133327.GB13855@localhost>
- <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com>
- <20160920140518.GD13855@localhost>
- <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
- <20160920191744.GA4941@localhost>
- <20160921140549.GA11968@red-moon>
- <20160921180457.GB20006@localhost>
- <CADaLNDn4CeoB+sELQ5yQDQUS158raEu5QohPH2PsVtuGpfGKHg@mail.gmail.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: =?UTF-8?q?=5BPATCH=20v4=2000/10=5D=20Support=20Intel=C2=AE=20Turbo=20Boost=20Max=20Technology=203=2E0?=
+Date: Wed, 21 Sep 2016 12:19:02 -0700
+Message-ID: <1474485552-141429-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CADaLNDn4CeoB+sELQ5yQDQUS158raEu5QohPH2PsVtuGpfGKHg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Duc Dang <dhdang@apm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
+Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 11:58:22AM -0700, Duc Dang wrote:
-> On Wed, Sep 21, 2016 at 11:04 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Wed, Sep 21, 2016 at 03:05:49PM +0100, Lorenzo Pieralisi wrote:
+v4:
+- Split x86 multi-node numa topology bug fix and setting
+of SD_ASYM flag for ITMT topology into 2 patches
+- Split the sysctl changes for ITMT enablement and setting of ITMT
+capability/core priorities into 2 patches.
+- Avoid unnecessary rebuild of sched domains when ITMT sysctl or
+capabilities are updated.
+- Fix missing stub function for topology_max_packages for !SMP case.
+- Rename set_sched_itmt() to sched_set_itmt_support().
+- Various updates to itmt.c to eliminate goto and make logic tighter.
+- Various change logs and comments update.
+- intel_pstate: Split function to process cppc and enable ITMT
+- intel_pstate: Just keep the cppc_perf information till we use CPPC for HWP
 
-> > The existing x86 practice is to use PNP0C02 devices for this purpose,
-> > and I think we should just follow that practice.
-> >
-> > ...
-> >
-> > My point is that the hard-coding should not be buried in a driver
-> > where it's invisible to the rest of the kernel.  If we hard-code it in
-> > a quirk that adds _CRS entries, then the kernel will work just like it
-> > would if the firmware had been correct in the first place.  The
-> > resource will appear in /sys/devices/pnp*/*/resources and /proc/iomem,
-> > and if we ever used _SRS to assign or move ACPI devices, we would know
-> > to avoid the bridge resource.
-> 
-> Are you suggesting to add code similar to functions in
-> linux/drivers/pnp/quirks.c to declare/attach the additional resource
-> that the host need to have when the resource is not in MCFG table?
+v3:
+- Fix race clash when more than one program are enabling/disabling ITMT
+- Remove group_priority_cpu macro to simplify code.
+- Error reported by 0-day for compile issue on ARM
 
-Yes, but what I'm suggesting is actually a little stronger.  This has
-nothing to do with whether a resource is in the MCFG table or not.
+v2
+- The patchset is split into two parts so that CPPC changes can be merged first
+ 1. Only ACPI CPPC changes (It is posted separately)
+ 2. ITMT changes (scheduler and Intel P-State)
 
-I'm suggesting ACPI firmware should always describe the resource.  If the
-firmware is defective and doesn't describe it, we should add a quirk in
-pnp/quirks.c to add a resource for it.
+- Changes in patch: sched,x86: Enable Turbo Boost Max Technology
+ 1. Use arch_update_cpu_topology to indicate need to completely
+    rebuild sched domain when ITMT related sched domain flags change
+ 2. Enable client (single node) platform capable of ITMT with ITMT
+    scheduling by default
+ 3. Implement arch_asym_cpu_priority to provide the cpu priority
+    value to scheduler for asym packing.
+ 4. Fix a compile bug for i386 architecture.
 
-Bjorn
+- Changes in patch: sched: Extend scheduler's asym packing
+ 1. Use arch_asym_cpu_priority() to provide cpu priority
+    value used for asym packing to the scheduler.
+
+- Changes in acpi: bus: Enable HWP CPPC objects and
+  acpi: bus: Set _OSC for diverse core support
+  Minor code cleanup by removing #ifdef
+- Changes in Kconfig for Intel P-State
+  Avoid building CPPC lib for i386 for issue reported by 0-day
+
+- Feature is enabled by default for single socket systems
+
+With Intel® Turbo Boost Max Technology 3.0 (ITMT), single-threaded performance is
+optimized by identifying processor's fastest core and running critical workloads
+on it.
+Refere to:
+http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html
+
+This patchset consist of all changes required to support ITMT feature:
+- Use CPPC information in Intel P-State driver to get performance information
+- Scheduler enhancements
+- cppc lib patches (split in to a seprate series)
+
+This featured can be enabled by writing at runtime
+# echo 1 > /proc/sys/kernel/sched_itmt_enabled
+This featured can be disabled by writing at runtime
+# echo 0 > /proc/sys/kernel/sched_itmt_enabled
+
+Srinivas Pandruvada (3):
+  acpi: bus: Enable HWP CPPC objects
+  acpi: bus: Set _OSC for diverse core support
+  cpufreq: intel_pstate: Use CPPC to get max performance
+
+Tim Chen (7):
+  x86/topology: Fix numa in package topology bug
+  sched: Extend scheduler's asym packing
+  x86/topology: Provide topology_num_packages()
+  x86/topology: Define x86's arch_update_cpu_topology
+  x86: Enable Intel Turbo Boost Max Technology 3.0
+  x86/sysctl: Add sysctl for ITMT scheduling feature
+  x86/sched: Add SD_ASYM_PACKING flags to x86 ITMT CPU
+
+ arch/x86/Kconfig                |   9 ++
+ arch/x86/include/asm/topology.h |  27 ++++++
+ arch/x86/kernel/Makefile        |   1 +
+ arch/x86/kernel/itmt.c          | 185 ++++++++++++++++++++++++++++++++++++++++
+ arch/x86/kernel/smpboot.c       |  85 ++++++++++++++----
+ drivers/acpi/bus.c              |  10 +++
+ drivers/cpufreq/Kconfig.x86     |   1 +
+ drivers/cpufreq/intel_pstate.c  | 103 +++++++++++++++++++++-
+ include/linux/acpi.h            |   1 +
+ include/linux/sched.h           |   2 +
+ kernel/sched/core.c             |  21 +++++
+ kernel/sched/fair.c             |  35 +++++---
+ kernel/sched/sched.h            |   6 ++
+ 13 files changed, 456 insertions(+), 30 deletions(-)
+ create mode 100644 arch/x86/kernel/itmt.c
+
+-- 
+2.7.4
+
