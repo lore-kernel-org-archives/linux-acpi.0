@@ -1,80 +1,54 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
 Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
  register range for ACPI case
-Date: Wed, 21 Sep 2016 13:59:20 -0500
-Message-ID: <20160921185920.GC20006@localhost>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <1473449047-10499-4-git-send-email-tn@semihalf.com>
- <20160919180900.GB13775@localhost>
+Date: Wed, 21 Sep 2016 14:18:45 -0500
+Message-ID: <20160921191845.GD20006@localhost>
+References: <20160919180900.GB13775@localhost>
  <49f53bfc-4421-a8b0-694c-bce7e61e1c9e@semihalf.com>
  <20160920133327.GB13855@localhost>
  <CAKv+Gu-AE7fft_j2cqBCN=xrsf5Yh=mePf5x3dZJuKAmdxF-Gg@mail.gmail.com>
  <20160920140518.GD13855@localhost>
  <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
  <20160920191744.GA4941@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F87CF8F@lhreml507-mbx>
+ <20160921140549.GA11968@red-moon>
+ <20160921180457.GB20006@localhost>
+ <CADaLNDn4CeoB+sELQ5yQDQUS158raEu5QohPH2PsVtuGpfGKHg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:46108 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933409AbcIUS70 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Sep 2016 14:59:26 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F87CF8F@lhreml507-mbx>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CADaLNDn4CeoB+sELQ5yQDQUS158raEu5QohPH2PsVtuGpfGKHg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Duc Dang <dhdang@apm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infr>
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Wangyijing <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>lin
 
-On Wed, Sep 21, 2016 at 02:10:55PM +0000, Gabriele Paoloni wrote:
-> Hi Bjorn
-> 
-> [...]
-> 
-> 
-> > 
-> > If future hardware is completely ECAM-compliant and we don't need any
-> > more MCFG quirks, that would be great.
-> > 
-> > But we'll still need to describe that memory-mapped config space
-> > somewhere.  If that's done with PNP0C02 or similar devices (as is done
-> > on my x86 laptop), we'd be all set.
-> > 
-> > If we need to work around firmware in the field that doesn't do that,
-> > one possibility is a PNP quirk along the lines of
-> > quirk_amd_mmconfig_area().
-> 
-> So, if my understanding is correct, for platforms that have not been
-> shipped yet you propose to use PNP0C02 in the ACPI table in order to
-> declare a motherboard reserved resource whereas for shipped platforms
-> you propose to have a quirk along pnp_fixups in order to track the
-> resource usage even if values are hardcoded...correct?
+On Wed, Sep 21, 2016 at 11:58:22AM -0700, Duc Dang wrote:
+> On Wed, Sep 21, 2016 at 11:04 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > On Wed, Sep 21, 2016 at 03:05:49PM +0100, Lorenzo Pieralisi wrote:
 
-Yes.  I'm open to alternate proposals, but x86 uses PNP0C02, and
-following existing practice seems reasonable.
-
-> Before Tomasz came up with this patchset we had a call between the vendors
-> involved in this PCI quirks saga and other guys from Linaro and ARM.
+> > The existing x86 practice is to use PNP0C02 devices for this purpose,
+> > and I think we should just follow that practice.
+> >
+> > ...
+> >
+> > My point is that the hard-coding should not be buried in a driver
+> > where it's invisible to the rest of the kernel.  If we hard-code it in
+> > a quirk that adds _CRS entries, then the kernel will work just like it
+> > would if the firmware had been correct in the first place.  The
+> > resource will appear in /sys/devices/pnp*/*/resources and /proc/iomem,
+> > and if we ever used _SRS to assign or move ACPI devices, we would know
+> > to avoid the bridge resource.
 > 
-> Lorenzo summarized the outcome as in the following link
-> http://lkml.iu.edu/hypermail/linux/kernel/1606.2/03344.html
-> 
-> Since this quirks mechanism has been discussed for quite a long time now
-> IMHO it would be good to have a last call including also you (Bjorn) so
-> that we can all agree on what to do and we avoid changing our drivers again
-> and again...
+> Are you suggesting to add code similar to functions in
+> linux/drivers/pnp/quirks.c to declare/attach the additional resource
+> that the host need to have when the resource is not in MCFG table?
 
-I think we're converging pretty fast.  As far as I'm concerned, the
-v6 ECAM quirks implementation is perfect.  The only remaining issue is
-reporting the ECAM resources, and I haven't seen objections to using
-PNP0C02 + PNP quirks for broken firmware.
+Yes, but what I'm suggesting is actually a little stronger.  This has
+nothing to do with whether a resource is in the MCFG table or not.
 
-There is the question of how or whether to associate a PNP0A03 PCI
-bridge with resources from a different PNP0C02 device, but that's not
-super important.  If the hard-coded resources appear both in a quirk
-and in the PCI bridge driver, it's ugly but not the end of the world.
-We've still achieved the objective of avoiding landmines in the
-address space.
+I'm suggesting ACPI firmware should always describe the resource.  If the
+firmware is defective and doesn't describe it, we should add a quirk in
+pnp/quirks.c to add a resource for it.
 
 Bjorn
