@@ -1,14 +1,18 @@
 From: Lv Zheng <lv.zheng@intel.com>
 Subject: [PATCH] acpiexec: Move an acpiexec specific purposed new line to acpiexec specific file
-Date: Fri, 23 Sep 2016 14:46:15 +0800
-Message-ID: <1474613175-23008-1-git-send-email-lv.zheng@intel.com>
+Date: Fri, 23 Sep 2016 14:49:26 +0800
+Message-ID: <1474613366-23043-1-git-send-email-lv.zheng@intel.com>
 References: <20160909161253.30952-1-bp@alien8.de> <20160919101234.r2zfor37m7eq6k6p@pd.tnic>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:43329 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752652AbcIWGt7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Sep 2016 02:49:59 -0400
 In-Reply-To: <20160919101234.r2zfor37m7eq6k6p@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E. Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, devel@acpica.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E. Box" <david.e.box@intel.com>, Borislav Petkov <bp@alien8.de>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, devel@acpica.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
 > No need, Robert did it already:
 > 
@@ -19,11 +23,6 @@ mentioned commit. As the newline is an acpiexec specific logic, it should
 be kept in acpiexec, shouldn't be left polluting a common file. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-To: Borislav Petkov <bp@alien8.de>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
 --
 Index: acpica/source/components/tables/tbxfload.c
 ===================================================================
