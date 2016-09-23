@@ -1,439 +1,130 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-specific
- register range for ACPI case
-Date: Fri, 23 Sep 2016 10:58:28 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F884340@lhreml507-mbx>
-References: <20160920140518.GD13855@localhost>
- <CAKv+Gu-j-gKiNMx-TvSxezJth1619FN8W1rAy7DKpkmfX9ii6A@mail.gmail.com>
- <20160920191744.GA4941@localhost> <20160921140549.GA11968@red-moon>
- <20160921180457.GB20006@localhost> <20160922094955.GB18637@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F8815A9@lhreml507-mbx>
- <20160922124446.GA21681@red-moon> <20160922183101.GA14510@localhost>
- <20160922221042.GA1514@localhost> <20160923101145.GA31120@red-moon>
+From: Auger Eric <eric.auger@redhat.com>
+Subject: Re: [PATCH V11 0/8] Introduce ACPI world to ITS irqchip
+Date: Fri, 23 Sep 2016 14:30:59 +0200
+Message-ID: <d49bfc6c-c776-73b9-8444-bb5052a9af35@redhat.com>
+References: <1473705147-6588-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160923101145.GA31120@red-moon>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Wangyijing <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>"linux-arm-kernel@lists.infradead.org" <linux->
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35564 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757839AbcIWMbI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Sep 2016 08:31:08 -0400
+In-Reply-To: <1473705147-6588-1-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
+Cc: graeme.gregory@linaro.org, al.stone@linaro.org, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
 
-Hi Lorenzo
+Hi,
 
-> -----Original Message-----
-> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> owner@vger.kernel.org] On Behalf Of Lorenzo Pieralisi
-> Sent: 23 September 2016 11:12
-> To: Bjorn Helgaas
-> Cc: Gabriele Paoloni; Ard Biesheuvel; Tomasz Nowicki; David Daney; Will
-> Deacon; Catalin Marinas; Rafael Wysocki; Arnd Bergmann; Hanjun Guo;
-> Sinan Kaya; Jayachandran C; Christopher Covington; Duc Dang; Robert
-> Richter; Marcin Wojtas; Liviu Dudau; Wangyijing; Mark Salter; linux-
-> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Linaro ACPI
-> Mailman List; Jon Masters; Andrea Gallo; Jeremy Linton; liudongdong
-> (C); Jeff Hugo; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org; Rafael J. Wysocki; rui.zhang@intel.com
-> Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe PEM-
-> specific register range for ACPI case
+On 12/09/2016 20:32, Tomasz Nowicki wrote:
+> The series builds the PCI/MSI domain stack based on initial IORT driver
+> which is added in first place. As a reference please see IORT spec:
+> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
 > 
-> [+ Zhang Rui]
-> 
-> On Thu, Sep 22, 2016 at 05:10:42PM -0500, Bjorn Helgaas wrote:
-> > On Thu, Sep 22, 2016 at 01:31:01PM -0500, Bjorn Helgaas wrote:
-> > > On Thu, Sep 22, 2016 at 01:44:46PM +0100, Lorenzo Pieralisi wrote:
-> > > > On Thu, Sep 22, 2016 at 11:10:13AM +0000, Gabriele Paoloni wrote:
-> > > > > Hi Lorenzo, Bjorn
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> > > > > > Sent: 22 September 2016 10:50
-> > > > > > To: Bjorn Helgaas
-> > > > > > Cc: Ard Biesheuvel; Tomasz Nowicki; David Daney; Will Deacon;
-> Catalin
-> > > > > > Marinas; Rafael Wysocki; Arnd Bergmann; Hanjun Guo; Sinan
-> Kaya;
-> > > > > > Jayachandran C; Christopher Covington; Duc Dang; Robert
-> Richter; Marcin
-> > > > > > Wojtas; Liviu Dudau; Wangyijing; Mark Salter; linux-
-> > > > > > pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> Linaro ACPI
-> > > > > > Mailman List; Jon Masters; Andrea Gallo; Jeremy Linton;
-> liudongdong
-> > > > > > (C); Gabriele Paoloni; Jeff Hugo; linux-acpi@vger.kernel.org;
-> linux-
-> > > > > > kernel@vger.kernel.org; Rafael J. Wysocki
-> > > > > > Subject: Re: [PATCH V6 3/5] PCI: thunder-pem: Allow to probe
-> PEM-
-> > > > > > specific register range for ACPI case
-> > > > > >
-> > > > > > On Wed, Sep 21, 2016 at 01:04:57PM -0500, Bjorn Helgaas
-> wrote:
-> > > > > > > On Wed, Sep 21, 2016 at 03:05:49PM +0100, Lorenzo Pieralisi
-> wrote:
-> > > > > > > > On Tue, Sep 20, 2016 at 02:17:44PM -0500, Bjorn Helgaas
-> wrote:
-> > > > > > > > > On Tue, Sep 20, 2016 at 04:09:25PM +0100, Ard
-> Biesheuvel wrote:
-> > > > > > > >
-> > > > > > > > [...]
-> > > > > > > >
-> > > > > > > > > > None of these platforms can be fixed entirely in
-> software, and
-> > > > > > given
-> > > > > > > > > > that we will not be adding quirks for new broken
-> hardware, we
-> > > > > > should
-> > > > > > > > > > ask ourselves whether having two versions of a quirk,
-> i.e., one
-> > > > > > for
-> > > > > > > > > > broken hardware + currently shipping firmware, and
-> one for the
-> > > > > > same
-> > > > > > > > > > broken hardware with fixed firmware is really an
-> improvement
-> > > > > > over what
-> > > > > > > > > > has been proposed here.
-> > > > > > > > >
-> > > > > > > > > We're talking about two completely different types of
-> quirks:
-> > > > > > > > >
-> > > > > > > > >   1) MCFG quirks to use memory-mapped config space that
-> doesn't
-> > > > > > quite
-> > > > > > > > >      conform to the ECAM model in the PCIe spec, and
-> > > > > > > > >
-> > > > > > > > >   2) Some yet-to-be-determined method to describe
-> address space
-> > > > > > > > >      consumed by a bridge.
-> > > > > > > > >
-> > > > > > > > > The first two patches of this series are a nice
-> implementation
-> > > > > > for 1).
-> > > > > > > > > The third patch (ThunderX-specific) is one possibility
-> for 2),
-> > > > > > but I
-> > > > > > > > > don't like it because there's no way for generic
-> software like
-> > > > > > the
-> > > > > > > > > ACPI core to discover these resources.
-> > > > > > > >
-> > > > > > > > Ok, so basically this means that to implement (2) we need
-> to assign
-> > > > > > > > some sort of _HID to these quirky PCI bridges (so that we
-> know what
-> > > > > > > > device they represent and we can retrieve their _CRS). I
-> take from
-> > > > > > > > this discussion that the goal is to make sure that all
-> non-config
-> > > > > > > > resources have to be declared through _CRS device
-> objects, which is
-> > > > > > > > fine but that requires a FW update (unless we can
-> fabricate ACPI
-> > > > > > > > devices and corresponding _CRS in the kernel whenever we
-> match a
-> > > > > > > > given MCFG table signature).
-> > > > > > >
-> > > > > > > All resources consumed by ACPI devices should be declared
-> through
-> > > > > > > _CRS.  If you want to fabricate ACPI devices or _CRS via
-> kernel
-> > > > > > > quirks, that's fine with me.  This could be triggered via
-> MCFG
-> > > > > > > signature, DMI info, host bridge _HID, etc.
-> > > > > >
-> > > > > > I think the PNP quirk approach + PNP0c02 resource put forward
-> by Gab
-> > > > > > is enough.
-> > > > >
-> > > > > Great thanks as we take a final decision I will ask Dogndgong
-> to submit
-> > > > > another RFC based on this approach
-> > > > >
-> > > > > >
-> > > > > > > > We discussed this already and I think we should make a
-> decision:
-> > > > > > > >
-> > > > > > > > http://lists.infradead.org/pipermail/linux-arm-
-> kernel/2016-
-> > > > > > March/414722.html
-> > > > > > > >
-> > > > > > > > > > > I'd like to step back and come up with some
-> understanding of
-> > > > > > how
-> > > > > > > > > > > non-broken firmware *should* deal with this issue.
-> Then, if
-> > > > > > we *do*
-> > > > > > > > > > > work around this particular broken firmware in the
-> kernel, it
-> > > > > > would be
-> > > > > > > > > > > nice to do it in a way that fits in with that
-> understanding.
-> > > > > > > > > > >
-> > > > > > > > > > > For example, if a companion ACPI device is the
-> preferred
-> > > > > > solution, an
-> > > > > > > > > > > ACPI quirk could fabricate a device with the
-> required
-> > > > > > resources.  That
-> > > > > > > > > > > would address the problem closer to the source and
-> make it
-> > > > > > more likely
-> > > > > > > > > > > that the rest of the system will work correctly:
-> /proc/iomem
-> > > > > > could
-> > > > > > > > > > > make sense, things that look at _CRS generically
-> would work
-> > > > > > (e.g,
-> > > > > > > > > > > /sys/, an admittedly hypothetical "lsacpi", etc.)
-> > > > > > > > > > >
-> > > > > > > > > > > Hard-coding stuff in drivers is a point solution
-> that doesn't
-> > > > > > provide
-> > > > > > > > > > > any guidance for future platforms and makes it
-> likely that
-> > > > > > the hack
-> > > > > > > > > > > will get copied into even more drivers.
-> > > > > > > > > > >
-> > > > > > > > > >
-> > > > > > > > > > OK, I see. But the guidance for future platforms
-> should be 'do
-> > > > > > not
-> > > > > > > > > > rely on quirks', and what I am arguing here is that
-> the more we
-> > > > > > polish
-> > > > > > > > > > up this code and make it clean and reusable, the more
-> likely it
-> > > > > > is
-> > > > > > > > > > that will end up getting abused by new broken
-> hardware that we
-> > > > > > set out
-> > > > > > > > > > to reject entirely in the first place.
-> > > > > > > > > >
-> > > > > > > > > > So of course, if the quirk involves claiming
-> resources, let's
-> > > > > > make
-> > > > > > > > > > sure that this occurs in the cleanest and most
-> compliant way
-> > > > > > possible.
-> > > > > > > > > > But any factoring/reuse concerns other than for the
-> current
-> > > > > > crop of
-> > > > > > > > > > broken hardware should be avoided imo.
-> > > > > > > > >
-> > > > > > > > > If future hardware is completely ECAM-compliant and we
-> don't need
-> > > > > > any
-> > > > > > > > > more MCFG quirks, that would be great.
-> > > > > > > >
-> > > > > > > > Yes.
-> > > > > > > >
-> > > > > > > > > But we'll still need to describe that memory-mapped
-> config space
-> > > > > > > > > somewhere.  If that's done with PNP0C02 or similar
-> devices (as is
-> > > > > > done
-> > > > > > > > > on my x86 laptop), we'd be all set.
-> > > > > > > >
-> > > > > > > > I am not sure I understand what you mean here. Are you
-> referring
-> > > > > > > > to MCFG regions reported as PNP0c02 resources through its
-> _CRS ?
-> > > > > > >
-> > > > > > > Yes.  PCI Firmware Spec r3.0, Table 4-2, note 2 says
-> address ranges
-> > > > > > > reported via MCFG or _CBA should be reserved by _CRS of a
-> PNP0C02
-> > > > > > > device.
-> > > > > >
-> > > > > > Ok, that's agreed. It goes without saying that since you are
-> quoting
-> > > > > > the PCI spec, if FW fails to report MCFG regions in a PNP0c02
-> device
-> > > > > > _CRS I will consider that a FW bug.
-> > > > > >
-> > > > > > > > IIUC PNP0C02 is a reservation mechanism, but it does not
-> help us
-> > > > > > > > associate its _CRS to a specific PCI host bridge
-> instance, right ?
-> > > > > > >
-> > > > > > > Gab proposed a hierarchy that *would* associate a PNP0C02
-> device with
-> > > > > > > a PCI bridge:
-> > > > > > >
-> > > > > > >   Device (PCI1) {
-> > > > > > >     Name (_HID, "HISI0080") // PCI Express Root Bridge
-> > > > > > >     Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
-> > > > > > >     Method (_CRS, 0, Serialized) { // Root complex
-> resources
-> > > > > > (windows) }
-> > > > > > >     Device (RES0) {
-> > > > > > >       Name (_HID, "HISI0081") // HiSi PCIe RC config base
-> address
-> > > > > > >       Name (_CID, "PNP0C02")  // Motherboard reserved
-> resource
-> > > > > > >       Name (_CRS, ResourceTemplate () { ... }
-> > > > > > >     }
-> > > > > > >   }
-> > > > > > >
-> > > > > > > That's a possibility.  The PCI Firmware Spec suggests
-> putting RES0 at
-> > > > > > > the root (under \_SB), but I don't know why.
-> > > > > > >
-> > > > > > > Putting it at the root means we couldn't generically
-> associate it
-> > > > > > with
-> > > > > > > a bridge, although I could imagine something like this:
-> > > > > > >
-> > > > > > >   Device (RES1) {
-> > > > > > >     Name (_HID, "HISI0081") // HiSi PCIe RC config base
-> address
-> > > > > > >     Name (_CID, "PNP0C02")  // Motherboard reserved
-> resource
-> > > > > > >     Name (_CRS, ResourceTemplate () { ... }
-> > > > > > >     Method (BRDG) { "PCI1" }  // hand-wavy ASL
-> > > > > > >   }
-> > > > > > >   Device (PCI1) {
-> > > > > > >     Name (_HID, "HISI0080") // PCI Express Root Bridge
-> > > > > > >     Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
-> > > > > > >     Method (_CRS, 0, Serialized) { // Root complex
-> resources
-> > > > > > (windows) }
-> > > > > > >   }
-> > > > > > >
-> > > > > > > Where you could search PNP0C02 devices for a cookie that
-> matched the
-> > > > > > > host bridge.o
-> > > > > >
-> > > > > > Ok, I am fine with both and I think we are converging, but
-> the way
-> > > > > > to solve this problem has to be uniform for all ARM partners
-> (and
-> > > > > > not only ARM). Two points here:
-> > > > > >
-> > > > > > 1) Adding a device/subdevice allows people to add a _CRS
-> reporting the
-> > > > > >    non-window bridge resources. Fine. It also allows people
-> to chuck in
-> > > > > >    there all sorts of _DSD properties to describe their PCI
-> host bridge
-> > > > > >    as it is done with DT properties (those _DSD can contain
-> eg clocks
-> > > > > >    etc.), this may be tempting (so that they can reuse the
-> same DT
-> > > > > >    driver and do not have to update their firmware) but I
-> want to be
-> > > > > >    clear here: that must not happen. So, a subdevice with a
-> _CRS to
-> > > > > >    report resources, yes, but it will stop there.
-> > > > > > 2) It is unclear to me how to formalize the above. People
-> should not
-> > > > > >    write FW by reading the PCI mailing list, so these
-> guidelines have
-> > > > > > to
-> > > > > >    be written, somehow. I do not want to standardize quirks,
-> I want
-> > > > > >    to prevent random ACPI table content, which is different.
-> > > > > >    Should I report this to the ACPI spec working group ? If
-> we do
-> > > > > >    not do that everyone will go solve this problem as they
-> deem fit.
-> > > > > >
-> > > > >
-> > > > > Do we really need to formalize this?
-> > > > >
-> > > > > As we discussed in the Linaro call at the moment we have few
-> vendors
-> > > > > that need quirks and we want to avoid promoting/accepting
-> quirks for
-> > > > > the future.
-> > > > >
-> > > > > At the time of the call I think we decided to informally accept
-> a set
-> > > > > of quirks for the current platforms and reject any other quirk
-> coming
-> > > > > after a certain date/kernel version (this to be decided).
-> > > > >
-> > > > > I am not sure if there is a way to document/formalize a
-> temporary
-> > > > > exception from the rule...
-> > > >
-> > > > - (1) will be enforced.
-> > >
-> > > I'm not sure it's necessary or possible to enforce a "no future
-> > > quirks" rule.  For one thing, there's already a pretty strong
-> > > incentive to avoid quirks: if your hardware doesn't require quirks,
-> > > it works with OSes already in the field.
-> > >
-> > > MCFG quirks allow us to use the generic ACPI pci_root.c driver even
-> if
-> > > the hardware doesn't support ECAM quite according to the spec.
-> > >
-> > > PNP0C02 usage is a workaround for the failure of the
-> Consumer/Producer
-> > > bit.  PNP0C02 quirks compensate for firmware that doesn't describe
-> > > resource usage accurately.  It's possible the ACPI spec folks could
-> > > come up with a better Consumer/Producer workaround, if that's
-> needed.
-> > > Apparently x86 hasn't needed it yet.
-> > >
-> > > If people add _DSD methods for clocks or whatnot, the hardware
-> won't
-> > > work with the generic pci_root.c driver, so there's already an
-> > > incentive for avoiding them.  x86 has managed without such methods;
-> > > arm64 should be able to do the same.
-> >
-> > Re-reading this, I'm afraid my response sounds a little dismissive,
-> > and I feel like I'm missing some important information.  So I
-> > apologize if I missed your whole point, Lorenzo.
-> 
-> No you are spot on, I just wanted to emphasize, given that we are
-> adding an _HID and a subdevice, that developer should not be tempted
-> to use it to match against a PCI host driver to reuse the DT code,
-> we should not use the quirk mechanism as a backdoor to re-using DT
-> drivers in ACPI context.
-> 
-> Anyway, there is a review process to spot these possible misuses,
-> mine was just a heads-up, quirks will happen, I just do not want
-> to wreak the standard ACPI PCI firmware model to support them.
-> 
-> Given that there are already PNP0c02 bindings out there where the
-> PNP0c02 is used as in Gab's example:
-> 
-> https://patchwork.kernel.org/patch/4757111/
-> 
-> I think the only pending question I have is whether we are allowed
-> to define a PNP0A03 subdevice with a _CRS resource space that is
-> not contained in its parent _CRS, if we answer this question I
-> think we are done.
+> Tested on Cavium ThunderX server and Qualcomm Technologies server platform QDF2XXX.
+> The patches can be found here:
+> https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v11)
 
-FMU part of your question is answered in the PCI Firmware specs
-https://members.pcisig.com/wg/PCI-SIG/document/download/8232
-
-Where from note 2 of 4.1.2 I quote: 
-"For most systems, the motherboard resource would appear at the root
-of the ACPI namespace (under \_SB) in a node with a _HID of EISAID 
-(PNP0C02), and the resources in this case should not be claimed in the
-root PCI bus's _CRS"
-
-My interpretation is that the resource claimed in the PNP0C02 node
-must never be in the PNP0A03 _CRS.
-
-Now about having the PNP0C02 node under \_SB or as a sub-device we see
-that the note above points out that most of system have it under \_SB
-but I read it as a quite relaxed condition....
-
-BTW this is just my interpretation...
+Tested-by: Eric Auger <eric.auger@redhat.com>
+on a Cavium QEMU guest with mach-virt.
 
 Thanks
 
-Gab 
-
+Eric
 
 > 
-> I will raise the PNP0c02 usage issue with the ASWG anyway.
+> v10 -> v11
+> - rebased against v4.8-rc6
+> - bug fix for iort_match_node_callback() error handling
+> - patch 1-2 changelog updates
 > 
-> Thanks !
-> Lorenzo
+> v9 -> v10
+> - error handling improvements for iort_match_node_callback() but no functional changes
+> - iort.h -> acpi_iort.h header name change
+> - style improvements
+> 
+> v8 -> v9
+> - rebased against v4.8-rc4
+> - move root IORT pointer validation to one place iort_scan_node()
+> - function names & Kconfig option name improvements
+> - remove annoying dev_err() appearances for non-IORT users
+> - for debug purpose print full ITS resource range
+> 
+> v7 -> v8
+> - rebased against v4.8-rc1
+> - move IORT support under new drivers/acpi/arm64 directory
+> - memory leak fix for iort_match_node_callback()
+> - iort_node_map_rid() algorithm improvements
+> - fix RID match check in iort_id_map()
+> - fix typos and white spaces
+> 
+> v6 -> v7
+> - rebased against irq/irqchip-4.8
+> - improvements for IORT ID mapping
+> - call IORT init call from acpi_init() instead of arch_initcall()
+> - split IORT driver in to two parts: core and ITS/MSI
+> 
+> v5 -> v6
+> - added locking mechanism for IORT list with domain token
+> - IORT function name improvements
+> - extended IORT RID mapping helper
+> - reworked IORT to be more SMMU friendly
+> - IORT functions which map RID and find corresponding domain are not
+>   PCI specific any more (struct pci_dev -> struct device)
+> - bug fixes
+> 
+> v4 -> v5
+> - rebased against v4.7-rc1
+> - drop generic layer and call IORT functions directly
+> - improve resource abstraction and string formatting
+> 
+> v3 -> v4
+> - rebased against v4.5
+> - add ACPI support for IRQ domain handling on a per-device basis
+> - reorder domain setup step
+> - improve error handling
+> - code style improvements
+> 
+> v2 -> v3
+> - rebased on top of 4.4
+> - fixes and improvements for redistributor init via GICC structures
+> - fixes as per kbuild reports
+> 
+> v1 -> v2
+> - rebased on top of 4.4-rc4
+> - use pci_msi_domain_get_msi_rid for requester ID to device ID translation
+> 
+> Tomasz Nowicki (8):
+>   ACPI: I/O Remapping Table (IORT) initial support
+>   ACPI: Add new IORT functions to support MSI domain handling
+>   PCI/MSI: Setup MSI domain on a per-device basis using IORT ACPI table
+>   irqchip/gicv3-its: Cleanup for ITS domain initialization
+>   irqchip/gicv3-its: Refactor ITS DT init code to prepare for ACPI
+>   irqchip/gicv3-its: Probe ITS in the ACPI way
+>   irqchip/gicv3-its: Factor out PCI-MSI part that might be reused for
+>     ACPI
+>   irqchip/gicv3-its: Use MADT ITS subtable to do PCI/MSI domain
+>     initialization
+> 
+>  drivers/acpi/Kconfig                     |   4 +
+>  drivers/acpi/Makefile                    |   2 +
+>  drivers/acpi/arm64/Kconfig               |   6 +
+>  drivers/acpi/arm64/Makefile              |   1 +
+>  drivers/acpi/arm64/iort.c                | 366 +++++++++++++++++++++++++++++++
+>  drivers/acpi/bus.c                       |   2 +
+>  drivers/irqchip/Kconfig                  |   1 +
+>  drivers/irqchip/irq-gic-v3-its-pci-msi.c |  88 ++++++--
+>  drivers/irqchip/irq-gic-v3-its.c         | 171 +++++++++++----
+>  drivers/irqchip/irq-gic-v3.c             |   7 +-
+>  drivers/pci/msi.c                        |  11 +-
+>  include/linux/acpi_iort.h                |  42 ++++
+>  include/linux/irqchip/arm-gic-v3.h       |   4 +-
+>  13 files changed, 635 insertions(+), 70 deletions(-)
+>  create mode 100644 drivers/acpi/arm64/Kconfig
+>  create mode 100644 drivers/acpi/arm64/Makefile
+>  create mode 100644 drivers/acpi/arm64/iort.c
+>  create mode 100644 include/linux/acpi_iort.h
+> 
