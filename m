@@ -1,130 +1,122 @@
-From: Auger Eric <eric.auger@redhat.com>
-Subject: Re: [PATCH V11 0/8] Introduce ACPI world to ITS irqchip
-Date: Fri, 23 Sep 2016 14:30:59 +0200
-Message-ID: <d49bfc6c-c776-73b9-8444-bb5052a9af35@redhat.com>
-References: <1473705147-6588-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 2/5] ACPI / gpio: Add support for naming GPIOs
+Date: Fri, 23 Sep 2016 17:57:07 +0300
+Message-ID: <20160923145710.105489-3-mika.westerberg@linux.intel.com>
+References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35564 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:39708 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757839AbcIWMbI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 23 Sep 2016 08:31:08 -0400
-In-Reply-To: <1473705147-6588-1-git-send-email-tn@semihalf.com>
+        id S1752728AbcIWO5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Sep 2016 10:57:14 -0400
+In-Reply-To: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, helgaas@kernel.org, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: graeme.gregory@linaro.org, al.stone@linaro.org, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, shijie.huang@arm.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi,
+DT has property 'gpio-line-names' to name GPIO lines the controller has if
+present. Use this very same property in ACPI as well to provide nice names
+for the GPIOS.
 
-On 12/09/2016 20:32, Tomasz Nowicki wrote:
-> The series builds the PCI/MSI domain stack based on initial IORT driver
-> which is added in first place. As a reference please see IORT spec:
-> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
-> 
-> Tested on Cavium ThunderX server and Qualcomm Technologies server platform QDF2XXX.
-> The patches can be found here:
-> https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v11)
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ Documentation/acpi/gpio-properties.txt | 21 +++++++++++++++++
+ drivers/gpio/gpiolib-acpi.c            | 43 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-Tested-by: Eric Auger <eric.auger@redhat.com>
-on a Cavium QEMU guest with mach-virt.
+diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
+index 5aafe0b351a1..7875974823ae 100644
+--- a/Documentation/acpi/gpio-properties.txt
++++ b/Documentation/acpi/gpio-properties.txt
+@@ -51,6 +51,27 @@ it to 1 marks the GPIO as active low.
+ In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
+ resource, second pin in that resource with the GPIO number of 31.
+ 
++Other supported properties
++--------------------------
++
++Following Device Tree compatible device properties are also supported by
++_DSD device properties for GPIO controllers:
++
++- gpio-line-names
++
++Example:
++
++  Package () {
++      "gpio-line-names",
++      Package () {
++          "SPI0_CS_N", "EXP2_INT", "MUX6_IO", "UART0_RXD", "MUX7_IO",
++          "LVL_C_A1", "MUX0_IO", "SPI1_MISO"
++      }
++  }
++
++See Documentation/devicetree/bindings/gpio/gpio.tx for more information
++about these properties.
++
+ ACPI GPIO Mappings Provided by Drivers
+ --------------------------------------
+ 
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index af514618d7fb..202cf1b842de 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -805,6 +805,46 @@ static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
+ 	}
+ }
+ 
++static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
++{
++	struct gpio_chip *chip = achip->chip;
++	struct gpio_device *gdev = chip->gpiodev;
++	const char **names;
++	int ret, i;
++
++	ret = device_property_read_string_array(chip->parent, "gpio-line-names",
++						NULL, 0);
++	if (ret < 0)
++		return;
++
++	if (ret != gdev->ngpio) {
++		dev_warn(chip->parent,
++			 "names %d do not match number of GPIOs %d\n", ret,
++			 gdev->ngpio);
++		return;
++	}
++
++	names = kcalloc(gdev->ngpio, sizeof(*names), GFP_KERNEL);
++	if (!names)
++		return;
++
++	ret = device_property_read_string_array(chip->parent, "gpio-line-names",
++						names, gdev->ngpio);
++	if (ret < 0) {
++		dev_warn(chip->parent, "Failed to read GPIO line names\n");
++		return;
++	}
++
++	/*
++	 * It is fine to assign the name, it will be allocated as long as
++	 * the ACPI device exists.
++	 */
++	for (i = 0; i < gdev->ngpio; i++)
++		gdev->descs[i].name = names[i];
++
++	kfree(names);
++}
++
+ void acpi_gpiochip_add(struct gpio_chip *chip)
+ {
+ 	struct acpi_gpio_chip *acpi_gpio;
+@@ -835,6 +875,9 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
+ 		return;
+ 	}
+ 
++	if (!chip->names)
++		acpi_gpiochip_set_names(acpi_gpio);
++
+ 	acpi_gpiochip_request_regions(acpi_gpio);
+ 	acpi_walk_dep_device_list(handle);
+ }
+-- 
+2.9.3
 
-Thanks
-
-Eric
-
-> 
-> v10 -> v11
-> - rebased against v4.8-rc6
-> - bug fix for iort_match_node_callback() error handling
-> - patch 1-2 changelog updates
-> 
-> v9 -> v10
-> - error handling improvements for iort_match_node_callback() but no functional changes
-> - iort.h -> acpi_iort.h header name change
-> - style improvements
-> 
-> v8 -> v9
-> - rebased against v4.8-rc4
-> - move root IORT pointer validation to one place iort_scan_node()
-> - function names & Kconfig option name improvements
-> - remove annoying dev_err() appearances for non-IORT users
-> - for debug purpose print full ITS resource range
-> 
-> v7 -> v8
-> - rebased against v4.8-rc1
-> - move IORT support under new drivers/acpi/arm64 directory
-> - memory leak fix for iort_match_node_callback()
-> - iort_node_map_rid() algorithm improvements
-> - fix RID match check in iort_id_map()
-> - fix typos and white spaces
-> 
-> v6 -> v7
-> - rebased against irq/irqchip-4.8
-> - improvements for IORT ID mapping
-> - call IORT init call from acpi_init() instead of arch_initcall()
-> - split IORT driver in to two parts: core and ITS/MSI
-> 
-> v5 -> v6
-> - added locking mechanism for IORT list with domain token
-> - IORT function name improvements
-> - extended IORT RID mapping helper
-> - reworked IORT to be more SMMU friendly
-> - IORT functions which map RID and find corresponding domain are not
->   PCI specific any more (struct pci_dev -> struct device)
-> - bug fixes
-> 
-> v4 -> v5
-> - rebased against v4.7-rc1
-> - drop generic layer and call IORT functions directly
-> - improve resource abstraction and string formatting
-> 
-> v3 -> v4
-> - rebased against v4.5
-> - add ACPI support for IRQ domain handling on a per-device basis
-> - reorder domain setup step
-> - improve error handling
-> - code style improvements
-> 
-> v2 -> v3
-> - rebased on top of 4.4
-> - fixes and improvements for redistributor init via GICC structures
-> - fixes as per kbuild reports
-> 
-> v1 -> v2
-> - rebased on top of 4.4-rc4
-> - use pci_msi_domain_get_msi_rid for requester ID to device ID translation
-> 
-> Tomasz Nowicki (8):
->   ACPI: I/O Remapping Table (IORT) initial support
->   ACPI: Add new IORT functions to support MSI domain handling
->   PCI/MSI: Setup MSI domain on a per-device basis using IORT ACPI table
->   irqchip/gicv3-its: Cleanup for ITS domain initialization
->   irqchip/gicv3-its: Refactor ITS DT init code to prepare for ACPI
->   irqchip/gicv3-its: Probe ITS in the ACPI way
->   irqchip/gicv3-its: Factor out PCI-MSI part that might be reused for
->     ACPI
->   irqchip/gicv3-its: Use MADT ITS subtable to do PCI/MSI domain
->     initialization
-> 
->  drivers/acpi/Kconfig                     |   4 +
->  drivers/acpi/Makefile                    |   2 +
->  drivers/acpi/arm64/Kconfig               |   6 +
->  drivers/acpi/arm64/Makefile              |   1 +
->  drivers/acpi/arm64/iort.c                | 366 +++++++++++++++++++++++++++++++
->  drivers/acpi/bus.c                       |   2 +
->  drivers/irqchip/Kconfig                  |   1 +
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c |  88 ++++++--
->  drivers/irqchip/irq-gic-v3-its.c         | 171 +++++++++++----
->  drivers/irqchip/irq-gic-v3.c             |   7 +-
->  drivers/pci/msi.c                        |  11 +-
->  include/linux/acpi_iort.h                |  42 ++++
->  include/linux/irqchip/arm-gic-v3.h       |   4 +-
->  13 files changed, 635 insertions(+), 70 deletions(-)
->  create mode 100644 drivers/acpi/arm64/Kconfig
->  create mode 100644 drivers/acpi/arm64/Makefile
->  create mode 100644 drivers/acpi/arm64/iort.c
->  create mode 100644 include/linux/acpi_iort.h
-> 
