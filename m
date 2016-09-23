@@ -1,128 +1,141 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V6 0/5] ECAM quirks handling for ARM64 platforms
-Date: Thu, 22 Sep 2016 18:08:07 -0500
-Message-ID: <20160922230806.GB1514@localhost>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
- <20160920192636.GB4941@localhost>
- <0429663d51ed8e93fb0c96261dd2ecc7@codeaurora.org>
- <20160921131107.GB10804@localhost>
- <304377c6-554d-60ea-30df-006e557c7279@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <304377c6-554d-60ea-30df-006e557c7279@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v5 0/5] ACPI 2.0: Stop defer-executing module level code
+Date: Fri, 23 Sep 2016 11:26:26 +0800
+Message-ID: <cover.1474600034.git.lv.zheng@intel.com>
+References: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:25525 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934088AbcIWD0f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 22 Sep 2016 23:26:35 -0400
+In-Reply-To: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 06:40:47PM -0400, Christopher Covington wrote:
-> Hi Bjorn,
-> 
-> On 09/21/2016 09:11 AM, Bjorn Helgaas wrote:
-> > On Tue, Sep 20, 2016 at 09:15:14PM -0400, cov@codeaurora.org wrote:
-> 
-> >>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> >>> index eb14f74..bb3b8ad 100644
-> >>> --- a/drivers/acpi/pci_mcfg.c
-> >>> +++ b/drivers/acpi/pci_mcfg.c
-> >>> @@ -42,86 +42,59 @@ struct mcfg_fixup {
-> >>> 	struct resource cfgres;
-> >>> };
-> >>>
-> >>> -#define MCFG_DOM_ANY			(-1)
-> >>
-> >> Did you delete this because there were no current users, because you'd
-> >> prefer users just use "-1", or for some other reason?
-> > 
-> > I removed it because there were no users of it and, more importantly,
-> > the code doesn't implement support for it.
-> 
-> It looks like a stale "First match against PCI topology <domain:bus>..."
-> comment remains.
+After fixing ACPICA internal locking issues, we can enable the correct
+grammar support for the table loading. The new grammar treats the entire
+table as TermList rather than ObjectList, thus the module level code should
+be executed right in place.
 
-Yep.  I removed the comment since it's sort of obvious from the code.
-I also renamed a few things and pulled the match out into a helper
-function.
+MLC (module level code) is an ACPICA terminology describing the AML code
+out of any control method, currently only Type1Opcode (If/Else/While)
+wrapped MLC code blocks are executed by the AML interpreter after the table
+loading. But the issue which is fixed by this patchset is:
+   Not only Type1Opcode, but also Type2Opcode will be executed as MLC and
+   MLC is not defer-executed after loading the table, but is executed right
+   in place.
 
-I also changed the dmesg note: I think the actual resource and the
-name of the pci_ecam_ops is more interesting than the table IDs (which
-I think are already elsewhere in the dmesg log).
+The following AML code is assembled into a static loading SSDT, and used
+as an instrumentation to pry into the de-facto standard AML interpreter
+behaviors:
+  Name (ECOK, Zero)
+  Scope (\)
+  {
+      DBUG ("TermList 1")
+      If (LEqual (ECOK, Zero))
+      {
+          DBUG ("TermList 2")
+          Device (MDEV)
+          {
+              DEBUG (TermList 3")
+              If (CondRefOf (MDEV))
+              {
+                  DBUG ("MDEV exists")
+              }
+              If (CondRefOf (MDEV._STA))
+              {
+                  DBUG ("MDEV._STA exists")
+              }
+              If (CondRefOf (\_SB.PCI0.EC))
+              {
+                  DBUG ("\\_SB.PCI0.EC exists")
+              }
+              Name (_HID, EisaId ("PNP9999"))
+              Method (_STA, 0, Serialized)
+              {
+                  DEBUG ("\\_SB.MDEV._STA")
+                  Return (0x0F)
+              }
+          }
+          DBUG ("TermList 4")
+      }
+      Method (_INI, 0, Serialized)
+      {
+          DBUG ("\\_SB._INI")
+      }
+  }
+  Scope (_SB.PCI0)
+  {
+      Device (EC)
+      {
+          ...
+      }
+  }
+The DBUG function is a function to write the debugging messages into a
+SystemIo debug port.
+Running Windows with the BIOS providing this SSDT via RSDT, the following
+messages are obtained from the debug port:
+  TermList 1
+  TermList 2
+  TermList 3
+  \_SB.MDEV exists
+  TermList 4
+  \_SB._INI
+  ...
 
-Here's the incremental diff, which I can't really test:
+This test reveals the de-facto grammar for the AMLCode to us:
+1. During the table loading, MLC will be executed by the interpreter, this
+   is partially supported by the current ACPICA;
+2. For SystemIo, not only after the _REG(1, 1) is evaluated (current ACPICA
+   interpreter limitation), but when the table is being loaded, the
+   SystemIo (the debugging port) is accessible, this is recently fixed in
+   the upstream, now all early operation regions are accessible during the
+   table loading;
+3. Not only Type1Opcode, but also Type2Opcode will be executed as MLC and
+   MLC is not executed after loading the table, but is executed right in
+   place, the Linux upstream is not compliant to this behavior.
 
+The last compliance issue has already been clarified in ACPI 2.0
+specification, so the compliance issue is not that Linux is not compliant
+to the de-facto standard OS, but that Linux is not compliant to ACPI 2.0.
+Definition block tables in fact is defined by the spec as TermList, which
+has no difference than the control methods, thus the interpretion of the
+table should be no difference that the control method evaluation:
+     AMLCode := DefBlockHeader TermList
+     DefMethod := MethodOp PkgLength NameString MethodFlags TermList
+Now the new upcoming ACPI specification has been clarified around the above
+grammar primitives, so we need to implement them for Linux.
 
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index 245b79f..0b36bc5 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -36,7 +36,7 @@ struct mcfg_fixup {
- 	char oem_id[ACPI_OEM_ID_SIZE + 1];
- 	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
- 	u32 oem_revision;
--	u16 seg;
-+	u16 segment;
- 	struct resource bus_range;
- 	struct pci_ecam_ops *ops;
- 	struct resource cfgres;
-@@ -102,30 +102,37 @@ static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
- static char mcfg_oem_table_id[ACPI_OEM_TABLE_ID_SIZE];
- static u32 mcfg_oem_revision;
- 
--static void pci_mcfg_match_quirks(struct acpi_pci_root *root,
-+static int pci_mcfg_quirk_matches(struct mcfg_fixup *f, u16 segment,
-+				  struct resource *bus_range)
-+{
-+	if (!memcmp(f->oem_id, mcfg_oem_id, ACPI_OEM_ID_SIZE) &&
-+	    !memcmp(f->oem_table_id, mcfg_oem_table_id,
-+	            ACPI_OEM_TABLE_ID_SIZE) &&
-+	    f->oem_revision == mcfg_oem_revision &&
-+	    f->segment == segment &&
-+	    resource_contains(&f->bus_range, bus_range))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static void pci_mcfg_apply_quirks(struct acpi_pci_root *root,
- 				  struct resource *cfgres,
- 				  struct pci_ecam_ops **ecam_ops)
- {
-+	u16 segment = root->segment;
-+	struct resource *bus_range = &root->secondary;
- 	struct mcfg_fixup *f;
- 	int i;
- 
--	/*
--	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
--	 * table ID, and OEM revision from MCFG table standard header.
--	 */
- 	for (i = 0, f = mcfg_quirks; i < ARRAY_SIZE(mcfg_quirks); i++, f++) {
--		if (!memcmp(f->oem_id, mcfg_oem_id, ACPI_OEM_ID_SIZE) &&
--		    !memcmp(f->oem_table_id, mcfg_oem_table_id,
--		            ACPI_OEM_TABLE_ID_SIZE) &&
--		    f->oem_revision == mcfg_oem_revision &&
--		    f->seg == root->segment &&
--		    resource_contains(&f->bus_range, &root->secondary)) {
-+		if (pci_mcfg_quirk_matches(f, segment, bus_range)) {
- 			if (f->cfgres.start)
- 				*cfgres = f->cfgres;
- 			if (f->ops)
- 				*ecam_ops =  f->ops;
--			dev_info(&root->device->dev, "Applying PCI MCFG quirks for %s %s rev: %d\n",
--				 f->oem_id, f->oem_table_id, f->oem_revision);
-+			dev_info(&root->device->dev, "MCFG quirk: ECAM space for %pR at %pR with %ps\n",
-+				 bus_range, cfgres, *ecam_ops);
- 			return;
- 		}
- 	}
-@@ -173,7 +180,7 @@ skip_lookup:
- 	 * MCFG does not have it.  Invalid CFG start address means MCFG
- 	 * firmware bug or we need another quirk in array.
- 	 */
--	pci_mcfg_match_quirks(root, &res, &ops);
-+	pci_mcfg_apply_quirks(root, &res, &ops);
- 	if (!res.start)
- 		return -ENXIO;
- 
+This patchset also contains 2 required fixes generated to fix the
+regressions detected by the ACPICA ASLTS tool. The ASLTS 'table' test suite
+has detected such regressions. The fixes have been accepted by the ACPICA
+upstream (please refer to the ACPICA upstream URL in the description of the
+2 patches). And they are sent to Linux community as urgent materials along
+with the module level code enabling series. With the additional regression
+fixes, new grammar changes have passed all ASLTS 'table' cases:
+  https://bugs.acpica.org/show_bug.cgi?id=1327
+  https://github.com/acpica/acpica/pull/177
+
+Lv Zheng (5):
+  ACPICA: Tables: Fix "UNLOAD" code path lock issues
+  ACPICA: Parser: Fix a regression in LoadTable support
+  ACPI 2.0 / AML: Enable correct ACPI subsystem initialization order
+    for new table loading mode
+  ACPI 2.0 / AML: Improve module level execution by moving the
+    If/Else/While execution to per-table basis
+  ACPI 2.0 / AML: Fix module level execution by correctly parsing table
+    as TermList
+
+ drivers/acpi/acpica/exconfig.c |   23 +++++++++++++++++++----
+ drivers/acpi/acpica/psxface.c  |   11 +++++++++++
+ drivers/acpi/acpica/tbdata.c   |    7 +------
+ drivers/acpi/acpica/tbxfload.c |    9 ++++++---
+ drivers/acpi/bus.c             |    6 ++++--
+ include/acpi/acpixf.h          |    7 +++----
+ 6 files changed, 44 insertions(+), 19 deletions(-)
+
+-- 
+1.7.10
+
