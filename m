@@ -1,126 +1,63 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 5/5] ACPI / gpio: Allow holes in list of GPIOs for a device
-Date: Fri, 23 Sep 2016 17:57:10 +0300
-Message-ID: <20160923145710.105489-6-mika.westerberg@linux.intel.com>
-References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:6695 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1034952AbcIWO5w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 23 Sep 2016 10:57:52 -0400
-In-Reply-To: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: acpi: Fix broken error check in map_processor()
+Date: Fri, 23 Sep 2016 17:08:04 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1609231705570.5640@nanos>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Make it possible to have an empty GPIOs in a GPIO list for device. For
-example a SPI master may use both GPIOs and native pins as chip selects and
-we need to be able to distinguish between the two.
+map_processor() checks the cpuid value returned by acpi_map_cpuid() for -1
+but acpi_map_cpuid() returns -EINVAL in case of error.
 
-This makes it mandatory to have exactly 3 arguments for GPIOs and then
-converts gpiolib to use of acpi_node_get_property_reference_fixed_args()
-instead. In addition we make acpi_gpio_package_count() to handle holes as
-well (this matches the DT version).
+As a consequence the error is ignored and the following access into percpu
+data with that negative cpuid results in a boot crash.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+This happens always when NR_CPUS/nr_cpu_ids is smaller than the number of
+processors listed in the ACPI tables.
+
+Use a proper error check for id < 0 so the function returns instead of
+trying to map CPU#(-EINVAL).
+
+Reported-by: Ingo Molnar <mingo@kernel.org>
+Fixes: dc6db24d2476 ("x86/acpi: Set persistent cpuid <-> nodeid mapping when booting")
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- Documentation/acpi/gpio-properties.txt | 15 +++++++++++++++
- drivers/gpio/gpiolib-acpi.c            | 32 +++++++++++++++++++++-----------
- 2 files changed, 36 insertions(+), 11 deletions(-)
+ drivers/acpi/processor_core.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 46df91c3512b..2ccb70893122 100644
---- a/Documentation/acpi/gpio-properties.txt
-+++ b/Documentation/acpi/gpio-properties.txt
-@@ -51,6 +51,21 @@ it to 1 marks the GPIO as active low.
- In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
- resource, second pin in that resource with the GPIO number of 31.
- 
-+It is possible to leave holes in the array of GPIOs. This is useful in
-+cases like with SPI host controllers where some chip selects may be
-+implemented as GPIOs and some as native signals. For example a SPI host
-+controller can have chip selects 0 and 2 implemented as GPIOs and 1 as
-+native:
-+
-+  Package () {
-+      "cs-gpios",
-+      Package () {
-+          ^GPIO, 19, 0, 0, // chip select 0: GPIO
-+          0,               // chip select 1: native signal
-+          ^GPIO, 20, 0, 0, // chip select 2: GPIO
-+      }
-+  }
-+
- Other supported properties
- --------------------------
- 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 4e50f8f5d597..65c457b9541c 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -467,7 +467,8 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
- 	int ret;
- 
- 	memset(&args, 0, sizeof(args));
--	ret = acpi_node_get_property_reference(fwnode, propname, index, &args);
-+	ret = acpi_node_get_property_reference_fixed_args(fwnode, propname,
-+							  index, 3, &args);
- 	if (ret) {
- 		struct acpi_device *adev = to_acpi_device_node(fwnode);
- 
-@@ -482,13 +483,13 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
- 	 * on returned args.
- 	 */
- 	lookup->adev = args.adev;
--	if (args.nargs >= 2) {
--		lookup->index = args.args[0];
--		lookup->pin_index = args.args[1];
--		/* 3rd argument, if present is used to specify active_low. */
--		if (args.nargs >= 3)
--			lookup->active_low = !!args.args[2];
--	}
-+	if (args.nargs != 3)
-+		return -EPROTO;
-+
-+	lookup->index = args.args[0];
-+	lookup->pin_index = args.args[1];
-+	lookup->active_low = !!args.args[2];
-+
- 	return 0;
- }
- 
-@@ -979,18 +980,27 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
- 	kfree(acpi_gpio);
- }
- 
--static unsigned int acpi_gpio_package_count(const union acpi_object *obj)
-+static int acpi_gpio_package_count(const union acpi_object *obj)
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -284,7 +284,7 @@ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ static bool __init
+ map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
  {
- 	const union acpi_object *element = obj->package.elements;
- 	const union acpi_object *end = element + obj->package.count;
- 	unsigned int count = 0;
+-	int type;
++	int type, id;
+ 	u32 acpi_id;
+ 	acpi_status status;
+ 	acpi_object_type acpi_type;
+@@ -320,10 +320,11 @@ map_processor(acpi_handle handle, phys_c
+ 	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
  
- 	while (element < end) {
--		if (element->type == ACPI_TYPE_LOCAL_REFERENCE)
-+		switch (element->type) {
-+		case ACPI_TYPE_LOCAL_REFERENCE:
-+			element += 3;
-+			/* Fallthrough */
-+		case ACPI_TYPE_INTEGER:
-+			element++;
- 			count++;
-+			break;
+ 	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
+-	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
+-	if (*cpuid == -1)
+-		return false;
++	id = acpi_map_cpuid(*phys_id, acpi_id);
  
--		element++;
-+		default:
-+			return -EPROTO;
-+		}
- 	}
-+
- 	return count;
++	if (id < 0)
++		return false;
++	*cpuid = id;
+ 	return true;
  }
  
--- 
-2.9.3
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
