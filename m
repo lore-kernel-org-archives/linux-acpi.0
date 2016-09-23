@@ -1,9 +1,8 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Johannes Stezenbach <js@sig21.net>
 Subject: Re: Cherryview wake up events
-Date: Fri, 23 Sep 2016 11:19:04 +0300
-Message-ID: <20160923081904.GM1218@lahna.fi.intel.com>
-References: <20160919112117.55dim46nmqdmqjan@sig21.net>
- <20160919115619.GF1811@lahna.fi.intel.com>
+Date: Fri, 23 Sep 2016 11:59:53 +0200
+Message-ID: <20160923095953.gkzzblbipye3ogft@sig21.net>
+References: <20160919115619.GF1811@lahna.fi.intel.com>
  <20160919203622.ujh4l5eudrncv3rl@sig21.net>
  <20160920091840.GN1811@lahna.fi.intel.com>
  <20160920101450.ylohouriienzrgtj@sig21.net>
@@ -12,47 +11,42 @@ References: <20160919112117.55dim46nmqdmqjan@sig21.net>
  <20160920211153.y7ntwwik2l6ppoqz@sig21.net>
  <20160921090614.GY1811@lahna.fi.intel.com>
  <20160921091635.tjnc2gvj75jixycv@sig21.net>
+ <20160923081904.GM1218@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:55394 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934891AbcIWI1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 23 Sep 2016 04:27:52 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160921091635.tjnc2gvj75jixycv@sig21.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
+In-Reply-To: <20160923081904.GM1218@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 11:16:35AM +0200, Johannes Stezenbach wrote:
-> On Wed, Sep 21, 2016 at 12:06:14PM +0300, Mika Westerberg wrote:
-> > On Tue, Sep 20, 2016 at 11:11:53PM +0200, Johannes Stezenbach wrote:
-> > > Or it is because the PNP0C40 device depends on GpioInt from PMIC
-> > > which isn't available...
-> > > 
-> > >             Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
-> > >             {
-> > >                 Name (CBUF, ResourceTemplate ()
-> > >                 {
-> > >                     GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullUp, 0x0BB8,
-> > >                         "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
-> > >                         )
-> > >                         {   // Pin list
-> > >                             0x0016
-> > >                         }
-> > >                 })
-> > >                 Return (CBUF) /* \_SB_.TBAD._CRS.CBUF */
-> > >             }
-> > 
-> > Most likely this is the reason. I'll try to find if we have an existing
-> > driver for this PMIC somewhere. I guess this is the Dollar Cove which is
-> > successor of Crystal Cove IIRC which is already supported by the
-> > mainline kernel.
+On Fri, Sep 23, 2016 at 11:19:04AM +0300, Mika Westerberg wrote:
+> On Wed, Sep 21, 2016 at 11:16:35AM +0200, Johannes Stezenbach wrote:
+> > There is an ADBG ("TI_DCOVE") in PMI2._STA, so Dollar Cove
+> > sounds like a good guess.
 > 
-> There is an ADBG ("TI_DCOVE") in PMI2._STA, so Dollar Cove
-> sounds like a good guess.
+> David (CC'd) is working on getting the Dollar Cove PMIC driver
+> upstreamed to the mainline kernel.
 
-David (CC'd) is working on getting the Dollar Cove PMIC driver
-upstreamed to the mainline kernel.
+Excellent news!  Repeating essential info to avoid any
+confusion, the PMIC is
+
+            Device (PMI2)
+            {
+                Name (_ADR, Zero)  // _ADR: Address
+                Name (_HID, "INT33F5" /* TI PMIC Controller */)  // _HID: Hardware ID
+                Name (_CID, "INT33F5" /* TI PMIC Controller */)  // _CID: Compatible ID
+                Name (_DDN, "TI PMIC Controller")  // _DDN: DOS Device Name
+
+(Because the INT33F4 XPOWER PMIC also has ADBG ("XPWR_DCOVE")
+so I'm not sure "Dollar Cove" is a unique name.)
+
+
+I put the Asus E200HA DSDT at
+https://linuxtv.org/~js/e200ha/
+
+
+Thanks,
+Johannes
