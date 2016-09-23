@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 3/5] ACPI / gpio: Add hogging support
-Date: Fri, 23 Sep 2016 17:57:08 +0300
-Message-ID: <20160923145710.105489-4-mika.westerberg@linux.intel.com>
+Subject: [PATCH 1/5] ACPI / documentation: Use recommended name in GPIO property names
+Date: Fri, 23 Sep 2016 17:57:06 +0300
+Message-ID: <20160923145710.105489-2-mika.westerberg@linux.intel.com>
 References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
@@ -10,152 +10,49 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-GPIO hogging means that the GPIO controller can "hog" and configure certain
-GPIOs without need for a driver or userspace to do that. This is useful in
-open-connected boards where BIOS cannot possibly know beforehand which
-devices will be connected to the board.
-
-This adds GPIO hogging mechanism to ACPI analogous to Device Tree.
+The recommended property name for all kinds of GPIOs is to end it with
+"-gpios" even if there is only one GPIO. Update the documentation to follow
+this fact.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- Documentation/acpi/gpio-properties.txt | 26 ++++++++++++
- drivers/gpio/gpiolib-acpi.c            | 72 ++++++++++++++++++++++++++++++++++
- 2 files changed, 98 insertions(+)
+ Documentation/acpi/gpio-properties.txt | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 7875974823ae..46df91c3512b 100644
+index f35dad11f0de..5aafe0b351a1 100644
 --- a/Documentation/acpi/gpio-properties.txt
 +++ b/Documentation/acpi/gpio-properties.txt
-@@ -69,6 +69,32 @@ Example:
-       }
+@@ -28,8 +28,8 @@ index, like the ASL example below shows:
+           ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+           Package ()
+ 	  {
+-              Package () {"reset-gpio", Package() {^BTH, 1, 1, 0 }},
+-              Package () {"shutdown-gpio", Package() {^BTH, 0, 0, 0 }},
++              Package () {"reset-gpios", Package() {^BTH, 1, 1, 0 }},
++              Package () {"shutdown-gpios", Package() {^BTH, 0, 0, 0 }},
+           }
+       })
    }
+@@ -48,7 +48,7 @@ Since ACPI GpioIo() resource does not have a field saying whether it is
+ active low or high, the "active_low" argument can be used here.  Setting
+ it to 1 marks the GPIO as active low.
  
-+- gpio-hog
-+- output-high
-+- output-low
-+- input
-+- line-name
-+
-+Example:
-+
-+  Name (_DSD, Package () {
-+      // _DSD Hierarchical Properties Extension UUID
-+      ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+      Package () {
-+          Package () {"hog-gpio8", "G8PU"}
-+      }
-+  })
-+
-+  Name (G8PU, Package () {
-+      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+      Package () {
-+          Package () {"gpio-hog", 1},
-+          Package () {"gpios", Package () {8, 0}},
-+          Package () {"output-high", 1},
-+          Package () {"line-name", "gpio8-pullup"},
-+      }
-+  })
-+
- See Documentation/devicetree/bindings/gpio/gpio.tx for more information
- about these properties.
+-In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
++In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
+ resource, second pin in that resource with the GPIO number of 31.
  
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 202cf1b842de..4e50f8f5d597 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -14,6 +14,7 @@
- #include <linux/gpio.h>
- #include <linux/gpio/consumer.h>
- #include <linux/gpio/driver.h>
-+#include <linux/gpio/machine.h>
- #include <linux/export.h>
- #include <linux/acpi.h>
- #include <linux/interrupt.h>
-@@ -845,6 +846,76 @@ static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
- 	kfree(names);
- }
+ ACPI GPIO Mappings Provided by Drivers
+@@ -83,8 +83,8 @@ static const struct acpi_gpio_params reset_gpio = { 1, 1, false };
+ static const struct acpi_gpio_params shutdown_gpio = { 0, 0, false };
  
-+struct gpio_desc *acpi_gpiochip_parse_own_gpio(struct acpi_gpio_chip *achip,
-+	struct fwnode_handle *fwnode, const char **name, unsigned int *lflags,
-+	unsigned int *dflags)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	struct gpio_desc *desc;
-+	u32 gpios[2];
-+	int ret;
-+
-+	ret = fwnode_property_read_u32_array(fwnode, "gpios", gpios,
-+					     ARRAY_SIZE(gpios));
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	ret = acpi_gpiochip_pin_to_gpio_offset(chip->gpiodev, gpios[0]);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	desc = gpiochip_get_desc(chip, ret);
-+	if (IS_ERR(desc))
-+		return desc;
-+
-+	*lflags = 0;
-+	*dflags = 0;
-+	*name = NULL;
-+
-+	if (gpios[1])
-+		*lflags |= GPIO_ACTIVE_LOW;
-+
-+	if (fwnode_property_present(fwnode, "input"))
-+		*dflags |= GPIOD_IN;
-+	else if (fwnode_property_present(fwnode, "output-low"))
-+		*dflags |= GPIOD_OUT_LOW;
-+	else if (fwnode_property_present(fwnode, "output-high"))
-+		*dflags |= GPIOD_OUT_HIGH;
-+	else
-+		return ERR_PTR(-EINVAL);
-+
-+	fwnode_property_read_string(fwnode, "line-name", name);
-+
-+	return desc;
-+}
-+
-+static void acpi_gpiochip_scan_gpios(struct acpi_gpio_chip *achip)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	struct fwnode_handle *fwnode;
-+
-+	device_for_each_child_node(chip->parent, fwnode) {
-+		unsigned int lflags, dflags;
-+		struct gpio_desc *desc;
-+		const char *name;
-+		int ret;
-+
-+		if (!fwnode_property_present(fwnode, "gpio-hog"))
-+			continue;
-+
-+		desc = acpi_gpiochip_parse_own_gpio(achip, fwnode, &name,
-+						    &lflags, &dflags);
-+		if (IS_ERR(desc))
-+			continue;
-+
-+		ret = gpiod_hog(desc, name, lflags, dflags);
-+		if (ret) {
-+			dev_err(chip->parent, "Failed to hog GPIO\n");
-+			return;
-+		}
-+	}
-+}
-+
- void acpi_gpiochip_add(struct gpio_chip *chip)
- {
- 	struct acpi_gpio_chip *acpi_gpio;
-@@ -879,6 +950,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 		acpi_gpiochip_set_names(acpi_gpio);
- 
- 	acpi_gpiochip_request_regions(acpi_gpio);
-+	acpi_gpiochip_scan_gpios(acpi_gpio);
- 	acpi_walk_dep_device_list(handle);
- }
+ static const struct acpi_gpio_mapping bluetooth_acpi_gpios[] = {
+-  { "reset-gpio", &reset_gpio, 1 },
+-  { "shutdown-gpio", &shutdown_gpio, 1 },
++  { "reset-gpios", &reset_gpio, 1 },
++  { "shutdown-gpios", &shutdown_gpio, 1 },
+   { },
+ };
  
 -- 
 2.9.3
