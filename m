@@ -1,54 +1,58 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] acpiexec: Move an acpiexec specific purposed new line to acpiexec specific file
-Date: Fri, 23 Sep 2016 14:49:26 +0800
-Message-ID: <1474613366-23043-1-git-send-email-lv.zheng@intel.com>
-References: <20160909161253.30952-1-bp@alien8.de> <20160919101234.r2zfor37m7eq6k6p@pd.tnic>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: Cherryview wake up events
+Date: Fri, 23 Sep 2016 11:19:04 +0300
+Message-ID: <20160923081904.GM1218@lahna.fi.intel.com>
+References: <20160919112117.55dim46nmqdmqjan@sig21.net>
+ <20160919115619.GF1811@lahna.fi.intel.com>
+ <20160919203622.ujh4l5eudrncv3rl@sig21.net>
+ <20160920091840.GN1811@lahna.fi.intel.com>
+ <20160920101450.ylohouriienzrgtj@sig21.net>
+ <20160920104014.GO1811@lahna.fi.intel.com>
+ <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
+ <20160920211153.y7ntwwik2l6ppoqz@sig21.net>
+ <20160921090614.GY1811@lahna.fi.intel.com>
+ <20160921091635.tjnc2gvj75jixycv@sig21.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43329 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:55394 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752652AbcIWGt7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 23 Sep 2016 02:49:59 -0400
-In-Reply-To: <20160919101234.r2zfor37m7eq6k6p@pd.tnic>
+        id S934891AbcIWI1w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Sep 2016 04:27:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20160921091635.tjnc2gvj75jixycv@sig21.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E. Box" <david.e.box@intel.com>, Borislav Petkov <bp@alien8.de>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, devel@acpica.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Johannes Stezenbach <js@sig21.net>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
 
-> No need, Robert did it already:
+On Wed, Sep 21, 2016 at 11:16:35AM +0200, Johannes Stezenbach wrote:
+> On Wed, Sep 21, 2016 at 12:06:14PM +0300, Mika Westerberg wrote:
+> > On Tue, Sep 20, 2016 at 11:11:53PM +0200, Johannes Stezenbach wrote:
+> > > Or it is because the PNP0C40 device depends on GpioInt from PMIC
+> > > which isn't available...
+> > > 
+> > >             Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+> > >             {
+> > >                 Name (CBUF, ResourceTemplate ()
+> > >                 {
+> > >                     GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullUp, 0x0BB8,
+> > >                         "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
+> > >                         )
+> > >                         {   // Pin list
+> > >                             0x0016
+> > >                         }
+> > >                 })
+> > >                 Return (CBUF) /* \_SB_.TBAD._CRS.CBUF */
+> > >             }
+> > 
+> > Most likely this is the reason. I'll try to find if we have an existing
+> > driver for this PMIC somewhere. I guess this is the Dollar Cove which is
+> > successor of Crystal Cove IIRC which is already supported by the
+> > mainline kernel.
 > 
-> 1d435008fd9e ("Update an info message during table load phase.")
+> There is an ADBG ("TI_DCOVE") in PMI2._STA, so Dollar Cove
+> sounds like a good guess.
 
-Not exactly what I meant. I meant the following on top of the above
-mentioned commit. As the newline is an acpiexec specific logic, it should
-be kept in acpiexec, shouldn't be left polluting a common file. Lv Zheng.
-
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
---
-Index: acpica/source/components/tables/tbxfload.c
-===================================================================
---- acpica.orig/source/components/tables/tbxfload.c
-+++ acpica/source/components/tables/tbxfload.c
-@@ -348,11 +348,6 @@ AcpiTbLoadNamespace (
-         Status = AE_CTRL_TERMINATE;
-     }
- 
--#ifdef ACPI_APPLICATION
--    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT, "\n"));
--#endif
--
--
- UnlockAndExit:
-     (void) AcpiUtReleaseMutex (ACPI_MTX_TABLES);
-     return_ACPI_STATUS (Status);
-Index: acpica/source/tools/acpiexec/aetables.c
-===================================================================
---- acpica.orig/source/tools/acpiexec/aetables.c
-+++ acpica/source/tools/acpiexec/aetables.c
-@@ -625,6 +625,7 @@ AeLoadTables (
- 
-     Status = AcpiLoadTables ();
-     ACPI_CHECK_OK (AcpiLoadTables, Status);
-+    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_INIT, "\n"));
- 
-     /*
-      * Test run-time control method installation. Do it twice to test code
+David (CC'd) is working on getting the Dollar Cove PMIC driver
+upstreamed to the mainline kernel.
