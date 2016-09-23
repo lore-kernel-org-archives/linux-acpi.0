@@ -1,58 +1,48 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 1/5] ACPI / documentation: Use recommended name in GPIO property names
-Date: Fri, 23 Sep 2016 17:57:06 +0300
-Message-ID: <20160923145710.105489-2-mika.westerberg@linux.intel.com>
-References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 0/5] ACPI / gpio: Updates to properties
+Date: Fri, 23 Sep 2016 17:57:05 +0300
+Message-ID: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:35244 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754046AbcIWO5p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 23 Sep 2016 10:57:45 -0400
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-The recommended property name for all kinds of GPIOs is to end it with
-"-gpios" even if there is only one GPIO. Update the documentation to follow
-this fact.
+Hi,
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- Documentation/acpi/gpio-properties.txt | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+This series brings couple of useful GPIO related properties from Device
+Tree to ACPI _DSD device properties:
 
-diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index f35dad11f0de..5aafe0b351a1 100644
---- a/Documentation/acpi/gpio-properties.txt
-+++ b/Documentation/acpi/gpio-properties.txt
-@@ -28,8 +28,8 @@ index, like the ASL example below shows:
-           ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-           Package ()
- 	  {
--              Package () {"reset-gpio", Package() {^BTH, 1, 1, 0 }},
--              Package () {"shutdown-gpio", Package() {^BTH, 0, 0, 0 }},
-+              Package () {"reset-gpios", Package() {^BTH, 1, 1, 0 }},
-+              Package () {"shutdown-gpios", Package() {^BTH, 0, 0, 0 }},
-           }
-       })
-   }
-@@ -48,7 +48,7 @@ Since ACPI GpioIo() resource does not have a field saying whether it is
- active low or high, the "active_low" argument can be used here.  Setting
- it to 1 marks the GPIO as active low.
- 
--In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
-+In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
- resource, second pin in that resource with the GPIO number of 31.
- 
- ACPI GPIO Mappings Provided by Drivers
-@@ -83,8 +83,8 @@ static const struct acpi_gpio_params reset_gpio = { 1, 1, false };
- static const struct acpi_gpio_params shutdown_gpio = { 0, 0, false };
- 
- static const struct acpi_gpio_mapping bluetooth_acpi_gpios[] = {
--  { "reset-gpio", &reset_gpio, 1 },
--  { "shutdown-gpio", &shutdown_gpio, 1 },
-+  { "reset-gpios", &reset_gpio, 1 },
-+  { "shutdown-gpios", &shutdown_gpio, 1 },
-   { },
- };
- 
+  - Names for GPIO lines
+  - GPIO hogging
+  - Holes in GPIO property lists
+
+We are using these to get Intel Galileo better supported in the mainline
+kernel (but these may be useful for other boards as well). For example SPI
+chip select on Galileo is connected to a GPIO line so we need to be able to
+describe it in ACPI, and at the same time allow native chip selects.
+
+GPIO hogging can be used to set initial state of certain GPIOs available on
+the headers regardless of the BIOS settings (which may be wrong as it knows
+nothing about which devices have been connected).
+
+Mika Westerberg (5):
+  ACPI / documentation: Use recommended name in GPIO property names
+  ACPI / gpio: Add support for naming GPIOs
+  ACPI / gpio: Add hogging support
+  ACPI / property: Allow holes in reference properties
+  ACPI / gpio: Allow holes in list of GPIOs for a device
+
+ Documentation/acpi/gpio-properties.txt |  72 ++++++++++++++--
+ drivers/acpi/property.c                | 116 +++++++++++++++++++-------
+ drivers/gpio/gpiolib-acpi.c            | 147 ++++++++++++++++++++++++++++++---
+ include/linux/acpi.h                   |   3 +
+ 4 files changed, 292 insertions(+), 46 deletions(-)
+
 -- 
 2.9.3
+
