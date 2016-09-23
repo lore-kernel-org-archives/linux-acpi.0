@@ -1,141 +1,143 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v5 0/5] ACPI 2.0: Stop defer-executing module level code
-Date: Fri, 23 Sep 2016 11:26:26 +0800
-Message-ID: <cover.1474600034.git.lv.zheng@intel.com>
-References: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:25525 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934088AbcIWD0f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 22 Sep 2016 23:26:35 -0400
-In-Reply-To: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v5 1/5] ACPICA: Tables: Fix "UNLOAD" code path lock issues
+Date: Fri, 23 Sep 2016 11:26:35 +0800
+Message-ID: <f6987190ef74e4788d1884fb9586e677d13625c2.1474600034.git.lv.zheng@intel.com>
+References: <0e65135af51d94db0410c7059f3bc3a2300fc3b5> <cover.1474600034.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1474600034.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-After fixing ACPICA internal locking issues, we can enable the correct
-grammar support for the table loading. The new grammar treats the entire
-table as TermList rather than ObjectList, thus the module level code should
-be executed right in place.
+ACPICA commit 39227380f5b99c51b897a3ffedd88508aa26789b
 
-MLC (module level code) is an ACPICA terminology describing the AML code
-out of any control method, currently only Type1Opcode (If/Else/While)
-wrapped MLC code blocks are executed by the AML interpreter after the table
-loading. But the issue which is fixed by this patchset is:
-   Not only Type1Opcode, but also Type2Opcode will be executed as MLC and
-   MLC is not defer-executed after loading the table, but is executed right
-   in place.
+The previous lock fixes didn't cover "Unload" opcode and table unload APIs,
+this patch fixes lock issues in the "Unload" code path. BZ 1325, Lv Zheng.
 
-The following AML code is assembled into a static loading SSDT, and used
-as an instrumentation to pry into the de-facto standard AML interpreter
-behaviors:
-  Name (ECOK, Zero)
-  Scope (\)
-  {
-      DBUG ("TermList 1")
-      If (LEqual (ECOK, Zero))
-      {
-          DBUG ("TermList 2")
-          Device (MDEV)
-          {
-              DEBUG (TermList 3")
-              If (CondRefOf (MDEV))
-              {
-                  DBUG ("MDEV exists")
-              }
-              If (CondRefOf (MDEV._STA))
-              {
-                  DBUG ("MDEV._STA exists")
-              }
-              If (CondRefOf (\_SB.PCI0.EC))
-              {
-                  DBUG ("\\_SB.PCI0.EC exists")
-              }
-              Name (_HID, EisaId ("PNP9999"))
-              Method (_STA, 0, Serialized)
-              {
-                  DEBUG ("\\_SB.MDEV._STA")
-                  Return (0x0F)
-              }
-          }
-          DBUG ("TermList 4")
-      }
-      Method (_INI, 0, Serialized)
-      {
-          DBUG ("\\_SB._INI")
-      }
-  }
-  Scope (_SB.PCI0)
-  {
-      Device (EC)
-      {
-          ...
-      }
-  }
-The DBUG function is a function to write the debugging messages into a
-SystemIo debug port.
-Running Windows with the BIOS providing this SSDT via RSDT, the following
-messages are obtained from the debug port:
-  TermList 1
-  TermList 2
-  TermList 3
-  \_SB.MDEV exists
-  TermList 4
-  \_SB._INI
-  ...
-
-This test reveals the de-facto grammar for the AMLCode to us:
-1. During the table loading, MLC will be executed by the interpreter, this
-   is partially supported by the current ACPICA;
-2. For SystemIo, not only after the _REG(1, 1) is evaluated (current ACPICA
-   interpreter limitation), but when the table is being loaded, the
-   SystemIo (the debugging port) is accessible, this is recently fixed in
-   the upstream, now all early operation regions are accessible during the
-   table loading;
-3. Not only Type1Opcode, but also Type2Opcode will be executed as MLC and
-   MLC is not executed after loading the table, but is executed right in
-   place, the Linux upstream is not compliant to this behavior.
-
-The last compliance issue has already been clarified in ACPI 2.0
-specification, so the compliance issue is not that Linux is not compliant
-to the de-facto standard OS, but that Linux is not compliant to ACPI 2.0.
-Definition block tables in fact is defined by the spec as TermList, which
-has no difference than the control methods, thus the interpretion of the
-table should be no difference that the control method evaluation:
-     AMLCode := DefBlockHeader TermList
-     DefMethod := MethodOp PkgLength NameString MethodFlags TermList
-Now the new upcoming ACPI specification has been clarified around the above
-grammar primitives, so we need to implement them for Linux.
-
-This patchset also contains 2 required fixes generated to fix the
-regressions detected by the ACPICA ASLTS tool. The ASLTS 'table' test suite
-has detected such regressions. The fixes have been accepted by the ACPICA
-upstream (please refer to the ACPICA upstream URL in the description of the
-2 patches). And they are sent to Linux community as urgent materials along
-with the module level code enabling series. With the additional regression
-fixes, new grammar changes have passed all ASLTS 'table' cases:
-  https://bugs.acpica.org/show_bug.cgi?id=1327
-  https://github.com/acpica/acpica/pull/177
-
-Lv Zheng (5):
-  ACPICA: Tables: Fix "UNLOAD" code path lock issues
-  ACPICA: Parser: Fix a regression in LoadTable support
-  ACPI 2.0 / AML: Enable correct ACPI subsystem initialization order
-    for new table loading mode
-  ACPI 2.0 / AML: Improve module level execution by moving the
-    If/Else/While execution to per-table basis
-  ACPI 2.0 / AML: Fix module level execution by correctly parsing table
-    as TermList
-
+Link: https://github.com/acpica/acpica/commit/39227380
+Link: https://bugs.acpica.org/show_bug.cgi?id=1325
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
  drivers/acpi/acpica/exconfig.c |   23 +++++++++++++++++++----
- drivers/acpi/acpica/psxface.c  |   11 +++++++++++
  drivers/acpi/acpica/tbdata.c   |    7 +------
  drivers/acpi/acpica/tbxfload.c |    9 ++++++---
- drivers/acpi/bus.c             |    6 ++++--
- include/acpi/acpixf.h          |    7 +++----
- 6 files changed, 44 insertions(+), 19 deletions(-)
+ 3 files changed, 26 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 421836a..718428b 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -532,10 +532,17 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 
+ 	table_index = table_desc->reference.value;
+ 
++	/*
++	 * Release the interpreter lock so that the table lock won't have
++	 * strict order requirement against it.
++	 */
++	acpi_ex_exit_interpreter();
++
+ 	/* Ensure the table is still loaded */
+ 
+ 	if (!acpi_tb_is_table_loaded(table_index)) {
+-		return_ACPI_STATUS(AE_NOT_EXIST);
++		status = AE_NOT_EXIST;
++		goto lock_and_exit;
+ 	}
+ 
+ 	/* Invoke table handler if present */
+@@ -553,16 +560,24 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 
+ 	status = acpi_tb_delete_namespace_by_owner(table_index);
+ 	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
++		goto lock_and_exit;
+ 	}
+ 
+ 	(void)acpi_tb_release_owner_id(table_index);
+ 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
+ 
++lock_and_exit:
++
++	/* Re-acquire the interpreter lock */
++
++	acpi_ex_enter_interpreter();
++
+ 	/*
+ 	 * Invalidate the handle. We do this because the handle may be stored
+ 	 * in a named object and may not be actually deleted until much later.
+ 	 */
+-	ddb_handle->common.flags &= ~AOPOBJ_DATA_VALID;
+-	return_ACPI_STATUS(AE_OK);
++	if (ACPI_SUCCESS(status)) {
++		ddb_handle->common.flags &= ~AOPOBJ_DATA_VALID;
++	}
++	return_ACPI_STATUS(status);
+ }
+diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+index 7e93fd6..d9ca8c2 100644
+--- a/drivers/acpi/acpica/tbdata.c
++++ b/drivers/acpi/acpica/tbdata.c
+@@ -614,17 +614,12 @@ acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index)
+ 	 * lock may block, and also since the execution of a namespace walk
+ 	 * must be allowed to use the interpreter.
+ 	 */
+-	(void)acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
+ 	status = acpi_ut_acquire_write_lock(&acpi_gbl_namespace_rw_lock);
+-
+-	acpi_ns_delete_namespace_by_owner(owner_id);
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+-
++	acpi_ns_delete_namespace_by_owner(owner_id);
+ 	acpi_ut_release_write_lock(&acpi_gbl_namespace_rw_lock);
+-
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 870ad64..5569f63 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -378,9 +378,9 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
+ 		return_ACPI_STATUS(AE_TYPE);
+ 	}
+ 
+-	/* Must acquire the interpreter lock during this operation */
++	/* Must acquire the table lock during this operation */
+ 
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
++	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+@@ -407,8 +407,10 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
+ 
+ 		/* Ensure the table is actually loaded */
+ 
++		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+ 		if (!acpi_tb_is_table_loaded(i)) {
+ 			status = AE_NOT_EXIST;
++			(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 			break;
+ 		}
+ 
+@@ -434,10 +436,11 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
+ 
+ 		status = acpi_tb_release_owner_id(i);
+ 		acpi_tb_set_table_loaded_flag(i, FALSE);
++		(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 		break;
+ 	}
+ 
+-	(void)acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
++	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+ 	return_ACPI_STATUS(status);
+ }
+ 
 -- 
 1.7.10
-
