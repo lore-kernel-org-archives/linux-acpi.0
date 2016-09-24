@@ -1,95 +1,141 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/4] ACPI / watchdog: Add support for WDAT (Watchdog Action Table)
-Date: Sat, 24 Sep 2016 02:34:10 +0200
-Message-ID: <2633766.sDHCfGxtIg@vostro.rjw.lan>
-References: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 2/5] PCI: Query platform firmware for device power state
+Date: Sat, 24 Sep 2016 02:46:23 +0200
+Message-ID: <2060566.Y1NLRuZWTn@vostro.rjw.lan>
+References: <cover.1474130360.git.lukas@wunner.de> <492d4d62ae1b3a95570babe9608d8ea971b62585.1474130360.git.lukas@wunner.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:52061 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1755762AbcIXA1v (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 23 Sep 2016 20:27:51 -0400
-In-Reply-To: <20160920123054.195021-1-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <492d4d62ae1b3a95570babe9608d8ea971b62585.1474130360.git.lukas@wunner.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Peter Tyser <ptyser@xes-inc.com>, Lee Jones <lee.jones@linaro.org>, Zha Qipeng <qipeng.zha@intel.com>, Darren Hart <dvhart@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, September 20, 2016 03:30:50 PM Mika Westerberg wrote:
-> Hi,
+On Sunday, September 18, 2016 05:39:20 AM Lukas Wunner wrote:
+> Usually the most accurate way to determine a PCI device's power state is
+> to read its PM Control & Status Register.  There are two cases however
+> when this is not an option:  If the device doesn't have the PM
+> capability at all, or if it is in D3cold (in which case its config space
+> is inaccessible).
 > 
-> The WDAT (Watchdog Action Table) is a special ACPI table introduced by
-> Microsoft [1] that abstracts the watchdog hardware from the OS. Windows
-> uses this table for its watchdog implementation instead of a native iTCO
-> driver.
+> In both cases, we can alternatively query the platform firmware for its
+> opinion on the device's power state.  To facilitate this, augment struct
+> pci_platform_pm_ops with a ->get_power callback and implement it for
+> acpi_pci_platform_pm (the only pci_platform_pm_ops existing so far).
 > 
-> Microsoft re-licensed the WDAT specification to be under Microsoft
-> Community Promise license [2] so it should be fine to use it in Linux.
+> It is used by a forthcoming commit to let pci_update_current_state()
+> recognize D3cold.
 > 
-> This series brings WDAT table support to Linux.
-> 
-> When the driver is enabled and we find out that there is a WDAT table, the
-> driver will take over the native iTCO watchdog driver. Main advantage in
-> this is that we do not need to change the native iTCO driver whenever the
-> hardware changes. For example in Skylake iTCO moved to sit behind SMBus and
-> the NO_REBOOT bit was hidden behind P2SB (Primary to Sideband). In addition
-> we can expect this to be tested much better by OEMs who typically validate
-> that Windows works fine on their hardware/firmware.
-> 
-> Patch [1/4] adds ACPI enumeration support and the driver itself. It also
-> introduces acpi_has_watchdog() which can be used to check if we should use
-> ACPI watchdog or native one.
-> 
-> Patches [2-4/4] prevent creation of the native iTCO platform device if we
-> detect that the ACPI watchdog (WDAT) should be used instead.
-> 
-> The previous version of the series can be found in [3].
-> 
-> Changes from v1:
->   * Moved wdat_wdt.c to live under drivers/watchdog
->   * Added checks for timer_period, min_count and max_count
->   * Use min_hw_heartbeat_ms and max_hw_heartbeat_ms instead of
->     min/max_timeout
->   * Instead of stopping the watchdog set WDOG_HW_RUNNING
->   * Switched to use devm_watchdog_register_device() and dropped
->     wdat_wdt_remove()
->   * Do not ping watchdog in resume()
->   * Added review tag from Guenter Roeck to patches [2-4/4].
-> 
-> [1] http://msdn.microsoft.com/en-us/windows/hardware/gg463320.aspx
-> [2] https://msdn.microsoft.com/en-us/openspecifications/dn646766.aspx
-> [3] http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1230607.html
-> 
-> Mika Westerberg (4):
->   ACPI / watchdog: Add support for WDAT hardware watchdog
->   mfd: lpc_ich: Do not create iTCO watchdog when WDAT table exists
->   i2c: i801: Do not create iTCO watchdog when WDAT table exists
->   platform/x86: intel_pmc_ipc: Do not create iTCO watchdog when WDAT
->     table exists
-> 
->  drivers/acpi/Kconfig                 |   3 +
->  drivers/acpi/Makefile                |   1 +
->  drivers/acpi/acpi_watchdog.c         | 123 ++++++++
->  drivers/acpi/internal.h              |  10 +
->  drivers/acpi/scan.c                  |   1 +
->  drivers/i2c/busses/i2c-i801.c        |   4 +-
->  drivers/mfd/lpc_ich.c                |   4 +
->  drivers/platform/x86/intel_pmc_ipc.c |  12 +-
->  drivers/watchdog/Kconfig             |  13 +
->  drivers/watchdog/Makefile            |   1 +
->  drivers/watchdog/wdat_wdt.c          | 525 +++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h                 |   6 +
->  12 files changed, 698 insertions(+), 5 deletions(-)
->  create mode 100644 drivers/acpi/acpi_watchdog.c
->  create mode 100644 drivers/watchdog/wdat_wdt.c
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
 
-I'm queing up this series for 4.9.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please let me know if there are any objections.
+> ---
+> 
+> Changes since v1:
+> * In acpi_pci_get_power_state(), only check for ACPI_STATE_UNKNOWN
+>   instead of ACPI_STATE_D0 and ACPI_STATE_D3_COLD.
+> * Move the change to pci_update_current_state() to new patch [3/5].
+> 
+>  drivers/pci/pci-acpi.c | 22 ++++++++++++++++++++++
+>  drivers/pci/pci.c      | 10 ++++++++--
+>  drivers/pci/pci.h      |  3 +++
+>  3 files changed, 33 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index 9a033e8..d966d47 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -452,6 +452,27 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+>  	return error;
+>  }
+>  
+> +static pci_power_t acpi_pci_get_power_state(struct pci_dev *dev)
+> +{
+> +	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> +	static const pci_power_t state_conv[] = {
+> +		[ACPI_STATE_D0]      = PCI_D0,
+> +		[ACPI_STATE_D1]      = PCI_D1,
+> +		[ACPI_STATE_D2]      = PCI_D2,
+> +		[ACPI_STATE_D3_HOT]  = PCI_D3hot,
+> +		[ACPI_STATE_D3_COLD] = PCI_D3cold,
+> +	};
+> +	int state;
+> +
+> +	if (!adev || !acpi_device_power_manageable(adev))
+> +		return PCI_UNKNOWN;
+> +
+> +	if (acpi_device_get_power(adev, &state) || state == ACPI_STATE_UNKNOWN)
+> +		return PCI_UNKNOWN;
+> +
+> +	return state_conv[state];
+> +}
+> +
+>  static bool acpi_pci_can_wakeup(struct pci_dev *dev)
+>  {
+>  	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> @@ -534,6 +555,7 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
+>  static const struct pci_platform_pm_ops acpi_pci_platform_pm = {
+>  	.is_manageable = acpi_pci_power_manageable,
+>  	.set_state = acpi_pci_set_power_state,
+> +	.get_state = acpi_pci_get_power_state,
+>  	.choose_state = acpi_pci_choose_state,
+>  	.sleep_wake = acpi_pci_sleep_wake,
+>  	.run_wake = acpi_pci_run_wake,
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 72a9d3a..6ea0d2d 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -552,8 +552,9 @@ static const struct pci_platform_pm_ops *pci_platform_pm;
+>  
+>  int pci_set_platform_pm(const struct pci_platform_pm_ops *ops)
+>  {
+> -	if (!ops->is_manageable || !ops->set_state || !ops->choose_state ||
+> -	    !ops->sleep_wake || !ops->run_wake || !ops->need_resume)
+> +	if (!ops->is_manageable || !ops->set_state  || !ops->get_state ||
+> +	    !ops->choose_state  || !ops->sleep_wake || !ops->run_wake  ||
+> +	    !ops->need_resume)
+>  		return -EINVAL;
+>  	pci_platform_pm = ops;
+>  	return 0;
+> @@ -570,6 +571,11 @@ static inline int platform_pci_set_power_state(struct pci_dev *dev,
+>  	return pci_platform_pm ? pci_platform_pm->set_state(dev, t) : -ENOSYS;
+>  }
+>  
+> +static inline pci_power_t platform_pci_get_power_state(struct pci_dev *dev)
+> +{
+> +	return pci_platform_pm ? pci_platform_pm->get_state(dev) : PCI_UNKNOWN;
+> +}
+> +
+>  static inline pci_power_t platform_pci_choose_state(struct pci_dev *dev)
+>  {
+>  	return pci_platform_pm ?
+> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+> index 194521b..4518562 100644
+> --- a/drivers/pci/pci.h
+> +++ b/drivers/pci/pci.h
+> @@ -42,6 +42,8 @@ int pci_probe_reset_function(struct pci_dev *dev);
+>   *
+>   * @set_state: invokes the platform firmware to set the device's power state
+>   *
+> + * @get_state: queries the platform firmware for a device's current power state
+> + *
+>   * @choose_state: returns PCI power state of given device preferred by the
+>   *                platform; to be used during system-wide transitions from a
+>   *                sleeping state to the working state and vice versa
+> @@ -62,6 +64,7 @@ int pci_probe_reset_function(struct pci_dev *dev);
+>  struct pci_platform_pm_ops {
+>  	bool (*is_manageable)(struct pci_dev *dev);
+>  	int (*set_state)(struct pci_dev *dev, pci_power_t state);
+> +	pci_power_t (*get_state)(struct pci_dev *dev);
+>  	pci_power_t (*choose_state)(struct pci_dev *dev);
+>  	int (*sleep_wake)(struct pci_dev *dev, bool enable);
+>  	int (*run_wake)(struct pci_dev *dev, bool enable);
+> 
 
-Thanks,
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
