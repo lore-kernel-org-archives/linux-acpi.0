@@ -1,29 +1,95 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
-Date: Sun, 25 Sep 2016 15:12:05 +0200
-Message-ID: <201609251512.05657.linux@rainbow-software.org>
+From: Srinivasan J <srinidpdk@gmail.com>
+Subject: How does a guest OS differentiate between a Reboot/Shutdown ACPI event
+Date: Sun, 25 Sep 2016 22:16:49 +0530
+Message-ID: <CAEbeQ+qcxuyACveg5B0ML6PG52PwQpLDfFQoL4WFX3+WM1evaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-1b.atlantis.sk ([80.94.52.26]:46573 "EHLO
-        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966265AbcIYNSL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Sep 2016 09:18:11 -0400
-Content-Disposition: inline
+Received: from mail-io0-f175.google.com ([209.85.223.175]:36701 "EHLO
+        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938834AbcIYQqv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Sep 2016 12:46:51 -0400
+Received: by mail-io0-f175.google.com with SMTP id m79so161969740ioo.3
+        for <linux-acpi@vger.kernel.org>; Sun, 25 Sep 2016 09:46:50 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hello,
-I've upgraded kernel (Debian Squeeze - backports) from 4.6 (4.6.4-1~bpo8+1)
-to 4.7 (4.7.2-1~bpo8+1) and IRQs stopped working with error messages like this:
+Hi,
 
-ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
+I have Ubuntu 14.04.1 (ubuntu-14.04.1-server-amd64.iso) guest running
+in a KVM host. The host is running Ubuntu 16.04. I'm trying to find
+out how Ubuntu 14.04.1 differentiates between virsh shutdown and virsh
+reboot commands issued in the host. I see that in both cases the ACPI
+event seen at the guest are exactly same. The guest however correctly
+shuts down on issuing "virsh shutdown" and correctly reboots on
+issuing "virsh reboot".
 
-The same thing appeared on two different machines. Is it a known/fixed bug?
+syslog:Sep 25 12:33:51 ubuntu acpid: waiting for events: event logging is on
+syslog:Sep 25 12:34:46 ubuntu acpid: received input layer event
+"button/power PBTN 00000080 00000000"
+syslog:Sep 25 12:34:46 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
+syslog:Sep 25 12:34:46 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
+syslog:Sep 25 12:34:46 ubuntu acpid: action exited with status 0
+syslog:Sep 25 12:34:46 ubuntu acpid: 1 total rule matched
+syslog:Sep 25 12:34:46 ubuntu acpid: completed input layer event
+"button/power PBTN 00000080 00000000"
+syslog:Sep 25 12:34:46 ubuntu acpid: received netlink event
+"button/power LNXPWRBN:00 00000080 00000001"
+syslog:Sep 25 12:34:46 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
+syslog:Sep 25 12:34:46 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
+syslog:Sep 25 12:34:46 ubuntu acpid: action exited with status 0
+syslog:Sep 25 12:34:46 ubuntu acpid: 1 total rule matched
+syslog:Sep 25 12:34:46 ubuntu acpid: completed netlink event
+"button/power LNXPWRBN:00 00000080 00000001"
+syslog:Sep 25 12:35:02 ubuntu acpid: starting up with netlink and the
+input layer
+syslog:Sep 25 12:35:02 ubuntu acpid: 1 rule loaded
+syslog:Sep 25 12:35:02 ubuntu acpid: waiting for events: event logging is on
+syslog:Sep 25 12:36:13 ubuntu acpid: received input layer event
+"button/power PBTN 00000080 00000000"
+syslog:Sep 25 12:36:13 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
+syslog:Sep 25 12:36:13 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
+syslog:Sep 25 12:36:13 ubuntu acpid: action exited with status 0
+syslog:Sep 25 12:36:13 ubuntu acpid: 1 total rule matched
+syslog:Sep 25 12:36:13 ubuntu acpid: completed input layer event
+"button/power PBTN 00000080 00000000"
+syslog:Sep 25 12:36:13 ubuntu acpid: received netlink event
+"button/power LNXPWRBN:00 00000080 00000001"
+syslog:Sep 25 12:36:13 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
+syslog:Sep 25 12:36:13 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
+syslog:Sep 25 12:36:13 ubuntu acpid: action exited with status 0
+syslog:Sep 25 12:36:13 ubuntu acpid: 1 total rule matched
+syslog:Sep 25 12:36:13 ubuntu acpid: completed netlink event
+"button/power LNXPWRBN:00 00000080 00000001"
+syslog:Sep 25 12:36:27 ubuntu acpid: starting up with netlink and the
+input layer
+syslog:Sep 25 12:36:27 ubuntu acpid: 1 rule loaded
+syslog:Sep 25 12:36:27 ubuntu acpid: waiting for events: event logging is on
 
--- 
-Ondrej Zary
+
+Guest details:
+
+srinij@ubuntu:/$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 14.04.1 LTS
+Release:        14.04
+Codename:       trusty
+
+Host details:
+
+srinij@ubuntu-server-16x:~/Downloads$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 16.04 LTS
+Release:        16.04
+Codename:       xenial
+srinij@ubuntu-server-16x:~/Downloads$ virsh version
+Compiled against library: libvirt 1.3.1
+Using library: libvirt 1.3.1
+Using API: QEMU 1.3.1
+Running hypervisor: QEMU 2.5.0
+
+Regards,
+Srini
