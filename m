@@ -1,95 +1,126 @@
-From: Srinivasan J <srinidpdk@gmail.com>
-Subject: How does a guest OS differentiate between a Reboot/Shutdown ACPI event
-Date: Sun, 25 Sep 2016 22:16:49 +0530
-Message-ID: <CAEbeQ+qcxuyACveg5B0ML6PG52PwQpLDfFQoL4WFX3+WM1evaA@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v5 0/5] ACPI 2.0: Stop defer-executing module level code
+Date: Mon, 26 Sep 2016 07:43:14 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A22C8D9@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1474600034.git.lv.zheng@intel.com>
+ <8547863.5EfA9Z8BZh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:36701 "EHLO
-        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938834AbcIYQqv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Sep 2016 12:46:51 -0400
-Received: by mail-io0-f175.google.com with SMTP id m79so161969740ioo.3
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Sep 2016 09:46:50 -0700 (PDT)
+Received: from mga06.intel.com ([134.134.136.31]:53858 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751237AbcIZHnY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 26 Sep 2016 03:43:24 -0400
+In-Reply-To: <8547863.5EfA9Z8BZh@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-I have Ubuntu 14.04.1 (ubuntu-14.04.1-server-amd64.iso) guest running
-in a KVM host. The host is running Ubuntu 16.04. I'm trying to find
-out how Ubuntu 14.04.1 differentiates between virsh shutdown and virsh
-reboot commands issued in the host. I see that in both cases the ACPI
-event seen at the guest are exactly same. The guest however correctly
-shuts down on issuing "virsh shutdown" and correctly reboots on
-issuing "virsh reboot".
-
-syslog:Sep 25 12:33:51 ubuntu acpid: waiting for events: event logging is on
-syslog:Sep 25 12:34:46 ubuntu acpid: received input layer event
-"button/power PBTN 00000080 00000000"
-syslog:Sep 25 12:34:46 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
-syslog:Sep 25 12:34:46 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
-syslog:Sep 25 12:34:46 ubuntu acpid: action exited with status 0
-syslog:Sep 25 12:34:46 ubuntu acpid: 1 total rule matched
-syslog:Sep 25 12:34:46 ubuntu acpid: completed input layer event
-"button/power PBTN 00000080 00000000"
-syslog:Sep 25 12:34:46 ubuntu acpid: received netlink event
-"button/power LNXPWRBN:00 00000080 00000001"
-syslog:Sep 25 12:34:46 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
-syslog:Sep 25 12:34:46 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
-syslog:Sep 25 12:34:46 ubuntu acpid: action exited with status 0
-syslog:Sep 25 12:34:46 ubuntu acpid: 1 total rule matched
-syslog:Sep 25 12:34:46 ubuntu acpid: completed netlink event
-"button/power LNXPWRBN:00 00000080 00000001"
-syslog:Sep 25 12:35:02 ubuntu acpid: starting up with netlink and the
-input layer
-syslog:Sep 25 12:35:02 ubuntu acpid: 1 rule loaded
-syslog:Sep 25 12:35:02 ubuntu acpid: waiting for events: event logging is on
-syslog:Sep 25 12:36:13 ubuntu acpid: received input layer event
-"button/power PBTN 00000080 00000000"
-syslog:Sep 25 12:36:13 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
-syslog:Sep 25 12:36:13 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
-syslog:Sep 25 12:36:13 ubuntu acpid: action exited with status 0
-syslog:Sep 25 12:36:13 ubuntu acpid: 1 total rule matched
-syslog:Sep 25 12:36:13 ubuntu acpid: completed input layer event
-"button/power PBTN 00000080 00000000"
-syslog:Sep 25 12:36:13 ubuntu acpid: received netlink event
-"button/power LNXPWRBN:00 00000080 00000001"
-syslog:Sep 25 12:36:13 ubuntu acpid: rule from /etc/acpi/events/powerbtn matched
-syslog:Sep 25 12:36:13 ubuntu acpid: executing action "/etc/acpi/powerbtn.sh"
-syslog:Sep 25 12:36:13 ubuntu acpid: action exited with status 0
-syslog:Sep 25 12:36:13 ubuntu acpid: 1 total rule matched
-syslog:Sep 25 12:36:13 ubuntu acpid: completed netlink event
-"button/power LNXPWRBN:00 00000080 00000001"
-syslog:Sep 25 12:36:27 ubuntu acpid: starting up with netlink and the
-input layer
-syslog:Sep 25 12:36:27 ubuntu acpid: 1 rule loaded
-syslog:Sep 25 12:36:27 ubuntu acpid: waiting for events: event logging is on
-
-
-Guest details:
-
-srinij@ubuntu:/$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Ubuntu
-Description:    Ubuntu 14.04.1 LTS
-Release:        14.04
-Codename:       trusty
-
-Host details:
-
-srinij@ubuntu-server-16x:~/Downloads$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Ubuntu
-Description:    Ubuntu 16.04 LTS
-Release:        16.04
-Codename:       xenial
-srinij@ubuntu-server-16x:~/Downloads$ virsh version
-Compiled against library: libvirt 1.3.1
-Using library: libvirt 1.3.1
-Using API: QEMU 1.3.1
-Running hypervisor: QEMU 2.5.0
-
-Regards,
-Srini
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjUgMC81XSBBQ1BJIDIuMDogU3RvcCBk
+ZWZlci1leGVjdXRpbmcgbW9kdWxlIGxldmVsIGNvZGUNCj4gDQo+IE9uIEZyaWRheSwgU2VwdGVt
+YmVyIDIzLCAyMDE2IDExOjI2OjI2IEFNIEx2IFpoZW5nIHdyb3RlOg0KPiA+IEFmdGVyIGZpeGlu
+ZyBBQ1BJQ0EgaW50ZXJuYWwgbG9ja2luZyBpc3N1ZXMsIHdlIGNhbiBlbmFibGUgdGhlIGNvcnJl
+Y3QNCj4gPiBncmFtbWFyIHN1cHBvcnQgZm9yIHRoZSB0YWJsZSBsb2FkaW5nLiBUaGUgbmV3IGdy
+YW1tYXIgdHJlYXRzIHRoZSBlbnRpcmUNCj4gPiB0YWJsZSBhcyBUZXJtTGlzdCByYXRoZXIgdGhh
+biBPYmplY3RMaXN0LCB0aHVzIHRoZSBtb2R1bGUgbGV2ZWwgY29kZSBzaG91bGQNCj4gPiBiZSBl
+eGVjdXRlZCByaWdodCBpbiBwbGFjZS4NCj4gPg0KPiA+IE1MQyAobW9kdWxlIGxldmVsIGNvZGUp
+IGlzIGFuIEFDUElDQSB0ZXJtaW5vbG9neSBkZXNjcmliaW5nIHRoZSBBTUwgY29kZQ0KPiA+IG91
+dCBvZiBhbnkgY29udHJvbCBtZXRob2QsIGN1cnJlbnRseSBvbmx5IFR5cGUxT3Bjb2RlIChJZi9F
+bHNlL1doaWxlKQ0KPiA+IHdyYXBwZWQgTUxDIGNvZGUgYmxvY2tzIGFyZSBleGVjdXRlZCBieSB0
+aGUgQU1MIGludGVycHJldGVyIGFmdGVyIHRoZSB0YWJsZQ0KPiA+IGxvYWRpbmcuIEJ1dCB0aGUg
+aXNzdWUgd2hpY2ggaXMgZml4ZWQgYnkgdGhpcyBwYXRjaHNldCBpczoNCj4gPiAgICBOb3Qgb25s
+eSBUeXBlMU9wY29kZSwgYnV0IGFsc28gVHlwZTJPcGNvZGUgd2lsbCBiZSBleGVjdXRlZCBhcyBN
+TEMgYW5kDQo+ID4gICAgTUxDIGlzIG5vdCBkZWZlci1leGVjdXRlZCBhZnRlciBsb2FkaW5nIHRo
+ZSB0YWJsZSwgYnV0IGlzIGV4ZWN1dGVkIHJpZ2h0DQo+ID4gICAgaW4gcGxhY2UuDQo+ID4NCj4g
+PiBUaGUgZm9sbG93aW5nIEFNTCBjb2RlIGlzIGFzc2VtYmxlZCBpbnRvIGEgc3RhdGljIGxvYWRp
+bmcgU1NEVCwgYW5kIHVzZWQNCj4gPiBhcyBhbiBpbnN0cnVtZW50YXRpb24gdG8gcHJ5IGludG8g
+dGhlIGRlLWZhY3RvIHN0YW5kYXJkIEFNTCBpbnRlcnByZXRlcg0KPiA+IGJlaGF2aW9yczoNCj4g
+PiAgIE5hbWUgKEVDT0ssIFplcm8pDQo+ID4gICBTY29wZSAoXCkNCj4gPiAgIHsNCj4gPiAgICAg
+ICBEQlVHICgiVGVybUxpc3QgMSIpDQo+ID4gICAgICAgSWYgKExFcXVhbCAoRUNPSywgWmVybykp
+DQo+ID4gICAgICAgew0KPiA+ICAgICAgICAgICBEQlVHICgiVGVybUxpc3QgMiIpDQo+ID4gICAg
+ICAgICAgIERldmljZSAoTURFVikNCj4gPiAgICAgICAgICAgew0KPiA+ICAgICAgICAgICAgICAg
+REVCVUcgKFRlcm1MaXN0IDMiKQ0KPiA+ICAgICAgICAgICAgICAgSWYgKENvbmRSZWZPZiAoTURF
+VikpDQo+ID4gICAgICAgICAgICAgICB7DQo+ID4gICAgICAgICAgICAgICAgICAgREJVRyAoIk1E
+RVYgZXhpc3RzIikNCj4gPiAgICAgICAgICAgICAgIH0NCj4gPiAgICAgICAgICAgICAgIElmIChD
+b25kUmVmT2YgKE1ERVYuX1NUQSkpDQo+ID4gICAgICAgICAgICAgICB7DQo+ID4gICAgICAgICAg
+ICAgICAgICAgREJVRyAoIk1ERVYuX1NUQSBleGlzdHMiKQ0KPiA+ICAgICAgICAgICAgICAgfQ0K
+PiA+ICAgICAgICAgICAgICAgSWYgKENvbmRSZWZPZiAoXF9TQi5QQ0kwLkVDKSkNCj4gPiAgICAg
+ICAgICAgICAgIHsNCj4gPiAgICAgICAgICAgICAgICAgICBEQlVHICgiXFxfU0IuUENJMC5FQyBl
+eGlzdHMiKQ0KPiA+ICAgICAgICAgICAgICAgfQ0KPiA+ICAgICAgICAgICAgICAgTmFtZSAoX0hJ
+RCwgRWlzYUlkICgiUE5QOTk5OSIpKQ0KPiA+ICAgICAgICAgICAgICAgTWV0aG9kIChfU1RBLCAw
+LCBTZXJpYWxpemVkKQ0KPiA+ICAgICAgICAgICAgICAgew0KPiA+ICAgICAgICAgICAgICAgICAg
+IERFQlVHICgiXFxfU0IuTURFVi5fU1RBIikNCj4gPiAgICAgICAgICAgICAgICAgICBSZXR1cm4g
+KDB4MEYpDQo+ID4gICAgICAgICAgICAgICB9DQo+ID4gICAgICAgICAgIH0NCj4gPiAgICAgICAg
+ICAgREJVRyAoIlRlcm1MaXN0IDQiKQ0KPiA+ICAgICAgIH0NCj4gPiAgICAgICBNZXRob2QgKF9J
+TkksIDAsIFNlcmlhbGl6ZWQpDQo+ID4gICAgICAgew0KPiA+ICAgICAgICAgICBEQlVHICgiXFxf
+U0IuX0lOSSIpDQo+ID4gICAgICAgfQ0KPiA+ICAgfQ0KPiA+ICAgU2NvcGUgKF9TQi5QQ0kwKQ0K
+PiA+ICAgew0KPiA+ICAgICAgIERldmljZSAoRUMpDQo+ID4gICAgICAgew0KPiA+ICAgICAgICAg
+ICAuLi4NCj4gPiAgICAgICB9DQo+ID4gICB9DQo+ID4gVGhlIERCVUcgZnVuY3Rpb24gaXMgYSBm
+dW5jdGlvbiB0byB3cml0ZSB0aGUgZGVidWdnaW5nIG1lc3NhZ2VzIGludG8gYQ0KPiA+IFN5c3Rl
+bUlvIGRlYnVnIHBvcnQuDQo+ID4gUnVubmluZyBXaW5kb3dzIHdpdGggdGhlIEJJT1MgcHJvdmlk
+aW5nIHRoaXMgU1NEVCB2aWEgUlNEVCwgdGhlIGZvbGxvd2luZw0KPiA+IG1lc3NhZ2VzIGFyZSBv
+YnRhaW5lZCBmcm9tIHRoZSBkZWJ1ZyBwb3J0Og0KPiA+ICAgVGVybUxpc3QgMQ0KPiA+ICAgVGVy
+bUxpc3QgMg0KPiA+ICAgVGVybUxpc3QgMw0KPiA+ICAgXF9TQi5NREVWIGV4aXN0cw0KPiA+ICAg
+VGVybUxpc3QgNA0KPiA+ICAgXF9TQi5fSU5JDQo+ID4gICAuLi4NCj4gPg0KPiA+IFRoaXMgdGVz
+dCByZXZlYWxzIHRoZSBkZS1mYWN0byBncmFtbWFyIGZvciB0aGUgQU1MQ29kZSB0byB1czoNCj4g
+PiAxLiBEdXJpbmcgdGhlIHRhYmxlIGxvYWRpbmcsIE1MQyB3aWxsIGJlIGV4ZWN1dGVkIGJ5IHRo
+ZSBpbnRlcnByZXRlciwgdGhpcw0KPiA+ICAgIGlzIHBhcnRpYWxseSBzdXBwb3J0ZWQgYnkgdGhl
+IGN1cnJlbnQgQUNQSUNBOw0KPiA+IDIuIEZvciBTeXN0ZW1Jbywgbm90IG9ubHkgYWZ0ZXIgdGhl
+IF9SRUcoMSwgMSkgaXMgZXZhbHVhdGVkIChjdXJyZW50IEFDUElDQQ0KPiA+ICAgIGludGVycHJl
+dGVyIGxpbWl0YXRpb24pLCBidXQgd2hlbiB0aGUgdGFibGUgaXMgYmVpbmcgbG9hZGVkLCB0aGUN
+Cj4gPiAgICBTeXN0ZW1JbyAodGhlIGRlYnVnZ2luZyBwb3J0KSBpcyBhY2Nlc3NpYmxlLCB0aGlz
+IGlzIHJlY2VudGx5IGZpeGVkIGluDQo+ID4gICAgdGhlIHVwc3RyZWFtLCBub3cgYWxsIGVhcmx5
+IG9wZXJhdGlvbiByZWdpb25zIGFyZSBhY2Nlc3NpYmxlIGR1cmluZyB0aGUNCj4gPiAgICB0YWJs
+ZSBsb2FkaW5nOw0KPiA+IDMuIE5vdCBvbmx5IFR5cGUxT3Bjb2RlLCBidXQgYWxzbyBUeXBlMk9w
+Y29kZSB3aWxsIGJlIGV4ZWN1dGVkIGFzIE1MQyBhbmQNCj4gPiAgICBNTEMgaXMgbm90IGV4ZWN1
+dGVkIGFmdGVyIGxvYWRpbmcgdGhlIHRhYmxlLCBidXQgaXMgZXhlY3V0ZWQgcmlnaHQgaW4NCj4g
+PiAgICBwbGFjZSwgdGhlIExpbnV4IHVwc3RyZWFtIGlzIG5vdCBjb21wbGlhbnQgdG8gdGhpcyBi
+ZWhhdmlvci4NCj4gPg0KPiA+IFRoZSBsYXN0IGNvbXBsaWFuY2UgaXNzdWUgaGFzIGFscmVhZHkg
+YmVlbiBjbGFyaWZpZWQgaW4gQUNQSSAyLjANCj4gPiBzcGVjaWZpY2F0aW9uLCBzbyB0aGUgY29t
+cGxpYW5jZSBpc3N1ZSBpcyBub3QgdGhhdCBMaW51eCBpcyBub3QgY29tcGxpYW50DQo+ID4gdG8g
+dGhlIGRlLWZhY3RvIHN0YW5kYXJkIE9TLCBidXQgdGhhdCBMaW51eCBpcyBub3QgY29tcGxpYW50
+IHRvIEFDUEkgMi4wLg0KPiA+IERlZmluaXRpb24gYmxvY2sgdGFibGVzIGluIGZhY3QgaXMgZGVm
+aW5lZCBieSB0aGUgc3BlYyBhcyBUZXJtTGlzdCwgd2hpY2gNCj4gPiBoYXMgbm8gZGlmZmVyZW5j
+ZSB0aGFuIHRoZSBjb250cm9sIG1ldGhvZHMsIHRodXMgdGhlIGludGVycHJldGlvbiBvZiB0aGUN
+Cj4gPiB0YWJsZSBzaG91bGQgYmUgbm8gZGlmZmVyZW5jZSB0aGF0IHRoZSBjb250cm9sIG1ldGhv
+ZCBldmFsdWF0aW9uOg0KPiA+ICAgICAgQU1MQ29kZSA6PSBEZWZCbG9ja0hlYWRlciBUZXJtTGlz
+dA0KPiA+ICAgICAgRGVmTWV0aG9kIDo9IE1ldGhvZE9wIFBrZ0xlbmd0aCBOYW1lU3RyaW5nIE1l
+dGhvZEZsYWdzIFRlcm1MaXN0DQo+ID4gTm93IHRoZSBuZXcgdXBjb21pbmcgQUNQSSBzcGVjaWZp
+Y2F0aW9uIGhhcyBiZWVuIGNsYXJpZmllZCBhcm91bmQgdGhlIGFib3ZlDQo+ID4gZ3JhbW1hciBw
+cmltaXRpdmVzLCBzbyB3ZSBuZWVkIHRvIGltcGxlbWVudCB0aGVtIGZvciBMaW51eC4NCj4gPg0K
+PiA+IFRoaXMgcGF0Y2hzZXQgYWxzbyBjb250YWlucyAyIHJlcXVpcmVkIGZpeGVzIGdlbmVyYXRl
+ZCB0byBmaXggdGhlDQo+ID4gcmVncmVzc2lvbnMgZGV0ZWN0ZWQgYnkgdGhlIEFDUElDQSBBU0xU
+UyB0b29sLiBUaGUgQVNMVFMgJ3RhYmxlJyB0ZXN0IHN1aXRlDQo+ID4gaGFzIGRldGVjdGVkIHN1
+Y2ggcmVncmVzc2lvbnMuIFRoZSBmaXhlcyBoYXZlIGJlZW4gYWNjZXB0ZWQgYnkgdGhlIEFDUElD
+QQ0KPiA+IHVwc3RyZWFtIChwbGVhc2UgcmVmZXIgdG8gdGhlIEFDUElDQSB1cHN0cmVhbSBVUkwg
+aW4gdGhlIGRlc2NyaXB0aW9uIG9mIHRoZQ0KPiA+IDIgcGF0Y2hlcykuIEFuZCB0aGV5IGFyZSBz
+ZW50IHRvIExpbnV4IGNvbW11bml0eSBhcyB1cmdlbnQgbWF0ZXJpYWxzIGFsb25nDQo+ID4gd2l0
+aCB0aGUgbW9kdWxlIGxldmVsIGNvZGUgZW5hYmxpbmcgc2VyaWVzLiBXaXRoIHRoZSBhZGRpdGlv
+bmFsIHJlZ3Jlc3Npb24NCj4gPiBmaXhlcywgbmV3IGdyYW1tYXIgY2hhbmdlcyBoYXZlIHBhc3Nl
+ZCBhbGwgQVNMVFMgJ3RhYmxlJyBjYXNlczoNCj4gPiAgIGh0dHBzOi8vYnVncy5hY3BpY2Eub3Jn
+L3Nob3dfYnVnLmNnaT9pZD0xMzI3DQo+ID4gICBodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2Fj
+cGljYS9wdWxsLzE3Nw0KPiA+DQo+ID4gTHYgWmhlbmcgKDUpOg0KPiA+ICAgQUNQSUNBOiBUYWJs
+ZXM6IEZpeCAiVU5MT0FEIiBjb2RlIHBhdGggbG9jayBpc3N1ZXMNCj4gPiAgIEFDUElDQTogUGFy
+c2VyOiBGaXggYSByZWdyZXNzaW9uIGluIExvYWRUYWJsZSBzdXBwb3J0DQo+ID4gICBBQ1BJIDIu
+MCAvIEFNTDogRW5hYmxlIGNvcnJlY3QgQUNQSSBzdWJzeXN0ZW0gaW5pdGlhbGl6YXRpb24gb3Jk
+ZXINCj4gPiAgICAgZm9yIG5ldyB0YWJsZSBsb2FkaW5nIG1vZGUNCj4gPiAgIEFDUEkgMi4wIC8g
+QU1MOiBJbXByb3ZlIG1vZHVsZSBsZXZlbCBleGVjdXRpb24gYnkgbW92aW5nIHRoZQ0KPiA+ICAg
+ICBJZi9FbHNlL1doaWxlIGV4ZWN1dGlvbiB0byBwZXItdGFibGUgYmFzaXMNCj4gPiAgIEFDUEkg
+Mi4wIC8gQU1MOiBGaXggbW9kdWxlIGxldmVsIGV4ZWN1dGlvbiBieSBjb3JyZWN0bHkgcGFyc2lu
+ZyB0YWJsZQ0KPiA+ICAgICBhcyBUZXJtTGlzdA0KPiANCj4gWzEtMi81XSBxdWV1ZWQgdXAgZm9y
+IDQuOS4NCj4gDQo+IFRoZSByZXN0IEknZCBwcmVmZXIgdG8ga2VlcCBpbiBsaW51eC1uZXh0IGZv
+ciBzb21lIHRpbWUgYmVmb3JlIHRoZXkgZ28gaW4sDQo+IHNvIGxldCdzIG1ha2UgdGhlbSA0LjEw
+IG1hdGVyaWFsIGlmIG5vdCB1cmdlbnQgZm9yIHNvbWUgcmVhc29ucy4NCg0KSSBzZWUuDQpXZSBj
+b3VsZCBoYXZlIFs0LTUvNV0gZW5hYmxpbmcgcGF0Y2ggcGVuZGluZyBmb3IgYSBwZXJpb2QgaW4g
+b3JkZXIgZm9yIG1vcmUgdmFsaWRhdGlvbnMuDQpCdXQgc2hvdWxkIHdlIGhhdmUgMy81IHF1ZXVl
+ZCB1cD8NCkl0J3MgcHJlcGFyZWQgZm9yIHRoZSAzcmQgbW9kZSBvZiBNTEMgc3VwcG9ydC4NClNv
+IGl0IGlzIGEgbm8tb3AgZm9yIHRoZSBjdXJyZW50IExpbnV4IGtlcm5lbC4NCkJ1dCBoYXZpbmcg
+aXQgdXBzdHJlYW1lZCBpcyB1c2VmdWwgdG8gY29tcGxldGUgdGhlIG1vZGUgKGJ1dCBub3QgZW5h
+YmxlIGl0KS4NCg0KSSd2ZSBiZWVuIGFza2VkIGZvciB3aHkgRUNEVCBpcyBpbXBsZW1lbnRlZCBp
+biB0aGUgY3VycmVudCB3YXkuDQpJZiBQQVRDSCAzLzUgaW4gdGhlIHVwc3RyZWFtLCB0aGUgcmV2
+aWV3ZXIgc2hvdWxkIHNvb24gcmVhbGl6ZSB3aGF0IHRoZSBwdXJwb3NlIG9mIHRoZSBFQ0RUIGNo
+YW5nZSBpcy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQo=
