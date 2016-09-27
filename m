@@ -1,86 +1,108 @@
-From: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: ARM juno R2 board USB Issue (EHCI probe failed)
-Date: Tue, 27 Sep 2016 10:07:55 +0100
-Message-ID: <37a463cb-86d5-e0d7-7e8f-50cec3d65c95@arm.com>
-References: <AT5PR84MB005284C92DEA45ADF67A4F55D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
- <CAGm_ybhc4DKYkDtE8dVzhC3-kJk138Lbm-zAhepQiyUnuqZQHg@mail.gmail.com>
- <22e151c5-fc83-a48c-b130-f633fac8674f@arm.com>
- <AT5PR84MB00524ACD87B9FF61AAB55223D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v10 0/4] ACPI: parse the SPCR table
+Date: Tue, 27 Sep 2016 17:19:53 +0200
+Message-ID: <20160927151953.GB4371@kroah.com>
+References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
+ <25d32778-e708-6763-7cb2-4ddbeebc844b@linaro.org>
+ <20160921103749.GA7993@kroah.com>
+ <CAOZdJXV2KyZAbrRxQ_zmFNd3Gn4vyuqSsUfJMTU8wpiOtjyE=g@mail.gmail.com>
+ <20160921163823.GB9373@kroah.com>
+ <98ed1e6b-0994-4429-c085-2293b4a89edf@linaro.org>
+ <3529130a-d44d-3160-4fbc-9827f8d94196@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AT5PR84MB00524ACD87B9FF61AAB55223D9CC0-+ZEEs1H5rOiKy5aHBxK2oticc1VoeDReZmpNikb/MY7jO8Y7rvWZVA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sajjan, Vikas C" <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Vikas Sajjan <sajjan.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39960 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754585AbcI0PTt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Sep 2016 11:19:49 -0400
+Content-Disposition: inline
+In-Reply-To: <3529130a-d44d-3160-4fbc-9827f8d94196@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Timur Tabi <timur@codeaurora.org>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
+On Mon, Sep 26, 2016 at 12:48:47PM -0700, Aleksey Makarov wrote:
+> 
+> 
+> On 09/21/2016 10:22 AM, Aleksey Makarov wrote:
+> > 
+> > 
+> > On 09/21/2016 07:38 PM, Greg Kroah-Hartman wrote:
+> > > On Wed, Sep 21, 2016 at 11:19:35AM -0500, Timur Tabi wrote:
+> > > > On Wed, Sep 21, 2016 at 5:37 AM, Greg Kroah-Hartman
+> > > > <gregkh@linuxfoundation.org> wrote:
+> > > > > 
+> > > > > I thought you asked Rafael to take them, they are not in my queue
+> > > > > anymore because of that.  Don't try to shop-around for maintainers
+> > > > > please, that's kind of rude...
+> > > > 
+> > > > In Aleksey's defense, these patches have been floating around for far
+> > > > too long, so I can understand his frustration.
+> > > 
+> > > I understand the frustration as well, cross-maintainer messy patches
+> > > like this are hard to get merged at times at they fall between the
+> > > cracks a lot.
+> > > 
+> > > > But as you said, I really hope Rafael picks these up for 4.9.  We need
+> > > > these patches for ARM server.
+> > > 
+> > > I thought I saw an email saying he would do so, but it might have been
+> > > for some other patchset, sorry...
+> > 
+> > This can be for "ACPI: ARM64: support for ACPI_TABLE_UPGRADE":
+> > 
+> > 	https://lkml.kernel.org/r/CAJZ5v0goXsQ2umcDXU0six+QtxcKGZq7mxhgxuvXTH2iZt6YNA@mail.gmail.com
+> > 
+> > As for this patchset, Rafael ACKed the ACPI part:
+> > 
+> > 	https://lkml.kernel.org/r/CAJZ5v0hdoLTfjrD8+WxSoxM48dqbZK2KwY_h+63kHKHKgO=JFA@mail.gmail.com
+> > 
+> > but I can not find any acknowledge from him that he is ready to merge the series.
+> > On the contrary, he expressed his doubt that he is "the right maintainer to send this to":
+> > 
+> > 	https://lkml.kernel.org/r/CAJZ5v0gzjtFzig7nEumr83+J2dGb+OA8GNR2i45ZqznfV_hA-A@mail.gmail.com
+> > 
+> > I asked the ARM64 people, they said they prefer Rafael to do that:
+> > 
+> > 	https://lkml.kernel.org/r/20160909151758.GA11418@arm.com
+> > 
+> > I interpreted the silence from Rafael as unwillingness to pull the series
+> > and thought it's OK to ask you.
+> > 
+> > I am sorry if this looks rude for Rafael, I did not mean that.
+> 
+> Hi Greg,
+> 
+> Can you give advise on how to deal with this situation please?
+> 
+> It looks like Rafael does not want to pull the patches.  Some time ago he wrote:
+> 
+> "Honestly, I'm not sure why I'm regarded as the right maintainer to send this to.
+> 
+> The only patch here touching generic ACPI code is [3/5] (the [2/5] is
+> going in through ACPICA) and the rest is all about ARM64 AFAICS.  Why
+> don't you send it to the ARM64 maintainers instead?"
+> 
+> (https://lkml.kernel.org/r/CAJZ5v0gzjtFzig7nEumr83+J2dGb+OA8GNR2i45ZqznfV_hA-A@mail.gmail.com)
+> 
+> ARM64 maintainer said
+> 
+> "The series should go via Rafael, since the bulk of the changes are
+> outside of arch/arm64."
+> 
+> (https://lkml.kernel.org/r/20160909151758.GA11418@arm.com)
+> 
+> So should I continue to try to reach Rafael or ask another maintainer?
+> Can you pull it for 4.9?
 
+crazy, no one wants to touch this :)
 
-On 27/09/16 09:55, Sajjan, Vikas C wrote:
-> Hi Sudeep,
->
-> -----Original Message-----
-> From: Sudeep Holla [mailto:sudeep.holla-5wv7dgnIgG8@public.gmane.org]
-> Sent: Tuesday, September 27, 2016 2:21 PM
-> To: Vikas Sajjan <sajjan.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>; mark.rutland-5wv7dgnIgG8@public.gmane.org; lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; Sajjan, Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>
-> Subject: Re: ARM juno R2 board USB Issue (EHCI probe failed)
->
-> Hi Vikas,
->
-> On 27/09/16 09:14, Vikas Sajjan wrote:
->> Adding USB mailing list.
->>
->>
->> On Tue, Sep 27, 2016 at 12:33 PM, Sajjan, Vikas C
->> <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org> wrote:
->>> Hi All,
->>>
->>> I working on ARM juno R2 board, with latest kernel 4.8.rc7 and I get
->>> below USB EHCI probe error while booting with acpi=force.
->>>
->
-> Are you using the latest UEFI EDK2 ?
-> No, I am still using the UEFI binary which came as part of the Juno board.
->
->
->>> [    1.223662] VFIO - User Level meta-driver version: 0.3
->>> [    1.229335] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
->>> [    1.235882] ehci-pci: EHCI PCI platform driver
->>> [    1.240359] ehci-platform: EHCI generic platform driver
->>> [    1.245619] ehci-platform ARMH0D20:00: Error: DMA mask configuration failed
->>> [    1.272491] ehci-platform: probe of ARMH0D20:00 failed with error -5
->>> [    1.278876] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
->>> [    1.285071] ohci-pci: OHCI PCI platform driver
->>> [    1.289548] ohci-platform: OHCI generic platform driver
->>> [    1.294884] usbcore: registered new interface driver usb-storage
->>> [    1.301231] mousedev: PS/2 mouse device common for all mice
->>> [    1.307197] rtc-efi rtc-efi: rtc core: registered rtc-efi as rtc0
->>>
->>> But this error goes off, if I don't force ACPI booting, i.e., if I
->>> remove acpi=force from kernel command line , USB is detected  and my
->>> RFS which is in the usb drive, gets mounted successfully.
->>>
->
-> As I mentioned in private, I do get the same error if I drop _CCA in
-> USB object of ACPI DSDT. Can you give it a spin with latest UEFI ?
->
-> Sure, will try with latest UEFI.
->
+So, do you have acks from all of the relevant people?  If so, sure, I
+can take it, can you resend me a full copy of the patches and I'll queue
+them up?
 
-I bet that's 8-12 months old. It puts the banner during boot with the
-build date. You can try to follow [1] or access it from [2]
+thanks,
 
--- 
-Regards,
-Sudeep
-
-[1] https://community.arm.com/docs/DOC-11395
-[2] 
-http://snapshots.linaro.org/member-builds/armlt-platforms-release/32/juno-uefi.zip
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
