@@ -1,22 +1,34 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: ARM juno R2 board USB Issue (EHCI probe failed)
-Date: Tue, 27 Sep 2016 09:50:31 +0100
-Message-ID: <22e151c5-fc83-a48c-b130-f633fac8674f@arm.com>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: ARM juno R2 board USB Issue (EHCI probe failed)
+Date: Tue, 27 Sep 2016 08:55:54 +0000
+Message-ID: <AT5PR84MB00524ACD87B9FF61AAB55223D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
 References: <AT5PR84MB005284C92DEA45ADF67A4F55D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
  <CAGm_ybhc4DKYkDtE8dVzhC3-kJk138Lbm-zAhepQiyUnuqZQHg@mail.gmail.com>
+ <22e151c5-fc83-a48c-b130-f633fac8674f@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:43106 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753149AbcI0Iuf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 27 Sep 2016 04:50:35 -0400
-In-Reply-To: <CAGm_ybhc4DKYkDtE8dVzhC3-kJk138Lbm-zAhepQiyUnuqZQHg@mail.gmail.com>
+Received: from mail-cys01nam02on0095.outbound.protection.outlook.com ([104.47.37.95]:4672
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752586AbcI0Iz4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 27 Sep 2016 04:55:56 -0400
+In-Reply-To: <22e151c5-fc83-a48c-b130-f633fac8674f@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vikas Sajjan <sajjan.linux@gmail.com>, linux-usb@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+To: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <sajjan.linux@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
+
+Hi Sudeep,
+
+-----Original Message-----
+From: Sudeep Holla [mailto:sudeep.holla@arm.com] 
+Sent: Tuesday, September 27, 2016 2:21 PM
+To: Vikas Sajjan <sajjan.linux@gmail.com>; linux-usb@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>; mark.rutland@arm.com; lorenzo.pieralisi@arm.com; Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>
+Subject: Re: ARM juno R2 board USB Issue (EHCI probe failed)
 
 Hi Vikas,
 
@@ -24,15 +36,17 @@ On 27/09/16 09:14, Vikas Sajjan wrote:
 > Adding USB mailing list.
 >
 >
-> On Tue, Sep 27, 2016 at 12:33 PM, Sajjan, Vikas C
+> On Tue, Sep 27, 2016 at 12:33 PM, Sajjan, Vikas C 
 > <vikas.cha.sajjan@hpe.com> wrote:
 >> Hi All,
 >>
->> I working on ARM juno R2 board, with latest kernel 4.8.rc7 and I get below
->> USB EHCI probe error while booting with acpi=force.
+>> I working on ARM juno R2 board, with latest kernel 4.8.rc7 and I get 
+>> below USB EHCI probe error while booting with acpi=force.
 >>
 
 Are you using the latest UEFI EDK2 ?
+No, I am still using the UEFI binary which came as part of the Juno board.
+
 
 >> [    1.223662] VFIO - User Level meta-driver version: 0.3
 >> [    1.229335] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
@@ -47,14 +61,17 @@ Are you using the latest UEFI EDK2 ?
 >> [    1.301231] mousedev: PS/2 mouse device common for all mice
 >> [    1.307197] rtc-efi rtc-efi: rtc core: registered rtc-efi as rtc0
 >>
->> But this error goes off, if I don't force ACPI booting, i.e., if I remove
->> acpi=force from kernel command line , USB is detected  and my RFS which is
->> in the usb drive, gets mounted successfully.
+>> But this error goes off, if I don't force ACPI booting, i.e., if I 
+>> remove acpi=force from kernel command line , USB is detected  and my 
+>> RFS which is in the usb drive, gets mounted successfully.
 >>
 
-As I mentioned in private, I do get the same error if I drop _CCA in
-USB object of ACPI DSDT. Can you give it a spin with latest UEFI ?
+As I mentioned in private, I do get the same error if I drop _CCA in USB object of ACPI DSDT. Can you give it a spin with latest UEFI ?
 
--- 
+Sure, will try with latest UEFI.
+
+Thanks and Regards
+Vikas Sajjan
+--
 Regards,
 Sudeep
