@@ -1,105 +1,76 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v10 0/4] ACPI: parse the SPCR table
-Date: Mon, 26 Sep 2016 12:48:47 -0700
-Message-ID: <3529130a-d44d-3160-4fbc-9827f8d94196@linaro.org>
-References: <20160905123617.18775-1-aleksey.makarov@linaro.org>
- <25d32778-e708-6763-7cb2-4ddbeebc844b@linaro.org>
- <20160921103749.GA7993@kroah.com>
- <CAOZdJXV2KyZAbrRxQ_zmFNd3Gn4vyuqSsUfJMTU8wpiOtjyE=g@mail.gmail.com>
- <20160921163823.GB9373@kroah.com>
- <98ed1e6b-0994-4429-c085-2293b4a89edf@linaro.org>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: ARM juno R2 board USB Issue (EHCI probe failed)
+Date: Tue, 27 Sep 2016 07:03:17 +0000
+Message-ID: <AT5PR84MB005284C92DEA45ADF67A4F55D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <98ed1e6b-0994-4429-c085-2293b4a89edf@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Timur Tabi <timur@codeaurora.org>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi All,
 
+I working on ARM juno R2 board, with latest kernel 4.8.rc7 and I get below USB EHCI probe error while booting with acpi=force. 
 
-On 09/21/2016 10:22 AM, Aleksey Makarov wrote:
->
->
-> On 09/21/2016 07:38 PM, Greg Kroah-Hartman wrote:
->> On Wed, Sep 21, 2016 at 11:19:35AM -0500, Timur Tabi wrote:
->>> On Wed, Sep 21, 2016 at 5:37 AM, Greg Kroah-Hartman
->>> <gregkh@linuxfoundation.org> wrote:
->>>>
->>>> I thought you asked Rafael to take them, they are not in my queue
->>>> anymore because of that.  Don't try to shop-around for maintainers
->>>> please, that's kind of rude...
->>>
->>> In Aleksey's defense, these patches have been floating around for far
->>> too long, so I can understand his frustration.
->>
->> I understand the frustration as well, cross-maintainer messy patches
->> like this are hard to get merged at times at they fall between the
->> cracks a lot.
->>
->>> But as you said, I really hope Rafael picks these up for 4.9.  We need
->>> these patches for ARM server.
->>
->> I thought I saw an email saying he would do so, but it might have been
->> for some other patchset, sorry...
->
-> This can be for "ACPI: ARM64: support for ACPI_TABLE_UPGRADE":
->
-> 	https://lkml.kernel.org/r/CAJZ5v0goXsQ2umcDXU0six+QtxcKGZq7mxhgxuvXTH2iZt6YNA@mail.gmail.com
->
-> As for this patchset, Rafael ACKed the ACPI part:
->
-> 	https://lkml.kernel.org/r/CAJZ5v0hdoLTfjrD8+WxSoxM48dqbZK2KwY_h+63kHKHKgO=JFA@mail.gmail.com
->
-> but I can not find any acknowledge from him that he is ready to merge the series.
-> On the contrary, he expressed his doubt that he is "the right maintainer to send this to":
->
-> 	https://lkml.kernel.org/r/CAJZ5v0gzjtFzig7nEumr83+J2dGb+OA8GNR2i45ZqznfV_hA-A@mail.gmail.com
->
-> I asked the ARM64 people, they said they prefer Rafael to do that:
->
-> 	https://lkml.kernel.org/r/20160909151758.GA11418@arm.com
->
-> I interpreted the silence from Rafael as unwillingness to pull the series
-> and thought it's OK to ask you.
->
-> I am sorry if this looks rude for Rafael, I did not mean that.
+EFI stub: Booting Linux Kernel...
+ConvertPages: Incompatible memory types
+EFI stub: Using DTB from command line
+EFI stub: Exiting boot services and installing virtual address map...
+[    0.000000] Booting Linux on physical CPU 0x100
+[    0.000000] Linux version 4.8.0-rc7-00142-gb1f2beb (vikas@dctxvm241) (gcc version 4.8.3 20140401 (prerelease) (crosstool-NG linaro-1.13.1-4.8-2014.04 - Linaro GCC 4.8-2014.04) ) #48 SMP PREEMPT Mon Sep 26 15:31:48 IST 2016
+[    0.000000] Boot CPU: AArch64 Processor [410fd033]
+[    0.000000] efi: Getting EFI parameters from FDT:
+[    0.000000] efi: EFI v2.50 by ARM Juno EFI Oct 15 2015 14:16:39
+[    0.000000] efi:  ACPI=0xfe750000  ACPI 2.0=0xfe750014  PROP=0xfe794370 
+[    0.000000] cma: Reserved 16 MiB at 0x00000000fd400000
+[    0.000000] ACPI: Early table checksum verification disabled
+[    0.000000] ACPI: RSDP 0x00000000FE750014 000024 (v02 ARMLTD)
+[    0.000000] ACPI: XSDT 0x00000000FE7400E8 00003C (v01 ARMLTD ARM-JUNO 20140727      01000013)
+[    0.000000] ACPI: FACP 0x00000000FE720000 00010C (v05 ARMLTD ARM-JUNO 20140727 ARM  00000099)
+[    0.000000] ACPI: DSDT 0x00000000FE6F0000 000317 (v01 ARMLTD ARM-JUNO 20140727 INTL 20140214)
+[    0.000000] ACPI: GTDT 0x00000000FE710000 000060 (v02 ARMLTD ARM-JUNO 20140727 ARM  00000099)
+[    0.000000] ACPI: APIC 0x00000000FE700000 000224 (v01 ARMLTD ARM-JUNO 20140727 ARM  00000099)
+[    0.000000] psci: probing for conduit method from ACPI.
+[    0.000000] psci: PSCIv1.0 detected in firmware.
+[    0.000000] psci: Using standard PSCI v0.2 function IDs
+[    0.000000] psci: MIGRATE_INFO_TYPE not supported.
+[    0.000000] percpu: Embedded 21 pages/cpu @ffff80097feb8000 s47488 r8192 d30336 u86016
+[    0.000000] Detected VIPT I-cache on CPU0
+[    0.000000] CPU features: enabling workaround for ARM erratum 845719
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 2060048
+[    0.000000] Kernel command line: dtb=board.dtb initrd=ramdisk.img console=ttyAMA0,115200 acpi=force root=/dev/sda1
+[    0.000000] log_buf_len individual max cpu contribution: 4096 bytes
+[    0.000000] log_buf_len total cpu_extra contributions: 20480 bytes
+. .  . . . .  . .
+. .  . . . .  . .
+. .  . . . .  . .
+. .  . . . .  . .
+[    1.223662] VFIO - User Level meta-driver version: 0.3
+[    1.229335] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    1.235882] ehci-pci: EHCI PCI platform driver
+[    1.240359] ehci-platform: EHCI generic platform driver
+[    1.245619] ehci-platform ARMH0D20:00: Error: DMA mask configuration failed
+[    1.272491] ehci-platform: probe of ARMH0D20:00 failed with error -5
+[    1.278876] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+[    1.285071] ohci-pci: OHCI PCI platform driver
+[    1.289548] ohci-platform: OHCI generic platform driver
+[    1.294884] usbcore: registered new interface driver usb-storage
+[    1.301231] mousedev: PS/2 mouse device common for all mice
+[    1.307197] rtc-efi rtc-efi: rtc core: registered rtc-efi as rtc0
+ 
+But this error goes off, if I don't force ACPI booting, i.e., if I remove acpi=force from kernel command line , USB is detected  and my RFS which is in the usb drive, gets mounted successfully. 
 
-Hi Greg,
-
-Can you give advise on how to deal with this situation please?
-
-It looks like Rafael does not want to pull the patches.  Some time ago he wrote:
-
-"Honestly, I'm not sure why I'm regarded as the right maintainer to send this to.
-
-The only patch here touching generic ACPI code is [3/5] (the [2/5] is
-going in through ACPICA) and the rest is all about ARM64 AFAICS.  Why
-don't you send it to the ARM64 maintainers instead?"
-
-(https://lkml.kernel.org/r/CAJZ5v0gzjtFzig7nEumr83+J2dGb+OA8GNR2i45ZqznfV_hA-A@mail.gmail.com)
-
-ARM64 maintainer said
-
-"The series should go via Rafael, since the bulk of the changes are
-outside of arch/arm64."
-
-(https://lkml.kernel.org/r/20160909151758.GA11418@arm.com)
-
-So should I continue to try to reach Rafael or ask another maintainer?
-Can you pull it for 4.9?
-
-Thank you
-Aleksey Makarov
-
->
-> Thank you
-> Aleksey Makarov
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
+Thanks and Regards
+Vikas Sajjan
