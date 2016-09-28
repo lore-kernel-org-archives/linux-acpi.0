@@ -1,246 +1,98 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v14 7/9] clocksource/drivers/arm_arch_timer: Refactor the timer init code to prepare for GTDT
-Date: Thu, 29 Sep 2016 02:17:15 +0800
-Message-ID: <1475086637-1914-8-git-send-email-fu.wei@linaro.org>
+Subject: [PATCH v14 1/9] clocksource/drivers/arm_arch_timer: Move enums and
+ defines to header file
+Date: Thu, 29 Sep 2016 02:17:09 +0800
+Message-ID: <1475086637-1914-2-git-send-email-fu.wei@linaro.org>
 References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, Fu Wei <fu.wei@linaro.org>, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
 From: Fu Wei <fu.wei@linaro.org>
 
-The patch refactor original memory-mapped timer init code:
-(1) extract some subfunction for reusing some common code
-    a. get_cnttidr
-    b. is_best_frame
-(2) move base address and irq code for arch_timer_mem to
-arch_timer_mem_register
+To support the arm_arch_timer via ACPI we need to share defines and enums
+between the driver and the ACPI parser code.
+
+Split out the relevant defines and enums into arm_arch_timer.h.
+No functional change.
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 159 +++++++++++++++++++++--------------
- 1 file changed, 96 insertions(+), 63 deletions(-)
+ drivers/clocksource/arm_arch_timer.c | 11 -----------
+ include/clocksource/arm_arch_timer.h | 11 +++++++++++
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index c7b0040..e78095f 100644
+index 5770054..aea6c10 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
-@@ -57,6 +57,7 @@
+@@ -51,8 +51,6 @@
+ #define CNTV_TVAL	0x38
+ #define CNTV_CTL	0x3c
+ 
+-#define ARCH_CP15_TIMER	BIT(0)
+-#define ARCH_MEM_TIMER	BIT(1)
  static unsigned arch_timers_present __initdata;
  
  static void __iomem *arch_counter_base;
-+static void __iomem *cntctlbase __initdata;
+@@ -65,15 +63,6 @@ struct arch_timer {
+ #define to_arch_timer(e) container_of(e, struct arch_timer, evt)
  
- struct arch_timer {
- 	void __iomem *base;
-@@ -656,15 +657,49 @@ out:
- 	return err;
- }
- 
--static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
-+static int __init arch_timer_mem_register(struct device_node *np, void *frame)
- {
--	int ret;
--	irq_handler_t func;
-+	struct device_node *frame_node = NULL;
- 	struct arch_timer *t;
-+	void __iomem *base;
-+	irq_handler_t func;
-+	unsigned int irq;
-+	int ret;
-+
-+	if (!frame)
-+		return -EINVAL;
-+
-+	if (np) {
-+		frame_node = (struct device_node *)frame;
-+		base = of_iomap(frame_node, 0);
-+		arch_timer_detect_rate(base, np);
-+		if (arch_timer_mem_use_virtual)
-+			irq = irq_of_parse_and_map(frame_node, VIRT_SPI);
-+		else
-+			irq = irq_of_parse_and_map(frame_node, PHYS_SPI);
-+	} else {
-+		pr_err("Device node is missing.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!base) {
-+		pr_err("Can't map frame's registers\n");
-+		return -ENXIO;
-+	}
-+	if (!irq) {
-+		pr_err("Frame missing %s irq",
-+		       arch_timer_mem_use_virtual ? "virt" : "phys");
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	arch_counter_base = base;
- 
- 	t = kzalloc(sizeof(*t), GFP_KERNEL);
--	if (!t)
--		return -ENOMEM;
-+	if (!t) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
- 
- 	t->base = base;
- 	t->evt.irq = irq;
-@@ -676,11 +711,13 @@ static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
- 		func = arch_timer_handler_phys_mem;
- 
- 	ret = request_irq(irq, func, IRQF_TIMER, "arch_mem_timer", &t->evt);
--	if (ret) {
--		pr_err("Failed to request mem timer irq\n");
--		kfree(t);
--	}
-+	if (!ret)
-+		return 0;
- 
-+	pr_err("Failed to request mem timer irq\n");
-+	kfree(t);
-+out:
-+	iounmap(base);
- 	return ret;
- }
- 
-@@ -803,21 +840,54 @@ static int __init arch_timer_of_init(struct device_node *np)
- CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
- CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
- 
--static int __init arch_timer_mem_init(struct device_node *np)
-+static int __init get_cnttidr(struct device_node *np, u32 *cnttidr)
- {
--	struct device_node *frame, *best_frame = NULL;
--	void __iomem *cntctlbase, *base;
--	unsigned int irq, ret = -EINVAL;
--	u32 cnttidr;
-+	if (!cnttidr)
-+		return -EINVAL;
-+
-+	if (np)
-+		cntctlbase = of_iomap(np, 0);
-+	else
-+		return -EINVAL;
- 
--	arch_timers_present |= ARCH_MEM_TIMER;
--	cntctlbase = of_iomap(np, 0);
- 	if (!cntctlbase) {
- 		pr_err("Can't find CNTCTLBase\n");
- 		return -ENXIO;
- 	}
- 
--	cnttidr = readl_relaxed(cntctlbase + CNTTIDR);
-+	*cnttidr = readl_relaxed(cntctlbase + CNTTIDR);
-+	return 0;
-+}
-+
-+static bool __init is_best_frame(u32 cnttidr, int n)
-+{
-+	u32 cntacr = CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT | CNTACR_RWVT |
-+		     CNTACR_RVOFF | CNTACR_RVCT;
-+
-+	/* Try enabling everything, and see what sticks */
-+	writel_relaxed(cntacr, cntctlbase + CNTACR(n));
-+	cntacr = readl_relaxed(cntctlbase + CNTACR(n));
-+
-+	if ((cnttidr & CNTTIDR_VIRT(n)) &&
-+	    !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT)))
-+		arch_timer_mem_use_virtual = true;
-+	else if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
-+		return false;
-+
-+	return true;
-+}
-+
-+static int __init arch_timer_mem_init(struct device_node *np)
-+{
-+	struct device_node *frame, *best_frame = NULL;
-+	unsigned int ret;
-+	u32 cnttidr;
-+
-+	arch_timers_present |= ARCH_MEM_TIMER;
-+
-+	ret = get_cnttidr(np, &cnttidr);
-+	if (ret)
-+		return ret;
- 
- 	/*
- 	 * Try to find a virtual capable frame. Otherwise fall back to a
-@@ -825,60 +895,23 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 	 */
- 	for_each_available_child_of_node(np, frame) {
- 		int n;
--		u32 cntacr;
+ static u32 arch_timer_rate;
 -
- 		if (of_property_read_u32(frame, "frame-number", &n)) {
--			pr_err("Missing frame-number\n");
-+			pr_err("Missing frame-number.\n");
- 			of_node_put(frame);
-+			ret = -EINVAL;
- 			goto out;
- 		}
+-enum ppi_nr {
+-	PHYS_SECURE_PPI,
+-	PHYS_NONSECURE_PPI,
+-	VIRT_PPI,
+-	HYP_PPI,
+-	MAX_TIMER_PPI
+-};
 -
--		/* Try enabling everything, and see what sticks */
--		cntacr = CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT |
--			 CNTACR_RWVT | CNTACR_RVOFF | CNTACR_RVCT;
--		writel_relaxed(cntacr, cntctlbase + CNTACR(n));
--		cntacr = readl_relaxed(cntctlbase + CNTACR(n));
--
--		if ((cnttidr & CNTTIDR_VIRT(n)) &&
--		    !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT))) {
-+		if (is_best_frame(cnttidr, n)) {
- 			of_node_put(best_frame);
--			best_frame = frame;
--			arch_timer_mem_use_virtual = true;
--			break;
-+			best_frame = of_node_get(frame);
-+			if (arch_timer_mem_use_virtual)
-+				break;
- 		}
--
--		if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
--			continue;
--
--		of_node_put(best_frame);
--		best_frame = of_node_get(frame);
--	}
--
--	ret= -ENXIO;
--	base = arch_counter_base = of_iomap(best_frame, 0);
--	if (!base) {
--		pr_err("Can't map frame's registers\n");
--		goto out;
- 	}
+ static int arch_timer_ppi[MAX_TIMER_PPI];
  
--	if (arch_timer_mem_use_virtual)
--		irq = irq_of_parse_and_map(best_frame, VIRT_SPI);
--	else
--		irq = irq_of_parse_and_map(best_frame, PHYS_SPI);
--
--	ret = -EINVAL;
--	if (!irq) {
--		pr_err("Frame missing %s irq",
--		       arch_timer_mem_use_virtual ? "virt" : "phys");
--		goto out;
--	}
--
--	arch_timer_detect_rate(base, np);
--	ret = arch_timer_mem_register(base, irq);
--	if (ret)
--		goto out;
--
--	return arch_timer_common_init();
-+	ret = arch_timer_mem_register(np, best_frame);
-+	if (!ret)
-+		ret = arch_timer_common_init();
- out:
- 	iounmap(cntctlbase);
- 	of_node_put(best_frame);
+ static struct clock_event_device __percpu *arch_timer_evt;
+diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+index caedb74..6f06481 100644
+--- a/include/clocksource/arm_arch_timer.h
++++ b/include/clocksource/arm_arch_timer.h
+@@ -19,6 +19,9 @@
+ #include <linux/timecounter.h>
+ #include <linux/types.h>
+ 
++#define ARCH_CP15_TIMER			BIT(0)
++#define ARCH_MEM_TIMER			BIT(1)
++
+ #define ARCH_TIMER_CTRL_ENABLE		(1 << 0)
+ #define ARCH_TIMER_CTRL_IT_MASK		(1 << 1)
+ #define ARCH_TIMER_CTRL_IT_STAT		(1 << 2)
+@@ -34,6 +37,14 @@ enum arch_timer_reg {
+ 	ARCH_TIMER_REG_TVAL,
+ };
+ 
++enum ppi_nr {
++	PHYS_SECURE_PPI,
++	PHYS_NONSECURE_PPI,
++	VIRT_PPI,
++	HYP_PPI,
++	MAX_TIMER_PPI
++};
++
+ #define ARCH_TIMER_PHYS_ACCESS		0
+ #define ARCH_TIMER_VIRT_ACCESS		1
+ #define ARCH_TIMER_MEM_PHYS_ACCESS	2
 -- 
 2.7.4
