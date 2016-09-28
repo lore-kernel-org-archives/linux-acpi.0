@@ -1,39 +1,84 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
- [LNKD]. Try pci=noacpi or acpi=off
-Date: Wed, 28 Sep 2016 10:11:39 -0400
-Message-ID: <b404278b-d8e1-2b16-e044-c30d27ba8c25@codeaurora.org>
-References: <201609251512.05657.linux@rainbow-software.org>
- <4220489.2ZUOL1U5cK@vostro.rjw.lan>
- <d3fd8f7a-520d-d204-87d8-e9f59fb8f180@codeaurora.org>
- <201609281032.35190.linux@rainbow-software.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 0/5] PCI PM refinements
+Date: Wed, 28 Sep 2016 11:54:45 -0500
+Message-ID: <20160928165445.GB5658@localhost>
+References: <cover.1474130360.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201609281032.35190.linux@rainbow-software.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1474130360.git.lukas@wunner.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 9/28/2016 4:32 AM, Ondrej Zary wrote:
->>> OK
->>> > >
->>> > > Sinan, can you help, please?
->> >
->> > Sure, let's see what's going on. I was writing an email.
->> >
->> > Can we apply this and collect the kernel log? It also helps to see the
->> > kernel log from a working combination.
-> This is from yet another machine with the same problem:
+On Sun, Sep 18, 2016 at 05:39:20AM +0200, Lukas Wunner wrote:
+> Here's the second installment of this series, based on feedback from
+> Rafael. (Thanks!)
+> 
+> To reiterate, these refinements are meant to speed up and reduce power
+> consumption when entering and leaving system sleep and when shutting
+> down the system.  For details, please refer to the cover letter of v1:
+> http://www.spinics.net/lists/linux-pci/msg53702.html
+> 
+> As usual I've pushed the patches to GitHub in case anyone prefers
+> reviewing in a GUI:
+> https://github.com/l1k/linux/commits/pci_pm_refinements_v2
+> 
+> 
+> Changes since v1:
+> 
+> * Patch [1/5] now sports an ack by Rafael.
+> 
+> * Patch [2/5]:
+>   * In acpi_pci_get_power_state(), only check for ACPI_STATE_UNKNOWN
+>     instead of ACPI_STATE_D0 and ACPI_STATE_D3_COLD.
+>   * Move the change to pci_update_current_state() to new patch [3/5].
+> 
+> * Patch [3/5]:
+>   * Instead of solely relying on the platform firmware to report D3cold,
+>     also probe the vendor ID and assume D3cold if it can't be read.
+>     This should ensure proper detection of D3cold on pre-ACPI 4.0
+>     platforms (which will never report anything deeper than D3hot)
+>     as well as for devices with nonstandard PM mechanisms.
+>   * The two existing workarounds for D3cold are removed from
+>     pci_update_current_state(), as explained in the commit message.
+> 
+> * Patch [5/5]:
+>   * Disable runtime PM on the device to prevent it from being runtime
+>     resumed during the remainder of the shutdown process.
+> 
+> Thanks,
+> 
+> Lukas
+> 
+> 
+> Lukas Wunner (5):
+>   PCI: Afford direct-complete to devices with nonstandard PM
+>   PCI: Query platform firmware for device power state
+>   PCI: Recognize D3cold in pci_update_current_state()
+>   PCI: Avoid unnecessary resume after direct-complete
 
-Thanks, It sounds like you have more than one machine with similar problems.
-Can you collect the log from the other machines with 4.8-rc8? 
+I applied the patches above with Rafael's acks to pci/pm for v4.9, thanks,
+Lukas!  I particularly appreciate your changelogs -- they're very readable,
+complete, and consistent in style.
 
-and also a boot log with 4.6 kernel where things are working?
+>   PCI: Avoid unnecessary resume on shutdown
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Sounds like there's still a little discussion on this, so I haven't applied
+this one yet.
+
+>  drivers/pci/pci-acpi.c   | 22 ++++++++++++++++++++
+>  drivers/pci/pci-driver.c | 24 ++++++++++++++++++++--
+>  drivers/pci/pci.c        | 52 ++++++++++++++++++++++++++++++++----------------
+>  drivers/pci/pci.h        |  3 +++
+>  4 files changed, 82 insertions(+), 19 deletions(-)
+> 
+> -- 
+> 2.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
