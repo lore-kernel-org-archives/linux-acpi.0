@@ -1,183 +1,133 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v14 3/9] clocksource/drivers/arm_arch_timer: Improve printk relevant code
-Date: Thu, 29 Sep 2016 02:17:11 +0800
-Message-ID: <1475086637-1914-4-git-send-email-fu.wei@linaro.org>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
+ [LNKD]. Try pci=noacpi or acpi=off
+Date: Wed, 28 Sep 2016 14:22:40 -0400
+Message-ID: <76303bb8-7ae2-9a6b-8e5d-a144ae7c6009@codeaurora.org>
+References: <201609251512.05657.linux@rainbow-software.org>
+ <201609281032.35190.linux@rainbow-software.org>
+ <b404278b-d8e1-2b16-e044-c30d27ba8c25@codeaurora.org>
+ <201609281902.31500.linux@rainbow-software.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------9D3701B128FA71C9F7B9780B"
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201609281902.31500.linux@rainbow-software.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Ondrej Zary <linux@rainbow-software.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Fu Wei <fu.wei@linaro.org>
+This is a multi-part message in MIME format.
+--------------9D3701B128FA71C9F7B9780B
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 
-This patch defines pr_fmt(fmt) for all pr_* functions,
-then the pr_* doesn't need to add "arch_timer:" everytime.
+On 9/28/2016 1:02 PM, Ondrej Zary wrote:
+>> Thanks, It sounds like you have more than one machine with similar
+>> > problems. Can you collect the log from the other machines with 4.8-rc8?
+>> >
+>> > and also a boot log with 4.6 kernel where things are working?
+> The attached logs are from another machine:
+> 
+> dmesg-bad-debug.txt: 4.8-rc8 with your debug patch - bad
+> 
+> dmesg-reverted.txt: 4.8-rc8 with patches (as per Rafael's suggestion) 
+> reverted - good
+> 
+> dmesg-3.6.txt: 4.6 (Debian kernel) - good
 
-Also delete some Blank Spaces in arch_timer_banner,
-according to the suggestion from checkpatch.pl.
+I think I see a race condition for the SCI interrupt. I need another dump from
+4.8-rc8 with the attached patch to confirm. Let's remove the previous one and
+apply this one.
 
-No functional change.
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
----
- drivers/clocksource/arm_arch_timer.c | 55 ++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 059f7fb..84be023 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -32,6 +32,9 @@
- 
- #include <clocksource/arm_arch_timer.h>
- 
-+#undef pr_fmt
-+#define pr_fmt(fmt) "arch_timer: " fmt
-+
- #define CNTTIDR		0x08
- #define CNTTIDR_VIRT(n)	(BIT(1) << ((n) * 4))
- 
-@@ -418,24 +421,24 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
- 
- 	/* Check the timer frequency. */
- 	if (arch_timer_rate == 0)
--		pr_warn("Architected timer frequency not available\n");
-+		pr_warn("frequency not available\n");
- }
- 
- static void arch_timer_banner(unsigned type)
- {
--	pr_info("Architected %s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
--		     type & ARCH_CP15_TIMER ? "cp15" : "",
--		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
--		     type & ARCH_MEM_TIMER ? "mmio" : "",
--		     (unsigned long)arch_timer_rate / 1000000,
--		     (unsigned long)(arch_timer_rate / 10000) % 100,
--		     type & ARCH_CP15_TIMER ?
--		     (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
--			"",
--		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
--		     type & ARCH_MEM_TIMER ?
--			arch_timer_mem_use_virtual ? "virt" : "phys" :
--			"");
-+	pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
-+		type & ARCH_CP15_TIMER ? "cp15" : "",
-+		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
-+		type & ARCH_MEM_TIMER ? "mmio" : "",
-+		(unsigned long)arch_timer_rate / 1000000,
-+		(unsigned long)(arch_timer_rate / 10000) % 100,
-+		type & ARCH_CP15_TIMER ?
-+		(arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
-+		"",
-+		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
-+		type & ARCH_MEM_TIMER ?
-+		arch_timer_mem_use_virtual ? "virt" : "phys" :
-+		"");
- }
- 
- u32 arch_timer_get_rate(void)
-@@ -528,8 +531,7 @@ static void __init arch_counter_register(unsigned type)
- 
- static void arch_timer_stop(struct clock_event_device *clk)
- {
--	pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
--		 clk->irq, smp_processor_id());
-+	pr_debug("disable IRQ%d cpu #%d\n", clk->irq, smp_processor_id());
- 
- 	disable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi]);
- 	if (arch_timer_has_nonsecure_ppi())
-@@ -622,8 +624,7 @@ static int __init arch_timer_register(void)
- 	}
- 
- 	if (err) {
--		pr_err("arch_timer: can't register interrupt %d (%d)\n",
--		       ppi, err);
-+		pr_err("can't register interrupt %d (%d)\n", ppi, err);
- 		goto out_free;
- 	}
- 
-@@ -676,7 +677,7 @@ static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
- 
- 	ret = request_irq(irq, func, IRQF_TIMER, "arch_mem_timer", &t->evt);
- 	if (ret) {
--		pr_err("arch_timer: Failed to request mem timer irq\n");
-+		pr_err("Failed to request mem timer irq\n");
- 		kfree(t);
- 	}
- 
-@@ -754,7 +755,7 @@ static int __init arch_timer_init(void)
- 		}
- 
- 		if (!has_ppi) {
--			pr_warn("arch_timer: No interrupt available, giving up\n");
-+			pr_warn("No interrupt available, giving up\n");
- 			return -EINVAL;
- 		}
- 	}
-@@ -768,7 +769,7 @@ static int __init arch_timer_init(void)
- 		return ret;
- 
- 	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[VIRT_PPI];
--	
-+
- 	return 0;
- }
- 
-@@ -777,7 +778,7 @@ static int __init arch_timer_of_init(struct device_node *np)
- 	int i;
- 
- 	if (arch_timers_present & ARCH_CP15_TIMER) {
--		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-+		pr_warn("multiple nodes in dt, skipping\n");
- 		return 0;
- 	}
- 
-@@ -812,7 +813,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 	arch_timers_present |= ARCH_MEM_TIMER;
- 	cntctlbase = of_iomap(np, 0);
- 	if (!cntctlbase) {
--		pr_err("arch_timer: Can't find CNTCTLBase\n");
-+		pr_err("Can't find CNTCTLBase\n");
- 		return -ENXIO;
- 	}
- 
-@@ -827,7 +828,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 		u32 cntacr;
- 
- 		if (of_property_read_u32(frame, "frame-number", &n)) {
--			pr_err("arch_timer: Missing frame-number\n");
-+			pr_err("Missing frame-number\n");
- 			of_node_put(frame);
- 			goto out;
- 		}
-@@ -856,7 +857,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 	ret= -ENXIO;
- 	base = arch_counter_base = of_iomap(best_frame, 0);
- 	if (!base) {
--		pr_err("arch_timer: Can't map frame's registers\n");
-+		pr_err("Can't map frame's registers\n");
- 		goto out;
- 	}
- 
-@@ -867,7 +868,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 
- 	ret = -EINVAL;
- 	if (!irq) {
--		pr_err("arch_timer: Frame missing %s irq",
-+		pr_err("Frame missing %s irq",
- 		       arch_timer_mem_use_virtual ? "virt" : "phys");
- 		goto out;
- 	}
-@@ -909,7 +910,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	struct acpi_table_gtdt *gtdt;
- 
- 	if (arch_timers_present & ARCH_CP15_TIMER) {
--		pr_warn("arch_timer: already initialized, skipping\n");
-+		pr_warn("already initialized, skipping\n");
- 		return -EINVAL;
- 	}
- 
 -- 
-2.7.4
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
+--------------9D3701B128FA71C9F7B9780B
+Content-Type: text/plain; charset=UTF-8;
+ name="0001-acpi-pci_link-debug-aids-v2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-acpi-pci_link-debug-aids-v2.patch"
+
+>From 3545aba9f138bd233264c151d8c32cd417bfb09f Mon Sep 17 00:00:00 2001
+From: Sinan Kaya <okaya@codeaurora.org>
+Date: Tue, 27 Sep 2016 18:35:15 -0400
+Subject: [PATCH] acpi: pci_link: debug aids v2
+
+Change-Id: I6c459cb5888d95f5f1ef7c0e2f138fb9c65f40e5
+---
+ drivers/acpi/pci_link.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index c983bf7..92a6506 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -508,6 +508,8 @@ static int acpi_irq_get_penalty(int irq)
+ 			penalty += PIRQ_PENALTY_ISA_ALWAYS;
+ 		else
+ 			penalty += PIRQ_PENALTY_PCI_USING;
++
++		pr_info("%s:%d adding SCI penalty: 0x%x \n", __func__, __LINE__, penalty);
+ 	}
+ 
+ 	if (irq < ACPI_MAX_ISA_IRQS)
+@@ -592,6 +594,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	else
+ 		irq = link->irq.possible[link->irq.possible_count - 1];
+ 
++	pr_info("irq : %d\n", irq);
++	pr_info("acpi_irq_balance : %d\n", acpi_irq_balance);
++	pr_info("link->irq.active : %d\n", link->irq.active);
++	pr_info("acpi_gbl_FADT.sci_interrupt : %d\n", acpi_gbl_FADT.sci_interrupt);
+ 	if (acpi_irq_balance || !link->irq.active) {
+ 		/*
+ 		 * Select the best IRQ.  This is done in reverse to promote
+@@ -599,11 +605,22 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 		 */
+ 		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+ 			if (acpi_irq_get_penalty(irq) >
+-			    acpi_irq_get_penalty(link->irq.possible[i]))
++			    acpi_irq_get_penalty(link->irq.possible[i])) {
++				pr_info("acpi_irq_get_penalty(%d) : 0x%x\n", link->irq.possible[i], acpi_irq_get_penalty(link->irq.possible[i]));
++				pr_info("acpi_irq_get_penalty(%d) : 0x%x\n", irq, acpi_irq_get_penalty(irq));
+ 				irq = link->irq.possible[i];
++			    }
+ 		}
+ 	}
+ 	if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
++		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
++			pr_info("penalty[%d] = 0x%x\n",
++					link->irq.possible[i],
++			    acpi_irq_get_penalty(link->irq.possible[i]));
++		}
++		pr_info("irq : %d\n", irq);
++		pr_info("acpi_gbl_FADT.sci_interrupt : %d\n", acpi_gbl_FADT.sci_interrupt);
++
+ 		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+ 			    "Try pci=noacpi or acpi=off\n",
+ 			    acpi_device_name(link->device),
+@@ -870,9 +887,12 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+  */
+ void acpi_penalize_isa_irq(int irq, int active)
+ {
+-	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
++	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty))) {
+ 		acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+ 		  (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
++		pr_info("%s:%d acpi_isa_irq_penalty[%d]=0x%x active = %d\n", __func__,
++				__LINE__, irq,  acpi_irq_get_penalty(irq), active);
++	}
+ }
+ 
+ bool acpi_isa_irq_available(int irq)
+-- 
+1.9.1
+
+
+--------------9D3701B128FA71C9F7B9780B--
