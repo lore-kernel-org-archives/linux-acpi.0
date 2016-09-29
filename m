@@ -1,164 +1,124 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 3/4] ACPI / gpio: Add hogging support
-Date: Thu, 29 Sep 2016 16:39:43 +0300
-Message-ID: <20160929133944.158596-4-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 4/4] ACPI / gpio: Allow holes in list of GPIOs for a device
+Date: Thu, 29 Sep 2016 16:39:44 +0300
+Message-ID: <20160929133944.158596-5-mika.westerberg@linux.intel.com>
 References: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:27908 "EHLO mga04.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:45660 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754978AbcI2Njv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Sep 2016 09:39:51 -0400
+        id S1755155AbcI2Nj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Sep 2016 09:39:56 -0400
 In-Reply-To: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-GPIO hogging means that the GPIO controller can "hog" and configure certain
-GPIOs without need for a driver or userspace to do that. This is useful in
-open-connected boards where BIOS cannot possibly know beforehand which
-devices will be connected to the board.
+Make it possible to have an empty GPIOs in a GPIO list for device. For
+example a SPI master may use both GPIOs and native pins as chip selects and
+we need to be able to distinguish between the two.
 
-This adds GPIO hogging mechanism to ACPI analogous to Device Tree.
+This makes it mandatory to have exactly 3 arguments for GPIOs and then
+converts gpiolib to use of __acpi_node_get_property_reference() instead. In
+addition we make acpi_gpio_package_count() to handle holes as well (this
+matches the DT version).
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- Documentation/acpi/gpio-properties.txt | 26 ++++++++++++
- drivers/gpio/gpiolib-acpi.c            | 72 ++++++++++++++++++++++++++++++++++
- 2 files changed, 98 insertions(+)
+ Documentation/acpi/gpio-properties.txt | 15 +++++++++++++++
+ drivers/gpio/gpiolib-acpi.c            | 32 +++++++++++++++++++++-----------
+ 2 files changed, 36 insertions(+), 11 deletions(-)
 
 diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 7875974823ae..46df91c3512b 100644
+index 46df91c3512b..2ccb70893122 100644
 --- a/Documentation/acpi/gpio-properties.txt
 +++ b/Documentation/acpi/gpio-properties.txt
-@@ -69,6 +69,32 @@ Example:
-       }
-   }
+@@ -51,6 +51,21 @@ it to 1 marks the GPIO as active low.
+ In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
+ resource, second pin in that resource with the GPIO number of 31.
  
-+- gpio-hog
-+- output-high
-+- output-low
-+- input
-+- line-name
++It is possible to leave holes in the array of GPIOs. This is useful in
++cases like with SPI host controllers where some chip selects may be
++implemented as GPIOs and some as native signals. For example a SPI host
++controller can have chip selects 0 and 2 implemented as GPIOs and 1 as
++native:
 +
-+Example:
-+
-+  Name (_DSD, Package () {
-+      // _DSD Hierarchical Properties Extension UUID
-+      ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++  Package () {
++      "cs-gpios",
 +      Package () {
-+          Package () {"hog-gpio8", "G8PU"}
++          ^GPIO, 19, 0, 0, // chip select 0: GPIO
++          0,               // chip select 1: native signal
++          ^GPIO, 20, 0, 0, // chip select 2: GPIO
 +      }
-+  })
++  }
 +
-+  Name (G8PU, Package () {
-+      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+      Package () {
-+          Package () {"gpio-hog", 1},
-+          Package () {"gpios", Package () {8, 0}},
-+          Package () {"output-high", 1},
-+          Package () {"line-name", "gpio8-pullup"},
-+      }
-+  })
-+
- See Documentation/devicetree/bindings/gpio/gpio.tx for more information
- about these properties.
+ Other supported properties
+ --------------------------
  
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 202cf1b842de..4e50f8f5d597 100644
+index 4e50f8f5d597..096a94ee96e7 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -14,6 +14,7 @@
- #include <linux/gpio.h>
- #include <linux/gpio/consumer.h>
- #include <linux/gpio/driver.h>
-+#include <linux/gpio/machine.h>
- #include <linux/export.h>
- #include <linux/acpi.h>
- #include <linux/interrupt.h>
-@@ -845,6 +846,76 @@ static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
- 	kfree(names);
+@@ -467,7 +467,8 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
+ 	int ret;
+ 
+ 	memset(&args, 0, sizeof(args));
+-	ret = acpi_node_get_property_reference(fwnode, propname, index, &args);
++	ret = __acpi_node_get_property_reference(fwnode, propname, index, 3,
++						 &args);
+ 	if (ret) {
+ 		struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 
+@@ -482,13 +483,13 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
+ 	 * on returned args.
+ 	 */
+ 	lookup->adev = args.adev;
+-	if (args.nargs >= 2) {
+-		lookup->index = args.args[0];
+-		lookup->pin_index = args.args[1];
+-		/* 3rd argument, if present is used to specify active_low. */
+-		if (args.nargs >= 3)
+-			lookup->active_low = !!args.args[2];
+-	}
++	if (args.nargs != 3)
++		return -EPROTO;
++
++	lookup->index = args.args[0];
++	lookup->pin_index = args.args[1];
++	lookup->active_low = !!args.args[2];
++
+ 	return 0;
  }
  
-+struct gpio_desc *acpi_gpiochip_parse_own_gpio(struct acpi_gpio_chip *achip,
-+	struct fwnode_handle *fwnode, const char **name, unsigned int *lflags,
-+	unsigned int *dflags)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	struct gpio_desc *desc;
-+	u32 gpios[2];
-+	int ret;
-+
-+	ret = fwnode_property_read_u32_array(fwnode, "gpios", gpios,
-+					     ARRAY_SIZE(gpios));
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	ret = acpi_gpiochip_pin_to_gpio_offset(chip->gpiodev, gpios[0]);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	desc = gpiochip_get_desc(chip, ret);
-+	if (IS_ERR(desc))
-+		return desc;
-+
-+	*lflags = 0;
-+	*dflags = 0;
-+	*name = NULL;
-+
-+	if (gpios[1])
-+		*lflags |= GPIO_ACTIVE_LOW;
-+
-+	if (fwnode_property_present(fwnode, "input"))
-+		*dflags |= GPIOD_IN;
-+	else if (fwnode_property_present(fwnode, "output-low"))
-+		*dflags |= GPIOD_OUT_LOW;
-+	else if (fwnode_property_present(fwnode, "output-high"))
-+		*dflags |= GPIOD_OUT_HIGH;
-+	else
-+		return ERR_PTR(-EINVAL);
-+
-+	fwnode_property_read_string(fwnode, "line-name", name);
-+
-+	return desc;
-+}
-+
-+static void acpi_gpiochip_scan_gpios(struct acpi_gpio_chip *achip)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	struct fwnode_handle *fwnode;
-+
-+	device_for_each_child_node(chip->parent, fwnode) {
-+		unsigned int lflags, dflags;
-+		struct gpio_desc *desc;
-+		const char *name;
-+		int ret;
-+
-+		if (!fwnode_property_present(fwnode, "gpio-hog"))
-+			continue;
-+
-+		desc = acpi_gpiochip_parse_own_gpio(achip, fwnode, &name,
-+						    &lflags, &dflags);
-+		if (IS_ERR(desc))
-+			continue;
-+
-+		ret = gpiod_hog(desc, name, lflags, dflags);
-+		if (ret) {
-+			dev_err(chip->parent, "Failed to hog GPIO\n");
-+			return;
-+		}
-+	}
-+}
-+
- void acpi_gpiochip_add(struct gpio_chip *chip)
- {
- 	struct acpi_gpio_chip *acpi_gpio;
-@@ -879,6 +950,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 		acpi_gpiochip_set_names(acpi_gpio);
+@@ -979,18 +980,27 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
+ 	kfree(acpi_gpio);
+ }
  
- 	acpi_gpiochip_request_regions(acpi_gpio);
-+	acpi_gpiochip_scan_gpios(acpi_gpio);
- 	acpi_walk_dep_device_list(handle);
+-static unsigned int acpi_gpio_package_count(const union acpi_object *obj)
++static int acpi_gpio_package_count(const union acpi_object *obj)
+ {
+ 	const union acpi_object *element = obj->package.elements;
+ 	const union acpi_object *end = element + obj->package.count;
+ 	unsigned int count = 0;
+ 
+ 	while (element < end) {
+-		if (element->type == ACPI_TYPE_LOCAL_REFERENCE)
++		switch (element->type) {
++		case ACPI_TYPE_LOCAL_REFERENCE:
++			element += 3;
++			/* Fallthrough */
++		case ACPI_TYPE_INTEGER:
++			element++;
+ 			count++;
++			break;
+ 
+-		element++;
++		default:
++			return -EPROTO;
++		}
+ 	}
++
+ 	return count;
  }
  
 -- 
