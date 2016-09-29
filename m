@@ -1,92 +1,128 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v5 01/14] drivers: iommu: add FWNODE_IOMMU fwnode type
-Date: Thu, 29 Sep 2016 22:59:40 +0200
-Message-ID: <3178073.UTpgCTN6if@vostro.rjw.lan>
-References: <20160909142343.13314-1-lorenzo.pieralisi@arm.com>
-	<20160909142343.13314-2-lorenzo.pieralisi@arm.com>
-	<20160929141520.GA29244@red-moon>
+From: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PULL] libnvdimm fixes for 4.8
+Date: Thu, 29 Sep 2016 21:15:24 +0000
+Message-ID: <1475183722.21419.29.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20160929141520.GA29244@red-moon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A99D99699CA1E04485A5D28B79FC52D8-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, September 29, 2016 03:15:20 PM Lorenzo Pieralisi wrote:
-> Hi Rafael,
-> 
-> On Fri, Sep 09, 2016 at 03:23:30PM +0100, Lorenzo Pieralisi wrote:
-> > On systems booting with a device tree, every struct device is
-> > associated with a struct device_node, that represents its DT
-> > representation. The device node can be used in generic kernel
-> > contexts (eg IRQ translation, IOMMU streamid mapping), to
-> > retrieve the properties associated with the device and carry
-> > out kernel operation accordingly. Owing to the 1:1 relationship
-> > between the device and its device_node, the device_node can also
-> > be used as a look-up token for the device (eg looking up a device
-> > through its device_node), to retrieve the device in kernel paths
-> > where the device_node is available.
-> > 
-> > On systems booting with ACPI, the same abstraction provided by
-> > the device_node is required to provide look-up functionality.
-> > 
-> > Therefore, mirroring the approach implemented in the IRQ domain
-> > kernel layer, this patch adds an additional fwnode type FWNODE_IOMMU.
-> > 
-> > This patch also implements a glue kernel layer that allows to
-> > allocate/free FWNODE_IOMMU fwnode_handle structures and associate
-> > them with IOMMU devices.
-> > 
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> > Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> > Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> > ---
-> >  include/linux/fwnode.h |  1 +
-> >  include/linux/iommu.h  | 25 +++++++++++++++++++++++++
-> >  2 files changed, 26 insertions(+)
-> > 
-> > diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> > index 8516717..6e10050 100644
-> > --- a/include/linux/fwnode.h
-> > +++ b/include/linux/fwnode.h
-> > @@ -19,6 +19,7 @@ enum fwnode_type {
-> >  	FWNODE_ACPI_DATA,
-> >  	FWNODE_PDATA,
-> >  	FWNODE_IRQCHIP,
-> > +	FWNODE_IOMMU,
-> 
-> This patch provides groundwork for this series and it is key for
-> the rest of it, basically the point here is that we need a fwnode
-> to differentiate platform devices created out of static ACPI tables
-> entries (ie IORT), that represent IOMMU components.
-> 
-> The corresponding device is not an ACPI device (I could fabricate one as
-> it is done for other static tables entries eg FADT power button, but I
-> do not necessarily see the reason for doing that given that all we need
-> the fwnode for is a token identifier), so FWNODE_ACPI does not apply
-> here.
-> 
-> Please let me know if it is reasonable how I sorted this out (it
-> is basically identical to IRQCHIP, just another enum entry), the
-> remainder of the code depends on this.
-
-I'm not familiar with the use case, so I don't see anything unreasonable
-in it.
-
-If you're asking about whether or not I mind adding more fwnode types in
-principle, then no, I don't. :-) 
-
-Thanks,
-Rafael
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
+Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
+cmVjZWl2ZSB0aGUgZm9sbG93aW5nOgoKLSAoNCkgZml4ZXMgZm9yICJmbHVzaCBoaW50IiBzdXBw
+b3J0LiAgRmx1c2ggaGludHMgYXJlIGFkZHJlc3NlcwphZHZlcnRpc2VkIGJ5IHRoZSBBQ1BJIDYr
+LSBORklUIChOVkRJTU0gRmlybXdhcmUgSW50ZXJmYWNlIFRhYmxlKSB0aGF0CndoZW4gd3JpdHRl
+biBhbmQgZmVuY2VkIGd1YXJhbnRlZSB0aGF0IHdyaXRlcyBwZW5kaW5nIGluIHBsYXRmb3JtIHdy
+aXRlCmJ1ZmZlcnMgKG91dHNpZGUgdGhlIGNwdSkgaGF2ZSBiZWVuIGZsdXNoZWQgdG8gbWVkaWEu
+ICtBS0EtVGhleSBtaWdodCBhbHNvCmJlIHVzZWQgYnkgaHlwZXJ2aXNvcnMgYXMgYSB0cmlnZ2Vy
+IGNvbmRpdGlvbiB0byBmbHVzaCBndWVzdC1wZXJzaXN0ZW50IAptZW1vcnkgcmFuZ2VzIHRvIHN0
+b3JhZ2UuCgpGaXggYSBwb3RlbnRpYWwgZGF0YSBjb3JydXB0aW9uIGlzc3VlLCBhIGJyb2tlbiBk
+ZWZpbml0aW9uIG9mIHRoZSBoaW50CmFycmF5LCBhIHdyb25nIGFsbG9jYXRpb24gc2l6ZSBmb3Ig
+dGhlIHVuaXQgdGVzdCBpbXBsZW1lbnRhdGlvbiBvZiB0aGUKZmx1c2ggaGludCB0YWJsZSwgYW5k
+IG1pc3NpbmcgTlVMTCBjaGVjayBpbiBhbiBlcnJvciBwYXRoLiArQUtBLVRoZSB1bml0CnRlc3Qs
+IHdoaWxlIGl0IGRpZCBub3QgcHJldmVudCB0aGVzZSBidWdzIGZyb20gYmVpbmcgbWVyZ2VkLCBh
+dCBsZWFzdAp0cmlnZ2VyZWQgb2NjYXNpb25hbCBjcmFzaGVzIGluIGFkdmFuY2Ugb2YgcHJvZHVj
+dGlvbiB1c2FnZXMuCgotIEZpeCBoYW5kbGluZyBvZiBBQ1BJIERTTSBlcnJvciBzdGF0dXMgcmVz
+dWx0cy4gK0FLQS1UaGUgRFNNIG1lY2hhbmlzbQphbGxvd3MgY29tbXVuaWNhdGlvbiB3aXRoIHBs
+YXRmb3JtIGFuZCBtZW1vcnkgZGV2aWNlIGZpcm13YXJlLiArQUtBLVdlCmNvcnJlY3RseSBwYXJz
+ZSBrbm93biBlcnJvcnMsIGJ1dCB3ZXJlIHNpbGVudGx5IGlnbm9yaW5nIG90aGVycy4gK0FLQS1G
+aXgKaXQgdG8gY29uc2lzdGVudGx5IGZhaWwgYW55IGNvbW1hbmQgd2l0aCBhIG5vbi16ZXJvIHN0
+YXR1cyByZXR1cm4gdGhhdAp3ZSBvdGhlcndpc2UgZG8gbm90IGludGVycHJldCAvIGhhbmRsZS4K
+ClRoZXNlIGNoYW5nZXMgaGF2ZSBhIGJ1aWxkIHN1Y2Nlc3Mgbm90aWZpY2F0aW9uIGZyb20gdGhl
+IDBkYXkgcm9ib3QgYW5kCmhhdmUgYXBwZWFyZWQgaW4gYSAtbmV4dCByZWxlYXNlIG92ZXIgdGhl
+IHBhc3Qgd2Vlay4KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgM2JlNzk4ODY3
+NGFiMzM1NjU3MDBhMzdiMjEwZjUwMjU2M2Q5MzJlNjoKCiAgTGludXggNC44LXJjNyAoMjAxNi0w
+OS0xOCAxNzoyNzo0MSAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5
+IGF0OgoKICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZk
+aW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0
+byA1OTVjNzMwNzFlNjY0MWU1OWI4MzkxMWZiYjQwMjZlNzY3NDcxMDAwOgoKICBsaWJudmRpbW0s
+IHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFibGUgdGhpbmtvICgyMDE2LTA5LTI0IDExOjQ1OjM4
+IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQpEYW4gV2lsbGlhbXMgKDQpOgogICAgICB0b29scy90ZXN0aW5nL252
+ZGltbTogZml4IGFsbG9jYXRpb24gcmFuZ2UgZm9yIG1vY2sgZmx1c2ggaGludCB0YWJsZXMKICAg
+ICAgbGlibnZkaW1tOiBmaXggZGV2bV9udmRpbW1fbWVtcmVtYXAoKSBlcnJvciBwYXRoCiAgICAg
+IG5maXQ6IGZhaWwgRFNNcyB0aGF0IHJldHVybiBub24temVybyBzdGF0dXMgYnkgZGVmYXVsdAog
+ICAgICBsaWJudmRpbW0sIHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFibGUgdGhpbmtvCgpPbGl2
+ZXIgTydIYWxsb3JhbiAoMSk6CiAgICAgIG52ZGltbTogZml4IFBIWVNfUEZOL1BGTl9QSFlTIG1p
+eHVwCgogZHJpdmVycy9hY3BpL25maXQvY29yZS5jICAgICAgICAgfCA0OCArLSstKy0rLSstKy0r
+LSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZl
+cnMvbnZkaW1tL2NvcmUuYyAgICAgICAgICAgIHwgIDggKy0rLSstKy0rLSstLQogZHJpdmVycy9u
+dmRpbW0vbmQuaCAgICAgICAgICAgICAgfCAyMiArLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSst
+Ky0rLS0tCiBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jICAgICB8IDIyICstKy0rLSstKy0r
+LSstKy0rLSstLS0tLS0tLS0KIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jIHwgIDMg
+Ky0rLS0KIDUgZmlsZXMgY2hhbmdlZCwgNzAgaW5zZXJ0aW9ucygrLSksIDMzIGRlbGV0aW9ucygt
+KQoKCmNvbW1pdCA0ODBiNjgzN2FhNTc5OTkxYzZhY2MxMTNiY2NmODM4ZTZhOTA4NDNjCkF1dGhv
+cjogT2xpdmVyIE8nSGFsbG9yYW4gPG9vaGFsbEBnbWFpbC5jb20+CkRhdGU6ICAgTW9uIFNlcCAx
+OSAyMDoxOTowMCAyMDE2ICstMTAwMAoKICAgIG52ZGltbTogZml4IFBIWVNfUEZOL1BGTl9QSFlT
+IG1peHVwCiAgICAKICAgIG5kX2FjdGl2YXRlX3JlZ2lvbigpIGlvbWFwcyBhbnkgaGludCBhZGRy
+ZXNzZXMgcmVxdWlyZWQgd2hlbiBhY3RpdmF0aW5nCiAgICBhIHJlZ2lvbi4gVG8gcHJldmVudCBk
+dXBsaWNhdGUgbWFwcGluZ3MgaXQgY2hlY2tzIHRoZSBQRk4gb2YgdGhlIGhpbnQgdG8KICAgIGJl
+IG1hcHBlZCBhZ2FpbnN0IHRoZSBQRk5zIG9mIHRoZSBhbHJlYWR5IG1hcHBlZCBoaW50cy4gVW5m
+b3J0dW5hdGVseSBpdAogICAgZG9lc24ndCBjb252ZXJ0IHRoZSBQRk4gYmFjayBpbnRvIGEgcGh5
+c2ljYWwgYWRkcmVzcyBiZWZvcmUgcGFzc2luZyBpdAogICAgdG8gZGV2bV9udmRpbW1faW9yZW1h
+cCgpLiBJbnN0ZWFkIGl0IGFwcGxpZXMgUEhZU19QRk4gYSBzZWNvbmQgdGltZQogICAgd2hpY2gg
+ZW5kcyBhYm91dCBhcyB3ZWxsIGFzIHlvdSB3b3VsZCBpbWFnaW5lLgogICAgCiAgICBTaWduZWQt
+b2ZmLWJ5OiBPbGl2ZXIgTydIYWxsb3JhbiA8b29oYWxsQGdtYWlsLmNvbT4KICAgIFNpZ25lZC1v
+ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IDlk
+MTVjZTljYWFmOWVjYmVjNzRlM2JlMTU2YTRhNTc0NTFlZDE2YzIKQXV0aG9yOiBEYW4gV2lsbGlh
+bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBNb24gU2VwIDE5IDEzOjQ5OjQ4
+IDIwMTYgLTA3MDAKCiAgICB0b29scy90ZXN0aW5nL252ZGltbTogZml4IGFsbG9jYXRpb24gcmFu
+Z2UgZm9yIG1vY2sgZmx1c2ggaGludCB0YWJsZXMKICAgIAogICAgQ29tbWl0IDQ4MGI2ODM3YWE1
+NyAibnZkaW1tOiBmaXggUEhZU19QRk4vUEZOX1BIWVMgbWl4dXAiIGlkZW50aWZpZWQKICAgIHRo
+YXQgd2Ugd2VyZSBwYXNzaW5nIGFuIGludmFsaWQgYWRkcmVzcyB0byBkZXZtX252ZGltbV9pb3Jl
+bWFwKCkuIFdpdGgKICAgIHRoYXQgZml4ZWQgaXQgZXhwb3NlZCBhIGJ1ZyBpbiB0aGUgbWVtb3J5
+IHJlc2VydmF0aW9uIHNpemUgZm9yIGZsdXNoCiAgICBoaW50IHRhYmxlcy4gIFNpbmNlIHdlIG1h
+cCBhIGZ1bGwgcGFnZSB3ZSBuZWVkIHRvIG1vY2sgYSBmdWxsIHBhZ2Ugb2YKICAgIG1lbW9yeSB0
+byBiYWNrIHRoZSBmbHVzaCBoaW50IHRhYmxlIGVudHJpZXMuCiAgICAKICAgIENjOiBPbGl2ZXIg
+TydIYWxsb3JhbiA8b29oYWxsQGdtYWlsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
+aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IGVjZmI2ZDhhMDQxY2MyY2E4
+MGJjNjlmZmMyMGMwMDA2N2QxOTBkZjUKQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
+YW1zQGludGVsLmNvbT4KRGF0ZTogICBXZWQgU2VwIDIxIDA5OjIyOjMzIDIwMTYgLTA3MDAKCiAg
+ICBsaWJudmRpbW06IGZpeCBkZXZtX252ZGltbV9tZW1yZW1hcCgpIGVycm9yIHBhdGgKICAgIAog
+ICAgVGhlIGludGVybmFsIGFsbG9jX252ZGltbV9tYXAoKSBoZWxwZXIgbWlnaHQgZmFpbCwgcGFy
+dGljdWxhcmx5IGlmIHRoZQogICAgbWVtb3J5IHJlZ2lvbiBpcyBhbHJlYWR5IGJ1c3kuICBSZXBv
+cnQgcmVxdWVzdF9tZW1fcmVnaW9uKCkgZmFpbHVyZXMgYW5kCiAgICBjaGVjayBmb3IgdGhlIGZh
+aWx1cmUuCiAgICAKICAgIFJlcG9ydGVkLWJ5OiBSeWFuIENoZW4gPHJ5YW4uY2hhbjEwNUBnbWFp
+bC5jb20+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGlu
+dGVsLmNvbT4KCmNvbW1pdCAxMTI5NGQ2M2FjOTE1MjMwYTM2YjA2MDNjNjIxMzRlZjdiMTczZDBh
+CkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6ICAg
+V2VkIFNlcCAyMSAwOToyMToyNiAyMDE2IC0wNzAwCgogICAgbmZpdDogZmFpbCBEU01zIHRoYXQg
+cmV0dXJuIG5vbi16ZXJvIHN0YXR1cyBieSBkZWZhdWx0CiAgICAKICAgIEZvciB0aGUgRFNNcyB3
+aGVyZSB0aGUga2VybmVsIGtub3dzIHRoZSBmb3JtYXQgb2YgdGhlIG91dHB1dCBidWZmZXIgYW5k
+CiAgICBvcmlnaW5hdGVzIHRob3NlIERTTXMgZnJvbSB3aXRoaW4gdGhlIGtlcm5lbCwgcmV0dXJu
+IC1FSU8gZm9yIGFueQogICAgbm9uLXplcm8gc3RhdHVzLiAgSWYgdGhlIEJJT1MgaXMgaW5kaWNh
+dGluZyBhIHN0YXR1cyB0aGF0IHdlIGRvIG5vdCBrbm93CiAgICBob3cgdG8gaGFuZGxlLCBmYWls
+IHRoZSBEU00uCiAgICAKICAgIENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KICAgIFNpZ25l
+ZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0
+IDU5NWM3MzA3MWU2NjQxZTU5YjgzOTExZmJiNDAyNmU3Njc0NzEwMDAKQXV0aG9yOiBEYW4gV2ls
+bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBGcmkgU2VwIDIzIDE3OjUz
+OjUyIDIwMTYgLTA3MDAKCiAgICBsaWJudmRpbW0sIHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFi
+bGUgdGhpbmtvCiAgICAKICAgIFRoZSBkZWZpbml0aW9uIG9mIHRoZSBmbHVzaCBoaW50IHRhYmxl
+IGFzOgogICAgCiAgICAJdm9pZCBfX2lvbWVtICpmbHVzaF93cHFbMF1bMF07CiAgICAKICAgIC4u
+LnBhc3NlZCB0aGUgdW5pdCB0ZXN0LCBidXQgaXMgYnJva2VuIGFzIGZsdXNoX3dwcVswXVsxXSBh
+bmQKICAgIGZsdXNoX3dwcVsxXVswXSByZWZlciB0byB0aGUgc2FtZSBlbnRyeS4gIEZpeCB0aGlz
+IHRvIHVzZSBhIGhlbHBlciB0aGF0CiAgICBjYWxjdWxhdGVzIGEgc2xvdCBpbiB0aGUgdGFibGUg
+YmFzZWQgb24gdGhlIGdlb21ldHJ5IG9mIGZsdXNoIGhpbnRzIGluCiAgICB0aGUgcmVnaW9uLiAg
+VGhpcyBpcyBpbXBvcnRhbnQgdG8gZ2V0IHJpZ2h0IHNpbmNlIHZpcnR1YWxpemF0aW9uCiAgICBz
+b2x1dGlvbnMgdXNlIHRoaXMgbWVjaGFuaXNtIHRvIHRyaWdnZXIgaHlwZXJ2aXNvciBmbHVzaGVz
+IHRvIHBsYXRmb3JtCiAgICBwZXJzaXN0ZW5jZS4KICAgIAogICAgUmVwb3J0ZWQtYnk6IERhdmUg
+SmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgogICAgVGVzdGVkLWJ5OiBEYXZlIEppYW5nIDxk
+YXZlLmppYW5nQGludGVsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
+Lmoud2lsbGlhbXNAaW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
+cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
+bW0K
