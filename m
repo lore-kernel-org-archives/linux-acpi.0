@@ -1,51 +1,38 @@
 From: Sinan Kaya <okaya@codeaurora.org>
 Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
  [LNKD]. Try pci=noacpi or acpi=off
-Date: Thu, 29 Sep 2016 10:31:38 -0400
-Message-ID: <045a9b11-f3f0-a8f3-1f16-1404fb16b3ae@codeaurora.org>
+Date: Thu, 29 Sep 2016 10:35:13 -0400
+Message-ID: <5f6956d8-c752-41ea-8ec3-9e49f128eba4@codeaurora.org>
 References: <201609251512.05657.linux@rainbow-software.org>
- <201609281902.31500.linux@rainbow-software.org>
- <76303bb8-7ae2-9a6b-8e5d-a144ae7c6009@codeaurora.org>
- <201609282123.48506.linux@rainbow-software.org>
- <946fcb62-272b-61b3-9afa-7c27a1ce7419@codeaurora.org>
- <20160929141818.GA32236@djo.tudelft.nl>
+ <201609291110.50176.linux@rainbow-software.org>
+ <131b4220b509ed95dfbb35a441ccbc2c@codeaurora.org>
+ <201609291549.07784.linux@rainbow-software.org>
+ <e90fb01a-77e3-a094-9631-0b703972c750@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44674 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:45686 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754028AbcI2Obl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 10:31:41 -0400
-In-Reply-To: <20160929141818.GA32236@djo.tudelft.nl>
+        with ESMTP id S932255AbcI2OfR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 10:35:17 -0400
+In-Reply-To: <e90fb01a-77e3-a094-9631-0b703972c750@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: wim@djo.tudelft.nl
-Cc: Ondrej Zary <linux@rainbow-software.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com
+To: Ondrej Zary <linux@rainbow-software.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-On 9/29/2016 10:18 AM, Wim Osterholt wrote:
-> On Wed, Sep 28, 2016 at 07:38:41PM -0400, Sinan Kaya wrote:
->>
->> Can you try these patches on your machines please?
-> 
-> I applied the included patches on vanilla 4.8-rc8 and my machine booted
-> fine. (I saw a remark about SCSI interrupts, but I have no SCSI.)
-> 
-> Regards, Wim.
-> 
+On 9/29/2016 10:28 AM, Sinan Kaya wrote:
+> +		if (irq < ACPI_MAX_ISA_IRQS)
 
-Thanks Wim. The issue seems to be platform specific. I guess we should fix 
-Ondrej's issue first before increasing our test coverage. Apologies for
-calling for test this early. I really hoped that the last patch would
-solve Ondrej's issue.
+BTW, can you change this line to
 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+	if (link->irq.active < ACPI_MAX_ISA_IRQS)
 
+after applying.
+
+> +			acpi_isa_irq_penalty[link->irq.active] +=
+> +				PIRQ_PENALTY_PCI_USING;
 
 -- 
 Sinan Kaya
