@@ -1,180 +1,67 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 4/5] ACPI / property: Allow holes in reference properties
-Date: Thu, 29 Sep 2016 09:48:29 +0300
-Message-ID: <20160929064829.GG1218@lahna.fi.intel.com>
+Subject: Re: [PATCH 0/5] ACPI / gpio: Updates to properties
+Date: Thu, 29 Sep 2016 10:00:15 +0300
+Message-ID: <20160929070015.GH1218@lahna.fi.intel.com>
 References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
- <20160923145710.105489-5-mika.westerberg@linux.intel.com>
- <CAJZ5v0iGmUmFnQ2+6TVQ4SFvcxnEkA0yFM6wNGMmALFzRmBs4A@mail.gmail.com>
+ <CAJZ5v0gkdZDnRjy_=tDys8LoKD2g5OZzOfNW6t+q8N3bw2ufUA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:17399 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:38838 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754233AbcI2G5S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Sep 2016 02:57:18 -0400
+        id S1754805AbcI2HA0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Sep 2016 03:00:26 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iGmUmFnQ2+6TVQ4SFvcxnEkA0yFM6wNGMmALFzRmBs4A@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gkdZDnRjy_=tDys8LoKD2g5OZzOfNW6t+q8N3bw2ufUA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 28, 2016 at 11:36:10PM +0200, Rafael J. Wysocki wrote:
+On Wed, Sep 28, 2016 at 11:32:46PM +0200, Rafael J. Wysocki wrote:
+> Hi,
+> 
 > On Fri, Sep 23, 2016 at 4:57 PM, Mika Westerberg
 > <mika.westerberg@linux.intel.com> wrote:
-> > DT allows holes or empty phandles for references. This is used for example
-> > in SPI subsystem where some chip selects are native and others are regular
-> > GPIOs. In ACPI _DSD we currently do not support this but instead the
-> > preceding reference "consumes" all following integer arguments.
+> > Hi,
 > >
-> > For example we would like to support something like the below ASL fragment
-> > for SPI:
+> > This series brings couple of useful GPIO related properties from Device
+> > Tree to ACPI _DSD device properties:
 > >
-> >   Package () {
-> >       "cs-gpios",
-> >       Package () {
-> >           ^GPIO, 19, 0, 0, // GPIO CS0
-> >           0,               // Native CS
-> >           ^GPIO, 20, 0, 0, // GPIO CS1
-> >       }
-> >   }
+> >   - Names for GPIO lines
+> >   - GPIO hogging
+> >   - Holes in GPIO property lists
 > >
-> > The zero in the middle means "no entry" or NULL reference. To support this
-> > we add a new function acpi_node_get_property_reference_fixed_args() that
-> > takes number of expected arguments as parameter. Function returns -ENOENT
-> > if the corresponding index resolves to the "no entry" reference.
+> > We are using these to get Intel Galileo better supported in the mainline
+> > kernel (but these may be useful for other boards as well). For example SPI
+> > chip select on Galileo is connected to a GPIO line so we need to be able to
+> > describe it in ACPI, and at the same time allow native chip selects.
 > >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > ---
-> >  drivers/acpi/property.c | 116 +++++++++++++++++++++++++++++++++++-------------
-> >  include/linux/acpi.h    |   3 ++
-> >  2 files changed, 89 insertions(+), 30 deletions(-)
+> > GPIO hogging can be used to set initial state of certain GPIOs available on
+> > the headers regardless of the BIOS settings (which may be wrong as it knows
+> > nothing about which devices have been connected).
 > >
-> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > index f2fd3fee588a..b255c4442a05 100644
-> > --- a/drivers/acpi/property.c
-> > +++ b/drivers/acpi/property.c
-> > @@ -472,6 +472,7 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
-> >   * @data: ACPI device data object containing the property
-> >   * @propname: Name of the property
-> >   * @index: Index of the reference to return
-> > + * @num_args: Maximum number of arguments after each reference
-> >   * @args: Location to store the returned reference with optional arguments
-> >   *
-> >   * Find property with @name, verifify that it is a package containing at least
-> > @@ -485,8 +486,8 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
-> >   * Return: %0 on success, negative error code on failure.
-> >   */
-> >  static int acpi_data_get_property_reference(struct acpi_device_data *data,
-> > -                                           const char *propname, size_t index,
-> > -                                           struct acpi_reference_args *args)
-> > +       const char *propname, size_t index, size_t num_args,
-> > +       struct acpi_reference_args *args)
-> >  {
-> >         const union acpi_object *element, *end;
-> >         const union acpi_object *obj;
-> > @@ -532,41 +533,52 @@ static int acpi_data_get_property_reference(struct acpi_device_data *data,
-> >         while (element < end) {
-> >                 u32 nargs, i;
+> > Mika Westerberg (5):
+> >   ACPI / documentation: Use recommended name in GPIO property names
+> >   ACPI / gpio: Add support for naming GPIOs
+> >   ACPI / gpio: Add hogging support
+> >   ACPI / property: Allow holes in reference properties
+> >   ACPI / gpio: Allow holes in list of GPIOs for a device
 > >
-> > -               if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
-> > -                       return -EPROTO;
-> > -
-> > -               ret = acpi_bus_get_device(element->reference.handle, &device);
-> > -               if (ret)
-> > -                       return -ENODEV;
-> > -
-> > -               element++;
-> > -               nargs = 0;
-> > -
-> > -               /* assume following integer elements are all args */
-> > -               for (i = 0; element + i < end; i++) {
-> > -                       int type = element[i].type;
-> > +               if (element->type == ACPI_TYPE_LOCAL_REFERENCE) {
-> > +                       ret = acpi_bus_get_device(element->reference.handle,
-> > +                                                 &device);
-> > +                       if (ret)
-> > +                               return -ENODEV;
-> > +
-> > +                       nargs = 0;
-> > +                       element++;
-> > +
-> > +                       /* assume following integer elements are all args */
-> > +                       for (i = 0; element + i < end && i < num_args; i++) {
-> > +                               int type = element[i].type;
-> > +
-> > +                               if (type == ACPI_TYPE_INTEGER)
-> > +                                       nargs++;
-> > +                               else if (type == ACPI_TYPE_LOCAL_REFERENCE)
-> > +                                       break;
-> > +                               else
-> > +                                       return -EPROTO;
-> > +                       }
-> >
-> > -                       if (type == ACPI_TYPE_INTEGER)
-> > -                               nargs++;
-> > -                       else if (type == ACPI_TYPE_LOCAL_REFERENCE)
-> > -                               break;
-> > -                       else
-> > +                       if (nargs > MAX_ACPI_REFERENCE_ARGS)
-> >                                 return -EPROTO;
-> > -               }
-> >
-> > -               if (idx++ == index) {
-> > -                       args->adev = device;
-> > -                       args->nargs = nargs;
-> > -                       for (i = 0; i < nargs; i++)
-> > -                               args->args[i] = element[i].integer.value;
-> > +                       if (idx == index) {
-> > +                               args->adev = device;
-> > +                               args->nargs = nargs;
-> > +                               for (i = 0; i < nargs; i++)
-> > +                                       args->args[i] = element[i].integer.value;
-> >
-> > -                       return 0;
-> > +                               return 0;
-> > +                       }
-> > +
-> > +                       element += nargs;
-> > +               } else if (element->type == ACPI_TYPE_INTEGER) {
-> > +                       if (idx == index)
-> > +                               return -ENOENT;
-> > +                       element++;
-> > +               } else {
-> > +                       return -EPROTO;
-> >                 }
-> >
-> > -               element += nargs;
-> > +               idx++;
-> >         }
-> >
-> > -       return -EPROTO;
-> > +       return -ENODATA;
-> >  }
-> >
-> >  /**
-> > @@ -582,10 +594,54 @@ int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
-> >  {
-> >         struct acpi_device_data *data = acpi_device_data_of_node(fwnode);
-> >
-> > -       return data ? acpi_data_get_property_reference(data, name, index, args) : -EINVAL;
-> > +       if (!data)
-> > +               return -EINVAL;
-> > +
-> > +       return acpi_data_get_property_reference(data, name, index,
-> > +               MAX_ACPI_REFERENCE_ARGS, args);
-> >  }
-> >  EXPORT_SYMBOL_GPL(acpi_node_get_property_reference);
+> >  Documentation/acpi/gpio-properties.txt |  72 ++++++++++++++--
+> >  drivers/acpi/property.c                | 116 +++++++++++++++++++-------
+> >  drivers/gpio/gpiolib-acpi.c            | 147 ++++++++++++++++++++++++++++++---
+> >  include/linux/acpi.h                   |   3 +
+> >  4 files changed, 292 insertions(+), 46 deletions(-)
 > 
-> gpiolib-acpi is the only user of this AFAICS, so why don't we change
-> the definition of acpi_node_get_property_reference() to take one extra
-> argument and update the caller to pass MAX_ACPI_REFERENCE_ARGS?
+> I would like to tackle patches [1/5] and [4/5] first, as they are core
+> patches and the rest is against gpiolib-acpi.
 
-Unfortunately there are these (which I think should not call that
-function directly anyway):
+Works for me.
 
-drivers/net/ethernet/apm/xgene/xgene_enet_hw.c: status = acpi_node_get_property_reference(fw_node, "phy-handle", 0,
-drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c:      rc = acpi_node_get_property_reference(
-drivers/net/ethernet/hisilicon/hns/hns_enet.c:          ret = acpi_node_get_property_reference(dev->fwnode,
+I can re-arrange the series so that the two core patches (1,4/5) are
+first and then the GPIO parts.
 
-So we would need to update those as well. Not a big deal, though.
+> Moreover, the documentation patch [1/5] looks like immediately applicable to me.
+
+Yes, it just fixes the names to match what is preferred.
