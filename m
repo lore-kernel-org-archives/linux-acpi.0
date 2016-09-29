@@ -1,141 +1,109 @@
-From: "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v12 0/8] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 29 Sep 2016 16:33:46 +0800
-Message-ID: <6a1af526-3500-e603-351f-2b2da5726140@huawei.com>
-References: <1473763144-5653-1-git-send-email-fu.wei@linaro.org>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
+Date: Thu, 29 Sep 2016 11:10:49 +0200
+Message-ID: <201609291110.50176.linux@rainbow-software.org>
+References: <201609251512.05657.linux@rainbow-software.org> <201609282123.48506.linux@rainbow-software.org> <946fcb62-272b-61b3-9afa-7c27a1ce7419@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1473763144-5653-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-1b.atlantis.sk ([80.94.52.26]:35860 "EHLO
+        smtp-1b.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932949AbcI2JLD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 05:11:03 -0400
+In-Reply-To: <946fcb62-272b-61b3-9afa-7c27a1ce7419@codeaurora.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-for sbsa watchdog part,  Tested-by:  wangxiongfeng2@huawei.com on D05 board.
+On Thursday 29 September 2016, Sinan Kaya wrote:
+> On 9/28/2016 3:23 PM, Ondrej Zary wrote:
+> > On Wednesday 28 September 2016 20:22:40 Sinan Kaya wrote:
+> >> On 9/28/2016 1:02 PM, Ondrej Zary wrote:
+> >>>> Thanks, It sounds like you have more than one machine with similar
+> >>>>
+> >>>>> problems. Can you collect the log from the other machines with
+> >>>>> 4.8-rc8?
+> >>>>>
+> >>>>> and also a boot log with 4.6 kernel where things are working?
+> >>>
+> >>> The attached logs are from another machine:
+> >>>
+> >>> dmesg-bad-debug.txt: 4.8-rc8 with your debug patch - bad
+> >>>
+> >>> dmesg-reverted.txt: 4.8-rc8 with patches (as per Rafael's suggestion)
+> >>> reverted - good
+> >>>
+> >>> dmesg-3.6.txt: 4.6 (Debian kernel) - good
+> >>
+> >> I think I see a race condition for the SCI interrupt. I need another
+> >> dump from 4.8-rc8 with the attached patch to confirm. Let's remove the
+> >> previous one and apply this one.
+> >
+> > dmesg-reverted.txt: 4.8-rc8 w/patches reverted (good)
+> > $ head /proc/interrupts
+> >            CPU0
+> >   0:       8531    XT-PIC  timer
+> >   1:          9    XT-PIC  i8042
+> >   2:          0    XT-PIC  cascade
+> >   8:          1    XT-PIC  rtc0
+> >  11:        713    XT-PIC  acpi, uhci_hcd:usb1, uhci_hcd:usb2, nvkm, eth0
+> >  12:        161    XT-PIC  i8042
+> >  14:       4042    XT-PIC  pata_via
+> >  15:          0    XT-PIC  pata_via
+> > NMI:          0   Non-maskable interrupts
+> >
+> > dmesg-bad-debug.txt: 4.8-rc8 (bad)
+> > $ head /proc/interrupts
+> >            CPU0
+> >   0:       8027    XT-PIC  timer
+> >   1:        286    XT-PIC  i8042
+> >   2:          0    XT-PIC  cascade
+> >   8:          1    XT-PIC  rtc0
+> >  10:          0    XT-PIC  uhci_hcd:usb1, uhci_hcd:usb2
+> >  11:          0    XT-PIC  acpi, nvkm, eth0
+> >  12:        161    XT-PIC  i8042
+> >  14:       4069    XT-PIC  pata_via
+> >  15:          0    XT-PIC  pata_via
+> >
+> > (I'm moving between different machines through the day - these logs are
+> > from different machine than the last ones).
+>
+> Can you try these patches on your machines please?
 
-On 2016/9/13 18:38, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
-> 
-> This patchset:
->     (1)Preparation for adding GTDT support in arm_arch_timer:
->         1. Move some enums and marcos to header file;
->         2. Add a new enum for spi type;
->         3. Improve printk relevant code.
-> 
->     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
->     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->     memory-mapped timer and SBSA Generic Watchdog timer.
->     This driver can help to simplify all the relevant timer drivers,
->     and separate all the ACPI GTDT knowledge from them.
-> 
->     (3)Simplify ACPI code for arm_arch_timer
-> 
->     (4)Add GTDT support for ARM memory-mapped timer
-> 
-> This patchset depends on the following patchset:
-> [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
-> https://lkml.org/lkml/2016/9/12/949
-> 
-> This patchset has been tested on the following platforms:
->     (1)ARM Foundation v8 model
-> 
-> Changelog:
-> v12: https://lkml.org/lkml/2016/9/13/
->      Rebase to latest Linux 4.8-rc6
->      Delete the confusing "skipping" in the error message.
-> 
-> V11: https://lkml.org/lkml/2016/9/6/354
->      Rebase to latest Linux 4.8-rc5
->      Delete typedef (suggested by checkpatch.pl)
-> 
-> V10: https://lkml.org/lkml/2016/7/26/215
->      Drop the "readq" patch.
->      Rebase to latest Linux 4.7.
-> 
-> V9: https://lkml.org/lkml/2016/7/25/345
->     Improve pr_err message in acpi gtdt driver.
->     Update Commit message for 7/9
->     shorten the irq mapping function name
->     Improve GTDT driver for memory-mapped timer
-> 
-> v8: https://lkml.org/lkml/2016/7/19/660
->     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
->     and also improve printk message.
->     Simplify is_timer_block and is_watchdog.
->     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
->     Delete __init in include/linux/acpi.h for GTDT API
->     Make ARM64 select GTDT.
->     Delete "#include <linux/module.h>" from acpi_gtdt.c
->     Simplify GT block parse code.
-> 
-> v7: https://lkml.org/lkml/2016/7/13/769
->     Move the GTDT driver to drivers/acpi/arm64
->     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
->     Merge 3 patches of GTDT parser driver.
->     Fix the for_each_platform_timer bug.
-> 
-> v6: https://lkml.org/lkml/2016/6/29/580
->     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
->     and SBSA Generic Watchdog timer
->     Improve driver by suggestions and example code from Daniel Lezcano
-> 
-> v5: https://lkml.org/lkml/2016/5/24/356
->     Sorting out all patches, simplify the API of GTDT driver:
->     GTDT driver just fills the data struct for arm_arch_timer driver.
-> 
-> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
->     Delete the kvm relevant patches
->     Separate two patches for sorting out the code for arm_arch_timer.
->     Improve irq info export code to allow missing irq info in GTDT table.
-> 
-> v3: https://lkml.org/lkml/2016/2/1/658
->     Improve GTDT driver code:
->       (1)improve pr_* by defining pr_fmt(fmt)
->       (2)simplify gtdt_sbsa_gwdt_init
->       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
->       to get GTDT table.
->     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
->     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
-> 
-> v2: https://lkml.org/lkml/2015/12/2/10
->     Rebase to latest kernel version(4.4-rc3).
->     Fix the bug about the config problem,
->     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
-> 
-> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
-> 
-> Fu Wei (8):
->   clocksource/drivers/arm_arch_timer: Move enums and defines to header
->     file
->   clocksource/drivers/arm_arch_timer: Add a new enum for spi type
->   clocksource/drivers/arm_arch_timer: Improve printk relevant code
->   acpi/arm64: Add GTDT table parse driver
->   clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
->   acpi/arm64: Add memory-mapped timer support in GTDT driver
->   clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
->     timer
->   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
-> 
->  arch/arm64/Kconfig                   |   1 +
->  drivers/acpi/arm64/Kconfig           |   3 +
->  drivers/acpi/arm64/Makefile          |   1 +
->  drivers/acpi/arm64/gtdt.c            | 309 +++++++++++++++++++++++++++++++++++
->  drivers/clocksource/Kconfig          |   2 +-
->  drivers/clocksource/arm_arch_timer.c | 225 +++++++++++++++++--------
->  drivers/watchdog/Kconfig             |   1 +
->  include/clocksource/arm_arch_timer.h |  32 ++++
->  include/linux/acpi.h                 |   7 +
->  9 files changed, 510 insertions(+), 71 deletions(-)
->  create mode 100644 drivers/acpi/arm64/gtdt.c
-> 
+It doesn't even boot :(
+
+ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
+BUG: unable to handle kernel paging request at e3382f64
+IP: [<c11ecf61>] acpi_irq_get_penalty+0x69/0xa5
+*pde = 00000000
+Oops: 0000 [#1] SMP
+Modules linked in: 
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.8.0-rc8+ #114
+Hardware name: System Manufacturer System Name/A7VL133, BIOS ASUS A7VL133-VM ACPI BIOS Revision 1008 06/10/2002
+task: c7094000 task.stack: c7098000
+EIP: 0060:[<c11ecf61>] EFLAGS: 00210202 CPU:  0
+EIP is at acpi_irq_get_penalty+0x69/0xa5
+...
+Call Trace:
+acpi_isa_irq_available
+acpi_pci_irq_enable
+pcibios_enable_device
+do_pci_enable_device
+quirk_usb_early_handoff
+pci_get_subsys
+pci_fixup_device
+pci_apply_final_quirks
+pci_proc_init
+do_one_initcall
+parse_args
+kernel_init_freeable
+kernel_init_freeable
+ret_from_kernel_thread
+rest_init
+
+-- 
+Ondrej Zary
