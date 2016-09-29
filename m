@@ -1,122 +1,253 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 2/4] ACPI / gpio: Add support for naming GPIOs
-Date: Thu, 29 Sep 2016 16:39:42 +0300
-Message-ID: <20160929133944.158596-3-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 1/4] ACPI / property: Allow holes in reference properties
+Date: Thu, 29 Sep 2016 16:39:41 +0300
+Message-ID: <20160929133944.158596-2-mika.westerberg@linux.intel.com>
 References: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:45657 "EHLO mga06.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:10382 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753364AbcI2Njx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Sep 2016 09:39:53 -0400
+        id S1754028AbcI2NlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Sep 2016 09:41:20 -0400
 In-Reply-To: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-DT has property 'gpio-line-names' to name GPIO lines the controller has if
-present. Use this very same property in ACPI as well to provide nice names
-for the GPIOS.
+DT allows holes or empty phandles for references. This is used for example
+in SPI subsystem where some chip selects are native and others are regular
+GPIOs. In ACPI _DSD we currently do not support this but instead the
+preceding reference consumes all following integer arguments.
+
+For example we would like to support something like the below ASL fragment
+for SPI:
+
+  Package () {
+      "cs-gpios",
+      Package () {
+          ^GPIO, 19, 0, 0, // GPIO CS0
+          0,               // Native CS
+          ^GPIO, 20, 0, 0, // GPIO CS1
+      }
+  }
+
+The zero in the middle means "no entry" or NULL reference. To support this
+we change acpi_data_get_property_reference() to take firmware node and
+num_args as argument and rename it to __acpi_node_get_property_reference().
+The function returns -ENOENT if the given index resolves to "no entry"
+reference and -ENODATA when there are no more entries in the property.
+
+We then add static inline wrapper acpi_node_get_property_reference() that
+passes MAX_ACPI_REFERENCE_ARGS as num_args to support the existing
+behaviour which some drivers have been relying on.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- Documentation/acpi/gpio-properties.txt | 21 +++++++++++++++++
- drivers/gpio/gpiolib-acpi.c            | 43 ++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ drivers/acpi/property.c | 117 ++++++++++++++++++++++++++++--------------------
+ include/linux/acpi.h    |  22 +++++++--
+ 2 files changed, 87 insertions(+), 52 deletions(-)
 
-diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 5aafe0b351a1..7875974823ae 100644
---- a/Documentation/acpi/gpio-properties.txt
-+++ b/Documentation/acpi/gpio-properties.txt
-@@ -51,6 +51,27 @@ it to 1 marks the GPIO as active low.
- In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
- resource, second pin in that resource with the GPIO number of 31.
- 
-+Other supported properties
-+--------------------------
-+
-+Following Device Tree compatible device properties are also supported by
-+_DSD device properties for GPIO controllers:
-+
-+- gpio-line-names
-+
-+Example:
-+
-+  Package () {
-+      "gpio-line-names",
-+      Package () {
-+          "SPI0_CS_N", "EXP2_INT", "MUX6_IO", "UART0_RXD", "MUX7_IO",
-+          "LVL_C_A1", "MUX0_IO", "SPI1_MISO"
-+      }
-+  }
-+
-+See Documentation/devicetree/bindings/gpio/gpio.tx for more information
-+about these properties.
-+
- ACPI GPIO Mappings Provided by Drivers
- --------------------------------------
- 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index af514618d7fb..202cf1b842de 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -805,6 +805,46 @@ static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
- 	}
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index f2fd3fee588a..03f5ec11ab31 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -468,10 +468,11 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
  }
  
-+static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
+ /**
+- * acpi_data_get_property_reference - returns handle to the referenced object
+- * @data: ACPI device data object containing the property
++ * __acpi_node_get_property_reference - returns handle to the referenced object
++ * @fwnode: Firmware node to get the property from
+  * @propname: Name of the property
+  * @index: Index of the reference to return
++ * @num_args: Maximum number of arguments after each reference
+  * @args: Location to store the returned reference with optional arguments
+  *
+  * Find property with @name, verifify that it is a package containing at least
+@@ -482,17 +483,40 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
+  * If there's more than one reference in the property value package, @index is
+  * used to select the one to return.
+  *
++ * It is possible to leave holes in the property value set like in the
++ * example below:
++ *
++ * Package () {
++ *     "cs-gpios",
++ *     Package () {
++ *        ^GPIO, 19, 0, 0,
++ *        ^GPIO, 20, 0, 0,
++ *        0,
++ *        ^GPIO, 21, 0, 0,
++ *     }
++ * }
++ *
++ * Calling this function with index %2 return %-ENOENT and with index %3
++ * returns the last entry. If the property does not contain any more values
++ * %-ENODATA is returned. The NULL entry must be single integer and
++ * preferably contain value %0.
++ *
+  * Return: %0 on success, negative error code on failure.
+  */
+-static int acpi_data_get_property_reference(struct acpi_device_data *data,
+-					    const char *propname, size_t index,
+-					    struct acpi_reference_args *args)
++int __acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++	const char *propname, size_t index, size_t num_args,
++	struct acpi_reference_args *args)
+ {
+ 	const union acpi_object *element, *end;
+ 	const union acpi_object *obj;
++	struct acpi_device_data *data;
+ 	struct acpi_device *device;
+ 	int ret, idx = 0;
+ 
++	data = acpi_device_data_of_node(fwnode);
++	if (!data)
++		return -EINVAL;
++
+ 	ret = acpi_data_get_property(data, propname, ACPI_TYPE_ANY, &obj);
+ 	if (ret)
+ 		return ret;
+@@ -532,59 +556,54 @@ static int acpi_data_get_property_reference(struct acpi_device_data *data,
+ 	while (element < end) {
+ 		u32 nargs, i;
+ 
+-		if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
+-			return -EPROTO;
+-
+-		ret = acpi_bus_get_device(element->reference.handle, &device);
+-		if (ret)
+-			return -ENODEV;
+-
+-		element++;
+-		nargs = 0;
+-
+-		/* assume following integer elements are all args */
+-		for (i = 0; element + i < end; i++) {
+-			int type = element[i].type;
++		if (element->type == ACPI_TYPE_LOCAL_REFERENCE) {
++			ret = acpi_bus_get_device(element->reference.handle,
++						  &device);
++			if (ret)
++				return -ENODEV;
++
++			nargs = 0;
++			element++;
++
++			/* assume following integer elements are all args */
++			for (i = 0; element + i < end && i < num_args; i++) {
++				int type = element[i].type;
++
++				if (type == ACPI_TYPE_INTEGER)
++					nargs++;
++				else if (type == ACPI_TYPE_LOCAL_REFERENCE)
++					break;
++				else
++					return -EPROTO;
++			}
+ 
+-			if (type == ACPI_TYPE_INTEGER)
+-				nargs++;
+-			else if (type == ACPI_TYPE_LOCAL_REFERENCE)
+-				break;
+-			else
++			if (nargs > MAX_ACPI_REFERENCE_ARGS)
+ 				return -EPROTO;
+-		}
+ 
+-		if (idx++ == index) {
+-			args->adev = device;
+-			args->nargs = nargs;
+-			for (i = 0; i < nargs; i++)
+-				args->args[i] = element[i].integer.value;
++			if (idx == index) {
++				args->adev = device;
++				args->nargs = nargs;
++				for (i = 0; i < nargs; i++)
++					args->args[i] = element[i].integer.value;
+ 
+-			return 0;
++				return 0;
++			}
++
++			element += nargs;
++		} else if (element->type == ACPI_TYPE_INTEGER) {
++			if (idx == index)
++				return -ENOENT;
++			element++;
++		} else {
++			return -EPROTO;
+ 		}
+ 
+-		element += nargs;
++		idx++;
+ 	}
+ 
+-	return -EPROTO;
+-}
+-
+-/**
+- * acpi_node_get_property_reference - get a handle to the referenced object.
+- * @fwnode: Firmware node to get the property from.
+- * @propname: Name of the property.
+- * @index: Index of the reference to return.
+- * @args: Location to store the returned reference with optional arguments.
+- */
+-int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
+-				     const char *name, size_t index,
+-				     struct acpi_reference_args *args)
+-{
+-	struct acpi_device_data *data = acpi_device_data_of_node(fwnode);
+-
+-	return data ? acpi_data_get_property_reference(data, name, index, args) : -EINVAL;
++	return -ENODATA;
+ }
+-EXPORT_SYMBOL_GPL(acpi_node_get_property_reference);
++EXPORT_SYMBOL_GPL(__acpi_node_get_property_reference);
+ 
+ static int acpi_data_prop_read_single(struct acpi_device_data *data,
+ 				      const char *propname,
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index c5eaf2f80a4c..54460ad3a7a6 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -927,9 +927,17 @@ struct acpi_reference_args {
+ #ifdef CONFIG_ACPI
+ int acpi_dev_get_property(struct acpi_device *adev, const char *name,
+ 			  acpi_object_type type, const union acpi_object **obj);
+-int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
+-				     const char *name, size_t index,
+-				     struct acpi_reference_args *args);
++int __acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++				const char *name, size_t index, size_t num_args,
++				struct acpi_reference_args *args);
++
++static inline int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++				const char *name, size_t index,
++				struct acpi_reference_args *args)
 +{
-+	struct gpio_chip *chip = achip->chip;
-+	struct gpio_device *gdev = chip->gpiodev;
-+	const char **names;
-+	int ret, i;
-+
-+	ret = device_property_read_string_array(chip->parent, "gpio-line-names",
-+						NULL, 0);
-+	if (ret < 0)
-+		return;
-+
-+	if (ret != gdev->ngpio) {
-+		dev_warn(chip->parent,
-+			 "names %d do not match number of GPIOs %d\n", ret,
-+			 gdev->ngpio);
-+		return;
-+	}
-+
-+	names = kcalloc(gdev->ngpio, sizeof(*names), GFP_KERNEL);
-+	if (!names)
-+		return;
-+
-+	ret = device_property_read_string_array(chip->parent, "gpio-line-names",
-+						names, gdev->ngpio);
-+	if (ret < 0) {
-+		dev_warn(chip->parent, "Failed to read GPIO line names\n");
-+		return;
-+	}
-+
-+	/*
-+	 * It is fine to assign the name, it will be allocated as long as
-+	 * the ACPI device exists.
-+	 */
-+	for (i = 0; i < gdev->ngpio; i++)
-+		gdev->descs[i].name = names[i];
-+
-+	kfree(names);
++	return __acpi_node_get_property_reference(fwnode, name, index,
++		MAX_ACPI_REFERENCE_ARGS, args);
++}
+ 
+ int acpi_node_prop_get(struct fwnode_handle *fwnode, const char *propname,
+ 		       void **valptr);
+@@ -1005,6 +1013,14 @@ static inline int acpi_dev_get_property(struct acpi_device *adev,
+ 	return -ENXIO;
+ }
+ 
++static inline int
++__acpi_node_get_property_reference(struct fwnode_handle *fwnode,
++				const char *name, size_t index, size_t num_args,
++				struct acpi_reference_args *args)
++{
++	return -ENXIO;
 +}
 +
- void acpi_gpiochip_add(struct gpio_chip *chip)
- {
- 	struct acpi_gpio_chip *acpi_gpio;
-@@ -835,6 +875,9 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 		return;
- 	}
- 
-+	if (!chip->names)
-+		acpi_gpiochip_set_names(acpi_gpio);
-+
- 	acpi_gpiochip_request_regions(acpi_gpio);
- 	acpi_walk_dep_device_list(handle);
- }
+ static inline int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
+ 				const char *name, size_t index,
+ 				struct acpi_reference_args *args)
 -- 
 2.9.3
 
