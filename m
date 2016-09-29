@@ -1,60 +1,122 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 0/4] ACPI / gpio: Updates to properties
-Date: Thu, 29 Sep 2016 16:39:40 +0300
-Message-ID: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 2/4] ACPI / gpio: Add support for naming GPIOs
+Date: Thu, 29 Sep 2016 16:39:42 +0300
+Message-ID: <20160929133944.158596-3-mika.westerberg@linux.intel.com>
+References: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga06.intel.com ([134.134.136.31]:45657 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755137AbcI2Nj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Sep 2016 09:39:56 -0400
+        id S1753364AbcI2Njx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Sep 2016 09:39:53 -0400
+In-Reply-To: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi,
+DT has property 'gpio-line-names' to name GPIO lines the controller has if
+present. Use this very same property in ACPI as well to provide nice names
+for the GPIOS.
 
-This series brings couple of useful GPIO related properties from Device
-Tree to ACPI _DSD device properties:
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ Documentation/acpi/gpio-properties.txt | 21 +++++++++++++++++
+ drivers/gpio/gpiolib-acpi.c            | 43 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-  - Names for GPIO lines
-  - GPIO hogging
-  - Holes in GPIO property lists
-
-We are using these to get Intel Galileo better supported in the mainline
-kernel (but these may be useful for other boards as well). For example SPI
-chip select on Galileo is connected to a GPIO line so we need to be able to
-describe it in ACPI, and at the same time allow native chip selects.
-
-GPIO hogging can be used to set initial state of certain GPIOs available on
-the headers regardless of the BIOS settings (which may be wrong as it knows
-nothing about which devices have been connected).
-
-The previous version can be found here:
-
-  http://www.spinics.net/lists/linux-acpi/msg69385.html
-
-Changes from v1:
-  - Drop patch [1/5] as it has been applied already.
-  - Move patch [4/5] to be the first.
-  - Rename acpi_data_get_property_reference() to __acpi_node_get_property_reference().
-  - Drop acpi_node_get_property_reference() as it is not necessary anymore.
-  - Add static inline wrapper acpi_node_get_property_reference() that
-    calls the previous passing MAX_ACPI_REFERENCE_ARGS to support existing
-    drivers.
-
-Mika Westerberg (4):
-  ACPI / property: Allow holes in reference properties
-  ACPI / gpio: Add support for naming GPIOs
-  ACPI / gpio: Add hogging support
-  ACPI / gpio: Allow holes in list of GPIOs for a device
-
- Documentation/acpi/gpio-properties.txt |  62 ++++++++++++++
- drivers/acpi/property.c                | 117 +++++++++++++++-----------
- drivers/gpio/gpiolib-acpi.c            | 147 ++++++++++++++++++++++++++++++---
- include/linux/acpi.h                   |  22 ++++-
- 4 files changed, 285 insertions(+), 63 deletions(-)
-
+diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
+index 5aafe0b351a1..7875974823ae 100644
+--- a/Documentation/acpi/gpio-properties.txt
++++ b/Documentation/acpi/gpio-properties.txt
+@@ -51,6 +51,27 @@ it to 1 marks the GPIO as active low.
+ In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
+ resource, second pin in that resource with the GPIO number of 31.
+ 
++Other supported properties
++--------------------------
++
++Following Device Tree compatible device properties are also supported by
++_DSD device properties for GPIO controllers:
++
++- gpio-line-names
++
++Example:
++
++  Package () {
++      "gpio-line-names",
++      Package () {
++          "SPI0_CS_N", "EXP2_INT", "MUX6_IO", "UART0_RXD", "MUX7_IO",
++          "LVL_C_A1", "MUX0_IO", "SPI1_MISO"
++      }
++  }
++
++See Documentation/devicetree/bindings/gpio/gpio.tx for more information
++about these properties.
++
+ ACPI GPIO Mappings Provided by Drivers
+ --------------------------------------
+ 
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index af514618d7fb..202cf1b842de 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -805,6 +805,46 @@ static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
+ 	}
+ }
+ 
++static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
++{
++	struct gpio_chip *chip = achip->chip;
++	struct gpio_device *gdev = chip->gpiodev;
++	const char **names;
++	int ret, i;
++
++	ret = device_property_read_string_array(chip->parent, "gpio-line-names",
++						NULL, 0);
++	if (ret < 0)
++		return;
++
++	if (ret != gdev->ngpio) {
++		dev_warn(chip->parent,
++			 "names %d do not match number of GPIOs %d\n", ret,
++			 gdev->ngpio);
++		return;
++	}
++
++	names = kcalloc(gdev->ngpio, sizeof(*names), GFP_KERNEL);
++	if (!names)
++		return;
++
++	ret = device_property_read_string_array(chip->parent, "gpio-line-names",
++						names, gdev->ngpio);
++	if (ret < 0) {
++		dev_warn(chip->parent, "Failed to read GPIO line names\n");
++		return;
++	}
++
++	/*
++	 * It is fine to assign the name, it will be allocated as long as
++	 * the ACPI device exists.
++	 */
++	for (i = 0; i < gdev->ngpio; i++)
++		gdev->descs[i].name = names[i];
++
++	kfree(names);
++}
++
+ void acpi_gpiochip_add(struct gpio_chip *chip)
+ {
+ 	struct acpi_gpio_chip *acpi_gpio;
+@@ -835,6 +875,9 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
+ 		return;
+ 	}
+ 
++	if (!chip->names)
++		acpi_gpiochip_set_names(acpi_gpio);
++
+ 	acpi_gpiochip_request_regions(acpi_gpio);
+ 	acpi_walk_dep_device_list(handle);
+ }
 -- 
 2.9.3
 
