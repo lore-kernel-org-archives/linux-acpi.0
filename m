@@ -1,7 +1,7 @@
 From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] pmem: reduce kmap_atomic sections to the memcpys only
-Date: Wed, 28 Sep 2016 18:10:10 -0600
-Message-ID: <1475107811-8880-3-git-send-email-vishal.l.verma@intel.com>
+Subject: [PATCH 1/3] nfit: don't start a full scrub by default for an MCE
+Date: Wed, 28 Sep 2016 18:10:09 -0600
+Message-ID: <1475107811-8880-2-git-send-email-vishal.l.verma@intel.com>
 References: <1475107811-8880-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,81 +21,137 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-pmem_do_bvec used to kmap_atomic at the begin, and only unmap at the
-end. Things like nvdimm_clear_poison may want to do nvdimm subsystem
-bookkeeping operations that may involve taking locks or doing memory
-allocations, and we can't do that from the atomic context. Reduce the
-atomic context to just what needs it - the memcpy to/from pmem.
+Starting a full Address Range Scrub (ARS) on hitting a memory error
+machine check exception may not always be desirable. Provide a way
+through sysfs to toggle the behavior between just adding the address
+(cache line) where the MCE happened to the poison list and doing a full
+scrub. The former (selective insertion of the address) is done
+unconditionally.
 
-Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/pmem.c | 28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ drivers/acpi/nfit/core.c | 23 ++++++++++++++++++++---
+ drivers/acpi/nfit/mce.c  | 24 +++++++++++++++++++-----
+ drivers/acpi/nfit/nfit.h |  6 ++++++
+ 3 files changed, 45 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 571a6c7..ca038d8 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -66,13 +66,32 @@ static void pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
- 	invalidate_pmem(pmem->virt_addr + offset, len);
- }
- 
-+static void map_and_copy_to_pmem(void *pmem_addr, struct page *page,
-+		unsigned int off, unsigned int len)
-+{
-+	void *mem = kmap_atomic(page);
-+
-+	memcpy_to_pmem(pmem_addr, mem + off, len);
-+	kunmap_atomic(mem);
-+}
-+
-+static int map_and_copy_from_pmem(struct page *page, unsigned int off,
-+		void *pmem_addr, unsigned int len)
-+{
-+	int rc;
-+	void *mem = kmap_atomic(page);
-+
-+	rc = memcpy_from_pmem(mem + off, pmem_addr, len);
-+	kunmap_atomic(mem);
-+	return rc;
-+}
-+
- static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 			unsigned int len, unsigned int off, bool is_write,
- 			sector_t sector)
- {
- 	int rc = 0;
- 	bool bad_pmem = false;
--	void *mem = kmap_atomic(page);
- 	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
- 	void *pmem_addr = pmem->virt_addr + pmem_off;
- 
-@@ -83,7 +102,7 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		if (unlikely(bad_pmem))
- 			rc = -EIO;
- 		else {
--			rc = memcpy_from_pmem(mem + off, pmem_addr, len);
-+			rc = map_and_copy_from_pmem(page, off, pmem_addr, len);
- 			flush_dcache_page(page);
- 		}
- 	} else {
-@@ -102,14 +121,13 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		 * after clear poison.
- 		 */
- 		flush_dcache_page(page);
--		memcpy_to_pmem(pmem_addr, mem + off, len);
-+		map_and_copy_to_pmem(pmem_addr, page, off, len);
- 		if (unlikely(bad_pmem)) {
- 			pmem_clear_poison(pmem, pmem_off, len);
--			memcpy_to_pmem(pmem_addr, mem + off, len);
-+			map_and_copy_to_pmem(pmem_addr, page, off, len);
- 		}
- 	}
- 
--	kunmap_atomic(mem);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 80cc7c0..ec1069e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -901,6 +901,14 @@ static ssize_t scrub_show(struct device *dev,
  	return rc;
  }
  
++/*
++ * The 'scrub' attribute can only have following values written to it:
++ * '1': Start an on-demand scrub, and enable a full scrub to happen if a
++ *      machine check exception for a memory error is received.
++ * '2': Switch to the default mode where a machine check will only insert
++ *      the address on which the memory error was received into the poison
++ *      and badblocks lists.
++ */
+ static ssize_t scrub_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
+ {
+@@ -911,15 +919,24 @@ static ssize_t scrub_store(struct device *dev,
+ 	rc = kstrtol(buf, 0, &val);
+ 	if (rc)
+ 		return rc;
+-	if (val != 1)
+-		return -EINVAL;
+ 
+ 	device_lock(dev);
+ 	nd_desc = dev_get_drvdata(dev);
+ 	if (nd_desc) {
+ 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+ 
+-		rc = acpi_nfit_ars_rescan(acpi_desc);
++		switch (val) {
++		case MCE_SCRUB_ON:
++			rc = acpi_nfit_ars_rescan(acpi_desc);
++			acpi_desc->scrub_mode = MCE_SCRUB_ON;
++			break;
++		case MCE_SCRUB_OFF:
++			acpi_desc->scrub_mode = MCE_SCRUB_OFF;
++			break;
++		default:
++			rc = -EINVAL;
++			break;
++		}
+ 	}
+ 	device_unlock(dev);
+ 	if (rc)
+diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
+index 161f915..05005e2 100644
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/notifier.h>
+ #include <linux/acpi.h>
++#include <linux/nd.h>
+ #include <asm/mce.h>
+ #include "nfit.h"
+ 
+@@ -62,12 +63,25 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+ 		}
+ 		mutex_unlock(&acpi_desc->init_mutex);
+ 
+-		/*
+-		 * We can ignore an -EBUSY here because if an ARS is already
+-		 * in progress, just let that be the last authoritative one
+-		 */
+-		if (found_match)
++		if (!found_match)
++			continue;
++
++		/* If this fails due to an -ENOMEM, there is little we can do */
++		nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
++				ALIGN(mce->addr, L1_CACHE_BYTES),
++				L1_CACHE_BYTES);
++		nvdimm_region_notify(nfit_spa->nd_region,
++				NVDIMM_REVALIDATE_POISON);
++
++		if (acpi_desc->scrub_mode == MCE_SCRUB_ON) {
++			/*
++			 * We can ignore an -EBUSY here because if an ARS is
++			 * already in progress, just let that be the last
++			 * authoritative one
++			 */
+ 			acpi_nfit_ars_rescan(acpi_desc);
++		}
++		break;
+ 	}
+ 
+ 	mutex_unlock(&acpi_desc_lock);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index e894ded..487dc0a 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -152,6 +152,7 @@ struct acpi_nfit_desc {
+ 	struct list_head list;
+ 	struct kernfs_node *scrub_count_state;
+ 	unsigned int scrub_count;
++	unsigned int scrub_mode;
+ 	unsigned int cancel:1;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+@@ -159,6 +160,11 @@ struct acpi_nfit_desc {
+ 			void *iobuf, u64 len, int rw);
+ };
+ 
++enum scrub_mode {
++	MCE_SCRUB_ON = 1,
++	MCE_SCRUB_OFF = 2,
++};
++
+ enum nd_blk_mmio_selector {
+ 	BDW,
+ 	DCR,
 -- 
 2.7.4
