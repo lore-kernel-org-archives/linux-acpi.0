@@ -1,128 +1,202 @@
-From: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PULL] libnvdimm fixes for 4.8
-Date: Thu, 29 Sep 2016 21:15:24 +0000
-Message-ID: <1475183722.21419.29.camel@intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
+ [LNKD]. Try pci=noacpi or acpi=off
+Date: Thu, 29 Sep 2016 18:39:48 -0400
+Message-ID: <34355440-197d-44c7-b27d-535267d1161c@codeaurora.org>
+References: <201609251512.05657.linux@rainbow-software.org>
+ <201609291848.33803.linux@rainbow-software.org>
+ <701eeb2f-bfc2-d541-4f6f-34be200ea44a@codeaurora.org>
+ <201609292000.56943.linux@rainbow-software.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
-Content-ID: <A99D99699CA1E04485A5D28B79FC52D8-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="------------C3BABA23093CDA0C21B59E8F"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48476 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934815AbcI2Wjw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 18:39:52 -0400
+In-Reply-To: <201609292000.56943.linux@rainbow-software.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ondrej Zary <linux@rainbow-software.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcwoKLi4udG8g
-cmVjZWl2ZSB0aGUgZm9sbG93aW5nOgoKLSAoNCkgZml4ZXMgZm9yICJmbHVzaCBoaW50IiBzdXBw
-b3J0LiAgRmx1c2ggaGludHMgYXJlIGFkZHJlc3NlcwphZHZlcnRpc2VkIGJ5IHRoZSBBQ1BJIDYr
-LSBORklUIChOVkRJTU0gRmlybXdhcmUgSW50ZXJmYWNlIFRhYmxlKSB0aGF0CndoZW4gd3JpdHRl
-biBhbmQgZmVuY2VkIGd1YXJhbnRlZSB0aGF0IHdyaXRlcyBwZW5kaW5nIGluIHBsYXRmb3JtIHdy
-aXRlCmJ1ZmZlcnMgKG91dHNpZGUgdGhlIGNwdSkgaGF2ZSBiZWVuIGZsdXNoZWQgdG8gbWVkaWEu
-ICtBS0EtVGhleSBtaWdodCBhbHNvCmJlIHVzZWQgYnkgaHlwZXJ2aXNvcnMgYXMgYSB0cmlnZ2Vy
-IGNvbmRpdGlvbiB0byBmbHVzaCBndWVzdC1wZXJzaXN0ZW50IAptZW1vcnkgcmFuZ2VzIHRvIHN0
-b3JhZ2UuCgpGaXggYSBwb3RlbnRpYWwgZGF0YSBjb3JydXB0aW9uIGlzc3VlLCBhIGJyb2tlbiBk
-ZWZpbml0aW9uIG9mIHRoZSBoaW50CmFycmF5LCBhIHdyb25nIGFsbG9jYXRpb24gc2l6ZSBmb3Ig
-dGhlIHVuaXQgdGVzdCBpbXBsZW1lbnRhdGlvbiBvZiB0aGUKZmx1c2ggaGludCB0YWJsZSwgYW5k
-IG1pc3NpbmcgTlVMTCBjaGVjayBpbiBhbiBlcnJvciBwYXRoLiArQUtBLVRoZSB1bml0CnRlc3Qs
-IHdoaWxlIGl0IGRpZCBub3QgcHJldmVudCB0aGVzZSBidWdzIGZyb20gYmVpbmcgbWVyZ2VkLCBh
-dCBsZWFzdAp0cmlnZ2VyZWQgb2NjYXNpb25hbCBjcmFzaGVzIGluIGFkdmFuY2Ugb2YgcHJvZHVj
-dGlvbiB1c2FnZXMuCgotIEZpeCBoYW5kbGluZyBvZiBBQ1BJIERTTSBlcnJvciBzdGF0dXMgcmVz
-dWx0cy4gK0FLQS1UaGUgRFNNIG1lY2hhbmlzbQphbGxvd3MgY29tbXVuaWNhdGlvbiB3aXRoIHBs
-YXRmb3JtIGFuZCBtZW1vcnkgZGV2aWNlIGZpcm13YXJlLiArQUtBLVdlCmNvcnJlY3RseSBwYXJz
-ZSBrbm93biBlcnJvcnMsIGJ1dCB3ZXJlIHNpbGVudGx5IGlnbm9yaW5nIG90aGVycy4gK0FLQS1G
-aXgKaXQgdG8gY29uc2lzdGVudGx5IGZhaWwgYW55IGNvbW1hbmQgd2l0aCBhIG5vbi16ZXJvIHN0
-YXR1cyByZXR1cm4gdGhhdAp3ZSBvdGhlcndpc2UgZG8gbm90IGludGVycHJldCAvIGhhbmRsZS4K
-ClRoZXNlIGNoYW5nZXMgaGF2ZSBhIGJ1aWxkIHN1Y2Nlc3Mgbm90aWZpY2F0aW9uIGZyb20gdGhl
-IDBkYXkgcm9ib3QgYW5kCmhhdmUgYXBwZWFyZWQgaW4gYSAtbmV4dCByZWxlYXNlIG92ZXIgdGhl
-IHBhc3Qgd2Vlay4KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgM2JlNzk4ODY3
-NGFiMzM1NjU3MDBhMzdiMjEwZjUwMjU2M2Q5MzJlNjoKCiAgTGludXggNC44LXJjNyAoMjAxNi0w
-OS0xOCAxNzoyNzo0MSAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5
-IGF0OgoKICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZk
-aW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0
-byA1OTVjNzMwNzFlNjY0MWU1OWI4MzkxMWZiYjQwMjZlNzY3NDcxMDAwOgoKICBsaWJudmRpbW0s
-IHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFibGUgdGhpbmtvICgyMDE2LTA5LTI0IDExOjQ1OjM4
-IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQpEYW4gV2lsbGlhbXMgKDQpOgogICAgICB0b29scy90ZXN0aW5nL252
-ZGltbTogZml4IGFsbG9jYXRpb24gcmFuZ2UgZm9yIG1vY2sgZmx1c2ggaGludCB0YWJsZXMKICAg
-ICAgbGlibnZkaW1tOiBmaXggZGV2bV9udmRpbW1fbWVtcmVtYXAoKSBlcnJvciBwYXRoCiAgICAg
-IG5maXQ6IGZhaWwgRFNNcyB0aGF0IHJldHVybiBub24temVybyBzdGF0dXMgYnkgZGVmYXVsdAog
-ICAgICBsaWJudmRpbW0sIHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFibGUgdGhpbmtvCgpPbGl2
-ZXIgTydIYWxsb3JhbiAoMSk6CiAgICAgIG52ZGltbTogZml4IFBIWVNfUEZOL1BGTl9QSFlTIG1p
-eHVwCgogZHJpdmVycy9hY3BpL25maXQvY29yZS5jICAgICAgICAgfCA0OCArLSstKy0rLSstKy0r
-LSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSstLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZl
-cnMvbnZkaW1tL2NvcmUuYyAgICAgICAgICAgIHwgIDggKy0rLSstKy0rLSstLQogZHJpdmVycy9u
-dmRpbW0vbmQuaCAgICAgICAgICAgICAgfCAyMiArLSstKy0rLSstKy0rLSstKy0rLSstKy0rLSst
-Ky0rLS0tCiBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jICAgICB8IDIyICstKy0rLSstKy0r
-LSstKy0rLSstLS0tLS0tLS0KIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jIHwgIDMg
-Ky0rLS0KIDUgZmlsZXMgY2hhbmdlZCwgNzAgaW5zZXJ0aW9ucygrLSksIDMzIGRlbGV0aW9ucygt
-KQoKCmNvbW1pdCA0ODBiNjgzN2FhNTc5OTkxYzZhY2MxMTNiY2NmODM4ZTZhOTA4NDNjCkF1dGhv
-cjogT2xpdmVyIE8nSGFsbG9yYW4gPG9vaGFsbEBnbWFpbC5jb20+CkRhdGU6ICAgTW9uIFNlcCAx
-OSAyMDoxOTowMCAyMDE2ICstMTAwMAoKICAgIG52ZGltbTogZml4IFBIWVNfUEZOL1BGTl9QSFlT
-IG1peHVwCiAgICAKICAgIG5kX2FjdGl2YXRlX3JlZ2lvbigpIGlvbWFwcyBhbnkgaGludCBhZGRy
-ZXNzZXMgcmVxdWlyZWQgd2hlbiBhY3RpdmF0aW5nCiAgICBhIHJlZ2lvbi4gVG8gcHJldmVudCBk
-dXBsaWNhdGUgbWFwcGluZ3MgaXQgY2hlY2tzIHRoZSBQRk4gb2YgdGhlIGhpbnQgdG8KICAgIGJl
-IG1hcHBlZCBhZ2FpbnN0IHRoZSBQRk5zIG9mIHRoZSBhbHJlYWR5IG1hcHBlZCBoaW50cy4gVW5m
-b3J0dW5hdGVseSBpdAogICAgZG9lc24ndCBjb252ZXJ0IHRoZSBQRk4gYmFjayBpbnRvIGEgcGh5
-c2ljYWwgYWRkcmVzcyBiZWZvcmUgcGFzc2luZyBpdAogICAgdG8gZGV2bV9udmRpbW1faW9yZW1h
-cCgpLiBJbnN0ZWFkIGl0IGFwcGxpZXMgUEhZU19QRk4gYSBzZWNvbmQgdGltZQogICAgd2hpY2gg
-ZW5kcyBhYm91dCBhcyB3ZWxsIGFzIHlvdSB3b3VsZCBpbWFnaW5lLgogICAgCiAgICBTaWduZWQt
-b2ZmLWJ5OiBPbGl2ZXIgTydIYWxsb3JhbiA8b29oYWxsQGdtYWlsLmNvbT4KICAgIFNpZ25lZC1v
-ZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IDlk
-MTVjZTljYWFmOWVjYmVjNzRlM2JlMTU2YTRhNTc0NTFlZDE2YzIKQXV0aG9yOiBEYW4gV2lsbGlh
-bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBNb24gU2VwIDE5IDEzOjQ5OjQ4
-IDIwMTYgLTA3MDAKCiAgICB0b29scy90ZXN0aW5nL252ZGltbTogZml4IGFsbG9jYXRpb24gcmFu
-Z2UgZm9yIG1vY2sgZmx1c2ggaGludCB0YWJsZXMKICAgIAogICAgQ29tbWl0IDQ4MGI2ODM3YWE1
-NyAibnZkaW1tOiBmaXggUEhZU19QRk4vUEZOX1BIWVMgbWl4dXAiIGlkZW50aWZpZWQKICAgIHRo
-YXQgd2Ugd2VyZSBwYXNzaW5nIGFuIGludmFsaWQgYWRkcmVzcyB0byBkZXZtX252ZGltbV9pb3Jl
-bWFwKCkuIFdpdGgKICAgIHRoYXQgZml4ZWQgaXQgZXhwb3NlZCBhIGJ1ZyBpbiB0aGUgbWVtb3J5
-IHJlc2VydmF0aW9uIHNpemUgZm9yIGZsdXNoCiAgICBoaW50IHRhYmxlcy4gIFNpbmNlIHdlIG1h
-cCBhIGZ1bGwgcGFnZSB3ZSBuZWVkIHRvIG1vY2sgYSBmdWxsIHBhZ2Ugb2YKICAgIG1lbW9yeSB0
-byBiYWNrIHRoZSBmbHVzaCBoaW50IHRhYmxlIGVudHJpZXMuCiAgICAKICAgIENjOiBPbGl2ZXIg
-TydIYWxsb3JhbiA8b29oYWxsQGdtYWlsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
-aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0IGVjZmI2ZDhhMDQxY2MyY2E4
-MGJjNjlmZmMyMGMwMDA2N2QxOTBkZjUKQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
-YW1zQGludGVsLmNvbT4KRGF0ZTogICBXZWQgU2VwIDIxIDA5OjIyOjMzIDIwMTYgLTA3MDAKCiAg
-ICBsaWJudmRpbW06IGZpeCBkZXZtX252ZGltbV9tZW1yZW1hcCgpIGVycm9yIHBhdGgKICAgIAog
-ICAgVGhlIGludGVybmFsIGFsbG9jX252ZGltbV9tYXAoKSBoZWxwZXIgbWlnaHQgZmFpbCwgcGFy
-dGljdWxhcmx5IGlmIHRoZQogICAgbWVtb3J5IHJlZ2lvbiBpcyBhbHJlYWR5IGJ1c3kuICBSZXBv
-cnQgcmVxdWVzdF9tZW1fcmVnaW9uKCkgZmFpbHVyZXMgYW5kCiAgICBjaGVjayBmb3IgdGhlIGZh
-aWx1cmUuCiAgICAKICAgIFJlcG9ydGVkLWJ5OiBSeWFuIENoZW4gPHJ5YW4uY2hhbjEwNUBnbWFp
-bC5jb20+CiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGlu
-dGVsLmNvbT4KCmNvbW1pdCAxMTI5NGQ2M2FjOTE1MjMwYTM2YjA2MDNjNjIxMzRlZjdiMTczZDBh
-CkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkRhdGU6ICAg
-V2VkIFNlcCAyMSAwOToyMToyNiAyMDE2IC0wNzAwCgogICAgbmZpdDogZmFpbCBEU01zIHRoYXQg
-cmV0dXJuIG5vbi16ZXJvIHN0YXR1cyBieSBkZWZhdWx0CiAgICAKICAgIEZvciB0aGUgRFNNcyB3
-aGVyZSB0aGUga2VybmVsIGtub3dzIHRoZSBmb3JtYXQgb2YgdGhlIG91dHB1dCBidWZmZXIgYW5k
-CiAgICBvcmlnaW5hdGVzIHRob3NlIERTTXMgZnJvbSB3aXRoaW4gdGhlIGtlcm5lbCwgcmV0dXJu
-IC1FSU8gZm9yIGFueQogICAgbm9uLXplcm8gc3RhdHVzLiAgSWYgdGhlIEJJT1MgaXMgaW5kaWNh
-dGluZyBhIHN0YXR1cyB0aGF0IHdlIGRvIG5vdCBrbm93CiAgICBob3cgdG8gaGFuZGxlLCBmYWls
-IHRoZSBEU00uCiAgICAKICAgIENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KICAgIFNpZ25l
-ZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgoKY29tbWl0
-IDU5NWM3MzA3MWU2NjQxZTU5YjgzOTExZmJiNDAyNmU3Njc0NzEwMDAKQXV0aG9yOiBEYW4gV2ls
-bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KRGF0ZTogICBGcmkgU2VwIDIzIDE3OjUz
-OjUyIDIwMTYgLTA3MDAKCiAgICBsaWJudmRpbW0sIHJlZ2lvbjogZml4IGZsdXNoIGhpbnQgdGFi
-bGUgdGhpbmtvCiAgICAKICAgIFRoZSBkZWZpbml0aW9uIG9mIHRoZSBmbHVzaCBoaW50IHRhYmxl
-IGFzOgogICAgCiAgICAJdm9pZCBfX2lvbWVtICpmbHVzaF93cHFbMF1bMF07CiAgICAKICAgIC4u
-LnBhc3NlZCB0aGUgdW5pdCB0ZXN0LCBidXQgaXMgYnJva2VuIGFzIGZsdXNoX3dwcVswXVsxXSBh
-bmQKICAgIGZsdXNoX3dwcVsxXVswXSByZWZlciB0byB0aGUgc2FtZSBlbnRyeS4gIEZpeCB0aGlz
-IHRvIHVzZSBhIGhlbHBlciB0aGF0CiAgICBjYWxjdWxhdGVzIGEgc2xvdCBpbiB0aGUgdGFibGUg
-YmFzZWQgb24gdGhlIGdlb21ldHJ5IG9mIGZsdXNoIGhpbnRzIGluCiAgICB0aGUgcmVnaW9uLiAg
-VGhpcyBpcyBpbXBvcnRhbnQgdG8gZ2V0IHJpZ2h0IHNpbmNlIHZpcnR1YWxpemF0aW9uCiAgICBz
-b2x1dGlvbnMgdXNlIHRoaXMgbWVjaGFuaXNtIHRvIHRyaWdnZXIgaHlwZXJ2aXNvciBmbHVzaGVz
-IHRvIHBsYXRmb3JtCiAgICBwZXJzaXN0ZW5jZS4KICAgIAogICAgUmVwb3J0ZWQtYnk6IERhdmUg
-SmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgogICAgVGVzdGVkLWJ5OiBEYXZlIEppYW5nIDxk
-YXZlLmppYW5nQGludGVsLmNvbT4KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
-Lmoud2lsbGlhbXNAaW50ZWwuY29tPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+This is a multi-part message in MIME format.
+--------------C3BABA23093CDA0C21B59E8F
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
+
+On 9/29/2016 2:00 PM, Ondrej Zary wrote:
+>> The previous two patches were in the right direction.
+>> >
+>> > Can we also get the same output from 4.6 kernel with the attached patch for
+>> > the same machine you sent these?
+> Here it is.
+> 
+>> > Something about SCI still doesn't feel right.
+>> >
+>> > The IRQ assignment fails if the penalty is greater than
+>> > PIRQ_PENALTY_ISA_ALWAYS. This will happen if BIOS tells us to use an IRQ
+>> > and same IRQ is in use by the SCI.
+
+Thanks, I reverted penalize_sci function and dropped patch #1. Can you try this again?
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
+--------------C3BABA23093CDA0C21B59E8F
+Content-Type: text/plain; charset=UTF-8;
+ name="0001-ACPI-PCI-IRQ-add-PCI_USING-penalty-for-ISA-interrupt.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-ACPI-PCI-IRQ-add-PCI_USING-penalty-for-ISA-interrupt.pa";
+ filename*1="tch"
+
+>From 7597c656222b27f4cc55c16bab980ed28ef22bbd Mon Sep 17 00:00:00 2001
+From: Sinan Kaya <okaya@codeaurora.org>
+Date: Thu, 29 Sep 2016 10:25:21 -0400
+Subject: [PATCH 1/2] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
+
+The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
+resource requirements") removed PCI_USING penalty from
+acpi_pci_link_allocate function as there is no longer a fixed size penalty
+array for both PCI and IRQ interrupts.
+
+We need to add the PCI_USING penalty for ISA interrupts too if the link is
+in use and matches our ISA IRQ number.
+
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/pci_link.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index c983bf7..a212709 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -619,6 +619,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 			    acpi_device_bid(link->device));
+ 		return -ENODEV;
+ 	} else {
++		if (link->irq.active < ACPI_MAX_ISA_IRQS)
++			acpi_isa_irq_penalty[link->irq.active] +=
++				PIRQ_PENALTY_PCI_USING;
++
+ 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+ 		       acpi_device_name(link->device),
+ 		       acpi_device_bid(link->device), link->irq.active);
+-- 
+1.9.1
+
+
+--------------C3BABA23093CDA0C21B59E8F
+Content-Type: text/plain; charset=UTF-8;
+ name="0002-Revert-ACPI-PCI-IRQ-remove-SCI-penalize-function.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0002-Revert-ACPI-PCI-IRQ-remove-SCI-penalize-function.patch"
+
+>From 1835481ebcc5bb649dcc22a2d473fd3b203bf01d Mon Sep 17 00:00:00 2001
+From: Sinan Kaya <okaya@codeaurora.org>
+Date: Thu, 29 Sep 2016 15:36:15 -0400
+Subject: [PATCH 2/2] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
+
+This reverts commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize
+function"). SCI penalty API was replaced by the runtime penalty calculation
+based on the value of acpi_gbl_FADT.sci_interrupt.
+
+acpi_gbl_FADT.sci_interrupt type does not get updated at the right time
+for some platforms and results in incorrect penalty assignment for PCI
+IRQs as irq_get_trigger_type returns the wrong type.
+
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ arch/x86/kernel/acpi/boot.c |  1 +
+ drivers/acpi/pci_link.c     | 32 +++++++++++++-------------------
+ include/linux/acpi.h        |  1 +
+ 3 files changed, 15 insertions(+), 19 deletions(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 90d84c3..0ffd26e 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -453,6 +453,7 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
+ 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
+ 
+ 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
++	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
+ 
+ 	/*
+ 	 * stash over-ride to indicate we've been here
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index a212709..1934e2a 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -494,27 +494,10 @@ static int acpi_irq_pci_sharing_penalty(int irq)
+ 
+ static int acpi_irq_get_penalty(int irq)
+ {
+-	int penalty = 0;
+-
+-	/*
+-	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
+-	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
+-	* use for PCI IRQs.
+-	*/
+-	if (irq == acpi_gbl_FADT.sci_interrupt) {
+-		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
+-
+-		if (type != IRQ_TYPE_LEVEL_LOW)
+-			penalty += PIRQ_PENALTY_ISA_ALWAYS;
+-		else
+-			penalty += PIRQ_PENALTY_PCI_USING;
+-	}
+-
+ 	if (irq < ACPI_MAX_ISA_IRQS)
+-		return penalty + acpi_isa_irq_penalty[irq];
++		return acpi_isa_irq_penalty[irq];
+ 
+-	penalty += acpi_irq_pci_sharing_penalty(irq);
+-	return penalty;
++	return acpi_irq_pci_sharing_penalty(irq);
+ }
+ 
+ int __init acpi_irq_penalty_init(void)
+@@ -885,6 +868,17 @@ bool acpi_isa_irq_available(int irq)
+ 		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+ }
+ 
++void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
++{
++	if (irq >= 0 && irq < ARRAY_SIZE(acpi_isa_irq_penalty)) {
++		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
++		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
++			acpi_isa_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
++		else
++			acpi_isa_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
++	}
++}
++
+ /*
+  * Over-ride default table to reserve additional IRQs for use by ISA
+  * e.g. acpi_irq_isa=5
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4d8452c..85ac7d5 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -318,6 +318,7 @@ struct pci_dev;
+ int acpi_pci_irq_enable (struct pci_dev *dev);
+ void acpi_penalize_isa_irq(int irq, int active);
+ bool acpi_isa_irq_available(int irq);
++void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
+ void acpi_pci_irq_disable (struct pci_dev *dev);
+ 
+ extern int ec_read(u8 addr, u8 *val);
+-- 
+1.9.1
+
+
+--------------C3BABA23093CDA0C21B59E8F--
