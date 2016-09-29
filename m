@@ -1,202 +1,45 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 4/5] ACPI / property: Allow holes in reference properties
-Date: Thu, 29 Sep 2016 14:56:57 +0300
-Message-ID: <20160929115657.GO1218@lahna.fi.intel.com>
-References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
- <CAJZ5v0iGmUmFnQ2+6TVQ4SFvcxnEkA0yFM6wNGMmALFzRmBs4A@mail.gmail.com>
- <20160929064829.GG1218@lahna.fi.intel.com>
- <5499849.PK7BgMsTju@vostro.rjw.lan>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2 0/5] PCI PM refinements
+Date: Thu, 29 Sep 2016 14:11:17 +0200
+Message-ID: <20160929121117.GA6648@wunner.de>
+References: <cover.1474130360.git.lukas@wunner.de>
+ <20160928165445.GB5658@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:41345 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752132AbcI2L5C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Sep 2016 07:57:02 -0400
+Received: from mailout2.hostsharing.net ([83.223.90.233]:46023 "EHLO
+        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755173AbcI2MKk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 08:10:40 -0400
 Content-Disposition: inline
-In-Reply-To: <5499849.PK7BgMsTju@vostro.rjw.lan>
+In-Reply-To: <20160928165445.GB5658@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 
-On Thu, Sep 29, 2016 at 01:53:50PM +0200, Rafael J. Wysocki wrote:
-> On Thursday, September 29, 2016 09:48:29 AM Mika Westerberg wrote:
-> > On Wed, Sep 28, 2016 at 11:36:10PM +0200, Rafael J. Wysocki wrote:
-> > > On Fri, Sep 23, 2016 at 4:57 PM, Mika Westerberg
-> > > <mika.westerberg@linux.intel.com> wrote:
-> > > > DT allows holes or empty phandles for references. This is used for example
-> > > > in SPI subsystem where some chip selects are native and others are regular
-> > > > GPIOs. In ACPI _DSD we currently do not support this but instead the
-> > > > preceding reference "consumes" all following integer arguments.
-> > > >
-> > > > For example we would like to support something like the below ASL fragment
-> > > > for SPI:
-> > > >
-> > > >   Package () {
-> > > >       "cs-gpios",
-> > > >       Package () {
-> > > >           ^GPIO, 19, 0, 0, // GPIO CS0
-> > > >           0,               // Native CS
+On Wed, Sep 28, 2016 at 11:54:45AM -0500, Bjorn Helgaas wrote:
+> On Sun, Sep 18, 2016 at 05:39:20AM +0200, Lukas Wunner wrote:
+> >   PCI: Afford direct-complete to devices with nonstandard PM
+> >   PCI: Query platform firmware for device power state
+> >   PCI: Recognize D3cold in pci_update_current_state()
+> >   PCI: Avoid unnecessary resume after direct-complete
 > 
-> One thing just occurred to me: what if this value is not 0?
+> I applied the patches above with Rafael's acks to pci/pm for v4.9, thanks,
+> Lukas!  I particularly appreciate your changelogs -- they're very readable,
+> complete, and consistent in style.
 
-It can be any integer value actually. We allow it but 0 is the preferred
-value. I did not find anything in DT saying what it should be either.
+As a non-native English speaker I cannot imagine a bigger compliment,
+thanks so much!
 
-Alternatively I can add a check that it must be 0.
 
-> > > >           ^GPIO, 20, 0, 0, // GPIO CS1
-> > > >       }
-> > > >   }
-> > > >
-> > > > The zero in the middle means "no entry" or NULL reference. To support this
-> > > > we add a new function acpi_node_get_property_reference_fixed_args() that
-> > > > takes number of expected arguments as parameter. Function returns -ENOENT
-> > > > if the corresponding index resolves to the "no entry" reference.
-> > > >
-> > > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > > ---
-> > > >  drivers/acpi/property.c | 116 +++++++++++++++++++++++++++++++++++-------------
-> > > >  include/linux/acpi.h    |   3 ++
-> > > >  2 files changed, 89 insertions(+), 30 deletions(-)
-> > > >
-> > > > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > > > index f2fd3fee588a..b255c4442a05 100644
-> > > > --- a/drivers/acpi/property.c
-> > > > +++ b/drivers/acpi/property.c
-> > > > @@ -472,6 +472,7 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
-> > > >   * @data: ACPI device data object containing the property
-> > > >   * @propname: Name of the property
-> > > >   * @index: Index of the reference to return
-> > > > + * @num_args: Maximum number of arguments after each reference
-> > > >   * @args: Location to store the returned reference with optional arguments
-> > > >   *
-> > > >   * Find property with @name, verifify that it is a package containing at least
-> > > > @@ -485,8 +486,8 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
-> > > >   * Return: %0 on success, negative error code on failure.
-> > > >   */
-> > > >  static int acpi_data_get_property_reference(struct acpi_device_data *data,
-> > > > -                                           const char *propname, size_t index,
-> > > > -                                           struct acpi_reference_args *args)
-> > > > +       const char *propname, size_t index, size_t num_args,
-> > > > +       struct acpi_reference_args *args)
-> > > >  {
-> > > >         const union acpi_object *element, *end;
-> > > >         const union acpi_object *obj;
-> > > > @@ -532,41 +533,52 @@ static int acpi_data_get_property_reference(struct acpi_device_data *data,
-> > > >         while (element < end) {
-> > > >                 u32 nargs, i;
-> > > >
-> > > > -               if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
-> > > > -                       return -EPROTO;
-> > > > -
-> > > > -               ret = acpi_bus_get_device(element->reference.handle, &device);
-> > > > -               if (ret)
-> > > > -                       return -ENODEV;
-> > > > -
-> > > > -               element++;
-> > > > -               nargs = 0;
-> > > > -
-> > > > -               /* assume following integer elements are all args */
-> > > > -               for (i = 0; element + i < end; i++) {
-> > > > -                       int type = element[i].type;
-> > > > +               if (element->type == ACPI_TYPE_LOCAL_REFERENCE) {
-> > > > +                       ret = acpi_bus_get_device(element->reference.handle,
-> > > > +                                                 &device);
-> > > > +                       if (ret)
-> > > > +                               return -ENODEV;
-> > > > +
-> > > > +                       nargs = 0;
-> > > > +                       element++;
-> > > > +
-> > > > +                       /* assume following integer elements are all args */
-> > > > +                       for (i = 0; element + i < end && i < num_args; i++) {
-> > > > +                               int type = element[i].type;
-> > > > +
-> > > > +                               if (type == ACPI_TYPE_INTEGER)
-> > > > +                                       nargs++;
-> > > > +                               else if (type == ACPI_TYPE_LOCAL_REFERENCE)
-> > > > +                                       break;
-> > > > +                               else
-> > > > +                                       return -EPROTO;
-> > > > +                       }
-> > > >
-> > > > -                       if (type == ACPI_TYPE_INTEGER)
-> > > > -                               nargs++;
-> > > > -                       else if (type == ACPI_TYPE_LOCAL_REFERENCE)
-> > > > -                               break;
-> > > > -                       else
-> > > > +                       if (nargs > MAX_ACPI_REFERENCE_ARGS)
-> > > >                                 return -EPROTO;
-> > > > -               }
-> > > >
-> > > > -               if (idx++ == index) {
-> > > > -                       args->adev = device;
-> > > > -                       args->nargs = nargs;
-> > > > -                       for (i = 0; i < nargs; i++)
-> > > > -                               args->args[i] = element[i].integer.value;
-> > > > +                       if (idx == index) {
-> > > > +                               args->adev = device;
-> > > > +                               args->nargs = nargs;
-> > > > +                               for (i = 0; i < nargs; i++)
-> > > > +                                       args->args[i] = element[i].integer.value;
-> > > >
-> > > > -                       return 0;
-> > > > +                               return 0;
-> > > > +                       }
-> > > > +
-> > > > +                       element += nargs;
-> > > > +               } else if (element->type == ACPI_TYPE_INTEGER) {
-> > > > +                       if (idx == index)
-> > > > +                               return -ENOENT;
-> > > > +                       element++;
-> > > > +               } else {
-> > > > +                       return -EPROTO;
-> > > >                 }
-> > > >
-> > > > -               element += nargs;
-> > > > +               idx++;
-> > > >         }
-> > > >
-> > > > -       return -EPROTO;
-> > > > +       return -ENODATA;
-> > > >  }
-> > > >
-> > > >  /**
-> > > > @@ -582,10 +594,54 @@ int acpi_node_get_property_reference(struct fwnode_handle *fwnode,
-> > > >  {
-> > > >         struct acpi_device_data *data = acpi_device_data_of_node(fwnode);
-> > > >
-> > > > -       return data ? acpi_data_get_property_reference(data, name, index, args) : -EINVAL;
-> > > > +       if (!data)
-> > > > +               return -EINVAL;
-> > > > +
-> > > > +       return acpi_data_get_property_reference(data, name, index,
-> > > > +               MAX_ACPI_REFERENCE_ARGS, args);
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(acpi_node_get_property_reference);
-> > > 
-> > > gpiolib-acpi is the only user of this AFAICS, so why don't we change
-> > > the definition of acpi_node_get_property_reference() to take one extra
-> > > argument and update the caller to pass MAX_ACPI_REFERENCE_ARGS?
-> > 
-> > Unfortunately there are these (which I think should not call that
-> > function directly anyway):
+> >   PCI: Avoid unnecessary resume on shutdown
 > 
-> Right.
-> 
-> It looks like exactly the same usage pattern that should better be
-> implemented as a library function, ie. workarounds for something missing.
-> 
-> > drivers/net/ethernet/apm/xgene/xgene_enet_hw.c: status = acpi_node_get_property_reference(fw_node, "phy-handle", 0,
-> > drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c:      rc = acpi_node_get_property_reference(
-> > drivers/net/ethernet/hisilicon/hns/hns_enet.c:          ret = acpi_node_get_property_reference(dev->fwnode,
-> > 
-> > So we would need to update those as well. Not a big deal, though.
-> 
-> Or rename it to __acpi_node_get_property_reference() and define
-> acpi_node_get_property_reference() as a static inline wrapper passing
-> MAX_ACPI_REFERENCE_ARGS to it.
+> Sounds like there's still a little discussion on this, so I haven't applied
+> this one yet.
 
-OK, I'll do this.
+Yes, indeed I need more time with this one.
+
+Thanks!
+
+Lukas
