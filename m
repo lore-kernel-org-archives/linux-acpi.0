@@ -1,45 +1,74 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 0/5] PCI PM refinements
-Date: Thu, 29 Sep 2016 14:11:17 +0200
-Message-ID: <20160929121117.GA6648@wunner.de>
-References: <cover.1474130360.git.lukas@wunner.de>
- <20160928165445.GB5658@localhost>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/5] ACPI / gpio: Updates to properties
+Date: Thu, 29 Sep 2016 14:26:50 +0200
+Message-ID: <1990788.iFWTMD2uYN@vostro.rjw.lan>
+References: <20160923145710.105489-1-mika.westerberg@linux.intel.com> <CAJZ5v0gkdZDnRjy_=tDys8LoKD2g5OZzOfNW6t+q8N3bw2ufUA@mail.gmail.com> <20160929070015.GH1218@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:46023 "EHLO
-        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755173AbcI2MKk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 08:10:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20160928165445.GB5658@localhost>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55762 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1753068AbcI2MUX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Sep 2016 08:20:23 -0400
+In-Reply-To: <20160929070015.GH1218@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 28, 2016 at 11:54:45AM -0500, Bjorn Helgaas wrote:
-> On Sun, Sep 18, 2016 at 05:39:20AM +0200, Lukas Wunner wrote:
-> >   PCI: Afford direct-complete to devices with nonstandard PM
-> >   PCI: Query platform firmware for device power state
-> >   PCI: Recognize D3cold in pci_update_current_state()
-> >   PCI: Avoid unnecessary resume after direct-complete
+On Thursday, September 29, 2016 10:00:15 AM Mika Westerberg wrote:
+> On Wed, Sep 28, 2016 at 11:32:46PM +0200, Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > On Fri, Sep 23, 2016 at 4:57 PM, Mika Westerberg
+> > <mika.westerberg@linux.intel.com> wrote:
+> > > Hi,
+> > >
+> > > This series brings couple of useful GPIO related properties from Device
+> > > Tree to ACPI _DSD device properties:
+> > >
+> > >   - Names for GPIO lines
+> > >   - GPIO hogging
+> > >   - Holes in GPIO property lists
+> > >
+> > > We are using these to get Intel Galileo better supported in the mainline
+> > > kernel (but these may be useful for other boards as well). For example SPI
+> > > chip select on Galileo is connected to a GPIO line so we need to be able to
+> > > describe it in ACPI, and at the same time allow native chip selects.
+> > >
+> > > GPIO hogging can be used to set initial state of certain GPIOs available on
+> > > the headers regardless of the BIOS settings (which may be wrong as it knows
+> > > nothing about which devices have been connected).
+> > >
+> > > Mika Westerberg (5):
+> > >   ACPI / documentation: Use recommended name in GPIO property names
+> > >   ACPI / gpio: Add support for naming GPIOs
+> > >   ACPI / gpio: Add hogging support
+> > >   ACPI / property: Allow holes in reference properties
+> > >   ACPI / gpio: Allow holes in list of GPIOs for a device
+> > >
+> > >  Documentation/acpi/gpio-properties.txt |  72 ++++++++++++++--
+> > >  drivers/acpi/property.c                | 116 +++++++++++++++++++-------
+> > >  drivers/gpio/gpiolib-acpi.c            | 147 ++++++++++++++++++++++++++++++---
+> > >  include/linux/acpi.h                   |   3 +
+> > >  4 files changed, 292 insertions(+), 46 deletions(-)
+> > 
+> > I would like to tackle patches [1/5] and [4/5] first, as they are core
+> > patches and the rest is against gpiolib-acpi.
 > 
-> I applied the patches above with Rafael's acks to pci/pm for v4.9, thanks,
-> Lukas!  I particularly appreciate your changelogs -- they're very readable,
-> complete, and consistent in style.
-
-As a non-native English speaker I cannot imagine a bigger compliment,
-thanks so much!
-
-
-> >   PCI: Avoid unnecessary resume on shutdown
+> Works for me.
 > 
-> Sounds like there's still a little discussion on this, so I haven't applied
-> this one yet.
+> I can re-arrange the series so that the two core patches (1,4/5) are
+> first and then the GPIO parts.
+> 
+> > Moreover, the documentation patch [1/5] looks like immediately applicable to me.
+> 
+> Yes, it just fixes the names to match what is preferred.
 
-Yes, indeed I need more time with this one.
+OK, I'll apply it then, no need to resend.
 
-Thanks!
+Thanks,
+Rafael
 
-Lukas
