@@ -1,58 +1,51 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
- [LNKD]. Try pci=noacpi or acpi=off
-Date: Fri, 30 Sep 2016 21:39:07 +0200
-Message-ID: <CAJZ5v0jr=KEfjo3HH6M2WhPCPCB9w1DYGB_VHhXDJXwjh76Pmg@mail.gmail.com>
-References: <201609251512.05657.linux@rainbow-software.org>
- <201609300844.24325.linux@rainbow-software.org> <677698369b23f5a6bcf3a66fed78802f@codeaurora.org>
- <201609301756.25894.linux@rainbow-software.org> <94aee80e-f7c3-5732-ef1e-08e3ecb19e5e@codeaurora.org>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 0/3] misc updates for Address Range Scrub
+Date: Fri, 30 Sep 2016 14:10:00 -0600
+Message-ID: <1475266203-18559-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <94aee80e-f7c3-5732-ef1e-08e3ecb19e5e@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Ondrej Zary <linux@rainbow-software.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 30, 2016 at 9:30 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Rafael, Bjorn;
->
-> On 9/30/2016 11:56 AM, Ondrej Zary wrote:
->>>> It seems to work, at least on one machine.
->>> >
->>> > Ok, that comfirms my suspicion. We are  having trouble detecting sci
->>> > interrupt  type and we end up penalizing the wrong value.
->>> >
->>> > Can you try your other machines too?
->> Works on the 2nd one too.
->>
->>> > I need to do some research now.
->
-> Thanks for the confirmation. I need to gather some opinion from Rafael and Bjorn.
->
-> The patch provided only handles SCI in the ISA IRQ range (<16)
->
-> I looked at the ACPI spec. SCI interrupt is a two byte field:
->
-> "SCI_INT byte 2 offset 46
->
-> System vector the SCI interrupt is wired to in 8259 mode. On
-> systems that do not contain the 8259, this field contains the
-> Global System interrupt number of the SCI interrupt. OSPM is
-> required to treat the ACPI SCI interrupt as a sharable, level,
-> active low interrupt."
->
-> Since we have a race condition between the time the IRQ is registered
-> via the ISA API and the time it gets to the interrupt driver
-> since irq_get_type function is not matching what SCI API indicated.
->
-> how do we feel about increasing the ISA IRQ range to 256 so that
-> we are safe for all SCI interrupts?
+Changes in v2:
+- Change the 'scrub' attribute to only show the number of completed scrubs,
+  and start a new one ondemand. (Dan)
+- Add a new attribute 'hw_error_scrub' which controls whether or not a full
+  scrub will run on hardware memory errors. (Dan)
 
-I'm not sure how this is related to the problem at hand.  Care to elaborate?
+Patch 1 changes the default behaviour on machine check exceptions to
+just adding the error address to badblocks accounting instead of starting
+a full ARS. The old behaviour can be enabled via sysfs.
 
-And why exactly was that race condition not present before your changes?
+Patch 2 and 3 fix a problem where stale badblocks could show up after an
+on-demand ARS or an MCE triggered scrub because when clearing poison, we
+didn't clear the internal nvdimm_bus->poison_list.
 
-Thanks,
-Rafael
+Vishal Verma (3):
+  nfit: don't start a full scrub by default for an MCE
+  pmem: reduce kmap_atomic sections to the memcpys only
+  libnvdimm: clear the internal poison_list when clearing badblocks
+
+ drivers/acpi/nfit/core.c  | 54 +++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/mce.c   | 24 ++++++++++++----
+ drivers/acpi/nfit/nfit.h  |  6 ++++
+ drivers/nvdimm/bus.c      |  2 ++
+ drivers/nvdimm/core.c     | 73 ++++++++++++++++++++++++++++++++++++++++++++---
+ drivers/nvdimm/pmem.c     | 28 ++++++++++++++----
+ include/linux/libnvdimm.h |  2 ++
+ 7 files changed, 175 insertions(+), 14 deletions(-)
+
+-- 
+2.7.4
