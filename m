@@ -1,155 +1,104 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v14 0/9] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Fri, 30 Sep 2016 08:40:45 +0800
-Message-ID: <5efae47c-e9b8-a93a-a040-a38fc388390f@huawei.com>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: ARM juno R2 board USB Issue (EHCI probe failed)
+Date: Fri, 30 Sep 2016 04:19:54 +0000
+Message-ID: <AT5PR84MB00525485984B3D77FB843BC7D9C10@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
+References: <AT5PR84MB005284C92DEA45ADF67A4F55D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
+ <CAGm_ybhc4DKYkDtE8dVzhC3-kJk138Lbm-zAhepQiyUnuqZQHg@mail.gmail.com>
+ <22e151c5-fc83-a48c-b130-f633fac8674f@arm.com>
+ <AT5PR84MB00524ACD87B9FF61AAB55223D9CC0@AT5PR84MB0052.NAMPRD84.PROD.OUTLOOK.COM>
+ <37a463cb-86d5-e0d7-7e8f-50cec3d65c95@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-co1nam03on0091.outbound.protection.outlook.com ([104.47.40.91]:39559
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750813AbcI3ET6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 30 Sep 2016 00:19:58 -0400
+In-Reply-To: <37a463cb-86d5-e0d7-7e8f-50cec3d65c95@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <sajjan.linux@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
 
-for sbsa watchdog part,  Tested-by:  wangxiongfeng2@huawei.com on D05 board.
+Hi Sudeep,
 
-On 2016/9/29 2:17, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
-> 
-> This patchset:
->     (1)Preparation for adding GTDT support in arm_arch_timer:
->         1. Move some enums and marcos to header file;
->         2. Add a new enum for spi type;
->         3. Improve printk relevant code.
-> 
->     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
->     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->     memory-mapped timer and SBSA Generic Watchdog timer.
->     This driver can help to simplify all the relevant timer drivers,
->     and separate all the ACPI GTDT knowledge from them.
-> 
->     (3)Simplify ACPI code for arm_arch_timer
-> 
->     (4)Add GTDT support for ARM memory-mapped timer, also refactor
->     original memory-mapped timer dt support for reusing some common
->     code.
-> 
-> This patchset depends on the following patchset:
-> [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
-> https://lkml.org/lkml/2016/9/12/949
-> 
-> This patchset has been tested on the following platforms:
->     (1)ARM Foundation v8 model
-> 
-> Changelog:
-> v14: https://lkml.org/lkml/2016/9/28/
->      Separate memory-mapped timer GTDT support into two patches
->          1. Refactor the timer init code to prepare for GTDT
->          2. Add GTDT support for memory-mapped timer
-> 
-> v13: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1231717.html
->      Improve arm_arch_timer code for memory-mapped
->      timer GTDT support, refactor original memory-mapped timer
->      dt support for reusing some common code.
-> 
-> v12: https://lkml.org/lkml/2016/9/13/250
->      Rebase to latest Linux 4.8-rc6
->      Delete the confusing "skipping" in the error message.
-> 
-> V11: https://lkml.org/lkml/2016/9/6/354
->      Rebase to latest Linux 4.8-rc5
->      Delete typedef (suggested by checkpatch.pl)
-> 
-> V10: https://lkml.org/lkml/2016/7/26/215
->      Drop the "readq" patch.
->      Rebase to latest Linux 4.7.
-> 
-> V9: https://lkml.org/lkml/2016/7/25/345
->     Improve pr_err message in acpi gtdt driver.
->     Update Commit message for 7/9
->     shorten the irq mapping function name
->     Improve GTDT driver for memory-mapped timer
-> 
-> v8: https://lkml.org/lkml/2016/7/19/660
->     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
->     and also improve printk message.
->     Simplify is_timer_block and is_watchdog.
->     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
->     Delete __init in include/linux/acpi.h for GTDT API
->     Make ARM64 select GTDT.
->     Delete "#include <linux/module.h>" from acpi_gtdt.c
->     Simplify GT block parse code.
-> 
-> v7: https://lkml.org/lkml/2016/7/13/769
->     Move the GTDT driver to drivers/acpi/arm64
->     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
->     Merge 3 patches of GTDT parser driver.
->     Fix the for_each_platform_timer bug.
-> 
-> v6: https://lkml.org/lkml/2016/6/29/580
->     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
->     and SBSA Generic Watchdog timer
->     Improve driver by suggestions and example code from Daniel Lezcano
-> 
-> v5: https://lkml.org/lkml/2016/5/24/356
->     Sorting out all patches, simplify the API of GTDT driver:
->     GTDT driver just fills the data struct for arm_arch_timer driver.
-> 
-> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
->     Delete the kvm relevant patches
->     Separate two patches for sorting out the code for arm_arch_timer.
->     Improve irq info export code to allow missing irq info in GTDT table.
-> 
-> v3: https://lkml.org/lkml/2016/2/1/658
->     Improve GTDT driver code:
->       (1)improve pr_* by defining pr_fmt(fmt)
->       (2)simplify gtdt_sbsa_gwdt_init
->       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
->       to get GTDT table.
->     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
->     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
-> 
-> v2: https://lkml.org/lkml/2015/12/2/10
->     Rebase to latest kernel version(4.4-rc3).
->     Fix the bug about the config problem,
->     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
-> 
-> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
-> 
-> Fu Wei (9):
->   clocksource/drivers/arm_arch_timer: Move enums and defines to header
->     file
->   clocksource/drivers/arm_arch_timer: Add a new enum for spi type
->   clocksource/drivers/arm_arch_timer: Improve printk relevant code
->   acpi/arm64: Add GTDT table parse driver
->   clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
->   acpi/arm64: Add memory-mapped timer support in GTDT driver
->   clocksource/drivers/arm_arch_timer: Refactor the timer init code to
->     prepare for GTDT
->   clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
->     timer
->   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
-> 
->  arch/arm64/Kconfig                   |   1 +
->  drivers/acpi/arm64/Kconfig           |   3 +
->  drivers/acpi/arm64/Makefile          |   1 +
->  drivers/acpi/arm64/gtdt.c            | 309 ++++++++++++++++++++++++++++++++
->  drivers/clocksource/Kconfig          |   2 +-
->  drivers/clocksource/arm_arch_timer.c | 331 +++++++++++++++++++++--------------
->  drivers/watchdog/Kconfig             |   1 +
->  include/clocksource/arm_arch_timer.h |  32 ++++
->  include/linux/acpi.h                 |   7 +
->  9 files changed, 558 insertions(+), 129 deletions(-)
->  create mode 100644 drivers/acpi/arm64/gtdt.c
-> 
+-----Original Message-----
+From: Sudeep Holla [mailto:sudeep.holla@arm.com] 
+Sent: Tuesday, September 27, 2016 2:38 PM
+To: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Vikas Sajjan <sajjan.linux@gmail.com>; linux-usb@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>; mark.rutland@arm.com; lorenzo.pieralisi@arm.com
+Subject: Re: ARM juno R2 board USB Issue (EHCI probe failed)
+
+
+
+On 27/09/16 09:55, Sajjan, Vikas C wrote:
+> Hi Sudeep,
+>
+> -----Original Message-----
+> From: Sudeep Holla [mailto:sudeep.holla@arm.com]
+> Sent: Tuesday, September 27, 2016 2:21 PM
+> To: Vikas Sajjan <sajjan.linux@gmail.com>; linux-usb@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org
+> Cc: Sudeep Holla <sudeep.holla@arm.com>; mark.rutland@arm.com; 
+> lorenzo.pieralisi@arm.com; Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>
+> Subject: Re: ARM juno R2 board USB Issue (EHCI probe failed)
+>
+> Hi Vikas,
+>
+> On 27/09/16 09:14, Vikas Sajjan wrote:
+>> Adding USB mailing list.
+>>
+>>
+>> On Tue, Sep 27, 2016 at 12:33 PM, Sajjan, Vikas C 
+>> <vikas.cha.sajjan@hpe.com> wrote:
+>>> Hi All,
+>>>
+>>> I working on ARM juno R2 board, with latest kernel 4.8.rc7 and I get 
+>>> below USB EHCI probe error while booting with acpi=force.
+>>>
+>
+> Are you using the latest UEFI EDK2 ?
+> No, I am still using the UEFI binary which came as part of the Juno board.
+>
+>
+>>> [    1.223662] VFIO - User Level meta-driver version: 0.3
+>>> [    1.229335] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+>>> [    1.235882] ehci-pci: EHCI PCI platform driver
+>>> [    1.240359] ehci-platform: EHCI generic platform driver
+>>> [    1.245619] ehci-platform ARMH0D20:00: Error: DMA mask configuration failed
+>>> [    1.272491] ehci-platform: probe of ARMH0D20:00 failed with error -5
+>>> [    1.278876] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+>>> [    1.285071] ohci-pci: OHCI PCI platform driver
+>>> [    1.289548] ohci-platform: OHCI generic platform driver
+>>> [    1.294884] usbcore: registered new interface driver usb-storage
+>>> [    1.301231] mousedev: PS/2 mouse device common for all mice
+>>> [    1.307197] rtc-efi rtc-efi: rtc core: registered rtc-efi as rtc0
+>>>
+>>> But this error goes off, if I don't force ACPI booting, i.e., if I 
+>>> remove acpi=force from kernel command line , USB is detected  and my 
+>>> RFS which is in the usb drive, gets mounted successfully.
+>>>
+>
+> As I mentioned in private, I do get the same error if I drop _CCA in 
+> USB object of ACPI DSDT. Can you give it a spin with latest UEFI ?
+>
+> Sure, will try with latest UEFI.
+>
+
+I bet that's 8-12 months old. It puts the banner during boot with the build date. You can try to follow [1] or access it from [2]
+
+I was able boot the kernel without any EHCI failure and could get to the shell prompt using the EDK2 in [2].
+Thanks for help.
+
+Thanks and Regards
+Vikas Sajjan
+--
+Regards,
+Sudeep
+
+[1] https://community.arm.com/docs/DOC-11395
+[2]
+http://snapshots.linaro.org/member-builds/armlt-platforms-release/32/juno-uefi.zip
