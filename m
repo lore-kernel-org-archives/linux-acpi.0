@@ -1,177 +1,183 @@
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 3/3] libnvdimm: clear the internal poison_list when clearing badblocks
-Date: Fri, 30 Sep 2016 14:10:03 -0600
-Message-ID: <1475266203-18559-4-git-send-email-vishal.l.verma@intel.com>
+Subject: [PATCH v2 1/3] nfit: don't start a full scrub by default for an MCE
+Date: Fri, 30 Sep 2016 14:10:01 -0600
+Message-ID: <1475266203-18559-2-git-send-email-vishal.l.verma@intel.com>
 References: <1475266203-18559-1-git-send-email-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:44031 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751269AbcI3UK4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 30 Sep 2016 16:10:56 -0400
+        id S1751269AbcI3UKz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 30 Sep 2016 16:10:55 -0400
 In-Reply-To: <1475266203-18559-1-git-send-email-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Linda Knippers <linda.knippers@hpe.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-nvdimm_clear_poison cleared the user-visible badblocks, and sent
-commands to the NVDIMM to clear the areas marked as 'poison', but it
-neglected to clear the same areas from the internal poison_list which is
-used to marshal ARS results before sorting them by namespace. As a
-result, once on-demand ARS functionality was added:
+Starting a full Address Range Scrub (ARS) on hitting a memory error
+machine check exception may not always be desirable. Provide a way
+through sysfs to toggle the behavior between just adding the address
+(cache line) where the MCE happened to the poison list and doing a full
+scrub. The former (selective insertion of the address) is done
+unconditionally.
 
-37b137f nfit, libnvdimm: allow an ARS scrub to be triggered on demand
-
-A scrub triggered from either sysfs or an MCE was found to be adding
-stale entries that had been cleared from gendisk->badblocks, but were
-still present in nvdimm_bus->poison_list.
-
-This adds the missing step of clearing poison_list entries when clearing
-poison, so that it is in sync with badblocks.
-
-Fixes: 37b137f nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+Cc: linux-acpi@vger.kernel.org
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/bus.c      |  2 ++
- drivers/nvdimm/core.c     | 73 ++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/libnvdimm.h |  2 ++
- 3 files changed, 73 insertions(+), 4 deletions(-)
+ drivers/acpi/nfit/core.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/mce.c  | 24 ++++++++++++++++-----
+ drivers/acpi/nfit/nfit.h |  6 ++++++
+ 3 files changed, 79 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 935866f..a8b6949 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -217,6 +217,8 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
- 		return rc;
- 	if (cmd_rc < 0)
- 		return cmd_rc;
-+
-+	nvdimm_clear_from_poison_list(nvdimm_bus, phys, len);
- 	return clear_err.cleared;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 80cc7c0..6a12bc2 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -878,6 +878,58 @@ static ssize_t revision_show(struct device *dev,
  }
- EXPORT_SYMBOL_GPL(nvdimm_clear_poison);
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 715583f..42e40db 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -541,11 +541,12 @@ void nvdimm_badblocks_populate(struct nd_region *nd_region,
- }
- EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
+ static DEVICE_ATTR_RO(revision);
  
--static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-+static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
-+			gfp_t flags)
- {
- 	struct nd_poison *pl;
- 
--	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
-+	pl = kzalloc(sizeof(*pl), flags);
- 	if (!pl)
- 		return -ENOMEM;
- 
-@@ -561,7 +562,7 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	struct nd_poison *pl;
- 
- 	if (list_empty(&nvdimm_bus->poison_list))
--		return add_poison(nvdimm_bus, addr, length);
-+		return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
- 
- 	/*
- 	 * There is a chance this is a duplicate, check for those first.
-@@ -581,7 +582,7 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	 * as any overlapping ranges will get resolved when the list is consumed
- 	 * and converted to badblocks
- 	 */
--	return add_poison(nvdimm_bus, addr, length);
-+	return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
- }
- 
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-@@ -596,6 +597,70 @@ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
- 
-+void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
-+		phys_addr_t start, unsigned int len)
++static ssize_t hw_error_scrub_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct list_head *poison_list = &nvdimm_bus->poison_list;
-+	u64 clr_end = start + len - 1;
-+	struct nd_poison *pl, *next;
++	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
 +
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	WARN_ON_ONCE(list_empty(poison_list));
++	return sprintf(buf, "%d\n", acpi_desc->scrub_mode);
++}
 +
-+	/*
-+	 * [start, clr_end] is the poison interval being cleared.
-+	 * [pl->start, pl_end] is the poison_list entry we're comparing
-+	 * the above interval against. The poison list entry may need
-+	 * to be modified (update either start or length), deleted, or
-+	 * split into two based on the overlap characteristics
-+	 */
++/*
++ * The 'hw_error_scrub' attribute can have the following values written to it:
++ * '1': Enable a full scrub to happen if an exception for a memory error is
++ *      received.
++ * '2': Switch to the default mode where an exception will only insert
++ *      the address of the memory error into the poison and badblocks lists.
++ */
++static ssize_t hw_error_scrub_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size)
++{
++	struct nvdimm_bus_descriptor *nd_desc;
++	ssize_t rc;
++	long val;
 +
-+	list_for_each_entry_safe(pl, next, poison_list, list) {
-+		u64 pl_end = pl->start + pl->length - 1;
++	rc = kstrtol(buf, 0, &val);
++	if (rc)
++		return rc;
 +
-+		/* Skip intervals with no intersection */
-+		if (pl_end < start)
-+			continue;
-+		if (pl->start >  clr_end)
-+			continue;
-+		/* Delete completely overlapped poison entries */
-+		if ((pl->start >= start) && (pl_end <= clr_end)) {
-+			list_del(&pl->list);
-+			kfree(pl);
-+			continue;
-+		}
-+		/* Adjust start point of partially cleared entries */
-+		if ((start <= pl->start) && (clr_end > pl->start)) {
-+			pl->length -= clr_end - pl->start + 1;
-+			pl->start = clr_end + 1;
-+			continue;
-+		}
-+		/* Adjust pl->length for partial clearing at the tail end */
-+		if ((pl->start < start) && (pl_end <= clr_end)) {
-+			/* pl->start remains the same */
-+			pl->length = start - pl->start;
-+			continue;
-+		}
-+		/*
-+		 * If clearing in the middle of an entry, we split it into
-+		 * two by modifying the current entry to represent one half of
-+		 * the split, and adding a new entry for the second half.
-+		 */
-+		if ((pl->start < start) && (pl_end > clr_end)) {
-+			u64 new_start = clr_end + 1;
-+			u64 new_len = pl_end - new_start + 1;
++	device_lock(dev);
++	nd_desc = dev_get_drvdata(dev);
++	if (nd_desc) {
++		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
 +
-+			/* Add new entry covering the right half */
-+			add_poison(nvdimm_bus, new_start, new_len, GFP_NOIO);
-+			/* Adjust this entry to cover the left half */
-+			pl->length = start - pl->start;
-+			continue;
++		switch (val) {
++		case MCE_SCRUB_ON:
++			acpi_desc->scrub_mode = MCE_SCRUB_ON;
++			break;
++		case MCE_SCRUB_OFF:
++			acpi_desc->scrub_mode = MCE_SCRUB_OFF;
++			break;
++		default:
++			rc = -EINVAL;
++			break;
 +		}
 +	}
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
++	device_unlock(dev);
++	if (rc)
++		return rc;
++	return size;
 +}
-+EXPORT_SYMBOL_GPL(nvdimm_clear_from_poison_list);
++static DEVICE_ATTR_RW(hw_error_scrub);
 +
- #ifdef CONFIG_BLK_DEV_INTEGRITY
- int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
- {
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index b519e13..bbfce62 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -129,6 +129,8 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- }
+ /*
+  * This shows the number of full Address Range Scrubs that have been
+  * completed since driver load time. Userspace can wait on this using
+@@ -950,6 +1002,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
+ static struct attribute *acpi_nfit_attributes[] = {
+ 	&dev_attr_revision.attr,
+ 	&dev_attr_scrub.attr,
++	&dev_attr_hw_error_scrub.attr,
+ 	NULL,
+ };
  
- int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
-+void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
-+		phys_addr_t start, unsigned int len);
- struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		struct nvdimm_bus_descriptor *nfit_desc);
- void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+@@ -2489,6 +2542,7 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+ 		goto out_unlock;
+ 	}
+ 
++	acpi_desc->scrub_mode = MCE_SCRUB_OFF;
+ 	rc = acpi_nfit_check_deletions(acpi_desc, &prev);
+ 	if (rc)
+ 		goto out_unlock;
+diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
+index 161f915..05005e2 100644
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/notifier.h>
+ #include <linux/acpi.h>
++#include <linux/nd.h>
+ #include <asm/mce.h>
+ #include "nfit.h"
+ 
+@@ -62,12 +63,25 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+ 		}
+ 		mutex_unlock(&acpi_desc->init_mutex);
+ 
+-		/*
+-		 * We can ignore an -EBUSY here because if an ARS is already
+-		 * in progress, just let that be the last authoritative one
+-		 */
+-		if (found_match)
++		if (!found_match)
++			continue;
++
++		/* If this fails due to an -ENOMEM, there is little we can do */
++		nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
++				ALIGN(mce->addr, L1_CACHE_BYTES),
++				L1_CACHE_BYTES);
++		nvdimm_region_notify(nfit_spa->nd_region,
++				NVDIMM_REVALIDATE_POISON);
++
++		if (acpi_desc->scrub_mode == MCE_SCRUB_ON) {
++			/*
++			 * We can ignore an -EBUSY here because if an ARS is
++			 * already in progress, just let that be the last
++			 * authoritative one
++			 */
+ 			acpi_nfit_ars_rescan(acpi_desc);
++		}
++		break;
+ 	}
+ 
+ 	mutex_unlock(&acpi_desc_lock);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index e894ded..487dc0a 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -152,6 +152,7 @@ struct acpi_nfit_desc {
+ 	struct list_head list;
+ 	struct kernfs_node *scrub_count_state;
+ 	unsigned int scrub_count;
++	unsigned int scrub_mode;
+ 	unsigned int cancel:1;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+@@ -159,6 +160,11 @@ struct acpi_nfit_desc {
+ 			void *iobuf, u64 len, int rw);
+ };
+ 
++enum scrub_mode {
++	MCE_SCRUB_ON = 1,
++	MCE_SCRUB_OFF = 2,
++};
++
+ enum nd_blk_mmio_selector {
+ 	BDW,
+ 	DCR,
 -- 
 2.7.4
 
