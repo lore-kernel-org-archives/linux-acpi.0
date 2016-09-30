@@ -1,53 +1,175 @@
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 0/3] misc updates for Address Range Scrub
-Date: Fri, 30 Sep 2016 17:19:28 -0600
-Message-ID: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
+Subject: [PATCH 1/3] nfit: don't start a full scrub by default for an MCE
+Date: Fri, 30 Sep 2016 17:19:29 -0600
+Message-ID: <1475277571-10152-2-git-send-email-vishal.l.verma@intel.com>
+References: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga03.intel.com ([134.134.136.65]:60543 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751036AbcI3XUT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1752188AbcI3XUT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 30 Sep 2016 19:20:19 -0400
+In-Reply-To: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Linda Knippers <linda.knippers@hpe.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-Changes in v3:
-- Rename MCE_SCRUB* to HW_ERROR_SCRUB* (Dan)
-- Make the default scrub_mode '0' so it doesn't have to be set
-  explicitly (Dan)
+Starting a full Address Range Scrub (ARS) on hitting a memory error
+machine check exception may not always be desirable. Provide a way
+through sysfs to toggle the behavior between just adding the address
+(cache line) where the MCE happened to the poison list and doing a full
+scrub. The former (selective insertion of the address) is done
+unconditionally.
 
+Cc: linux-acpi@vger.kernel.org
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/acpi/nfit/core.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/mce.c  | 24 +++++++++++++++++-----
+ drivers/acpi/nfit/nfit.h |  6 ++++++
+ 3 files changed, 78 insertions(+), 5 deletions(-)
 
-Changes in v2:
-- Change the 'scrub' attribute to only show the number of completed scrubs,
-  and start a new one ondemand. (Dan)
-- Add a new attribute 'hw_error_scrub' which controls whether or not a full
-  scrub will run on hardware memory errors. (Dan)
-
-Patch 1 changes the default behaviour on machine check exceptions to
-just adding the error address to badblocks accounting instead of starting
-a full ARS. The old behaviour can be enabled via sysfs.
-
-Patch 2 and 3 fix a problem where stale badblocks could show up after an
-on-demand ARS or an MCE triggered scrub, or even a namespace disable/enable
-cycle because when clearing poison, we didn't clear the internal
-nvdimm_bus->poison_list.
-
-
-Vishal Verma (3):
-  nfit: don't start a full scrub by default for an MCE
-  pmem: reduce kmap_atomic sections to the memcpys only
-  libnvdimm: clear the internal poison_list when clearing badblocks
-
- drivers/acpi/nfit/core.c  | 53 ++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit/mce.c   | 24 ++++++++++++----
- drivers/acpi/nfit/nfit.h  |  6 ++++
- drivers/nvdimm/bus.c      |  2 ++
- drivers/nvdimm/core.c     | 73 ++++++++++++++++++++++++++++++++++++++++++++---
- drivers/nvdimm/pmem.c     | 28 ++++++++++++++----
- include/linux/libnvdimm.h |  2 ++
- 7 files changed, 174 insertions(+), 14 deletions(-)
-
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 80cc7c0..ed78cc7 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -878,6 +878,58 @@ static ssize_t revision_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(revision);
+ 
++static ssize_t hw_error_scrub_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
++
++	return sprintf(buf, "%d\n", acpi_desc->scrub_mode);
++}
++
++/*
++ * The 'hw_error_scrub' attribute can have the following values written to it:
++ * '0': Switch to the default mode where an exception will only insert
++ *      the address of the memory error into the poison and badblocks lists.
++ * '1': Enable a full scrub to happen if an exception for a memory error is
++ *      received.
++ */
++static ssize_t hw_error_scrub_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size)
++{
++	struct nvdimm_bus_descriptor *nd_desc;
++	ssize_t rc;
++	long val;
++
++	rc = kstrtol(buf, 0, &val);
++	if (rc)
++		return rc;
++
++	device_lock(dev);
++	nd_desc = dev_get_drvdata(dev);
++	if (nd_desc) {
++		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
++
++		switch (val) {
++		case HW_ERROR_SCRUB_ON:
++			acpi_desc->scrub_mode = HW_ERROR_SCRUB_ON;
++			break;
++		case HW_ERROR_SCRUB_OFF:
++			acpi_desc->scrub_mode = HW_ERROR_SCRUB_OFF;
++			break;
++		default:
++			rc = -EINVAL;
++			break;
++		}
++	}
++	device_unlock(dev);
++	if (rc)
++		return rc;
++	return size;
++}
++static DEVICE_ATTR_RW(hw_error_scrub);
++
+ /*
+  * This shows the number of full Address Range Scrubs that have been
+  * completed since driver load time. Userspace can wait on this using
+@@ -950,6 +1002,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
+ static struct attribute *acpi_nfit_attributes[] = {
+ 	&dev_attr_revision.attr,
+ 	&dev_attr_scrub.attr,
++	&dev_attr_hw_error_scrub.attr,
+ 	NULL,
+ };
+ 
+diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
+index 161f915..e5ce81c 100644
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/notifier.h>
+ #include <linux/acpi.h>
++#include <linux/nd.h>
+ #include <asm/mce.h>
+ #include "nfit.h"
+ 
+@@ -62,12 +63,25 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+ 		}
+ 		mutex_unlock(&acpi_desc->init_mutex);
+ 
+-		/*
+-		 * We can ignore an -EBUSY here because if an ARS is already
+-		 * in progress, just let that be the last authoritative one
+-		 */
+-		if (found_match)
++		if (!found_match)
++			continue;
++
++		/* If this fails due to an -ENOMEM, there is little we can do */
++		nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
++				ALIGN(mce->addr, L1_CACHE_BYTES),
++				L1_CACHE_BYTES);
++		nvdimm_region_notify(nfit_spa->nd_region,
++				NVDIMM_REVALIDATE_POISON);
++
++		if (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON) {
++			/*
++			 * We can ignore an -EBUSY here because if an ARS is
++			 * already in progress, just let that be the last
++			 * authoritative one
++			 */
+ 			acpi_nfit_ars_rescan(acpi_desc);
++		}
++		break;
+ 	}
+ 
+ 	mutex_unlock(&acpi_desc_lock);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index e894ded..c147e11 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -152,6 +152,7 @@ struct acpi_nfit_desc {
+ 	struct list_head list;
+ 	struct kernfs_node *scrub_count_state;
+ 	unsigned int scrub_count;
++	unsigned int scrub_mode;
+ 	unsigned int cancel:1;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+@@ -159,6 +160,11 @@ struct acpi_nfit_desc {
+ 			void *iobuf, u64 len, int rw);
+ };
+ 
++enum scrub_mode {
++	HW_ERROR_SCRUB_OFF,
++	HW_ERROR_SCRUB_ON,
++};
++
+ enum nd_blk_mmio_selector {
+ 	BDW,
+ 	DCR,
 -- 
 2.7.4
 
