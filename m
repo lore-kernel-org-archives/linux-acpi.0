@@ -1,202 +1,155 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
- [LNKD]. Try pci=noacpi or acpi=off
-Date: Thu, 29 Sep 2016 18:39:48 -0400
-Message-ID: <34355440-197d-44c7-b27d-535267d1161c@codeaurora.org>
-References: <201609251512.05657.linux@rainbow-software.org>
- <201609291848.33803.linux@rainbow-software.org>
- <701eeb2f-bfc2-d541-4f6f-34be200ea44a@codeaurora.org>
- <201609292000.56943.linux@rainbow-software.org>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v14 0/9] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Fri, 30 Sep 2016 08:40:45 +0800
+Message-ID: <5efae47c-e9b8-a93a-a040-a38fc388390f@huawei.com>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------C3BABA23093CDA0C21B59E8F"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48476 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934815AbcI2Wjw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Sep 2016 18:39:52 -0400
-In-Reply-To: <201609292000.56943.linux@rainbow-software.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-This is a multi-part message in MIME format.
---------------C3BABA23093CDA0C21B59E8F
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+for sbsa watchdog part,  Tested-by:  wangxiongfeng2@huawei.com on D05 board.
 
-On 9/29/2016 2:00 PM, Ondrej Zary wrote:
->> The previous two patches were in the right direction.
->> >
->> > Can we also get the same output from 4.6 kernel with the attached patch for
->> > the same machine you sent these?
-> Here it is.
+On 2016/9/29 2:17, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 > 
->> > Something about SCI still doesn't feel right.
->> >
->> > The IRQ assignment fails if the penalty is greater than
->> > PIRQ_PENALTY_ISA_ALWAYS. This will happen if BIOS tells us to use an IRQ
->> > and same IRQ is in use by the SCI.
-
-Thanks, I reverted penalize_sci function and dropped patch #1. Can you try this again?
-
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
-
---------------C3BABA23093CDA0C21B59E8F
-Content-Type: text/plain; charset=UTF-8;
- name="0001-ACPI-PCI-IRQ-add-PCI_USING-penalty-for-ISA-interrupt.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-ACPI-PCI-IRQ-add-PCI_USING-penalty-for-ISA-interrupt.pa";
- filename*1="tch"
-
->From 7597c656222b27f4cc55c16bab980ed28ef22bbd Mon Sep 17 00:00:00 2001
-From: Sinan Kaya <okaya@codeaurora.org>
-Date: Thu, 29 Sep 2016 10:25:21 -0400
-Subject: [PATCH 1/2] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-
-The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
-resource requirements") removed PCI_USING penalty from
-acpi_pci_link_allocate function as there is no longer a fixed size penalty
-array for both PCI and IRQ interrupts.
-
-We need to add the PCI_USING penalty for ISA interrupts too if the link is
-in use and matches our ISA IRQ number.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index c983bf7..a212709 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -619,6 +619,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
- 			    acpi_device_bid(link->device));
- 		return -ENODEV;
- 	} else {
-+		if (link->irq.active < ACPI_MAX_ISA_IRQS)
-+			acpi_isa_irq_penalty[link->irq.active] +=
-+				PIRQ_PENALTY_PCI_USING;
-+
- 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
- 		       acpi_device_name(link->device),
- 		       acpi_device_bid(link->device), link->irq.active);
--- 
-1.9.1
-
-
---------------C3BABA23093CDA0C21B59E8F
-Content-Type: text/plain; charset=UTF-8;
- name="0002-Revert-ACPI-PCI-IRQ-remove-SCI-penalize-function.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0002-Revert-ACPI-PCI-IRQ-remove-SCI-penalize-function.patch"
-
->From 1835481ebcc5bb649dcc22a2d473fd3b203bf01d Mon Sep 17 00:00:00 2001
-From: Sinan Kaya <okaya@codeaurora.org>
-Date: Thu, 29 Sep 2016 15:36:15 -0400
-Subject: [PATCH 2/2] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
-
-This reverts commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize
-function"). SCI penalty API was replaced by the runtime penalty calculation
-based on the value of acpi_gbl_FADT.sci_interrupt.
-
-acpi_gbl_FADT.sci_interrupt type does not get updated at the right time
-for some platforms and results in incorrect penalty assignment for PCI
-IRQs as irq_get_trigger_type returns the wrong type.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- arch/x86/kernel/acpi/boot.c |  1 +
- drivers/acpi/pci_link.c     | 32 +++++++++++++-------------------
- include/linux/acpi.h        |  1 +
- 3 files changed, 15 insertions(+), 19 deletions(-)
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 90d84c3..0ffd26e 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -453,6 +453,7 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
- 
- 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
- 
- 	/*
- 	 * stash over-ride to indicate we've been here
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index a212709..1934e2a 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -494,27 +494,10 @@ static int acpi_irq_pci_sharing_penalty(int irq)
- 
- static int acpi_irq_get_penalty(int irq)
- {
--	int penalty = 0;
--
--	/*
--	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
--	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
--	* use for PCI IRQs.
--	*/
--	if (irq == acpi_gbl_FADT.sci_interrupt) {
--		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
--
--		if (type != IRQ_TYPE_LEVEL_LOW)
--			penalty += PIRQ_PENALTY_ISA_ALWAYS;
--		else
--			penalty += PIRQ_PENALTY_PCI_USING;
--	}
--
- 	if (irq < ACPI_MAX_ISA_IRQS)
--		return penalty + acpi_isa_irq_penalty[irq];
-+		return acpi_isa_irq_penalty[irq];
- 
--	penalty += acpi_irq_pci_sharing_penalty(irq);
--	return penalty;
-+	return acpi_irq_pci_sharing_penalty(irq);
- }
- 
- int __init acpi_irq_penalty_init(void)
-@@ -885,6 +868,17 @@ bool acpi_isa_irq_available(int irq)
- 		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
- }
- 
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
-+{
-+	if (irq >= 0 && irq < ARRAY_SIZE(acpi_isa_irq_penalty)) {
-+		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
-+		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
-+			acpi_isa_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
-+		else
-+			acpi_isa_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
-+	}
-+}
-+
- /*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4d8452c..85ac7d5 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -318,6 +318,7 @@ struct pci_dev;
- int acpi_pci_irq_enable (struct pci_dev *dev);
- void acpi_penalize_isa_irq(int irq, int active);
- bool acpi_isa_irq_available(int irq);
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
- void acpi_pci_irq_disable (struct pci_dev *dev);
- 
- extern int ec_read(u8 addr, u8 *val);
--- 
-1.9.1
-
-
---------------C3BABA23093CDA0C21B59E8F--
+> This patchset:
+>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>         1. Move some enums and marcos to header file;
+>         2. Add a new enum for spi type;
+>         3. Improve printk relevant code.
+> 
+>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>     memory-mapped timer and SBSA Generic Watchdog timer.
+>     This driver can help to simplify all the relevant timer drivers,
+>     and separate all the ACPI GTDT knowledge from them.
+> 
+>     (3)Simplify ACPI code for arm_arch_timer
+> 
+>     (4)Add GTDT support for ARM memory-mapped timer, also refactor
+>     original memory-mapped timer dt support for reusing some common
+>     code.
+> 
+> This patchset depends on the following patchset:
+> [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
+> https://lkml.org/lkml/2016/9/12/949
+> 
+> This patchset has been tested on the following platforms:
+>     (1)ARM Foundation v8 model
+> 
+> Changelog:
+> v14: https://lkml.org/lkml/2016/9/28/
+>      Separate memory-mapped timer GTDT support into two patches
+>          1. Refactor the timer init code to prepare for GTDT
+>          2. Add GTDT support for memory-mapped timer
+> 
+> v13: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1231717.html
+>      Improve arm_arch_timer code for memory-mapped
+>      timer GTDT support, refactor original memory-mapped timer
+>      dt support for reusing some common code.
+> 
+> v12: https://lkml.org/lkml/2016/9/13/250
+>      Rebase to latest Linux 4.8-rc6
+>      Delete the confusing "skipping" in the error message.
+> 
+> V11: https://lkml.org/lkml/2016/9/6/354
+>      Rebase to latest Linux 4.8-rc5
+>      Delete typedef (suggested by checkpatch.pl)
+> 
+> V10: https://lkml.org/lkml/2016/7/26/215
+>      Drop the "readq" patch.
+>      Rebase to latest Linux 4.7.
+> 
+> V9: https://lkml.org/lkml/2016/7/25/345
+>     Improve pr_err message in acpi gtdt driver.
+>     Update Commit message for 7/9
+>     shorten the irq mapping function name
+>     Improve GTDT driver for memory-mapped timer
+> 
+> v8: https://lkml.org/lkml/2016/7/19/660
+>     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+>     and also improve printk message.
+>     Simplify is_timer_block and is_watchdog.
+>     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+>     Delete __init in include/linux/acpi.h for GTDT API
+>     Make ARM64 select GTDT.
+>     Delete "#include <linux/module.h>" from acpi_gtdt.c
+>     Simplify GT block parse code.
+> 
+> v7: https://lkml.org/lkml/2016/7/13/769
+>     Move the GTDT driver to drivers/acpi/arm64
+>     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+>     Merge 3 patches of GTDT parser driver.
+>     Fix the for_each_platform_timer bug.
+> 
+> v6: https://lkml.org/lkml/2016/6/29/580
+>     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+>     and SBSA Generic Watchdog timer
+>     Improve driver by suggestions and example code from Daniel Lezcano
+> 
+> v5: https://lkml.org/lkml/2016/5/24/356
+>     Sorting out all patches, simplify the API of GTDT driver:
+>     GTDT driver just fills the data struct for arm_arch_timer driver.
+> 
+> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+>     Delete the kvm relevant patches
+>     Separate two patches for sorting out the code for arm_arch_timer.
+>     Improve irq info export code to allow missing irq info in GTDT table.
+> 
+> v3: https://lkml.org/lkml/2016/2/1/658
+>     Improve GTDT driver code:
+>       (1)improve pr_* by defining pr_fmt(fmt)
+>       (2)simplify gtdt_sbsa_gwdt_init
+>       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+>       to get GTDT table.
+>     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+>     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+> 
+> v2: https://lkml.org/lkml/2015/12/2/10
+>     Rebase to latest kernel version(4.4-rc3).
+>     Fix the bug about the config problem,
+>     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+> 
+> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+> 
+> Fu Wei (9):
+>   clocksource/drivers/arm_arch_timer: Move enums and defines to header
+>     file
+>   clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+>   clocksource/drivers/arm_arch_timer: Improve printk relevant code
+>   acpi/arm64: Add GTDT table parse driver
+>   clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+>   acpi/arm64: Add memory-mapped timer support in GTDT driver
+>   clocksource/drivers/arm_arch_timer: Refactor the timer init code to
+>     prepare for GTDT
+>   clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+>     timer
+>   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+> 
+>  arch/arm64/Kconfig                   |   1 +
+>  drivers/acpi/arm64/Kconfig           |   3 +
+>  drivers/acpi/arm64/Makefile          |   1 +
+>  drivers/acpi/arm64/gtdt.c            | 309 ++++++++++++++++++++++++++++++++
+>  drivers/clocksource/Kconfig          |   2 +-
+>  drivers/clocksource/arm_arch_timer.c | 331 +++++++++++++++++++++--------------
+>  drivers/watchdog/Kconfig             |   1 +
+>  include/clocksource/arm_arch_timer.h |  32 ++++
+>  include/linux/acpi.h                 |   7 +
+>  9 files changed, 558 insertions(+), 129 deletions(-)
+>  create mode 100644 drivers/acpi/arm64/gtdt.c
+> 
