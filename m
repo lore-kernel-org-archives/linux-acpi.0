@@ -1,175 +1,176 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 1/3] nfit: don't start a full scrub by default for an MCE
-Date: Fri, 30 Sep 2016 17:19:29 -0600
-Message-ID: <1475277571-10152-2-git-send-email-vishal.l.verma@intel.com>
-References: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:60543 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752188AbcI3XUT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 30 Sep 2016 19:20:19 -0400
-In-Reply-To: <1475277571-10152-1-git-send-email-vishal.l.verma@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v5 1/9] sched: Extend scheduler's asym packing
+Date: Sat,  1 Oct 2016 04:45:18 -0700
+Message-ID: <1475322326-160112-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
+Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Linda Knippers <linda.knippers@hpe.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-Starting a full Address Range Scrub (ARS) on hitting a memory error
-machine check exception may not always be desirable. Provide a way
-through sysfs to toggle the behavior between just adding the address
-(cache line) where the MCE happened to the poison list and doing a full
-scrub. The former (selective insertion of the address) is done
-unconditionally.
+From: Tim Chen <tim.c.chen@linux.intel.com>
 
-Cc: linux-acpi@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+We generalize the scheduler's asym packing to provide an ordering
+of the cpu beyond just the cpu number.  This allows the use of the
+ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
+sched domain. The preference is defined with the cpu priority
+given by arch_asym_cpu_priority(cpu).
+
+We also record the most preferred cpu in a sched group when
+we build the cpu's capacity for fast lookup of preferred cpu
+during load balancing.
+
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- drivers/acpi/nfit/core.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit/mce.c  | 24 +++++++++++++++++-----
- drivers/acpi/nfit/nfit.h |  6 ++++++
- 3 files changed, 78 insertions(+), 5 deletions(-)
+ include/linux/sched.h |  2 ++
+ kernel/sched/core.c   | 18 ++++++++++++++++++
+ kernel/sched/fair.c   | 35 ++++++++++++++++++++++++-----------
+ kernel/sched/sched.h  |  6 ++++++
+ 4 files changed, 50 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 80cc7c0..ed78cc7 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -878,6 +878,58 @@ static ssize_t revision_show(struct device *dev,
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 98fe95f..82ca1e4 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1052,6 +1052,8 @@ static inline int cpu_numa_flags(void)
  }
- static DEVICE_ATTR_RO(revision);
+ #endif
  
-+static ssize_t hw_error_scrub_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
++int arch_asym_cpu_priority(int cpu);
 +
-+	return sprintf(buf, "%d\n", acpi_desc->scrub_mode);
-+}
-+
-+/*
-+ * The 'hw_error_scrub' attribute can have the following values written to it:
-+ * '0': Switch to the default mode where an exception will only insert
-+ *      the address of the memory error into the poison and badblocks lists.
-+ * '1': Enable a full scrub to happen if an exception for a memory error is
-+ *      received.
-+ */
-+static ssize_t hw_error_scrub_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc;
-+	ssize_t rc;
-+	long val;
-+
-+	rc = kstrtol(buf, 0, &val);
-+	if (rc)
-+		return rc;
-+
-+	device_lock(dev);
-+	nd_desc = dev_get_drvdata(dev);
-+	if (nd_desc) {
-+		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-+
-+		switch (val) {
-+		case HW_ERROR_SCRUB_ON:
-+			acpi_desc->scrub_mode = HW_ERROR_SCRUB_ON;
-+			break;
-+		case HW_ERROR_SCRUB_OFF:
-+			acpi_desc->scrub_mode = HW_ERROR_SCRUB_OFF;
-+			break;
-+		default:
-+			rc = -EINVAL;
-+			break;
-+		}
-+	}
-+	device_unlock(dev);
-+	if (rc)
-+		return rc;
-+	return size;
-+}
-+static DEVICE_ATTR_RW(hw_error_scrub);
-+
- /*
-  * This shows the number of full Address Range Scrubs that have been
-  * completed since driver load time. Userspace can wait on this using
-@@ -950,6 +1002,7 @@ static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
- static struct attribute *acpi_nfit_attributes[] = {
- 	&dev_attr_revision.attr,
- 	&dev_attr_scrub.attr,
-+	&dev_attr_hw_error_scrub.attr,
- 	NULL,
+ struct sched_domain_attr {
+ 	int relax_domain_level;
  };
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index e86c4a5..08135ca 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -6237,7 +6237,25 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
+ 	WARN_ON(!sg);
  
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index 161f915..e5ce81c 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -14,6 +14,7 @@
-  */
- #include <linux/notifier.h>
- #include <linux/acpi.h>
-+#include <linux/nd.h>
- #include <asm/mce.h>
- #include "nfit.h"
- 
-@@ -62,12 +63,25 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 		}
- 		mutex_unlock(&acpi_desc->init_mutex);
- 
--		/*
--		 * We can ignore an -EBUSY here because if an ARS is already
--		 * in progress, just let that be the last authoritative one
--		 */
--		if (found_match)
-+		if (!found_match)
-+			continue;
+ 	do {
++		int cpu, max_cpu = -1, prev_cpu = -1;
 +
-+		/* If this fails due to an -ENOMEM, there is little we can do */
-+		nvdimm_bus_add_poison(acpi_desc->nvdimm_bus,
-+				ALIGN(mce->addr, L1_CACHE_BYTES),
-+				L1_CACHE_BYTES);
-+		nvdimm_region_notify(nfit_spa->nd_region,
-+				NVDIMM_REVALIDATE_POISON);
+ 		sg->group_weight = cpumask_weight(sched_group_cpus(sg));
 +
-+		if (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON) {
-+			/*
-+			 * We can ignore an -EBUSY here because if an ARS is
-+			 * already in progress, just let that be the last
-+			 * authoritative one
-+			 */
- 			acpi_nfit_ars_rescan(acpi_desc);
++		if (!(sd->flags & SD_ASYM_PACKING))
++			goto next;
++
++		for_each_cpu(cpu, sched_group_cpus(sg)) {
++			if (prev_cpu < 0) {
++				prev_cpu = cpu;
++				max_cpu = cpu;
++			} else {
++				if (sched_asym_prefer(cpu, max_cpu))
++					max_cpu = cpu;
++			}
 +		}
-+		break;
++		sg->asym_prefer_cpu = max_cpu;
++
++next:
+ 		sg = sg->next;
+ 	} while (sg != sd->groups);
+ 
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index a5cd07b..bb96e1a 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -100,6 +100,16 @@ const_debug unsigned int sysctl_sched_migration_cost = 500000UL;
+  */
+ unsigned int __read_mostly sysctl_sched_shares_window = 10000000UL;
+ 
++#ifdef CONFIG_SMP
++/*
++ * For asym packing, by default the lower numbered cpu has higher priority.
++ */
++int __weak arch_asym_cpu_priority(int cpu)
++{
++	return -cpu;
++}
++#endif
++
+ #ifdef CONFIG_CFS_BANDWIDTH
+ /*
+  * Amount of runtime to allocate from global (tg) to local (per-cfs_rq) pool
+@@ -6861,16 +6871,18 @@ static bool update_sd_pick_busiest(struct lb_env *env,
+ 	if (env->idle == CPU_NOT_IDLE)
+ 		return true;
+ 	/*
+-	 * ASYM_PACKING needs to move all the work to the lowest
+-	 * numbered CPUs in the group, therefore mark all groups
+-	 * higher than ourself as busy.
++	 * ASYM_PACKING needs to move all the work to the highest
++	 * prority CPUs in the group, therefore mark all groups
++	 * of lower priority than ourself as busy.
+ 	 */
+-	if (sgs->sum_nr_running && env->dst_cpu < group_first_cpu(sg)) {
++	if (sgs->sum_nr_running &&
++	    sched_asym_prefer(env->dst_cpu, sg->asym_prefer_cpu)) {
+ 		if (!sds->busiest)
+ 			return true;
+ 
+-		/* Prefer to move from highest possible cpu's work */
+-		if (group_first_cpu(sds->busiest) < group_first_cpu(sg))
++		/* Prefer to move from lowest priority cpu's work */
++		if (sched_asym_prefer(sds->busiest->asym_prefer_cpu,
++				      sg->asym_prefer_cpu))
+ 			return true;
  	}
  
- 	mutex_unlock(&acpi_desc_lock);
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index e894ded..c147e11 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -152,6 +152,7 @@ struct acpi_nfit_desc {
- 	struct list_head list;
- 	struct kernfs_node *scrub_count_state;
- 	unsigned int scrub_count;
-+	unsigned int scrub_mode;
- 	unsigned int cancel:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
-@@ -159,6 +160,11 @@ struct acpi_nfit_desc {
- 			void *iobuf, u64 len, int rw);
- };
+@@ -7022,8 +7034,8 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
+ 	if (!sds->busiest)
+ 		return 0;
  
-+enum scrub_mode {
-+	HW_ERROR_SCRUB_OFF,
-+	HW_ERROR_SCRUB_ON,
-+};
+-	busiest_cpu = group_first_cpu(sds->busiest);
+-	if (env->dst_cpu > busiest_cpu)
++	busiest_cpu = sds->busiest->asym_prefer_cpu;
++	if (sched_asym_prefer(busiest_cpu, env->dst_cpu))
+ 		return 0;
+ 
+ 	env->imbalance = DIV_ROUND_CLOSEST(
+@@ -7364,10 +7376,11 @@ static int need_active_balance(struct lb_env *env)
+ 
+ 		/*
+ 		 * ASYM_PACKING needs to force migrate tasks from busy but
+-		 * higher numbered CPUs in order to pack all tasks in the
+-		 * lowest numbered CPUs.
++		 * lower priority CPUs in order to pack all tasks in the
++		 * highest priority CPUs.
+ 		 */
+-		if ((sd->flags & SD_ASYM_PACKING) && env->src_cpu > env->dst_cpu)
++		if ((sd->flags & SD_ASYM_PACKING) &&
++		    sched_asym_prefer(env->dst_cpu, env->src_cpu))
+ 			return 1;
+ 	}
+ 
+diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+index b7fc1ce..3f3d04a 100644
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -532,6 +532,11 @@ struct dl_rq {
+ 
+ #ifdef CONFIG_SMP
+ 
++static inline bool sched_asym_prefer(int a, int b)
++{
++	return arch_asym_cpu_priority(a) > arch_asym_cpu_priority(b);
++}
 +
- enum nd_blk_mmio_selector {
- 	BDW,
- 	DCR,
+ /*
+  * We add the notion of a root-domain which will be used to define per-domain
+  * variables. Each exclusive cpuset essentially defines an island domain by
+@@ -884,6 +889,7 @@ struct sched_group {
+ 
+ 	unsigned int group_weight;
+ 	struct sched_group_capacity *sgc;
++	int asym_prefer_cpu;		/* cpu of highest priority in group */
+ 
+ 	/*
+ 	 * The CPUs this group covers.
 -- 
 2.7.4
 
