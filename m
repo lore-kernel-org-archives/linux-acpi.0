@@ -1,107 +1,48 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
-Date: Sat,  1 Oct 2016 13:46:16 -0400
-Message-ID: <1475343976-20744-3-git-send-email-okaya@codeaurora.org>
-References: <1475343976-20744-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1475343976-20744-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com
-Cc: linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Sinan Kaya <okaya@codeaurora.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
+ [LNKD]. Try pci=noacpi or acpi=off
+Date: Sat, 1 Oct 2016 13:49:17 -0400
+Message-ID: <dda55738-d52b-1cdd-8973-8dea3506a835@codeaurora.org>
+References: <201609251512.05657.linux@rainbow-software.org>
+ <201609300844.24325.linux@rainbow-software.org>
+ <677698369b23f5a6bcf3a66fed78802f@codeaurora.org>
+ <201609301756.25894.linux@rainbow-software.org>
+ <94aee80e-f7c3-5732-ef1e-08e3ecb19e5e@codeaurora.org>
+ <CAJZ5v0jr=KEfjo3HH6M2WhPCPCB9w1DYGB_VHhXDJXwjh76Pmg@mail.gmail.com>
+ <5ee9b263-ed42-ee16-057e-2f4c1d2c1dc6@codeaurora.org>
+ <CAJZ5v0isjggpiSnFYy_1omEorTD6HSWe2jCsRmvugyH6qiYq2g@mail.gmail.com>
+ <a1d4d971-2737-c831-1f34-93f2be449478@codeaurora.org>
+ <CAJZ5v0gKFVEYFhyge8+_ZTSg_OK6uzBByivgbvEV-Up4Q3YSiw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:53024 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751164AbcJARtX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Oct 2016 13:49:23 -0400
+In-Reply-To: <CAJZ5v0gKFVEYFhyge8+_ZTSg_OK6uzBByivgbvEV-Up4Q3YSiw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ondrej Zary <linux@rainbow-software.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-This reverts commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize
-function"). SCI penalty API was replaced by the runtime penalty calculation
-based on the value of acpi_gbl_FADT.sci_interrupt.
+On 9/30/2016 5:27 PM, Rafael J. Wysocki wrote:
+>>> >> What's the drawback, if any?
+>> >
+>> > I don't see any drawback to be honest.
+> I'd go for it then, if Bjorn doesn't hate it.
+> 
 
-acpi_gbl_FADT.sci_interrupt type does not get updated at the right time
-for some platforms and results in incorrect penalty assignment for PCI
-IRQs as irq_get_trigger_type returns the wrong type.
+I posted a follow up patch a minute ago. 
 
-Link: http://www.spinics.net/lists/linux-pci/msg54599.html
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- arch/x86/kernel/acpi/boot.c |  1 +
- drivers/acpi/pci_link.c     | 34 ++++++++++++++--------------------
- include/linux/acpi.h        |  1 +
- 3 files changed, 16 insertions(+), 20 deletions(-)
+[PATCH 1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size to 16"
+[PATCH 2/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
+[PATCH 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 90d84c3..0ffd26e 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -453,6 +453,7 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
- 
- 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
- 
- 	/*
- 	 * stash over-ride to indicate we've been here
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 06c2a11..6a2af19 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -495,27 +495,10 @@ static int acpi_irq_pci_sharing_penalty(int irq)
- 
- static int acpi_irq_get_penalty(int irq)
- {
--	int penalty = 0;
--
--	/*
--	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
--	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
--	* use for PCI IRQs.
--	*/
--	if (irq == acpi_gbl_FADT.sci_interrupt) {
--		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
--
--		if (type != IRQ_TYPE_LEVEL_LOW)
--			penalty += PIRQ_PENALTY_ISA_ALWAYS;
--		else
--			penalty += PIRQ_PENALTY_PCI_USING;
--	}
--
--	if (irq < ACPI_MAX_ISA_IRQS)
--		return penalty + acpi_irq_penalty[irq];
-+	if (irq < ACPI_MAX_IRQS)
-+		return acpi_irq_penalty[irq];
- 
--	penalty += acpi_irq_pci_sharing_penalty(irq);
--	return penalty;
-+	return acpi_irq_pci_sharing_penalty(irq);
- }
- 
- int __init acpi_irq_penalty_init(void)
-@@ -886,6 +869,17 @@ bool acpi_isa_irq_available(int irq)
- 		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
- }
- 
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
-+{
-+	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
-+		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
-+		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
-+			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
-+		else
-+			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
-+	}
-+}
-+
- /*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4d8452c..85ac7d5 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -318,6 +318,7 @@ struct pci_dev;
- int acpi_pci_irq_enable (struct pci_dev *dev);
- void acpi_penalize_isa_irq(int irq, int active);
- bool acpi_isa_irq_available(int irq);
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
- void acpi_pci_irq_disable (struct pci_dev *dev);
- 
- extern int ec_read(u8 addr, u8 *val);
+Can we have some testing coverage? and eventually have tested-by?
+
 -- 
-1.9.1
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
