@@ -1,48 +1,168 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
- [LNKD]. Try pci=noacpi or acpi=off
-Date: Sat, 1 Oct 2016 13:49:17 -0400
-Message-ID: <dda55738-d52b-1cdd-8973-8dea3506a835@codeaurora.org>
-References: <201609251512.05657.linux@rainbow-software.org>
- <201609300844.24325.linux@rainbow-software.org>
- <677698369b23f5a6bcf3a66fed78802f@codeaurora.org>
- <201609301756.25894.linux@rainbow-software.org>
- <94aee80e-f7c3-5732-ef1e-08e3ecb19e5e@codeaurora.org>
- <CAJZ5v0jr=KEfjo3HH6M2WhPCPCB9w1DYGB_VHhXDJXwjh76Pmg@mail.gmail.com>
- <5ee9b263-ed42-ee16-057e-2f4c1d2c1dc6@codeaurora.org>
- <CAJZ5v0isjggpiSnFYy_1omEorTD6HSWe2jCsRmvugyH6qiYq2g@mail.gmail.com>
- <a1d4d971-2737-c831-1f34-93f2be449478@codeaurora.org>
- <CAJZ5v0gKFVEYFhyge8+_ZTSg_OK6uzBByivgbvEV-Up4Q3YSiw@mail.gmail.com>
+From: Jonathan Liu <net147@gmail.com>
+Subject: Re: [1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size to 16"
+Date: Sun, 2 Oct 2016 22:40:05 +1100
+Message-ID: <CANwerB2bhMbkQrGG55Bq-yrFk_DC3Pz2tF0CRrt4ccmrzTmrzQ@mail.gmail.com>
+References: <1475343976-20744-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53024 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751164AbcJARtX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Oct 2016 13:49:23 -0400
-In-Reply-To: <CAJZ5v0gKFVEYFhyge8+_ZTSg_OK6uzBByivgbvEV-Up4Q3YSiw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1475343976-20744-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ondrej Zary <linux@rainbow-software.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-On 9/30/2016 5:27 PM, Rafael J. Wysocki wrote:
->>> >> What's the drawback, if any?
->> >
->> > I don't see any drawback to be honest.
-> I'd go for it then, if Bjorn doesn't hate it.
-> 
+On 2 October 2016 at 04:46, Sinan Kaya <okaya@codeaurora.org> wrote:
+> This reverts commit 5c5087a55390 ("ACPI,PCI,IRQ: reduce static IRQ array
+> size to 16").
+>
+> The code maintains a fixed size array for IRQ penalties. The array
+> gets updated by external calls such as acpi_penalize_sci_irq,
+> acpi_penalize_isa_irq to reflect the actual interrupt usage of the
+> system. Since the IRQ distribution is platform specific, this is
+> not known ahead of time. The IRQs get updated based on the SCI
+> interrupt number BIOS has chosen or the ISA IRQs that were assigned
+> to existing peripherals.
+>
+> By the time ACPI gets initialized, this code tries to determine an
+> IRQ number based on penalty values in this array. It will try to locate
+> the IRQ with the least penalty assignment so that interrupt sharing is
+> avoided if possible.
+>
+> A couple of notes about the external APIs:
+> 1. These API can be called before the ACPI is started. Therefore, one
+> cannot assume that the PCI link objects are initialized for calculating
+> penalties.
+> 2. The polarity and trigger information passed via the
+> acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
+> is reporting as the call might have been placed before the IRQ is
+> registered by the interrupt subsystem.
+>
+> The previous change was in the direction to remove these external API and
+> try to calculate the penalties at runtime for the ISA path as well. This
+> didn't work out well with the existing platforms.
+>
+> Restoring the old behavior for IRQ < 256 and the new behavior will remain
+> effective for IRQ >= 256.
+>
+> Link: http://www.spinics.net/lists/linux-pci/msg54599.html
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 35 ++++++++++++++++++-----------------
+>  1 file changed, 18 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index c983bf7..f3792f4 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -438,6 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>
+> +#define ACPI_MAX_IRQS          256
+>  #define ACPI_MAX_ISA_IRQS      16
+>
+>  #define PIRQ_PENALTY_PCI_POSSIBLE      (16*16)
+> @@ -446,7 +447,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>  #define PIRQ_PENALTY_ISA_USED          (16*16*16*16*16)
+>  #define PIRQ_PENALTY_ISA_ALWAYS                (16*16*16*16*16*16)
+>
+> -static int acpi_isa_irq_penalty[ACPI_MAX_ISA_IRQS] = {
+> +static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>         PIRQ_PENALTY_ISA_ALWAYS,        /* IRQ0 timer */
+>         PIRQ_PENALTY_ISA_ALWAYS,        /* IRQ1 keyboard */
+>         PIRQ_PENALTY_ISA_ALWAYS,        /* IRQ2 cascade */
+> @@ -511,7 +512,7 @@ static int acpi_irq_get_penalty(int irq)
+>         }
+>
+>         if (irq < ACPI_MAX_ISA_IRQS)
+> -               return penalty + acpi_isa_irq_penalty[irq];
+> +               return penalty + acpi_irq_penalty[irq];
+>
+>         penalty += acpi_irq_pci_sharing_penalty(irq);
+>         return penalty;
+> @@ -538,14 +539,14 @@ int __init acpi_irq_penalty_init(void)
+>
+>                         for (i = 0; i < link->irq.possible_count; i++) {
+>                                 if (link->irq.possible[i] < ACPI_MAX_ISA_IRQS)
+> -                                       acpi_isa_irq_penalty[link->irq.
+> +                                       acpi_irq_penalty[link->irq.
+>                                                          possible[i]] +=
+>                                             penalty;
+>                         }
+>
+>                 } else if (link->irq.active &&
+> -                               (link->irq.active < ACPI_MAX_ISA_IRQS)) {
+> -                       acpi_isa_irq_penalty[link->irq.active] +=
+> +                               (link->irq.active < ACPI_MAX_IRQS)) {
+> +                       acpi_irq_penalty[link->irq.active] +=
+>                             PIRQ_PENALTY_PCI_POSSIBLE;
+>                 }
+>         }
+> @@ -828,7 +829,7 @@ static void acpi_pci_link_remove(struct acpi_device *device)
+>  }
+>
+>  /*
+> - * modify acpi_isa_irq_penalty[] from cmdline
+> + * modify acpi_irq_penalty[] from cmdline
+>   */
+>  static int __init acpi_irq_penalty_update(char *str, int used)
+>  {
+> @@ -837,24 +838,24 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>         for (i = 0; i < 16; i++) {
+>                 int retval;
+>                 int irq;
+> -               int new_penalty;
+>
+>                 retval = get_option(&str, &irq);
+>
+>                 if (!retval)
+>                         break;  /* no number found */
+>
+> -               /* see if this is a ISA IRQ */
+> -               if ((irq < 0) || (irq >= ACPI_MAX_ISA_IRQS))
+> +               if (irq < 0)
+> +                       continue;
+> +
+> +               if (irq >= ARRAY_SIZE(acpi_irq_penalty))
+>                         continue;
+>
+>                 if (used)
+> -                       new_penalty = acpi_irq_get_penalty(irq) +
+> -                                       PIRQ_PENALTY_ISA_USED;
+> +                       acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +                               PIRQ_PENALTY_ISA_USED;
+>                 else
+> -                       new_penalty = 0;
+> +                       acpi_irq_penalty[irq] = 0;
+>
+> -               acpi_isa_irq_penalty[irq] = new_penalty;
+>                 if (retval != 2)        /* no next number */
+>                         break;
+>         }
+> @@ -870,14 +871,14 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>   */
+>  void acpi_penalize_isa_irq(int irq, int active)
+>  {
+> -       if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
+> -               acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> -                 (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+> +       if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty))
+> +               acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +                   (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+>  }
+>
+>  bool acpi_isa_irq_available(int irq)
+>  {
+> -       return irq >= 0 && (irq >= ARRAY_SIZE(acpi_isa_irq_penalty) ||
+> +       return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+>                     acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+>  }
+>
 
-I posted a follow up patch a minute ago. 
+This series fixes one or more network adapters in VirtualBox not
+working with Linux 32-bit x86 guest if I have 4 network adapters
+enabled. The following message no longer appears in the kernel log:
+ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
 
-[PATCH 1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size to 16"
-[PATCH 2/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-[PATCH 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
-
-Can we have some testing coverage? and eventually have tested-by?
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Tested-by: Jonathan Liu <net147@gmail.com>
