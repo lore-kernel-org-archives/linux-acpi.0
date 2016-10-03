@@ -1,31 +1,35 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
- [LNKD]. Try pci=noacpi or acpi=off
-Date: Sun, 2 Oct 2016 21:05:22 -0400
-Message-ID: <fd149c27-d703-5338-2461-17621b4b1ae5@codeaurora.org>
-References: <201609251512.05657.linux@rainbow-software.org>
- <CAJZ5v0gKFVEYFhyge8+_ZTSg_OK6uzBByivgbvEV-Up4Q3YSiw@mail.gmail.com>
- <dda55738-d52b-1cdd-8973-8dea3506a835@codeaurora.org>
- <201610021853.19635.linux@rainbow-software.org>
+Subject: Re: [1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size to 16"
+Date: Sun, 2 Oct 2016 21:07:21 -0400
+Message-ID: <bf16b077-603f-bc7e-cd7b-bf006242f781@codeaurora.org>
+References: <1475343976-20744-1-git-send-email-okaya@codeaurora.org>
+ <CANwerB2bhMbkQrGG55Bq-yrFk_DC3Pz2tF0CRrt4ccmrzTmrzQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:47923 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751633AbcJCBF0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Oct 2016 21:05:26 -0400
-In-Reply-To: <201610021853.19635.linux@rainbow-software.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANwerB2bhMbkQrGG55Bq-yrFk_DC3Pz2tF0CRrt4ccmrzTmrzQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jonathan Liu <net147@gmail.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 
-On 10/2/2016 12:53 PM, Ondrej Zary wrote:
->> Can we have some testing coverage? and eventually have tested-by?
-> Works on two affected machines. More tests tomorrow.
+On 10/2/2016 7:40 AM, Jonathan Liu wrote:
+> This series fixes one or more network adapters in VirtualBox not
+> working with Linux 32-bit x86 guest if I have 4 network adapters
+> enabled. The following message no longer appears in the kernel log:
+> ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
+> 
+> Tested-by: Jonathan Liu <net147@gmail.com>
 
-Thanks, appreciate the feedback. Looking forward to hear your other test results.
+Thanks for the test. I didn't realize that VirtualBox was broken too.
+
+So far I got some random test results in the mail list that something
+is broken. I hope to hear more that we close the issue for some time
+now. 
+
+The IRQ stuff got broken three times already. Hopefully, this will be
+the seal.
 
 -- 
 Sinan Kaya
