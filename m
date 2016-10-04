@@ -1,124 +1,81 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
-Date: Tue,  4 Oct 2016 17:15:19 -0400
-Message-ID: <1475615720-31047-4-git-send-email-okaya@codeaurora.org>
-References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com
-Cc: linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Sinan Kaya <okaya@codeaurora.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [RFC 02/15] device property: Add fwnode_get_parent()
+Date: Wed,  5 Oct 2016 01:45:35 +0300
+Message-ID: <1475621148-21427-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:20672 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752704AbcJDWr2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Oct 2016 18:47:28 -0400
+In-Reply-To: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: mika.westerberg@linux.intel.com, rafael@kernel.org
 
-The SCI function was removed in two steps (first refactor and then remove).
-This patch does the revert in one step.
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-The commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
-refactored the original code so that SCI penalty is calculated dynamically
-by the time get_penalty function is called. This patch does a partial
-revert for the SCI functionality only.
+Now that ACPI has support for returning parent firmware node for both types
+of nodes we can expose this to others as well. This adds a new function
+fwnode_get_parent() that can be used for DT and ACPI nodes to retrieve the
+parent firmware node.
 
-The commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize function") is
-for the removal of the function. SCI penalty API was replaced by the
-runtime penalty calculation based on the value of
-acpi_gbl_FADT.sci_interrupt.
-
-The IRQ type does not get updated at the right time for some platforms and
-results in incorrect penalty assignment for PCI IRQs as
-irq_get_trigger_type returns the wrong type.
-
-The register_gsi function delivers the IRQ found in the ACPI table to
-the interrupt controller driver.  Penalties are calculated before a
-link object is enabled to find out which interrupt has the least number
-of users. By the time penalties are calculated, the IRQ is not registered
-yet and the API returns the wrong type.
-
-Tested-by: Jonathan Liu <net147@gmail.com>
-Tested-by: Ondrej Zary <linux@rainbow-software.org>
-Link: https://lkml.org/lkml/2016/10/4/283
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- arch/x86/kernel/acpi/boot.c |  1 +
- drivers/acpi/pci_link.c     | 34 ++++++++++++++--------------------
- include/linux/acpi.h        |  1 +
- 3 files changed, 16 insertions(+), 20 deletions(-)
+ drivers/base/property.c  | 25 +++++++++++++++++++++++++
+ include/linux/property.h |  2 ++
+ 2 files changed, 27 insertions(+)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 90d84c3..0ffd26e 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -453,6 +453,7 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 43a36d6..384998a 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -867,6 +867,31 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
+ EXPORT_SYMBOL_GPL(device_add_properties);
  
- 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
- 
- 	/*
- 	 * stash over-ride to indicate we've been here
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 06c2a11..6a2af19 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -495,27 +495,10 @@ static int acpi_irq_pci_sharing_penalty(int irq)
- 
- static int acpi_irq_get_penalty(int irq)
- {
--	int penalty = 0;
--
--	/*
--	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
--	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
--	* use for PCI IRQs.
--	*/
--	if (irq == acpi_gbl_FADT.sci_interrupt) {
--		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
--
--		if (type != IRQ_TYPE_LEVEL_LOW)
--			penalty += PIRQ_PENALTY_ISA_ALWAYS;
--		else
--			penalty += PIRQ_PENALTY_PCI_USING;
--	}
--
--	if (irq < ACPI_MAX_ISA_IRQS)
--		return penalty + acpi_irq_penalty[irq];
-+	if (irq < ACPI_MAX_IRQS)
-+		return acpi_irq_penalty[irq];
- 
--	penalty += acpi_irq_pci_sharing_penalty(irq);
--	return penalty;
-+	return acpi_irq_pci_sharing_penalty(irq);
- }
- 
- int __init acpi_irq_penalty_init(void)
-@@ -886,6 +869,17 @@ bool acpi_isa_irq_available(int irq)
- 		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
- }
- 
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+ /**
++ * fwnode_get_parent - Return parent firwmare node
++ * @fwnode: Firmware whose parent is retrieved
++ *
++ * Return parent firmware node of the given node if possible or %NULL if no
++ * parent was available.
++ */
++struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
 +{
-+	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
-+		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
-+		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
-+			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
-+		else
-+			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
-+	}
-+}
++	struct fwnode_handle *parent = NULL;
 +
- /*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4d8452c..85ac7d5 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -318,6 +318,7 @@ struct pci_dev;
- int acpi_pci_irq_enable (struct pci_dev *dev);
- void acpi_penalize_isa_irq(int irq, int active);
- bool acpi_isa_irq_available(int irq);
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
- void acpi_pci_irq_disable (struct pci_dev *dev);
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_get_parent(to_of_node(fwnode));
++		if (node)
++			parent = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		parent = acpi_node_get_parent(fwnode);
++	}
++
++	return parent;
++}
++EXPORT_SYMBOL_GPL(fwnode_get_parent);
++
++/**
+  * device_get_next_child_node - Return the next child node handle for a device
+  * @dev: Device to find the next child node for.
+  * @child: Handle to one of the device's child nodes or a null handle.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 856e50b..85060bf 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -70,6 +70,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *string);
  
- extern int ec_read(u8 addr, u8 *val);
++struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++
+ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 						 struct fwnode_handle *child);
+ 
 -- 
-1.9.1
+2.7.4
+
