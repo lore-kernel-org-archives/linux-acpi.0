@@ -1,65 +1,43 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize
- function"
-Date: Tue, 4 Oct 2016 16:23:46 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1610041621070.5049@nanos>
-References: <1475343976-20744-1-git-send-email-okaya@codeaurora.org> <1475343976-20744-3-git-send-email-okaya@codeaurora.org> <alpine.DEB.2.20.1610040919110.5278@nanos> <babdb433-2be5-2c04-cbdd-c2af443447cb@codeaurora.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link
+ [LNKD]. Try pci=noacpi or acpi=off
+Date: Tue, 4 Oct 2016 10:30:06 -0400
+Message-ID: <2d75b1ba-9226-3713-2b1e-7829b89a8856@codeaurora.org>
+References: <201609251512.05657.linux@rainbow-software.org>
+ <201610021853.19635.linux@rainbow-software.org>
+ <fd149c27-d703-5338-2461-17621b4b1ae5@codeaurora.org>
+ <201610030925.58304.linux@rainbow-software.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <babdb433-2be5-2c04-cbdd-c2af443447cb@codeaurora.org>
+In-Reply-To: <201610030925.58304.linux@rainbow-software.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ondrej Zary <linux@rainbow-software.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 4 Oct 2016, Sinan Kaya wrote:
+Hi Ondrej,
 
-> On 10/4/2016 3:23 AM, Thomas Gleixner wrote:
-> > On Sat, 1 Oct 2016, Sinan Kaya wrote:
-> > 
-> >> This reverts commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize
-> >> function"). SCI penalty API was replaced by the runtime penalty calculation
-> >> based on the value of acpi_gbl_FADT.sci_interrupt.
-> > 
-> > This does more than only reverting said commit ....
+On 10/3/2016 3:25 AM, Ondrej Zary wrote:
+> On Monday 03 October 2016, Sinan Kaya wrote:
+>> On 10/2/2016 12:53 PM, Ondrej Zary wrote:
+>>>> Can we have some testing coverage? and eventually have tested-by?
+>>>
+>>> Works on two affected machines. More tests tomorrow.
+>>
+>> Thanks, appreciate the feedback. Looking forward to hear your other test
+>> results.
 > 
-> The SCI function was removed in two steps (first refactor and then remove). 
-> I was trying to do the revert at one step. I can divide into two if it makes
-> it better
-
-No one step is fine. But this wants to be documented in the changelog.
-
-> >> acpi_gbl_FADT.sci_interrupt type does not get updated at the right time
-> >> for some platforms and results in incorrect penalty assignment for PCI
-> >> IRQs as irq_get_trigger_type returns the wrong type.
-> > 
-> > And the obvious question is: Why does irq_get_trigger_type() return the
-> > wrong type?
+> The other two affected machines are working too.
 > 
-> Here is some history:
-> 
-> I now remember that Bjorn indicated the race condition possibility in this thread
-> here.
-> 
-> https://lkml.org/lkml/2016/3/8/640
 
-> My understanding is that register_gsi function delivers the IRQ found in
-> the ACPI table to the interrupt controller driver.  Penalties are
-> calculated before a link object is enabled to find out which interrupt
-> has the least number of users. By the time penalties are calculated, the
-> IRQ is not registered yet and it returns the wrong type.
+Can I have your "tested by" before I repost the new version with updated
+commit message?
 
-Ok.
+Sinan
 
-> > 
-> > What's the root cause of this problem? Your changelog does not tell
-> > anything.
-> 
-> If you are OK with the above description, I can add this to the commit message.
-
-Yes please.
- 
-Thanks,
-
-	tglx
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
