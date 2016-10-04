@@ -1,204 +1,98 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC 15/15] ACPI / DSD: Document references, ports and endpoints
-Date: Wed,  5 Oct 2016 01:45:48 +0300
-Message-ID: <1475621148-21427-16-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [RFC 04/15] device property: Add fwnode_get_named_child_node()
+Date: Wed,  5 Oct 2016 01:45:37 +0300
+Message-ID: <1475621148-21427-5-git-send-email-sakari.ailus@linux.intel.com>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:16959 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:41273 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752699AbcJDWrb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 4 Oct 2016 18:47:31 -0400
+        id S1753210AbcJDWr5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Oct 2016 18:47:57 -0400
 In-Reply-To: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: mika.westerberg@linux.intel.com, rafael@kernel.org
 
-Document the use of references into the hierarchical data extension
-structure, as well as the use of port and endpoint concepts that are very
-similar to those in Devicetree.
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Since now we have means to enumerate all children of any fwnode even in
+ACPI we can implement fwnode_get_named_child_node(). This is similar than
+device_get_named_child_node() with the exception that it can be called to
+any fwnode handle. Make device_get_named_child_node() call directly this
+new function.
+
+This is useful in cases where we need to be able to find child nodes which
+are not direct descendants of the parent device.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- Documentation/acpi/dsd/graph.txt | 166 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 166 insertions(+)
- create mode 100644 Documentation/acpi/dsd/graph.txt
+ drivers/base/property.c  | 22 +++++++++++++++++-----
+ include/linux/property.h |  2 ++
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/acpi/dsd/graph.txt
-new file mode 100644
-index 0000000..fe6eb57
---- /dev/null
-+++ b/Documentation/acpi/dsd/graph.txt
-@@ -0,0 +1,166 @@
-+Graphs
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 15403f7..c0011cf 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -935,20 +935,20 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+ 
+ /**
+- * device_get_named_child_node - Return first matching named child node handle
+- * @dev: Device to find the named child node for.
++ * fwnode_get_named_child_node - Return first matching named child node handle
++ * @fwnode: Firmware node to find the named child node for.
+  * @childname: String to match child node name against.
+  */
+-struct fwnode_handle *device_get_named_child_node(struct device *dev,
++struct fwnode_handle *fwnode_get_named_child_node(struct fwnode_handle *fwnode,
+ 						  const char *childname)
+ {
+ 	struct fwnode_handle *child;
+ 
+ 	/*
+-	 * Find first matching named child node of this device.
++	 * Find first matching named child node of this fwnode.
+ 	 * For ACPI this will be a data only sub-node.
+ 	 */
+-	device_for_each_child_node(dev, child) {
++	fwnode_for_each_child_node(fwnode, child) {
+ 		if (is_of_node(child)) {
+ 			if (!of_node_cmp(to_of_node(child)->name, childname))
+ 				return child;
+@@ -960,6 +960,18 @@ struct fwnode_handle *device_get_named_child_node(struct device *dev,
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(fwnode_get_named_child_node);
 +
-+
-+DSD
-+---
-+
-+Device specific data (DSD) [1] is an ACPI feature which can be used to
-+describe hardware features that are not directly defined by an
-+existing ACPI standard [6]. Besides the usual DSD device and fwnode
-+properties [4], the DSD extension also supports hierarchical data
-+structure [5] the nodes of which may contain additional properties.
-+Functionality-wise this is somewhat equivalent to the phandles in
-+Devicetree [2].
-+
-+The hierarchical data extension [5] may be used to construct a
-+tree-like structure with nodes which may contain other nodes (again
-+using the hierarchical data extension) or properties (using device and
-+fwnode properties [4]).
-+
-+The data structure may be referenced to elsewhere in the ACPI tables
-+by using a hard reference to the device itself and an index to the
-+hierarchical data extension array on each depth.
-+
-+
-+Ports and endpoints
-+-------------------
-+
-+The port and endpoint concepts are very similar to those in Devicetree
-+[3]. The port represent represent interface in a device, and an
-+endpoint represents a connection to that interface.
-+
-+All port nodes are located under a child node under the device's
-+"_DSD" node in hierarchical data extension tree. The first
-+hierarchical data extension package list entry of this node must be
-+called "ports". Individual ports are declared as child nodes of this
-+node. The first package list entry of the hierarchical data extension
-+must begin with "port@" string and must be followed by the number of
-+the port.
-+
-+Further on, endpoints are located under the individual port nodes. The
-+first hierarchical data extension package list entry of the endpoint
-+nodes must begin with "endpoint@" and must be followed by the number
-+of the endpoint.
-+
-+Each port node contains a property extension key "port", the value of
-+which is the number of the port node. Similarly, each endpoint node
-+must contain "endpoint" property which is the number of the endpoint
-+node.
-+
-+The endpoint reference uses property extension with "remote-endpoint"
-+property name followed by a reference in the same package. The
-+references to endpoints must be always done both to and from the
-+endpoint node. Individual references thus appear as:
-+
-+    Package() { device, ports_node_index,
-+		port_node_index, endpoint_node_index }
-+
-+A simple example of this is show below:
-+
-+    Scope (\_SB.PCI0.I2C2)
-+    {
-+	Device (CAM0)
-+	{
-+	    Name (_DSD, Package () {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "compatible", Package () { "nokia,smia" } },
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "ports", "PRTS" },
-+		}
-+	    })
-+	    Name (PRTS, Package() {
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "port@0", "PRT0" },
-+		}
-+	    })
-+	    Name (PRT0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "port", 0 },
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "endpoint@0", "EP0" },
-+		}
-+	    })
-+	    Name (EP0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "endpoint", 0 },
-+		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, 0, 0, 0 } },
-+		}
-+	    })
-+	}
-+    }
-+
-+    Scope (\_SB.PCI0)
-+    {
-+	Device (ISP)
-+	{
-+	    Name (_DSD, Package () {
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "ports", "PRTS" },
-+		}
-+	    })
-+
-+	    Name (PRTS, Package() {
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "port@4", "PRT4" },
-+		}
-+	    })
-+
-+	    Name (PRT4, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "port", 4 }, /* CSI-2 port number */
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "endpoint@0", "EP0" },
-+		}
-+	    })
-+
-+	    Name (EP0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "endpoint", 0 },
-+		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, 0, 0, 0 } },
-+		}
-+	    })
-+	}
-+    }
-+
-+Here, the port 0 of the "CAM0" device is connected to the port 4 of
-+the "ISP" device. Note that the port index in the reference is still
-+0, as it refers to an entry in the table and not the port node number
-+itself.
-+
-+
-+References
-+----------
-+
-+[1] _DSD (Device Specific Data) Implementation Guide.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm>,
-+    referenced 2016-10-03.
-+
-+[2] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
-+
-+[3] Documentation/devicetree/bindings/graph.txt
-+
-+[4] Device Properties UUID For _DSD.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
-+    referenced 2016-10-04.
-+
-+[5] Hierarchical Data Extension UUID For _DSD.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
-+    referenced 2016-10-04.
-+
-+[6] Advanced Configuration and Power Interface Specification.
-+    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
-+    referenced 2016-10-04.
++/**
++ * device_get_named_child_node - Return first matching named child node handle
++ * @dev: Device to find the named child node for.
++ * @childname: String to match child node name against.
++ */
++struct fwnode_handle *device_get_named_child_node(struct device *dev,
++						  const char *childname)
++{
++	return fwnode_get_named_child_node(dev_fwnode(dev), childname);
++}
+ EXPORT_SYMBOL_GPL(device_get_named_child_node);
+ 
+ /**
+diff --git a/include/linux/property.h b/include/linux/property.h
+index a3d4f52..66530c3 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -85,6 +85,8 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 	for (child = device_get_next_child_node(dev, NULL); child;	\
+ 	     child = device_get_next_child_node(dev, child))
+ 
++struct fwnode_handle *fwnode_get_named_child_node(struct fwnode_handle *fwnode,
++						  const char *childname);
+ struct fwnode_handle *device_get_named_child_node(struct device *dev,
+ 						  const char *childname);
+ 
 -- 
 2.7.4
 
