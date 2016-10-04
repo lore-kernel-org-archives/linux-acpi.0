@@ -1,40 +1,54 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: 4.7 regression: ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
-Date: Tue, 4 Oct 2016 19:54:42 +0200
-Message-ID: <201610041954.45680.linux@rainbow-software.org>
-References: <201609251512.05657.linux@rainbow-software.org> <CAJZ5v0gKFVEYFhyge8+_ZTSg_OK6uzBByivgbvEV-Up4Q3YSiw@mail.gmail.com> <dda55738-d52b-1cdd-8973-8dea3506a835@codeaurora.org>
+From: <ppinfo@kunstreich-im-pott.de>
+Subject: 4029 linux-acpi
+Date: Tue, 04 Oct 2016 19:11:11 -0000
+Message-ID: <147560827130.13763.14022940231103248260@host-212-159-161-17.static.as13285.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <dda55738-d52b-1cdd-8973-8dea3506a835@codeaurora.org>
-Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, wim@djo.tudelft.nl, ravikanth.nalla@hpe.com
+Content-Type: application/zip; name="INFO_727961_linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from host-212-159-161-17.static.as13285.net ([212.159.161.17]:34462
+        "HELO host-212-159-161-17.static.as13285.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1751671AbcJDTMB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Oct 2016 15:12:01 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Saturday 01 October 2016 19:49:17 Sinan Kaya wrote:
-> On 9/30/2016 5:27 PM, Rafael J. Wysocki wrote:
-> >>> >> What's the drawback, if any?
-> >> >
-> >> > I don't see any drawback to be honest.
-> >
-> > I'd go for it then, if Bjorn doesn't hate it.
->
-> I posted a follow up patch a minute ago.
->
-> [PATCH 1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size to 16"
-> [PATCH 2/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-> [PATCH 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
->
-> Can we have some testing coverage? and eventually have tested-by?
-
-Fixes the problem on all 4 machines.
-These patches also need to go into 4.7-stable and 4.8-stable.
-
-Tested-by: Ondrej Zary <linux@rainbow-software.org>
-
--- 
-Ondrej Zary
+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
