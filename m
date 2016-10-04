@@ -1,197 +1,204 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC 01/15] ACPI / property: Add possiblity to retrieve parent firmware node
-Date: Wed,  5 Oct 2016 01:45:34 +0300
-Message-ID: <1475621148-21427-2-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [RFC 15/15] ACPI / DSD: Document references, ports and endpoints
+Date: Wed,  5 Oct 2016 01:45:48 +0300
+Message-ID: <1475621148-21427-16-git-send-email-sakari.ailus@linux.intel.com>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga03.intel.com ([134.134.136.65]:16959 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753007AbcJDWr2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 4 Oct 2016 18:47:28 -0400
+        id S1752699AbcJDWrb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Oct 2016 18:47:31 -0400
 In-Reply-To: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: mika.westerberg@linux.intel.com, rafael@kernel.org
 
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Document the use of references into the hierarchical data extension
+structure, as well as the use of port and endpoint concepts that are very
+similar to those in Devicetree.
 
-Sometimes it is useful to be able to navigate firmware node hierarchy
-upwards toward parent nodes. ACPI device nodes are pretty much already
-supported because ACPICA provides acpi_get_parent(). ACPI data nodes,
-however, are all below the same parent ACPI device. Their hierarchy is
-created by "linking" each other using references in the value field.
-
-Add parent pointer to the parent data node while we create them so it is
-easy to navigate the hierarchy backwards. We use this parent pointer in a
-new function acpi_node_get_parent() that is able to extract parent of both
-ACPI firmware node types.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 52 +++++++++++++++++++++++++++++++++++++++++--------
- include/acpi/acpi_bus.h |  1 +
- include/linux/acpi.h    |  7 +++++++
- 3 files changed, 52 insertions(+), 8 deletions(-)
+ Documentation/acpi/dsd/graph.txt | 166 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 166 insertions(+)
+ create mode 100644 Documentation/acpi/dsd/graph.txt
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index f2fd3fe..181e4c5 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -37,13 +37,16 @@ static const u8 ads_uuid[16] = {
- 
- static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
- 					   const union acpi_object *desc,
--					   struct acpi_device_data *data);
-+					   struct acpi_device_data *data,
-+					   struct fwnode_handle *parent);
- static bool acpi_extract_properties(const union acpi_object *desc,
- 				    struct acpi_device_data *data);
- 
+diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/acpi/dsd/graph.txt
+new file mode 100644
+index 0000000..fe6eb57
+--- /dev/null
++++ b/Documentation/acpi/dsd/graph.txt
+@@ -0,0 +1,166 @@
++Graphs
 +
- static bool acpi_nondev_subnode_ok(acpi_handle scope,
- 				   const union acpi_object *link,
--				   struct list_head *list)
-+				   struct list_head *list,
-+				   struct fwnode_handle *parent)
- {
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
- 	struct acpi_data_node *dn;
-@@ -56,6 +59,7 @@ static bool acpi_nondev_subnode_ok(acpi_handle scope,
- 
- 	dn->name = link->package.elements[0].string.pointer;
- 	dn->fwnode.type = FWNODE_ACPI_DATA;
-+	dn->parent = parent;
- 	INIT_LIST_HEAD(&dn->data.subnodes);
- 
- 	status = acpi_get_handle(scope, link->package.elements[1].string.pointer,
-@@ -78,7 +82,8 @@ static bool acpi_nondev_subnode_ok(acpi_handle scope,
- 	 */
- 	status = acpi_get_parent(handle, &scope);
- 	if (ACPI_SUCCESS(status)
--	    && acpi_enumerate_nondev_subnodes(scope, buf.pointer, &dn->data))
-+	    && acpi_enumerate_nondev_subnodes(scope, buf.pointer, &dn->data,
-+					      &dn->fwnode))
- 		dn->handle = handle;
- 
- 	if (dn->handle) {
-@@ -97,7 +102,8 @@ static bool acpi_nondev_subnode_ok(acpi_handle scope,
- 
- static int acpi_add_nondev_subnodes(acpi_handle scope,
- 				    const union acpi_object *links,
--				    struct list_head *list)
-+				    struct list_head *list,
-+				    struct fwnode_handle *parent)
- {
- 	bool ret = false;
- 	int i;
-@@ -110,7 +116,7 @@ static int acpi_add_nondev_subnodes(acpi_handle scope,
- 		if (link->package.count == 2
- 		    && link->package.elements[0].type == ACPI_TYPE_STRING
- 		    && link->package.elements[1].type == ACPI_TYPE_STRING
--		    && acpi_nondev_subnode_ok(scope, link, list))
-+		    && acpi_nondev_subnode_ok(scope, link, list, parent))
- 			ret = true;
- 	}
- 
-@@ -119,7 +125,8 @@ static int acpi_add_nondev_subnodes(acpi_handle scope,
- 
- static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
- 					   const union acpi_object *desc,
--					   struct acpi_device_data *data)
-+					   struct acpi_device_data *data,
-+					   struct fwnode_handle *parent)
- {
- 	int i;
- 
-@@ -141,7 +148,8 @@ static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
- 		if (memcmp(uuid->buffer.pointer, ads_uuid, sizeof(ads_uuid)))
- 			continue;
- 
--		return acpi_add_nondev_subnodes(scope, links, &data->subnodes);
-+		return acpi_add_nondev_subnodes(scope, links, &data->subnodes,
-+						parent);
- 	}
- 
- 	return false;
-@@ -292,7 +300,8 @@ void acpi_init_properties(struct acpi_device *adev)
- 		if (acpi_of)
- 			acpi_init_of_compatible(adev);
- 	}
--	if (acpi_enumerate_nondev_subnodes(adev->handle, buf.pointer, &adev->data))
-+	if (acpi_enumerate_nondev_subnodes(adev->handle, buf.pointer,
-+					&adev->data, acpi_fwnode_handle(adev)))
- 		adev->data.pointer = buf.pointer;
- 
- 	if (!adev->data.pointer) {
-@@ -848,3 +857,30 @@ struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- 	}
- 	return NULL;
- }
 +
-+/**
-+ * acpi_node_get_parent - Return parent fwnode of this fwnode
-+ * @fwnode: Firmware node whose parent to get
-+ *
-+ * Returns parent node of an ACPI device or data firmware node or %NULL if
-+ * not available.
-+ */
-+struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode)
-+{
-+	if (is_acpi_data_node(fwnode)) {
-+		/* All data nodes have parent pointer so just return that */
-+		return to_acpi_data_node(fwnode)->parent;
-+	} else if (is_acpi_device_node(fwnode)) {
-+		acpi_handle handle, parent_handle;
++DSD
++---
 +
-+		handle = to_acpi_device_node(fwnode)->handle;
-+		if (ACPI_SUCCESS(acpi_get_parent(handle, &parent_handle))) {
-+			struct acpi_device *adev;
++Device specific data (DSD) [1] is an ACPI feature which can be used to
++describe hardware features that are not directly defined by an
++existing ACPI standard [6]. Besides the usual DSD device and fwnode
++properties [4], the DSD extension also supports hierarchical data
++structure [5] the nodes of which may contain additional properties.
++Functionality-wise this is somewhat equivalent to the phandles in
++Devicetree [2].
 +
-+			if (!acpi_bus_get_device(parent_handle, &adev))
-+				return acpi_fwnode_handle(adev);
++The hierarchical data extension [5] may be used to construct a
++tree-like structure with nodes which may contain other nodes (again
++using the hierarchical data extension) or properties (using device and
++fwnode properties [4]).
++
++The data structure may be referenced to elsewhere in the ACPI tables
++by using a hard reference to the device itself and an index to the
++hierarchical data extension array on each depth.
++
++
++Ports and endpoints
++-------------------
++
++The port and endpoint concepts are very similar to those in Devicetree
++[3]. The port represent represent interface in a device, and an
++endpoint represents a connection to that interface.
++
++All port nodes are located under a child node under the device's
++"_DSD" node in hierarchical data extension tree. The first
++hierarchical data extension package list entry of this node must be
++called "ports". Individual ports are declared as child nodes of this
++node. The first package list entry of the hierarchical data extension
++must begin with "port@" string and must be followed by the number of
++the port.
++
++Further on, endpoints are located under the individual port nodes. The
++first hierarchical data extension package list entry of the endpoint
++nodes must begin with "endpoint@" and must be followed by the number
++of the endpoint.
++
++Each port node contains a property extension key "port", the value of
++which is the number of the port node. Similarly, each endpoint node
++must contain "endpoint" property which is the number of the endpoint
++node.
++
++The endpoint reference uses property extension with "remote-endpoint"
++property name followed by a reference in the same package. The
++references to endpoints must be always done both to and from the
++endpoint node. Individual references thus appear as:
++
++    Package() { device, ports_node_index,
++		port_node_index, endpoint_node_index }
++
++A simple example of this is show below:
++
++    Scope (\_SB.PCI0.I2C2)
++    {
++	Device (CAM0)
++	{
++	    Name (_DSD, Package () {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "compatible", Package () { "nokia,smia" } },
++		},
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "ports", "PRTS" },
 +		}
++	    })
++	    Name (PRTS, Package() {
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "port@0", "PRT0" },
++		}
++	    })
++	    Name (PRT0, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "port", 0 },
++		},
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "endpoint@0", "EP0" },
++		}
++	    })
++	    Name (EP0, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "endpoint", 0 },
++		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, 0, 0, 0 } },
++		}
++	    })
 +	}
++    }
 +
-+	return NULL;
-+}
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c1a524d..8504716 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -386,6 +386,7 @@ struct acpi_data_node {
- 	const char *name;
- 	acpi_handle handle;
- 	struct fwnode_handle fwnode;
-+	struct fwnode_handle *parent;
- 	struct acpi_device_data data;
- 	struct list_head sibling;
- 	struct kobject kobj;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 19e650c..6906f7a 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -961,6 +961,7 @@ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
- 
- struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- 					    struct fwnode_handle *subnode);
-+struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode);
- 
- struct acpi_probe_entry;
- typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
-@@ -1075,6 +1076,12 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- 	return NULL;
- }
- 
-+static inline struct fwnode_handle *
-+acpi_node_get_parent(struct fwnode_handle *fwnode)
-+{
-+	return NULL;
-+}
++    Scope (\_SB.PCI0)
++    {
++	Device (ISP)
++	{
++	    Name (_DSD, Package () {
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "ports", "PRTS" },
++		}
++	    })
 +
- #define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn) \
- 	static const void * __acpi_table_##name[]			\
- 		__attribute__((unused))					\
++	    Name (PRTS, Package() {
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "port@4", "PRT4" },
++		}
++	    })
++
++	    Name (PRT4, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "port", 4 }, /* CSI-2 port number */
++		},
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "endpoint@0", "EP0" },
++		}
++	    })
++
++	    Name (EP0, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "endpoint", 0 },
++		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, 0, 0, 0 } },
++		}
++	    })
++	}
++    }
++
++Here, the port 0 of the "CAM0" device is connected to the port 4 of
++the "ISP" device. Note that the port index in the reference is still
++0, as it refers to an entry in the table and not the port node number
++itself.
++
++
++References
++----------
++
++[1] _DSD (Device Specific Data) Implementation Guide.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm>,
++    referenced 2016-10-03.
++
++[2] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
++
++[3] Documentation/devicetree/bindings/graph.txt
++
++[4] Device Properties UUID For _DSD.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
++    referenced 2016-10-04.
++
++[5] Hierarchical Data Extension UUID For _DSD.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
++    referenced 2016-10-04.
++
++[6] Advanced Configuration and Power Interface Specification.
++    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
++    referenced 2016-10-04.
 -- 
 2.7.4
 
