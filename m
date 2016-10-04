@@ -1,13 +1,13 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC 05/15] ACPI / property: Add support for remote endpoints
-Date: Wed,  5 Oct 2016 01:45:38 +0300
-Message-ID: <1475621148-21427-6-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [RFC 03/15] ACPI / property: Add fwnode_get_next_child_node()
+Date: Wed,  5 Oct 2016 01:45:36 +0300
+Message-ID: <1475621148-21427-4-git-send-email-sakari.ailus@linux.intel.com>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:16959 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:45153 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753297AbcJDWr3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 4 Oct 2016 18:47:29 -0400
+        id S1752877AbcJDWr2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 4 Oct 2016 18:47:28 -0400
 In-Reply-To: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,221 +16,195 @@ Cc: mika.westerberg@linux.intel.com, rafael@kernel.org
 
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-DT has had concept of remote endpoins for some time already. It makes
-possible to reference another firmware node through a property named
-"remote-endpoint". This is already used by some subsystems such as V4L2
-for parsing hardware properties related to camera.
+The ACPI _DSD hierarchical data extension [1] makes it possible to have
+hierarchies deeper than one level in similar way than DT allows. These
+"subsubnodes" have not been accessible because device property
+implementation only provides device_get_next_child_node() that is limited
+to direct descendants of a device.
 
-This adds ACPI implementation of remote endpoints.
+We need this ability in order support things like remote endpoints
+currently supported in DT with of_graph_* APIs.
 
-Each device must have data extension property with name "ports". This lists
-all ports within the device. Each port hold similar data extension that
-contains all the endpoints available. The "remote-endpoint" reference then
-can be used to match the device, port and endpoind accordingly.
+Modify acpi_get_next_subnode() to accept fwnode handle instead and update
+callers accordingly. Also add a new function fwnode_get_next_child_node()
+that works directly with fwnodes and modify device_get_next_child_node() to
+call it directly. While there add a macro fwnode_for_each_child_node()
+analogous to the current device_for_each_child_node() but it works with
+fwnodes instead of devices.
+
+[1] http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 147 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h    |  23 ++++++++
- 2 files changed, 170 insertions(+)
+ drivers/acpi/property.c  | 27 +++++++++++++++++----------
+ drivers/base/property.c  | 38 ++++++++++++++++++++++++++++++--------
+ include/linux/acpi.h     |  8 ++++----
+ include/linux/property.h |  6 ++++++
+ 4 files changed, 57 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index f4e812e..6f561e7 100644
+index 181e4c5..f4e812e 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -891,3 +891,150 @@ struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode)
+@@ -802,21 +802,22 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
+ }
  
+ /**
+- * acpi_get_next_subnode - Return the next child node handle for a device.
+- * @dev: Device to find the next child node for.
++ * acpi_get_next_subnode - Return the next child node handle for a fwnode
++ * @fwnode: Firmware node to find the next child node for.
+  * @child: Handle to one of the device's child nodes or a null handle.
+  */
+-struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
++struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+ 					    struct fwnode_handle *child)
+ {
+-	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 	struct list_head *head, *next;
+ 
+-	if (!adev)
+-		return NULL;
+-
+ 	if (!child || child->type == FWNODE_ACPI) {
+-		head = &adev->children;
++		if (adev)
++			head = &adev->children;
++		else
++			goto nondev;
++
+ 		if (list_empty(head))
+ 			goto nondev;
+ 
+@@ -825,7 +826,6 @@ struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+ 			next = adev->node.next;
+ 			if (next == head) {
+ 				child = NULL;
+-				adev = ACPI_COMPANION(dev);
+ 				goto nondev;
+ 			}
+ 			adev = list_entry(next, struct acpi_device, node);
+@@ -837,9 +837,16 @@ struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+ 
+  nondev:
+ 	if (!child || child->type == FWNODE_ACPI_DATA) {
++		struct acpi_data_node *data = to_acpi_data_node(fwnode);
+ 		struct acpi_data_node *dn;
+ 
+-		head = &adev->data.subnodes;
++		if (adev)
++			head = &adev->data.subnodes;
++		else if (data)
++			head = &data->data.subnodes;
++		else
++			return NULL;
++
+ 		if (list_empty(head))
+ 			return NULL;
+ 
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 384998a..15403f7 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -892,24 +892,46 @@ struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
+ EXPORT_SYMBOL_GPL(fwnode_get_parent);
+ 
+ /**
+- * device_get_next_child_node - Return the next child node handle for a device
+- * @dev: Device to find the next child node for.
+- * @child: Handle to one of the device's child nodes or a null handle.
++ * fwnode_get_next_child_node - Return the next child node handle for a node
++ * @fwnode: Firmware node to find the next child node for.
++ * @child: Handle to one of the node's child nodes or a %NULL handle.
+  */
+-struct fwnode_handle *device_get_next_child_node(struct device *dev,
++struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
+ 						 struct fwnode_handle *child)
+ {
+-	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
++	if (is_of_node(fwnode)) {
+ 		struct device_node *node;
+ 
+-		node = of_get_next_available_child(dev->of_node, to_of_node(child));
++		node = of_get_next_available_child(to_of_node(fwnode),
++						   to_of_node(child));
+ 		if (node)
+ 			return &node->fwnode;
+-	} else if (IS_ENABLED(CONFIG_ACPI)) {
+-		return acpi_get_next_subnode(dev, child);
++	} else if (is_acpi_node(fwnode)) {
++		return acpi_get_next_subnode(fwnode, child);
+ 	}
++
  	return NULL;
  }
++EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
 +
 +/**
-+ * acpi_graph_get_next_endpoint - Get next endpoint ACPI firmware node
-+ * @fwnode: Pointer to the parent firmware node
-+ * @prev: Previous endpoint node or %NULL to get the first
-+ *
-+ * Looks up next endpoint ACPI firmware node below a given @fwnode. Returns
-+ * %NULL if there is no next endpoint, ERR_PTR() in case of error. In case
-+ * of success the next endpoint is returned.
++ * device_get_next_child_node - Return the next child node handle for a device
++ * @dev: Device to find the next child node for.
++ * @child: Handle to one of the device's child nodes or a null handle.
 + */
-+struct fwnode_handle *acpi_graph_get_next_endpoint(struct fwnode_handle *fwnode,
-+						   struct fwnode_handle *prev)
++struct fwnode_handle *device_get_next_child_node(struct device *dev,
++						 struct fwnode_handle *child)
 +{
-+	struct fwnode_handle *ports, *port, *endpoint;
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct fwnode_handle *fwnode = NULL;
 +
-+	ports = fwnode_get_named_child_node(fwnode, "ports");
-+	if (!ports)
-+		return NULL;
++	if (dev->of_node)
++		fwnode = &dev->of_node->fwnode;
++	else if (adev)
++		fwnode = acpi_fwnode_handle(adev);
 +
-+	if (!prev) {
-+		port = fwnode_get_next_child_node(ports, NULL);
-+		if (!port)
-+			return NULL;
-+	} else {
-+		port = fwnode_get_parent(prev);
-+	}
-+
-+	/* Ports must have "port" property */
-+	if (!fwnode_property_present(port, "port"))
-+		return ERR_PTR(-EPROTO);
-+
-+	endpoint = fwnode_get_next_child_node(port, prev);
-+	if (!endpoint) {
-+		/* Find the next port under ports */
-+		port = fwnode_get_next_child_node(ports, port);
-+		if (port) {
-+			if (!fwnode_property_present(port, "port"))
-+				return ERR_PTR(-EPROTO);
-+			endpoint = fwnode_get_next_child_node(port, NULL);
-+		}
-+	}
-+
-+	if (endpoint) {
-+		/* Endpoints must have "endpoint" property */
-+		if (!fwnode_property_present(endpoint, "endpoint"))
-+			return ERR_PTR(-EPROTO);
-+	}
-+
-+	return endpoint;
++	return fwnode_get_next_child_node(fwnode, child);
 +}
-+
-+/**
-+ * acpi_graph_get_child_at - Return a data extension child at given index
-+ * @fwnode: parent node
-+ * @at: index of the child node in the data extension package
-+ *
-+ * Find the child node at index of a data extension. Returns the child
-+ * node on success, NULL otherwise.
-+ */
-+static struct fwnode_handle *acpi_graph_get_child_at(
-+	struct fwnode_handle *fwnode, unsigned int at)
-+{
-+	struct fwnode_handle *child;
-+	unsigned int i = 0;
-+
-+	fwnode_for_each_child_node(fwnode, child) {
-+		if (i++ < at)
-+			continue;
-+
-+		return child;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * acpi_graph_get_remote_enpoint - Parses and returns remote end of an endpoint
-+ * @fwnode: Endpoint firmware node pointing to a remote device
-+ * @parent: Firmware node of remote port parent is filled here if not %NULL
-+ * @port: Firmware node of remote port is filled here if not %NULL
-+ * @endpoint: Firmware node of remote endpoint is filled here if not %NULL
-+ *
-+ * Function parses remote end of ACPI firmware remote endpoint and fills in
-+ * fields requested by the caller. Returns %0 in case of success and
-+ * negative errno otherwise.
-+ */
-+int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
-+				   struct fwnode_handle **parent,
-+				   struct fwnode_handle **port,
-+				   struct fwnode_handle **endpoint)
-+{
-+	unsigned int ports_idx, port_idx, endpoint_idx;
-+	struct acpi_reference_args args;
-+	int ret;
-+
-+	memset(&args, 0, sizeof(args));
-+	ret = acpi_node_get_property_reference(fwnode, "remote-endpoint", 0,
-+					       &args);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Always require three arguments with the reference: ports
-+	 * list and a given port and a given endpoint.
-+	 */
-+	if (args.nargs != 3)
-+		return -EPROTO;
-+
-+	fwnode = acpi_fwnode_handle(args.adev);
-+	ports_idx = args.args[0];
-+	port_idx = args.args[1];
-+	endpoint_idx = args.args[2];
-+
-+	if (parent)
-+		*parent = fwnode;
-+
-+	fwnode = acpi_graph_get_child_at(fwnode, ports_idx);
-+	if (!fwnode || !acpi_data_node_match(fwnode, "ports"))
-+		return -EPROTO;
-+
-+	if (!port && !endpoint)
-+		return 0;
-+
-+	fwnode = acpi_graph_get_child_at(fwnode, port_idx);
-+	if (!fwnode)
-+		return -EPROTO;
-+
-+	if (!fwnode_property_present(fwnode, "port"))
-+		return -EPROTO;
-+
-+	if (port)
-+		*port = fwnode;
-+
-+	if (!endpoint)
-+		return 0;
-+
-+	fwnode = acpi_graph_get_child_at(fwnode, endpoint_idx);
-+	if (!fwnode)
-+		return -EPROTO;
-+
-+	if (!fwnode_property_present(fwnode, "endpoint"))
-+		return -EPROTO;
-+
-+	*endpoint = fwnode;
-+
-+	return 0;
-+}
+ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+ 
+ /**
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 1424cce..5d7fabd 100644
+index 6906f7a..1424cce 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
-@@ -963,6 +963,13 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 					    struct fwnode_handle *child);
+@@ -959,8 +959,8 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode, const char *propname,
+ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
+ 		       enum dev_prop_type proptype, void *val, size_t nval);
+ 
+-struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+-					    struct fwnode_handle *subnode);
++struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
++					    struct fwnode_handle *child);
  struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode);
  
-+struct fwnode_handle *acpi_graph_get_next_endpoint(struct fwnode_handle *fwnode,
-+						   struct fwnode_handle *prev);
-+int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
-+				   struct fwnode_handle **remote,
-+				   struct fwnode_handle **port,
-+				   struct fwnode_handle **endpoint);
-+
  struct acpi_probe_entry;
- typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
- 						 struct acpi_probe_entry *);
-@@ -1082,6 +1089,22 @@ acpi_node_get_parent(struct fwnode_handle *fwnode)
- 	return NULL;
+@@ -1070,8 +1070,8 @@ static inline int acpi_dev_prop_read(struct acpi_device *adev,
+ 	return -ENXIO;
  }
  
+-static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+-						struct fwnode_handle *subnode)
 +static inline struct fwnode_handle *
-+acpi_graph_get_next_endpoint(struct fwnode_handle *fwnode,
-+			     struct fwnode_handle *prev)
-+{
-+	return ERR_PTR(-ENXIO);
-+}
++acpi_get_next_subnode(struct fwnode_handle *fwnode, struct fwnode_handle *child)
+ {
+ 	return NULL;
+ }
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 85060bf..a3d4f52 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -71,6 +71,12 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *string);
+ 
+ struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
++						 struct fwnode_handle *child);
 +
-+static inline int
-+acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
-+			       struct fwnode_handle **remote,
-+			       struct fwnode_handle **port,
-+			       struct fwnode_handle **endpoint)
-+{
-+	return -ENXIO;
-+}
-+
- #define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn) \
- 	static const void * __acpi_table_##name[]			\
- 		__attribute__((unused))					\
++#define fwnode_for_each_child_node(fwnode, child)			\
++	for (child = fwnode_get_next_child_node(fwnode, NULL); child;	\
++	     child = fwnode_get_next_child_node(fwnode, child))
+ 
+ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 						 struct fwnode_handle *child);
 -- 
 2.7.4
 
