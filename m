@@ -1,67 +1,53 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC 00/15] ACPI graph support
-Date: Wed, 5 Oct 2016 21:14:28 +0300
-Message-ID: <20161005181428.GQ1765@lahna.fi.intel.com>
-References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon>
- <20161005114129.GI1765@lahna.fi.intel.com>
- <788f4bcd-605f-2694-5df5-ec7ef1bde233@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [GIT PULL] ACPI material for v4.9-rc1
+Date: Wed, 5 Oct 2016 21:44:12 +0200
+Message-ID: <CAJZ5v0hN-SR8Pq3U8Eg8poZsbvUbFprm2AwAZbtEOukv-ThLNg@mail.gmail.com>
+References: <CAJZ5v0ij+mUnjJZ3RR37yUFgc+RPndwPNhTGa3RF4PNFQ+RH8Q@mail.gmail.com>
+ <CA+55aFwFVZVkApwrei5A68kfc5+D32x5JKkvnuqiJS731Nv=Ew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:58154 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751154AbcJESOd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Oct 2016 14:14:33 -0400
-Content-Disposition: inline
-In-Reply-To: <788f4bcd-605f-2694-5df5-ec7ef1bde233@arm.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33598 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753170AbcJEToP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Oct 2016 15:44:15 -0400
+In-Reply-To: <CA+55aFwFVZVkApwrei5A68kfc5+D32x5JKkvnuqiJS731Nv=Ew@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: Linus Torvalds <torvalds@linux-foundation.org>, Lv <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 
-On Wed, Oct 05, 2016 at 04:30:18PM +0100, Sudeep Holla wrote:
-> 
-> 
-> On 05/10/16 12:41, Mika Westerberg wrote:
-> > On Wed, Oct 05, 2016 at 10:22:15AM +0100, Lorenzo Pieralisi wrote:
-> > > [ +MarkR, MarkB, Rob, Al - I suspect they may want to have a say]
-> > > 
-> > > On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
-> > > > Hello everyone,
-> > > > 
-> > > > I've been working awhile with my collegue Mika Westerberg to bring
-> > > > firmware graph support to ACPI based systems. In practice the
-> > > > functionality achieved by these patches is very similar to what the Device
-> > > > tree provides: the port and the endpoint concept are being employed. The
-> > > > patches make use of the _DSD property and data extensions to achieve this.
-> > > > The fwnode interface is extended by graph functionality; this way graph
-> > > > information originating from both OF and ACPI may be accessed using the
-> > > > same interface.
-> > > 
-> > > There is an ongoing effort to avoid wholesale import of DT bindings
-> > > into ACPI, I am not a V4L2 expert but it seems to me that with patches
-> > > like the one you have submitted we are getting closer and closer to
-> > > achieving it instead of avoiding it.
-> > 
-> > The whole purpose of PRP0001 ID is to allow DT bindings to be reused in
-> > ACPI systems, so that the drivers can just call device_property_* and
-> > get the properties regardless of the underlying firmware interface.
-> > 
-> 
-> Does this also mean if there's some new bindings added to DT which ACPI
-> specification still lacks, then instead of enhancing ACPI specification
-> adding that to it, we can take a shortcut method of PRP0001 and
-> completely ignore ACPI. People are trying to do that as it's simple and
-> faster.
+On Wed, Oct 5, 2016 at 7:29 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Sun, Oct 2, 2016 at 3:56 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>
+>> This goes early as I will be traveling for a good part of the next week.
+>
+> So you're presumably traveling, but I thought I'd mention this anyway,
+> since it seems to be new (but maybe I just never noticed before)..
+>
+> I now get this during early bootup:
+>
+>    ACPI Error: [\_SB_.PCI0.XHC_.RHUB.HS11] Namespace lookup failure,
+> AE_NOT_FOUND (20160831/dswload-210)
+>    ACPI Exception: AE_NOT_FOUND, During name lookup/catalog
+> (20160831/psobject-227)
+>    ACPI Exception: AE_NOT_FOUND, (SSDT:xh_rvp08) while loading table
+> (20160831/tbxfload-228)
+>    ACPI Error: 1 table load failures, 8 successful (20160831/tbxfload-246)
+>
+> and it has no actual other negative effects except that it makes my
+> boot screen flicker (because the boot wants to show me errors in
+> between the usual graphical "clean" boot screen).
+>
+> Are those failures so bad that they should be marked as errors?
 
-No and we are not ignoring ACPI either with this patch series.
+They come from ACPICA that appears to have problems with some AML in
+the ACPI tables, but I agree that they should rather be debug
+messages.
 
-> And yes this has been raised multiple times in past, but worth raising
-> every-time we head in that direction. And it's increasing day-by-day
-> which is alarming.
-> 
-> Even though you may say no to that, it absolutely prevents no one
-> to do so unless we control what bindings can be support using DSD.
+Lv, it looks like these messages could only be useful for debugging,
+so any chance to reduce their log level accordingly?
 
-So how you propose we deal with this? Add it to the ACPI spec?
+Thanks,
+Rafael
