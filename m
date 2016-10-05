@@ -1,42 +1,37 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] ACPI material for v4.9-rc1
-Date: Wed, 5 Oct 2016 10:29:40 -0700
-Message-ID: <CA+55aFwFVZVkApwrei5A68kfc5+D32x5JKkvnuqiJS731Nv=Ew@mail.gmail.com>
-References: <CAJZ5v0ij+mUnjJZ3RR37yUFgc+RPndwPNhTGa3RF4PNFQ+RH8Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:34619 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753207AbcJER3l (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Oct 2016 13:29:41 -0400
-In-Reply-To: <CAJZ5v0ij+mUnjJZ3RR37yUFgc+RPndwPNhTGa3RF4PNFQ+RH8Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Eric Biggers <ebiggers@google.com>
+Subject: [PATCH] ACPI / EC: Fix unused function warning when CONFIG_PM_SLEEP=n
+Date: Wed,  5 Oct 2016 10:33:16 -0700
+Message-ID: <1475688796-17936-1-git-send-email-ebiggers@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lv.zheng@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Eric Biggers <ebiggers@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 
-On Sun, Oct 2, 2016 at 3:56 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> This goes early as I will be traveling for a good part of the next week.
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+ drivers/acpi/ec.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-So you're presumably traveling, but I thought I'd mention this anyway,
-since it seems to be new (but maybe I just never noticed before)..
-
-I now get this during early bootup:
-
-   ACPI Error: [\_SB_.PCI0.XHC_.RHUB.HS11] Namespace lookup failure,
-AE_NOT_FOUND (20160831/dswload-210)
-   ACPI Exception: AE_NOT_FOUND, During name lookup/catalog
-(20160831/psobject-227)
-   ACPI Exception: AE_NOT_FOUND, (SSDT:xh_rvp08) while loading table
-(20160831/tbxfload-228)
-   ACPI Error: 1 table load failures, 8 successful (20160831/tbxfload-246)
-
-and it has no actual other negative effects except that it makes my
-boot screen flicker (because the boot wants to show me errors in
-between the usual graphical "clean" boot screen).
-
-Are those failures so bad that they should be marked as errors?
-
-                Linus
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 6805310..48e19d0 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -526,6 +526,7 @@ static void acpi_ec_enable_event(struct acpi_ec *ec)
+ 		acpi_ec_clear(ec);
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
+ static bool acpi_ec_query_flushed(struct acpi_ec *ec)
+ {
+ 	bool flushed;
+@@ -557,6 +558,7 @@ static void acpi_ec_disable_event(struct acpi_ec *ec)
+ 	spin_unlock_irqrestore(&ec->lock, flags);
+ 	__acpi_ec_flush_event(ec);
+ }
++#endif /* CONFIG_PM_SLEEP */
+ 
+ static bool acpi_ec_guard_event(struct acpi_ec *ec)
+ {
+-- 
+2.8.0.rc3.226.g39d4020
