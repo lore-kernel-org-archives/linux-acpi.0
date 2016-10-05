@@ -1,117 +1,79 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC 00/15] ACPI graph support
-Date: Wed, 5 Oct 2016 18:32:29 +0300
-Message-ID: <20161005153229.GO1765@lahna.fi.intel.com>
-References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon>
- <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v5 4/9] x86: Enable Intel Turbo Boost Max Technology 3.0
+Date: Wed, 05 Oct 2016 09:05:20 -0700
+Message-ID: <1475683520.3916.285.camel@linux.intel.com>
+References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <1475322326-160112-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <alpine.DEB.2.20.1610051616010.8953@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:29477 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752512AbcJEPcj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Oct 2016 11:32:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20161005150641.GA22282@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.20.1610051616010.8953@nanos>
+Sender: linux-pm-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Wed, Oct 05, 2016 at 04:06:41PM +0100, Lorenzo Pieralisi wrote:
-> On Wed, Oct 05, 2016 at 02:41:29PM +0300, Mika Westerberg wrote:
-> > On Wed, Oct 05, 2016 at 10:22:15AM +0100, Lorenzo Pieralisi wrote:
-> > > [ +MarkR, MarkB, Rob, Al - I suspect they may want to have a say]
-> > > 
-> > > On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
-> > > > Hello everyone,
-> > > > 
-> > > > I've been working awhile with my collegue Mika Westerberg to bring
-> > > > firmware graph support to ACPI based systems. In practice the
-> > > > functionality achieved by these patches is very similar to what the Device
-> > > > tree provides: the port and the endpoint concept are being employed. The
-> > > > patches make use of the _DSD property and data extensions to achieve this.
-> > > > The fwnode interface is extended by graph functionality; this way graph
-> > > > information originating from both OF and ACPI may be accessed using the
-> > > > same interface.
-> > > 
-> > > There is an ongoing effort to avoid wholesale import of DT bindings
-> > > into ACPI, I am not a V4L2 expert but it seems to me that with patches
-> > > like the one you have submitted we are getting closer and closer to
-> > > achieving it instead of avoiding it.
+On Wed, 2016-10-05 at 16:23 +0200, Thomas Gleixner wrote:
+> On Sat, 1 Oct 2016, Srinivas Pandruvada wrote:
 > > 
-> > The whole purpose of PRP0001 ID is to allow DT bindings to be reused in
-> > ACPI systems, so that the drivers can just call device_property_* and
-> > get the properties regardless of the underlying firmware interface.
-> > 
-> > Are you saying that's not wanted?
+> > +void sched_set_itmt_support(bool itmt_supported)
+> > +{
+> > +	mutex_lock(&itmt_update_mutex);
+> > +
+> > +	if (itmt_supported != sched_itmt_capable)
+> > +		sched_itmt_capable = itmt_supported;
+> Yikes. What is this conditional for? The only value it has is to confuse
+> the reader.
+
+Will remove the check.
+
 > 
-> Not wholesale DT bindings import into ACPI, just no way.
-
-Of course not all DT bindings. Only those that do not have a native ACPI
-representation.
-
-The PRP0001 is there so that we do not end up with drivers looking like
-this:
-
-	if (dev->of_node)
-		device_property_read_xx(dev, "my-dt-property", &value);
-	else if (has_acpi_handle(dev))
-		device_property_read_xx(dev, "my-acpi-property", &value);
-	else
-		device_property_read_xx(dev, "my-builtin-property", &value)
-
-but instead they can use the single "my-property" regardless from which
-firmware interface is used.
-
-If there exists a native ACPI representation, like a PowerResource or
-GPIO, it should be used instead.
-
-> > > For your information, Al is working on a process to submit _DSD
-> > > bindings and this patchset should at least be vetted within that
-> > > context.
 > > 
-> > Of course but is it more like "use these properties for our hardware
-> > XYZ"? I mean remote endpoints is a generic concept and not tied to a
-> > certain hardware.
+> > +
+> > +	mutex_unlock(&itmt_update_mutex);
+> > +}
+> > +
+> > +DEFINE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
+> Darn. Do not stick variable definitiions in the middle of the code and
+> especially not glued to the function w/o a newline in between. Move it to
+> the top of the file.
+
+Will move to top of file.
+
+> 
 > > 
-> > > It is an RFC and my comment is that I do not like the direction
-> > > this ACPI->_DSD->DT is taking, I would like to understand where
-> > > this is intended to stop because I am getting worried.
+> > +int arch_asym_cpu_priority(int cpu)
+> > +{
+> > +	return per_cpu(sched_core_priority, cpu);
+> > +}
+> 
 > > 
-> > I understand that if there is already an existing native ACPI way of
-> > doing things, that should be used. However, we do not have such thing
-> > for remote endpoints used between camera components, and on the other
-> > hand there is an exiting DT binding which only requires small changes to
-> > the v4l2 framework (convert it to use fwnodes) to get the thing
-> > supported on both DT and ACPI systems.
+> > +void sched_set_itmt_core_prio(int prio, int core_cpu)
+> > +{
+> > +	int cpu, i = 1;
+> > +
+> > +	for_each_cpu(cpu, topology_sibling_cpumask(core_cpu)) {
+> > +		int smt_prio;
+> > +
+> > +		/*
+> > +		 * Ensure that the siblings are moved to the end
+> > +		 * of the priority chain and only used when
+> > +		 * all other high priority cpus are out of capacity.
+> > +		 */
+> > +		smt_prio = prio * smp_num_siblings / i;
+> > +		i++;
+> Your code ordering is really random. What has this i++ to do with the
+> store? Nothing. It just makes reading the code harder. Just move it below
+> the store.
+
+Will move it to the end of for loop.
+
 > 
-> FWIW I had a quick look at dts bindings with "compatible = nokia,smia"
-> and related kernel driver.
-> 
-> Those nodes require properties like clocks and power supplies, it
-> seems to me that there are already ACPI PM methods to control those
-> properties and therefore they should not be handled with PRP0001,
-> I am happy to be corrected if I am wrong.
+> > 
+> > +		per_cpu(sched_core_priority, cpu) = smt_prio;
 
-Clocks and power supplies should be handled as native ACPI
-PowerResources. We are not trying to represent those here.
+Thanks.
 
-> When you start matching whole subsystem through PRP0001 and related
-> compatible strings you can end up in a situation where DT and ACPI
-> FW handling clash and that's why we were opposed to mixing them from
-> the beginning, in ARM world if we need a DT we boot with a devicetree.
-> 
-> If PRP0001 is used for leaf-nodes drivers properties it may work,
-> everything else, frankly, is a bit of a gamble you are taking.
-
-The hardware we are describing is exactly the same, only thing that
-changes is the firmware interface. So if there is a hardware property
-that cannot be discovered automatically it needs to be provided by the
-firmware, like ACPI.
-
-If it happens that the property already has an existing DT binding, why
-do you think it is gambling to use it instead of inventing the same with
-annother name for ACPI?
+Tim
