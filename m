@@ -1,68 +1,99 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC 00/15] ACPI graph support
-Date: Wed, 5 Oct 2016 17:18:00 +0100
-Message-ID: <20161005161800.GA22433@red-moon>
-References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon>
- <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon>
- <20161005153229.GO1765@lahna.fi.intel.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v5 5/9] x86/sysctl: Add sysctl for ITMT scheduling
+ feature
+Date: Wed, 05 Oct 2016 09:24:33 -0700
+Message-ID: <1475684673.3916.299.camel@linux.intel.com>
+References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <1475322326-160112-6-git-send-email-srinivas.pandruvada@linux.intel.com>
+         <alpine.DEB.2.20.1610051624590.8953@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:45396 "EHLO foss.arm.com"
+Received: from mga14.intel.com ([192.55.52.115]:6055 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753900AbcJEQR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Oct 2016 12:17:28 -0400
-Content-Disposition: inline
-In-Reply-To: <20161005153229.GO1765@lahna.fi.intel.com>
+        id S1750807AbcJEQY6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 5 Oct 2016 12:24:58 -0400
+In-Reply-To: <alpine.DEB.2.20.1610051624590.8953@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com
 
-On Wed, Oct 05, 2016 at 06:32:29PM +0300, Mika Westerberg wrote:
-
-[...]
-
-> > FWIW I had a quick look at dts bindings with "compatible = nokia,smia"
-> > and related kernel driver.
+On Wed, 2016-10-05 at 16:35 +0200, Thomas Gleixner wrote:
+> On Sat, 1 Oct 2016, Srinivas Pandruvada wrote:
 > > 
-> > Those nodes require properties like clocks and power supplies, it
-> > seems to me that there are already ACPI PM methods to control those
-> > properties and therefore they should not be handled with PRP0001,
-> > I am happy to be corrected if I am wrong.
+> > +static int sched_itmt_update_handler(struct ctl_table *table, int write,
+> > +			      void __user *buffer, size_t *lenp, loff_t *ppos)
+> > +{
+> > +	int ret;
+> > +	unsigned int old_sysctl;
+> > +
+> > +	mutex_lock(&itmt_update_mutex);
+> > +
+> > +	if (!sched_itmt_capable) {
+> > +		mutex_unlock(&itmt_update_mutex);
+> > +		return 0;
+> This should return a proper error code.
+
+Okay. Will return EINVAL instead.
+
 > 
-> Clocks and power supplies should be handled as native ACPI
-> PowerResources. We are not trying to represent those here.
-> 
-> > When you start matching whole subsystem through PRP0001 and related
-> > compatible strings you can end up in a situation where DT and ACPI
-> > FW handling clash and that's why we were opposed to mixing them from
-> > the beginning, in ARM world if we need a DT we boot with a devicetree.
 > > 
-> > If PRP0001 is used for leaf-nodes drivers properties it may work,
-> > everything else, frankly, is a bit of a gamble you are taking.
+> >  void sched_set_itmt_support(bool itmt_supported)
+> >  {
+> >  	mutex_lock(&itmt_update_mutex);
+> >  
+> > -	if (itmt_supported != sched_itmt_capable)
+> > -		sched_itmt_capable = itmt_supported;
+> > +	if (itmt_supported == sched_itmt_capable) {
+> > +		mutex_unlock(&itmt_update_mutex);
+> > +		return;
+> > +	}
+> > +	sched_itmt_capable = itmt_supported;
+> > +
+> > +	if (itmt_supported) {
+> > +		itmt_sysctl_header =
+> > +			register_sysctl_table(itmt_root_table);
+> > +		if (!itmt_sysctl_header) {
+> > +			mutex_unlock(&itmt_update_mutex);
+> > +			return;
+> So you now have a state of capable which cannot be enabled. Whats the
+> point?
+
+For multi-socket system where ITMT is not enabled by default, the operator
+can still decide to enable it via sysctl.
+
 > 
-> The hardware we are describing is exactly the same, only thing that
-> changes is the firmware interface. So if there is a hardware property
-> that cannot be discovered automatically it needs to be provided by the
-> firmware, like ACPI.
+> > 
+> > +		}
+> > +		/*
+> > +		 * ITMT capability automatically enables ITMT
+> > +		 * scheduling for small systems (single node).
+> > +		 */
+> > +		if (topology_num_packages() == 1)
+> > +			sysctl_sched_itmt_enabled = 1;
+> > +	} else {
+> > +		if (itmt_sysctl_header)
+> > +			unregister_sysctl_table(itmt_sysctl_header);
+> > +	}
+> > +
+> > +	if (sysctl_sched_itmt_enabled) {
+> > +		/* disable sched_itmt if we are no longer ITMT capable */
+> > +		if (!itmt_supported)
+> 
+> How do you get here if itmt is not supported? 
 
-We certainly agree that HW is the same and that the firmware interfaces
-differ, that's why mixing them is not exactly ideal.
+If the OS decides to turn off ITMT for any reason, (i.e. invoke 
+sched_set_itmt_support(false) after it has turned on itmt_support
+before), this is the logic to do it.  We don't turn off ITMT support
+after it has been turned on today, in the future the OS may.
 
-> If it happens that the property already has an existing DT binding, why
-> do you think it is gambling to use it instead of inventing the same with
-> annother name for ACPI?
+If you prefer, I can change things to sched_set_itmt_support(void) so
+we can only turn on ITMT support. And once the support is on, we
+don't revoke it.
 
-Do not spin the argument. I am telling you that what I am worried
-about is mixing the interfaces because that might trigger kernel
-control paths clashing while controlling HW (DT native vs ACPI control
-methods). I am pretty sure this won't happen, still, if you do not mind
-please post this series (and drivers actually making use of it) to a
-wider audience (which includes devicetree and ARM mailing list) and we
-will restart the discussion from there.
+Thanks.
 
-Thanks,
-Lorenzo
+Tim
+
