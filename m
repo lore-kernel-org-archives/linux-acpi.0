@@ -1,46 +1,66 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH V2 3/3] Revert "ACPI,PCI,IRQ: remove SCI penalize
- function"
-Date: Wed, 5 Oct 2016 15:38:52 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1610051538310.8953@nanos>
-References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org> <1475615720-31047-4-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH v5 4/9] x86: Enable Intel Turbo Boost Max Technology
+ 3.0
+Date: Wed, 5 Oct 2016 16:23:49 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1610051616010.8953@nanos>
+References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1475322326-160112-5-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1475615720-31047-4-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1475322326-160112-5-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, tim.c.chen@linux.intel.com, jolsa@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 4 Oct 2016, Sinan Kaya wrote:
+On Sat, 1 Oct 2016, Srinivas Pandruvada wrote:
+> +void sched_set_itmt_support(bool itmt_supported)
+> +{
+> +	mutex_lock(&itmt_update_mutex);
+> +
+> +	if (itmt_supported != sched_itmt_capable)
+> +		sched_itmt_capable = itmt_supported;
 
-> The SCI function was removed in two steps (first refactor and then remove).
-> This patch does the revert in one step.
-> 
-> The commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
-> refactored the original code so that SCI penalty is calculated dynamically
-> by the time get_penalty function is called. This patch does a partial
-> revert for the SCI functionality only.
-> 
-> The commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize function") is
-> for the removal of the function. SCI penalty API was replaced by the
-> runtime penalty calculation based on the value of
-> acpi_gbl_FADT.sci_interrupt.
-> 
-> The IRQ type does not get updated at the right time for some platforms and
-> results in incorrect penalty assignment for PCI IRQs as
-> irq_get_trigger_type returns the wrong type.
-> 
-> The register_gsi function delivers the IRQ found in the ACPI table to
-> the interrupt controller driver.  Penalties are calculated before a
-> link object is enabled to find out which interrupt has the least number
-> of users. By the time penalties are calculated, the IRQ is not registered
-> yet and the API returns the wrong type.
-> 
-> Tested-by: Jonathan Liu <net147@gmail.com>
-> Tested-by: Ondrej Zary <linux@rainbow-software.org>
-> Link: https://lkml.org/lkml/2016/10/4/283
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Yikes. What is this conditional for? The only value it has is to confuse
+the reader.
 
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+> +
+> +	mutex_unlock(&itmt_update_mutex);
+> +}
+> +
+> +DEFINE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
+
+Darn. Do not stick variable definitiions in the middle of the code and
+especially not glued to the function w/o a newline in between. Move it to
+the top of the file.
+
+> +int arch_asym_cpu_priority(int cpu)
+> +{
+> +	return per_cpu(sched_core_priority, cpu);
+> +}
+
+
+> +void sched_set_itmt_core_prio(int prio, int core_cpu)
+> +{
+> +	int cpu, i = 1;
+> +
+> +	for_each_cpu(cpu, topology_sibling_cpumask(core_cpu)) {
+> +		int smt_prio;
+> +
+> +		/*
+> +		 * Ensure that the siblings are moved to the end
+> +		 * of the priority chain and only used when
+> +		 * all other high priority cpus are out of capacity.
+> +		 */
+> +		smt_prio = prio * smp_num_siblings / i;
+> +		i++;
+
+Your code ordering is really random. What has this i++ to do with the
+store? Nothing. It just makes reading the code harder. Just move it below
+the store.
+
+> +		per_cpu(sched_core_priority, cpu) = smt_prio;
+
+Thanks,
+
+	tglx
