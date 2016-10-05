@@ -1,58 +1,64 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH] MAINTAINERS: Add ARM64-specific ACPI maintainers entry
-Date: Wed,  5 Oct 2016 12:25:40 +0100
-Message-ID: <20161005112540.22189-1-lorenzo.pieralisi@arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC 00/15] ACPI graph support
+Date: Wed, 5 Oct 2016 14:41:29 +0300
+Message-ID: <20161005114129.GI1765@lahna.fi.intel.com>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161005092215.GA20248@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40228 "EHLO foss.arm.com"
+Received: from mga06.intel.com ([134.134.136.31]:24294 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751128AbcJELZP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Oct 2016 07:25:15 -0400
+        id S1752702AbcJELlf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 5 Oct 2016 07:41:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20161005092215.GA20248@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-The ARM64 architecture defines ARM64 specific ACPI bindings to
-configure and set-up arch specific components. To simplify
-code reviews/updates and streamline the maintainership structure
-supporting the arch specific code, a new arm64 directory was created in
-/drivers/acpi, to contain ACPI code that is specific to ARM64
-architecture.
+On Wed, Oct 05, 2016 at 10:22:15AM +0100, Lorenzo Pieralisi wrote:
+> [ +MarkR, MarkB, Rob, Al - I suspect they may want to have a say]
+> 
+> On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
+> > Hello everyone,
+> > 
+> > I've been working awhile with my collegue Mika Westerberg to bring
+> > firmware graph support to ACPI based systems. In practice the
+> > functionality achieved by these patches is very similar to what the Device
+> > tree provides: the port and the endpoint concept are being employed. The
+> > patches make use of the _DSD property and data extensions to achieve this.
+> > The fwnode interface is extended by graph functionality; this way graph
+> > information originating from both OF and ACPI may be accessed using the
+> > same interface.
+> 
+> There is an ongoing effort to avoid wholesale import of DT bindings
+> into ACPI, I am not a V4L2 expert but it seems to me that with patches
+> like the one you have submitted we are getting closer and closer to
+> achieving it instead of avoiding it.
 
-Add the ARM64-specific ACPI maintainers entry in MAINTAINERS for
-the newly created subdirectory and respective code content.
+The whole purpose of PRP0001 ID is to allow DT bindings to be reused in
+ACPI systems, so that the drivers can just call device_property_* and
+get the properties regardless of the underlying firmware interface.
 
-Lorenzo Pieralisi will be in charge of submitting and managing
-the pull requests on behalf of all maintainers listed.
+Are you saying that's not wanted?
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Link: http://lkml.kernel.org/r/1603704.EGiVTcCxLR@vostro.rjw.lan
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+> For your information, Al is working on a process to submit _DSD
+> bindings and this patchset should at least be vetted within that
+> context.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f593300..2a70dd9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -316,6 +316,14 @@ W:	https://01.org/linux-acpi
- S:	Supported
- F:	drivers/acpi/fan.c
- 
-+ACPI FOR ARM64 (ACPI/arm64)
-+M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-+M:	Hanjun Guo <hanjun.guo@linaro.org>
-+M:	Sudeep Holla <sudeep.holla@arm.com>
-+L:	linux-acpi@vger.kernel.org
-+S:	Maintained
-+F:	drivers/acpi/arm64
-+
- ACPI THERMAL DRIVER
- M:	Zhang Rui <rui.zhang@intel.com>
- L:	linux-acpi@vger.kernel.org
--- 
-2.10.0
+Of course but is it more like "use these properties for our hardware
+XYZ"? I mean remote endpoints is a generic concept and not tied to a
+certain hardware.
 
+> It is an RFC and my comment is that I do not like the direction
+> this ACPI->_DSD->DT is taking, I would like to understand where
+> this is intended to stop because I am getting worried.
+
+I understand that if there is already an existing native ACPI way of
+doing things, that should be used. However, we do not have such thing
+for remote endpoints used between camera components, and on the other
+hand there is an exiting DT binding which only requires small changes to
+the v4l2 framework (convert it to use fwnodes) to get the thing
+supported on both DT and ACPI systems.
