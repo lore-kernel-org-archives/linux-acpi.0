@@ -1,64 +1,84 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC 00/15] ACPI graph support
-Date: Wed, 5 Oct 2016 14:41:29 +0300
-Message-ID: <20161005114129.GI1765@lahna.fi.intel.com>
-References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2 5/5] PCI: Avoid unnecessary resume on shutdown
+Date: Wed, 5 Oct 2016 14:32:27 +0200
+Message-ID: <20161005123227.GA5855@wunner.de>
+References: <cover.1474130360.git.lukas@wunner.de>
+ <1474276343.2044.4.camel@suse.com>
+ <20160919101402.GA2506@wunner.de>
+ <19951801.HyPAFRyVuO@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:24294 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752702AbcJELlf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 5 Oct 2016 07:41:35 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161005092215.GA20248@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <19951801.HyPAFRyVuO@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Oliver Neukum <oneukum@suse.com>, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Wu <peter@lekensteyn.nl>, Andreas Noever <andreas.noever@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Wed, Oct 05, 2016 at 10:22:15AM +0100, Lorenzo Pieralisi wrote:
-> [ +MarkR, MarkB, Rob, Al - I suspect they may want to have a say]
-> 
-> On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
-> > Hello everyone,
+On Sat, Sep 24, 2016 at 02:50:05AM +0200, Rafael J. Wysocki wrote:
+> On Monday, September 19, 2016 12:14:02 PM Lukas Wunner wrote:
+> > On Mon, Sep 19, 2016 at 11:12:23AM +0200, Oliver Neukum wrote:
+> > > On Sun, 2016-09-18 at 05:39 +0200, Lukas Wunner wrote:
+> > > > We currently perform a mandatory runtime resume of all PCI devices
+> > > > on ->shutdown.  However it is pointless to wake devices only to
+> > > > immediately power them down afterwards.  (Or have the firmware
+> > > > reset them, in case of a reboot.)
+> > > > 
+> > > > It seems there are only two cases when a runtime resume is actually
+> > > > necessary:  If the driver has declared a ->shutdown callback or if
+> > > > kexec is in progress.
+> > > > 
+> > > > Constrain resume of a device to these cases and let it slumber
+> > > > otherwise, thereby conserving energy and speeding up shutdown.
+> > > 
+> > > What happens if you get a wakeup event while going down?
 > > 
-> > I've been working awhile with my collegue Mika Westerberg to bring
-> > firmware graph support to ACPI based systems. In practice the
-> > functionality achieved by these patches is very similar to what the Device
-> > tree provides: the port and the endpoint concept are being employed. The
-> > patches make use of the _DSD property and data extensions to achieve this.
-> > The fwnode interface is extended by graph functionality; this way graph
-> > information originating from both OF and ACPI may be accessed using the
-> > same interface.
+> > Hm, I should probably disable that with
+> > 
+> > 	__pci_enable_wake(pci_dev, pci_dev->current_state, true, false);
+> > 
 > 
-> There is an ongoing effort to avoid wholesale import of DT bindings
-> into ACPI, I am not a V4L2 expert but it seems to me that with patches
-> like the one you have submitted we are getting closer and closer to
-> achieving it instead of avoiding it.
+> What if the user wants, say, WoL to power on the system?
 
-The whole purpose of PRP0001 ID is to allow DT bindings to be reused in
-ACPI systems, so that the drivers can just call device_property_* and
-get the properties regardless of the underlying firmware interface.
+When the PCI device is runtime resumed, the function call above
+will be executed by pci_pm_runtime_resume(), so WoL will be disabled
+as well.
 
-Are you saying that's not wanted?
+There are a few drivers which re-enable WoL from their ->shutdown
+hook, but that isn't impacted by this patch because the fast path
+isn't taken if the driver has a ->shutdown hook.
 
-> For your information, Al is working on a process to submit _DSD
-> bindings and this patchset should at least be vetted within that
-> context.
 
-Of course but is it more like "use these properties for our hardware
-XYZ"? I mean remote endpoints is a generic concept and not tied to a
-certain hardware.
+> But there's another theoretical issue here.
+> 
+> On systems with ACPI some devices may need to be reconfigured for wakeup
+> from S5 even though they have been configured for signaling wakeup while
+> in S0.  Those would still need to be resumed.
 
-> It is an RFC and my comment is that I do not like the direction
-> this ACPI->_DSD->DT is taking, I would like to understand where
-> this is intended to stop because I am getting worried.
+Hm, why does the device have to be resumed for that?  The ACPI 6.0 spec
+says for _DSW:
 
-I understand that if there is already an existing native ACPI way of
-doing things, that should be used. However, we do not have such thing
-for remote endpoints used between camera components, and on the other
-hand there is an exiting DT binding which only requires small changes to
-the v4l2 framework (convert it to use fwnodes) to get the thing
-supported on both DT and ACPI systems.
+"This control method can only access Operation Regions that are either
+always available while in a system working state or that are available
+when the Power Resources referenced by the _PRW object are all ON."
+
+Before _DSW is executed, all power resources are turned on, so whatever
+_DSW does, the device should be powered up and accessible.  Does OSPM
+really have to runtime resume the device for _DSW?
+
+
+Another potential issue that crossed my mind is I/O virtualization:
+If a PCI device is passed through to a guest VM, the VM may enable
+PME, put the device in D3, etc.  If the VM is shut down, can anything
+go wrong if the fast path is taken for runtime suspended devices?
+(To be fair, if the VM crashes and doesn't shut down passed through
+devices orderly, we'd be in the same situation.)  PME would be disabled
+as described above, and leaving the device in D3hot should be fine as well.
+If the host or another guest VM wants to use the PCI device afterwards,
+it will resume it to D0 with pci_enable_device() in the driver's ->probe
+hook.  Let me know if you find flaws in this line of thought.
+
+Thanks!
+
+Lukas
