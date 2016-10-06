@@ -1,69 +1,126 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [RFC 00/15] ACPI graph support
-Date: Thu, 6 Oct 2016 15:15:36 +0200
-Message-ID: <CAJZ5v0htdbUpqZNPi00ieNJ5WWiAczK+LbKLYobNGAr3Sr+HWw@mail.gmail.com>
+Date: Thu, 6 Oct 2016 15:20:08 +0100
+Message-ID: <8999b937-4c06-6d82-aef5-6b7700a2a10c@arm.com>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
  <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon> <20161005153229.GO1765@lahna.fi.intel.com>
- <20161005161800.GA22433@red-moon> <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
- <20161006085703.GA22776@red-moon> <20161006091133.GF30800@lahna.fi.intel.com> <20161006104058.uqdkv3pfihicxyfv@sirena.org.uk>
+ <788f4bcd-605f-2694-5df5-ec7ef1bde233@arm.com>
+ <CAJZ5v0iYPbLry-ZKeFqvm4Jeg24J7E6vQzV56jCh2N5fU6AQsw@mail.gmail.com>
+ <0e56c5b2-0042-28e5-7445-6fe8422c728e@arm.com>
+ <CAJZ5v0hy8V_WUuzOtT4oPt_hPRDUMHR5UYxVD0X3bVQe5AJf9Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36308 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751757AbcJFNPj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 09:15:39 -0400
-Received: by mail-wm0-f68.google.com with SMTP id 123so3488044wmb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Oct 2016 06:15:38 -0700 (PDT)
-In-Reply-To: <20161006104058.uqdkv3pfihicxyfv@sirena.org.uk>
+Received: from foss.arm.com ([217.140.101.70]:59358 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752872AbcJFOUN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 6 Oct 2016 10:20:13 -0400
+In-Reply-To: <CAJZ5v0hy8V_WUuzOtT4oPt_hPRDUMHR5UYxVD0X3bVQe5AJf9Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Thu, Oct 6, 2016 at 12:40 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Thu, Oct 06, 2016 at 12:11:33PM +0300, Mika Westerberg wrote:
+
+
+On 06/10/16 14:04, Rafael J. Wysocki wrote:
+> On Thu, Oct 6, 2016 at 12:29 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+
+[...]
+
+>> No doubt about that, though controlling it is another question.
+>> Especially ARM vendors who have some driver for DT might just use this
+>> method without anyone noticing, ignoring the ACPI method as everything
+>> just works out of box. That's the main worry. Also it also provides no
+>> incentive for them to work with ASWG to enhance ACPI specification.
 >
->> One reason is that we have boards like Joule where developers are
->> allowed to connect different peripherals using buses such as I2C and SPI
->> where there is no native enumeration mechanism. This includes camera
->> sensors and related so there needs to be a way for a developer to
->> describe this in ACPI. Just as can be done when using ARM and DT.
+> They will need to hack the kernel to do that, because the mainline
+> will not support anything like regulator or pinctrl support based on
+> DT properties, at least as long as I have any influence on that.
 >
-> One of my biggest concerns with this approach is that I'm really not
-> clear to me that that this has broad buy in from the x86/ACPI community
-> and therefore that we might end up needing to support several different
-> styles of ACPI bindings.  Reuse would be great but it can be confusing
-> if there's multiple different styles of bindings in use at the same
-> time.
 
-My view on that is a bit different.
+OK, that's good.
 
-Even if there's more than one style in use, they all can be supported
-at the same time.  Avoiding confusion is only a matter of prioritizing
-them, then.
+> And if they need to hack the kernel anyway, nothing prevents them from
+> hacking it to support whatever properties they like even if we don't
+> put any support for any generic _DSD properties into the mainline.
+> That's why the whole "oh but this allows ARM vendors to abuse things"
+> argument doesn't hold any water in my view.
+>
 
-It should be clear which style is the default one, which is going to
-be taken into consideration next and so on.  If that is made clear, I
-don't see a big problem here, at least in principle.
+While I agree with you, the argument which will be done and will win
+most of the time to upstream something is that "we have shipped the
+product with that table, we need to support it upstream...". I don't
+think even you disagree with that ;)
 
-> The audio systems that have this issue (which include production laptops
-> and tablets with both Windows and ChromeOS) don't seem to be showing
-> much interest in reusing any of the DT work beyond the device level
-> properties and I didn't think the OS level support for using _DSD in
-> Windows was great.  There were also the pinctrl bindings which had some
-> issues too.
+> Yes, it may make it a bit easier for them to abuse things (as they
+> don't have to hack the kernel to support properties already supported
+> by it), but OTOH it sort of avoids the problem that multiple vendors
+> could hack the kernel in different and possibly incompatible ways to
+> make it support the same set of properties they all need.
+>
 
-The pinctrl thing is being dealt with (and not in a way of adding
-pinctrl _DSD properties support to the kernel FWIW).  Other things
-potentially conflicting with ACPI-defined HW control should be dealt
-with analogously.
+Pity, but still better :)
 
-The point here is that some things just don't conflict with
-ACPI-defined HW control even potentially and they can be handled with
-the help of _DSD properties just fine.  Thus, there are no technical
-obstacles to do that, at least not in principle.
+>> Sure. On the side note, we should at-least have PRP0001 reserved
+>> officially in the ACPI specification, I still see no mention about that
+>> in the spec and both firmware and Linux are using it for a while now.
+>
+> The whole PRPxxxx range of device IDs is reserved.
+>
 
-Thanks,
-Rafael
+Good, sorry I couldn't spot anything in ACPIv6.1 or uefi.org apart from
+dsd mailing list.
+
+>>> There is a metric ton of DT-centric code already in the kernel that is
+>>> well understood and tested and it would be plain unreasonable to try
+>>> to reinvent the wheel and (a) invent ACPI-specific ways of doing the
+>>> same thing for every use case that is distinct enough and (b) write
+>>> code using those ACPI-specific ways instead of already defined
+>>> properties just in order to handle the same hardware in the same OS.
+>>> [If you have to support different OSes, this is a different matter.]
+>>>
+>>
+>> Agreed, but as you mentioned the question of different OS remains.
+>>
+>>> If you are saying "no DT properties in _DSD", this implies that code
+>>> reuse is bad for some unspecified reason.  It is very difficult to me
+>>> to agree with that position.
+>>>
+>>
+>> No, I am not saying no. I am just worried where do we stop this and how
+>> do we prevent ARM vendors exploiting this, and not rather contributing
+>> to the ACPI specification enhancement.
+>
+> The ACPI spec may not be the right place to define support for things
+> this series is about, though.  Ideally, they should be defined by
+> other standards using ASL as a form of expression or representation,
+> if you will.
+>
+
+Yes, that would be ideal.
+
+> And that still needs to happen for different OSes to be able to use
+> the ACPI tables in the same way (which doesn't even happen for
+> different versions of Windows, but that's a different matter).
+>
+> However, adding support for additional _DSD properties to the mainline
+> kernel need not prevent a standardization process like this from
+> happening.  The point is that this process will take time and both the
+> HW and the code in the kernel supporting it are available today.  The
+> only problem is that the code is DT-centric and there are ACPI tables
+> in the boards in question.
+>
+> If/when the new standard comes along, we will support it by default
+> and then fall back to _DSD properties if information defined by it is
+> not available.  Pretty much the same way as we fall back to
+> driver-supplied data if we can get information we need from the
+> platform firmware.
+>
+
+Yes that's much better.
+
+-- 
+Regards,
+Sudeep
