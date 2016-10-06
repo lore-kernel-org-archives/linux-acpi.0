@@ -1,64 +1,68 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [RFC 00/15] ACPI graph support
-Date: Thu, 6 Oct 2016 19:02:21 +0200
-Message-ID: <CAJZ5v0hdewtK0_xvRFBMMUPrgaFCHR=uXrdWh9+mbw+adqG06A@mail.gmail.com>
-References: <20161005150641.GA22282@red-moon> <20161005153229.GO1765@lahna.fi.intel.com>
- <20161005161800.GA22433@red-moon> <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
- <20161006085703.GA22776@red-moon> <20161006091133.GF30800@lahna.fi.intel.com>
- <20161006095739.GA22984@red-moon> <20161006111922.GI30800@lahna.fi.intel.com>
- <20161006153129.x6fosp725slgapjk@sirena.org.uk> <CAJZ5v0izHFuZbW84arDnZvht=jigstD1F9m6GLSe=K0gOGmYfQ@mail.gmail.com>
- <20161006161452.ubltgnviyswk6qsw@sirena.org.uk>
+Date: Thu, 6 Oct 2016 19:05:51 +0200
+Message-ID: <CAJZ5v0g3MCBXXOn_txBE4E1-rjjwyXDu=wq=oD7xgXy=rhpm0w@mail.gmail.com>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
+ <788f4bcd-605f-2694-5df5-ec7ef1bde233@arm.com> <CAJZ5v0iYPbLry-ZKeFqvm4Jeg24J7E6vQzV56jCh2N5fU6AQsw@mail.gmail.com>
+ <0e56c5b2-0042-28e5-7445-6fe8422c728e@arm.com> <CAJZ5v0hy8V_WUuzOtT4oPt_hPRDUMHR5UYxVD0X3bVQe5AJf9Q@mail.gmail.com>
+ <8999b937-4c06-6d82-aef5-6b7700a2a10c@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36069 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942018AbcJFRCY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 13:02:24 -0400
-Received: by mail-wm0-f68.google.com with SMTP id 123so4396003wmb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Oct 2016 10:02:23 -0700 (PDT)
-In-Reply-To: <20161006161452.ubltgnviyswk6qsw@sirena.org.uk>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:32780 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932260AbcJFRFy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 13:05:54 -0400
+Received: by mail-wm0-f67.google.com with SMTP id i130so1108705wmg.0
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Oct 2016 10:05:53 -0700 (PDT)
+In-Reply-To: <8999b937-4c06-6d82-aef5-6b7700a2a10c@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Thu, Oct 6, 2016 at 6:14 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Thu, Oct 06, 2016 at 06:00:39PM +0200, Rafael J. Wysocki wrote:
->> On Thu, Oct 6, 2016 at 5:31 PM, Mark Brown <broonie@kernel.org> wrote:
->> > On Thu, Oct 06, 2016 at 02:19:22PM +0300, Mika Westerberg wrote:
+On Thu, Oct 6, 2016 at 4:20 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
 >
->> >> I don't need a DT, I need that my existing firmware (in this case BIOS)
->> >> can describe camera device(s) and the OS can take advantage of this,
->> >> preferably with minimal changes to the drivers.
 >
->> >> Currently there is no way in ACPI specification to do that.
+> On 06/10/16 14:04, Rafael J. Wysocki wrote:
+>>
+>> On Thu, Oct 6, 2016 at 12:29 PM, Sudeep Holla <sudeep.holla@arm.com>
+>> wrote:
 >
->> > That's not exactly true - the way Windows handles audio devices (which
->> > follow a similar pattern) is to register the control interfaces of the
->> > individual components of the system using existing bindings and then
->> > bind them together with a driver that matches the board level
->> > identification.  This isn't super awesome but it's definitely a thing
->> > you can do.
 >
->> But that would mean writing new Linux code to support hardware that
->> already is supported by the Linux kernel.
+> [...]
 >
->> That would be a bit like saying "We have a driver for this, but you
->> are not allowed to use it, because your platform is not a DT one".
->> That doesn't sound good to me, honestly.
+>>> No doubt about that, though controlling it is another question.
+>>> Especially ARM vendors who have some driver for DT might just use this
+>>> method without anyone noticing, ignoring the ACPI method as everything
+>>> just works out of box. That's the main worry. Also it also provides no
+>>> incentive for them to work with ASWG to enhance ACPI specification.
+>>
+>>
+>> They will need to hack the kernel to do that, because the mainline
+>> will not support anything like regulator or pinctrl support based on
+>> DT properties, at least as long as I have any influence on that.
+>>
 >
-> Well, no - it just means that you need a bit of translation code to glue
-> things together.  There's no need to replace the entire driver.
+> OK, that's good.
+>
+>> And if they need to hack the kernel anyway, nothing prevents them from
+>> hacking it to support whatever properties they like even if we don't
+>> put any support for any generic _DSD properties into the mainline.
+>> That's why the whole "oh but this allows ARM vendors to abuse things"
+>> argument doesn't hold any water in my view.
+>>
+>
+> While I agree with you, the argument which will be done and will win
+> most of the time to upstream something is that "we have shipped the
+> product with that table, we need to support it upstream...". I don't
+> think even you disagree with that ;)
 
-Fair enough, but also depending on what is provided by the ACPI tables
-and what isn't.
-
-In some cases kernel frameworks expect information that - without _DSD
-properties - is not available in the ACPI tables in any form, but can
-be provided by DT, so the driver would need to contain some sort of a
-static table mapping device IDs to the missing information which would
-not be fantastic.
+Well, maybe they should have talked to the upstream before shipping
+the product with that table?  Failing to do so is like jumping to a
+pool from a tower without checking how much water is there in it in
+the first place ...
 
 Thanks,
 Rafael
