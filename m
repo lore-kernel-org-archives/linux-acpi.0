@@ -1,84 +1,82 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: Re: [PATCH v5 5/9] x86/sysctl: Add sysctl for ITMT scheduling
- feature
-Date: Thu, 06 Oct 2016 10:37:46 -0700
-Message-ID: <1475775466.3916.319.camel@linux.intel.com>
-References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-          <1475322326-160112-6-git-send-email-srinivas.pandruvada@linux.intel.com>
-          <alpine.DEB.2.20.1610051624590.8953@nanos>
-         <1475684673.3916.299.camel@linux.intel.com>
-         <alpine.DEB.2.20.1610061307030.22338@nanos>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC 00/15] ACPI graph support
+Date: Thu, 6 Oct 2016 22:14:22 +0200
+Message-ID: <20161006201422.q566ckb4qzbbt7s2@sirena.org.uk>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161005092215.GA20248@red-moon>
+ <20161005114129.GI1765@lahna.fi.intel.com>
+ <788f4bcd-605f-2694-5df5-ec7ef1bde233@arm.com>
+ <CAJZ5v0iYPbLry-ZKeFqvm4Jeg24J7E6vQzV56jCh2N5fU6AQsw@mail.gmail.com>
+ <0e56c5b2-0042-28e5-7445-6fe8422c728e@arm.com>
+ <CAJZ5v0hy8V_WUuzOtT4oPt_hPRDUMHR5UYxVD0X3bVQe5AJf9Q@mail.gmail.com>
+ <8999b937-4c06-6d82-aef5-6b7700a2a10c@arm.com>
+ <590ed0a0-544d-a320-e6e0-ce1ab89d485e@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="fgzgdnaagk5n74ho"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:28199 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756053AbcJFRhr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 6 Oct 2016 13:37:47 -0400
-In-Reply-To: <alpine.DEB.2.20.1610061307030.22338@nanos>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57114 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933172AbcJFUOj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 16:14:39 -0400
+Content-Disposition: inline
+In-Reply-To: <590ed0a0-544d-a320-e6e0-ce1ab89d485e@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com
-
-On Thu, 2016-10-06 at 13:13 +0200, Thomas Gleixner wrote:
-> On Wed, 5 Oct 2016, Tim Chen wrote:
-> > 
-> > On Wed, 2016-10-05 at 16:35 +0200, Thomas Gleixner wrote:
-> > > 
-> > > > 
-> > > > +	if (itmt_supported) {
-> > > > +		itmt_sysctl_header =
-> > > > +			register_sysctl_table(itmt_root_table);
-> > > > +		if (!itmt_sysctl_header) {
-> > > > +			mutex_unlock(&itmt_update_mutex);
-> > > > +			return;
-> > > So you now have a state of capable which cannot be enabled. Whats the
-> > > point?
-> > For multi-socket system where ITMT is not enabled by default, the operator
-> > can still decide to enable it via sysctl.
-> With a sysctl which failed to be installed. Good luck with that.
-
-I misunderstood your earlier comment.
-You are talking about the case where we fail to register the sysctl?
-
-In this case, the system is in a state that indicates it is 
-ITMT capable but cannot be enabled.  So we return and do not turn on ITMT
-scheduling.  The system operator should always have the capability
-to enable/disable ITMT via sysctl.  So we do not turn on ITMT if operator has
-no control over it, even if the system is capable of ITMT.
+To: Al Stone <ahs3@redhat.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>
 
 
->  
-> > 
-> > > 
-> > > > 
-> > > > +		}
-> > > > +		/*
-> > > > +		 * ITMT capability automatically enables ITMT
-> > > > +		 * scheduling for small systems (single node).
-> > > > +		 */
-> > > > +		if (topology_num_packages() == 1)
-> > > > +			sysctl_sched_itmt_enabled = 1;
-> > > > +	} else {
-> > > > +		if (itmt_sysctl_header)
-> > > > +			unregister_sysctl_table(itmt_sysctl_header);
-> > > > +	}
-> > > > +
-> > > > +	if (sysctl_sched_itmt_enabled) {
-> > > > +		/* disable sched_itmt if we are no longer ITMT capable */
-> > > > +		if (!itmt_supported)
-> > > How do you get here if itmt is not supported? 
-> > If the OS decides to turn off ITMT for any reason, (i.e. invoke 
-> > sched_set_itmt_support(false) after it has turned on itmt_support
-> > before), this is the logic to do it.  We don't turn off ITMT support
-> > after it has been turned on today, in the future the OS may.
-> Then please make this two functions (set/clear) so one can actually follow
-> the logic. The above is just too convoluted.
+--fgzgdnaagk5n74ho
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Sure, I will add a clear function and move the clearing logic there.
+On Thu, Oct 06, 2016 at 11:20:49AM -0600, Al Stone wrote:
 
-Thanks.
+> So where does this leave us?  What I take away from the discussion is this:
 
-Tim
+>    a) each use of _DSD device properties in the kernel is to be evaluated on a
+>       case-by-case basis.  Therefore, Rafael and/or driver maintainers have the
+>       final say on acceptance in the Linux kernel.
+
+Are we talking about pure _DSD here or are we not talking about
+something definitely ACPI specific?  I was under the impression from the
+thread title that there's something involving inter-node links going on
+here since I thought it wasn't possible to represent that in _DSD alone.
+I might be missing something here, I was copied in part way through the
+thread.
+
+>    e) Windows and Linux are already diverging in their use of _DSD.
+
+I'm concerned we're seeing this outside of just _DSD.
+
+> If I didn't, then it seems a mechanism external to the Linux kernel to document
+> device properties is completely redundant, especially given item (e) -- they
+> will either be documented in DT, or documented by the driver.  And if that's the
+> case, then the dsd@acpica.org mailing list is irrelevant, or what's worse, makes
+> for duplicated work, and should just go away.
+
+> I'm fine with that, if that's what we're saying (it's less for me to do :), but
+> let's say it explicitly instead of re-hashing it every time _DSD is used.  The
+> above list is nice and simple and personally I'd rather have simple than a full
+> blown registration process.
+
+Like I've said before having some effort to try to pull the ACPI
+community together so they're talking to each other and trying to come
+up with best practices seems like a good idea.
+
+--fgzgdnaagk5n74ho
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAABCAAGBQJX9rCdAAoJECTWi3JdVIfQeGkH/j8l1gfxjV3FKPuczKnrIV7n
+efaU8J7bTBXsxkm1jbaUNIN1XdGJxC3ExAjYpZlsXDyAJHVgfg0TZ+BNEMWNbXBA
+XQrpm80eTU1eKBCE42quUrf/7xonZRXjseg1g7DWjLKSwsXaYtn4dY3YQtynUt+E
+qtroD9xj+WSFjdTq5Lv5lp5JSRm6dLl3CM/dzRDw50u/LpY1HWY/raHLMCeaHbkR
+iHGos+cFJqDTAwqDEVTay21aSm/RaO20ceki3+Wv9eKkXZskgQBj9acpAYkHLoep
+5AGAIqe3PTIm4EvLybkTjuAQ0TJEizVKeO2cPkG9wQKB69KixmRwnXVRQIQuBnY=
+=N/BN
+-----END PGP SIGNATURE-----
+
+--fgzgdnaagk5n74ho--
