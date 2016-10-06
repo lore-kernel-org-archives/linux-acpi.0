@@ -1,64 +1,89 @@
-From: Mark Brown <broonie@kernel.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [RFC 00/15] ACPI graph support
-Date: Thu, 6 Oct 2016 17:31:29 +0200
-Message-ID: <20161006153129.x6fosp725slgapjk@sirena.org.uk>
-References: <20161005092215.GA20248@red-moon>
- <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon>
- <20161005153229.GO1765@lahna.fi.intel.com>
- <20161005161800.GA22433@red-moon>
- <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
- <20161006085703.GA22776@red-moon>
- <20161006091133.GF30800@lahna.fi.intel.com>
- <20161006095739.GA22984@red-moon>
- <20161006111922.GI30800@lahna.fi.intel.com>
+Date: Thu, 6 Oct 2016 17:56:27 +0200
+Message-ID: <CAJZ5v0hvk=X1dmmp6SZ9wNRFUHdd4hVgQLCKJgkvYB84CBscuw@mail.gmail.com>
+References: <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
+ <20161005150641.GA22282@red-moon> <20161005153229.GO1765@lahna.fi.intel.com>
+ <20161005161800.GA22433@red-moon> <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
+ <20161006085703.GA22776@red-moon> <20161006091133.GF30800@lahna.fi.intel.com>
+ <20161006104058.uqdkv3pfihicxyfv@sirena.org.uk> <CAJZ5v0htdbUpqZNPi00ieNJ5WWiAczK+LbKLYobNGAr3Sr+HWw@mail.gmail.com>
+ <20161006152307.pqmmkazctqwlxsmy@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="d6lm4owqa6wp4ubp"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54454 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942075AbcJFPou (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 11:44:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20161006111922.GI30800@lahna.fi.intel.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32994 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S942156AbcJFP4a (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 11:56:30 -0400
+Received: by mail-wm0-f68.google.com with SMTP id i130so845444wmg.0
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Oct 2016 08:56:29 -0700 (PDT)
+In-Reply-To: <20161006152307.pqmmkazctqwlxsmy@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
+On Thu, Oct 6, 2016 at 5:23 PM, Mark Brown <broonie@kernel.org> wrote:
+> On Thu, Oct 06, 2016 at 03:15:36PM +0200, Rafael J. Wysocki wrote:
+>> On Thu, Oct 6, 2016 at 12:40 PM, Mark Brown <broonie@kernel.org> wrote:
+>
+>> > One of my biggest concerns with this approach is that I'm really not
+>> > clear to me that that this has broad buy in from the x86/ACPI community
+>> > and therefore that we might end up needing to support several different
+>> > styles of ACPI bindings.  Reuse would be great but it can be confusing
+>> > if there's multiple different styles of bindings in use at the same
+>> > time.
+>
+>> My view on that is a bit different.
+>
+>> Even if there's more than one style in use, they all can be supported
+>> at the same time.  Avoiding confusion is only a matter of prioritizing
+>> them, then.
+>
+>> It should be clear which style is the default one, which is going to
+>> be taken into consideration next and so on.  If that is made clear, I
+>> don't see a big problem here, at least in principle.
+>
+> My concern isn't just people using multiple styles, it's also people
+> trying to mix and match.  Sometimes that will work well enough and it's
+> fine but it can go wrong.
 
---d6lm4owqa6wp4ubp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yes, it can.
 
-On Thu, Oct 06, 2016 at 02:19:22PM +0300, Mika Westerberg wrote:
+I'm not against being careful, but I'd rather not reject things as a
+matter of principle.
 
-> I don't need a DT, I need that my existing firmware (in this case BIOS)
-> can describe camera device(s) and the OS can take advantage of this,
-> preferably with minimal changes to the drivers.
+>> The pinctrl thing is being dealt with (and not in a way of adding
+>> pinctrl _DSD properties support to the kernel FWIW).  Other things
+>> potentially conflicting with ACPI-defined HW control should be dealt
+>> with analogously.
+>
+> Right, I was mentioning it mainly as an example of the general pattern
+> of ACPI bindings springing up without coordination rather than as a
+> specific problem that needs resolution.
+>
+>> The point here is that some things just don't conflict with
+>> ACPI-defined HW control even potentially and they can be handled with
+>> the help of _DSD properties just fine.  Thus, there are no technical
+>> obstacles to do that, at least not in principle.
+>
+> It feels like we should be aiming for a higher bar with defining things
+> like this than simple technical possibility - my fear is that we end up
+> with a mess down the line with people being far too gung ho about
+> defining new bindings without trying to work on standards.
 
-> Currently there is no way in ACPI specification to do that.
+But here we are talking about using bindings that (a) have already
+been defined in DT and (b) are actively used by the existing code.
 
-That's not exactly true - the way Windows handles audio devices (which
-follow a similar pattern) is to register the control interfaces of the
-individual components of the system using existing bindings and then
-bind them together with a driver that matches the board level
-identification.  This isn't super awesome but it's definitely a thing
-you can do.
+I guess you mean using existing DT bindings instead of working on
+standards, but let's face it, DT bindings de facto are the standard in
+some parts of the kernel.
 
---d6lm4owqa6wp4ubp
-Content-Type: application/pgp-signature; name="signature.asc"
+> Perhaps I'm just worrying too much here but I'm not sure there's enough
+> communication going on.  The private nature of ACPI standardization
+> discussion doesn't help here of course.
 
------BEGIN PGP SIGNATURE-----
+Agreed, and that doesn't apply to ACPI only, of course.
 
-iQEcBAABCAAGBQJX9m5QAAoJECTWi3JdVIfQIz0IAIEOQIExW4UISUdyPkHqOqGR
-6JsOxpiB1kG/tyrvb+3zAmUooAO3nA012LpNuO+xpVHPBWKyFj1bJ5m9OgRYuj+0
-Cq29McQ6ZMNQzCQlOxV5HREhGQCd2IhoGNnd7kjn54NlcR1qr1UQy7E3wbxokucm
-Aj14dG1OhfkvDBNlz7f+Nf8WknFmDW/OAoXVcjT1GLIIO2hspIBgX3kVBlIX5/4h
-dOkzCct61BGy89nhYuzZ3VeyaR6UqyXaJ2/SCFZFZAW4ZW/koovDSofI2JQhRu6g
-9OEiEvt0BaXMe7QLFpEiVTdRveohmK6DX+RZu3ZQMR+coSfgP5hC9lR/3RIWha0=
-=qGbH
------END PGP SIGNATURE-----
-
---d6lm4owqa6wp4ubp--
+Thanks,
+Rafael
