@@ -1,89 +1,115 @@
-From: Al Stone <ahs3@redhat.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 Subject: Re: [RFC 00/15] ACPI graph support
-Date: Thu, 6 Oct 2016 14:54:12 -0600
-Message-ID: <45366ada-5e91-c822-4176-9e46252a8707@redhat.com>
+Date: Fri, 7 Oct 2016 00:10:54 +0300
+Message-ID: <57F6BDDE.1010904@linux.intel.com>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
- <788f4bcd-605f-2694-5df5-ec7ef1bde233@arm.com>
- <CAJZ5v0iYPbLry-ZKeFqvm4Jeg24J7E6vQzV56jCh2N5fU6AQsw@mail.gmail.com>
- <0e56c5b2-0042-28e5-7445-6fe8422c728e@arm.com>
- <CAJZ5v0hy8V_WUuzOtT4oPt_hPRDUMHR5UYxVD0X3bVQe5AJf9Q@mail.gmail.com>
- <8999b937-4c06-6d82-aef5-6b7700a2a10c@arm.com>
- <590ed0a0-544d-a320-e6e0-ce1ab89d485e@redhat.com>
- <20161006201422.q566ckb4qzbbt7s2@sirena.org.uk>
-Reply-To: ahs3@redhat.com
+ <20161005092215.GA20248@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f48.google.com ([209.85.214.48]:37949 "EHLO
-        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933429AbcJFUzM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 16:55:12 -0400
-Received: by mail-it0-f48.google.com with SMTP id o19so41905278ito.1
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Oct 2016 13:54:14 -0700 (PDT)
-In-Reply-To: <20161006201422.q566ckb4qzbbt7s2@sirena.org.uk>
+Received: from mga07.intel.com ([134.134.136.100]:23163 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933299AbcJFVK7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 6 Oct 2016 17:10:59 -0400
+In-Reply-To: <20161005092215.GA20248@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On 10/06/2016 02:14 PM, Mark Brown wrote:
-> On Thu, Oct 06, 2016 at 11:20:49AM -0600, Al Stone wrote:
-> 
->> So where does this leave us?  What I take away from the discussion is
->> this:
-> 
->> a) each use of _DSD device properties in the kernel is to be evaluated on
->> a case-by-case basis.  Therefore, Rafael and/or driver maintainers have
->> the final say on acceptance in the Linux kernel.
-> 
-> Are we talking about pure _DSD here or are we not talking about something
-> definitely ACPI specific?  I was under the impression from the thread title
-> that there's something involving inter-node links going on here since I
-> thought it wasn't possible to represent that in _DSD alone. I might be
-> missing something here, I was copied in part way through the thread.
+Hi Lorenzo,
 
-My intent was pure _DSD.  I have to wonder if inter-node links shouldn't be
-handled more directly in ASL; that may be harder than using device properties,
-but it might be the right long term solution.
+On 10/05/16 12:22, Lorenzo Pieralisi wrote:
+> [ +MarkR, MarkB, Rob, Al - I suspect they may want to have a say]
+>
+> On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
+>> Hello everyone,
+>>
+>> I've been working awhile with my collegue Mika Westerberg to bring
+>> firmware graph support to ACPI based systems. In practice the
+>> functionality achieved by these patches is very similar to what the Device
+>> tree provides: the port and the endpoint concept are being employed. The
+>> patches make use of the _DSD property and data extensions to achieve this.
+>> The fwnode interface is extended by graph functionality; this way graph
+>> information originating from both OF and ACPI may be accessed using the
+>> same interface.
+>
+> There is an ongoing effort to avoid wholesale import of DT bindings
+> into ACPI, I am not a V4L2 expert but it seems to me that with patches
+> like the one you have submitted we are getting closer and closer to
+> achieving it instead of avoiding it.
+>
+> For your information, Al is working on a process to submit _DSD
+> bindings and this patchset should at least be vetted within that
+> context.
+>
+> It is an RFC and my comment is that I do not like the direction
+> this ACPI->_DSD->DT is taking, I would like to understand where
+> this is intended to stop because I am getting worried.
 
->> e) Windows and Linux are already diverging in their use of _DSD.
-> 
-> I'm concerned we're seeing this outside of just _DSD.
+Thank you for your feedback.
 
-Well, since I have not been appointed Emperor, I'm not sure it can be prevented.
+The ACPI standard defines the syntax for _DSD property and data
+extensions but it does not provide a solution for documenting these
+properties. In other words, it does provide a mechanism but it does not
+tell how and for which specific purposes that mechanism should or may be
+used. The _DSD property extension specification strongly discourages the
+use of _DSD for purposes that already are within the scope of the ACPI
+standard. In this respect, the use of _DSD in this RFC patchset does
+conform to the ACPI standard specifications.
 
->> If I didn't, then it seems a mechanism external to the Linux kernel to
->> document device properties is completely redundant, especially given item
->> (e) -- they will either be documented in DT, or documented by the driver.
->> And if that's the case, then the dsd@acpica.org mailing list is
->> irrelevant, or what's worse, makes for duplicated work, and should just
->> go away.
-> 
->> I'm fine with that, if that's what we're saying (it's less for me to do
->> :), but let's say it explicitly instead of re-hashing it every time _DSD
->> is used.  The above list is nice and simple and personally I'd rather
->> have simple than a full blown registration process.
-> 
-> Like I've said before having some effort to try to pull the ACPI community
-> together so they're talking to each other and trying to come up with best
-> practices seems like a good idea.
-> 
+That said, I do recognise that --- as we do have a single interface to
+access the properties in drivers --- there must be uniform use of these
+properties by firmware implementations or there will be problems. This
+holds true independently of the firmware implementation, be it Device
+tree, ACPI or both.
 
-I agree it seems like a good idea.  As a practical matter, however, if it is
-just going to be ignored, there's no real point, is there?
+The Device tree binding documentation is part of the kernel and that's
+what the FDT binaries are expected to use, too. The bindings are Linux
+specific and, as far as I understand, cannot be expected to be used by
+other operating systems even on same hardware.
 
-That also begs the question, though: if the idea is to re-use DT bindings as is,
-why not just use DT directly and not bother with ACPI?  Wouldn't that be easier
-on everyone?  If arm64 can use ACPI *or* DT, surely any other architecture can.
+ACPI should be more generic than that. Already, you can find ACPI BIOS
+options for choosing the operating system you're running on. This is
+hardly ideal.
+
+AFAIU, the _DSD property database is intended for documenting the 
+properties drivers use, and as long as the DT properties in the Linux 
+kernel and in the _DSD property database match, a driver should be 
+safely able to use those properties independently of the firmware 
+implementation.
+
+I do not agree with the proposition of making concepts and
+implementation different on ACPI for the sake of it being ACPI. With
+_DSD, the ACPI does support the same tree structure of nodes and 
+properties as DT; I see no reason why "ACPI native" support for this 
+class of constructs could not (or yet, even should not) use the same 
+mechanisms as the Device tree does. There's simply no need to reinvent 
+the wheel.
+
+The patchset makes use of not only _DSD properties but also the _DSD
+data extension. In order for that not to remain Linux specific, the next
+logical step would be to extend the scope of the _DSD property database 
+to include _DSD data extension in this respect and document the following:
+
+1) how _DSD data extension graph nodes are referenced,
+
+2) port and endpoint concepts and how they are to be used,
+
+3) generic properties defined in
+Documentation/devicetree/bindings/media/video-interfaces.txt to the _DSD 
+database and
+
+4) driver specific properties.
+
+The ports and endpoints are not part (or have not been a part) of Device 
+tree itself, but they are the established practice on Linux and they 
+have worked well. Yet they do not have anything Linux specific as such: 
+they simply are a mechanism to describe the hardware.
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
