@@ -1,70 +1,68 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC 00/15] ACPI graph support
-Date: Thu, 6 Oct 2016 12:40:58 +0200
-Message-ID: <20161006104058.uqdkv3pfihicxyfv@sirena.org.uk>
-References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon>
- <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon>
- <20161005153229.GO1765@lahna.fi.intel.com>
- <20161005161800.GA22433@red-moon>
- <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
- <20161006085703.GA22776@red-moon>
- <20161006091133.GF30800@lahna.fi.intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v5 5/9] x86/sysctl: Add sysctl for ITMT scheduling
+ feature
+Date: Thu, 6 Oct 2016 13:13:08 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1610061307030.22338@nanos>
+References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>  <1475322326-160112-6-git-send-email-srinivas.pandruvada@linux.intel.com>  <alpine.DEB.2.20.1610051624590.8953@nanos> <1475684673.3916.299.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3nugdhdd5kbwjh24"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:45760 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751974AbcJFKlQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 06:41:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20161006091133.GF30800@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; BOUNDARY="8323329-505336005-1475752388=:22338"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1475684673.3916.299.camel@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---3nugdhdd5kbwjh24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--8323329-505336005-1475752388=:22338
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-On Thu, Oct 06, 2016 at 12:11:33PM +0300, Mika Westerberg wrote:
+On Wed, 5 Oct 2016, Tim Chen wrote:
+> On Wed, 2016-10-05 at 16:35 +0200, Thomas Gleixner wrote:
+> > > +	if (itmt_supported) {
+> > > +		itmt_sysctl_header =
+> > > +			register_sysctl_table(itmt_root_table);
+> > > +		if (!itmt_sysctl_header) {
+> > > +			mutex_unlock(&itmt_update_mutex);
+> > > +			return;
+> > So you now have a state of capable which cannot be enabled. Whats the
+> > point?
+> 
+> For multi-socket system where ITMT is not enabled by default, the operator
+> can still decide to enable it via sysctl.
 
-> One reason is that we have boards like Joule where developers are
-> allowed to connect different peripherals using buses such as I2C and SPI
-> where there is no native enumeration mechanism. This includes camera
-> sensors and related so there needs to be a way for a developer to
-> describe this in ACPI. Just as can be done when using ARM and DT.
+With a sysctl which failed to be installed. Good luck with that.
+ 
+> > > +		}
+> > > +		/*
+> > > +		 * ITMT capability automatically enables ITMT
+> > > +		 * scheduling for small systems (single node).
+> > > +		 */
+> > > +		if (topology_num_packages() == 1)
+> > > +			sysctl_sched_itmt_enabled = 1;
+> > > +	} else {
+> > > +		if (itmt_sysctl_header)
+> > > +			unregister_sysctl_table(itmt_sysctl_header);
+> > > +	}
+> > > +
+> > > +	if (sysctl_sched_itmt_enabled) {
+> > > +		/* disable sched_itmt if we are no longer ITMT capable */
+> > > +		if (!itmt_supported)
+> > 
+> > How do you get here if itmt is not supported? 
+> 
+> If the OS decides to turn off ITMT for any reason, (i.e. invoke 
+> sched_set_itmt_support(false) after it has turned on itmt_support
+> before), this is the logic to do it.  We don't turn off ITMT support
+> after it has been turned on today, in the future the OS may.
 
-One of my biggest concerns with this approach is that I'm really not
-clear to me that that this has broad buy in from the x86/ACPI community
-and therefore that we might end up needing to support several different
-styles of ACPI bindings.  Reuse would be great but it can be confusing
-if there's multiple different styles of bindings in use at the same
-time.
+Then please make this two functions (set/clear) so one can actually follow
+the logic. The above is just too convoluted.
 
-The audio systems that have this issue (which include production laptops
-and tablets with both Windows and ChromeOS) don't seem to be showing
-much interest in reusing any of the DT work beyond the device level
-properties and I didn't think the OS level support for using _DSD in
-Windows was great.  There were also the pinctrl bindings which had some
-issues too.
+Thanks,
 
---3nugdhdd5kbwjh24
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEcBAABCAAGBQJX9io3AAoJECTWi3JdVIfQbWsH/0obr4XZuNu4ETkqXCFgfNW6
-StcDfbwXhwEzpH1cWl2o+pAevvE+N0sGO76USiGrJsWRQCEztEFIYwAR14SPENXV
-03u/w1YEb/RkSyCd7HYUONsc3zVnvKWfGerMVCl83bOxVdKeGwOCbKksmSZsIm1/
-b3/PutKQ/ZjbmKG8B18Zw9ERn5q08LUKyBGy46MF6e73LCG5qGUQ0hbbIoXRV4Zc
-SHOFKH37Fzi6de5xiHyCCrMyZ6KOTI9GzSCrdozMgz2OLNrwXjMwigx8BQ/ltHyc
-BsWZJUUCTdE3E+fo0Fz/ZxhplGDCc/Ycy7TZob3mZthazg0aNz8FrzTr3YCW1qQ=
-=qBvS
------END PGP SIGNATURE-----
-
---3nugdhdd5kbwjh24--
+	tglx
+--8323329-505336005-1475752388=:22338--
