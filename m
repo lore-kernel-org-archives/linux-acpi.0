@@ -1,38 +1,153 @@
-From: Markus Trippelsdorf <markus@trippelsdorf.de>
-Subject: Re: Bogus "APIC: NR_CPUS/possible_cpus limit of 4 reached" messages
-Date: Thu, 6 Oct 2016 13:52:20 +0200
-Message-ID: <20161006115220.GB308@x4>
-References: <20161006112737.GA308@x4>
- <20161006124800.5a824dfc@lxorguk.ukuu.org.uk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFC 00/15] ACPI graph support
+Date: Thu, 6 Oct 2016 14:26:50 +0200
+Message-ID: <CAJZ5v0ixapEyg6dhhH=9xQbQ+yxr30pCxaJdK9LQg1jEyNUvkw@mail.gmail.com>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
+ <20161005150641.GA22282@red-moon> <20161005153229.GO1765@lahna.fi.intel.com>
+ <20161005161800.GA22433@red-moon> <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
+ <20161006085703.GA22776@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ud10.udmedia.de ([194.117.254.50]:50892 "EHLO
-        mail.ud10.udmedia.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932190AbcJFLwZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 07:52:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20161006124800.5a824dfc@lxorguk.ukuu.org.uk>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36372 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750970AbcJFM0w (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Oct 2016 08:26:52 -0400
+Received: by mail-wm0-f65.google.com with SMTP id 123so3281920wmb.3
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Oct 2016 05:26:51 -0700 (PDT)
+In-Reply-To: <20161006085703.GA22776@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On 2016.10.06 at 12:48 +0100, One Thousand Gnomes wrote:
-> On Thu, 6 Oct 2016 13:27:37 +0200
-> Markus Trippelsdorf <markus@trippelsdorf.de> wrote:
-> 
-> > On current trunk I get during boot:
-> > 
-> > [    0.000000] APIC: NR_CPUS/possible_cpus limit of 4 reached.  Processor 4/0x84 ignored.
-> > [    0.000000] APIC: NR_CPUS/possible_cpus limit of 4 reached.  Processor 5/0x85 ignored.
-> > 
-> > I don't think these messages make much sense on a 4-core machine.
-> > 
-> 
-> Four cores with or without hyperthreading ?
+On Thu, Oct 6, 2016 at 10:57 AM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Wed, Oct 05, 2016 at 10:33:47PM +0200, Rafael J. Wysocki wrote:
+>> On Wed, Oct 5, 2016 at 6:18 PM, Lorenzo Pieralisi
+>> <lorenzo.pieralisi@arm.com> wrote:
+>> > On Wed, Oct 05, 2016 at 06:32:29PM +0300, Mika Westerberg wrote:
+>> >
+>> > [...]
+>> >
+>> >> > FWIW I had a quick look at dts bindings with "compatible = nokia,smia"
+>> >> > and related kernel driver.
+>> >> >
+>> >> > Those nodes require properties like clocks and power supplies, it
+>> >> > seems to me that there are already ACPI PM methods to control those
+>> >> > properties and therefore they should not be handled with PRP0001,
+>> >> > I am happy to be corrected if I am wrong.
+>> >>
+>> >> Clocks and power supplies should be handled as native ACPI
+>> >> PowerResources. We are not trying to represent those here.
+>> >>
+>> >> > When you start matching whole subsystem through PRP0001 and related
+>> >> > compatible strings you can end up in a situation where DT and ACPI
+>> >> > FW handling clash and that's why we were opposed to mixing them from
+>> >> > the beginning, in ARM world if we need a DT we boot with a devicetree.
+>> >> >
+>> >> > If PRP0001 is used for leaf-nodes drivers properties it may work,
+>> >> > everything else, frankly, is a bit of a gamble you are taking.
+>> >>
+>> >> The hardware we are describing is exactly the same, only thing that
+>> >> changes is the firmware interface. So if there is a hardware property
+>> >> that cannot be discovered automatically it needs to be provided by the
+>> >> firmware, like ACPI.
+>> >
+>> > We certainly agree that HW is the same and that the firmware interfaces
+>> > differ, that's why mixing them is not exactly ideal.
+>> >
+>> >> If it happens that the property already has an existing DT binding, why
+>> >> do you think it is gambling to use it instead of inventing the same with
+>> >> annother name for ACPI?
+>> >
+>> > Do not spin the argument. I am telling you that what I am worried
+>> > about is mixing the interfaces because that might trigger kernel
+>> > control paths clashing while controlling HW (DT native vs ACPI control
+>> > methods).
+>>
+>> That would have been possible, had the *kernel* supported _DSD
+>> properties that could have conflict with native ACPI stuff at the
+>> framework level.  Yet, it doesn't and there are no plans to add any
+>> support like that to it I'm aware of.
+>>
+>> So far, we have been careful enough to avoid supporting any _DSD
+>> properties that may potentially conflict with ACPI-defined HW control,
+>> this way or another, and as long as we continue to do that, all should
+>> be fine.  So the way to go, to me, is not to reject support for any
+>> kind of generic _DSD properties that follow DT bindings, but to look
+>> at every case carefully and see if they conflict with ACPI-defined HW
+>> control in any way.  If they don't, I see no reason for not supporting
+>> them.
+>
+> I agree with that, I am less optimistic at how we can vet code
+> once the fwnode API will allow us to handle DT in ACPI with same
+> capabilities as native DT, because let's face it, by augmenting
+> the fwnode API through patches like this we are reaching DT kernel
+> handling equivalence.
+>
+> We are coming to this from opposite directions: x86, with FW people
+> used to writing ACPI FW (and therefore power resources, etc. usage)
+> and ARM FW developers, who could be very very tempted to reuse the
+> same DT properties used for clocks/voltage and whatnot into PRP0001
+> equivalent completely overriding ACPI control methods and we can't
+> argue it is not ACPI standard anymore (or can we ?).
 
-Without. This is a rather old AMD machine (AMD Phenom II X4 955).
+Yes and no, depending on what angle you are looking at it.
 
--- 
-Markus
+On the one hand, it is proper ASL/AML using constructs defined by the
+spec and nothing else.  From that perspective, it is following the
+standard.
+
+OTOH, the interpretation of it is not defined by the spec proper and
+it is Linux-specific, so other OSes won't use this information even if
+it is there in your ACPI tables.
+
+> As you said this can only happen once the fwnode API usage trickles
+> into the respective subsystems. Can we prevent it ? I hope so and
+> we are keeping an eye on that too (that's the reason why I asked
+> Mika to widen the audience, BTW), but that's the *only* way to
+> prevent this FW bindings mix-up and it is almost impossible to
+> vet all code getting into subsystems IMHO.
+>
+> I am trying to understand why x86 wants to do this, please understand
+> our point of view too, we do not want to block progress we want to
+> prevent a mess.
+
+It is not "x86" who wants to do that.
+
+It is people who work on support for boards with ACPI firmware and
+containing devices that in Linux are handled by DT-centric code.
+
+Of course, the reason why that code is DT-centric is because it was
+developed on systems using DT and there were no uses on ACPI-based
+systems for it back then.  Still, it is DT-centric as a matter of fact
+and *something* has to be done in order to make it work with ACPI.
+
+Basically, there are two choices.  One would be to (a) make ACPI cover
+the cases in question and (b) implement code in accordance with that,
+but the problem with this approach is the timing (the boards are here
+today already).  Another one is to make it possible to provide the
+Linux code in question with information it expects from DT, but using
+the ACPI interface, limited to information that *can* be provided this
+way, and that's where this is going.
+
+And it is not an option for those boards to use DT in the firmware.
+
+>> > I am pretty sure this won't happen, still, if you do not mind
+>> > please post this series (and drivers actually making use of it) to a
+>> > wider audience (which includes devicetree and ARM mailing list) and we
+>> > will restart the discussion from there.
+>>
+>> I think that the target subsystem (V4L in this particular case) should
+>> be notified of this in the first place as they are the user of the
+>> bindings in question.
+>
+> Exactly. This patchset should at least reach DT people and the respective
+> subsystem maintainers, I do not think that's too much to ask.
+
+Fair enough.
+
+Thanks,
+Rafael
