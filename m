@@ -1,48 +1,140 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [tip:x86/apic] x86/acpi: Introduce persistent storage for cpuid
- <-> apicid mapping
-Date: Fri, 7 Oct 2016 11:55:39 -0700
-Message-ID: <CAE9FiQWKbqnU_6-W70tDYq7rL=r7vHzYKUo5PwOzgwUtTVxQwA@mail.gmail.com>
-References: <1472114120-3281-4-git-send-email-douly.fnst@cn.fujitsu.com>
- <tip-8f54969dc8d6704632b42cbb5e47730cd75cc713@git.kernel.org>
- <CAE9FiQVQx6FRXT-RdR7Crz4dg5LeUWHcUSy1KacjR+JgU_vGJg@mail.gmail.com>
- <alpine.DEB.2.20.1610041258410.7712@nanos> <CAE9FiQWigWvrZ8JzNDKtZ9FWARh2m0kGoF+VOZdwAdY9vnU3_w@mail.gmail.com>
- <4608f474-c49e-550b-90e2-c5f4c25e00f5@cn.fujitsu.com> <CAE9FiQVEvoK=TvYyhU6iiLh5FiX3pXXyy53tr2F7BEnRxGk7HA@mail.gmail.com>
- <e53a9807-2beb-0878-87dc-cc6f93b7c911@cn.fujitsu.com> <alpine.DEB.2.20.1610071448590.19804@nanos>
- <alpine.DEB.2.20.1610071455360.19804@nanos>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:35217 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750975AbcJGSzl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Oct 2016 14:55:41 -0400
-In-Reply-To: <alpine.DEB.2.20.1610071455360.19804@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH V3 00/10] Add UEFI 2.6 and ACPI 6.1 updates for RAS on ARM64
+Date: Fri,  7 Oct 2016 15:31:12 -0600
+Message-ID: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, Dkvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Cc: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "linux-tip-commits@vger.kernel.org" <linux-tip-commits@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Oct 7, 2016 at 6:00 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> On Fri, 7 Oct 2016, Thomas Gleixner wrote:
->> On Fri, 7 Oct 2016, Dou Liyang wrote:
->> > Is it possible that the "-1/oxffffffff" could appear in the MADT which is one
->> > of the ACPI tables?
->>
->> According to the SDM the x2apic id is a 32bit ID, so 0xffffffff is a
->> legitimate value.
->
-> The ACPI spec says that bit 0 of the x2apic flags field tells whether the
-> logical processor is present or not. So the proper check for x2apic is that
-> flag.
->
-> The lapic structure has the same flag, but the kernel ignores the flags for
-> both lapic and x2apic.
->
-> I'm going to apply the minimal fix of checking for id == 0xff in
-> acpi_lapic_parse() for now, but this needs to be revisited and fixed
-> proper.
+When a memory error, CPU error, PCIe error, or other type of hardware error
+that's covered by RAS occurs, firmware should populate the shared GHES memory
+location with the proper GHES structures to notify the OS of the error.
+For example, platforms that implement firmware first handling may implement
+separate GHES sources for corrected errors and uncorrected errors. If the
+error is an uncorrectable error, then the firmware will notify the OS
+immediately since the error needs to be handled ASAP. The OS will then be able
+to take the appropriate action needed such as offlining a page. If the error
+is a corrected error, then the firmware will not interrupt the OS immediately.
+Instead, the OS will see and report the error the next time it's GHES timer
+expires. The kernel will first parse the GHES structures and report the errors
+through the kernel logs and then notify the user space through RAS trace
+events. This allows user space applications such as RAS Daemon to see the
+errors and report them however the user desires. This patchset extends the
+kernel functionality for RAS errors based on updates in the UEFI 2.6 and
+ACPI 6.1 specifications.
 
-Good to me. Thanks for fixing it.
+An example flow from firmware to user space could be:
 
-Yinghai
+                 +---------------+
+       +-------->|               |
+       |         |  GHES polling |--+
++-------------+  |    source     |  |   +---------------+   +------------+
+|             |  +---------------+  |   |  Kernel GHES  |   |            |
+|  Firmware   |                     +-->|  CPER AER and |-->|  RAS trace |
+|             |  +---------------+  |   |  EDAC drivers |   |   event    |
++-------------+  |               |  |   +---------------+   +------------+
+       |         |  GHES sci     |--+
+       +-------->|   source      |
+                 +---------------+
+
+Add support for Generic Hardware Error Source (GHES) v2, which introduces the
+capability for the OS to acknowledge the consumption of the error record
+generated by the Reliability, Availability and Serviceability (RAS) controller.
+This eliminates potential race conditions between the OS and the RAS controller.
+
+Add support for the timestamp field added to the Generic Error Data Entry v3,
+allowing the OS to log the time that the error is generated by the firmware,
+rather than the time the error is consumed. This improves the correctness of
+event sequences when analyzing error logs. The timestamp is added in
+ACPI 6.1, reference Table 18-343 Generic Error Data Entry.
+
+Add support for ARMv8 Common Platform Error Record (CPER) per UEFI 2.6
+specification. ARMv8 specific processor error information is reported as part of
+the CPER records.  This provides more detail on for processor error logs. This
+can help describe ARMv8 cache, tlb, and bus errors.
+
+Synchronous External Abort (SEA) represents a specific processor error condition
+in ARM systems. A handler is added to recognize SEA errors, and a notifier is
+added to parse and report the errors before the process is killed. Refer to
+section N.2.1.1 in the Common Platform Error Record appendix of the UEFI 2.6
+specification.
+
+Currently the kernel ignores CPER records that are unrecognized.
+On the other hand, UEFI spec allows for non-standard (eg. vendor
+proprietary) error section type in CPER (Common Platform Error Record),
+as defined in section N2.3 of UEFI version 2.5. Therefore, user
+is not able to see hardware error data of non-standard section.
+
+If section Type field of Generic Error Data Entry is unrecognized,
+prints out the raw data in dmesg buffer, and also adds a tracepoint
+for reporting such hardware errors.
+
+Currently even if an error status block's severity is fatal, the kernel
+does not honor the severity level and panic. With the firmware first
+model, the platform could inform the OS about a fatal hardware error
+through the non-NMI GHES notification type. The OS should panic when a
+hardware error record is received with this severity.
+
+Add support to handle SEAs that occur while a KVM guest kernel is
+running. Currently these are unsupported by the guest abort handling.
+
+Depends on: [PATCH v14] acpi, apei, arm64: APEI initial support for aarch64.
+            https://lkml.org/lkml/2016/8/10/231
+
+V3: Fix unmapped address to the read_ack_register in ghes.c
+    Add helper function to get the proper payload based on generic data entry
+     version
+    Move timestamp print to avoid changing function calls in cper.c
+    Remove patch "arm64: exception: handle instruction abort at current EL"
+     since the el1_ia handler is already added in 4.8
+    Add EFI and ARM64 dependencies for HAVE_ACPI_APEI_SEA
+    Add a new trace event for ARM type errors
+    Add support to handle KVM guest SEAs
+
+V2: Add PSCI state print for the ARMv8 error type.
+    Separate timestamp year into year and century using BCD format.
+    Rebase on top of ACPICA 20160318 release and remove header file changes
+     in include/acpi/actbl1.h.
+    Add panic OS with fatal error status block patch.
+    Add processing of unrecognized CPER error section patches with updates
+     from previous comments. Original patches: https://lkml.org/lkml/2015/9/8/646
+
+V1: https://lkml.org/lkml/2016/2/5/544
+
+Jonathan (Zhixiong) Zhang (1):
+  acpi: apei: panic OS with fatal error status block
+
+Tyler Baicar (9):
+  acpi: apei: read ack upon ghes record consumption
+  ras: acpi/apei: cper: generic error data entry v3 per ACPI 6.1
+  efi: parse ARMv8 processor error
+  arm64: exception: handle Synchronous External Abort
+  acpi: apei: handle SEA notification type for ARMv8
+  efi: print unrecognized CPER section
+  ras: acpi / apei: generate trace event for unrecognized CPER section
+  trace, ras: add ARM processor error trace event
+  arm64: KVM: add guest SEA support
+
+ arch/arm/include/asm/kvm_arm.h       |   1 +
+ arch/arm/include/asm/system_misc.h   |   5 +
+ arch/arm/kvm/mmu.c                   |  15 ++-
+ arch/arm64/Kconfig                   |   1 +
+ arch/arm64/include/asm/kvm_arm.h     |   1 +
+ arch/arm64/include/asm/system_misc.h |  15 +++
+ arch/arm64/mm/fault.c                |  71 ++++++++--
+ drivers/acpi/apei/Kconfig            |  15 +++
+ drivers/acpi/apei/ghes.c             | 177 +++++++++++++++++++++++-
+ drivers/acpi/apei/hest.c             |   7 +-
+ drivers/firmware/efi/cper.c          | 252 ++++++++++++++++++++++++++++++++---
+ drivers/ras/ras.c                    |   2 +
+ include/acpi/ghes.h                  |   1 +
+ include/linux/cper.h                 |  72 ++++++++++
+ include/ras/ras_event.h              | 112 ++++++++++++++++
+ 15 files changed, 711 insertions(+), 36 deletions(-)
+
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
