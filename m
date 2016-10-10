@@ -1,59 +1,44 @@
-From: Will Deacon <will.deacon@arm.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [PATCH] MAINTAINERS: Add ARM64-specific ACPI maintainers entry
-Date: Mon, 10 Oct 2016 11:35:12 +0100
-Message-ID: <20161010103511.GD3417@arm.com>
+Date: Mon, 10 Oct 2016 15:43:41 +0100
+Message-ID: <3e72e04e-18d8-b833-d59d-d475d80afab5@arm.com>
 References: <20161005112540.22189-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:48312 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751598AbcJJOnp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 10 Oct 2016 10:43:45 -0400
 In-Reply-To: <20161005112540.22189-1-lorenzo.pieralisi@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wed, Oct 05, 2016 at 12:25:40PM +0100, Lorenzo Pieralisi wrote:
+
+
+On 05/10/16 12:25, Lorenzo Pieralisi wrote:
 > The ARM64 architecture defines ARM64 specific ACPI bindings to
 > configure and set-up arch specific components. To simplify
 > code reviews/updates and streamline the maintainership structure
 > supporting the arch specific code, a new arm64 directory was created in
 > /drivers/acpi, to contain ACPI code that is specific to ARM64
 > architecture.
-> 
+>
 > Add the ARM64-specific ACPI maintainers entry in MAINTAINERS for
 > the newly created subdirectory and respective code content.
-> 
+>
 > Lorenzo Pieralisi will be in charge of submitting and managing
 > the pull requests on behalf of all maintainers listed.
-> 
+>
 > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > Cc: Hanjun Guo <hanjun.guo@linaro.org>
 > Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Link: http://lkml.kernel.org/r/1603704.EGiVTcCxLR@vostro.rjw.lan
-> ---
->  MAINTAINERS | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index f593300..2a70dd9 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -316,6 +316,14 @@ W:	https://01.org/linux-acpi
->  S:	Supported
->  F:	drivers/acpi/fan.c
->  
-> +ACPI FOR ARM64 (ACPI/arm64)
-> +M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> +M:	Hanjun Guo <hanjun.guo@linaro.org>
-> +M:	Sudeep Holla <sudeep.holla@arm.com>
-> +L:	linux-acpi@vger.kernel.org
-> +S:	Maintained
-> +F:	drivers/acpi/arm64
 
-Thanks for doing this:
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 
-Acked-by: Will Deacon <will.deacon@arm.com>
-
-Will
+-- 
+Regards,
+Sudeep
