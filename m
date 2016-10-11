@@ -1,50 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/4] ACPI / property: Allow holes in reference properties
-Date: Tue, 11 Oct 2016 22:46:26 +0200
-Message-ID: <CAJZ5v0jGCrwB+mC6r-DVo-BYmLX-5WeKMEUnZ8NNmLsYCB2mfg@mail.gmail.com>
-References: <20160929133944.158596-1-mika.westerberg@linux.intel.com> <20160929133944.158596-2-mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] MAINTAINERS: Add ARM64-specific ACPI maintainers entry
+Date: Tue, 11 Oct 2016 23:52:59 +0200
+Message-ID: <10118372.T2zXaxxCRu@vostro.rjw.lan>
+References: <20161005112540.22189-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160929133944.158596-2-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20161005112540.22189-1-lorenzo.pieralisi@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 29, 2016 at 3:39 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> DT allows holes or empty phandles for references. This is used for example
-> in SPI subsystem where some chip selects are native and others are regular
-> GPIOs. In ACPI _DSD we currently do not support this but instead the
-> preceding reference consumes all following integer arguments.
->
-> For example we would like to support something like the below ASL fragment
-> for SPI:
->
->   Package () {
->       "cs-gpios",
->       Package () {
->           ^GPIO, 19, 0, 0, // GPIO CS0
->           0,               // Native CS
->           ^GPIO, 20, 0, 0, // GPIO CS1
->       }
->   }
->
-> The zero in the middle means "no entry" or NULL reference. To support this
-> we change acpi_data_get_property_reference() to take firmware node and
-> num_args as argument and rename it to __acpi_node_get_property_reference().
-> The function returns -ENOENT if the given index resolves to "no entry"
-> reference and -ENODATA when there are no more entries in the property.
->
-> We then add static inline wrapper acpi_node_get_property_reference() that
-> passes MAX_ACPI_REFERENCE_ARGS as num_args to support the existing
-> behaviour which some drivers have been relying on.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Wednesday, October 05, 2016 12:25:40 PM Lorenzo Pieralisi wrote:
+> The ARM64 architecture defines ARM64 specific ACPI bindings to
+> configure and set-up arch specific components. To simplify
+> code reviews/updates and streamline the maintainership structure
+> supporting the arch specific code, a new arm64 directory was created in
+> /drivers/acpi, to contain ACPI code that is specific to ARM64
+> architecture.
+> 
+> Add the ARM64-specific ACPI maintainers entry in MAINTAINERS for
+> the newly created subdirectory and respective code content.
+> 
+> Lorenzo Pieralisi will be in charge of submitting and managing
+> the pull requests on behalf of all maintainers listed.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Link: http://lkml.kernel.org/r/1603704.EGiVTcCxLR@vostro.rjw.lan
+> ---
+>  MAINTAINERS | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index f593300..2a70dd9 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -316,6 +316,14 @@ W:	https://01.org/linux-acpi
+>  S:	Supported
+>  F:	drivers/acpi/fan.c
+>  
+> +ACPI FOR ARM64 (ACPI/arm64)
+> +M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> +M:	Hanjun Guo <hanjun.guo@linaro.org>
+> +M:	Sudeep Holla <sudeep.holla@arm.com>
+> +L:	linux-acpi@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/acpi/arm64
+> +
+>  ACPI THERMAL DRIVER
+>  M:	Zhang Rui <rui.zhang@intel.com>
+>  L:	linux-acpi@vger.kernel.org
+> 
 
-The patch looks good to me and I don't see any reason to defer it, so
-I'm queuing it up for the next ACPI pull request.
+Applied (with tags).
 
 Thanks,
 Rafael
