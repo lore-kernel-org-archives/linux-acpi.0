@@ -1,107 +1,55 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Mark Rutland <mark.rutland@arm.com>
 Subject: Re: [RFC 00/15] ACPI graph support
-Date: Tue, 11 Oct 2016 14:11:06 +0200
-Message-ID: <CAJZ5v0iFsj8WuiEwToRwbpXX8amWmPAn2WmRMWFagva48JFWbw@mail.gmail.com>
+Date: Tue, 11 Oct 2016 13:35:32 +0100
+Message-ID: <20161011123532.GC24347@remoulade>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon> <20161005153229.GO1765@lahna.fi.intel.com>
- <20161005161800.GA22433@red-moon> <CAJZ5v0jNSEQ6Uk4T-19jA=RV9pmRzojB4FBd=SFAo6VOj-SLLg@mail.gmail.com>
- <20161006085703.GA22776@red-moon> <CAJZ5v0ixapEyg6dhhH=9xQbQ+yxr30pCxaJdK9LQg1jEyNUvkw@mail.gmail.com>
- <20161006213704.4idjpln4kdodwqj4@sirena.org.uk> <CAJZ5v0iQtviVprbiY+rvVr1q9STbM9OmwYRG91BS=2wLxA0hAQ@mail.gmail.com>
+ <20161005092215.GA20248@red-moon>
+ <20161005114129.GI1765@lahna.fi.intel.com>
+ <20161005150641.GA22282@red-moon>
+ <20161005153229.GO1765@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35405 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751647AbcJKMLJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Oct 2016 08:11:09 -0400
-Received: by mail-lf0-f67.google.com with SMTP id x79so3414860lff.2
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Oct 2016 05:11:09 -0700 (PDT)
-In-Reply-To: <CAJZ5v0iQtviVprbiY+rvVr1q9STbM9OmwYRG91BS=2wLxA0hAQ@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:32822 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751672AbcJKMfi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 11 Oct 2016 08:35:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20161005153229.GO1765@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Tue, Oct 11, 2016 at 1:44 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Thu, Oct 6, 2016 at 11:37 PM, Mark Brown <broonie@kernel.org> wrote:
->> On Thu, Oct 06, 2016 at 02:26:50PM +0200, Rafael J. Wysocki wrote:
->>> On Thu, Oct 6, 2016 at 10:57 AM, Lorenzo Pieralisi
->>
->>> > I am trying to understand why x86 wants to do this, please understand
->>> > our point of view too, we do not want to block progress we want to
->>> > prevent a mess.
->>
->>> It is not "x86" who wants to do that.
->>
->>> It is people who work on support for boards with ACPI firmware and
->>> containing devices that in Linux are handled by DT-centric code.
->>
->> Yes, it's important to remember that there's a whole world of other
->> people using ACPI on x86 who are doing different things.  I have to say
->> I'm not sure how DT centric we really are, there's a lot of things that
->> have been around since before DT.
->
-> When I said "DT-centric" I really meant "full of of_* calls retrieving
-> data from a DT".
->
->>> Of course, the reason why that code is DT-centric is because it was
->>> developed on systems using DT and there were no uses on ACPI-based
->>> systems for it back then.  Still, it is DT-centric as a matter of fact
->>> and *something* has to be done in order to make it work with ACPI.
->>
->> Personally I don't have that big a concern around per device
->> properties other than the need to go through yet another round of
->> churn for them (though it is just mechanical which will make it less
->> painful).  I do worry when it goes to generic things and inter-device
->> relationships.
->
-> Well, that was my first reaction to this series, but then I thought
-> "Let's see what can go wrong with this specifically" and then I
-> couldn't find anything.
->
-> If you see something like that, please let me know, because I may be
-> overlooking it, but otherwise I would prefer to focus on the technical
-> side of things instead of wast^Hspending time on theoretical worries.
->
->>> And it is not an option for those boards to use DT in the firmware.
->>
->> There's nothing stopping these systems defining a DSD that contains a
->> DTB which overrides some or all of the ACPI if the system supports it
->> (or otherwise providing both system descriptions).  The two can coexist
->> happily enough as arm64 has shown
->
-> I'm not sure to what extent it has shown that and even so, it doesn't
-> mean this is a good idea.
->
->> and it seems like it ought to save a
->> whole lot of work especially around the bits that need inter device
->> links and are hence need some new ACPI bindings defining.
->
-> There is at least one major problem with this approach.  If the ACPI
-> part needs to point to anything in the DTB or if the DTB part needs to
-> point to the ACPI part outside of it, there's no clean way that could
-> be done.  I actually am not aware of any way whatever, but if there
-> are some, I kind of don't expect them to be pretty.
->
->> I can see that removing ACPI entirely would present serious difficulties
->> but it's less clear to me how much is really gained by having an
->> embedded Linux specific ACPI variant over having some Linux specific
->> data in ACPI that happens to be parsable as DT.  The circumstances that
->> the two platforms face appear to be very similar.
->
-> I'm not really sure what you mean here.
->
-> _DSD properties can convey the same information as DT in the same
-> layout.  The only difference is that DT uses phandles to point to
-> things and _DSD properties use ACPI namespace paths for this purpose.
-> That actually is where code changes need to be made, the rest is
-> already there.
+On Wed, Oct 05, 2016 at 06:32:29PM +0300, Mika Westerberg wrote:
+> On Wed, Oct 05, 2016 at 04:06:41PM +0100, Lorenzo Pieralisi wrote:
+> > On Wed, Oct 05, 2016 at 02:41:29PM +0300, Mika Westerberg wrote:
+> > > On Wed, Oct 05, 2016 at 10:22:15AM +0100, Lorenzo Pieralisi wrote:
+> > > > On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
+> > > The whole purpose of PRP0001 ID is to allow DT bindings to be reused in
+> > > ACPI systems, so that the drivers can just call device_property_* and
+> > > get the properties regardless of the underlying firmware interface.
+> > > 
+> > > Are you saying that's not wanted?
+> > 
+> > Not wholesale DT bindings import into ACPI, just no way.
+> 
+> Of course not all DT bindings. Only those that do not have a native ACPI
+> representation.
 
-In fact, from the utility perspective, _DSD properties are just like
-an "embedded DTB" you talked about, except that they are represented
-in ASL (which makes them easier to handle in a couple of ways) and use
-namespace paths instead of phandles to point to things.
+... yet.
+
+For self-contained devices, this isn't much of a concern, but inter-device
+relationships are the sort of thing ACPI *needs* to know about, and define a
+model for. By trying to bodge this into _DSD, we're making matters worse by
+both delaying the inevitable and creating a tonne of technical debt that we
+have to deal with forever.
+
+By copying DT, but changing a few things, we're in effect creating a new
+ill-defined Linux-specific standard. If we're going to create a new standard,
+we should go through the ASWG, and make an actual standard. If we're not going
+to create a new standard, we should use DT directly, rather than trying to
+force DT into ACPI.
 
 Thanks,
-Rafael
+Mark.
