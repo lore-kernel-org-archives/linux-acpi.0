@@ -1,55 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2 0/3] ACPI,PCI,IRQ: revert penalty calculation for SCI
-Date: Tue, 11 Oct 2016 23:55:30 +0200
-Message-ID: <16782518.MvPkQ6RUZe@vostro.rjw.lan>
-References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH] ACPI / fan: Fix error reading cur_state
+Date: Tue, 11 Oct 2016 23:56:09 +0200
+Message-ID: <1854846.qdKNx1d4Nd@vostro.rjw.lan>
+References: <1475614300-133004-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54182 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1753735AbcJKVtZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 11 Oct 2016 17:49:25 -0400
+In-Reply-To: <1475614300-133004-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-On Tuesday, October 04, 2016 05:15:16 PM Sinan Kaya wrote:
-> Restoring the old behavior for IRQ < 256 and the dynamic penalty behavior
-> will remain effective for IRQ >= 256.
+On Tuesday, October 04, 2016 01:51:40 PM Srinivas Pandruvada wrote:
+> On some platforms with ACPI4 variable speed fan, reading cur_state from
+> cooling device returns "invalid value" error. This confuses user space
+> applications.
 > 
-> By the time ACPI gets initialized, this code tries to determine an
-> IRQ number based on penalty values in this array. It will try to locate
-> the IRQ with the least penalty assignment so that interrupt sharing is
-> avoided if possible.
+> This issue occurs as the current driver doesn't take account of
+> "FineGrainControl" from _FIF(Fan Information). When the "FineGrainControl"
+> is set, _FSL(FSL Set Level) takes argument as a percent, which doesn't
+> have to match from any control value from _FPS(Fan Performance States).
+> It is also possible that the Fan is not actually running at the requested
+> speed returning a lower speed.
+> On some platforms the BIOS is setting fan speed to a level during boot,
+> which will not have an exact match to _FPS control values. The current
+> implementation will treat this level as invalid value.
 > 
-> A couple of notes about the external APIs:
-> 1. These API can be called before the ACPI is started. Therefore, one
-> cannot assume that the PCI link objects are initialized for calculating
-> penalties.
-> 2. The polarity and trigger information passed via the
-> acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
-> is reporting as the call might have been placed before the IRQ is
-> registered by the interrupt subsystem.
+> The simple change is to atleast return state corresponding to a maximum
+> control value in the _FPS compared to the current level.
 > 
-> The reverted changes were in the direction to remove these external API and
-> try to calculate the penalties at runtime for the ISA, SCI as well as PCI
-> IRQS. This didn't work out well with the existing platforms.
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> ---
+>  drivers/acpi/fan.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
 > 
-> Changes from V1 (https://lkml.org/lkml/2016/10/1/106):
-> * Commit message updates
-> 
-> Sinan Kaya (3):
->   Revert "ACPI,PCI,IRQ: reduce static IRQ array size to 16"
->   ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
->   Revert "ACPI,PCI,IRQ: remove SCI penalize function"
-> 
->  arch/x86/kernel/acpi/boot.c |  1 +
->  drivers/acpi/pci_link.c     | 71 ++++++++++++++++++++++-----------------------
->  include/linux/acpi.h        |  1 +
->  3 files changed, 37 insertions(+), 36 deletions(-)
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index 384cfc3..f34859a 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -129,8 +129,18 @@ static int fan_get_state_acpi4(struct acpi_device *device, unsigned long *state)
+>  
+>  	control = obj->package.elements[1].integer.value;
+>  	for (i = 0; i < fan->fps_count; i++) {
+> -		if (control == fan->fps[i].control)
+> +		/*
+> +		 * When Fine grain control is set, return the state
+> +		 * corresponding to maximum fan->fps[i].control
+> +		 * value compared to the current speed. Here the
+> +		 * fan->fps[] is sorted array with increasing speed.
+> +		 */
+> +		if (fan->fif.fine_grain_ctrl && control < fan->fps[i].control) {
+> +			i = (i > 0) ? i - 1 : 0;
+>  			break;
+> +		} else if (control == fan->fps[i].control) {
+> +			break;
+> +		}
+>  	}
+>  	if (i == fan->fps_count) {
+>  		dev_dbg(&device->dev, "Invalid control value returned\n");
 > 
 
-I've queued up the series, but still waiting on Bjorn's response.
+Applied.
 
 Thanks,
 Rafael
+
