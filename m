@@ -1,95 +1,85 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [RFC 00/15] ACPI graph support
-Date: Wed, 12 Oct 2016 12:00:03 +0300
-Message-ID: <20161012090003.GR2774@lahna.fi.intel.com>
+Date: Wed, 12 Oct 2016 12:28:36 +0200
+Message-ID: <20161012102836.wng5g4lb5ouvc3lc@sirena.org.uk>
 References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
  <20161005092215.GA20248@red-moon>
  <20161005114129.GI1765@lahna.fi.intel.com>
  <20161005150641.GA22282@red-moon>
  <20161005153229.GO1765@lahna.fi.intel.com>
  <20161011123532.GC24347@remoulade>
+ <20161012090003.GR2774@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="i2q2e5ptte4o4j7l"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48121 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932105AbcJLJGj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Oct 2016 05:06:39 -0400
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:56140 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932284AbcJLK24 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Oct 2016 06:28:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20161011123532.GC24347@remoulade>
+In-Reply-To: <20161012090003.GR2774@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Tue, Oct 11, 2016 at 01:35:32PM +0100, Mark Rutland wrote:
-> On Wed, Oct 05, 2016 at 06:32:29PM +0300, Mika Westerberg wrote:
-> > On Wed, Oct 05, 2016 at 04:06:41PM +0100, Lorenzo Pieralisi wrote:
-> > > On Wed, Oct 05, 2016 at 02:41:29PM +0300, Mika Westerberg wrote:
-> > > > On Wed, Oct 05, 2016 at 10:22:15AM +0100, Lorenzo Pieralisi wrote:
-> > > > > On Wed, Oct 05, 2016 at 01:45:33AM +0300, Sakari Ailus wrote:
-> > > > The whole purpose of PRP0001 ID is to allow DT bindings to be reused in
-> > > > ACPI systems, so that the drivers can just call device_property_* and
-> > > > get the properties regardless of the underlying firmware interface.
-> > > > 
-> > > > Are you saying that's not wanted?
-> > > 
-> > > Not wholesale DT bindings import into ACPI, just no way.
-> > 
-> > Of course not all DT bindings. Only those that do not have a native ACPI
-> > representation.
-> 
-> ... yet.
-> 
-> For self-contained devices, this isn't much of a concern, but inter-device
-> relationships are the sort of thing ACPI *needs* to know about, and define a
-> model for. By trying to bodge this into _DSD, we're making matters worse by
-> both delaying the inevitable and creating a tonne of technical debt that we
-> have to deal with forever.
 
-ACPI has had references from the beginning and most probably one reason
-these "inter device" relationships are not in that spec, is because
-nobody thinks it is relevant to put them there. If you check any
-existing ACPI tables they have lots of references between devices. Some
-of the ASL code even calls methods of another device through these
-refences and it is not forbidden by the spec by any means.
+--i2q2e5ptte4o4j7l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-A good example of this is the audio machine driver the other Mark
-mentioned.
+On Wed, Oct 12, 2016 at 12:00:03PM +0300, Mika Westerberg wrote:
 
-Here is an example from Microsoft Surface3:
+> The _DEP method should be used for Operation Region dependencies but
+> here it is used for functional dependencies so that the audio machine
+> driver can find the corresponding codec. Why Microsoft used it like this
+> and not pushed it to ASWG to be added to the ACPI spec? Should we now
+> refuse to support it in Linux on the basis that it has not been
+> discussed with ASWG and it abuses _DEP?
 
-  Device (AMCR)
-  {
-      Name (_HID, "AMCR22A8")
-      ...
+The fact that the ACPI community hasn't been doing a good job of working
+together is essentially the issue that people are pushing back on here. =20
+We appear to not even be trying to set a better standard for how to do
+things here.
 
-      Name (_DEP, Package (0x02)  // _DEP: Dependencies
-      {
-          GPO2,
-          ^I2C2.RTEK
-      })
-      ...
-  }
+Sitting externally to the group at Intel doing this it really looks like
+there's been a decision to mirror DT into ACPI en masse.  If we really
+want to do that we should actually take that decision, preferrably with
+at least buy in from other ACPI users on Linux and with some review of
+existing ACPI standardization efforts to make sure we're not duplicating
+work there.  Ideally we'd also be pushing anything we do towards ASWG
+even if just as a fiat accomplait.
 
-The _DEP method should be used for Operation Region dependencies but
-here it is used for functional dependencies so that the audio machine
-driver can find the corresponding codec. Why Microsoft used it like this
-and not pushed it to ASWG to be added to the ACPI spec? Should we now
-refuse to support it in Linux on the basis that it has not been
-discussed with ASWG and it abuses _DEP?
+> > By copying DT, but changing a few things, we're in effect creating a new
+> > ill-defined Linux-specific standard. If we're going to create a new sta=
+ndard,
+> > we should go through the ASWG, and make an actual standard. If we're no=
+t going
+> > to create a new standard, we should use DT directly, rather than trying=
+ to
+> > force DT into ACPI.
 
-Basically _DSD here is used to add relevant names for these links so
-that they are compatible with the names used by the existing drivers in
-Linux (this is the part that is missing from the ACPI spec). This makes
-the same drivers to work with both DT and ACPI with minor modifications.
+> These boards we are talking about ship with ACPI based firmware. We
+> should not expect users of those boards to be cabable of replacing the
+> existing firmware with DT one.
 
-> By copying DT, but changing a few things, we're in effect creating a new
-> ill-defined Linux-specific standard. If we're going to create a new standard,
-> we should go through the ASWG, and make an actual standard. If we're not going
-> to create a new standard, we should use DT directly, rather than trying to
-> force DT into ACPI.
+Since we're still at the point of defining bindings hopefully we're not
+shipping yet...
 
-These boards we are talking about ship with ACPI based firmware. We
-should not expect users of those boards to be cabable of replacing the
-existing firmware with DT one.
+--i2q2e5ptte4o4j7l
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAABCAAGBQJX/hBQAAoJECTWi3JdVIfQCToH/RW8KVTaXCP2xSGvMXopo9MH
+9oDMmk78RxL+EJXVmwsXfWSzj9VIaAImAmDhssUsoovWTfjUW0fbImd/9d3ITC66
+3oUOIONX48p7puykA9CM8e+SYtEqJG+OggorvALZ+cJoeu0P4v4BUZJVsflSaEgP
+revMNKNxeJjuhfzJGOrGt4JWsK84khpYue6DKToynDNHPeAXnNotRXymexG0AbDr
+Rt4A17gy4JON53Vp/sk1Zy+7aCA2k0HGSadOCypIRaKbn+JLnwWQn9mmGdBAHVtb
+Pf45D30lCcIHT2YW5FegNtfuatU95Nu8CHZ0iaLg8CpSUkO9TSpvUWvwRxyak0Y=
+=rLid
+-----END PGP SIGNATURE-----
+
+--i2q2e5ptte4o4j7l--
