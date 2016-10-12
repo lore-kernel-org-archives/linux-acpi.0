@@ -1,160 +1,83 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH V3 04/10] arm64: exception: handle Synchronous External
- Abort
-Date: Wed, 12 Oct 2016 18:46:06 +0100
-Message-ID: <87y41tsboh.fsf@e105922-lin.cambridge.arm.com>
-References: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
- <1475875882-2604-5-git-send-email-tbaicar@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFC 00/15] ACPI graph support
+Date: Wed, 12 Oct 2016 19:50:22 +0200
+Message-ID: <CAJZ5v0hREF5P7WyTTVsMAUJb=kTJYNcxSfhvaVQ5foqRNNDp=g@mail.gmail.com>
+References: <20161005092215.GA20248@red-moon> <20161005114129.GI1765@lahna.fi.intel.com>
+ <20161005150641.GA22282@red-moon> <20161005153229.GO1765@lahna.fi.intel.com>
+ <20161011123532.GC24347@remoulade> <20161012090003.GR2774@lahna.fi.intel.com>
+ <20161012102836.wng5g4lb5ouvc3lc@sirena.org.uk> <CAJZ5v0gPNF9sm9ya6yG-kNi6F3EF01ra=O0NegbEu4+eB1itHg@mail.gmail.com>
+ <20161012123205.rcq6bsl4ujihg6tt@sirena.org.uk> <CAJZ5v0gfJ+7=YLHtzDAG70H95Pbdx_DuhfJ0g6UbpZCbfLM3zA@mail.gmail.com>
+ <20161012145936.s3llzl26j3ziga7u@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1475875882-2604-5-git-send-email-tbaicar@codeaurora.org> (Tyler
- Baicar's message of "Fri, 7 Oct 2016 15:31:16 -0600")
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, shijie.huang@arm.com, lenb@kernel.org, marc.zyngier@arm.com, tomasz.nowicki@linaro.org, Naveen Kaje <nkaje@codeaurora.org>, rostedt@goodmis.org, sandeepa.s.prabhu@gmail.com, Dkvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33304 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754922AbcJLRuj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Oct 2016 13:50:39 -0400
+Received: by mail-lf0-f68.google.com with SMTP id l131so5491669lfl.0
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Oct 2016 10:50:25 -0700 (PDT)
+In-Reply-To: <20161012145936.s3llzl26j3ziga7u@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-Hi Tyler,
-
-A couple of hopefully not bike shedding comments below.
-
-Tyler Baicar <tbaicar@codeaurora.org> writes:
-
-> SEA exceptions are often caused by an uncorrected hardware
-> error, and are handled when data abort and instruction abort
-> exception classes have specific values for their Fault Status
-> Code.
-> When SEA occurs, before killing the process, go through
-> the handlers registered in the notification list.
-> Update fault_info[] with specific SEA faults so that the
-> new SEA handler is used.
+On Wed, Oct 12, 2016 at 4:59 PM, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, Oct 12, 2016 at 02:42:25PM +0200, Rafael J. Wysocki wrote:
+>> On Wed, Oct 12, 2016 at 2:32 PM, Mark Brown <broonie@kernel.org> wrote:
 >
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Signed-off-by: Naveen Kaje <nkaje@codeaurora.org>
-> ---
->  arch/arm64/include/asm/system_misc.h | 13 ++++++++
->  arch/arm64/mm/fault.c                | 58 +++++++++++++++++++++++++++++-------
->  2 files changed, 61 insertions(+), 10 deletions(-)
+>> > Right, this is currently the idiomatic way to handle these things in
+>> > ACPI unfortunately and it's what Windows (which I'm assuming is the
+>> > alternative OSs you're referencing here!) does.  Are people working on
+>> > trying to move this forwards?
 >
-> diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-> index 57f110b..90daf4a 100644
-> --- a/arch/arm64/include/asm/system_misc.h
-> +++ b/arch/arm64/include/asm/system_misc.h
-> @@ -64,4 +64,17 @@ extern void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
->  
->  #endif	/* __ASSEMBLY__ */
->  
-> +/*
-> + * The functions below are used to register and unregister callbacks
-> + * that are to be invoked when a Synchronous External Abort (SEA)
-> + * occurs. An SEA is raised by certain fault status codes that have
-> + * either data or instruction abort as the exception class, and
-> + * callbacks may be registered to parse or handle such hardware errors.
-> + *
-> + * Registered callbacks are run in an interrupt/atomic context. They
-> + * are not allowed to block or sleep.
-> + */
-> +int sea_register_handler_chain(struct notifier_block *nb);
-> +void sea_unregister_handler_chain(struct notifier_block *nb);
-> +
->  #endif	/* __ASM_SYSTEM_MISC_H */
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index 05d2bd7..81cb7ad 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -39,6 +39,22 @@
->  #include <asm/pgtable.h>
->  #include <asm/tlbflush.h>
->  
-> +/*
-> + * GHES SEA handler code may register a notifier call here to
-> + * handle HW error record passed from platform.
-> + */
-> +static ATOMIC_NOTIFIER_HEAD(sea_handler_chain);
-> +
-> +int sea_register_handler_chain(struct notifier_block *nb)
-> +{
-> +	return atomic_notifier_chain_register(&sea_handler_chain, nb);
-> +}
-> +
-> +void sea_unregister_handler_chain(struct notifier_block *nb)
-> +{
-> +	atomic_notifier_chain_unregister(&sea_handler_chain, nb);
-> +}
-> +
+>> "Forward" in what way?  To convince the Windows people to change their
+>> ecosystem?  No.
+>
+> Well, at least trying to get standard ACPI able to express these ideas
+> better.
 
-What do you think of naming the above functions as
-[un]register_synchonous_ext_abort_notifier?
+There are things that could be covered by ACPI proper (clocks and
+regulators support in particular), but some other things covered by DT
+in Linux really go beyond that.
 
-For an API, I find "sea" doesn't quite convey the message.
+The "ports" and "endpoints" concept is a good example of that I think,
+as the use case is not in the traditional ACPI space (configuration
+and PM).  I'm not really sure if the ASWG is the right venue to talk
+about that would-be standard even and if the ACPI spec is the right
+place to put it into.
 
-One more comment below.
+>> > What we've been doing up until now to support these systems in Linux is
+>> > to have platform data in the driver that's matched via DMI information.
+>
+>> That is becoming more and more problematic, though, and generally
+>> leads to inflated DMI tables in drivers which is not perfect to put it
+>> lightly.
+>
+> Tell me about it - as far as I can see we're going to end up with a
+> kernel patch for most laptops or tablets anyone tries to run Linux on in
+> order to get audio working which is going to be a pretty miserable
+> experience for users and distros.
 
->  static const char *fault_name(unsigned int esr);
->  
->  #ifdef CONFIG_KPROBES
-> @@ -480,6 +496,28 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
->  	return 1;
->  }
->  
-> +/*
-> + * This abort handler deals with Synchronous External Abort.
-> + * It calls notifiers, and then returns "fault".
-> + */
-> +static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
-> +{
-> +	struct siginfo info;
-> +
-> +	atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
-> +
-> +	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
-> +		 fault_name(esr), esr, addr);
-> +
-> +	info.si_signo = SIGBUS;
-> +	info.si_errno = 0;
-> +	info.si_code  = 0;
-> +	info.si_addr  = (void __user *)addr;
-> +	arm64_notify_die("", regs, &info, esr);
-> +
-> +	return 0;
-> +}
-> +
->  static const struct fault_info {
->  	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
->  	int	sig;
-> @@ -502,22 +540,22 @@ static const struct fault_info {
->  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 1 permission fault"	},
->  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 2 permission fault"	},
->  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 3 permission fault"	},
-> -	{ do_bad,		SIGBUS,  0,		"synchronous external abort"	},
-> +	{ do_sea,		SIGBUS,  0,		"synchronous external abort"	},
->  	{ do_bad,		SIGBUS,  0,		"unknown 17"			},
->  	{ do_bad,		SIGBUS,  0,		"unknown 18"			},
->  	{ do_bad,		SIGBUS,  0,		"unknown 19"			},
-> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
-> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
-> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
-> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
-> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error"	},
-> +	{ do_sea,		SIGBUS,  0,		"level 0 SEA (trans tbl walk)"	},
-> +	{ do_sea,		SIGBUS,  0,		"level 1 SEA (trans tbl walk)"	},
-> +	{ do_sea,		SIGBUS,  0,		"level 2 SEA (trans tbl walk)"	},
-> +	{ do_sea,		SIGBUS,  0,		"level 3 SEA (trans tbl walk)"	},
-                                                                 ^^^
-The comment about naming applies here as well.
+Exactly.
+
+>> > The Windows systems don't appear to be in the slightest bit interested
+>> > in using the Linux bindings or updating their firmware to accomodate us
+>> > so the sensible thing is to work in the same way as they do.
+>
+>> That would mean adding static data tables to drivers based on device
+>> IDs somehow, but that pretty much would be what happened in the ARM
+>> camp before DT, wouldn't it?
+>
+> Yes, that's what it means.  It's pretty much a step backwards from what
+> architectures doing board files have - no changes are needed in the
+> drivers, instead when you add a new board you add a file which describes
+> everything on the board including all the platform data for the device.
+> It at least keeps all the support for the board and the matching code in
+> one place rather than scattering it through drivers.
+
+Right.
 
 Thanks,
-Punit
-
-[...]
+Rafael
