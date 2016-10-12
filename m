@@ -1,56 +1,64 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH] acpi_os_vprintf: Use printk_get_level() to avoid unnecessary KERN_CONT
-Date: Wed, 12 Oct 2016 11:50:34 -0700
-Message-ID: <2344de692f658b8bb07ba53702286b43911e4753.1476298191.git.joe@perches.com>
-References: <CA+55aFxNKFxa0Hh39o0gnxkskpW1Pg004-UnH5YaUQVq4oeDGA@mail.gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay0152.hostedemail.com ([216.40.44.152]:53876 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755137AbcJLSuv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Oct 2016 14:50:51 -0400
-In-Reply-To: <CA+55aFxNKFxa0Hh39o0gnxkskpW1Pg004-UnH5YaUQVq4oeDGA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V2 2/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
+ interrupts
+Date: Wed, 12 Oct 2016 14:07:30 -0500
+Message-ID: <20161012190729.GA15116@localhost>
+References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
+ <1475615720-31047-3-git-send-email-okaya@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1475615720-31047-3-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-acpi_os_vprintf currently always uses a KERN_CONT prefix which may be
-followed immediately by a proper KERN_<LEVEL>.  Check if the buffer
-already has a KERN_<LEVEL> at the start of the buffer and avoid the
-unnecessary KERN_CONT.
+On Tue, Oct 04, 2016 at 05:15:18PM -0400, Sinan Kaya wrote:
+> The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
+> resource requirements") removed PCI_USING penalty from
+> acpi_pci_link_allocate function as there is no longer a fixed size penalty
+> array for both PCI and IRQ interrupts.
+> 
+> We need to add the PCI_USING penalty for ISA interrupts too if the link is
+> in use and matches our ISA IRQ number.
+> 
+> Tested-by: Jonathan Liu <net147@gmail.com>
+> Tested-by: Ondrej Zary <linux@rainbow-software.org>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index f3792f4..06c2a11 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -620,6 +620,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			    acpi_device_bid(link->device));
+>  		return -ENODEV;
+>  	} else {
+> +		if (link->irq.active < ACPI_MAX_IRQS)
+> +			acpi_irq_penalty[link->irq.active] +=
+> +				PIRQ_PENALTY_PCI_USING;
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/acpi/osl.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+Nit: elsewhere you use ARRAY_SIZE(acpi_irq_penalty), so it'd be nice
+to be consistent, e.g.,
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 4305ee9db4b2..416953a42510 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -162,11 +162,18 @@ void acpi_os_vprintf(const char *fmt, va_list args)
- 	if (acpi_in_debugger) {
- 		kdb_printf("%s", buffer);
- 	} else {
--		printk(KERN_CONT "%s", buffer);
-+		if (printk_get_level(buffer))
-+			printk("%s", buffer);
-+		else
-+			printk(KERN_CONT "%s", buffer);
- 	}
- #else
--	if (acpi_debugger_write_log(buffer) < 0)
--		printk(KERN_CONT "%s", buffer);
-+	if (acpi_debugger_write_log(buffer) < 0) {
-+		if (printk_get_level(buffer))
-+			printk("%s", buffer);
-+		else
-+			printk(KERN_CONT "%s", buffer);
-+	}
- #endif
- }
- 
--- 
-2.10.0.rc2.1.g053435c
+  if (link->irq.active < ARRAY_SIZE(acpi_irq_penalty))
+    acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
 
+There are a couple other similar uses in acpi_irq_get_penalty() and
+acpi_irq_penalty_init().
+
+>  		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
