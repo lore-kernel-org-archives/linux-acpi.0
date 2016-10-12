@@ -1,107 +1,291 @@
-From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V3 02/10] ras: acpi/apei: cper: generic error data entry
- v3 per ACPI 6.1
-Date: Wed, 12 Oct 2016 16:18:58 -0600
-Message-ID: <dfdf5c92-52a7-a641-42aa-c230f5ebc0b2@codeaurora.org>
-References: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
- <1475875882-2604-3-git-send-email-tbaicar@codeaurora.org>
- <20161011185236.GC1041@n2100.armlinux.org.uk>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2 1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size
+ to 16"
+Date: Wed, 12 Oct 2016 18:46:11 -0400
+Message-ID: <09f93442-89c8-7b2c-467d-d29b857739ff@codeaurora.org>
+References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
+ <1475615720-31047-2-git-send-email-okaya@codeaurora.org>
+ <20161012221357.GB15116@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161011185236.GC1041-l+eeeJia6m9URfEZ8mYm6t73F7V6hmMc@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, Dkvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Richard Ruigrok <rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Naveen
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20161012221357.GB15116@localhost>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Russell,
+Hi Bjorn,
 
-Thank you for the feedback! Responses below
+On 10/12/2016 6:13 PM, Bjorn Helgaas wrote:
+> Hi Sinan,
+> 
+> I have to apologize because I haven't followed all the discussion and
+> now I'm trying to figure it out from the patches and changelogs.  But
+> I guess that's not all bad, because future interested folks *should*
+> be able to figure things out from that :)
+
+Sure, np. I figured you are busy with the new baseline. Then, I saw a
+series of patches coming from you.
+
+> 
+> On Tue, Oct 04, 2016 at 05:15:17PM -0400, Sinan Kaya wrote:
+>> This reverts commit 5c5087a55390 ("ACPI,PCI,IRQ: reduce static IRQ array
+>> size to 16").
+>>
+>> The code maintains a fixed size array for IRQ penalties. The array
+>> gets updated by external calls such as acpi_penalize_sci_irq,
+>> acpi_penalize_isa_irq to reflect the actual interrupt usage of the
+>> system. Since the IRQ distribution is platform specific, this is
+>> not known ahead of time. The IRQs get updated based on the SCI
+>> interrupt number BIOS has chosen or the ISA IRQs that were assigned
+>> to existing peripherals.
+>>
+>> By the time ACPI gets initialized, this code tries to determine an
+>> IRQ number based on penalty values in this array. It will try to locate
+>> the IRQ with the least penalty assignment so that interrupt sharing is
+>> avoided if possible.
+>>
+>> A couple of notes about the external APIs:
+>> 1. These API can be called before the ACPI is started. Therefore, one
+>> cannot assume that the PCI link objects are initialized for calculating
+>> penalties.
+> 
+> Which API are you thinking about here?  pcibios_penalize_isa_irq() is
+> called by ACPI and PNP, which should both be after ACPI is started.
+
+Correct, I was talking about acpi_penalize_sci_irq function here.
+
+> 
+> My guess is you're thinking about acpi_penalize_sci_irq() (added back
+> later in this series), which is called here, which is definitely
+> before ACPI objects are available:
+> 
+>   setup_arch
+>     acpi_boot_init
+>       acpi_process_madt
+> 	acpi_parse_madt_ioapic_entries
+> 	  acpi_table_parse_madt
+> 	    acpi_parse_int_src_ovr
+> 	      acpi_sci_ioapic_setup
+> 	        acpi_penalize_sci_irq       # <---
+> 
+>> 2. The polarity and trigger information passed via the
+>> acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
+>> is reporting as the call might have been placed before the IRQ is
+>> registered by the interrupt subsystem.
+>>
+>> The previous change was in the direction to remove these external API and
+>> try to calculate the penalties at runtime for the ISA path as well. This
+>> didn't work out well with the existing platforms.
+>>
+>> Restoring the old behavior for IRQ < 256 and the new behavior will remain
+>> effective for IRQ >= 256.
+> 
+> IIRC, this all started because we needed more than 256 IRQs, but we
+> didn't know how to size a static table to be large enough without
+> being wasteful.
+
+Correct. We only need 1024 for ARM/ARM64. But, we wanted to remove this
+restriction altogether to be arch proof. One of my earlier proposal was
+to just resize the array to 1024. I was asked if I was wasting resources
+by resizing to 1024.
+
+> 
+> Prior to 5c5087a55390, we tracked penalties for IRQs 0-255.  After it,
+> we only tracked penalties for IRQs 0-15.  I think this patch basically
+> makes it so we track 0-255 again.
+
+Yes, we went back to 256 interrupts after the revert. 
+
+> 
+> *This* patch only increases the range for pcibios_penalize_isa_irq()
+> (and command-line hints, but hopefully nobody cares about those).  A
+> subsequent patch increases it for SCI as well.
+> 
+> The name "ACPI_MAX_IRQS" is now slightly misleading (because we do
+> support more than 256 IRQs) and the 256 value is sort of an
+> unjustified magic number.  16 is explainable as the number of ISA
+> IRQs, but I don't know what 256 is based on (other than historical
+> practice, of course).  ACPI device IRQs can be much larger, and I
+> think the SCI IRQ can be, too (the FADT SCI_INT field is 16 bits).
+> 
+> Can you tie this back to the specific problem on the broken machine
+> somehow?  Do we need a penalty for an IRQ in the 16-255 range?
+
+The problem on the broken machine was SCI IRQ and PCI IRQ happened to be
+same. It was IRQ 11. When SCI IRQ heavily penalized IRQ 11 due to
+wrong interrupt type detection, PCI IRQs no longer worked as this line
+prohibits using the IRQ.
 
 
-On 10/11/2016 12:52 PM, Russell King - ARM Linux wrote:
-> On Fri, Oct 07, 2016 at 03:31:14PM -0600, Tyler Baicar wrote:
->> +static void cper_estatus_print_section_v300(const char *pfx,
->> +	const struct acpi_hest_generic_data_v300 *gdata)
->> +{
->> +	__u8 hour, min, sec, day, mon, year, century, *timestamp;
+	if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
+		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+			    "Try pci=noacpi or acpi=off\n",
+			    acpi_device_name(link->device),
+			    acpi_device_bid(link->device));
+		return -ENODEV;
+	} 
+
+
+> 
+> In a subsequent patch, I see something about the IRQ type not being
+> updated at the right time, but I can't quite connect the dots.
+
+The reason why PCI IRQ 11 didn't work is above. 
+
+When we detected a problem with the SCI IRQ type, we were penalizing
+the IRQ below.
+
+static int acpi_irq_get_penalty(int irq) 
+{
+...
+	if (irq == acpi_gbl_FADT.sci_interrupt) {
+		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
+
+		if (type != IRQ_TYPE_LEVEL_LOW)
+			penalty += PIRQ_PENALTY_ISA_ALWAYS;	<---- here
+		else
+			penalty += PIRQ_PENALTY_PCI_USING;
+	} 
+
+
+
+> 
+> To be clear, I'm not asking for any changes in the patch; I'm just
+> trying to understand what's going on.
+
+Sure, I hope this makes it clear now.
+
+> 
+>> Tested-by: Jonathan Liu <net147@gmail.com>
+>> Tested-by: Ondrej Zary <linux@rainbow-software.org>
+>> Link: http://www.gossamer-threads.com/lists/linux/kernel/2537016#2537016
+>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>> ---
+>>  drivers/acpi/pci_link.c | 35 ++++++++++++++++++-----------------
+>>  1 file changed, 18 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+>> index c983bf7..f3792f4 100644
+>> --- a/drivers/acpi/pci_link.c
+>> +++ b/drivers/acpi/pci_link.c
+>> @@ -438,6 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>>   * enabled system.
+>>   */
+>>  
+>> +#define ACPI_MAX_IRQS		256
+>>  #define ACPI_MAX_ISA_IRQS	16
+>>  
+>>  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+>> @@ -446,7 +447,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>>  #define PIRQ_PENALTY_ISA_USED		(16*16*16*16*16)
+>>  #define PIRQ_PENALTY_ISA_ALWAYS		(16*16*16*16*16*16)
+>>  
+>> -static int acpi_isa_irq_penalty[ACPI_MAX_ISA_IRQS] = {
+>> +static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>>  	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ0 timer */
+>>  	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ1 keyboard */
+>>  	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ2 cascade */
+>> @@ -511,7 +512,7 @@ static int acpi_irq_get_penalty(int irq)
+>>  	}
+>>  
+>>  	if (irq < ACPI_MAX_ISA_IRQS)
+>> -		return penalty + acpi_isa_irq_penalty[irq];
+>> +		return penalty + acpi_irq_penalty[irq];
+>>  
+>>  	penalty += acpi_irq_pci_sharing_penalty(irq);
+>>  	return penalty;
+>> @@ -538,14 +539,14 @@ int __init acpi_irq_penalty_init(void)
+>>  
+>>  			for (i = 0; i < link->irq.possible_count; i++) {
+>>  				if (link->irq.possible[i] < ACPI_MAX_ISA_IRQS)
+>> -					acpi_isa_irq_penalty[link->irq.
+>> +					acpi_irq_penalty[link->irq.
+>>  							 possible[i]] +=
+>>  					    penalty;
+>>  			}
+>>  
+>>  		} else if (link->irq.active &&
+>> -				(link->irq.active < ACPI_MAX_ISA_IRQS)) {
+>> -			acpi_isa_irq_penalty[link->irq.active] +=
+>> +				(link->irq.active < ACPI_MAX_IRQS)) {
+>> +			acpi_irq_penalty[link->irq.active] +=
+>>  			    PIRQ_PENALTY_PCI_POSSIBLE;
+>>  		}
+>>  	}
+>> @@ -828,7 +829,7 @@ static void acpi_pci_link_remove(struct acpi_device *device)
+>>  }
+>>  
+>>  /*
+>> - * modify acpi_isa_irq_penalty[] from cmdline
+>> + * modify acpi_irq_penalty[] from cmdline
+>>   */
+>>  static int __init acpi_irq_penalty_update(char *str, int used)
+>>  {
+>> @@ -837,24 +838,24 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>>  	for (i = 0; i < 16; i++) {
+>>  		int retval;
+>>  		int irq;
+>> -		int new_penalty;
+>>  
+>>  		retval = get_option(&str, &irq);
+>>  
+>>  		if (!retval)
+>>  			break;	/* no number found */
+>>  
+>> -		/* see if this is a ISA IRQ */
+>> -		if ((irq < 0) || (irq >= ACPI_MAX_ISA_IRQS))
+>> +		if (irq < 0)
+>> +			continue;
 >> +
->> +	if (gdata->validation_bits & ACPI_HEST_GEN_VALID_TIMESTAMP) {
->> +		timestamp = (__u8 *)&(gdata->time_stamp);
->> +		memcpy(&sec, timestamp, 1);
->> +		memcpy(&min, timestamp + 1, 1);
->> +		memcpy(&hour, timestamp + 2, 1);
->> +		memcpy(&day, timestamp + 4, 1);
->> +		memcpy(&mon, timestamp + 5, 1);
->> +		memcpy(&year, timestamp + 6, 1);
->> +		memcpy(&century, timestamp + 7, 1);
-> This is utterly silly.  Why are you using memcpy() to access individual
-> bytes of a u8 pointer?  What's wrong with:
->
-> 		sec = timestamp[0];
-> 		min = timestamp[1];
-> 		hour = timestamp[2];
-> 		day = timestamp[4];
-> 		mon = timestamp[5];
-> 		year = timestamp[6];
-> 		century = timestamp[7];
->
-> or even do the conversion here:
->
-> 		sec = bcd2bin(timestamp[0]);
-> ... etc ...
-Yes, that will be a lot cleaner especially with moving the conversion here.
->
->> +		printk("%stime: ", pfx);
->> +		printk("%7s", 0x01 & *(timestamp + 3) ? "precise" : "");
->> +		printk(" %02d:%02d:%02d %02d%02d-%02d-%02d\n",
->> +			bcd2bin(hour), bcd2bin(min), bcd2bin(sec),
->> +			bcd2bin(century), bcd2bin(year), bcd2bin(mon),
->> +			bcd2bin(day));
->> +	}
-> It's also a good idea to (as much as possible) keep to single printk()
-> statements - which makes the emission of the string more atomic wrt
-> other CPUs and contexts.  So, this should probably become (with the
-> conversion being done at the assignment of sec etc):
->
-> 		printk("%stime: %7s %02d:%02d:%02d %02d%02d-%02d-%02d\n",
-> 			pfx, 0x01 & timestamp[3] ? "precise" : "",
-> 			hour, min, sec, century, year, mon, day);
->
-> which, IMHO, looks a lot nicer and doesn't risk some other printk()
-> getting between each individual part of the line.
-I will make this change in the next version. This printk does look a lot 
-nicer and avoids other prints from getting in the middle (I actually 
-just saw that happen in testing a couple days ago)
->> +}
->> +
->>   static void cper_estatus_print_section(
->> -	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
->> +	const char *pfx, struct acpi_hest_generic_data *gdata, int sec_no)
->>   {
->>   	uuid_le *sec_type = (uuid_le *)gdata->section_type;
->>   	__u16 severity;
->>   	char newpfx[64];
->>   
->> +	if ((gdata->revision >> 8) >= 0x03)
->> +		cper_estatus_print_section_v300(pfx,
->> +			(const struct acpi_hest_generic_data_v300 *)gdata);
->> +
->>   	severity = gdata->error_severity;
->>   	printk("%s""Error %d, type: %s\n", pfx, sec_no,
->>   	       cper_severity_str(severity));
-> Not sure why you have the "" here - %sError works just as well and the
-> "" is just obfuscation - the compiler will eliminate the double-double
-> quote and merge the strings anyway.
->
-I will remove the "" in the next version.
+>> +		if (irq >= ARRAY_SIZE(acpi_irq_penalty))
+>>  			continue;
+>>  
+>>  		if (used)
+>> -			new_penalty = acpi_irq_get_penalty(irq) +
+>> -					PIRQ_PENALTY_ISA_USED;
+>> +			acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+>> +				PIRQ_PENALTY_ISA_USED;
+>>  		else
+>> -			new_penalty = 0;
+>> +			acpi_irq_penalty[irq] = 0;
+>>  
+>> -		acpi_isa_irq_penalty[irq] = new_penalty;
+>>  		if (retval != 2)	/* no next number */
+>>  			break;
+>>  	}
+>> @@ -870,14 +871,14 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>>   */
+>>  void acpi_penalize_isa_irq(int irq, int active)
+>>  {
+>> -	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
+>> -		acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+>> -		  (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+>> +	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty))
+>> +		acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+>> +		    (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+>>  }
+>>  
+>>  bool acpi_isa_irq_available(int irq)
+>>  {
+>> -	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_isa_irq_penalty) ||
+>> +	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+>>  		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+>>  }
+>>  
+>> -- 
+>> 1.9.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Thanks,
-Tyler
 
 -- 
+Sinan Kaya
 Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
