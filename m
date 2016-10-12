@@ -1,85 +1,55 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC 00/15] ACPI graph support
-Date: Wed, 12 Oct 2016 12:28:36 +0200
-Message-ID: <20161012102836.wng5g4lb5ouvc3lc@sirena.org.uk>
-References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
- <20161005092215.GA20248@red-moon>
- <20161005114129.GI1765@lahna.fi.intel.com>
- <20161005150641.GA22282@red-moon>
- <20161005153229.GO1765@lahna.fi.intel.com>
- <20161011123532.GC24347@remoulade>
- <20161012090003.GR2774@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="i2q2e5ptte4o4j7l"
+From: Juergen Gross <jgross@suse.com>
+Subject: [PATCH] acpi: don't register acpi_pad driver if running as xen dom0
+Date: Wed, 12 Oct 2016 13:11:45 +0200
+Message-ID: <1476270705-16209-1-git-send-email-jgross@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:56140 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932284AbcJLK24 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Oct 2016 06:28:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20161012090003.GR2774@lahna.fi.intel.com>
+Received: from mx2.suse.de ([195.135.220.15]:54175 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751171AbcJLLLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Oct 2016 07:11:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: linux-kernel@vger.kernel.org, xen-devel@lists.xen.org, linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, rjw@rjwysocki.net, Juergen Gross <jgross@suse.com>
 
+When running as Xen dom0 a special processor_aggregator driver is
+needed. Don't register the standard driver in this case.
 
---i2q2e5ptte4o4j7l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Without that check an error message:
 
-On Wed, Oct 12, 2016 at 12:00:03PM +0300, Mika Westerberg wrote:
+"Error: Driver 'processor_aggregator' is already registered,
+aborting..."
 
-> The _DEP method should be used for Operation Region dependencies but
-> here it is used for functional dependencies so that the audio machine
-> driver can find the corresponding codec. Why Microsoft used it like this
-> and not pushed it to ASWG to be added to the ACPI spec? Should we now
-> refuse to support it in Linux on the basis that it has not been
-> discussed with ASWG and it abuses _DEP?
+will be displayed.
 
-The fact that the ACPI community hasn't been doing a good job of working
-together is essentially the issue that people are pushing back on here. =20
-We appear to not even be trying to set a better standard for how to do
-things here.
+Signed-off-by: Juergen Gross <jgross@suse.com>
+---
+ drivers/acpi/acpi_pad.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Sitting externally to the group at Intel doing this it really looks like
-there's been a decision to mirror DT into ACPI en masse.  If we really
-want to do that we should actually take that decision, preferrably with
-at least buy in from other ACPI users on Linux and with some review of
-existing ACPI standardization efforts to make sure we're not duplicating
-work there.  Ideally we'd also be pushing anything we do towards ASWG
-even if just as a fiat accomplait.
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index 8ea8211..1c3be12 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -26,6 +26,7 @@
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+ #include <asm/mwait.h>
++#include <xen/xen.h>
+ 
+ #define ACPI_PROCESSOR_AGGREGATOR_CLASS	"acpi_pad"
+ #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
+@@ -477,6 +478,10 @@ static struct acpi_driver acpi_pad_driver = {
+ 
+ static int __init acpi_pad_init(void)
+ {
++	/* Xen acpi pad is responsible when running as Xen Dom0. */
++	if (xen_initial_domain())
++		return -ENODEV;
++
+ 	power_saving_mwait_init();
+ 	if (power_saving_mwait_eax == 0)
+ 		return -EINVAL;
+-- 
+2.6.6
 
-> > By copying DT, but changing a few things, we're in effect creating a new
-> > ill-defined Linux-specific standard. If we're going to create a new sta=
-ndard,
-> > we should go through the ASWG, and make an actual standard. If we're no=
-t going
-> > to create a new standard, we should use DT directly, rather than trying=
- to
-> > force DT into ACPI.
-
-> These boards we are talking about ship with ACPI based firmware. We
-> should not expect users of those boards to be cabable of replacing the
-> existing firmware with DT one.
-
-Since we're still at the point of defining bindings hopefully we're not
-shipping yet...
-
---i2q2e5ptte4o4j7l
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEcBAABCAAGBQJX/hBQAAoJECTWi3JdVIfQCToH/RW8KVTaXCP2xSGvMXopo9MH
-9oDMmk78RxL+EJXVmwsXfWSzj9VIaAImAmDhssUsoovWTfjUW0fbImd/9d3ITC66
-3oUOIONX48p7puykA9CM8e+SYtEqJG+OggorvALZ+cJoeu0P4v4BUZJVsflSaEgP
-revMNKNxeJjuhfzJGOrGt4JWsK84khpYue6DKToynDNHPeAXnNotRXymexG0AbDr
-Rt4A17gy4JON53Vp/sk1Zy+7aCA2k0HGSadOCypIRaKbn+JLnwWQn9mmGdBAHVtb
-Pf45D30lCcIHT2YW5FegNtfuatU95Nu8CHZ0iaLg8CpSUkO9TSpvUWvwRxyak0Y=
-=rLid
------END PGP SIGNATURE-----
-
---i2q2e5ptte4o4j7l--
