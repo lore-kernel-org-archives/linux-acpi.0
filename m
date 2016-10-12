@@ -1,273 +1,65 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: Re: [PATCH v5 5/9] x86/sysctl: Add sysctl for ITMT scheduling feature
-Date: Wed, 12 Oct 2016 09:50:42 -0700
-Message-ID: <20161012165042.GA24463@linux.intel.com>
-References: <1475322326-160112-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1475322326-160112-6-git-send-email-srinivas.pandruvada@linux.intel.com>
- <alpine.DEB.2.20.1610051624590.8953@nanos>
- <1475684673.3916.299.camel@linux.intel.com>
- <alpine.DEB.2.20.1610061307030.22338@nanos>
-Reply-To: tim.c.chen@linux.intel.com
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC 00/15] ACPI graph support
+Date: Wed, 12 Oct 2016 18:00:45 +0200
+Message-ID: <20161012160045.yw7j6mf443w2a62s@sirena.org.uk>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161005092215.GA20248@red-moon>
+ <20161005114129.GI1765@lahna.fi.intel.com>
+ <20161005150641.GA22282@red-moon>
+ <20161005153229.GO1765@lahna.fi.intel.com>
+ <20161011123532.GC24347@remoulade>
+ <20161012090003.GR2774@lahna.fi.intel.com>
+ <20161012102836.wng5g4lb5ouvc3lc@sirena.org.uk>
+ <20161012111230.GX2774@lahna.fi.intel.com>
+ <CAJZ5v0hzZuRCrhKYAjq55adVHS-Pg-ZvaduQa6=Uw6WG+yKfDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="nu3lnrttpmxdtagy"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:58806 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754719AbcJLRaN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Oct 2016 13:30:13 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1610061307030.22338@nanos>
-Sender: linux-pm-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com
+In-Reply-To: <CAJZ5v0hzZuRCrhKYAjq55adVHS-Pg-ZvaduQa6=Uw6WG+yKfDw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Thu, Oct 06, 2016 at 01:13:08PM +0200, Thomas Gleixner wrote:
-> On Wed, 5 Oct 2016, Tim Chen wrote:
-> > On Wed, 2016-10-05 at 16:35 +0200, Thomas Gleixner wrote:
-> > > > +	if (itmt_supported) {
-> > > > +		itmt_sysctl_header =
-> > > > +			register_sysctl_table(itmt_root_table);
-> > > > +		if (!itmt_sysctl_header) {
-> > > > +			mutex_unlock(&itmt_update_mutex);
-> > > > +			return;
-> > > So you now have a state of capable which cannot be enabled. Whats the
-> > > point?
-> > 
-> > For multi-socket system where ITMT is not enabled by default, the operator
-> > can still decide to enable it via sysctl.
-> 
-> With a sysctl which failed to be installed. Good luck with that.
->  
-> > > > +		}
-> > > > +		/*
-> > > > +		 * ITMT capability automatically enables ITMT
-> > > > +		 * scheduling for small systems (single node).
-> > > > +		 */
-> > > > +		if (topology_num_packages() == 1)
-> > > > +			sysctl_sched_itmt_enabled = 1;
-> > > > +	} else {
-> > > > +		if (itmt_sysctl_header)
-> > > > +			unregister_sysctl_table(itmt_sysctl_header);
-> > > > +	}
-> > > > +
-> > > > +	if (sysctl_sched_itmt_enabled) {
-> > > > +		/* disable sched_itmt if we are no longer ITMT capable */
-> > > > +		if (!itmt_supported)
-> > > 
-> > > How do you get here if itmt is not supported? 
-> > 
-> > If the OS decides to turn off ITMT for any reason, (i.e. invoke 
-> > sched_set_itmt_support(false) after it has turned on itmt_support
-> > before), this is the logic to do it.  We don't turn off ITMT support
-> > after it has been turned on today, in the future the OS may.
-> 
-> Then please make this two functions (set/clear) so one can actually follow
-> the logic. The above is just too convoluted.
-> 
 
-Thomas,
+--nu3lnrttpmxdtagy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Will the update patch below address your concerns for this patch?
-Please let us know if you have any other additional comments about
-this series.  We'll like to address all of them before we post
-an update to the series.
+On Wed, Oct 12, 2016 at 01:25:32PM +0200, Rafael J. Wysocki wrote:
 
-Thanks.
+> Moreover, I don't really like the direction it is going into.  We
+> should be collaborating instead of accusing our respective employers
+> of doing nasty things in this forum.
 
-Tim
+> Let's focus on the technical side then or the discussion is over.
 
---->8---
+To be clear at least from my perspective I don't think there's any bad
+intent on anyone's part, I think at most we've got a lack of
+coordination about the direction Linux is taking it's ACPI usage in and
+to what extent that's aligned with ACPI standards and what OSs like
+Windows are doing.  I have no doubt that we all want to make things
+better and I apologize that I've expressed myself in a way that led
+people to think otherwise.
 
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: [PATCH 5/6 v5 - update proposal] x86/sysctl: Add sysctl for ITMT scheduling feature
+--nu3lnrttpmxdtagy
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Intel Turbo Boost Max Technology 3.0 (ITMT) feature
-allows some cores to be boosted to higher turbo
-frequency than others.
+-----BEGIN PGP SIGNATURE-----
 
-Add /proc/sys/kernel/sched_itmt_enabled so operator
-can enable/disable scheduling of tasks that favor cores
-with higher turbo boost frequency potential.
+iQEcBAABCAAGBQJX/l4qAAoJECTWi3JdVIfQWkIH/1u/z7qI71oSerK0WSOSCP90
+U9RP9C2c3Iv3b68SqIY3r3+4sJysWIpl3DGC2DDa298hFUEPCBnUstiGSGGtW9Sh
+6vimdrMD//LygfaSiciWNYIRCB18CZ2vcwsLdoeh/okttmx04/Xmo1743WvmU5av
+TA/woXaXmEq51j6bcRtF/ukh9NiEZZv4INtBDfXjsio6142UXB60Crqv38jCCnH6
+71/0U0opGH44ZI+hknF/P3wsU0UEXehS7sW2FboVD13aSUfN4aU3KVC4nKp9LQ+H
+kWWAXBB21J0AQW6T1emcHOUlgcKk1Cg0Dza3mpEaIxsTRaflbqqhDR3xTnUwnrM=
+=5MX+
+-----END PGP SIGNATURE-----
 
-By default, system that is ITMT capable and single
-socket has this feature turned on.  It is more likely
-to be lightly loaded and operates in Turbo range.
-
-When there is a change in the ITMT scheduling operation
-desired, a rebuild of the sched domain is initiated
-so the scheduler can set up sched domains with appropriate
-flag to enable/disable ITMT scheduling operations.
-
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- arch/x86/include/asm/topology.h |   2 +
- arch/x86/kernel/itmt.c          | 105 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 107 insertions(+)
-
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 1cd8d12..46ebdd1 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -155,6 +155,7 @@ extern bool x86_topology_update;
- #include <asm/percpu.h>
- 
- DECLARE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
-+extern unsigned int __read_mostly sysctl_sched_itmt_enabled;
- 
- /* Interface to set priority of a cpu */
- void sched_set_itmt_core_prio(int prio, int core_cpu);
-@@ -167,6 +168,7 @@ void sched_clear_itmt_support(void);
- 
- #else /* CONFIG_SCHED_ITMT */
- 
-+#define sysctl_sched_itmt_enabled	0
- static inline void sched_set_itmt_core_prio(int prio, int core_cpu)
- {
- }
-diff --git a/arch/x86/kernel/itmt.c b/arch/x86/kernel/itmt.c
-index 4be3d81..b104368 100644
---- a/arch/x86/kernel/itmt.c
-+++ b/arch/x86/kernel/itmt.c
-@@ -34,6 +34,67 @@ DEFINE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
- /* Boolean to track if system has ITMT capabilities */
- static bool __read_mostly sched_itmt_capable;
- 
-+/*
-+ * Boolean to control whether we want to move processes to cpu capable
-+ * of higher turbo frequency for cpus supporting Intel Turbo Boost Max
-+ * Technology 3.0.
-+ *
-+ * It can be set via /proc/sys/kernel/sched_itmt_enabled
-+ */
-+unsigned int __read_mostly sysctl_sched_itmt_enabled;
-+
-+static int sched_itmt_update_handler(struct ctl_table *table, int write,
-+			      void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+	unsigned int old_sysctl;
-+
-+	mutex_lock(&itmt_update_mutex);
-+
-+	if (!sched_itmt_capable) {
-+		mutex_unlock(&itmt_update_mutex);
-+		return -EINVAL;
-+	}
-+
-+	old_sysctl = sysctl_sched_itmt_enabled;
-+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+
-+	if (!ret && write && old_sysctl != sysctl_sched_itmt_enabled) {
-+		x86_topology_update = true;
-+		rebuild_sched_domains();
-+	}
-+
-+	mutex_unlock(&itmt_update_mutex);
-+
-+	return ret;
-+}
-+
-+static unsigned int zero;
-+static unsigned int one = 1;
-+static struct ctl_table itmt_kern_table[] = {
-+	{
-+		.procname	= "sched_itmt_enabled",
-+		.data		= &sysctl_sched_itmt_enabled,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= sched_itmt_update_handler,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
-+	{}
-+};
-+
-+static struct ctl_table itmt_root_table[] = {
-+	{
-+		.procname	= "kernel",
-+		.mode		= 0555,
-+		.child		= itmt_kern_table,
-+	},
-+	{}
-+};
-+
-+static struct ctl_table_header *itmt_sysctl_header;
-+
- /**
-  * sched_set_itmt_support - Indicate platform supports ITMT
-  *
-@@ -47,13 +108,40 @@ static bool __read_mostly sched_itmt_capable;
-  *
-  * This must be done only after sched_set_itmt_core_prio
-  * has been called to set the cpus' priorities.
-+ *
-+ * It must not be called with cpu hot plug lock
-+ * held as we need to acquire the lock to rebuild sched domains
-+ * later.
-  */
- int sched_set_itmt_support(void)
- {
- 	mutex_lock(&itmt_update_mutex);
- 
-+	if (sched_itmt_capable) {
-+		mutex_unlock(&itmt_update_mutex);
-+		return 0;
-+	}
-+
-+	itmt_sysctl_header = register_sysctl_table(itmt_root_table);
-+	if (!itmt_sysctl_header) {
-+		mutex_unlock(&itmt_update_mutex);
-+		return -ENOMEM;
-+	}
-+
- 	sched_itmt_capable = true;
- 
-+	/*
-+	 * ITMT capability automatically enables ITMT
-+	 * scheduling for small systems (single node).
-+	 */
-+	if (topology_num_packages() == 1)
-+		sysctl_sched_itmt_enabled = 1;
-+
-+	if (sysctl_sched_itmt_enabled) {
-+		x86_topology_update = true;
-+		rebuild_sched_domains();
-+	}
-+
- 	mutex_unlock(&itmt_update_mutex);
- 	return 0;
- }
-@@ -64,13 +152,30 @@ int sched_set_itmt_support(void)
-  * This function is used by the OS to indicate that it has
-  * revoked the platform's support of ITMT feature.
-  *
-+ * It must not be called with cpu hot plug lock
-+ * held as we need to acquire the lock to rebuild sched domains
-+ * later.
-  */
- void sched_clear_itmt_support(void)
- {
- 	mutex_lock(&itmt_update_mutex);
- 
-+	if (!sched_itmt_capable) {
-+		mutex_unlock(&itmt_update_mutex);
-+		return;
-+	}
- 	sched_itmt_capable = false;
- 
-+	if (itmt_sysctl_header)
-+		unregister_sysctl_table(itmt_sysctl_header);
-+
-+	if (sysctl_sched_itmt_enabled) {
-+		/* disable sched_itmt if we are no longer ITMT capable */
-+		sysctl_sched_itmt_enabled = 0;
-+		x86_topology_update = true;
-+		rebuild_sched_domains();
-+	}
-+
- 	mutex_unlock(&itmt_update_mutex);
- }
- 
--- 
-2.5.5
-
+--nu3lnrttpmxdtagy--
