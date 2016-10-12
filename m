@@ -1,55 +1,72 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH] acpi: don't register acpi_pad driver if running as xen dom0
-Date: Wed, 12 Oct 2016 13:11:45 +0200
-Message-ID: <1476270705-16209-1-git-send-email-jgross@suse.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC 00/15] ACPI graph support
+Date: Wed, 12 Oct 2016 14:12:30 +0300
+Message-ID: <20161012111230.GX2774@lahna.fi.intel.com>
+References: <1475621148-21427-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161005092215.GA20248@red-moon>
+ <20161005114129.GI1765@lahna.fi.intel.com>
+ <20161005150641.GA22282@red-moon>
+ <20161005153229.GO1765@lahna.fi.intel.com>
+ <20161011123532.GC24347@remoulade>
+ <20161012090003.GR2774@lahna.fi.intel.com>
+ <20161012102836.wng5g4lb5ouvc3lc@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:54175 "EHLO mx2.suse.de"
+Received: from mga05.intel.com ([192.55.52.43]:54974 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751171AbcJLLLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 12 Oct 2016 07:11:52 -0400
+        id S1751171AbcJLLPj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 12 Oct 2016 07:15:39 -0400
+Content-Disposition: inline
+In-Reply-To: <20161012102836.wng5g4lb5ouvc3lc@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, xen-devel@lists.xen.org, linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, rjw@rjwysocki.net, Juergen Gross <jgross@suse.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, rafael@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-When running as Xen dom0 a special processor_aggregator driver is
-needed. Don't register the standard driver in this case.
+On Wed, Oct 12, 2016 at 12:28:36PM +0200, Mark Brown wrote:
+> On Wed, Oct 12, 2016 at 12:00:03PM +0300, Mika Westerberg wrote:
+> 
+> > The _DEP method should be used for Operation Region dependencies but
+> > here it is used for functional dependencies so that the audio machine
+> > driver can find the corresponding codec. Why Microsoft used it like this
+> > and not pushed it to ASWG to be added to the ACPI spec? Should we now
+> > refuse to support it in Linux on the basis that it has not been
+> > discussed with ASWG and it abuses _DEP?
+> 
+> The fact that the ACPI community hasn't been doing a good job of working
+> together is essentially the issue that people are pushing back on here.  
+> We appear to not even be trying to set a better standard for how to do
+> things here.
 
-Without that check an error message:
+Why using _DSD and the existing, well tested, DT properties (remote
+endpoints) is not even considered making a better standard?
 
-"Error: Driver 'processor_aggregator' is already registered,
-aborting..."
+> Sitting externally to the group at Intel doing this it really looks like
+> there's been a decision to mirror DT into ACPI en masse.
 
-will be displayed.
+There has been no such decision as far as I can tell.
 
-Signed-off-by: Juergen Gross <jgross@suse.com>
----
- drivers/acpi/acpi_pad.c | 5 +++++
- 1 file changed, 5 insertions(+)
+> If we really want to do that we should actually take that decision,
+> preferrably with at least buy in from other ACPI users on Linux and
+> with some review of existing ACPI standardization efforts to make sure
+> we're not duplicating work there.  Ideally we'd also be pushing
+> anything we do towards ASWG even if just as a fiat accomplait.
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index 8ea8211..1c3be12 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -26,6 +26,7 @@
- #include <linux/slab.h>
- #include <linux/acpi.h>
- #include <asm/mwait.h>
-+#include <xen/xen.h>
- 
- #define ACPI_PROCESSOR_AGGREGATOR_CLASS	"acpi_pad"
- #define ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME "Processor Aggregator"
-@@ -477,6 +478,10 @@ static struct acpi_driver acpi_pad_driver = {
- 
- static int __init acpi_pad_init(void)
- {
-+	/* Xen acpi pad is responsible when running as Xen Dom0. */
-+	if (xen_initial_domain())
-+		return -ENODEV;
-+
- 	power_saving_mwait_init();
- 	if (power_saving_mwait_eax == 0)
- 		return -EINVAL;
--- 
-2.6.6
+Agreed.
 
+> > > By copying DT, but changing a few things, we're in effect creating a new
+> > > ill-defined Linux-specific standard. If we're going to create a new standard,
+> > > we should go through the ASWG, and make an actual standard. If we're not going
+> > > to create a new standard, we should use DT directly, rather than trying to
+> > > force DT into ACPI.
+> 
+> > These boards we are talking about ship with ACPI based firmware. We
+> > should not expect users of those boards to be cabable of replacing the
+> > existing firmware with DT one.
+> 
+> Since we're still at the point of defining bindings hopefully we're not
+> shipping yet...
+
+No, those systems are already out there. See Intel Joule for one example
+(there are many others). You can connect your own camera sensor there.
