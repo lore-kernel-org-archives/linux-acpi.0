@@ -1,179 +1,314 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v5 01/14] drivers: iommu: add FWNODE_IOMMU fwnode type
-Date: Thu, 13 Oct 2016 17:32:29 +0100
-Message-ID: <20161013163229.GA24568@red-moon>
-References: <20160909142343.13314-1-lorenzo.pieralisi@arm.com>
-	<20160909142343.13314-2-lorenzo.pieralisi@arm.com>
-	<20160929141520.GA29244@red-moon>
-	<3178073.UTpgCTN6if@vostro.rjw.lan>
-	<20160930090702.GA7725@red-moon>
-	<CAJZ5v0hK2Ryo32u4S9K=78-Oot13vvVNB+p6N2YC1UMqYW9g7A@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V2 1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array
+ size to 16"
+Date: Thu, 13 Oct 2016 13:15:35 -0500
+Message-ID: <20161013181535.GB21529@localhost>
+References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
+ <1475615720-31047-2-git-send-email-okaya@codeaurora.org>
+ <20161012221357.GB15116@localhost>
+ <09f93442-89c8-7b2c-467d-d29b857739ff@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hK2Ryo32u4S9K=78-Oot13vvVNB+p6N2YC1UMqYW9g7A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <09f93442-89c8-7b2c-467d-d29b857739ff@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux@rainbow-software.org, ravikanth.nalla@hpe.com, jcm@redhat.com, timur@codeaurora.org, agross@codeaurora.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, alex.williamson@redhat.com, cov@codeaurora.org, linux-pci@vger.kernel.org, bhelgaas@google.com, wim@djo.tudelft.nl, linux-arm-msm@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-On Fri, Sep 30, 2016 at 05:48:01PM +0200, Rafael J. Wysocki wrote:
-> On Fri, Sep 30, 2016 at 11:07 AM, Lorenzo Pieralisi
-> <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> > On Thu, Sep 29, 2016 at 10:59:40PM +0200, Rafael J. Wysocki wrote:
-> >> On Thursday, September 29, 2016 03:15:20 PM Lorenzo Pieralisi wrote:
-> >> > Hi Rafael,
-> >> >
-> >> > On Fri, Sep 09, 2016 at 03:23:30PM +0100, Lorenzo Pieralisi wrote:
-> >> > > On systems booting with a device tree, every struct device is
-> >> > > associated with a struct device_node, that represents its DT
-> >> > > representation. The device node can be used in generic kernel
-> >> > > contexts (eg IRQ translation, IOMMU streamid mapping), to
-> >> > > retrieve the properties associated with the device and carry
-> >> > > out kernel operation accordingly. Owing to the 1:1 relationship
-> >> > > between the device and its device_node, the device_node can also
-> >> > > be used as a look-up token for the device (eg looking up a device
-> >> > > through its device_node), to retrieve the device in kernel paths
-> >> > > where the device_node is available.
-> >> > >
-> >> > > On systems booting with ACPI, the same abstraction provided by
-> >> > > the device_node is required to provide look-up functionality.
-> >> > >
-> >> > > Therefore, mirroring the approach implemented in the IRQ domain
-> >> > > kernel layer, this patch adds an additional fwnode type FWNODE_IOMMU.
-> >> > >
-> >> > > This patch also implements a glue kernel layer that allows to
-> >> > > allocate/free FWNODE_IOMMU fwnode_handle structures and associate
-> >> > > them with IOMMU devices.
-> >> > >
-> >> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> >> > > Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >> > > Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> >> > > Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> >> > > ---
-> >> > >  include/linux/fwnode.h |  1 +
-> >> > >  include/linux/iommu.h  | 25 +++++++++++++++++++++++++
-> >> > >  2 files changed, 26 insertions(+)
-> >> > >
-> >> > > diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> >> > > index 8516717..6e10050 100644
-> >> > > --- a/include/linux/fwnode.h
-> >> > > +++ b/include/linux/fwnode.h
-> >> > > @@ -19,6 +19,7 @@ enum fwnode_type {
-> >> > >   FWNODE_ACPI_DATA,
-> >> > >   FWNODE_PDATA,
-> >> > >   FWNODE_IRQCHIP,
-> >> > > + FWNODE_IOMMU,
-> >> >
-> >> > This patch provides groundwork for this series and it is key for
-> >> > the rest of it, basically the point here is that we need a fwnode
-> >> > to differentiate platform devices created out of static ACPI tables
-> >> > entries (ie IORT), that represent IOMMU components.
-> >> >
-> >> > The corresponding device is not an ACPI device (I could fabricate one as
-> >> > it is done for other static tables entries eg FADT power button, but I
-> >> > do not necessarily see the reason for doing that given that all we need
-> >> > the fwnode for is a token identifier), so FWNODE_ACPI does not apply
-> >> > here.
-> >> >
-> >> > Please let me know if it is reasonable how I sorted this out (it
-> >> > is basically identical to IRQCHIP, just another enum entry), the
-> >> > remainder of the code depends on this.
+On Wed, Oct 12, 2016 at 06:46:11PM -0400, Sinan Kaya wrote:
+> Hi Bjorn,
+> 
+> On 10/12/2016 6:13 PM, Bjorn Helgaas wrote:
+> > Hi Sinan,
+> > 
+> > I have to apologize because I haven't followed all the discussion and
+> > now I'm trying to figure it out from the patches and changelogs.  But
+> > I guess that's not all bad, because future interested folks *should*
+> > be able to figure things out from that :)
+> 
+> Sure, np. I figured you are busy with the new baseline. Then, I saw a
+> series of patches coming from you.
+> 
+> > 
+> > On Tue, Oct 04, 2016 at 05:15:17PM -0400, Sinan Kaya wrote:
+> >> This reverts commit 5c5087a55390 ("ACPI,PCI,IRQ: reduce static IRQ array
+> >> size to 16").
 > >>
-> >> I'm not familiar with the use case, so I don't see anything unreasonable
-> >> in it.
-> >
-> > The use case is pretty simple: on ARM SMMU devices are platform devices.
-> > When booting with DT they are identified through an of_node and related
-> > FWNODE_OF type. When booting with ACPI, the ARM SMMU platform devices,
-> > to be equivalent to DT booting path, should be created out of static
-> > IORT table entries (that's how we describe SMMUs); we need to create
-> > a fwnode "token" to associate with those platform devices and that's
-> > not a FWNODE_ACPI (that is for an ACPI device firmware object, here we
-> > really do not need one), so this patch.
-> >
-> >> If you're asking about whether or not I mind adding more fwnode types in
-> >> principle, then no, I don't. :-)
-> >
-> > Yes, that's what I was asking, the only point that bugs me is that for
-> > both FWNODE_IRQCHIP and FWNODE_IOMMU the fwnode is just a "token" (ie a
-> > valid pointer) used for look-up and the type in the fwnode_handle is
-> > mostly there for error checking, I was wondering if we could create a
-> > specific fwnode_type for this specific usage (eg FWNODE_TAG and then add
-> > a type to it as part of its container struct) instead of adding an enum
-> > value per subsystem - it seems there are other fwnode types in the
-> > pipeline :), so I am asking:
-> >
-> > lkml.kernel.org/r/3D1468514043-21081-3-git-send-email-minyard-HInyCGIudOg@public.gmane.org
+> >> The code maintains a fixed size array for IRQ penalties. The array
+> >> gets updated by external calls such as acpi_penalize_sci_irq,
+> >> acpi_penalize_isa_irq to reflect the actual interrupt usage of the
+> >> system. Since the IRQ distribution is platform specific, this is
+> >> not known ahead of time. The IRQs get updated based on the SCI
+> >> interrupt number BIOS has chosen or the ISA IRQs that were assigned
+> >> to existing peripherals.
+> >>
+> >> By the time ACPI gets initialized, this code tries to determine an
+> >> IRQ number based on penalty values in this array. It will try to locate
+> >> the IRQ with the least penalty assignment so that interrupt sharing is
+> >> avoided if possible.
+> >>
+> >> A couple of notes about the external APIs:
+> >> 1. These API can be called before the ACPI is started. Therefore, one
+> >> cannot assume that the PCI link objects are initialized for calculating
+> >> penalties.
+> > 
+> > Which API are you thinking about here?  pcibios_penalize_isa_irq() is
+> > called by ACPI and PNP, which should both be after ACPI is started.
 > 
-> OK, I see your concern now, so thanks for presenting it so clearly.
+> Correct, I was talking about acpi_penalize_sci_irq function here.
 > 
-> While I don't see anything wrong with having per-subsystem fwnode
-> types in principle, I agree that if the only purpose of them is to
-> mean "this comes from ACPI, but from a static table, not from the
-> namespace", it would be better to have a single fwnode type for that,
-> like FWNODE_ACPI_STATIC or similar.
+> > 
+> > My guess is you're thinking about acpi_penalize_sci_irq() (added back
+> > later in this series), which is called here, which is definitely
+> > before ACPI objects are available:
+> > 
+> >   setup_arch
+> >     acpi_boot_init
+> >       acpi_process_madt
+> > 	acpi_parse_madt_ioapic_entries
+> > 	  acpi_table_parse_madt
+> > 	    acpi_parse_int_src_ovr
+> > 	      acpi_sci_ioapic_setup
+> > 	        acpi_penalize_sci_irq       # <---
+> > 
+> >> 2. The polarity and trigger information passed via the
+> >> acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
+> >> is reporting as the call might have been placed before the IRQ is
+> >> registered by the interrupt subsystem.
+> >>
+> >> The previous change was in the direction to remove these external API and
+> >> try to calculate the penalties at runtime for the ISA path as well. This
+> >> didn't work out well with the existing platforms.
+> >>
+> >> Restoring the old behavior for IRQ < 256 and the new behavior will remain
+> >> effective for IRQ >= 256.
+> > 
+> > IIRC, this all started because we needed more than 256 IRQs, but we
+> > didn't know how to size a static table to be large enough without
+> > being wasteful.
+> 
+> Correct. We only need 1024 for ARM/ARM64. But, we wanted to remove this
+> restriction altogether to be arch proof. One of my earlier proposal was
+> to just resize the array to 1024. I was asked if I was wasting resources
+> by resizing to 1024.
+> 
+> > 
+> > Prior to 5c5087a55390, we tracked penalties for IRQs 0-255.  After it,
+> > we only tracked penalties for IRQs 0-15.  I think this patch basically
+> > makes it so we track 0-255 again.
+> 
+> Yes, we went back to 256 interrupts after the revert. 
+> 
+> > 
+> > *This* patch only increases the range for pcibios_penalize_isa_irq()
+> > (and command-line hints, but hopefully nobody cares about those).  A
+> > subsequent patch increases it for SCI as well.
+> > 
+> > The name "ACPI_MAX_IRQS" is now slightly misleading (because we do
+> > support more than 256 IRQs) and the 256 value is sort of an
+> > unjustified magic number.  16 is explainable as the number of ISA
+> > IRQs, but I don't know what 256 is based on (other than historical
+> > practice, of course).  ACPI device IRQs can be much larger, and I
+> > think the SCI IRQ can be, too (the FADT SCI_INT field is 16 bits).
+> > 
+> > Can you tie this back to the specific problem on the broken machine
+> > somehow?  Do we need a penalty for an IRQ in the 16-255 range?
+> 
+> The problem on the broken machine was SCI IRQ and PCI IRQ happened to be
+> same. It was IRQ 11. When SCI IRQ heavily penalized IRQ 11 due to
+> wrong interrupt type detection, PCI IRQs no longer worked as this line
+> prohibits using the IRQ.
+> 
+> 
+> 	if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
+> 		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+> 			    "Try pci=noacpi or acpi=off\n",
+> 			    acpi_device_name(link->device),
+> 			    acpi_device_bid(link->device));
+> 		return -ENODEV;
+> 	} 
 
-Coming back to this, I updated the series with new fwnode type
-FWNODE_ACPI_STATIC, which IMHO makes more sense (because that
-represents the FW interface it was obtained from rather than
-its content and plays better with upcoming extension above - DMI is a
-different firmware interface so it will be represented with a different
-fwnode type). Thanks.
+It seems like the problem is that we removed acpi_penalize_sci_irq(),
+which told us the polarity and trigger mode.  We tried to get that
+information via irq_get_trigger_type(), but that didn't work in this
+case because we use the acpi_irq_get_penalty() path before the SCI is
+registered.
 
-However, I still have a question. The approach I took (create platform
-devices out of static IORT table entries for SMMUs) is common in ACPI
-(eg GHES, ACPI watchdog) even though those subsystems ignore the fwnode,
-but I think that's a detail.
+It makes sense to me to add acpi_penalize_sci_irq() back in, which is
+what patch [3/3] does.
 
-Still, fixed HW like power button and sleep button took a different
-approach, which consists in creating struct acpi_device objects out
-of FADT fixed HW features (with a NULL ACPI handle because there is
-no real ACPI object in the namespace for them).
+I don't understand how *this* patch, which basically just increases
+the penalty array size from 16 to 256, helps fix the problem.  It
+seems like this patch should only matter if the SCI were some IRQ
+between 16 and 255.
 
-I would like to understand the reasoning behind the difference (I
-think it is related to notification events and the need for an
-ACPI object for them - and sysfs userspace HID IF exposure ?).
-
-In theory (but looks crazy to me that's why I did not do it), I could
-fabricate a Device object in the ACPI namespace (?) (with _HID, _CRS and
-related properties - is that doable ?) out of the static table entry in
-the IORT table that provides the ARM SMMU component data (ie its MMIO
-space, IRQs and SMMU properties like cache coherency), this would
-allow the kernel to create a struct acpi_device (and related fwnode)
-+ its physical node platform device but that looks insanely complicated
-(if feasible and more importantly if correct from an ACPI standpoint).
-
-This approach would allow me to match the SMMU driver with an _HID,
-the kernel would create a physical_node (ie platform_device) for
-me out of the namespace ACPI device object and I would get the
-FWNODE_ACPI for free (out of the struct acpi_device) instead of having
-to fiddle about with a new fwnode_handle type.
-
-I think this alternative approach (if doable at all) creates more issues
-than it solves but I wanted to make sure what I am doing is kosher
-from an ACPI perspective so I am asking.
-
-I definitely think the current approach I took is much better, with its
-own downsides (eg matching the ARM SMMU driver by name instead of
-acpi_device_id/_HID), but I wanted to ask.
-
-The point is: ARM SMMU drivers are platform drivers. In DT the SMMUs
-are represented through DT nodes, in ACPI through _static_ IORT table
-entries, somehow a platform device must be created for them, so
-this whole series (and related fwnode issues).
-
-Thanks,
-Lorenzo
+> > In a subsequent patch, I see something about the IRQ type not being
+> > updated at the right time, but I can't quite connect the dots.
+> 
+> The reason why PCI IRQ 11 didn't work is above. 
+> 
+> When we detected a problem with the SCI IRQ type, we were penalizing
+> the IRQ below.
+> 
+> static int acpi_irq_get_penalty(int irq) 
+> {
+> ...
+> 	if (irq == acpi_gbl_FADT.sci_interrupt) {
+> 		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
+> 
+> 		if (type != IRQ_TYPE_LEVEL_LOW)
+> 			penalty += PIRQ_PENALTY_ISA_ALWAYS;	<---- here
+> 		else
+> 			penalty += PIRQ_PENALTY_PCI_USING;
+> 	} 
+> 
+> 
+> 
+> > 
+> > To be clear, I'm not asking for any changes in the patch; I'm just
+> > trying to understand what's going on.
+> 
+> Sure, I hope this makes it clear now.
+> 
+> > 
+> >> Tested-by: Jonathan Liu <net147@gmail.com>
+> >> Tested-by: Ondrej Zary <linux@rainbow-software.org>
+> >> Link: http://www.gossamer-threads.com/lists/linux/kernel/2537016#2537016
+> >> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> >> ---
+> >>  drivers/acpi/pci_link.c | 35 ++++++++++++++++++-----------------
+> >>  1 file changed, 18 insertions(+), 17 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> >> index c983bf7..f3792f4 100644
+> >> --- a/drivers/acpi/pci_link.c
+> >> +++ b/drivers/acpi/pci_link.c
+> >> @@ -438,6 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+> >>   * enabled system.
+> >>   */
+> >>  
+> >> +#define ACPI_MAX_IRQS		256
+> >>  #define ACPI_MAX_ISA_IRQS	16
+> >>  
+> >>  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+> >> @@ -446,7 +447,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+> >>  #define PIRQ_PENALTY_ISA_USED		(16*16*16*16*16)
+> >>  #define PIRQ_PENALTY_ISA_ALWAYS		(16*16*16*16*16*16)
+> >>  
+> >> -static int acpi_isa_irq_penalty[ACPI_MAX_ISA_IRQS] = {
+> >> +static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+> >>  	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ0 timer */
+> >>  	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ1 keyboard */
+> >>  	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ2 cascade */
+> >> @@ -511,7 +512,7 @@ static int acpi_irq_get_penalty(int irq)
+> >>  	}
+> >>  
+> >>  	if (irq < ACPI_MAX_ISA_IRQS)
+> >> -		return penalty + acpi_isa_irq_penalty[irq];
+> >> +		return penalty + acpi_irq_penalty[irq];
+> >>  
+> >>  	penalty += acpi_irq_pci_sharing_penalty(irq);
+> >>  	return penalty;
+> >> @@ -538,14 +539,14 @@ int __init acpi_irq_penalty_init(void)
+> >>  
+> >>  			for (i = 0; i < link->irq.possible_count; i++) {
+> >>  				if (link->irq.possible[i] < ACPI_MAX_ISA_IRQS)
+> >> -					acpi_isa_irq_penalty[link->irq.
+> >> +					acpi_irq_penalty[link->irq.
+> >>  							 possible[i]] +=
+> >>  					    penalty;
+> >>  			}
+> >>  
+> >>  		} else if (link->irq.active &&
+> >> -				(link->irq.active < ACPI_MAX_ISA_IRQS)) {
+> >> -			acpi_isa_irq_penalty[link->irq.active] +=
+> >> +				(link->irq.active < ACPI_MAX_IRQS)) {
+> >> +			acpi_irq_penalty[link->irq.active] +=
+> >>  			    PIRQ_PENALTY_PCI_POSSIBLE;
+> >>  		}
+> >>  	}
+> >> @@ -828,7 +829,7 @@ static void acpi_pci_link_remove(struct acpi_device *device)
+> >>  }
+> >>  
+> >>  /*
+> >> - * modify acpi_isa_irq_penalty[] from cmdline
+> >> + * modify acpi_irq_penalty[] from cmdline
+> >>   */
+> >>  static int __init acpi_irq_penalty_update(char *str, int used)
+> >>  {
+> >> @@ -837,24 +838,24 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+> >>  	for (i = 0; i < 16; i++) {
+> >>  		int retval;
+> >>  		int irq;
+> >> -		int new_penalty;
+> >>  
+> >>  		retval = get_option(&str, &irq);
+> >>  
+> >>  		if (!retval)
+> >>  			break;	/* no number found */
+> >>  
+> >> -		/* see if this is a ISA IRQ */
+> >> -		if ((irq < 0) || (irq >= ACPI_MAX_ISA_IRQS))
+> >> +		if (irq < 0)
+> >> +			continue;
+> >> +
+> >> +		if (irq >= ARRAY_SIZE(acpi_irq_penalty))
+> >>  			continue;
+> >>  
+> >>  		if (used)
+> >> -			new_penalty = acpi_irq_get_penalty(irq) +
+> >> -					PIRQ_PENALTY_ISA_USED;
+> >> +			acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> >> +				PIRQ_PENALTY_ISA_USED;
+> >>  		else
+> >> -			new_penalty = 0;
+> >> +			acpi_irq_penalty[irq] = 0;
+> >>  
+> >> -		acpi_isa_irq_penalty[irq] = new_penalty;
+> >>  		if (retval != 2)	/* no next number */
+> >>  			break;
+> >>  	}
+> >> @@ -870,14 +871,14 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+> >>   */
+> >>  void acpi_penalize_isa_irq(int irq, int active)
+> >>  {
+> >> -	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
+> >> -		acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> >> -		  (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+> >> +	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty))
+> >> +		acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> >> +		    (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+> >>  }
+> >>  
+> >>  bool acpi_isa_irq_available(int irq)
+> >>  {
+> >> -	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_isa_irq_penalty) ||
+> >> +	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+> >>  		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+> >>  }
+> >>  
+> >> -- 
+> >> 1.9.1
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
+> -- 
+> Sinan Kaya
+> Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
