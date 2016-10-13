@@ -1,103 +1,48 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V2 1/3] Revert "ACPI,PCI,IRQ: reduce static IRQ array size
- to 16"
-Date: Thu, 13 Oct 2016 23:01:11 +0200
-Message-ID: <CAJZ5v0jw0KERMXuXcD63GqsfcJmwZ7MbrAx-A_dVqK-xdXBXhw@mail.gmail.com>
-References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
- <1475615720-31047-2-git-send-email-okaya@codeaurora.org> <20161012221357.GB15116@localhost>
- <09f93442-89c8-7b2c-467d-d29b857739ff@codeaurora.org> <20161013181535.GB21529@localhost>
- <498097a5-f75c-d2dd-f134-148b3fb8e1ed@codeaurora.org> <20161013200238.GE21529@localhost>
- <469134d3-3950-0d89-2599-64f917f09781@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: don't register acpi_pad driver if
+	running as xen dom0
+Date: Fri, 14 Oct 2016 00:00:08 +0200
+Message-ID: <2390542.It4zVIG3Mc@vostro.rjw.lan>
+References: <1476270705-16209-1-git-send-email-jgross@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35035 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754956AbcJMVBx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Oct 2016 17:01:53 -0400
-In-Reply-To: <469134d3-3950-0d89-2599-64f917f09781@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xen.org>
+In-Reply-To: <1476270705-16209-1-git-send-email-jgross@suse.com>
+List-Unsubscribe: <https://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <https://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xen.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xen.org>
+To: Juergen Gross <jgross@suse.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, xen-devel@lists.xen.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, Oct 13, 2016 at 10:16 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> On 10/13/2016 4:02 PM, Bjorn Helgaas wrote:
->> On Thu, Oct 13, 2016 at 03:36:11PM -0400, Sinan Kaya wrote:
->>> On 10/13/2016 2:15 PM, Bjorn Helgaas wrote:
->>>> It seems like the problem is that we removed acpi_penalize_sci_irq(),
->>>> which told us the polarity and trigger mode.  We tried to get that
->>>> information via irq_get_trigger_type(), but that didn't work in this
->>>> case because we use the acpi_irq_get_penalty() path before the SCI is
->>>> registered.
->>>>
->>>> It makes sense to me to add acpi_penalize_sci_irq() back in, which is
->>>> what patch [3/3] does.
->>>>
->>>> I don't understand how *this* patch, which basically just increases
->>>> the penalty array size from 16 to 256, helps fix the problem.  It
->>>> seems like this patch should only matter if the SCI were some IRQ
->>>> between 16 and 255.
->>>
->>>
->>> I see your point. The original code supported 256 interrupts.
->>>
->>> The machine where we had the problem had an SCI interrupt of 11. So,
->>> this patch does not necessarily fix anything for this machine alone.
->>> However, to be safe; I wanted to go back to the old behavior to fix
->>> the SCI issue for all existing platforms.
->>
->> I saw a previous email that said the SCI interrupt could not be
->> greater than 256, but I don't know where that restriction is.  I'm
->> pretty sure the FADT field is 2 bytes, which would mean it could be up
->> to 65535.
->>
->> To fix this problem, I think we only need to fix the penalty for the
->> SCI interrupt.  It seems better to add a single "sci_penalty"
->> variable, set it to PIRQ_PENALTY_PCI_USING if it's level/low or
->> PIRQ_PENALTY_ISA_ALWAYS otherwise, and add "sci_penalty" in when
->> appropriate.  That should fix it for *any* SCI IRQ, not just those
->> less than 256, and we don't have to add these extra penalty table
->> entries that are all unused (except possibly for one entry if we have
->> an SCI in the 16-255 range).
->>
->> Something like this:
->>
->>   static int sci_irq, sci_penalty;
->>
->>   void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
->>   {
->>     sci = irq;
->>     if (trigger == ACPI_MADT_TRIGGER_LEVEL &&
->>         polarity == ACPI_MADT_POLARITY_ACTIVE_LOW)
->>       sci_penalty = PIRQ_PENALTY_PCI_USING;
->>     else
->>       sci_penalty = PIRQ_PENALTY_ISA_ALWAYS;
->>   }
->>
->>   static int acpi_irq_get_penalty(int irq)
->>   {
->>     int penalty = 0;
->>
->>     if (irq == sci_irq)
->>       penalty += sci_penalty;
->>     ...
->>   }
->>
->> One could argue that ACPI devices can use IRQs above 15, and we should
->> handle penalties for them, too.  But the table is the wrong mechanism
->> for that, because it handles penalties for IRQs < 256, but IRQs above
->> that would mysteriously be handled differently.
->>
->> Bjorn
->>
->
-> I agree this is a better approach. I think my math was wrong when figuring
-> out what a max SCI interrupt could be.
-
-OK
-
-I will be expecting a new patch (or a new series) then.
-
-Thanks,
-Rafael
+T24gV2VkbmVzZGF5LCBPY3RvYmVyIDEyLCAyMDE2IDAxOjExOjQ1IFBNIEp1ZXJnZW4gR3Jvc3Mg
+d3JvdGU6Cj4gV2hlbiBydW5uaW5nIGFzIFhlbiBkb20wIGEgc3BlY2lhbCBwcm9jZXNzb3JfYWdn
+cmVnYXRvciBkcml2ZXIgaXMKPiBuZWVkZWQuIERvbid0IHJlZ2lzdGVyIHRoZSBzdGFuZGFyZCBk
+cml2ZXIgaW4gdGhpcyBjYXNlLgo+IAo+IFdpdGhvdXQgdGhhdCBjaGVjayBhbiBlcnJvciBtZXNz
+YWdlOgo+IAo+ICJFcnJvcjogRHJpdmVyICdwcm9jZXNzb3JfYWdncmVnYXRvcicgaXMgYWxyZWFk
+eSByZWdpc3RlcmVkLAo+IGFib3J0aW5nLi4uIgo+IAo+IHdpbGwgYmUgZGlzcGxheWVkLgo+IAo+
+IFNpZ25lZC1vZmYtYnk6IEp1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNlLmNvbT4KPiAtLS0KPiAg
+ZHJpdmVycy9hY3BpL2FjcGlfcGFkLmMgfCA1ICsrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCA1IGlu
+c2VydGlvbnMoKykKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGlfcGFkLmMgYi9k
+cml2ZXJzL2FjcGkvYWNwaV9wYWQuYwo+IGluZGV4IDhlYTgyMTEuLjFjM2JlMTIgMTAwNjQ0Cj4g
+LS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfcGFkLmMKPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9w
+YWQuYwo+IEBAIC0yNiw2ICsyNiw3IEBACj4gICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+Cj4gICNp
+bmNsdWRlIDxsaW51eC9hY3BpLmg+Cj4gICNpbmNsdWRlIDxhc20vbXdhaXQuaD4KPiArI2luY2x1
+ZGUgPHhlbi94ZW4uaD4KPiAgCj4gICNkZWZpbmUgQUNQSV9QUk9DRVNTT1JfQUdHUkVHQVRPUl9D
+TEFTUwkiYWNwaV9wYWQiCj4gICNkZWZpbmUgQUNQSV9QUk9DRVNTT1JfQUdHUkVHQVRPUl9ERVZJ
+Q0VfTkFNRSAiUHJvY2Vzc29yIEFnZ3JlZ2F0b3IiCj4gQEAgLTQ3Nyw2ICs0NzgsMTAgQEAgc3Rh
+dGljIHN0cnVjdCBhY3BpX2RyaXZlciBhY3BpX3BhZF9kcml2ZXIgPSB7Cj4gIAo+ICBzdGF0aWMg
+aW50IF9faW5pdCBhY3BpX3BhZF9pbml0KHZvaWQpCj4gIHsKPiArCS8qIFhlbiBhY3BpIHBhZCBp
+cyByZXNwb25zaWJsZSB3aGVuIHJ1bm5pbmcgYXMgWGVuIERvbTAuICovCj4gKwlpZiAoeGVuX2lu
+aXRpYWxfZG9tYWluKCkpCj4gKwkJcmV0dXJuIC1FTk9ERVY7Cj4gKwo+ICAJcG93ZXJfc2F2aW5n
+X213YWl0X2luaXQoKTsKPiAgCWlmIChwb3dlcl9zYXZpbmdfbXdhaXRfZWF4ID09IDApCj4gIAkJ
+cmV0dXJuIC1FSU5WQUw7Cj4gCgpBcHBsaWVkLgoKVGhhbmtzLApSYWZhZWwKCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4tZGV2ZWwgbWFpbGluZyBs
+aXN0Clhlbi1kZXZlbEBsaXN0cy54ZW4ub3JnCmh0dHBzOi8vbGlzdHMueGVuLm9yZy94ZW4tZGV2
+ZWwK
