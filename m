@@ -1,109 +1,184 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2 1/3] Revert "ACPI, PCI,
- IRQ: reduce static IRQ array size to 16"
-Date: Thu, 13 Oct 2016 16:16:28 -0400
-Message-ID: <469134d3-3950-0d89-2599-64f917f09781@codeaurora.org>
-References: <1475615720-31047-1-git-send-email-okaya@codeaurora.org>
- <1475615720-31047-2-git-send-email-okaya@codeaurora.org>
- <20161012221357.GB15116@localhost>
- <09f93442-89c8-7b2c-467d-d29b857739ff@codeaurora.org>
- <20161013181535.GB21529@localhost>
- <498097a5-f75c-d2dd-f134-148b3fb8e1ed@codeaurora.org>
- <20161013200238.GE21529@localhost>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v5 01/14] drivers: iommu: add FWNODE_IOMMU fwnode type
+Date: Thu, 13 Oct 2016 22:53:27 +0200
+Message-ID: <CAJZ5v0hi7ak3VtTO4f8z7G-Fr5MeotGkbNByQEHq-CHcyg6JzQ@mail.gmail.com>
+References: <20160909142343.13314-1-lorenzo.pieralisi@arm.com>
+ <20160909142343.13314-2-lorenzo.pieralisi@arm.com> <20160929141520.GA29244@red-moon>
+ <3178073.UTpgCTN6if@vostro.rjw.lan> <20160930090702.GA7725@red-moon>
+ <CAJZ5v0hK2Ryo32u4S9K=78-Oot13vvVNB+p6N2YC1UMqYW9g7A@mail.gmail.com> <20161013163229.GA24568@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161013200238.GE21529@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux@rainbow-software.org, ravikanth.nalla@hpe.com, jcm@redhat.com, timur@codeaurora.org, agross@codeaurora.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, alex.williamson@redhat.com, cov@codeaurora.org, linux-pci@vger.kernel.org, bhelgaas@google.com, wim@djo.tudelft.nl, linux-arm-msm@vger.kernel.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20161013163229.GA24568@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel@li
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/13/2016 4:02 PM, Bjorn Helgaas wrote:
-> On Thu, Oct 13, 2016 at 03:36:11PM -0400, Sinan Kaya wrote:
->> On 10/13/2016 2:15 PM, Bjorn Helgaas wrote:
->>> It seems like the problem is that we removed acpi_penalize_sci_irq(),
->>> which told us the polarity and trigger mode.  We tried to get that
->>> information via irq_get_trigger_type(), but that didn't work in this
->>> case because we use the acpi_irq_get_penalty() path before the SCI is
->>> registered.
->>>
->>> It makes sense to me to add acpi_penalize_sci_irq() back in, which is
->>> what patch [3/3] does.
->>>
->>> I don't understand how *this* patch, which basically just increases
->>> the penalty array size from 16 to 256, helps fix the problem.  It
->>> seems like this patch should only matter if the SCI were some IRQ
->>> between 16 and 255.
+Hi,
+
+On Thu, Oct 13, 2016 at 6:32 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> Hi Rafael,
+>
+> On Fri, Sep 30, 2016 at 05:48:01PM +0200, Rafael J. Wysocki wrote:
+>> On Fri, Sep 30, 2016 at 11:07 AM, Lorenzo Pieralisi
+>> <lorenzo.pieralisi@arm.com> wrote:
+>> > On Thu, Sep 29, 2016 at 10:59:40PM +0200, Rafael J. Wysocki wrote:
+>> >> On Thursday, September 29, 2016 03:15:20 PM Lorenzo Pieralisi wrote:
+>> >> > Hi Rafael,
+>> >> >
+>> >> > On Fri, Sep 09, 2016 at 03:23:30PM +0100, Lorenzo Pieralisi wrote:
+>> >> > > On systems booting with a device tree, every struct device is
+>> >> > > associated with a struct device_node, that represents its DT
+>> >> > > representation. The device node can be used in generic kernel
+>> >> > > contexts (eg IRQ translation, IOMMU streamid mapping), to
+>> >> > > retrieve the properties associated with the device and carry
+>> >> > > out kernel operation accordingly. Owing to the 1:1 relationship
+>> >> > > between the device and its device_node, the device_node can also
+>> >> > > be used as a look-up token for the device (eg looking up a device
+>> >> > > through its device_node), to retrieve the device in kernel paths
+>> >> > > where the device_node is available.
+>> >> > >
+>> >> > > On systems booting with ACPI, the same abstraction provided by
+>> >> > > the device_node is required to provide look-up functionality.
+>> >> > >
+>> >> > > Therefore, mirroring the approach implemented in the IRQ domain
+>> >> > > kernel layer, this patch adds an additional fwnode type FWNODE_IOMMU.
+>> >> > >
+>> >> > > This patch also implements a glue kernel layer that allows to
+>> >> > > allocate/free FWNODE_IOMMU fwnode_handle structures and associate
+>> >> > > them with IOMMU devices.
+>> >> > >
+>> >> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> >> > > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> >> > > Cc: Joerg Roedel <joro@8bytes.org>
+>> >> > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> >> > > ---
+>> >> > >  include/linux/fwnode.h |  1 +
+>> >> > >  include/linux/iommu.h  | 25 +++++++++++++++++++++++++
+>> >> > >  2 files changed, 26 insertions(+)
+>> >> > >
+>> >> > > diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+>> >> > > index 8516717..6e10050 100644
+>> >> > > --- a/include/linux/fwnode.h
+>> >> > > +++ b/include/linux/fwnode.h
+>> >> > > @@ -19,6 +19,7 @@ enum fwnode_type {
+>> >> > >   FWNODE_ACPI_DATA,
+>> >> > >   FWNODE_PDATA,
+>> >> > >   FWNODE_IRQCHIP,
+>> >> > > + FWNODE_IOMMU,
+>> >> >
+>> >> > This patch provides groundwork for this series and it is key for
+>> >> > the rest of it, basically the point here is that we need a fwnode
+>> >> > to differentiate platform devices created out of static ACPI tables
+>> >> > entries (ie IORT), that represent IOMMU components.
+>> >> >
+>> >> > The corresponding device is not an ACPI device (I could fabricate one as
+>> >> > it is done for other static tables entries eg FADT power button, but I
+>> >> > do not necessarily see the reason for doing that given that all we need
+>> >> > the fwnode for is a token identifier), so FWNODE_ACPI does not apply
+>> >> > here.
+>> >> >
+>> >> > Please let me know if it is reasonable how I sorted this out (it
+>> >> > is basically identical to IRQCHIP, just another enum entry), the
+>> >> > remainder of the code depends on this.
+>> >>
+>> >> I'm not familiar with the use case, so I don't see anything unreasonable
+>> >> in it.
+>> >
+>> > The use case is pretty simple: on ARM SMMU devices are platform devices.
+>> > When booting with DT they are identified through an of_node and related
+>> > FWNODE_OF type. When booting with ACPI, the ARM SMMU platform devices,
+>> > to be equivalent to DT booting path, should be created out of static
+>> > IORT table entries (that's how we describe SMMUs); we need to create
+>> > a fwnode "token" to associate with those platform devices and that's
+>> > not a FWNODE_ACPI (that is for an ACPI device firmware object, here we
+>> > really do not need one), so this patch.
+>> >
+>> >> If you're asking about whether or not I mind adding more fwnode types in
+>> >> principle, then no, I don't. :-)
+>> >
+>> > Yes, that's what I was asking, the only point that bugs me is that for
+>> > both FWNODE_IRQCHIP and FWNODE_IOMMU the fwnode is just a "token" (ie a
+>> > valid pointer) used for look-up and the type in the fwnode_handle is
+>> > mostly there for error checking, I was wondering if we could create a
+>> > specific fwnode_type for this specific usage (eg FWNODE_TAG and then add
+>> > a type to it as part of its container struct) instead of adding an enum
+>> > value per subsystem - it seems there are other fwnode types in the
+>> > pipeline :), so I am asking:
+>> >
+>> > lkml.kernel.org/r/3D1468514043-21081-3-git-send-email-minyard@acm.org
 >>
+>> OK, I see your concern now, so thanks for presenting it so clearly.
 >>
->> I see your point. The original code supported 256 interrupts. 
->>
->> The machine where we had the problem had an SCI interrupt of 11. So,
->> this patch does not necessarily fix anything for this machine alone.
->> However, to be safe; I wanted to go back to the old behavior to fix
->> the SCI issue for all existing platforms.
-> 
-> I saw a previous email that said the SCI interrupt could not be
-> greater than 256, but I don't know where that restriction is.  I'm
-> pretty sure the FADT field is 2 bytes, which would mean it could be up
-> to 65535.
-> 
-> To fix this problem, I think we only need to fix the penalty for the
-> SCI interrupt.  It seems better to add a single "sci_penalty"
-> variable, set it to PIRQ_PENALTY_PCI_USING if it's level/low or
-> PIRQ_PENALTY_ISA_ALWAYS otherwise, and add "sci_penalty" in when
-> appropriate.  That should fix it for *any* SCI IRQ, not just those
-> less than 256, and we don't have to add these extra penalty table
-> entries that are all unused (except possibly for one entry if we have
-> an SCI in the 16-255 range).
-> 
-> Something like this:
-> 
->   static int sci_irq, sci_penalty;
-> 
->   void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
->   {
->     sci = irq;
->     if (trigger == ACPI_MADT_TRIGGER_LEVEL &&
->         polarity == ACPI_MADT_POLARITY_ACTIVE_LOW)
->       sci_penalty = PIRQ_PENALTY_PCI_USING;
->     else
->       sci_penalty = PIRQ_PENALTY_ISA_ALWAYS;
->   }
-> 
->   static int acpi_irq_get_penalty(int irq)
->   {
->     int penalty = 0;
-> 
->     if (irq == sci_irq)
->       penalty += sci_penalty;
->     ...
->   }
-> 
-> One could argue that ACPI devices can use IRQs above 15, and we should
-> handle penalties for them, too.  But the table is the wrong mechanism
-> for that, because it handles penalties for IRQs < 256, but IRQs above
-> that would mysteriously be handled differently.
-> 
-> Bjorn
-> 
+>> While I don't see anything wrong with having per-subsystem fwnode
+>> types in principle, I agree that if the only purpose of them is to
+>> mean "this comes from ACPI, but from a static table, not from the
+>> namespace", it would be better to have a single fwnode type for that,
+>> like FWNODE_ACPI_STATIC or similar.
+>
+> Coming back to this, I updated the series with new fwnode type
+> FWNODE_ACPI_STATIC, which IMHO makes more sense (because that
+> represents the FW interface it was obtained from rather than
+> its content and plays better with upcoming extension above - DMI is a
+> different firmware interface so it will be represented with a different
+> fwnode type). Thanks.
 
-I agree this is a better approach. I think my math was wrong when figuring
-out what a max SCI interrupt could be.
+OK
 
+> However, I still have a question. The approach I took (create platform
+> devices out of static IORT table entries for SMMUs) is common in ACPI
+> (eg GHES, ACPI watchdog) even though those subsystems ignore the fwnode,
+> but I think that's a detail.
+>
+> Still, fixed HW like power button and sleep button took a different
+> approach, which consists in creating struct acpi_device objects out
+> of FADT fixed HW features (with a NULL ACPI handle because there is
+> no real ACPI object in the namespace for them).
 
+That's how it was done in the past and the code is not functionally
+problematic, so I saw no reason to re-implement it (which might
+introduce regressions).
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> I would like to understand the reasoning behind the difference (I
+> think it is related to notification events and the need for an
+> ACPI object for them - and sysfs userspace HID IF exposure ?).
+
+I don't think there is a real need for that model and that's why it is
+not used any more.  It's legacy mostly.
+
+> In theory (but looks crazy to me that's why I did not do it), I could
+> fabricate a Device object in the ACPI namespace (?) (with _HID, _CRS and
+> related properties - is that doable ?) out of the static table entry in
+> the IORT table that provides the ARM SMMU component data (ie its MMIO
+> space, IRQs and SMMU properties like cache coherency), this would
+> allow the kernel to create a struct acpi_device (and related fwnode)
+> + its physical node platform device but that looks insanely complicated
+> (if feasible and more importantly if correct from an ACPI standpoint).
+>
+> This approach would allow me to match the SMMU driver with an _HID,
+> the kernel would create a physical_node (ie platform_device) for
+> me out of the namespace ACPI device object and I would get the
+> FWNODE_ACPI for free (out of the struct acpi_device) instead of having
+> to fiddle about with a new fwnode_handle type.
+>
+> I think this alternative approach (if doable at all) creates more issues
+> than it solves but I wanted to make sure what I am doing is kosher
+> from an ACPI perspective so I am asking.
+
+That's most likely how I would do it, so fine by me. :-)
+
+> I definitely think the current approach I took is much better, with its
+> own downsides (eg matching the ARM SMMU driver by name instead of
+> acpi_device_id/_HID), but I wanted to ask.
+>
+> The point is: ARM SMMU drivers are platform drivers. In DT the SMMUs
+> are represented through DT nodes, in ACPI through _static_ IORT table
+> entries, somehow a platform device must be created for them, so
+> this whole series (and related fwnode issues).
+
+Right.  No disagreement.
+
+Thanks,
+Rafael
