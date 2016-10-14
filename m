@@ -1,88 +1,49 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] More ACPI updates for v4.9-rc1
-Date: Fri, 14 Oct 2016 15:28:35 +0200
-Message-ID: <CAJZ5v0h6CJiVU=untvcyWzcNStW=8oZyuLTgabRcuz9QAPMUoA@mail.gmail.com>
+From: Suzuki K Poulose <Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V3 02/10] ras: acpi/apei: cper: generic error data entry
+ v3 per ACPI 6.1
+Date: Fri, 14 Oct 2016 17:28:58 +0100
+Message-ID: <38c7c9ac-e8ad-6fb5-3ee9-3ba85e4b8299@arm.com>
+References: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
+ <1475875882-2604-3-git-send-email-tbaicar@codeaurora.org>
+ <3f17d0a8-6b63-5792-903a-341effaae432@arm.com>
+ <c17a0c03-5037-d88d-f096-4cc72dbfcb99@codeaurora.org>
+ <064dca7d-0625-c0d0-09ae-72ef7abdc63f@arm.com>
+ <912acc88-fbaf-2576-8048-1fcc67439600@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <912acc88-fbaf-2576-8048-1fcc67439600-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, Dkvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Richard Ruigrok <rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Naveen Kaje <nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On 13/10/16 20:37, Baicar, Tyler wrote:
+> Hello Suzuki,
+>
+> On 10/13/2016 2:50 AM, Suzuki K Poulose wrote:
+>> On 12/10/16 23:10, Baicar, Tyler wrote:
 
-Please pull from the tag
+>>>> Please could you keep the people who reviewed/commented on your series in the past,
+>>>> whenever you post a new version ?
+>>> Do you mean to just send the new version to their e-mail directly in addition to the lists? If so, I will do that next time.
+>>
+>> If you send a new version of a series to the list, it is a good idea to keep
+>> the people who commented (significantly) on your previous version in Cc, especially
+>> when you have addressed their feedback. That will help them to keep track of the
+>> series. People can always see the new version in the list, but then it is so easy
+>> to miss something in the 100s of emails you get each day. I am sure people have
+>> special filters for the emails based on if they are in Cc/To etc.
+>>
+> Okay, understood. I'll make sure to add those who have commented in the cc/to list to avoid the e-mail filters.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-extra-4.9-rc1
+Thanks !
 
-with top-most commit 522533f338f38e15106d5f58901f38fe7bd6a7d8
+>> Is it always the same endianness as that of the CPU ?
+> It is a fair assumption that the firmware populating this record will use a CPU of the same endianness. There is no mechanism in the spec to indicate otherwise.
 
- Merge branches 'acpi-fan', 'acpi-ec', 'acpi-drivers' and 'acpi-osl'
+Yep, you are right. The EFI expects the EL2/EL1 to be of the same endianness
 
-on top of commit 72d39926f098b0c4ad95e1461595a8d6d403c14d
-
- Merge tag 'acpi-4.9-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-to receive additional ACPI updates for v4.9-rc1.
-
-This includes a couple of fixes needed after recent changes, two ACPI
-driver fixes (fan and "Processor Aggregator"), an update of the ACPI
-device properties handling code and a new MAINTAINERS entry for ACPI
-on ARM64.
-
-Specifics:
-
- - Fix an unused function warning that started to appear after recent
-   changes in the ACPI EC driver (Eric Biggers).
-
- - Fix the KERN_CONT usage in acpi_os_vprintf() that has become
-   (particularly) annoying recently (Joe Perches).
-
- - Fix the fan status checking in the ACPI fan driver to avoid
-   returning incorrect error codes sometimes (Srinivas Pandruvada).
-
- - Fix the ACPI Processor Aggregator driver (PAD) to always let the
-   special processor aggregator driver from Xen take over when
-   running as Xen dom0 (Juergen Gross).
-
- - Update the handling of reference device properties in ACPI by
-   allowing empty rows ("holes") to appear in reference property
-   lists (Mika Westerberg).
-
- - Add a new MAINTAINERS entry for ACPI on ARM64 (Lorenzo Pieralisi).
-
-Thanks!
-
----------------
-
-Eric Biggers (1):
-      ACPI / EC: Fix unused function warning when CONFIG_PM_SLEEP=n
-
-Joe Perches (1):
-      acpi_os_vprintf: Use printk_get_level() to avoid unnecessary KERN_CONT
-
-Juergen Gross (1):
-      ACPI / PAD: don't register acpi_pad driver if running as Xen dom0
-
-Lorenzo Pieralisi (1):
-      MAINTAINERS: Add ARM64-specific ACPI maintainers entry
-
-Mika Westerberg (1):
-      ACPI / property: Allow holes in reference properties
-
-Srinivas Pandruvada (1):
-      ACPI / fan: Fix error reading cur_state
-
----------------
-
- MAINTAINERS             |   8 ++++
- drivers/acpi/acpi_pad.c |   5 +++
- drivers/acpi/ec.c       |   2 +
- drivers/acpi/fan.c      |  12 ++++-
- drivers/acpi/osl.c      |  13 ++++--
- drivers/acpi/property.c | 117 ++++++++++++++++++++++++++++--------------------
- include/linux/acpi.h    |  22 +++++++--
- 7 files changed, 123 insertions(+), 56 deletions(-)
+Cheers
+Suzuki
