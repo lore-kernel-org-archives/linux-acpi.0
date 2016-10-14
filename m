@@ -1,116 +1,105 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH V3 05/10] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Fri, 14 Oct 2016 10:39:50 +0100
-Message-ID: <874m4fs1zt.fsf@e105922-lin.cambridge.arm.com>
-References: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
- <1475875882-2604-6-git-send-email-tbaicar@codeaurora.org>
- <87shs1sb1b.fsf@e105922-lin.cambridge.arm.com>
- <90d13241-d6b9-0b81-9f92-71df99b91b67@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] More power management updates for v4.9-rc1
+Date: Fri, 14 Oct 2016 15:26:24 +0200
+Message-ID: <CAJZ5v0j6kvykKPaucTC2kX1PB70s3mAy-HvB3NrHYK9ipJC6Hw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <90d13241-d6b9-0b81-9f92-71df99b91b67@codeaurora.org> (Tyler
- Baicar's message of "Thu, 13 Oct 2016 08:03:55 -0600")
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, shijie.huang@arm.com, lenb@kernel.org, marc.zyngier@arm.com, tomasz.nowicki@linaro.org, Naveen Kaje <nkaje@codeaurora.org>, rostedt@goodmis.org, sandeepa.s.prabhu@gmail.com, Dkvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-"Baicar, Tyler" <tbaicar@codeaurora.org> writes:
+Hi Linus,
 
-> Hello Punit,
->
->
-> On 10/12/2016 12:00 PM, Punit Agrawal wrote:
->> Tyler Baicar <tbaicar@codeaurora.org> writes:
->>
->>> ARM APEI extension proposal added SEA (Synchrounous External
->>> Abort) notification type for ARMv8.
->>> Add a new GHES error source handling function for SEA. If an error
->>> source's notification type is SEA, then this function can be registered
->>> into the SEA exception handler. That way GHES will parse and report
->>> SEA exceptions when they occur.
->>>
->>> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->>> Signed-off-by: Naveen Kaje <nkaje@codeaurora.org>
->> This patch fails to apply for me on v4.8. Is there a different tree this
->> is based on?
-> This patch was giving me some grief as well. I'm not sure why that is
-> because this patchset was based on the 4.8 kernel with the dependent
-> patch for initial APEI support.
+Please pull from the tag
 
-That explains it!. I've missed out the dependency called out in the
-cover letter.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-extra-4.9-rc1
 
+with top-most commit 383731d98e768e15f4a8d69ae87957b933323ed7
 
->> One comment below.
->>
->> [...]
->>
->>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->>> index c8488f1..28d5a09 100644
->>> --- a/drivers/acpi/apei/ghes.c
->>> +++ b/drivers/acpi/apei/ghes.c
->>> @@ -50,6 +50,10 @@
->>>   #include <acpi/apei.h>
->>>   #include <asm/tlbflush.h>
->>>   +#ifdef CONFIG_HAVE_ACPI_APEI_SEA
->>> +#include <asm/system_misc.h>
->>> +#endif
->>> +
->>>   #include "apei-internal.h"
->>>     #define GHES_PFX	"GHES: "
->>> @@ -779,6 +783,62 @@ static struct notifier_block ghes_notifier_sci = {
->>>   	.notifier_call = ghes_notify_sci,
->>>   };
->>>   +#ifdef CONFIG_HAVE_ACPI_APEI_SEA
->>> +static LIST_HEAD(ghes_sea);
->>> +
->>> +static int ghes_notify_sea(struct notifier_block *this,
->>> +				  unsigned long event, void *data)
->>> +{
->>> +	struct ghes *ghes;
->>> +	int ret = NOTIFY_DONE;
->>> +
->>> +	rcu_read_lock();
->>> +	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
->>> +		if (!ghes_proc(ghes))
->>> +			ret = NOTIFY_OK;
->> Not something you've introduced but it looks like ghes_proc erroneously
->> never returns anything other than 0. I plan to post the below fix to
->> address it.
->>
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index 60746ef..caea575 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -662,7 +662,7 @@ static int ghes_proc(struct ghes *ghes)
->>          ghes_do_proc(ghes, ghes->estatus);
->>   out:
->>          ghes_clear_estatus(ghes);
->> -   return 0;
->> + return rc;
->>   }
-> Yes, this definitely should be fixed :)
->
-> Thanks,
-> Tyler
->>> +	}
->>> +	rcu_read_unlock();
->>> +
->>> +	return ret;
->>> +}
->>> +
->> [...]
->>
+ Merge branches 'pm-cpufreq' and 'pm-devfreq'
+
+on top of commit 08895a8b6b06ed2323cd97a36ee40a116b3db8ed
+
+ Merge tag 'pm-4.9-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive additional power management updates for v4.9-rc1.
+
+This includes a couple of fixes for cpufreq regressions introduced
+in 4.8, a rework of the intel_pstate algorithm used on Atom processors
+(that took some time to test) plus a fix and a couple of cleanups in
+that driver, a CPPC cpufreq driver fix, and a some devfreq fixes and
+cleanups (core and exynos-nocp).
+
+Specifics:
+
+ - Fix two cpufreq regressions causing undesirable changes in
+   behavior to appear (one in the core and one in the conservative
+   governor) introduced during the 4.8 cycle (Aaro Koskinen, Rafael
+   Wysocki).
+
+ - Fix the way the intel_pstate driver accesses MSRs related to the
+   hardware-managed P-states (HWP) feature during the initialization
+   which currently is unsafe and may cause the processor to generate
+   a general protection fault (Srinivas Pandruvada).
+
+ - Rework the intel_pstate's P-state selection algorithm used on Atom
+   processors to avoid known problems with the current one and to
+   make the computation more straightforward, which also happens to
+   improve performance in multiple benchmarks a bit (Rafael Wysocki).
+
+ - Improve two comments in the intel_pstate driver (Rafael Wysocki).
+
+ - Fix the desired performance computation in the CPPC cpufreq driver
+   (Hoan Tran).
+
+ - Fix the devfreq core to avoid printing misleading error messages
+   in some cases (Tobias Jakobi).
+
+ - Fix the error code path in devfreq_add_device() to use proper
+   locking around list modifications (Axel Lin).
+
+ - Fix a build failure and remove a couple of redundant updates of
+   variables in the exynos-nocp devfreq driver (Axel Lin).
+
+Thanks!
+
+---------------
+
+Aaro Koskinen (1):
+      cpufreq: skip invalid entries when searching the frequency
+
+Axel Lin (3):
+      PM / devfreq: exynos-nocp: Select REGMAP_MMIO
+      PM / devfreq: exynos-nocp: Remove redundant code
+      PM / devfreq: Add proper locking around list_del()
+
+Hoan Tran (1):
+      cpufreq: CPPC: Correct desired_perf calculation
+
+Rafael J. Wysocki (4):
+      cpufreq: intel_pstate: Clarify comment in
+get_target_pstate_use_performance()
+      cpufreq: intel_pstate: Proportional algorithm for Atom
+      cpufreq: intel_pstate: Fix struct pstate_adjust_policy kerneldoc
+      cpufreq: conservative: Fix next frequency selection
+
+Srinivas Pandruvada (1):
+      cpufreq: intel_pstate: Fix unsafe HWP MSR access
+
+Tobias Jakobi (1):
+      PM / devfreq: Skip status update on uninitialized previous_freq
+
+---------------
+
+ drivers/cpufreq/cppc_cpufreq.c         |   8 ++-
+ drivers/cpufreq/cpufreq_conservative.c |  19 +++++-
+ drivers/cpufreq/intel_pstate.c         |  43 ++++++++++----
+ drivers/devfreq/devfreq.c              |   8 ++-
+ drivers/devfreq/event/Kconfig          |   1 +
+ drivers/devfreq/event/exynos-nocp.c    |   3 -
+ include/linux/cpufreq.h                | 104 ++++++++++++++++-----------------
+ 7 files changed, 115 insertions(+), 71 deletions(-)
