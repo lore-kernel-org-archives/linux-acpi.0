@@ -1,43 +1,56 @@
-From: UK CREDIT LTD LOAN <taciana.paim@terceirizado.mda.gov.br>
-Subject: =?utf-8?Q?l=C3=A5netilbud_1,5%?=
-Date: Mon, 17 Oct 2016 06:31:55 -0200 (BRST)
-Message-ID: <946727972.5936974.1476693115617.JavaMail.zimbra__48238.6215510362$1476693335$gmane$org@terceirizado.mda.gov.br>
-Reply-To: "ukcreditltdloan1@gmail.com" <ukcreditltdloan1@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] arm64: kernel: numa: fix ACPI boot cpu numa node mapping
+Date: Mon, 17 Oct 2016 15:18:48 +0100
+Message-ID: <20161017141848.5274-1-lorenzo.pieralisi@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mda.gov.br ([200.198.212.37]:14397 "EHLO mx2.mda.gov.br"
+Received: from foss.arm.com ([217.140.101.70]:34720 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758097AbcJQId3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 17 Oct 2016 04:33:29 -0400
+        id S1757319AbcJQOSM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Oct 2016 10:18:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Laszlo Ersek <lersek@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, Andrew Jones <drjones@redhat.com>, Zhen Lei <thunder.leizhen@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>
 
+Commit 7ba5f605f3a0 ("arm64/numa: remove the limitation that cpu0 must
+bind to node0") removed the numa cpu<->node mapping restriction whereby
+logical cpu 0 always corresponds to numa node 0; removing the
+restriction was correct, in that it does not really exist in practice
+but the commit only updated the early mapping of logical cpu 0 to its
+real numa node for the DT boot path, missing the ACPI one, leading to
+boot failures on ACPI systems with numa enabled owing to missing
+node<->cpu map for logical cpu 0.
 
+Fix the issue by updating the ACPI boot path with code that carries out
+the early cpu<->node mapping also for the boot cpu (ie cpu 0), mirroring
+what is currently done in the DT boot path.
 
-Hilsener Sir / Madam:
+Fixes: 7ba5f605f3a0 ("arm64/numa: remove the limitation that cpu0 must bind to node0")
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Tested-by: Laszlo Ersek <lersek@redhat.com>
+Reported-by: Laszlo Ersek <lersek@redhat.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Laszlo Ersek <lersek@redhat.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Andrew Jones <drjones@redhat.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+---
+ arch/arm64/kernel/smp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-    Jeg er Dr. Peter Ibrahim fra private lån selskapet UK CREDIT LTD lån, som ligger i Storbritannia.
-Vi tilbyr alle typer lån til enkeltpersoner og bedrifter, Gjør deg selv økonomisk
-stabil ved å skaffe et lån fra UK CREDIT LTD LÅN 1,5% rente så kort og
-Langsiktige lån, corporate lån, hus lån. billån etc.
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index d3f151c..8507703 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -544,6 +544,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+ 			return;
+ 		}
+ 		bootcpu_valid = true;
++		early_map_cpu_to_node(0, acpi_numa_get_nid(0, hwid));
+ 		return;
+ 	}
+ 
+-- 
+2.10.0
 
-     Fyll lånesøknad skjemaet nedenfor hvis du er interessert i lånet,
-
-* Navn:
-* Kjønn:
-* Land / Adresse:
-* Størrelse som:
-* Månedlig inntekt nivå
-* Varighet av lån:
-* Formålet med lån:
-* Telefon:
-* Fødselsdato
-
-Kontakt oss via e-post ukcreditltdloan1@gmail.com
-
-
-Takk og vennlig hilsen.
-
-Dr Peter Ibrahim.
