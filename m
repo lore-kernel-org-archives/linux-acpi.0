@@ -1,63 +1,61 @@
-From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 3/7] ACPICA: MacOSX: Fix wrong sem_destroy definition
-Date: Tue, 18 Oct 2016 03:03:01 +0800
-Message-ID: <064cfde6bf403ab874bfa8b6e5c5f9af384c894d.1476725675.git.lv.zheng@intel.com>
-References: <cover.1476725675.git.lv.zheng@intel.com>
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: [PATCH V4 0/2] irqchip: qcom: Add IRQ combiner driver
+Date: Mon, 17 Oct 2016 17:02:55 -0400
+Message-ID: <1476738177-24979-1-git-send-email-agustinv@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:35081 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933210AbcJQTDQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 15:03:16 -0400
-Received: by mail-qk0-f196.google.com with SMTP id v138so14974892qka.2
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Oct 2016 12:03:15 -0700 (PDT)
-In-Reply-To: <cover.1476725675.git.lv.zheng@intel.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:34762 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933239AbcJQVDW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 17:03:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
 
-ACPICA commit bbcb58f7875381d5c7f3d614bad3bc628a3f5cc6
+Add support for IRQ combiners in the Top-level Control and Status
+Registers (TCSR) hardware block in Qualcomm Technologies chips.
 
-The following build errors can be seen for MacOSX builds:
-.../osunixxf.c:882:9: error: 'sem_close' is deprecated [-Werror,-Wdeprecated-declarations]
-.../acmacosx.h:122:29: note: expanded from macro 'sem_destroy'
-#define sem_destroy         sem_close
+The first patch adds support for ResourceSource/IRQ domain mapping
+when using Extended IRQ Resources with a specific ResourceSource.
+The core ACPI resource management code has been changed to lookup
+the IRQ domain when an IRQ resource indicates a ResourceSource,
+and register the IRQ on that domain, instead of a GSI.
 
-sem_destroy() issue is caused by the wrong order of the following lines:
-  #define #sem_destroy        sem_close
-  #include <semaphore.h>
-This patch fixes it by removing the buggy re-definitiion. Lv Zheng.
+The second patch takes advantage of the new capabilities to implement
+the driver for the IRQ combiners.
 
-Linux is not affected by this change.
+Changes V1 -> V2:
+* Remove use of GPIO library for the combiner
+* Refactor to use fwnode/ResourceSource to IRQ domain mapping
+  introduced in ACPI core
 
-Link: https://github.com/acpica/acpica/commit/bbcb58f7
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- tools/power/acpi/os_specific/service_layers/osunixxf.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Changes V2 -> V3:
+* Removed parsing of _PRS to find IRQs
+* Removed acpi_irq_domain_create and acpi_irq_domain_remove
 
-diff --git a/tools/power/acpi/os_specific/service_layers/osunixxf.c b/tools/power/acpi/os_specific/service_layers/osunixxf.c
-index 8f5ded8..10648aa 100644
---- a/tools/power/acpi/os_specific/service_layers/osunixxf.c
-+++ b/tools/power/acpi/os_specific/service_layers/osunixxf.c
-@@ -696,10 +696,15 @@ acpi_status acpi_os_delete_semaphore(acpi_handle handle)
- 	if (!sem) {
- 		return (AE_BAD_PARAMETER);
- 	}
--
-+#ifdef __APPLE__
-+	if (sem_close(sem) == -1) {
-+		return (AE_BAD_PARAMETER);
-+	}
-+#else
- 	if (sem_destroy(sem) == -1) {
- 		return (AE_BAD_PARAMETER);
- 	}
-+#endif
- 
- 	return (AE_OK);
- }
+Changes V3 -> V3:
+* Add a DSDT device probe table that is used to probe DSDT IRQ chips
+  as necessary when converting HW IRQs to Linux IRQs
+* Describe IRQ combiner registers as ACPI Register resources
+
+Agustin Vega-Frias (2):
+  ACPI: Add support for ResourceSource/IRQ domain mapping
+  irqchip: qcom: Add IRQ combiner driver
+
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/irqdomain.c            | 135 +++++++++++++++
+ drivers/acpi/resource.c             |  21 ++-
+ drivers/irqchip/Kconfig             |   8 +
+ drivers/irqchip/Makefile            |   1 +
+ drivers/irqchip/qcom-irq-combiner.c | 332 ++++++++++++++++++++++++++++++++++++
+ include/asm-generic/vmlinux.lds.h   |   1 +
+ include/linux/acpi.h                |  50 ++++++
+ include/linux/irqchip.h             |  17 +-
+ 9 files changed, 554 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/acpi/irqdomain.c
+ create mode 100644 drivers/irqchip/qcom-irq-combiner.c
+
 -- 
-2.7.4
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
 
