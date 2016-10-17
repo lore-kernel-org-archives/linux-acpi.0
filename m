@@ -1,114 +1,43 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
- interrupts
-Date: Sat, 15 Oct 2016 12:58:56 -0400
-Message-ID: <4b3f9df2-3fba-74f2-e944-aa474d35fed4@codeaurora.org>
-References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
- <1476505867-24599-2-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0iiU-1JwAows+WbE9v3pjYi9cRHDwtDEDBuCUjWk=o=KA@mail.gmail.com>
+From: UK CREDIT LTD LOAN <taciana.paim@terceirizado.mda.gov.br>
+Subject: =?utf-8?Q?l=C3=A5netilbud_1,5%?=
+Date: Mon, 17 Oct 2016 06:31:55 -0200 (BRST)
+Message-ID: <946727972.5936974.1476693115617.JavaMail.zimbra__48238.6215510362$1476693335$gmane$org@terceirizado.mda.gov.br>
+Reply-To: "ukcreditltdloan1@gmail.com" <ukcreditltdloan1@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46562 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751332AbcJOQ7A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Oct 2016 12:59:00 -0400
-In-Reply-To: <CAJZ5v0iiU-1JwAows+WbE9v3pjYi9cRHDwtDEDBuCUjWk=o=KA@mail.gmail.com>
+Received: from mx2.mda.gov.br ([200.198.212.37]:14397 "EHLO mx2.mda.gov.br"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758097AbcJQId3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 17 Oct 2016 04:33:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-
-Hi Rafael,
-
-On 10/15/2016 8:39 AM, Rafael J. Wysocki wrote:
-> On Sat, Oct 15, 2016 at 6:31 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
->> resource requirements") removed PCI_USING penalty from
->> acpi_pci_link_allocate function as there is no longer a fixed size penalty
->> array for both PCI interrupts greater than 16.
->>
->> The array size has been reduced to 16 and array name got prefixed as ISA
->> since it only is accountable for the ISA interrupts.
->>
->> The original change in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
->> resource requirements") removed penalty assignment in the code for PCI
->> thinking that we will add the penalty later in acpi_irq_pci_sharing_penalty
->> function.
-> 
-> I'd write the above this way:
-> 
-> "Commit 103544d86976 (ACPI,PCI,IRQ: reduce resource requirements)
-> dropped the PCI_USING penalty from acpi_pci_link_allocate() with the
-> assumption that the penalty will be added later in
-> acpi_irq_pci_sharing_penalty()."
-> 
-> This conveys essentially the same information (up to some irrelevant
-> bits), but in a clearer way IMO.
-> 
->>
->> However, this function only gets called if the IRQ number is greater than
->> 16 and acpi_irq_get_penalty function gets called before ACPI start in
->> acpi_isa_irq_available and acpi_penalize_isa_irq functions. We can't rely
->> on iterating the link list.
-> 
-> "However, acpi_irq_pci_sharing_penalty() is only called for IRQ
-> numbers above 15.  Moreover, acpi_irq_get_penalty() is invoked by
-> acpi_isa_irq_available() and acpi_penalize_isa_irq() before the ACPI
-> initialization and the PCI interrupt links list is not ready at that
-> point, so it cannot be relied on when computing the penalty."
-> 
->>
->> We need to add the PCI_USING penalty for ISA interrupts too if the link is
->> in use and matches our ISA IRQ number.
-> 
-> "For this reason, the PCI_USING penalty has to be added in
-> acpi_pci_link_allocate() directly if the link has been enabled
-> successfully and the IRQ number is within the ISA range."
-> 
-> IIUC
-> 
->>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->> ---
->>  drivers/acpi/pci_link.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
->> index c983bf7..a212709 100644
->> --- a/drivers/acpi/pci_link.c
->> +++ b/drivers/acpi/pci_link.c
->> @@ -619,6 +619,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
->>                             acpi_device_bid(link->device));
->>                 return -ENODEV;
->>         } else {
->> +               if (link->irq.active < ACPI_MAX_ISA_IRQS)
->> +                       acpi_isa_irq_penalty[link->irq.active] +=
->> +                               PIRQ_PENALTY_PCI_USING;
->> +
-> 
-> There's no need to break the line here and I would put the above after
-> the printk().
-> 
-> Or even after the whole "else" branch (which is unnecessary, but let's
-> limit changes in this patch).
-> 
->>                 printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
->>                        acpi_device_name(link->device),
->>                        acpi_device_bid(link->device), link->irq.active);
->> --
-> 
-
-Thanks for the feedback. I can resubmit with the comments corrected. I'll wait
-until I hear from Bjorn first.
-
-> Thanks,
-> Rafael
-> 
 
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
+Hilsener Sir / Madam:
+
+    Jeg er Dr. Peter Ibrahim fra private lån selskapet UK CREDIT LTD lån, som ligger i Storbritannia.
+Vi tilbyr alle typer lån til enkeltpersoner og bedrifter, Gjør deg selv økonomisk
+stabil ved å skaffe et lån fra UK CREDIT LTD LÅN 1,5% rente så kort og
+Langsiktige lån, corporate lån, hus lån. billån etc.
+
+     Fyll lånesøknad skjemaet nedenfor hvis du er interessert i lånet,
+
+* Navn:
+* Kjønn:
+* Land / Adresse:
+* Størrelse som:
+* Månedlig inntekt nivå
+* Varighet av lån:
+* Formålet med lån:
+* Telefon:
+* Fødselsdato
+
+Kontakt oss via e-post ukcreditltdloan1@gmail.com
+
+
+Takk og vennlig hilsen.
+
+Dr Peter Ibrahim.
