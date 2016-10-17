@@ -1,89 +1,97 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH V4 1/2] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Mon, 17 Oct 2016 16:17:25 -0500
-Message-ID: <58053FE5.3020208@codeaurora.org>
-References: <1476738177-24979-1-git-send-email-agustinv@codeaurora.org>
- <1476738177-24979-2-git-send-email-agustinv@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+Date: Mon, 17 Oct 2016 22:26:47 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A253666@SHSMSX101.ccr.corp.intel.com>
+References: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:38488 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964894AbcJQVR3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 17:17:29 -0400
-In-Reply-To: <1476738177-24979-2-git-send-email-agustinv@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yisheng Xie <xieyisheng1@huawei.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "wmiles@sgl.com" <wmiles@sgl.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
-Cc: cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-Just a few nits:
+Hi, Yisheng
 
-Agustin Vega-Frias wrote:
-> +int acpi_irq_domain_register_irq(struct acpi_resource_source *source, u32 hwirq,
-> +				 int trigger, int polarity)
-> +{
-> +	struct irq_fwspec fwspec;
-> +	struct acpi_device *device;
-> +	acpi_handle handle;
-> +	acpi_status status;
-> +	int ret;
-> +
-> +	if (source->string_length == 0)
+> From: Yisheng Xie [mailto:xieyisheng1@huawei.com]
+> Subject: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+> 
+> when try to cross compile acpi tool in dir kernel/tools
+> for arm64 use command:
+>     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- acpi
+> it failed with the following log:
+> In file included
+>     from ../../../../../include/acpi/acpi.h:58:0,
+>     from ../../../../../drivers/acpi/acpica/utstring.c:44:
+>     ../../../../../include/acpi/actypes.h:130:34: error: conflicting types for 's64'
+>  typedef signed long long s64;
+>                            ^
+> In file included
+>     from /opt/aarch64-linux-gnu/libc/usr/include/asm-generic/types.h:6:0
+>     from /opt/aarch64-linux-gnu/libc/usr/include/asm/types.h:1,
+>     from ../../../../../include/uapi/linux/types.h:4,
+>     from ../../../../../include/linux/types.h:5,
+>     from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19,
+>     from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>     from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>     from ../../../../../include/acpi/platform/acenv.h:365,
+>     from ../../../../../include/acpi/acpi.h:56,
+>     from ./acpidump.h:55,
+>     from ../../os_specific/service_layers/oslinuxtbl.c:44:
+> ../../../../../include/asm-generic/int-ll64.h:24:26: note: previous declaration of 's64' was here
+>  typedef signed long long s64;
+>                            ^
+> Fix this compile problem.
 
-Would (!source->string_length) be more meaningful?
+This looks like a conflict between asm-generic/int-ll64.h and actypes.h.
 
-> +		return acpi_register_gsi(NULL, hwirq, trigger, polarity);
-> +
-> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	device = acpi_bus_get_acpi_device(handle);
-> +	if (!device)
-> +		return -ENODEV;
-> +
-> +	if (acpi_irq_domain_ensure_probed(device))
-> +		return -ENODEV;
-> +
-> +	fwspec.fwnode = &device->fwnode;
-> +	fwspec.param[0] = hwirq;
-> +	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
-> +	fwspec.param_count = 2;
-> +
-> +	ret = irq_create_fwspec_mapping(&fwspec);
-> +	acpi_bus_put_acpi_device(device);
-> +	return ret;
+When a build environment actually has s64 definition.
+ACPICA shouldn't define it.
+ACPICA should define ACPI_USE_SYSTEM_INTTYPES instead.
 
-Blank line before 'return'.
+However it is not clear if a Linux userspace should be aware of s64.
+We couldn't see this issue in other arch builds.
+So I wonder if this is just a missing "#ifdef __KERNEL__" in asm-generic/int-ll64.h.
 
-> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
-> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
-> +				     struct acpi_resource_source *source,
+If Linux should be aware of s64.
+Then ACPICA definition of s64 should be disabled by defining ACPI_USE_SYSTEM_INTTYPES.
+Since this is a post-ACPICA-release issue.
+You should only fix it in tools/power/acpi/Makefile*.
 
-This should probably be a 'const', because ...
+So I think this patch is not a right fix, but a wrong workaround.
+It can easily cause regressions in other ACPICA builds.
 
-> @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
->   {
->   	struct acpi_resource_irq *irq;
->   	struct acpi_resource_extended_irq *ext_irq;
-> +	struct acpi_resource_source dummy = { 0, 0, NULL };
+> 
+> Fixes: e323c02dee59 ("ACPICA: MSVC9: Fix <sys/stat.h> inclusion order issue")
+> Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+> ---
+>  include/acpi/platform/acenv.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+> index 34cce72..0089fa0 100644
+> --- a/include/acpi/platform/acenv.h
+> +++ b/include/acpi/platform/acenv.h
+> @@ -361,9 +361,13 @@
+>  #include <stdio.h>
+>  #include <fcntl.h>
+>  #include <errno.h>
+> +#ifdef __aarch64__
+> +#include <sys/stat.h>
+> +#else
+>  #include <time.h>
+>  #include <signal.h>
+>  #endif
+> +#endif
+> 
+>  #endif				/* ACPI_USE_STANDARD_HEADERS */
 
-... then you can make this a static const, which will reduce code size 
-and improve performance.
 
-> @@ -1024,6 +1030,43 @@ struct acpi_probe_entry {
->   					  (&ACPI_PROBE_TABLE_END(t) -	\
->   					   &ACPI_PROBE_TABLE(t)));	\
->   	})
-> +
-> +#define ACPI_HID_LEN 9
+We shouldn't rely on inclusion orders to fix this issue.
+It can easily cause order problem on other ACPICA build environment.
 
-Please add a comment for this.
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks
+Lv
