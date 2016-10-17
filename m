@@ -1,15 +1,15 @@
 From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 4/7] ACPICA: Increase loop limit for AE_AML_INFINITE_LOOP exception
-Date: Tue, 18 Oct 2016 03:03:19 +0800
-Message-ID: <1dbbf4f310e3946a0daf1b7962808dfc3a5c5327.1476725675.git.lv.zheng@intel.com>
+Subject: [PATCH 5/7] ACPICA: Disassembler: Fix for Divide() support, new support for test suite
+Date: Tue, 18 Oct 2016 03:03:39 +0800
+Message-ID: <214d84a471d141ac688949ee679101a57f5ca17a.1476725675.git.lv.zheng@intel.com>
 References: <cover.1476725675.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:33395 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935162AbcJQTDg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 15:03:36 -0400
-Received: by mail-qt0-f193.google.com with SMTP id m5so6536109qtb.0
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Oct 2016 12:03:35 -0700 (PDT)
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34216 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934954AbcJQTDy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 15:03:54 -0400
+Received: by mail-qk0-f195.google.com with SMTP id n189so14972942qke.1
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Oct 2016 12:03:54 -0700 (PDT)
 In-Reply-To: <cover.1476725675.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,44 +18,72 @@ Cc: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 9f83b34cb172549c20f18663bc7460fb4145a75b
+ACPICA commit 4b367408659af08fd44839866ec301285284e6f4
 
-increase loop limit to accomodate faster processors. From 64k loops max
-to 1 million.
+Fixes a problem with complex expressions where an illegal mix
+of legacy ASL and ASL+ could be emitted.
 
-Link: https://github.com/acpica/acpica/commit/9f83b34c
+Adds new support for ASLTS that disables some disassembler
+optimizations could be changed during a conversion to ASL+.
+These expressions are now emitted in legacy ASL instead
+of ASL+.
+
+Link: https://github.com/acpica/acpica/commit/4b367408
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h | 2 +-
- include/acpi/acconfig.h        | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acglobal.h |  1 +
+ drivers/acpi/acpica/aclocal.h  | 19 ++++++++++---------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 750fa82..17f7bb8 100644
+index 17f7bb8..b549e6d 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -242,7 +242,7 @@ ACPI_GLOBAL(struct acpi_thread_state *, acpi_gbl_current_walk_list);
+@@ -318,6 +318,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_emit_external_opcodes, FALSE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_do_disassembler_optimizations, TRUE);
  
- /* Maximum number of While() loop iterations before forced abort */
+ ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
+ ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index dff1207..7926600 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -765,7 +765,7 @@ union acpi_parse_value {
+ 	union acpi_parse_value          value;          /* Value or args associated with the opcode */\
+ 	u8                              arg_list_length; /* Number of elements in the arg list */\
+ 	ACPI_DISASM_ONLY_MEMBERS (\
+-	u8                              disasm_flags;   /* Used during AML disassembly */\
++	u16                             disasm_flags;   /* Used during AML disassembly */\
+ 	u8                              disasm_opcode;  /* Subtype used for disassembly */\
+ 	char                            *operator_symbol;/* Used for C-style operator name strings */\
+ 	char                            aml_op_name[16])	/* Op name (debug only) */
+@@ -868,14 +868,15 @@ struct acpi_parse_state {
  
--ACPI_GLOBAL(u16, acpi_gbl_max_loop_iterations);
-+ACPI_GLOBAL(u32, acpi_gbl_max_loop_iterations);
+ /* Parse object disasm_flags */
  
- /* Control method single step flag */
+-#define ACPI_PARSEOP_IGNORE                 0x01
+-#define ACPI_PARSEOP_PARAMETER_LIST         0x02
+-#define ACPI_PARSEOP_EMPTY_TERMLIST         0x04
+-#define ACPI_PARSEOP_PREDEFINED_CHECKED     0x08
+-#define ACPI_PARSEOP_CLOSING_PAREN          0x10
+-#define ACPI_PARSEOP_COMPOUND_ASSIGNMENT    0x20
+-#define ACPI_PARSEOP_ASSIGNMENT             0x40
+-#define ACPI_PARSEOP_ELSEIF                 0x80
++#define ACPI_PARSEOP_IGNORE                 0x0001
++#define ACPI_PARSEOP_PARAMETER_LIST         0x0002
++#define ACPI_PARSEOP_EMPTY_TERMLIST         0x0004
++#define ACPI_PARSEOP_PREDEFINED_CHECKED     0x0008
++#define ACPI_PARSEOP_CLOSING_PAREN          0x0010
++#define ACPI_PARSEOP_COMPOUND_ASSIGNMENT    0x0020
++#define ACPI_PARSEOP_ASSIGNMENT             0x0040
++#define ACPI_PARSEOP_ELSEIF                 0x0080
++#define ACPI_PARSEOP_LEGACY_ASL_ONLY        0x0100
  
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 12c2882..d25da93 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -146,7 +146,7 @@
- 
- /* Maximum number of While() loops before abort */
- 
--#define ACPI_MAX_LOOP_COUNT             0xFFFF
-+#define ACPI_MAX_LOOP_COUNT             0x000FFFFF
- 
- /******************************************************************************
+ /*****************************************************************************
   *
 -- 
 2.7.4
