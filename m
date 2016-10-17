@@ -1,15 +1,15 @@
 From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 5/7] ACPICA: Disassembler: Fix for Divide() support, new support for test suite
-Date: Tue, 18 Oct 2016 03:03:39 +0800
-Message-ID: <214d84a471d141ac688949ee679101a57f5ca17a.1476725675.git.lv.zheng@intel.com>
+Subject: [PATCH 6/7] ACPICA: Move acpi_gbl_max_loop_iterations to the public globals file
+Date: Tue, 18 Oct 2016 03:03:57 +0800
+Message-ID: <8da8bbb2648dd4069f0d391333f8f028e63cafe4.1476725675.git.lv.zheng@intel.com>
 References: <cover.1476725675.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:34216 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934954AbcJQTDy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 15:03:54 -0400
-Received: by mail-qk0-f195.google.com with SMTP id n189so14972942qke.1
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Oct 2016 12:03:54 -0700 (PDT)
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35688 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933253AbcJQTEK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Oct 2016 15:04:10 -0400
+Received: by mail-qt0-f195.google.com with SMTP id g49so6573047qtc.2
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Oct 2016 12:04:10 -0700 (PDT)
 In-Reply-To: <cover.1476725675.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,73 +18,51 @@ Cc: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 4b367408659af08fd44839866ec301285284e6f4
+ACPICA commit eb8b2194200867dec9ba38e5ab98b5b8ef262945
 
-Fixes a problem with complex expressions where an illegal mix
-of legacy ASL and ASL+ could be emitted.
+Moved to acpixf.h with the rest of the configuration globals.
 
-Adds new support for ASLTS that disables some disassembler
-optimizations could be changed during a conversion to ASL+.
-These expressions are now emitted in legacy ASL instead
-of ASL+.
-
-Link: https://github.com/acpica/acpica/commit/4b367408
+Link: https://github.com/acpica/acpica/commit/eb8b2194
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |  1 +
- drivers/acpi/acpica/aclocal.h  | 19 ++++++++++---------
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/acpi/acpica/acglobal.h | 4 ----
+ include/acpi/acpixf.h          | 7 +++++++
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 17f7bb8..b549e6d 100644
+index b549e6d..edbb42e 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -318,6 +318,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_emit_external_opcodes, FALSE);
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_do_disassembler_optimizations, TRUE);
+@@ -240,10 +240,6 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_nesting_level, 0);
  
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index dff1207..7926600 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -765,7 +765,7 @@ union acpi_parse_value {
- 	union acpi_parse_value          value;          /* Value or args associated with the opcode */\
- 	u8                              arg_list_length; /* Number of elements in the arg list */\
- 	ACPI_DISASM_ONLY_MEMBERS (\
--	u8                              disasm_flags;   /* Used during AML disassembly */\
-+	u16                             disasm_flags;   /* Used during AML disassembly */\
- 	u8                              disasm_opcode;  /* Subtype used for disassembly */\
- 	char                            *operator_symbol;/* Used for C-style operator name strings */\
- 	char                            aml_op_name[16])	/* Op name (debug only) */
-@@ -868,14 +868,15 @@ struct acpi_parse_state {
+ ACPI_GLOBAL(struct acpi_thread_state *, acpi_gbl_current_walk_list);
  
- /* Parse object disasm_flags */
+-/* Maximum number of While() loop iterations before forced abort */
+-
+-ACPI_GLOBAL(u32, acpi_gbl_max_loop_iterations);
+-
+ /* Control method single step flag */
  
--#define ACPI_PARSEOP_IGNORE                 0x01
--#define ACPI_PARSEOP_PARAMETER_LIST         0x02
--#define ACPI_PARSEOP_EMPTY_TERMLIST         0x04
--#define ACPI_PARSEOP_PREDEFINED_CHECKED     0x08
--#define ACPI_PARSEOP_CLOSING_PAREN          0x10
--#define ACPI_PARSEOP_COMPOUND_ASSIGNMENT    0x20
--#define ACPI_PARSEOP_ASSIGNMENT             0x40
--#define ACPI_PARSEOP_ELSEIF                 0x80
-+#define ACPI_PARSEOP_IGNORE                 0x0001
-+#define ACPI_PARSEOP_PARAMETER_LIST         0x0002
-+#define ACPI_PARSEOP_EMPTY_TERMLIST         0x0004
-+#define ACPI_PARSEOP_PREDEFINED_CHECKED     0x0008
-+#define ACPI_PARSEOP_CLOSING_PAREN          0x0010
-+#define ACPI_PARSEOP_COMPOUND_ASSIGNMENT    0x0020
-+#define ACPI_PARSEOP_ASSIGNMENT             0x0040
-+#define ACPI_PARSEOP_ELSEIF                 0x0080
-+#define ACPI_PARSEOP_LEGACY_ASL_ONLY        0x0100
+ ACPI_GLOBAL(u8, acpi_gbl_cm_single_step);
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index c7b3a13..07ab21e 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -259,6 +259,13 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_osi_data, 0);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_reduced_hardware, FALSE);
  
- /*****************************************************************************
-  *
+ /*
++ * Maximum number of While() loop iterations before forced method abort.
++ * This mechanism is intended to prevent infinite loops during interpreter
++ * execution within a host kernel.
++ */
++ACPI_INIT_GLOBAL(u32, acpi_gbl_max_loop_iterations, ACPI_MAX_LOOP_COUNT);
++
++/*
+  * This mechanism is used to trace a specified AML method. The method is
+  * traced each time it is executed.
+  */
 -- 
 2.7.4
 
