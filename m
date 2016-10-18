@@ -1,427 +1,299 @@
-From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: [PATCH V5 1/2] ACPI: Add support for ResourceSource/IRQ domain mapping
-Date: Tue, 18 Oct 2016 13:41:48 -0400
-Message-ID: <1476812509-2760-2-git-send-email-agustinv@codeaurora.org>
-References: <1476812509-2760-1-git-send-email-agustinv@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+Date: Tue, 18 Oct 2016 22:07:17 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
+References: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
+ <1AE640813FDE7649BE1B193DEA596E886A253666@SHSMSX101.ccr.corp.intel.com>
+ <696226b1-7024-a4d6-8bea-ddbf6d08a564@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44725 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933177AbcJRRmR (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2016 13:42:17 -0400
-In-Reply-To: <1476812509-2760-1-git-send-email-agustinv@codeaurora.org>
+Received: from mga03.intel.com ([134.134.136.65]:6635 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934043AbcJRWHY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 18 Oct 2016 18:07:24 -0400
+In-Reply-To: <696226b1-7024-a4d6-8bea-ddbf6d08a564@huawei.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
-Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
+To: Yisheng Xie <xieyisheng1@huawei.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "wmiles@sgl.com" <wmiles@sgl.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>
 
-This allows irqchip drivers to associate an ACPI DSDT device to
-an IRQ domain and provides support for using the ResourceSource
-in Extended IRQ Resources to find the domain and map the IRQs
-specified on that domain.
+Hi,
 
-Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
----
- drivers/acpi/Makefile             |   1 +
- drivers/acpi/irqdomain.c          | 141 ++++++++++++++++++++++++++++++++++++++
- drivers/acpi/resource.c           |  21 +++---
- include/asm-generic/vmlinux.lds.h |   1 +
- include/linux/acpi.h              |  71 +++++++++++++++++++
- include/linux/irqchip.h           |  17 ++++-
- 6 files changed, 240 insertions(+), 12 deletions(-)
- create mode 100644 drivers/acpi/irqdomain.c
+> From: Yisheng Xie [mailto:xieyisheng1@huawei.com]
+> Sent: Tuesday, October 18, 2016 4:47 AM
+> To: Zheng, Lv <lv.zheng@intel.com>; Moore, Robert <robert.moore@intel.com>; Wysocki, Rafael J
+> <rafael.j.wysocki@intel.com>; lenb@kernel.org; wmiles@sgl.com
+> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org; guohanjun@huawei.com;
+> wangxiongfeng2@huawei.com
+> Subject: Re: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+> 
+> Hi, Lv
+> 
+> On 2016/10/18 6:26, Zheng, Lv wrote:
+> > Hi, Yisheng
+> >
+> >> From: Yisheng Xie [mailto:xieyisheng1@huawei.com]
+> >> Subject: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+> >>
+> >> when try to cross compile acpi tool in dir kernel/tools
+> >> for arm64 use command:
+> >>     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- acpi
+> >> it failed with the following log:
+> >> In file included
+> >>     from ../../../../../include/acpi/acpi.h:58:0,
+> >>     from ../../../../../drivers/acpi/acpica/utstring.c:44:
+> >>     ../../../../../include/acpi/actypes.h:130:34: error: conflicting types for 's64'
+> >>  typedef signed long long s64;
+> >>                            ^
+> >> In file included
+> >>     from /opt/aarch64-linux-gnu/libc/usr/include/asm-generic/types.h:6:0
+> >>     from /opt/aarch64-linux-gnu/libc/usr/include/asm/types.h:1,
+> >>     from ../../../../../include/uapi/linux/types.h:4,
+> >>     from ../../../../../include/linux/types.h:5,
+> >>     from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19,
+> >>     from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+> >>     from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+> >>     from ../../../../../include/acpi/platform/acenv.h:365,
+> >>     from ../../../../../include/acpi/acpi.h:56,
+> >>     from ./acpidump.h:55,
+> >>     from ../../os_specific/service_layers/oslinuxtbl.c:44:
+> >> ../../../../../include/asm-generic/int-ll64.h:24:26: note: previous declaration of 's64' was here
+> >>  typedef signed long long s64;
+> >>                            ^
+> >> Fix this compile problem.
+> >
+> > This looks like a conflict between asm-generic/int-ll64.h and actypes.h.
+> >
+> > When a build environment actually has s64 definition.
+> > ACPICA shouldn't define it.
+> > ACPICA should define ACPI_USE_SYSTEM_INTTYPES instead.
+> >
+> > However it is not clear if a Linux userspace should be aware of s64.
+> > We couldn't see this issue in other arch builds.
+> > So I wonder if this is just a missing "#ifdef __KERNEL__" in asm-generic/int-ll64.h.
+> >
+> > If Linux should be aware of s64.
+> > Then ACPICA definition of s64 should be disabled by defining ACPI_USE_SYSTEM_INTTYPES.
+> > Since this is a post-ACPICA-release issue.
+> > You should only fix it in tools/power/acpi/Makefile*.
+> >
+> > So I think this patch is not a right fix, but a wrong workaround.
+> > It can easily cause regressions in other ACPICA builds.
+> >
+> Thank you for your reply.
+> You are right that the  ACPI_USE_SYSTEM_INTTYPES in Makefile can fixed compile error,
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 9ed0878..880401b 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
- acpi-y				+= acpi_lpat.o
- acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
- acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
-+acpi-$(CONFIG_IRQ_DOMAIN)	+= irqdomain.o
- 
- # These are (potentially) separate modules
- 
-diff --git a/drivers/acpi/irqdomain.c b/drivers/acpi/irqdomain.c
-new file mode 100644
-index 0000000..c53b9f4
---- /dev/null
-+++ b/drivers/acpi/irqdomain.c
-@@ -0,0 +1,141 @@
-+/*
-+ * ACPI ResourceSource/IRQ domain mapping support
-+ *
-+ * Copyright (c) 2016, The Linux Foundation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#include <linux/acpi.h>
-+#include <linux/irq.h>
-+#include <linux/irqdomain.h>
-+
-+/**
-+ * acpi_irq_domain_ensure_probed() - Check if the device has registered
-+ *                                   an IRQ domain and probe as necessary
-+ *
-+ * @device: Device to check and probe
-+ *
-+ * Returns: 0 on success, -ENODEV otherwise
-+ */
-+static int acpi_irq_domain_ensure_probed(struct acpi_device *device)
-+{
-+	struct acpi_dsdt_probe_entry *entry;
-+
-+	if (irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY) != 0)
-+		return 0;
-+
-+	for (entry = &__dsdt_acpi_probe_table;
-+	     entry < &__dsdt_acpi_probe_table_end; entry++)
-+		if (strcmp(entry->_hid, acpi_device_hid(device)) == 0)
-+			return entry->probe(device);
-+
-+	return -ENODEV;
-+}
-+
-+/**
-+ * acpi_irq_domain_register_irq() - Register the mapping for an IRQ produced
-+ *                                  by the given acpi_resource_source to a
-+ *                                  Linux IRQ number
-+ * @source: IRQ source
-+ * @hwirq: Hardware IRQ number
-+ * @trigger: trigger type of the IRQ number to be mapped
-+ * @polarity: polarity of the IRQ to be mapped
-+ *
-+ * Returns: a valid linux IRQ number on success
-+ *          -ENODEV if the given acpi_resource_source cannot be found
-+ *          -EPROBE_DEFER if the IRQ domain has not been registered
-+ *          -EINVAL for all other errors
-+ */
-+int acpi_irq_domain_register_irq(const struct acpi_resource_source *source,
-+				 u32 hwirq, int trigger, int polarity)
-+{
-+	struct irq_fwspec fwspec;
-+	struct acpi_device *device;
-+	acpi_handle handle;
-+	acpi_status status;
-+	int ret;
-+
-+	/* An empty acpi_resource_source means it is a GSI */
-+	if (!source->string_length)
-+		return acpi_register_gsi(NULL, hwirq, trigger, polarity);
-+
-+	status = acpi_get_handle(NULL, source->string_ptr, &handle);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	device = acpi_bus_get_acpi_device(handle);
-+	if (!device)
-+		return -ENODEV;
-+
-+	ret = acpi_irq_domain_ensure_probed(device);
-+	if (ret)
-+		goto out_put_device;
-+
-+	fwspec.fwnode = &device->fwnode;
-+	fwspec.param[0] = hwirq;
-+	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
-+	fwspec.param_count = 2;
-+
-+	ret = irq_create_fwspec_mapping(&fwspec);
-+
-+out_put_device:
-+	acpi_bus_put_acpi_device(device);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(acpi_irq_domain_register_irq);
-+
-+/**
-+ * acpi_irq_domain_unregister_irq() - Delete the mapping for an IRQ produced
-+ *                                    by the given acpi_resource_source to a
-+ *                                    Linux IRQ number
-+ * @source: IRQ source
-+ * @hwirq: Hardware IRQ number
-+ *
-+ * Returns: 0 on success
-+ *          -ENODEV if the given acpi_resource_source cannot be found
-+ *          -EINVAL for all other errors
-+ */
-+int acpi_irq_domain_unregister_irq(const struct acpi_resource_source *source,
-+				   u32 hwirq)
-+{
-+	struct irq_domain *domain;
-+	struct acpi_device *device;
-+	acpi_handle handle;
-+	acpi_status status;
-+	int ret = 0;
-+
-+	if (!source->string_length) {
-+		acpi_unregister_gsi(hwirq);
-+		return 0;
-+	}
-+
-+	status = acpi_get_handle(NULL, source->string_ptr, &handle);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	device = acpi_bus_get_acpi_device(handle);
-+	if (!device)
-+		return -ENODEV;
-+
-+	domain = irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY);
-+	if (!domain) {
-+		ret = -EINVAL;
-+		goto out_put_device;
-+	}
-+
-+	irq_dispose_mapping(irq_find_mapping(domain, hwirq));
-+
-+out_put_device:
-+	acpi_bus_put_acpi_device(device);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(acpi_irq_domain_unregister_irq);
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 56241eb..3fb7abf 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -381,14 +381,15 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
- 	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
- }
- 
--static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
-+static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
-+				     const struct acpi_resource_source *source,
- 				     u8 triggering, u8 polarity, u8 shareable,
- 				     bool legacy)
- {
- 	int irq, p, t;
- 
--	if (!valid_IRQ(gsi)) {
--		acpi_dev_irqresource_disabled(res, gsi);
-+	if ((source->string_length == 0) && !valid_IRQ(hwirq)) {
-+		acpi_dev_irqresource_disabled(res, hwirq);
- 		return;
- 	}
- 
-@@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
- 	 * using extended IRQ descriptors we take the IRQ configuration
- 	 * from _CRS directly.
- 	 */
--	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
-+	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
- 		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
- 		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
- 
- 		if (triggering != trig || polarity != pol) {
--			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
--				   t ? "level" : "edge", p ? "low" : "high");
-+			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
-+				t ? "level" : "edge", p ? "low" : "high");
- 			triggering = trig;
- 			polarity = pol;
- 		}
- 	}
- 
- 	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
--	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
-+	irq = acpi_irq_domain_register_irq(source, hwirq, triggering, polarity);
- 	if (irq >= 0) {
- 		res->start = irq;
- 		res->end = irq;
- 	} else {
--		acpi_dev_irqresource_disabled(res, gsi);
-+		acpi_dev_irqresource_disabled(res, hwirq);
- 	}
- }
- 
-@@ -446,6 +447,7 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
- bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
- 				 struct resource *res)
- {
-+	const struct acpi_resource_source dummy = { 0, 0, NULL };
- 	struct acpi_resource_irq *irq;
- 	struct acpi_resource_extended_irq *ext_irq;
- 
-@@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
- 			acpi_dev_irqresource_disabled(res, 0);
- 			return false;
- 		}
--		acpi_dev_get_irqresource(res, irq->interrupts[index],
-+		acpi_dev_get_irqresource(res, irq->interrupts[index], &dummy,
- 					 irq->triggering, irq->polarity,
- 					 irq->sharable, true);
- 		break;
-@@ -471,6 +473,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
- 			return false;
- 		}
- 		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
-+					 &ext_irq->resource_source,
- 					 ext_irq->triggering, ext_irq->polarity,
- 					 ext_irq->sharable, false);
- 		break;
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 3074796..f808afdc 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -563,6 +563,7 @@
- 	IRQCHIP_OF_MATCH_TABLE()					\
- 	ACPI_PROBE_TABLE(irqchip)					\
- 	ACPI_PROBE_TABLE(clksrc)					\
-+	ACPI_PROBE_TABLE(dsdt)						\
- 	EARLYCON_TABLE()
- 
- #define INIT_TEXT							\
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ddbeda6..bb1a838 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -26,6 +26,7 @@
- #include <linux/resource_ext.h>
- #include <linux/device.h>
- #include <linux/property.h>
-+#include <linux/irqdomain.h>
- 
- #ifndef _LINUX
- #define _LINUX
-@@ -321,6 +322,31 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
-  */
- void acpi_unregister_gsi (u32 gsi);
- 
-+#ifdef CONFIG_IRQ_DOMAIN
-+
-+int acpi_irq_domain_register_irq(const struct acpi_resource_source *source,
-+				 u32 hwirq, int trigger, int polarity);
-+int acpi_irq_domain_unregister_irq(const struct acpi_resource_source *source,
-+				   u32 hwirq);
-+
-+#else
-+
-+static inline int acpi_irq_domain_register_irq(
-+	const struct acpi_resource_source *source, u32 hwirq, int trigger,
-+	int polarity)
-+{
-+	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
-+}
-+
-+static inline int acpi_irq_domain_unregister_irq(
-+	const struct acpi_resource_source *source,  u32 hwirq)
-+{
-+	acpi_unregister_gsi(hwirq);
-+	return 0;
-+}
-+
-+#endif /* CONFIG_IRQ_DOMAIN */
-+
- struct pci_dev;
- 
- int acpi_pci_irq_enable (struct pci_dev *dev);
-@@ -1024,6 +1050,34 @@ struct acpi_probe_entry {
- 					  (&ACPI_PROBE_TABLE_END(t) -	\
- 					   &ACPI_PROBE_TABLE(t)));	\
- 	})
-+
-+/* Length of Hardware ID field in DSDT entries as per ACPI spec */
-+#define ACPI_HID_LEN 9
-+
-+typedef int (*acpi_dsdt_handler)(struct acpi_device *);
-+
-+/**
-+ * struct acpi_probe_dsdt_entry - boot-time probing entry for DSDT devices
-+ * @hid:		_HID of the device
-+ * @fn:		Callback to the driver being probed
-+ * @driver_data:	Sideband data provided back to the driver
-+ */
-+struct acpi_dsdt_probe_entry {
-+	__u8 _hid[ACPI_HID_LEN];
-+	acpi_dsdt_handler probe;
-+};
-+
-+#define ACPI_DECLARE_DSDT_PROBE_ENTRY(name, hid, fn)			\
-+	static const struct acpi_dsdt_probe_entry __acpi_probe_##name	\
-+		__used __section(__dsdt_acpi_probe_table) =		\
-+		{							\
-+			._hid = hid,					\
-+			.probe = fn,					\
-+		}
-+
-+extern struct acpi_dsdt_probe_entry __dsdt_acpi_probe_table;
-+extern struct acpi_dsdt_probe_entry __dsdt_acpi_probe_table_end;
-+
- #else
- static inline int acpi_dev_get_property(struct acpi_device *adev,
- 					const char *name, acpi_object_type type,
-@@ -1101,8 +1155,25 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- 		     (void *) data }
- 
- #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
-+
-+#define ACPI_DECLARE_DSDT_PROBE_ENTRY(name, hid, fn)			\
-+	static const void *__acpi_probe_##name[]			\
-+		__attribute__((unused))				\
-+		 = { (void *) hid,					\
-+		     (void *) fn }
-+
- #endif
- 
-+#define MADT_IRQCHIP_ACPI_DECLARE(name, subtable, validate, data, fn)	\
-+	ACPI_DECLARE_PROBE_ENTRY(irqchip, name, ACPI_SIG_MADT,		\
-+				 subtable, validate, data, fn)
-+
-+#define DSDT_IRQCHIP_ACPI_DECLARE(name, hid, fn)	\
-+	ACPI_DECLARE_DSDT_PROBE_ENTRY(name, hid, fn)
-+
-+#define __IRQCHIP_ACPI_DECLARE(_a1, _a2, _a3, _a4, _a5, type, ...)	\
-+	type##_IRQCHIP_ACPI_DECLARE
-+
- #ifdef CONFIG_ACPI_TABLE_UPGRADE
- void acpi_table_upgrade(void);
- #else
-diff --git a/include/linux/irqchip.h b/include/linux/irqchip.h
-index 89c34b2..c2d0c12 100644
---- a/include/linux/irqchip.h
-+++ b/include/linux/irqchip.h
-@@ -29,6 +29,10 @@
- /*
-  * This macro must be used by the different irqchip drivers to declare
-  * the association between their version and their initialization function.
-+ * Two syntaxes are supported depending on the table where the irqchip device
-+ * is declared:
-+ *
-+ * - MADT irqchip syntax, which requires the following five arguments:
-  *
-  * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
-  * same file.
-@@ -37,10 +41,17 @@
-  *            Can be NULL.
-  * @data: data to be checked by the validate function.
-  * @fn: initialization function
-+ *
-+ * - DSDT irqchip syntax, which requires the following three arguments:
-+ *
-+ * @name: name that must be unique across all IRQCHIP_ACPI_DECLARE of the
-+ * same file.
-+ * @hid: _HID of the DSDT device
-+ * @fn: initialization function
-  */
--#define IRQCHIP_ACPI_DECLARE(name, subtable, validate, data, fn)	\
--	ACPI_DECLARE_PROBE_ENTRY(irqchip, name, ACPI_SIG_MADT, 		\
--				 subtable, validate, data, fn)
-+
-+#define IRQCHIP_ACPI_DECLARE(...)					\
-+	__IRQCHIP_ACPI_DECLARE(__VA_ARGS__, MADT, _unused, DSDT)(__VA_ARGS__)
- 
- #ifdef CONFIG_IRQCHIP
- void irqchip_init(void);
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+I'm not sure what you mean.
+I mean you need ACPI_USE_SYSTEM_INTTYPES in case s64 has already been defined in that environment.
+Are you sure s64 should be defined for your environment?
 
+IMO, s64 is kernel space specific, while you are compiling user space tools.
+It looks to me like there is something wrong with ARM kernel's asm/types.h.
+
+> I listed in change log. And I also have tried that way.
+> However, it still have many other errors.(I am sorry to not have listed all of them.)
+> 
+> From the following log, you can see, all of the conflict type is from signal.h.
+> And maybe this patch is a better way to fix these compile error, without too much
+> change of code.
+> 
+> Are you sure that it will cause order problem when build ACPICA on other build
+> environment, for it only effect aarch64.
+> 
+> Thanks
+> Yisheng.
+> 
+> ----------detail compile error log---------
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:14:26: error: conflicting types for 'fd_set'
+>  typedef __kernel_fd_set  fd_set;
+>                           ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:219:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/sys/select.h:75:5: note: previous declaration of 'fd_set' was
+> here
+>    } fd_set;
+>      ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:15:25: error: conflicting types for 'dev_t'
+>  typedef __kernel_dev_t  dev_t;
+>                          ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314:0,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:60:17: note: previous declaration of 'dev_t' was
+> here
+>  typedef __dev_t dev_t;
+>                  ^
+> ...
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:25:26: error: conflicting types for 'timer_t'
+>  typedef __kernel_timer_t timer_t;
+>                           ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:132:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/time.h:103:19: note: previous declaration of 'timer_t' was
+> here
+>  typedef __timer_t timer_t;
+>                    ^
+> ...
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:45:26: error: conflicting types for 'loff_t'
+>  typedef __kernel_loff_t  loff_t;
+>                           ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314:0,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:44:18: note: previous declaration of 'loff_t' was
+> here
+>  typedef __loff_t loff_t;
+>                   ^
+> ...
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:112:17: error: conflicting types for 'u_int64_t'
+>  typedef  __u64  u_int64_t;
+>                  ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314:0,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:203:1: note: previous declaration of 'u_int64_t'
+> was here
+>  __u_intN_t (64, __DI__);
+>  ^
+> ...
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:113:17: error: conflicting types for 'int64_t'
+>  typedef  __s64  int64_t;
+>                  ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314:0,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:197:1: note: previous declaration of 'int64_t' was
+> here
+>  __intN_t (64, __DI__);
+>  ^
+> ...
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/asm/sigcontext.h:19:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/bits/sigcontext.h:27,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/signal.h:308,
+>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> ../../../../../include/linux/types.h:134:23: error: conflicting types for 'blkcnt_t'
+>  typedef unsigned long blkcnt_t;
+>                        ^
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314:0,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/tbprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:235:20: note: previous declaration of 'blkcnt_t'
+> was here
+>  typedef __blkcnt_t blkcnt_t;  /* Type to count number of disk blocks.  */
+>                     ^
+> 
+> 
+> 
+> 
+> In file included from /opt/aarch64-linux-gnu/libc/usr/include/sys/types.h:219:0,
+>                  from /opt/aarch64-linux-gnu/libc/usr/include/stdlib.h:314,
+>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from acpidbg.c:12:
+> acpidbg.c: In function 'acpi_aml_set_fd':
+> ../../../../../drivers/acpi/acpica/utprint.c:352:5: error: conflicting types for 'vsnprintf'
+>  int vsnprintf(char *string, acpi_size size, const char *format, va_list args)
+>      ^
+> ...
+> In file included from ../../../../../include/acpi/platform/acenv.h:361:0,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/utprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/stdio.h:390:12: note: previous declaration of 'vsnprintf' was
+> here
+>  extern int vsnprintf (char *__restrict __s, size_t __maxlen,
+>             ^
+> ....
+> ../../../../../drivers/acpi/acpica/utprint.c:599:5: error: conflicting types for 'snprintf'
+>  int snprintf(char *string, acpi_size size, const char *format, ...)
+>      ^
+> 
+> In file included from ../../../../../include/acpi/platform/acenv.h:361:0,
+>                  from ../../../../../include/acpi/acpi.h:56,
+>                  from ../../../../../drivers/acpi/acpica/utprint.c:44:
+> /opt/aarch64-linux-gnu/libc/usr/include/stdio.h:386:12: note: previous declaration of 'snprintf' was
+> here
+>  extern int snprintf (char *__restrict __s, size_t __maxlen,
+>             ^
+> ...
+> acpidbg.c:303:25: warning: passing argument 2 of 'select' from incompatible pointer type [-
+> Wincompatible-pointer-types]
+>    ret = select(maxfd+1, &rfds, &wfds, NULL, &tv);
+>                          ^
+> ....
+> acpidbg.c:309:8: error: 'fd_set {aka struct <anonymous>}' has no member named '__fds_bits'
+>     if (FD_ISSET(STDIN_FILENO, &rfds))
+>         ^
+> make[2]: *** [utprint.o] Error 1
+> acpidbg.c:311:8: error: 'fd_set {aka struct <anonymous>}' has no member named '__fds_bits'
+>     if (FD_ISSET(fd, &wfds)) {
+>         ^
+> acpidbg.c:317:8: error: 'fd_set {aka struct <anonymous>}' has no member named '__fds_bits'
+>     if (FD_ISSET(fd, &rfds)) {
+>         ^
+> acpidbg.c:323:8: error: 'fd_set {aka struct <anonymous>}' has no member named '__fds_bits'
+>     if (FD_ISSET(STDOUT_FILENO, &wfds)) {
+>         ^
+
+
+I'm not sure what this is.
+How did you get this?
+Were you compiling kernel acpi tools or compiling the kernel itself?
+
+For tool compilation, are you sure you have correctly configured your cross-compilation environment?
+Will you see problems in compiling ACPICA applications from:
+https://github.com/acpica/acpica
+
+Thanks
+Lv
