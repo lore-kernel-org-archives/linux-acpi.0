@@ -1,28 +1,65 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V3 2/3] Revert "ACPI,PCI,IRQ: remove SCI penalize
- function"
-Date: Tue, 18 Oct 2016 08:05:05 -0700
-Message-ID: <84372578-eb80-249f-01ef-b16f4a18a0fb@codeaurora.org>
+Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
+ interrupts
+Date: Tue, 18 Oct 2016 08:20:55 -0700
+Message-ID: <b4a8995e-1454-3b84-0681-1491788087ec@codeaurora.org>
 References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
- <1476505867-24599-3-git-send-email-okaya@codeaurora.org>
- <20161018140543.GE18903@localhost>
+ <1476505867-24599-2-git-send-email-okaya@codeaurora.org>
+ <20161018135912.GD18903@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161018140543.GE18903@localhost>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20161018135912.GD18903@localhost>
+Sender: linux-arm-msm-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, Len Brown <len.brown@intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, linux-pm@vger.kernel.org, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Pavel Machek <pavel@ucw.cz>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/18/2016 7:05 AM, Bjorn Helgaas wrote:
-> I think you should squash patches 2 & 3 and not bother with trying to
-> make this a revert followed by a fix.  Squashing them makes the git
-> history much easier to follow, plus you don't have to deal with the
-> headache of ensuring the intermediate state is correct and bisectable.
+On 10/18/2016 6:59 AM, Bjorn Helgaas wrote:
+>> However, this function only gets called if the IRQ number is greater than
+>> > 16 and acpi_irq_get_penalty function gets called before ACPI start in
+>> > acpi_isa_irq_available and acpi_penalize_isa_irq functions. We can't rely
+>> > on iterating the link list.
 
-OK. I can do that.
+Maybe, I am missing context here. I can add this paragraph to the commit. 
+
+When we started cleaning the code we got rid of the acpi_irq_penalty_init function
+in favor of acpi_irq_pci_sharing_penalty function as it does have some fair
+amount of code duplication.
+
+I tried putting back the acpi_irq_pci_sharing_penalty function into the ISA
+IRQ path again during the debug and the machine died way too early. We couldn't
+collect any debug message.
+
+This is telling me that we can't even iterate the link list when these two API
+is called. ISA IRQ need to be handled with special care due to calling order.
+
+
+> It seems wrong to me that we call acpi_irq_get_penalty() from
+> acpi_irq_penalty_update() and acpi_penalize_isa_irq().  It seems like they
+> should just manipulate acpi_isa_irq_penalty[irq] directly.
+> 
+> acpi_irq_penalty_update() is for command-line parameters, so it certainly
+> doesn't need the acpi_irq_pci_sharing_penalty() information (the
+> acpi_link_list should be empty at the time we process the command-line
+> parameters).
+> 
+> acpi_penalize_isa_irq() is telling us that a PNP or ACPI device is using
+> the IRQ -- this should modify the IRQ's penalty, but it shouldn't depend on
+> the acpi_irq_pci_sharing_penalty() value at all.
+> 
+
+acpi_irq_get_penalty function knows how to deal with ISA IRQ. So, it is harmless
+to call it. Also, reading the acpi_isa_irq_penalty array directly isn't also right.
+It doesn't contain the SCI penalty. So, it returns incorrect penalty value.
+
+The rule of thumb is:
+- all PCI/SCI penalty reads need to go through acpi_isa_irq_penalty function
+- all ISA penalty writes need to go through acpi_isa_irq_penalty array directly.
+- we do not support modifying the PCI IRQ penalties greater than the ISA IRQ numbers.
+The original code supported this.
+
 
 -- 
 Sinan Kaya
