@@ -1,110 +1,204 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: [PATCH v2] mailbox: PCC: Fix lockdep warning when request PCC channel
-Date: Tue, 18 Oct 2016 00:00:07 -0700
-Message-ID: <1476774007-10218-1-git-send-email-hotran@apm.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2] arm64: kernel: numa: fix ACPI boot cpu numa node
+ mapping
+Date: Tue, 18 Oct 2016 16:39:59 +0800
+Message-ID: <728ef882-b1ee-9518-d291-ee475e9006eb@linaro.org>
+References: <20161017145649.6189-1-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f54.google.com ([209.85.214.54]:37906 "EHLO
-        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758599AbcJRHBB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2016 03:01:01 -0400
-Received: by mail-it0-f54.google.com with SMTP id 66so30128034itl.1
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Oct 2016 00:01:01 -0700 (PDT)
+Received: from mail-pf0-f174.google.com ([209.85.192.174]:35088 "EHLO
+        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752627AbcJRIkG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2016 04:40:06 -0400
+Received: by mail-pf0-f174.google.com with SMTP id s8so90942321pfj.2
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Oct 2016 01:40:05 -0700 (PDT)
+In-Reply-To: <20161017145649.6189-1-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>, Prakash Prashanth <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Laszlo Ersek <lersek@redhat.com>, Andrew Jones <drjones@redhat.com>, Zhen Lei <thunder.leizhen@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>
 
-This patch fixes the lockdep warning below
+On 2016/10/17 22:56, Lorenzo Pieralisi wrote:
+> Commit 7ba5f605f3a0 ("arm64/numa: remove the limitation that cpu0 must
+> bind to node0") removed the numa cpu<->node mapping restriction whereby
+> logical cpu 0 always corresponds to numa node 0; removing the
+> restriction was correct, in that it does not really exist in practice
+> but the commit only updated the early mapping of logical cpu 0 to its
+> real numa node for the DT boot path, missing the ACPI one, leading to
+> boot failures on ACPI systems owing to missing cpu<->node map for
+> logical cpu 0.
+>
+> Fix the issue by updating the ACPI boot path with code that carries out
+> the early cpu<->node mapping also for the boot cpu (ie cpu 0), mirroring
+> what is currently done in the DT boot path.
+>
+> Fixes: 7ba5f605f3a0 ("arm64/numa: remove the limitation that cpu0 must bind to node0")
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Tested-by: Laszlo Ersek <lersek@redhat.com>
+> Reported-by: Laszlo Ersek <lersek@redhat.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Laszlo Ersek <lersek@redhat.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
 
-[    7.229767] DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags))
-[    7.229776] ------------[ cut here ]------------
-[    7.229787] WARNING: CPU: 1 PID: 1 at linux-next/kernel/locking/lockdep.c:2876 loc
-kdep_trace_alloc+0xe0/0xf0
-[    7.229790] Modules linked in:
-[    7.229793]
-[    7.229798] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.8.0-11756-g86c5152 #46
-...
-[    7.229900] Call trace:
-[    7.229903] Exception stack(0xffff8007da837890 to 0xffff8007da8379c0)
-[    7.229906] 7880:                                   ffff8007da834000 0001000000000000
-[    7.229909] 78a0: ffff8007da837a70 ffff0000081111a0 00000000600000c5 000000000000003d
-[    7.229912] 78c0: 9374bc6a7f3c7832 0000000000381878 ffff000009db7ab8 000000000000002f
-[    7.229915] 78e0: ffff00000811aabc ffff000008be2548 ffff8007da837990 ffff00000811adf8
-[    7.229918] 7900: ffff8007da834000 00000000024080c0 00000000000000c0 ffff000009021000
-[    7.229921] 7920: 0000000000000000 0000000000000000 ffff000008c8f7c8 ffff8007da579810
-[    7.229923] 7940: 000000000000002f ffff8007da858000 0000000000000000 0000000000000001
-[    7.229926] 7960: 0000000000000001 0000000000000000 ffff00000811a468 0000000000000002
-[    7.229929] 7980: 656c62617369645f 0000000000038187 00000000000000ee ffff8007da837850
-[    7.229932] 79a0: ffff000009db50c0 ffff000009db569d 0000000000000006 ffff000089db568f
-[    7.229936] [<ffff0000081111a0>] lockdep_trace_alloc+0xe0/0xf0
-[    7.229940] [<ffff0000081f4950>] __kmalloc_track_caller+0x50/0x250
-[    7.229945] [<ffff00000857c088>] devres_alloc_node+0x28/0x60
-[    7.229949] [<ffff0000081220e0>] devm_request_threaded_irq+0x50/0xe0
-[    7.229955] [<ffff0000087e6220>] pcc_mbox_request_channel+0x110/0x170
-[    7.229960] [<ffff0000084b2660>] acpi_cppc_processor_probe+0x264/0x414
-[    7.229963] [<ffff0000084ae9f4>] __acpi_processor_start+0x28/0xa0
-[    7.229966] [<ffff0000084aeab0>] acpi_processor_start+0x44/0x54
-[    7.229970] [<ffff00000857897c>] driver_probe_device+0x1fc/0x2b0
-[    7.229974] [<ffff000008578ae4>] __driver_attach+0xb4/0xc0
-[    7.229977] [<ffff00000857683c>] bus_for_each_dev+0x5c/0xa0
-[    7.229980] [<ffff000008578110>] driver_attach+0x20/0x30
-[    7.229983] [<ffff000008577c20>] bus_add_driver+0x110/0x230
-[    7.229987] [<ffff000008579320>] driver_register+0x60/0x100
-[    7.229991] [<ffff000008d478b8>] acpi_processor_driver_init+0x2c/0xb0
-[    7.229996] [<ffff000008083168>] do_one_initcall+0x38/0x130
-[    7.230000] [<ffff000008d20d6c>] kernel_init_freeable+0x210/0x2b4
-[    7.230004] [<ffff000008945d90>] kernel_init+0x10/0x110
-[    7.230007] [<ffff000008082e80>] ret_from_fork+0x10/0x50
+Thanks for the quick response and fix,
 
-It's because the spinlock inside pcc_mbox_request_channel() is
-kept too long. This patch releases spinlock before request_irq()
-and free_irq() to fix this issue  as spinlock is only needed to
-protect the channel data.
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Signed-off-by: Hoan Tran <hotran@apm.com>
----
-v2
- * Release spinlock before request_irq() and free_irq() instead of
-using mutex
+By the way, I got another boot failure [1] when we have multi
+NUMA nodes system with some memory-less nodes (only one node
+have memory), we are looking into it now, this patch needs
+to be merged first.
 
- drivers/mailbox/pcc.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thanks
+Hanjun
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 08c87fa..b5275a8 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -267,6 +267,8 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
- 	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
- 		chan->txdone_method |= TXDONE_BY_ACK;
- 
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
- 	if (pcc_doorbell_irq[subspace_id] > 0) {
- 		int rc;
- 
-@@ -279,8 +281,6 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&chan->lock, flags);
--
- 	return chan;
- }
- EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
-@@ -310,10 +310,10 @@ void pcc_mbox_free_channel(struct mbox_chan *chan)
- 	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
- 		chan->txdone_method = TXDONE_BY_POLL;
- 
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
- 	if (pcc_doorbell_irq[id] > 0)
- 		devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
--
--	spin_unlock_irqrestore(&chan->lock, flags);
- }
- EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
- 
--- 
-1.9.1
+[1]: boot failure log:
+[    0.000000] NUMA: Adding memblock [0x0 - 0x3fffffff] on node 0
+[    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00000000-0x3fffffff]
+[    0.000000] NUMA: Adding memblock [0x1400000000 - 0x17ffffffff] on node 1
+[    0.000000] ACPI: SRAT: Node 1 PXM 1 [mem 0x1400000000-0x17ffffffff]
+[    0.000000] NUMA: Adding memblock [0x1000000000 - 0x13ffffffff] on node 0
+[    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x1000000000-0x13ffffffff]
+[    0.000000] NUMA: Initmem setup node 0 [mem 0x00000000-0x13fbffffff]
+[    0.000000] NUMA: NODE_DATA [mem 0x13fbffe500-0x13fbffffff]
+[    0.000000] NUMA: Initmem setup node 1 [mem 0x1400000000-0x17fbffffff]
+[    0.000000] NUMA: NODE_DATA [mem 0x17fbfec500-0x17fbfedfff]
+[    0.000000] NUMA: Initmem setup node 2 [mem 
+0x00000000-0xffffffffffffffff]
+[    0.000000] NUMA: NODE_DATA [mem 0x17fbfeaa00-0x17fbfec4ff]
+[    0.000000] NUMA: NODE_DATA(2) on node 1
+[    0.000000] NUMA: Initmem setup node 3 [mem 
+0x00000000-0xffffffffffffffff]
+[    0.000000] NUMA: NODE_DATA [mem 0x17fbfe8f00-0x17fbfea9ff]
+[    0.000000] NUMA: NODE_DATA(3) on node 1
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000000000-0x00000000ffffffff]
+[    0.000000]   Normal   [mem 0x0000000100000000-0x00000017fbffffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x0000000000024fff]
+[    0.000000]   node   0: [mem 0x0000000000026000-0x00000000319dffff]
+[    0.000000]   node   0: [mem 0x00000000319e0000-0x0000000031a4ffff]
+[    0.000000]   node   0: [mem 0x0000000031a50000-0x0000000031b2ffff]
+[    0.000000]   node   0: [mem 0x0000000031b30000-0x0000000031b3ffff]
+[    0.000000]   node   0: [mem 0x0000000031b40000-0x0000000039baffff]
+[    0.000000]   node   0: [mem 0x0000000039bb0000-0x000000003a143fff]
+[    0.000000]   node   0: [mem 0x000000003a144000-0x000000003f12ffff]
+[    0.000000]   node   0: [mem 0x000000003f130000-0x000000003f15ffff]
+[    0.000000]   node   0: [mem 0x000000003f160000-0x000000003fbfffff]
+[    0.000000]   node   0: [mem 0x0000001040000000-0x00000013fbffffff]
+[    0.000000]   node   1: [mem 0x0000001400000000-0x00000017fbffffff]
+[    0.000000] Initmem setup node 0 [mem 
+0x0000000000000000-0x00000013fbffffff]
+[    0.000000] Initmem setup node 1 [mem 
+0x0000001400000000-0x00000017fbffffff]
+[    0.000000] Could not find start_pfn for node 2
+[    0.000000] Initmem setup node 2 [mem 
+0x0000000000000000-0x0000000000000000]
+[    0.000000] Could not find start_pfn for node 3
+[    0.000000] Initmem setup node 3 [mem 
+0x0000000000000000-0x0000000000000000]
+[    0.000000] psci: probing for conduit method from ACPI.
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] kernel BUG at mm/percpu.c:1916!
+[    0.000000] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 
+4.9.0-rc1-00083-g3dd62e5 #680
+[    0.000000] Hardware name: Hisilicon Hi1616 Evaluation Board (DT)
+[    0.000000] task: ffff000008d5e980 task.stack: ffff000008d50000
+[    0.000000] PC is at pcpu_embed_first_chunk+0x464/0x754
+[    0.000000] LR is at pcpu_embed_first_chunk+0x3f8/0x754
+[    0.000000] pc : [<ffff000008c65af0>] lr : [<ffff000008c65a84>] 
+pstate: 200000c5
+[    0.000000] sp : ffff000008d53e90
+[    0.000000] x29: ffff000008d53e90 [    0.000000] x28: 0000000000000000
+[    0.000000]
+[    0.000000] x27: ffff000008d55e50 [    0.000000] x26: 0000000000000042
+[    0.000000]
+[    0.000000] x25: ffff000008d55d28 [    0.000000] x24: 0000000000000046
+[    0.000000]
+[    0.000000] x23: 0000000000000040 [    0.000000] x22: ffff8017fbfcff00
+[    0.000000]
+[    0.000000] x21: ffff000008ca6e20 [    0.000000] x20: ffff8017fbfd0518
+[    0.000000]
+[    0.000000] x19: 0000000000000042 [    0.000000] x18: ffff000008e3fb60
+[    0.000000]
+[    0.000000] x17: 000000000000001b [    0.000000] x16: 000000000000000b
+[    0.000000]
+[    0.000000] x15: 0000001400000000 [    0.000000] x14: 0000000000000004
+[    0.000000]
+[    0.000000] x13: 0000000000000000 [    0.000000] x12: 0000000000000069
+[    0.000000]
+[    0.000000] x11: 00000017fbffff00 [    0.000000] x10: 0000000000000004
+[    0.000000]
+[    0.000000] x9 : 0000000000000000 [    0.000000] x8 : ffff8017fbfd0f00
+[    0.000000]
+[    0.000000] x7 : 0000000000000000 [    0.000000] x6 : 0000000000000000
+[    0.000000]
+[    0.000000] x5 : 0000000000000000 [    0.000000] x4 : 000000000000003f
+[    0.000000]
+[    0.000000] x3 : 0000000000000040 [    0.000000] x2 : 0000000000000040
+[    0.000000]
+[    0.000000] x1 : 0000000000000001 [    0.000000] x0 : ffff000008ca7328
+[    0.000000]
+[    0.000000]
+[    0.000000] Process swapper (pid: 0, stack limit = 0xffff000008d50020)
+[    0.000000] Stack: (0xffff000008d53e90 to 0xffff000008d54000)
+[    0.000000] 3e80:                                   ffff000008d53f60 
+ffff000008c5616c
+[    0.000000] 3ea0: ffff000008ca5a08 ffff000008e2a000 ffff000008e2a000 
+ffff000008d55000
+[    0.000000] 3ec0: ffff000008ca5a08 ffff8017fbfffe80 0000000000000168 
+000000003c96a518
+[    0.000000] 3ee0: 000000003c971b98 0000000000c50018 ffff000008d53f60 
+ffff000008c56078
+[    0.000000] 3f00: ffff000008d1f000 ffff000008d14000 0000000000007480 
+0000000000002000
+[    0.000000] 3f20: ffff000008c560b0 0000000000001000 ffff000008d55e50 
+ffff000008d55d28
+[    0.000000] 3f40: ffff000008ca6000 0000000000000040 0000000000000001 
+0000000000000040
+[    0.000000] 3f60: ffff000008d53fa0 ffff000008c508d4 ffff000008ca5a08 
+ffff000008e2a000
+[    0.000000] 3f80: ffff000008e2a000 ffff000008d55000 ffff000008ca5a08 
+ffff000008c508d0
+[    0.000000] 3fa0: ffff000008d53ff0 ffff000008c501d8 000000003c94fa98 
+000000001e400000
+[    0.000000] 3fc0: 000000001e400000 000000025497ba19 0000000000000000 
+000000003f198a08
+[    0.000000] 3fe0: 0000000000000000 ffff000008ca5a08 0000000000000000 
+00000000008a325c
+[    0.000000] Call trace:
+[    0.000000] Exception stack(0xffff000008d53cc0 to 0xffff000008d53df0)
+[    0.000000] 3cc0: 0000000000000042 0001000000000000 ffff000008d53e90 
+ffff000008c65af0
+[    0.000000] 3ce0: ffff000008d53d30 ffff0000081aa024 0000000000000001 
+0000000000001000
+[    0.000000] 3d00: ffff000008d53d30 ffff0000081aa034 0000000000000001 
+0000000000001000
+[    0.000000] 3d20: 00000017fbfcff00 0000000000000004 ffff000008d53d90 
+ffff0000081aa2c8
+[    0.000000] 3d40: 00000017fbfcff00 0000000000001000 0000000000000000 
+0000000000000000
+[    0.000000] 3d60: ffff000008ca7328 0000000000000001 0000000000000040 
+0000000000000040
+[    0.000000] 3d80: 000000000000003f 0000000000000000 0000000000000000 
+0000000000000000
+[    0.000000] 3da0: ffff8017fbfd0f00 0000000000000000 0000000000000004 
+00000017fbffff00
+[    0.000000] 3dc0: 0000000000000069 0000000000000000 0000000000000004 
+0000001400000000
+[    0.000000] 3de0: 000000000000000b 000000000000001b
+[    0.000000] [<ffff000008c65af0>] pcpu_embed_first_chunk+0x464/0x754
+[    0.000000] [<ffff000008c5616c>] setup_per_cpu_areas+0x3c/0xcc
+[    0.000000] [<ffff000008c508d4>] start_kernel+0x10c/0x398
+[    0.000000] [<ffff000008c501d8>] __primary_switched+0x5c/0x64
+[    0.000000] Code: 0b000318 17ffffd8 6b17031f 54000080 (d4210000)
+[    0.000000] ---[ end trace 0000000000000000 ]---
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+[    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill 
+the idle task!
 
