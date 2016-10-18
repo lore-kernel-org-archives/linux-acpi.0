@@ -1,177 +1,65 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2 3/4] ACPI,PCI,IRQ: separate ISA penalty calculation
-Date: Tue, 18 Oct 2016 09:10:38 -0700
-Message-ID: <17ab5714-0e2e-8b5f-356f-8f2019a0177b@codeaurora.org>
-References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
- <1467188859-28188-4-git-send-email-okaya@codeaurora.org>
- <20161018104649.GA13940@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161018104649.GA13940@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: [PATCH V5 0/2] irqchip: qcom: Add IRQ combiner driver
+Date: Tue, 18 Oct 2016 13:41:47 -0400
+Message-ID: <1476812509-2760-1-git-send-email-agustinv@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:44663 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933415AbcJRRmO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Oct 2016 13:42:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
 
-On 10/18/2016 3:46 AM, Bjorn Helgaas wrote:
-> Hi Sinan,
-> 
-> On Wed, Jun 29, 2016 at 04:27:37AM -0400, Sinan Kaya wrote:
->> Since commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
->> the penalty values are calculated on the fly rather than boot time.
->>
->> This works fine for PCI interrupts but not so well for the ISA interrupts.
->> Whether an ISA interrupt is in use or not information is not available
->> inside the pci_link.c file. This information gets sent externally via
->> acpi_penalize_isa_irq function. If active is true, then the IRQ is in use
->> by ISA. Otherwise, IRQ is in use by PCI.
->>
->> Since the current code relies on PCI Link object for determination of
->> penalties, we are factoring in the PCI penalty twice after
->> acpi_penalize_isa_irq function is called.
-> 
-> I know this patch has already been merged, but I'm confused.
-> 
-> Can you be a little more specific about how we factor in the PCI
-> penalty twice?  I think that when we enumerate an enabled link device,
-> we call acpi_penalize_isa_irq(x) in this path:
-> 
->   pnpacpi_allocated_resource
->     pnpacpi_add_irqresource
->       pcibios_penalize_isa_irq
->         acpi_penalize_isa_irq
->           acpi_isa_irq_penalty[x] = PIRQ_PENALTY_ISA_USED
-> 
+Add support for IRQ combiners in the Top-level Control and Status
+Registers (TCSR) hardware block in Qualcomm Technologies chips.
 
-This is not really a problem but more information about how things work. 
-I was trying to point out the fact that acpi_penalize_isa_irq is changing
-the penalties externally while ISA IRQs get initialized based on the active
-parameter. 
+The first patch adds support for ResourceSource/IRQ domain mapping
+when using Extended IRQ Resources with a specific ResourceSource.
+The core ACPI resource management code has been changed to lookup
+the IRQ domain when an IRQ resource indicates a ResourceSource,
+and register the IRQ on that domain, instead of a GSI.
 
-The penalty determination of ISA IRQ goes through 2 paths.
-1. assign PCI_USING during power up via acpi_irq_penalty_init
-2. update the penalty with acpi_irq_pci_sharing_penalty function based on active
-parameter.
+The second patch takes advantage of the new capabilities to implement
+the driver for the IRQ combiners.
 
+Changes V1 -> V2:
+* Remove use of GPIO library for the combiner
+* Refactor to use fwnode/ResourceSource to IRQ domain mapping
+  introduced in ACPI core
 
-> And I see that acpi_irq_penalty_init() also adds in some penalty
-> (either "PIRQ_PENALTY_PCI_POSSIBLE / possible_count" or
-> PIRQ_PENALTY_PCI_POSSIBLE).  And when we call acpi_irq_get_penalty(x),
-> we add in PIRQ_PENALTY_PCI_USING.
-> 
-> It doesn't seem right to me that we're adding both
-> PIRQ_PENALTY_ISA_USED and PIRQ_PENALTY_PCI_USING.  Is that the problem
-> you're referring to?
+Changes V2 -> V3:
+* Removed parsing of _PRS to find IRQs
+* Removed acpi_irq_domain_create and acpi_irq_domain_remove
 
-Correct, this is the one. What happened in this case is that 
-acpi_irq_penalty_init added a PCI_USING penalty during boot. Then, when we
-wanted to get the penalty for an ISA IRQ. This added another PCI_USING penalty
-in acpi_irq_pci_sharing_penalty function in addition to originally added penalty.
+Changes V3 -> V4:
+* Add a DSDT device probe table that is used to probe DSDT IRQ chips
+  as necessary when converting HW IRQs to Linux IRQs
+* Describe IRQ combiner registers as ACPI Register resources
 
-Now, we have 2 * PCI_USING assigned to an ISA IRQ.
+Changes V4 -> V5:
+* Fix issues flagged by the 0-DAY build bot
+* Fix some minor style issues raised by Timur
 
-> 
->> This change is limiting the newly added functionality to just PCI
->> interrupts so that old behavior is still maintained.
->>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->> ---
->>  drivers/acpi/pci_link.c | 6 +++---
->>  1 file changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
->> index 714ba4d..8c08971 100644
->> --- a/drivers/acpi/pci_link.c
->> +++ b/drivers/acpi/pci_link.c
->> @@ -496,9 +496,6 @@ static int acpi_irq_get_penalty(int irq)
->>  {
->>  	int penalty = 0;
->>  
->> -	if (irq < ACPI_MAX_ISA_IRQS)
->> -		penalty += acpi_isa_irq_penalty[irq];
->> -
->>  	/*
->>  	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
->>  	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
->> @@ -513,6 +510,9 @@ static int acpi_irq_get_penalty(int irq)
->>  			penalty += PIRQ_PENALTY_PCI_USING;
->>  	}
->>  
->> +	if (irq < ACPI_MAX_ISA_IRQS)
->> +		return penalty + acpi_isa_irq_penalty[irq];
->> +
->>  	penalty += acpi_irq_pci_sharing_penalty(irq);
->>  	return penalty;
-> 
-> I don't understand what's going on here.
-> 
-> acpi_irq_pci_sharing_penalty(X) basically tells us how many link
-> devices are already using IRQ X.  This change makes it so we don't
-> consider that information if X < ACPI_MAX_ISA_IRQS.
-> 
+Agustin Vega-Frias (2):
+  ACPI: Add support for ResourceSource/IRQ domain mapping
+  irqchip: qcom: Add IRQ combiner driver
 
-The ISA IRQ doesn't need the penalties coming from
-acpi_irq_pci_sharing_penalty function since acpi_irq_pci_sharing_penalty
-is intended do the same thing as acpi_irq_penalty_init. It is just smarter
-to cover more IRQ range.
-
-Since acpi_irq_penalty_init is called during boot for the ISA IRQS, calling
-acpi_irq_pci_sharing_penalty again is incorrect.
-
-
-> Let's say we have several link devices that are initially disabled,
-> e.g.,
-> 
->   LNKA (IRQs 9 10 11)
->   LNKB (IRQs 9 10 11)
->   LNKC (IRQs 9 10 11)
-> 
-> When we enable these, I think we'll choose the same IRQ for all of
-> them because we no longer look at the other links to see how they're
-> configured.
-
-You are right. This is the reason why I have this patch.
-
-[PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-
-The penalties get assigned by the acpi_irq_penalty_init and acpi_penalize_isa_irq
-functions before the PCI Link object is created until this moment. 
-
-By the time link object is getting initialized, the code chooses the correct penalty here:
-
-/
- * Select the best IRQ.  This is done in reverse to promote
- * the use of IRQs 9, 10, 11, and >15.
- */
-for (i = (link->irq.possible_count - 1); i >= 0; i--) {
-        if (acpi_irq_get_penalty(irq) >
-            acpi_irq_get_penalty(link->irq.possible[i]))
-                irq = link->irq.possible[i];
-}
-
-and the code needs to increment the penalty on this IRQ so that the next PCI Link object
-would find another IRQ. This is missing right now.
-
-
-> 
->>  }
->> -- 
->> 1.8.2.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/irqdomain.c            | 141 +++++++++++++++
+ drivers/acpi/resource.c             |  21 ++-
+ drivers/irqchip/Kconfig             |   8 +
+ drivers/irqchip/Makefile            |   1 +
+ drivers/irqchip/qcom-irq-combiner.c | 332 ++++++++++++++++++++++++++++++++++++
+ include/asm-generic/vmlinux.lds.h   |   1 +
+ include/linux/acpi.h                |  71 ++++++++
+ include/linux/irqchip.h             |  17 +-
+ 9 files changed, 581 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/acpi/irqdomain.c
+ create mode 100644 drivers/irqchip/qcom-irq-combiner.c
 
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
