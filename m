@@ -1,53 +1,71 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V4 1/3] ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages
-Date: Wed, 19 Oct 2016 18:21:02 -0400
-Message-ID: <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
-References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com
-Cc: linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Sinan Kaya <okaya@codeaurora.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Subject: [PATCH V4 0/3] ACPI,PCI,IRQ: revert penalty calculation for ISA and SCI interrupts
+Date: Wed, 19 Oct 2016 18:21:01 -0400
+Message-ID: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38272 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754818AbcJSWVL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Oct 2016 18:21:11 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com
+Cc: linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Sinan Kaya <okaya@codeaurora.org>
 
-The penalty determination of ISA IRQ goes through 4 paths.
-1. assign PCI_USING during power up via acpi_irq_penalty_init.
-2. update the penalty with acpi_penalize_isa_irq function based on the
-active parameter.
-3. kernel command line penalty update via acpi_irq_penalty_update function.
-4. increment the penalty as USING right after the IRQ is assign to PCI.
+By the time ACPI gets initialized, this code tries to determine an
+IRQ number based on penalty values in this array. It will try to locate
+the IRQ with the least penalty assignment so that interrupt sharing is
+avoided if possible.
 
-acpi_penalize_isa_irq and acpi_irq_penalty_update functions get called
-before the ACPI subsystem is started.
+A couple of notes about the external APIs:
+1. These API can be called before the ACPI is started. Therefore, one
+cannot assume that the PCI link objects are initialized for calculating
+penalties.
+2. The polarity and trigger information passed via the
+acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
+is reporting as the call might have been placed before the IRQ is
+registered by the interrupt subsystem.
 
-These API need to bypass the acpi_irq_get_penalty function.
+The reverted changes were in the direction to remove these external API and
+try to calculate the penalties at runtime for the ISA, SCI as well as PCI
+IRQS.
+This didn't work out well with the existing platforms.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+V4:
+* Drop ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
+* A new patch to isolate early boot ISA penalty calculations from dynamic
+penalty calculation by directly modifying the array members in
+("ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages")
+* Now that we isolated both SCI and ISA interrupts, revert commit ("Revert
+"ACPI,PCI,IRQ: separate ISA penalty calculation"") and commit
+("487cf917ed0d
+(Revert "ACPI, PCI, IRQ: remove redundant code in acpi_irq_penalty_init()")
+to share code between ISA and PCI penalties as originally intended.
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index c983bf7..4f37938 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
- 			continue;
- 
- 		if (used)
--			new_penalty = acpi_irq_get_penalty(irq) +
-+			new_penalty = acpi_isa_irq_penalty[irq] +
- 					PIRQ_PENALTY_ISA_USED;
- 		else
- 			new_penalty = 0;
-@@ -871,7 +871,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
- void acpi_penalize_isa_irq(int irq, int active)
- {
- 	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
--		acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
-+		acpi_isa_irq_penalty[irq] = acpi_isa_irq_penalty[irq] +
- 		  (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
- }
- 
+V3:
+http://www.spinics.net/lists/arm-kernel/msg536208.html
+* drop patch #1 as discussed with Bjorn
+* add patch #3 to track SCI irq and penalty separately
+
+V2: https://lkml.org/lkml/2016/10/1/106
+* Commit message updates
+
+V1:
+http://lists-archives.com/linux-kernel/28673954-revert-acpi-pci-irq-reduce-static-irq-array-size-to-16.html
+* initial implementation
+
+Sinan Kaya (3):
+  ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages
+  Revert "ACPI,PCI,IRQ: remove SCI penalize function"
+  Revert "ACPI,PCI,IRQ: separate ISA penalty calculation"
+
+ arch/x86/kernel/acpi/boot.c |  1 +
+ arch/x86/pci/acpi.c         |  1 -
+ drivers/acpi/pci_link.c     | 72 ++++++++++++---------------------------------
+ include/acpi/acpi_drivers.h |  1 -
+ include/linux/acpi.h        |  1 +
+ 5 files changed, 21 insertions(+), 55 deletions(-)
+
 -- 
 1.9.1
+
