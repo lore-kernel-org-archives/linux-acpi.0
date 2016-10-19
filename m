@@ -1,58 +1,39 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/5] ACPI / gpio: Updates to properties
-Date: Wed, 19 Oct 2016 23:22:03 +0200
-Message-ID: <CAJZ5v0j7EfMEjb7F4BMR7O2_U0oipvcMDMf0N4XEoem4ypqE7Q@mail.gmail.com>
-References: <20160923145710.105489-1-mika.westerberg@linux.intel.com> <20161019124112.GK1722@lahna.fi.intel.com>
+From: Imre Deak <imre.deak@intel.com>
+Subject: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Thu, 20 Oct 2016 00:36:41 +0300
+Message-ID: <1476913001.7633.13.camel@intel.com>
+Reply-To: imre.deak@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:36283 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753897AbcJSVWF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Oct 2016 17:22:05 -0400
-In-Reply-To: <20161019124112.GK1722@lahna.fi.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:19440 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753800AbcJSVgt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Oct 2016 17:36:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-On Wed, Oct 19, 2016 at 2:41 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Fri, Sep 23, 2016 at 05:57:05PM +0300, Mika Westerberg wrote:
->> Hi,
->>
->> This series brings couple of useful GPIO related properties from Device
->> Tree to ACPI _DSD device properties:
->>
->>   - Names for GPIO lines
->>   - GPIO hogging
->>   - Holes in GPIO property lists
->>
->> We are using these to get Intel Galileo better supported in the mainline
->> kernel (but these may be useful for other boards as well). For example SPI
->> chip select on Galileo is connected to a GPIO line so we need to be able to
->> describe it in ACPI, and at the same time allow native chip selects.
->>
->> GPIO hogging can be used to set initial state of certain GPIOs available on
->> the headers regardless of the BIOS settings (which may be wrong as it knows
->> nothing about which devices have been connected).
->>
->> Mika Westerberg (5):
->>   ACPI / documentation: Use recommended name in GPIO property names
->>   ACPI / gpio: Add support for naming GPIOs
->>   ACPI / gpio: Add hogging support
->>   ACPI / property: Allow holes in reference properties
->>   ACPI / gpio: Allow holes in list of GPIOs for a device
->
-> Any comments on the GPIO patches in this series?
->
-> At least the last one does not add any new bindings so it should be fine
-> to apply.
+Hi,
 
-I have no comments, but I'd suggest resending them as a new series on
-top of 4.9-rc1 (which includes the generic patches from this series).
+after upgrading to 4.9-rc1 I get the following errors occasionally
+during boot and suspend-to-ram on an APL system:
 
-You can add my ACK to them if that helps.
+[   59.513434] ACPI Error: [TMP_] Namespace lookup failure, AE_ALREADY_EXISTS (20160831/dswload2-330)
+[   59.513446] ACPI Exception: AE_ALREADY_EXISTS, During name lookup/catalog (20160831/psobject-227)
+[   59.513469] ACPI Error: Method parse/execution failed [\_SB.PCI0.SCPG] (Node ffff8802770b7bb8), AE_ALREADY_EXISTS (20160831/psparse-543)
+[   59.515415] ACPI Error: Method parse/execution failed [\_SB.PCI0.SDHA._PS3] (Node ffff8802770b7dc0), AE_ALREADY_EXISTS (20160831/psparse-543)
+[   59.517118] ACPI: Marking method _PS3 as Serialized because of AE_ALREADY_EXISTS error
 
-Thanks,
-Rafael
+Other than these error messages, booting and suspend/resume seems to work ok.
+Bisecting points to
+commit 74f51b80a0c4ff84fbeb7f12ea43ce66934d29aa
+Author: Lv Zheng <lv.zheng@intel.com>
+Date:   Wed Sep 7 14:07:10 2016 +0800
+
+    ACPICA: Namespace: Fix dynamic table loading issues
+
+Reverting this on top of 4.9-rc1 gets rid of the error messages.
+
+--Imre
