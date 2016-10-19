@@ -1,143 +1,56 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [pm:device-links-test 2/5] drivers/built-in.o:undefined reference to
- `process_srcu'
-Date: Wed, 19 Oct 2016 20:35:22 +0800
-Message-ID: <201610192020.aOaAg9XS%fengguang.wu@intel.com>
+From: Nehal Shah <Nehal-Bakulchandra.Shah@amd.com>
+Subject: [PATCH] i2c: designware: Add clock frequency for future AMD I2C
+ controller
+Date: Wed, 19 Oct 2016 14:30:32 +0530
+Message-ID: <0e262a14-4483-7983-7341-703c8b4d7fd6@amd.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YZ5djTAD1cGYuMQK"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:60657 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S942992AbcJSPCK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Oct 2016 11:02:10 -0400
-Content-Disposition: inline
+Received: from mail-cys01nam02on0048.outbound.protection.outlook.com ([104.47.37.48]:27264
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756348AbcJSQeK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 19 Oct 2016 12:34:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Shyam-sundar.S-k@amd.com
 
+This patch supports 150 Mhz i2c clock frequency for Designware ip of future AMD I2C controller.
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git device-links-test
-head:   37c39b84114b777fdd8ed1a7074c7c0674180533
-commit: 5821e59c7551e256b15e164f1c248602f49d1b68 [2/5] driver core: Functional dependencies tracking support
-config: parisc-allnoconfig (attached as .config)
-compiler: hppa-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout 5821e59c7551e256b15e164f1c248602f49d1b68
-        # save the attached .config to linux build tree
-        make.cross ARCH=parisc 
-
-All errors (new ones prefixed by >>):
-
-   drivers/built-in.o: In function `__device_link_del':
-   drivers/base/core.o:(.text.__device_link_del+0x48): undefined reference to `call_srcu'
-   drivers/built-in.o: In function `device_links_read_lock':
-   (.text.device_links_read_lock+0x10): undefined reference to `__srcu_read_lock'
-   drivers/built-in.o: In function `device_links_read_unlock':
-   (.text.device_links_read_unlock+0x14): undefined reference to `__srcu_read_unlock'
->> drivers/built-in.o:(.data.rel+0x4c): undefined reference to `process_srcu'
-
+Reviewed-by: S-k, Shyam-sundar <Shyam-sundar.S-k@amd.com>
+Signed-off-by: Shah, Nehal-bakulchandra <Nehal-bakulchandra.Shah@amd.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/acpi/acpi_apd.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---YZ5djTAD1cGYuMQK
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index d58fbf7..5ec7f3a 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -77,6 +77,11 @@ static const struct apd_device_desc cz_i2c_desc = {
+     .fixed_clk_rate = 133000000,
+ };
+ 
++static const struct apd_device_desc wt_i2c_desc = {
++    .setup = acpi_apd_setup,
++    .fixed_clk_rate = 150000000,
++};
++
+ static struct property_entry uart_properties[] = {
+     PROPERTY_ENTRY_U32("reg-io-width", 4),
+     PROPERTY_ENTRY_U32("reg-shift", 2),
+@@ -162,7 +167,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+     /* Generic apd devices */
+ #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+     { "AMD0010", APD_ADDR(cz_i2c_desc) },
+-    { "AMDI0010", APD_ADDR(cz_i2c_desc) },
++    { "AMDI0010", APD_ADDR(wt_i2c_desc) },
+     { "AMD0020", APD_ADDR(cz_uart_desc) },
+     { "AMDI0020", APD_ADDR(cz_uart_desc) },
+     { "AMD0030", },
+-- 
+1.9.1
 
-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
-jnwKPwAA
 
---YZ5djTAD1cGYuMQK--
