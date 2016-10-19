@@ -1,10 +1,11 @@
 From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [pm:device-links-test 4/5] htmldocs: include/linux/device.h:761:
- warning: No description found for parameter 'rpm_active'
-Date: Wed, 19 Oct 2016 21:54:20 +0800
-Message-ID: <201610192116.bjX8qkvG%fengguang.wu@intel.com>
+Subject: [pm:device-links-test 2/5] htmldocs: include/linux/device.h:727:
+ warning: Enum value 'DL_STATE_NONE' not described in enum
+ 'device_link_state'
+Date: Wed, 19 Oct 2016 21:00:53 +0800
+Message-ID: <201610192148.b58KaV90%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="82I3+IH0IqGh5yIs"
+Content-Type: multipart/mixed; boundary="IS0zKkzwUGydFO0o"
 Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-pm-owner@vger.kernel.org
@@ -13,13 +14,13 @@ Cc: kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vg
 List-Id: linux-acpi@vger.kernel.org
 
 
---82I3+IH0IqGh5yIs
+--IS0zKkzwUGydFO0o
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git device-links-test
 head:   37c39b84114b777fdd8ed1a7074c7c0674180533
-commit: 3867431760b053994fff8298564f98925cc1831e [4/5] PM / runtime: Use device links
+commit: 5821e59c7551e256b15e164f1c248602f49d1b68 [2/5] driver core: Functional dependencies tracking support
 reproduce: make htmldocs
 
 All warnings (new ones prefixed by >>):
@@ -32,18 +33,17 @@ All warnings (new ones prefixed by >>):
    include/linux/workqueue.h:413: warning: Excess function parameter 'args' description in 'alloc_ordered_workqueue'
    include/linux/kthread.h:26: warning: No description found for parameter '...'
    kernel/sys.c:1: warning: no structured comments found
-   include/linux/device.h:727: warning: Enum value 'DL_STATE_NONE' not described in enum 'device_link_state'
-   include/linux/device.h:727: warning: Enum value 'DL_STATE_DORMANT' not described in enum 'device_link_state'
-   include/linux/device.h:727: warning: Enum value 'DL_STATE_AVAILABLE' not described in enum 'device_link_state'
-   include/linux/device.h:727: warning: Enum value 'DL_STATE_CONSUMER_PROBE' not described in enum 'device_link_state'
-   include/linux/device.h:727: warning: Enum value 'DL_STATE_ACTIVE' not described in enum 'device_link_state'
-   include/linux/device.h:727: warning: Enum value 'DL_STATE_SUPPLIER_UNBIND' not described in enum 'device_link_state'
->> include/linux/device.h:761: warning: No description found for parameter 'rpm_active'
-   include/linux/device.h:775: warning: Enum value 'DL_DEV_NO_DRIVER' not described in enum 'dl_dev_state'
-   include/linux/device.h:775: warning: Enum value 'DL_DEV_PROBING' not described in enum 'dl_dev_state'
-   include/linux/device.h:775: warning: Enum value 'DL_DEV_DRIVER_BOUND' not described in enum 'dl_dev_state'
-   include/linux/device.h:775: warning: Enum value 'DL_DEV_UNBINDING' not described in enum 'dl_dev_state'
-   include/linux/device.h:938: warning: No description found for parameter 'links'
+>> include/linux/device.h:727: warning: Enum value 'DL_STATE_NONE' not described in enum 'device_link_state'
+>> include/linux/device.h:727: warning: Enum value 'DL_STATE_DORMANT' not described in enum 'device_link_state'
+>> include/linux/device.h:727: warning: Enum value 'DL_STATE_AVAILABLE' not described in enum 'device_link_state'
+>> include/linux/device.h:727: warning: Enum value 'DL_STATE_CONSUMER_PROBE' not described in enum 'device_link_state'
+>> include/linux/device.h:727: warning: Enum value 'DL_STATE_ACTIVE' not described in enum 'device_link_state'
+>> include/linux/device.h:727: warning: Enum value 'DL_STATE_SUPPLIER_UNBIND' not described in enum 'device_link_state'
+>> include/linux/device.h:770: warning: Enum value 'DL_DEV_NO_DRIVER' not described in enum 'dl_dev_state'
+>> include/linux/device.h:770: warning: Enum value 'DL_DEV_PROBING' not described in enum 'dl_dev_state'
+>> include/linux/device.h:770: warning: Enum value 'DL_DEV_DRIVER_BOUND' not described in enum 'dl_dev_state'
+>> include/linux/device.h:770: warning: Enum value 'DL_DEV_UNBINDING' not described in enum 'dl_dev_state'
+>> include/linux/device.h:933: warning: No description found for parameter 'links'
    drivers/dma-buf/seqno-fence.c:1: warning: no structured comments found
    include/linux/fence-array.h:61: warning: No description found for parameter 'fence'
    include/sound/core.h:324: warning: No description found for parameter '...'
@@ -82,69 +82,72 @@ All warnings (new ones prefixed by >>):
    include/linux/spi/spi.h:369: ERROR: Unexpected indentation.
    WARNING: dvipng command 'dvipng' cannot be run (needed for math display), check the imgmath_dvipng setting
 
-vim +/rpm_active +761 include/linux/device.h
+vim +727 include/linux/device.h
 
-5821e59c Rafael J. Wysocki 2016-10-10  721  	DL_STATE_DORMANT = 0,
-5821e59c Rafael J. Wysocki 2016-10-10  722  	DL_STATE_AVAILABLE,
-5821e59c Rafael J. Wysocki 2016-10-10  723  	DL_STATE_CONSUMER_PROBE,
-5821e59c Rafael J. Wysocki 2016-10-10  724  	DL_STATE_ACTIVE,
-5821e59c Rafael J. Wysocki 2016-10-10  725  	DL_STATE_SUPPLIER_UNBIND,
-5821e59c Rafael J. Wysocki 2016-10-10  726  };
-5821e59c Rafael J. Wysocki 2016-10-10 @727  
-5821e59c Rafael J. Wysocki 2016-10-10  728  /*
-5821e59c Rafael J. Wysocki 2016-10-10  729   * Device link flags.
-5821e59c Rafael J. Wysocki 2016-10-10  730   *
-5821e59c Rafael J. Wysocki 2016-10-10  731   * STATELESS: The core won't track the presence of supplier/consumer drivers.
-5821e59c Rafael J. Wysocki 2016-10-10  732   * AUTOREMOVE: Remove this link automatically on consumer driver unbind.
-38674317 Rafael J. Wysocki 2016-10-10  733   * PM_RUNTIME: If set, the runtime PM framework will use this link.
-38674317 Rafael J. Wysocki 2016-10-10  734   * RPM_ACTIVE: Run pm_runtime_get_sync() on the supplier during link creation.
-5821e59c Rafael J. Wysocki 2016-10-10  735   */
-5821e59c Rafael J. Wysocki 2016-10-10  736  #define DL_FLAG_STATELESS	(1 << 0)
-5821e59c Rafael J. Wysocki 2016-10-10  737  #define DL_FLAG_AUTOREMOVE	(1 << 1)
-38674317 Rafael J. Wysocki 2016-10-10  738  #define DL_FLAG_PM_RUNTIME	(1 << 2)
-38674317 Rafael J. Wysocki 2016-10-10  739  #define DL_FLAG_RPM_ACTIVE	(1 << 3)
-5821e59c Rafael J. Wysocki 2016-10-10  740  
-5821e59c Rafael J. Wysocki 2016-10-10  741  /**
-5821e59c Rafael J. Wysocki 2016-10-10  742   * struct device_link - Device link representation.
-5821e59c Rafael J. Wysocki 2016-10-10  743   * @supplier: The device on the supplier end of the link.
-5821e59c Rafael J. Wysocki 2016-10-10  744   * @s_node: Hook to the supplier device's list of links to consumers.
-5821e59c Rafael J. Wysocki 2016-10-10  745   * @consumer: The device on the consumer end of the link.
-5821e59c Rafael J. Wysocki 2016-10-10  746   * @c_node: Hook to the consumer device's list of links to suppliers.
-5821e59c Rafael J. Wysocki 2016-10-10  747   * @status: The state of the link (with respect to the presence of drivers).
-5821e59c Rafael J. Wysocki 2016-10-10  748   * @flags: Link flags.
-5821e59c Rafael J. Wysocki 2016-10-10  749   * @rcu_head: An RCU head to use for deferred execution of SRCU callbacks.
-5821e59c Rafael J. Wysocki 2016-10-10  750   */
-5821e59c Rafael J. Wysocki 2016-10-10  751  struct device_link {
-5821e59c Rafael J. Wysocki 2016-10-10  752  	struct device *supplier;
-5821e59c Rafael J. Wysocki 2016-10-10  753  	struct list_head s_node;
-5821e59c Rafael J. Wysocki 2016-10-10  754  	struct device *consumer;
-5821e59c Rafael J. Wysocki 2016-10-10  755  	struct list_head c_node;
-5821e59c Rafael J. Wysocki 2016-10-10  756  	enum device_link_state status;
-5821e59c Rafael J. Wysocki 2016-10-10  757  	u32 flags;
-38674317 Rafael J. Wysocki 2016-10-10  758  	bool rpm_active;
-5821e59c Rafael J. Wysocki 2016-10-10  759  	struct rcu_head rcu_head;
-5821e59c Rafael J. Wysocki 2016-10-10  760  };
-5821e59c Rafael J. Wysocki 2016-10-10 @761  
-5821e59c Rafael J. Wysocki 2016-10-10  762  /**
-5821e59c Rafael J. Wysocki 2016-10-10  763   * enum dl_dev_state - Device driver presence tracking information.
-5821e59c Rafael J. Wysocki 2016-10-10  764   * @NO_DRIVER: There is no driver attached to the device.
-
-:::::: The code at line 761 was first introduced by commit
-:::::: 5821e59c7551e256b15e164f1c248602f49d1b68 driver core: Functional dependencies tracking support
-
-:::::: TO: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-:::::: CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+   721		DL_STATE_DORMANT = 0,
+   722		DL_STATE_AVAILABLE,
+   723		DL_STATE_CONSUMER_PROBE,
+   724		DL_STATE_ACTIVE,
+   725		DL_STATE_SUPPLIER_UNBIND,
+   726	};
+ > 727	
+   728	/*
+   729	 * Device link flags.
+   730	 *
+   731	 * STATELESS: The core won't track the presence of supplier/consumer drivers.
+   732	 * AUTOREMOVE: Remove this link automatically on consumer driver unbind.
+   733	 */
+   734	#define DL_FLAG_STATELESS	(1 << 0)
+   735	#define DL_FLAG_AUTOREMOVE	(1 << 1)
+   736	
+   737	/**
+   738	 * struct device_link - Device link representation.
+   739	 * @supplier: The device on the supplier end of the link.
+   740	 * @s_node: Hook to the supplier device's list of links to consumers.
+   741	 * @consumer: The device on the consumer end of the link.
+   742	 * @c_node: Hook to the consumer device's list of links to suppliers.
+   743	 * @status: The state of the link (with respect to the presence of drivers).
+   744	 * @flags: Link flags.
+   745	 * @rcu_head: An RCU head to use for deferred execution of SRCU callbacks.
+   746	 */
+   747	struct device_link {
+   748		struct device *supplier;
+   749		struct list_head s_node;
+   750		struct device *consumer;
+   751		struct list_head c_node;
+   752		enum device_link_state status;
+   753		u32 flags;
+   754		struct rcu_head rcu_head;
+   755	};
+   756	
+   757	/**
+   758	 * enum dl_dev_state - Device driver presence tracking information.
+   759	 * @NO_DRIVER: There is no driver attached to the device.
+   760	 * @PROBING: A driver is probing.
+   761	 * @DRIVER_BOUND: The driver has been bound to the device.
+   762	 * @UNBINDING: The driver is unbinding from the device.
+   763	 */
+   764	enum dl_dev_state {
+   765		DL_DEV_NO_DRIVER = 0,
+   766		DL_DEV_PROBING,
+   767		DL_DEV_DRIVER_BOUND,
+   768		DL_DEV_UNBINDING,
+   769	};
+ > 770	
+   771	/**
+   772	 * struct dev_links_info - Device data related to device links.
+   773	 * @suppliers: List of links to supplier devices.
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---82I3+IH0IqGh5yIs
+--IS0zKkzwUGydFO0o
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICFt4B1gAAy5jb25maWcAjDzZcuO2su/nK1jJfZhU3cxie3ycuuUHCAQlRCTBIUBJ9gtL
+H4sICORrB1gAAy5jb25maWcAjDzZcuO2su/nK1jJfZhU3cxie3ycuuUHCAQlRCTBIUBJ9gtL
 I2tmVLElHy3JzN/fboAUt4bmpCqJhW6svTca/PVfvwbsdNy9LI+b1fL5+Ufwdb1d75fH9VPw
 ZfO8/r8gVEGqTCBCad4CcrzZnr6/21zf3QY3b/94+/73/epDMF3vt+vngO+2XzZfT9B7s9v+
 61fA5iqN5Li8vRlJE2wOwXZ3DA7r47+q9sXdbXl9df+j9bv5IVNt8oIbqdIyFFyFIm+AqjBZ
@@ -265,4 +268,4 @@ v6u3GifI9LXWzZ3TCaR+LWhfEEOelMPaxq1FhWxnR2tdkL0H0L3MXsTrwn5XOnn1RtgFyHU1
 x19hLF8z4GiJJdXSRdG4K5Vhl6W8qSFVTFUdbWLHaWDKB0t9qsfT8sJ5wd1woRpprQPwP1DW
 KYugWwAA
 
---82I3+IH0IqGh5yIs--
+--IS0zKkzwUGydFO0o--
