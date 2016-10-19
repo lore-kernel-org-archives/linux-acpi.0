@@ -1,138 +1,48 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V4 2/3] Revert "ACPI,PCI,IRQ: remove SCI penalize function"
-Date: Wed, 19 Oct 2016 18:21:03 -0400
-Message-ID: <1476915664-27231-3-git-send-email-okaya@codeaurora.org>
-References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com
-Cc: linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Sinan Kaya <okaya@codeaurora.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
+ interrupts
+Date: Wed, 19 Oct 2016 15:24:05 -0700
+Message-ID: <ea7399f8-8cfa-7671-f258-c42edd663106@codeaurora.org>
+References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
+ <1476505867-24599-2-git-send-email-okaya@codeaurora.org>
+ <20161018135912.GD18903@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20161018135912.GD18903@localhost>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The SCI penalize function was removed in two steps (first refactor
-and then remove) and these changes are reverted here in one go.
+Bjorn,
 
-The commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
-refactored the original code so that SCI penalty is calculated dynamically
-by the time get_penalty function is called. That change is partially
-reverted here, specifically for the SCI IRQ alone.
+On 10/18/2016 6:59 AM, Bjorn Helgaas wrote:
+> It seems wrong to me that we call acpi_irq_get_penalty() from
+> acpi_irq_penalty_update() and acpi_penalize_isa_irq().  It seems like they
+> should just manipulate acpi_isa_irq_penalty[irq] directly.
+> 
+> acpi_irq_penalty_update() is for command-line parameters, so it certainly
+> doesn't need the acpi_irq_pci_sharing_penalty() information (the
+> acpi_link_list should be empty at the time we process the command-line
+> parameters).
+> 
+> acpi_penalize_isa_irq() is telling us that a PNP or ACPI device is using
+> the IRQ -- this should modify the IRQ's penalty, but it shouldn't depend on
+> the acpi_irq_pci_sharing_penalty() value at all.
 
-The SCI penalize function was finally dropped by commit 9e5ed6d1fb87
-("ACPI,PCI,IRQ: remove SCI penalize function") that replaced the old SCI
-penalty API with penalty calculation carried out dynamically and based
-on the acpi_gbl_FADT.sci_interrupt value.
+I posted v4 with this change and also went back to the original implementation
+for sharing penalty calculation whether the IRQ is ISA or PCI.
 
-However, that new algorithm relies on the accurate setting of IRQ
-types and that doesn't happen early enough on some platforms which
-leads to incorrect penalty assignments for PCI IRQs.  In those cases,
-irq_get_trigger_type() returns incorrect values for the IRQs in
-question, because they have not been registered yet by the time the
-penalties are calculated.
+Let us know what you think. 
 
-To fix this problem, we only need to fix the penalty for the SCI interrupt.
-It seems better to add a single "sci_penalty" variable, set it to
-PIRQ_PENALTY_PCI_USING if it's level/low or PIRQ_PENALTY_ISA_ALWAYS
-otherwise, and add "sci_penalty" in when appropriate.  That should fix it
-for *any* SCI IRQ, not just those less than 256, and we don't have to add
-these extra penalty table entries that are all unused (except possibly for
-one entry if we have an SCI in the 16-255 range).
+I also realized that calculating sharing penalty while the link object is not 
+initialized is not right.
 
-For this reason, revert commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI
-penalize function") completely to restore the correct behavior.
+Sinan
 
-Link: https://lkml.org/lkml/2016/10/4/283
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-Fixes: commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
-Fixes: commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI penalize function")
----
- arch/x86/kernel/acpi/boot.c |  1 +
- drivers/acpi/pci_link.c     | 30 +++++++++++++++---------------
- include/linux/acpi.h        |  1 +
- 3 files changed, 17 insertions(+), 15 deletions(-)
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 90d84c3..0ffd26e 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -453,6 +453,7 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
- 
- 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
- 
- 	/*
- 	 * stash over-ride to indicate we've been here
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 4f37938..294b190 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -87,6 +87,7 @@ struct acpi_pci_link {
- 
- static LIST_HEAD(acpi_link_list);
- static DEFINE_MUTEX(acpi_link_lock);
-+static int sci_irq = -1, sci_penalty;
- 
- /* --------------------------------------------------------------------------
-                             PCI Link Device Management
-@@ -496,25 +497,13 @@ static int acpi_irq_get_penalty(int irq)
- {
- 	int penalty = 0;
- 
--	/*
--	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
--	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
--	* use for PCI IRQs.
--	*/
--	if (irq == acpi_gbl_FADT.sci_interrupt) {
--		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
--
--		if (type != IRQ_TYPE_LEVEL_LOW)
--			penalty += PIRQ_PENALTY_ISA_ALWAYS;
--		else
--			penalty += PIRQ_PENALTY_PCI_USING;
--	}
-+	if (irq == sci_irq)
-+		penalty += sci_penalty;
- 
- 	if (irq < ACPI_MAX_ISA_IRQS)
- 		return penalty + acpi_isa_irq_penalty[irq];
- 
--	penalty += acpi_irq_pci_sharing_penalty(irq);
--	return penalty;
-+	return penalty + acpi_irq_pci_sharing_penalty(irq);
- }
- 
- int __init acpi_irq_penalty_init(void)
-@@ -881,6 +870,17 @@ bool acpi_isa_irq_available(int irq)
- 		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
- }
- 
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
-+{
-+	sci_irq = irq;
-+
-+	if (trigger == ACPI_MADT_TRIGGER_LEVEL &&
-+	    polarity == ACPI_MADT_POLARITY_ACTIVE_LOW)
-+		sci_penalty = PIRQ_PENALTY_PCI_USING;
-+	else
-+		sci_penalty = PIRQ_PENALTY_ISA_ALWAYS;
-+}
-+
- /*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c5eaf2f..67d1d3e 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -318,6 +318,7 @@ struct pci_dev;
- int acpi_pci_irq_enable (struct pci_dev *dev);
- void acpi_penalize_isa_irq(int irq, int active);
- bool acpi_isa_irq_available(int irq);
-+void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
- void acpi_pci_irq_disable (struct pci_dev *dev);
- 
- extern int ec_read(u8 addr, u8 *val);
 -- 
-1.9.1
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
