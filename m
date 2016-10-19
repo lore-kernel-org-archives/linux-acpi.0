@@ -1,56 +1,58 @@
-From: Nehal Shah <Nehal-Bakulchandra.Shah@amd.com>
-Subject: [PATCH] i2c: designware: Add clock frequency for future AMD I2C
- controller
-Date: Wed, 19 Oct 2016 14:30:32 +0530
-Message-ID: <0e262a14-4483-7983-7341-703c8b4d7fd6@amd.com>
+From: "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH V3 05/10] acpi: apei: handle SEA notification type for
+ ARMv8
+Date: Wed, 19 Oct 2016 12:59:03 -0400
+Message-ID: <1941586c-4c51-60d8-a77a-ad56fe5f3e3f@codeaurora.org>
+References: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
+ <1475875882-2604-6-git-send-email-tbaicar@codeaurora.org>
+ <496ddac3-a220-fd42-5ca1-3d0fb0238907@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0048.outbound.protection.outlook.com ([104.47.37.48]:27264
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756348AbcJSQeK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 19 Oct 2016 12:34:10 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <496ddac3-a220-fd42-5ca1-3d0fb0238907-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, Dkvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Naveen Kaje <nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Shyam-sundar.S-k@amd.com
 
-This patch supports 150 Mhz i2c clock frequency for Designware ip of future AMD I2C controller.
+On 10/18/2016 8:44 AM, Hanjun Guo wrote:
+> Hi Tyler,
+> 
+> On 2016/10/8 5:31, Tyler Baicar wrote:
+>> ARM APEI extension proposal added SEA (Synchrounous External
+>> Abort) notification type for ARMv8.
+>> Add a new GHES error source handling function for SEA. If an error
+>> source's notification type is SEA, then this function can be registered
+>> into the SEA exception handler. That way GHES will parse and report
+>> SEA exceptions when they occur.
+> 
+> Does this SEA is replayed by the firmware (firmware first handling)
+> or directly triggered by the hardware when error is happened?
 
-Reviewed-by: S-k, Shyam-sundar <Shyam-sundar.S-k@amd.com>
-Signed-off-by: Shah, Nehal-bakulchandra <Nehal-bakulchandra.Shah@amd.com>
----
- drivers/acpi/acpi_apd.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Architecturally, an SEA must be synchronous and *precise*, so if you
+take an SEA on a particular load instruction, firmware/hardware should
+not be corrupting the context/state of the PE to allow software to
+determine which thread/process encountered the abort.  GHES error status
+block will be expose to software with information about the type,
+severity, physical address impacted.
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index d58fbf7..5ec7f3a 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -77,6 +77,11 @@ static const struct apd_device_desc cz_i2c_desc = {
-     .fixed_clk_rate = 133000000,
- };
- 
-+static const struct apd_device_desc wt_i2c_desc = {
-+    .setup = acpi_apd_setup,
-+    .fixed_clk_rate = 150000000,
-+};
-+
- static struct property_entry uart_properties[] = {
-     PROPERTY_ENTRY_U32("reg-io-width", 4),
-     PROPERTY_ENTRY_U32("reg-shift", 2),
-@@ -162,7 +167,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
-     /* Generic apd devices */
- #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-     { "AMD0010", APD_ADDR(cz_i2c_desc) },
--    { "AMDI0010", APD_ADDR(cz_i2c_desc) },
-+    { "AMDI0010", APD_ADDR(wt_i2c_desc) },
-     { "AMD0020", APD_ADDR(cz_uart_desc) },
-     { "AMDI0020", APD_ADDR(cz_uart_desc) },
-     { "AMD0030", },
+Generally the error status block is populated by firmware.  However, as
+long as the above requirement is met, I don't think the spec precludes
+error status block being populated by hardware.  Those details must be
+completely transparent to software.
+
+Finally, to answer your more specific question:  If the implementation
+of firmware-first involves trapping the SEA in EL3 to do some firmware
+first handling, firmware must maintain the context of the offending ELx,
+generate an error record, and then "replay" the exception to normal
+(non-secure) software at the appropriate vector base address.
+
+Thanks,
+Harb
 -- 
-1.9.1
-
-
+-- 
+Qualcomm Datacenter Technologies, Inc.
+as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
