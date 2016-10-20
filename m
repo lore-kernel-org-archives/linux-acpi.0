@@ -1,51 +1,63 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
- interrupts
-Date: Thu, 20 Oct 2016 14:25:38 -0700
-Message-ID: <7d6c7dc6-4ae5-537e-9137-ee80a76fc9bd@codeaurora.org>
-References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
- <1476505867-24599-2-git-send-email-okaya@codeaurora.org>
- <20161018135912.GD18903@localhost>
- <b4a8995e-1454-3b84-0681-1491788087ec@codeaurora.org>
- <0a82f2ef-b072-d847-104a-320cf804ebd5@codeaurora.org>
- <20161019224405.GA14915@localhost>
- <a418cf9d-5eeb-a588-6653-fd00e0c2693c@codeaurora.org>
- <CAJZ5v0gZmNxOF5hf8oYF_UYUNHrYkFy=Y7SWGCZ+VRKGNeJmcA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V4 1/3] ACPI, PCI, IRQ: assign ISA IRQ directly during
+ early boot stages
+Date: Thu, 20 Oct 2016 23:39:10 +0200
+Message-ID: <CAJZ5v0jm-n8hbS_GFUY4EVKHiRaNPrkNcWDY+6c3SRxWhy4VAg@mail.gmail.com>
+References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org> <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gZmNxOF5hf8oYF_UYUNHrYkFy=Y7SWGCZ+VRKGNeJmcA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/20/2016 2:08 PM, Rafael J. Wysocki wrote:
-> On Thu, Oct 20, 2016 at 10:01 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> On 10/19/2016 3:44 PM, Bjorn Helgaas wrote:
-> 
-> [cut]
-> 
->> If we want to move the ISA pieces out of this file, that can be done too.
->> We can also add support for PNPACPI. I'm not a very big fan of scratch
->> everything and start from beginning approach. This refactoring effort already
->> failed 3 times. I'd like to close the issue and move on.
-> 
-> Understood, but we have broken this for too many times already.
-> 
-> Either we have a minimum fix that is known working or we are going back.
+On Thu, Oct 20, 2016 at 12:21 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> The penalty determination of ISA IRQ goes through 4 paths.
+> 1. assign PCI_USING during power up via acpi_irq_penalty_init.
+> 2. update the penalty with acpi_penalize_isa_irq function based on the
+> active parameter.
+> 3. kernel command line penalty update via acpi_irq_penalty_update function.
+> 4. increment the penalty as USING right after the IRQ is assign to PCI.
+>
+> acpi_penalize_isa_irq and acpi_irq_penalty_update functions get called
+> before the ACPI subsystem is started.
+>
+> These API need to bypass the acpi_irq_get_penalty function.
+>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index c983bf7..4f37938 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>                         continue;
+>
+>                 if (used)
+> -                       new_penalty = acpi_irq_get_penalty(irq) +
+> +                       new_penalty = acpi_isa_irq_penalty[irq] +
+>                                         PIRQ_PENALTY_ISA_USED;
+>                 else
+>                         new_penalty = 0;
+> @@ -871,7 +871,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>  void acpi_penalize_isa_irq(int irq, int active)
+>  {
+>         if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
+> -               acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +               acpi_isa_irq_penalty[irq] = acpi_isa_irq_penalty[irq] +
 
-Agreed. I think my V4 patch satisfies our short term goals and fixes the issue
-you are seeing. IMO, it is good enough for the moment.
+This looks slightly odd.  What about
 
-> 
-> Thanks,
-> Rafael
-> 
++               acpi_isa_irq_penalty[irq] +=
 
+>                   (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+>  }
+>
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks,
+Rafael
