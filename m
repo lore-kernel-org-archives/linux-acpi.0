@@ -1,23 +1,18 @@
 From: <gregkh@linuxfoundation.org>
-Subject: FAILED: patch "[PATCH] acpi, nfit: check for the correct event code in notifications" failed to apply to 4.7-stable tree
-Date: Thu, 20 Oct 2016 17:52:31 +0200
-Message-ID: <147697875119442@kroah.com>
+Subject: FAILED: patch "[PATCH] acpi, nfit: check for the correct event code in notifications" failed to apply to 4.4-stable tree
+Date: Thu, 20 Oct 2016 17:52:28 +0200
+Message-ID: <1476978748226120@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:45209 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757109AbcJTPwY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Oct 2016 11:52:24 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: vishal.l.verma@intel.com, dan.j.williams@intel.com, linda.knippers@hpe.com, linux-acpi@vger.kernel.org
 Cc: stable@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 
-The patch below does not apply to the 4.7-stable tree.
+The patch below does not apply to the 4.4-stable tree.
 If someone wants it applied there, or to any other stable or longterm
 tree, then please email the backport, including the original git commit
 id to <stable@vger.kernel.org>.
@@ -78,4 +73,3 @@ index e894ded24d99..51d23f130d86 100644
  struct nfit_spa {
  	struct list_head list;
  	struct nd_region *nd_region;
-
