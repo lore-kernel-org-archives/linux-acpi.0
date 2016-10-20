@@ -1,33 +1,61 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] watchdog: wdat_wdt: Ping the watchdog on resume
-Date: Fri, 21 Oct 2016 00:47:24 +0200
-Message-ID: <CAJZ5v0jRdmskuLsL17UZtS8P6=kCpjNj=qwm-ciEKnQ7VAjXcg@mail.gmail.com>
-References: <20161020150336.97791-1-mika.westerberg@linux.intel.com> <20161020221931.GA929@roeck-us.net>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Thu, 20 Oct 2016 23:05:25 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25657B@SHSMSX101.ccr.corp.intel.com>
+References: <1476913001.7633.13.camel@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886A256346@SHSMSX101.ccr.corp.intel.com>
+ <CAJZ5v0jMtzSg8JCLQDzYRK5xtdWOJTUKktHKjhAw1o0nRG2Thw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:33271 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755754AbcJTWrZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Oct 2016 18:47:25 -0400
-In-Reply-To: <20161020221931.GA929@roeck-us.net>
+Received: from mga05.intel.com ([192.55.52.43]:50906 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752376AbcJTXFa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Oct 2016 19:05:30 -0400
+In-Reply-To: <CAJZ5v0jMtzSg8JCLQDzYRK5xtdWOJTUKktHKjhAw1o0nRG2Thw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Wim Van Sebroeck <wim@iguana.be>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Fri, Oct 21, 2016 at 12:19 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-> On Thu, Oct 20, 2016 at 06:03:36PM +0300, Mika Westerberg wrote:
->> It turns out we need to ping the watchdog hardware on resume when we
->> re-program it. Otherwise this results inadvertent reset to trigger right
->> after the resume is completed.
->>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->
-> Acked-by: Guenter Roeck <linux@roeck-us.net>
->
-> [ assuming Rafael is going to pick it up ]
-
-I am, thanks!
-
-Rafael
+SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
+a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDog
+UmU6IDQuOS1yYzE6IFtUTVBfXSBBQ1BJIG5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxS
+RUFEWV9FWElTVFMNCj4gDQo+IE9uIFRodSwgT2N0IDIwLCAyMDE2IGF0IDg6NDQgUE0sIFpoZW5n
+LCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBIaSwNCj4gPg0KPiA+PiBGcm9t
+OiBEZWFrLCBJbXJlDQo+ID4+IFN1YmplY3Q6IDQuOS1yYzE6IFtUTVBfXSBBQ1BJIG5hbWVzcGFj
+ZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMNCj4gPj4NCj4gPj4gSGksDQo+ID4+
+DQo+ID4+IGFmdGVyIHVwZ3JhZGluZyB0byA0LjktcmMxIEkgZ2V0IHRoZSBmb2xsb3dpbmcgZXJy
+b3JzIG9jY2FzaW9uYWxseQ0KPiA+PiBkdXJpbmcgYm9vdCBhbmQgc3VzcGVuZC10by1yYW0gb24g
+YW4gQVBMIHN5c3RlbToNCj4gPj4NCj4gPj4gWyAgIDU5LjUxMzQzNF0gQUNQSSBFcnJvcjogW1RN
+UF9dIE5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMx
+L2Rzd2xvYWQyLQ0KPiAzMzApDQo+ID4+IFsgICA1OS41MTM0NDZdIEFDUEkgRXhjZXB0aW9uOiBB
+RV9BTFJFQURZX0VYSVNUUywgRHVyaW5nIG5hbWUgbG9va3VwL2NhdGFsb2cgKDIwMTYwODMxL3Bz
+b2JqZWN0LTIyNykNCj4gPj4gWyAgIDU5LjUxMzQ2OV0gQUNQSSBFcnJvcjogTWV0aG9kIHBhcnNl
+L2V4ZWN1dGlvbiBmYWlsZWQgW1xfU0IuUENJMC5TQ1BHXSAoTm9kZSBmZmZmODgwMjc3MGI3YmI4
+KSwNCj4gPj4gQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMxL3BzcGFyc2UtNTQzKQ0KPiA+PiBb
+ICAgNTkuNTE1NDE1XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBb
+XF9TQi5QQ0kwLlNESEEuX1BTM10gKE5vZGUNCj4gZmZmZjg4MDI3NzBiN2RjMCksDQo+ID4+IEFF
+X0FMUkVBRFlfRVhJU1RTICgyMDE2MDgzMS9wc3BhcnNlLTU0MykNCj4gPj4gWyAgIDU5LjUxNzEx
+OF0gQUNQSTogTWFya2luZyBtZXRob2QgX1BTMyBhcyBTZXJpYWxpemVkIGJlY2F1c2Ugb2YgQUVf
+QUxSRUFEWV9FWElTVFMgZXJyb3INCj4gPj4NCj4gPj4gT3RoZXIgdGhhbiB0aGVzZSBlcnJvciBt
+ZXNzYWdlcywgYm9vdGluZyBhbmQgc3VzcGVuZC9yZXN1bWUgc2VlbXMgdG8gd29yayBvay4NCj4g
+Pj4gQmlzZWN0aW5nIHBvaW50cyB0bw0KPiA+PiBjb21taXQgNzRmNTFiODBhMGM0ZmY4NGZiZWI3
+ZjEyZWE0M2NlNjY5MzRkMjlhYQ0KPiA+PiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRl
+bC5jb20+DQo+ID4+IERhdGU6ICAgV2VkIFNlcCA3IDE0OjA3OjEwIDIwMTYgKzA4MDANCj4gPj4N
+Cj4gPj4gICAgIEFDUElDQTogTmFtZXNwYWNlOiBGaXggZHluYW1pYyB0YWJsZSBsb2FkaW5nIGlz
+c3Vlcw0KPiA+Pg0KPiA+PiBSZXZlcnRpbmcgdGhpcyBvbiB0b3Agb2YgNC45LXJjMSBnZXRzIHJp
+ZCBvZiB0aGUgZXJyb3IgbWVzc2FnZXMuDQo+ID4NCj4gPiBUaGUgY29tbWl0IGluIHF1ZXN0aW9u
+IG9ubHkgbW9kaWZpZWQgY29kZSB0byBtYWtlIGxvY2tzIHVubG9ja2VkL2xvY2tlZC4NCj4gPiBX
+aGljaCBzaG91bGQgYmUgdHJhbnNwYXJlbnQgdG8gdGhlIGZ1bmN0aW9uYWwgc3R1ZmZzLg0KPiAN
+Cj4gSXQgbWlnaHQgY2hhbmdlIHRoZSByZWxhdGl2ZSB0aW1pbmcgb2YgdGhpZ3MgKHdoaWNoIG1p
+Z2h0IHJlc3VsdCBpbg0KPiBvcmRlcmluZyBjaGFuZ2VzKS4NCg0KWWVzLCBJJ2xsIGNoZWNrIHRo
+YXQgd2l0aCB0aGUgYWNwaWR1bXAuDQpUbyBzZWUgaWYgdGhpcyBpcyBjYXVzZWQgYnkgd3Jvbmcg
+cmVkdWNlZCBsb2NrIGFmZmVjdGlvbiBzY29wZS4NCg0KPiANCj4gPiBJJ20gbm90IHN1cmUgaG93
+IGl0IGNhbiBsZWFkIHRvIHN1Y2ggZXJyb3IgaW4gdGhlIHNpbmdsZS10aHJlYWRpbmcgYm9vdCBl
+bnZpcm9ubWVudC4NCj4gDQo+IFdoeSBkbyB5b3UgdGhpbmsgaXQncyBzaW5nbGUtdGhyZWFkZWQ/
+ICBBdCBsZWFzdCBzdXNwZW5kL3Jlc3VtZSBpc24ndA0KPiBpbiBnZW5lcmFsLg0KDQpJIGp1c3Qg
+c2F5IHRoYXQgYmVjYXVzZSBpdCBpcyBhbHNvIHJlcG9ydGVkIGFzICJvY2Nhc2lvbmFsbHkgZHVy
+aW5nIGJvb3QiLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYNCg==
