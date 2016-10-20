@@ -1,49 +1,37 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 3/4] ACPI / gpio: Add hogging support
-Date: Thu, 20 Oct 2016 15:29:29 +0300
-Message-ID: <20161020122929.GG24289@lahna.fi.intel.com>
-References: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
- <20160929133944.158596-4-mika.westerberg@linux.intel.com>
- <CACRpkdYTUy9u0_VWQ6CuriD+__H8EkR_MyarXMFdJ9hbZwYUgw@mail.gmail.com>
+Subject: Re: [PATCH 0/5] ACPI / gpio: Updates to properties
+Date: Thu, 20 Oct 2016 15:35:10 +0300
+Message-ID: <20161020123510.GH24289@lahna.fi.intel.com>
+References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
+ <20161019124112.GK1722@lahna.fi.intel.com>
+ <CAJZ5v0j7EfMEjb7F4BMR7O2_U0oipvcMDMf0N4XEoem4ypqE7Q@mail.gmail.com>
+ <CACRpkdZZOzbrckz79uS1febA69eJrbTGON3FkuGUBWcw2-zkcw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:1596 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932289AbcJTM3d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Oct 2016 08:29:33 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdYTUy9u0_VWQ6CuriD+__H8EkR_MyarXMFdJ9hbZwYUgw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <CACRpkdZZOzbrckz79uS1febA69eJrbTGON3FkuGUBWcw2-zkcw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 20, 2016 at 02:09:30PM +0200, Linus Walleij wrote:
-> On Thu, Sep 29, 2016 at 3:39 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
+On Thu, Oct 20, 2016 at 02:17:40PM +0200, Linus Walleij wrote:
+> On Wed, Oct 19, 2016 at 11:22 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Wed, Oct 19, 2016 at 2:41 PM, Mika Westerberg
 > 
-> > GPIO hogging means that the GPIO controller can "hog" and configure certain
-> > GPIOs without need for a driver or userspace to do that. This is useful in
-> > open-connected boards where BIOS cannot possibly know beforehand which
-> > devices will be connected to the board.
+> >> Any comments on the GPIO patches in this series?
+> >>
+> >> At least the last one does not add any new bindings so it should be fine
+> >> to apply.
 > >
-> > This adds GPIO hogging mechanism to ACPI analogous to Device Tree.
+> > I have no comments, but I'd suggest resending them as a new series on
+> > top of 4.9-rc1 (which includes the generic patches from this series).
 > >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > You can add my ACK to them if that helps.
 > 
-> Overall nice to have the hogs in ACPI too!
-> 
-> Again here my comment is to break out device_property() and fwnode_*
-> accessing code to a file shared between ACPI and OF.
-> 
-> If it makes sense.
-> 
-> Because the idea was not to invent those abstractions in order to
-> just use them with ACPI I hope.
-> 
-> The problem is that some of the code seems to be ACPI-specific,
-> so if it doesn't work out, I'm also OK to keep it like this.
+> OK I had some comments so please adress these but resend on top
+> of v4.9-rc1 indeed. If they are already higher up in my mailbox then
+> look into my comments and post again, hehe.
 
-Yeah, this one differs between ACPI and DT and I'm not sure if it can be
-easily generalized using device_property APIs.
+I will, thanks!
