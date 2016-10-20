@@ -1,47 +1,54 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
-Date: Thu, 20 Oct 2016 18:44:36 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A256346@SHSMSX101.ccr.corp.intel.com>
-References: <1476913001.7633.13.camel@intel.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] acpi/apei: Fix in-correct return value
+Date: Thu, 20 Oct 2016 13:51:31 -0600
+Message-ID: <a159bf94-223b-7ec5-b4a5-16ab65662e1e@codeaurora.org>
+References: <20161018160719.31252-1-punit.agrawal@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:15790 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933869AbcJTSom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Oct 2016 14:44:42 -0400
-In-Reply-To: <1476913001.7633.13.camel@intel.com>
-Content-Language: en-US
+Received: from smtp.codeaurora.org ([198.145.29.96]:44485 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932694AbcJTTve (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Oct 2016 15:51:34 -0400
+In-Reply-To: <20161018160719.31252-1-punit.agrawal@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, rjw@rjwysocki.net
+Cc: linux-kernel@vger.kernel.org, bp@suse.de, Len Brown <lenb@kernel.org>
 
-SGksDQoNCj4gRnJvbTogRGVhaywgSW1yZQ0KPiBTdWJqZWN0OiA0LjktcmMxOiBbVE1QX10gQUNQ
-SSBuYW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQo+IA0KPiBIaSwN
-Cj4gDQo+IGFmdGVyIHVwZ3JhZGluZyB0byA0LjktcmMxIEkgZ2V0IHRoZSBmb2xsb3dpbmcgZXJy
-b3JzIG9jY2FzaW9uYWxseQ0KPiBkdXJpbmcgYm9vdCBhbmQgc3VzcGVuZC10by1yYW0gb24gYW4g
-QVBMIHN5c3RlbToNCj4gDQo+IFvCoMKgwqA1OS41MTM0MzRdIEFDUEkgRXJyb3I6IFtUTVBfXSBO
-YW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTICgyMDE2MDgzMS9kc3ds
-b2FkMi0zMzApDQo+IFvCoMKgwqA1OS41MTM0NDZdIEFDUEkgRXhjZXB0aW9uOiBBRV9BTFJFQURZ
-X0VYSVNUUywgRHVyaW5nIG5hbWUgbG9va3VwL2NhdGFsb2cgKDIwMTYwODMxL3Bzb2JqZWN0LTIy
-NykNCj4gW8KgwqDCoDU5LjUxMzQ2OV0gQUNQSSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlv
-biBmYWlsZWQgW1xfU0IuUENJMC5TQ1BHXSAoTm9kZcKgZmZmZjg4MDI3NzBiN2JiOCksDQo+IEFF
-X0FMUkVBRFlfRVhJU1RTICgyMDE2MDgzMS9wc3BhcnNlLTU0MykNCj4gW8KgwqDCoDU5LjUxNTQx
-NV0gQUNQSSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgW1xfU0IuUENJMC5T
-REhBLl9QUzNdIChOb2RlIGZmZmY4ODAyNzcwYjdkYzApLA0KPiBBRV9BTFJFQURZX0VYSVNUUyAo
-MjAxNjA4MzEvcHNwYXJzZS01NDMpDQo+IFvCoMKgwqA1OS41MTcxMThdIEFDUEk6IE1hcmtpbmcg
-bWV0aG9kIF9QUzMgYXMgU2VyaWFsaXplZCBiZWNhdXNlIG9mIEFFX0FMUkVBRFlfRVhJU1RTIGVy
-cm9yDQo+IA0KPiBPdGhlciB0aGFuIHRoZXNlIGVycm9yIG1lc3NhZ2VzLCBib290aW5nIGFuZCBz
-dXNwZW5kL3Jlc3VtZSBzZWVtcyB0byB3b3JrIG9rLg0KPiBCaXNlY3RpbmcgcG9pbnRzIHRvDQo+
-IGNvbW1pdCA3NGY1MWI4MGEwYzRmZjg0ZmJlYjdmMTJlYTQzY2U2NjkzNGQyOWFhDQo+IEF1dGhv
-cjogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gRGF0ZTrCoMKgwqBXZWQgU2VwIDcg
-MTQ6MDc6MTAgMjAxNiArMDgwMA0KPiANCj4gwqDCoMKgwqBBQ1BJQ0E6IE5hbWVzcGFjZTogRml4
-IGR5bmFtaWMgdGFibGUgbG9hZGluZyBpc3N1ZXMNCj4gDQo+IFJldmVydGluZyB0aGlzIG9uIHRv
-cCBvZiA0LjktcmMxIGdldHMgcmlkIG9mIHRoZSBlcnJvciBtZXNzYWdlcy4NCg0KVGhlIGNvbW1p
-dCBpbiBxdWVzdGlvbiBvbmx5IG1vZGlmaWVkIGNvZGUgdG8gbWFrZSBsb2NrcyB1bmxvY2tlZC9s
-b2NrZWQuDQpXaGljaCBzaG91bGQgYmUgdHJhbnNwYXJlbnQgdG8gdGhlIGZ1bmN0aW9uYWwgc3R1
-ZmZzLg0KSSdtIG5vdCBzdXJlIGhvdyBpdCBjYW4gbGVhZCB0byBzdWNoIGVycm9yIGluIHRoZSBz
-aW5nbGUtdGhyZWFkaW5nIGJvb3QgZW52aXJvbm1lbnQuDQpQbGVhc2UgcHJvdmlkZSB0aGUgYWNw
-aWR1bXAgb3V0cHV0IGZvciBmdXJ0aGVyIGludmVzdGlnYXRpb24uDQoNClRoYW5rcyBhbmQgYmVz
-dCByZWdhcmRzDQpMdg0K
+On 10/18/2016 10:07 AM, Punit Agrawal wrote:
+> Although ghes_proc tests for error while reading the error status, it
+> always return success (0). Fix this by propagating the return value.
+>
+> Fixes: d334a49113a4a33 ("ACPI, APEI, Generic Hardware Error Source memory error support")
+> Signed-of-by: Punit Agrawal <punit.agrawa.@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+
+Thanks,
+Tyler
+> ---
+>   drivers/acpi/apei/ghes.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index f0a029e..0d099a2 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -662,7 +662,7 @@ static int ghes_proc(struct ghes *ghes)
+>   	ghes_do_proc(ghes, ghes->estatus);
+>   out:
+>   	ghes_clear_estatus(ghes);
+> -	return 0;
+> +	return rc;
+>   }
+>   
+>   static void ghes_add_timer(struct ghes *ghes)
+
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
+
