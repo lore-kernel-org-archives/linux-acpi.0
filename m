@@ -1,33 +1,62 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-Date: Thu, 20 Oct 2016 23:08:08 +0200
-Message-ID: <CAJZ5v0gZmNxOF5hf8oYF_UYUNHrYkFy=Y7SWGCZ+VRKGNeJmcA@mail.gmail.com>
-References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
- <1476505867-24599-2-git-send-email-okaya@codeaurora.org> <20161018135912.GD18903@localhost>
- <b4a8995e-1454-3b84-0681-1491788087ec@codeaurora.org> <0a82f2ef-b072-d847-104a-320cf804ebd5@codeaurora.org>
- <20161019224405.GA14915@localhost> <a418cf9d-5eeb-a588-6653-fd00e0c2693c@codeaurora.org>
+Subject: Re: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Thu, 20 Oct 2016 23:16:16 +0200
+Message-ID: <CAJZ5v0jMtzSg8JCLQDzYRK5xtdWOJTUKktHKjhAw1o0nRG2Thw@mail.gmail.com>
+References: <1476913001.7633.13.camel@intel.com> <1AE640813FDE7649BE1B193DEA596E886A256346@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <a418cf9d-5eeb-a588-6653-fd00e0c2693c@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:35411 "EHLO
+        mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754028AbcJTVQU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Oct 2016 17:16:20 -0400
+Received: by mail-lf0-f42.google.com with SMTP id l131so99261285lfl.2
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Oct 2016 14:16:19 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A256346@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Thu, Oct 20, 2016 at 10:01 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> On 10/19/2016 3:44 PM, Bjorn Helgaas wrote:
+On Thu, Oct 20, 2016 at 8:44 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
+>
+>> From: Deak, Imre
+>> Subject: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+>>
+>> Hi,
+>>
+>> after upgrading to 4.9-rc1 I get the following errors occasionally
+>> during boot and suspend-to-ram on an APL system:
+>>
+>> [   59.513434] ACPI Error: [TMP_] Namespace lookup failure, AE_ALREADY_EXISTS (20160831/dswload2-330)
+>> [   59.513446] ACPI Exception: AE_ALREADY_EXISTS, During name lookup/catalog (20160831/psobject-227)
+>> [   59.513469] ACPI Error: Method parse/execution failed [\_SB.PCI0.SCPG] (Node ffff8802770b7bb8),
+>> AE_ALREADY_EXISTS (20160831/psparse-543)
+>> [   59.515415] ACPI Error: Method parse/execution failed [\_SB.PCI0.SDHA._PS3] (Node ffff8802770b7dc0),
+>> AE_ALREADY_EXISTS (20160831/psparse-543)
+>> [   59.517118] ACPI: Marking method _PS3 as Serialized because of AE_ALREADY_EXISTS error
+>>
+>> Other than these error messages, booting and suspend/resume seems to work ok.
+>> Bisecting points to
+>> commit 74f51b80a0c4ff84fbeb7f12ea43ce66934d29aa
+>> Author: Lv Zheng <lv.zheng@intel.com>
+>> Date:   Wed Sep 7 14:07:10 2016 +0800
+>>
+>>     ACPICA: Namespace: Fix dynamic table loading issues
+>>
+>> Reverting this on top of 4.9-rc1 gets rid of the error messages.
+>
+> The commit in question only modified code to make locks unlocked/locked.
+> Which should be transparent to the functional stuffs.
 
-[cut]
+It might change the relative timing of thigs (which might result in
+ordering changes).
 
-> If we want to move the ISA pieces out of this file, that can be done too.
-> We can also add support for PNPACPI. I'm not a very big fan of scratch
-> everything and start from beginning approach. This refactoring effort already
-> failed 3 times. I'd like to close the issue and move on.
+> I'm not sure how it can lead to such error in the single-threading boot environment.
 
-Understood, but we have broken this for too many times already.
-
-Either we have a minimum fix that is known working or we are going back.
+Why do you think it's single-threaded?  At least suspend/resume isn't
+in general.
 
 Thanks,
 Rafael
