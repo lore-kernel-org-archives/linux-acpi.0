@@ -1,66 +1,58 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: Re: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
-Date: Thu, 20 Oct 2016 09:45:43 +0800
-Message-ID: <c88b5433-fbf0-1a15-11b2-b47c1872d48d@huawei.com>
-References: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
- <1AE640813FDE7649BE1B193DEA596E886A253666@SHSMSX101.ccr.corp.intel.com>
- <696226b1-7024-a4d6-8bea-ddbf6d08a564@huawei.com>
- <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: [PATCH V3 0/2] Add ACPI support for HiSilicon SoCs Host Controllers
+Date: Thu, 20 Oct 2016 11:10:32 +0800
+Message-ID: <1476933034-46044-1-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:29901 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756600AbcJTBqL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Oct 2016 21:46:11 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:10941 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751404AbcJTCxq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Oct 2016 22:53:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "wmiles@sgl.com" <wmiles@sgl.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>
+To: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-Hi,
+This patchset adds ACPI support for the HiSilicon Hip05/Hip06/Hip07 SoC
+PCIe controllers.
+The two patches respectively:
+        - rework the current HiSilicon driver to add support for ECAM
+          platforms(not RC).
+        - adds the HiSilicon ACPI specific quirks.
 
-On 2016/10/19 6:07, Zheng, Lv wrote:
-> Hi,
-> 
-> I'm not sure what you mean.
-> I mean you need ACPI_USE_SYSTEM_INTTYPES in case s64 has already been defined in that environment.
-> Are you sure s64 should be defined for your environment?
-> 
-s64 is not defined in my build environment but in kernel code.
+This patchset is based on 4.9-rc1 and add Tomasz quirks V6 pathcset.
+Tomasz quirks V6 patchset can be found here:
+https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git(pci/ecam-v6)
 
-> IMO, s64 is kernel space specific, while you are compiling user space tools.
-> It looks to me like there is something wrong with ARM kernel's asm/types.h.
-> 
->> I listed in change log. And I also have tried that way.
->> However, it still have many other errors.(I am sorry to not have listed all of them.)
->>
->> From the following log, you can see, all of the conflict type is from signal.h.
->> And maybe this patch is a better way to fix these compile error, without too much
->> change of code.
->>
->> Are you sure that it will cause order problem when build ACPICA on other build
->> environment, for it only effect aarch64.
-> 
-> I'm not sure what this is.
-> How did you get this?
-> Were you compiling kernel acpi tools or compiling the kernel itself?
-> 
-It's about compiling kernel acpi tools.
+v2 -> v3:
+- rebase against 4.9-rc1 and add Tomasz quirks V6 pathcset. 
+- obtain rc base addresses from PNP0C02 as subdevice of PNP0A03 instead of
+  hardcode the addresses.
+- modify hisi_pcie_acpi_rd_conf/hisi_pcie_acpi_wr_conf() according to
+  Arnd comments.
 
-> For tool compilation, are you sure you have correctly configured your cross-compilation environment?
-Maybe it is not my cross-compilation environment problem, for your also can reproduce it,
-as your said in another email, right?
+v1 -> v2:
+- rebase against Tomasz RFC V5 quirk mechanism
+- add ACPI support for the HiSilicon Hip07 SoC PCIe controllers
 
-> Will you see problems in compiling ACPICA applications from:
-> https://github.com/acpica/acpica
-> 
+Dongdong Liu (2):
+  PCI: hisi: Add ECAM support for devices that are not RC
+  PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
 
-> Thanks
-> Lv
-> 
-> .
-> 
+ .../devicetree/bindings/pci/hisilicon-pcie.txt     |  15 +-
+ MAINTAINERS                                        |   1 +
+ drivers/acpi/pci_mcfg.c                            |  15 ++
+ drivers/pci/host/Kconfig                           |  12 +-
+ drivers/pci/host/Makefile                          |   1 +
+ drivers/pci/host/pcie-designware.c                 |   4 +-
+ drivers/pci/host/pcie-designware.h                 |   2 +
+ drivers/pci/host/pcie-hisi-acpi.c                  | 170 +++++++++++++++++++++
+ drivers/pci/host/pcie-hisi.c                       |  45 ++++++
+ include/linux/pci-ecam.h                           |   4 +
+ 10 files changed, 259 insertions(+), 10 deletions(-)
+ create mode 100755 drivers/pci/host/pcie-hisi-acpi.c
+
+-- 
+1.9.1
 
