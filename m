@@ -1,100 +1,46 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Thu, 20 Oct 2016 17:37:49 +0100
-Message-ID: <20161020163719.GC27598@leverpostej>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <1475086637-1914-5-git-send-email-fu.wei@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Thu, 20 Oct 2016 16:45:23 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2561D7@SHSMSX101.ccr.corp.intel.com>
+References: <1476913001.7633.13.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1475086637-1914-5-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:39329 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932261AbcJTQqC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Oct 2016 12:46:02 -0400
+In-Reply-To: <1476913001.7633.13.camel@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi,
-
-As a heads-up, on v4.9-rc1 I see conflicts at least against
-arch/arm64/Kconfig. Luckily git am -3 seems to be able to fix that up
-automatically, but this will need to be rebased before the next posting
-and/or merging.
-
-On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
-> +{
-> +	int trigger, polarity;
-> +
-> +	if (!interrupt)
-> +		return 0;
-
-Urgh.
-
-Only the secure interrupt (which we do not need) is optional in this
-manner, and (hilariously), zero appears to also be a valid GSIV, per
-figure 5-24 in the ACPI 6.1 spec.
-
-So, I think that:
-
-(a) we should not bother parsing the secure interrupt
-(b) we should drop the check above
-(c) we should report the spec issue to the ASWG
-
-> +/*
-> + * acpi_gtdt_c3stop - got c3stop info from GTDT
-> + *
-> + * Returns 1 if the timer is powered in deep idle state, 0 otherwise.
-> + */
-> +bool __init acpi_gtdt_c3stop(void)
-> +{
-> +	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-> +
-> +	return !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-> +}
-
-It looks like this can differ per interrupt. Shouldn't we check the
-appropriate one?
-
-> +int __init acpi_gtdt_init(struct acpi_table_header *table)
-> +{
-> +	void *start;
-> +	struct acpi_table_gtdt *gtdt;
-> +
-> +	gtdt = container_of(table, struct acpi_table_gtdt, header);
-> +
-> +	acpi_gtdt_desc.gtdt = gtdt;
-> +	acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
-> +
-> +	if (table->revision < 2) {
-> +		pr_debug("Revision:%d doesn't support Platform Timers.\n",
-> +			 table->revision);
-> +		return 0;
-> +	}
-> +
-> +	if (!gtdt->platform_timer_count) {
-> +		pr_debug("No Platform Timer.\n");
-> +		return 0;
-> +	}
-> +
-> +	start = (void *)gtdt + gtdt->platform_timer_offset;
-> +	if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
-> +		pr_err(FW_BUG "Failed to retrieve timer info from firmware: invalid data.\n");
-> +		return -EINVAL;
-> +	}
-> +	acpi_gtdt_desc.platform_timer_start = start;
-> +
-> +	return gtdt->platform_timer_count;
-> +}
-
-This is never used as anything other than a status code.
-
-Just return zero; we haven't parsed the platform timers themselves at
-this point anyway.
-
-Thanks,
-Mark.
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksIEltcmUNCg0KPiBGcm9tOiBEZWFrLCBJbXJlDQo+IFN1YmplY3Q6IDQuOS1yYzE6IFtUTVBf
+XSBBQ1BJIG5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMNCj4gDQo+
+IEhpLA0KPiANCj4gYWZ0ZXIgdXBncmFkaW5nIHRvIDQuOS1yYzEgSSBnZXQgdGhlIGZvbGxvd2lu
+ZyBlcnJvcnMgb2NjYXNpb25hbGx5DQo+IGR1cmluZyBib290IGFuZCBzdXNwZW5kLXRvLXJhbSBv
+biBhbiBBUEwgc3lzdGVtOg0KPiANCj4gW8KgwqDCoDU5LjUxMzQzNF0gQUNQSSBFcnJvcjogW1RN
+UF9dIE5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMx
+L2Rzd2xvYWQyLTMzMCkNCj4gW8KgwqDCoDU5LjUxMzQ0Nl0gQUNQSSBFeGNlcHRpb246IEFFX0FM
+UkVBRFlfRVhJU1RTLCBEdXJpbmcgbmFtZSBsb29rdXAvY2F0YWxvZyAoMjAxNjA4MzEvcHNvYmpl
+Y3QtMjI3KQ0KPiBbwqDCoMKgNTkuNTEzNDY5XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhl
+Y3V0aW9uIGZhaWxlZCBbXF9TQi5QQ0kwLlNDUEddIChOb2RlwqBmZmZmODgwMjc3MGI3YmI4KSwN
+Cj4gQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMxL3BzcGFyc2UtNTQzKQ0KPiBbwqDCoMKgNTku
+NTE1NDE1XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9TQi5Q
+Q0kwLlNESEEuX1BTM10gKE5vZGUgZmZmZjg4MDI3NzBiN2RjMCksDQo+IEFFX0FMUkVBRFlfRVhJ
+U1RTICgyMDE2MDgzMS9wc3BhcnNlLTU0MykNCj4gW8KgwqDCoDU5LjUxNzExOF0gQUNQSTogTWFy
+a2luZyBtZXRob2QgX1BTMyBhcyBTZXJpYWxpemVkIGJlY2F1c2Ugb2YgQUVfQUxSRUFEWV9FWElT
+VFMgZXJyb3INCg0KQ291bGQgeW91IHNlbmQgbWUgYWNwaWR1bXAgb3V0cHV0Pw0KDQo+IA0KPiBP
+dGhlciB0aGFuIHRoZXNlIGVycm9yIG1lc3NhZ2VzLCBib290aW5nIGFuZCBzdXNwZW5kL3Jlc3Vt
+ZSBzZWVtcyB0byB3b3JrIG9rLg0KPiBCaXNlY3RpbmcgcG9pbnRzIHRvDQo+IGNvbW1pdCA3NGY1
+MWI4MGEwYzRmZjg0ZmJlYjdmMTJlYTQzY2U2NjkzNGQyOWFhDQo+IEF1dGhvcjogTHYgWmhlbmcg
+PGx2LnpoZW5nQGludGVsLmNvbT4NCj4gRGF0ZTrCoMKgwqBXZWQgU2VwIDcgMTQ6MDc6MTAgMjAx
+NiArMDgwMA0KPiANCj4gwqDCoMKgwqBBQ1BJQ0E6IE5hbWVzcGFjZTogRml4IGR5bmFtaWMgdGFi
+bGUgbG9hZGluZyBpc3N1ZXMNCj4gDQo+IFJldmVydGluZyB0aGlzIG9uIHRvcCBvZiA0LjktcmMx
+IGdldHMgcmlkIG9mIHRoZSBlcnJvciBtZXNzYWdlcy4NCg0KVGhpcyBmaXggaXMgZXNzZW50aWFs
+Lg0KV2l0aG91dCB0aGlzLCBhbGwgb2Ygb3RoZXIgQUNQSUNBIGZpeGVzIGNhbiBlYXNpbHkgZmFs
+bCBpbnRvIGRlYWQgbG9ja3MuDQpTbyB3ZSB3b24ndCBzaW1wbHkgcmV2ZXJ0IGl0IGp1c3QgYmVj
+YXVzZSBvZiBub24tZnVuY3Rpb25hbC1mYWlsdXJlIGVycm9yIG1lc3NhZ2VzLg0KSW5zdGVhZCwg
+d2Ugd2lsbCBpbXByb3ZlIGl0Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYNCg==
