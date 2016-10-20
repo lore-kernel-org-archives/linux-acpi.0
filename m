@@ -1,43 +1,41 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v14 0/9] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 20 Oct 2016 15:57:52 +0100
-Message-ID: <20161020145752.GC8731@red-moon>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <20161020143101.GI10234@leverpostej>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49796 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753997AbcJTO5K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Oct 2016 10:57:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20161020143101.GI10234@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH] watchdog: wdat_wdt: Ping the watchdog on resume
+Date: Thu, 20 Oct 2016 18:03:36 +0300
+Message-ID: <20161020150336.97791-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Thu, Oct 20, 2016 at 03:31:01PM +0100, Mark Rutland wrote:
-> Hi,
-> 
-> On Thu, Sep 29, 2016 at 02:17:08AM +0800, fu.wei@linaro.org wrote:
-> > From: Fu Wei <fu.wei@linaro.org>
-> 
-> > This patchset depends on the following patchset:
-> > [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
-> > https://lkml.org/lkml/2016/9/12/949
-> 
-> Is there a branch with these anywhere? I wasn't Cc'd on those and it's
-> rather difficult to get at the series from an LKML link.
+It turns out we need to ping the watchdog hardware on resume when we
+re-program it. Otherwise this results inadvertent reset to trigger right
+after the resume is completed.
 
-For the records, the dependency above has now been merged and it was
-just a directory creation dependency (drivers/acpi/arm64, where some of
-the code in this series will live). So basically this means that at
-present this series is self-contained, probably it would have been
-better to wait for -rc1 before posting it (so that dependencies were
-settled) but anyway I think it can be reviewed as-is.
+Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/watchdog/wdat_wdt.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks for having a look,
-Lorenzo
+diff --git a/drivers/watchdog/wdat_wdt.c b/drivers/watchdog/wdat_wdt.c
+index e473e3b23720..6d1fbda0f461 100644
+--- a/drivers/watchdog/wdat_wdt.c
++++ b/drivers/watchdog/wdat_wdt.c
+@@ -499,6 +499,10 @@ static int wdat_wdt_resume_noirq(struct device *dev)
+ 		ret = wdat_wdt_enable_reboot(wdat);
+ 		if (ret)
+ 			return ret;
++
++		ret = wdat_wdt_ping(&wdat->wdd);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return wdat_wdt_start(&wdat->wdd);
+-- 
+2.9.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
