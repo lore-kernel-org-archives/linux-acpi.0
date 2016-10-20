@@ -1,63 +1,165 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V4 1/3] ACPI, PCI, IRQ: assign ISA IRQ directly during
- early boot stages
-Date: Thu, 20 Oct 2016 23:39:10 +0200
-Message-ID: <CAJZ5v0jm-n8hbS_GFUY4EVKHiRaNPrkNcWDY+6c3SRxWhy4VAg@mail.gmail.com>
-References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org> <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: =?UTF-8?q?=5BPATCH=20v6=200/9=5D=20Support=20Intel=C2=AE=20Turbo=20Boost=20Max=20Technology=203=2E0?=
+Date: Thu, 20 Oct 2016 14:59:54 -0700
+Message-ID: <cover.1477000078.git.tim.c.chen@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
+Cc: Tim Chen <tim.c.chen@linux.intel.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 20, 2016 at 12:21 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> The penalty determination of ISA IRQ goes through 4 paths.
-> 1. assign PCI_USING during power up via acpi_irq_penalty_init.
-> 2. update the penalty with acpi_penalize_isa_irq function based on the
-> active parameter.
-> 3. kernel command line penalty update via acpi_irq_penalty_update function.
-> 4. increment the penalty as USING right after the IRQ is assign to PCI.
->
-> acpi_penalize_isa_irq and acpi_irq_penalty_update functions get called
-> before the ACPI subsystem is started.
->
-> These API need to bypass the acpi_irq_get_penalty function.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_link.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index c983bf7..4f37938 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
->                         continue;
->
->                 if (used)
-> -                       new_penalty = acpi_irq_get_penalty(irq) +
-> +                       new_penalty = acpi_isa_irq_penalty[irq] +
->                                         PIRQ_PENALTY_ISA_USED;
->                 else
->                         new_penalty = 0;
-> @@ -871,7 +871,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
->  void acpi_penalize_isa_irq(int irq, int active)
->  {
->         if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
-> -               acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
-> +               acpi_isa_irq_penalty[irq] = acpi_isa_irq_penalty[irq] +
+With Intel Turbo Boost Max Technology 3.0 (ITMT), single-threaded performance is
+optimized by identifying processor's fastest core and running critical workloads
+on it.
+Refer to:
+http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html
 
-This looks slightly odd.  What about
+This patchset consist of all changes required to support ITMT feature:
+- Use CPPC information in Intel P-State driver to get performance information
+- Scheduler enhancements
+- cppc lib patches (split in to a seprate series)
 
-+               acpi_isa_irq_penalty[irq] +=
+This featured can be enabled by writing at runtime
+# echo 1 > /proc/sys/kernel/sched_itmt_enabled
+This featured can be disabled by writing at runtime
+# echo 0 > /proc/sys/kernel/sched_itmt_enabled
 
->                   (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
->  }
->
+Change Log:
+v6:
+- Split ITMT support control by OS into sched_set_itmt_support and
+sched_clear_itmt_support functions.
+- Return error when we set sysctl_sched_itmt_enabled, if system
+does not support ITMT, or when we cannot create sysctl table entry.
+- Minor code clean up and moving definition of sched_core_priority
+to top of file.
+- Rebase on v4.9-rc1
 
-Thanks,
-Rafael
+v5:
+- Simplify intel_pstate for enabling ITMT feature
+- Put x86_sched_itmt_flags related functions under proper
+CONFIG_SCHED_MC/SMT flags
+- Comment to note that rebuild_sched_domain is not needed after updating
+CPU priorities.
+- Define sysctl_sched_itmt_enabled to 0 when ITMT is not used in
+arch/x86/include/asm/topology.h
+- Dropped patch "Fix numa in package topology bug", as this is
+already applied
+
+v4:
+- Split x86 multi-node numa topology bug fix and setting
+of SD_ASYM flag for ITMT topology into 2 patches
+- Split the sysctl changes for ITMT enablement and setting of ITMT
+capability/core priorities into 2 patches.
+- Avoid unnecessary rebuild of sched domains when ITMT sysctl or
+capabilities are updated.
+- Fix missing stub function for topology_max_packages for !SMP case.
+- Rename set_sched_itmt() to sched_set_itmt_support().
+- Various updates to itmt.c to eliminate goto and make logic tighter.
+- Various change logs and comments update.
+- intel_pstate: Split function to process cppc and enable ITMT
+- intel_pstate: Just keep the cppc_perf information till we use CPPC for HWP
+
+v3:
+- Fix race clash when more than one program are enabling/disabling ITMT
+- Remove group_priority_cpu macro to simplify code.
+- Error reported by 0-day for compile issue on ARM
+
+v2
+- The patchset is split into two parts so that CPPC changes can be merged first
+ 1. Only ACPI CPPC changes (It is posted separately)
+ 2. ITMT changes (scheduler and Intel P-State)
+
+- Changes in patch: sched,x86: Enable Turbo Boost Max Technology
+ 1. Use arch_update_cpu_topology to indicate need to completely
+    rebuild sched domain when ITMT related sched domain flags change
+ 2. Enable client (single node) platform capable of ITMT with ITMT
+    scheduling by default
+ 3. Implement arch_asym_cpu_priority to provide the cpu priority
+    value to scheduler for asym packing.
+ 4. Fix a compile bug for i386 architecture.
+
+- Changes in patch: sched: Extend scheduler's asym packing
+ 1. Use arch_asym_cpu_priority() to provide cpu priority
+    value used for asym packing to the scheduler.
+
+- Changes in acpi: bus: Enable HWP CPPC objects and
+  acpi: bus: Set _OSC for diverse core support
+  Minor code cleanup by removing #ifdef
+- Changes in Kconfig for Intel P-State
+  Avoid building CPPC lib for i386 for issue reported by 0-day
+
+- Feature is enabled by default for single socket systems
+
+
+Rafael J. Wysocki (1):
+  cpufreq: intel_pstate: Use CPPC to get max performance
+
+Srinivas Pandruvada (2):
+  acpi: bus: Enable HWP CPPC objects
+  acpi: bus: Set _OSC for diverse core support
+
+Tim Chen (6):
+  sched: Extend scheduler's asym packing
+  x86/topology: Provide topology_num_packages()
+  x86/topology: Define x86's arch_update_cpu_topology
+  x86: Enable Intel Turbo Boost Max Technology 3.0
+  x86/sysctl: Add sysctl for ITMT scheduling feature
+  x86/sched: Add SD_ASYM_PACKING flags to x86 ITMT CPU
+
+ arch/x86/Kconfig                |   9 ++
+ arch/x86/include/asm/topology.h |  35 +++++++
+ arch/x86/kernel/Makefile        |   1 +
+ arch/x86/kernel/itmt.c          | 217 ++++++++++++++++++++++++++++++++++++++++
+ arch/x86/kernel/smpboot.c       |  44 +++++++-
+ drivers/acpi/bus.c              |  10 ++
+ drivers/cpufreq/Kconfig.x86     |   1 +
+ drivers/cpufreq/intel_pstate.c  |  56 ++++++++++-
+ include/linux/acpi.h            |   1 +
+ include/linux/sched.h           |   2 +
+ kernel/sched/core.c             |  15 +++
+ kernel/sched/fair.c             |  35 +++++--
+ kernel/sched/sched.h            |   6 ++
+ 13 files changed, 416 insertions(+), 16 deletions(-)
+ create mode 100644 arch/x86/kernel/itmt.c
+
+-- 
+2.5.5
+
+
+Rafael J. Wysocki (1):
+  cpufreq: intel_pstate: Use CPPC to get max performance
+
+Srinivas Pandruvada (2):
+  acpi: bus: Enable HWP CPPC objects
+  acpi: bus: Set _OSC for diverse core support
+
+Tim Chen (6):
+  sched: Extend scheduler's asym packing
+  x86/topology: Provide topology_num_packages()
+  x86/topology: Define x86's arch_update_cpu_topology
+  x86: Enable Intel Turbo Boost Max Technology 3.0
+  x86/sysctl: Add sysctl for ITMT scheduling feature
+  x86/sched: Add SD_ASYM_PACKING flags to x86 ITMT CPU
+
+ arch/x86/Kconfig                |   9 ++
+ arch/x86/include/asm/topology.h |  35 +++++++
+ arch/x86/kernel/Makefile        |   1 +
+ arch/x86/kernel/itmt.c          | 217 ++++++++++++++++++++++++++++++++++++++++
+ arch/x86/kernel/smpboot.c       |  44 +++++++-
+ drivers/acpi/bus.c              |  10 ++
+ drivers/cpufreq/Kconfig.x86     |   1 +
+ drivers/cpufreq/intel_pstate.c  |  56 ++++++++++-
+ include/linux/acpi.h            |   1 +
+ include/linux/sched.h           |   2 +
+ kernel/sched/core.c             |  15 +++
+ kernel/sched/fair.c             |  35 +++++--
+ kernel/sched/sched.h            |   6 ++
+ 13 files changed, 416 insertions(+), 16 deletions(-)
+ create mode 100644 arch/x86/kernel/itmt.c
+
+-- 
+2.5.5
+
