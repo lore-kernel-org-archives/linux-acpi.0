@@ -1,34 +1,82 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v14 0/9] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 20 Oct 2016 15:31:01 +0100
-Message-ID: <20161020143101.GI10234@leverpostej>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+From: Lloyds TSB Bank PLC <edna.hiendlmayer@terceirizado.mda.gov.br>
+Subject: =?utf-8?Q?l=C3=A5netilbud_p=C3=A5_3%?=
+Date: Thu, 20 Oct 2016 12:34:32 -0200 (BRST)
+Message-ID: <1430867335.8443976.1476974072477.JavaMail.zimbra__42553.8665069782$1476974142$gmane$org@terceirizado.mda.gov.br>
+Reply-To: "lloyds26tsb@gmail.com" <lloyds26tsb@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1475086637-1914-1-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mda.gov.br ([200.198.212.37]:22310 "EHLO mx2.mda.gov.br"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1030302AbcJTOfI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Oct 2016 10:35:08 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On Thu, Sep 29, 2016 at 02:17:08AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-> This patchset depends on the following patchset:
-> [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
-> https://lkml.org/lkml/2016/9/12/949
+Schönen Tag,
 
-Is there a branch with these anywhere? I wasn't Cc'd on those and it's
-rather difficult to get at the series from an LKML link.
+Dies ist Lloyd's TSB Bank plc Darlehen bieten.
 
-Thanks,
-Mark.
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lloyd's TSB bietet flexible und erschwingliche Darlehen für jeden Zweck, um Ihnen zu helfen, Ihre Ziele zu erreichen. Wir leihen zu einem niedrigen Zinssatz von 3%. Hier sind einige wichtige Merkmale der persönlichen Darlehen von Lloyd's TSB angeboten. Hier sind die Kredit-Faktoren arbeiten wir mit den führenden britischen Makler, die Zugang zu Top-Kreditgeber haben und sind in der Lage, die beste finanzielle Lösung zu einem erschwinglichen Preis zu finden.Bitte, wenn Sie interessiert sind kontaktieren Sie uns bitte über diese E-Mail: lloyds26tsb@gmail.com
+
+
+Nach der Reaktion erhalten Sie einen Antrag auf Ausleihe. Keine Sozialversicherung und keine Bonitätsprüfung, 100% garantiert.
+
+Es ist unsere Ehre, wenn Sie uns erlauben, zu Ihren Diensten zu sein.
+
+
+ERFORDERLICHE INFORMATIONENDeine Namen.......
+Adresse: ...........
+Telefon: ...........
+Benötigter Betrag: ........
+Dauer: ...............
+Beruf: ...........
+Monatliche Einkommensstufe: ........
+Geschlecht: ...............
+Geburtsdatum: ........
+Bundesland: ..................
+Land: ..........
+Zweck: .........
+
+Die Erfüllung Ihrer finanziellen Bedürfnisse ist unser Stolz.
+
+
+Dr. John Mahama.
+
+
+..........................................................................................................................................................................................................................................................................................................................................................................................................................................................
+
+Good day,
+
+This is Lloyd's TSB bank plc Loans offer.
+
+Lloyd's TSB offers flexible and affordable loans for any purpose to help you reach your goals. we loan at low interest rate of 3%. Here are some important features of the Personal Loan offered by Lloyd's TSB. Here are the Loan Factors we work with the leading UK brokers who have access to top lenders and are able to find the best financial solution at an affordable price.Please if you are interested kindly contact us via this Email: lloyds26tsb@gmail.com
+
+
+After the reaction, you will receive an application for loan fill. No social security and no credit check, 100% Guaranteed.
+
+It will be our honor if you permit us to be at your service.
+
+
+INFORMATION NEEDED
+
+Your names.......
+Address: ...........
+Phone: ...........
+Amount needed: ........
+Duration: ...............
+Occupation: ...........
+Monthly Income Level: ........
+Gender: ...............
+Date of Birth: ........
+State: ..................
+Country: ..........
+Purpose: .........
+
+Meeting your financial needs is our pride.
+
+
+Dr.John Mahama.
