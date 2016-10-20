@@ -1,7 +1,7 @@
 From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: [PATCH V3 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
-Date: Thu, 20 Oct 2016 11:10:34 +0800
-Message-ID: <1476933034-46044-3-git-send-email-liudongdong3@huawei.com>
+Subject: [PATCH V3 1/2] PCI: hisi: Add ECAM support for devices that are not RC
+Date: Thu, 20 Oct 2016 11:10:33 +0800
+Message-ID: <1476933034-46044-2-git-send-email-liudongdong3@huawei.com>
 References: <1476933034-46044-1-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,285 +12,177 @@ To: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
-It is non ECAM only for the RC bus config space;for any other bus
-underneath the root bus we support ECAM access.
-Add specific quirks for PCI config space accessors.This involves:
-1. New initialization call hisi_pcie_init() to obtain rc base
-addresses from PNP0C02 as subdevice of PNP0A03.
-2. New entry in common quirk array.
+This patch modifies the current Hip05/Hip06 PCIe host
+controller driver to add support for 'almost ECAM'
+compliant platforms. Some controllers are ECAM compliant
+for all the devices of the hierarchy except the root
+complex; this patch adds support for such controllers.
 
-Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+This is needed in preparation for the ACPI based driver
+to allow both DT and ACPI drivers to use the same BIOS
+(that configure the Designware iATUs).
+This commit doesn't break backward compatibility with
+previous non-ECAM platforms.
+
 Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
 ---
- MAINTAINERS                       |   1 +
- drivers/acpi/pci_mcfg.c           |  15 ++++
- drivers/pci/host/Kconfig          |   8 ++
- drivers/pci/host/Makefile         |   1 +
- drivers/pci/host/pcie-hisi-acpi.c | 170 ++++++++++++++++++++++++++++++++++++++
- include/linux/pci-ecam.h          |   4 +
- 6 files changed, 199 insertions(+)
- create mode 100755 drivers/pci/host/pcie-hisi-acpi.c
+ .../devicetree/bindings/pci/hisilicon-pcie.txt     | 15 +++++---
+ drivers/pci/host/Kconfig                           |  4 +-
+ drivers/pci/host/pcie-designware.c                 |  4 +-
+ drivers/pci/host/pcie-designware.h                 |  2 +
+ drivers/pci/host/pcie-hisi.c                       | 45 ++++++++++++++++++++++
+ 5 files changed, 60 insertions(+), 10 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1cd38a7..b224caa 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
- F:	drivers/pci/host/pcie-hisi.c
-+F:	drivers/pci/host/pcie-hisi-acpi.c
+diff --git a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+index 59c2f47..87a597a 100644
+--- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
++++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+@@ -9,10 +9,13 @@ Additional properties are described here:
  
- PCIE DRIVER FOR ROCKCHIP
- M:	Shawn Lin <shawn.lin@rock-chips.com>
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index bb2c508..135a9b4 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -96,6 +96,21 @@ struct mcfg_fixup {
- 	THUNDER_ECAM_MCFG(2, 12),
- 	THUNDER_ECAM_MCFG(2, 13),
- #endif
-+#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
-+	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
-+	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
-+	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
-+	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
-+
-+#ifdef CONFIG_PCI_HISI_ACPI
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
-+#endif
-+
- };
+ Required properties
+ - compatible: Should contain "hisilicon,hip05-pcie" or "hisilicon,hip06-pcie".
+-- reg: Should contain rc_dbi, config registers location and length.
+-- reg-names: Must include the following entries:
++- reg: Should contain rc_dbi and  either config or ecam-cfg registers
++       location and length (it depends on the platform BIOS).
++- reg-names: Must include
+   "rc_dbi": controller configuration registers;
+-  "config": PCIe configuration space registers.
++  and one of the following entries:
++    "config": PCIe configuration space registers for non-ECAM platforms.
++    "ecam-cfg": PCIe configuration space registers for ECAM platforms
+ - msi-parent: Should be its_pcie which is an ITS receiving MSI interrupts.
+ - port-id: Should be 0, 1, 2 or 3.
  
- static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+@@ -23,8 +26,10 @@ Optional properties:
+ Hip05 Example (note that Hip06 is the same except compatible):
+ 	pcie@0xb0080000 {
+ 		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
+-		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
+-		reg-names = "rc_dbi", "config";
++		reg = <0 0xb0080000 0 0x10000>,
++		      <0x220 0x00000000 0 0x2000>
++		/* or <0x220 0x00100000 0 0x0f00000> for ecam-cfg*/;
++		reg-names = "rc_dbi", "config" /* or "ecam-cfg" */;
+ 		bus-range = <0  15>;
+ 		msi-parent = <&its_pcie>;
+ 		#address-cells = <3>;
 diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-index ae98644..9ff2bcd 100644
+index d7e7c0a..ae98644 100644
 --- a/drivers/pci/host/Kconfig
 +++ b/drivers/pci/host/Kconfig
-@@ -227,6 +227,14 @@ config PCI_HISI
- 	  Say Y here if you want PCIe controller support on HiSilicon
- 	  Hip05 and Hip06 and Hip07 SoCs
+@@ -219,13 +219,13 @@ config PCIE_ALTERA_MSI
  
-+config PCI_HISI_ACPI
-+	depends on ACPI && ARM64
-+	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe controllers"
-+	select PNP
-+	help
-+	  Say Y here if you want ACPI PCIe controller support on HiSilicon
+ config PCI_HISI
+ 	depends on OF && ARM64
+-	bool "HiSilicon Hip05 and Hip06 SoCs PCIe controllers"
++	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs PCIe controllers"
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
+ 	help
+ 	  Say Y here if you want PCIe controller support on HiSilicon
+-	  Hip05 and Hip06 SoCs
 +	  Hip05 and Hip06 and Hip07 SoCs
-+
+ 
  config PCIE_QCOM
  	bool "Qualcomm PCIe controller"
- 	depends on ARCH_QCOM && OF
-diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
-index 084cb49..9402858 100644
---- a/drivers/pci/host/Makefile
-+++ b/drivers/pci/host/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
- obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
- obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
- obj-$(CONFIG_PCI_HISI) += pcie-hisi.o
-+obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o
- obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
- obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
- obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
-diff --git a/drivers/pci/host/pcie-hisi-acpi.c b/drivers/pci/host/pcie-hisi-acpi.c
-new file mode 100755
-index 0000000..5650d91
---- /dev/null
-+++ b/drivers/pci/host/pcie-hisi-acpi.c
-@@ -0,0 +1,170 @@
-+/*
-+ * PCIe host controller driver for HiSilicon HipXX SoCs
-+ *
-+ * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
-+ *
-+ * Author: Dongdong Liu <liudongdong3@huawei.com>
-+ *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/pci.h>
-+#include <linux/pci-acpi.h>
-+#include <linux/pci-ecam.h>
-+
-+#define DEBUG0				0x728
-+#define PCIE_LTSSM_LINKUP_STATE		0x11
-+#define PCIE_LTSSM_STATE_MASK		0x3F
-+
-+static const struct acpi_device_id hisi_pcie_rc_res_ids[] = {
-+	{"HISI0081", 0},
-+	{"", 0},
-+};
-+
-+static int hisi_pcie_link_up_acpi(struct pci_config_window *cfg)
-+{
-+	u32 val;
-+	void __iomem *reg_base = cfg->priv;
-+
-+	val = readl(reg_base + DEBUG0);
-+	return ((val & PCIE_LTSSM_STATE_MASK) == PCIE_LTSSM_LINKUP_STATE);
-+}
-+
-+static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-+				  int size, u32 *val)
-+{
-+	struct pci_config_window *cfg = bus->sysdata;
-+	int dev = PCI_SLOT(devfn);
-+
-+	if (bus->number == cfg->busr.start) {
-+		/* access only one slot on each root port */
-+		if (dev > 0)
-+			return PCIBIOS_DEVICE_NOT_FOUND;
-+		else
-+			return pci_generic_config_read32(bus, devfn, where,
-+							 size, val);
-+	}
-+
-+	return pci_generic_config_read(bus, devfn, where, size, val);
-+}
-+
-+static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
-+				  int where, int size, u32 val)
-+{
-+	struct pci_config_window *cfg = bus->sysdata;
-+	int dev = PCI_SLOT(devfn);
-+
-+	if (bus->number == cfg->busr.start) {
-+		/* access only one slot on each root port */
-+		if (dev > 0)
-+			return PCIBIOS_DEVICE_NOT_FOUND;
-+		else
-+			return pci_generic_config_write32(bus, devfn, where,
-+							  size, val);
-+	}
-+
-+	return pci_generic_config_write(bus, devfn, where, size, val);
-+}
-+
-+static void __iomem *hisi_pcie_map_bus(struct pci_bus *bus, unsigned int devfn,
-+				       int where)
-+{
-+	struct pci_config_window *cfg = bus->sysdata;
-+	void __iomem *reg_base = cfg->priv;
-+
-+	if (bus->number == cfg->busr.start)
-+		return reg_base + where;
-+	else
-+		return pci_ecam_map_bus(bus, devfn, where);
-+}
-+
-+/*
-+ * Retrieve RC base and size from sub-device under the RC
-+ * Device (RES1)
-+ * {
-+ *	Name (_HID, "HISI0081")
-+ *	Name (_CID, "PNP0C02")
-+ *	Name (_CRS, ResourceTemplate (){
-+ *		Memory32Fixed (ReadWrite, 0xb0080000, 0x10000)
-+ *	})
-+ * }
-+ */
-+static int hisi_pcie_rc_addr_get(struct acpi_device *adev,
-+				 void __iomem **addr)
-+{
-+	struct acpi_device *child_adev;
-+	struct list_head list;
-+	struct resource *res;
-+	struct resource_entry *entry;
-+	unsigned long flags;
-+	int ret;
-+
-+	list_for_each_entry(child_adev, &adev->children, node) {
-+		ret = acpi_match_device_ids(child_adev, hisi_pcie_rc_res_ids);
-+		if (ret)
-+			continue;
-+
-+		INIT_LIST_HEAD(&list);
-+		flags = IORESOURCE_MEM;
-+		ret = acpi_dev_get_resources(child_adev, &list,
-+					     acpi_dev_filter_resource_type_cb,
-+					     (void *)flags);
-+		if (ret < 0) {
-+			dev_err(&child_adev->dev,
-+				"failed to parse _CRS method, error code %d\n",
-+				ret);
-+			return ret;
-+		} else if (ret == 0) {
-+			dev_err(&child_adev->dev,
-+				"no IO and memory resources present in _CRS\n");
-+			return -EINVAL;
-+		}
-+
-+		entry = list_first_entry(&list, struct resource_entry, node);
-+		res = entry->res;
-+		*addr = devm_ioremap(&child_adev->dev,
-+				     res->start, resource_size(res));
-+		acpi_dev_free_resource_list(&list);
-+		if (IS_ERR(*addr)) {
-+			dev_err(&child_adev->dev, "error with ioremap\n");
-+			return -ENOMEM;
-+		}
-+
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int hisi_pcie_init(struct pci_config_window *cfg)
-+{
-+	int ret;
-+	struct acpi_device *adev = to_acpi_device(cfg->parent);
-+	void __iomem *reg_base;
-+
-+	ret = hisi_pcie_rc_addr_get(adev, &reg_base);
-+	if (ret) {
-+		dev_err(&adev->dev, "can't get rc base address");
-+		return ret;
-+	}
-+
-+	cfg->priv = reg_base;
-+	if (!hisi_pcie_link_up_acpi(cfg)) {
-+		dev_err(&adev->dev, "link status is down\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+struct pci_ecam_ops hisi_pcie_ops = {
-+	.bus_shift    = 20,
-+	.init         =  hisi_pcie_init,
-+	.pci_ops      = {
-+		.map_bus    = hisi_pcie_map_bus,
-+		.read       = hisi_pcie_acpi_rd_conf,
-+		.write      = hisi_pcie_acpi_wr_conf,
-+	}
-+};
-diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-index 35f0e81..2db4db8 100644
---- a/include/linux/pci-ecam.h
-+++ b/include/linux/pci-ecam.h
-@@ -66,6 +66,10 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
- extern struct pci_ecam_ops pci_thunder_ecam_ops;
- #endif
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index 035f50c..da11644 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -101,8 +101,6 @@
+ #define PCIE_PHY_DEBUG_R1_LINK_UP	(0x1 << 4)
+ #define PCIE_PHY_DEBUG_R1_LINK_IN_TRAINING	(0x1 << 29)
  
-+#ifdef CONFIG_PCI_HISI_ACPI
-+extern struct pci_ecam_ops hisi_pcie_ops;
-+#endif
+-static struct pci_ops dw_pcie_ops;
+-
+ int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
+ {
+ 	if ((uintptr_t)addr & (size - 1)) {
+@@ -800,7 +798,7 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
+ 	return dw_pcie_wr_other_conf(pp, bus, devfn, where, size, val);
+ }
+ 
+-static struct pci_ops dw_pcie_ops = {
++struct pci_ops dw_pcie_ops = {
+ 	.read = dw_pcie_rd_conf,
+ 	.write = dw_pcie_wr_conf,
+ };
+diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+index a567ea2..30d228a 100644
+--- a/drivers/pci/host/pcie-designware.h
++++ b/drivers/pci/host/pcie-designware.h
+@@ -83,4 +83,6 @@ struct pcie_host_ops {
+ void dw_pcie_setup_rc(struct pcie_port *pp);
+ int dw_pcie_host_init(struct pcie_port *pp);
+ 
++extern struct pci_ops dw_pcie_ops;
 +
- #ifdef CONFIG_PCI_HOST_GENERIC
- /* for DT-based PCI controllers that support ECAM */
- int pci_host_common_probe(struct platform_device *pdev,
+ #endif /* _PCIE_DESIGNWARE_H */
+diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
+index 56154c2..555c964 100644
+--- a/drivers/pci/host/pcie-hisi.c
++++ b/drivers/pci/host/pcie-hisi.c
+@@ -43,6 +43,34 @@ struct hisi_pcie {
+ 	struct pcie_soc_ops *soc_ops;
+ };
+ 
++static inline int hisi_rd_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
++				    unsigned int devfn, int where, int size,
++				    u32 *value)
++{
++	return pci_generic_config_read(bus, devfn, where, size, value);
++}
++
++static inline int hisi_wr_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
++				    unsigned int devfn, int where, int size,
++				    u32 value)
++{
++	return pci_generic_config_write(bus, devfn, where, size, value);
++}
++
++static void __iomem *hisi_pci_map_cfg_bus_cam(struct pci_bus *bus,
++					      unsigned int devfn,
++					      int where)
++{
++	void __iomem *addr;
++	struct pcie_port *pp = bus->sysdata;
++
++	addr = pp->va_cfg1_base - (pp->busn->start << 20) +
++		((bus->number << 20) | (devfn << 12)) +
++		where;
++
++	return addr;
++}
++
+ /* HipXX PCIe host only supports 32-bit config access */
+ static int hisi_pcie_cfg_read(struct pcie_port *pp, int where, int size,
+ 			      u32 *val)
+@@ -190,6 +218,23 @@ static int hisi_pcie_probe(struct platform_device *pdev)
+ 		return PTR_ERR(pp->dbi_base);
+ 	}
+ 
++	reg = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecam-cfg");
++	if (reg) {
++		/* ECAM driver version */
++		hisi_pcie->pp.va_cfg0_base =
++		devm_ioremap_resource(&pdev->dev, reg);
++		if (IS_ERR(hisi_pcie->pp.va_cfg0_base)) {
++			dev_err(pp->dev, "cannot get ecam-cfg\n");
++			return PTR_ERR(hisi_pcie->pp.va_cfg0_base);
++		}
++		hisi_pcie->pp.va_cfg1_base = hisi_pcie->pp.va_cfg0_base;
++
++		dw_pcie_ops.map_bus = hisi_pci_map_cfg_bus_cam;
++
++		hisi_pcie_host_ops.rd_other_conf = hisi_rd_ecam_conf;
++		hisi_pcie_host_ops.wr_other_conf = hisi_wr_ecam_conf;
++	}
++
+ 	ret = hisi_add_pcie_port(hisi_pcie, pdev);
+ 	if (ret)
+ 		return ret;
 -- 
 1.9.1
