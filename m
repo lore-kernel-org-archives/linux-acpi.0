@@ -1,36 +1,83 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 4/4] ACPI / gpio: Allow holes in list of GPIOs for a device
-Date: Thu, 20 Oct 2016 14:10:39 +0200
-Message-ID: <CACRpkdZhWj8ZeEhZ06OFKq2BEZbVxcG5_zd9WcoOrn6vRACOwg@mail.gmail.com>
-References: <20160929133944.158596-1-mika.westerberg@linux.intel.com> <20160929133944.158596-5-mika.westerberg@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 2/4] ACPI / gpio: Add support for naming GPIOs
+Date: Thu, 20 Oct 2016 15:14:42 +0300
+Message-ID: <20161020121442.GF24289@lahna.fi.intel.com>
+References: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
+ <20160929133944.158596-3-mika.westerberg@linux.intel.com>
+ <CACRpkdYRWdd9anAcufadb-0sWSZ3reA-K+=z5Bc0Vk9dBrG29g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160929133944.158596-5-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:36441 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753937AbcJTMOq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Oct 2016 08:14:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CACRpkdYRWdd9anAcufadb-0sWSZ3reA-K+=z5Bc0Vk9dBrG29g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Sep 29, 2016 at 3:39 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
+On Thu, Oct 20, 2016 at 02:06:42PM +0200, Linus Walleij wrote:
+> On Thu, Sep 29, 2016 at 3:39 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> 
+> > DT has property 'gpio-line-names' to name GPIO lines the controller has if
+> > present. Use this very same property in ACPI as well to provide nice names
+> > for the GPIOS.
+> >
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> Oh wait:
+> 
+> > +static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
+> > +{
+> > +       struct gpio_chip *chip = achip->chip;
+> > +       struct gpio_device *gdev = chip->gpiodev;
+> > +       const char **names;
+> > +       int ret, i;
+> > +
+> > +       ret = device_property_read_string_array(chip->parent, "gpio-line-names",
+> > +                                               NULL, 0);
+> > +       if (ret < 0)
+> > +               return;
+> > +
+> > +       if (ret != gdev->ngpio) {
+> > +               dev_warn(chip->parent,
+> > +                        "names %d do not match number of GPIOs %d\n", ret,
+> > +                        gdev->ngpio);
+> > +               return;
+> > +       }
+> > +
+> > +       names = kcalloc(gdev->ngpio, sizeof(*names), GFP_KERNEL);
+> > +       if (!names)
+> > +               return;
+> > +
+> > +       ret = device_property_read_string_array(chip->parent, "gpio-line-names",
+> > +                                               names, gdev->ngpio);
+> > +       if (ret < 0) {
+> > +               dev_warn(chip->parent, "Failed to read GPIO line names\n");
+> > +               return;
+> > +       }
+> > +
+> > +       /*
+> > +        * It is fine to assign the name, it will be allocated as long as
+> > +        * the ACPI device exists.
+> > +        */
+> > +       for (i = 0; i < gdev->ngpio; i++)
+> > +               gdev->descs[i].name = names[i];
+> > +
+> > +       kfree(names);
+> > +}
+> 
+> Wouldn't this entire function work just as fine on device tree?
 
-> Make it possible to have an empty GPIOs in a GPIO list for device. For
-> example a SPI master may use both GPIOs and native pins as chip selects and
-> we need to be able to distinguish between the two.
->
-> This makes it mandatory to have exactly 3 arguments for GPIOs and then
-> converts gpiolib to use of __acpi_node_get_property_reference() instead. In
-> addition we make acpi_gpio_package_count() to handle holes as well (this
-> matches the DT version).
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Now that you mentioned it, yes, I think it should work with DT as well.
 
-Looks OK.
+> So should this snippet using device_property_* be moved into
+> a file like gpiolib-devprop.c+gpiolib.h signature and get used from
+> both gpiolib-of.c and gpiolib-acpi.c, replacing the DT-specific
+> code in gpiolib-of.c?
 
-Do I need someone's ACK to merge stuff under
-Documentation/acpi/gpio-properties.txt?
-Like Rafael?
-
-Yours,
-Linus Walleij
+Works for me :)
