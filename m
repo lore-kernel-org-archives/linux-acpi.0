@@ -1,134 +1,66 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-Date: Thu, 20 Oct 2016 01:17:23 +0200
-Message-ID: <CAJZ5v0gE8uZ4NfuJVtuzkioJS0TpG2mvgJV3o3j0oM7WsVmh7w@mail.gmail.com>
-References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
- <1476505867-24599-2-git-send-email-okaya@codeaurora.org> <20161018135912.GD18903@localhost>
- <b4a8995e-1454-3b84-0681-1491788087ec@codeaurora.org> <0a82f2ef-b072-d847-104a-320cf804ebd5@codeaurora.org>
- <20161019224405.GA14915@localhost>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+Date: Thu, 20 Oct 2016 09:45:43 +0800
+Message-ID: <c88b5433-fbf0-1a15-11b2-b47c1872d48d@huawei.com>
+References: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
+ <1AE640813FDE7649BE1B193DEA596E886A253666@SHSMSX101.ccr.corp.intel.com>
+ <696226b1-7024-a4d6-8bea-ddbf6d08a564@huawei.com>
+ <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161019224405.GA14915@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:29901 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756600AbcJTBqL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Oct 2016 21:46:11 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "wmiles@sgl.com" <wmiles@sgl.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>
 
-On Thu, Oct 20, 2016 at 12:44 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, Oct 18, 2016 at 08:32:44AM -0700, Sinan Kaya wrote:
->> Sorry, I think I didn't have enough morning coffee.
->>
->> Looking at these again and trying to be specific.
->>
->> On 10/18/2016 8:20 AM, Sinan Kaya wrote:
->> > It seems wrong to me that we call acpi_irq_get_penalty() from
->> >> acpi_irq_penalty_update() and acpi_penalize_isa_irq().  It seems like they
->> >> should just manipulate acpi_isa_irq_penalty[irq] directly.
->> >>
->> >> acpi_irq_penalty_update() is for command-line parameters, so it certainly
->> >> doesn't need the acpi_irq_pci_sharing_penalty() information (the
->> >> acpi_link_list should be empty at the time we process the command-line
->> >> parameters).
->>
->> Calling acpi_irq_get_penalty for ISA IRQ is OK as long as it doesn't have
->> any dynamic IRQ calculation such that acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty.
->>
->> If this is broken, then we need special care so that we don't assign
->> dynamically calcualted sci_penalty back to acpi_isa_irq_penalty[irq]. This
->> results in returning incorrect penalty as
->>
->> acpi_irq_get_penalty = acpi_isa_irq_original_penalty[irq] + 2 * sci_penalty.
->>
->> Now that we added sci_penalty into the acpi_irq_get_penalty function,
->> calling acpi_irq_get_penalty is not correct anymore. This line here needs to
->> be replaced with acpi_isa_irq_penalty[irq] as you suggested.
->>
->>                 if (used)
->>                         new_penalty = acpi_irq_get_penalty(irq) +
->>                                         PIRQ_PENALTY_ISA_USED;
->>                 else
->>                         new_penalty = 0;
->>
->>                 acpi_isa_irq_penalty[irq] = new_penalty;
->>
->>
->> >>
->> >> acpi_penalize_isa_irq() is telling us that a PNP or ACPI device is using
->> >> the IRQ -- this should modify the IRQ's penalty, but it shouldn't depend on
->> >> the acpi_irq_pci_sharing_penalty() value at all.
->> >>
->>
->> Same problem here. This line will be broken after the sci_penalty change.
->>
->>                 acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
->>                   (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
->
-> I think the fragility of this code is an indication that we have a
-> design problem, so I want to step back from the nitty gritty details
-> for a bit and look at the overall design.
->
-> Let me restate the overall problem: We have a PCI device connected to
-> an interrupt link.  The interrupt link can be connected to one of
-> several IRQs, and we want to choose one of those IRQs to minimize IRQ
-> sharing.
->
-> That means we need information about which IRQs are used.
-> Historically we've started with a compiled-in table of common ISA IRQ
-> usage, and we also collect information about which IRQs are used and
-> which *might* be used.  So we have the following inputs:
->
->   - Compiled-in ISA IRQ usage: the static acpi_isa_irq_penalty[]
->     values.  ACPI is *supposed* to tell us about all these usages, so
->     I don't know why we have the table.  But it's been there as long
->     as I can remember.  The table is probably x86-specific, but we
->     keep it in the supposedly generic pci_link.c.
->
->   - The "acpi_irq_isa=" and "acpi_irq_pci=" command-line overrides via
->     acpi_irq_pci().  I suppose these are for cases where we can't
->     figure things out automatically.  I would resist adding parameters
->     like this today (I would treat the need for them as a bug and look
->     for a fix or a quirk), but we might be stuck with these.
->
->   - SCI information from the ACPI FADT (acpi_penalize_sci_irq()).
->
->   - PNPBIOS and PNPACPI device IRQ usage from _CRS and _PRS via
->     acpi_penalize_isa_irq().  This is only for IRQs 0-15, and it does
->     NOT include interrupt link (PNP0C0F) devices because we don't
->     handle them as PNPACPI devices.  I think this is related to the
->     fact that PNP0C0F doesn't appear in acpi_pnp_device_ids[].
->
->   - For non-PNP0C0F, non-PNPACPI devices, we completely ignore IRQ
->     information from _CRS and _PRS.  This seems sub-optimal and
->     possibly buggy.
->
->   - Interrupt link (PNP0C0F) IRQ usage from _CRS and _PRS via
->     acpi_irq_penalty_init().  This is only for IRQs 0-15, and we only
->     call this on x86.  If _PRS exists, we penalize each possible IRQ.
->     If there's no _PRS but _CRS contains an active IRQ, we penalize
->     it.
->
->   - Interrupt link (PNP0C0F) IRQ usage from _CRS and _PRS when
->     enabling a new link.  In acpi_irq_pci_sharing_penalty(), we
->     penalize an IRQ if it appears in _CRS or _PRS of any link device
->     in the system.
->
->     For IRQs 0-15, this overlaps with the penalization done at
->     boot-time by acpi_irq_penalty_init(): if a device has _PRS, we'll
->     add the "possible" penalty twice (once in acpi_irq_penalty_init()
->     and again in acpi_irq_pci_sharing_penalty()), and the "using"
->     penalty once (in acpi_irq_pci_sharing_penalty()).
->
->     If a device has no _PRS but has _CRS, the "using" penalty is
->     applied twice (once in once in acpi_irq_penalty_init() and again
->     in acpi_irq_pci_sharing_penalty())
->
-> I think this whole thing is baroque and grotesque.
+Hi,
 
-While I agree, I also would like the regression introduced here to be
-fixed ASAP.
+On 2016/10/19 6:07, Zheng, Lv wrote:
+> Hi,
+> 
+> I'm not sure what you mean.
+> I mean you need ACPI_USE_SYSTEM_INTTYPES in case s64 has already been defined in that environment.
+> Are you sure s64 should be defined for your environment?
+> 
+s64 is not defined in my build environment but in kernel code.
 
-So do you want me to revert all of the changes made here so far and start over?
+> IMO, s64 is kernel space specific, while you are compiling user space tools.
+> It looks to me like there is something wrong with ARM kernel's asm/types.h.
+> 
+>> I listed in change log. And I also have tried that way.
+>> However, it still have many other errors.(I am sorry to not have listed all of them.)
+>>
+>> From the following log, you can see, all of the conflict type is from signal.h.
+>> And maybe this patch is a better way to fix these compile error, without too much
+>> change of code.
+>>
+>> Are you sure that it will cause order problem when build ACPICA on other build
+>> environment, for it only effect aarch64.
+> 
+> I'm not sure what this is.
+> How did you get this?
+> Were you compiling kernel acpi tools or compiling the kernel itself?
+> 
+It's about compiling kernel acpi tools.
 
-Thanks,
-Rafael
+> For tool compilation, are you sure you have correctly configured your cross-compilation environment?
+Maybe it is not my cross-compilation environment problem, for your also can reproduce it,
+as your said in another email, right?
+
+> Will you see problems in compiling ACPICA applications from:
+> https://github.com/acpica/acpica
+> 
+
+> Thanks
+> Lv
+> 
+> .
+> 
+
