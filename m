@@ -1,62 +1,72 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH] watchdog: wdat_wdt: Ping the watchdog on resume
-Date: Thu, 20 Oct 2016 18:17:38 +0300
-Message-ID: <20161020151738.GP24289@lahna.fi.intel.com>
-References: <20161020150336.97791-1-mika.westerberg@linux.intel.com>
- <CAJZ5v0ipdO2psmdesoQuw_5uuOSqDh22DK04bEJTi1pW0fL53g@mail.gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v14 3/9] clocksource/drivers/arm_arch_timer: Improve
+ printk relevant code
+Date: Thu, 20 Oct 2016 16:32:45 +0100
+Message-ID: <20161020153244.GB27598@leverpostej>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+ <1475086637-1914-4-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ipdO2psmdesoQuw_5uuOSqDh22DK04bEJTi1pW0fL53g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1475086637-1914-4-git-send-email-fu.wei@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 20, 2016 at 05:05:22PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Oct 20, 2016 at 5:03 PM, Mika Westerberg
-> <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> > It turns out we need to ping the watchdog hardware on resume when we
-> > re-program it. Otherwise this results inadvertent reset to trigger right
-> > after the resume is completed.
-> >
-> > Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> 
-> Is there a Fixes: tag missing here?
+On Thu, Sep 29, 2016 at 02:17:11AM +0800, fu.wei@linaro.org wrote:
+>  static void arch_timer_banner(unsigned type)
+>  {
+> -	pr_info("Architected %s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
+> -		     type & ARCH_CP15_TIMER ? "cp15" : "",
+> -		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
+> -		     type & ARCH_MEM_TIMER ? "mmio" : "",
+> -		     (unsigned long)arch_timer_rate / 1000000,
+> -		     (unsigned long)(arch_timer_rate / 10000) % 100,
+> -		     type & ARCH_CP15_TIMER ?
+> -		     (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+> -			"",
+> -		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
+> -		     type & ARCH_MEM_TIMER ?
+> -			arch_timer_mem_use_virtual ? "virt" : "phys" :
+> -			"");
+> +	pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
+> +		type & ARCH_CP15_TIMER ? "cp15" : "",
+> +		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
+> +		type & ARCH_MEM_TIMER ? "mmio" : "",
+> +		(unsigned long)arch_timer_rate / 1000000,
+> +		(unsigned long)(arch_timer_rate / 10000) % 100,
+> +		type & ARCH_CP15_TIMER ?
+> +		(arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+> +		"",
+Please restore the additional indent on this line...
 
-Oops, right. Sorry about that.
+> +		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
+> +		type & ARCH_MEM_TIMER ?
+> +		arch_timer_mem_use_virtual ? "virt" : "phys" :
+> +		"");
 
-It should be:
+... and these two.
 
-Fixes: 058dfc767008 ("ACPI / watchdog: Add support for WDAT hardware watchdog")
+No matter what checkpatch says, I prefer the code that way so as to keep
+the ternary clear.
 
-(I can resend the patch as well, if needed with the Fixes tag).
+[...]
 
-> > ---
-> >  drivers/watchdog/wdat_wdt.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> >
-> > diff --git a/drivers/watchdog/wdat_wdt.c b/drivers/watchdog/wdat_wdt.c
-> > index e473e3b23720..6d1fbda0f461 100644
-> > --- a/drivers/watchdog/wdat_wdt.c
-> > +++ b/drivers/watchdog/wdat_wdt.c
-> > @@ -499,6 +499,10 @@ static int wdat_wdt_resume_noirq(struct device *dev)
-> >                 ret = wdat_wdt_enable_reboot(wdat);
-> >                 if (ret)
-> >                         return ret;
-> > +
-> > +               ret = wdat_wdt_ping(&wdat->wdd);
-> > +               if (ret)
-> > +                       return ret;
-> >         }
-> >
-> >         return wdat_wdt_start(&wdat->wdd);
-> > --
-> 
-> Thanks,
-> Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -768,7 +769,7 @@ static int __init arch_timer_init(void)
+>  		return ret;
+>  
+>  	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[VIRT_PPI];
+> -	
+> +
+
+Please mention the whitespace fixup in the commit message. It's
+surprising otherwise.
+
+With all that:
+
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+
+Thanks,
+Mark.
