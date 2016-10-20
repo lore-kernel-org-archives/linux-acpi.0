@@ -1,83 +1,36 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 2/4] ACPI / gpio: Add support for naming GPIOs
-Date: Thu, 20 Oct 2016 15:14:42 +0300
-Message-ID: <20161020121442.GF24289@lahna.fi.intel.com>
-References: <20160929133944.158596-1-mika.westerberg@linux.intel.com>
- <20160929133944.158596-3-mika.westerberg@linux.intel.com>
- <CACRpkdYRWdd9anAcufadb-0sWSZ3reA-K+=z5Bc0Vk9dBrG29g@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 0/5] ACPI / gpio: Updates to properties
+Date: Thu, 20 Oct 2016 14:17:40 +0200
+Message-ID: <CACRpkdZZOzbrckz79uS1febA69eJrbTGON3FkuGUBWcw2-zkcw@mail.gmail.com>
+References: <20160923145710.105489-1-mika.westerberg@linux.intel.com>
+ <20161019124112.GK1722@lahna.fi.intel.com> <CAJZ5v0j7EfMEjb7F4BMR7O2_U0oipvcMDMf0N4XEoem4ypqE7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36441 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753937AbcJTMOq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Oct 2016 08:14:46 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdYRWdd9anAcufadb-0sWSZ3reA-K+=z5Bc0Vk9dBrG29g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0j7EfMEjb7F4BMR7O2_U0oipvcMDMf0N4XEoem4ypqE7Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Oct 20, 2016 at 02:06:42PM +0200, Linus Walleij wrote:
-> On Thu, Sep 29, 2016 at 3:39 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> 
-> > DT has property 'gpio-line-names' to name GPIO lines the controller has if
-> > present. Use this very same property in ACPI as well to provide nice names
-> > for the GPIOS.
-> >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> Oh wait:
-> 
-> > +static void acpi_gpiochip_set_names(struct acpi_gpio_chip *achip)
-> > +{
-> > +       struct gpio_chip *chip = achip->chip;
-> > +       struct gpio_device *gdev = chip->gpiodev;
-> > +       const char **names;
-> > +       int ret, i;
-> > +
-> > +       ret = device_property_read_string_array(chip->parent, "gpio-line-names",
-> > +                                               NULL, 0);
-> > +       if (ret < 0)
-> > +               return;
-> > +
-> > +       if (ret != gdev->ngpio) {
-> > +               dev_warn(chip->parent,
-> > +                        "names %d do not match number of GPIOs %d\n", ret,
-> > +                        gdev->ngpio);
-> > +               return;
-> > +       }
-> > +
-> > +       names = kcalloc(gdev->ngpio, sizeof(*names), GFP_KERNEL);
-> > +       if (!names)
-> > +               return;
-> > +
-> > +       ret = device_property_read_string_array(chip->parent, "gpio-line-names",
-> > +                                               names, gdev->ngpio);
-> > +       if (ret < 0) {
-> > +               dev_warn(chip->parent, "Failed to read GPIO line names\n");
-> > +               return;
-> > +       }
-> > +
-> > +       /*
-> > +        * It is fine to assign the name, it will be allocated as long as
-> > +        * the ACPI device exists.
-> > +        */
-> > +       for (i = 0; i < gdev->ngpio; i++)
-> > +               gdev->descs[i].name = names[i];
-> > +
-> > +       kfree(names);
-> > +}
-> 
-> Wouldn't this entire function work just as fine on device tree?
+On Wed, Oct 19, 2016 at 11:22 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Oct 19, 2016 at 2:41 PM, Mika Westerberg
 
-Now that you mentioned it, yes, I think it should work with DT as well.
+>> Any comments on the GPIO patches in this series?
+>>
+>> At least the last one does not add any new bindings so it should be fine
+>> to apply.
+>
+> I have no comments, but I'd suggest resending them as a new series on
+> top of 4.9-rc1 (which includes the generic patches from this series).
+>
+> You can add my ACK to them if that helps.
 
-> So should this snippet using device_property_* be moved into
-> a file like gpiolib-devprop.c+gpiolib.h signature and get used from
-> both gpiolib-of.c and gpiolib-acpi.c, replacing the DT-specific
-> code in gpiolib-of.c?
+OK I had some comments so please adress these but resend on top
+of v4.9-rc1 indeed. If they are already higher up in my mailbox then
+look into my comments and post again, hehe.
 
-Works for me :)
+Thanks!
+
+Yours,
+Linus Walleij
