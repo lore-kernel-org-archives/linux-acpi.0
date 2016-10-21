@@ -1,75 +1,49 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V4 3/3] Revert "ACPI, PCI, IRQ: separate ISA penalty
- calculation"
-Date: Thu, 20 Oct 2016 19:58:57 -0700
-Message-ID: <8dcd59ac-815b-da71-a3f2-ba533c4182c9@codeaurora.org>
-References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
- <1476915664-27231-4-git-send-email-okaya@codeaurora.org>
- <20161021023109.GD31044@localhost>
+Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
+ interrupts
+Date: Thu, 20 Oct 2016 20:01:51 -0700
+Message-ID: <cf80d0a4-c59d-23ff-081a-cf66feea3563@codeaurora.org>
+References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
+ <1476505867-24599-2-git-send-email-okaya@codeaurora.org>
+ <20161018135912.GD18903@localhost>
+ <b4a8995e-1454-3b84-0681-1491788087ec@codeaurora.org>
+ <0a82f2ef-b072-d847-104a-320cf804ebd5@codeaurora.org>
+ <20161019224405.GA14915@localhost>
+ <a418cf9d-5eeb-a588-6653-fd00e0c2693c@codeaurora.org>
+ <20161021024111.GA24336@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60536 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:33106 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752647AbcJUC7B (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Oct 2016 22:59:01 -0400
-In-Reply-To: <20161021023109.GD31044@localhost>
+        with ESMTP id S1753227AbcJUDBy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Oct 2016 23:01:54 -0400
+In-Reply-To: <20161021024111.GA24336@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, linux-pci@vger.kernel.org, agross@codeaurora.org, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, devel@acpica.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 
-On 10/20/2016 7:31 PM, Bjorn Helgaas wrote:
->> Let's try to simplify the code one more time to share code.
-> I'm sort of OK with this, but it's not exactly a revert of the above
-> (the commits you mention don't check "link->irq.initialized == 1".
-
-I can split the initialized bit. If I remove it from this commit, it can
-break the git bisect. That's why, I folded it into this review. I
-briefly mentioned about it in the cover letter. It might not be quiet
-clear.
-
+On 10/20/2016 7:41 PM, Bjorn Helgaas wrote:
+> On Thu, Oct 20, 2016 at 01:01:04PM -0700, Sinan Kaya wrote:
+>> On 10/19/2016 3:44 PM, Bjorn Helgaas wrote:
 > 
-> Previously acpi_irq_penalty_init() looked at _PRS info ("possible"
-> IRQs), but now we won't.  Maybe that's good; I dunno.  But it should
-> be mentioned.
-
-I'm directing all IRQs to  acpi_irq_pci_sharing_penalty function. 
-acpi_irq_pci_sharing_penalty checks for the possible values here from
-_PRS.
-
-/*
- * penalize the IRQs PCI might use, but not as severely.
- */
-for (i = 0; i < link->irq.possible_count; i++)
-	if (link->irq.possible[i] == irq)
-		penalty += PIRQ_PENALTY_PCI_POSSIBLE /
-			link->irq.possible_count;
-
+>>>   - Maintain a mapping of (IRQ, penalty).  Initially all penalties are
+>>>     zero.  This is for *all* IRQs, not just ISA ones.  This could be a
+>>>     linked list, but the structure is not important as long as we can
+>>>     add things dynamically.
+>>
+>> Dynamic allocation doesn't work due to early calls from x86 architecture.
+>> This is the reason why we iterate the link objects.
 > 
-> And I don't think it fixes a user-visible problem, so it doesn't need
-> to be applied immediately.  I'm not sure this is worth doing by
-> itself; maybe it should wait until we can do more cleanup and think
-> about all these issues together?
+> Where exactly is this early penalization?  That seems to be the
+> biggest problem.  Well, maybe the question of ACPI core parsing of
+> _CRS/_PRS is a bigger structural problem, but the dynamic allocation
+> thing at least seems solvable.
 > 
 
-It does fix the PCI_USING penalty assignment. 
-
-                if (link->irq.active && link->irq.active == irq)
-                         penalty += PIRQ_PENALTY_PCI_USING;
-
-
-If we drop this patch, then we need
-[PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-
-http://www.gossamer-threads.com/lists/linux/kernel/2547605
-
-as somebody needs to increment the penalty with PCI_USING when IRQ is assigned
-for a given ISA IRQ.
-
-We might as well take [PATCH V4 1/3], [PATCH V4 2/3] and [PATCH V3 1/3]
-for this regression.
+http://marc.info/?l=linux-acpi&m=145580159209240&w=2
 
 
 -- 
