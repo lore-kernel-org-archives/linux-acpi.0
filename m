@@ -1,168 +1,178 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 2/4] ACPI / gpio: Add hogging support
-Date: Fri, 21 Oct 2016 17:21:30 +0300
-Message-ID: <20161021142132.80539-3-mika.westerberg@linux.intel.com>
-References: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:11213 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933385AbcJUOWY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Oct 2016 10:22:24 -0400
-In-Reply-To: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V4 2/3] Revert "ACPI,PCI,IRQ: remove SCI penalize
+ function"
+Date: Fri, 21 Oct 2016 09:45:35 -0500
+Message-ID: <20161021144535.GB877@localhost>
+References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
+ <1476915664-27231-3-git-send-email-okaya@codeaurora.org>
+ <20161021015814.GC31044@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161021015814.GC31044@localhost>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, Len Brown <len.brown@intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, linux-pm@vger.kernel.org, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Pavel Machek <pavel@ucw.cz>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
 
-GPIO hogging means that the GPIO controller can "hog" and configure certain
-GPIOs without need for a driver or userspace to do that. This is useful in
-open-connected boards where BIOS cannot possibly know beforehand which
-devices will be connected to the board.
+On Thu, Oct 20, 2016 at 08:58:14PM -0500, Bjorn Helgaas wrote:
+> On Wed, Oct 19, 2016 at 06:21:03PM -0400, Sinan Kaya wrote:
+> > The SCI penalize function was removed in two steps (first refactor
+> > and then remove) and these changes are reverted here in one go.
+> > 
+> > The commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
+> > refactored the original code so that SCI penalty is calculated dynamically
+> > by the time get_penalty function is called. That change is partially
+> > reverted here, specifically for the SCI IRQ alone.
+> > 
+> > The SCI penalize function was finally dropped by commit 9e5ed6d1fb87
+> > ("ACPI,PCI,IRQ: remove SCI penalize function") that replaced the old SCI
+> > penalty API with penalty calculation carried out dynamically and based
+> > on the acpi_gbl_FADT.sci_interrupt value.
+> > 
+> > However, that new algorithm relies on the accurate setting of IRQ
+> > types and that doesn't happen early enough on some platforms which
+> > leads to incorrect penalty assignments for PCI IRQs.  In those cases,
+> > irq_get_trigger_type() returns incorrect values for the IRQs in
+> > question, because they have not been registered yet by the time the
+> > penalties are calculated.
+> > 
+> > To fix this problem, we only need to fix the penalty for the SCI interrupt.
+> > It seems better to add a single "sci_penalty" variable, set it to
+> > PIRQ_PENALTY_PCI_USING if it's level/low or PIRQ_PENALTY_ISA_ALWAYS
+> > otherwise, and add "sci_penalty" in when appropriate.  That should fix it
+> > for *any* SCI IRQ, not just those less than 256, and we don't have to add
+> > these extra penalty table entries that are all unused (except possibly for
+> > one entry if we have an SCI in the 16-255 range).
+> > 
+> > For this reason, revert commit 9e5ed6d1fb87 ("ACPI,PCI,IRQ: remove SCI
+> > penalize function") completely to restore the correct behavior.
+> 
+> I like this patch fine, except for the changelog.  I don't think it's
+> useful to describe this as a revert and give all the historical
+> details.  I think the important part is something like this:
+> 
+>   We previously used irq_get_trigger_type(irq) to help compute the
+>   penalty for the SCI, but that depends on the SCI having been
+>   registered already.  Add acpi_penalize_sci_irq() so platforms can
+>   tell us the SCI IRQ, trigger, and polarity so we can compute the
+>   penalty even before the SCI has been registered.
 
-This adds GPIO hogging mechanism to ACPI analogous to Device Tree.
+Thanks for the pointer [1] to the issues around
+acpi_penalize_sci_irq() being called before kmalloc() is available.
+That begs the question of exactly *why* we need
+acpi_penalize_sci_irq() so early -- I doubt we actually need to handle
+SCIs that early, and obviously we don't need to look up penalties that
+early (because we only look them up when enabling interrupt links,
+which happens much later).
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- Documentation/acpi/gpio-properties.txt | 35 +++++++++++++++++
- drivers/gpio/gpiolib-acpi.c            | 71 ++++++++++++++++++++++++++++++++++
- 2 files changed, 106 insertions(+)
+[1] http://marc.info/?l=linux-acpi&m=145580159209240&w=2)
 
-diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 09cff657b82c..ce7bc5c33c24 100644
---- a/Documentation/acpi/gpio-properties.txt
-+++ b/Documentation/acpi/gpio-properties.txt
-@@ -66,6 +66,41 @@ native:
-       }
-   }
- 
-+Other supported properties
-+--------------------------
-+
-+Following Device Tree compatible device properties are also supported by
-+_DSD device properties for GPIO controllers:
-+
-+- gpio-hog
-+- output-high
-+- output-low
-+- input
-+- line-name
-+
-+Example:
-+
-+  Name (_DSD, Package () {
-+      // _DSD Hierarchical Properties Extension UUID
-+      ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+      Package () {
-+          Package () {"hog-gpio8", "G8PU"}
-+      }
-+  })
-+
-+  Name (G8PU, Package () {
-+      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+      Package () {
-+          Package () {"gpio-hog", 1},
-+          Package () {"gpios", Package () {8, 0}},
-+          Package () {"output-high", 1},
-+          Package () {"line-name", "gpio8-pullup"},
-+      }
-+  })
-+
-+See Documentation/devicetree/bindings/gpio/gpio.tx for more information
-+about these properties.
-+
- ACPI GPIO Mappings Provided by Drivers
- --------------------------------------
- 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 700ea6ad609b..4f46982ce982 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -857,6 +857,76 @@ static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
- 	}
- }
- 
-+struct gpio_desc *acpi_gpiochip_parse_own_gpio(struct acpi_gpio_chip *achip,
-+	struct fwnode_handle *fwnode, const char **name, unsigned int *lflags,
-+	unsigned int *dflags)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	struct gpio_desc *desc;
-+	u32 gpios[2];
-+	int ret;
-+
-+	ret = fwnode_property_read_u32_array(fwnode, "gpios", gpios,
-+					     ARRAY_SIZE(gpios));
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	ret = acpi_gpiochip_pin_to_gpio_offset(chip->gpiodev, gpios[0]);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	desc = gpiochip_get_desc(chip, ret);
-+	if (IS_ERR(desc))
-+		return desc;
-+
-+	*lflags = 0;
-+	*dflags = 0;
-+	*name = NULL;
-+
-+	if (gpios[1])
-+		*lflags |= GPIO_ACTIVE_LOW;
-+
-+	if (fwnode_property_present(fwnode, "input"))
-+		*dflags |= GPIOD_IN;
-+	else if (fwnode_property_present(fwnode, "output-low"))
-+		*dflags |= GPIOD_OUT_LOW;
-+	else if (fwnode_property_present(fwnode, "output-high"))
-+		*dflags |= GPIOD_OUT_HIGH;
-+	else
-+		return ERR_PTR(-EINVAL);
-+
-+	fwnode_property_read_string(fwnode, "line-name", name);
-+
-+	return desc;
-+}
-+
-+static void acpi_gpiochip_scan_gpios(struct acpi_gpio_chip *achip)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	struct fwnode_handle *fwnode;
-+
-+	device_for_each_child_node(chip->parent, fwnode) {
-+		unsigned int lflags, dflags;
-+		struct gpio_desc *desc;
-+		const char *name;
-+		int ret;
-+
-+		if (!fwnode_property_present(fwnode, "gpio-hog"))
-+			continue;
-+
-+		desc = acpi_gpiochip_parse_own_gpio(achip, fwnode, &name,
-+						    &lflags, &dflags);
-+		if (IS_ERR(desc))
-+			continue;
-+
-+		ret = gpiod_hog(desc, name, lflags, dflags);
-+		if (ret) {
-+			dev_err(chip->parent, "Failed to hog GPIO\n");
-+			return;
-+		}
-+	}
-+}
-+
- void acpi_gpiochip_add(struct gpio_chip *chip)
- {
- 	struct acpi_gpio_chip *acpi_gpio;
-@@ -888,6 +958,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 	}
- 
- 	acpi_gpiochip_request_regions(acpi_gpio);
-+	acpi_gpiochip_scan_gpios(acpi_gpio);
- 	acpi_walk_dep_device_list(handle);
- }
- 
--- 
-2.9.3
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
+Wait a minute, I still have a question here: what about other ACPI
+arches (ia64, arm64)?  Don't they need to call acpi_penalize_sci_irq()
+somewhere?
+
+> > ---
+> >  arch/x86/kernel/acpi/boot.c |  1 +
+> >  drivers/acpi/pci_link.c     | 30 +++++++++++++++---------------
+> >  include/linux/acpi.h        |  1 +
+> >  3 files changed, 17 insertions(+), 15 deletions(-)
+> > 
+> > diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> > index 90d84c3..0ffd26e 100644
+> > --- a/arch/x86/kernel/acpi/boot.c
+> > +++ b/arch/x86/kernel/acpi/boot.c
+> > @@ -453,6 +453,7 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
+> >  		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
+> >  
+> >  	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
+> > +	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
+> >  
+> >  	/*
+> >  	 * stash over-ride to indicate we've been here
+> > diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> > index 4f37938..294b190 100644
+> > --- a/drivers/acpi/pci_link.c
+> > +++ b/drivers/acpi/pci_link.c
+> > @@ -87,6 +87,7 @@ struct acpi_pci_link {
+> >  
+> >  static LIST_HEAD(acpi_link_list);
+> >  static DEFINE_MUTEX(acpi_link_lock);
+> > +static int sci_irq = -1, sci_penalty;
+> >  
+> >  /* --------------------------------------------------------------------------
+> >                              PCI Link Device Management
+> > @@ -496,25 +497,13 @@ static int acpi_irq_get_penalty(int irq)
+> >  {
+> >  	int penalty = 0;
+> >  
+> > -	/*
+> > -	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
+> > -	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
+> > -	* use for PCI IRQs.
+> > -	*/
+> > -	if (irq == acpi_gbl_FADT.sci_interrupt) {
+> > -		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
+> > -
+> > -		if (type != IRQ_TYPE_LEVEL_LOW)
+> > -			penalty += PIRQ_PENALTY_ISA_ALWAYS;
+> > -		else
+> > -			penalty += PIRQ_PENALTY_PCI_USING;
+> > -	}
+> > +	if (irq == sci_irq)
+> > +		penalty += sci_penalty;
+> >  
+> >  	if (irq < ACPI_MAX_ISA_IRQS)
+> >  		return penalty + acpi_isa_irq_penalty[irq];
+> >  
+> > -	penalty += acpi_irq_pci_sharing_penalty(irq);
+> > -	return penalty;
+> > +	return penalty + acpi_irq_pci_sharing_penalty(irq);
+> >  }
+> >  
+> >  int __init acpi_irq_penalty_init(void)
+> > @@ -881,6 +870,17 @@ bool acpi_isa_irq_available(int irq)
+> >  		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+> >  }
+> >  
+> > +void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+> > +{
+> > +	sci_irq = irq;
+> > +
+> > +	if (trigger == ACPI_MADT_TRIGGER_LEVEL &&
+> > +	    polarity == ACPI_MADT_POLARITY_ACTIVE_LOW)
+> > +		sci_penalty = PIRQ_PENALTY_PCI_USING;
+> > +	else
+> > +		sci_penalty = PIRQ_PENALTY_ISA_ALWAYS;
+> > +}
+> > +
+> >  /*
+> >   * Over-ride default table to reserve additional IRQs for use by ISA
+> >   * e.g. acpi_irq_isa=5
+> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> > index c5eaf2f..67d1d3e 100644
+> > --- a/include/linux/acpi.h
+> > +++ b/include/linux/acpi.h
+> > @@ -318,6 +318,7 @@ struct pci_dev;
+> >  int acpi_pci_irq_enable (struct pci_dev *dev);
+> >  void acpi_penalize_isa_irq(int irq, int active);
+> >  bool acpi_isa_irq_available(int irq);
+> > +void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
+> >  void acpi_pci_irq_disable (struct pci_dev *dev);
+> >  
+> >  extern int ec_read(u8 addr, u8 *val);
+> > -- 
+> > 1.9.1
+> > 
+> > 
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
