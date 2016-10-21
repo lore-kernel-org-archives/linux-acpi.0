@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 1/4] ACPI / gpio: Allow holes in list of GPIOs for a device
-Date: Fri, 21 Oct 2016 17:21:29 +0300
-Message-ID: <20161021142132.80539-2-mika.westerberg@linux.intel.com>
+Subject: [PATCH v3 4/4] ACPI / gpio: Add support for naming GPIOs
+Date: Fri, 21 Oct 2016 17:21:32 +0300
+Message-ID: <20161021142132.80539-5-mika.westerberg@linux.intel.com>
 References: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
@@ -10,113 +10,52 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Make it possible to have an empty GPIOs in a GPIO list for device. For
-example a SPI master may use both GPIOs and native pins as chip selects and
-we need to be able to distinguish between the two.
-
-This makes it mandatory to have exactly 3 arguments for GPIOs and then
-converts gpiolib to use of __acpi_node_get_property_reference() instead. In
-addition we make acpi_gpio_package_count() to handle holes as well (this
-matches the DT version).
+Now that we have the new helper function that sets nice names for GPIO
+lines based on "gpio-line-names" device property, we can take advantage of
+this in acpi_gpiochip_add().
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- Documentation/acpi/gpio-properties.txt | 15 +++++++++++++++
- drivers/gpio/gpiolib-acpi.c            | 32 +++++++++++++++++++++-----------
- 2 files changed, 36 insertions(+), 11 deletions(-)
+ Documentation/acpi/gpio-properties.txt | 12 ++++++++++++
+ drivers/gpio/gpiolib-acpi.c            |  3 +++
+ 2 files changed, 15 insertions(+)
 
 diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 5aafe0b351a1..09cff657b82c 100644
+index ce7bc5c33c24..08fdc0ddee48 100644
 --- a/Documentation/acpi/gpio-properties.txt
 +++ b/Documentation/acpi/gpio-properties.txt
-@@ -51,6 +51,21 @@ it to 1 marks the GPIO as active low.
- In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
- resource, second pin in that resource with the GPIO number of 31.
+@@ -98,6 +98,18 @@ Example:
+       }
+   })
  
-+It is possible to leave holes in the array of GPIOs. This is useful in
-+cases like with SPI host controllers where some chip selects may be
-+implemented as GPIOs and some as native signals. For example a SPI host
-+controller can have chip selects 0 and 2 implemented as GPIOs and 1 as
-+native:
++- gpio-line-names
++
++Example:
 +
 +  Package () {
-+      "cs-gpios",
++      "gpio-line-names",
 +      Package () {
-+          ^GPIO, 19, 0, 0, // chip select 0: GPIO
-+          0,               // chip select 1: native signal
-+          ^GPIO, 20, 0, 0, // chip select 2: GPIO
++          "SPI0_CS_N", "EXP2_INT", "MUX6_IO", "UART0_RXD", "MUX7_IO",
++          "LVL_C_A1", "MUX0_IO", "SPI1_MISO"
 +      }
 +  }
 +
- ACPI GPIO Mappings Provided by Drivers
- --------------------------------------
+ See Documentation/devicetree/bindings/gpio/gpio.tx for more information
+ about these properties.
  
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 58ece201b8e6..700ea6ad609b 100644
+index 4f46982ce982..53266ef12008 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -468,7 +468,8 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
- 	int ret;
- 
- 	memset(&args, 0, sizeof(args));
--	ret = acpi_node_get_property_reference(fwnode, propname, index, &args);
-+	ret = __acpi_node_get_property_reference(fwnode, propname, index, 3,
-+						 &args);
- 	if (ret) {
- 		struct acpi_device *adev = to_acpi_device_node(fwnode);
- 
-@@ -483,13 +484,13 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
- 	 * on returned args.
- 	 */
- 	lookup->adev = args.adev;
--	if (args.nargs >= 2) {
--		lookup->index = args.args[0];
--		lookup->pin_index = args.args[1];
--		/* 3rd argument, if present is used to specify active_low. */
--		if (args.nargs >= 3)
--			lookup->active_low = !!args.args[2];
--	}
-+	if (args.nargs != 3)
-+		return -EPROTO;
-+
-+	lookup->index = args.args[0];
-+	lookup->pin_index = args.args[1];
-+	lookup->active_low = !!args.args[2];
-+
- 	return 0;
- }
- 
-@@ -915,18 +916,27 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
- 	kfree(acpi_gpio);
- }
- 
--static unsigned int acpi_gpio_package_count(const union acpi_object *obj)
-+static int acpi_gpio_package_count(const union acpi_object *obj)
- {
- 	const union acpi_object *element = obj->package.elements;
- 	const union acpi_object *end = element + obj->package.count;
- 	unsigned int count = 0;
- 
- 	while (element < end) {
--		if (element->type == ACPI_TYPE_LOCAL_REFERENCE)
-+		switch (element->type) {
-+		case ACPI_TYPE_LOCAL_REFERENCE:
-+			element += 3;
-+			/* Fallthrough */
-+		case ACPI_TYPE_INTEGER:
-+			element++;
- 			count++;
-+			break;
- 
--		element++;
-+		default:
-+			return -EPROTO;
-+		}
+@@ -957,6 +957,9 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
+ 		return;
  	}
-+
- 	return count;
- }
  
++	if (!chip->names)
++		devprop_gpiochip_set_names(chip);
++
+ 	acpi_gpiochip_request_regions(acpi_gpio);
+ 	acpi_gpiochip_scan_gpios(acpi_gpio);
+ 	acpi_walk_dep_device_list(handle);
 -- 
 2.9.3
