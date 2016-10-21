@@ -1,61 +1,149 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
-Date: Thu, 20 Oct 2016 23:05:25 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25657B@SHSMSX101.ccr.corp.intel.com>
-References: <1476913001.7633.13.camel@intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A256346@SHSMSX101.ccr.corp.intel.com>
- <CAJZ5v0jMtzSg8JCLQDzYRK5xtdWOJTUKktHKjhAw1o0nRG2Thw@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA
+ interrupts
+Date: Thu, 20 Oct 2016 19:59:15 -0500
+Message-ID: <20161021005914.GA31044@localhost>
+References: <1476505867-24599-1-git-send-email-okaya@codeaurora.org>
+ <1476505867-24599-2-git-send-email-okaya@codeaurora.org>
+ <20161018135912.GD18903@localhost>
+ <b4a8995e-1454-3b84-0681-1491788087ec@codeaurora.org>
+ <0a82f2ef-b072-d847-104a-320cf804ebd5@codeaurora.org>
+ <20161019224405.GA14915@localhost>
+ <CAJZ5v0gE8uZ4NfuJVtuzkioJS0TpG2mvgJV3o3j0oM7WsVmh7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:50906 "EHLO mga05.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:47818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752376AbcJTXFa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 20 Oct 2016 19:05:30 -0400
-In-Reply-To: <CAJZ5v0jMtzSg8JCLQDzYRK5xtdWOJTUKktHKjhAw1o0nRG2Thw@mail.gmail.com>
-Content-Language: en-US
+        id S1753335AbcJUA7U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 20 Oct 2016 20:59:20 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gE8uZ4NfuJVtuzkioJS0TpG2mvgJV3o3j0oM7WsVmh7w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, Ondrej Zary <linux@rainbow-software.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
-a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDog
-UmU6IDQuOS1yYzE6IFtUTVBfXSBBQ1BJIG5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxS
-RUFEWV9FWElTVFMNCj4gDQo+IE9uIFRodSwgT2N0IDIwLCAyMDE2IGF0IDg6NDQgUE0sIFpoZW5n
-LCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBIaSwNCj4gPg0KPiA+PiBGcm9t
-OiBEZWFrLCBJbXJlDQo+ID4+IFN1YmplY3Q6IDQuOS1yYzE6IFtUTVBfXSBBQ1BJIG5hbWVzcGFj
-ZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMNCj4gPj4NCj4gPj4gSGksDQo+ID4+
-DQo+ID4+IGFmdGVyIHVwZ3JhZGluZyB0byA0LjktcmMxIEkgZ2V0IHRoZSBmb2xsb3dpbmcgZXJy
-b3JzIG9jY2FzaW9uYWxseQ0KPiA+PiBkdXJpbmcgYm9vdCBhbmQgc3VzcGVuZC10by1yYW0gb24g
-YW4gQVBMIHN5c3RlbToNCj4gPj4NCj4gPj4gWyAgIDU5LjUxMzQzNF0gQUNQSSBFcnJvcjogW1RN
-UF9dIE5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMx
-L2Rzd2xvYWQyLQ0KPiAzMzApDQo+ID4+IFsgICA1OS41MTM0NDZdIEFDUEkgRXhjZXB0aW9uOiBB
-RV9BTFJFQURZX0VYSVNUUywgRHVyaW5nIG5hbWUgbG9va3VwL2NhdGFsb2cgKDIwMTYwODMxL3Bz
-b2JqZWN0LTIyNykNCj4gPj4gWyAgIDU5LjUxMzQ2OV0gQUNQSSBFcnJvcjogTWV0aG9kIHBhcnNl
-L2V4ZWN1dGlvbiBmYWlsZWQgW1xfU0IuUENJMC5TQ1BHXSAoTm9kZSBmZmZmODgwMjc3MGI3YmI4
-KSwNCj4gPj4gQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMxL3BzcGFyc2UtNTQzKQ0KPiA+PiBb
-ICAgNTkuNTE1NDE1XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBb
-XF9TQi5QQ0kwLlNESEEuX1BTM10gKE5vZGUNCj4gZmZmZjg4MDI3NzBiN2RjMCksDQo+ID4+IEFF
-X0FMUkVBRFlfRVhJU1RTICgyMDE2MDgzMS9wc3BhcnNlLTU0MykNCj4gPj4gWyAgIDU5LjUxNzEx
-OF0gQUNQSTogTWFya2luZyBtZXRob2QgX1BTMyBhcyBTZXJpYWxpemVkIGJlY2F1c2Ugb2YgQUVf
-QUxSRUFEWV9FWElTVFMgZXJyb3INCj4gPj4NCj4gPj4gT3RoZXIgdGhhbiB0aGVzZSBlcnJvciBt
-ZXNzYWdlcywgYm9vdGluZyBhbmQgc3VzcGVuZC9yZXN1bWUgc2VlbXMgdG8gd29yayBvay4NCj4g
-Pj4gQmlzZWN0aW5nIHBvaW50cyB0bw0KPiA+PiBjb21taXQgNzRmNTFiODBhMGM0ZmY4NGZiZWI3
-ZjEyZWE0M2NlNjY5MzRkMjlhYQ0KPiA+PiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRl
-bC5jb20+DQo+ID4+IERhdGU6ICAgV2VkIFNlcCA3IDE0OjA3OjEwIDIwMTYgKzA4MDANCj4gPj4N
-Cj4gPj4gICAgIEFDUElDQTogTmFtZXNwYWNlOiBGaXggZHluYW1pYyB0YWJsZSBsb2FkaW5nIGlz
-c3Vlcw0KPiA+Pg0KPiA+PiBSZXZlcnRpbmcgdGhpcyBvbiB0b3Agb2YgNC45LXJjMSBnZXRzIHJp
-ZCBvZiB0aGUgZXJyb3IgbWVzc2FnZXMuDQo+ID4NCj4gPiBUaGUgY29tbWl0IGluIHF1ZXN0aW9u
-IG9ubHkgbW9kaWZpZWQgY29kZSB0byBtYWtlIGxvY2tzIHVubG9ja2VkL2xvY2tlZC4NCj4gPiBX
-aGljaCBzaG91bGQgYmUgdHJhbnNwYXJlbnQgdG8gdGhlIGZ1bmN0aW9uYWwgc3R1ZmZzLg0KPiAN
-Cj4gSXQgbWlnaHQgY2hhbmdlIHRoZSByZWxhdGl2ZSB0aW1pbmcgb2YgdGhpZ3MgKHdoaWNoIG1p
-Z2h0IHJlc3VsdCBpbg0KPiBvcmRlcmluZyBjaGFuZ2VzKS4NCg0KWWVzLCBJJ2xsIGNoZWNrIHRo
-YXQgd2l0aCB0aGUgYWNwaWR1bXAuDQpUbyBzZWUgaWYgdGhpcyBpcyBjYXVzZWQgYnkgd3Jvbmcg
-cmVkdWNlZCBsb2NrIGFmZmVjdGlvbiBzY29wZS4NCg0KPiANCj4gPiBJJ20gbm90IHN1cmUgaG93
-IGl0IGNhbiBsZWFkIHRvIHN1Y2ggZXJyb3IgaW4gdGhlIHNpbmdsZS10aHJlYWRpbmcgYm9vdCBl
-bnZpcm9ubWVudC4NCj4gDQo+IFdoeSBkbyB5b3UgdGhpbmsgaXQncyBzaW5nbGUtdGhyZWFkZWQ/
-ICBBdCBsZWFzdCBzdXNwZW5kL3Jlc3VtZSBpc24ndA0KPiBpbiBnZW5lcmFsLg0KDQpJIGp1c3Qg
-c2F5IHRoYXQgYmVjYXVzZSBpdCBpcyBhbHNvIHJlcG9ydGVkIGFzICJvY2Nhc2lvbmFsbHkgZHVy
-aW5nIGJvb3QiLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYNCg==
+On Thu, Oct 20, 2016 at 01:17:23AM +0200, Rafael J. Wysocki wrote:
+> On Thu, Oct 20, 2016 at 12:44 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > On Tue, Oct 18, 2016 at 08:32:44AM -0700, Sinan Kaya wrote:
+> >> Sorry, I think I didn't have enough morning coffee.
+> >>
+> >> Looking at these again and trying to be specific.
+> >>
+> >> On 10/18/2016 8:20 AM, Sinan Kaya wrote:
+> >> > It seems wrong to me that we call acpi_irq_get_penalty() from
+> >> >> acpi_irq_penalty_update() and acpi_penalize_isa_irq().  It seems like they
+> >> >> should just manipulate acpi_isa_irq_penalty[irq] directly.
+> >> >>
+> >> >> acpi_irq_penalty_update() is for command-line parameters, so it certainly
+> >> >> doesn't need the acpi_irq_pci_sharing_penalty() information (the
+> >> >> acpi_link_list should be empty at the time we process the command-line
+> >> >> parameters).
+> >>
+> >> Calling acpi_irq_get_penalty for ISA IRQ is OK as long as it doesn't have
+> >> any dynamic IRQ calculation such that acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty.
+> >>
+> >> If this is broken, then we need special care so that we don't assign
+> >> dynamically calcualted sci_penalty back to acpi_isa_irq_penalty[irq]. This
+> >> results in returning incorrect penalty as
+> >>
+> >> acpi_irq_get_penalty = acpi_isa_irq_original_penalty[irq] + 2 * sci_penalty.
+> >>
+> >> Now that we added sci_penalty into the acpi_irq_get_penalty function,
+> >> calling acpi_irq_get_penalty is not correct anymore. This line here needs to
+> >> be replaced with acpi_isa_irq_penalty[irq] as you suggested.
+> >>
+> >>                 if (used)
+> >>                         new_penalty = acpi_irq_get_penalty(irq) +
+> >>                                         PIRQ_PENALTY_ISA_USED;
+> >>                 else
+> >>                         new_penalty = 0;
+> >>
+> >>                 acpi_isa_irq_penalty[irq] = new_penalty;
+> >>
+> >>
+> >> >>
+> >> >> acpi_penalize_isa_irq() is telling us that a PNP or ACPI device is using
+> >> >> the IRQ -- this should modify the IRQ's penalty, but it shouldn't depend on
+> >> >> the acpi_irq_pci_sharing_penalty() value at all.
+> >> >>
+> >>
+> >> Same problem here. This line will be broken after the sci_penalty change.
+> >>
+> >>                 acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> >>                   (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+> >
+> > I think the fragility of this code is an indication that we have a
+> > design problem, so I want to step back from the nitty gritty details
+> > for a bit and look at the overall design.
+> >
+> > Let me restate the overall problem: We have a PCI device connected to
+> > an interrupt link.  The interrupt link can be connected to one of
+> > several IRQs, and we want to choose one of those IRQs to minimize IRQ
+> > sharing.
+> >
+> > That means we need information about which IRQs are used.
+> > Historically we've started with a compiled-in table of common ISA IRQ
+> > usage, and we also collect information about which IRQs are used and
+> > which *might* be used.  So we have the following inputs:
+> >
+> >   - Compiled-in ISA IRQ usage: the static acpi_isa_irq_penalty[]
+> >     values.  ACPI is *supposed* to tell us about all these usages, so
+> >     I don't know why we have the table.  But it's been there as long
+> >     as I can remember.  The table is probably x86-specific, but we
+> >     keep it in the supposedly generic pci_link.c.
+> >
+> >   - The "acpi_irq_isa=" and "acpi_irq_pci=" command-line overrides via
+> >     acpi_irq_pci().  I suppose these are for cases where we can't
+> >     figure things out automatically.  I would resist adding parameters
+> >     like this today (I would treat the need for them as a bug and look
+> >     for a fix or a quirk), but we might be stuck with these.
+> >
+> >   - SCI information from the ACPI FADT (acpi_penalize_sci_irq()).
+> >
+> >   - PNPBIOS and PNPACPI device IRQ usage from _CRS and _PRS via
+> >     acpi_penalize_isa_irq().  This is only for IRQs 0-15, and it does
+> >     NOT include interrupt link (PNP0C0F) devices because we don't
+> >     handle them as PNPACPI devices.  I think this is related to the
+> >     fact that PNP0C0F doesn't appear in acpi_pnp_device_ids[].
+> >
+> >   - For non-PNP0C0F, non-PNPACPI devices, we completely ignore IRQ
+> >     information from _CRS and _PRS.  This seems sub-optimal and
+> >     possibly buggy.
+> >
+> >   - Interrupt link (PNP0C0F) IRQ usage from _CRS and _PRS via
+> >     acpi_irq_penalty_init().  This is only for IRQs 0-15, and we only
+> >     call this on x86.  If _PRS exists, we penalize each possible IRQ.
+> >     If there's no _PRS but _CRS contains an active IRQ, we penalize
+> >     it.
+> >
+> >   - Interrupt link (PNP0C0F) IRQ usage from _CRS and _PRS when
+> >     enabling a new link.  In acpi_irq_pci_sharing_penalty(), we
+> >     penalize an IRQ if it appears in _CRS or _PRS of any link device
+> >     in the system.
+> >
+> >     For IRQs 0-15, this overlaps with the penalization done at
+> >     boot-time by acpi_irq_penalty_init(): if a device has _PRS, we'll
+> >     add the "possible" penalty twice (once in acpi_irq_penalty_init()
+> >     and again in acpi_irq_pci_sharing_penalty()), and the "using"
+> >     penalty once (in acpi_irq_pci_sharing_penalty()).
+> >
+> >     If a device has no _PRS but has _CRS, the "using" penalty is
+> >     applied twice (once in once in acpi_irq_penalty_init() and again
+> >     in acpi_irq_pci_sharing_penalty())
+> >
+> > I think this whole thing is baroque and grotesque.
+> 
+> While I agree, I also would like the regression introduced here to be
+> fixed ASAP.
+> 
+> So do you want me to revert all of the changes made here so far and start over?
+
+You're right, of course.  We need to fix the regression first, then
+worry about longer-term changes.  I don't think we necessarily need to
+fix *all* the issues with the current scheme, because most of them
+have been there forever and I don't think people are tripping over
+them.
+
+Bjorn
