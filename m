@@ -1,61 +1,52 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.9-rc2
-Date: Fri, 21 Oct 2016 23:16:53 +0200
-Message-ID: <CAJZ5v0hFRk+OOvYsy_r1z+Cfs5_9PG3GaO0pOkqQhSbKtQZxxw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi/apei: Fix in-correct return value
+Date: Fri, 21 Oct 2016 23:28:29 +0200
+Message-ID: <1979931.ATDSke4qB1@vostro.rjw.lan>
+References: <20161018160719.31252-1-punit.agrawal@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33517 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932965AbcJUVQz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Oct 2016 17:16:55 -0400
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59771 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S933253AbcJUVVb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Oct 2016 17:21:31 -0400
+In-Reply-To: <20161018160719.31252-1-punit.agrawal@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+To: Punit Agrawal <punit.agrawal@arm.com>, bp@suse.de
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, tbaicar@codeaurora.org, Len Brown <lenb@kernel.org>
 
-Hi Linus,
+On Tuesday, October 18, 2016 05:07:19 PM Punit Agrawal wrote:
+> Although ghes_proc tests for error while reading the error status, it
+> always return success (0). Fix this by propagating the return value.
+> 
+> Fixes: d334a49113a4a33 ("ACPI, APEI, Generic Hardware Error Source memory error support")
+> Signed-of-by: Punit Agrawal <punit.agrawa.@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index f0a029e..0d099a2 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -662,7 +662,7 @@ static int ghes_proc(struct ghes *ghes)
+>  	ghes_do_proc(ghes, ghes->estatus);
+>  out:
+>  	ghes_clear_estatus(ghes);
+> -	return 0;
+> +	return rc;
+>  }
+>  
+>  static void ghes_add_timer(struct ghes *ghes)
+> 
 
-Please pull from the tag
+Boris, all fine here?
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.9-rc2
+Thanks,
+Rafael
 
-with top-most commit 956c8974da654016ec26e66322b5b221108468bf
-
- Merge branches 'acpi-wdat' and 'acpi-cppc'
-
-on top of commit 1001354ca34179f3db924eb66672442a173147dc
-
- Linux 4.9-rc1
-
-to receive ACPI fixes for v4.9-rc2.
-
-These fix an issue related to system resume in the new WDAT-based
-watchdog driver and a return value of a stub function in the ACPI
-CPPC framework.
-
-Specifics:
-
- - Update the ACPI WDAT-based watchdog driver to ping the hardware
-   during system resume to prevent a reset from occurring after the
-   resume is complete (Mika Westerberg).
-
- - Fix the return value of the pcc_mbox_request_channel() stub for
-   CONFIG_PCC unset (Hoan Tran).
-
-Thanks!
-
----------------
-
-Hoan Tran (1):
-      mailbox: PCC: Fix return value of pcc_mbox_request_channel()
-
-Mika Westerberg (1):
-      watchdog: wdat_wdt: Ping the watchdog on resume
-
----------------
-
- drivers/watchdog/wdat_wdt.c | 4 ++++
- include/acpi/pcc.h          | 2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
