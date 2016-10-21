@@ -1,64 +1,78 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V4 1/3] ACPI, PCI, IRQ: assign ISA IRQ directly during
- early boot stages
-Date: Fri, 21 Oct 2016 09:07:59 -0500
-Message-ID: <20161021140759.GA877@localhost>
-References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
- <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
- <20161021013930.GB31044@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161021013930.GB31044@localhost>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v3 0/4] ACPI / gpio: Updates to properties
+Date: Fri, 21 Oct 2016 17:21:28 +0300
+Message-ID: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:31222 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754883AbcJUOVh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Oct 2016 10:21:37 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
 
-On Thu, Oct 20, 2016 at 08:39:30PM -0500, Bjorn Helgaas wrote:
-> On Wed, Oct 19, 2016 at 06:21:02PM -0400, Sinan Kaya wrote:
-> > The penalty determination of ISA IRQ goes through 4 paths.
-> > 1. assign PCI_USING during power up via acpi_irq_penalty_init.
-> > 2. update the penalty with acpi_penalize_isa_irq function based on the
-> > active parameter.
-> > 3. kernel command line penalty update via acpi_irq_penalty_update function.
-> > 4. increment the penalty as USING right after the IRQ is assign to PCI.
-> > 
-> > acpi_penalize_isa_irq and acpi_irq_penalty_update functions get called
-> > before the ACPI subsystem is started.
-> > 
-> > These API need to bypass the acpi_irq_get_penalty function.
-> 
-> I don't mind this patch, but the changelog doesn't tell me what's
-> broken and why we need this fix.  Apparently acpi_irq_get_penalty()
-> doesn't work before ACPI is initialized, but I don't see *why* it
-> wouldn't work.
-> 
-> However, I see one bug it *does* fix: we do not store the SCI penalty
-> in the acpi_isa_irq_penalty[] table because acpi_isa_irq_penalty[]
-> only holds ISA IRQ penalties, and there's no guarantee that the SCI is
-> an ISA IRQ.  But prior to this patch, we added in the SCI penalty to
-> the acpi_isa_irq_penalty[] entry when the SCI was an ISA IRQ, which
-> makes acpi_irq_get_penalty() return the wrong thing.  Consider:
-> 
->   Initially     acpi_isa_irq_penalty[9] = 0.
->   Assume        sci_interrupt = 9.
->   Then          acpi_irq_get_penalty(9) returns X.
->   If we call    acpi_penalize_isa_irq(9, 1),
->   it sets       acpi_isa_irq_penalty[9] = X,
->   and now       acpi_irq_get_penalty(9) returns X + X.
+Hi,
 
-Oops, I forgot the penalty we *intended* to add with
-acpi_penalize_isa_irq().  It's really like this, where X is the SCI
-penalty and Y is the part added by acpi_penalize_isa_irq():
+This series brings couple of useful GPIO related properties from Device
+Tree to ACPI _DSD device properties:
 
-  Initially     acpi_isa_irq_penalty[9] = 0.
-  Assume        sci_interrupt = 9.
-  Then          acpi_irq_get_penalty(9) returns X.
-  If we call    acpi_penalize_isa_irq(9, 1),
-  it sets       acpi_isa_irq_penalty[9] = X + Y,
-  and now       acpi_irq_get_penalty(9) returns X + X + Y.
+  - Names for GPIO lines
+  - GPIO hogging
+  - Holes in GPIO property lists
 
-At the end, acpi_irq_get_penalty(9) *should* return X + Y, but instead
-it returns X + X + Y, i.e., the SCI penalty is included twice.
+We are using these to get Intel Galileo better supported in the mainline
+kernel (but these may be useful for other boards as well). For example SPI
+chip select on Galileo is connected to a GPIO line so we need to be able to
+describe it in ACPI, and at the same time allow native chip selects.
+
+GPIO hogging can be used to set initial state of certain GPIOs available on
+the headers regardless of the BIOS settings (which may be wrong as it knows
+nothing about which devices have been connected).
+
+The previous versions can be found here:
+
+  v2: http://www.spinics.net/lists/linux-acpi/msg69469.html
+  v1: http://www.spinics.net/lists/linux-acpi/msg69385.html
+
+Changes from v2:
+  - Rebased on top of v4.9-rc1 and dropped the already applied patches.
+  - Reordered the series so that GPIO names which touches DT code is moved
+    to be last one.
+  - Renamed acpi_gpiochip_set_names() to devprop_gpiochip_set_names() and
+    moved it to a new file: gpiolib-devprop.c.
+  - Changed of_gpiochip_add() to call devprop_gpiochip_set_names() and
+    removed of_gpiochip_set_names().
+  - Added ACKs from Rafael to patches 1 and 2. I did not add ACK for
+    patches 3 and 4 because they are changed from the previous version.
+
+The DT part is compile tested only so it would be nice if someone with ARM
+board could try if the GPIO names still work as expected.
+
+Changes from v1:
+  - Drop patch [1/5] as it has been applied already.
+  - Move patch [4/5] to be the first.
+  - Rename acpi_data_get_property_reference() to __acpi_node_get_property_reference().
+  - Drop acpi_node_get_property_reference() as it is not necessary anymore.
+  - Add static inline wrapper acpi_node_get_property_reference() that
+    calls the previous passing MAX_ACPI_REFERENCE_ARGS to support existing
+    drivers.
+
+Mika Westerberg (4):
+  ACPI / gpio: Allow holes in list of GPIOs for a device
+  ACPI / gpio: Add hogging support
+  gpio: Rework of_gpiochip_set_names() to use device property accessors
+  ACPI / gpio: Add support for naming GPIOs
+
+ Documentation/acpi/gpio-properties.txt |  62 +++++++++++++++++++
+ drivers/gpio/Makefile                  |   1 +
+ drivers/gpio/gpiolib-acpi.c            | 106 +++++++++++++++++++++++++++++----
+ drivers/gpio/gpiolib-devprop.c         |  62 +++++++++++++++++++
+ drivers/gpio/gpiolib-of.c              |  47 +--------------
+ drivers/gpio/gpiolib.h                 |   2 +
+ 6 files changed, 223 insertions(+), 57 deletions(-)
+ create mode 100644 drivers/gpio/gpiolib-devprop.c
+
+-- 
+2.9.3
+
