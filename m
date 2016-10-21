@@ -1,201 +1,136 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
-Date: Fri, 21 Oct 2016 19:40:20 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A256F1E@SHSMSX101.ccr.corp.intel.com>
-References: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
- <1AE640813FDE7649BE1B193DEA596E886A253666@SHSMSX101.ccr.corp.intel.com>
- <696226b1-7024-a4d6-8bea-ddbf6d08a564@huawei.com>
- <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
- <c88b5433-fbf0-1a15-11b2-b47c1872d48d@huawei.com>
- <1AE640813FDE7649BE1B193DEA596E886A256324@SHSMSX101.ccr.corp.intel.com>
+Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Fri, 21 Oct 2016 19:46:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A256F5B@SHSMSX101.ccr.corp.intel.com>
+References: <1476913001.7633.13.camel@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-        boundary="_002_1AE640813FDE7649BE1B193DEA596E886A256F1ESHSMSX101ccrcor_"
+        boundary="_002_1AE640813FDE7649BE1B193DEA596E886A256F5BSHSMSX101ccrcor_"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:47627 "EHLO mga05.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:2341 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932277AbcJUTk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Oct 2016 15:40:26 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A256324@SHSMSX101.ccr.corp.intel.com>
+        id S935124AbcJUTqG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 21 Oct 2016 15:46:06 -0400
+In-Reply-To: <1476913001.7633.13.camel@intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Yisheng Xie <xieyisheng1@huawei.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "wmiles@sgl.com" <wmiles@sgl.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>
+To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
---_002_1AE640813FDE7649BE1B193DEA596E886A256F1ESHSMSX101ccrcor_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I generated a solution with tools/power/acpi makefiles.
-Please give it a try.
-Sorry for the hackish build includes.
-
-Thanks and best regards
-Lv
-
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kern=
-el.org] On Behalf Of Zheng,
-> Lv
-> Subject: RE: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
->=20
-> Hi,
->=20
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.ke=
-rnel.org] On Behalf Of
-> Yisheng
-> > Xie
-> > Subject: Re: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm=
-64
-> >
-> > Hi,
-> >
-> > On 2016/10/19 6:07, Zheng, Lv wrote:
-> > > Hi,
-> > >
-> > > I'm not sure what you mean.
-> > > I mean you need ACPI_USE_SYSTEM_INTTYPES in case s64 has already been=
- defined in that environment.
-> > > Are you sure s64 should be defined for your environment?
-> > >
-> > s64 is not defined in my build environment but in kernel code.
->=20
-> Yes, in-kernel ACPICA applications trickily reused this to get it compile=
-d in kernel source tree with
-> minimal porting effort.
-> And it is working on x86.
->=20
-> >
-> > > IMO, s64 is kernel space specific, while you are compiling user space=
- tools.
-> > > It looks to me like there is something wrong with ARM kernel's asm/ty=
-pes.h.
-> > >
-> > >> I listed in change log. And I also have tried that way.
-> > >> However, it still have many other errors.(I am sorry to not have lis=
-ted all of them.)
-> > >>
-> > >> From the following log, you can see, all of the conflict type is fro=
-m signal.h.
-> > >> And maybe this patch is a better way to fix these compile error, wit=
-hout too much
-> > >> change of code.
-> > >>
-> > >> Are you sure that it will cause order problem when build ACPICA on o=
-ther build
-> > >> environment, for it only effect aarch64.
-> > >
-> > > I'm not sure what this is.
-> > > How did you get this?
-> > > Were you compiling kernel acpi tools or compiling the kernel itself?
-> > >
-> > It's about compiling kernel acpi tools.
-> >
-> > > For tool compilation, are you sure you have correctly configured your=
- cross-compilation
-> environment?
-> > Maybe it is not my cross-compilation environment problem, for your also=
- can reproduce it,
-> > as your said in another email, right?
->=20
-> Yes, I reproduced it.
-> By commenting out <signal.h> inclusion from acenv.h.
-> Tools can be built by aarch64-linux-gnu tool chain downloaded from linaro=
-.
->=20
-> However this is still not the root cause, IMO.
->=20
-> Thanks
-> Lv
->=20
-> >
-> > > Will you see problems in compiling ACPICA applications from:
-> > > https://github.com/acpica/acpica
-> > >
-> >
-> > > Thanks
-> > > Lv
-> > >
-> > > .
-> > >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---_002_1AE640813FDE7649BE1B193DEA596E886A256F1ESHSMSX101ccrcor_
-Content-Type: application/octet-stream; name="lv-tools1.patch"
-Content-Description: lv-tools1.patch
-Content-Disposition: attachment; filename="lv-tools1.patch"; size=3305;
-	creation-date="Sat, 22 Oct 2016 02:37:18 GMT";
-	modification-date="Sat, 22 Oct 2016 02:37:18 GMT"
+--_002_1AE640813FDE7649BE1B193DEA596E886A256F5BSHSMSX101ccrcor_
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 
-RnJvbTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4KU3ViamVjdDogW1BBVENIXSB0b29s
-cy9wb3dlci9hY3BpOiBSZW1vdmUgZGlyZWN0IGtlcm5lbCBzb3VyY2UgaW5jbHVkZSByZWZlcmVu
-Y2UKCkFDUElDQSB0b29scyB0cmlja2lseSB1c2VzIGludGVnZXIgdHlwZXMsIGFuZCB0cmlja2ls
-eSBpbmNsdWRlcyBrZXJuZWwKaW5jbHVkZSBkaXJlY3RvcnkgZGlyZWN0bHksIHdoaWNoIGJyZWFr
-cyB0b29scyBidWlsZCBmb3Igc29tZSBjcm9zcwpjb21waWxlcnMuIFRoaXMgcGF0Y2ggZml4ZXMg
-dGhpcyBidWlsZCBpc3N1ZS4KClJlcG9ydGVkLWJ5OiBZaXNoZW5nIFhpZSA8eGlleWlzaGVuZzFA
-aHVhd2VpLmNvbT4KU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4K
-LS0tCkluZGV4OiBsaW51eC1hY3BpY2EvdG9vbHMvcG93ZXIvYWNwaS9NYWtlZmlsZQo9PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09Ci0tLSBsaW51eC1hY3BpY2Eub3JpZy90b29scy9wb3dlci9hY3BpL01ha2VmaWxlCisrKyBs
-aW51eC1hY3BpY2EvdG9vbHMvcG93ZXIvYWNwaS9NYWtlZmlsZQpAQCAtMTEsMTEgKzExLDE3IEBA
-CiBpbmNsdWRlIC4uLy4uL3NjcmlwdHMvTWFrZWZpbGUuaW5jbHVkZQogCiBhbGw6IGFjcGlkYmcg
-YWNwaWR1bXAgZWMKLWNsZWFuOiBhY3BpZGJnX2NsZWFuIGFjcGlkdW1wX2NsZWFuIGVjX2NsZWFu
-CitjbGVhbjogYWNwaWRiZ19jbGVhbiBhY3BpZHVtcF9jbGVhbiBpbmNsdWRlX2NsZWFuIGVjX2Ns
-ZWFuCiBpbnN0YWxsOiBhY3BpZGJnX2luc3RhbGwgYWNwaWR1bXBfaW5zdGFsbCBlY19pbnN0YWxs
-CiB1bmluc3RhbGw6IGFjcGlkYmdfdW5pbnN0YWxsIGFjcGlkdW1wX3VuaW5zdGFsbCBlY191bmlu
-c3RhbGwKK2luY2x1ZGUvYWNwaToKKwlta2RpciAtcCBpbmNsdWRlCisJbG4gLXMgLi4vLi4vLi4v
-Li4vaW5jbHVkZS9hY3BpIGluY2x1ZGUvYWNwaQoraW5jbHVkZV9jbGVhbjoKKwlybSAtZiBpbmNs
-dWRlL2FjcGkKKwlybSAtcmYgaW5jbHVkZQogCi1hY3BpZGJnIGFjcGlkdW1wIGVjOiBGT1JDRQor
-YWNwaWRiZyBhY3BpZHVtcCBlYzogaW5jbHVkZS9hY3BpIEZPUkNFCiAJJChjYWxsIGRlc2NlbmQs
-dG9vbHMvJEAsYWxsKQogYWNwaWRiZ19jbGVhbiBhY3BpZHVtcF9jbGVhbiBlY19jbGVhbjoKIAkk
-KGNhbGwgZGVzY2VuZCx0b29scy8kKEA6X2NsZWFuPSksY2xlYW4pCkluZGV4OiBsaW51eC1hY3Bp
-Y2EvdG9vbHMvcG93ZXIvYWNwaS90b29scy9hY3BpZGJnL01ha2VmaWxlCj09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0t
-IGxpbnV4LWFjcGljYS5vcmlnL3Rvb2xzL3Bvd2VyL2FjcGkvdG9vbHMvYWNwaWRiZy9NYWtlZmls
-ZQorKysgbGludXgtYWNwaWNhL3Rvb2xzL3Bvd2VyL2FjcGkvdG9vbHMvYWNwaWRiZy9NYWtlZmls
-ZQpAQCAtMTksNyArMTksNyBAQCB2cGF0aCAlLmMgXAogQ0ZMQUdTICs9IC1EQUNQSV9BUFBMSUNB
-VElPTiAtREFDUElfU0lOR0xFX1RIUkVBRCAtREFDUElfREVCVUdHRVJcCiAJLUkuXAogCS1JLi4v
-Li4vLi4vLi4vLi4vZHJpdmVycy9hY3BpL2FjcGljYVwKLQktSS4uLy4uLy4uLy4uLy4uL2luY2x1
-ZGUKKwktSS4uLy4uL2luY2x1ZGUKIExERkxBR1MgKz0gLWxwdGhyZWFkCiBUT09MX09CSlMgPSBc
-CiAJYWNwaWRiZy5vCkluZGV4OiBsaW51eC1hY3BpY2EvdG9vbHMvcG93ZXIvYWNwaS90b29scy9h
-Y3BpZGJnL2FjcGlkYmcuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC1hY3BpY2Eub3JpZy90b29scy9w
-b3dlci9hY3BpL3Rvb2xzL2FjcGlkYmcvYWNwaWRiZy5jCisrKyBsaW51eC1hY3BpY2EvdG9vbHMv
-cG93ZXIvYWNwaS90b29scy9hY3BpZGJnL2FjcGlkYmcuYwpAQCAtMTIsMTAgKzEyLDE2IEBACiAj
-aW5jbHVkZSA8YWNwaS9hY3BpLmg+CiAKIC8qIEhlYWRlcnMgbm90IGluY2x1ZGVkIGJ5IGluY2x1
-ZGUvYWNwaS9wbGF0Zm9ybS9hY2xpbnV4LmggKi8KKyNpbmNsdWRlIDx1bmlzdGQuaD4KKyNpbmNs
-dWRlIDxzdGRpby5oPgorI2luY2x1ZGUgPHN0ZGxpYi5oPgorI2luY2x1ZGUgPHN0cmluZy5oPgor
-I2luY2x1ZGUgPGVycm9yLmg+CiAjaW5jbHVkZSA8c3RkYm9vbC5oPgogI2luY2x1ZGUgPGZjbnRs
-Lmg+CiAjaW5jbHVkZSA8YXNzZXJ0Lmg+Ci0jaW5jbHVkZSA8bGludXgvY2lyY19idWYuaD4KKyNp
-bmNsdWRlIDxzeXMvc2VsZWN0Lmg+CisjaW5jbHVkZSAiLi4vLi4vLi4vLi4vLi4vaW5jbHVkZS9s
-aW51eC9jaXJjX2J1Zi5oIgogCiAjZGVmaW5lIEFDUElfQU1MX0ZJTEUJCSIvc3lzL2tlcm5lbC9k
-ZWJ1Zy9hY3BpL2FjcGlkYmciCiAjZGVmaW5lIEFDUElfQU1MX1NFQ19USUNLCTEKSW5kZXg6IGxp
-bnV4LWFjcGljYS90b29scy9wb3dlci9hY3BpL3Rvb2xzL2FjcGlkdW1wL01ha2VmaWxlCj09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT0KLS0tIGxpbnV4LWFjcGljYS5vcmlnL3Rvb2xzL3Bvd2VyL2FjcGkvdG9vbHMvYWNwaWR1
-bXAvTWFrZWZpbGUKKysrIGxpbnV4LWFjcGljYS90b29scy9wb3dlci9hY3BpL3Rvb2xzL2FjcGlk
-dW1wL01ha2VmaWxlCkBAIC0yMSw3ICsyMSw3IEBAIHZwYXRoICUuYyBcCiAJLi4vLi4vb3Nfc3Bl
-Y2lmaWMvc2VydmljZV9sYXllcnMKIENGTEFHUyArPSAtREFDUElfRFVNUF9BUFAgLUkuXAogCS1J
-Li4vLi4vLi4vLi4vLi4vZHJpdmVycy9hY3BpL2FjcGljYVwKLQktSS4uLy4uLy4uLy4uLy4uL2lu
-Y2x1ZGUKKwktSS4uLy4uL2luY2x1ZGUKIFRPT0xfT0JKUyA9IFwKIAlhcGR1bXAub1wKIAlhcGZp
-bGVzLm9cCkluZGV4OiBsaW51eC1hY3BpY2EvaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjbGludXgu
-aAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09Ci0tLSBsaW51eC1hY3BpY2Eub3JpZy9pbmNsdWRlL2FjcGkvcGxhdGZvcm0v
-YWNsaW51eC5oCisrKyBsaW51eC1hY3BpY2EvaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjbGludXgu
-aApAQCAtMTkxLDYgKzE5MSw5IEBACiAjaWZuZGVmIF9faW5pdAogI2RlZmluZSBfX2luaXQKICNl
-bmRpZgorI2lmbmRlZiBfX2lvbWVtCisjZGVmaW5lIF9faW9tZW0KKyNlbmRpZgogCiAvKiBIb3N0
-LWRlcGVuZGVudCB0eXBlcyBhbmQgZGVmaW5lcyBmb3IgdXNlci1zcGFjZSBBQ1BJQ0EgKi8KIAo=
+SGksIEltcmUNCg0KPiBGcm9tOiBEZWFrLCBJbXJlDQo+IFN1YmplY3Q6IDQuOS1yYzE6IFtUTVBf
+XSBBQ1BJIG5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMNCj4gDQo+
+IEhpLA0KPiANCj4gYWZ0ZXIgdXBncmFkaW5nIHRvIDQuOS1yYzEgSSBnZXQgdGhlIGZvbGxvd2lu
+ZyBlcnJvcnMgb2NjYXNpb25hbGx5DQo+IGR1cmluZyBib290IGFuZCBzdXNwZW5kLXRvLXJhbSBv
+biBhbiBBUEwgc3lzdGVtOg0KPiANCj4gW8KgwqDCoDU5LjUxMzQzNF0gQUNQSSBFcnJvcjogW1RN
+UF9dIE5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwgQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMx
+L2Rzd2xvYWQyLTMzMCkNCj4gW8KgwqDCoDU5LjUxMzQ0Nl0gQUNQSSBFeGNlcHRpb246IEFFX0FM
+UkVBRFlfRVhJU1RTLCBEdXJpbmcgbmFtZSBsb29rdXAvY2F0YWxvZyAoMjAxNjA4MzEvcHNvYmpl
+Y3QtMjI3KQ0KPiBbwqDCoMKgNTkuNTEzNDY5XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhl
+Y3V0aW9uIGZhaWxlZCBbXF9TQi5QQ0kwLlNDUEddIChOb2RlwqBmZmZmODgwMjc3MGI3YmI4KSwN
+Cj4gQUVfQUxSRUFEWV9FWElTVFMgKDIwMTYwODMxL3BzcGFyc2UtNTQzKQ0KPiBbwqDCoMKgNTku
+NTE1NDE1XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9TQi5Q
+Q0kwLlNESEEuX1BTM10gKE5vZGUgZmZmZjg4MDI3NzBiN2RjMCksDQo+IEFFX0FMUkVBRFlfRVhJ
+U1RTICgyMDE2MDgzMS9wc3BhcnNlLTU0MykNCj4gW8KgwqDCoDU5LjUxNzExOF0gQUNQSTogTWFy
+a2luZyBtZXRob2QgX1BTMyBhcyBTZXJpYWxpemVkIGJlY2F1c2Ugb2YgQUVfQUxSRUFEWV9FWElT
+VFMgZXJyb3INCj4gDQo+IE90aGVyIHRoYW4gdGhlc2UgZXJyb3IgbWVzc2FnZXMsIGJvb3Rpbmcg
+YW5kIHN1c3BlbmQvcmVzdW1lIHNlZW1zIHRvIHdvcmsgb2suDQo+IEJpc2VjdGluZyBwb2ludHMg
+dG8NCj4gY29tbWl0IDc0ZjUxYjgwYTBjNGZmODRmYmViN2YxMmVhNDNjZTY2OTM0ZDI5YWENCj4g
+QXV0aG9yOiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiBEYXRlOsKgwqDCoFdlZCBT
+ZXAgNyAxNDowNzoxMCAyMDE2ICswODAwDQo+IA0KPiDCoMKgwqDCoEFDUElDQTogTmFtZXNwYWNl
+OiBGaXggZHluYW1pYyB0YWJsZSBsb2FkaW5nIGlzc3Vlcw0KPiANCj4gUmV2ZXJ0aW5nIHRoaXMg
+b24gdG9wIG9mIDQuOS1yYzEgZ2V0cyByaWQgb2YgdGhlIGVycm9yIG1lc3NhZ2VzLg0KDQpJIGNo
+ZWNrZWQgdGhlIGNvZGUsIG9ubHkgZm91bmQgb25lIGlzc3VlLg0KQW5kIEknbSBub3Qgc3VyZSBp
+ZiBpdCBpcyByZWxhdGVkLg0KUGxlYXNlIHNlbmQgbWUgdGhlIGZ1bGwgZG1lc2cgY29udGFpbmlu
+ZyB0aGUgZXJyb3JzIGFuZCB0aGUgYWNwaWR1bXAgb3V0cHV0Lg0KDQpQbGVhc2UgZ2l2ZSB0aGUg
+Zml4IGEgdHJ5IChzZWUgYXR0YWNobWVudCkuDQpJJ20gc29ycnkgZm9yIHNlbmRpbmcgZml4IHBh
+dGNoIHVzaW5nIGF0dGFjaG1lbnQuDQpJdCdzIG5vdCBjb252ZW5pZW50IGZvciBtZSBkdWUgdG8g
+bXkgY3VycmVudCB3b3JraW5nIGVudmlyb25tZW50Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJk
+cw0KTHYNCg==
 
---_002_1AE640813FDE7649BE1B193DEA596E886A256F1ESHSMSX101ccrcor_--
+--_002_1AE640813FDE7649BE1B193DEA596E886A256F5BSHSMSX101ccrcor_
+Content-Type: application/octet-stream; name="lv-lockx.patch"
+Content-Description: lv-lockx.patch
+Content-Disposition: attachment; filename="lv-lockx.patch"; size=4138;
+	creation-date="Sat, 22 Oct 2016 01:13:13 GMT";
+	modification-date="Sat, 22 Oct 2016 01:13:12 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSA1ZjkxOWY2NmMxNDdjOWZkNGNlMGEzYzgxNDQ4MGFkNTg0NzlkMjUyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPgpEYXRlOiBT
+YXQsIDIyIE9jdCAyMDE2IDAxOjQxOjAzICswODAwCkZyb206IEx2IFpoZW5nIDxsdi56aGVuZ0Bp
+bnRlbC5jb20+ClN1YmplY3Q6IFtQQVRDSCAwXSBBQ1BJQ0E6IERpc3BhdGNoZXI6IFR1bmUgaW50
+ZXJwcmV0ZXIgbG9jayBhcm91bmQgYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbigpCgpJbiBjb2Rl
+IHBhdGggb2YgYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbigpLCB0aGVyZSBhcmUgbmFtZXNwYWNl
+IG1vZGlmaWNhdGlvbgpjb2RlIHVubG9ja2VkLiBUaGlzIHBhdGNoIHR1bmVzIHRoZSBjb2RlIHRv
+IG1ha2Ugc3VyZSBzdWNoIG1vZGlmaWNhdGlvbiBhcmUKbG9ja2VkLiBMdiBaaGVuZy4KClNpZ25l
+ZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+Ci0tLQogZHNpbml0LmMgICB8
+ICAgMTMgKysrKystLS0tLS0tLQogZHN3bG9hZDIuYyB8ICAgIDIgLS0KIGV2cmduaW5pLmMgfCAg
+ICAzICsrKwogbnNsb2FkLmMgICB8ICAgIDIgKysKIDQgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0
+aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCgpkaWZmIC1OdXJwIGxpbnV4LmJlZm9yZS9kcml2ZXJz
+L2FjcGkvYWNwaWNhL2RzaW5pdC5jIGxpbnV4LmFmdGVyL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHNp
+bml0LmMKLS0tIGxpbnV4LmJlZm9yZS9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzaW5pdC5jCTIwMTYt
+MTAtMjIgMDE6NTA6MDkuNDk2NDMwNTAyICswODAwCisrKyBsaW51eC5hZnRlci9kcml2ZXJzL2Fj
+cGkvYWNwaWNhL2RzaW5pdC5jCTIwMTYtMTAtMjIgMDE6NTA6MDUuOTc2NDMwNDc5ICswODAwCkBA
+IC00Niw2ICs0Niw3IEBACiAjaW5jbHVkZSAiYWNkaXNwYXQuaCIKICNpbmNsdWRlICJhY25hbWVz
+cC5oIgogI2luY2x1ZGUgImFjdGFibGVzLmgiCisjaW5jbHVkZSAiYWNpbnRlcnAuaCIKIAogI2Rl
+ZmluZSBfQ09NUE9ORU5UICAgICAgICAgIEFDUElfRElTUEFUQ0hFUgogQUNQSV9NT0RVTEVfTkFN
+RSgiZHNpbml0IikKQEAgLTE0MCw3ICsxNDEsOSBAQCBhY3BpX2RzX2luaXRfb25lX29iamVjdChh
+Y3BpX2hhbmRsZSBvYmpfCiAKIAkJCS8qIFBhcnNlL3NjYW4gbWV0aG9kIGFuZCBzZXJpYWxpemUg
+aXQgaWYgbmVjZXNzYXJ5ICovCiAKKwkJCWFjcGlfZXhfZXhpdF9pbnRlcnByZXRlcigpOwogCQkJ
+YWNwaV9kc19hdXRvX3NlcmlhbGl6ZV9tZXRob2Qobm9kZSwgb2JqX2Rlc2MpOworCQkJYWNwaV9l
+eF9lbnRlcl9pbnRlcnByZXRlcigpOwogCQkJaWYgKG9ial9kZXNjLT5tZXRob2QuCiAJCQkgICAg
+aW5mb19mbGFncyAmIEFDUElfTUVUSE9EX1NFUklBTElaRUQpIHsKIApAQCAtMjE0LDIzICsyMTcs
+MTcgQEAgYWNwaV9kc19pbml0aWFsaXplX29iamVjdHModTMyIHRhYmxlX2luZAogCiAJLyogV2Fs
+ayBlbnRpcmUgbmFtZXNwYWNlIGZyb20gdGhlIHN1cHBsaWVkIHJvb3QgKi8KIAotCXN0YXR1cyA9
+IGFjcGlfdXRfYWNxdWlyZV9tdXRleChBQ1BJX01UWF9OQU1FU1BBQ0UpOwotCWlmIChBQ1BJX0ZB
+SUxVUkUoc3RhdHVzKSkgewotCQlyZXR1cm5fQUNQSV9TVEFUVVMoc3RhdHVzKTsKLQl9Ci0KIAkv
+KgogCSAqIFdlIGRvbid0IHVzZSBhY3BpX3dhbGtfbmFtZXNwYWNlIHNpbmNlIHdlIGRvIG5vdCB3
+YW50IHRvIGFjcXVpcmUKIAkgKiB0aGUgbmFtZXNwYWNlIHJlYWRlciBsb2NrLgogCSAqLwogCXN0
+YXR1cyA9CiAJICAgIGFjcGlfbnNfd2Fsa19uYW1lc3BhY2UoQUNQSV9UWVBFX0FOWSwgc3RhcnRf
+bm9kZSwgQUNQSV9VSU5UMzJfTUFYLAotCQkJCSAgIEFDUElfTlNfV0FMS19VTkxPQ0ssIGFjcGlf
+ZHNfaW5pdF9vbmVfb2JqZWN0LAotCQkJCSAgIE5VTEwsICZpbmZvLCBOVUxMKTsKKwkJCQkgICAw
+LCBhY3BpX2RzX2luaXRfb25lX29iamVjdCwgTlVMTCwgJmluZm8sCisJCQkJICAgTlVMTCk7CiAJ
+aWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKSB7CiAJCUFDUElfRVhDRVBUSU9OKChBRV9JTkZPLCBz
+dGF0dXMsICJEdXJpbmcgV2Fsa05hbWVzcGFjZSIpKTsKIAl9Ci0JKHZvaWQpYWNwaV91dF9yZWxl
+YXNlX211dGV4KEFDUElfTVRYX05BTUVTUEFDRSk7CiAKIAlzdGF0dXMgPSBhY3BpX2dldF90YWJs
+ZV9ieV9pbmRleCh0YWJsZV9pbmRleCwgJnRhYmxlKTsKIAlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1
+cykpIHsKZGlmZiAtTnVycCBsaW51eC5iZWZvcmUvZHJpdmVycy9hY3BpL2FjcGljYS9kc3dsb2Fk
+Mi5jIGxpbnV4LmFmdGVyL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHN3bG9hZDIuYwotLS0gbGludXgu
+YmVmb3JlL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHN3bG9hZDIuYwkyMDE2LTEwLTIyIDAxOjUwOjA5
+LjQ4MDQzMDUwMiArMDgwMAorKysgbGludXguYWZ0ZXIvZHJpdmVycy9hY3BpL2FjcGljYS9kc3ds
+b2FkMi5jCTIwMTYtMTAtMjIgMDE6NTA6MDUuOTYwNDMwNDc5ICswODAwCkBAIC02MDcsMTEgKzYw
+Nyw5IEBAIGFjcGlfc3RhdHVzIGFjcGlfZHNfbG9hZDJfZW5kX29wKHN0cnVjdAogCQkJCX0KIAkJ
+CX0KIAotCQkJYWNwaV9leF9leGl0X2ludGVycHJldGVyKCk7CiAJCQlzdGF0dXMgPQogCQkJICAg
+IGFjcGlfZXZfaW5pdGlhbGl6ZV9yZWdpb24KIAkJCSAgICAoYWNwaV9uc19nZXRfYXR0YWNoZWRf
+b2JqZWN0KG5vZGUpKTsKLQkJCWFjcGlfZXhfZW50ZXJfaW50ZXJwcmV0ZXIoKTsKIAkJCWJyZWFr
+OwogCiAJCWNhc2UgQU1MX05BTUVfT1A6CmRpZmYgLU51cnAgbGludXguYmVmb3JlL2RyaXZlcnMv
+YWNwaS9hY3BpY2EvZXZyZ25pbmkuYyBsaW51eC5hZnRlci9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2
+cmduaW5pLmMKLS0tIGxpbnV4LmJlZm9yZS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2cmduaW5pLmMJ
+MjAxNi0xMC0yMiAwMTo1MDowOS40ODQ0MzA1MDIgKzA4MDAKKysrIGxpbnV4LmFmdGVyL2RyaXZl
+cnMvYWNwaS9hY3BpY2EvZXZyZ25pbmkuYwkyMDE2LTEwLTIyIDAxOjUwOjA1Ljk2NDQzMDQ3OSAr
+MDgwMApAQCAtNDUsNiArNDUsNyBAQAogI2luY2x1ZGUgImFjY29tbW9uLmgiCiAjaW5jbHVkZSAi
+YWNldmVudHMuaCIKICNpbmNsdWRlICJhY25hbWVzcC5oIgorI2luY2x1ZGUgImFjaW50ZXJwLmgi
+CiAKICNkZWZpbmUgX0NPTVBPTkVOVCAgICAgICAgICBBQ1BJX0VWRU5UUwogQUNQSV9NT0RVTEVf
+TkFNRSgiZXZyZ25pbmkiKQpAQCAtNTk0LDggKzU5NSwxMCBAQCBhY3BpX3N0YXR1cyBhY3BpX2V2
+X2luaXRpYWxpemVfcmVnaW9uKHVuCiAJCQkJICogVGVsbCBhbGwgdXNlcnMgdGhhdCB0aGlzIHJl
+Z2lvbiBpcyB1c2FibGUgYnkKIAkJCQkgKiBydW5uaW5nIHRoZSBfUkVHIG1ldGhvZAogCQkJCSAq
+LworCQkJCWFjcGlfZXhfZXhpdF9pbnRlcnByZXRlcigpOwogCQkJCSh2b2lkKWFjcGlfZXZfZXhl
+Y3V0ZV9yZWdfbWV0aG9kKHJlZ2lvbl9vYmosCiAJCQkJCQkJCSBBQ1BJX1JFR19DT05ORUNUKTsK
+KwkJCQlhY3BpX2V4X2VudGVyX2ludGVycHJldGVyKCk7CiAJCQkJcmV0dXJuX0FDUElfU1RBVFVT
+KEFFX09LKTsKIAkJCX0KIAkJfQpkaWZmIC1OdXJwIGxpbnV4LmJlZm9yZS9kcml2ZXJzL2FjcGkv
+YWNwaWNhL25zbG9hZC5jIGxpbnV4LmFmdGVyL2RyaXZlcnMvYWNwaS9hY3BpY2EvbnNsb2FkLmMK
+LS0tIGxpbnV4LmJlZm9yZS9kcml2ZXJzL2FjcGkvYWNwaWNhL25zbG9hZC5jCTIwMTYtMTAtMjIg
+MDE6NTA6MDkuNDk2NDMwNTAyICswODAwCisrKyBsaW51eC5hZnRlci9kcml2ZXJzL2FjcGkvYWNw
+aWNhL25zbG9hZC5jCTIwMTYtMTAtMjIgMDE6NTA6MDUuOTc2NDMwNDc5ICswODAwCkBAIC0xMzcs
+NyArMTM3LDkgQEAgdW5sb2NrOgogCUFDUElfREVCVUdfUFJJTlQoKEFDUElfREJfSU5GTywKIAkJ
+CSAgIioqKiogQmVnaW4gVGFibGUgT2JqZWN0IEluaXRpYWxpemF0aW9uXG4iKSk7CiAKKwlhY3Bp
+X2V4X2VudGVyX2ludGVycHJldGVyKCk7CiAJc3RhdHVzID0gYWNwaV9kc19pbml0aWFsaXplX29i
+amVjdHModGFibGVfaW5kZXgsIG5vZGUpOworCWFjcGlfZXhfZXhpdF9pbnRlcnByZXRlcigpOwog
+CiAJQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9JTkZPLAogCQkJICAiKioqKiBDb21wbGV0ZWQg
+VGFibGUgT2JqZWN0IEluaXRpYWxpemF0aW9uXG4iKSk7Cg==
+
+--_002_1AE640813FDE7649BE1B193DEA596E886A256F5BSHSMSX101ccrcor_--
