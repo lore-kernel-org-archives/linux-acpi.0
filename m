@@ -1,78 +1,122 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 0/4] ACPI / gpio: Updates to properties
-Date: Fri, 21 Oct 2016 17:21:28 +0300
-Message-ID: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31222 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754883AbcJUOVh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 21 Oct 2016 10:21:37 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 1/4] ACPI / gpio: Allow holes in list of GPIOs for a device
+Date: Fri, 21 Oct 2016 17:21:29 +0300
+Message-ID: <20161021142132.80539-2-mika.westerberg@linux.intel.com>
+References: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161021142132.80539-1-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
 Cc: Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Make it possible to have an empty GPIOs in a GPIO list for device. For
+example a SPI master may use both GPIOs and native pins as chip selects and
+we need to be able to distinguish between the two.
 
-This series brings couple of useful GPIO related properties from Device
-Tree to ACPI _DSD device properties:
+This makes it mandatory to have exactly 3 arguments for GPIOs and then
+converts gpiolib to use of __acpi_node_get_property_reference() instead. In
+addition we make acpi_gpio_package_count() to handle holes as well (this
+matches the DT version).
 
-  - Names for GPIO lines
-  - GPIO hogging
-  - Holes in GPIO property lists
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/acpi/gpio-properties.txt | 15 +++++++++++++++
+ drivers/gpio/gpiolib-acpi.c            | 32 +++++++++++++++++++++-----------
+ 2 files changed, 36 insertions(+), 11 deletions(-)
 
-We are using these to get Intel Galileo better supported in the mainline
-kernel (but these may be useful for other boards as well). For example SPI
-chip select on Galileo is connected to a GPIO line so we need to be able to
-describe it in ACPI, and at the same time allow native chip selects.
-
-GPIO hogging can be used to set initial state of certain GPIOs available on
-the headers regardless of the BIOS settings (which may be wrong as it knows
-nothing about which devices have been connected).
-
-The previous versions can be found here:
-
-  v2: http://www.spinics.net/lists/linux-acpi/msg69469.html
-  v1: http://www.spinics.net/lists/linux-acpi/msg69385.html
-
-Changes from v2:
-  - Rebased on top of v4.9-rc1 and dropped the already applied patches.
-  - Reordered the series so that GPIO names which touches DT code is moved
-    to be last one.
-  - Renamed acpi_gpiochip_set_names() to devprop_gpiochip_set_names() and
-    moved it to a new file: gpiolib-devprop.c.
-  - Changed of_gpiochip_add() to call devprop_gpiochip_set_names() and
-    removed of_gpiochip_set_names().
-  - Added ACKs from Rafael to patches 1 and 2. I did not add ACK for
-    patches 3 and 4 because they are changed from the previous version.
-
-The DT part is compile tested only so it would be nice if someone with ARM
-board could try if the GPIO names still work as expected.
-
-Changes from v1:
-  - Drop patch [1/5] as it has been applied already.
-  - Move patch [4/5] to be the first.
-  - Rename acpi_data_get_property_reference() to __acpi_node_get_property_reference().
-  - Drop acpi_node_get_property_reference() as it is not necessary anymore.
-  - Add static inline wrapper acpi_node_get_property_reference() that
-    calls the previous passing MAX_ACPI_REFERENCE_ARGS to support existing
-    drivers.
-
-Mika Westerberg (4):
-  ACPI / gpio: Allow holes in list of GPIOs for a device
-  ACPI / gpio: Add hogging support
-  gpio: Rework of_gpiochip_set_names() to use device property accessors
-  ACPI / gpio: Add support for naming GPIOs
-
- Documentation/acpi/gpio-properties.txt |  62 +++++++++++++++++++
- drivers/gpio/Makefile                  |   1 +
- drivers/gpio/gpiolib-acpi.c            | 106 +++++++++++++++++++++++++++++----
- drivers/gpio/gpiolib-devprop.c         |  62 +++++++++++++++++++
- drivers/gpio/gpiolib-of.c              |  47 +--------------
- drivers/gpio/gpiolib.h                 |   2 +
- 6 files changed, 223 insertions(+), 57 deletions(-)
- create mode 100644 drivers/gpio/gpiolib-devprop.c
-
+diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
+index 5aafe0b351a1..09cff657b82c 100644
+--- a/Documentation/acpi/gpio-properties.txt
++++ b/Documentation/acpi/gpio-properties.txt
+@@ -51,6 +51,21 @@ it to 1 marks the GPIO as active low.
+ In our Bluetooth example the "reset-gpios" refers to the second GpioIo()
+ resource, second pin in that resource with the GPIO number of 31.
+ 
++It is possible to leave holes in the array of GPIOs. This is useful in
++cases like with SPI host controllers where some chip selects may be
++implemented as GPIOs and some as native signals. For example a SPI host
++controller can have chip selects 0 and 2 implemented as GPIOs and 1 as
++native:
++
++  Package () {
++      "cs-gpios",
++      Package () {
++          ^GPIO, 19, 0, 0, // chip select 0: GPIO
++          0,               // chip select 1: native signal
++          ^GPIO, 20, 0, 0, // chip select 2: GPIO
++      }
++  }
++
+ ACPI GPIO Mappings Provided by Drivers
+ --------------------------------------
+ 
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 58ece201b8e6..700ea6ad609b 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -468,7 +468,8 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
+ 	int ret;
+ 
+ 	memset(&args, 0, sizeof(args));
+-	ret = acpi_node_get_property_reference(fwnode, propname, index, &args);
++	ret = __acpi_node_get_property_reference(fwnode, propname, index, 3,
++						 &args);
+ 	if (ret) {
+ 		struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 
+@@ -483,13 +484,13 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
+ 	 * on returned args.
+ 	 */
+ 	lookup->adev = args.adev;
+-	if (args.nargs >= 2) {
+-		lookup->index = args.args[0];
+-		lookup->pin_index = args.args[1];
+-		/* 3rd argument, if present is used to specify active_low. */
+-		if (args.nargs >= 3)
+-			lookup->active_low = !!args.args[2];
+-	}
++	if (args.nargs != 3)
++		return -EPROTO;
++
++	lookup->index = args.args[0];
++	lookup->pin_index = args.args[1];
++	lookup->active_low = !!args.args[2];
++
+ 	return 0;
+ }
+ 
+@@ -915,18 +916,27 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
+ 	kfree(acpi_gpio);
+ }
+ 
+-static unsigned int acpi_gpio_package_count(const union acpi_object *obj)
++static int acpi_gpio_package_count(const union acpi_object *obj)
+ {
+ 	const union acpi_object *element = obj->package.elements;
+ 	const union acpi_object *end = element + obj->package.count;
+ 	unsigned int count = 0;
+ 
+ 	while (element < end) {
+-		if (element->type == ACPI_TYPE_LOCAL_REFERENCE)
++		switch (element->type) {
++		case ACPI_TYPE_LOCAL_REFERENCE:
++			element += 3;
++			/* Fallthrough */
++		case ACPI_TYPE_INTEGER:
++			element++;
+ 			count++;
++			break;
+ 
+-		element++;
++		default:
++			return -EPROTO;
++		}
+ 	}
++
+ 	return count;
+ }
+ 
 -- 
 2.9.3
-
