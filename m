@@ -1,43 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/apei: Fix in-correct return value
-Date: Sun, 23 Oct 2016 02:09:28 +0200
-Message-ID: <2947283.b7DfXarnOp@vostro.rjw.lan>
-References: <20161018160719.31252-1-punit.agrawal@arm.com> <1979931.ATDSke4qB1@vostro.rjw.lan> <20161022163735.emhpdrzfbyys7rcp@pd.tnic>
+From: Jonathan Liu <net147@gmail.com>
+Subject: Re: [V4, 1/3] ACPI, PCI, IRQ: assign ISA IRQ directly during early
+ boot stages
+Date: Sun, 23 Oct 2016 14:48:58 +1100
+Message-ID: <CANwerB0UzXPL3a4wu=0XfUtzBw93qdurSaMcYBOvxEyiCjLh6Q@mail.gmail.com>
+References: <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60947 "HELO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S935093AbcJWAC3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 22 Oct 2016 20:02:29 -0400
-In-Reply-To: <20161022163735.emhpdrzfbyys7rcp@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1476915664-27231-2-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, tbaicar@codeaurora.org, Len Brown <lenb@kernel.org>
 
-On Saturday, October 22, 2016 06:37:35 PM Borislav Petkov wrote:
-> On Fri, Oct 21, 2016 at 11:28:29PM +0200, Rafael J. Wysocki wrote:
-> > Boris, all fine here?
-> 
-> Short answer: Yeah, looks ok to me.
-> 
-> Longer answer: I mean, this way ghes_proc() *actually* propagates the
-> return value of ghes_read_estatus() and we don't do any processing if it
-> failed.
-> 
-> Which doesn't really tell me a whole lot about the actual processing,
-> i.e., what ghes_do_proc() did.
-> 
-> But ghes_do_proc() doesn't return anything and ghes_proc()'s retval is
-> used only in contexts where we're asking whether something got processed
-> or not.
-> 
-> And for that, that fix is adequate. So:
-> 
-> Reviewed-by: Borislav Petkov <bp@suse.de>
+On 20 October 2016 at 09:21, Sinan Kaya <okaya@codeaurora.org> wrote:
+> The penalty determination of ISA IRQ goes through 4 paths.
+> 1. assign PCI_USING during power up via acpi_irq_penalty_init.
+> 2. update the penalty with acpi_penalize_isa_irq function based on the
+> active parameter.
+> 3. kernel command line penalty update via acpi_irq_penalty_update function.
+> 4. increment the penalty as USING right after the IRQ is assign to PCI.
+>
+> acpi_penalize_isa_irq and acpi_irq_penalty_update functions get called
+> before the ACPI subsystem is started.
+>
+> These API need to bypass the acpi_irq_get_penalty function.
+>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index c983bf7..4f37938 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>                         continue;
+>
+>                 if (used)
+> -                       new_penalty = acpi_irq_get_penalty(irq) +
+> +                       new_penalty = acpi_isa_irq_penalty[irq] +
+>                                         PIRQ_PENALTY_ISA_USED;
+>                 else
+>                         new_penalty = 0;
+> @@ -871,7 +871,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>  void acpi_penalize_isa_irq(int irq, int active)
+>  {
+>         if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
+> -               acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +               acpi_isa_irq_penalty[irq] = acpi_isa_irq_penalty[irq] +
+>                   (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
+>  }
+>
 
-Thanks!
+This series fixes one or more network adapters not working in Linux
+32-bit x86 guest running inside VirtualBox if I have 4 network
+adapters enabled. The following message no longer appears in the
+kernel log:
+ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
 
+Tested-by: Jonathan Liu <net147@gmail.com>
