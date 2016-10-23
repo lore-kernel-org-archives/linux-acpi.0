@@ -1,127 +1,66 @@
-From: Jonathan Liu <net147@gmail.com>
-Subject: Re: [V4,3/3] Revert "ACPI,PCI,IRQ: separate ISA penalty calculation"
-Date: Sun, 23 Oct 2016 14:49:27 +1100
-Message-ID: <CANwerB1LDgFFKDVBVf1eAo5713niEDchqQDHHxet-SuAPNPq7Q@mail.gmail.com>
-References: <1476915664-27231-4-git-send-email-okaya@codeaurora.org>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH V3 05/10] acpi: apei: handle SEA notification type for
+ ARMv8
+Date: Sun, 23 Oct 2016 17:13:28 +0800
+Message-ID: <580C7F38.4010301@huawei.com>
+References: <1475875882-2604-1-git-send-email-tbaicar@codeaurora.org>
+ <1475875882-2604-6-git-send-email-tbaicar@codeaurora.org>
+ <496ddac3-a220-fd42-5ca1-3d0fb0238907@linaro.org>
+ <1941586c-4c51-60d8-a77a-ad56fe5f3e3f@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1476915664-27231-4-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, devel@acpica.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:16985 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752161AbcJWJSw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Oct 2016 05:18:52 -0400
+In-Reply-To: <1941586c-4c51-60d8-a77a-ad56fe5f3e3f@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Abdulhamid, Harb" <harba@codeaurora.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, sandeepa.s.prabhu@gmail.com, shijie.huang@arm.com, paul.gortmaker@windriver.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, Dkvm@vger.kernel.org, linux-kernel
+Cc: Naveen Kaje <nkaje@codeaurora.org>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-On 20 October 2016 at 09:21, Sinan Kaya <okaya@codeaurora.org> wrote:
-> This reverts commit f7eca374f000 ("ACPI,PCI,IRQ: separate ISA penalty
-> calculation") and commit 487cf917ed0d ("revert "ACPI, PCI, IRQ: remove
-> redundant code in acpi_irq_penalty_init()"").
->
-> Now that we understand the real issue (SCI and ISA penalty getting
-> calculated before ACPI start), there is no need for special handling
-> for ISA interrupts.
->
-> Let's try to simplify the code one more time to share code.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  arch/x86/pci/acpi.c         |  1 -
->  drivers/acpi/pci_link.c     | 44 +++++---------------------------------------
->  include/acpi/acpi_drivers.h |  1 -
->  3 files changed, 5 insertions(+), 41 deletions(-)
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 3cd6983..b2a4e2a 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -396,7 +396,6 @@ int __init pci_acpi_init(void)
->                 return -ENODEV;
->
->         printk(KERN_INFO "PCI: Using ACPI for IRQ routing\n");
-> -       acpi_irq_penalty_init();
->         pcibios_enable_irq = acpi_pci_irq_enable;
->         pcibios_disable_irq = acpi_pci_irq_disable;
->         x86_init.pci.init_irq = x86_init_noop;
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 294b190..dd14d78 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -478,7 +478,8 @@ static int acpi_irq_pci_sharing_penalty(int irq)
->                  * If a link is active, penalize its IRQ heavily
->                  * so we try to choose a different IRQ.
->                  */
-> -               if (link->irq.active && link->irq.active == irq)
-> +               if ((link->irq.active && link->irq.active == irq) &&
-> +                               (link->irq.initialized == 1))
->                         penalty += PIRQ_PENALTY_PCI_USING;
->
->                 /*
-> @@ -501,45 +502,10 @@ static int acpi_irq_get_penalty(int irq)
->                 penalty += sci_penalty;
->
->         if (irq < ACPI_MAX_ISA_IRQS)
-> -               return penalty + acpi_isa_irq_penalty[irq];
-> +               penalty += acpi_isa_irq_penalty[irq];
->
-> -       return penalty + acpi_irq_pci_sharing_penalty(irq);
-> -}
-> -
-> -int __init acpi_irq_penalty_init(void)
-> -{
-> -       struct acpi_pci_link *link;
-> -       int i;
-> -
-> -       /*
-> -        * Update penalties to facilitate IRQ balancing.
-> -        */
-> -       list_for_each_entry(link, &acpi_link_list, list) {
-> -
-> -               /*
-> -                * reflect the possible and active irqs in the penalty table --
-> -                * useful for breaking ties.
-> -                */
-> -               if (link->irq.possible_count) {
-> -                       int penalty =
-> -                           PIRQ_PENALTY_PCI_POSSIBLE /
-> -                           link->irq.possible_count;
-> -
-> -                       for (i = 0; i < link->irq.possible_count; i++) {
-> -                               if (link->irq.possible[i] < ACPI_MAX_ISA_IRQS)
-> -                                       acpi_isa_irq_penalty[link->irq.
-> -                                                        possible[i]] +=
-> -                                           penalty;
-> -                       }
-> -
-> -               } else if (link->irq.active &&
-> -                               (link->irq.active < ACPI_MAX_ISA_IRQS)) {
-> -                       acpi_isa_irq_penalty[link->irq.active] +=
-> -                           PIRQ_PENALTY_PCI_POSSIBLE;
-> -               }
-> -       }
-> -
-> -       return 0;
-> +       penalty += acpi_irq_pci_sharing_penalty(irq);
-> +       return penalty;
->  }
->
->  static int acpi_irq_balance = -1;      /* 0: static, 1: balance */
-> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index 29c6912..797ae2e 100644
-> --- a/include/acpi/acpi_drivers.h
-> +++ b/include/acpi/acpi_drivers.h
-> @@ -78,7 +78,6 @@
->
->  /* ACPI PCI Interrupt Link (pci_link.c) */
->
-> -int acpi_irq_penalty_init(void);
->  int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
->                                int *polarity, char **name);
->  int acpi_pci_link_free_irq(acpi_handle handle);
+Hi Harb,
 
-This series fixes one or more network adapters not working in Linux
-32-bit x86 guest running inside VirtualBox if I have 4 network
-adapters enabled. The following message no longer appears in the
-kernel log:
-ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
+On 2016/10/20 0:59, Abdulhamid, Harb wrote:
+> On 10/18/2016 8:44 AM, Hanjun Guo wrote:
+>> Hi Tyler,
+>>
+>> On 2016/10/8 5:31, Tyler Baicar wrote:
+>>> ARM APEI extension proposal added SEA (Synchrounous External
+>>> Abort) notification type for ARMv8.
+>>> Add a new GHES error source handling function for SEA. If an error
+>>> source's notification type is SEA, then this function can be registered
+>>> into the SEA exception handler. That way GHES will parse and report
+>>> SEA exceptions when they occur.
+>> Does this SEA is replayed by the firmware (firmware first handling)
+>> or directly triggered by the hardware when error is happened?
+> Architecturally, an SEA must be synchronous and *precise*, so if you
+> take an SEA on a particular load instruction, firmware/hardware should
+> not be corrupting the context/state of the PE to allow software to
+> determine which thread/process encountered the abort.  GHES error status
 
-Tested-by: Jonathan Liu <net147@gmail.com>
+That's my concern too, and that's why I raised my question :)
+
+> block will be expose to software with information about the type,
+> severity, physical address impacted.
+>
+> Generally the error status block is populated by firmware.  However, as
+> long as the above requirement is met, I don't think the spec precludes
+> error status block being populated by hardware.  Those details must be
+> completely transparent to software.
+>
+> Finally, to answer your more specific question:  If the implementation
+> of firmware-first involves trapping the SEA in EL3 to do some firmware
+> first handling, firmware must maintain the context of the offending ELx,
+> generate an error record, and then "replay" the exception to normal
+> (non-secure) software at the appropriate vector base address.
+>
+
+Thank you for your answer, it clears my confusion now, I will try something
+similar on ARM64 platform, will get back to you if I get blocks.
+
+Thanks
+Hanjun
+
