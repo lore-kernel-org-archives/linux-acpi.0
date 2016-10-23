@@ -1,66 +1,43 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V4 3/3] Revert "ACPI, PCI, IRQ: separate ISA penalty
- calculation"
-Date: Sat, 22 Oct 2016 18:59:18 -0500
-Message-ID: <20161022235918.GJ9007@localhost>
-References: <1476915664-27231-1-git-send-email-okaya@codeaurora.org>
- <1476915664-27231-4-git-send-email-okaya@codeaurora.org>
- <20161021023109.GD31044@localhost>
- <8dcd59ac-815b-da71-a3f2-ba533c4182c9@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi/apei: Fix in-correct return value
+Date: Sun, 23 Oct 2016 02:09:28 +0200
+Message-ID: <2947283.b7DfXarnOp@vostro.rjw.lan>
+References: <20161018160719.31252-1-punit.agrawal@arm.com> <1979931.ATDSke4qB1@vostro.rjw.lan> <20161022163735.emhpdrzfbyys7rcp@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45458 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935093AbcJVX7W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 22 Oct 2016 19:59:22 -0400
-Content-Disposition: inline
-In-Reply-To: <8dcd59ac-815b-da71-a3f2-ba533c4182c9@codeaurora.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60947 "HELO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S935093AbcJWAC3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 22 Oct 2016 20:02:29 -0400
+In-Reply-To: <20161022163735.emhpdrzfbyys7rcp@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, linux-pci@vger.kernel.org, agross@codeaurora.org, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, devel@acpica.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: Borislav Petkov <bp@suse.de>
+Cc: Punit Agrawal <punit.agrawal@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, tbaicar@codeaurora.org, Len Brown <lenb@kernel.org>
 
-On Thu, Oct 20, 2016 at 07:58:57PM -0700, Sinan Kaya wrote:
-> On 10/20/2016 7:31 PM, Bjorn Helgaas wrote:
-> ...
-> > And I don't think it fixes a user-visible problem, so it doesn't need
-> > to be applied immediately.  I'm not sure this is worth doing by
-> > itself; maybe it should wait until we can do more cleanup and think
-> > about all these issues together?
+On Saturday, October 22, 2016 06:37:35 PM Borislav Petkov wrote:
+> On Fri, Oct 21, 2016 at 11:28:29PM +0200, Rafael J. Wysocki wrote:
+> > Boris, all fine here?
 > 
-> It does fix the PCI_USING penalty assignment. 
+> Short answer: Yeah, looks ok to me.
 > 
->                 if (link->irq.active && link->irq.active == irq)
->                          penalty += PIRQ_PENALTY_PCI_USING;
+> Longer answer: I mean, this way ghes_proc() *actually* propagates the
+> return value of ghes_read_estatus() and we don't do any processing if it
+> failed.
 > 
+> Which doesn't really tell me a whole lot about the actual processing,
+> i.e., what ghes_do_proc() did.
 > 
-> If we drop this patch, then we need
-> [PATCH V3 1/3] ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
+> But ghes_do_proc() doesn't return anything and ghes_proc()'s retval is
+> used only in contexts where we're asking whether something got processed
+> or not.
 > 
-> http://www.gossamer-threads.com/lists/linux/kernel/2547605
+> And for that, that fix is adequate. So:
 > 
-> as somebody needs to increment the penalty with PCI_USING when IRQ is assigned
-> for a given ISA IRQ.
-> 
-> We might as well take [PATCH V4 1/3], [PATCH V4 2/3] and [PATCH V3 1/3]
-> for this regression.
+> Reviewed-by: Borislav Petkov <bp@suse.de>
 
-It sounds like either V3 1/3 or V4 3/3 will fix the regression.  The
-V3 1/3 patch is much smaller and essentially makes this piece look
-like it did in v4.6.
+Thanks!
 
-The V4 3/3 patch removes acpi_irq_penalty_init() and compensates by
-using acpi_irq_pci_sharing_penalty() for ISA IRQs again.  But
-acpi_irq_penalty_init() added PIRQ_PENALTY_PCI_POSSIBLE for _CRS, and
-only if there was no _PRS, while acpi_irq_pci_sharing_penalty() always
-adds PIRQ_PENALTY_PCI_USING for _CRS, regardless of whether _PRS
-exists.
-
-Since V4 3/3 is so much bigger and makes this quite subtle change in
-how _CRS is handled, I like V3 1/3 better.
-
-Are we all set to go now?  I think I've acked the patches you
-mentioned.
-
-Bjorn
