@@ -1,103 +1,117 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V3 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Mon, 24 Oct 2016 13:56:06 +0100
-Message-ID: <20161024125606.GA6918@red-moon>
-References: <1476933034-46044-1-git-send-email-liudongdong3@huawei.com>
- <1476933034-46044-3-git-send-email-liudongdong3@huawei.com>
- <CAJZ5v0iHGYCuQmJjkrk1Chu15VMoJSA0yKe14XkSrLV9jX_XNQ@mail.gmail.com>
- <5809B1DC.2070605@huawei.com>
- <20161021160838.GA29335@red-moon>
- <580DB0A5.20406@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <580DB0A5.20406@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tn@semihalf.com>, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Masters <jcm@redhat.com>, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, linuxarm@huawei.com
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH] tools/power/acpi: Remove direct kernel source include reference
+Date: Mon, 24 Oct 2016 22:11:19 +0800
+Message-ID: <a22c3ddc6e0cdda05183aaaa8ed8aaddcaf6bba8.1477318223.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35546 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936517AbcJXOLm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2016 10:11:42 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-On Mon, Oct 24, 2016 at 02:56:37PM +0800, Dongdong Liu wrote:
+ACPICA tools trickily uses integer types, and trickily includes kernel
+include directory directly, which breaks tools build for some cross
+compilers. This patch fixes this build issue.
 
-[...]
+Reported-and-tested-by: Yisheng Xie <xieyisheng1@huawei.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ include/acpi/platform/aclinux.h          |  3 +++
+ tools/power/acpi/Makefile                | 10 ++++++++--
+ tools/power/acpi/tools/acpidbg/Makefile  |  2 +-
+ tools/power/acpi/tools/acpidbg/acpidbg.c |  8 +++++++-
+ tools/power/acpi/tools/acpidump/Makefile |  2 +-
+ 5 files changed, 20 insertions(+), 5 deletions(-)
 
-> >The PNP0A08 acpi_device (that is what is pointed at by
-> >struct acpi_device = to_acpi_device(pci_config_window.parent)
-> >is the respective pci bridge device companion.
-> >
-> >arch/arm64/kernel/pci.c (pcibios_root_bridge_prepare()).
-> >
-> >Now for something completely different :), your RES2 pseudo-device.
-> >
-> >IIUC platform device (physical node) is created by the ACPI enumeration
-> >code for your RES2 pseudo-device and its resources are already
-> >initialized (by parsing its _CRS) in acpi_create_platform_device().
-> 
-> This is not right. About RES2 pseudo-device,it's _CID is PNP0C02,
-> this will attach acpi_pnp_attach() (drivers/acpi/acpi_pnp.c) .
-> acpi_pnp_attach() return 1;ret = acpi_scan_attach_handler() will return 1.
-> So this will not call acpi_default_enumeration(),
-> this also will not call acpi_create_platform_device().
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index a5d98d1..e861a24 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -191,6 +191,9 @@
+ #ifndef __init
+ #define __init
+ #endif
++#ifndef __iomem
++#define __iomem
++#endif
+ 
+ /* Host-dependent types and defines for user-space ACPICA */
+ 
+diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
+index a8bf908..ddb38d5 100644
+--- a/tools/power/acpi/Makefile
++++ b/tools/power/acpi/Makefile
+@@ -11,11 +11,17 @@
+ include ../../scripts/Makefile.include
+ 
+ all: acpidbg acpidump ec
+-clean: acpidbg_clean acpidump_clean ec_clean
++clean: acpidbg_clean acpidump_clean include_clean ec_clean
+ install: acpidbg_install acpidump_install ec_install
+ uninstall: acpidbg_uninstall acpidump_uninstall ec_uninstall
++include/acpi:
++	mkdir -p include
++	ln -s ../../../../include/acpi include/acpi
++include_clean:
++	rm -f include/acpi
++	rm -rf include
+ 
+-acpidbg acpidump ec: FORCE
++acpidbg acpidump ec: include/acpi FORCE
+ 	$(call descend,tools/$@,all)
+ acpidbg_clean acpidump_clean ec_clean:
+ 	$(call descend,tools/$(@:_clean=),clean)
+diff --git a/tools/power/acpi/tools/acpidbg/Makefile b/tools/power/acpi/tools/acpidbg/Makefile
+index 352df4b..1f35977 100644
+--- a/tools/power/acpi/tools/acpidbg/Makefile
++++ b/tools/power/acpi/tools/acpidbg/Makefile
+@@ -19,7 +19,7 @@ vpath %.c \
+ CFLAGS += -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER\
+ 	-I.\
+ 	-I../../../../../drivers/acpi/acpica\
+-	-I../../../../../include
++	-I../../include
+ LDFLAGS += -lpthread
+ TOOL_OBJS = \
+ 	acpidbg.o
+diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
+index a88ac45..4308362 100644
+--- a/tools/power/acpi/tools/acpidbg/acpidbg.c
++++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
+@@ -12,10 +12,16 @@
+ #include <acpi/acpi.h>
+ 
+ /* Headers not included by include/acpi/platform/aclinux.h */
++#include <unistd.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <error.h>
+ #include <stdbool.h>
+ #include <fcntl.h>
+ #include <assert.h>
+-#include <linux/circ_buf.h>
++#include <sys/select.h>
++#include "../../../../../include/linux/circ_buf.h"
+ 
+ #define ACPI_AML_FILE		"/sys/kernel/debug/acpi/acpidbg"
+ #define ACPI_AML_SEC_TICK	1
+diff --git a/tools/power/acpi/tools/acpidump/Makefile b/tools/power/acpi/tools/acpidump/Makefile
+index 04b5db7..e9f05d5 100644
+--- a/tools/power/acpi/tools/acpidump/Makefile
++++ b/tools/power/acpi/tools/acpidump/Makefile
+@@ -21,7 +21,7 @@ vpath %.c \
+ 	../../os_specific/service_layers
+ CFLAGS += -DACPI_DUMP_APP -I.\
+ 	-I../../../../../drivers/acpi/acpica\
+-	-I../../../../../include
++	-I../../include
+ TOOL_OBJS = \
+ 	apdump.o\
+ 	apfiles.o\
+-- 
+2.7.4
 
-Ah sorry, that's the correct way of handling things, I missed
-the PNP0c02 matching (which by the way it looks like it is the
-right solution to this problem), so I think your implementation is
-correct from an ACPI point of view (as long as it is valid to have
-a sub-device providing a _CRS whose address space is not contained
-in its parent device).
-
-Thanks !
-Lorenzo
-
-> drivers/acpi/scan.c
-> static void acpi_bus_attach(struct acpi_device *device)
-> {
-> ......
-> 	ret = acpi_scan_attach_handler(device);
-> 	if (ret < 0)
-> 		return;
-> 
-> 	device->flags.match_driver = true;
-> 	if (!ret) {
-> 		ret = device_attach(&device->dev);
-> 		if (ret < 0)
-> 			return;
-> 	
-> 		if (!ret && device->pnp.type.platform_id)
-> 			acpi_default_enumeration(device);
-> 	}
-> ......
-> }
-> 
-> Dongdong
-> Thanks
-> >
-> >This means that by the time you match the PNP0A03/PNP0A08 child with an
-> >acpi_device with _HID == "HISI0081", you can get its associated
-> >physical node and get its resources IOMEM through the physical
-> >node (ie platform device and related resources) instead of re-parsing
-> >the _CRS if I am not mistaken (and that's an IF because I did not
-> >test it).
-> 
-> As above said this does not re-parse the _CRS for RES2 pseudo-device.
-> 
-> Dongdong
-> Thanks
-> >
-> >Regardless, I am not entirely sure there are kernel drivers/control
-> >paths already using this mechanism to handle child devices (keeping in
-> >mind that RES2 is not a real device at all, it is there to represent
-> >PNP0A03 sub-address space for PCI quirks), so it would be good to get
-> >Rafael's agreement on this approach to prevent abusing the current ACPI
-> >platform devices glue code assumptions.
-> >
-> >It would also be good to agree on the whole approach soundness.
-> >
-> >Thanks,
-> >Lorenzo
-> >
-> >.
-> >
-> 
