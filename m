@@ -1,83 +1,41 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
-Date: Mon, 24 Oct 2016 07:35:39 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2579A5@SHSMSX101.ccr.corp.intel.com>
-References: <1476913001.7633.13.camel@intel.com>
-         <1AE640813FDE7649BE1B193DEA596E886A256F5B@SHSMSX101.ccr.corp.intel.com>
- <1477216090.7258.9.camel@intel.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [PATCH] ACPICA: arm64: fix compile apci tools fail for arm64
+Date: Mon, 24 Oct 2016 16:01:48 +0800
+Message-ID: <b53fb761-0e7e-7864-2f4f-6aee84a8aba1@huawei.com>
+References: <1476402698-40963-1-git-send-email-xieyisheng1@huawei.com>
+ <1AE640813FDE7649BE1B193DEA596E886A253666@SHSMSX101.ccr.corp.intel.com>
+ <696226b1-7024-a4d6-8bea-ddbf6d08a564@huawei.com>
+ <1AE640813FDE7649BE1B193DEA596E886A253FBF@SHSMSX101.ccr.corp.intel.com>
+ <c88b5433-fbf0-1a15-11b2-b47c1872d48d@huawei.com>
+ <1AE640813FDE7649BE1B193DEA596E886A256324@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886A256F1E@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:8745 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932354AbcJXHf7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Oct 2016 03:35:59 -0400
-In-Reply-To: <1477216090.7258.9.camel@intel.com>
-Content-Language: en-US
+Received: from szxga02-in.huawei.com ([119.145.14.65]:30178 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933576AbcJXIEl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2016 04:04:41 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A256F1E@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "wmiles@sgl.com" <wmiles@sgl.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>
 
-SGksIEltcmUNCg0KPiBGcm9tOiBEZWFrLCBJbXJlDQo+IFN1YmplY3Q6IFJlOiA0LjktcmMxOiBb
-VE1QX10gQUNQSSBuYW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQo+
-IA0KPiBPbiBGcmksIDIwMTYtMTAtMjEgYXQgMjI6NDYgKzAzMDAsIFpoZW5nLCBMdiB3cm90ZToN
-Cj4gPsKgWy4uLl0NCj4gPiBJIGNoZWNrZWQgdGhlIGNvZGUsIG9ubHkgZm91bmQgb25lIGlzc3Vl
-Lg0KPiA+IEFuZCBJJ20gbm90IHN1cmUgaWYgaXQgaXMgcmVsYXRlZC4NCj4gPiBQbGVhc2Ugc2Vu
-ZCBtZSB0aGUgZnVsbCBkbWVzZyBjb250YWluaW5nIHRoZSBlcnJvcnMgYW5kIHRoZSBhY3BpZHVt
-cA0KPiA+IG91dHB1dC4NCj4gDQo+IEkgYXR0YWNoZWQgdGhlIGRtZXNnIGNvbnRhaW5pbmcgdGhl
-IGVycm9yIGR1cmluZyBib290IChoYXBwZW5lZCAxIG91dA0KPiBvZiAyMDAgYm9vdHMpLCBkdXJp
-bmcgcmVib290ICgyMCBvdXQgb2YgMjAwIHJlYm9vdHMpLCBkdXJpbmcgc3VzcGVuZA0KPiAoaGFw
-cGVuZWQgYWxsIHRoZSB0aW1lKS4NCg0KSSBqdXN0IGNoZWNrZWQgdGhlIGVycm9yIGFuZCB0aGUg
-cmVsYXRlZCBjb2RlLg0KDQoxLiBXaGF0IHRoZSBlcnJvciBpcw0KVGhlIGVycm9yIG1lc3NhZ2Ug
-aXMgZ2VuZXJhdGVkIGJ5IGFuIG9sZCBtZXRob2QgYXV0by1zZXJpYWwgbWVjaGFuaXNtLg0KSG93
-ZXZlciB0aGlzIG1lY2hhbmlzbSBzaG91bGQgaGF2ZSBiZWVuIGRpc2FibGVkIGJ5IG5ldyBhdXRv
-LXNlcmlhbCBhcHByb2FjaC4NCg0KU2VlOiB0aGUgZXJyb3IgaXMgZ2VuZXJhdGVkIGJ5IHRoZSBj
-b2RlIGluIGRyaXZlcnMvYWNwaS9hY3BpY2EvcHNwYXJzZS5jOg0KCQkJaWYgKChzdGF0dXMgPT0g
-QUVfQUxSRUFEWV9FWElTVFMpICYmDQoJCQkgICAgKCEod2Fsa19zdGF0ZS0+bWV0aG9kX2Rlc2Mt
-Pm1ldGhvZC4NCgkJCSAgICAgICBpbmZvX2ZsYWdzICYgQUNQSV9NRVRIT0RfU0VSSUFMSVpFRCkp
-KSB7DQoJCQkJLyoNCgkJCQkgKiBNZXRob2QgaXMgbm90IHNlcmlhbGl6ZWQgYW5kIHRyaWVkIHRv
-IGNyZWF0ZSBhbiBvYmplY3QNCgkJCQkgKiB0d2ljZS4gVGhlIHByb2JhYmxlIGNhdXNlIGlzIHRo
-YXQgdGhlIG1ldGhvZCBjYW5ub3QNCgkJCQkgKiBoYW5kbGUgcmVlbnRyYW5jeS4gTWFyayBhcyAi
-cGVuZGluZyBzZXJpYWxpemVkIiBub3csIGFuZA0KCQkJCSAqIHRoZW4gbWFyayAic2VyaWFsaXpl
-ZCIgd2hlbiB0aGUgbGFzdCB0aHJlYWQgZXhpdHMuDQoJCQkJICovDQoJCQkJd2Fsa19zdGF0ZS0+
-bWV0aG9kX2Rlc2MtPm1ldGhvZC5pbmZvX2ZsYWdzIHw9DQoJCQkJICAgIEFDUElfTUVUSE9EX1NF
-UklBTElaRURfUEVORElORzsNCgkJCX0NCkl0IGNhbiBvbmx5IGhhcHBlbiB3aGVuIEFDUElfTUVU
-SE9EX1NFUklBTElaRUQgZmxhZyBpcyBub3Qgc2V0Lg0KSG93ZXZlciwgaW4gdGhlIHVwc3RyZWFt
-IGtlcm5lbCwgdGhpcyBmbGFnIGlzIHNldCBieSB0aGUgY29kZSBpbiBkcml2ZXJzL2FjcGkvYWNw
-aWNhL2RzaW5pdC5jOg0KCQlpZiAob2JqX2Rlc2MtPm1ldGhvZC5pbmZvX2ZsYWdzICYgQUNQSV9N
-RVRIT0RfU0VSSUFMSVpFRCkgew0KCQkJaW5mby0+c2VyaWFsX21ldGhvZF9jb3VudCsrOw0KCQkJ
-YnJlYWs7DQoJCX0NCg0KCQlpZiAoYWNwaV9nYmxfYXV0b19zZXJpYWxpemVfbWV0aG9kcykgew0K
-DQoJCQkvKiBQYXJzZS9zY2FuIG1ldGhvZCBhbmQgc2VyaWFsaXplIGl0IGlmIG5lY2Vzc2FyeSAq
-Lw0KDQoJCQlhY3BpX2RzX2F1dG9fc2VyaWFsaXplX21ldGhvZChub2RlLCBvYmpfZGVzYyk7DQoJ
-CQlpZiAob2JqX2Rlc2MtPm1ldGhvZC4NCgkJCSAgICBpbmZvX2ZsYWdzICYgQUNQSV9NRVRIT0Rf
-U0VSSUFMSVpFRCkgew0KDQoJCQkJLyogTWV0aG9kIHdhcyBqdXN0IGNvbnZlcnRlZCB0byBTZXJp
-YWxpemVkICovDQoNCgkJCQlpbmZvLT5zZXJpYWxfbWV0aG9kX2NvdW50Kys7DQoJCQkJaW5mby0+
-c2VyaWFsaXplZF9tZXRob2RfY291bnQrKzsNCgkJCQlicmVhazsNCgkJCX0NCgkJfQ0KV2hpY2gg
-aXMgaW52b2tlZCBieSBhY3BpX2RzX2luaXRpYWxpemVfb2JqZWN0cygpLCBhbHdheXMgaW52b2tl
-ZCBpbiBhY3BpX25zX2xvYWRfdGFibGUoKS4NClVubGVzcyBhY3BpX2dibF9hdXRvX3NlcmlhbGl6
-ZV9tZXRob2RzID0gZmFsc2Ugb3IgYWNwaV9uc19wYXJzZV90YWJsZSgpIGZhaWxlZCwgdGhlIGZs
-YWcgd29uJ3QgYmUgcmVtYWluZWQgdW5zZXQuDQoNClRoZSBlcnJvciBtZXNzYWdlIGlzIGdlbmVy
-YXRlZCBieSBvbGQgYXV0by1zZXJpYWxpemUgaW1wbGVtZW50YXRpb24uDQpBbmQgYWNwaV9nYmxf
-YXV0b19zZXJpYWxpemVfbWV0aG9kcyBpcyBtZWFudCB0byBtdXRlIHRoZSB3YXJuaW5ncy4NCg0K
-Qm90aCBtZWNoYW5pc20gc2hvdWxkIHdvcmssIHRodXMgdGhpcyBlcnJvciBtZXNzYWdlIGlzIG5v
-dCBmYXRhbC4NCkl0IGp1c3QgbWFrZXMgQUNQSUNBIHRvIGZhbGwgYmFjayB0byB1c2Ugb2xkIGF1
-dG8tc2VyaWFsIG1ldGhvZC4NClNvIHRoZSBpc3N1ZSBpcyBub3QgdXJnZW50Lg0KDQoyLiBXaHkg
-dGhlIGVycm9yIG1lc3NhZ2UgaXMgY2F1c2VkDQpJIGNvdWxkbid0IHNlZSB3aGV0aGVyIHRoZSBi
-aXNlY3RlZCBjb21taXQgY2FuIGJlIHJlbGF0ZWQgdG8gdGhpcyBmZWF0dXJlLg0KSXQgc2VlbXMg
-d2UgbmVlZCB5b3VyIGhlbHAgdG8gZGVidWcgd2hhdCB0aGUgcHJvYmxlbSBpcy4NCg0KRmlyc3Qs
-IHBsZWFzZSB0cnkgdGhlIG1lbnRpb25lZCBicmFuY2ggaGVyZToNCmh0dHBzOi8vZ2l0aHViLmNv
-bS96ZXRhbG9nL2xpbnV4DQphY3BpY2EtbG9jayBicmFuY2guDQoNCkFzIEkgbWF5IG5lZWQgdG8g
-YXNrIGZvciBzZXZlcmFsIGRlYnVnZ2luZyBzdGVwcywgbGV0IG1lIGZpbGUgYSBrZXJuZWwgQnVn
-emlsbGEgYnVnIGZvciB0aGlzLg0KU28gdGhhdCB3ZSBjYW4gY29tbXVuaWNhdGUgdGhlcmUgaW4g
-b3JkZXIgbm90IHRvIGJvdGhlciBvdGhlcnM6DQoNCmh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9y
-Zy9zaG93X2J1Zy5jZ2k/aWQ9MTgwMTExDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0K
-DQoNCj4gDQo+IEkgYXR0YWNoZWQgdGhlIGFjcGlkdW1wIG91dHB1dC4NCj4gDQo+ID4gUGxlYXNl
-IGdpdmUgdGhlIGZpeCBhIHRyeSAoc2VlIGF0dGFjaG1lbnQpLg0KPiANCj4gVGhlIHBhdGNoIGRp
-ZG4ndCBhcHBseSBvbiA0LjktcmMxIG9yIExpbnVzJyBtYXN0ZXIsIHBsZWFzZSBzZWUgdGhlDQo+
-IGF0dGFjaGVkIHBhdGNoIGZvciBteSBhdHRlbXB0IHRvIHJlc29sdmUgdGhlIGNvbmZsaWN0cy4g
-V2l0aCB0aGUgcGF0Y2gNCj4gYXBwbGllZCBJIGNvdWxkIHN0aWxsIHRyaWdnZXIgdGhlIHNhbWUg
-cHJvYmxlbSBkdXJpbmcgc3VzcGVuZC4NCj4gDQo+IC0tSW1yZQ0KPiANCj4gPiBJJ20gc29ycnkg
-Zm9yIHNlbmRpbmcgZml4IHBhdGNoIHVzaW5nIGF0dGFjaG1lbnQuDQo+ID4gSXQncyBub3QgY29u
-dmVuaWVudCBmb3IgbWUgZHVlIHRvIG15IGN1cnJlbnQgd29ya2luZyBlbnZpcm9ubWVudC4NCj4g
-Pg0KPiA+IFRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQo+ID4gTHYNCg==
+
+
+On 2016/10/22 3:40, Zheng, Lv wrote:
+> Hi,
+> 
+> I generated a solution with tools/power/acpi makefiles.
+> Please give it a try.
+Hi Lv,
+Your patch also works.
+
+> Sorry for the hackish build includes.
+> 
+> Thanks and best regards
+> Lv
+> 
+
