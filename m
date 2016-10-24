@@ -1,53 +1,46 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V5 1/3] ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages
-Date: Mon, 24 Oct 2016 00:31:30 -0400
-Message-ID: <1477283492-26657-2-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V5 3/3] ACPI: pci_link: Include PIRQ_PENALTY_PCI_USING for ISA IRQs
+Date: Mon, 24 Oct 2016 00:31:32 -0400
+Message-ID: <1477283492-26657-4-git-send-email-okaya@codeaurora.org>
 References: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com
 Cc: net147@gmail.com, linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Sinan Kaya <okaya@codeaurora.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-We do not want to store the SCI penalty in the acpi_isa_irq_penalty[]
-table because acpi_isa_irq_penalty[] only holds ISA IRQ penalties and
-there's no guarantee that the SCI is an ISA IRQ.  We add in the SCI
-penalty as a special case in acpi_irq_get_penalty().
+Commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
+replaced the addition of PIRQ_PENALTY_PCI_USING in acpi_pci_link_allocate()
+with an addition in acpi_irq_pci_sharing_penalty(), but f7eca374f000
+("ACPI,PCI,IRQ: separate ISA penalty calculation") removed the use
+of acpi_irq_pci_sharing_penalty() for ISA IRQs.
 
-But if we called acpi_penalize_isa_irq() or acpi_irq_penalty_update()
-for an SCI that happened to be an ISA IRQ, they stored the SCI
-penalty (part of the acpi_irq_get_penalty() return value) in
-acpi_isa_irq_penalty[].  Subsequent calls to acpi_irq_get_penalty()
-returned a penalty that included *two* SCI penalties.
+Therefore, PIRQ_PENALTY_PCI_USING is missing from ISA IRQs used by
+interrupt links.  Include that penalty by adding it in the
+acpi_pci_link_allocate() path.
 
+Fixes: f7eca374f000 ("ACPI,PCI,IRQ: separate ISA penalty calculation")
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/acpi/pci_link.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/pci_link.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index c983bf7..6229b02 100644
+index 74bf96e..bc3d914 100644
 --- a/drivers/acpi/pci_link.c
 +++ b/drivers/acpi/pci_link.c
-@@ -849,7 +849,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
- 			continue;
- 
- 		if (used)
--			new_penalty = acpi_irq_get_penalty(irq) +
-+			new_penalty = acpi_isa_irq_penalty[irq] +
- 					PIRQ_PENALTY_ISA_USED;
- 		else
- 			new_penalty = 0;
-@@ -871,7 +871,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
- void acpi_penalize_isa_irq(int irq, int active)
- {
- 	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
--		acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
-+		acpi_isa_irq_penalty[irq] +=
- 		  (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
- }
- 
+@@ -608,6 +608,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 			    acpi_device_bid(link->device));
+ 		return -ENODEV;
+ 	} else {
++		if (link->irq.active < ACPI_MAX_ISA_IRQS)
++			acpi_isa_irq_penalty[link->irq.active] +=
++				PIRQ_PENALTY_PCI_USING;
++
+ 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+ 		       acpi_device_name(link->device),
+ 		       acpi_device_bid(link->device), link->irq.active);
 -- 
 1.9.1
