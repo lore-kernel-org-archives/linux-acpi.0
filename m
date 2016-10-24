@@ -1,148 +1,83 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [PATCH V3 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Mon, 24 Oct 2016 14:56:37 +0800
-Message-ID: <580DB0A5.20406@huawei.com>
-References: <1476933034-46044-1-git-send-email-liudongdong3@huawei.com>
- <1476933034-46044-3-git-send-email-liudongdong3@huawei.com>
- <CAJZ5v0iHGYCuQmJjkrk1Chu15VMoJSA0yKe14XkSrLV9jX_XNQ@mail.gmail.com>
- <5809B1DC.2070605@huawei.com> <20161021160838.GA29335@red-moon>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Mon, 24 Oct 2016 07:35:39 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2579A5@SHSMSX101.ccr.corp.intel.com>
+References: <1476913001.7633.13.camel@intel.com>
+         <1AE640813FDE7649BE1B193DEA596E886A256F5B@SHSMSX101.ccr.corp.intel.com>
+ <1477216090.7258.9.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161021160838.GA29335@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tn@semihalf.com>, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Masters <jcm@redhat.com>, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, linuxarm@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:8745 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932354AbcJXHf7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Oct 2016 03:35:59 -0400
+In-Reply-To: <1477216090.7258.9.camel@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-
-Hi Lorenzo
-
-Many thanks for your review.
-在 2016/10/22 0:08, Lorenzo Pieralisi 写道:
-> On Fri, Oct 21, 2016 at 02:12:44PM +0800, Dongdong Liu wrote:
->
-> [...]
->
->>>> +static int hisi_pcie_init(struct pci_config_window *cfg)
->>>> +{
->>>> +       int ret;
->>>> +       struct acpi_device *adev = to_acpi_device(cfg->parent);
->>>
->>> Why is this expected to be struct acpi_device?
->>
->> I use this acpi device(Device (PCI2)) to get it's child acpi device(Device (RES2)), then
->> obtain rc base addresses from PNP0C02 as subdevice of PNP0A03.
->>
->> The procedure to get the value of cfg->parent is as the below.
->> arch/arm64/kernel/pci.c
->> pci_acpi_scan_root(struct acpi_pci_root *root)
->> 	--->pci_acpi_setup_ecam_mapping(root, ri);
->> 		--->pci_ecam_create(&root->device->dev, &cfgres, bus_res, ecam_ops);
->> 			--->cfg->parent = dev
->> ;
->> PCIe DSDT table defines as below.
->> Device (PCI2)
->> {
->> 	Name (_HID, "PNP0A08") // PCI Express Root Bridge
->> 	Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
->> 	......
->> 	Device (RES2)
->> 	{
->> 		Name (_HID, "HISI0081") // HiSi PCIe RC config base address
->> 		Name (_CID, "PNP0C02") // Motherboard reserved resource
->> 		Name (_CRS, ResourceTemplate (){
->> 			Memory32Fixed (ReadWrite, 0xa00a0000 , 0x10000)
->> 	})
->> 	......
->> }
->>>
->>> Shouldn't it be a "physical" device whose companion is an ACPI device object?
->>
->> Sorry, I don't understand.  What do you mean ?
->
-> I think Rafael meant the physical node (that in this case is the pci
-> bridge device) that is associated with the acpi device (the struct
-> pci_config_window.parent pointer points at the PNP0A03/PNP0A08 acpi
-> device object though, not the RES2 acpi device that's what you need).
->
-> Have a look at:
->
-> Documentation/acpi/enumeration.txt
-> Documentation/acpi/namespace.txt
-
-Thanks for explaining this.
-
->
->> It should be a "physical" device. but I have not saw about
->> ACPI_COMPANION_SET() of this device.
->
-> The PNP0A08 acpi_device (that is what is pointed at by
-> struct acpi_device = to_acpi_device(pci_config_window.parent)
-> is the respective pci bridge device companion.
->
-> arch/arm64/kernel/pci.c (pcibios_root_bridge_prepare()).
->
-> Now for something completely different :), your RES2 pseudo-device.
->
-> IIUC platform device (physical node) is created by the ACPI enumeration
-> code for your RES2 pseudo-device and its resources are already
-> initialized (by parsing its _CRS) in acpi_create_platform_device().
-
-This is not right. About RES2 pseudo-device,it's _CID is PNP0C02,
-this will attach acpi_pnp_attach() (drivers/acpi/acpi_pnp.c) .
-acpi_pnp_attach() return 1;ret = acpi_scan_attach_handler() will return 1.
-So this will not call acpi_default_enumeration(),
-this also will not call acpi_create_platform_device().
-
-drivers/acpi/scan.c
-static void acpi_bus_attach(struct acpi_device *device)
-{
-......
-	ret = acpi_scan_attach_handler(device);
-	if (ret < 0)
-		return;
-
-	device->flags.match_driver = true;
-	if (!ret) {
-		ret = device_attach(&device->dev);
-		if (ret < 0)
-			return;
-	
-		if (!ret && device->pnp.type.platform_id)
-			acpi_default_enumeration(device);
-	}
-......
-}
-
-Dongdong
-Thanks
->
-> This means that by the time you match the PNP0A03/PNP0A08 child with an
-> acpi_device with _HID == "HISI0081", you can get its associated
-> physical node and get its resources IOMEM through the physical
-> node (ie platform device and related resources) instead of re-parsing
-> the _CRS if I am not mistaken (and that's an IF because I did not
-> test it).
-
-As above said this does not re-parse the _CRS for RES2 pseudo-device.
-
-Dongdong
-Thanks
->
-> Regardless, I am not entirely sure there are kernel drivers/control
-> paths already using this mechanism to handle child devices (keeping in
-> mind that RES2 is not a real device at all, it is there to represent
-> PNP0A03 sub-address space for PCI quirks), so it would be good to get
-> Rafael's agreement on this approach to prevent abusing the current ACPI
-> platform devices glue code assumptions.
->
-> It would also be good to agree on the whole approach soundness.
->
-> Thanks,
-> Lorenzo
->
-> .
->
+SGksIEltcmUNCg0KPiBGcm9tOiBEZWFrLCBJbXJlDQo+IFN1YmplY3Q6IFJlOiA0LjktcmMxOiBb
+VE1QX10gQUNQSSBuYW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQo+
+IA0KPiBPbiBGcmksIDIwMTYtMTAtMjEgYXQgMjI6NDYgKzAzMDAsIFpoZW5nLCBMdiB3cm90ZToN
+Cj4gPsKgWy4uLl0NCj4gPiBJIGNoZWNrZWQgdGhlIGNvZGUsIG9ubHkgZm91bmQgb25lIGlzc3Vl
+Lg0KPiA+IEFuZCBJJ20gbm90IHN1cmUgaWYgaXQgaXMgcmVsYXRlZC4NCj4gPiBQbGVhc2Ugc2Vu
+ZCBtZSB0aGUgZnVsbCBkbWVzZyBjb250YWluaW5nIHRoZSBlcnJvcnMgYW5kIHRoZSBhY3BpZHVt
+cA0KPiA+IG91dHB1dC4NCj4gDQo+IEkgYXR0YWNoZWQgdGhlIGRtZXNnIGNvbnRhaW5pbmcgdGhl
+IGVycm9yIGR1cmluZyBib290IChoYXBwZW5lZCAxIG91dA0KPiBvZiAyMDAgYm9vdHMpLCBkdXJp
+bmcgcmVib290ICgyMCBvdXQgb2YgMjAwIHJlYm9vdHMpLCBkdXJpbmcgc3VzcGVuZA0KPiAoaGFw
+cGVuZWQgYWxsIHRoZSB0aW1lKS4NCg0KSSBqdXN0IGNoZWNrZWQgdGhlIGVycm9yIGFuZCB0aGUg
+cmVsYXRlZCBjb2RlLg0KDQoxLiBXaGF0IHRoZSBlcnJvciBpcw0KVGhlIGVycm9yIG1lc3NhZ2Ug
+aXMgZ2VuZXJhdGVkIGJ5IGFuIG9sZCBtZXRob2QgYXV0by1zZXJpYWwgbWVjaGFuaXNtLg0KSG93
+ZXZlciB0aGlzIG1lY2hhbmlzbSBzaG91bGQgaGF2ZSBiZWVuIGRpc2FibGVkIGJ5IG5ldyBhdXRv
+LXNlcmlhbCBhcHByb2FjaC4NCg0KU2VlOiB0aGUgZXJyb3IgaXMgZ2VuZXJhdGVkIGJ5IHRoZSBj
+b2RlIGluIGRyaXZlcnMvYWNwaS9hY3BpY2EvcHNwYXJzZS5jOg0KCQkJaWYgKChzdGF0dXMgPT0g
+QUVfQUxSRUFEWV9FWElTVFMpICYmDQoJCQkgICAgKCEod2Fsa19zdGF0ZS0+bWV0aG9kX2Rlc2Mt
+Pm1ldGhvZC4NCgkJCSAgICAgICBpbmZvX2ZsYWdzICYgQUNQSV9NRVRIT0RfU0VSSUFMSVpFRCkp
+KSB7DQoJCQkJLyoNCgkJCQkgKiBNZXRob2QgaXMgbm90IHNlcmlhbGl6ZWQgYW5kIHRyaWVkIHRv
+IGNyZWF0ZSBhbiBvYmplY3QNCgkJCQkgKiB0d2ljZS4gVGhlIHByb2JhYmxlIGNhdXNlIGlzIHRo
+YXQgdGhlIG1ldGhvZCBjYW5ub3QNCgkJCQkgKiBoYW5kbGUgcmVlbnRyYW5jeS4gTWFyayBhcyAi
+cGVuZGluZyBzZXJpYWxpemVkIiBub3csIGFuZA0KCQkJCSAqIHRoZW4gbWFyayAic2VyaWFsaXpl
+ZCIgd2hlbiB0aGUgbGFzdCB0aHJlYWQgZXhpdHMuDQoJCQkJICovDQoJCQkJd2Fsa19zdGF0ZS0+
+bWV0aG9kX2Rlc2MtPm1ldGhvZC5pbmZvX2ZsYWdzIHw9DQoJCQkJICAgIEFDUElfTUVUSE9EX1NF
+UklBTElaRURfUEVORElORzsNCgkJCX0NCkl0IGNhbiBvbmx5IGhhcHBlbiB3aGVuIEFDUElfTUVU
+SE9EX1NFUklBTElaRUQgZmxhZyBpcyBub3Qgc2V0Lg0KSG93ZXZlciwgaW4gdGhlIHVwc3RyZWFt
+IGtlcm5lbCwgdGhpcyBmbGFnIGlzIHNldCBieSB0aGUgY29kZSBpbiBkcml2ZXJzL2FjcGkvYWNw
+aWNhL2RzaW5pdC5jOg0KCQlpZiAob2JqX2Rlc2MtPm1ldGhvZC5pbmZvX2ZsYWdzICYgQUNQSV9N
+RVRIT0RfU0VSSUFMSVpFRCkgew0KCQkJaW5mby0+c2VyaWFsX21ldGhvZF9jb3VudCsrOw0KCQkJ
+YnJlYWs7DQoJCX0NCg0KCQlpZiAoYWNwaV9nYmxfYXV0b19zZXJpYWxpemVfbWV0aG9kcykgew0K
+DQoJCQkvKiBQYXJzZS9zY2FuIG1ldGhvZCBhbmQgc2VyaWFsaXplIGl0IGlmIG5lY2Vzc2FyeSAq
+Lw0KDQoJCQlhY3BpX2RzX2F1dG9fc2VyaWFsaXplX21ldGhvZChub2RlLCBvYmpfZGVzYyk7DQoJ
+CQlpZiAob2JqX2Rlc2MtPm1ldGhvZC4NCgkJCSAgICBpbmZvX2ZsYWdzICYgQUNQSV9NRVRIT0Rf
+U0VSSUFMSVpFRCkgew0KDQoJCQkJLyogTWV0aG9kIHdhcyBqdXN0IGNvbnZlcnRlZCB0byBTZXJp
+YWxpemVkICovDQoNCgkJCQlpbmZvLT5zZXJpYWxfbWV0aG9kX2NvdW50Kys7DQoJCQkJaW5mby0+
+c2VyaWFsaXplZF9tZXRob2RfY291bnQrKzsNCgkJCQlicmVhazsNCgkJCX0NCgkJfQ0KV2hpY2gg
+aXMgaW52b2tlZCBieSBhY3BpX2RzX2luaXRpYWxpemVfb2JqZWN0cygpLCBhbHdheXMgaW52b2tl
+ZCBpbiBhY3BpX25zX2xvYWRfdGFibGUoKS4NClVubGVzcyBhY3BpX2dibF9hdXRvX3NlcmlhbGl6
+ZV9tZXRob2RzID0gZmFsc2Ugb3IgYWNwaV9uc19wYXJzZV90YWJsZSgpIGZhaWxlZCwgdGhlIGZs
+YWcgd29uJ3QgYmUgcmVtYWluZWQgdW5zZXQuDQoNClRoZSBlcnJvciBtZXNzYWdlIGlzIGdlbmVy
+YXRlZCBieSBvbGQgYXV0by1zZXJpYWxpemUgaW1wbGVtZW50YXRpb24uDQpBbmQgYWNwaV9nYmxf
+YXV0b19zZXJpYWxpemVfbWV0aG9kcyBpcyBtZWFudCB0byBtdXRlIHRoZSB3YXJuaW5ncy4NCg0K
+Qm90aCBtZWNoYW5pc20gc2hvdWxkIHdvcmssIHRodXMgdGhpcyBlcnJvciBtZXNzYWdlIGlzIG5v
+dCBmYXRhbC4NCkl0IGp1c3QgbWFrZXMgQUNQSUNBIHRvIGZhbGwgYmFjayB0byB1c2Ugb2xkIGF1
+dG8tc2VyaWFsIG1ldGhvZC4NClNvIHRoZSBpc3N1ZSBpcyBub3QgdXJnZW50Lg0KDQoyLiBXaHkg
+dGhlIGVycm9yIG1lc3NhZ2UgaXMgY2F1c2VkDQpJIGNvdWxkbid0IHNlZSB3aGV0aGVyIHRoZSBi
+aXNlY3RlZCBjb21taXQgY2FuIGJlIHJlbGF0ZWQgdG8gdGhpcyBmZWF0dXJlLg0KSXQgc2VlbXMg
+d2UgbmVlZCB5b3VyIGhlbHAgdG8gZGVidWcgd2hhdCB0aGUgcHJvYmxlbSBpcy4NCg0KRmlyc3Qs
+IHBsZWFzZSB0cnkgdGhlIG1lbnRpb25lZCBicmFuY2ggaGVyZToNCmh0dHBzOi8vZ2l0aHViLmNv
+bS96ZXRhbG9nL2xpbnV4DQphY3BpY2EtbG9jayBicmFuY2guDQoNCkFzIEkgbWF5IG5lZWQgdG8g
+YXNrIGZvciBzZXZlcmFsIGRlYnVnZ2luZyBzdGVwcywgbGV0IG1lIGZpbGUgYSBrZXJuZWwgQnVn
+emlsbGEgYnVnIGZvciB0aGlzLg0KU28gdGhhdCB3ZSBjYW4gY29tbXVuaWNhdGUgdGhlcmUgaW4g
+b3JkZXIgbm90IHRvIGJvdGhlciBvdGhlcnM6DQoNCmh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9y
+Zy9zaG93X2J1Zy5jZ2k/aWQ9MTgwMTExDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0K
+DQoNCj4gDQo+IEkgYXR0YWNoZWQgdGhlIGFjcGlkdW1wIG91dHB1dC4NCj4gDQo+ID4gUGxlYXNl
+IGdpdmUgdGhlIGZpeCBhIHRyeSAoc2VlIGF0dGFjaG1lbnQpLg0KPiANCj4gVGhlIHBhdGNoIGRp
+ZG4ndCBhcHBseSBvbiA0LjktcmMxIG9yIExpbnVzJyBtYXN0ZXIsIHBsZWFzZSBzZWUgdGhlDQo+
+IGF0dGFjaGVkIHBhdGNoIGZvciBteSBhdHRlbXB0IHRvIHJlc29sdmUgdGhlIGNvbmZsaWN0cy4g
+V2l0aCB0aGUgcGF0Y2gNCj4gYXBwbGllZCBJIGNvdWxkIHN0aWxsIHRyaWdnZXIgdGhlIHNhbWUg
+cHJvYmxlbSBkdXJpbmcgc3VzcGVuZC4NCj4gDQo+IC0tSW1yZQ0KPiANCj4gPiBJJ20gc29ycnkg
+Zm9yIHNlbmRpbmcgZml4IHBhdGNoIHVzaW5nIGF0dGFjaG1lbnQuDQo+ID4gSXQncyBub3QgY29u
+dmVuaWVudCBmb3IgbWUgZHVlIHRvIG15IGN1cnJlbnQgd29ya2luZyBlbnZpcm9ubWVudC4NCj4g
+Pg0KPiA+IFRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQo+ID4gTHYNCg==
