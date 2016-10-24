@@ -1,63 +1,43 @@
-From: Jonathan Liu <net147@gmail.com>
-Subject: Re: [PATCH V5 3/3] ACPI: pci_link: Include PIRQ_PENALTY_PCI_USING for
- ISA IRQs
-Date: Mon, 24 Oct 2016 15:46:45 +1100
-Message-ID: <CANwerB2KywvUKAv84kvoyAV2YkqtOL9LbFOqSTLgZ=dCk-Z5xA@mail.gmail.com>
-References: <1477283492-26657-1-git-send-email-okaya@codeaurora.org> <1477283492-26657-4-git-send-email-okaya@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
+Date: Mon, 24 Oct 2016 06:10:43 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A257836@SHSMSX101.ccr.corp.intel.com>
+References: <1476913001.7633.13.camel@intel.com>
+         <1AE640813FDE7649BE1B193DEA596E886A256F5B@SHSMSX101.ccr.corp.intel.com>
+ <1477216090.7258.9.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:36378 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757224AbcJXEqr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Oct 2016 00:46:47 -0400
-In-Reply-To: <1477283492-26657-4-git-send-email-okaya@codeaurora.org>
+Received: from mga04.intel.com ([192.55.52.120]:58921 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752429AbcJXGKr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 24 Oct 2016 02:10:47 -0400
+In-Reply-To: <1477216090.7258.9.camel@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Bjorn Helgaas <bhelgaas@google.com>, ravikanth.nalla@hpe.com, linux@rainbow-software.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On 24 October 2016 at 15:31, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Commit 103544d86976 ("ACPI,PCI,IRQ: reduce resource requirements")
-> replaced the addition of PIRQ_PENALTY_PCI_USING in acpi_pci_link_allocate()
-> with an addition in acpi_irq_pci_sharing_penalty(), but f7eca374f000
-> ("ACPI,PCI,IRQ: separate ISA penalty calculation") removed the use
-> of acpi_irq_pci_sharing_penalty() for ISA IRQs.
->
-> Therefore, PIRQ_PENALTY_PCI_USING is missing from ISA IRQs used by
-> interrupt links.  Include that penalty by adding it in the
-> acpi_pci_link_allocate() path.
->
-> Fixes: f7eca374f000 ("ACPI,PCI,IRQ: separate ISA penalty calculation")
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  drivers/acpi/pci_link.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 74bf96e..bc3d914 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -608,6 +608,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
->                             acpi_device_bid(link->device));
->                 return -ENODEV;
->         } else {
-> +               if (link->irq.active < ACPI_MAX_ISA_IRQS)
-> +                       acpi_isa_irq_penalty[link->irq.active] +=
-> +                               PIRQ_PENALTY_PCI_USING;
-> +
->                 printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
->                        acpi_device_name(link->device),
->                        acpi_device_bid(link->device), link->irq.active);
-> --
-> 1.9.1
->
-
-This series fixes one or more network adapters not working in Linux
-32-bit x86 guest running inside VirtualBox if I have 4 network
-adapters enabled.
-The following message no longer appears in the kernel log:
-ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
-
-Tested-by: Jonathan Liu <net147@gmail.com>
+SGksIEltcmUNCg0KPiBGcm9tOiBEZWFrLCBJbXJlDQo+IFN1YmplY3Q6IFJlOiA0LjktcmMxOiBb
+VE1QX10gQUNQSSBuYW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQo+
+IA0KPiBPbiBGcmksIDIwMTYtMTAtMjEgYXQgMjI6NDYgKzAzMDAsIFpoZW5nLCBMdiB3cm90ZToN
+Cj4gPsKgWy4uLl0NCj4gPiBJIGNoZWNrZWQgdGhlIGNvZGUsIG9ubHkgZm91bmQgb25lIGlzc3Vl
+Lg0KPiA+IEFuZCBJJ20gbm90IHN1cmUgaWYgaXQgaXMgcmVsYXRlZC4NCj4gPiBQbGVhc2Ugc2Vu
+ZCBtZSB0aGUgZnVsbCBkbWVzZyBjb250YWluaW5nIHRoZSBlcnJvcnMgYW5kIHRoZSBhY3BpZHVt
+cA0KPiA+IG91dHB1dC4NCj4gDQo+IEkgYXR0YWNoZWQgdGhlIGRtZXNnIGNvbnRhaW5pbmcgdGhl
+IGVycm9yIGR1cmluZyBib290IChoYXBwZW5lZCAxIG91dA0KPiBvZiAyMDAgYm9vdHMpLCBkdXJp
+bmcgcmVib290ICgyMCBvdXQgb2YgMjAwIHJlYm9vdHMpLCBkdXJpbmcgc3VzcGVuZA0KPiAoaGFw
+cGVuZWQgYWxsIHRoZSB0aW1lKS4NCj4gDQo+IEkgYXR0YWNoZWQgdGhlIGFjcGlkdW1wIG91dHB1
+dC4NCg0KVGhhbmtzIGZvciB0aGUgaW5mb3JtYXRpb24uDQoNCj4gDQo+ID4gUGxlYXNlIGdpdmUg
+dGhlIGZpeCBhIHRyeSAoc2VlIGF0dGFjaG1lbnQpLg0KPiANCj4gVGhlIHBhdGNoIGRpZG4ndCBh
+cHBseSBvbiA0LjktcmMxIG9yIExpbnVzJyBtYXN0ZXIsIHBsZWFzZSBzZWUgdGhlDQo+IGF0dGFj
+aGVkIHBhdGNoIGZvciBteSBhdHRlbXB0IHRvIHJlc29sdmUgdGhlIGNvbmZsaWN0cy4gV2l0aCB0
+aGUgcGF0Y2gNCj4gYXBwbGllZCBJIGNvdWxkIHN0aWxsIHRyaWdnZXIgdGhlIHNhbWUgcHJvYmxl
+bSBkdXJpbmcgc3VzcGVuZC4NCg0KQ291bGQgeW91IHB1bGwgdGhpcyBicmFuY2ggZGlyZWN0bHkg
+YW5kIHRyeSBhZ2FpbjoNCmh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4DQpCcmFuY2g6
+IGFjcGljYS1sb2NrDQoNCkkndmUgcHVzaGVkIHRoZSBmaXggY29tbWl0IHRoZXJlLg0KDQpUaGFu
+a3MgaW4gYWR2YW5jZS4NCg0KQmVzdCByZWdhcmRzDQpMdg0KDQo+IA0KPiAtLUltcmUNCj4gDQo+
+ID4gSSdtIHNvcnJ5IGZvciBzZW5kaW5nIGZpeCBwYXRjaCB1c2luZyBhdHRhY2htZW50Lg0KPiA+
+IEl0J3Mgbm90IGNvbnZlbmllbnQgZm9yIG1lIGR1ZSB0byBteSBjdXJyZW50IHdvcmtpbmcgZW52
+aXJvbm1lbnQuDQo+ID4NCj4gPiBUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KPiA+IEx2DQo=
