@@ -1,7 +1,7 @@
 From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 6/6] ACPICA: Tables: Add acpi_tb_unload_table()
-Date: Tue, 25 Oct 2016 13:21:43 +0800
-Message-ID: <c48b1dd8788fa0a6248012d714115b55fe12b144.1477372449.git.lv.zheng@intel.com>
+Subject: [PATCH 3/6] ACPICA: Dispatcher: Tune interpreter lock around acpi_ev_initialize_region()
+Date: Tue, 25 Oct 2016 13:21:23 +0800
+Message-ID: <003bcff1ffb3ccc1d417f44f521e9450ee1ba2b6.1477372449.git.lv.zheng@intel.com>
 References: <cover.1477372449.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1477372449.git.lv.zheng@intel.com>
@@ -10,183 +10,159 @@ To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch introduces acpi_tb_unload_table() to eliminate redundant code from
-acpi_ex_unload_table() and acpi_unload_parent_table().
+In code path of acpi_ev_initialize_region(), there are namespace modification
+code unlocked. This patch tunes the code to make sure such modification are
+locked. Lv Zheng.
 
-No functional change. Lv Zheng.
-
+Reported-by: Imre Deak <imre.deak@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/actables.h |  2 ++
- drivers/acpi/acpica/exconfig.c | 35 +-----------------------------
- drivers/acpi/acpica/tbdata.c   | 48 ++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/tbxfload.c | 31 +--------------------------
- 4 files changed, 52 insertions(+), 64 deletions(-)
+ drivers/acpi/acpica/dsinit.c   | 11 +++--------
+ drivers/acpi/acpica/dsmethod.c | 12 +++---------
+ drivers/acpi/acpica/dswload2.c |  2 --
+ drivers/acpi/acpica/evrgnini.c |  3 +++
+ drivers/acpi/acpica/nsload.c   |  2 ++
+ 5 files changed, 11 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 1850005..7dd527f 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -130,6 +130,8 @@ acpi_status
- acpi_tb_install_and_load_table(acpi_physical_address address,
- 			       u8 flags, u8 override, u32 *table_index);
+diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
+index f1e6dcc..54d48b9 100644
+--- a/drivers/acpi/acpica/dsinit.c
++++ b/drivers/acpi/acpica/dsinit.c
+@@ -46,6 +46,7 @@
+ #include "acdispat.h"
+ #include "acnamesp.h"
+ #include "actables.h"
++#include "acinterp.h"
  
-+acpi_status acpi_tb_unload_table(u32 table_index);
-+
- void acpi_tb_terminate(void);
+ #define _COMPONENT          ACPI_DISPATCHER
+ ACPI_MODULE_NAME("dsinit")
+@@ -214,23 +215,17 @@ acpi_ds_initialize_objects(u32 table_index,
  
- acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index);
-diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
-index 8b8d620..c32c782 100644
---- a/drivers/acpi/acpica/exconfig.c
-+++ b/drivers/acpi/acpica/exconfig.c
-@@ -499,7 +499,6 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
- 	acpi_status status = AE_OK;
- 	union acpi_operand_object *table_desc = ddb_handle;
- 	u32 table_index;
--	struct acpi_table_header *table;
+ 	/* Walk entire namespace from the supplied root */
  
- 	ACPI_FUNCTION_TRACE(ex_unload_table);
- 
-@@ -536,39 +535,7 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
- 	 * strict order requirement against it.
- 	 */
- 	acpi_ex_exit_interpreter();
--
--	/* Ensure the table is still loaded */
--
--	if (!acpi_tb_is_table_loaded(table_index)) {
--		status = AE_NOT_EXIST;
--		goto lock_and_exit;
--	}
--
--	/* Invoke table handler if present */
--
--	if (acpi_gbl_table_handler) {
--		status = acpi_get_table_by_index(table_index, &table);
--		if (ACPI_SUCCESS(status)) {
--			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
--						     table,
--						     acpi_gbl_table_handler_context);
--		}
--	}
--
--	/* Delete the portion of the namespace owned by this table */
--
--	status = acpi_tb_delete_namespace_by_owner(table_index);
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
 -	if (ACPI_FAILURE(status)) {
--		goto lock_and_exit;
+-		return_ACPI_STATUS(status);
 -	}
 -
--	(void)acpi_tb_release_owner_id(table_index);
--	acpi_tb_set_table_loaded_flag(table_index, FALSE);
--
--lock_and_exit:
--
--	/* Re-acquire the interpreter lock */
--
-+	status = acpi_tb_unload_table(table_index);
- 	acpi_ex_enter_interpreter();
- 
  	/*
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 4cbfa30..82b0b57 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -871,3 +871,51 @@ unlock_and_exit:
- 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+ 	 * We don't use acpi_walk_namespace since we do not want to acquire
+ 	 * the namespace reader lock.
+ 	 */
+ 	status =
+ 	    acpi_ns_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
+-				   ACPI_NS_WALK_UNLOCK, acpi_ds_init_one_object,
+-				   NULL, &info, NULL);
++				   0, acpi_ds_init_one_object, NULL, &info,
++				   NULL);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During WalkNamespace"));
+ 	}
+-	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+ 
+ 	status = acpi_get_table_by_index(table_index, &table);
+ 	if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 5997e59..2b3210f 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -99,14 +99,11 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
+ 			  "Method auto-serialization parse [%4.4s] %p\n",
+ 			  acpi_ut_get_node_name(node), node));
+ 
+-	acpi_ex_enter_interpreter();
+-
+ 	/* Create/Init a root op for the method parse tree */
+ 
+ 	op = acpi_ps_alloc_op(AML_METHOD_OP, obj_desc->method.aml_start);
+ 	if (!op) {
+-		status = AE_NO_MEMORY;
+-		goto unlock;
++		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+ 
+ 	acpi_ps_set_name(op, node->name.integer);
+@@ -118,8 +115,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
+ 	    acpi_ds_create_walk_state(node->owner_id, NULL, NULL, NULL);
+ 	if (!walk_state) {
+ 		acpi_ps_free_op(op);
+-		status = AE_NO_MEMORY;
+-		goto unlock;
++		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+ 
+ 	status = acpi_ds_init_aml_walk(walk_state, op, node,
+@@ -128,7 +124,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_ds_delete_walk_state(walk_state);
+ 		acpi_ps_free_op(op);
+-		goto unlock;
++		return_ACPI_STATUS(status);
+ 	}
+ 
+ 	walk_state->descending_callback = acpi_ds_detect_named_opcodes;
+@@ -138,8 +134,6 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
+ 	status = acpi_ps_parse_aml(walk_state);
+ 
+ 	acpi_ps_delete_parse_tree(op);
+-unlock:
+-	acpi_ex_exit_interpreter();
  	return_ACPI_STATUS(status);
  }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_unload_table
-+ *
-+ * PARAMETERS:  table_index             - Table index
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Unload an ACPI table
-+ *
-+ ******************************************************************************/
-+
-+acpi_status acpi_tb_unload_table(u32 table_index)
-+{
-+	acpi_status status = AE_OK;
-+	struct acpi_table_header *table;
-+
-+	ACPI_FUNCTION_TRACE(tb_unload_table);
-+
-+	/* Ensure the table is still loaded */
-+
-+	if (!acpi_tb_is_table_loaded(table_index)) {
-+		return_ACPI_STATUS(AE_NOT_EXIST);
-+	}
-+
-+	/* Invoke table handler if present */
-+
-+	if (acpi_gbl_table_handler) {
-+		status = acpi_get_table_by_index(table_index, &table);
-+		if (ACPI_SUCCESS(status)) {
-+			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
-+						     table,
-+						     acpi_gbl_table_handler_context);
-+		}
-+	}
-+
-+	/* Delete the portion of the namespace owned by this table */
-+
-+	status = acpi_tb_delete_namespace_by_owner(table_index);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	(void)acpi_tb_release_owner_id(table_index);
-+	acpi_tb_set_table_loaded_flag(table_index, FALSE);
-+	return_ACPI_STATUS(status);
-+}
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 35d3f9b..940254c 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -404,37 +404,8 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
- 			break;
- 		}
  
--		/* Ensure the table is actually loaded */
--
- 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--		if (!acpi_tb_is_table_loaded(i)) {
--			status = AE_NOT_EXIST;
--			(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
--			break;
--		}
--
--		/* Invoke table handler if present */
--
--		if (acpi_gbl_table_handler) {
--			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
--						     acpi_gbl_root_table_list.
--						     tables[i].pointer,
--						     acpi_gbl_table_handler_context);
--		}
--
--		/*
--		 * Delete all namespace objects owned by this table. Note that
--		 * these objects can appear anywhere in the namespace by virtue
--		 * of the AML "Scope" operator. Thus, we need to track ownership
--		 * by an ID, not simply a position within the hierarchy.
--		 */
--		status = acpi_tb_delete_namespace_by_owner(i);
--		if (ACPI_FAILURE(status)) {
--			break;
--		}
--
--		status = acpi_tb_release_owner_id(i);
--		acpi_tb_set_table_loaded_flag(i, FALSE);
-+		status = acpi_tb_unload_table(i);
- 		(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 		break;
- 	}
+diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
+index 028b22a..e362182 100644
+--- a/drivers/acpi/acpica/dswload2.c
++++ b/drivers/acpi/acpica/dswload2.c
+@@ -607,11 +607,9 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
+ 				}
+ 			}
+ 
+-			acpi_ex_exit_interpreter();
+ 			status =
+ 			    acpi_ev_initialize_region
+ 			    (acpi_ns_get_attached_object(node), FALSE);
+-			acpi_ex_enter_interpreter();
+ 
+ 			if (ACPI_FAILURE(status)) {
+ 				/*
+diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+index 3843f1f..75ddd16 100644
+--- a/drivers/acpi/acpica/evrgnini.c
++++ b/drivers/acpi/acpica/evrgnini.c
+@@ -45,6 +45,7 @@
+ #include "accommon.h"
+ #include "acevents.h"
+ #include "acnamesp.h"
++#include "acinterp.h"
+ 
+ #define _COMPONENT          ACPI_EVENTS
+ ACPI_MODULE_NAME("evrgnini")
+@@ -597,9 +598,11 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
+ 					}
+ 				}
+ 
++				acpi_ex_exit_interpreter();
+ 				status =
+ 				    acpi_ev_execute_reg_method(region_obj,
+ 							       ACPI_REG_CONNECT);
++				acpi_ex_enter_interpreter();
+ 
+ 				if (acpi_ns_locked) {
+ 					status =
+diff --git a/drivers/acpi/acpica/nsload.c b/drivers/acpi/acpica/nsload.c
+index 334d3c5..d1f2014 100644
+--- a/drivers/acpi/acpica/nsload.c
++++ b/drivers/acpi/acpica/nsload.c
+@@ -137,7 +137,9 @@ unlock:
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "**** Begin Table Object Initialization\n"));
+ 
++	acpi_ex_enter_interpreter();
+ 	status = acpi_ds_initialize_objects(table_index, node);
++	acpi_ex_exit_interpreter();
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "**** Completed Table Object Initialization\n"));
 -- 
 2.7.4
