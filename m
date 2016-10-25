@@ -1,10 +1,12 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 00/14] ACPI platform MSI, interrupt producer/consumer and its example mbi-gen
-Date: Tue, 25 Oct 2016 23:09:15 +0800
-Message-ID: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 09/14] ACPI: platform: setup MSI domain for ACPI based platform device
+Date: Tue, 25 Oct 2016 23:09:24 +0800
+Message-ID: <1477408169-22217-10-git-send-email-guohanjun@huawei.com>
+References: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
@@ -12,116 +14,173 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-This patch series is v3 of a previous posting,
+With the platform msi domain created, we can set up the msi domain
+for a platform device when it's probed.
 
-https://lkml.org/lkml/2016/9/14/510
+In order to do that, we need to get the domain that the platform
+device connecting to, so the iort_get_platform_device_domain() is
+introduced to retrieve the domain from iort.
 
-v2 -> v3:
-	- Drop RFC tag
-	- Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
-	- Add 3 cleanup patches (patch 1, 2, 3)
-	- Drop arch_init call patch from last version
-	- Introduce a callback for platform device to set msi domain
-	- Introduce a new API to get paltform device's domain instead of
-	  reusing the PCI one in previous version
-	- Add a patch to rework iort_node_get_id()
+After the domain is retrieved, we need a proper way to set the
+domain to paltform device, as some platform devices such as an
+irqchip needs the msi irqdomain to be the interrupt parent domain,
+we need to get irqdomain before platform device is probed but after
+the platform device is allocated, so introduce a callback (pre_add_cb)
+in pdevinfo to prepare firmware related information which is needed
+for device probe, then set the msi domain in that callback.
 
-[1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/acpi/acpi_platform.c    | 11 +++++++++++
+ drivers/acpi/arm64/iort.c       | 43 +++++++++++++++++++++++++++++++++++++++++
+ drivers/base/platform.c         |  3 +++
+ include/linux/acpi_iort.h       |  3 +++
+ include/linux/platform_device.h |  3 +++
+ 5 files changed, 63 insertions(+)
 
-v2 -> v1:
-	- Fix the bug of if multi Interrupt() resoures in single _PRS,
-          we need to calculate all the irq numbers (I missed it in previous
-          version);
-	- Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
-	  SMMU patches (also Robin's SMMu patches)
-	- Add patch irqchip: mbigen: promote mbigen init.
-
-With platform msi support landed in the kernel, and the introduction
-of IORT for GICv3 ITS (PCI MSI) [1], the framework for platform msi
-is ready, this patch set add few patches to enable the ACPI platform
-msi support.
-
-For platform device connecting to ITS on arm platform, we have IORT
-table with the named componant node to describe the mappings of paltform
-device and ITS, so we can retrieve the dev id and find its parent
-irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
-
-With acpi platform msi supported, we add the ACPI support for irqchip
-mbi-gen, which use this framework to form its stacked irqdomain, below
-is the mbi-gen's topology in the system:
-
-
-  | ---------------|                  |------------------|
-  |                |       MSI        |                  |     wired interrupt(s)
-  |       ITS      |<-----------------|   MBI-GEN        |<----------------------------- IO device(s)
-  |                |                  |                  |<----------------------------- IO device(s)
-  ------------------                  -------------------
-
-So with ACPI platform MSI support, we can build the stacked domain for
-mbi-gen which represented its mappings with the named componant in IORT,
-but we still missing the connectings of devices to mbi-gen as in ACPI
-world devices connect to main interrupt controller in MADT in default.
-
-In ACPI 6.1, section 19.6.62, Interrupt Resource Descriptor Macro,
-
-    Interrupt (ResourceUsage, EdgeLevel, ActiveLevel, Shared,
-    ResourceSourceIndex, ResourceSource, DescriptorName)
-    { InterruptList } => Buffer
-    
-For the arguement ResourceUsage and DescriptorName, which means:
-    
-ResourceUsage describes whether the device consumes the specified
-interrupt ( ResourceConsumer ) or produces it for use by a child
-device ( ResourceProducer ).
-If nothing is specified, then ResourceConsumer is assumed.
-    
-DescriptorName evaluates to a name string which refers to the
-entire resource descriptor.
-    
-So it can be used for devices connecting to a specific interrupt
-prodcucer instead of the main interrupt controller in MADT, we can
-define:
-
-Interrupt(ResourceConsumer,..., "\_SB.IRQP") {12,14,....},
-
-then get the interrupt producer with the full path name "\_SB.IRQP".
-
-Thanks
-Hanjun
-
-Hanjun Guo (12):
-  ACPI: ARM64: IORT: minor cleanup for iort_match_node_callback()
-  irqchip: gic-v3-its: keep the head file include in alphabetic order
-  ACPI: ARM64: IORT: add missing comment for iort_dev_find_its_id()
-  irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
-  ACPI: platform-msi: retrieve dev id from IORT
-  irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
-    for ACPI
-  irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
-    domain
-  ACPI: ARM64: IORT: rework iort_node_get_id()
-  ACPI: platform: setup MSI domain for ACPI based platform device
-  msi: platform: make platform_msi_create_device_domain() ACPI aware
-  ACPI: irq: introduce interrupt producer
-  irqchip: mbigen: Add ACPI support
-
-Kefeng Wang (2):
-  irqchip: mbigen: drop module owner
-  irqchip: mbigen: introduce mbigen_of_create_domain()
-
- drivers/acpi/acpi_platform.c                  |  11 +++
- drivers/acpi/arm64/iort.c                     |  83 ++++++++++++++++++--
- drivers/acpi/gsi.c                            |  10 ++-
- drivers/acpi/resource.c                       |  85 ++++++++++++++------
- drivers/base/platform-msi.c                   |   3 +-
- drivers/base/platform.c                       |   3 +
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++++++++------
- drivers/irqchip/irq-gic-v3-its.c              |   3 +-
- drivers/irqchip/irq-mbigen.c                  | 109 ++++++++++++++++++++++----
- include/acpi/acpi_bus.h                       |   1 +
- include/linux/acpi_iort.h                     |  11 +++
- include/linux/platform_device.h               |   3 +
- 12 files changed, 346 insertions(+), 82 deletions(-)
-
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index b200ae1..13d0bf8 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -12,6 +12,7 @@
+  */
+ 
+ #include <linux/acpi.h>
++#include <linux/acpi_iort.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+@@ -48,6 +49,15 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
+ }
+ 
+ /**
++ * acpi_platform_pre_add_cb - callback before platform device is added, to
++ * prepare firmware related information which is needed for device probe
++ */
++static void acpi_platform_pre_add_cb(struct device *dev)
++{
++	acpi_configure_pmsi_domain(dev);
++}
++
++/**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
+  *
+@@ -106,6 +116,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 	pdevinfo.res = resources;
+ 	pdevinfo.num_res = count;
+ 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
++	pdevinfo.pre_add_cb = acpi_platform_pre_add_cb;
+ 
+ 	if (acpi_dma_supported(adev))
+ 		pdevinfo.dma_mask = DMA_BIT_MASK(32);
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 2881108..fd6eb65 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+ 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+ }
+ 
++/**
++ * iort_get_platform_device_domain() - Find MSI domain related to a
++ * platform device
++ * @dev: the dev pointer associated with the platform device
++ *
++ * Returns: the MSI domain for this device, NULL otherwise
++ */
++static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
++{
++	struct acpi_iort_node *node, *msi_parent;
++	struct fwnode_handle *iort_fwnode;
++	struct acpi_iort_its_group *its;
++
++	/* find its associated iort node */
++	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++			      iort_match_node_callback, dev);
++	if (!node)
++		return NULL;
++
++	/* then find its msi parent node */
++	msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
++	if (!msi_parent)
++		return NULL;
++
++	/* Move to ITS specific data */
++	its = (struct acpi_iort_its_group *)msi_parent->node_data;
++
++	iort_fwnode = iort_find_domain_token(its->identifiers[0]);
++	if (!iort_fwnode)
++		return NULL;
++
++	return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
++}
++
++void acpi_configure_pmsi_domain(struct device *dev)
++{
++	struct irq_domain *msi_domain;
++
++	msi_domain = iort_get_platform_device_domain(dev);
++	if (msi_domain)
++		dev_set_msi_domain(dev, msi_domain);
++}
++
+ static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+ {
+ 	u32 *rid = data;
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index c4af003..3e68f31 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -537,6 +537,9 @@ struct platform_device *platform_device_register_full(
+ 			goto err;
+ 	}
+ 
++	if (pdevinfo->pre_add_cb)
++		pdevinfo->pre_add_cb(&pdev->dev);
++
+ 	ret = platform_device_add(pdev);
+ 	if (ret) {
+ err:
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index 3f717cc..21e33b6 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -37,6 +37,7 @@
+ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+ /* IOMMU interface */
+ const struct iommu_ops *iort_iommu_configure(struct device *dev);
++void acpi_configure_pmsi_domain(struct device *dev);
+ #else
+ static inline void acpi_iort_init(void) { }
+ static inline bool iort_node_match(u8 type) { return false; }
+@@ -56,6 +57,8 @@ static inline int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+ static inline
+ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ { return NULL; }
++
++static inline void acpi_configure_pmsi_domain(struct device *dev) { }
+ #endif
+ 
+ #define IORT_ACPI_DECLARE(name, table_id, fn)		\
+diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
+index 98c2a7c..280d366fb 100644
+--- a/include/linux/platform_device.h
++++ b/include/linux/platform_device.h
+@@ -74,6 +74,9 @@ struct platform_device_info {
+ 		u64 dma_mask;
+ 
+ 		struct property_entry *properties;
++
++		/* preparation callback before the platform device is added */
++		void (*pre_add_cb)(struct device *);
+ };
+ extern struct platform_device *platform_device_register_full(
+ 		const struct platform_device_info *pdevinfo);
 -- 
 1.7.12.4
