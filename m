@@ -1,39 +1,88 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
-Date: Tue, 25 Oct 2016 14:26:34 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A259D4B@SHSMSX101.ccr.corp.intel.com>
-References: <1476913001.7633.13.camel@intel.com>
-         <1AE640813FDE7649BE1B193DEA596E886A256F5B@SHSMSX101.ccr.corp.intel.com>
-         <1477216090.7258.9.camel@intel.com>
-          <1AE640813FDE7649BE1B193DEA596E886A259633@SHSMSX101.ccr.corp.intel.com>
- <1477399707.11683.14.camel@intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH v3 04/14] irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+Date: Tue, 25 Oct 2016 23:09:19 +0800
+Message-ID: <1477408169-22217-5-git-send-email-guohanjun@huawei.com>
+References: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:39281 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752783AbcJYO0i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 25 Oct 2016 10:26:38 -0400
-In-Reply-To: <1477399707.11683.14.camel@intel.com>
-Content-Language: en-US
+Received: from szxga02-in.huawei.com ([119.145.14.65]:58143 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751302AbcJYPPt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 11:15:49 -0400
+In-Reply-To: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-SGksIEltcmUNCg0KPiBGcm9tOiBEZWFrLCBJbXJlDQo+IFN1YmplY3Q6IFJlOiA0LjktcmMxOiBb
-VE1QX10gQUNQSSBuYW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQo+
-IA0KPiBPbiB0aSwgMjAxNi0xMC0yNSBhdCAwNDoxNCArMDMwMCwgWmhlbmcsIEx2IHdyb3RlOg0K
-PiA+IEhpLCBJbXJlDQo+ID4NCj4gPiBJIHRoaW5rIHRoaXMgaXMgdGhlIHJvb3QgY2F1c2UgZml4
-Og0KPiA+IGh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4L2NvbW1pdC8xMDgwMDlkMA0K
-PiA+IFdoaWNoIHNlZW1zIHRvIGJlIGFuIG9sZCB0cmFwIHRyaWdnZXJlZCBieSB0aGUgZ29vZCBm
-aXguDQo+ID4NCj4gPiBDb3VsZCB5b3UgZ2l2ZSB0aGUgZml4IGNvbW1pdCBhIHRyeT8NCj4gPiBJ
-dOKAmXMgYmV0dGVyIHRvIHVzZSB0aGlzIGJyYW5jaCwgd2hlcmUgbW9yZSBpbXByb3ZlbWVudHMg
-YXJlIGluY2x1ZGVkOg0KPiA+IGdpdCBjbG9uZSBsaW51eC1hY3BpY2EgaHR0cHM6Ly9naXRodWIu
-Y29tL3pldGFsb2cvbGludXgNCj4gPiBnaXQgYnJhbmNoIGFjcGljYS1sb2NrIGxpbnV4LWFjcGlj
-YS9hY3BpY2EtbG9jaw0KPiA+IGdpdCBjaGVja291dCBhY3BpY2EtbG9jaw0KPiANCj4gWWVzLCB3
-aXRoIHRoZSBhYm92ZSBicmFuY2ggSSBjb3VsZG4ndCByZXByb2R1Y2UgdGhlIHByb2JsZW0gZHVy
-aW5nDQo+IHN1c3BlbmQvcmVzdW1lIHdoaWxlIHJldmVydGluZyAxMDgwMDlkMCBtYWRlIHRoZSBw
-cm9ibGVtIHJlYXBwZWFyLg0KDQpUaGFua3MgZm9yIHRoZSBidWcgcmVwb3J0Lg0KSSd2ZSBzZW50
-IHRoZSBwYXRjaGVzIHRvIHRoZSBBQ1BJIG1haWxpbmdsaXN0Lg0KDQpCZXN0IHJlZ2FyZHMNCkx2
-DQo=
+From: Hanjun Guo <hanjun.guo@linaro.org>
+
+Adding ACPI support for platform MSI, we need to retrieve the
+dev id in ACPI way instead of device tree, we already have
+a well formed function its_pmsi_prepare() to get the dev id
+but it's OF dependent, so collect OF related code and put them
+into a single function to make its_pmsi_prepare() more friendly
+to ACPI later.
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 470b4aa..3c94278 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -24,15 +24,11 @@
+ 	.name			= "ITS-pMSI",
+ };
+ 
+-static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+-			    int nvec, msi_alloc_info_t *info)
++static int of_pmsi_get_dev_id(struct irq_domain *domain, struct device *dev,
++				  u32 *dev_id)
+ {
+-	struct msi_domain_info *msi_info;
+-	u32 dev_id;
+ 	int ret, index = 0;
+ 
+-	msi_info = msi_get_domain_info(domain->parent);
+-
+ 	/* Suck the DeviceID out of the msi-parent property */
+ 	do {
+ 		struct of_phandle_args args;
+@@ -43,11 +39,24 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+ 		if (args.np == irq_domain_get_of_node(domain)) {
+ 			if (WARN_ON(args.args_count != 1))
+ 				return -EINVAL;
+-			dev_id = args.args[0];
++			*dev_id = args.args[0];
+ 			break;
+ 		}
+ 	} while (!ret);
+ 
++	return ret;
++}
++
++static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
++			    int nvec, msi_alloc_info_t *info)
++{
++	struct msi_domain_info *msi_info;
++	u32 dev_id;
++	int ret;
++
++	msi_info = msi_get_domain_info(domain->parent);
++
++	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
+ 	if (ret)
+ 		return ret;
+ 
+-- 
+1.7.12.4
+
