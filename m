@@ -1,15 +1,15 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 07/14] irqchip: gicv3-its: platform-msi: scan MADT to create platform msi domain
-Date: Tue, 25 Oct 2016 23:09:22 +0800
-Message-ID: <1477408169-22217-8-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 02/14] irqchip: gic-v3-its: keep the head file include in alphabetic order
+Date: Tue, 25 Oct 2016 23:09:17 +0800
+Message-ID: <1477408169-22217-3-git-send-email-guohanjun@huawei.com>
 References: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:58216 "EHLO
+Received: from szxga02-in.huawei.com ([119.145.14.65]:58215 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933269AbcJYPQD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 11:16:03 -0400
+        with ESMTP id S941768AbcJYPQE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 11:16:04 -0400
 In-Reply-To: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,76 +18,37 @@ Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kern
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-With the introduction of its_pmsi_init_one(), we can add some code
-on top for ACPI support of platform MSI.
-
-We are scanning the MADT table to get the ITS entry(ies), then use
-the information to create the platform msi domain for devices connect
-to it, just like the PCI MSI for ITS did.
+The head file is strictly in alphabetic order now, so let's
+be the rule breaker. As acpi_iort.h includes acpi.h so remove
+the duplidate acpi.h inclusion as well.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Sinan Kaya <okaya@codeaurora.org>
 Cc: Marc Zyngier <marc.zyngier@arm.com>
 Cc: Tomasz Nowicki <tn@semihalf.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 36 +++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ drivers/irqchip/irq-gic-v3-its.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-index ff72704..0be0437 100644
---- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-@@ -105,6 +105,41 @@ static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
- 	return 0;
- }
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index c5dee30..1508bf4 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -15,14 +15,13 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
  
-+#ifdef CONFIG_ACPI
-+static int __init
-+its_pmsi_parse_madt(struct acpi_subtable_header *header,
-+			const unsigned long end)
-+{
-+	struct acpi_madt_generic_translator *its_entry;
-+	struct fwnode_handle *domain_handle;
-+	const char *node_name;
-+	int err = -ENXIO;
-+
-+	its_entry = (struct acpi_madt_generic_translator *)header;
-+	node_name = kasprintf(GFP_KERNEL, "ITS@0x%lx",
-+			      (long)its_entry->base_address);
-+	domain_handle = iort_find_domain_token(its_entry->translation_id);
-+	if (!domain_handle) {
-+		pr_err("%s: Unable to locate ITS domain handle\n", node_name);
-+		goto out;
-+	}
-+
-+	err = its_pmsi_init_one(domain_handle, node_name);
-+
-+out:
-+	kfree(node_name);
-+	return err;
-+}
-+
-+static void __init its_acpi_pmsi_init(void)
-+{
-+	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+			      its_pmsi_parse_madt, 0);
-+}
-+#else
-+static inline void its_acpi_pmsi_init(void) { }
-+#endif
-+
- static void __init its_pmsi_of_init(void)
- {
- 	struct device_node *np;
-@@ -121,6 +156,7 @@ static void __init its_pmsi_of_init(void)
- static int __init its_pmsi_init(void)
- {
- 	its_pmsi_of_init();
-+	its_acpi_pmsi_init();
- 	return 0;
- }
- early_initcall(its_pmsi_init);
+-#include <linux/acpi.h>
++#include <linux/acpi_iort.h>
+ #include <linux/bitmap.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+ #include <linux/dma-iommu.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqdomain.h>
+-#include <linux/acpi_iort.h>
+ #include <linux/log2.h>
+ #include <linux/mm.h>
+ #include <linux/msi.h>
 -- 
 1.7.12.4
 
