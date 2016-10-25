@@ -1,66 +1,192 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 00/16] ACPI IORT ARM SMMU support
-Date: Tue, 25 Oct 2016 23:24:30 +0800
-Message-ID: <e52c2ad5-08fc-f236-a768-fbf03dd3d552@linaro.org>
-References: <20161018160414.1228-1-lorenzo.pieralisi@arm.com>
+From: agustinv@codeaurora.org
+Subject: Re: [PATCH V5 1/2] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Tue, 25 Oct 2016 16:49:42 -0400
+Message-ID: <e5d266de172e2dadd8bc0bb179ec090b@codeaurora.org>
+References: <1476812509-2760-1-git-send-email-agustinv@codeaurora.org>
+ <1476812509-2760-2-git-send-email-agustinv@codeaurora.org>
+ <20161020164812.GD8731@red-moon>
+ <4506c0f4-165a-e84b-73e2-d3cca9c8b9d7@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20161018160414.1228-1-lorenzo.pieralisi@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
-Cc: Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:45146 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754481AbcJYUtx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 16:49:53 -0400
+In-Reply-To: <4506c0f4-165a-e84b-73e2-d3cca9c8b9d7@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-On 2016/10/19 0:03, Lorenzo Pieralisi wrote:
-> This patch series is v6 of a previous posting:
->
-> https://lkml.org/lkml/2016/9/9/418
->
-> v5 -> v6
-> 	- Rebased against v4.9-rc1
-> 	- Changed FWNODE_IOMMU to FWNODE_ACPI_STATIC
-> 	- Moved platform devices creation into IORT code
-> 	- Updated fwnode handling
-> 	- Added default dma masks initialization
->
-> v4 -> v5
-> 	- Added SMMUv1/v2 support
-> 	- Rebased against v4.8-rc5 and dependencies series
-> 	- Consolidated IORT platform devices creation
->
-[...]
->
-> The ACPI IORT table provides information that allows instantiating
-> ARM SMMU devices and carrying out id mappings between components on
-> ARM based systems (devices, IOMMUs, interrupt controllers).
->
-> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
->
-> Building on basic IORT support, this patchset enables ARM SMMUs support
-> on ACPI systems.
->
-> Most of the code is aimed at building the required generic ACPI
-> infrastructure to create and enable IOMMU components and to bring
-> the IOMMU infrastructure for ACPI on par with DT, which is going to
-> make future ARM SMMU components easier to integrate.
->
-[...]
->
-> This patchset is provided for review/testing purposes here:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v6
->
-> Tested on Juno and FVP models for ARM SMMU v1 and v3 probing path.
+Hi Marc, Lorenzo,
 
-I rebased my platform MSI, interrupt producer and mbi-gen patch set
-on top of yours, and test it on Hisilicon D03 board with SMMv3
-enabled, USB and SAS are working properly with configuration
-in IORT (yes, I need to add patch from Robin - iommu/arm-smmu: Don't
-inadvertently reject multiple SMMUv3s),
+On 2016-10-20 13:51, Marc Zyngier wrote:
+> On 20/10/16 17:48, Lorenzo Pieralisi wrote:
+>> Hi Agustin,
+>> 
+>> On Tue, Oct 18, 2016 at 01:41:48PM -0400, Agustin Vega-Frias wrote:
+>>> This allows irqchip drivers to associate an ACPI DSDT device to
+>>> an IRQ domain and provides support for using the ResourceSource
+>>> in Extended IRQ Resources to find the domain and map the IRQs
+>>> specified on that domain.
+>>> 
+>>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+>>> ---
+>>>  drivers/acpi/Makefile             |   1 +
+>>>  drivers/acpi/irqdomain.c          | 141 
+>>> ++++++++++++++++++++++++++++++++++++++
+>>>  drivers/acpi/resource.c           |  21 +++---
+>>>  include/asm-generic/vmlinux.lds.h |   1 +
+>>>  include/linux/acpi.h              |  71 +++++++++++++++++++
+>>>  include/linux/irqchip.h           |  17 ++++-
+>>>  6 files changed, 240 insertions(+), 12 deletions(-)
+>>>  create mode 100644 drivers/acpi/irqdomain.c
+>>> 
+>>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>>> index 9ed0878..880401b 100644
+>>> --- a/drivers/acpi/Makefile
+>>> +++ b/drivers/acpi/Makefile
+>>> @@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>>>  acpi-y				+= acpi_lpat.o
+>>>  acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+>>>  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+>>> +acpi-$(CONFIG_IRQ_DOMAIN)	+= irqdomain.o
+>>> 
+>>>  # These are (potentially) separate modules
+>>> 
+>>> diff --git a/drivers/acpi/irqdomain.c b/drivers/acpi/irqdomain.c
+>>> new file mode 100644
+>>> index 0000000..c53b9f4
+>>> --- /dev/null
+>>> +++ b/drivers/acpi/irqdomain.c
+>>> @@ -0,0 +1,141 @@
+>>> +/*
+>>> + * ACPI ResourceSource/IRQ domain mapping support
+>>> + *
+>>> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or 
+>>> modify
+>>> + * it under the terms of the GNU General Public License version 2 
+>>> and
+>>> + * only version 2 as published by the Free Software Foundation.
+>>> + *
+>>> + * This program is distributed in the hope that it will be useful,
+>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>> + * GNU General Public License for more details.
+>>> + */
+>>> +#include <linux/acpi.h>
+>>> +#include <linux/irq.h>
+>>> +#include <linux/irqdomain.h>
+>>> +
+>>> +/**
+>>> + * acpi_irq_domain_ensure_probed() - Check if the device has 
+>>> registered
+>>> + *                                   an IRQ domain and probe as 
+>>> necessary
+>>> + *
+>>> + * @device: Device to check and probe
+>>> + *
+>>> + * Returns: 0 on success, -ENODEV otherwise
+>> 
+>> This is not correct (ie it depends on what
+>> 
+>> struct acpi_dsdt_probe_entry.probe
+>> 
+>> returns) and I would like to take this nit as an opportunity
+>> to take a step back and ask you a question below.
+>> 
+>>> + */
+>>> +static int acpi_irq_domain_ensure_probed(struct acpi_device *device)
+>>> +{
+>>> +	struct acpi_dsdt_probe_entry *entry;
+>>> +
+>>> +	if (irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY) != 0)
+>>> +		return 0;
+>>> +
+>>> +	for (entry = &__dsdt_acpi_probe_table;
+>>> +	     entry < &__dsdt_acpi_probe_table_end; entry++)
+>>> +		if (strcmp(entry->_hid, acpi_device_hid(device)) == 0)
+>>> +			return entry->probe(device);
+>> 
+>> Through this approch we are forcing an irqchip (that by the way it
+>> has a physical node ACPI companion by being a DSDT device object so it
+>> could be managed by a platform driver) to be probed. The question is: 
+>> is
+>> there a reason (apart from the current ACPI resource parsing API) why
+>> this can't be implemented through deferred probing and the device
+>> dependencies framework Rafael is working on:
+>> 
+>> http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1246897.html
+>> 
+>> The DT layer, through the of_irq_get() API, supports probe deferral
+>> and what I am asking you is if there is any blocking point (again,
+>> apart from the current ACPI API) to implement the same mechanism.
+>> 
+>> I have not reviewed the previous versions so I am certainly missing
+>> some of the bits and pieces already discussed, apologies for that.
+> 
+> Also, this function scares me to no end: lack of locking and recursion
+> are the main things that worry me. My vote would be to implement
+> something based on Rafael's approach (which conveniently solves all 
+> kind
+> of other issues).
+> 
 
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+I have looked at the latest version of Rafael's patchset for device 
+functional
+dependency tracking and in its current form it does not address the 
+issues
+we see with dependencies on irqchips under ACPI boot.
 
-Thanks
-Hanjun
+The problem is that the conversion of ACPI IRQ resources to Linux IRQ 
+resources
+for most DSDT devices occurs before the device is even added and is not 
+retried
+when a device is re-probed after returning -EPROBE_DEFER. The call chain 
+in most
+cases is:
+
+     acpi_init()
+         acpi_scan_init()
+             acpi_bus_scan()
+                 acpi_bus_attach()
+                     acpi_default_enumeration()
+                         acpi_create_platform_device()
+                             acpi_dev_get_resources() /* Resources are 
+converted here */
+                             platform_device_register_full()
+                                 platform_device_add()
+                                     device_add()
+
+What I would like to propose, and I would like feedback before I go down 
+that road,
+is to handle this in a way similar to DT, meaning that instead of doing 
+on demand
+probing of the irqchip devices described in the DSDT probe table I 
+introduce, we do
+that in an init function (e.g. acpi_bus_init_irq).
+
+Thoughts?
+
+Thanks.
+
+> I'll review this patch series in a more in-depth way soon, but I wanted
+> to chime in and add my own weight to Lorenzo's proposal.
+> 
+> Thanks,
+> 
+> 	M.
+> --
+> Jazz is not dead. It just smells funny...
+
+-- 
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
+Linux Foundation Collaborative Project.
