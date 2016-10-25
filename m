@@ -1,44 +1,40 @@
 From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 0/6] ACPICA: Interpreter: Improve lock order fixes
-Date: Tue, 25 Oct 2016 13:20:50 +0800
-Message-ID: <cover.1477372449.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 2/6] ACPICA: Dispatcher: Fix an unbalanced lock exit path in acpi_ds_auto_serialize_method()
+Date: Tue, 25 Oct 2016 13:21:16 +0800
+Message-ID: <21f8099f4e08fce02e82128e489429fccf9bd4b6.1477372449.git.lv.zheng@intel.com>
+References: <cover.1477372449.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:32848 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754787AbcJYFWA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 01:22:00 -0400
+In-Reply-To: <cover.1477372449.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-This patchset improves ACPICA intepreter lock order fixes. Including
-several urgent regression fixes [PATCH 0-3].
+There is a lock unbalanced exit path in acpi_ds_initialize_method(),
+this patch corrects it. Lv Zheng.
 
-Patches tested with customized ACPI table where _PS0/_PS3 methods are
-customized to invoke a serialized control method which creates named
-objects. When pm_async=yes, AE_ALREADY_EXISTS can be seen in suspend/resume
-process. This is an existing issue, triggered in 4.9-rc1 by ACPICA
-interpreter lock order fixes, and can be fixed by [PATCH 1] in this series.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/dsmethod.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Lv Zheng (6):
-  ACPICA: Dispatcher: Fix order issue of method termination
-  ACPICA: Dispatcher: Fix an unbalanced lock exit path in
-    acpi_ds_auto_serialize_method()
-  ACPICA: Dispatcher: Tune interpreter lock around
-    acpi_ev_initialize_region()
-  ACPICA: Events: Cleanup acpi_ev_initialize_region()
-  ACPICA: Tables: Cleanup acpi_tb_install_and_load_table()
-  ACPICA: Tables: Add acpi_tb_unload_table()
-
- drivers/acpi/acpica/acevents.h |  4 +--
- drivers/acpi/acpica/actables.h |  5 +--
- drivers/acpi/acpica/dsinit.c   | 11 ++----
- drivers/acpi/acpica/dsmethod.c | 50 ++++++++++++--------------
- drivers/acpi/acpica/dsopcode.c |  2 +-
- drivers/acpi/acpica/dswload2.c | 15 +-------
- drivers/acpi/acpica/evrgnini.c | 62 ++++++++++++++------------------
- drivers/acpi/acpica/exconfig.c | 42 +++-------------------
- drivers/acpi/acpica/nsload.c   |  2 ++
- drivers/acpi/acpica/tbdata.c   | 81 ++++++++++++++++++++++++------------------
- drivers/acpi/acpica/tbxfload.c | 38 +++-----------------
- 11 files changed, 115 insertions(+), 197 deletions(-)
-
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index c4028a8..5997e59 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -128,7 +128,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_ds_delete_walk_state(walk_state);
+ 		acpi_ps_free_op(op);
+-		return_ACPI_STATUS(status);
++		goto unlock;
+ 	}
+ 
+ 	walk_state->descending_callback = acpi_ds_detect_named_opcodes;
 -- 
 2.7.4
+
