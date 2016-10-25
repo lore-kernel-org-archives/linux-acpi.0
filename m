@@ -1,95 +1,44 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 4.9-rc1: [TMP_] ACPI namespace lookup failure, AE_ALREADY_EXISTS
-Date: Tue, 25 Oct 2016 01:14:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A259633@SHSMSX101.ccr.corp.intel.com>
-References: <1476913001.7633.13.camel@intel.com>
-         <1AE640813FDE7649BE1B193DEA596E886A256F5B@SHSMSX101.ccr.corp.intel.com>
- <1477216090.7258.9.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:59616 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756551AbcJYBOr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 24 Oct 2016 21:14:47 -0400
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH 0/6] ACPICA: Interpreter: Improve lock order fixes
+Date: Tue, 25 Oct 2016 13:20:50 +0800
+Message-ID: <cover.1477372449.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Deak, Imre" <imre.deak@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-SGksIEltcmUNCg0KSSB0aGluayB0aGlzIGlzIHRoZSByb290IGNhdXNlIGZpeDoNCmh0dHBzOi8v
-Z2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4L2NvbW1pdC8xMDgwMDlkMA0KV2hpY2ggc2VlbXMgdG8g
-YmUgYW4gb2xkIHRyYXAgdHJpZ2dlcmVkIGJ5IHRoZSBnb29kIGZpeC4NCg0KQ291bGQgeW91IGdp
-dmUgdGhlIGZpeCBjb21taXQgYSB0cnk/DQpJdOKAmXMgYmV0dGVyIHRvIHVzZSB0aGlzIGJyYW5j
-aCwgd2hlcmUgbW9yZSBpbXByb3ZlbWVudHMgYXJlIGluY2x1ZGVkOg0KZ2l0IGNsb25lIGxpbnV4
-LWFjcGljYSBodHRwczovL2dpdGh1Yi5jb20vemV0YWxvZy9saW51eA0KZ2l0IGJyYW5jaCBhY3Bp
-Y2EtbG9jayBsaW51eC1hY3BpY2EvYWNwaWNhLWxvY2sNCmdpdCBjaGVja291dCBhY3BpY2EtbG9j
-aw0KDQpUaGFua3MgaW4gYWR2YW5jZS4NCg0KQmVzdCByZWdhcmRzDQpMdg0KDQo+IEZyb206IFpo
-ZW5nLCBMdg0KPiBTdWJqZWN0OiBSRTogNC45LXJjMTogW1RNUF9dIEFDUEkgbmFtZXNwYWNlIGxv
-b2t1cCBmYWlsdXJlLCBBRV9BTFJFQURZX0VYSVNUUw0KPiANCj4gSGksIEltcmUNCj4gDQo+ID4g
-RnJvbTogRGVhaywgSW1yZQ0KPiA+IFN1YmplY3Q6IFJlOiA0LjktcmMxOiBbVE1QX10gQUNQSSBu
-YW1lc3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQo+ID4NCj4gPiBPbiBG
-cmksIDIwMTYtMTAtMjEgYXQgMjI6NDYgKzAzMDAsIFpoZW5nLCBMdiB3cm90ZToNCj4gPiA+wqBb
-Li4uXQ0KPiA+ID4gSSBjaGVja2VkIHRoZSBjb2RlLCBvbmx5IGZvdW5kIG9uZSBpc3N1ZS4NCj4g
-PiA+IEFuZCBJJ20gbm90IHN1cmUgaWYgaXQgaXMgcmVsYXRlZC4NCj4gPiA+IFBsZWFzZSBzZW5k
-IG1lIHRoZSBmdWxsIGRtZXNnIGNvbnRhaW5pbmcgdGhlIGVycm9ycyBhbmQgdGhlIGFjcGlkdW1w
-DQo+ID4gPiBvdXRwdXQuDQo+ID4NCj4gPiBJIGF0dGFjaGVkIHRoZSBkbWVzZyBjb250YWluaW5n
-IHRoZSBlcnJvciBkdXJpbmcgYm9vdCAoaGFwcGVuZWQgMSBvdXQNCj4gPiBvZiAyMDAgYm9vdHMp
-LCBkdXJpbmcgcmVib290ICgyMCBvdXQgb2YgMjAwIHJlYm9vdHMpLCBkdXJpbmcgc3VzcGVuZA0K
-PiA+IChoYXBwZW5lZCBhbGwgdGhlIHRpbWUpLg0KPiANCj4gSSBqdXN0IGNoZWNrZWQgdGhlIGVy
-cm9yIGFuZCB0aGUgcmVsYXRlZCBjb2RlLg0KPiANCj4gMS4gV2hhdCB0aGUgZXJyb3IgaXMNCj4g
-VGhlIGVycm9yIG1lc3NhZ2UgaXMgZ2VuZXJhdGVkIGJ5IGFuIG9sZCBtZXRob2QgYXV0by1zZXJp
-YWwgbWVjaGFuaXNtLg0KPiBIb3dldmVyIHRoaXMgbWVjaGFuaXNtIHNob3VsZCBoYXZlIGJlZW4g
-ZGlzYWJsZWQgYnkgbmV3IGF1dG8tc2VyaWFsIGFwcHJvYWNoLg0KPiANCj4gU2VlOiB0aGUgZXJy
-b3IgaXMgZ2VuZXJhdGVkIGJ5IHRoZSBjb2RlIGluIGRyaXZlcnMvYWNwaS9hY3BpY2EvcHNwYXJz
-ZS5jOg0KPiAJCQlpZiAoKHN0YXR1cyA9PSBBRV9BTFJFQURZX0VYSVNUUykgJiYNCj4gCQkJICAg
-ICghKHdhbGtfc3RhdGUtPm1ldGhvZF9kZXNjLT5tZXRob2QuDQo+IAkJCSAgICAgICBpbmZvX2Zs
-YWdzICYgQUNQSV9NRVRIT0RfU0VSSUFMSVpFRCkpKSB7DQo+IAkJCQkvKg0KPiAJCQkJICogTWV0
-aG9kIGlzIG5vdCBzZXJpYWxpemVkIGFuZCB0cmllZCB0byBjcmVhdGUgYW4gb2JqZWN0DQo+IAkJ
-CQkgKiB0d2ljZS4gVGhlIHByb2JhYmxlIGNhdXNlIGlzIHRoYXQgdGhlIG1ldGhvZCBjYW5ub3QN
-Cj4gCQkJCSAqIGhhbmRsZSByZWVudHJhbmN5LiBNYXJrIGFzICJwZW5kaW5nIHNlcmlhbGl6ZWQi
-IG5vdywgYW5kDQo+IAkJCQkgKiB0aGVuIG1hcmsgInNlcmlhbGl6ZWQiIHdoZW4gdGhlIGxhc3Qg
-dGhyZWFkIGV4aXRzLg0KPiAJCQkJICovDQo+IAkJCQl3YWxrX3N0YXRlLT5tZXRob2RfZGVzYy0+
-bWV0aG9kLmluZm9fZmxhZ3MgfD0NCj4gCQkJCSAgICBBQ1BJX01FVEhPRF9TRVJJQUxJWkVEX1BF
-TkRJTkc7DQo+IAkJCX0NCj4gSXQgY2FuIG9ubHkgaGFwcGVuIHdoZW4gQUNQSV9NRVRIT0RfU0VS
-SUFMSVpFRCBmbGFnIGlzIG5vdCBzZXQuDQo+IEhvd2V2ZXIsIGluIHRoZSB1cHN0cmVhbSBrZXJu
-ZWwsIHRoaXMgZmxhZyBpcyBzZXQgYnkgdGhlIGNvZGUgaW4gZHJpdmVycy9hY3BpL2FjcGljYS9k
-c2luaXQuYzoNCj4gCQlpZiAob2JqX2Rlc2MtPm1ldGhvZC5pbmZvX2ZsYWdzICYgQUNQSV9NRVRI
-T0RfU0VSSUFMSVpFRCkgew0KPiAJCQlpbmZvLT5zZXJpYWxfbWV0aG9kX2NvdW50Kys7DQo+IAkJ
-CWJyZWFrOw0KPiAJCX0NCj4gDQo+IAkJaWYgKGFjcGlfZ2JsX2F1dG9fc2VyaWFsaXplX21ldGhv
-ZHMpIHsNCj4gDQo+IAkJCS8qIFBhcnNlL3NjYW4gbWV0aG9kIGFuZCBzZXJpYWxpemUgaXQgaWYg
-bmVjZXNzYXJ5ICovDQo+IA0KPiAJCQlhY3BpX2RzX2F1dG9fc2VyaWFsaXplX21ldGhvZChub2Rl
-LCBvYmpfZGVzYyk7DQo+IAkJCWlmIChvYmpfZGVzYy0+bWV0aG9kLg0KPiAJCQkgICAgaW5mb19m
-bGFncyAmIEFDUElfTUVUSE9EX1NFUklBTElaRUQpIHsNCj4gDQo+IAkJCQkvKiBNZXRob2Qgd2Fz
-IGp1c3QgY29udmVydGVkIHRvIFNlcmlhbGl6ZWQgKi8NCj4gDQo+IAkJCQlpbmZvLT5zZXJpYWxf
-bWV0aG9kX2NvdW50Kys7DQo+IAkJCQlpbmZvLT5zZXJpYWxpemVkX21ldGhvZF9jb3VudCsrOw0K
-PiAJCQkJYnJlYWs7DQo+IAkJCX0NCj4gCQl9DQo+IFdoaWNoIGlzIGludm9rZWQgYnkgYWNwaV9k
-c19pbml0aWFsaXplX29iamVjdHMoKSwgYWx3YXlzIGludm9rZWQgaW4gYWNwaV9uc19sb2FkX3Rh
-YmxlKCkuDQo+IFVubGVzcyBhY3BpX2dibF9hdXRvX3NlcmlhbGl6ZV9tZXRob2RzID0gZmFsc2Ug
-b3IgYWNwaV9uc19wYXJzZV90YWJsZSgpIGZhaWxlZCwgdGhlIGZsYWcgd29uJ3QgYmUNCj4gcmVt
-YWluZWQgdW5zZXQuDQo+IA0KPiBUaGUgZXJyb3IgbWVzc2FnZSBpcyBnZW5lcmF0ZWQgYnkgb2xk
-IGF1dG8tc2VyaWFsaXplIGltcGxlbWVudGF0aW9uLg0KPiBBbmQgYWNwaV9nYmxfYXV0b19zZXJp
-YWxpemVfbWV0aG9kcyBpcyBtZWFudCB0byBtdXRlIHRoZSB3YXJuaW5ncy4NCj4gDQo+IEJvdGgg
-bWVjaGFuaXNtIHNob3VsZCB3b3JrLCB0aHVzIHRoaXMgZXJyb3IgbWVzc2FnZSBpcyBub3QgZmF0
-YWwuDQo+IEl0IGp1c3QgbWFrZXMgQUNQSUNBIHRvIGZhbGwgYmFjayB0byB1c2Ugb2xkIGF1dG8t
-c2VyaWFsIG1ldGhvZC4NCj4gU28gdGhlIGlzc3VlIGlzIG5vdCB1cmdlbnQuDQo+IA0KPiAyLiBX
-aHkgdGhlIGVycm9yIG1lc3NhZ2UgaXMgY2F1c2VkDQo+IEkgY291bGRuJ3Qgc2VlIHdoZXRoZXIg
-dGhlIGJpc2VjdGVkIGNvbW1pdCBjYW4gYmUgcmVsYXRlZCB0byB0aGlzIGZlYXR1cmUuDQo+IEl0
-IHNlZW1zIHdlIG5lZWQgeW91ciBoZWxwIHRvIGRlYnVnIHdoYXQgdGhlIHByb2JsZW0gaXMuDQo+
-IA0KPiBGaXJzdCwgcGxlYXNlIHRyeSB0aGUgbWVudGlvbmVkIGJyYW5jaCBoZXJlOg0KPiBodHRw
-czovL2dpdGh1Yi5jb20vemV0YWxvZy9saW51eA0KPiBhY3BpY2EtbG9jayBicmFuY2guDQo+IA0K
-PiBBcyBJIG1heSBuZWVkIHRvIGFzayBmb3Igc2V2ZXJhbCBkZWJ1Z2dpbmcgc3RlcHMsIGxldCBt
-ZSBmaWxlIGEga2VybmVsIEJ1Z3ppbGxhIGJ1ZyBmb3IgdGhpcy4NCj4gU28gdGhhdCB3ZSBjYW4g
-Y29tbXVuaWNhdGUgdGhlcmUgaW4gb3JkZXIgbm90IHRvIGJvdGhlciBvdGhlcnM6DQo+IA0KPiBo
-dHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTE4MDExMQ0KPiANCj4g
-VGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCj4gTHYNCj4gDQo+IA0KPiA+DQo+ID4gSSBhdHRhY2hl
-ZCB0aGUgYWNwaWR1bXAgb3V0cHV0Lg0KPiA+DQo+ID4gPiBQbGVhc2UgZ2l2ZSB0aGUgZml4IGEg
-dHJ5IChzZWUgYXR0YWNobWVudCkuDQo+ID4NCj4gPiBUaGUgcGF0Y2ggZGlkbid0IGFwcGx5IG9u
-IDQuOS1yYzEgb3IgTGludXMnIG1hc3RlciwgcGxlYXNlIHNlZSB0aGUNCj4gPiBhdHRhY2hlZCBw
-YXRjaCBmb3IgbXkgYXR0ZW1wdCB0byByZXNvbHZlIHRoZSBjb25mbGljdHMuIFdpdGggdGhlIHBh
-dGNoDQo+ID4gYXBwbGllZCBJIGNvdWxkIHN0aWxsIHRyaWdnZXIgdGhlIHNhbWUgcHJvYmxlbSBk
-dXJpbmcgc3VzcGVuZC4NCj4gPg0KPiA+IC0tSW1yZQ0KPiA+DQo+ID4gPiBJJ20gc29ycnkgZm9y
-IHNlbmRpbmcgZml4IHBhdGNoIHVzaW5nIGF0dGFjaG1lbnQuDQo+ID4gPiBJdCdzIG5vdCBjb252
-ZW5pZW50IGZvciBtZSBkdWUgdG8gbXkgY3VycmVudCB3b3JraW5nIGVudmlyb25tZW50Lg0KPiA+
-ID4NCj4gPiA+IFRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQo+ID4gPiBMdg0K
+This patchset improves ACPICA intepreter lock order fixes. Including
+several urgent regression fixes [PATCH 0-3].
+
+Patches tested with customized ACPI table where _PS0/_PS3 methods are
+customized to invoke a serialized control method which creates named
+objects. When pm_async=yes, AE_ALREADY_EXISTS can be seen in suspend/resume
+process. This is an existing issue, triggered in 4.9-rc1 by ACPICA
+interpreter lock order fixes, and can be fixed by [PATCH 1] in this series.
+
+Lv Zheng (6):
+  ACPICA: Dispatcher: Fix order issue of method termination
+  ACPICA: Dispatcher: Fix an unbalanced lock exit path in
+    acpi_ds_auto_serialize_method()
+  ACPICA: Dispatcher: Tune interpreter lock around
+    acpi_ev_initialize_region()
+  ACPICA: Events: Cleanup acpi_ev_initialize_region()
+  ACPICA: Tables: Cleanup acpi_tb_install_and_load_table()
+  ACPICA: Tables: Add acpi_tb_unload_table()
+
+ drivers/acpi/acpica/acevents.h |  4 +--
+ drivers/acpi/acpica/actables.h |  5 +--
+ drivers/acpi/acpica/dsinit.c   | 11 ++----
+ drivers/acpi/acpica/dsmethod.c | 50 ++++++++++++--------------
+ drivers/acpi/acpica/dsopcode.c |  2 +-
+ drivers/acpi/acpica/dswload2.c | 15 +-------
+ drivers/acpi/acpica/evrgnini.c | 62 ++++++++++++++------------------
+ drivers/acpi/acpica/exconfig.c | 42 +++-------------------
+ drivers/acpi/acpica/nsload.c   |  2 ++
+ drivers/acpi/acpica/tbdata.c   | 81 ++++++++++++++++++++++++------------------
+ drivers/acpi/acpica/tbxfload.c | 38 +++-----------------
+ 11 files changed, 115 insertions(+), 197 deletions(-)
+
+-- 
+2.7.4
