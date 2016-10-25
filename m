@@ -1,168 +1,66 @@
-From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 3/6] ACPICA: Dispatcher: Tune interpreter lock around acpi_ev_initialize_region()
-Date: Tue, 25 Oct 2016 13:21:23 +0800
-Message-ID: <003bcff1ffb3ccc1d417f44f521e9450ee1ba2b6.1477372449.git.lv.zheng@intel.com>
-References: <cover.1477372449.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1477372449.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [bug report] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Tue, 25 Oct 2016 11:43:52 +0300
+Message-ID: <20161025084352.GA21587@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:43334 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756202AbcJYIwa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 04:52:30 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep.Holla@arm.com
+Cc: linux-acpi@vger.kernel.org
 
-In code path of acpi_ev_initialize_region(), there are namespace modification
-code unlocked. This patch tunes the code to make sure such modification are
-locked. Lv Zheng.
+Hello Sudeep Holla,
 
-Reported-by: Imre Deak <imre.deak@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/dsinit.c   | 11 +++--------
- drivers/acpi/acpica/dsmethod.c | 12 +++---------
- drivers/acpi/acpica/dswload2.c |  2 --
- drivers/acpi/acpica/evrgnini.c |  3 +++
- drivers/acpi/acpica/nsload.c   |  2 ++
- 5 files changed, 11 insertions(+), 19 deletions(-)
+The patch a36a7fecfe60: "ACPI / processor_idle: Add support for Low
+Power Idle(LPI) states" from Jul 21, 2016, leads to the following
+static checker warning:
 
-diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
-index f1e6dcc..54d48b9 100644
---- a/drivers/acpi/acpica/dsinit.c
-+++ b/drivers/acpi/acpica/dsinit.c
-@@ -46,6 +46,7 @@
- #include "acdispat.h"
- #include "acnamesp.h"
- #include "actables.h"
-+#include "acinterp.h"
- 
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dsinit")
-@@ -214,23 +215,17 @@ acpi_ds_initialize_objects(u32 table_index,
- 
- 	/* Walk entire namespace from the supplied root */
- 
--	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
--
- 	/*
- 	 * We don't use acpi_walk_namespace since we do not want to acquire
- 	 * the namespace reader lock.
- 	 */
- 	status =
- 	    acpi_ns_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
--				   ACPI_NS_WALK_UNLOCK, acpi_ds_init_one_object,
--				   NULL, &info, NULL);
-+				   0, acpi_ds_init_one_object, NULL, &info,
-+				   NULL);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "During WalkNamespace"));
- 	}
--	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 
- 	status = acpi_get_table_by_index(table_index, &table);
- 	if (ACPI_FAILURE(status)) {
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 5997e59..2b3210f 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -99,14 +99,11 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 			  "Method auto-serialization parse [%4.4s] %p\n",
- 			  acpi_ut_get_node_name(node), node));
- 
--	acpi_ex_enter_interpreter();
--
- 	/* Create/Init a root op for the method parse tree */
- 
- 	op = acpi_ps_alloc_op(AML_METHOD_OP, obj_desc->method.aml_start);
- 	if (!op) {
--		status = AE_NO_MEMORY;
--		goto unlock;
-+		return_ACPI_STATUS(AE_NO_MEMORY);
- 	}
- 
- 	acpi_ps_set_name(op, node->name.integer);
-@@ -118,8 +115,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 	    acpi_ds_create_walk_state(node->owner_id, NULL, NULL, NULL);
- 	if (!walk_state) {
- 		acpi_ps_free_op(op);
--		status = AE_NO_MEMORY;
--		goto unlock;
-+		return_ACPI_STATUS(AE_NO_MEMORY);
- 	}
- 
- 	status = acpi_ds_init_aml_walk(walk_state, op, node,
-@@ -128,7 +124,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 	if (ACPI_FAILURE(status)) {
- 		acpi_ds_delete_walk_state(walk_state);
- 		acpi_ps_free_op(op);
--		goto unlock;
-+		return_ACPI_STATUS(status);
- 	}
- 
- 	walk_state->descending_callback = acpi_ds_detect_named_opcodes;
-@@ -138,8 +134,6 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 	status = acpi_ps_parse_aml(walk_state);
- 
- 	acpi_ps_delete_parse_tree(op);
--unlock:
--	acpi_ex_exit_interpreter();
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index 028b22a..e362182 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -607,11 +607,9 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
- 				}
- 			}
- 
--			acpi_ex_exit_interpreter();
- 			status =
- 			    acpi_ev_initialize_region
- 			    (acpi_ns_get_attached_object(node), FALSE);
--			acpi_ex_enter_interpreter();
- 
- 			if (ACPI_FAILURE(status)) {
- 				/*
-diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
-index 3843f1f..75ddd16 100644
---- a/drivers/acpi/acpica/evrgnini.c
-+++ b/drivers/acpi/acpica/evrgnini.c
-@@ -45,6 +45,7 @@
- #include "accommon.h"
- #include "acevents.h"
- #include "acnamesp.h"
-+#include "acinterp.h"
- 
- #define _COMPONENT          ACPI_EVENTS
- ACPI_MODULE_NAME("evrgnini")
-@@ -597,9 +598,11 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
- 					}
- 				}
- 
-+				acpi_ex_exit_interpreter();
- 				status =
- 				    acpi_ev_execute_reg_method(region_obj,
- 							       ACPI_REG_CONNECT);
-+				acpi_ex_enter_interpreter();
- 
- 				if (acpi_ns_locked) {
- 					status =
-diff --git a/drivers/acpi/acpica/nsload.c b/drivers/acpi/acpica/nsload.c
-index 334d3c5..d1f2014 100644
---- a/drivers/acpi/acpica/nsload.c
-+++ b/drivers/acpi/acpica/nsload.c
-@@ -137,7 +137,9 @@ unlock:
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "**** Begin Table Object Initialization\n"));
- 
-+	acpi_ex_enter_interpreter();
- 	status = acpi_ds_initialize_objects(table_index, node);
-+	acpi_ex_exit_interpreter();
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "**** Completed Table Object Initialization\n"));
--- 
-2.7.4
+	drivers/acpi/processor_idle.c:1261 acpi_processor_setup_lpi_states()
+	warn: buffer overflow 'pr->power.lpi_states' 8 <= 9
+
+drivers/acpi/processor_idle.c
+  1250  static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
+  1251  {
+  1252          int i;
+  1253          struct acpi_lpi_state *lpi;
+  1254          struct cpuidle_state *state;
+  1255          struct cpuidle_driver *drv = &acpi_idle_driver;
+  1256  
+  1257          if (!pr->flags.has_lpi)
+  1258                  return -EOPNOTSUPP;
+  1259  
+  1260          for (i = 0; i < pr->power.count && i < CPUIDLE_STATE_MAX; i++) {
+                                                       ^^^^^^^^^^^^^^^^^
+
+Should this be ACPI_PROCESSOR_MAX_POWER?
+
+  1261                  lpi = &pr->power.lpi_states[i];
+                                         ^^^^^^^^^^
+because that's how many elements we have in this array.
+
+  1262  
+  1263                  state = &drv->states[i];
+  1264                  snprintf(state->name, CPUIDLE_NAME_LEN, "LPI-%d", i);
+  1265                  strlcpy(state->desc, lpi->desc, CPUIDLE_DESC_LEN);
+  1266                  state->exit_latency = lpi->wake_latency;
+  1267                  state->target_residency = lpi->min_residency;
+  1268                  if (lpi->arch_flags)
+  1269                          state->flags |= CPUIDLE_FLAG_TIMER_STOP;
+  1270                  state->enter = acpi_idle_lpi_enter;
+  1271                  drv->safe_state_index = i;
+  1272          }
+  1273  
+  1274          drv->state_count = i;
+  1275  
+  1276          return 0;
+  1277  }
+
+regards,
+dan carpenter
