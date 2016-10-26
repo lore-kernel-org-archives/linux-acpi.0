@@ -1,23 +1,66 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [Notification] ACPI/PM maintenance in travel mode Oct 26 - Nov 13
-Date: Wed, 26 Oct 2016 02:57:19 +0200
-Message-ID: <CAJZ5v0jC1czjy+qfTs1DC+-fAnnn1MN3VSdfUbPzvBAv8zpR1Q@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 0/6] ACPICA: Interpreter: Improve lock order fixes
+Date: Wed, 26 Oct 2016 06:17:08 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25A596@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1477372449.git.lv.zheng@intel.com>
+ <CAJZ5v0hi4QHwCzFFwfeotSV3ckXERha_LvFn4FwfhxcU2oe4GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:35476 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752264AbcJZGRO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Oct 2016 02:17:14 -0400
+In-Reply-To: <CAJZ5v0hi4QHwCzFFwfeotSV3ckXERha_LvFn4FwfhxcU2oe4GA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Lv Zheng <zetalog@gmail.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Everybody,
-
-I will be out of office (meaning that I won't be in front of a
-computer or any other device from which I can respond to email in a
-reasonable way most of the time) and traveling starting tomorrow (Oct
-26) and through Nov 13.
-
-Please take that into account when you post new patches and/or want me
-to review something.
-
-Kind regards,
-Rafael
+SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
+YWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZh
+ZWwgSi4NCj4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDAvNl0gQUNQSUNBOiBJbnRl
+cnByZXRlcjogSW1wcm92ZSBsb2NrIG9yZGVyIGZpeGVzDQo+IA0KPiBPbiBUdWUsIE9jdCAyNSwg
+MjAxNiBhdCA3OjIwIEFNLCBMdiBaaGVuZyA8emV0YWxvZ0BnbWFpbC5jb20+IHdyb3RlOg0KPiA+
+IFRoaXMgcGF0Y2hzZXQgaW1wcm92ZXMgQUNQSUNBIGludGVwcmV0ZXIgbG9jayBvcmRlciBmaXhl
+cy4gSW5jbHVkaW5nDQo+ID4gc2V2ZXJhbCB1cmdlbnQgcmVncmVzc2lvbiBmaXhlcyBbUEFUQ0gg
+MC0zXS4NCj4gDQo+IE9LLCB0aGFua3MhDQo+IA0KPiBTbyBwYXRjaGVzIFs0LTYvNl0gYXBwZWFy
+IHRvIGJlIGNsZWFudXBzIGFuZCBJJ2QgcHJlZmVyIHRoZW0gdG8gYmUNCj4gYXBwbGllZCBpbiBh
+IHVzdWFsIHdheSAoaWUuIHZpYSB0aGUgdXBzdHJlYW0gQUNQSUNBKS4NCg0KSSB0aGluayBQQVRD
+SCA0IGlzIGFsc28gYW4gdXJnZW50IGZpeC4NCk9uIGNlcnRhaW4gdGFibGUgbG9hZGluZyBtb2Rl
+ICh3ZSBoYXZlIDMgbm93KS4NCldoZW4gYWNwaV9kc19pbml0aWFsaXplX29iamVjdHMoKSBpcyBp
+bnZva2VkLCBhY3BpX2RzX2luaXRpYWxpemVfcmVnaW9uKCkgd2lsbCBiZSBpbnZva2VkLg0KV2hp
+bGUgaW4gb3RoZXIgbW9kZXMsIGl0IHdpbGwgYmUgaW52b2tlZCBpbiBhY3BpX2RzX2xvYWQyX2Vu
+ZF9vcCgpLCBzbyBuby1vcCBpbiBhY3BpX2RzX2luaXRpYWxpemVfb2JqZWN0cygpLg0KDQpXaGVu
+IGl0IGlzIG5vdCBuby1vcCBpbiBhY3BpX2RzX2luaXRpYWxpemVfb2JqZWN0cygpLCB0aGUgd3Jv
+bmcgcmV0dXJuaW5nIHZhbHVlIGJlY29tZXMgYW4gZXhjZXB0aW9uIHByZXZlbnRpbmcgdGhlIHRh
+YmxlIGZyb20gYmVpbmcgY29ycmVjdGx5IGxvYWRlZC9pbml0aWFsaXplZC4NCg0KW1BBVENIIDUt
+Nl0gYXJlIGNsZWFudXBzLg0KDQo+IA0KPiBJJ2QgbGlrZSB0byB0YWtlIHRoZSBbMS0zLzZdIGFz
+IGZpeGVzIGZvciA0LjktcmMzIHRob3VnaCwgYnV0IGZvciB0aGF0DQo+IEkgbmVlZCB5b3UgdG8g
+dGVsbCBtZSB3aGljaCBtYWlubGluZSBrZXJuZWwgY29tbWl0cyBhcmUgZml4ZWQgYnkgdGhlbS4N
+Cj4gDQo+IElPVywgd2hhdCBzaG91bGQgSSBwdXQgaW50byB0aGUgRml4ZXM6IHRhZ3MuDQo+IA0K
+PiBbSW4gdGhlIGZ1dHVyZSwgaWYgeW91IHBvc3QgYSByZWdyZXNzaW9uIGZpeCwgcGxlYXNlIGFs
+d2F5cyBhZGQgYQ0KPiBGSXhlczogdGFnIHRvIGl0IHBvaW50aW5nIHRvIHRoZSBjb21taXQgYmVp
+bmcgZml4ZWQuXQ0KDQpPSywgSSdsbCBhZGQgdGhlIEZpeGVzIHRhZyBhbmQgcmUtc2VuZCB0aGUg
+cGF0Y2hlcy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4gDQo+ID4gUGF0Y2hl
+cyB0ZXN0ZWQgd2l0aCBjdXN0b21pemVkIEFDUEkgdGFibGUgd2hlcmUgX1BTMC9fUFMzIG1ldGhv
+ZHMgYXJlDQo+ID4gY3VzdG9taXplZCB0byBpbnZva2UgYSBzZXJpYWxpemVkIGNvbnRyb2wgbWV0
+aG9kIHdoaWNoIGNyZWF0ZXMgbmFtZWQNCj4gPiBvYmplY3RzLiBXaGVuIHBtX2FzeW5jPXllcywg
+QUVfQUxSRUFEWV9FWElTVFMgY2FuIGJlIHNlZW4gaW4gc3VzcGVuZC9yZXN1bWUNCj4gPiBwcm9j
+ZXNzLiBUaGlzIGlzIGFuIGV4aXN0aW5nIGlzc3VlLCB0cmlnZ2VyZWQgaW4gNC45LXJjMSBieSBB
+Q1BJQ0ENCj4gPiBpbnRlcnByZXRlciBsb2NrIG9yZGVyIGZpeGVzLCBhbmQgY2FuIGJlIGZpeGVk
+IGJ5IFtQQVRDSCAxXSBpbiB0aGlzIHNlcmllcy4NCj4gPg0KPiA+IEx2IFpoZW5nICg2KToNCj4g
+PiAgIEFDUElDQTogRGlzcGF0Y2hlcjogRml4IG9yZGVyIGlzc3VlIG9mIG1ldGhvZCB0ZXJtaW5h
+dGlvbg0KPiA+ICAgQUNQSUNBOiBEaXNwYXRjaGVyOiBGaXggYW4gdW5iYWxhbmNlZCBsb2NrIGV4
+aXQgcGF0aCBpbg0KPiA+ICAgICBhY3BpX2RzX2F1dG9fc2VyaWFsaXplX21ldGhvZCgpDQo+ID4g
+ICBBQ1BJQ0E6IERpc3BhdGNoZXI6IFR1bmUgaW50ZXJwcmV0ZXIgbG9jayBhcm91bmQNCj4gPiAg
+ICAgYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbigpDQo+ID4gICBBQ1BJQ0E6IEV2ZW50czogQ2xl
+YW51cCBhY3BpX2V2X2luaXRpYWxpemVfcmVnaW9uKCkNCj4gPiAgIEFDUElDQTogVGFibGVzOiBD
+bGVhbnVwIGFjcGlfdGJfaW5zdGFsbF9hbmRfbG9hZF90YWJsZSgpDQo+ID4gICBBQ1BJQ0E6IFRh
+YmxlczogQWRkIGFjcGlfdGJfdW5sb2FkX3RhYmxlKCkNCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVs
+DQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
+bnN1YnNjcmliZSBsaW51eC1hY3BpIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
+b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8v
+dmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
