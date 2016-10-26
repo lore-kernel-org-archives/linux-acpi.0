@@ -1,48 +1,71 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v14 1/9] clocksource/drivers/arm_arch_timer: Move enums
- and defines to header file
-Date: Wed, 26 Oct 2016 11:51:45 +0100
-Message-ID: <20161026105144.GF19965@leverpostej>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <1475086637-1914-2-git-send-email-fu.wei@linaro.org>
- <20161020144510.GJ10234@leverpostej>
- <CADyBb7shWfCQycmo0GcheX2NSsrjYBpzdtYFqymvDNCKi0QM2A@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v6 5/9] x86/sysctl: Add sysctl for ITMT scheduling
+ feature
+Date: Wed, 26 Oct 2016 12:49:36 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1610261231250.4983@nanos>
+References: <cover.1477000078.git.tim.c.chen@linux.intel.com> <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37198 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753618AbcJZKwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Oct 2016 06:52:31 -0400
-Content-Disposition: inline
-In-Reply-To: <CADyBb7shWfCQycmo0GcheX2NSsrjYBpzdtYFqymvDNCKi0QM2A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-On Wed, Oct 26, 2016 at 04:31:55PM +0800, Fu Wei wrote:
-> On 20 October 2016 at 22:45, Mark Rutland <mark.rutland@arm.com> wrote:
-> > On Thu, Sep 29, 2016 at 02:17:09AM +0800, fu.wei@linaro.org wrote:
-> >>  #include <linux/timecounter.h>
-> >>  #include <linux/types.h>
-> >>
-> >> +#define ARCH_CP15_TIMER                      BIT(0)
-> >> +#define ARCH_MEM_TIMER                       BIT(1)
-> >
-> > If we're going to expose these in a header, it would be better to rename
-> > them to something that makes their usage/meaning clear. These should
-> > probably be ARCH_TIMER_TYPE_{CP15,MEM}.
+On Thu, 20 Oct 2016, Tim Chen wrote:
+> +static int sched_itmt_update_handler(struct ctl_table *table, int write,
+> +			      void __user *buffer, size_t *lenp, loff_t *ppos)
 
-> > With those changes (regardless of the ARCH_TIMER_TYPE_* bits):
-> >
-> > Acked-by: Mark Rutland <mark.rutland@arm.com>
-> 
-> For ARCH_TIMER_TYPE_*, maybe I should add a patch at the end of this
-> patchset to fix it, OK ?
+Please align the arguments proper
 
-Sure. If you could put that *earlier* in the patchset it would be
-preferable so as to minimize churn.
+static int
+sched_itmt_update_handler(struct ctl_table *table, int write,
+			  void __user *buffer, size_t *lenp, loff_t *ppos)
+
+> +{
+> +	int ret;
+> +	unsigned int old_sysctl;
+
+	unsigned int old_sysctl;
+	int ret;
+
+Please. It's way simpler to read.
+
+> -void sched_set_itmt_support(void)
+> +int sched_set_itmt_support(void)
+>  {
+>  	mutex_lock(&itmt_update_mutex);
+>  
+> +	if (sched_itmt_capable) {
+> +		mutex_unlock(&itmt_update_mutex);
+> +		return 0;
+> +	}
+> +
+> +	itmt_sysctl_header = register_sysctl_table(itmt_root_table);
+> +	if (!itmt_sysctl_header) {
+> +		mutex_unlock(&itmt_update_mutex);
+> +		return -ENOMEM;
+> +	}
+> +
+>  	sched_itmt_capable = true;
+>  
+> +	/*
+> +	 * ITMT capability automatically enables ITMT
+> +	 * scheduling for small systems (single node).
+> +	 */
+> +	if (topology_num_packages() == 1)
+> +		sysctl_sched_itmt_enabled = 1;
+
+I really hate this. This is policy and the kernel should not impose
+policy. Why would I like to have this enforced on my single socket XEON
+server?
+
+> +	if (sysctl_sched_itmt_enabled) {
+
+Why would sysctl_sched_itmt_enabled be true at this point, aside of the
+above policy imposement?
 
 Thanks,
-Mark.
+
+	tglx
