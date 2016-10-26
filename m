@@ -1,51 +1,45 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v14 0/9] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Wed, 26 Oct 2016 16:24:31 +0800
-Message-ID: <CADyBb7tePxYAk5oWv3ZKVeQsNaTWkJ=ddqB1D1XJRUfyOe-9Rg@mail.gmail.com>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v14 2/9] clocksource/drivers/arm_arch_timer: Add a new
+ enum for spi type
+Date: Wed, 26 Oct 2016 16:26:58 +0800
+Message-ID: <CADyBb7t5TdN=MHdai7KbzR4RA1Zd503kZ8pqSJgcT1xK4OaBXg@mail.gmail.com>
 References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <20161020143101.GI10234@leverpostej> <20161020145752.GC8731@red-moon> <20161020151655.GA27598@leverpostej>
+ <1475086637-1914-3-git-send-email-fu.wei@linaro.org> <20161020150933.GK10234@leverpostej>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:36218 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751465AbcJZIYd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 04:24:33 -0400
-Received: by mail-oi0-f42.google.com with SMTP id n202so8593584oig.3
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Oct 2016 01:24:33 -0700 (PDT)
-In-Reply-To: <20161020151655.GA27598@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161020150933.GK10234@leverpostej>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-Hi Mark
+Hi Mark,
 
-On 20 October 2016 at 23:17, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Thu, Oct 20, 2016 at 03:57:52PM +0100, Lorenzo Pieralisi wrote:
->> On Thu, Oct 20, 2016 at 03:31:01PM +0100, Mark Rutland wrote:
->> > Hi,
->> >
->> > On Thu, Sep 29, 2016 at 02:17:08AM +0800, fu.wei@linaro.org wrote:
->> > > From: Fu Wei <fu.wei@linaro.org>
->> >
->> > > This patchset depends on the following patchset:
->> > > [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
->> > > https://lkml.org/lkml/2016/9/12/949
->> >
->> > Is there a branch with these anywhere? I wasn't Cc'd on those and it's
->> > rather difficult to get at the series from an LKML link.
+On 20 October 2016 at 23:09, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
+> On Thu, Sep 29, 2016 at 02:17:10AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+>> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+>> index 6f06481..16dcd10 100644
+>> --- a/include/clocksource/arm_arch_timer.h
+>> +++ b/include/clocksource/arm_arch_timer.h
+>> @@ -45,6 +45,12 @@ enum ppi_nr {
+>>       MAX_TIMER_PPI
+>>  };
 >>
->> For the records, the dependency above has now been merged and it was
->> just a directory creation dependency (drivers/acpi/arm64, where some of
->> the code in this series will live).
+>> +enum spi_nr {
+>> +     PHYS_SPI,
+>> +     VIRT_SPI,
+>> +     MAX_TIMER_SPI
+>> +};
 >
-> Ah, I see. That saves us all some trouble, then. :)
+> Please rename this to arch_timer_spi_nr (as with patch 1 for
+> s/ppi_nr/arch_timer_ppi_nr/). With that:
+>
+> Acked-by: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 
-Sorry, I forgot to delete this in v14 cover letter.
-The IORT patchset has been merged in to the mainline,
-we don't need to mention this anymore. :-)
+OK, NP, done :-)
+
+Great thanks!
 
 >
 > Thanks,
@@ -59,3 +53,7 @@ Best regards,
 Fu Wei
 Software Engineer
 Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
