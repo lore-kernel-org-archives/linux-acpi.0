@@ -1,75 +1,80 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 090/112] acpi, nfit: check for the correct event code in notifications
-Date: Wed, 26 Oct 2016 14:23:13 +0200
-Message-ID: <20161026122308.573606581@linuxfoundation.org>
-References: <20161026122304.797016625@linuxfoundation.org>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Wed, 26 Oct 2016 21:41:44 +0800
+Message-ID: <CADyBb7uVaUGoOMBd-pnwT2suBy1OpAmQjLriOtSx1zMC-EWazw@mail.gmail.com>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+ <1475086637-1914-5-git-send-email-fu.wei@linaro.org> <20161020163719.GC27598@leverpostej>
+ <CADyBb7tLJpPiMqWs4KZE=uCpo3HX3WcNVju2UKNuPOR0+M4UDw@mail.gmail.com> <57010864-b2f0-d230-3138-8ace484acb04@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56029 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942287AbcJZMfC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 08:35:02 -0400
-In-Reply-To: <20161026122304.797016625@linuxfoundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57010864-b2f0-d230-3138-8ace484acb04@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+Hi Marc,
 
-------------------
+On 26 October 2016 at 20:11, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> On 26/10/16 12:10, Fu Wei wrote:
+>> Hi Mark,
+>>
+>> On 21 October 2016 at 00:37, Mark Rutland <mark.rutland@arm.com> wrote:
+>>> Hi,
+>>>
+>>> As a heads-up, on v4.9-rc1 I see conflicts at least against
+>>> arch/arm64/Kconfig. Luckily git am -3 seems to be able to fix that up
+>>> automatically, but this will need to be rebased before the next posting
+>>> and/or merging.
+>>>
+>>> On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei@linaro.org wrote:
+>>>> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
+>>>> +{
+>>>> +     int trigger, polarity;
+>>>> +
+>>>> +     if (!interrupt)
+>>>> +             return 0;
+>>>
+>>> Urgh.
+>>>
+>>> Only the secure interrupt (which we do not need) is optional in this
+>>> manner, and (hilariously), zero appears to also be a valid GSIV, per
+>>> figure 5-24 in the ACPI 6.1 spec.
+>>>
+>>> So, I think that:
+>>>
+>>> (a) we should not bother parsing the secure interrupt
+>>
+>> If I understand correctly, from this point of view, kernel don't
+>> handle the secure interrupt.
+>> But the current arm_arch_timer driver still enable/disable/request
+>> PHYS_SECURE_PPI
+>> with PHYS_NONSECURE_PPI.
+>> That means we still need to parse the secure interrupt.
+>> Please correct me, if I misunderstand something? :-)
+>
+> That's because we can use the per-cpu timer when 32bit Linux is running
+> on the secure side (and we cannot distinguish between secure and
+> non-secure at runtime). ACPI is 64bit only, and Linux on 64bit isn't
+> supported on the secure side, so only registering the non-secure timer
+> is perfectly acceptable.
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+Great thanks for your explanation :-)
+So we just don't need to fill arch_timer_ppi[PHYS_SECURE_PPI] , just skip it.
 
-commit c09f12186d6b03b798832d95289af76495990192 upstream.
-
-Commit 209851649dc4 "acpi: nfit: Add support for hot-add" added
-support for _FIT notifications, but it neglected to verify the
-notification event code matches the one in the ACPI spec for
-"NFIT Update". Currently there is only one code in the spec, but
-once additional codes are added, older kernels (without this fix)
-will misbehave by assuming all event notifications are for an
-NFIT Update.
-
-Fixes: 209851649dc4 ("acpi: nfit: Add support for hot-add")
-Cc: <stable@vger.kernel.org>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- drivers/acpi/nfit.c |    3 +++
- drivers/acpi/nfit.h |    4 ++++
- 2 files changed, 7 insertions(+)
-
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1806,6 +1806,9 @@ static void acpi_nfit_notify(struct acpi
- 
- 	dev_dbg(dev, "%s: event: %d\n", __func__, event);
- 
-+	if (event != NFIT_NOTIFY_UPDATE)
-+		return;
-+
- 	device_lock(dev);
- 	if (!dev->driver) {
- 		/* dev->driver may be null if we're being removed */
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -45,6 +45,10 @@ enum {
- 	ND_BLK_DCR_LATCH = 2,
- };
- 
-+enum nfit_root_notifiers {
-+	NFIT_NOTIFY_UPDATE = 0x80,
-+};
-+
- struct nfit_spa {
- 	struct acpi_nfit_system_address *spa;
- 	struct list_head list;
+>
+> Thanks,
+>
+>         M.
+> --
+> Jazz is not dead. It just smells funny...
 
 
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
