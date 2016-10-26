@@ -1,74 +1,140 @@
 From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Wed, 26 Oct 2016 21:41:44 +0800
-Message-ID: <CADyBb7uVaUGoOMBd-pnwT2suBy1OpAmQjLriOtSx1zMC-EWazw@mail.gmail.com>
+Subject: Re: [PATCH v14 7/9] clocksource/drivers/arm_arch_timer: Refactor the
+ timer init code to prepare for GTDT
+Date: Wed, 26 Oct 2016 23:24:32 +0800
+Message-ID: <CADyBb7sJfY4=5NKKPGosOGv4sq4Tg2_TBW-XbWYoqfz4JNE-LA@mail.gmail.com>
 References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <1475086637-1914-5-git-send-email-fu.wei@linaro.org> <20161020163719.GC27598@leverpostej>
- <CADyBb7tLJpPiMqWs4KZE=uCpo3HX3WcNVju2UKNuPOR0+M4UDw@mail.gmail.com> <57010864-b2f0-d230-3138-8ace484acb04@arm.com>
+ <1475086637-1914-8-git-send-email-fu.wei@linaro.org> <20161021113213.GD16630@leverpostej>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57010864-b2f0-d230-3138-8ace484acb04@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:32857 "EHLO
+        mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752363AbcJZPYd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 11:24:33 -0400
+Received: by mail-oi0-f50.google.com with SMTP id y2so151121728oie.0
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Oct 2016 08:24:33 -0700 (PDT)
+In-Reply-To: <20161021113213.GD16630@leverpostej>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-Hi Marc,
+Hi Mark,
 
-On 26 October 2016 at 20:11, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> On 26/10/16 12:10, Fu Wei wrote:
->> Hi Mark,
+On 21 October 2016 at 19:32, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Thu, Sep 29, 2016 at 02:17:15AM +0800, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
 >>
->> On 21 October 2016 at 00:37, Mark Rutland <mark.rutland@arm.com> wrote:
->>> Hi,
->>>
->>> As a heads-up, on v4.9-rc1 I see conflicts at least against
->>> arch/arm64/Kconfig. Luckily git am -3 seems to be able to fix that up
->>> automatically, but this will need to be rebased before the next posting
->>> and/or merging.
->>>
->>> On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei@linaro.org wrote:
->>>> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
->>>> +{
->>>> +     int trigger, polarity;
->>>> +
->>>> +     if (!interrupt)
->>>> +             return 0;
->>>
->>> Urgh.
->>>
->>> Only the secure interrupt (which we do not need) is optional in this
->>> manner, and (hilariously), zero appears to also be a valid GSIV, per
->>> figure 5-24 in the ACPI 6.1 spec.
->>>
->>> So, I think that:
->>>
->>> (a) we should not bother parsing the secure interrupt
+>> The patch refactor original memory-mapped timer init code:
+>> (1) extract some subfunction for reusing some common code
+>>     a. get_cnttidr
+>>     b. is_best_frame
+>> (2) move base address and irq code for arch_timer_mem to
+>> arch_timer_mem_register
 >>
->> If I understand correctly, from this point of view, kernel don't
->> handle the secure interrupt.
->> But the current arm_arch_timer driver still enable/disable/request
->> PHYS_SECURE_PPI
->> with PHYS_NONSECURE_PPI.
->> That means we still need to parse the secure interrupt.
->> Please correct me, if I misunderstand something? :-)
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> ---
+>>  drivers/clocksource/arm_arch_timer.c | 159 +++++++++++++++++++++--------------
+>>  1 file changed, 96 insertions(+), 63 deletions(-)
+>>
+>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+>> index c7b0040..e78095f 100644
+>> --- a/drivers/clocksource/arm_arch_timer.c
+>> +++ b/drivers/clocksource/arm_arch_timer.c
+>> @@ -57,6 +57,7 @@
+>>  static unsigned arch_timers_present __initdata;
+>>
+>>  static void __iomem *arch_counter_base;
+>> +static void __iomem *cntctlbase __initdata;
+>>
+>>  struct arch_timer {
+>>       void __iomem *base;
+>> @@ -656,15 +657,49 @@ out:
+>>       return err;
+>>  }
+>>
+>> -static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
+>> +static int __init arch_timer_mem_register(struct device_node *np, void *frame)
+>>  {
+>> -     int ret;
+>> -     irq_handler_t func;
+>> +     struct device_node *frame_node = NULL;
+>>       struct arch_timer *t;
+>> +     void __iomem *base;
+>> +     irq_handler_t func;
+>> +     unsigned int irq;
+>> +     int ret;
+>> +
+>> +     if (!frame)
+>> +             return -EINVAL;
 >
-> That's because we can use the per-cpu timer when 32bit Linux is running
-> on the secure side (and we cannot distinguish between secure and
-> non-secure at runtime). ACPI is 64bit only, and Linux on 64bit isn't
-> supported on the secure side, so only registering the non-secure timer
-> is perfectly acceptable.
+> Why would we call this without a frame?
 
-Great thanks for your explanation :-)
-So we just don't need to fill arch_timer_ppi[PHYS_SECURE_PPI] , just skip it.
+Sorry, I just verify it , make sure frame is not NULL,
+Because it is a "static" function, so we do need this check?
+
+>
+>> +
+>> +     if (np) {
+>
+> ... or without a node?
+
+For "np", for now, we just  just verify it, but it is just paperation
+for GTDT support,
+Because in next patch, if np == NULL, that means we call this function
+from GTDT, but not DT.
+
+>
+>> +             frame_node = (struct device_node *)frame;
+>> +             base = of_iomap(frame_node, 0);
+>> +             arch_timer_detect_rate(base, np);
+>
+> ... BANG! (we check base too late, below).
+>
+> Please as Marc requested several versions ago: split the FW parsing
+> (ACPI and DT) so that happens first, *then* once we have the data in a
+> common format, use that to drive poking the HW, requesting IRQs, etc,
+> completely independent of the source.
+>
+> In patches, do this by:
+>
+> (1) adding the data structures
+> (2) splitting the existing DT probing to use them
+> (3) Adding ACPI functionality atop
+
+this patch is a preparation for GTDT support, I have splitted some
+functions for reusing them in next patch(GTDT support)
+
+if np == NULL, that means we call this function from GTDT, but
+if np != NULL, that means we call this function from DT
+
+
+>
+>> -static int __init arch_timer_mem_init(struct device_node *np)
+>> +static int __init get_cnttidr(struct device_node *np, u32 *cnttidr)
+>>  {
+>> -     struct device_node *frame, *best_frame = NULL;
+>> -     void __iomem *cntctlbase, *base;
+>> -     unsigned int irq, ret = -EINVAL;
+>> -     u32 cnttidr;
+>> +     if (!cnttidr)
+>> +             return -EINVAL;
+>> +
+>> +     if (np)
+>> +             cntctlbase = of_iomap(np, 0);
+>> +     else
+>> +             return -EINVAL;
+>
+> We want to check this for ACPI too, no?
+
+just like I said above, this is a preparation for GTDT support,
+
+So please correct me if I am doing this in the wrong way, thanks :-)
 
 >
 > Thanks,
->
->         M.
-> --
-> Jazz is not dead. It just smells funny...
+> Mark.
 
 
 
