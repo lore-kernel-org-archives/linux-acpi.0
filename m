@@ -1,169 +1,61 @@
-From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH v2 3/3] ACPICA: Dispatcher: Tune interpreter lock around acpi_ev_initialize_region()
-Date: Wed, 26 Oct 2016 15:42:01 +0800
-Message-ID: <ec6b92a8e6881ce1fc16f8b5c969bfc269c5412f.1477465173.git.lv.zheng@intel.com>
-References: <cover.1477372449.git.lv.zheng@intel.com> <cover.1477465173.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1477465173.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v14 0/9] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Wed, 26 Oct 2016 16:24:31 +0800
+Message-ID: <CADyBb7tePxYAk5oWv3ZKVeQsNaTWkJ=ddqB1D1XJRUfyOe-9Rg@mail.gmail.com>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+ <20161020143101.GI10234@leverpostej> <20161020145752.GC8731@red-moon> <20161020151655.GA27598@leverpostej>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:36218 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751465AbcJZIYd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 04:24:33 -0400
+Received: by mail-oi0-f42.google.com with SMTP id n202so8593584oig.3
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Oct 2016 01:24:33 -0700 (PDT)
+In-Reply-To: <20161020151655.GA27598@leverpostej>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-In code path of acpi_ev_initialize_region(), there are namespace modification
-code unlocked. This patch tunes the code to make sure such modification are
-locked. Lv Zheng.
+Hi Mark
 
-Fixes: 74f51b80a0c4 ("ACPICA: Namespace: Fix dynamic table loading issues")
-Tested-by: Imre Deak <imre.deak@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/dsinit.c   | 11 +++--------
- drivers/acpi/acpica/dsmethod.c | 12 +++---------
- drivers/acpi/acpica/dswload2.c |  2 --
- drivers/acpi/acpica/evrgnini.c |  3 +++
- drivers/acpi/acpica/nsload.c   |  2 ++
- 5 files changed, 11 insertions(+), 19 deletions(-)
+On 20 October 2016 at 23:17, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Thu, Oct 20, 2016 at 03:57:52PM +0100, Lorenzo Pieralisi wrote:
+>> On Thu, Oct 20, 2016 at 03:31:01PM +0100, Mark Rutland wrote:
+>> > Hi,
+>> >
+>> > On Thu, Sep 29, 2016 at 02:17:08AM +0800, fu.wei@linaro.org wrote:
+>> > > From: Fu Wei <fu.wei@linaro.org>
+>> >
+>> > > This patchset depends on the following patchset:
+>> > > [UPDATE PATCH V11 1/8] ACPI: I/O Remapping Table (IORT) initial support
+>> > > https://lkml.org/lkml/2016/9/12/949
+>> >
+>> > Is there a branch with these anywhere? I wasn't Cc'd on those and it's
+>> > rather difficult to get at the series from an LKML link.
+>>
+>> For the records, the dependency above has now been merged and it was
+>> just a directory creation dependency (drivers/acpi/arm64, where some of
+>> the code in this series will live).
+>
+> Ah, I see. That saves us all some trouble, then. :)
 
-diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
-index f1e6dcc..54d48b9 100644
---- a/drivers/acpi/acpica/dsinit.c
-+++ b/drivers/acpi/acpica/dsinit.c
-@@ -46,6 +46,7 @@
- #include "acdispat.h"
- #include "acnamesp.h"
- #include "actables.h"
-+#include "acinterp.h"
- 
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dsinit")
-@@ -214,23 +215,17 @@ acpi_ds_initialize_objects(u32 table_index,
- 
- 	/* Walk entire namespace from the supplied root */
- 
--	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
--
- 	/*
- 	 * We don't use acpi_walk_namespace since we do not want to acquire
- 	 * the namespace reader lock.
- 	 */
- 	status =
- 	    acpi_ns_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
--				   ACPI_NS_WALK_UNLOCK, acpi_ds_init_one_object,
--				   NULL, &info, NULL);
-+				   0, acpi_ds_init_one_object, NULL, &info,
-+				   NULL);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "During WalkNamespace"));
- 	}
--	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 
- 	status = acpi_get_table_by_index(table_index, &table);
- 	if (ACPI_FAILURE(status)) {
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 5997e59..2b3210f 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -99,14 +99,11 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 			  "Method auto-serialization parse [%4.4s] %p\n",
- 			  acpi_ut_get_node_name(node), node));
- 
--	acpi_ex_enter_interpreter();
--
- 	/* Create/Init a root op for the method parse tree */
- 
- 	op = acpi_ps_alloc_op(AML_METHOD_OP, obj_desc->method.aml_start);
- 	if (!op) {
--		status = AE_NO_MEMORY;
--		goto unlock;
-+		return_ACPI_STATUS(AE_NO_MEMORY);
- 	}
- 
- 	acpi_ps_set_name(op, node->name.integer);
-@@ -118,8 +115,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 	    acpi_ds_create_walk_state(node->owner_id, NULL, NULL, NULL);
- 	if (!walk_state) {
- 		acpi_ps_free_op(op);
--		status = AE_NO_MEMORY;
--		goto unlock;
-+		return_ACPI_STATUS(AE_NO_MEMORY);
- 	}
- 
- 	status = acpi_ds_init_aml_walk(walk_state, op, node,
-@@ -128,7 +124,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 	if (ACPI_FAILURE(status)) {
- 		acpi_ds_delete_walk_state(walk_state);
- 		acpi_ps_free_op(op);
--		goto unlock;
-+		return_ACPI_STATUS(status);
- 	}
- 
- 	walk_state->descending_callback = acpi_ds_detect_named_opcodes;
-@@ -138,8 +134,6 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
- 	status = acpi_ps_parse_aml(walk_state);
- 
- 	acpi_ps_delete_parse_tree(op);
--unlock:
--	acpi_ex_exit_interpreter();
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index 028b22a..e362182 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -607,11 +607,9 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
- 				}
- 			}
- 
--			acpi_ex_exit_interpreter();
- 			status =
- 			    acpi_ev_initialize_region
- 			    (acpi_ns_get_attached_object(node), FALSE);
--			acpi_ex_enter_interpreter();
- 
- 			if (ACPI_FAILURE(status)) {
- 				/*
-diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
-index 3843f1f..75ddd16 100644
---- a/drivers/acpi/acpica/evrgnini.c
-+++ b/drivers/acpi/acpica/evrgnini.c
-@@ -45,6 +45,7 @@
- #include "accommon.h"
- #include "acevents.h"
- #include "acnamesp.h"
-+#include "acinterp.h"
- 
- #define _COMPONENT          ACPI_EVENTS
- ACPI_MODULE_NAME("evrgnini")
-@@ -597,9 +598,11 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
- 					}
- 				}
- 
-+				acpi_ex_exit_interpreter();
- 				status =
- 				    acpi_ev_execute_reg_method(region_obj,
- 							       ACPI_REG_CONNECT);
-+				acpi_ex_enter_interpreter();
- 
- 				if (acpi_ns_locked) {
- 					status =
-diff --git a/drivers/acpi/acpica/nsload.c b/drivers/acpi/acpica/nsload.c
-index 334d3c5..d1f2014 100644
---- a/drivers/acpi/acpica/nsload.c
-+++ b/drivers/acpi/acpica/nsload.c
-@@ -137,7 +137,9 @@ acpi_ns_load_table(u32 table_index, struct acpi_namespace_node *node)
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "**** Begin Table Object Initialization\n"));
- 
-+	acpi_ex_enter_interpreter();
- 	status = acpi_ds_initialize_objects(table_index, node);
-+	acpi_ex_exit_interpreter();
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "**** Completed Table Object Initialization\n"));
+Sorry, I forgot to delete this in v14 cover letter.
+The IORT patchset has been merged in to the mainline,
+we don't need to mention this anymore. :-)
+
+>
+> Thanks,
+> Mark.
+
+
+
 -- 
-2.7.4
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
