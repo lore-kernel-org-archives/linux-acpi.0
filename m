@@ -1,128 +1,57 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v14 7/9] clocksource/drivers/arm_arch_timer: Refactor the
- timer init code to prepare for GTDT
-Date: Thu, 27 Oct 2016 00:07:00 +0800
-Message-ID: <CADyBb7vGU1cZVF4-NZR7OVXQfwvr3Ee32W-hxr52nwHifmTSRg@mail.gmail.com>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <1475086637-1914-8-git-send-email-fu.wei@linaro.org> <20161021113213.GD16630@leverpostej>
- <CADyBb7sJfY4=5NKKPGosOGv4sq4Tg2_TBW-XbWYoqfz4JNE-LA@mail.gmail.com> <20161026154608.GB22713@leverpostej>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v6 5/9] x86/sysctl: Add sysctl for ITMT scheduling
+ feature
+Date: Wed, 26 Oct 2016 10:23:32 -0700
+Message-ID: <1477502612.2680.9.camel@linux.intel.com>
+References: <cover.1477000078.git.tim.c.chen@linux.intel.com>
+         <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com>
+         <alpine.DEB.2.20.1610261231250.4983@nanos>
+         <20161026112502.GB3117@twins.programming.kicks-ass.net>
+         <alpine.DEB.2.20.1610261322580.4983@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:33620 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932750AbcJZQHC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 12:07:02 -0400
-Received: by mail-oi0-f41.google.com with SMTP id y2so153056176oie.0
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Oct 2016 09:07:01 -0700 (PDT)
-In-Reply-To: <20161026154608.GB22713@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.20.1610261322580.4983@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-Hi Mark,
+On Wed, 2016-10-26 at 13:24 +0200, Thomas Gleixner wrote:
+> On Wed, 26 Oct 2016, Peter Zijlstra wrote:
+> > 
+> > On Wed, Oct 26, 2016 at 12:49:36PM +0200, Thomas Gleixner wrote:
+> > 
+> > > 
+> > > > 
+> > > > +	/*
+> > > > +	 * ITMT capability automatically enables ITMT
+> > > > +	 * scheduling for small systems (single node).
+> > > > +	 */
+> > > > +	if (topology_num_packages() == 1)
+> > > > +		sysctl_sched_itmt_enabled = 1;
+> > > I really hate this. This is policy and the kernel should not impose
+> > > policy. Why would I like to have this enforced on my single socket XEON
+> > > server?
+> > So this really wants to be enabled by default; otherwise nobody will use
+> > this, and it really does help single threaded workloads.
+> Fair enough. Then this wants to be documented.
+>  
+> > 
+> > There were reservations on the multi-socket case of ITMT, maybe it would
+> > help to spell those out in great detail here. That is, have the comment
+> > explain the policy instead of simply stating what the code does (which
+> > is always bad comment policy, you can read the code just fine).
+> What is the objection for multi sockets? If it improves the behaviour then
+> why would this be a bad thing for multi sockets?
 
-On 26 October 2016 at 23:46, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Oct 26, 2016 at 11:24:32PM +0800, Fu Wei wrote:
->> On 21 October 2016 at 19:32, Mark Rutland <mark.rutland@arm.com> wrote:
->> > On Thu, Sep 29, 2016 at 02:17:15AM +0800, fu.wei@linaro.org wrote:
->> >> +static int __init arch_timer_mem_register(struct device_node *np, void *frame)
->> >>  {
->> >> -     int ret;
->> >> -     irq_handler_t func;
->> >> +     struct device_node *frame_node = NULL;
->> >>       struct arch_timer *t;
->> >> +     void __iomem *base;
->> >> +     irq_handler_t func;
->> >> +     unsigned int irq;
->> >> +     int ret;
->> >> +
->> >> +     if (!frame)
->> >> +             return -EINVAL;
->> >
->> > Why would we call this without a frame?
->>
->> Sorry, I just verify it , make sure frame is not NULL,
->> Because it is a "static" function, so we do need this check?
->
-> I'd rather we simply don't call the function rather than passing a NULL
-> frame in.
->
+For multi-socket (server system), it is much more likely that they will
+have multiple cpus in a socket busy and not run in turbo mode. So the extra
+work in migrating the workload to the one with extra headroom will
+not make use of those headroom in that scenario.  I will update the comment
+to reflect this policy.
 
-OK,  NP, will do
+See also our previous discussions: http://lkml.iu.edu/hypermail/linux/kernel/1609.1/03381.html
 
->> >> +
->> >> +     if (np) {
->> >
->> > ... or without a node?
->>
->> For "np", for now, we just  just verify it, but it is just paperation
->> for GTDT support,
->> Because in next patch, if np == NULL, that means we call this function
->> from GTDT, but not DT.
->
-> Please don't do that. More on that below.
->
->> > Please as Marc requested several versions ago: split the FW parsing
->> > (ACPI and DT) so that happens first, *then* once we have the data in a
->> > common format, use that to drive poking the HW, requesting IRQs, etc,
->> > completely independent of the source.
->> >
->> > In patches, do this by:
->> >
->> > (1) adding the data structures
->> > (2) splitting the existing DT probing to use them
->> > (3) Adding ACPI functionality atop
->>
->> this patch is a preparation for GTDT support, I have splitted some
->> functions for reusing them in next patch(GTDT support)
->>
->> if np == NULL, that means we call this function from GTDT, but
->> if np != NULL, that means we call this function from DT
->
-> As above, please structure the patches such that that never happens.
->
-> We currently have:
->
-> +--------------------------+
-> | DT Parsing + Common code |
-> +--------------------------+
->
-> Per (1 and 2) make this:
->
-> +------------+                       +-------------+
-> | DT parsing |--(common structure)-->| Common code |
-> +------------+                       +-------------+
->
-> Then per (3) make this:
->
-> +------------+
-> | DT parsing |--(common structure)------+
-> +------------+                          |
->                                         v
->                                     +-------------+
->                                     | Common code |
->                                     +-------------+
->                                         ^
-> +--------------+                        |
-> | ACPI parsing |--(common structure)----+
-
-Thanks for your suggestion , I will do this way in my next patchset
-
-Thanks :-)
-
-
-> +--------------+
->
-> Thanks,
-> Mark.
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+Tim
