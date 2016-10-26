@@ -1,47 +1,46 @@
-From: Lloyds TSB Bank PLC <augusto.vasconcelos@terceirizado.mda.gov.br>
-Subject: =?utf-8?Q?l=C3=A5netilbud_p=C3=A5_3%?=
-Date: Wed, 26 Oct 2016 05:05:02 -0200 (BRST)
-Message-ID: <1470185471.10149798.1477465502115.JavaMail.zimbra__43615.801112219$1477466244$gmane$org@terceirizado.mda.gov.br>
-Reply-To: "lloyds26tsb@gmail.com" <lloyds26tsb@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH v2 0/3] ACPICA: Interpreter: Fix regressions in lock order improvement
+Date: Wed, 26 Oct 2016 15:39:55 +0800
+Message-ID: <cover.1477465173.git.lv.zheng@intel.com>
+References: <cover.1477372449.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.mda.gov.br ([200.198.212.36]:35928 "EHLO mx1.mda.gov.br"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751164AbcJZHRE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Oct 2016 03:17:04 -0400
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36751 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753880AbcJZHkJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 03:40:09 -0400
+In-Reply-To: <cover.1477372449.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-God dag,
+This patchset fixes regressions in ACPICA intepreter lock order
+improvement.
 
- Dette er Lloyds TSB Bank Plc lån tilby.
+Patches tested with customized ACPI table where _PS0/_PS3 methods are
+customized to invoke a serialized control method which creates named
+objects. When pm_async=yes, AE_ALREADY_EXISTS can be seen in suspend/resume
+process. This is an existing issue, triggered in 4.9-rc1 by ACPICA
+interpreter lock order fixes, and can be fixed by [PATCH 1] in this series.
 
-   Lloyds TSB tilbyr fleksible og rimelige lån til ethvert formål å hjelpe deg å nå dine mål. vi lån med lav rente på 3%. Her er noen viktige funksjoner i personlige lån som tilbys av Lloyds TSB. Her er de Låne Faktorer vi samarbeider med de ledende britiske meglere som har tilgang til toppen långivere og er i stand til å finne den beste økonomiske løsningen til en rimelig price.Please hvis du er interessert vennligst ta kontakt med oss ​​via denne e-post: lloyds26tsb@gmail.com
+v2:
+1. Remove non-regression-fixes.
+2. Add "Fixes" tags.
 
+Lv Zheng (3):
+  ACPICA: Dispatcher: Fix order issue of method termination
+  ACPICA: Dispatcher: Fix an unbalanced lock exit path in
+    acpi_ds_auto_serialize_method()
+  ACPICA: Dispatcher: Tune interpreter lock around
+    acpi_ev_initialize_region()
 
-Etter reaksjonen vil du motta en søknad om lån fylle. Ingen sosial sikkerhet og ingen kredittsjekk, 100% garantert.
+ drivers/acpi/acpica/dsinit.c   | 11 +++-------
+ drivers/acpi/acpica/dsmethod.c | 50 +++++++++++++++++++-----------------------
+ drivers/acpi/acpica/dswload2.c |  2 --
+ drivers/acpi/acpica/evrgnini.c |  3 +++
+ drivers/acpi/acpica/nsload.c   |  2 ++
+ 5 files changed, 30 insertions(+), 38 deletions(-)
 
-Det vil være vår ære hvis du tillater oss å være til tjeneste.
+-- 
+2.7.4
 
-
-informasjon som er nødvendig
-
-Ditt navn:
-Adresse: ...........
-Telefon: ...........
-Beløpet som trengs: ........
-Varighet: ...............
-Okkupasjon: ...........
-Månedlig Inntekt Nivå: ........
-Kjønn: ...............
-Fødselsdato: ........
-Stat: ..................
-Land: ..........
-Hensikt: .........
-
-Møte dine finansielle behov er vår stolthet.
-
-
-Dr.john Mahama.
