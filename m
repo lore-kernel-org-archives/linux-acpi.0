@@ -1,47 +1,100 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: Re: [PATCH v6 5/9] x86/sysctl: Add sysctl for ITMT scheduling
- feature
-Date: Wed, 26 Oct 2016 12:38:53 -0700
-Message-ID: <1477510733.2680.32.camel@linux.intel.com>
-References: <cover.1477000078.git.tim.c.chen@linux.intel.com>
-          <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com>
-          <alpine.DEB.2.20.1610261251550.4983@nanos>
-         <1477505006.2680.25.camel@linux.intel.com>
-         <alpine.DEB.2.20.1610262010420.5013@nanos>
+From: Peter Wu <peter@lekensteyn.nl>
+Subject: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU via
+ Power Resources
+Date: Thu, 27 Oct 2016 00:56:41 +0200
+Message-ID: <20161026225641.GA27017@al>
+References: <bug-98398-8800@http.bugs.freedesktop.org/>
+ <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:42553 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933896AbcJZTjA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 26 Oct 2016 15:39:00 -0400
-In-Reply-To: <alpine.DEB.2.20.1610262010420.5013@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: nouveau@lists.freedesktop.org, rick.2889@gmail.com, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-On Wed, 2016-10-26 at 20:11 +0200, Thomas Gleixner wrote:
-> On Wed, 26 Oct 2016, Tim Chen wrote:
+Hi PCI/ACPI PM experts,
+
+Since Linux 4.8, nouveau switched to rely on the PCIe port driver to
+transition to D3cold. This however does not happen for an Acer Aspire
+V7-582PG (Haswell, NVIDIA GTX 750M) from Rick.
+
+Any idea why? acpidump, lspci, dmesg and other details can be found in
+the linked bug below.
+
+Kind regards,
+Peter
+
+On Wed, Oct 26, 2016 at 10:42:07PM +0000, bugzilla-daemon@freedesktop.org wrote:
+> https://bugs.freedesktop.org/show_bug.cgi?id=98398
 > 
-> > 
-> > On Wed, 2016-10-26 at 12:52 +0200, Thomas Gleixner wrote:
-> > > 
-> > > On Thu, 20 Oct 2016, Tim Chen wrote:
-> > > > 
-> > > > 
-> > > >  
-> > > > +	if (itmt_sysctl_header)
-> > > > +		unregister_sysctl_table(itmt_sysctl_header);
-> > > What sets itmt_sysctl_header to NULL?
-> > > 
-> > If the registration of the itmt sysctl table has failed, it will
-> > be NULL.
-> And what clears it _AFTER_ the deregistration? Nothing, AFAICT.
-
-Ok. I'll clear itmt_sysctl_header here.
-
-Thanks.
-
-Tim
+> --- Comment #11 from Peter Wu <peter@lekensteyn.nl> ---
+> So 4.7 and before used the "DSM" method on runtime-suspend:
+> - \_SB.PCI0.RP05.PEGP._DSM would be invoked to enable Optimus
+> - \_SB.PCI0.RP05.PEGP._PS3 is then invoked which would enter D3cold
+> (note, this method is still used in 4.8 on older laptops or with the
+> pcie_pm_port=off kernel option)
+> 
+> Since 4.8, _DSM is not called anymore by nouveau (when support from the PCI
+> core is detected) and this sequence should instead happen:
+> - \_SB.PCI0.RP05.PEGP._PS3 (does nothing besides updating _STA)
+> - PCIe core removes power for the PCIe port since all its children are in
+>   D3 and are willing to transition to D3cold. It does so by invoking
+>   \NVP3._OFF (where \NVP3 is the power resource from \_SB.PCI0.RP05._PR3)
+> 
+> That is how I think it should work in theory, but on Ricks laptop running
+> 4.8.4,
+> /sys/bus/devices/0000:1c.4/firmware_node/ does not have power_resources_D0
+> devices (which I do have on my own laptop for 0000:01:0).
+> 
+> The SSDT1 of Rick's Acer laptop shows this structure:
+> 
+>     If (\_OSI ("Windows 2013"))
+>     {
+>         Scope (\_SB.PCI0.RP05)
+>         {
+>         //...
+>             Name (_PR0, Package (0x01)  // _PR0: Power Resources for D0
+>             {
+>                 NVP3
+>             })
+>             Name (_PR2, Package (0x01)  // _PR2: Power Resources for D2
+>             {
+>                 NVP2
+>             })
+>             Name (_PR3, Package (0x01)  // _PR3: Power Resources for D3hot
+>             {
+>                 NVP3
+>             })
+>             // ...
+>             Method (_PS0, 0, NotSerialized)  // _PS0: Power State 0
+>             {
+>             }
+> 
+>             Method (_PS3, 0, NotSerialized)  // _PS3: Power State 3
+>             {
+>             }
+>         }
+> 
+>         Name (MSD3, Zero)
+>         PowerResource (NVP3, 0x00, 0x0000)
+>         {
+>             Name (_STA, One)  // _STA: Status
+>             // ...
+> 
+>             Method (_ON, 0, NotSerialized)  // _ON_: Power On
+>             {
+>                 // ...
+>             }
+> 
+>             Method (_OFF, 0, NotSerialized)  // _OFF: Power Off
+>             {
+>                 // ...
+>             }
+>         }
+> 
+> The dmesg does show "ACPI: Power Resource [NVP3] (on)", so I guess that the
+> methods are found. It is a mystery to me why the "power_resources_Dx" files are
+> not created, possibly breaking PM.
