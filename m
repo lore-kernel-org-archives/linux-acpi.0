@@ -1,138 +1,41 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Wed, 26 Oct 2016 19:10:54 +0800
-Message-ID: <CADyBb7tLJpPiMqWs4KZE=uCpo3HX3WcNVju2UKNuPOR0+M4UDw@mail.gmail.com>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
- <1475086637-1914-5-git-send-email-fu.wei@linaro.org> <20161020163719.GC27598@leverpostej>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v6 5/9] x86/sysctl: Add sysctl for ITMT scheduling feature
+Date: Wed, 26 Oct 2016 13:25:02 +0200
+Message-ID: <20161026112502.GB3117@twins.programming.kicks-ass.net>
+References: <cover.1477000078.git.tim.c.chen@linux.intel.com>
+ <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com>
+ <alpine.DEB.2.20.1610261231250.4983@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:33711 "EHLO
-        mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754755AbcJZLKz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 07:10:55 -0400
-Received: by mail-oi0-f50.google.com with SMTP id y2so141708985oie.0
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Oct 2016 04:10:55 -0700 (PDT)
-In-Reply-To: <20161020163719.GC27598@leverpostej>
+Received: from merlin.infradead.org ([205.233.59.134]:36824 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753387AbcJZLZt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 07:25:49 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1610261231250.4983@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Hi Mark,
+On Wed, Oct 26, 2016 at 12:49:36PM +0200, Thomas Gleixner wrote:
 
-On 21 October 2016 at 00:37, Mark Rutland <mark.rutland@arm.com> wrote:
-> Hi,
->
-> As a heads-up, on v4.9-rc1 I see conflicts at least against
-> arch/arm64/Kconfig. Luckily git am -3 seems to be able to fix that up
-> automatically, but this will need to be rebased before the next posting
-> and/or merging.
->
-> On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei@linaro.org wrote:
->> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
->> +{
->> +     int trigger, polarity;
->> +
->> +     if (!interrupt)
->> +             return 0;
->
-> Urgh.
->
-> Only the secure interrupt (which we do not need) is optional in this
-> manner, and (hilariously), zero appears to also be a valid GSIV, per
-> figure 5-24 in the ACPI 6.1 spec.
->
-> So, I think that:
->
-> (a) we should not bother parsing the secure interrupt
+> > +	/*
+> > +	 * ITMT capability automatically enables ITMT
+> > +	 * scheduling for small systems (single node).
+> > +	 */
+> > +	if (topology_num_packages() == 1)
+> > +		sysctl_sched_itmt_enabled = 1;
+> 
+> I really hate this. This is policy and the kernel should not impose
+> policy. Why would I like to have this enforced on my single socket XEON
+> server?
 
-If I understand correctly, from this point of view, kernel don't
-handle the secure interrupt.
-But the current arm_arch_timer driver still enable/disable/request
-PHYS_SECURE_PPI
-with PHYS_NONSECURE_PPI.
-That means we still need to parse the secure interrupt.
-Please correct me, if I misunderstand something? :-)
+So this really wants to be enabled by default; otherwise nobody will use
+this, and it really does help single threaded workloads.
 
-> (b) we should drop the check above
-
-yes, if zero is a valid GSIV, this makes sense.
-
-> (c) we should report the spec issue to the ASWG
->
->> +/*
->> + * acpi_gtdt_c3stop - got c3stop info from GTDT
->> + *
->> + * Returns 1 if the timer is powered in deep idle state, 0 otherwise.
->> + */
->> +bool __init acpi_gtdt_c3stop(void)
->> +{
->> +     struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
->> +
->> +     return !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
->> +}
->
-> It looks like this can differ per interrupt. Shouldn't we check the
-> appropriate one?
-
-yes, I think you are right.
-
->
->> +int __init acpi_gtdt_init(struct acpi_table_header *table)
->> +{
->> +     void *start;
->> +     struct acpi_table_gtdt *gtdt;
->> +
->> +     gtdt = container_of(table, struct acpi_table_gtdt, header);
->> +
->> +     acpi_gtdt_desc.gtdt = gtdt;
->> +     acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
->> +
->> +     if (table->revision < 2) {
->> +             pr_debug("Revision:%d doesn't support Platform Timers.\n",
->> +                      table->revision);
->> +             return 0;
->> +     }
->> +
->> +     if (!gtdt->platform_timer_count) {
->> +             pr_debug("No Platform Timer.\n");
->> +             return 0;
->> +     }
->> +
->> +     start = (void *)gtdt + gtdt->platform_timer_offset;
->> +     if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
->> +             pr_err(FW_BUG "Failed to retrieve timer info from firmware: invalid data.\n");
->> +             return -EINVAL;
->> +     }
->> +     acpi_gtdt_desc.platform_timer_start = start;
->> +
->> +     return gtdt->platform_timer_count;
->> +}
->
-> This is never used as anything other than a status code.
->
-> Just return zero; we haven't parsed the platform timers themselves at
-> this point anyway.
-
-Sorry, in my driver, I use this return value to inform driver
-
- negative number : error
-0 : we don't have platform timer in GTDT table.
-positive number: the number of platform timer we have in GTDT table.
-
-please correct me, if I am doing it in wrong way. Thanks :-)
-
-
->
-> Thanks,
-> Mark.
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+There were reservations on the multi-socket case of ITMT, maybe it would
+help to spell those out in great detail here. That is, have the comment
+explain the policy instead of simply stating what the code does (which
+is always bad comment policy, you can read the code just fine).
