@@ -1,192 +1,53 @@
-From: agustinv@codeaurora.org
-Subject: Re: [PATCH V5 1/2] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Tue, 25 Oct 2016 16:49:42 -0400
-Message-ID: <e5d266de172e2dadd8bc0bb179ec090b@codeaurora.org>
-References: <1476812509-2760-1-git-send-email-agustinv@codeaurora.org>
- <1476812509-2760-2-git-send-email-agustinv@codeaurora.org>
- <20161020164812.GD8731@red-moon>
- <4506c0f4-165a-e84b-73e2-d3cca9c8b9d7@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/6] ACPICA: Interpreter: Improve lock order fixes
+Date: Wed, 26 Oct 2016 02:51:23 +0200
+Message-ID: <CAJZ5v0hi4QHwCzFFwfeotSV3ckXERha_LvFn4FwfhxcU2oe4GA@mail.gmail.com>
+References: <cover.1477372449.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:45146 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754481AbcJYUtx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 16:49:53 -0400
-In-Reply-To: <4506c0f4-165a-e84b-73e2-d3cca9c8b9d7@arm.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33391 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753777AbcJZAvZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Oct 2016 20:51:25 -0400
+In-Reply-To: <cover.1477372449.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
+To: Lv Zheng <zetalog@gmail.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>
 
-Hi Marc, Lorenzo,
+On Tue, Oct 25, 2016 at 7:20 AM, Lv Zheng <zetalog@gmail.com> wrote:
+> This patchset improves ACPICA intepreter lock order fixes. Including
+> several urgent regression fixes [PATCH 0-3].
 
-On 2016-10-20 13:51, Marc Zyngier wrote:
-> On 20/10/16 17:48, Lorenzo Pieralisi wrote:
->> Hi Agustin,
->> 
->> On Tue, Oct 18, 2016 at 01:41:48PM -0400, Agustin Vega-Frias wrote:
->>> This allows irqchip drivers to associate an ACPI DSDT device to
->>> an IRQ domain and provides support for using the ResourceSource
->>> in Extended IRQ Resources to find the domain and map the IRQs
->>> specified on that domain.
->>> 
->>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
->>> ---
->>>  drivers/acpi/Makefile             |   1 +
->>>  drivers/acpi/irqdomain.c          | 141 
->>> ++++++++++++++++++++++++++++++++++++++
->>>  drivers/acpi/resource.c           |  21 +++---
->>>  include/asm-generic/vmlinux.lds.h |   1 +
->>>  include/linux/acpi.h              |  71 +++++++++++++++++++
->>>  include/linux/irqchip.h           |  17 ++++-
->>>  6 files changed, 240 insertions(+), 12 deletions(-)
->>>  create mode 100644 drivers/acpi/irqdomain.c
->>> 
->>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->>> index 9ed0878..880401b 100644
->>> --- a/drivers/acpi/Makefile
->>> +++ b/drivers/acpi/Makefile
->>> @@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->>>  acpi-y				+= acpi_lpat.o
->>>  acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
->>>  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
->>> +acpi-$(CONFIG_IRQ_DOMAIN)	+= irqdomain.o
->>> 
->>>  # These are (potentially) separate modules
->>> 
->>> diff --git a/drivers/acpi/irqdomain.c b/drivers/acpi/irqdomain.c
->>> new file mode 100644
->>> index 0000000..c53b9f4
->>> --- /dev/null
->>> +++ b/drivers/acpi/irqdomain.c
->>> @@ -0,0 +1,141 @@
->>> +/*
->>> + * ACPI ResourceSource/IRQ domain mapping support
->>> + *
->>> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
->>> + *
->>> + * This program is free software; you can redistribute it and/or 
->>> modify
->>> + * it under the terms of the GNU General Public License version 2 
->>> and
->>> + * only version 2 as published by the Free Software Foundation.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + */
->>> +#include <linux/acpi.h>
->>> +#include <linux/irq.h>
->>> +#include <linux/irqdomain.h>
->>> +
->>> +/**
->>> + * acpi_irq_domain_ensure_probed() - Check if the device has 
->>> registered
->>> + *                                   an IRQ domain and probe as 
->>> necessary
->>> + *
->>> + * @device: Device to check and probe
->>> + *
->>> + * Returns: 0 on success, -ENODEV otherwise
->> 
->> This is not correct (ie it depends on what
->> 
->> struct acpi_dsdt_probe_entry.probe
->> 
->> returns) and I would like to take this nit as an opportunity
->> to take a step back and ask you a question below.
->> 
->>> + */
->>> +static int acpi_irq_domain_ensure_probed(struct acpi_device *device)
->>> +{
->>> +	struct acpi_dsdt_probe_entry *entry;
->>> +
->>> +	if (irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY) != 0)
->>> +		return 0;
->>> +
->>> +	for (entry = &__dsdt_acpi_probe_table;
->>> +	     entry < &__dsdt_acpi_probe_table_end; entry++)
->>> +		if (strcmp(entry->_hid, acpi_device_hid(device)) == 0)
->>> +			return entry->probe(device);
->> 
->> Through this approch we are forcing an irqchip (that by the way it
->> has a physical node ACPI companion by being a DSDT device object so it
->> could be managed by a platform driver) to be probed. The question is: 
->> is
->> there a reason (apart from the current ACPI resource parsing API) why
->> this can't be implemented through deferred probing and the device
->> dependencies framework Rafael is working on:
->> 
->> http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1246897.html
->> 
->> The DT layer, through the of_irq_get() API, supports probe deferral
->> and what I am asking you is if there is any blocking point (again,
->> apart from the current ACPI API) to implement the same mechanism.
->> 
->> I have not reviewed the previous versions so I am certainly missing
->> some of the bits and pieces already discussed, apologies for that.
-> 
-> Also, this function scares me to no end: lack of locking and recursion
-> are the main things that worry me. My vote would be to implement
-> something based on Rafael's approach (which conveniently solves all 
-> kind
-> of other issues).
-> 
+OK, thanks!
 
-I have looked at the latest version of Rafael's patchset for device 
-functional
-dependency tracking and in its current form it does not address the 
-issues
-we see with dependencies on irqchips under ACPI boot.
+So patches [4-6/6] appear to be cleanups and I'd prefer them to be
+applied in a usual way (ie. via the upstream ACPICA).
 
-The problem is that the conversion of ACPI IRQ resources to Linux IRQ 
-resources
-for most DSDT devices occurs before the device is even added and is not 
-retried
-when a device is re-probed after returning -EPROBE_DEFER. The call chain 
-in most
-cases is:
+I'd like to take the [1-3/6] as fixes for 4.9-rc3 though, but for that
+I need you to tell me which mainline kernel commits are fixed by them.
 
-     acpi_init()
-         acpi_scan_init()
-             acpi_bus_scan()
-                 acpi_bus_attach()
-                     acpi_default_enumeration()
-                         acpi_create_platform_device()
-                             acpi_dev_get_resources() /* Resources are 
-converted here */
-                             platform_device_register_full()
-                                 platform_device_add()
-                                     device_add()
+IOW, what should I put into the Fixes: tags.
 
-What I would like to propose, and I would like feedback before I go down 
-that road,
-is to handle this in a way similar to DT, meaning that instead of doing 
-on demand
-probing of the irqchip devices described in the DSDT probe table I 
-introduce, we do
-that in an init function (e.g. acpi_bus_init_irq).
+[In the future, if you post a regression fix, please always add a
+FIxes: tag to it pointing to the commit being fixed.]
 
-Thoughts?
+> Patches tested with customized ACPI table where _PS0/_PS3 methods are
+> customized to invoke a serialized control method which creates named
+> objects. When pm_async=yes, AE_ALREADY_EXISTS can be seen in suspend/resume
+> process. This is an existing issue, triggered in 4.9-rc1 by ACPICA
+> interpreter lock order fixes, and can be fixed by [PATCH 1] in this series.
+>
+> Lv Zheng (6):
+>   ACPICA: Dispatcher: Fix order issue of method termination
+>   ACPICA: Dispatcher: Fix an unbalanced lock exit path in
+>     acpi_ds_auto_serialize_method()
+>   ACPICA: Dispatcher: Tune interpreter lock around
+>     acpi_ev_initialize_region()
+>   ACPICA: Events: Cleanup acpi_ev_initialize_region()
+>   ACPICA: Tables: Cleanup acpi_tb_install_and_load_table()
+>   ACPICA: Tables: Add acpi_tb_unload_table()
 
-Thanks.
-
-> I'll review this patch series in a more in-depth way soon, but I wanted
-> to chime in and add my own weight to Lorenzo's proposal.
-> 
-> Thanks,
-> 
-> 	M.
-> --
-> Jazz is not dead. It just smells funny...
-
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
-Linux Foundation Collaborative Project.
+Thanks,
+Rafael
