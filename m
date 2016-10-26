@@ -1,43 +1,47 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V5 3/3] ACPI: pci_link: Include PIRQ_PENALTY_PCI_USING for
- ISA IRQs
-Date: Wed, 26 Oct 2016 14:34:29 -0400
-Message-ID: <e08e67d2-4f4f-4063-a561-339d6a5bf7ca@codeaurora.org>
-References: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
- <1477283492-26657-4-git-send-email-okaya@codeaurora.org>
- <CANwerB2KywvUKAv84kvoyAV2YkqtOL9LbFOqSTLgZ=dCk-Z5xA@mail.gmail.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v6 5/9] x86/sysctl: Add sysctl for ITMT scheduling
+ feature
+Date: Wed, 26 Oct 2016 12:38:53 -0700
+Message-ID: <1477510733.2680.32.camel@linux.intel.com>
+References: <cover.1477000078.git.tim.c.chen@linux.intel.com>
+          <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com>
+          <alpine.DEB.2.20.1610261251550.4983@nanos>
+         <1477505006.2680.25.camel@linux.intel.com>
+         <alpine.DEB.2.20.1610262010420.5013@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41868 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752376AbcJZSee (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 14:34:34 -0400
-In-Reply-To: <CANwerB2KywvUKAv84kvoyAV2YkqtOL9LbFOqSTLgZ=dCk-Z5xA@mail.gmail.com>
+Received: from mga04.intel.com ([192.55.52.120]:42553 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933896AbcJZTjA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Oct 2016 15:39:00 -0400
+In-Reply-To: <alpine.DEB.2.20.1610262010420.5013@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ravikanth.nalla@hpe.com, linux@rainbow-software.org, wim@djo.tudelft.nl
-Cc: Jonathan Liu <net147@gmail.com>, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Bjorn Helgaas <bhelgaas@google.com>, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Thanks Jonathan,
-
-On 10/24/2016 12:46 AM, Jonathan Liu wrote:
->> 1.9.1
->> >
-> This series fixes one or more network adapters not working in Linux
-> 32-bit x86 guest running inside VirtualBox if I have 4 network
-> adapters enabled.
-> The following message no longer appears in the kernel log:
-> ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
+On Wed, 2016-10-26 at 20:11 +0200, Thomas Gleixner wrote:
+> On Wed, 26 Oct 2016, Tim Chen wrote:
 > 
-> Tested-by: Jonathan Liu <net147@gmail.com>
+> > 
+> > On Wed, 2016-10-26 at 12:52 +0200, Thomas Gleixner wrote:
+> > > 
+> > > On Thu, 20 Oct 2016, Tim Chen wrote:
+> > > > 
+> > > > 
+> > > >  
+> > > > +	if (itmt_sysctl_header)
+> > > > +		unregister_sysctl_table(itmt_sysctl_header);
+> > > What sets itmt_sysctl_header to NULL?
+> > > 
+> > If the registration of the itmt sysctl table has failed, it will
+> > be NULL.
+> And what clears it _AFTER_ the deregistration? Nothing, AFAICT.
 
-Can we also get some more testing coverage from the people in TO?
+Ok. I'll clear itmt_sysctl_header here.
 
-We want to make sure that we fixed all outstanding ACPI PCI IRQ issues.
+Thanks.
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Tim
