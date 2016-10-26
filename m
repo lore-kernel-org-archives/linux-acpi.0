@@ -1,94 +1,39 @@
-From: <gregkh@linuxfoundation.org>
-Subject: Patch "acpi, nfit: check for the correct event code in notifications" has been added to the 4.4-stable tree
-Date: Wed, 26 Oct 2016 11:26:40 +0200
-Message-ID: <147747400010364@kroah.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v6 1/9] sched: Extend scheduler's asym packing
+Date: Wed, 26 Oct 2016 12:27:32 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1610261226540.4983@nanos>
+References: <cover.1477000078.git.tim.c.chen@linux.intel.com> <c3bf1c59ee56dad1dc20ad3b3c06c166abb7a57e.1477000078.git.tim.c.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49721 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753802AbcJZJ0c (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 05:26:32 -0400
+Received: from Galois.linutronix.de ([146.0.238.70]:39403 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752609AbcJZKaI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 06:30:08 -0400
+In-Reply-To: <c3bf1c59ee56dad1dc20ad3b3c06c166abb7a57e.1477000078.git.tim.c.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, linda.knippers@hpe.com, linux-acpi@vger.kernel.org
-Cc: stable@vger.kernel.org, stable-commits@vger.kernel.org
+To: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
+On Thu, 20 Oct 2016, Tim Chen wrote:
 
-This is a note to let you know that I've just added the patch titled
+> We generalize the scheduler's asym packing to provide an ordering
+> of the cpu beyond just the cpu number.  This allows the use of the
+> ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
+> sched domain. The preference is defined with the cpu priority
+> given by arch_asym_cpu_priority(cpu).
+> 
+> We also record the most preferred cpu in a sched group when
+> we build the cpu's capacity for fast lookup of preferred cpu
+> during load balancing.
+> 
+> Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-    acpi, nfit: check for the correct event code in notifications
+This SOB-chain is bogus. Same for all other patches.
 
-to the 4.4-stable tree which can be found at:
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+Thanks,
 
-The filename of the patch is:
-     acpi-nfit-check-for-the-correct-event-code-in-notifications.patch
-and it can be found in the queue-4.4 subdirectory.
-
-If you, or anyone else, feels it should not be added to the stable tree,
-please let <stable@vger.kernel.org> know about it.
-
-
->From c09f12186d6b03b798832d95289af76495990192 Mon Sep 17 00:00:00 2001
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 19 Aug 2016 14:40:58 -0600
-Subject: acpi, nfit: check for the correct event code in notifications
-
-From: Vishal Verma <vishal.l.verma@intel.com>
-
-commit c09f12186d6b03b798832d95289af76495990192 upstream.
-
-Commit 209851649dc4 "acpi: nfit: Add support for hot-add" added
-support for _FIT notifications, but it neglected to verify the
-notification event code matches the one in the ACPI spec for
-"NFIT Update". Currently there is only one code in the spec, but
-once additional codes are added, older kernels (without this fix)
-will misbehave by assuming all event notifications are for an
-NFIT Update.
-
-Fixes: 209851649dc4 ("acpi: nfit: Add support for hot-add")
-Cc: <stable@vger.kernel.org>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- drivers/acpi/nfit.c |    3 +++
- drivers/acpi/nfit.h |    4 ++++
- 2 files changed, 7 insertions(+)
-
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1806,6 +1806,9 @@ static void acpi_nfit_notify(struct acpi
- 
- 	dev_dbg(dev, "%s: event: %d\n", __func__, event);
- 
-+	if (event != NFIT_NOTIFY_UPDATE)
-+		return;
-+
- 	device_lock(dev);
- 	if (!dev->driver) {
- 		/* dev->driver may be null if we're being removed */
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -45,6 +45,10 @@ enum {
- 	ND_BLK_DCR_LATCH = 2,
- };
- 
-+enum nfit_root_notifiers {
-+	NFIT_NOTIFY_UPDATE = 0x80,
-+};
-+
- struct nfit_spa {
- 	struct acpi_nfit_system_address *spa;
- 	struct list_head list;
-
-
-Patches currently in stable-queue which might be from vishal.l.verma@intel.com are
-
-queue-4.4/acpi-nfit-check-for-the-correct-event-code-in-notifications.patch
+	tglx
