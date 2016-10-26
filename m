@@ -1,39 +1,48 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v6 1/9] sched: Extend scheduler's asym packing
-Date: Wed, 26 Oct 2016 12:27:32 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1610261226540.4983@nanos>
-References: <cover.1477000078.git.tim.c.chen@linux.intel.com> <c3bf1c59ee56dad1dc20ad3b3c06c166abb7a57e.1477000078.git.tim.c.chen@linux.intel.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v14 1/9] clocksource/drivers/arm_arch_timer: Move enums
+ and defines to header file
+Date: Wed, 26 Oct 2016 11:51:45 +0100
+Message-ID: <20161026105144.GF19965@leverpostej>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+ <1475086637-1914-2-git-send-email-fu.wei@linaro.org>
+ <20161020144510.GJ10234@leverpostej>
+ <CADyBb7shWfCQycmo0GcheX2NSsrjYBpzdtYFqymvDNCKi0QM2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:39403 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752609AbcJZKaI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 06:30:08 -0400
-In-Reply-To: <c3bf1c59ee56dad1dc20ad3b3c06c166abb7a57e.1477000078.git.tim.c.chen@linux.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:37198 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753618AbcJZKwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Oct 2016 06:52:31 -0400
+Content-Disposition: inline
+In-Reply-To: <CADyBb7shWfCQycmo0GcheX2NSsrjYBpzdtYFqymvDNCKi0QM2A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: Fu Wei <fu.wei@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-On Thu, 20 Oct 2016, Tim Chen wrote:
+On Wed, Oct 26, 2016 at 04:31:55PM +0800, Fu Wei wrote:
+> On 20 October 2016 at 22:45, Mark Rutland <mark.rutland@arm.com> wrote:
+> > On Thu, Sep 29, 2016 at 02:17:09AM +0800, fu.wei@linaro.org wrote:
+> >>  #include <linux/timecounter.h>
+> >>  #include <linux/types.h>
+> >>
+> >> +#define ARCH_CP15_TIMER                      BIT(0)
+> >> +#define ARCH_MEM_TIMER                       BIT(1)
+> >
+> > If we're going to expose these in a header, it would be better to rename
+> > them to something that makes their usage/meaning clear. These should
+> > probably be ARCH_TIMER_TYPE_{CP15,MEM}.
 
-> We generalize the scheduler's asym packing to provide an ordering
-> of the cpu beyond just the cpu number.  This allows the use of the
-> ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
-> sched domain. The preference is defined with the cpu priority
-> given by arch_asym_cpu_priority(cpu).
+> > With those changes (regardless of the ARCH_TIMER_TYPE_* bits):
+> >
+> > Acked-by: Mark Rutland <mark.rutland@arm.com>
 > 
-> We also record the most preferred cpu in a sched group when
-> we build the cpu's capacity for fast lookup of preferred cpu
-> during load balancing.
-> 
-> Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> For ARCH_TIMER_TYPE_*, maybe I should add a patch at the end of this
+> patchset to fix it, OK ?
 
-This SOB-chain is bogus. Same for all other patches.
+Sure. If you could put that *earlier* in the patchset it would be
+preferable so as to minimize churn.
 
 Thanks,
-
-	tglx
+Mark.
