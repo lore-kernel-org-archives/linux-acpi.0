@@ -1,65 +1,43 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v6 1/9] sched: Extend scheduler's asym packing
-Date: Wed, 26 Oct 2016 20:23:48 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1610262012330.5013@nanos>
-References: <cover.1477000078.git.tim.c.chen@linux.intel.com>  <c3bf1c59ee56dad1dc20ad3b3c06c166abb7a57e.1477000078.git.tim.c.chen@linux.intel.com>  <alpine.DEB.2.20.1610261226540.4983@nanos> <1477505446.2680.29.camel@linux.intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V5 3/3] ACPI: pci_link: Include PIRQ_PENALTY_PCI_USING for
+ ISA IRQs
+Date: Wed, 26 Oct 2016 14:34:29 -0400
+Message-ID: <e08e67d2-4f4f-4063-a561-339d6a5bf7ca@codeaurora.org>
+References: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
+ <1477283492-26657-4-git-send-email-okaya@codeaurora.org>
+ <CANwerB2KywvUKAv84kvoyAV2YkqtOL9LbFOqSTLgZ=dCk-Z5xA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323329-797078632-1477506230=:5013"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1477505446.2680.29.camel@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:41868 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752376AbcJZSee (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Oct 2016 14:34:34 -0400
+In-Reply-To: <CANwerB2KywvUKAv84kvoyAV2YkqtOL9LbFOqSTLgZ=dCk-Z5xA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ravikanth.nalla@hpe.com, linux@rainbow-software.org, wim@djo.tudelft.nl
+Cc: Jonathan Liu <net147@gmail.com>, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Bjorn Helgaas <bhelgaas@google.com>, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, linux-pci@vger.kernel.org, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Thanks Jonathan,
 
---8323329-797078632-1477506230=:5013
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-
-On Wed, 26 Oct 2016, Tim Chen wrote:
-> On Wed, 2016-10-26 at 12:27 +0200, Thomas Gleixner wrote:
-> > On Thu, 20 Oct 2016, Tim Chen wrote:
-> > 
-> > > 
-> > > We generalize the scheduler's asym packing to provide an ordering
-> > > of the cpu beyond just the cpu number.  This allows the use of the
-> > > ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
-> > > sched domain. The preference is defined with the cpu priority
-> > > given by arch_asym_cpu_priority(cpu).
-> > > 
-> > > We also record the most preferred cpu in a sched group when
-> > > we build the cpu's capacity for fast lookup of preferred cpu
-> > > during load balancing.
-> > > 
-> > > Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> > > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > This SOB-chain is bogus. Same for all other patches.
-> > 
+On 10/24/2016 12:46 AM, Jonathan Liu wrote:
+>> 1.9.1
+>> >
+> This series fixes one or more network adapters not working in Linux
+> 32-bit x86 guest running inside VirtualBox if I have 4 network
+> adapters enabled.
+> The following message no longer appears in the kernel log:
+> ACPI: No IRQ available for PCI Interrupt Link [LNKD]. Try pci=noacpi or acpi=off
 > 
-> I am the primary author of the patch so I have my sign-off on top.  There
-> were also much internal discussions/reviews between myself, Peter and Srinivas,
-> before we post the first version of this patch.
-> I incorporated their inputs into the patch and added their sign-offs.  
-> 
-> Can you be more explicit on why you think the sign-offs here are bogus?
+> Tested-by: Jonathan Liu <net147@gmail.com>
 
-Because SOB chains document the way a patch takes from the author to the
-kernel. The above says:
+Can we also get some more testing coverage from the people in TO?
 
-You authored the patch and sent it to Peter who sent it to Srinivas. So how
-does it end up sent from you in my inbox?
+We want to make sure that we fixed all outstanding ACPI PCI IRQ issues.
 
-We have no formal tag for co developed patches, but it's common practice to
-either acknowledge contributions from others in free text form or use a
-non-documented tag like 'Co-developed-by:' or 'Co-authored-by:'.
-
-Thanks,
-
-	tglx
-
-
---8323329-797078632-1477506230=:5013--
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
