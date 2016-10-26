@@ -1,45 +1,70 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v6 5/9] x86/sysctl: Add sysctl for ITMT scheduling
- feature
-Date: Wed, 26 Oct 2016 13:24:27 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1610261322580.4983@nanos>
-References: <cover.1477000078.git.tim.c.chen@linux.intel.com> <b3f648c2c4cd36b6a043239bee8437a2060c0ac4.1477000078.git.tim.c.chen@linux.intel.com> <alpine.DEB.2.20.1610261231250.4983@nanos> <20161026112502.GB3117@twins.programming.kicks-ass.net>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Wed, 26 Oct 2016 13:11:14 +0100
+Message-ID: <57010864-b2f0-d230-3138-8ace484acb04@arm.com>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+ <1475086637-1914-5-git-send-email-fu.wei@linaro.org>
+ <20161020163719.GC27598@leverpostej>
+ <CADyBb7tLJpPiMqWs4KZE=uCpo3HX3WcNVju2UKNuPOR0+M4UDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161026112502.GB3117@twins.programming.kicks-ass.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>, rjw@rjwysocki.net, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38728 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932550AbcJZMLV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 26 Oct 2016 08:11:21 -0400
+In-Reply-To: <CADyBb7tLJpPiMqWs4KZE=uCpo3HX3WcNVju2UKNuPOR0+M4UDw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Fu Wei <fu.wei@linaro.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei Huang <wei@redhat.com>, Arnd
 
-On Wed, 26 Oct 2016, Peter Zijlstra wrote:
-> On Wed, Oct 26, 2016 at 12:49:36PM +0200, Thomas Gleixner wrote:
+On 26/10/16 12:10, Fu Wei wrote:
+> Hi Mark,
 > 
-> > > +	/*
-> > > +	 * ITMT capability automatically enables ITMT
-> > > +	 * scheduling for small systems (single node).
-> > > +	 */
-> > > +	if (topology_num_packages() == 1)
-> > > +		sysctl_sched_itmt_enabled = 1;
-> > 
-> > I really hate this. This is policy and the kernel should not impose
-> > policy. Why would I like to have this enforced on my single socket XEON
-> > server?
+> On 21 October 2016 at 00:37, Mark Rutland <mark.rutland@arm.com> wrote:
+>> Hi,
+>>
+>> As a heads-up, on v4.9-rc1 I see conflicts at least against
+>> arch/arm64/Kconfig. Luckily git am -3 seems to be able to fix that up
+>> automatically, but this will need to be rebased before the next posting
+>> and/or merging.
+>>
+>> On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei@linaro.org wrote:
+>>> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
+>>> +{
+>>> +     int trigger, polarity;
+>>> +
+>>> +     if (!interrupt)
+>>> +             return 0;
+>>
+>> Urgh.
+>>
+>> Only the secure interrupt (which we do not need) is optional in this
+>> manner, and (hilariously), zero appears to also be a valid GSIV, per
+>> figure 5-24 in the ACPI 6.1 spec.
+>>
+>> So, I think that:
+>>
+>> (a) we should not bother parsing the secure interrupt
 > 
-> So this really wants to be enabled by default; otherwise nobody will use
-> this, and it really does help single threaded workloads.
+> If I understand correctly, from this point of view, kernel don't
+> handle the secure interrupt.
+> But the current arm_arch_timer driver still enable/disable/request
+> PHYS_SECURE_PPI
+> with PHYS_NONSECURE_PPI.
+> That means we still need to parse the secure interrupt.
+> Please correct me, if I misunderstand something? :-)
 
-Fair enough. Then this wants to be documented.
- 
-> There were reservations on the multi-socket case of ITMT, maybe it would
-> help to spell those out in great detail here. That is, have the comment
-> explain the policy instead of simply stating what the code does (which
-> is always bad comment policy, you can read the code just fine).
-
-What is the objection for multi sockets? If it improves the behaviour then
-why would this be a bad thing for multi sockets?
+That's because we can use the per-cpu timer when 32bit Linux is running
+on the secure side (and we cannot distinguish between secure and
+non-secure at runtime). ACPI is 64bit only, and Linux on 64bit isn't
+supported on the secure side, so only registering the non-secure timer
+is perfectly acceptable.
 
 Thanks,
 
-	tglx
+	M.
+-- 
+Jazz is not dead. It just smells funny...
