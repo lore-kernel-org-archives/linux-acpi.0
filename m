@@ -1,88 +1,45 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V5 0/3] ACPI,PCI,IRQ: revert penalty calculation for ISA
- and SCI interrupts
-Date: Thu, 27 Oct 2016 12:31:47 +0200
-Message-ID: <CAJZ5v0iwHyts_esnG095a7SuAa0s-GsxYCvGhVX7Vi9mEakZyg@mail.gmail.com>
-References: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH v2 0/3] ACPICA: Interpreter: Fix regressions in lock order improvement
+Date: Thu, 27 Oct 2016 12:22:56 +0200
+Message-ID: <CAJZ5v0hE48oR45zWqDjngS+W2JgARqqyNT5BV_nBoyhK05TcxQ@mail.gmail.com>
+References: <cover.1477372449.git.lv.zheng@intel.com> <cover.1477465173.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, net147@gmail.com, Ondrej Zary <linux@rainbow-software.org>, ravikanth.nalla@hpe.com, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Andy Gross <agross@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, wim@djo.tudelft.nl, linux-arm-msm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36150 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936559AbcJ0OLQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Oct 2016 10:11:16 -0400
+In-Reply-To: <cover.1477465173.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <zetalog@gmail.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>
 
-On Mon, Oct 24, 2016 at 6:31 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+On Wed, Oct 26, 2016 at 9:39 AM, Lv Zheng <zetalog@gmail.com> wrote:
+> This patchset fixes regressions in ACPICA intepreter lock order
+> improvement.
 >
-> By the time ACPI gets initialized, this code tries to determine an
-> IRQ number based on penalty values in this array. It will try to locate
-> the IRQ with the least penalty assignment so that interrupt sharing is
-> avoided if possible.
+> Patches tested with customized ACPI table where _PS0/_PS3 methods are
+> customized to invoke a serialized control method which creates named
+> objects. When pm_async=yes, AE_ALREADY_EXISTS can be seen in suspend/resume
+> process. This is an existing issue, triggered in 4.9-rc1 by ACPICA
+> interpreter lock order fixes, and can be fixed by [PATCH 1] in this series.
 >
-> A couple of notes about the external APIs:
-> 1. These API can be called before the ACPI is started. Therefore, one
-> cannot assume that the PCI link objects are initialized for calculating
-> penalties.
-> 2. The polarity and trigger information passed via the
-> acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
-> is reporting as the call might have been placed before the IRQ is
-> registered by the interrupt subsystem.
+> v2:
+> 1. Remove non-regression-fixes.
+> 2. Add "Fixes" tags.
 >
-> The reverted changes were in the direction to remove these external API and
-> try to calculate the penalties at runtime for the ISA, SCI as well as PCI
-> IRQS.
-> This didn't work out well with the existing platforms.
->
-> V5:
-> * clean up the commit message for 1/3 and 2/3
-> * drop 3/3
-> * bring back ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts as 3/3
->
-> V4:
-> https://www.spinics.net/lists/arm-kernel/msg537158.html
-> * Drop ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
-> * A new patch to isolate early boot ISA penalty calculations from dynamic
-> penalty calculation by directly modifying the array members in
-> ("ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages")
-> * Now that we isolated both SCI and ISA interrupts, revert commit ("Revert
-> "ACPI,PCI,IRQ: separate ISA penalty calculation"") and commit
-> ("487cf917ed0d
-> (Revert "ACPI, PCI, IRQ: remove redundant code in acpi_irq_penalty_init()")
-> to share code between ISA and PCI penalties as originally intended.
->
-> V3:
-> http://www.spinics.net/lists/arm-kernel/msg536208.html
-> * drop patch #1 as discussed with Bjorn
-> * add patch #3 to track SCI irq and penalty separately
->
-> V2: https://lkml.org/lkml/2016/10/1/106
-> * Commit message updates
->
-> V1:
-> http://lists-archives.com/linux-kernel/28673954-revert-acpi-pci-irq-reduce-static-irq-array-size-to-16.html
-> * initial implementation
->
-> Sinan Kaya (3):
->   ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages
->   ACPI: pci_link: penalize SCI correctly
->   ACPI: pci_link: Include PIRQ_PENALTY_PCI_USING for ISA IRQs
->
->  arch/x86/kernel/acpi/boot.c |  1 +
->  drivers/acpi/pci_link.c     | 38 +++++++++++++++++++++-----------------
->  include/linux/acpi.h        |  1 +
->  3 files changed, 23 insertions(+), 17 deletions(-)
+> Lv Zheng (3):
+>   ACPICA: Dispatcher: Fix order issue of method termination
+>   ACPICA: Dispatcher: Fix an unbalanced lock exit path in
+>     acpi_ds_auto_serialize_method()
+>   ACPICA: Dispatcher: Tune interpreter lock around
+>     acpi_ev_initialize_region()
 
-I've queued up this series for the next ACPI pull request with 4.9 fixes.
+Thanks!
+
+I'm queuing up this series for the next ACPI pull request.
 
 Thanks,
 Rafael
