@@ -1,57 +1,99 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
- calls to hotplugged cpu")]
-Date: Thu, 27 Oct 2016 22:41:18 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1610272238390.4913@nanos>
-References: <20160526183207.GX4329@intel.com> <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com> <20160531072650.GP4329@intel.com> <20160713145425.GB4329@intel.com> <CA++bM2sLMDLdeyLd_gpknTj+Y5xMk261SvivU5YxTnL0jRZovA@mail.gmail.com>
- <20160809172057.GZ4329@intel.com> <20161027172852.GE4617@intel.com> <alpine.DEB.2.20.1610272035180.4913@nanos> <20161027192006.GF4617@intel.com> <alpine.DEB.2.20.1610272122510.4913@nanos> <20161027203745.GH4617@intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Fri, 28 Oct 2016 00:08:18 +0300
+Message-ID: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323329-18361705-1477600880=:4913"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161027203745.GH4617@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Ville_Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Cc: Feng Tang <feng.79.tang@gmail.com>, feng.tang@intel.com, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:33833 "EHLO
+        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934631AbcJ0VIU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Oct 2016 17:08:20 -0400
+Received: by mail-oi0-f53.google.com with SMTP id p136so23485698oic.1
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Oct 2016 14:08:19 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi!
 
---8323329-18361705-1477600880=:4913
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Reverting of the commit e323c02dee59 ("ACPICA: MSVC9: Fix <sys/stat.h>
+inclusion order issue") fixes the following issue:
 
-On Thu, 27 Oct 2016, Ville Syrjälä wrote:
-> On Thu, Oct 27, 2016 at 09:25:05PM +0200, Thomas Gleixner wrote:
-> > So it would be interesting whether that hunk in resume_broadcast() is
-> > sufficient.
-> 
-> So far it looks like the answer is yes.
-> 
-> Looks to be about 5 seconds slower than acpi-idle in resuming, but
-> I suppose that's not all that surprising ;)
+  DESCEND  power/acpi
+  DESCEND  tools/acpidbg
+output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
+-I../../../include -I../../../drivers/acpi/acpica -Wall
+-Wstrict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
+-DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
+-I../../../../../drivers/acpi/acpica -I../../../../../include   -c -o
+acpidbg.o acpidbg.c
+In file included from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/asm/sigcont=
+ext.h:18:0,
+                 from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/bits/sigcon=
+text.h:30,
+                 from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/signal.h:33=
+5,
+                 from ../../../../../include/acpi/platform/acenv.h:365,
+                 from ../../../../../include/acpi/acpi.h:56,
+                 from acpidbg.c:12:
+../../../../../include/linux/types.h:14:26: error: conflicting types
+for =E2=80=98fd_set=E2=80=99
+ typedef __kernel_fd_set  fd_set;
+                          ^
+In file included from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/sys/types.h=
+:219:0,
+                 from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/stdlib.h:19=
+8,
+                 from ../../../../../include/acpi/platform/acenv.h:357,
+                 from ../../../../../include/acpi/acpi.h:56,
+                 from acpidbg.c:12:
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/sys/select.=
+h:77:5:
+note: previous declaration of =E2=80=98fd_set=E2=80=99 was here
+   } fd_set;
+     ^
+In file included from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/asm/sigcont=
+ext.h:18:0,
+                 from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/bits/sigcon=
+text.h:30,
+                 from
+output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/signal.h:33=
+5,
+                 from ../../../../../include/acpi/platform/acenv.h:365,
+                 from ../../../../../include/acpi/acpi.h:56,
+                 from acpidbg.c:12:
+../../../../../include/linux/types.h:15:25: error: conflicting types for =
+=E2=80=98dev_t=E2=80=99
+ typedef __kernel_dev_t  dev_t;
 
-Well, set it to 1msec then. If that works reliably then we really can do
-that unconditionally. There is no harm in firing a useless timer during
-resume once.
+And so on...
 
-> > Does the machine work, when you limit intel idle to C3, which would then
-> > match acpi idle ?
-> 
-> I'm pretty sure I had tested all of these, but I just double checked
-> to make sure. There's no C3 with intel_idle so I limited to C2, but
-> that did not help.
-> 
-> Isn't it possible that ACPI C3 is in fact C4? I thought ACPI C-states
-> are always numbered non-sparsely, and in this case ACPI C3 could be
-> anything from C3 to C11 (if the processor actually supported such
-> states obviously). Actually now that I look at the descriptions for
-> the states in sysfs, it says "MWAIT 0x30" for state3 on both drivers,
-> which I presume means it's in fact C4 for both.
+After revert:
 
-Indeed.
+  DESCEND  power/acpi
+  DESCEND  tools/acpidbg
+output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
+-I../../../include -I../../../drivers/acpi/acpica -Wall
+-Wstrict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
+-DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
+-I../../../../../drivers/acpi/acpica -I../../../../../include   -c -o
+acpidbg.o acpidbg.c
+  LD       test-topic/acpidbg
+/usr/bin/install -c -d output/target/usr/sbin
+/usr/bin/install -c test-topic/acpidbg output/target/usr/sbin
 
-Thanks,
+Any ideas how to fix this properly?
 
-	tglx
---8323329-18361705-1477600880=:4913--
+--=20
+With Best Regards,
+Andy Shevchenko
