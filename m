@@ -1,53 +1,82 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: Fix format string type mistakes
-Date: Mon, 19 Dec 2016 21:45:44 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E547D9A@ORSMSX110.amr.corp.intel.com>
-References: <20161216215137.GA96800@beast>
- <CAJZ5v0h-xUXNHgr5x4ZYRAvsUZDip65aYCPVPeZ3E9=djcpQnA@mail.gmail.com>
- <CAGXu5jKc35OzaPCR-f34THEkmE4ZbPP-cW2BVFzTgPYVmT_5dw@mail.gmail.com>
+From: Rick Kerkhof <rick.2889-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Acer Aspire V7-582PG (Haswell,
+ GTX 750M) fails to power off GPU via Power Resources
+Date: Thu, 27 Oct 2016 09:42:28 +0000
+Message-ID: <CANni8her35iORgrZOkDzxhfVaOOzObTLG2Ly0kkNZPDTrbyfQQ@mail.gmail.com>
+References: <bug-98398-8800@http.bugs.freedesktop.org/>
+ <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
+ <20161026225641.GA27017@al> <20161027081748.GX1476@lahna.fi.intel.com>
+ <20161027090604.GB27017@al>
+ <CANni8hdMs4pL0m6FrgeyJjE2R2C=6PaHbVbMVoUU+NszJuf9OA@mail.gmail.com>
+ <20161027093011.GZ1476@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:41149 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753160AbcLSVpq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Dec 2016 16:45:46 -0500
-In-Reply-To: <CAGXu5jKc35OzaPCR-f34THEkmE4ZbPP-cW2BVFzTgPYVmT_5dw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1716136472=="
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20161027093011.GZ1476-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Emese Revfy <re.emese@gmail.com>, "devel@acpica.org" <devel@acpica.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbToga2Vlc2Nvb2tAZ29vZ2xl
-LmNvbSBbbWFpbHRvOmtlZXNjb29rQGdvb2dsZS5jb21dIE9uIEJlaGFsZiBPZiBLZWVzDQo+IENv
-b2sNCj4gU2VudDogRnJpZGF5LCBEZWNlbWJlciAxNiwgMjAxNiAzOjA0IFBNDQo+IFRvOiBSYWZh
-ZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+IENjOiBNb29yZSwgUm9iZXJ0IDxy
-b2JlcnQubW9vcmVAaW50ZWwuY29tPjsgTGludXggS2VybmVsIE1haWxpbmcgTGlzdA0KPiA8bGlu
-dXgta2VybmVsQHZnZXIua2VybmVsLm9yZz47IFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29t
-PjsgV3lzb2NraSwNCj4gUmFmYWVsIEogPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPjsgTGVu
-IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+OyBBQ1BJDQo+IERldmVsIE1hbGluZyBMaXN0IDxsaW51
-eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IEVtZXNlIFJldmZ5DQo+IDxyZS5lbWVzZUBnbWFpbC5j
-b20+OyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGFjcGk6IEZpeCBm
-b3JtYXQgc3RyaW5nIHR5cGUgbWlzdGFrZXMNCj4gDQo+IE9uIEZyaSwgRGVjIDE2LCAyMDE2IGF0
-IDI6MzYgUE0sIFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9yZz4NCj4gd3JvdGU6
-DQo+ID4gT24gRnJpLCBEZWMgMTYsIDIwMTYgYXQgMTA6NTEgUE0sIEtlZXMgQ29vayA8a2Vlc2Nv
-b2tAY2hyb21pdW0ub3JnPg0KPiB3cm90ZToNCj4gPj4gRnJvbTogRW1lc2UgUmV2ZnkgPHJlLmVt
-ZXNlQGdtYWlsLmNvbT4NCj4gPj4NCj4gPj4gVGhpcyBhZGRzIHRoZSBtaXNzaW5nIF9fcHJpbnRm
-IGF0dHJpYnV0ZSB3aGljaCBhbGxvd3MgY29tcGlsZSB0aW1lDQo+ID4+IGZvcm1hdCBzdHJpbmcg
-Y2hlY2tpbmcgKGFuZCB3aWxsIGJlIHVzZWQgYnkgdGhlIGNvbWluZyBpbml0aWZ5IGdjYw0KPiA+
-PiBwbHVnaW4pLiBBZGRpdGlvbmFsbHksIHRoaXMgZml4ZXMgdGhlIHdhcm5pbmdzIGV4cG9zZWQg
-YnkgdGhlDQo+IGF0dHJpYnV0ZS4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogRW1lc2UgUmV2
-ZnkgPHJlLmVtZXNlQGdtYWlsLmNvbT4NCj4gPj4gW2tlZXM6IHNwbGl0IHNjc2kvYWNwaSwgbWVy
-Z2VkIGF0dHIgYW5kIGZpeCwgbmV3IGNvbW1pdCBtZXNzYWdlc10NCj4gPj4gU2lnbmVkLW9mZi1i
-eTogS2VlcyBDb29rIDxrZWVzY29va0BjaHJvbWl1bS5vcmc+DQo+ID4NCj4gPiBUaGlzIG1vZGlm
-aWVzIGNvZGUgdGhhdCB3ZSBnZXQgZnJvbSBhbiBleHRlcm5hbCBwcm9qaWVjdCAoQUNQSUNBKSBh
-bmQNCj4gPiB0aGUgYnVncyBzaG91bGQgYmUgZml4ZWQgaW4gdGhlcmUgaW4gdGhlIGZpcnN0IHBs
-YWNlLg0KPiANCj4gV2hvIHNob3VsZCBnZXQgQ0NlZD8NCj4gDQo+ID4gTW9yZW92ZXIsIEknbSBu
-b3Qgc3VyZSBpZiBhZGRpbmcgX19wcmludGYgaW4gYWNwaW9zeGYuaCBpcyBhIGdvb2QNCj4gaWRl
-YS4NCj4gDQo+IFdoeSBub3Q/IFRoaXMgaXMgZ29pbmcgdG8gYmUgbmVlZGVkIGJ5IHRoZSBpbml0
-aWZ5IHBsdWdpbiB0byBkbyBjb3JyZWN0DQo+IGRldGVjdGlvbiBvZiB3aGF0J3MgYmVpbmcgcGFz
-c2VkIGFyb3VuZCB0byBmdW5jdGlvbnMuLi4NCj4gDQoNCltNb29yZSwgUm9iZXJ0XSBJdCdzIGNv
-bXBpbGVyLWRlcGVuZGVudC4NCg0KPiAtS2Vlcw0KPiANCj4gLS0NCj4gS2VlcyBDb29rDQo+IE5l
-eHVzIFNlY3VyaXR5DQo=
+--===============1716136472==
+Content-Type: multipart/alternative; boundary=089e01161dd0f1b577053fd58f14
+
+--089e01161dd0f1b577053fd58f14
+Content-Type: text/plain; charset=UTF-8
+
+No, there are not. Here is the recursive directory listing:
+http://sprunge.us/FIRE
+
+Op do 27 okt. 2016 11:30 schreef Mika Westerberg <
+mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>:
+
+> On Thu, Oct 27, 2016 at 09:15:19AM +0000, Rick Kerkhof wrote:
+> >    I can confirm what Peter said, path contains \_SB_.PCI0.RP05 and
+> >    power_state contains D3hot.
+>
+> And there are no power_resources_Dx directories under
+> /sys/bus/pci/devices/0000:00:1c.4/firmware_node?
+>
+
+--089e01161dd0f1b577053fd58f14
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<p dir=3D"ltr">No, there are not. Here is the recursive directory listing: =
+<a href=3D"http://sprunge.us/FIRE">http://sprunge.us/FIRE</a></p>
+<br><div class=3D"gmail_quote"><div dir=3D"ltr">Op do 27 okt. 2016 11:30 sc=
+hreef Mika Westerberg &lt;<a href=3D"mailto:mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org=
+">mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org</a>&gt;:<br></div><blockquote class=3D"gm=
+ail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-le=
+ft:1ex">On Thu, Oct 27, 2016 at 09:15:19AM +0000, Rick Kerkhof wrote:<br cl=
+ass=3D"gmail_msg">
+&gt;=C2=A0 =C2=A0 I can confirm what Peter said, path contains \_SB_.PCI0.R=
+P05 and<br class=3D"gmail_msg">
+&gt;=C2=A0 =C2=A0 power_state contains D3hot.<br class=3D"gmail_msg">
+<br class=3D"gmail_msg">
+And there are no power_resources_Dx directories under<br class=3D"gmail_msg=
+">
+/sys/bus/pci/devices/0000:00:1c.4/firmware_node?<br class=3D"gmail_msg">
+</blockquote></div>
+
+--089e01161dd0f1b577053fd58f14--
+
+--===============1716136472==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBt
+YWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
+
+--===============1716136472==--
