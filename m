@@ -1,57 +1,88 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 00/16] ACPI IORT ARM SMMU support
-Date: Thu, 27 Oct 2016 12:24:48 +0200
-Message-ID: <CAJZ5v0i=ZZDwnAU_=cAW5NR5M7EAOVPmpdqfMhf_jGmeZoHLVQ@mail.gmail.com>
-References: <20161018160414.1228-1-lorenzo.pieralisi@arm.com>
-	<20161026110459.GA15276@red-moon>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V5 0/3] ACPI,PCI,IRQ: revert penalty calculation for ISA
+ and SCI interrupts
+Date: Thu, 27 Oct 2016 12:31:47 +0200
+Message-ID: <CAJZ5v0iwHyts_esnG095a7SuAa0s-GsxYCvGhVX7Vi9mEakZyg@mail.gmail.com>
+References: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20161026110459.GA15276@red-moon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1477283492-26657-1-git-send-email-okaya@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, net147@gmail.com, Ondrej Zary <linux@rainbow-software.org>, ravikanth.nalla@hpe.com, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Andy Gross <agross@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alex Williamson <alex.williamson@redhat.com>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, wim@djo.tudelft.nl, linux-arm-msm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 26, 2016 at 1:04 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> Rafael, Joerg (and anyone else CC'ed),
+On Mon, Oct 24, 2016 at 6:31 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
 >
-> On Tue, Oct 18, 2016 at 05:03:58PM +0100, Lorenzo Pieralisi wrote:
->> This patch series is v6 of a previous posting:
->>
->> https://lkml.org/lkml/2016/9/9/418
->>
->> v5 -> v6
->>       - Rebased against v4.9-rc1
->>       - Changed FWNODE_IOMMU to FWNODE_ACPI_STATIC
->>       - Moved platform devices creation into IORT code
->>       - Updated fwnode handling
->>       - Added default dma masks initialization
+> By the time ACPI gets initialized, this code tries to determine an
+> IRQ number based on penalty values in this array. It will try to locate
+> the IRQ with the least penalty assignment so that interrupt sharing is
+> avoided if possible.
 >
-> Any comments on v6 ? Patches touching generic ACPI code
-> are {1, 2, 7}, patch 4 updates the IOMMU of_iommu_{set/get}_ops()
-> API to make it work on ACPI systems too, by replacing the
-> device_node with a fwnode_handle pointer as look-up token;
-> the remainder of patches are ARM specific and creates the
-> infrastructure to probe ARM SMMU devices through ACPI,
-> ARM IORT table in particular. Given the generic bits changes
-> above I would not leave it to late -rc to reach an agreement
-> please, thank you.
+> A couple of notes about the external APIs:
+> 1. These API can be called before the ACPI is started. Therefore, one
+> cannot assume that the PCI link objects are initialized for calculating
+> penalties.
+> 2. The polarity and trigger information passed via the
+> acpi_penalize_sci_irq from the BIOS may not match what the IRQ subsystem
+> is reporting as the call might have been placed before the IRQ is
+> registered by the interrupt subsystem.
+>
+> The reverted changes were in the direction to remove these external API and
+> try to calculate the penalties at runtime for the ISA, SCI as well as PCI
+> IRQS.
+> This didn't work out well with the existing platforms.
+>
+> V5:
+> * clean up the commit message for 1/3 and 2/3
+> * drop 3/3
+> * bring back ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts as 3/3
+>
+> V4:
+> https://www.spinics.net/lists/arm-kernel/msg537158.html
+> * Drop ACPI, PCI IRQ: add PCI_USING penalty for ISA interrupts
+> * A new patch to isolate early boot ISA penalty calculations from dynamic
+> penalty calculation by directly modifying the array members in
+> ("ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages")
+> * Now that we isolated both SCI and ISA interrupts, revert commit ("Revert
+> "ACPI,PCI,IRQ: separate ISA penalty calculation"") and commit
+> ("487cf917ed0d
+> (Revert "ACPI, PCI, IRQ: remove redundant code in acpi_irq_penalty_init()")
+> to share code between ISA and PCI penalties as originally intended.
+>
+> V3:
+> http://www.spinics.net/lists/arm-kernel/msg536208.html
+> * drop patch #1 as discussed with Bjorn
+> * add patch #3 to track SCI irq and penalty separately
+>
+> V2: https://lkml.org/lkml/2016/10/1/106
+> * Commit message updates
+>
+> V1:
+> http://lists-archives.com/linux-kernel/28673954-revert-acpi-pci-irq-reduce-static-irq-array-size-to-16.html
+> * initial implementation
+>
+> Sinan Kaya (3):
+>   ACPI, PCI, IRQ: assign ISA IRQ directly during early boot stages
+>   ACPI: pci_link: penalize SCI correctly
+>   ACPI: pci_link: Include PIRQ_PENALTY_PCI_USING for ISA IRQs
+>
+>  arch/x86/kernel/acpi/boot.c |  1 +
+>  drivers/acpi/pci_link.c     | 38 +++++++++++++++++++++-----------------
+>  include/linux/acpi.h        |  1 +
+>  3 files changed, 23 insertions(+), 17 deletions(-)
 
-I'll do my best to look at these in the next few days, but please also
-note what I wrote before:
-
-http://marc.info/?l=linux-acpi&m=147744344531599&w=2
+I've queued up this series for the next ACPI pull request with 4.9 fixes.
 
 Thanks,
 Rafael
