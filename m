@@ -1,100 +1,88 @@
-From: Peter Wu <peter@lekensteyn.nl>
-Subject: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU via
- Power Resources
-Date: Thu, 27 Oct 2016 00:56:41 +0200
-Message-ID: <20161026225641.GA27017@al>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: Acer Aspire V7-582PG (Haswell,
+ GTX 750M) fails to power off GPU via Power Resources
+Date: Thu, 27 Oct 2016 11:17:48 +0300
+Message-ID: <20161027081748.GX1476@lahna.fi.intel.com>
 References: <bug-98398-8800@http.bugs.freedesktop.org/>
  <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
+ <20161026225641.GA27017@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: nouveau@lists.freedesktop.org, rick.2889@gmail.com, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-pci@vger.kernel.org
+In-Reply-To: <20161026225641.GA27017@al>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Peter Wu <peter-VTkQYDcBqhK7DlmcbJSQ7g@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rick.2889-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi PCI/ACPI PM experts,
-
-Since Linux 4.8, nouveau switched to rely on the PCIe port driver to
-transition to D3cold. This however does not happen for an Acer Aspire
-V7-582PG (Haswell, NVIDIA GTX 750M) from Rick.
-
-Any idea why? acpidump, lspci, dmesg and other details can be found in
-the linked bug below.
-
-Kind regards,
-Peter
-
-On Wed, Oct 26, 2016 at 10:42:07PM +0000, bugzilla-daemon@freedesktop.org wrote:
-> https://bugs.freedesktop.org/show_bug.cgi?id=98398
-> 
-> --- Comment #11 from Peter Wu <peter@lekensteyn.nl> ---
-> So 4.7 and before used the "DSM" method on runtime-suspend:
-> - \_SB.PCI0.RP05.PEGP._DSM would be invoked to enable Optimus
-> - \_SB.PCI0.RP05.PEGP._PS3 is then invoked which would enter D3cold
-> (note, this method is still used in 4.8 on older laptops or with the
-> pcie_pm_port=off kernel option)
-> 
-> Since 4.8, _DSM is not called anymore by nouveau (when support from the PCI
-> core is detected) and this sequence should instead happen:
-> - \_SB.PCI0.RP05.PEGP._PS3 (does nothing besides updating _STA)
-> - PCIe core removes power for the PCIe port since all its children are in
->   D3 and are willing to transition to D3cold. It does so by invoking
->   \NVP3._OFF (where \NVP3 is the power resource from \_SB.PCI0.RP05._PR3)
-> 
-> That is how I think it should work in theory, but on Ricks laptop running
-> 4.8.4,
-> /sys/bus/devices/0000:1c.4/firmware_node/ does not have power_resources_D0
-> devices (which I do have on my own laptop for 0000:01:0).
-> 
-> The SSDT1 of Rick's Acer laptop shows this structure:
-> 
->     If (\_OSI ("Windows 2013"))
->     {
->         Scope (\_SB.PCI0.RP05)
->         {
->         //...
->             Name (_PR0, Package (0x01)  // _PR0: Power Resources for D0
->             {
->                 NVP3
->             })
->             Name (_PR2, Package (0x01)  // _PR2: Power Resources for D2
->             {
->                 NVP2
->             })
->             Name (_PR3, Package (0x01)  // _PR3: Power Resources for D3hot
->             {
->                 NVP3
->             })
->             // ...
->             Method (_PS0, 0, NotSerialized)  // _PS0: Power State 0
->             {
->             }
-> 
->             Method (_PS3, 0, NotSerialized)  // _PS3: Power State 3
->             {
->             }
->         }
-> 
->         Name (MSD3, Zero)
->         PowerResource (NVP3, 0x00, 0x0000)
->         {
->             Name (_STA, One)  // _STA: Status
->             // ...
-> 
->             Method (_ON, 0, NotSerialized)  // _ON_: Power On
->             {
->                 // ...
->             }
-> 
->             Method (_OFF, 0, NotSerialized)  // _OFF: Power Off
->             {
->                 // ...
->             }
->         }
-> 
-> The dmesg does show "ACPI: Power Resource [NVP3] (on)", so I guess that the
-> methods are found. It is a mystery to me why the "power_resources_Dx" files are
-> not created, possibly breaking PM.
+T24gVGh1LCBPY3QgMjcsIDIwMTYgYXQgMTI6NTY6NDFBTSArMDIwMCwgUGV0ZXIgV3Ugd3JvdGU6
+Cj4gSGkgUENJL0FDUEkgUE0gZXhwZXJ0cywKPiAKPiBTaW5jZSBMaW51eCA0LjgsIG5vdXZlYXUg
+c3dpdGNoZWQgdG8gcmVseSBvbiB0aGUgUENJZSBwb3J0IGRyaXZlciB0bwo+IHRyYW5zaXRpb24g
+dG8gRDNjb2xkLiBUaGlzIGhvd2V2ZXIgZG9lcyBub3QgaGFwcGVuIGZvciBhbiBBY2VyIEFzcGly
+ZQo+IFY3LTU4MlBHIChIYXN3ZWxsLCBOVklESUEgR1RYIDc1ME0pIGZyb20gUmljay4KPiAKPiBB
+bnkgaWRlYSB3aHk/IGFjcGlkdW1wLCBsc3BjaSwgZG1lc2cgYW5kIG90aGVyIGRldGFpbHMgY2Fu
+IGJlIGZvdW5kIGluCj4gdGhlIGxpbmtlZCBidWcgYmVsb3cuCgo+IAo+IEtpbmQgcmVnYXJkcywK
+PiBQZXRlcgo+IAo+IE9uIFdlZCwgT2N0IDI2LCAyMDE2IGF0IDEwOjQyOjA3UE0gKzAwMDAsIGJ1
+Z3ppbGxhLWRhZW1vbkBmcmVlZGVza3RvcC5vcmcgd3JvdGU6Cj4gPiBodHRwczovL2J1Z3MuZnJl
+ZWRlc2t0b3Aub3JnL3Nob3dfYnVnLmNnaT9pZD05ODM5OAo+ID4gCj4gPiAtLS0gQ29tbWVudCAj
+MTEgZnJvbSBQZXRlciBXdSA8cGV0ZXJAbGVrZW5zdGV5bi5ubD4gLS0tCj4gPiBTbyA0LjcgYW5k
+IGJlZm9yZSB1c2VkIHRoZSAiRFNNIiBtZXRob2Qgb24gcnVudGltZS1zdXNwZW5kOgo+ID4gLSBc
+X1NCLlBDSTAuUlAwNS5QRUdQLl9EU00gd291bGQgYmUgaW52b2tlZCB0byBlbmFibGUgT3B0aW11
+cwo+ID4gLSBcX1NCLlBDSTAuUlAwNS5QRUdQLl9QUzMgaXMgdGhlbiBpbnZva2VkIHdoaWNoIHdv
+dWxkIGVudGVyIEQzY29sZAo+ID4gKG5vdGUsIHRoaXMgbWV0aG9kIGlzIHN0aWxsIHVzZWQgaW4g
+NC44IG9uIG9sZGVyIGxhcHRvcHMgb3Igd2l0aCB0aGUKPiA+IHBjaWVfcG1fcG9ydD1vZmYga2Vy
+bmVsIG9wdGlvbikKPiA+IAo+ID4gU2luY2UgNC44LCBfRFNNIGlzIG5vdCBjYWxsZWQgYW55bW9y
+ZSBieSBub3V2ZWF1ICh3aGVuIHN1cHBvcnQgZnJvbSB0aGUgUENJCj4gPiBjb3JlIGlzIGRldGVj
+dGVkKSBhbmQgdGhpcyBzZXF1ZW5jZSBzaG91bGQgaW5zdGVhZCBoYXBwZW46Cj4gPiAtIFxfU0Iu
+UENJMC5SUDA1LlBFR1AuX1BTMyAoZG9lcyBub3RoaW5nIGJlc2lkZXMgdXBkYXRpbmcgX1NUQSkK
+PiA+IC0gUENJZSBjb3JlIHJlbW92ZXMgcG93ZXIgZm9yIHRoZSBQQ0llIHBvcnQgc2luY2UgYWxs
+IGl0cyBjaGlsZHJlbiBhcmUgaW4KPiA+ICAgRDMgYW5kIGFyZSB3aWxsaW5nIHRvIHRyYW5zaXRp
+b24gdG8gRDNjb2xkLiBJdCBkb2VzIHNvIGJ5IGludm9raW5nCj4gPiAgIFxOVlAzLl9PRkYgKHdo
+ZXJlIFxOVlAzIGlzIHRoZSBwb3dlciByZXNvdXJjZSBmcm9tIFxfU0IuUENJMC5SUDA1Ll9QUjMp
+Cj4gPiAKPiA+IFRoYXQgaXMgaG93IEkgdGhpbmsgaXQgc2hvdWxkIHdvcmsgaW4gdGhlb3J5LCBi
+dXQgb24gUmlja3MgbGFwdG9wIHJ1bm5pbmcKPiA+IDQuOC40LAo+ID4gL3N5cy9idXMvZGV2aWNl
+cy8wMDAwOjFjLjQvZmlybXdhcmVfbm9kZS8gZG9lcyBub3QgaGF2ZSBwb3dlcl9yZXNvdXJjZXNf
+RDAKPiA+IGRldmljZXMgKHdoaWNoIEkgZG8gaGF2ZSBvbiBteSBvd24gbGFwdG9wIGZvciAwMDAw
+OjAxOjApLgo+ID4gCj4gPiBUaGUgU1NEVDEgb2YgUmljaydzIEFjZXIgbGFwdG9wIHNob3dzIHRo
+aXMgc3RydWN0dXJlOgo+ID4gCj4gPiAgICAgSWYgKFxfT1NJICgiV2luZG93cyAyMDEzIikpCj4g
+PiAgICAgewo+ID4gICAgICAgICBTY29wZSAoXF9TQi5QQ0kwLlJQMDUpCj4gPiAgICAgICAgIHsK
+PiA+ICAgICAgICAgLy8uLi4KPiA+ICAgICAgICAgICAgIE5hbWUgKF9QUjAsIFBhY2thZ2UgKDB4
+MDEpICAvLyBfUFIwOiBQb3dlciBSZXNvdXJjZXMgZm9yIEQwCj4gPiAgICAgICAgICAgICB7Cj4g
+PiAgICAgICAgICAgICAgICAgTlZQMwo+ID4gICAgICAgICAgICAgfSkKPiA+ICAgICAgICAgICAg
+IE5hbWUgKF9QUjIsIFBhY2thZ2UgKDB4MDEpICAvLyBfUFIyOiBQb3dlciBSZXNvdXJjZXMgZm9y
+IEQyCj4gPiAgICAgICAgICAgICB7Cj4gPiAgICAgICAgICAgICAgICAgTlZQMgo+ID4gICAgICAg
+ICAgICAgfSkKPiA+ICAgICAgICAgICAgIE5hbWUgKF9QUjMsIFBhY2thZ2UgKDB4MDEpICAvLyBf
+UFIzOiBQb3dlciBSZXNvdXJjZXMgZm9yIEQzaG90Cj4gPiAgICAgICAgICAgICB7Cj4gPiAgICAg
+ICAgICAgICAgICAgTlZQMwo+ID4gICAgICAgICAgICAgfSkKPiA+ICAgICAgICAgICAgIC8vIC4u
+Lgo+ID4gICAgICAgICAgICAgTWV0aG9kIChfUFMwLCAwLCBOb3RTZXJpYWxpemVkKSAgLy8gX1BT
+MDogUG93ZXIgU3RhdGUgMAo+ID4gICAgICAgICAgICAgewo+ID4gICAgICAgICAgICAgfQo+ID4g
+Cj4gPiAgICAgICAgICAgICBNZXRob2QgKF9QUzMsIDAsIE5vdFNlcmlhbGl6ZWQpICAvLyBfUFMz
+OiBQb3dlciBTdGF0ZSAzCj4gPiAgICAgICAgICAgICB7Cj4gPiAgICAgICAgICAgICB9Cj4gPiAg
+ICAgICAgIH0KPiA+IAo+ID4gICAgICAgICBOYW1lIChNU0QzLCBaZXJvKQo+ID4gICAgICAgICBQ
+b3dlclJlc291cmNlIChOVlAzLCAweDAwLCAweDAwMDApCj4gPiAgICAgICAgIHsKPiA+ICAgICAg
+ICAgICAgIE5hbWUgKF9TVEEsIE9uZSkgIC8vIF9TVEE6IFN0YXR1cwo+ID4gICAgICAgICAgICAg
+Ly8gLi4uCj4gPiAKPiA+ICAgICAgICAgICAgIE1ldGhvZCAoX09OLCAwLCBOb3RTZXJpYWxpemVk
+KSAgLy8gX09OXzogUG93ZXIgT24KPiA+ICAgICAgICAgICAgIHsKPiA+ICAgICAgICAgICAgICAg
+ICAvLyAuLi4KPiA+ICAgICAgICAgICAgIH0KPiA+IAo+ID4gICAgICAgICAgICAgTWV0aG9kIChf
+T0ZGLCAwLCBOb3RTZXJpYWxpemVkKSAgLy8gX09GRjogUG93ZXIgT2ZmCj4gPiAgICAgICAgICAg
+ICB7Cj4gPiAgICAgICAgICAgICAgICAgLy8gLi4uCj4gPiAgICAgICAgICAgICB9Cj4gPiAgICAg
+ICAgIH0KPiA+IAo+ID4gVGhlIGRtZXNnIGRvZXMgc2hvdyAiQUNQSTogUG93ZXIgUmVzb3VyY2Ug
+W05WUDNdIChvbikiLCBzbyBJIGd1ZXNzIHRoYXQgdGhlCj4gPiBtZXRob2RzIGFyZSBmb3VuZC4g
+SXQgaXMgYSBteXN0ZXJ5IHRvIG1lIHdoeSB0aGUgInBvd2VyX3Jlc291cmNlc19EeCIgZmlsZXMg
+YXJlCj4gPiBub3QgY3JlYXRlZCwgcG9zc2libHkgYnJlYWtpbmcgUE0uCgpUaGUgQVNMIGNvZGUg
+bG9va3MgcmlnaHQgdG8gbWUgKGV4Y2VwdCBmb3IgdGhlIE5WUDIgd2hpY2ggbmV2ZXIgc2V0IF9T
+VEEKdG8gMCBidXQgc2hvdWxkIG5vdCBhZmZlY3QgaGVyZSkuCgpJIHdvbmRlciB3aGF0IGRvZXMg
+L3N5cy9idXMvcGNpL2RldmljZXMvMDAwMDowMDoxYy40L2Zpcm13YXJlX25vZGUvcGF0aCBjb250
+YWluPwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpOb3V2
+ZWF1IG1haWxpbmcgbGlzdApOb3V2ZWF1QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL25vdXZlYXUK
