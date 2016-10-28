@@ -1,184 +1,62 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: [PATCH v3] mailbox: PCC: Fix lockdep warning when request PCC channel
-Date: Thu, 27 Oct 2016 15:34:44 -0700
-Message-ID: <1477607684-5314-1-git-send-email-hotran@apm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f171.google.com ([209.85.192.171]:34677 "EHLO
-        mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942790AbcJ0Wfm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Oct 2016 18:35:42 -0400
-Received: by mail-pf0-f171.google.com with SMTP id n85so25107445pfi.1
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Oct 2016 15:35:42 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU
+ via Power Resources
+Date: Fri, 28 Oct 2016 11:56:30 +0300
+Message-ID: <20161028085630.GD1476@lahna.fi.intel.com>
+References: <bug-98398-8800@http.bugs.freedesktop.org/>
+ <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
+ <20161026225641.GA27017@al>
+ <20161027081748.GX1476@lahna.fi.intel.com>
+ <20161027090604.GB27017@al>
+ <CANni8hdMs4pL0m6FrgeyJjE2R2C=6PaHbVbMVoUU+NszJuf9OA@mail.gmail.com>
+ <20161027093011.GZ1476@lahna.fi.intel.com>
+ <CANni8her35iORgrZOkDzxhfVaOOzObTLG2Ly0kkNZPDTrbyfQQ@mail.gmail.com>
+ <20161027095508.GA1476@lahna.fi.intel.com>
+ <20161027160648.GF27017@al>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161027160648.GF27017@al>
+Sender: linux-pci-owner@vger.kernel.org
+To: Peter Wu <peter@lekensteyn.nl>
+Cc: Rick Kerkhof <rick.2889@gmail.com>, linux-acpi@vger.kernel.org, nouveau@lists.freedesktop.org, linux-pci@vger.kernel.org, Robert Moore <Robert.Moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>, Prakash Prashanth <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
 
-This patch fixes the lockdep warning below
+On Thu, Oct 27, 2016 at 06:06:48PM +0200, Peter Wu wrote:
+> On Thu, Oct 27, 2016 at 12:55:08PM +0300, Mika Westerberg wrote:
+> > On Thu, Oct 27, 2016 at 09:42:28AM +0000, Rick Kerkhof wrote:
+> > >    No, there are not. Here is the recursive directory listing:
+> > 
+> > Are you able to try the following patch and send me dmesg (or attach it
+> > to that bug)? It should show if the ACPI core even tries to add those
+> > power resources.
+> 
+> So Rick has tested this patch now on top of 4.8.4 (mainline fails to
+> boot due to a kbuild issue which I reported elsewhere), but the output
+> is empty. That seems to indicate that flags.power_resources is unset.
 
-[    7.229767] DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags))
-[    7.229776] ------------[ cut here ]------------
-[    7.229787] WARNING: CPU: 1 PID: 1 at linux-next/kernel/locking/lockdep.c:2876 loc
-kdep_trace_alloc+0xe0/0xf0
-[    7.229790] Modules linked in:
-[    7.229793]
-[    7.229798] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.8.0-11756-g86c5152 #46
-...
-[    7.229900] Call trace:
-[    7.229903] Exception stack(0xffff8007da837890 to 0xffff8007da8379c0)
-[    7.229906] 7880:                                   ffff8007da834000 0001000000000000
-[    7.229909] 78a0: ffff8007da837a70 ffff0000081111a0 00000000600000c5 000000000000003d
-[    7.229912] 78c0: 9374bc6a7f3c7832 0000000000381878 ffff000009db7ab8 000000000000002f
-[    7.229915] 78e0: ffff00000811aabc ffff000008be2548 ffff8007da837990 ffff00000811adf8
-[    7.229918] 7900: ffff8007da834000 00000000024080c0 00000000000000c0 ffff000009021000
-[    7.229921] 7920: 0000000000000000 0000000000000000 ffff000008c8f7c8 ffff8007da579810
-[    7.229923] 7940: 000000000000002f ffff8007da858000 0000000000000000 0000000000000001
-[    7.229926] 7960: 0000000000000001 0000000000000000 ffff00000811a468 0000000000000002
-[    7.229929] 7980: 656c62617369645f 0000000000038187 00000000000000ee ffff8007da837850
-[    7.229932] 79a0: ffff000009db50c0 ffff000009db569d 0000000000000006 ffff000089db568f
-[    7.229936] [<ffff0000081111a0>] lockdep_trace_alloc+0xe0/0xf0
-[    7.229940] [<ffff0000081f4950>] __kmalloc_track_caller+0x50/0x250
-[    7.229945] [<ffff00000857c088>] devres_alloc_node+0x28/0x60
-[    7.229949] [<ffff0000081220e0>] devm_request_threaded_irq+0x50/0xe0
-[    7.229955] [<ffff0000087e6220>] pcc_mbox_request_channel+0x110/0x170
-[    7.229960] [<ffff0000084b2660>] acpi_cppc_processor_probe+0x264/0x414
-[    7.229963] [<ffff0000084ae9f4>] __acpi_processor_start+0x28/0xa0
-[    7.229966] [<ffff0000084aeab0>] acpi_processor_start+0x44/0x54
-[    7.229970] [<ffff00000857897c>] driver_probe_device+0x1fc/0x2b0
-[    7.229974] [<ffff000008578ae4>] __driver_attach+0xb4/0xc0
-[    7.229977] [<ffff00000857683c>] bus_for_each_dev+0x5c/0xa0
-[    7.229980] [<ffff000008578110>] driver_attach+0x20/0x30
-[    7.229983] [<ffff000008577c20>] bus_add_driver+0x110/0x230
-[    7.229987] [<ffff000008579320>] driver_register+0x60/0x100
-[    7.229991] [<ffff000008d478b8>] acpi_processor_driver_init+0x2c/0xb0
-[    7.229996] [<ffff000008083168>] do_one_initcall+0x38/0x130
-[    7.230000] [<ffff000008d20d6c>] kernel_init_freeable+0x210/0x2b4
-[    7.230004] [<ffff000008945d90>] kernel_init+0x10/0x110
-[    7.230007] [<ffff000008082e80>] ret_from_fork+0x10/0x50
+Is it completely empty or is it empty just for RP05? It should print out
+all devices with power resources.
 
-It's because the spinlock inside pcc_mbox_request_channel() is
-kept too long. This patch releases spinlock before request_irq()
-and free_irq() to fix this issue  as spinlock is only needed to
-protect the channel data.
+> Given that _PS3 exists and is indeed a package with some elements, it
+> seems that acpi_extract_power_resources is failing. Note that in the
+> SSDT, the power resource NVP3 was referenced before it was defined,
+> could that result in this enumeration failure? Relevant SSDT excerpt:
+> 
+>     Scope (\_SB.PCI0.RP05)
+>     {
+>         Name (_PR3, Package (0x01)  // _PR3: Power Resources for D3hot
+>         {
+>             NVP3
+>         })
+>         // ...
+>     }
+> 
+>     PowerResource (NVP3, 0x00, 0x0000)
 
-Signed-off-by: Hoan Tran <hotran@apm.com>
----
-v3
- * Free mailbox irq before reset the channel data
- * Free channel if it fails to request the mailbox irq
+That and the fact that they come from an SSDT instead of DSDT may cause
+this. However, I'm not expert in ACPICA so adding Bob and Lv if they
+have ideas.
 
-v2
- * Release spinlock before request_irq() and free_irq() instead of
-using mutex
-
-
- drivers/mailbox/pcc.c | 70 +++++++++++++++++++++++++--------------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 08c87fa..4b2f061 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -224,6 +224,38 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
- }
- 
- /**
-+ * pcc_mbox_free_channel - Clients call this to free their Channel.
-+ *
-+ * @chan: Pointer to the mailbox channel as returned by
-+ *		pcc_mbox_request_channel()
-+ */
-+void pcc_mbox_free_channel(struct mbox_chan *chan)
-+{
-+	u32 id = chan - pcc_mbox_channels;
-+	unsigned long flags;
-+
-+	if (!chan || !chan->cl)
-+		return;
-+
-+	if (id >= pcc_mbox_ctrl.num_chans) {
-+		pr_debug("pcc_mbox_free_channel: Invalid mbox_chan passed\n");
-+		return;
-+	}
-+
-+	if (pcc_doorbell_irq[id] > 0)
-+		devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	chan->cl = NULL;
-+	chan->active_req = NULL;
-+	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
-+		chan->txdone_method = TXDONE_BY_POLL;
-+
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
-+
-+/**
-  * pcc_mbox_request_channel - PCC clients call this function to
-  *		request a pointer to their PCC subspace, from which they
-  *		can get the details of communicating with the remote.
-@@ -267,6 +299,8 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
- 	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
- 		chan->txdone_method |= TXDONE_BY_ACK;
- 
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
- 	if (pcc_doorbell_irq[subspace_id] > 0) {
- 		int rc;
- 
-@@ -275,50 +309,16 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
- 		if (unlikely(rc)) {
- 			dev_err(dev, "failed to register PCC interrupt %d\n",
- 				pcc_doorbell_irq[subspace_id]);
-+			pcc_mbox_free_channel(chan);
- 			chan = ERR_PTR(rc);
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&chan->lock, flags);
--
- 	return chan;
- }
- EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
- 
- /**
-- * pcc_mbox_free_channel - Clients call this to free their Channel.
-- *
-- * @chan: Pointer to the mailbox channel as returned by
-- *		pcc_mbox_request_channel()
-- */
--void pcc_mbox_free_channel(struct mbox_chan *chan)
--{
--	u32 id = chan - pcc_mbox_channels;
--	unsigned long flags;
--
--	if (!chan || !chan->cl)
--		return;
--
--	if (id >= pcc_mbox_ctrl.num_chans) {
--		pr_debug("pcc_mbox_free_channel: Invalid mbox_chan passed\n");
--		return;
--	}
--
--	spin_lock_irqsave(&chan->lock, flags);
--	chan->cl = NULL;
--	chan->active_req = NULL;
--	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
--		chan->txdone_method = TXDONE_BY_POLL;
--
--	if (pcc_doorbell_irq[id] > 0)
--		devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
--
--	spin_unlock_irqrestore(&chan->lock, flags);
--}
--EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
--
--
--/**
-  * pcc_send_data - Called from Mailbox Controller code. Used
-  *		here only to ring the channel doorbell. The PCC client
-  *		specific read/write is done in the client driver in
--- 
-1.9.1
-
+Bob, Lv, the bug in question is: https://bugs.freedesktop.org/show_bug.cgi?id=98398
