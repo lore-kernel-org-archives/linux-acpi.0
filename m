@@ -1,58 +1,81 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU
- via Power Resources
-Date: Sat, 29 Oct 2016 00:49:22 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25E770@SHSMSX101.ccr.corp.intel.com>
-References: <20161027090604.GB27017@al>
- <CANni8hdMs4pL0m6FrgeyJjE2R2C=6PaHbVbMVoUU+NszJuf9OA@mail.gmail.com>
- <20161027093011.GZ1476@lahna.fi.intel.com>
- <CANni8her35iORgrZOkDzxhfVaOOzObTLG2Ly0kkNZPDTrbyfQQ@mail.gmail.com>
- <20161027095508.GA1476@lahna.fi.intel.com> <20161027160648.GF27017@al>
- <20161028085630.GD1476@lahna.fi.intel.com> <20161028110930.GA1521@al>
- <20161028111907.GD23812@lahna.fi.intel.com> <20161028123041.GB1521@al>
- <20161028141000.GE23812@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.9-rc3
+Date: Sat, 29 Oct 2016 02:58:51 +0200
+Message-ID: <CAJZ5v0g3+QAGPG17+JNekqapk_YHNXQ-_067Vde5qXfJkGUu-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:37737 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752193AbcJ2At2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 28 Oct 2016 20:49:28 -0400
-In-Reply-To: <20161028141000.GE23812@lahna.fi.intel.com>
-Content-Language: en-US
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35067 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941286AbcJ2A6x (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Oct 2016 20:58:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Wu <peter@lekensteyn.nl>
-Cc: Rick Kerkhof <rick.2889@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+Hi Linus,
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Mika
-> Westerberg
-> Subject: Re: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU via Power Resources
-> 
-> On Fri, Oct 28, 2016 at 02:30:41PM +0200, Peter Wu wrote:
-> > It was correctly applied. I did some testing with QEMU, it seems that
-> > the \_OSI check is problematic. Removing it makes things work again.
-> 
-> I hope Bob and Lv can answer why _OSI fails.
-> 
-> In the meantime I think we should check flags.power_resources in nouveau
-> driver (in addition to _PR3) so that it falls back to _DSM if there are
-> no power resources (or if we failed to evaluate them for some reason).
+Please pull from the tag
 
-IMO, the problem wasn't _OSI, the problem was "If".
-"If" is module level here.
-So execution order of it in current Linux upstream may be different from Windows.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.9-rc3
 
-You can try to modify acpi_gbl_parse_table_as_term_list to TRUE.
-To see if this can be solved.
+with top-most commit 21e2d9d5292f8a5cd1aa4e63891437589d233d35
 
-Thanks and best regards
-Lv
+ Merge branches 'acpica-fixes', 'acpi-pci-fixes' and 'acpi-apei-fixes'
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+on top of commit 07d9a380680d1c0eb51ef87ff2eab5c994949e69
+
+ Linux 4.9-rc2
+
+to receive ACPI fixes for v4.9-rc3.
+
+These fix recent ACPICA regressions, an older PCI IRQ management
+regression, and an incorrect return value of a function in the APEI
+code.
+
+Specifics:
+
+ - Fix three ACPICA issues related to the interpreter locking and
+   introduced by recent changes in that area (Lv Zheng).
+
+ - Fix a PCI IRQ management regression introduced during the 4.7
+   cycle and related to the configuration of shared IRQs on systems
+   with an ISA bus (Sinan Kaya).
+
+ - Fix up a return value of one function in the APEI code (Punit
+   Agrawal).
+
+Thanks!
+
+
+---------------
+
+Lv Zheng (3):
+      ACPICA: Dispatcher: Fix order issue of method termination
+      ACPICA: Dispatcher: Fix an unbalanced lock exit path in
+acpi_ds_auto_serialize_method()
+      ACPICA: Dispatcher: Fix interpreter locking around
+acpi_ev_initialize_region()
+
+Punit Agrawal (1):
+      ACPI / APEI: Fix incorrect return value of ghes_proc()
+
+Sinan Kaya (3):
+      ACPI/PCI/IRQ: assign ISA IRQ directly during early boot stages
+      ACPI/PCI: pci_link: penalize SCI correctly
+      ACPI/PCI: pci_link: Include PIRQ_PENALTY_PCI_USING for ISA IRQs
+
+---------------
+
+ arch/x86/kernel/acpi/boot.c    |  1 +
+ drivers/acpi/acpica/dsinit.c   | 11 +++-------
+ drivers/acpi/acpica/dsmethod.c | 50 +++++++++++++++++++-----------------------
+ drivers/acpi/acpica/dswload2.c |  2 --
+ drivers/acpi/acpica/evrgnini.c |  3 +++
+ drivers/acpi/acpica/nsload.c   |  2 ++
+ drivers/acpi/apei/ghes.c       |  2 +-
+ drivers/acpi/pci_link.c        | 38 ++++++++++++++++++--------------
+ include/linux/acpi.h           |  1 +
+ 9 files changed, 54 insertions(+), 56 deletions(-)
