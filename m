@@ -1,81 +1,92 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Sat, 29 Oct 2016 00:23:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+Subject: RE: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU
+ via Power Resources
+Date: Sat, 29 Oct 2016 00:42:34 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25E758@SHSMSX101.ccr.corp.intel.com>
+References: <bug-98398-8800@http.bugs.freedesktop.org/>
+ <bug-98398-8800-66oU1nuK0R@http.bugs.freedesktop.org/>
+ <20161026225641.GA27017@al> <20161027081748.GX1476@lahna.fi.intel.com>
+ <20161027090604.GB27017@al>
+ <CANni8hdMs4pL0m6FrgeyJjE2R2C=6PaHbVbMVoUU+NszJuf9OA@mail.gmail.com>
+ <20161027093011.GZ1476@lahna.fi.intel.com>
+ <CANni8her35iORgrZOkDzxhfVaOOzObTLG2Ly0kkNZPDTrbyfQQ@mail.gmail.com>
+ <20161027095508.GA1476@lahna.fi.intel.com> <20161027160648.GF27017@al>
+ <20161028085630.GD1476@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:65251 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938815AbcJ2AXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 28 Oct 2016 20:23:54 -0400
-In-Reply-To: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20161028085630.GD1476@lahna.fi.intel.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Wu <peter@lekensteyn.nl>
+Cc: Rick Kerkhof <rick.2889@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksDQoNClBsZWFzZSB0cnkgdGhpcyBwYXRjaDoNCmh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5v
-cmcvcGF0Y2gvOTM5MjE1NS8NCldoaWNoIG1ha2VzIHRvb2xzL3Bvd2VyL2FjcGkgYnVpbGQgbW9y
-ZSByb2J1c3QgdG8gc3Vydml2ZSB0b29sY2hhaW5zIHRoYXQgYXJlIG5vdCBnZW5lcmF0ZWQgZnJv
-bSB0aGUgY3VycmVudCBrZXJuZWwgaGVhZGVyLg0KDQpUaGFua3MNCkx2DQoNCj4gRnJvbTogQW5k
-eSBTaGV2Y2hlbmtvIFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU3ViamVj
-dDogRml4IGluIEFDUElDQSB0b29scyBicm9rZSBjcm9zcyBjb21waWxhdGlvbiBvZiB0b29scy9w
-b3dlci9hY3BpDQo+IA0KPiBIaSENCj4gDQo+IFJldmVydGluZyBvZiB0aGUgY29tbWl0IGUzMjNj
-MDJkZWU1OSAoIkFDUElDQTogTVNWQzk6IEZpeCA8c3lzL3N0YXQuaD4NCj4gaW5jbHVzaW9uIG9y
-ZGVyIGlzc3VlIikgZml4ZXMgdGhlIGZvbGxvd2luZyBpc3N1ZToNCj4gDQo+ICAgREVTQ0VORCAg
-cG93ZXIvYWNwaQ0KPiAgIERFU0NFTkQgIHRvb2xzL2FjcGlkYmcNCj4gb3V0cHV0L2hvc3QvdXNy
-L2Jpbi9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMtZ2NjIC1EX0xJTlVYDQo+IC1JLi4vLi4v
-Li4vaW5jbHVkZSAtSS4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLVdhbGwNCj4gLVdzdHJp
-Y3QtcHJvdG90eXBlcyAtV2RlY2xhcmF0aW9uLWFmdGVyLXN0YXRlbWVudCAtTzEgLWcgLURERUJV
-Rw0KPiAtREFDUElfQVBQTElDQVRJT04gLURBQ1BJX1NJTkdMRV9USFJFQUQgLURBQ1BJX0RFQlVH
-R0VSIC1JLg0KPiAtSS4uLy4uLy4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUkuLi8uLi8u
-Li8uLi8uLi9pbmNsdWRlICAgLWMgLW8NCj4gYWNwaWRiZy5vIGFjcGlkYmcuYw0KPiBJbiBmaWxl
-IGluY2x1ZGVkIGZyb20NCj4gb3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVj
-bGliYy9zeXNyb290L3Vzci9pbmNsdWRlL2FzbS9zaWdjb250ZXh0Lmg6MTg6MCwNCj4gICAgICAg
-ICAgICAgICAgICBmcm9tDQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11
-Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9iaXRzL3NpZ2NvbnRleHQuaDozMCwNCj4gICAgICAg
-ICAgICAgICAgICBmcm9tDQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11
-Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9zaWduYWwuaDozMzUsDQo+ICAgICAgICAgICAgICAg
-ICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDozNjUs
-DQo+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNw
-aS5oOjU2LA0KPiAgICAgICAgICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiAuLi8uLi8u
-Li8uLi8uLi9pbmNsdWRlL2xpbnV4L3R5cGVzLmg6MTQ6MjY6IGVycm9yOiBjb25mbGljdGluZyB0
-eXBlcw0KPiBmb3Ig4oCYZmRfc2V04oCZDQo+ICB0eXBlZGVmIF9fa2VybmVsX2ZkX3NldCAgZmRf
-c2V0Ow0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgIF4NCj4gSW4gZmlsZSBpbmNsdWRlZCBm
-cm9tDQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9v
-dC91c3IvaW5jbHVkZS9zeXMvdHlwZXMuaDoyMTk6MCwNCj4gICAgICAgICAgICAgICAgICBmcm9t
-DQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91
-c3IvaW5jbHVkZS9zdGRsaWIuaDoxOTgsDQo+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8u
-Li8uLi8uLi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDozNTcsDQo+ICAgICAgICAgICAg
-ICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNwaS5oOjU2LA0KPiAgICAg
-ICAgICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1i
-dWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvc3lzL3NlbGVjdC5oOjc3
-OjU6DQo+IG5vdGU6IHByZXZpb3VzIGRlY2xhcmF0aW9uIG9mIOKAmGZkX3NldOKAmSB3YXMgaGVy
-ZQ0KPiAgICB9IGZkX3NldDsNCj4gICAgICBeDQo+IEluIGZpbGUgaW5jbHVkZWQgZnJvbQ0KPiBv
-dXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2lu
-Y2x1ZGUvYXNtL3NpZ2NvbnRleHQuaDoxODowLA0KPiAgICAgICAgICAgICAgICAgIGZyb20NCj4g
-b3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9p
-bmNsdWRlL2JpdHMvc2lnY29udGV4dC5oOjMwLA0KPiAgICAgICAgICAgICAgICAgIGZyb20NCj4g
-b3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9p
-bmNsdWRlL3NpZ25hbC5oOjMzNSwNCj4gICAgICAgICAgICAgICAgICBmcm9tIC4uLy4uLy4uLy4u
-Ly4uL2luY2x1ZGUvYWNwaS9wbGF0Zm9ybS9hY2Vudi5oOjM2NSwNCj4gICAgICAgICAgICAgICAg
-ICBmcm9tIC4uLy4uLy4uLy4uLy4uL2luY2x1ZGUvYWNwaS9hY3BpLmg6NTYsDQo+ICAgICAgICAg
-ICAgICAgICAgZnJvbSBhY3BpZGJnLmM6MTI6DQo+IC4uLy4uLy4uLy4uLy4uL2luY2x1ZGUvbGlu
-dXgvdHlwZXMuaDoxNToyNTogZXJyb3I6IGNvbmZsaWN0aW5nIHR5cGVzIGZvciDigJhkZXZfdOKA
-mQ0KPiAgdHlwZWRlZiBfX2tlcm5lbF9kZXZfdCAgZGV2X3Q7DQo+IA0KPiBBbmQgc28gb24uLi4N
-Cj4gDQo+IEFmdGVyIHJldmVydDoNCj4gDQo+ICAgREVTQ0VORCAgcG93ZXIvYWNwaQ0KPiAgIERF
-U0NFTkQgIHRvb2xzL2FjcGlkYmcNCj4gb3V0cHV0L2hvc3QvdXNyL2Jpbi9pNTg2LWJ1aWxkcm9v
-dC1saW51eC11Y2xpYmMtZ2NjIC1EX0xJTlVYDQo+IC1JLi4vLi4vLi4vaW5jbHVkZSAtSS4uLy4u
-Ly4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLVdhbGwNCj4gLVdzdHJpY3QtcHJvdG90eXBlcyAtV2Rl
-Y2xhcmF0aW9uLWFmdGVyLXN0YXRlbWVudCAtTzEgLWcgLURERUJVRw0KPiAtREFDUElfQVBQTElD
-QVRJT04gLURBQ1BJX1NJTkdMRV9USFJFQUQgLURBQ1BJX0RFQlVHR0VSIC1JLg0KPiAtSS4uLy4u
-Ly4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUkuLi8uLi8uLi8uLi8uLi9pbmNsdWRlICAg
-LWMgLW8NCj4gYWNwaWRiZy5vIGFjcGlkYmcuYw0KPiAgIExEICAgICAgIHRlc3QtdG9waWMvYWNw
-aWRiZw0KPiAvdXNyL2Jpbi9pbnN0YWxsIC1jIC1kIG91dHB1dC90YXJnZXQvdXNyL3NiaW4NCj4g
-L3Vzci9iaW4vaW5zdGFsbCAtYyB0ZXN0LXRvcGljL2FjcGlkYmcgb3V0cHV0L3RhcmdldC91c3Iv
-c2Jpbg0KPiANCj4gQW55IGlkZWFzIGhvdyB0byBmaXggdGhpcyBwcm9wZXJseT8NCj4gDQo+IC0t
-DQo+IFdpdGggQmVzdCBSZWdhcmRzLA0KPiBBbmR5IFNoZXZjaGVua28NCg==
+Hi, Mika
+
+> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> Subject: Re: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU via Power Resources
+> 
+> On Thu, Oct 27, 2016 at 06:06:48PM +0200, Peter Wu wrote:
+> > On Thu, Oct 27, 2016 at 12:55:08PM +0300, Mika Westerberg wrote:
+> > > On Thu, Oct 27, 2016 at 09:42:28AM +0000, Rick Kerkhof wrote:
+> > > >    No, there are not. Here is the recursive directory listing:
+> > >
+> > > Are you able to try the following patch and send me dmesg (or attach it
+> > > to that bug)? It should show if the ACPI core even tries to add those
+> > > power resources.
+> >
+> > So Rick has tested this patch now on top of 4.8.4 (mainline fails to
+> > boot due to a kbuild issue which I reported elsewhere), but the output
+> > is empty. That seems to indicate that flags.power_resources is unset.
+> 
+> Is it completely empty or is it empty just for RP05? It should print out
+> all devices with power resources.
+> 
+> > Given that _PS3 exists and is indeed a package with some elements, it
+> > seems that acpi_extract_power_resources is failing. Note that in the
+> > SSDT, the power resource NVP3 was referenced before it was defined,
+> > could that result in this enumeration failure? Relevant SSDT excerpt:
+> >
+> >     Scope (\_SB.PCI0.RP05)
+> >     {
+> >         Name (_PR3, Package (0x01)  // _PR3: Power Resources for D3hot
+> >         {
+> >             NVP3
+> >         })
+> >         // ...
+> >     }
+> >
+> >     PowerResource (NVP3, 0x00, 0x0000)
+
+Looks wrong order to me.
+
+However, _PR3 is a package, for AML opcode that contains PkgLength grammar primitive, forward reference may be OK (for example Method).
+DefPackage := PackageOp PkgLength NumElements PackageElementList
+DefMethod := MethodOp PkgLength NameString MethodFlags TermList
+As when it is encountered, AML interpreter may only saves entire packaged object.
+
+I need to test behaviors around Package with qemu but I don't have environment now.
+Can you help to give it a try?
+By adding customize an ssdt with the above code putting under root scope,
+DefinitionBlock ("ssdt-package.aml", "SSDT", 2, "INTEL ", "PACKAGE ", 0x00003000)
+{
+    Scope (\)
+    {
+        Name (_PR3, Package (0x01) { NVP3 })
+    }
+    PowerResource (NVP3, 0x00, 0x0000) {}
+}
+Running Windows images on qemu with this ssdt appended "-acpitable file=ssdt-package.aml".
+To see if blue screen can be resulted.
+
+Thanks
+Lv
+
+> 
+> That and the fact that they come from an SSDT instead of DSDT may cause
+> this. However, I'm not expert in ACPICA so adding Bob and Lv if they
+> have ideas.
+> 
+> Bob, Lv, the bug in question is: https://bugs.freedesktop.org/show_bug.cgi?id=98398
