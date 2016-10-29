@@ -1,81 +1,143 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.9-rc3
-Date: Sat, 29 Oct 2016 02:58:51 +0200
-Message-ID: <CAJZ5v0g3+QAGPG17+JNekqapk_YHNXQ-_067Vde5qXfJkGUu-A@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Sat, 29 Oct 2016 19:04:02 +0300
+Message-ID: <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
+References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35067 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941286AbcJ2A6x (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Oct 2016 20:58:53 -0400
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:34439 "EHLO
+        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755717AbcJ2QJW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Oct 2016 12:09:22 -0400
+Received: by mail-oi0-f52.google.com with SMTP id 62so41115405oif.1
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Oct 2016 09:09:21 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.9-rc3
-
-with top-most commit 21e2d9d5292f8a5cd1aa4e63891437589d233d35
-
- Merge branches 'acpica-fixes', 'acpi-pci-fixes' and 'acpi-apei-fixes'
-
-on top of commit 07d9a380680d1c0eb51ef87ff2eab5c994949e69
-
- Linux 4.9-rc2
-
-to receive ACPI fixes for v4.9-rc3.
-
-These fix recent ACPICA regressions, an older PCI IRQ management
-regression, and an incorrect return value of a function in the APEI
-code.
-
-Specifics:
-
- - Fix three ACPICA issues related to the interpreter locking and
-   introduced by recent changes in that area (Lv Zheng).
-
- - Fix a PCI IRQ management regression introduced during the 4.7
-   cycle and related to the configuration of shared IRQs on systems
-   with an ISA bus (Sinan Kaya).
-
- - Fix up a return value of one function in the APEI code (Punit
-   Agrawal).
-
-Thanks!
+On Sat, Oct 29, 2016 at 3:23 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
+>
+> Please try this patch:
+> https://patchwork.kernel.org/patch/9392155/
+> Which makes tools/power/acpi build more robust to survive toolchains that=
+ are not generated from the current kernel header.
 
 
----------------
+Better, but no, it doesn't fully fix the issue.
 
-Lv Zheng (3):
-      ACPICA: Dispatcher: Fix order issue of method termination
-      ACPICA: Dispatcher: Fix an unbalanced lock exit path in
-acpi_ds_auto_serialize_method()
-      ACPICA: Dispatcher: Fix interpreter locking around
-acpi_ev_initialize_region()
+ DESCEND  power/acpi
+ DESCEND  tools/acpidbg
+output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
+-I../../../include -I..
+/../../drivers/acpi/acpica -Wall -Wstrict-prototypes
+-Wdeclaration-after-statement -O1 -g -DDEBUG -DACPI_APPLICATI
+ON -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
+-I../../../../../drivers/acpi/acpica -I../../include   -c -o acpidbg.o
+acpidbg.c
+acpidbg.c:12:23: fatal error: acpi/acpi.h: No such file or directory
+#include <acpi/acpi.h>
+                      ^
+compilation terminated.
+<builtin>: recipe for target 'acpidbg.o' failed
 
-Punit Agrawal (1):
-      ACPI / APEI: Fix incorrect return value of ghes_proc()
 
-Sinan Kaya (3):
-      ACPI/PCI/IRQ: assign ISA IRQ directly during early boot stages
-      ACPI/PCI: pci_link: penalize SCI correctly
-      ACPI/PCI: pci_link: Include PIRQ_PENALTY_PCI_USING for ISA IRQs
 
----------------
+>
+> Thanks
+> Lv
+>
+>> From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
+>> Subject: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+>>
+>> Hi!
+>>
+>> Reverting of the commit e323c02dee59 ("ACPICA: MSVC9: Fix <sys/stat.h>
+>> inclusion order issue") fixes the following issue:
+>>
+>>   DESCEND  power/acpi
+>>   DESCEND  tools/acpidbg
+>> output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
+>> -I../../../include -I../../../drivers/acpi/acpica -Wall
+>> -Wstrict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
+>> -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
+>> -I../../../../../drivers/acpi/acpica -I../../../../../include   -c -o
+>> acpidbg.o acpidbg.c
+>> In file included from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/asm/sigc=
+ontext.h:18:0,
+>>                  from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/bits/sig=
+context.h:30,
+>>                  from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/signal.h=
+:335,
+>>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>>                  from ../../../../../include/acpi/acpi.h:56,
+>>                  from acpidbg.c:12:
+>> ../../../../../include/linux/types.h:14:26: error: conflicting types
+>> for =E2=80=98fd_set=E2=80=99
+>>  typedef __kernel_fd_set  fd_set;
+>>                           ^
+>> In file included from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/sys/type=
+s.h:219:0,
+>>                  from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/stdlib.h=
+:198,
+>>                  from ../../../../../include/acpi/platform/acenv.h:357,
+>>                  from ../../../../../include/acpi/acpi.h:56,
+>>                  from acpidbg.c:12:
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/sys/sele=
+ct.h:77:5:
+>> note: previous declaration of =E2=80=98fd_set=E2=80=99 was here
+>>    } fd_set;
+>>      ^
+>> In file included from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/asm/sigc=
+ontext.h:18:0,
+>>                  from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/bits/sig=
+context.h:30,
+>>                  from
+>> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/signal.h=
+:335,
+>>                  from ../../../../../include/acpi/platform/acenv.h:365,
+>>                  from ../../../../../include/acpi/acpi.h:56,
+>>                  from acpidbg.c:12:
+>> ../../../../../include/linux/types.h:15:25: error: conflicting types for=
+ =E2=80=98dev_t=E2=80=99
+>>  typedef __kernel_dev_t  dev_t;
+>>
+>> And so on...
+>>
+>> After revert:
+>>
+>>   DESCEND  power/acpi
+>>   DESCEND  tools/acpidbg
+>> output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
+>> -I../../../include -I../../../drivers/acpi/acpica -Wall
+>> -Wstrict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
+>> -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
+>> -I../../../../../drivers/acpi/acpica -I../../../../../include   -c -o
+>> acpidbg.o acpidbg.c
+>>   LD       test-topic/acpidbg
+>> /usr/bin/install -c -d output/target/usr/sbin
+>> /usr/bin/install -c test-topic/acpidbg output/target/usr/sbin
+>>
+>> Any ideas how to fix this properly?
+>>
+>> --
+>> With Best Regards,
+>> Andy Shevchenko
 
- arch/x86/kernel/acpi/boot.c    |  1 +
- drivers/acpi/acpica/dsinit.c   | 11 +++-------
- drivers/acpi/acpica/dsmethod.c | 50 +++++++++++++++++++-----------------------
- drivers/acpi/acpica/dswload2.c |  2 --
- drivers/acpi/acpica/evrgnini.c |  3 +++
- drivers/acpi/acpica/nsload.c   |  2 ++
- drivers/acpi/apei/ghes.c       |  2 +-
- drivers/acpi/pci_link.c        | 38 ++++++++++++++++++--------------
- include/linux/acpi.h           |  1 +
- 9 files changed, 54 insertions(+), 56 deletions(-)
+
+
+--=20
+With Best Regards,
+Andy Shevchenko
