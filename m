@@ -1,153 +1,81 @@
-From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: [PATCH V6 1/3] ACPI: Retry IRQ conversion if it failed previously
-Date: Fri, 28 Oct 2016 16:48:14 -0400
-Message-ID: <1477687696-1509-2-git-send-email-agustinv@codeaurora.org>
-References: <1477687696-1509-1-git-send-email-agustinv@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Sat, 29 Oct 2016 00:23:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
+References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1477687696-1509-1-git-send-email-agustinv@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
-Cc: harba@codeaurora.org, mlangsdo@redhat.com, graeme.gregory@linaro.org, jcm@redhat.com, timur@codeaurora.org, agross@codeaurora.org, guohanjun@huawei.com, astone@redhat.com, cov@codeaurora.org, msalter@redhat.com, Agustin Vega-Frias <agustinv@codeaurora.org>, ahs3@redhat.com, charles.garcia-tobin@arm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:65251 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938815AbcJ2AXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 28 Oct 2016 20:23:54 -0400
+In-Reply-To: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This allows probe deferral to work properly when a dependent device
-fails to get a valid IRQ because the IRQ domain was not registered
-at the time the resources were added to the platform_device.
-
-Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
----
- drivers/acpi/resource.c | 59 +++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/base/platform.c |  9 +++++++-
- include/linux/acpi.h    |  7 ++++++
- 3 files changed, 74 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 56241eb..4beda15 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -664,3 +664,62 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
- 	return (type & types) ? 0 : 1;
- }
- EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
-+
-+struct acpi_irq_get_ctx {
-+	unsigned int index;
-+	struct resource *res;
-+};
-+
-+static acpi_status acpi_irq_get_cb(struct acpi_resource *ares, void *context)
-+{
-+	struct acpi_irq_get_ctx *ctx = context;
-+	struct acpi_resource_irq *irq;
-+	struct acpi_resource_extended_irq *ext_irq;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_IRQ:
-+		irq = &ares->data.irq;
-+		if (ctx->index < irq->interrupt_count) {
-+			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
-+			return AE_CTRL_TERMINATE;
-+		}
-+		ctx->index -= irq->interrupt_count;
-+		break;
-+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-+		ext_irq = &ares->data.extended_irq;
-+		if (ctx->index < ext_irq->interrupt_count) {
-+			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
-+			return AE_CTRL_TERMINATE;
-+		}
-+		ctx->index -= ext_irq->interrupt_count;
-+		break;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+/**
-+ * acpi_irq_get - Look for the ACPI IRQ resource with the given index and
-+ *                use it to initialize the given Linux IRQ resource.
-+ * @handle ACPI device handle
-+ * @index  ACPI IRQ resource index to lookup
-+ * @res    Linux IRQ resource to initialize
-+ *
-+ * Return: 0 on success
-+ *         -EINVAL if an error occurs
-+ *         -EPROBE_DEFER if the IRQ lookup/conversion failed
-+ */
-+int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
-+{
-+	struct acpi_irq_get_ctx ctx = { index, res };
-+	acpi_status status;
-+
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     acpi_irq_get_cb, &ctx);
-+	if (ACPI_FAILURE(status))
-+		return -EINVAL;
-+	if (res->flags & IORESOURCE_DISABLED)
-+		return -EPROBE_DEFER;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_irq_get);
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index c4af003..61423d2 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
- 	}
- 
- 	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
-+	if (r && r->flags & IORESOURCE_DISABLED && ACPI_COMPANION(&dev->dev)) {
-+		int ret;
-+
-+		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	/*
- 	 * The resources may pass trigger flags to the irqs that need
- 	 * to be set up. It so happens that the trigger flags for
-@@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
- 		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
- 	}
- }
--
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ddbeda6..40213c4 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -405,6 +405,7 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- unsigned int acpi_dev_get_irq_type(int triggering, int polarity);
- bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
- 				 struct resource *res);
-+int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
- 
- void acpi_dev_free_resource_list(struct list_head *list);
- int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
-@@ -762,6 +763,12 @@ static inline int acpi_reconfig_notifier_unregister(struct notifier_block *nb)
- 	return -EINVAL;
- }
- 
-+static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
-+			       struct resource *res)
-+{
-+	return -EINVAL;
-+}
-+
- #endif	/* !CONFIG_ACPI */
- 
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+SGksDQoNClBsZWFzZSB0cnkgdGhpcyBwYXRjaDoNCmh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5v
+cmcvcGF0Y2gvOTM5MjE1NS8NCldoaWNoIG1ha2VzIHRvb2xzL3Bvd2VyL2FjcGkgYnVpbGQgbW9y
+ZSByb2J1c3QgdG8gc3Vydml2ZSB0b29sY2hhaW5zIHRoYXQgYXJlIG5vdCBnZW5lcmF0ZWQgZnJv
+bSB0aGUgY3VycmVudCBrZXJuZWwgaGVhZGVyLg0KDQpUaGFua3MNCkx2DQoNCj4gRnJvbTogQW5k
+eSBTaGV2Y2hlbmtvIFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU3ViamVj
+dDogRml4IGluIEFDUElDQSB0b29scyBicm9rZSBjcm9zcyBjb21waWxhdGlvbiBvZiB0b29scy9w
+b3dlci9hY3BpDQo+IA0KPiBIaSENCj4gDQo+IFJldmVydGluZyBvZiB0aGUgY29tbWl0IGUzMjNj
+MDJkZWU1OSAoIkFDUElDQTogTVNWQzk6IEZpeCA8c3lzL3N0YXQuaD4NCj4gaW5jbHVzaW9uIG9y
+ZGVyIGlzc3VlIikgZml4ZXMgdGhlIGZvbGxvd2luZyBpc3N1ZToNCj4gDQo+ICAgREVTQ0VORCAg
+cG93ZXIvYWNwaQ0KPiAgIERFU0NFTkQgIHRvb2xzL2FjcGlkYmcNCj4gb3V0cHV0L2hvc3QvdXNy
+L2Jpbi9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMtZ2NjIC1EX0xJTlVYDQo+IC1JLi4vLi4v
+Li4vaW5jbHVkZSAtSS4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLVdhbGwNCj4gLVdzdHJp
+Y3QtcHJvdG90eXBlcyAtV2RlY2xhcmF0aW9uLWFmdGVyLXN0YXRlbWVudCAtTzEgLWcgLURERUJV
+Rw0KPiAtREFDUElfQVBQTElDQVRJT04gLURBQ1BJX1NJTkdMRV9USFJFQUQgLURBQ1BJX0RFQlVH
+R0VSIC1JLg0KPiAtSS4uLy4uLy4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUkuLi8uLi8u
+Li8uLi8uLi9pbmNsdWRlICAgLWMgLW8NCj4gYWNwaWRiZy5vIGFjcGlkYmcuYw0KPiBJbiBmaWxl
+IGluY2x1ZGVkIGZyb20NCj4gb3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVj
+bGliYy9zeXNyb290L3Vzci9pbmNsdWRlL2FzbS9zaWdjb250ZXh0Lmg6MTg6MCwNCj4gICAgICAg
+ICAgICAgICAgICBmcm9tDQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11
+Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9iaXRzL3NpZ2NvbnRleHQuaDozMCwNCj4gICAgICAg
+ICAgICAgICAgICBmcm9tDQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11
+Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9zaWduYWwuaDozMzUsDQo+ICAgICAgICAgICAgICAg
+ICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDozNjUs
+DQo+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNw
+aS5oOjU2LA0KPiAgICAgICAgICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiAuLi8uLi8u
+Li8uLi8uLi9pbmNsdWRlL2xpbnV4L3R5cGVzLmg6MTQ6MjY6IGVycm9yOiBjb25mbGljdGluZyB0
+eXBlcw0KPiBmb3Ig4oCYZmRfc2V04oCZDQo+ICB0eXBlZGVmIF9fa2VybmVsX2ZkX3NldCAgZmRf
+c2V0Ow0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgIF4NCj4gSW4gZmlsZSBpbmNsdWRlZCBm
+cm9tDQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9v
+dC91c3IvaW5jbHVkZS9zeXMvdHlwZXMuaDoyMTk6MCwNCj4gICAgICAgICAgICAgICAgICBmcm9t
+DQo+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91
+c3IvaW5jbHVkZS9zdGRsaWIuaDoxOTgsDQo+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8u
+Li8uLi8uLi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDozNTcsDQo+ICAgICAgICAgICAg
+ICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNwaS5oOjU2LA0KPiAgICAg
+ICAgICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1i
+dWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvc3lzL3NlbGVjdC5oOjc3
+OjU6DQo+IG5vdGU6IHByZXZpb3VzIGRlY2xhcmF0aW9uIG9mIOKAmGZkX3NldOKAmSB3YXMgaGVy
+ZQ0KPiAgICB9IGZkX3NldDsNCj4gICAgICBeDQo+IEluIGZpbGUgaW5jbHVkZWQgZnJvbQ0KPiBv
+dXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2lu
+Y2x1ZGUvYXNtL3NpZ2NvbnRleHQuaDoxODowLA0KPiAgICAgICAgICAgICAgICAgIGZyb20NCj4g
+b3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9p
+bmNsdWRlL2JpdHMvc2lnY29udGV4dC5oOjMwLA0KPiAgICAgICAgICAgICAgICAgIGZyb20NCj4g
+b3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9p
+bmNsdWRlL3NpZ25hbC5oOjMzNSwNCj4gICAgICAgICAgICAgICAgICBmcm9tIC4uLy4uLy4uLy4u
+Ly4uL2luY2x1ZGUvYWNwaS9wbGF0Zm9ybS9hY2Vudi5oOjM2NSwNCj4gICAgICAgICAgICAgICAg
+ICBmcm9tIC4uLy4uLy4uLy4uLy4uL2luY2x1ZGUvYWNwaS9hY3BpLmg6NTYsDQo+ICAgICAgICAg
+ICAgICAgICAgZnJvbSBhY3BpZGJnLmM6MTI6DQo+IC4uLy4uLy4uLy4uLy4uL2luY2x1ZGUvbGlu
+dXgvdHlwZXMuaDoxNToyNTogZXJyb3I6IGNvbmZsaWN0aW5nIHR5cGVzIGZvciDigJhkZXZfdOKA
+mQ0KPiAgdHlwZWRlZiBfX2tlcm5lbF9kZXZfdCAgZGV2X3Q7DQo+IA0KPiBBbmQgc28gb24uLi4N
+Cj4gDQo+IEFmdGVyIHJldmVydDoNCj4gDQo+ICAgREVTQ0VORCAgcG93ZXIvYWNwaQ0KPiAgIERF
+U0NFTkQgIHRvb2xzL2FjcGlkYmcNCj4gb3V0cHV0L2hvc3QvdXNyL2Jpbi9pNTg2LWJ1aWxkcm9v
+dC1saW51eC11Y2xpYmMtZ2NjIC1EX0xJTlVYDQo+IC1JLi4vLi4vLi4vaW5jbHVkZSAtSS4uLy4u
+Ly4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLVdhbGwNCj4gLVdzdHJpY3QtcHJvdG90eXBlcyAtV2Rl
+Y2xhcmF0aW9uLWFmdGVyLXN0YXRlbWVudCAtTzEgLWcgLURERUJVRw0KPiAtREFDUElfQVBQTElD
+QVRJT04gLURBQ1BJX1NJTkdMRV9USFJFQUQgLURBQ1BJX0RFQlVHR0VSIC1JLg0KPiAtSS4uLy4u
+Ly4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUkuLi8uLi8uLi8uLi8uLi9pbmNsdWRlICAg
+LWMgLW8NCj4gYWNwaWRiZy5vIGFjcGlkYmcuYw0KPiAgIExEICAgICAgIHRlc3QtdG9waWMvYWNw
+aWRiZw0KPiAvdXNyL2Jpbi9pbnN0YWxsIC1jIC1kIG91dHB1dC90YXJnZXQvdXNyL3NiaW4NCj4g
+L3Vzci9iaW4vaW5zdGFsbCAtYyB0ZXN0LXRvcGljL2FjcGlkYmcgb3V0cHV0L3RhcmdldC91c3Iv
+c2Jpbg0KPiANCj4gQW55IGlkZWFzIGhvdyB0byBmaXggdGhpcyBwcm9wZXJseT8NCj4gDQo+IC0t
+DQo+IFdpdGggQmVzdCBSZWdhcmRzLA0KPiBBbmR5IFNoZXZjaGVua28NCg==
