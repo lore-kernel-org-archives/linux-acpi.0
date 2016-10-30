@@ -1,127 +1,105 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Sun, 30 Oct 2016 07:04:13 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
+From: Peter Wu <peter@lekensteyn.nl>
+Subject: Re: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU
+ via Power Resources
+Date: Sun, 30 Oct 2016 12:08:59 +0100
+Message-ID: <20161030110859.GB23970@al>
+References: <20161026225641.GA27017@al>
+ <20161027081748.GX1476@lahna.fi.intel.com>
+ <20161027090604.GB27017@al>
+ <CANni8hdMs4pL0m6FrgeyJjE2R2C=6PaHbVbMVoUU+NszJuf9OA@mail.gmail.com>
+ <20161027093011.GZ1476@lahna.fi.intel.com>
+ <CANni8her35iORgrZOkDzxhfVaOOzObTLG2Ly0kkNZPDTrbyfQQ@mail.gmail.com>
+ <20161027095508.GA1476@lahna.fi.intel.com>
+ <20161027160648.GF27017@al>
+ <20161028085630.GD1476@lahna.fi.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25E758@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:56191 "EHLO mga11.intel.com"
+Received: from lekensteyn.nl ([178.21.112.251]:50065 "EHLO lekensteyn.nl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753063AbcJ3HES (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 30 Oct 2016 03:04:18 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+        id S1753767AbcJ3LJS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 30 Oct 2016 07:09:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A25E758@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Rick Kerkhof <rick.2889@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-SGksIEFuZHkNCg0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFp
-bHRvOmxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgWmhlbmcs
-DQo+IEx2DQo+IFN1YmplY3Q6IFJFOiBGaXggaW4gQUNQSUNBIHRvb2xzIGJyb2tlIGNyb3NzIGNv
-bXBpbGF0aW9uIG9mIHRvb2xzL3Bvd2VyL2FjcGkNCj4gDQo+IEhpLA0KPiANCj4gPiBGcm9tOiBB
-bmR5IFNoZXZjaGVua28gW21haWx0bzphbmR5LnNoZXZjaGVua29AZ21haWwuY29tXQ0KPiA+IFN1
-YmplY3Q6IFJlOiBGaXggaW4gQUNQSUNBIHRvb2xzIGJyb2tlIGNyb3NzIGNvbXBpbGF0aW9uIG9m
-IHRvb2xzL3Bvd2VyL2FjcGkNCj4gPg0KPiA+IE9uIFNhdCwgT2N0IDI5LCAyMDE2IGF0IDM6MjMg
-QU0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiA+IEhpLA0KPiA+
-ID4NCj4gPiA+IFBsZWFzZSB0cnkgdGhpcyBwYXRjaDoNCj4gPiA+IGh0dHBzOi8vcGF0Y2h3b3Jr
-Lmtlcm5lbC5vcmcvcGF0Y2gvOTM5MjE1NS8NCj4gPiA+IFdoaWNoIG1ha2VzIHRvb2xzL3Bvd2Vy
-L2FjcGkgYnVpbGQgbW9yZSByb2J1c3QgdG8gc3Vydml2ZSB0b29sY2hhaW5zIHRoYXQgYXJlIG5v
-dCBnZW5lcmF0ZWQgZnJvbQ0KPiB0aGUNCj4gPiBjdXJyZW50IGtlcm5lbCBoZWFkZXIuDQo+ID4N
-Cj4gPg0KPiA+IEJldHRlciwgYnV0IG5vLCBpdCBkb2Vzbid0IGZ1bGx5IGZpeCB0aGUgaXNzdWUu
-DQo+ID4NCj4gPiAgREVTQ0VORCAgcG93ZXIvYWNwaQ0KPiA+ICBERVNDRU5EICB0b29scy9hY3Bp
-ZGJnDQo+ID4gb3V0cHV0L2hvc3QvdXNyL2Jpbi9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMt
-Z2NjIC1EX0xJTlVYDQo+ID4gLUkuLi8uLi8uLi9pbmNsdWRlIC1JLi4NCj4gPiAvLi4vLi4vZHJp
-dmVycy9hY3BpL2FjcGljYSAtV2FsbCAtV3N0cmljdC1wcm90b3R5cGVzDQo+ID4gLVdkZWNsYXJh
-dGlvbi1hZnRlci1zdGF0ZW1lbnQgLU8xIC1nIC1EREVCVUcgLURBQ1BJX0FQUExJQ0FUSQ0KPiA+
-IE9OIC1EQUNQSV9TSU5HTEVfVEhSRUFEIC1EQUNQSV9ERUJVR0dFUiAtSS4NCj4gPiAtSS4uLy4u
-Ly4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUkuLi8uLi9pbmNsdWRlICAgLWMgLW8gYWNw
-aWRiZy5vDQo+ID4gYWNwaWRiZy5jDQo+ID4gYWNwaWRiZy5jOjEyOjIzOiBmYXRhbCBlcnJvcjog
-YWNwaS9hY3BpLmg6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkNCj4gPiAjaW5jbHVkZSA8YWNw
-aS9hY3BpLmg+DQo+ID4gICAgICAgICAgICAgICAgICAgICAgIF4NCg0KSG93IGRpZCB5b3UgdHJp
-Z2dlciB0aGlzPw0KSSBqdXN0IHRyaWVkIHRvIGNyb3NzIGNvbXBpbGUgYWxsIHRvb2xzLCBzaW1p
-bGFyIGZhaWx1cmVzIGNhbiBiZSBzZWVuIG9uIG1hbnkgb3RoZXIgdG9vbHMuDQoNCkNvdWxkIHlv
-dSBzdGF5IGluIHRoZSBrZXJuZWwgc3JjdHJlZSwgYW5kDQojIGNkIHRvb2xzDQojIG1ha2UgQVJD
-SD15b3VyX2FyY2ggQ1JPU1NfQ09NUElMRT15b3VyX2NvbXBpbGVyLXByZWZpeCBhY3BpX2NsZWFu
-DQojIG1ha2UgQVJDSD15b3VyX2FyY2ggQ1JPU1NfQ09NUElMRT15b3VyX2NvbXBpbGVyLXByZWZp
-eCBhY3BpDQojIGxzIHBvd2VyL2FjcGkvaW5jbHVkZS9hY3BpDQoNCldoYXQgd2lsbCBiZSBzaG93
-biB0aGVuPw0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYNCg0KPiA+IGNvbXBpbGF0aW9u
-IHRlcm1pbmF0ZWQuDQo+ID4gPGJ1aWx0aW4+OiByZWNpcGUgZm9yIHRhcmdldCAnYWNwaWRiZy5v
-JyBmYWlsZWQNCj4gDQo+IElmIHlvdSBtZWFuIHRoaXMgbGluZSBpcyBub3QgY29ycmVjdDoNCj4g
-KwlsbiAtcyAuLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkgaW5jbHVkZS9hY3BpDQo+IEknbGwgdHJ5
-IHRvIGltcHJvdmUgaXQuDQo+IA0KPiBUaGFua3MNCj4gTHYNCj4gDQo+ID4NCj4gPg0KPiA+DQo+
-ID4gPg0KPiA+ID4gVGhhbmtzDQo+ID4gPiBMdg0KPiA+ID4NCj4gPiA+PiBGcm9tOiBBbmR5IFNo
-ZXZjaGVua28gW21haWx0bzphbmR5LnNoZXZjaGVua29AZ21haWwuY29tXQ0KPiA+ID4+IFN1Ympl
-Y3Q6IEZpeCBpbiBBQ1BJQ0EgdG9vbHMgYnJva2UgY3Jvc3MgY29tcGlsYXRpb24gb2YgdG9vbHMv
-cG93ZXIvYWNwaQ0KPiA+ID4+DQo+ID4gPj4gSGkhDQo+ID4gPj4NCj4gPiA+PiBSZXZlcnRpbmcg
-b2YgdGhlIGNvbW1pdCBlMzIzYzAyZGVlNTkgKCJBQ1BJQ0E6IE1TVkM5OiBGaXggPHN5cy9zdGF0
-Lmg+DQo+ID4gPj4gaW5jbHVzaW9uIG9yZGVyIGlzc3VlIikgZml4ZXMgdGhlIGZvbGxvd2luZyBp
-c3N1ZToNCj4gPiA+Pg0KPiA+ID4+ICAgREVTQ0VORCAgcG93ZXIvYWNwaQ0KPiA+ID4+ICAgREVT
-Q0VORCAgdG9vbHMvYWNwaWRiZw0KPiA+ID4+IG91dHB1dC9ob3N0L3Vzci9iaW4vaTU4Ni1idWls
-ZHJvb3QtbGludXgtdWNsaWJjLWdjYyAtRF9MSU5VWA0KPiA+ID4+IC1JLi4vLi4vLi4vaW5jbHVk
-ZSAtSS4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLVdhbGwNCj4gPiA+PiAtV3N0cmljdC1w
-cm90b3R5cGVzIC1XZGVjbGFyYXRpb24tYWZ0ZXItc3RhdGVtZW50IC1PMSAtZyAtRERFQlVHDQo+
-ID4gPj4gLURBQ1BJX0FQUExJQ0FUSU9OIC1EQUNQSV9TSU5HTEVfVEhSRUFEIC1EQUNQSV9ERUJV
-R0dFUiAtSS4NCj4gPiA+PiAtSS4uLy4uLy4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUku
-Li8uLi8uLi8uLi8uLi9pbmNsdWRlICAgLWMgLW8NCj4gPiA+PiBhY3BpZGJnLm8gYWNwaWRiZy5j
-DQo+ID4gPj4gSW4gZmlsZSBpbmNsdWRlZCBmcm9tDQo+ID4gPj4gb3V0cHV0L2hvc3QvdXNyL2k1
-ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9pbmNsdWRlL2FzbS9zaWdjb250
-ZXh0Lmg6MTg6MCwNCj4gPiA+PiAgICAgICAgICAgICAgICAgIGZyb20NCj4gPiA+PiBvdXRwdXQv
-aG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUv
-Yml0cy9zaWdjb250ZXh0Lmg6MzAsDQo+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tDQo+ID4g
-Pj4gb3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vz
-ci9pbmNsdWRlL3NpZ25hbC5oOjMzNSwNCj4gPiA+PiAgICAgICAgICAgICAgICAgIGZyb20gLi4v
-Li4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjZW52Lmg6MzY1LA0KPiA+ID4+ICAg
-ICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNwaS5oOjU2
-LA0KPiA+ID4+ICAgICAgICAgICAgICAgICAgZnJvbSBhY3BpZGJnLmM6MTI6DQo+ID4gPj4gLi4v
-Li4vLi4vLi4vLi4vaW5jbHVkZS9saW51eC90eXBlcy5oOjE0OjI2OiBlcnJvcjogY29uZmxpY3Rp
-bmcgdHlwZXMNCj4gPiA+PiBmb3Ig4oCYZmRfc2V04oCZDQo+ID4gPj4gIHR5cGVkZWYgX19rZXJu
-ZWxfZmRfc2V0ICBmZF9zZXQ7DQo+ID4gPj4gICAgICAgICAgICAgICAgICAgICAgICAgICBeDQo+
-ID4gPj4gSW4gZmlsZSBpbmNsdWRlZCBmcm9tDQo+ID4gPj4gb3V0cHV0L2hvc3QvdXNyL2k1ODYt
-YnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9pbmNsdWRlL3N5cy90eXBlcy5oOjIx
-OTowLA0KPiA+ID4+ICAgICAgICAgICAgICAgICAgZnJvbQ0KPiA+ID4+IG91dHB1dC9ob3N0L3Vz
-ci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9zdGRsaWIu
-aDoxOTgsDQo+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tIC4uLy4uLy4uLy4uLy4uL2luY2x1
-ZGUvYWNwaS9wbGF0Zm9ybS9hY2Vudi5oOjM1NywNCj4gPiA+PiAgICAgICAgICAgICAgICAgIGZy
-b20gLi4vLi4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL2FjcGkuaDo1NiwNCj4gPiA+PiAgICAgICAg
-ICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiA+ID4+IG91dHB1dC9ob3N0L3Vzci9pNTg2
-LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9zeXMvc2VsZWN0Lmg6
-Nzc6NToNCj4gPiA+PiBub3RlOiBwcmV2aW91cyBkZWNsYXJhdGlvbiBvZiDigJhmZF9zZXTigJkg
-d2FzIGhlcmUNCj4gPiA+PiAgICB9IGZkX3NldDsNCj4gPiA+PiAgICAgIF4NCj4gPiA+PiBJbiBm
-aWxlIGluY2x1ZGVkIGZyb20NCj4gPiA+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3Qt
-bGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvYXNtL3NpZ2NvbnRleHQuaDoxODowLA0K
-PiA+ID4+ICAgICAgICAgICAgICAgICAgZnJvbQ0KPiA+ID4+IG91dHB1dC9ob3N0L3Vzci9pNTg2
-LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9iaXRzL3NpZ2NvbnRl
-eHQuaDozMCwNCj4gPiA+PiAgICAgICAgICAgICAgICAgIGZyb20NCj4gPiA+PiBvdXRwdXQvaG9z
-dC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvc2ln
-bmFsLmg6MzM1LA0KPiA+ID4+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9p
-bmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDozNjUsDQo+ID4gPj4gICAgICAgICAgICAgICAg
-ICBmcm9tIC4uLy4uLy4uLy4uLy4uL2luY2x1ZGUvYWNwaS9hY3BpLmg6NTYsDQo+ID4gPj4gICAg
-ICAgICAgICAgICAgICBmcm9tIGFjcGlkYmcuYzoxMjoNCj4gPiA+PiAuLi8uLi8uLi8uLi8uLi9p
-bmNsdWRlL2xpbnV4L3R5cGVzLmg6MTU6MjU6IGVycm9yOiBjb25mbGljdGluZyB0eXBlcyBmb3Ig
-4oCYZGV2X3TigJkNCj4gPiA+PiAgdHlwZWRlZiBfX2tlcm5lbF9kZXZfdCAgZGV2X3Q7DQo+ID4g
-Pj4NCj4gPiA+PiBBbmQgc28gb24uLi4NCj4gPiA+Pg0KPiA+ID4+IEFmdGVyIHJldmVydDoNCj4g
-PiA+Pg0KPiA+ID4+ICAgREVTQ0VORCAgcG93ZXIvYWNwaQ0KPiA+ID4+ICAgREVTQ0VORCAgdG9v
-bHMvYWNwaWRiZw0KPiA+ID4+IG91dHB1dC9ob3N0L3Vzci9iaW4vaTU4Ni1idWlsZHJvb3QtbGlu
-dXgtdWNsaWJjLWdjYyAtRF9MSU5VWA0KPiA+ID4+IC1JLi4vLi4vLi4vaW5jbHVkZSAtSS4uLy4u
-Ly4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLVdhbGwNCj4gPiA+PiAtV3N0cmljdC1wcm90b3R5cGVz
-IC1XZGVjbGFyYXRpb24tYWZ0ZXItc3RhdGVtZW50IC1PMSAtZyAtRERFQlVHDQo+ID4gPj4gLURB
-Q1BJX0FQUExJQ0FUSU9OIC1EQUNQSV9TSU5HTEVfVEhSRUFEIC1EQUNQSV9ERUJVR0dFUiAtSS4N
-Cj4gPiA+PiAtSS4uLy4uLy4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2EgLUkuLi8uLi8uLi8u
-Li8uLi9pbmNsdWRlICAgLWMgLW8NCj4gPiA+PiBhY3BpZGJnLm8gYWNwaWRiZy5jDQo+ID4gPj4g
-ICBMRCAgICAgICB0ZXN0LXRvcGljL2FjcGlkYmcNCj4gPiA+PiAvdXNyL2Jpbi9pbnN0YWxsIC1j
-IC1kIG91dHB1dC90YXJnZXQvdXNyL3NiaW4NCj4gPiA+PiAvdXNyL2Jpbi9pbnN0YWxsIC1jIHRl
-c3QtdG9waWMvYWNwaWRiZyBvdXRwdXQvdGFyZ2V0L3Vzci9zYmluDQo+ID4gPj4NCj4gPiA+PiBB
-bnkgaWRlYXMgaG93IHRvIGZpeCB0aGlzIHByb3Blcmx5Pw0KPiA+ID4+DQo+ID4gPj4gLS0NCj4g
-PiA+PiBXaXRoIEJlc3QgUmVnYXJkcywNCj4gPiA+PiBBbmR5IFNoZXZjaGVua28NCj4gPg0KPiA+
-DQo+ID4NCj4gPiAtLQ0KPiA+IFdpdGggQmVzdCBSZWdhcmRzLA0KPiA+IEFuZHkgU2hldmNoZW5r
-bw0KPiAT77+977+97Lm7HO+/vSbvv71+77+9Ju+/vRjvv73vv70rLe+/ve+/vd22F++/ve+/vXfv
-v73vv73Lm++/ve+/ve+/vW3vv71i77+977+9WnLvv73vv73vv73vv71ebu+/vXLvv73vv73vv716
-77+9Gu+/ve+/vWjvv73vv73vv73vv70m77+977+9Hu+/vUfvv73vv73vv71o77+9Ayjvv73pmo4N
-Cj4g77+93aJqIu+/ve+/vRrvv70bbe+/ve+/ve+/ve+/ve+/vXrvv73elu+/ve+/ve+/vWbvv73v
-v73vv71o77+977+977+9fu+/vW3vv70NCg==
+On Sat, Oct 29, 2016 at 12:42:34AM +0000, Zheng, Lv wrote:
+> Hi, Mika
+> 
+> > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> > Subject: Re: Acer Aspire V7-582PG (Haswell, GTX 750M) fails to power off GPU via Power Resources
+> > 
+> > On Thu, Oct 27, 2016 at 06:06:48PM +0200, Peter Wu wrote:
+> > > On Thu, Oct 27, 2016 at 12:55:08PM +0300, Mika Westerberg wrote:
+> > > > On Thu, Oct 27, 2016 at 09:42:28AM +0000, Rick Kerkhof wrote:
+> > > > >    No, there are not. Here is the recursive directory listing:
+> > > >
+> > > > Are you able to try the following patch and send me dmesg (or attach it
+> > > > to that bug)? It should show if the ACPI core even tries to add those
+> > > > power resources.
+> > >
+> > > So Rick has tested this patch now on top of 4.8.4 (mainline fails to
+> > > boot due to a kbuild issue which I reported elsewhere), but the output
+> > > is empty. That seems to indicate that flags.power_resources is unset.
+> > 
+> > Is it completely empty or is it empty just for RP05? It should print out
+> > all devices with power resources.
+> > 
+> > > Given that _PS3 exists and is indeed a package with some elements, it
+> > > seems that acpi_extract_power_resources is failing. Note that in the
+> > > SSDT, the power resource NVP3 was referenced before it was defined,
+> > > could that result in this enumeration failure? Relevant SSDT excerpt:
+> > >
+> > >     Scope (\_SB.PCI0.RP05)
+> > >     {
+> > >         Name (_PR3, Package (0x01)  // _PR3: Power Resources for D3hot
+> > >         {
+> > >             NVP3
+> > >         })
+> > >         // ...
+> > >     }
+> > >
+> > >     PowerResource (NVP3, 0x00, 0x0000)
+> 
+> Looks wrong order to me.
+> 
+> However, _PR3 is a package, for AML opcode that contains PkgLength grammar primitive, forward reference may be OK (for example Method).
+> DefPackage := PackageOp PkgLength NumElements PackageElementList
+> DefMethod := MethodOp PkgLength NameString MethodFlags TermList
+> As when it is encountered, AML interpreter may only saves entire packaged object.
+> 
+> I need to test behaviors around Package with qemu but I don't have environment now.
+> Can you help to give it a try?
+> By adding customize an ssdt with the above code putting under root scope,
+> DefinitionBlock ("ssdt-package.aml", "SSDT", 2, "INTEL ", "PACKAGE ", 0x00003000)
+> {
+>     Scope (\)
+>     {
+>         Name (_PR3, Package (0x01) { NVP3 })
+>     }
+>     PowerResource (NVP3, 0x00, 0x0000) {}
+> }
+> Running Windows images on qemu with this ssdt appended "-acpitable file=ssdt-package.aml".
+> To see if blue screen can be resulted.
+> 
+> Thanks
+> Lv
+
+Testing this code with Windows 10 gives a BSOD, changing the order of
+the PowerResource and Scope does not make a difference. If I take my
+previous SSDT and change the ordering of NVP3 definition vs _PR3 use,
+there is no change.
+
+Kind regards,
+Peter
+
+> > 
+> > That and the fact that they come from an SSDT instead of DSDT may cause
+> > this. However, I'm not expert in ACPICA so adding Bob and Lv if they
+> > have ideas.
+> > 
+> > Bob, Lv, the bug in question is: https://bugs.freedesktop.org/show_bug.cgi?id=98398
