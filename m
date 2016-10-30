@@ -1,143 +1,107 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Sat, 29 Oct 2016 19:04:02 +0300
-Message-ID: <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Sun, 30 Oct 2016 06:53:05 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
 References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
  <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:34439 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755717AbcJ2QJW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Oct 2016 12:09:22 -0400
-Received: by mail-oi0-f52.google.com with SMTP id 62so41115405oif.1
-        for <linux-acpi@vger.kernel.org>; Sat, 29 Oct 2016 09:09:21 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
+Received: from mga07.intel.com ([134.134.136.100]:6495 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753063AbcJ3GxK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 30 Oct 2016 02:53:10 -0400
+In-Reply-To: <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, Oct 29, 2016 at 3:23 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi,
->
-> Please try this patch:
-> https://patchwork.kernel.org/patch/9392155/
-> Which makes tools/power/acpi build more robust to survive toolchains that=
- are not generated from the current kernel header.
-
-
-Better, but no, it doesn't fully fix the issue.
-
- DESCEND  power/acpi
- DESCEND  tools/acpidbg
-output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
--I../../../include -I..
-/../../drivers/acpi/acpica -Wall -Wstrict-prototypes
--Wdeclaration-after-statement -O1 -g -DDEBUG -DACPI_APPLICATI
-ON -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
--I../../../../../drivers/acpi/acpica -I../../include   -c -o acpidbg.o
-acpidbg.c
-acpidbg.c:12:23: fatal error: acpi/acpi.h: No such file or directory
-#include <acpi/acpi.h>
-                      ^
-compilation terminated.
-<builtin>: recipe for target 'acpidbg.o' failed
-
-
-
->
-> Thanks
-> Lv
->
->> From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
->> Subject: Fix in ACPICA tools broke cross compilation of tools/power/acpi
->>
->> Hi!
->>
->> Reverting of the commit e323c02dee59 ("ACPICA: MSVC9: Fix <sys/stat.h>
->> inclusion order issue") fixes the following issue:
->>
->>   DESCEND  power/acpi
->>   DESCEND  tools/acpidbg
->> output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
->> -I../../../include -I../../../drivers/acpi/acpica -Wall
->> -Wstrict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
->> -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
->> -I../../../../../drivers/acpi/acpica -I../../../../../include   -c -o
->> acpidbg.o acpidbg.c
->> In file included from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/asm/sigc=
-ontext.h:18:0,
->>                  from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/bits/sig=
-context.h:30,
->>                  from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/signal.h=
-:335,
->>                  from ../../../../../include/acpi/platform/acenv.h:365,
->>                  from ../../../../../include/acpi/acpi.h:56,
->>                  from acpidbg.c:12:
->> ../../../../../include/linux/types.h:14:26: error: conflicting types
->> for =E2=80=98fd_set=E2=80=99
->>  typedef __kernel_fd_set  fd_set;
->>                           ^
->> In file included from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/sys/type=
-s.h:219:0,
->>                  from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/stdlib.h=
-:198,
->>                  from ../../../../../include/acpi/platform/acenv.h:357,
->>                  from ../../../../../include/acpi/acpi.h:56,
->>                  from acpidbg.c:12:
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/sys/sele=
-ct.h:77:5:
->> note: previous declaration of =E2=80=98fd_set=E2=80=99 was here
->>    } fd_set;
->>      ^
->> In file included from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/asm/sigc=
-ontext.h:18:0,
->>                  from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/bits/sig=
-context.h:30,
->>                  from
->> output/host/usr/i586-buildroot-linux-uclibc/sysroot/usr/include/signal.h=
-:335,
->>                  from ../../../../../include/acpi/platform/acenv.h:365,
->>                  from ../../../../../include/acpi/acpi.h:56,
->>                  from acpidbg.c:12:
->> ../../../../../include/linux/types.h:15:25: error: conflicting types for=
- =E2=80=98dev_t=E2=80=99
->>  typedef __kernel_dev_t  dev_t;
->>
->> And so on...
->>
->> After revert:
->>
->>   DESCEND  power/acpi
->>   DESCEND  tools/acpidbg
->> output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
->> -I../../../include -I../../../drivers/acpi/acpica -Wall
->> -Wstrict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
->> -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
->> -I../../../../../drivers/acpi/acpica -I../../../../../include   -c -o
->> acpidbg.o acpidbg.c
->>   LD       test-topic/acpidbg
->> /usr/bin/install -c -d output/target/usr/sbin
->> /usr/bin/install -c test-topic/acpidbg output/target/usr/sbin
->>
->> Any ideas how to fix this properly?
->>
->> --
->> With Best Regards,
->> Andy Shevchenko
-
-
-
---=20
-With Best Regards,
-Andy Shevchenko
+SGksIA0KDQo+IEZyb206IEFuZHkgU2hldmNoZW5rbyBbbWFpbHRvOmFuZHkuc2hldmNoZW5rb0Bn
+bWFpbC5jb21dDQo+IFN1YmplY3Q6IFJlOiBGaXggaW4gQUNQSUNBIHRvb2xzIGJyb2tlIGNyb3Nz
+IGNvbXBpbGF0aW9uIG9mIHRvb2xzL3Bvd2VyL2FjcGkNCj4gDQo+IE9uIFNhdCwgT2N0IDI5LCAy
+MDE2IGF0IDM6MjMgQU0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4g
+PiBIaSwNCj4gPg0KPiA+IFBsZWFzZSB0cnkgdGhpcyBwYXRjaDoNCj4gPiBodHRwczovL3BhdGNo
+d29yay5rZXJuZWwub3JnL3BhdGNoLzkzOTIxNTUvDQo+ID4gV2hpY2ggbWFrZXMgdG9vbHMvcG93
+ZXIvYWNwaSBidWlsZCBtb3JlIHJvYnVzdCB0byBzdXJ2aXZlIHRvb2xjaGFpbnMgdGhhdCBhcmUg
+bm90IGdlbmVyYXRlZCBmcm9tIHRoZQ0KPiBjdXJyZW50IGtlcm5lbCBoZWFkZXIuDQo+IA0KPiAN
+Cj4gQmV0dGVyLCBidXQgbm8sIGl0IGRvZXNuJ3QgZnVsbHkgZml4IHRoZSBpc3N1ZS4NCj4gDQo+
+ICBERVNDRU5EICBwb3dlci9hY3BpDQo+ICBERVNDRU5EICB0b29scy9hY3BpZGJnDQo+IG91dHB1
+dC9ob3N0L3Vzci9iaW4vaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjLWdjYyAtRF9MSU5VWA0K
+PiAtSS4uLy4uLy4uL2luY2x1ZGUgLUkuLg0KPiAvLi4vLi4vZHJpdmVycy9hY3BpL2FjcGljYSAt
+V2FsbCAtV3N0cmljdC1wcm90b3R5cGVzDQo+IC1XZGVjbGFyYXRpb24tYWZ0ZXItc3RhdGVtZW50
+IC1PMSAtZyAtRERFQlVHIC1EQUNQSV9BUFBMSUNBVEkNCj4gT04gLURBQ1BJX1NJTkdMRV9USFJF
+QUQgLURBQ1BJX0RFQlVHR0VSIC1JLg0KPiAtSS4uLy4uLy4uLy4uLy4uL2RyaXZlcnMvYWNwaS9h
+Y3BpY2EgLUkuLi8uLi9pbmNsdWRlICAgLWMgLW8gYWNwaWRiZy5vDQo+IGFjcGlkYmcuYw0KPiBh
+Y3BpZGJnLmM6MTI6MjM6IGZhdGFsIGVycm9yOiBhY3BpL2FjcGkuaDogTm8gc3VjaCBmaWxlIG9y
+IGRpcmVjdG9yeQ0KPiAjaW5jbHVkZSA8YWNwaS9hY3BpLmg+DQo+ICAgICAgICAgICAgICAgICAg
+ICAgICBeDQo+IGNvbXBpbGF0aW9uIHRlcm1pbmF0ZWQuDQo+IDxidWlsdGluPjogcmVjaXBlIGZv
+ciB0YXJnZXQgJ2FjcGlkYmcubycgZmFpbGVkDQoNCklmIHlvdSBtZWFuIHRoaXMgbGluZSBpcyBu
+b3QgY29ycmVjdDoNCisJbG4gLXMgLi4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpIGluY2x1ZGUvYWNw
+aQ0KSSdsbCB0cnkgdG8gaW1wcm92ZSBpdC4NCg0KVGhhbmtzDQpMdg0KDQo+IA0KPiANCj4gDQo+
+ID4NCj4gPiBUaGFua3MNCj4gPiBMdg0KPiA+DQo+ID4+IEZyb206IEFuZHkgU2hldmNoZW5rbyBb
+bWFpbHRvOmFuZHkuc2hldmNoZW5rb0BnbWFpbC5jb21dDQo+ID4+IFN1YmplY3Q6IEZpeCBpbiBB
+Q1BJQ0EgdG9vbHMgYnJva2UgY3Jvc3MgY29tcGlsYXRpb24gb2YgdG9vbHMvcG93ZXIvYWNwaQ0K
+PiA+Pg0KPiA+PiBIaSENCj4gPj4NCj4gPj4gUmV2ZXJ0aW5nIG9mIHRoZSBjb21taXQgZTMyM2Mw
+MmRlZTU5ICgiQUNQSUNBOiBNU1ZDOTogRml4IDxzeXMvc3RhdC5oPg0KPiA+PiBpbmNsdXNpb24g
+b3JkZXIgaXNzdWUiKSBmaXhlcyB0aGUgZm9sbG93aW5nIGlzc3VlOg0KPiA+Pg0KPiA+PiAgIERF
+U0NFTkQgIHBvd2VyL2FjcGkNCj4gPj4gICBERVNDRU5EICB0b29scy9hY3BpZGJnDQo+ID4+IG91
+dHB1dC9ob3N0L3Vzci9iaW4vaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjLWdjYyAtRF9MSU5V
+WA0KPiA+PiAtSS4uLy4uLy4uL2luY2x1ZGUgLUkuLi8uLi8uLi9kcml2ZXJzL2FjcGkvYWNwaWNh
+IC1XYWxsDQo+ID4+IC1Xc3RyaWN0LXByb3RvdHlwZXMgLVdkZWNsYXJhdGlvbi1hZnRlci1zdGF0
+ZW1lbnQgLU8xIC1nIC1EREVCVUcNCj4gPj4gLURBQ1BJX0FQUExJQ0FUSU9OIC1EQUNQSV9TSU5H
+TEVfVEhSRUFEIC1EQUNQSV9ERUJVR0dFUiAtSS4NCj4gPj4gLUkuLi8uLi8uLi8uLi8uLi9kcml2
+ZXJzL2FjcGkvYWNwaWNhIC1JLi4vLi4vLi4vLi4vLi4vaW5jbHVkZSAgIC1jIC1vDQo+ID4+IGFj
+cGlkYmcubyBhY3BpZGJnLmMNCj4gPj4gSW4gZmlsZSBpbmNsdWRlZCBmcm9tDQo+ID4+IG91dHB1
+dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVk
+ZS9hc20vc2lnY29udGV4dC5oOjE4OjAsDQo+ID4+ICAgICAgICAgICAgICAgICAgZnJvbQ0KPiA+
+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNy
+L2luY2x1ZGUvYml0cy9zaWdjb250ZXh0Lmg6MzAsDQo+ID4+ICAgICAgICAgICAgICAgICAgZnJv
+bQ0KPiA+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jv
+b3QvdXNyL2luY2x1ZGUvc2lnbmFsLmg6MzM1LA0KPiA+PiAgICAgICAgICAgICAgICAgIGZyb20g
+Li4vLi4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjZW52Lmg6MzY1LA0KPiA+PiAg
+ICAgICAgICAgICAgICAgIGZyb20gLi4vLi4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL2FjcGkuaDo1
+NiwNCj4gPj4gICAgICAgICAgICAgICAgICBmcm9tIGFjcGlkYmcuYzoxMjoNCj4gPj4gLi4vLi4v
+Li4vLi4vLi4vaW5jbHVkZS9saW51eC90eXBlcy5oOjE0OjI2OiBlcnJvcjogY29uZmxpY3Rpbmcg
+dHlwZXMNCj4gPj4gZm9yIOKAmGZkX3NldOKAmQ0KPiA+PiAgdHlwZWRlZiBfX2tlcm5lbF9mZF9z
+ZXQgIGZkX3NldDsNCj4gPj4gICAgICAgICAgICAgICAgICAgICAgICAgICBeDQo+ID4+IEluIGZp
+bGUgaW5jbHVkZWQgZnJvbQ0KPiA+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGlu
+dXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvc3lzL3R5cGVzLmg6MjE5OjAsDQo+ID4+ICAg
+ICAgICAgICAgICAgICAgZnJvbQ0KPiA+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3Qt
+bGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvc3RkbGliLmg6MTk4LA0KPiA+PiAgICAg
+ICAgICAgICAgICAgIGZyb20gLi4vLi4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2Fj
+ZW52Lmg6MzU3LA0KPiA+PiAgICAgICAgICAgICAgICAgIGZyb20gLi4vLi4vLi4vLi4vLi4vaW5j
+bHVkZS9hY3BpL2FjcGkuaDo1NiwNCj4gPj4gICAgICAgICAgICAgICAgICBmcm9tIGFjcGlkYmcu
+YzoxMjoNCj4gPj4gb3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9z
+eXNyb290L3Vzci9pbmNsdWRlL3N5cy9zZWxlY3QuaDo3Nzo1Og0KPiA+PiBub3RlOiBwcmV2aW91
+cyBkZWNsYXJhdGlvbiBvZiDigJhmZF9zZXTigJkgd2FzIGhlcmUNCj4gPj4gICAgfSBmZF9zZXQ7
+DQo+ID4+ICAgICAgXg0KPiA+PiBJbiBmaWxlIGluY2x1ZGVkIGZyb20NCj4gPj4gb3V0cHV0L2hv
+c3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9pbmNsdWRlL2Fz
+bS9zaWdjb250ZXh0Lmg6MTg6MCwNCj4gPj4gICAgICAgICAgICAgICAgICBmcm9tDQo+ID4+IG91
+dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5j
+bHVkZS9iaXRzL3NpZ2NvbnRleHQuaDozMCwNCj4gPj4gICAgICAgICAgICAgICAgICBmcm9tDQo+
+ID4+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91
+c3IvaW5jbHVkZS9zaWduYWwuaDozMzUsDQo+ID4+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8u
+Li8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDozNjUsDQo+ID4+ICAgICAg
+ICAgICAgICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNwaS5oOjU2LA0K
+PiA+PiAgICAgICAgICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiA+PiAuLi8uLi8uLi8u
+Li8uLi9pbmNsdWRlL2xpbnV4L3R5cGVzLmg6MTU6MjU6IGVycm9yOiBjb25mbGljdGluZyB0eXBl
+cyBmb3Ig4oCYZGV2X3TigJkNCj4gPj4gIHR5cGVkZWYgX19rZXJuZWxfZGV2X3QgIGRldl90Ow0K
+PiA+Pg0KPiA+PiBBbmQgc28gb24uLi4NCj4gPj4NCj4gPj4gQWZ0ZXIgcmV2ZXJ0Og0KPiA+Pg0K
+PiA+PiAgIERFU0NFTkQgIHBvd2VyL2FjcGkNCj4gPj4gICBERVNDRU5EICB0b29scy9hY3BpZGJn
+DQo+ID4+IG91dHB1dC9ob3N0L3Vzci9iaW4vaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjLWdj
+YyAtRF9MSU5VWA0KPiA+PiAtSS4uLy4uLy4uL2luY2x1ZGUgLUkuLi8uLi8uLi9kcml2ZXJzL2Fj
+cGkvYWNwaWNhIC1XYWxsDQo+ID4+IC1Xc3RyaWN0LXByb3RvdHlwZXMgLVdkZWNsYXJhdGlvbi1h
+ZnRlci1zdGF0ZW1lbnQgLU8xIC1nIC1EREVCVUcNCj4gPj4gLURBQ1BJX0FQUExJQ0FUSU9OIC1E
+QUNQSV9TSU5HTEVfVEhSRUFEIC1EQUNQSV9ERUJVR0dFUiAtSS4NCj4gPj4gLUkuLi8uLi8uLi8u
+Li8uLi9kcml2ZXJzL2FjcGkvYWNwaWNhIC1JLi4vLi4vLi4vLi4vLi4vaW5jbHVkZSAgIC1jIC1v
+DQo+ID4+IGFjcGlkYmcubyBhY3BpZGJnLmMNCj4gPj4gICBMRCAgICAgICB0ZXN0LXRvcGljL2Fj
+cGlkYmcNCj4gPj4gL3Vzci9iaW4vaW5zdGFsbCAtYyAtZCBvdXRwdXQvdGFyZ2V0L3Vzci9zYmlu
+DQo+ID4+IC91c3IvYmluL2luc3RhbGwgLWMgdGVzdC10b3BpYy9hY3BpZGJnIG91dHB1dC90YXJn
+ZXQvdXNyL3NiaW4NCj4gPj4NCj4gPj4gQW55IGlkZWFzIGhvdyB0byBmaXggdGhpcyBwcm9wZXJs
+eT8NCj4gPj4NCj4gPj4gLS0NCj4gPj4gV2l0aCBCZXN0IFJlZ2FyZHMsDQo+ID4+IEFuZHkgU2hl
+dmNoZW5rbw0KPiANCj4gDQo+IA0KPiAtLQ0KPiBXaXRoIEJlc3QgUmVnYXJkcywNCj4gQW5keSBT
+aGV2Y2hlbmtvDQo=
