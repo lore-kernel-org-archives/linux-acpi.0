@@ -1,98 +1,54 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCHv2] PCI: QDF2432 32 bit config space accessors
-Date: Mon, 31 Oct 2016 16:48:33 -0500
-Message-ID: <20161031214833.GB14603@bhelgaas-glaptop.roam.corp.google.com>
-References: <20160921173129.GA20006@localhost>
- <20160921223805.21652-1-cov@codeaurora.org>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V4 10/10] arm64: KVM: add guest SEA support
+Date: Mon, 31 Oct 2016 16:36:33 -0600
+Message-ID: <85443ee1-9981-c7e8-fe88-a3aac48c3e80@codeaurora.org>
+References: <1477071013-29563-1-git-send-email-tbaicar@codeaurora.org>
+ <1477071013-29563-11-git-send-email-tbaicar@codeaurora.org>
+ <20161031100206.GX1041@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35518 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S946871AbcJaVsi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 31 Oct 2016 17:48:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20160921223805.21652-1-cov@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161031100206.GX1041@n2100.armlinux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.comha
 List-Id: linux-acpi@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Sep 21, 2016 at 06:38:05PM -0400, Christopher Covington wrote:
-> The Qualcomm Technologies QDF2432 SoC does not support accesses smaller
-> than 32 bits to the PCI configuration space. Register the appropriate
-> quirk.
-> 
-> Signed-off-by: Christopher Covington <cov@codeaurora.org>
+Hello Russell,
 
-Hi Christopher,
+On 10/31/2016 4:02 AM, Russell King - ARM Linux wrote:
+> The subject line on this patch is misleading - it's not only ARM64
+> specific...
+Thank you for the feedback!
 
-Can you rebase this against v4.9-rc1?  It no longer applies to my tree.
+I only put ARM64 in the subject line because this patch only really adds 
+guest SEA support for the ARM64 KVM code. The ARM code had to be edited 
+since both the ARM and ARM64 KVM code use arch/arm/kvm/mmu.c. I can 
+change the subject line to "arm/arm64: KVM: add guest SEA support" if 
+you think that is better.
+> On Fri, Oct 21, 2016 at 11:30:13AM -0600, Tyler Baicar wrote:
+>> diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
+>> index a3d61ad..86e1faa 100644
+>> --- a/arch/arm/include/asm/system_misc.h
+>> +++ b/arch/arm/include/asm/system_misc.h
+>> @@ -24,4 +24,9 @@ extern unsigned int user_debug;
+>>   
+>>   #endif /* !__ASSEMBLY__ */
+>>   
+>> +inline int handle_guest_sea(unsigned long addr, unsigned int esr)
+> This needs to be static.
+I'll make this static.
 
-Note that this hardware is not spec-compliant since it doesn't support
-sub-32 bit config writes.  I just proposed a patch to warn about that
-[1], so if/when we merge that patch and this one, you'll start seeing
-those warnings.
+Thanks,
+Tyler
+>> +{
+>> +	return -1;
+>> +}
+>> +
+>>   #endif /* __ASM_ARM_SYSTEM_MISC_H */
 
-[1] http://lkml.kernel.org/r/20161031213902.6340.96123.stgit@bhelgaas-glaptop.roam.corp.google.com
-
-> ---
->  drivers/acpi/pci_mcfg.c  |  8 ++++++++
->  drivers/pci/ecam.c       | 10 ++++++++++
->  include/linux/pci-ecam.h |  1 +
->  3 files changed, 19 insertions(+)
-> 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index 245b79f..212334f 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -96,6 +96,14 @@ static struct mcfg_fixup mcfg_quirks[] = {
->  	THUNDER_ECAM_MCFG(2, 12),
->  	THUNDER_ECAM_MCFG(2, 13),
->  #endif
-> +	{ "QCOM  ", "QDF2432 ", 1, 0, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 1, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 2, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 3, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 4, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
-> +	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
->  };
->  
->  static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-> diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-> index 43ed08d..c3b3063 100644
-> --- a/drivers/pci/ecam.c
-> +++ b/drivers/pci/ecam.c
-> @@ -162,3 +162,13 @@ struct pci_ecam_ops pci_generic_ecam_ops = {
->  		.write		= pci_generic_config_write,
->  	}
->  };
-> +
-> +/* ops for 32 bit config space access quirk */
-> +struct pci_ecam_ops pci_32b_ops = {
-> +	.bus_shift	= 20,
-> +	.pci_ops	= {
-> +		.map_bus	= pci_ecam_map_bus,
-> +		.read		= pci_generic_config_read32,
-> +		.write		= pci_generic_config_write32,
-> +	}
-> +};
-> diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-> index 35f0e81..a6cffb8 100644
-> --- a/include/linux/pci-ecam.h
-> +++ b/include/linux/pci-ecam.h
-> @@ -65,6 +65,7 @@ extern struct pci_ecam_ops pci_thunder_pem_ops;
->  #ifdef CONFIG_PCI_HOST_THUNDER_ECAM
->  extern struct pci_ecam_ops pci_thunder_ecam_ops;
->  #endif
-> +extern struct pci_ecam_ops pci_32b_ops;
->  
->  #ifdef CONFIG_PCI_HOST_GENERIC
->  /* for DT-based PCI controllers that support ECAM */
-> -- 
-> Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-> Technologies, Inc. Qualcomm Technologies, Inc. is a member of the Code Aurora
-> Forum, a Linux Foundation Collaborative Project.
-> 
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
