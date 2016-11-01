@@ -1,54 +1,130 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V4 10/10] arm64: KVM: add guest SEA support
-Date: Mon, 31 Oct 2016 16:36:33 -0600
-Message-ID: <85443ee1-9981-c7e8-fe88-a3aac48c3e80@codeaurora.org>
-References: <1477071013-29563-1-git-send-email-tbaicar@codeaurora.org>
- <1477071013-29563-11-git-send-email-tbaicar@codeaurora.org>
- <20161031100206.GX1041@n2100.armlinux.org.uk>
+From: Phong Vo <pvo@apm.com>
+Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
+ ids through ACPI
+Date: Tue, 1 Nov 2016 13:14:16 +0700
+Message-ID: <8a69cdff155793e8e687d527d9ace97f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161031100206.GX1041@n2100.armlinux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.comha
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:34127 "EHLO
+        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1163134AbcKAGOT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Nov 2016 02:14:19 -0400
+Received: by mail-oi0-f43.google.com with SMTP id 62so156971823oif.1
+        for <linux-acpi@vger.kernel.org>; Mon, 31 Oct 2016 23:14:18 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mika.westerberg@linux.intel.com, leonard.crestez@intel.com
+Cc: wsa+renesas@sang-engineering.com, rafael.j.wysocki@intel.com, len.brown@intel.com, irina.tirdea@intel.com, octavian.purdila@intel.com, daniel.baluta@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Tin Huynh <tnhuynh@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
 
-Hello Russell,
-
-On 10/31/2016 4:02 AM, Russell King - ARM Linux wrote:
-> The subject line on this patch is misleading - it's not only ARM64
-> specific...
-Thank you for the feedback!
-
-I only put ARM64 in the subject line because this patch only really adds 
-guest SEA support for the ARM64 KVM code. The ARM code had to be edited 
-since both the ARM and ARM64 KVM code use arch/arm/kvm/mmu.c. I can 
-change the subject line to "arm/arm64: KVM: add guest SEA support" if 
-you think that is better.
-> On Fri, Oct 21, 2016 at 11:30:13AM -0600, Tyler Baicar wrote:
->> diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
->> index a3d61ad..86e1faa 100644
->> --- a/arch/arm/include/asm/system_misc.h
->> +++ b/arch/arm/include/asm/system_misc.h
->> @@ -24,4 +24,9 @@ extern unsigned int user_debug;
->>   
->>   #endif /* !__ASSEMBLY__ */
->>   
->> +inline int handle_guest_sea(unsigned long addr, unsigned int esr)
-> This needs to be static.
-I'll make this static.
-
-Thanks,
-Tyler
->> +{
->> +	return -1;
->> +}
+>From: Mika Westerberg <mika.westerberg@linux.intel.com>
+>Subject:=C2=A0Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when
+using DT ids through ACPI
+>Date: Monday 13th June 2016 09:26:55 UTC (5 months ago)
+>
+>On Fri, Jun 10, 2016 at 06:57:36PM +0300, Crestez Dan Leonard wrote:
+>> On 06/10/2016 09:32 AM, Mika Westerberg wrote:
+>> > On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
+>> >> When devices are instatiated through devicetree the i2c_client->name
+is
+>> >> set to the compatible string with company name stripped out. This is
+>> >> then matched to the i2c_device_id table to pass the device_id to the
+>> >> probe function. This id parameter is used by some device drivers to
+>> >> differentiate between model numbers.
+>> >>
+>> >> When using ACPI this id parameter is NULL and the driver usually
+needs
+>> >> to do ACPI-specific differentiation.
+>> >>
+>> >> This patch attempts to find a valid i2c_device_id when using ACPI
+with
+>> >> DT-like compatible strings.
+>> >
+>> > So I don't really understand why it would be good idea to pass
+>> > i2c_device_id for devices which are matched against their ACPI/DT
+>> > tables. Apparently DT is already doing that so maybe there is some
+>> > reason.
+>> >
+>> > Anyway, why not fill in the device name when it is first enumerated
+>> > if it uses DT compatible property? Just like DT does.
+>> >
+>> This automatic matching of i2c_device_id works for devicetree because
+>> of_i2c_register_device sets i2c_board_info.type to the compatible
+string
+>> with the vendor prefix removed. For I2C devices described via ACPI the
+>> i2c_board_info.type string is set to the ACPI device name. This ends up
+>> something like "PRP0001:00".
+>>
+>> This could be changed in acpi_i2c_get_info to use the of_compatible
+>> string from DSD if present. Is that what you mean? That would work and
+>> it would be cleaner than my patch. Something like this:
+>>
+>> diff --git drivers/i2c/i2c-core.c drivers/i2c/i2c-core.c
+>> index 1e0ef9b..ba2fe7f 100644
+>> --- drivers/i2c/i2c-core.c
+>> +++ drivers/i2c/i2c-core.c
+>> @@ -181,7 +181,24 @@ static int acpi_i2c_get_info(struct acpi_device
+>*adev,
+>>
+>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0acpi_dev_free_resource_l=
+ist(&resource_list);
+>>
+>> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 strlcpy(info->type, dev_name(&adev=
+->dev), sizeof(info->type));
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /*
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 * If we have a DT id set inf=
+o.type to the first compatible
+>> string with
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 * the vendor prefix stripped=
+. This is similar to
+>of_modalias_node
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 */
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (adev->data.of_compatible) {
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 const union acpi_object *obj;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 const char *str, *chr;
 >> +
->>   #endif /* __ASM_ARM_SYSTEM_MISC_H */
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 obj =3D adev->data.of_compatible;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0if (obj->type =3D=3D ACPI_TYPE_PACKAGE)
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 obj =3D obj=
+->package.elements;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 str =3D obj->string.pointer;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 chr =3D strchr(str, ',');
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 if (chr)
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 str =3D chr=
+ + 1;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 strlcpy(info->type, str, sizeof(info->type));
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 } else
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0 strlcpy(info->type, dev_name(&adev->dev),
+>> sizeof(info->type));
+>>
+>>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return 0;
+>>=C2=A0 }>
+>
+>Yes, that's what I mean.
+>
+>> The biggest concern is that this would change the i2c device name
+>> between kernel versions. Is that acceptable?
+>
+>I don't think that is a problem since I still have not seen a single
+>system using ACPI _DSD so I would not expect anything to break.
+>
+>However, I'm still not convinced it is good idea to return i2c_device_id
+>from a completely different table if we match using ACPI/DT table.
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+All,
+
+Is there a conclusion on this? We have been tackling the same issue and
+incidentally arrived at a
+similar solution as like Lenard proposed=C2=A0 in the patch above.
