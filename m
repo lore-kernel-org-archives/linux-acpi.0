@@ -1,133 +1,116 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCHv2 3/3] serial: 8250_dw: Add quirk for APM X-Gene SoC
- (was: BT / serial regression introduced during the recent 4.9-rc1 merge?)
-Date: Wed, 2 Nov 2016 10:37:02 +0200
-Message-ID: <20161102083702.GC11523@kuha.fi.intel.com>
-References: <1476815643.1658.3.camel@gmail.com>
- <1478019507.1676.23.camel@gmail.com>
- <CAJZ5v0jsPqtVgUs2wzyOSBh9+S7ksLFVwYzb4t7wEEyCUbsnzg@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2 34/37] docs: fix locations of several documents that
+	got moved
+Date: Wed, 2 Nov 2016 10:31:54 +0100
+Message-ID: <20161102093154.GC23350@amd>
+References: <cover.1476801354.git.mchehab@s-opensource.com>
+	<28c1f5d3867174a7017e3f3d9e9e4ebb096ceed8.1476801354.git.mchehab@s-opensource.com>
+	<20161019103442.GD1461@amd> <20161019115918.1162d16e@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57962 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752736AbcKBIhI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Nov 2016 04:37:08 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jsPqtVgUs2wzyOSBh9+S7ksLFVwYzb4t7wEEyCUbsnzg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7680369000982517778=="
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+In-Reply-To: <20161019115918.1162d16e@vento.lan>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Jaroslav Kysela <perex@perex.cz>, Chris Metcalf <cmetcalf@ezchip.com>, Peter Loeffler <peter.loeffler@guruz.at>, Finn Thain <fthain@telegraphics.com.au>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Jakub Wilk <jwilk@jwilk.net>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Guenter Roeck <linux@roeck-us.net>, Petr Mladek <pmladek@suse.com>, Jean Delvare <jdelvare@suse.com>, linux-pm@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Karsten Keil <isdn@linux-pingi.de>, Jiri Kosina <jkosina@suse.cz>, "seokhoon.yoon" <iamyooon@gmail.com>, Li Zefan <lizefan@huawei.com>, Ryan Swan <ryan@ryanswan.com>, Joe Perches <joe@perches.com>, Andrew Morton <akpm@linux-foundation.org>, Mark
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, =?iso-8859-1?B?Suly9G1l?= de Bretagne <jerome.debretagne@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kefeng Wang <wangkefeng.wang@huawei.com>, Feng Kan <fkan@apm.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>
-
-Hi,
-
-On Wed, Nov 02, 2016 at 04:49:42AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Nov 1, 2016 at 5:58 PM, Jérôme de Bretagne
-> <jerome.debretagne@gmail.com> wrote:
-> > Hi Heikki, Andy, Greg, Rafael,
-> >
-> > I've detected a regression on my Lenovo ThinkPad 8 tablet introduced during
-> > 4.9-rc1, preventing the built-in Bluetooth Broadcom chipset from properly
-> > initializing, with many timeout messages in dmesg like these:
-> >    "serial8250_interrupt: WXYZ callbacks suppressed"
-> >    "serial8250: too much work for irq39"
-> > cf. my earlier report on linux-bluetooth at the very end for reference.
-
-Jérôme! Could you send us acpidump output and your kernel
-configuration.
-
-> > After a long git bisect, I've found the commit that's triggering the issue:
-> >
-> > commit 20a875e2e86e73d13ec256781a7d55a7885868ec
-> > Author: Heikki Krogerus <heikki.krogerus@xxxxxxxxxxxxxxx>
-> > Date:   Tue Aug 23 11:33:28 2016 +0300
-> >
-> >     serial: 8250_dw: Add quirk for APM X-Gene SoC
-> >
-> >     The APM X-Gene SoC UART is the only board that still needs
-> >     the hard-coded values, so handle it separately in
-> >     dw8250_quirks(). The other ACPI platforms are able to
-> >     provide the values with device properties.
-> >
-> >     Signed-off-by: Heikki Krogerus <heikki.krogerus@xxxxxxxxxxxxxxx>
-> >     Reviewed-by: Andy Shevchenko <andriy.shevchenko@xxxxxxxxxxxxxxx>
-> >     Acked-by: Greg Kroah-Hartman <gregkh@xxxxxxxxxxxxxxxxxxx>
-> >     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@xxxxxxxxx>
-> >
-> > diff --git a/drivers/tty/serial/8250/8250_dw.c
-> > b/drivers/tty/serial/8250/8250_dw.c
-> > index e199696..5c0c123 100644
-> > --- a/drivers/tty/serial/8250/8250_dw.c
-> > +++ b/drivers/tty/serial/8250/8250_dw.c
-> > @@ -298,12 +298,17 @@ static void dw8250_quirks(struct uart_port *p, struct
-> > dw8250_data *data)
-> >                         p->serial_out = dw8250_serial_out32be;
-> >                 }
-> >         } else if (has_acpi_companion(p->dev)) {
-> > -               p->iotype = UPIO_MEM32;
-> > -               p->regshift = 2;
-> > -               p->serial_in = dw8250_serial_in32;
-> > +               const struct acpi_device_id *id;
-> > +
-> > +               id = acpi_match_device(p->dev->driver->acpi_match_table,
-> > +                                      p->dev);
-> > +               if (id && !strcmp(id->id, "APMC0D08")) {
-> > +                       p->iotype = UPIO_MEM32;
-> > +                       p->regshift = 2;
-> > +                       p->serial_in = dw8250_serial_in32;
-> > +                       data->uart_16550_compatible = true;
-> > +               }
-> >                 p->set_termios = dw8250_set_termios;
-> > -               /* So far none of there implement the Busy Functionality */
-> > -               data->uart_16550_compatible = true;
-> >         }
-> >
-> >         /* Platforms with iDMA */
-> >
-> >
-> > This is fully reproducible on my end: removing this specific patch gets rid
-> > of the issue; with the patch applied, Bluetooth simply doesn't work anymore.
-> >
-> > As opposed to the commit description, it seems that the Lenovo ThinkPad 8
-> > still needs the original hard-coded values currently (even if it could be
-> > possible to provide them in another way in the future, if I interpret the
-> > commit message the right way).
-> >
-> > Could this patch be reverted for the moment to remove the regression, until
-> > a proper fix is found?
-> 
-> Heikki, I don't think anything depends on this commit, is that correct?
-
-Unfortunately we can't fix the values for every UART that has ACPI
-companion like we did before anymore.
-
-There is at least one new platform, that the driver supports, which
-does not have the Designware UART in this "16550 compatible" mode, and
-I guess it's possible that there are others as well. And I guess the
-other values can also be what ever on those platforms.
-
-Jérôme, can you test if using the quirk on Baytrails works:
-
-@@ -302,7 +302,8 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
- 
-                id = acpi_match_device(p->dev->driver->acpi_match_table,
-                                       p->dev);
--               if (id && !strcmp(id->id, "APMC0D08")) {
-+               if (id && (!strcmp(id->id, "APMC0D08") ||
-+                   !strcmp(id->id, "80860F0A"))) {
-                        p->iotype = UPIO_MEM32;
-                        p->regshift = 2;
-                        p->serial_in = dw8250_serial_in32;
-
-Please note that this really is not a fix, not even a temporary one
-for this issue. There are a lot of Baytrails on the market. I just
-want to make sure there really is a problem delivering those values as
-device properties with your board.
 
 
-Thanks,
+--===============7680369000982517778==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+nBD6E3TurpgldQp"
+Content-Disposition: inline
 
--- 
-heikki
+
+--+nBD6E3TurpgldQp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > Dunno, but kernel-parameters.txt was already quite long... for a file
+> > that is referenced quite often. Adding admin-guide/ into the path does
+> > not really help.
+>=20
+> The big string name starts with Documentation/ :) There are some discussi=
+ons=20
+> about changing it to doc/ (or docs/). Also, as you said, kernel-parameters
+> is already a big name. Perhaps we could use, instead,
+> > "kernel-parms".
+
+cmdline?
+
+> If we rename kernel-parameters.rst to kernel-parms.rst, plus the doc/ ren=
+ame,
+> then the string size will actually reduce:
+>=20
+> -		(see Documentation/kernel-parameters.txt), the minimum possible
+> +		(see doc/admin-guide/kernel-parms.rst), the minimum possible
+>=20
+> > Maybe admin-guide should go directly into Documentation/ , as that's
+> > what our users are interested in?
+>=20
+> There are several problems if we keep them at Documentation/ dir:
+>=20
+> - We'll end by mixing documents already converted to ReST with documents
+>   not converted yet;
+>=20
+> - A rename is needed anyway, as Sphinx only accepts ReST files that end
+>   with the extension(s) defined at Documentation/conf.py (currently,
+>   .rst);
+>=20
+> - A partial documentation build is made by sub-directory. If we put
+>   files under /Documentation, there's no way to build just one
+>   book.
+
+Well, documentation is primarily for users. I'm sure tools can adapt...
+
+> > Plus, I'm not sure how many developers will figure out that process/
+> > is what describes kernel patch submission process. We have processes
+> > in the kernel, after all...
+>=20
+> Do you have a better idea?
+
+development/ ?
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--+nBD6E3TurpgldQp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgZsooACgkQMOfwapXb+vKDEwCdEmlwjrrTY1HV6PoP/Pyie4I+
+oBMAnjN0WHtyXtQBydl/7WLL5tES6tZi
+=EDvv
+-----END PGP SIGNATURE-----
+
+--+nBD6E3TurpgldQp--
+
+--===============7680369000982517778==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Virtualization mailing list
+Virtualization@lists.linux-foundation.org
+https://lists.linuxfoundation.org/mailman/listinfo/virtualization
+--===============7680369000982517778==--
