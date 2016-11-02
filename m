@@ -1,68 +1,47 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCHv2] PCI: QDF2432 32 bit config space accessors
-Date: Wed, 2 Nov 2016 11:41:50 -0500
-Message-ID: <20161102164150.GA10528@bhelgaas-glaptop.roam.corp.google.com>
-References: <20160921173129.GA20006@localhost>
- <20160921223805.21652-1-cov@codeaurora.org>
- <20161031214833.GB14603@bhelgaas-glaptop.roam.corp.google.com>
- <dbf40b73baa71155f39e13d6e51073aa@codeaurora.org>
- <20161102160820.GA6568@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dave Lambley <linux@davel.me.uk>
+Subject: [PATCH v2] Lenovo Yoga 300 battery support
+Date: Wed,  2 Nov 2016 18:37:26 +0000
+Message-ID: <1478111847-14653-1-git-send-email-linux@davel.me.uk>
+References: <1474153002-13904-1-git-send-email-linux@davel.me.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53950 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755184AbcKBQlz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 2 Nov 2016 12:41:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20161102160820.GA6568@bhelgaas-glaptop.roam.corp.google.com>
+Received: from smtp.the-lambleys.org.uk ([212.47.234.164]:46826 "EHLO
+        smtp.the-lambleys.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756572AbcKBSqD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Nov 2016 14:46:03 -0400
+In-Reply-To: <1474153002-13904-1-git-send-email-linux@davel.me.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: cov@codeaurora.org
-Cc: Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Dave Lambley <linux@davel.me.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Wed, Nov 02, 2016 at 11:08:20AM -0500, Bjorn Helgaas wrote:
-> On Tue, Nov 01, 2016 at 07:06:31AM -0600, cov@codeaurora.org wrote:
-> > Hi Bjorn,
-> > 
-> > On 2016-10-31 15:48, Bjorn Helgaas wrote:
-> > >On Wed, Sep 21, 2016 at 06:38:05PM -0400, Christopher Covington wrote:
-> > >>The Qualcomm Technologies QDF2432 SoC does not support accesses
-> > >>smaller
-> > >>than 32 bits to the PCI configuration space. Register the appropriate
-> > >>quirk.
-> > >>
-> > >>Signed-off-by: Christopher Covington <cov@codeaurora.org>
-> > >
-> > >Hi Christopher,
-> > >
-> > >Can you rebase this against v4.9-rc1?  It no longer applies to my tree.
-> > 
-> > I apologize for not being clearer. This patch depends on:
-> > 
-> > PCI/ACPI: Extend pci_mcfg_lookup() responsibilities
-> > PCI/ACPI: Check platform-specific ECAM quirks
-> > 
-> > These patches from Tomasz Nowicki were previously in your pci/ecam-v6
-> > branch, but that seems to have come and gone. How would you like to
-> > proceed?
-> 
-> Oh yes, that's right, I forgot that connection.  I'm afraid I kind of
-> dropped the ball on that thread, so I went back and read through it
-> again.
-> 
-> I *think* the current state is:
-> 
->   - I'm OK with the first two patches that add the quirk
->     infrastructure.
-> 
->   - My issue with the last three patches that add ThunderX quirks is
->     that there's no generic description of the ECAM address space.
-> 
-> So if I understand correctly, your Qualcomm patch depends only on the
-> first two patches.
+This patch allows Linux to detect the battery in the Lenovo Yoga 300
+laptop. It does this by tolerating a bug in the firmware which breaks the
+_BIX method but not _BIF. Without this patch, the battery is not presented
+to userland.
 
-I put those first two patches and yours on pci/ecam-v6 and pushed it
-again, so you can check it out.
+On a system with non-buggy firmware, the behaviour should be unchanged.
 
-Bjorn
+With the patch, something like this gets logged,
+
+[ 3004.858993] ACPI Exception: AE_AML_PACKAGE_LIMIT, Index (0x000000010) is beyond end of object (length 0xD) (20160831/exoparg2-427)
+[ 3004.859015] ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.H_EC.BAT1._BIX] (Node ffff955bbb0b32d0), AE_AML_PACKAGE_LIMIT (20160831/psparse-543)
+[ 3004.859038] ACPI Exception: AE_AML_PACKAGE_LIMIT, Evaluating _BIX (20160831/battery-493)
+[ 3004.873413] [Firmware Bug]: The _BIX method is broken, using _BIF.
+
+v1 -> v2
+	- Log when falling back to _BIF method.
+	- Rebased against v4.9-rc2.
+
+Signed-off-by: Dave Lambley <linux@davel.me.uk>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+
+Dave Lambley (1):
+  If _BIX fails, retry with _BIF.
+
+ drivers/acpi/battery.c | 72 +++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 48 insertions(+), 24 deletions(-)
+
+-- 
+2.7.4
+
