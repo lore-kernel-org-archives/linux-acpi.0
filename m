@@ -1,106 +1,210 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCHv2] PCI: QDF2432 32 bit config space accessors
-Date: Thu, 3 Nov 2016 09:00:58 -0500
-Message-ID: <20161103140058.GA31142@bhelgaas-glaptop.roam.corp.google.com>
-References: <20160921173129.GA20006@localhost>
- <20160921223805.21652-1-cov@codeaurora.org>
- <20161031214833.GB14603@bhelgaas-glaptop.roam.corp.google.com>
- <dbf40b73baa71155f39e13d6e51073aa@codeaurora.org>
- <20161102160820.GA6568@bhelgaas-glaptop.roam.corp.google.com>
- <3fd26a0d-a5c2-c385-866e-b957dffb7dda@codeaurora.org>
+From: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH] ACPI / platform: Add support for build-in properties
+Date: Thu,  3 Nov 2016 16:21:26 +0200
+Message-ID: <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
+References: <20161102154139.GD11523@kuha.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:52016 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752152AbcKCOBJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 3 Nov 2016 10:01:09 -0400
-Content-Disposition: inline
-In-Reply-To: <3fd26a0d-a5c2-c385-866e-b957dffb7dda@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161102154139.GD11523-FZxXFokcWpatqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?J=C3=A9r=C3=B4me=20de=20Bretagne?= <jerome.debretagne-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kefeng Wang <wangkefeng.wang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Nov 02, 2016 at 12:36:16PM -0400, Sinan Kaya wrote:
-> Hi Bjorn,
-> 
-> On 11/2/2016 12:08 PM, Bjorn Helgaas wrote:
-> > On Tue, Nov 01, 2016 at 07:06:31AM -0600, cov@codeaurora.org wrote:
-> >> Hi Bjorn,
-> >>
-> >> On 2016-10-31 15:48, Bjorn Helgaas wrote:
-> >>> On Wed, Sep 21, 2016 at 06:38:05PM -0400, Christopher Covington wrote:
-> >>>> The Qualcomm Technologies QDF2432 SoC does not support accesses
-> >>>> smaller
-> >>>> than 32 bits to the PCI configuration space. Register the appropriate
-> >>>> quirk.
-> >>>>
-> >>>> Signed-off-by: Christopher Covington <cov@codeaurora.org>
-> >>>
-> >>> Hi Christopher,
-> >>>
-> >>> Can you rebase this against v4.9-rc1?  It no longer applies to my tree.
-> >>
-> >> I apologize for not being clearer. This patch depends on:
-> >>
-> >> PCI/ACPI: Extend pci_mcfg_lookup() responsibilities
-> >> PCI/ACPI: Check platform-specific ECAM quirks
-> >>
-> >> These patches from Tomasz Nowicki were previously in your pci/ecam-v6
-> >> branch, but that seems to have come and gone. How would you like to
-> >> proceed?
-> > 
-> > Oh yes, that's right, I forgot that connection.  I'm afraid I kind of
-> > dropped the ball on that thread, so I went back and read through it
-> > again.
-> > 
-> > I *think* the current state is:
-> > 
-> >   - I'm OK with the first two patches that add the quirk
-> >     infrastructure.
-> > 
-> >   - My issue with the last three patches that add ThunderX quirks is
-> >     that there's no generic description of the ECAM address space.
-> > 
-> > So if I understand correctly, your Qualcomm patch depends only on the
-> > first two patches.
-> > 
-> > Then the question is how the Qualcomm ECAM address space is described.
-> > Your quirk overrides the default pci_generic_ecam_ops with the
-> > &pci_32b_ops, but it doesn't touch the address space part, so I assume
-> > the bus ranges and corresponding address space in your MCFG is
-> > correct.  So far, so good.
-> 
-> Qualcomm ECAM space includes both the root port and the endpoint address
-> space with a single contiguous 256 MB address space described in MCFG table.
-> There is no need to describe additional resources like PNP0C02.
+We have a couple of drivers, acpi_apd.c and acpi_lpss.c,
+that need to pass extra build-in properties to the devices
+they create. Previously the drivers added those properties
+to the struct device which is member of the struct
+acpi_device, but that does not work. Those properties need
+to be assigned to the struct device of the platform device
+instead in order for them to become available to the
+drivers.
 
-This is the crucial point I have failed to communicate clearly: the
-PNP0C02 resource is *always* required, even if the MCFG is correct.
+To fix this, this patch changes acpi_create_platform_device
+function to take struct property_entry pointer as parameter.
 
-The reason is that MCFG is a PCI-specific table, and it should be
-possible to boot a kernel with no PCI support.  That kernel will not
-look at the MCFG.  The PCI hardware will still be present and will
-still consume the ECAM space, so the OS must be able to discover that
-the ECAM space is not available for other devices.
+Fixes: 20a875e2e86e ("serial: 8250_dw: Add quirk for APM X-Gene SoC")
+Signed-off-by: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/acpi/acpi_apd.c             | 10 ++--------
+ drivers/acpi/acpi_lpss.c            | 10 ++--------
+ drivers/acpi/acpi_platform.c        |  5 ++++-
+ drivers/acpi/dptf/int340x_thermal.c |  4 ++--
+ drivers/acpi/scan.c                 |  2 +-
+ drivers/platform/x86/intel-hid.c    |  2 +-
+ drivers/platform/x86/intel-vbtn.c   |  2 +-
+ include/linux/acpi.h                |  3 ++-
+ 8 files changed, 15 insertions(+), 23 deletions(-)
 
-The usual way to for the OS to discover that would be via the _CRS of
-a PNP0A03 or PNP0A08 host bridge device.  _CRS is what I mean by a
-"generic" way to describe this address space, because the ACPI core
-can interpret _CRS for all ACPI devices, even if the kernel doesn't
-contain drivers for all of those devices.
+Hi,
 
-It turns out that we can't use the _CRS of host bridges because of the
-Producer/Consumer bit screwup [1].  So the fallback is to include the
-ECAM space in the _CRS of a PNP0C02 device.  This is what the PCI
-Firmware spec r3.0, Table 4-2, footnote 2 is talking about.
+Found the problem, and this is my proposal for a fix.
 
-Bjorn
+Jérôme, please test it when you have time.
 
-[1] The original ACPI spec intent was that Consumer resources would be
-space like ECAM that is consumed directly by the bridge, and Producer
-resources would be the windows forwarded down to PCI.  But BIOSes
-didn't use the Producer/Consumer bit consistently, so we have to
-assume that all resources in host bridge _CRS are windows, which
-leaves us no way to describe the Consumer resources.
+
+Thanks,
+
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 5ec7f3a..26696b6 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -127,7 +127,7 @@ static int acpi_apd_create_device(struct acpi_device *adev,
+ 	int ret;
+ 
+ 	if (!dev_desc) {
+-		pdev = acpi_create_platform_device(adev);
++		pdev = acpi_create_platform_device(adev, NULL);
+ 		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
+ 	}
+ 
+@@ -144,14 +144,8 @@ static int acpi_apd_create_device(struct acpi_device *adev,
+ 			goto err_out;
+ 	}
+ 
+-	if (dev_desc->properties) {
+-		ret = device_add_properties(&adev->dev, dev_desc->properties);
+-		if (ret)
+-			goto err_out;
+-	}
+-
+ 	adev->driver_data = pdata;
+-	pdev = acpi_create_platform_device(adev);
++	pdev = acpi_create_platform_device(adev, dev_desc->properties);
+ 	if (!IS_ERR_OR_NULL(pdev))
+ 		return 1;
+ 
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 5520102..373657f 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -395,7 +395,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 
+ 	dev_desc = (const struct lpss_device_desc *)id->driver_data;
+ 	if (!dev_desc) {
+-		pdev = acpi_create_platform_device(adev);
++		pdev = acpi_create_platform_device(adev, NULL);
+ 		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
+ 	}
+ 	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+@@ -451,14 +451,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 		goto err_out;
+ 	}
+ 
+-	if (dev_desc->properties) {
+-		ret = device_add_properties(&adev->dev, dev_desc->properties);
+-		if (ret)
+-			goto err_out;
+-	}
+-
+ 	adev->driver_data = pdata;
+-	pdev = acpi_create_platform_device(adev);
++	pdev = acpi_create_platform_device(adev, dev_desc->properties);
+ 	if (!IS_ERR_OR_NULL(pdev)) {
+ 		return 1;
+ 	}
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index b200ae1..b4c1a6a 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -50,6 +50,7 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
+ /**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
++ * @properties: Optional collection of build-in properties.
+  *
+  * Check if the given @adev can be represented as a platform device and, if
+  * that's the case, create and register a platform device, populate its common
+@@ -57,7 +58,8 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
+  *
+  * Name of the platform device will be the same as @adev's.
+  */
+-struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
++struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
++					struct property_entry *properties)
+ {
+ 	struct platform_device *pdev = NULL;
+ 	struct platform_device_info pdevinfo;
+@@ -106,6 +108,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 	pdevinfo.res = resources;
+ 	pdevinfo.num_res = count;
+ 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
++	pdevinfo.properties = properties;
+ 
+ 	if (acpi_dma_supported(adev))
+ 		pdevinfo.dma_mask = DMA_BIT_MASK(32);
+diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int340x_thermal.c
+index 33505c6..8636409 100644
+--- a/drivers/acpi/dptf/int340x_thermal.c
++++ b/drivers/acpi/dptf/int340x_thermal.c
+@@ -34,11 +34,11 @@ static int int340x_thermal_handler_attach(struct acpi_device *adev,
+ 					const struct acpi_device_id *id)
+ {
+ 	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
+-		acpi_create_platform_device(adev);
++		acpi_create_platform_device(adev, NULL);
+ 	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
+ 	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
+ 		 id->driver_data == INT3401_DEVICE)
+-		acpi_create_platform_device(adev);
++		acpi_create_platform_device(adev, NULL);
+ 	return 1;
+ }
+ 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 035ac64..3d1856f 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1734,7 +1734,7 @@ static void acpi_default_enumeration(struct acpi_device *device)
+ 			       &is_spi_i2c_slave);
+ 	acpi_dev_free_resource_list(&resource_list);
+ 	if (!is_spi_i2c_slave) {
+-		acpi_create_platform_device(device);
++		acpi_create_platform_device(device, NULL);
+ 		acpi_device_set_enumerated(device);
+ 	} else {
+ 		blocking_notifier_call_chain(&acpi_reconfig_chain,
+diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/intel-hid.c
+index ed58742..12dbb50 100644
+--- a/drivers/platform/x86/intel-hid.c
++++ b/drivers/platform/x86/intel-hid.c
+@@ -264,7 +264,7 @@ check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		return AE_OK;
+ 
+ 	if (acpi_match_device_ids(dev, ids) == 0)
+-		if (acpi_create_platform_device(dev))
++		if (acpi_create_platform_device(dev, NULL))
+ 			dev_info(&dev->dev,
+ 				 "intel-hid: created platform device\n");
+ 
+diff --git a/drivers/platform/x86/intel-vbtn.c b/drivers/platform/x86/intel-vbtn.c
+index 146d02f..7808076 100644
+--- a/drivers/platform/x86/intel-vbtn.c
++++ b/drivers/platform/x86/intel-vbtn.c
+@@ -164,7 +164,7 @@ check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		return AE_OK;
+ 
+ 	if (acpi_match_device_ids(dev, ids) == 0)
+-		if (acpi_create_platform_device(dev))
++		if (acpi_create_platform_device(dev, NULL))
+ 			dev_info(&dev->dev,
+ 				 "intel-vbtn: created platform device\n");
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 689a8b9..61a3d90 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -555,7 +555,8 @@ int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+ int acpi_device_modalias(struct device *, char *, int);
+ void acpi_walk_dep_device_list(acpi_handle handle);
+ 
+-struct platform_device *acpi_create_platform_device(struct acpi_device *);
++struct platform_device *acpi_create_platform_device(struct acpi_device *,
++						    struct property_entry *);
+ #define ACPI_PTR(_ptr)	(_ptr)
+ 
+ static inline void acpi_device_set_enumerated(struct acpi_device *adev)
+-- 
+2.9.3
