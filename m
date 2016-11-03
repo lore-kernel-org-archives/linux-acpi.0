@@ -1,210 +1,154 @@
-From: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH] ACPI / platform: Add support for build-in properties
-Date: Thu,  3 Nov 2016 16:21:26 +0200
-Message-ID: <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
-References: <20161102154139.GD11523@kuha.fi.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Thu, 3 Nov 2016 15:04:10 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
+References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161102154139.GD11523-FZxXFokcWpatqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?J=C3=A9r=C3=B4me=20de=20Bretagne?= <jerome.debretagne-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kefeng Wang <wangkefeng.wang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:45149 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757858AbcKCPEP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 3 Nov 2016 11:04:15 -0400
+In-Reply-To: <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-We have a couple of drivers, acpi_apd.c and acpi_lpss.c,
-that need to pass extra build-in properties to the devices
-they create. Previously the drivers added those properties
-to the struct device which is member of the struct
-acpi_device, but that does not work. Those properties need
-to be assigned to the struct device of the platform device
-instead in order for them to become available to the
-drivers.
-
-To fix this, this patch changes acpi_create_platform_device
-function to take struct property_entry pointer as parameter.
-
-Fixes: 20a875e2e86e ("serial: 8250_dw: Add quirk for APM X-Gene SoC")
-Signed-off-by: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/acpi/acpi_apd.c             | 10 ++--------
- drivers/acpi/acpi_lpss.c            | 10 ++--------
- drivers/acpi/acpi_platform.c        |  5 ++++-
- drivers/acpi/dptf/int340x_thermal.c |  4 ++--
- drivers/acpi/scan.c                 |  2 +-
- drivers/platform/x86/intel-hid.c    |  2 +-
- drivers/platform/x86/intel-vbtn.c   |  2 +-
- include/linux/acpi.h                |  3 ++-
- 8 files changed, 15 insertions(+), 23 deletions(-)
-
-Hi,
-
-Found the problem, and this is my proposal for a fix.
-
-Jérôme, please test it when you have time.
-
-
-Thanks,
-
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 5ec7f3a..26696b6 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -127,7 +127,7 @@ static int acpi_apd_create_device(struct acpi_device *adev,
- 	int ret;
- 
- 	if (!dev_desc) {
--		pdev = acpi_create_platform_device(adev);
-+		pdev = acpi_create_platform_device(adev, NULL);
- 		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
- 	}
- 
-@@ -144,14 +144,8 @@ static int acpi_apd_create_device(struct acpi_device *adev,
- 			goto err_out;
- 	}
- 
--	if (dev_desc->properties) {
--		ret = device_add_properties(&adev->dev, dev_desc->properties);
--		if (ret)
--			goto err_out;
--	}
--
- 	adev->driver_data = pdata;
--	pdev = acpi_create_platform_device(adev);
-+	pdev = acpi_create_platform_device(adev, dev_desc->properties);
- 	if (!IS_ERR_OR_NULL(pdev))
- 		return 1;
- 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 5520102..373657f 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -395,7 +395,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 
- 	dev_desc = (const struct lpss_device_desc *)id->driver_data;
- 	if (!dev_desc) {
--		pdev = acpi_create_platform_device(adev);
-+		pdev = acpi_create_platform_device(adev, NULL);
- 		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
- 	}
- 	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-@@ -451,14 +451,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 		goto err_out;
- 	}
- 
--	if (dev_desc->properties) {
--		ret = device_add_properties(&adev->dev, dev_desc->properties);
--		if (ret)
--			goto err_out;
--	}
--
- 	adev->driver_data = pdata;
--	pdev = acpi_create_platform_device(adev);
-+	pdev = acpi_create_platform_device(adev, dev_desc->properties);
- 	if (!IS_ERR_OR_NULL(pdev)) {
- 		return 1;
- 	}
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index b200ae1..b4c1a6a 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -50,6 +50,7 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-+ * @properties: Optional collection of build-in properties.
-  *
-  * Check if the given @adev can be represented as a platform device and, if
-  * that's the case, create and register a platform device, populate its common
-@@ -57,7 +58,8 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
-  *
-  * Name of the platform device will be the same as @adev's.
-  */
--struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
-+struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
-+					struct property_entry *properties)
- {
- 	struct platform_device *pdev = NULL;
- 	struct platform_device_info pdevinfo;
-@@ -106,6 +108,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	pdevinfo.res = resources;
- 	pdevinfo.num_res = count;
- 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
-+	pdevinfo.properties = properties;
- 
- 	if (acpi_dma_supported(adev))
- 		pdevinfo.dma_mask = DMA_BIT_MASK(32);
-diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int340x_thermal.c
-index 33505c6..8636409 100644
---- a/drivers/acpi/dptf/int340x_thermal.c
-+++ b/drivers/acpi/dptf/int340x_thermal.c
-@@ -34,11 +34,11 @@ static int int340x_thermal_handler_attach(struct acpi_device *adev,
- 					const struct acpi_device_id *id)
- {
- 	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
--		acpi_create_platform_device(adev);
-+		acpi_create_platform_device(adev, NULL);
- 	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
- 	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
- 		 id->driver_data == INT3401_DEVICE)
--		acpi_create_platform_device(adev);
-+		acpi_create_platform_device(adev, NULL);
- 	return 1;
- }
- 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 035ac64..3d1856f 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1734,7 +1734,7 @@ static void acpi_default_enumeration(struct acpi_device *device)
- 			       &is_spi_i2c_slave);
- 	acpi_dev_free_resource_list(&resource_list);
- 	if (!is_spi_i2c_slave) {
--		acpi_create_platform_device(device);
-+		acpi_create_platform_device(device, NULL);
- 		acpi_device_set_enumerated(device);
- 	} else {
- 		blocking_notifier_call_chain(&acpi_reconfig_chain,
-diff --git a/drivers/platform/x86/intel-hid.c b/drivers/platform/x86/intel-hid.c
-index ed58742..12dbb50 100644
---- a/drivers/platform/x86/intel-hid.c
-+++ b/drivers/platform/x86/intel-hid.c
-@@ -264,7 +264,7 @@ check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
- 		return AE_OK;
- 
- 	if (acpi_match_device_ids(dev, ids) == 0)
--		if (acpi_create_platform_device(dev))
-+		if (acpi_create_platform_device(dev, NULL))
- 			dev_info(&dev->dev,
- 				 "intel-hid: created platform device\n");
- 
-diff --git a/drivers/platform/x86/intel-vbtn.c b/drivers/platform/x86/intel-vbtn.c
-index 146d02f..7808076 100644
---- a/drivers/platform/x86/intel-vbtn.c
-+++ b/drivers/platform/x86/intel-vbtn.c
-@@ -164,7 +164,7 @@ check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
- 		return AE_OK;
- 
- 	if (acpi_match_device_ids(dev, ids) == 0)
--		if (acpi_create_platform_device(dev))
-+		if (acpi_create_platform_device(dev, NULL))
- 			dev_info(&dev->dev,
- 				 "intel-vbtn: created platform device\n");
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 689a8b9..61a3d90 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -555,7 +555,8 @@ int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
- int acpi_device_modalias(struct device *, char *, int);
- void acpi_walk_dep_device_list(acpi_handle handle);
- 
--struct platform_device *acpi_create_platform_device(struct acpi_device *);
-+struct platform_device *acpi_create_platform_device(struct acpi_device *,
-+						    struct property_entry *);
- #define ACPI_PTR(_ptr)	(_ptr)
- 
- static inline void acpi_device_set_enumerated(struct acpi_device *adev)
--- 
-2.9.3
+SGksDQoNCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdt
+YWlsLmNvbV0NCj4gU3ViamVjdDogUmU6IEZpeCBpbiBBQ1BJQ0EgdG9vbHMgYnJva2UgY3Jvc3Mg
+Y29tcGlsYXRpb24gb2YgdG9vbHMvcG93ZXIvYWNwaQ0KPiANCj4gT24gU3VuLCBPY3QgMzAsIDIw
+MTYgYXQgOTowNCBBTSwgWmhlbmcsIEx2IDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+
+IEhpLCBBbmR5DQo+ID4NCj4gPj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5v
+cmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9m
+IFpoZW5nLA0KPiA+PiBMdg0KPiA+PiBTdWJqZWN0OiBSRTogRml4IGluIEFDUElDQSB0b29scyBi
+cm9rZSBjcm9zcyBjb21waWxhdGlvbiBvZiB0b29scy9wb3dlci9hY3BpDQo+ID4+DQo+ID4+IEhp
+LA0KPiA+Pg0KPiA+PiA+IEZyb206IEFuZHkgU2hldmNoZW5rbyBbbWFpbHRvOmFuZHkuc2hldmNo
+ZW5rb0BnbWFpbC5jb21dDQo+ID4+ID4gU3ViamVjdDogUmU6IEZpeCBpbiBBQ1BJQ0EgdG9vbHMg
+YnJva2UgY3Jvc3MgY29tcGlsYXRpb24gb2YgdG9vbHMvcG93ZXIvYWNwaQ0KPiA+PiA+DQo+ID4+
+ID4gT24gU2F0LCBPY3QgMjksIDIwMTYgYXQgMzoyMyBBTSwgWmhlbmcsIEx2IDxsdi56aGVuZ0Bp
+bnRlbC5jb20+IHdyb3RlOg0KPiA+PiA+ID4gSGksDQo+ID4+ID4gPg0KPiA+PiA+ID4gUGxlYXNl
+IHRyeSB0aGlzIHBhdGNoOg0KPiA+PiA+ID4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9w
+YXRjaC85MzkyMTU1Lw0KPiA+PiA+ID4gV2hpY2ggbWFrZXMgdG9vbHMvcG93ZXIvYWNwaSBidWls
+ZCBtb3JlIHJvYnVzdCB0byBzdXJ2aXZlIHRvb2xjaGFpbnMgdGhhdCBhcmUgbm90IGdlbmVyYXRl
+ZA0KPiBmcm9tDQo+ID4+IHRoZQ0KPiA+PiA+IGN1cnJlbnQga2VybmVsIGhlYWRlci4NCj4gPj4g
+Pg0KPiA+PiA+DQo+ID4+ID4gQmV0dGVyLCBidXQgbm8sIGl0IGRvZXNuJ3QgZnVsbHkgZml4IHRo
+ZSBpc3N1ZS4NCj4gPj4gPg0KPiA+PiA+ICBERVNDRU5EICBwb3dlci9hY3BpDQo+ID4+ID4gIERF
+U0NFTkQgIHRvb2xzL2FjcGlkYmcNCj4gPj4gPiBvdXRwdXQvaG9zdC91c3IvYmluL2k1ODYtYnVp
+bGRyb290LWxpbnV4LXVjbGliYy1nY2MgLURfTElOVVgNCj4gPj4gPiAtSS4uLy4uLy4uL2luY2x1
+ZGUgLUkuLg0KPiA+PiA+IC8uLi8uLi9kcml2ZXJzL2FjcGkvYWNwaWNhIC1XYWxsIC1Xc3RyaWN0
+LXByb3RvdHlwZXMNCj4gPj4gPiAtV2RlY2xhcmF0aW9uLWFmdGVyLXN0YXRlbWVudCAtTzEgLWcg
+LURERUJVRyAtREFDUElfQVBQTElDQVRJDQo+ID4+ID4gT04gLURBQ1BJX1NJTkdMRV9USFJFQUQg
+LURBQ1BJX0RFQlVHR0VSIC1JLg0KPiA+PiA+IC1JLi4vLi4vLi4vLi4vLi4vZHJpdmVycy9hY3Bp
+L2FjcGljYSAtSS4uLy4uL2luY2x1ZGUgICAtYyAtbyBhY3BpZGJnLm8NCj4gPj4gPiBhY3BpZGJn
+LmMNCj4gPj4gPiBhY3BpZGJnLmM6MTI6MjM6IGZhdGFsIGVycm9yOiBhY3BpL2FjcGkuaDogTm8g
+c3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KPiA+PiA+ICNpbmNsdWRlIDxhY3BpL2FjcGkuaD4NCj4g
+Pj4gPiAgICAgICAgICAgICAgICAgICAgICAgXg0KPiA+DQo+ID4gSG93IGRpZCB5b3UgdHJpZ2dl
+ciB0aGlzPw0KPiANCj4gSSdtIGNvbXBpbGluZyBpdCBhcyBhIHBhY2thZ2UgaW4gQnVpbGRyb290
+IGVudmlyb25tZW50IHdoaWNoIHVzZXMNCj4gdUNsaWJjIGFuZCBjcm9zcyBjb21waWxlci4NCg0K
+QnVpbGRSb290IG1heSBoYXZlIHN0cmFuZ2Ugc3RlcHMgbWVzc2luZyB1cCAkc3JjdHJlZS4NCg0K
+PiANCj4gPiBJIGp1c3QgdHJpZWQgdG8gY3Jvc3MgY29tcGlsZSBhbGwgdG9vbHMsIHNpbWlsYXIg
+ZmFpbHVyZXMgY2FuIGJlIHNlZW4gb24gbWFueSBvdGhlciB0b29scy4NCj4gPg0KPiA+IENvdWxk
+IHlvdSBzdGF5IGluIHRoZSBrZXJuZWwgc3JjdHJlZSwgYW5kDQo+IA0KPiBJJ20gYWZyYWlkIEkg
+Y2FuJ3QgZG8gZXhhY3RseSB0aGlzIG9uZS4gSSdtIHVzaW5nIG1ha2UNCj4gTz0vcGF0aC90by9r
+ZXJuZWwvYnVpbGQuIEJ1dCBJIHdpbGwgdHJ5IHRvIGxvb2sgd2hhdCBJIGhhdmUgdGhlcmUuDQoN
+Ckkgc3RpbGwgZG9uJ3Qga25vdyBob3cgaXQgaXMgYnJva2VuIHRoZXJlLg0KQXMgdGhlIG5ldyBp
+bmNsdWRlIGxpbmsgaXMgb25seSBpbiAkc3JjdHJlZSwgbm90IGluICRvYmp0cmVlLg0KDQpIb3dl
+dmVyLCBJJ2xsIHJldmlzZSB0aGUgY2hhbmdlLCBtb3ZpbmcgdGhlIG5ldyBpbmNsdWRlIGZvbGRl
+ciB0byBvYmp0cmVlLg0KWW91IGNhbiB0cnkgdGhlIG5leHQgcmV2aXNpb24uDQoNClRoYW5rcyBh
+bmQgYmVzdCByZWdhcmRzDQpMdg0KDQo+IA0KPiA+ICMgY2QgdG9vbHMNCj4gPiAjIG1ha2UgQVJD
+SD15b3VyX2FyY2ggQ1JPU1NfQ09NUElMRT15b3VyX2NvbXBpbGVyLXByZWZpeCBhY3BpX2NsZWFu
+DQo+ID4gIyBtYWtlIEFSQ0g9eW91cl9hcmNoIENST1NTX0NPTVBJTEU9eW91cl9jb21waWxlci1w
+cmVmaXggYWNwaQ0KPiA+ICMgbHMgcG93ZXIvYWNwaS9pbmNsdWRlL2FjcGkNCj4gPg0KPiA+IFdo
+YXQgd2lsbCBiZSBzaG93biB0aGVuPw0KPiANCj4gJCBscyAtbCB0b29scy9wb3dlci9hY3BpLw0K
+PiB0b3RhbCA0DQo+IGRyd3hyLXhyLXggMyBhbmR5IGFuZHkgNDA5NiBPY3QgMjkgMTk6MDMgdG9v
+bHMNCj4gDQo+IFRoZXJlIGlzIG5vIGluY2x1ZGUgZm9sZGVyLg0KPiANCj4gPg0KPiA+IFRoYW5r
+cyBhbmQgYmVzdCByZWdhcmRzDQo+ID4gTHYNCj4gPg0KPiA+PiA+IGNvbXBpbGF0aW9uIHRlcm1p
+bmF0ZWQuDQo+ID4+ID4gPGJ1aWx0aW4+OiByZWNpcGUgZm9yIHRhcmdldCAnYWNwaWRiZy5vJyBm
+YWlsZWQNCj4gPj4NCj4gPj4gSWYgeW91IG1lYW4gdGhpcyBsaW5lIGlzIG5vdCBjb3JyZWN0Og0K
+PiA+PiArICAgICBsbiAtcyAuLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkgaW5jbHVkZS9hY3BpDQo+
+ID4+IEknbGwgdHJ5IHRvIGltcHJvdmUgaXQuDQo+ID4+DQo+ID4+IFRoYW5rcw0KPiA+PiBMdg0K
+PiA+Pg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+ID4NCj4gPj4gPiA+IFRoYW5rcw0K
+PiA+PiA+ID4gTHYNCj4gPj4gPiA+DQo+ID4+ID4gPj4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFtt
+YWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gPj4gPiA+PiBTdWJqZWN0OiBGaXgg
+aW4gQUNQSUNBIHRvb2xzIGJyb2tlIGNyb3NzIGNvbXBpbGF0aW9uIG9mIHRvb2xzL3Bvd2VyL2Fj
+cGkNCj4gPj4gPiA+Pg0KPiA+PiA+ID4+IEhpIQ0KPiA+PiA+ID4+DQo+ID4+ID4gPj4gUmV2ZXJ0
+aW5nIG9mIHRoZSBjb21taXQgZTMyM2MwMmRlZTU5ICgiQUNQSUNBOiBNU1ZDOTogRml4IDxzeXMv
+c3RhdC5oPg0KPiA+PiA+ID4+IGluY2x1c2lvbiBvcmRlciBpc3N1ZSIpIGZpeGVzIHRoZSBmb2xs
+b3dpbmcgaXNzdWU6DQo+ID4+ID4gPj4NCj4gPj4gPiA+PiAgIERFU0NFTkQgIHBvd2VyL2FjcGkN
+Cj4gPj4gPiA+PiAgIERFU0NFTkQgIHRvb2xzL2FjcGlkYmcNCj4gPj4gPiA+PiBvdXRwdXQvaG9z
+dC91c3IvYmluL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy1nY2MgLURfTElOVVgNCj4gPj4g
+PiA+PiAtSS4uLy4uLy4uL2luY2x1ZGUgLUkuLi8uLi8uLi9kcml2ZXJzL2FjcGkvYWNwaWNhIC1X
+YWxsDQo+ID4+ID4gPj4gLVdzdHJpY3QtcHJvdG90eXBlcyAtV2RlY2xhcmF0aW9uLWFmdGVyLXN0
+YXRlbWVudCAtTzEgLWcgLURERUJVRw0KPiA+PiA+ID4+IC1EQUNQSV9BUFBMSUNBVElPTiAtREFD
+UElfU0lOR0xFX1RIUkVBRCAtREFDUElfREVCVUdHRVIgLUkuDQo+ID4+ID4gPj4gLUkuLi8uLi8u
+Li8uLi8uLi9kcml2ZXJzL2FjcGkvYWNwaWNhIC1JLi4vLi4vLi4vLi4vLi4vaW5jbHVkZSAgIC1j
+IC1vDQo+ID4+ID4gPj4gYWNwaWRiZy5vIGFjcGlkYmcuYw0KPiA+PiA+ID4+IEluIGZpbGUgaW5j
+bHVkZWQgZnJvbQ0KPiA+PiA+ID4+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51
+eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5jbHVkZS9hc20vc2lnY29udGV4dC5oOjE4OjAsDQo+ID4+
+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tDQo+ID4+ID4gPj4gb3V0cHV0L2hvc3QvdXNyL2k1
+ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9pbmNsdWRlL2JpdHMvc2lnY29u
+dGV4dC5oOjMwLA0KPiA+PiA+ID4+ICAgICAgICAgICAgICAgICAgZnJvbQ0KPiA+PiA+ID4+IG91
+dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3IvaW5j
+bHVkZS9zaWduYWwuaDozMzUsDQo+ID4+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tIC4uLy4u
+Ly4uLy4uLy4uL2luY2x1ZGUvYWNwaS9wbGF0Zm9ybS9hY2Vudi5oOjM2NSwNCj4gPj4gPiA+PiAg
+ICAgICAgICAgICAgICAgIGZyb20gLi4vLi4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL2FjcGkuaDo1
+NiwNCj4gPj4gPiA+PiAgICAgICAgICAgICAgICAgIGZyb20gYWNwaWRiZy5jOjEyOg0KPiA+PiA+
+ID4+IC4uLy4uLy4uLy4uLy4uL2luY2x1ZGUvbGludXgvdHlwZXMuaDoxNDoyNjogZXJyb3I6IGNv
+bmZsaWN0aW5nIHR5cGVzDQo+ID4+ID4gPj4gZm9yIOKAmGZkX3NldOKAmQ0KPiA+PiA+ID4+ICB0
+eXBlZGVmIF9fa2VybmVsX2ZkX3NldCAgZmRfc2V0Ow0KPiA+PiA+ID4+ICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgXg0KPiA+PiA+ID4+IEluIGZpbGUgaW5jbHVkZWQgZnJvbQ0KPiA+PiA+ID4+
+IG91dHB1dC9ob3N0L3Vzci9pNTg2LWJ1aWxkcm9vdC1saW51eC11Y2xpYmMvc3lzcm9vdC91c3Iv
+aW5jbHVkZS9zeXMvdHlwZXMuaDoyMTk6MCwNCj4gPj4gPiA+PiAgICAgICAgICAgICAgICAgIGZy
+b20NCj4gPj4gPiA+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJj
+L3N5c3Jvb3QvdXNyL2luY2x1ZGUvc3RkbGliLmg6MTk4LA0KPiA+PiA+ID4+ICAgICAgICAgICAg
+ICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNlbnYuaDoz
+NTcsDQo+ID4+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tIC4uLy4uLy4uLy4uLy4uL2luY2x1
+ZGUvYWNwaS9hY3BpLmg6NTYsDQo+ID4+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tIGFjcGlk
+YmcuYzoxMjoNCj4gPj4gPiA+PiBvdXRwdXQvaG9zdC91c3IvaTU4Ni1idWlsZHJvb3QtbGludXgt
+dWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvc3lzL3NlbGVjdC5oOjc3OjU6DQo+ID4+ID4gPj4g
+bm90ZTogcHJldmlvdXMgZGVjbGFyYXRpb24gb2Yg4oCYZmRfc2V04oCZIHdhcyBoZXJlDQo+ID4+
+ID4gPj4gICAgfSBmZF9zZXQ7DQo+ID4+ID4gPj4gICAgICBeDQo+ID4+ID4gPj4gSW4gZmlsZSBp
+bmNsdWRlZCBmcm9tDQo+ID4+ID4gPj4gb3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxp
+bnV4LXVjbGliYy9zeXNyb290L3Vzci9pbmNsdWRlL2FzbS9zaWdjb250ZXh0Lmg6MTg6MCwNCj4g
+Pj4gPiA+PiAgICAgICAgICAgICAgICAgIGZyb20NCj4gPj4gPiA+PiBvdXRwdXQvaG9zdC91c3Iv
+aTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjL3N5c3Jvb3QvdXNyL2luY2x1ZGUvYml0cy9zaWdj
+b250ZXh0Lmg6MzAsDQo+ID4+ID4gPj4gICAgICAgICAgICAgICAgICBmcm9tDQo+ID4+ID4gPj4g
+b3V0cHV0L2hvc3QvdXNyL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGliYy9zeXNyb290L3Vzci9p
+bmNsdWRlL3NpZ25hbC5oOjMzNSwNCj4gPj4gPiA+PiAgICAgICAgICAgICAgICAgIGZyb20gLi4v
+Li4vLi4vLi4vLi4vaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjZW52Lmg6MzY1LA0KPiA+PiA+ID4+
+ICAgICAgICAgICAgICAgICAgZnJvbSAuLi8uLi8uLi8uLi8uLi9pbmNsdWRlL2FjcGkvYWNwaS5o
+OjU2LA0KPiA+PiA+ID4+ICAgICAgICAgICAgICAgICAgZnJvbSBhY3BpZGJnLmM6MTI6DQo+ID4+
+ID4gPj4gLi4vLi4vLi4vLi4vLi4vaW5jbHVkZS9saW51eC90eXBlcy5oOjE1OjI1OiBlcnJvcjog
+Y29uZmxpY3RpbmcgdHlwZXMgZm9yIOKAmGRldl904oCZDQo+ID4+ID4gPj4gIHR5cGVkZWYgX19r
+ZXJuZWxfZGV2X3QgIGRldl90Ow0KPiA+PiA+ID4+DQo+ID4+ID4gPj4gQW5kIHNvIG9uLi4uDQo+
+ID4+ID4gPj4NCj4gPj4gPiA+PiBBZnRlciByZXZlcnQ6DQo+ID4+ID4gPj4NCj4gPj4gPiA+PiAg
+IERFU0NFTkQgIHBvd2VyL2FjcGkNCj4gPj4gPiA+PiAgIERFU0NFTkQgIHRvb2xzL2FjcGlkYmcN
+Cj4gPj4gPiA+PiBvdXRwdXQvaG9zdC91c3IvYmluL2k1ODYtYnVpbGRyb290LWxpbnV4LXVjbGli
+Yy1nY2MgLURfTElOVVgNCj4gPj4gPiA+PiAtSS4uLy4uLy4uL2luY2x1ZGUgLUkuLi8uLi8uLi9k
+cml2ZXJzL2FjcGkvYWNwaWNhIC1XYWxsDQo+ID4+ID4gPj4gLVdzdHJpY3QtcHJvdG90eXBlcyAt
+V2RlY2xhcmF0aW9uLWFmdGVyLXN0YXRlbWVudCAtTzEgLWcgLURERUJVRw0KPiA+PiA+ID4+IC1E
+QUNQSV9BUFBMSUNBVElPTiAtREFDUElfU0lOR0xFX1RIUkVBRCAtREFDUElfREVCVUdHRVIgLUku
+DQo+ID4+ID4gPj4gLUkuLi8uLi8uLi8uLi8uLi9kcml2ZXJzL2FjcGkvYWNwaWNhIC1JLi4vLi4v
+Li4vLi4vLi4vaW5jbHVkZSAgIC1jIC1vDQo+ID4+ID4gPj4gYWNwaWRiZy5vIGFjcGlkYmcuYw0K
+PiA+PiA+ID4+ICAgTEQgICAgICAgdGVzdC10b3BpYy9hY3BpZGJnDQo+ID4+ID4gPj4gL3Vzci9i
+aW4vaW5zdGFsbCAtYyAtZCBvdXRwdXQvdGFyZ2V0L3Vzci9zYmluDQo+ID4+ID4gPj4gL3Vzci9i
+aW4vaW5zdGFsbCAtYyB0ZXN0LXRvcGljL2FjcGlkYmcgb3V0cHV0L3RhcmdldC91c3Ivc2Jpbg0K
+PiA+PiA+ID4+DQo+ID4+ID4gPj4gQW55IGlkZWFzIGhvdyB0byBmaXggdGhpcyBwcm9wZXJseT8N
+Cj4gPj4gPiA+Pg0KPiA+PiA+ID4+IC0tDQo+ID4+ID4gPj4gV2l0aCBCZXN0IFJlZ2FyZHMsDQo+
+ID4+ID4gPj4gQW5keSBTaGV2Y2hlbmtvDQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4g
+LS0NCj4gPj4gPiBXaXRoIEJlc3QgUmVnYXJkcywNCj4gPj4gPiBBbmR5IFNoZXZjaGVua28NCj4g
+Pj4gIO+/ve+/vey5uyDvv70m77+9fu+/vSbvv70g77+977+9Ky3vv73vv73dtiDvv73vv71377+9
+77+9y5vvv73vv73vv71t77+9Yu+/ve+/vVpy77+977+977+977+9Xm7vv71y77+977+977+9eu+/
+vSDvv73vv71o77+977+977+977+9Ju+/ve+/vSDvv71H77+977+977+9aO+/vSAo77+96ZqODQo+
+ID4+IO+/vd2iaiLvv73vv70g77+9IG3vv73vv73vv73vv73vv71677+93pbvv73vv73vv71m77+9
+77+977+9aO+/ve+/ve+/vX7vv71t77+9DQo+IA0KPiANCj4gDQo+IC0tDQo+IFdpdGggQmVzdCBS
+ZWdhcmRzLA0KPiBBbmR5IFNoZXZjaGVua28NCg==
