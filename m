@@ -1,38 +1,34 @@
-From: Dave Lambley <dave@lambley.me.uk>
-Subject: Re: [PATCH v2] If _BIX fails, retry with _BIF.
-Date: Thu, 3 Nov 2016 08:33:55 +0000
-Message-ID: <CAPCK=o8Ydkb530rnzUBUo1+tZxbiK+ocfPrHQmogS3PnUSbSdw@mail.gmail.com>
-References: <1474153002-13904-1-git-send-email-linux@davel.me.uk>
- <1478111847-14653-1-git-send-email-linux@davel.me.uk> <1478111847-14653-2-git-send-email-linux@davel.me.uk>
- <20161102232623.GA15671@khazad-dum.debian.net>
+From: Daniel Drake <drake@endlessm.com>
+Subject: Support for ACPI0011 Generic Buttons Device
+Date: Thu, 3 Nov 2016 07:24:03 -0600
+Message-ID: <CAD8Lp4553c8U=XfzbiXsKYgj_PKnVjmk9MdB3j=O-pPt9yi7BQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33354 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752858AbcKCId5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2016 04:33:57 -0400
-Received: by mail-oi0-f67.google.com with SMTP id x4so5412493oix.0
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Nov 2016 01:33:56 -0700 (PDT)
-In-Reply-To: <20161102232623.GA15671@khazad-dum.debian.net>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:37660 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752131AbcKCNYF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2016 09:24:05 -0400
+Received: by mail-wm0-f50.google.com with SMTP id t79so100785431wmt.0
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Nov 2016 06:24:04 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Cc: Linux Upstreaming Team <linux@endlessm.com>
 
-On 2 November 2016 at 23:26, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
->
-> On Wed, 02 Nov 2016, Dave Lambley wrote:
-> > -static int acpi_battery_get_info(struct acpi_battery *battery)
-> > +
-> > +int extract_battery_info(const int use_bix,
-> > +                      struct acpi_battery *battery,
-> > +                      const struct acpi_buffer *buffer)
->
-> Shouldn't extract_battery_info() be static as well?
+Hi,
 
-I do not believe it needs to be exported. It is a new function only
-used inside battery.c.
+We are working with a new consumer laptop model which has physical
+volume up/down keys on the left side of the chassis.
 
-Best regards,
-Dave
+It appears that these buttons are driven by the ACPI0011 Generic
+Buttons Device defined in section 9.19 of the ACPI spec. The _DSD has
+entries for the appropriate HID codes for volume up/down which can
+also be seen in examples here:
+
+https://msdn.microsoft.com/en-us/windows/hardware/drivers/hid/acpi-button-device
+
+I can't see a Linux driver for this ACPI0011 interface, is one planned?
+
+Thanks
+Daniel
