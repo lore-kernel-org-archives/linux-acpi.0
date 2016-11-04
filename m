@@ -1,73 +1,100 @@
-From: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: v4.8-rc1: thinkpad x60: running at low frequency even during
  kernel build
-Date: Fri, 4 Nov 2016 14:05:20 +0000
-Message-ID: <1478268311.26953.17.camel@intel.com>
-References: <20161104083849.GA32688@amd> <20161104085830.GA4089@amd>
+Date: Fri, 4 Nov 2016 21:44:39 +0100
+Message-ID: <20161104204439.GA2581@amd>
+References: <20161104083849.GA32688@amd>
+ <20161104085830.GA4089@amd>
+ <1478268311.26953.17.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60834 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934836AbcKDOHe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 4 Nov 2016 10:07:34 -0400
-In-Reply-To: <20161104085830.GA4089@amd>
-Content-Language: en-US
-Content-ID: <FFD41C8A2AA20B4791C50AB9CE572644@intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48341 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753620AbcKDUon (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Nov 2016 16:44:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1478268311.26953.17.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "pavel@ucw.cz" <pavel@ucw.cz>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
-T24gRnJpLCAyMDE2LTExLTA0IGF0IDA5OjU4ICswMTAwLCBQYXZlbCBNYWNoZWsgd3JvdGU6DQo+
-IE9uIEZyaSAyMDE2LTExLTA0IDA5OjM4OjQ5LCBQYXZlbCBNYWNoZWsgd3JvdGU6DQo+ID4gDQo+
-ID4gDQoNClsuLi5dDQoNCj4gPiBXaGF0IGlzIHdvcnNlLCB0aGV5IGdvIHRvIGxvdyBmcmVxdWVu
-Y3kgZXZlbiB3aXRoICJwZXJmb3JtYW5jZSINCj4gZ292ZXJub3Igb24gdjQuOC1yYzE/IQ0KPiAN
-Cj4gcGF2ZWxAZHVvOi9zeXMvZGV2aWNlcy9zeXN0ZW0vY3B1L2NwdTAvY3B1ZnJlcSQgc3VkbyBj
-YXQNCj4gL3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1Ki9jcHVmcmVxL2NwdWluZm9fY3VyX2Zy
-ZXEgOyBzdWRvIGNhdA0KPiAvc3lzL2RldmljZXMvc3lzdGVtL2NwdS9jcHUqL2NwdWZyZXEvY3B1
-aW5mb19jdXJfZnJlccKgwqA7IHN1ZG8gY2F0DQo+IC9zeXMvZGV2aWNlcy9zeXN0ZW0vY3B1L2Nw
-dSovY3B1ZnJlcS9jcHVpbmZvX2N1cl9mcmVxIDsgc3VkbyBjYXQNCj4gL3N5cy9kZXZpY2VzL3N5
-c3RlbS9jcHUvY3B1Ki9jcHVmcmVxL2NwdWluZm9fY3VyX2ZyZXHCoMKgOyBzdWRvIGNhdA0KPiAv
-c3lzL2RldmljZXMvc3lzdGVtL2NwdS9jcHUqL2NwdWZyZXEvY3B1aW5mb19jdXJfZnJlccKgwqA7
-IHN1ZG8gY2F0DQo+IC9zeXMvZGV2aWNlcy9zeXN0ZW0vY3B1L2NwdSovY3B1ZnJlcS9jcHVpbmZv
-X2N1cl9mcmVxDQo+IDEwMDAwMDANCj4gMTAwMDAwMA0KPiAxMDAwMDAwDQo+IDEwMDAwMDANCj4g
-MTgzMzAwMA0KPiAxODMzMDAwDQo+IDEwMDAwMDANCj4gMTAwMDAwMA0KPiAxODMzMDAwDQo+IDE4
-MzMwMDANCj4gMTAwMDAwMA0KPiAxMDAwMDAwDQo+IHBhdmVsQGR1bzovc3lzL2RldmljZXMvc3lz
-dGVtL2NwdS9jcHUwL2NwdWZyZXEkIGdyZXAgLWkNCj4gLiAvc3lzL2RldmljZXMvc3lzdGVtL2Nw
-dS9jcHUwL2NwdWZyZXEvKg0KPiAvc3lzL2RldmljZXMvc3lzdGVtL2NwdS9jcHUwL2NwdWZyZXEv
-YWZmZWN0ZWRfY3B1czowDQo+IC9zeXMvZGV2aWNlcy9zeXN0ZW0vY3B1L2NwdTAvY3B1ZnJlcS9i
-aW9zX2xpbWl0OjEwMDAwMDANCg0KWW91IGFyZSBoYXZpbmcgdGhlcm1hbCBpc3N1ZSwgc28gdGhl
-IEJJT1MgaXMgZm9yY2luZyB0byBsb3dlc3QgcG9zc2libGUNCmZyZXEuIEp1c3QgZm9yIGEgdGVz
-dCBvbmx5LCBib290IGJ5IGFkZGluZyB0byB5b3VyIGtlcm5lbCBjb21tYW5kIGxpbmUNCmR1cmlu
-ZyBib290wqANCnByb2Nlc3Nvci5pZ25vcmVfcHBjPTHCoA0KDQoNCg0KPiBncmVwOiAvc3lzL2Rl
-dmljZXMvc3lzdGVtL2NwdS9jcHUwL2NwdWZyZXEvY3B1aW5mb19jdXJfZnJlcToNCj4gUGVybWlz
-c2lvbiBkZW5pZWQNCj4gL3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVmcmVxL2NwdWlu
-Zm9fbWF4X2ZyZXE6MTgzMzAwMA0KPiAvc3lzL2RldmljZXMvc3lzdGVtL2NwdS9jcHUwL2NwdWZy
-ZXEvY3B1aW5mb19taW5fZnJlcToxMDAwMDAwDQo+IC9zeXMvZGV2aWNlcy9zeXN0ZW0vY3B1L2Nw
-dTAvY3B1ZnJlcS9jcHVpbmZvX3RyYW5zaXRpb25fbGF0ZW5jeToxMDAwMA0KPiAvc3lzL2Rldmlj
-ZXMvc3lzdGVtL2NwdS9jcHUwL2NwdWZyZXEvZnJlcWRvbWFpbl9jcHVzOjAgMQ0KPiAvc3lzL2Rl
-dmljZXMvc3lzdGVtL2NwdS9jcHUwL2NwdWZyZXEvcmVsYXRlZF9jcHVzOjANCj4gL3N5cy9kZXZp
-Y2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVmcmVxL3NjYWxpbmdfYXZhaWxhYmxlX2ZyZXF1ZW5jaWVz
-OjE4DQo+IDMzMDAwDQo+IDEzMzMwMDAgMTAwMDAwMA0KPiAvc3lzL2RldmljZXMvc3lzdGVtL2Nw
-dS9jcHUwL2NwdWZyZXEvc2NhbGluZ19hdmFpbGFibGVfZ292ZXJub3JzOmNvbnMNCj4gZXJ2YXRp
-dmUNCj4gcG93ZXJzYXZlIHNjaGVkdXRpbCBvbmRlbWFuZCBwZXJmb3JtYW5jZQ0KPiAvc3lzL2Rl
-dmljZXMvc3lzdGVtL2NwdS9jcHUwL2NwdWZyZXEvc2NhbGluZ19jdXJfZnJlcToxMDAwMDAwDQo+
-IC9zeXMvZGV2aWNlcy9zeXN0ZW0vY3B1L2NwdTAvY3B1ZnJlcS9zY2FsaW5nX2RyaXZlcjphY3Bp
-LWNwdWZyZXENCj4gL3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVmcmVxL3NjYWxpbmdf
-Z292ZXJub3I6cGVyZm9ybWFuY2UNCj4gL3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVm
-cmVxL3NjYWxpbmdfbWF4X2ZyZXE6MTAwMDAwMA0KPiAvc3lzL2RldmljZXMvc3lzdGVtL2NwdS9j
-cHUwL2NwdWZyZXEvc2NhbGluZ19taW5fZnJlcToxMDAwMDAwDQo+IC9zeXMvZGV2aWNlcy9zeXN0
-ZW0vY3B1L2NwdTAvY3B1ZnJlcS9zY2FsaW5nX3NldHNwZWVkOjx1bnN1cHBvcnRlZD4NCj4gZ3Jl
-cDogL3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVmcmVxL3N0YXRzOiBJcyBhIGRpcmVj
-dG9yeQ0KPiBwYXZlbEBkdW86L3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVmcmVxJA0K
-PiANCg0KPiBMZXQgbWUgdHJ5IHY0LjktcmMyLi4uIHRoYXQgd29ya3Mgb2sgKGNwdXMgYXQgdGhl
-IGhpZ2ggZnJlcXVlbmN5DQo+IGR1cmluZyB0aGUga2VybmVsIGJ1aWxkKS4gVW5mb3J0dW5hdGVs
-eSB0aGF0IHNlbmRzIG15IGNwdXMgdG8gOTlDDQo+IHRlbXBlcmF0dXJlIHJhbmdlIChhbmQgZXZl
-bnR1YWxseSBmb3JjZXMgZW1lcmdlbmN5IHNodXRkb3duKS4NCg0KVGhpcyB3ZSBoYXZlIHRvIGRl
-YnVnLiBEbyB5b3Ugc2VlIHNhbWUgbGluZSBsaWtlwqANCiINCi9zeXMvZGV2aWNlcy9zeXN0ZW0v
-Y3B1L2NwdTAvY3B1ZnJlcS9iaW9zX2xpbWl0OjEwMDAwMDANCiINCklmIG5vdCB3ZSBuZWVkDQp0
-byBmaW5kIG91dCB3aHkuDQoNCkkgc3VnZ2VzdCBlbnRlciBrZXJuZWwgYnVnemlsbGEuIEkgd2ls
-bCBhZGQgY291cGxlIG9mIG1vcmUgc3VnZ2VzdGlvbiB0byBkZWJ1Zy4NCg0KDQpUaGFua3MsDQpT
-cmluaXZhcw0K
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > Let me try v4.9-rc2... that works ok (cpus at the high frequency
+> > during the kernel build). Unfortunately that sends my cpus to 99C
+> > temperature range (and eventually forces emergency shutdown).
+>=20
+> This we have to debug. Do you see same line like=A0
+> "
+> /sys/devices/system/cpu/cpu0/cpufreq/bios_limit:1000000
+> "
+> If not we need
+> to find out why.
+
+I'd prefer mails over bugzilla for now...
+
+4.9-rc2 has bios_limit:
+
+pavel@duo:~$ cat /sys/devices/system/cpu/cpu0/cpufreq/bios_limit
+1833000
+
+and it has thermal zones:
+
+/sys/devices/virtual/thermal/thermal_zone0/trip_point_0_temp 127000
+/sys/devices/virtual/thermal/thermal_zone0/trip_point_0_type critical
+/sys/devices/virtual/thermal/thermal_zone1/trip_point_0_temp 97000
+/sys/devices/virtual/thermal/thermal_zone1/trip_point_0_type critical
+/sys/devices/virtual/thermal/thermal_zone1/trip_point_1_temp 92500
+/sys/devices/virtual/thermal/thermal_zone1/trip_point_1_type passive
+
+=2E.so it should slow down CPU at 92C.
+
+So lets push the temperature up a bit...
+
+sudo watch cat /proc/acpi/ibm/thermal
+/sys/devices/system/cpu/cpu0/cpufreq/bios_limit
+/sys/devices/virtual/thermal/thermal_zone1/temp  /sys/devices/system/cpu/cp=
+u0/cpufreq/cpuinfo_cur_freq
+
+temperatures:   98 49 -128 85 28 -128 28 -128 49 58 -128 -128 -128
+-128 -128 -128
+1833000
+95000
+1833000
+
+Hmm. bios_limit does not seem to change, even when the temperature is
+clearly above the trip point. (It is also interestng that acpi/ibm
+reports bigger temperatures than
+/sys/devices/virtual/thermal/thermal_zone1/temp . I have seen 103C there.)
+
+
+
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgc8zcACgkQMOfwapXb+vIiBACfR2NCMD3lw8jwCCIxZGIhKdRf
+22cAmwbcf1BggSaejszcLv1pFJTYaxLm
+=F4Fy
+-----END PGP SIGNATURE-----
+
+--lrZ03NoBR/3+SXJZ--
