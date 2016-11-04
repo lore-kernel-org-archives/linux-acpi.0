@@ -1,136 +1,140 @@
-From: Dave Lambley <linux@davel.me.uk>
-Subject: [PATCH v3 1/1] If _BIX fails, retry with _BIF.
-Date: Fri,  4 Nov 2016 01:05:40 +0000
-Message-ID: <1478221540-30617-2-git-send-email-linux@davel.me.uk>
-References: <20161103223818.GA14534@khazad-dum.debian.net>
- <1478221540-30617-1-git-send-email-linux@davel.me.uk>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.the-lambleys.org.uk ([212.47.234.164]:53664 "EHLO
-        smtp.the-lambleys.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752511AbcKDBGN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Nov 2016 21:06:13 -0400
-In-Reply-To: <1478221540-30617-1-git-send-email-linux@davel.me.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.8-rc1: thinkpad x60: running at low frequency even during
+ kernel build
+Date: Fri, 4 Nov 2016 09:58:30 +0100
+Message-ID: <20161104085830.GA4089@amd>
+References: <20161104083849.GA32688@amd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161104083849.GA32688@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, viresh.kumar@linaro.org, linux-pm@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Dave Lambley <linux@davel.me.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-The Lenovo Yoga 300 laptop's firmware advertises that it provides the _BIX
-the method to retrieve battery information. Unfortunately (some versions
-of?) the implementation return with an error.
 
-[   21.712228] ACPI Exception: AE_AML_PACKAGE_LIMIT, Index (0x000000010) is beyond end of object (length 0xD) (20160422/exoparg2-427)
-[   21.712244] ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.H_EC.BAT1._BIX] (Node ffff95f8ff0b20f0), AE_AML_PACKAGE_LIMIT (20160422/psparse-542)
+--jRHKVT23PllUwdXP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The _BIF method does succeed and returns convincing data. We detect _BIX
-failing and automatically retry with _BIF.
+On Fri 2016-11-04 09:38:49, Pavel Machek wrote:
+> Hi!
+>=20
+> I'm debugging overheats on v4.9-rc1... which did not seem to happen in
+> v4.8-rc1. I'm running basically "nice make -j 3" on kernel... cpus are
+> fully loaded.=20
+>=20
+> %Cpu(s):  7.5 us, 18.5 sy, 72.6 ni,  0.0 id,  0.0 wa,  0.0 hi,  1.5
+> si,  0.0 st
+> KiB Mem:   3087096 total,  2993076 used,    94020 free,    52900
+> buffers
+> KiB Swap:  1681428 total,    60900 used,  1620528 free.  1183664
+> cached Mem
+>=20
+> Still, cpus don't stay on maximum frequency on v4.8-rc1. (I suspect
+> that may be why machine does not overheat).
 
-Signed-off-by: Dave Lambley <linux@davel.me.uk>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
----
- drivers/acpi/battery.c | 72 +++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 48 insertions(+), 24 deletions(-)
+What is worse, they go to low frequency even with "performance"
+governor on v4.8-rc1?!
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 93ecae5..05fe9eb 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -430,39 +430,24 @@ static int acpi_battery_get_status(struct acpi_battery *battery)
- 	return 0;
- }
- 
--static int acpi_battery_get_info(struct acpi_battery *battery)
-+
-+static int extract_battery_info(const int use_bix,
-+			 struct acpi_battery *battery,
-+			 const struct acpi_buffer *buffer)
- {
- 	int result = -EFAULT;
--	acpi_status status = 0;
--	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags) ?
--			"_BIX" : "_BIF";
--
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 
--	if (!acpi_battery_present(battery))
--		return 0;
--	mutex_lock(&battery->lock);
--	status = acpi_evaluate_object(battery->device->handle, name,
--						NULL, &buffer);
--	mutex_unlock(&battery->lock);
--
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s", name));
--		return -ENODEV;
--	}
--
--	if (battery_bix_broken_package)
--		result = extract_package(battery, buffer.pointer,
-+	if (use_bix && battery_bix_broken_package)
-+		result = extract_package(battery, buffer->pointer,
- 				extended_info_offsets + 1,
- 				ARRAY_SIZE(extended_info_offsets) - 1);
--	else if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
--		result = extract_package(battery, buffer.pointer,
-+	else if (use_bix)
-+		result = extract_package(battery, buffer->pointer,
- 				extended_info_offsets,
- 				ARRAY_SIZE(extended_info_offsets));
- 	else
--		result = extract_package(battery, buffer.pointer,
-+		result = extract_package(battery, buffer->pointer,
- 				info_offsets, ARRAY_SIZE(info_offsets));
--	kfree(buffer.pointer);
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
- 		battery->full_charge_capacity = battery->design_capacity;
- 	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-@@ -483,6 +468,45 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
- 	return result;
- }
- 
-+static int acpi_battery_get_info(struct acpi_battery *battery)
-+{
-+	const int xinfo = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
-+	int use_bix;
-+	int result = -ENODEV;
-+
-+	if (!acpi_battery_present(battery))
-+		return 0;
-+
-+
-+	for (use_bix = xinfo ? 1 : 0; use_bix >= 0; use_bix--) {
-+		struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+		acpi_status status = AE_ERROR;
-+
-+		mutex_lock(&battery->lock);
-+		status = acpi_evaluate_object(battery->device->handle,
-+					      use_bix ? "_BIX":"_BIF",
-+					      NULL, &buffer);
-+		mutex_unlock(&battery->lock);
-+
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s",
-+					use_bix ? "_BIX":"_BIF"));
-+		} else {
-+			result = extract_battery_info(use_bix,
-+						      battery,
-+						      &buffer);
-+
-+			kfree(buffer.pointer);
-+			break;
-+		}
-+	}
-+
-+	if (!result && !use_bix && xinfo)
-+		pr_warn(FW_BUG "The _BIX method is broken, using _BIF.\n");
-+
-+	return result;
-+}
-+
- static int acpi_battery_get_state(struct acpi_battery *battery)
- {
- 	int result = 0;
--- 
-2.7.4
+pavel@duo:/sys/devices/system/cpu/cpu0/cpufreq$ sudo cat
+/sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq ; sudo cat
+/sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq  ; sudo cat
+/sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq ; sudo cat
+/sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq  ; sudo cat
+/sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq  ; sudo cat
+/sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq
+1000000
+1000000
+1000000
+1000000
+1833000
+1833000
+1000000
+1000000
+1833000
+1833000
+1000000
+1000000
+pavel@duo:/sys/devices/system/cpu/cpu0/cpufreq$ grep -i
+=2E /sys/devices/system/cpu/cpu0/cpufreq/*
+/sys/devices/system/cpu/cpu0/cpufreq/affected_cpus:0
+/sys/devices/system/cpu/cpu0/cpufreq/bios_limit:1000000
+grep: /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq:
+Permission denied
+/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq:1833000
+/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq:1000000
+/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_transition_latency:10000
+/sys/devices/system/cpu/cpu0/cpufreq/freqdomain_cpus:0 1
+/sys/devices/system/cpu/cpu0/cpufreq/related_cpus:0
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies:1833000
+1333000 1000000
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors:conservati=
+ve
+powersave schedutil ondemand performance
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq:1000000
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_driver:acpi-cpufreq
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor:performance
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq:1000000
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq:1000000
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed:<unsupported>
+grep: /sys/devices/system/cpu/cpu0/cpufreq/stats: Is a directory
+pavel@duo:/sys/devices/system/cpu/cpu0/cpufreq$
 
+Let me try v4.9-rc2... that works ok (cpus at the high frequency
+during the kernel build). Unfortunately that sends my cpus to 99C
+temperature range (and eventually forces emergency shutdown).
+
+v4.9-rc2, current policy changes without me touching it. Notice the
+1.47GHz below? I did not do that, it oscilates itself. Is that thermal
+protection?=20
+
+analyzing CPU 1:
+  driver: acpi-cpufreq
+  CPUs which run at the same hardware frequency: 1
+  CPUs which need to have their frequency coordinated by software: 1
+  maximum transition latency: 10.0 us.
+  hardware limits: 1000 MHz - 1.83 GHz
+  available frequency steps: 1.83 GHz, 1.33 GHz, 1000 MHz
+  available cpufreq governors: conservative, powersave, ondemand, performan=
+ce, schedutil
+  current policy: frequency should be within 1000 MHz and 1.47 GHz.
+                  The governor "ondemand" may decide which speed to use
+                  within this range.
+  current CPU frequency is 1.33 GHz.
+  cpufreq stats: 1.83 GHz:38.24%, 1.33 GHz:34.83%, 1000 MHz:26.94%  (9929)
+
+dmesg is full of
+
+[  716.196096] thinkpad_acpi: THERMAL EMERGENCY: a sensor reports
+something is extremely hot!
+[  716.198181] thinkpad_acpi: temperatures (Celsius): 97 52 N/A 87 37
+N/A 37 N/A 53 62 N/A N/A N/A N/A N/A N/A
+
+but no information about thermal throttling...
+
+Any ideas?
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--jRHKVT23PllUwdXP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgcTbYACgkQMOfwapXb+vKB3wCglDJN6Q2j5o8svPd9tAkuZbZA
++eoAn2cCMK9B73sSZCi2ZtFvBxtgcge5
+=Z0hq
+-----END PGP SIGNATURE-----
+
+--jRHKVT23PllUwdXP--
