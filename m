@@ -1,50 +1,73 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: v4.8-rc1: thinkpad x60: running at low frequency even during
  kernel build
-Date: Sat, 5 Nov 2016 16:04:58 -0200
-Message-ID: <20161105180458.GB17290@khazad-dum.debian.net>
+Date: Sat, 5 Nov 2016 16:21:21 -0200
+Message-ID: <20161105182121.GC17290@khazad-dum.debian.net>
 References: <20161104083849.GA32688@amd>
  <20161104085830.GA4089@amd>
- <1478268311.26953.17.camel@intel.com>
- <20161104204439.GA2581@amd>
- <20161104221600.GA7007@amd>
- <1478301649.7947.3.camel@intel.com>
- <20161105133719.GA3933@amd>
+ <20161104091037.GD3414@vireshk-i7>
+ <20161104092636.GA30729@amd>
+ <20161104093105.GE3414@vireshk-i7>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:51988 "EHLO
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:49329 "EHLO
         out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754380AbcKESFC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Nov 2016 14:05:02 -0400
+        by vger.kernel.org with ESMTP id S1756507AbcKESV0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Nov 2016 14:21:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20161105133719.GA3933@amd>
+In-Reply-To: <20161104093105.GE3414@vireshk-i7>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "ibm-acpi-devel@lists.sourceforge.net" <ibm-acpi-devel@lists.sourceforge.net>, "ibm-acpi@hmh.eng.br" <ibm-acpi@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Pavel Machek <pavel@ucw.cz>, rjw@rjwysocki.net, linux-pm@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-On Sat, 05 Nov 2016, Pavel Machek wrote:
-> [  825.759661] thinkpad_acpi: THERMAL EMERGENCY: a sensor reports something is extremely hot!
-> [  825.761935] thinkpad_acpi: temperatures (Celsius): 101 49 N/A 78 33 N/A 33 N/A 47 50 N/A N/A N/A N/A N/A N/A
+On Fri, 04 Nov 2016, Viresh Kumar wrote:
+> On 04-11-16, 10:26, Pavel Machek wrote:
+> > How would I know if it is thermal capping? There's nothing in dmesg.
+> 
+> I am not sure what code is responsible for doing that in case of x86, maybe
+> Rafael and Rui can explain it that better.
+> 
+> But surely it involves userspace in this case as scaling_max_freq is getting
+> changed.
 
-Oh boy, that must be the second time in a decade that I see that
-codepath triggering.  It is the second-level alert that the ThinkPad is
-about to catch fire.
+Note that a X60 might limit the maximum frequency through ACPI when on
+AC *and* its battery is not installed or not in working order.
 
-It should have logged a "is too hot!" first-level alert earlier, but
-this depends on the EC and not the driver.  Maybe the temperature raised
-too fast.
+The EC tries to detect the power brick type (65W, 90W), which often
+doesn't work well on non-Lenovo power bricks, and signals the BIOS to
+limit the maximum frequency if it thinks its only power source is a 65W
+power brick.
 
-In Windows, the system would attempt to hibernate or shutdown.  I would
-be quite happy to have thinkpad-acpi trigger such behavior as well,
-patches (or guidance) are welcome ;-)
+This behavior would be readly visible by the X60 refusing to reach the
+maximum clock frequency *at all* -- it is a static limit, only removed
+when a sufficiently charged battery becomes available.
 
-Anyway, if that temperature goes about 1~2°C higher, the EC should cut
-power to your motherboard.  Apparently, the built-in thermal protection
-clock modulation on the Intel processor is somehow saving your box from
-that forced power-off.
+This indirect power draw capping should never engage if your battery is
+installed and working, regardless of type and brand of power adapter,
+AFAIK.  I am only mentioning it so that you are aware of this possible
+behavior while debugging.
+
+
+Anyway, this overheating thinkpad very, very likely needs a hardware
+repair (on top of the kernel bug fixes ;-) ).
+
+Regardless of any kernel/userspace bugs, the X60 was engineered to not
+require thermal capping on reasonable indoor environmental temperature
+ranges.  If it needs the kernel to do something at all to avoid
+overheating just because it has been running at full CPU power, and
+ambient temperature is below 28°C, it very likely has a hardware issue
+(lint on the heatsink/fan, and/or cracked thermal interface between
+heatsink and processor).
+
+Every old-style ThinkPad (like the X60) that I have ever seen
+overheating when running at full CPU power (after fan lint was removed)
+in a cool place (say, 26°C), stopped overheating after a heatsink reseat
+and thermal compound replacement (and if you're going to do it, use
+non-shelf-aged Arctic Silver 5 or something better, and "cure" it
+properly -- something rather easy to do on a ThinkPad X60).
 
 -- 
   Henrique Holschuh
