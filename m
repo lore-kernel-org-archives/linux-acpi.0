@@ -1,16 +1,16 @@
 From: =?utf-8?B?2YXYp9mK2YPYsdmI2LPZiNmB2Ko=?= <yunier@mes.gob.cu>
 Subject: Respected Sir/Madam
-Date: Sun, 6 Nov 2016 14:14:25 -0500 (CST)
-Message-ID: <622420175.545393.1478459665658.JavaMail.zimbra__25833.1631463536$1478461740$gmane$org@mes.gob.cu>
+Date: Sun, 6 Nov 2016 14:06:16 -0500 (CST)
+Message-ID: <1292617809.542959.1478459176962.JavaMail.zimbra@mes.gob.cu>
 Reply-To: mox151@outlook.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zimbra.mes.gob.cu ([200.14.55.199]:50836 "EHLO
+Received: from zimbra.mes.gob.cu ([200.14.55.199]:47698 "EHLO
         zimbra.mes.gob.cu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751000AbcKFTsh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2016 14:48:37 -0500
+        with ESMTP id S1751223AbcKFUgt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2016 15:36:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: INF@MSN.COM
