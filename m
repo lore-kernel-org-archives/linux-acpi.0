@@ -1,72 +1,59 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: v4.8-rc1: thinkpad x60: running at low frequency even during
- kernel build
-Date: Sun, 6 Nov 2016 01:45:01 -0200
-Message-ID: <20161106034501.GI17290@khazad-dum.debian.net>
-References: <20161104083849.GA32688@amd>
- <20161104085830.GA4089@amd>
- <1478268311.26953.17.camel@intel.com>
- <20161104204439.GA2581@amd>
- <1478293976.1268.15.camel@intel.com>
- <20161105084248.GA664@amd>
- <20161105174612.GA17290@khazad-dum.debian.net>
- <20161105193617.GA8705@amd>
+From: =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne
+        <jerome.debretagne@gmail.com>
+Subject: Re: [PATCH] ACPI / platform: Add support for build-in properties
+Date: Sun, 06 Nov 2016 17:09:34 +0100
+Message-ID: <1478448574.1591.2.camel@gmail.com>
+References: <20161102154139.GD11523@kuha.fi.intel.com>
+         <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161105193617.GA8705@amd>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "ibm-acpi-devel@lists.sourceforge.net" <ibm-acpi-devel@lists.sourceforge.net>, "ibm-acpi@hmh.eng.br" <ibm-acpi@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35382 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751872AbcKFQJi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2016 11:09:38 -0500
+In-Reply-To: <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kefeng Wang <wangkefeng.wang@huawei.com>, Feng Kan <fkan@apm.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-bluetooth@vger.kernel.org
 
-On Sat, 05 Nov 2016, Pavel Machek wrote:
-> On Sat 2016-11-05 15:46:12, Henrique de Moraes Holschuh wrote:
-> > On Sat, 05 Nov 2016, Pavel Machek wrote:
-> > > Hmm, thanks for the pointer. But it seems like I'll have to build my
-> > > own, as /proc/acpi/ibm does not follow the usual infrastructure...
-> > 
-> > /proc/acpi/ibm has been deprecated for years.  99% of the functionality
-> > is available through more modern, standard interfaces.
+Le jeudi 03 novembre 2016 à 16:21 +0200, Heikki Krogerus a écrit :
+> We have a couple of drivers, acpi_apd.c and acpi_lpss.c,
+> that need to pass extra build-in properties to the devices
+> they create. Previously the drivers added those properties
+> to the struct device which is member of the struct
+> acpi_device, but that does not work. Those properties need
+> to be assigned to the struct device of the platform device
+> instead in order for them to become available to the
+> drivers.
 > 
-> Right, I see sensors can do it these days. Would it be good to expose
-> them as /sys/class/thermal/thermal_zone*, too?
-
-I don't like the idea of touching vendor-screwup-land like thermal
-zones, especially when thinkpads *already* have thermal zones and they
-must come from the very same sensors...
-
-This would need a lot of careful studying and planning.
-
-> Is it known what various fields in /proc/acpi/ibm/thermal measure?
-
-It varies with each model.  You can map it out with better precision by
-using a cold spray while doing an "open-heart" surgery on the thinkpad.
-I kid you not, that's how they were mapped for some models.
-
-Look for information about this in thinkwiki:
-http://www.thinkwiki.org/wiki/Thermal_Sensors#ThinkPad_X60
-
-The battery-pack-related sensor that is stuck at 50�C is something the
-Lenovo Yamato labs guys wouldn't be clear about.  They told me to look
-at what the Windows drivers do, but that would require (1) Windows in
-the first place, and (2) clean room reverse engineering protocols.
-
-> Basically... 100C is okay for semiconductors, but I'd prefer not to
-> kill the hard drive....
-
-Well, that first sensor getting to 100�C is your CPU for sure.
-
-> > thinkpad-acpi is supposed to export standard hwmon temperature sensors
-> > as well.  Try them instead, please.
+> To fix this, this patch changes acpi_create_platform_device
+> function to take struct property_entry pointer as parameter.
 > 
-> Heh, I just finished python to work with /proc/acpi/ibm. Oh well.
+> Fixes: 20a875e2e86e ("serial: 8250_dw: Add quirk for APM X-Gene SoC")
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+> 
+> Hi,
+> 
+> Found the problem, and this is my proposal for a fix.
+> 
+> Jérôme, please test it when you have time.
+> 
 
-Hey, I *did* properly document that driver, and the documentation is
-even mostly up-to-date...  Please refer to
-Documentation/laptops/thinkpad-acpi.txt in the kernel tree.
+Hi Heikki,
 
--- 
-  Henrique Holschuh
+I can confirm that this patch fixes the issue I've reported on the Lenovo
+ThinkPad 8 tablet. You were fast to find the root cause, impressive, really
+appreciated.
+
+Feel free to add:
+Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com> 
+
+Let's hope it can still make it during the remaining 4.9 rc timing.
+
+Cheers,
+Jérôme
+
