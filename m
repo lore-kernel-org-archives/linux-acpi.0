@@ -1,59 +1,23 @@
-From: =?ISO-8859-1?Q?J=E9r=F4me?= de Bretagne
-        <jerome.debretagne@gmail.com>
-Subject: Re: [PATCH] ACPI / platform: Add support for build-in properties
-Date: Sun, 06 Nov 2016 17:09:34 +0100
-Message-ID: <1478448574.1591.2.camel@gmail.com>
-References: <20161102154139.GD11523@kuha.fi.intel.com>
-         <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
+From: =?utf-8?B?2YXYp9mK2YPYsdmI2LPZiNmB2Ko=?= <yunier@mes.gob.cu>
+Subject: Respected Sir/Madam
+Date: Sun, 6 Nov 2016 14:14:25 -0500 (CST)
+Message-ID: <622420175.545393.1478459665658.JavaMail.zimbra__25833.1631463536$1478461740$gmane$org@mes.gob.cu>
+Reply-To: mox151@outlook.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35382 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751872AbcKFQJi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2016 11:09:38 -0500
-In-Reply-To: <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
+Received: from zimbra.mes.gob.cu ([200.14.55.199]:50836 "EHLO
+        zimbra.mes.gob.cu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751000AbcKFTsh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Nov 2016 14:48:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kefeng Wang <wangkefeng.wang@huawei.com>, Feng Kan <fkan@apm.com>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-bluetooth@vger.kernel.org
+To: INF@MSN.COM
 
-Le jeudi 03 novembre 2016 à 16:21 +0200, Heikki Krogerus a écrit :
-> We have a couple of drivers, acpi_apd.c and acpi_lpss.c,
-> that need to pass extra build-in properties to the devices
-> they create. Previously the drivers added those properties
-> to the struct device which is member of the struct
-> acpi_device, but that does not work. Those properties need
-> to be assigned to the struct device of the platform device
-> instead in order for them to become available to the
-> drivers.
-> 
-> To fix this, this patch changes acpi_create_platform_device
-> function to take struct property_entry pointer as parameter.
-> 
-> Fixes: 20a875e2e86e ("serial: 8250_dw: Add quirk for APM X-Gene SoC")
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
-> 
-> Hi,
-> 
-> Found the problem, and this is my proposal for a fix.
-> 
-> Jérôme, please test it when you have time.
-> 
-
-Hi Heikki,
-
-I can confirm that this patch fixes the issue I've reported on the Lenovo
-ThinkPad 8 tablet. You were fast to find the root cause, impressive, really
-appreciated.
-
-Feel free to add:
-Tested-by: Jérôme de Bretagne <jerome.debretagne@gmail.com> 
-
-Let's hope it can still make it during the remaining 4.9 rc timing.
-
-Cheers,
-Jérôme
-
+2YjZgtivINi42YfYsdiqINmF2KfZitmD2LHZiNiz2YjZgdiqINii2LPZitinINio2YMg2KfZhNio
+2LHZitivINin2YTYpdmE2YPYqtix2YjZhtmKINmF2LnYsdmBINin2YTZgdin2KbYsiDZhdmGICQg
+OTAw2IwwMDDYjDAwINiv2YjZhNin2LEg2KPZhdix2YrZg9mKINin2LHYs9in2YQK2KfYs9mFOgrY
+sdmC2YUg2KfZhNmH2KfYqtmBINin2YTZhdit2YXZiNmEOgrYp9mE2KfYrdiq2YTYp9mEIDoK2LnZ
+htmI2KfZhjoK2KfZhNix2K8g2LnZhNmJINmH2LDYpyDYsdmC2YUg2KfZhNio2LHZitivINin2YTY
+pdmE2YPYqtix2YjZhtmKOiBtb3gxNTFAb3V0bG9vay5jb20=
