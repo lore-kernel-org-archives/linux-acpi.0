@@ -1,86 +1,242 @@
-From: <efernow@gmail.com>
-Subject: 31974 linux-acpi
-Date: Mon, 07 Nov 2016 03:20:03 -0000
-Message-ID: <147848880345.27180.13511318202962849900@hinet.net>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v6 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
+	agnostic
+Date: Mon, 7 Nov 2016 10:56:11 +0000
+Message-ID: <20161107105611.GA7183@red-moon>
+References: <20161018160414.1228-1-lorenzo.pieralisi@arm.com>
+	<20161018160414.1228-5-lorenzo.pieralisi@arm.com>
+	<9e91cb41-3034-c1ca-9275-cce3235cc662@arm.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_285014012023_linux-acpi.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 114-40-240-22.dynamic.hinet.net ([114.40.240.22]:47967 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751350AbcKGDUK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 6 Nov 2016 22:20:10 -0500
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <9e91cb41-3034-c1ca-9275-cce3235cc662-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-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
-AAEAAQBZAAAAxA4AAAAA
+On Tue, Nov 01, 2016 at 04:36:10PM +0000, Robin Murphy wrote:
+> Bikeshed alert...
+> 
+> On 18/10/16 17:04, Lorenzo Pieralisi wrote:
+> > The of_iommu_{set/get}_ops() API is used to associate a device
+> > tree node with a specific set of IOMMU operations. The same
+> > kernel interface is required on systems booting with ACPI, where
+> > devices are not associated with a device tree node, therefore
+> > the interface requires generalization.
+> > 
+> > The struct device fwnode member represents the fwnode token
+> > associated with the device and the struct it points at is firmware
+> > specific; regardless, it is initialized on both ACPI and DT systems
+> > and makes an ideal candidate to use it to associate a set of IOMMU
+> > operations to a given device, through its struct device.fwnode member
+> > pointer.
+> > 
+> > Convert the DT specific of_iommu_{set/get}_ops() interface to
+> > use struct device.fwnode as a look-up token, making the interface
+> > usable on ACPI systems.
+> > 
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> > Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> > Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> > Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/iommu/iommu.c    | 43 +++++++++++++++++++++++++++++++++++++++++++
+> >  drivers/iommu/of_iommu.c | 39 ---------------------------------------
+> >  include/linux/iommu.h    | 14 ++++++++++++++
+> >  include/linux/of_iommu.h | 12 ++++++++++--
+> >  4 files changed, 67 insertions(+), 41 deletions(-)
+> > 
+> > diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+> > index 9a2f196..320eb8c 100644
+> > --- a/drivers/iommu/iommu.c
+> > +++ b/drivers/iommu/iommu.c
+> > @@ -1615,6 +1615,49 @@ int iommu_request_dm_for_dev(struct device *dev)
+> >  	return ret;
+> >  }
+> >  
+> > +struct fwnode_iommu_node {
+> 
+> Having just pulled in this patch in isolation for some hacking, I
+> realise that by about the fifth time one reads "fwnode_iommu_node" it
+> just looks like meaningless gibberish. Can we just call it
+> "iommu_instance" instead, as that's what it's representing here?
+
+Agreed, how about iommu_(fw)entry ? Anyway, I will do, point taken.
+
+> > +	struct list_head list;
+> > +	struct fwnode_handle *fwnode;
+> > +	const struct iommu_ops *ops;
+> > +};
+> > +static LIST_HEAD(fwnode_iommu_list);
+> > +static DEFINE_SPINLOCK(fwnode_iommu_lock);
+> > +
+> > +void fwnode_iommu_set_ops(struct fwnode_handle *fwnode,
+> > +			  const struct iommu_ops *ops)
+> > +{
+> > +	struct fwnode_iommu_node *iommu =
+> > +				kzalloc(sizeof(*iommu), GFP_KERNEL);
+> 
+> (plus it shortens this line so it really doesn't the awkward break)
+> 
+> Apologies, (the original rubbish name was my fault anyway)
+
+No worries, you have a point, will update for next (hopefully last)
+posting.
+
+Thanks !
+Lorenzo
+
+> Robin.
+> 
+> > +
+> > +	if (WARN_ON(!iommu))
+> > +		return;
+> > +
+> > +	if (is_of_node(fwnode))
+> > +		of_node_get(to_of_node(fwnode));
+> > +
+> > +	INIT_LIST_HEAD(&iommu->list);
+> > +	iommu->fwnode = fwnode;
+> > +	iommu->ops = ops;
+> > +	spin_lock(&fwnode_iommu_lock);
+> > +	list_add_tail(&iommu->list, &fwnode_iommu_list);
+> > +	spin_unlock(&fwnode_iommu_lock);
+> > +}
+> > +
+> > +const struct iommu_ops *fwnode_iommu_get_ops(struct fwnode_handle *fwnode)
+> > +{
+> > +	struct fwnode_iommu_node *node;
+> > +	const struct iommu_ops *ops = NULL;
+> > +
+> > +	spin_lock(&fwnode_iommu_lock);
+> > +	list_for_each_entry(node, &fwnode_iommu_list, list)
+> > +		if (node->fwnode == fwnode) {
+> > +			ops = node->ops;
+> > +			break;
+> > +		}
+> > +	spin_unlock(&fwnode_iommu_lock);
+> > +	return ops;
+> > +}
+> > +
+> >  int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
+> >  		      const struct iommu_ops *ops)
+> >  {
+> > diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> > index 5b82862..0f57ddc 100644
+> > --- a/drivers/iommu/of_iommu.c
+> > +++ b/drivers/iommu/of_iommu.c
+> > @@ -96,45 +96,6 @@ int of_get_dma_window(struct device_node *dn, const char *prefix, int index,
+> >  }
+> >  EXPORT_SYMBOL_GPL(of_get_dma_window);
+> >  
+> > -struct of_iommu_node {
+> > -	struct list_head list;
+> > -	struct device_node *np;
+> > -	const struct iommu_ops *ops;
+> > -};
+> > -static LIST_HEAD(of_iommu_list);
+> > -static DEFINE_SPINLOCK(of_iommu_lock);
+> > -
+> > -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops)
+> > -{
+> > -	struct of_iommu_node *iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
+> > -
+> > -	if (WARN_ON(!iommu))
+> > -		return;
+> > -
+> > -	of_node_get(np);
+> > -	INIT_LIST_HEAD(&iommu->list);
+> > -	iommu->np = np;
+> > -	iommu->ops = ops;
+> > -	spin_lock(&of_iommu_lock);
+> > -	list_add_tail(&iommu->list, &of_iommu_list);
+> > -	spin_unlock(&of_iommu_lock);
+> > -}
+> > -
+> > -const struct iommu_ops *of_iommu_get_ops(struct device_node *np)
+> > -{
+> > -	struct of_iommu_node *node;
+> > -	const struct iommu_ops *ops = NULL;
+> > -
+> > -	spin_lock(&of_iommu_lock);
+> > -	list_for_each_entry(node, &of_iommu_list, list)
+> > -		if (node->np == np) {
+> > -			ops = node->ops;
+> > -			break;
+> > -		}
+> > -	spin_unlock(&of_iommu_lock);
+> > -	return ops;
+> > -}
+> > -
+> >  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> >  {
+> >  	struct of_phandle_args *iommu_spec = data;
+> > diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+> > index 436dc21..15d5478 100644
+> > --- a/include/linux/iommu.h
+> > +++ b/include/linux/iommu.h
+> > @@ -351,6 +351,9 @@ int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
+> >  		      const struct iommu_ops *ops);
+> >  void iommu_fwspec_free(struct device *dev);
+> >  int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
+> > +void fwnode_iommu_set_ops(struct fwnode_handle *fwnode,
+> > +			  const struct iommu_ops *ops);
+> > +const struct iommu_ops *fwnode_iommu_get_ops(struct fwnode_handle *fwnode);
+> >  
+> >  #else /* CONFIG_IOMMU_API */
+> >  
+> > @@ -580,6 +583,17 @@ static inline int iommu_fwspec_add_ids(struct device *dev, u32 *ids,
+> >  	return -ENODEV;
+> >  }
+> >  
+> > +static inline void fwnode_iommu_set_ops(struct fwnode_handle *fwnode,
+> > +					const struct iommu_ops *ops)
+> > +{
+> > +}
+> > +
+> > +static inline
+> > +const struct iommu_ops *fwnode_iommu_get_ops(struct fwnode_handle *fwnode)
+> > +{
+> > +	return NULL;
+> > +}
+> > +
+> >  #endif /* CONFIG_IOMMU_API */
+> >  
+> >  #endif /* __LINUX_IOMMU_H */
+> > diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
+> > index e80b9c7..7681007 100644
+> > --- a/include/linux/of_iommu.h
+> > +++ b/include/linux/of_iommu.h
+> > @@ -31,8 +31,16 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
+> >  
+> >  #endif	/* CONFIG_OF_IOMMU */
+> >  
+> > -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
+> > -const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
+> > +static inline void of_iommu_set_ops(struct device_node *np,
+> > +				    const struct iommu_ops *ops)
+> > +{
+> > +	fwnode_iommu_set_ops(&np->fwnode, ops);
+> > +}
+> > +
+> > +static inline const struct iommu_ops *of_iommu_get_ops(struct device_node *np)
+> > +{
+> > +	return fwnode_iommu_get_ops(&np->fwnode);
+> > +}
+> >  
+> >  extern struct of_device_id __iommu_of_table;
+> >  
+> > 
+> 
