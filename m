@@ -1,246 +1,107 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v6 09/16] drivers: acpi: iort: add support for ARM SMMU
-	platform devices creation
-Date: Mon, 7 Nov 2016 11:39:43 +0000
-Message-ID: <20161107113942.GA30504@red-moon>
-References: <20161018160414.1228-1-lorenzo.pieralisi@arm.com>
-	<20161018160414.1228-10-lorenzo.pieralisi@arm.com>
-	<20161028155007.GA19523@red-moon>
-	<20161101223022.GA1234@xora-yoga13>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
+ calls to hotplugged cpu")]
+Date: Mon, 7 Nov 2016 13:49:37 +0200
+Message-ID: <20161107114937.GX4617@intel.com>
+References: <20160809172057.GZ4329@intel.com>
+ <20161027172852.GE4617@intel.com>
+ <alpine.DEB.2.20.1610272035180.4913@nanos>
+ <20161027192006.GF4617@intel.com>
+ <alpine.DEB.2.20.1610272122510.4913@nanos>
+ <20161027203745.GH4617@intel.com>
+ <alpine.DEB.2.20.1610272238390.4913@nanos>
+ <20161028155603.GI4617@intel.com>
+ <alpine.DEB.2.20.1610282049500.5053@nanos>
+ <20161101204737.GB4617@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-arch-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161101223022.GA1234@xora-yoga13>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20161101204737.GB4617@intel.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Feng Tang <feng.79.tang@gmail.com>, feng.tang@intel.com, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 01, 2016 at 04:30:22PM -0600, Graeme Gregory wrote:
-> On Fri, Oct 28, 2016 at 04:50:07PM +0100, Lorenzo Pieralisi wrote:
-> > On Tue, Oct 18, 2016 at 05:04:07PM +0100, Lorenzo Pieralisi wrote:
-> > > In ARM ACPI systems, IOMMU components are specified through static
-> > > IORT table entries. In order to create platform devices for the
-> > > corresponding ARM SMMU components, IORT kernel code should be made
-> > > able to parse IORT table entries and create platform devices
-> > > dynamically.
+On Tue, Nov 01, 2016 at 10:47:37PM +0200, Ville Syrjälä wrote:
+> On Fri, Oct 28, 2016 at 08:58:41PM +0200, Thomas Gleixner wrote:
+> > On Fri, 28 Oct 2016, Ville Syrjälä wrote:
+> > > On Thu, Oct 27, 2016 at 10:41:18PM +0200, Thomas Gleixner wrote:
+> > > > On Thu, 27 Oct 2016, Ville Syrjälä wrote:
+> > > > > On Thu, Oct 27, 2016 at 09:25:05PM +0200, Thomas Gleixner wrote:
+> > > > > > So it would be interesting whether that hunk in resume_broadcast() is
+> > > > > > sufficient.
+> > > > > 
+> > > > > So far it looks like the answer is yes.
+> > > > > 
+> > > > > Looks to be about 5 seconds slower than acpi-idle in resuming, but
+> > > > > I suppose that's not all that surprising ;)
+> > > > 
+> > > > Well, set it to 1msec then. If that works reliably then we really can do
+> > > > that unconditionally. There is no harm in firing a useless timer during
+> > > > resume once.
 > > > 
-> > > This patch adds the generic IORT infrastructure required to create
-> > > platform devices for ARM SMMUs.
-> > > 
-> > > ARM SMMU versions have different resources requirement therefore this
-> > > patch also introduces an IORT specific structure (ie iort_iommu_config)
-> > > that contains hooks (to be defined when the corresponding ARM SMMU
-> > > driver support is added to the kernel) to be used to define the
-> > > platform devices names, init the IOMMUs, count their resources and
-> > > finally initialize them.
-> > > 
-> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> > > Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > > Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> > > Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> > > ---
-> > >  drivers/acpi/arm64/iort.c | 151 ++++++++++++++++++++++++++++++++++++++++++++++
-> > >  1 file changed, 151 insertions(+)
-> > > 
-> > > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > > index 1433de3..2eda2f5 100644
-> > > --- a/drivers/acpi/arm64/iort.c
-> > > +++ b/drivers/acpi/arm64/iort.c
-> > > @@ -19,9 +19,11 @@
-> > >  #define pr_fmt(fmt)	"ACPI: IORT: " fmt
-> > >  
-> > >  #include <linux/acpi_iort.h>
-> > > +#include <linux/iommu.h>
-> > >  #include <linux/kernel.h>
-> > >  #include <linux/list.h>
-> > >  #include <linux/pci.h>
-> > > +#include <linux/platform_device.h>
-> > >  #include <linux/slab.h>
-> > >  
-> > >  struct iort_its_msi_chip {
-> > > @@ -457,6 +459,153 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
-> > >  	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
-> > >  }
-> > >  
-> > > +struct iort_iommu_config {
-> > > +	const char *name;
-> > > +	int (*iommu_init)(struct acpi_iort_node *node);
-> > > +	bool (*iommu_is_coherent)(struct acpi_iort_node *node);
-> > > +	int (*iommu_count_resources)(struct acpi_iort_node *node);
-> > > +	void (*iommu_init_resources)(struct resource *res,
-> > > +				     struct acpi_iort_node *node);
-> > > +};
-> > > +
-> > > +static __init
-> > > +const struct iort_iommu_config *iort_get_iommu_cfg(struct acpi_iort_node *node)
-> > > +{
-> > > +	return NULL;
-> > > +}
-> > > +
-> > > +/**
-> > > + * iort_add_smmu_platform_device() - Allocate a platform device for SMMU
-> > > + * @node: Pointer to SMMU ACPI IORT node
-> > > + *
-> > > + * Returns: 0 on success, <0 failure
-> > > + */
-> > > +static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
-> > > +{
-> > > +	struct fwnode_handle *fwnode;
-> > > +	struct platform_device *pdev;
-> > > +	struct resource *r;
-> > > +	enum dev_dma_attr attr;
-> > > +	int ret, count;
-> > > +	const struct iort_iommu_config *ops = iort_get_iommu_cfg(node);
-> > > +
-> > > +	if (!ops)
-> > > +		return -ENODEV;
-> > > +
-> > > +	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
-> > > +	if (!pdev)
-> > > +		return PTR_ERR(pdev);
-> > > +
-> > > +	count = ops->iommu_count_resources(node);
-> > > +
-> > > +	r = kcalloc(count, sizeof(*r), GFP_KERNEL);
-> > > +	if (!r) {
-> > > +		ret = -ENOMEM;
-> > > +		goto dev_put;
-> > > +	}
-> > > +
-> > > +	ops->iommu_init_resources(r, node);
-> > > +
-> > > +	ret = platform_device_add_resources(pdev, r, count);
-> > > +	/*
-> > > +	 * Resources are duplicated in platform_device_add_resources,
-> > > +	 * free their allocated memory
-> > > +	 */
-> > > +	kfree(r);
-> > > +
-> > > +	if (ret)
-> > > +		goto dev_put;
-> > > +
-> > > +	/*
-> > > +	 * Add a copy of IORT node pointer to platform_data to
-> > > +	 * be used to retrieve IORT data information.
-> > > +	 */
-> > > +	ret = platform_device_add_data(pdev, &node, sizeof(node));
-> > > +	if (ret)
-> > > +		goto dev_put;
-> > > +
-> > > +	/*
-> > > +	 * We expect the dma masks to be equivalent for
-> > > +	 * all SMMUs set-ups
-> > > +	 */
-> > > +	pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
-> > > +
-> > > +	fwnode = iort_get_fwnode(node);
-> > > +
-> > > +	if (!fwnode) {
-> > > +		ret = -ENODEV;
-> > > +		goto dev_put;
-> > > +	}
-> > > +
-> > > +	pdev->dev.fwnode = fwnode;
-> > > +
-> > > +	attr = ops->iommu_is_coherent(node) ?
-> > > +			     DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
-> > > +
-> > > +	/* Configure DMA for the page table walker */
-> > > +	acpi_dma_configure(&pdev->dev, attr);
-> > > +
-> > > +	ret = platform_device_add(pdev);
-> > > +	if (ret)
-> > > +		goto dma_deconfigure;
-> > > +
-> > > +	return 0;
-> > > +
-> > > +dma_deconfigure:
-> > > +	acpi_dma_deconfigure(&pdev->dev);
-> > > +dev_put:
-> > > +	platform_device_put(pdev);
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +static void __init iort_init_platform_devices(void)
-> > > +{
-> > > +	struct acpi_iort_node *iort_node, *iort_end;
-> > > +	struct acpi_table_iort *iort;
-> > > +	struct fwnode_handle *fwnode;
-> > > +	int i, ret;
-> > > +
-> > > +	/*
-> > > +	 * iort_table and iort both point to the start of IORT table, but
-> > > +	 * have different struct types
-> > > +	 */
-> > > +	iort = (struct acpi_table_iort *)iort_table;
-> > > +
-> > > +	/* Get the first IORT node */
-> > > +	iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort,
-> > > +				 iort->node_offset);
-> > > +	iort_end = ACPI_ADD_PTR(struct acpi_iort_node, iort,
-> > > +				iort_table->length);
-> > > +
-> > > +	for (i = 0; i < iort->node_count; i++) {
-> > > +		if (iort_node >= iort_end) {
-> > > +			pr_err("iort node pointer overflows, bad table\n");
-> > > +			return;
-> > > +		}
-> > > +
-> > > +		if ((iort_node->type == ACPI_IORT_NODE_SMMU) ||
-> > > +			(iort_node->type == ACPI_IORT_NODE_SMMU_V3)) {
-> > > +
-> > > +			fwnode = acpi_alloc_fwnode_static();
-> > > +			if (!fwnode)
-> > > +				return;
-> > > +
-> > > +			iort_set_fwnode(iort_node, fwnode);
-> > > +
-> > > +			ret = iort_add_smmu_platform_device(iort_node);
-> > > +			if (ret) {
-> > > +				iort_delete_fwnode(iort_node);
-> > > +				acpi_free_fwnode_static(fwnode);
-> > > +				return;
-> > > +			}
-> > > +		}
-> > > +
-> > > +		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
-> > > +					 iort_node->length);
-> > > +	}
-> > > +}
-> > > +
-> > >  void __init acpi_iort_init(void)
-> > >  {
-> > >  	acpi_status status;
-> > > @@ -468,5 +617,7 @@ void __init acpi_iort_init(void)
-> > >  		return;
-> > >  	}
-> > >  
-> > 
-> > Slipped through the cracks while rebasing v6, I should add code that
-> > returns if no IORT table found here to prevent calling:
-> > 
-> > iort_init_platform_devices()
-> > 
-> > I will update the next version, it is just a heads-up for testers,
-> > I can push an updated/fixed branch if needed.
-> > 
+> > > I narrowed down the required timeout, and looks like 25ms is the
+> > > minimum that works. With 24ms I already started to have failures. So
+> > > maybe just bump it up by an order of magnitude to 250ms for some
+> > > safety margin?
 > 
-> I could do with the updated branch.
+> I left the thing running for the weekend and it failed 26 out of 16057
+> times with the 25ms timeout. Looks like it takes ~5 minutes to resume
+> when it fails, but eventually it does come back.
+> 
+> > 
+> > Sure, but what puzzles me is that we need a timeout that big. What happens
+> > between broadcast_resume() and broadcast_resume() + 25ms?
+> > 
+> > IOW, what is the event/resume function which we need to bridge. We should
+> > really try to track than down.
+> 
+> My hunch would be that SMM trap in the DSDT/SSDT since that's where
+> things ended up last time I was tracing these resume problems. Though I
+> can't recall if that was just with acpi-idle or if intel_idle landed in
+> the same spot as well.
+> 
+> I guess I can try to repeat that test tomorrow, or I'll try your function
+> tracer method if the other thing fails.
 
-Done, please find it here, I will post a v7 this week with updates.
+I didn't manage to find a lot of time to play around with this, but it
+definitely looks like the SMM trap is the problem here. I repeated my
+pm_trace experiemnts and when it gets stuck it is trying to execute the
+_WAK ACPI method which is where the SMM trap happens.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v6
+Maybe the SMM code was written with the expectation of a periodic tick
+or something like that?
 
-Lorenzo
+> 
+> > 
+> > You might try to enable function tracing and do a tracing_off() when that
+> > 25ms timeout fires.
+> > 
+> > Something like 
+> > 
+> > 	stop_trace = true;
+> > 
+> > in broadcast_resume() and then in the broadcast timer function:
+> > 
+> > 	if (stop_trace) {
+> > 		stop_trace = false;
+> > 		tracing_off();
+> > 	}
+> > 
+> > Then when the machine is up read the trace, compress and upload it
+> > somewhere or send it in private mail if it's not that big.
+> > 
+> > Thanks,
+> > 
+> > 	tglx
+> 
+> 
+> -- 
+> Ville Syrjälä
+> Intel OTC
+
+-- 
+Ville Syrjälä
+Intel OTC
