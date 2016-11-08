@@ -1,66 +1,57 @@
-From: <webmaster@lancashirebeekeepers.org.uk>
-Subject: 35321 linux-acpi
-Date: Tue, 08 Nov 2016 11:54:05 -0000
-Message-ID: <147860604517.18813.9305789716307992798@biz.rr.com>
-Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_1315213952_linux-acpi.zip"
-Content-Transfer-Encoding: base64
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/1] ACPI / LPSS: enable hard LLP for DMA
+Date: Tue,  8 Nov 2016 15:46:38 +0200
+Message-ID: <20161108134638.90267-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rrcs-24-173-16-214.sw.biz.rr.com ([24.173.16.214]:43487 "HELO
-        biz.rr.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S932824AbcKHLyW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Nov 2016 06:54:22 -0500
-Content-Disposition: attachment
+Received: from mga11.intel.com ([192.55.52.93]:40716 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752215AbcKHNqw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Nov 2016 08:46:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, mika.westerberg@linux.intel.com
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-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
-AQABAFgAAABQCgAAAAA=
+Right now the DMA support of hard LLP is fused. Enable it via specific message
+sent to SoC at run time.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 5520102..c471239 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -724,13 +724,14 @@ static int acpi_lpss_resume_early(struct device *dev)
+ #define LPSS_GPIODEF0_DMA1_D3		BIT(2)
+ #define LPSS_GPIODEF0_DMA2_D3		BIT(3)
+ #define LPSS_GPIODEF0_DMA_D3_MASK	GENMASK(3, 2)
++#define LPSS_GPIODEF0_DMA_LLP		BIT(13)
+ 
+ static DEFINE_MUTEX(lpss_iosf_mutex);
+ 
+ static void lpss_iosf_enter_d3_state(void)
+ {
+ 	u32 value1 = 0;
+-	u32 mask1 = LPSS_GPIODEF0_DMA_D3_MASK;
++	u32 mask1 = LPSS_GPIODEF0_DMA_D3_MASK | LPSS_GPIODEF0_DMA_LLP;
+ 	u32 value2 = LPSS_PMCSR_D3hot;
+ 	u32 mask2 = LPSS_PMCSR_Dx_MASK;
+ 	/*
+@@ -774,8 +775,9 @@ static void lpss_iosf_enter_d3_state(void)
+ 
+ static void lpss_iosf_exit_d3_state(void)
+ {
+-	u32 value1 = LPSS_GPIODEF0_DMA1_D3 | LPSS_GPIODEF0_DMA2_D3;
+-	u32 mask1 = LPSS_GPIODEF0_DMA_D3_MASK;
++	u32 value1 = LPSS_GPIODEF0_DMA1_D3 | LPSS_GPIODEF0_DMA2_D3 |
++		     LPSS_GPIODEF0_DMA_LLP;
++	u32 mask1 = LPSS_GPIODEF0_DMA_D3_MASK | LPSS_GPIODEF0_DMA_LLP;
+ 	u32 value2 = LPSS_PMCSR_D0;
+ 	u32 mask2 = LPSS_PMCSR_Dx_MASK;
+ 
+-- 
+2.9.3
+
