@@ -1,143 +1,49 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
- calls to hotplugged cpu")]
-Date: Mon, 7 Nov 2016 18:45:19 +0200
-Message-ID: <20161107164519.GA4617@intel.com>
-References: <alpine.DEB.2.20.1610272035180.4913@nanos>
- <20161027192006.GF4617@intel.com>
- <alpine.DEB.2.20.1610272122510.4913@nanos>
- <20161027203745.GH4617@intel.com>
- <alpine.DEB.2.20.1610272238390.4913@nanos>
- <20161028155603.GI4617@intel.com>
- <alpine.DEB.2.20.1610282049500.5053@nanos>
- <20161101204737.GB4617@intel.com>
- <20161107114937.GX4617@intel.com>
- <alpine.DEB.2.20.1611071406320.3709@nanos>
+From: Peter Wu <peter@lekensteyn.nl>
+Subject: ACPI module-level code (MLC) not working?
+Date: Tue, 8 Nov 2016 10:49:51 +0100
+Message-ID: <20161108094951.GA20849@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lekensteyn.nl ([178.21.112.251]:43823 "EHLO lekensteyn.nl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752510AbcKHJuP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Nov 2016 04:50:15 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1611071406320.3709@nanos>
-Sender: linux-pm-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Feng Tang <feng.79.tang@gmail.com>, feng.tang@intel.com, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Rick Kerkhof <rick.2889@gmail.com>, Bartosz Skrzypczak <barteks2x@gmail.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-On Mon, Nov 07, 2016 at 02:07:43PM +0100, Thomas Gleixner wrote:
-> On Mon, 7 Nov 2016, Ville Syrjälä wrote:
-> > I didn't manage to find a lot of time to play around with this, but it
-> > definitely looks like the SMM trap is the problem here. I repeated my
-> > pm_trace experiemnts and when it gets stuck it is trying to execute the
-> > _WAK ACPI method which is where the SMM trap happens.
-> > 
-> > Maybe the SMM code was written with the expectation of a periodic tick
-> > or something like that?
-> 
-> Can you try the untested hack below, please? It should confirm that.
-> 
-> Thanks,
-> 
-> 	tglx
-> 
-> 8<---------------
-> --- a/drivers/acpi/acpica/hwsleep.c
-> +++ b/drivers/acpi/acpica/hwsleep.c
-> @@ -269,6 +269,17 @@ acpi_status acpi_hw_legacy_wake_prep(u8
->  	return_ACPI_STATUS(status);
->  }
->  
-> +static const ktime_t time10ms = { .tv64 = 10 * NSEC_PER_MSEC };
-> +
-> +static enum hrtimer_restart acpi_hw_legacy_tmr(struct hrtimer *tmr)
-> +{
-> +	hrtimer_forward_now(tmr, time10ms);
-> +
-> +	return HRTIMER_RESTART;
-> +}
-> +
-> +
-> +
->  /*******************************************************************************
->   *
->   * FUNCTION:    acpi_hw_legacy_wake
-> @@ -284,6 +295,7 @@ acpi_status acpi_hw_legacy_wake_prep(u8
->  
->  acpi_status acpi_hw_legacy_wake(u8 sleep_state)
->  {
-> +	struct hrtimer timer;
->  	acpi_status status;
->  
->  	ACPI_FUNCTION_TRACE(hw_legacy_wake);
-> @@ -311,12 +323,18 @@ acpi_status acpi_hw_legacy_wake(u8 sleep
->  		return_ACPI_STATUS(status);
->  	}
->  
-> +	hrtimer_init_on_stack(&timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-> +	timer.function = acpi_hw_legacy_tmr;
-> +	hrtimer_start(&timer, time10ms, HRTIMER_MODE_REL);
-> +
->  	/*
->  	 * Now we can execute _WAK, etc. Some machines require that the GPEs
->  	 * are enabled before the wake methods are executed.
->  	 */
->  	acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_state);
->  
-> +	hrtimer_cancel(&timer);
-> +
->  	/*
->  	 * Some BIOS code assumes that WAK_STS will be cleared on resume
->  	 * and use it to determine whether the system is rebooting or
+Hi Lv,
 
-Doesn't really seem to help. I did get a few random successes, but
-mostly it just fails.
+According to some tests, setting acpi_gbl_parse_table_as_term_list to
+TRUE does is not effective. The code within the If-block is still not
+executed early enough or something else is wrong.
 
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index 3c9c10bd49e9..950319b619f1 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -44,6 +44,8 @@
- 
- #include <acpi/acpi.h>
- #include <linux/acpi.h>
-+#include <linux/pm-trace.h>
-+#include <linux/delay.h>
- #include "accommon.h"
- 
- #define _COMPONENT          ACPI_HARDWARE
-@@ -275,6 +277,8 @@ static enum hrtimer_restart acpi_hw_legacy_tmr(struct hrtimer *tmr)
- {
- 	hrtimer_forward_now(tmr, time10ms);
- 
-+	TRACE_RESUME(0);
-+
- 	return HRTIMER_RESTART;
- }
- 
-@@ -327,14 +331,17 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state)
- 	timer.function = acpi_hw_legacy_tmr;
- 	hrtimer_start(&timer, time10ms, HRTIMER_MODE_REL);
- 
-+	TRACE_RESUME(0);
- 	/*
- 	 * Now we can execute _WAK, etc. Some machines require that the GPEs
- 	 * are enabled before the wake methods are executed.
- 	 */
- 	acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_state);
-+	TRACE_RESUME(0);
- 
- 	hrtimer_cancel(&timer);
- 
-+	TRACE_RESUME(0);
- 	/*
- 	 * Some BIOS code assumes that WAK_STS will be cleared on resume
- 	 * and use it to determine whether the system is rebooting or
+Previously Rick had an issue with an Acer Aspire V7-582PG where the dGPU
+could not be powered off and I demonstrated an isolated test case in
+http://www.spinics.net/lists/linux-acpi/msg70069.html
 
-Tossing that on top shows the trace before the _WAK being the last one
-executed. Adding an msleep() before the _WAK does make the trace from
-the timer handler show up so at least the timer seems to be ticking
-up until some point.
+In Bartosz's case, the dGPU cannot be powered on (also using nouveau),
+preventing suspend from working. Situation is as follows (tested with
+Linux 3.16, 4.8.4, 4.9-rc2, 4.9-rc4):
 
+His Lenovo IdeaPad Z510 laptop (BIOS date 2014) enables power resources
+and related _PR3 objects under the conditional If(_OSI("Windows 2013")).
+Both with and without acpi_gbl_parse_table_as_term_list set to TRUE, the
+module-level code is not loaded properly. Via a SSDT override, it was
+confirmed that removing the If conditional results in the expected
+behavior.
+
+Various details are given in https://github.com/Bumblebee-Project/bbswitch/issues/142
+including lots of dmesg logs (see posts at the bottom).
+With above MLC flag set (v4.9-rc4): https://pastebin.com/raw/vCEPGezX
+With SSDT override (v4.9-rc2): https://pastebin.com/raw/3Fsf2VPU
+
+If you would like a new bugzilla entry or have some patches to test, you
+know where to find us :)
 -- 
-Ville Syrjälä
-Intel OTC
+Kind regards,
+Peter Wu
+https://lekensteyn.nl
