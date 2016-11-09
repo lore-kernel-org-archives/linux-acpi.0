@@ -1,36 +1,38 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ACPI module-level code (MLC) not working?
-Date: Wed, 9 Nov 2016 01:02:27 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2702BA@SHSMSX101.ccr.corp.intel.com>
+From: Peter Wu <peter@lekensteyn.nl>
+Subject: Re: ACPI module-level code (MLC) not working?
+Date: Wed, 9 Nov 2016 02:17:29 +0100
+Message-ID: <20161109011729.GB16755@al>
 References: <20161108094951.GA20849@al>
  <1AE640813FDE7649BE1B193DEA596E886A263E92@SHSMSX101.ccr.corp.intel.com>
  <20161108175650.GB21992@al>
  <1AE640813FDE7649BE1B193DEA596E886A270249@SHSMSX101.ccr.corp.intel.com>
  <20161109003250.GA16755@al>
+ <1AE640813FDE7649BE1B193DEA596E886A270285@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4033 "EHLO mga01.intel.com"
+Received: from lekensteyn.nl ([178.21.112.251]:52909 "EHLO lekensteyn.nl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753033AbcKIBCj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 8 Nov 2016 20:02:39 -0500
-Content-Language: en-US
+        id S1752183AbcKIBRi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 8 Nov 2016 20:17:38 -0500
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A270285@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Wu <peter@lekensteyn.nl>
+To: "Zheng, Lv" <lv.zheng@intel.com>
 Cc: Rick Kerkhof <rick.2889@gmail.com>, Bartosz Skrzypczak <barteks2x@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-> From: Zheng, Lv
-> Subject: RE: ACPI module-level code (MLC) not working?
-> 
+On Wed, Nov 09, 2016 at 12:43:37AM +0000, Zheng, Lv wrote:
 > Hi,
 > 
+> > -----Original Message-----
 > > From: Peter Wu [mailto:peter@lekensteyn.nl]
+> > Sent: Tuesday, November 8, 2016 4:33 PM
+> > To: Zheng, Lv <lv.zheng@intel.com>
+> > Cc: Rick Kerkhof <rick.2889@gmail.com>; Bartosz Skrzypczak <barteks2x@gmail.com>; Moore, Robert
+> > <robert.moore@intel.com>; linux-acpi@vger.kernel.org
 > > Subject: Re: ACPI module-level code (MLC) not working?
-> >
+> > 
 > > On Wed, Nov 09, 2016 at 12:07:47AM +0000, Zheng, Lv wrote:
 > > > Hi,
 > > >
@@ -70,8 +72,7 @@ Hi,
 > > > > > > With SSDT override (v4.9-rc2): https://pastebin.com/raw/3Fsf2VPU
 > > > > >
 > > > > > I checked the post.
-> > > > > It seems the current working way is: disabling _OSI(Windows 2013) which disables power
-> resources.
+> > > > > It seems the current working way is: disabling _OSI(Windows 2013) which disables power resources.
 > > > >
 > > > > That is how Lenovo probably intended to use it (only add Power Resources
 > > > > when Windows 8 is detected).
@@ -129,18 +130,18 @@ Hi,
 > > >
 > > > They will be deemed as different versions of the same table from linux ACPI's point of view.
 > > > Whether override will be done or not depends on Linux version.
-> >
+> > 
 > > When I mentioned override, I referred to the method described in
 > > Documentation/acpi/method-customizing.txt where any ACPI table can be
 > > overridden via the initrd. Indeed, that method is unable to pick
 > > arbitrary tables when they all have the same ID.
-> >
+> > 
 > > > In recent Linux, ssdt1.aml will be used (no override), while in old Linux, ssdt5.aml will be used
 > > (override).
-> >
+> > 
 > > Does this refer to the same override method as described above? The
 > > tables are loaded normally even if they have the same name.
-> >
+> > 
 > > > Let me ask further.
 > > > 1. Should OSPM load only ssdt5.aml or load only ssdt1.aml, or load
 > > ssdt1.aml,ssdt2.aml,ssdt3.aml,ssdt4.aml,ssdt5.aml?
@@ -149,7 +150,7 @@ Hi,
 > > > Anyway, this is a special case that violates spec and seems to be aiming to trigger regressions
 > > against changed logic brought by me.
 > > > No matter whether the change is reasonable.
-> >
+> > 
 > > OSPM should load all tables, they are all different. Perhaps you are
 > > confusing this override method with how Linux normally loads tables?
 > > (Aren't the identifiers just used for visual purposes and irrelevant for
@@ -157,34 +158,58 @@ Hi,
 > 
 > No, I'm not confusing it.
 > I want to know the exact behavior here.
-> 
+
+I am a bit confused about what you would like to know and will try my
+best to answer it. In the dmesg without patching the kernel, the first
+SSDT is overwritten, all others are left intact. This can be seen in the
+dmesg from https://pastebin.com/raw/LuTLQnU1:
+
+    ACPI: MCFG 0x000000009CFF4000 00003C (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: Table Upgrade: override [SSDT-LENOVO-CB-01   ]
+    ACPI: SSDT 0x000000009CFE6000 Physical table override, new table: 0x000000009C2AB000
+    ACPI: SSDT 0x000000009C2AB000 003E32 (v01 LENOVO CB-01    00000002 INTL 20160729)
+    ACPI: BOOT 0x000000009CFE4000 000028 (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: LPIT 0x000000009CFE3000 00005C (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: ASPT 0x000000009CFE1000 000034 (v07 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: DBGP 0x000000009CFE0000 000034 (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: SSDT 0x000000009CFD8000 000539 (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: SSDT 0x000000009CFD7000 000AD8 (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: SSDT 0x000000009CFD3000 0034C6 (v01 LENOVO CB-01    00000001 ACPI 00040000)
+    ACPI: SSDT 0x000000009CFCE000 00399A (v01 LENOVO CB-01    00000001 ACPI 00040000)
+
 > Because I'm actually about to change acpi_tb_compare_tables().
 > This allows and acpi_install_table() invocations to override matched tables.
 > So I'll remove Linux table override callback.
 
-I also was about to change /sys/firmware/acpi/tables, renaming tables using the IDs.
-This platform makes such cleanup impossible...
+No idea why you have to change acpi_tb_compare_tables, this is only used
+for "reloading" functionality.
 
-Back to the issue, IMO, the bug report is against _OSI support in module level.
-I'll check if _OSI can be invoked in module level.
+There are two calls from ACPICA to Linux in acpi_tb_override_table,
+namely acpi_os_table_override (for DSDT override) and
+acpi_os_physical_table_override (for others, like SSDT). Did you meant
+to refer to these as "callback"?
 
-Thanks and best regards
-Lv
+If you want to adjust the matching functionality, I guess that
+acpi_table_initrd_override needs to be modified. The ACPI header cannot
+be modified, so you would then have to read the checksum, size or index
+based on the filename.
 
-> 
+Kind regards,
+Peter
+
 > Please see my recent comment in the following link:
 > https://github.com/Bumblebee-Project/bbswitch/issues/142
 > 
 > Thanks
 > Lv
 > 
-> >
+> > 
 > > I have not checked Windows, but I would guess that it loads normally.
 > > Otherwise Lenovo QA has really been sleeping.
-> >
+> > 
 > > Kind regards,
 > > Peter
-> >
+> > 
 > > > Linux only need a quirk for this platform.
 > > >
 > > > Thanks
