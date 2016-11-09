@@ -1,61 +1,109 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v7 01/16] drivers: acpi: add FWNODE_ACPI_STATIC fwnode type
-Date: Thu, 10 Nov 2016 00:37:04 +0100
-Message-ID: <CAJZ5v0iRwh3T8U6JeDgWSMX4hbuvo21KGh7MV__=DCVMMefsTQ@mail.gmail.com>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
-	<20161109141948.19244-2-lorenzo.pieralisi@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20161109141948.19244-2-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH V10 0/6] Enable PMUs in ACPI Systems
+Date: Wed,  9 Nov 2016 17:39:47 -0600
+Message-ID: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38682 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754206AbcKIXjz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Nov 2016 18:39:55 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
 
-On Wed, Nov 9, 2016 at 3:19 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> On systems booting with a device tree, every struct device is associated
-> with a struct device_node, that provides its DT firmware representation.
-> The device node can be used in generic kernel contexts (eg IRQ
-> translation, IOMMU streamid mapping), to retrieve the properties
-> associated with the device and carry out kernel operations accordingly.
-> Owing to the 1:1 relationship between the device and its device_node,
-> the device_node can also be used as a look-up token for the device (eg
-> looking up a device through its device_node), to retrieve the device in
-> kernel paths where the device_node is available.
->
-> On systems booting with ACPI, the same abstraction provided by
-> the device_node is required to provide look-up functionality.
->
-> The struct acpi_device, that represents firmware objects in the
-> ACPI namespace already includes a struct fwnode_handle of
-> type FWNODE_ACPI as their member; the same abstraction is missing
-> though for devices that are instantiated out of static ACPI tables
-> entries (eg ARM SMMU devices).
->
-> Add a new fwnode_handle type to associate devices created out
-> of static ACPI table entries to the respective firmware components
-> and create a simple ACPI core layer interface to dynamically allocate
-> and free the corresponding firmware nodes so that kernel subsystems
-> can use it to instantiate the nodes and associate them with the
-> respective devices.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Tested-by: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+This patch expands and reworks the patches published by Mark Salter
+in order to clean up a few of the previous review comments, as well as
+add support for newer CPUs and big/little configurations.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+v10:
+- Rebase to 4.9
+- Rework the arm_perf_start_cpu changes to support the 4.9 hotplug
+  changes.
+- Remove the call to acpi_register_gsi() from the cpu online code path.
+  Instead the GSI's are registered during the initcall. This changes
+  the error handling a bit because we now try to clean up the
+  previously registered GSIs in a couple important places. This
+  was also a result of the rebase.
+- Dropped the MIDR partnumber usage, its no longer necessary to
+  differentiate by only the partnum, so this helps to clarify the code
+  a bit. 
+- Shuffle some code around and rename a few variables.
+- Added a few comments to hopefully clarify some questions people have
+  previously had about unused MADT entries, skipping processing cores
+  with MIDR=0, etc.
 
-Thanks!
+v9:
+- Add/cleanup an additional hotplug patch I've had sitting around. This
+  patch brings the ACPI PMU mostly on par with the DT functionality with
+  respect to having CPUs offline during boot. This should help clarify
+  some of the code structuring.
+- Cleanup the list of PMU types early if we fail to allocate memory for an
+  additional pmu type.
+
+v8:
+- Rebase to 4.8rc4
+- Assorted minor comment/hunk placement/etc tweaks per Punit Agrawal
+
+v7:
+- Rebase to 4.8rc3
+- Remove cpu affinity sysfs entry. While providing a CPU mask for
+  ARMv8 PMU's is really helpful in big/little environments, reworking
+  the PMU code to support the cpumask attribute for !arm64 PMUs is out
+  of the scope of this patch set.
+- Fix CPU miscount problem where an alloc failure followed by successfully
+  allocating the structure can result in under counting the CPUs associated
+  with the PMU. This bug was created in v6 with the conversion to a linked
+  list.
+-  Remove initial platform device creation code by Mark Salter, and re-squash
+   multiple platform device creation code together with helper routines.
+   Other minor tweakage.
+
+v6:
+- Added cpu affinity sysfs entry
+- Converted pmu_types array, to linked list
+- Restrict use of the armv8_pmu_probe_table to ACPI systems
+- Rename MADT parsing routines in smp.c
+- Convert sysfs PMU name to use index rather than partnum
+- Remove pr_devel statements
+- Other Minor cleanups
+- Add Partial Ack-by Will Deacon
+
+v5:
+- Remove list of CPU types for ACPI systems. We now match a generic
+  event list, and use the PMCIED[01] to select events which exist on
+  the given PMU. This avoids the need to update the kernel every time
+  a new CPU is released.
+- Update the maintainers list to include the new file.
+
+v4:
+- Correct build issues with ARM (!ARM64) kernels.
+- Add ThunderX to list of PMU types.
+
+v3:
+- Enable ARM performance monitoring units on ACPI/arm64 machines.
+
+Jeremy Linton (5):
+  arm64: Rename the common MADT parse routine
+  arm: arm64: Add routine to determine cpuid of other cpus
+  arm: arm64: pmu: Assign platform PMU CPU affinity
+  arm64: pmu: Detect and enable multiple PMUs in an ACPI system
+  arm: pmu: Add PMU definitions for cores not initially online
+
+Mark Salter (1):
+  arm64: pmu: Cache PMU interrupt numbers from MADT parse
+
+ arch/arm/include/asm/cputype.h   |   2 +
+ arch/arm64/include/asm/cputype.h |   3 +
+ arch/arm64/kernel/smp.c          |  18 ++-
+ drivers/perf/Kconfig             |   4 +
+ drivers/perf/Makefile            |   1 +
+ drivers/perf/arm_pmu.c           | 107 +++++++++++++--
+ drivers/perf/arm_pmu_acpi.c      | 272 +++++++++++++++++++++++++++++++++++++++
+ include/linux/perf/arm_pmu.h     |  11 ++
+ 8 files changed, 400 insertions(+), 18 deletions(-)
+ create mode 100644 drivers/perf/arm_pmu_acpi.c
+
+-- 
+2.5.5
+
