@@ -1,117 +1,152 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH V10 6/6] arm: pmu: Add PMU definitions for cores not initially online
-Date: Wed,  9 Nov 2016 17:39:53 -0600
-Message-ID: <1478734793-6341-7-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH V10 3/6] arm64: pmu: Cache PMU interrupt numbers from MADT parse
+Date: Wed,  9 Nov 2016 17:39:50 -0600
+Message-ID: <1478734793-6341-4-git-send-email-jeremy.linton@arm.com>
 References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38714 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:38704 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754698AbcKIXj5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 9 Nov 2016 18:39:57 -0500
+        id S1754206AbcKIXj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 9 Nov 2016 18:39:56 -0500
 In-Reply-To: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
 
-ACPI CPUs aren't associated with a PMU until they have been put
-online. This means that we potentially have to update a PMU
-definition the first time a CPU is hot added to the machine.
+From: Mark Salter <msalter@redhat.com>
 
+In the case of ACPI, the PMU IRQ information is contained in the
+MADT table. Also, since the PMU does not exist as a device in the
+ACPI DSDT table, it is necessary to create a platform device so
+that the appropriate driver probing is triggered. Since the platform
+device creation needs to happen after the CPU's have been started, and
+the MADT parsing needs to happen before, we save off the interrupt
+numbers discovered during the parsing.
+
+Signed-off-by: Mark Salter <msalter@redhat.com>
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/perf/arm_pmu.c       | 38 ++++++++++++++++++++++++++++++++++++--
- include/linux/perf/arm_pmu.h |  4 ++++
- 2 files changed, 40 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/smp.c      |  5 +++++
+ drivers/perf/Kconfig         |  4 ++++
+ drivers/perf/Makefile        |  1 +
+ drivers/perf/arm_pmu_acpi.c  | 40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/perf/arm_pmu.h |  7 +++++++
+ 5 files changed, 57 insertions(+)
+ create mode 100644 drivers/perf/arm_pmu_acpi.c
 
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 07e1404..775551c 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -711,6 +711,30 @@ static int cpu_pmu_request_irq(struct arm_pmu *cpu_pmu, irq_handler_t handler)
- 	return 0;
- }
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index f3f1c90..e350ccc 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -37,6 +37,7 @@
+ #include <linux/completion.h>
+ #include <linux/of.h>
+ #include <linux/irq_work.h>
++#include <linux/perf/arm_pmu.h>
  
-+static DEFINE_SPINLOCK(arm_pmu_resource_lock);
+ #include <asm/alternative.h>
+ #include <asm/atomic.h>
+@@ -546,6 +547,7 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+ 		}
+ 		bootcpu_valid = true;
+ 		early_map_cpu_to_node(0, acpi_numa_get_nid(0, hwid));
++		arm_pmu_parse_acpi(0, processor);
+ 		return;
+ 	}
+ 
+@@ -566,6 +568,9 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+ 	 */
+ 	acpi_set_mailbox_entry(cpu_count, processor);
+ 
++	/* get PMU irq info */
++	arm_pmu_parse_acpi(cpu_count, processor);
 +
-+static void arm_perf_associate_new_cpu(struct arm_pmu *lpmu, unsigned int cpu)
+ 	early_map_cpu_to_node(cpu_count, acpi_numa_get_nid(cpu_count, hwid));
+ 
+ 	cpu_count++;
+diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+index 4d5c5f9..697df05 100644
+--- a/drivers/perf/Kconfig
++++ b/drivers/perf/Kconfig
+@@ -19,4 +19,8 @@ config XGENE_PMU
+         help
+           Say y if you want to use APM X-Gene SoC performance monitors.
+ 
++config ARM_PMU_ACPI
++	def_bool y
++	depends on ARM_PMU && ACPI
++
+ endmenu
+diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+index b116e98..d1d7762 100644
+--- a/drivers/perf/Makefile
++++ b/drivers/perf/Makefile
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_ARM_PMU) += arm_pmu.o
+ obj-$(CONFIG_XGENE_PMU) += xgene_pmu.o
++obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
+diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+new file mode 100644
+index 0000000..135851c
+--- /dev/null
++++ b/drivers/perf/arm_pmu_acpi.c
+@@ -0,0 +1,40 @@
++/*
++ * ARM ACPI PMU support
++ *
++ * Copyright (C) 2015 Red Hat Inc.
++ * Author: Mark Salter <msalter@redhat.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.  See
++ * the COPYING file in the top-level directory.
++ *
++ */
++
++#include <asm/cpu.h>
++#include <linux/acpi.h>
++#include <linux/irq.h>
++#include <linux/irqdesc.h>
++#include <linux/list.h>
++#include <linux/perf/arm_pmu.h>
++#include <linux/platform_device.h>
++
++struct pmu_irq {
++	int  gsi;
++	int  trigger;
++	bool registered;
++};
++
++static struct pmu_irq pmu_irqs[NR_CPUS];
++
++/*
++ * Called from acpi_verify_and_map_madt()'s MADT parsing during boot.
++ * This routine saves off the GSI's and their trigger state for use when we are
++ * ready to build the PMU platform device.
++ */
++void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
 +{
-+	struct platform_device *pdev = lpmu->plat_device;
-+	struct resource *res;
-+	struct pmu_hw_events *events;
-+	int num_res;
-+
-+	spin_lock(&arm_pmu_resource_lock);
-+	for (num_res = 0; num_res < pdev->num_resources; num_res++) {
-+		if (!pdev->resource[num_res].flags)
-+			break;
-+	}
-+	res = &pdev->resource[num_res];
-+	arm_pmu_acpi_retrieve_irq(res, cpu);
-+	events = per_cpu_ptr(lpmu->hw_events, cpu);
-+	cpumask_set_cpu(cpu, &lpmu->supported_cpus);
-+	if (lpmu->irq_affinity)
-+		lpmu->irq_affinity[num_res] = cpu;
-+	events->percpu_pmu = lpmu;
-+	spin_unlock(&arm_pmu_resource_lock);
++	pmu_irqs[cpu].gsi = gic->performance_interrupt;
++	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
++		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
++	else
++		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
 +}
-+
- /*
-  * PMU hardware loses all context when a CPU goes offline.
-  * When a CPU is hotplugged back in, since some hardware registers are
-@@ -721,10 +745,18 @@ static int arm_perf_starting_cpu(unsigned int cpu, struct hlist_node *node)
- {
- 	struct arm_pmu *pmu = hlist_entry_safe(node, struct arm_pmu, node);
- 
--	if (!cpumask_test_cpu(cpu, &pmu->supported_cpus))
--		return 0;
-+	if (!cpumask_test_cpu(cpu, &pmu->supported_cpus)) {
-+		unsigned int cpuid = read_specific_cpuid(cpu);
-+
-+		if (acpi_disabled)
-+			return 0;
-+		if (cpuid != pmu->id)
-+			return 0;
-+		arm_perf_associate_new_cpu(pmu, cpu);
-+	}
- 	if (pmu->reset)
- 		pmu->reset(pmu);
-+
- 	return 0;
- }
- 
-@@ -906,6 +938,8 @@ static int probe_plat_pmu(struct arm_pmu *pmu,
- 	struct platform_device *pdev = pmu->plat_device;
- 	int irq = platform_get_irq(pdev, 0);
- 
-+	pmu->id = pmuid;
-+
- 	if (irq >= 0 && !irq_is_percpu(irq)) {
- 		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
- 					    GFP_KERNEL);
 diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index df1ba55..ed82b8f 100644
+index 8462da2..df1ba55 100644
 --- a/include/linux/perf/arm_pmu.h
 +++ b/include/linux/perf/arm_pmu.h
-@@ -112,6 +112,7 @@ struct arm_pmu {
- 	struct mutex	reserve_mutex;
- 	u64		max_period;
- 	bool		secure_access; /* 32-bit ARM only */
-+	unsigned int	id;
- #define ARMV8_PMUV3_MAX_COMMON_EVENTS 0x40
- 	DECLARE_BITMAP(pmceid_bitmap, ARMV8_PMUV3_MAX_COMMON_EVENTS);
- 	struct platform_device	*plat_device;
-@@ -167,8 +168,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- #ifdef CONFIG_ARM_PMU_ACPI
- struct acpi_madt_generic_interrupt;
- void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
-+int arm_pmu_acpi_retrieve_irq(struct resource *pdev, int cpu);
- #else
- #define arm_pmu_parse_acpi(a, b) do { } while (0)
-+#define arm_pmu_acpi_retrieve_irq(pdev, cpu) \
-+	do { } while (0)
- #endif /* CONFIG_ARM_PMU_ACPI */
+@@ -164,4 +164,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
  
+ #endif /* CONFIG_ARM_PMU */
+ 
++#ifdef CONFIG_ARM_PMU_ACPI
++struct acpi_madt_generic_interrupt;
++void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
++#else
++#define arm_pmu_parse_acpi(a, b) do { } while (0)
++#endif /* CONFIG_ARM_PMU_ACPI */
++
  #endif /* __ARM_PMU_H__ */
 -- 
 2.5.5
