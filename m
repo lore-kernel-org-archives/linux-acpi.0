@@ -1,197 +1,60 @@
-From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v7 07/16] drivers: acpi: implement acpi_dma_configure
-Date: Wed, 9 Nov 2016 15:33:27 +0000
-Message-ID: <e25b0ebb-2ae4-cb13-b264-9ab43d8f2934@arm.com>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
-	<20161109141948.19244-8-lorenzo.pieralisi@arm.com>
+From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] acpi: video: Move ACPI_VIDEO_NOTIFY_* defines to
+	acpi/video.h
+Date: Wed,  9 Nov 2016 18:15:56 +0100
+Message-ID: <20161109171556.4003-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20161109141948.19244-8-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/11/16 14:19, Lorenzo Pieralisi wrote:
-> On DT based systems, the of_dma_configure() API implements DMA
-> configuration for a given device. On ACPI systems an API equivalent to
-> of_dma_configure() is missing which implies that it is currently not
-> possible to set-up DMA operations for devices through the ACPI generic
-> kernel layer.
-> 
-> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> calls that for now are just wrappers around arch_setup_dma_ops() and
-> arch_teardown_dma_ops() and also updates ACPI and PCI core code to use
-> the newly introduced acpi_dma_configure/acpi_dma_deconfigure functions.
-> 
-> Since acpi_dma_configure() is used to configure DMA operations, the
-> function initializes the dma/coherent_dma masks to sane default values
-> if the current masks are uninitialized (also to keep the default values
-> consistent with DT systems) to make sure the device has a complete
-> default DMA set-up.
-> 
-> The DMA range size passed to arch_setup_dma_ops() is sized according
-> to the device coherent_dma_mask (starting at address 0x0), mirroring the
-> DT probing path behaviour when a dma-ranges property is not provided
-> for the device being probed; this changes the current arch_setup_dma_ops()
-> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
-> is a NOP on all architectures but ARM/ARM64 this patch does not change
-> the current kernel behaviour on them.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> [pci]
-> Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Tested-by: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> ---
->  drivers/acpi/glue.c     |  4 ++--
->  drivers/acpi/scan.c     | 40 ++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/probe.c     |  3 +--
->  include/acpi/acpi_bus.h |  2 ++
->  include/linux/acpi.h    |  5 +++++
->  5 files changed, 50 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 5ea5dc2..f8d6564 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->  
->  	attr = acpi_get_dma_attr(acpi_dev);
->  	if (attr != DEV_DMA_NOT_SUPPORTED)
-> -		arch_setup_dma_ops(dev, 0, 0, NULL,
-> -				   attr == DEV_DMA_COHERENT);
-> +		acpi_dma_configure(dev, attr);
->  
->  	acpi_physnode_link_name(physical_node_name, node_id);
->  	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->  	return 0;
->  
->   err:
-> +	acpi_dma_deconfigure(dev);
->  	ACPI_COMPANION_SET(dev, NULL);
->  	put_device(dev);
->  	put_device(&acpi_dev->dev);
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 035ac64..694e0b6 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1370,6 +1370,46 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  		return DEV_DMA_NON_COHERENT;
->  }
->  
-> +/**
-> + * acpi_dma_configure - Set-up DMA configuration for the device.
-> + * @dev: The pointer to the device
-> + * @attr: device dma attributes
-> + */
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
-> +{
-> +	/*
-> +	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
-> +	 * setup the correct supported mask.
-> +	 */
-> +	if (!dev->coherent_dma_mask)
-> +		dev->coherent_dma_mask = DMA_BIT_MASK(32);
-> +
-> +	/*
-> +	 * Set it to coherent_dma_mask by default if the architecture
-> +	 * code has not set it.
-> +	 */
-> +	if (!dev->dma_mask)
-> +		dev->dma_mask = &dev->coherent_dma_mask;
-> +
-> +	/*
-> +	 * Assume dma valid range starts at 0 and covers the whole
-> +	 * coherent_dma_mask.
-> +	 */
-> +	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
-> +			   attr == DEV_DMA_COHERENT);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_configure);
-> +
-> +/**
-> + * acpi_dma_deconfigure - Tear-down DMA configuration for the device.
-> + * @dev: The pointer to the device
-> + */
-> +void acpi_dma_deconfigure(struct device *dev)
-> +{
-> +	arch_teardown_dma_ops(dev);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_deconfigure);
-> +
->  static void acpi_init_coherency(struct acpi_device *adev)
->  {
->  	unsigned long long cca = 0;
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index ab00267..c29e07a 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1738,8 +1738,7 @@ static void pci_dma_configure(struct pci_dev *dev)
->  		if (attr == DEV_DMA_NOT_SUPPORTED)
->  			dev_warn(&dev->dev, "DMA not supported.\n");
-
-If we're going to check attr for DMA support before each call like this,
-it seems like we may as well put the check at the top of
-acpi_dma_configure() instead. I think it should be viable to predicate
-the warning on dev_is_pci() at this point, if that's the appropriate
-behaviour.
-
-Still, we're likely to be touching this again soon with the
-IOMMU-probe-ordering work, so there's plenty of room for further
-cleanups then:
-
-Reviewed-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-
->  		else
-> -			arch_setup_dma_ops(&dev->dev, 0, 0, NULL,
-> -					   attr == DEV_DMA_COHERENT);
-> +			acpi_dma_configure(&dev->dev, attr);
->  	}
->  
->  	pci_put_host_bridge_device(bridge);
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index c1a524d..4242c31 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -573,6 +573,8 @@ struct acpi_pci_root {
->  
->  bool acpi_dma_supported(struct acpi_device *adev);
->  enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
-> +void acpi_dma_deconfigure(struct device *dev);
->  
->  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
->  					   u64 address, bool check_children);
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 6efb13c..df961f4 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -764,6 +764,11 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  	return DEV_DMA_NOT_SUPPORTED;
->  }
->  
-> +static inline void acpi_dma_configure(struct device *dev,
-> +				      enum dev_dma_attr attr) { }
-> +
-> +static inline void acpi_dma_deconfigure(struct device *dev) { }
-> +
->  #define ACPI_PTR(_ptr)	(NULL)
->  
->  static inline void acpi_device_set_enumerated(struct acpi_device *adev)
-> 
+YWNwaV92aWRlby5jIHBhc3NlZCB0aGUgQUNQSV9WSURFT19OT1RJRllfKiBkZWZpbmVzIGFzIHR5
+cGUgY29kZSB0bwphY3BpX25vdGlmaWVyX2NhbGxfY2hhaW4oKS4gTW92ZSB0aGVzZSBkZWZpbmVz
+IHRvIGFjcGkvdmlkZW8uaCBzbwp0aGF0IGFjcGlfbm90aWZpZXIgbGlzdGVuZXJzIGNhbiBjaGVj
+ayB0aGUgdHlwZSBjb2RlIHVzaW5nIHRoZXNlCmRlZmluZXMuCgpTaWduZWQtb2ZmLWJ5OiBIYW5z
+IGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgotLS0KIGRyaXZlcnMvYWNwaS9hY3BpX3Zp
+ZGVvLmMgfCAxMSAtLS0tLS0tLS0tLQogaW5jbHVkZS9hY3BpL3ZpZGVvLmggICAgICB8IDExICsr
+KysrKysrKysrCiAyIGZpbGVzIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9u
+cygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpX3ZpZGVvLmMgYi9kcml2ZXJzL2Fj
+cGkvYWNwaV92aWRlby5jCmluZGV4IGM1NTU3ZDAuLjIwMTI5MmUgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvYWNwaS9hY3BpX3ZpZGVvLmMKKysrIGIvZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYwpAQCAt
+NDMsMTcgKzQzLDYgQEAKIAogI2RlZmluZSBBQ1BJX1ZJREVPX0JVU19OQU1FCQkiVmlkZW8gQnVz
+IgogI2RlZmluZSBBQ1BJX1ZJREVPX0RFVklDRV9OQU1FCQkiVmlkZW8gRGV2aWNlIgotI2RlZmlu
+ZSBBQ1BJX1ZJREVPX05PVElGWV9TV0lUQ0gJMHg4MAotI2RlZmluZSBBQ1BJX1ZJREVPX05PVElG
+WV9QUk9CRQkJMHg4MQotI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9DWUNMRQkJMHg4MgotI2Rl
+ZmluZSBBQ1BJX1ZJREVPX05PVElGWV9ORVhUX09VVFBVVAkweDgzCi0jZGVmaW5lIEFDUElfVklE
+RU9fTk9USUZZX1BSRVZfT1VUUFVUCTB4ODQKLQotI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9D
+WUNMRV9CUklHSFRORVNTCTB4ODUKLSNkZWZpbmUJQUNQSV9WSURFT19OT1RJRllfSU5DX0JSSUdI
+VE5FU1MJMHg4NgotI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9ERUNfQlJJR0hUTkVTUwkweDg3
+Ci0jZGVmaW5lIEFDUElfVklERU9fTk9USUZZX1pFUk9fQlJJR0hUTkVTUwkweDg4Ci0jZGVmaW5l
+IEFDUElfVklERU9fTk9USUZZX0RJU1BMQVlfT0ZGCQkweDg5CiAKICNkZWZpbmUgTUFYX05BTUVf
+TEVOCTIwCiAKZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS92aWRlby5oIGIvaW5jbHVkZS9hY3Bp
+L3ZpZGVvLmgKaW5kZXggNDUzNmJkMy4uYmZlNDg0ZCAxMDA2NDQKLS0tIGEvaW5jbHVkZS9hY3Bp
+L3ZpZGVvLmgKKysrIGIvaW5jbHVkZS9hY3BpL3ZpZGVvLmgKQEAgLTMwLDYgKzMwLDE3IEBAIHN0
+cnVjdCBhY3BpX2RldmljZTsKICNkZWZpbmUgQUNQSV9WSURFT19ESVNQTEFZX0xFR0FDWV9QQU5F
+TCAgIDB4MDExMAogI2RlZmluZSBBQ1BJX1ZJREVPX0RJU1BMQVlfTEVHQUNZX1RWICAgICAgMHgw
+MjAwCiAKKyNkZWZpbmUgQUNQSV9WSURFT19OT1RJRllfU1dJVENICQkweDgwCisjZGVmaW5lIEFD
+UElfVklERU9fTk9USUZZX1BST0JFCQkJMHg4MQorI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9D
+WUNMRQkJCTB4ODIKKyNkZWZpbmUgQUNQSV9WSURFT19OT1RJRllfTkVYVF9PVVRQVVQJCTB4ODMK
+KyNkZWZpbmUgQUNQSV9WSURFT19OT1RJRllfUFJFVl9PVVRQVVQJCTB4ODQKKyNkZWZpbmUgQUNQ
+SV9WSURFT19OT1RJRllfQ1lDTEVfQlJJR0hUTkVTUwkweDg1CisjZGVmaW5lIEFDUElfVklERU9f
+Tk9USUZZX0lOQ19CUklHSFRORVNTCTB4ODYKKyNkZWZpbmUgQUNQSV9WSURFT19OT1RJRllfREVD
+X0JSSUdIVE5FU1MJMHg4NworI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9aRVJPX0JSSUdIVE5F
+U1MJMHg4OAorI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9ESVNQTEFZX09GRgkJMHg4OQorCiBl
+bnVtIGFjcGlfYmFja2xpZ2h0X3R5cGUgewogCWFjcGlfYmFja2xpZ2h0X3VuZGVmID0gLTEsCiAJ
+YWNwaV9iYWNrbGlnaHRfbm9uZSA9IDAsCi0tIAoyLjkuMwoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBs
+aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9ub3V2ZWF1Cg==
