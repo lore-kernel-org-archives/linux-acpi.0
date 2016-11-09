@@ -1,134 +1,64 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH V10 4/6] arm: arm64: pmu: Assign platform PMU CPU affinity
-Date: Wed,  9 Nov 2016 17:39:51 -0600
-Message-ID: <1478734793-6341-5-git-send-email-jeremy.linton@arm.com>
-References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / platform: Add support for build-in properties
+Date: Thu, 10 Nov 2016 00:40:51 +0100
+Message-ID: <CAJZ5v0iALibO6Nub_Q4oZvY+SgehTQHrAZQG32ar8R281_NyAw@mail.gmail.com>
+References: <20161102154139.GD11523@kuha.fi.intel.com> <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
+ <1478448574.1591.2.camel@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38714 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754694AbcKIXj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 9 Nov 2016 18:39:56 -0500
-In-Reply-To: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:33000 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752675AbcKIXkw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Nov 2016 18:40:52 -0500
+In-Reply-To: <1478448574.1591.2.camel@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
+To: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kefeng Wang <wangkefeng.wang@huawei.com>, Feng Kan <fkan@apm.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>
 
-On systems with multiple PMU types the PMU to CPU affinity
-needs to be detected and set. The CPU to interrupt affinity
-should also be set.
+On Sun, Nov 6, 2016 at 5:09 PM, J=C3=A9r=C3=B4me de Bretagne
+<jerome.debretagne@gmail.com> wrote:
+> Le jeudi 03 novembre 2016 =C3=A0 16:21 +0200, Heikki Krogerus a =C3=A9cri=
+t :
+>> We have a couple of drivers, acpi_apd.c and acpi_lpss.c,
+>> that need to pass extra build-in properties to the devices
+>> they create. Previously the drivers added those properties
+>> to the struct device which is member of the struct
+>> acpi_device, but that does not work. Those properties need
+>> to be assigned to the struct device of the platform device
+>> instead in order for them to become available to the
+>> drivers.
+>>
+>> To fix this, this patch changes acpi_create_platform_device
+>> function to take struct property_entry pointer as parameter.
+>>
+>> Fixes: 20a875e2e86e ("serial: 8250_dw: Add quirk for APM X-Gene SoC")
+>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>> ---
+>>
+>> Hi,
+>>
+>> Found the problem, and this is my proposal for a fix.
+>>
+>> J=C3=A9r=C3=B4me, please test it when you have time.
+>>
+>
+> Hi Heikki,
+>
+> I can confirm that this patch fixes the issue I've reported on the Lenovo
+> ThinkPad 8 tablet. You were fast to find the root cause, impressive, real=
+ly
+> appreciated.
+>
+> Feel free to add:
+> Tested-by: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com>
+>
+> Let's hope it can still make it during the remaining 4.9 rc timing.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- drivers/perf/arm_pmu.c | 63 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 53 insertions(+), 10 deletions(-)
+It's in my linux-next branch now (it should hit linux-next on Friday)
+and I'm going to push it for -rc5 if it doesn't lead to problems.
 
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index b37b572..6008be9 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -11,6 +11,7 @@
-  */
- #define pr_fmt(fmt) "hw perfevents: " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpumask.h>
- #include <linux/cpu_pm.h>
-@@ -24,6 +25,7 @@
- #include <linux/irq.h>
- #include <linux/irqdesc.h>
- 
-+#include <asm/cpu.h>
- #include <asm/cputype.h>
- #include <asm/irq_regs.h>
- 
-@@ -889,25 +891,67 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
- }
- 
- /*
-- * CPU PMU identification and probing.
-+ * CPU PMU identification and probing. Its possible to have
-+ * multiple CPU types in an ARM machine. Assure that we are
-+ * picking the right PMU types based on the CPU in question
-  */
--static int probe_current_pmu(struct arm_pmu *pmu,
--			     const struct pmu_probe_info *info)
-+static int probe_plat_pmu(struct arm_pmu *pmu,
-+			     const struct pmu_probe_info *info,
-+			     unsigned int pmuid)
- {
--	int cpu = get_cpu();
--	unsigned int cpuid = read_cpuid_id();
- 	int ret = -ENODEV;
-+	int cpu;
-+	int aff_ctr = 0;
-+	static int duplicate_pmus;
-+	struct platform_device *pdev = pmu->plat_device;
-+	int irq = platform_get_irq(pdev, 0);
- 
--	pr_info("probing PMU on CPU %d\n", cpu);
-+	if (irq >= 0 && !irq_is_percpu(irq)) {
-+		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
-+					    GFP_KERNEL);
-+		if (!pmu->irq_affinity)
-+			return -ENOMEM;
-+	}
- 
-+	for_each_possible_cpu(cpu) {
-+		unsigned int cpuid = read_specific_cpuid(cpu);
-+
-+		if (cpuid == pmuid) {
-+			cpumask_set_cpu(cpu, &pmu->supported_cpus);
-+			if (pmu->irq_affinity) {
-+				pmu->irq_affinity[aff_ctr] = cpu;
-+				aff_ctr++;
-+			}
-+		}
-+	}
-+
-+	/* find the type of PMU given the CPU */
- 	for (; info->init != NULL; info++) {
--		if ((cpuid & info->mask) != info->cpuid)
-+		if ((pmuid & info->mask) != info->cpuid)
- 			continue;
- 		ret = info->init(pmu);
-+		/*
-+		 * if this pmu declaration is unspecified and we have
-+		 * previously found a PMU on this platform then append
-+		 * a PMU number to the pmu name. This avoids changing
-+		 * the names of PMUs that are specific to a class of CPUs.
-+		 * The assumption is that if we match a specific PMU in the
-+		 * provided pmu_probe_info then it's unique, and another PMU
-+		 * in the system will match a different entry rather than
-+		 * needing the _number to assure its unique.
-+		 */
-+		if ((!info->cpuid) && (duplicate_pmus)) {
-+			pmu->name = kasprintf(GFP_KERNEL, "%s_%d",
-+					    pmu->name, duplicate_pmus);
-+			if (!pmu->name) {
-+				kfree(pmu->irq_affinity);
-+				ret = -ENOMEM;
-+			}
-+		}
-+		duplicate_pmus++;
- 		break;
- 	}
- 
--	put_cpu();
- 	return ret;
- }
- 
-@@ -1043,8 +1087,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		if (!ret)
- 			ret = init_fn(pmu);
- 	} else if (probe_table) {
--		cpumask_setall(&pmu->supported_cpus);
--		ret = probe_current_pmu(pmu, probe_table);
-+		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
- 	}
- 
- 	if (ret) {
--- 
-2.5.5
-
+Thanks,
+Rafael
