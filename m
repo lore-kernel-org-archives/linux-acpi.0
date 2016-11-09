@@ -1,60 +1,118 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: thinkpad x60, T40p: overheat with v4.9-rc4 (was Re: v4.8-rc1:
- thinkpad x60: running at low frequency even during kernel build)
-Date: Wed, 9 Nov 2016 12:34:06 +0100
-Message-ID: <20161109113406.GA1793@amd>
-References: <20161104083849.GA32688@amd>
- <20161104085830.GA4089@amd>
- <1478268311.26953.17.camel@intel.com>
- <20161104204439.GA2581@amd>
- <20161104221600.GA7007@amd>
- <1478301649.7947.3.camel@intel.com>
- <20161105133719.GA3933@amd>
- <1478354115.19557.17.camel@intel.com>
+From: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v6 13/16] drivers: iommu: arm-smmu: add IORT configuration
+Date: Wed, 9 Nov 2016 14:24:49 +0100
+Message-ID: <f8ec1ef0-9fbd-7dd6-822a-ca91aafe986a@semihalf.com>
+References: <20161018160414.1228-1-lorenzo.pieralisi@arm.com>
+	<20161018160414.1228-14-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1478354115.19557.17.camel@intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, regressions@leemhuis.info
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "ibm-acpi-devel@lists.sourceforge.net" <ibm-acpi-devel@lists.sourceforge.net>, "ibm-acpi@hmh.eng.br" <ibm-acpi@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20161018160414.1228-14-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Eric Auger <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Lorenzo,
 
---xHFwDpU9dbj6ez1V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 18.10.2016 18:04, Lorenzo Pieralisi wrote:
+> In ACPI bases systems, in order to be able to create platform
+> devices and initialize them for ARM SMMU components, the IORT
+> kernel implementation requires a set of static functions to be
+> used by the IORT kernel layer to configure platform devices for
+> ARM SMMU components.
+>
+> Add static configuration functions to the IORT kernel layer for
+> the ARM SMMU components, so that the ARM SMMU driver can
+> initialize its respective platform device by relying on the IORT
+> kernel infrastructure and by adding a corresponding ACPI device
+> early probe section entry.
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 81 +++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/iommu/arm-smmu.c  | 84 ++++++++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/acpi_iort.h |  3 ++
+>  3 files changed, 167 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index ea90bc8..04cc5f7 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -548,6 +548,78 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>  }
+>
+[...]
+> +
+> +static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
+> +				      struct arm_smmu_device *smmu)
+> +{
+> +	struct device *dev = smmu->dev;
+> +	struct acpi_iort_node *node =
+> +		*(struct acpi_iort_node **)dev_get_platdata(dev);
+> +	struct acpi_iort_smmu *iort_smmu;
+> +	u64 *glb_irq;
+> +	int ret;
+> +
+> +	/* Retrieve SMMU1/2 specific data */
+> +	iort_smmu = (struct acpi_iort_smmu *)node->node_data;
+> +
+> +	ret = acpi_smmu_get_data(iort_smmu->model, &smmu->version,
+> +						   &smmu->model);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	glb_irq = ACPI_ADD_PTR(u64, iort_smmu,
+> +			iort_smmu->global_interrupt_offset);
 
-Hi!
+One bug that I found:
 
-Thanks to Srinivas, bug tracking moved to bugzilla at
-https://bugzilla.kernel.org/show_bug.cgi?id=3D187311 , it is regression
-=66rom v4.8-final.
+-	glb_irq = ACPI_ADD_PTR(u64, iort_smmu,
+-			iort_smmu->global_interrupt_offset);
++	glb_irq = ACPI_ADD_PTR(u64, node,
++			iort_smmu->global_interrupt_offset);
 
-Easiest way to observe it is that cpufreq/bios_limit does not change
-in v4.9, where it goes lower with high temperature on v4.8.
+With this fix, I run VM with several PCI devices (NIC, SATA) in 
+passthrough mode successfully on ACPI host using ThunderX 1-socket board.
 
-Best regards,
+Also, for my tests I used Eric's patches:
+https://github.com/eauger/linux/commits/v4.9-rc3-reserved-rfc-v2
 
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Including bug fix above:
+Tested-by: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org> for all series.
 
---xHFwDpU9dbj6ez1V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> +
+> +	if (!IORT_IRQ_MASK(glb_irq[1]))	/* 0 means not implemented */
+> +		smmu->num_global_irqs = 1;
+> +	else
+> +		smmu->num_global_irqs = 2;
+> +
+> +	if (iort_smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK)
+> +		smmu->features |= ARM_SMMU_FEAT_COHERENT_WALK;
+> +
+> +	return 0;
+> +}
+> +#else
+> +static inline int arm_smmu_device_acpi_probe(struct platform_device *pdev,
+> +					     struct arm_smmu_device *smmu)
+> +{
+> +	return -ENODEV;
+> +}
+> +#endif
+> +
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgjCa4ACgkQMOfwapXb+vIdIACgmnJ0ZP8yhI4oAi7H8GW1RejX
-U7MAn2FyMjVJH2KQiwRqTKvmu4UmuAOx
-=EZsJ
------END PGP SIGNATURE-----
-
---xHFwDpU9dbj6ez1V--
+Thanks,
+Tomasz
