@@ -1,141 +1,116 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: [PATCH v7 0/8] Support Intel Turbo Boost Max Technology 3.0
-Date: Thu, 10 Nov 2016 14:36:32 -0800
-Message-ID: <cover.1478805832.git.tim.c.chen@linux.intel.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH] acpi/sleep: Use the FADT to prefer Suspend-to-Idle
+ instead of S3
+Date: Thu, 10 Nov 2016 22:35:58 +0000
+Message-ID: <ab47dd374f594d08941fbebf76999be6@ausx13mpc120.AMER.DELL.COM>
+References: <1478813718-12521-1-git-send-email-mario.limonciello@dell.com>
+ <201611110628.XymssiIE%fengguang.wu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:20699 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934434AbcKJWkP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 10 Nov 2016 17:40:15 -0500
+Received: from esa7.dell-outbound.iphmx.com ([68.232.153.96]:16307 "EHLO
+        esa7.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755639AbcKJWqD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 10 Nov 2016 17:46:03 -0500
+In-Reply-To: <201611110628.XymssiIE%fengguang.wu@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
-Cc: Tim Chen <tim.c.chen@linux.intel.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: lkp@intel.com
+Cc: kbuild-all@01.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, luto@kernel.org
 
-With Intel Turbo Boost Max Technology 3.0 (ITMT), single-threaded
-performance is optimized by identifying processor's fastest
-core and running critical workloads on it.
+> -----Original Message-----
+> From: kbuild test robot [mailto:lkp@intel.com]
+> Sent: Thursday, November 10, 2016 4:15 PM
+> To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+> Cc: kbuild-all@01.org; linux-acpi@vger.kernel.org; Len Brown
+> <lenb@kernel.org>; Rafael J . Wysocki <rjw@rjwysocki.net>; Andy
+> Lutomirski <luto@kernel.org>; Limonciello, Mario
+> <Mario_Limonciello@Dell.com>
+> Subject: Re: [PATCH] acpi/sleep: Use the FADT to prefer Suspend-to-Idle
+> instead of S3
+>=20
+> Hi Mario,
+>=20
+> [auto build test ERROR on pm/linux-next]
+> [also build test ERROR on v4.9-rc4 next-20161110]
+> [if your patch is applied to the wrong git tree, please drop us a note to=
+ help
+> improve the system]
+>=20
+> url:    https://github.com/0day-ci/linux/commits/Mario-Limonciello/acpi-
+> sleep-Use-the-FADT-to-prefer-Suspend-to-Idle-instead-of-S3/20161111-
+> 055555
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.g=
+it
+> linux-next
+> config: i386-randconfig-x006-201645 (attached as .config)
+> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=3Di386
+>=20
+> All error/warnings (new ones prefixed by >>):
+>=20
+>    In file included from include/linux/linkage.h:4:0,
+>                     from include/linux/kernel.h:6,
+>                     from include/linux/delay.h:10,
+>                     from drivers/acpi/sleep.c:13:
+>    drivers/acpi/sleep.c: In function 'acpi_sleep_init':
+> >> drivers/acpi/sleep.c:917:6: error: implicit declaration of function
+> 'suspend_to_idle_preferred' [-Werror=3Dimplicit-function-declaration]
+>      if (suspend_to_idle_preferred()) {
+>          ^
+>    include/linux/compiler.h:149:30: note: in definition of macro '__trace=
+_if'
+>      if (__builtin_constant_p(!!(cond)) ? !!(cond) :   \
+>                                  ^~~~
+> >> drivers/acpi/sleep.c:917:2: note: in expansion of macro 'if'
+>      if (suspend_to_idle_preferred()) {
+>      ^~
+>    Cyclomatic Complexity 1
+> arch/x86/include/asm/paravirt.h:arch_local_irq_disable
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_sleep_dmi_check
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_sleep_suspend_setup
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_sleep_syscore_init
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_sleep_hibernate_setu=
+p
+>    Cyclomatic Complexity 9 drivers/acpi/sleep.c:acpi_sleep_tts_switch
+>    Cyclomatic Complexity 9 drivers/acpi/sleep.c:acpi_sleep_pts_switch
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:sleep_notify_reboot
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_power_off
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_sleep_prepare
+>    Cyclomatic Complexity 1 drivers/acpi/sleep.c:acpi_power_off_prepare
+>    Cyclomatic Complexity 5 drivers/acpi/sleep.c:acpi_sleep_state_supporte=
+d
+>    Cyclomatic Complexity 6 drivers/acpi/sleep.c:acpi_sleep_init
+>    cc1: some warnings being treated as errors
+>=20
+> vim +/suspend_to_idle_preferred +917 drivers/acpi/sleep.c
+>=20
+>    911			pm_power_off_prepare =3D acpi_power_off_prepare;
+>    912			pm_power_off =3D acpi_power_off;
+>    913		} else {
+>    914			acpi_no_s5 =3D true;
+>    915		}
+>    916
+>  > 917		if (suspend_to_idle_preferred()) {
+>    918			sleep_states[ACPI_STATE_S3] =3D 0;
+>    919			sleep_states[ACPI_STATE_S1] =3D 0;
+>    920		}
+>=20
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Ce=
+nter
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corpora=
+tion
 
-Refer to:
-http://www.intel.com/content/www/us/en/architecture-and-technology/turbo-boost/turbo-boost-max-technology.html
+In v2 I'll resubmit with the test moved into acpi_sleep_suspend_setup(void)=
+ so
+that this works properly even if CONFIG_ACPI_SLEEP isn't enabled.
+I'll look for any other comments however about this approach before I submi=
+t v2.
 
-This patchset consist of all changes required to support ITMT feature:
-- Use CPPC information in Intel P-State driver to get performance information
-- Scheduler enhancements
-- cppc lib patches (split in to a seprate series)
-
-This featured can be enabled by writing at runtime
-# echo 1 > /proc/sys/kernel/sched_itmt_enabled
-This featured can be disabled by writing at runtime
-# echo 0 > /proc/sys/kernel/sched_itmt_enabled
-
-Change Log:
-v7:
-1. ITMT3.0 is enabled by default also for multi-socket systems supporting
-the feature.  Remove single socket restriction.  
-2. Add proper ASYM_PACKING check for high priority idle cpu in
-nohz_kick_needed.
-3. Nulling of itmt_sysctl_header after sysctl table
-unregistration.
-4. Minor code format cleanups.
-5. Fix build issue on i386
-
-v6:
-- Split ITMT support control by OS into sched_set_itmt_support and
-sched_clear_itmt_support functions.
-- Return error when we set sysctl_sched_itmt_enabled, if system
-does not support ITMT, or when we cannot create sysctl table entry.
-- Minor code clean up and moving definition of sched_core_priority
-to top of file.
-- Rebase on v4.9-rc1
-
-v5:
-- Simplify intel_pstate for enabling ITMT feature
-- Put x86_sched_itmt_flags related functions under proper
-CONFIG_SCHED_MC/SMT flags
-- Comment to note that rebuild_sched_domain is not needed after updating
-CPU priorities.
-- Define sysctl_sched_itmt_enabled to 0 when ITMT is not used in
-arch/x86/include/asm/topology.h
-- Dropped patch "Fix numa in package topology bug", as this is
-already applied
-
-v4:
-- Split x86 multi-node numa topology bug fix and setting
-of SD_ASYM flag for ITMT topology into 2 patches
-- Split the sysctl changes for ITMT enablement and setting of ITMT
-capability/core priorities into 2 patches.
-- Avoid unnecessary rebuild of sched domains when ITMT sysctl or
-capabilities are updated.
-- Fix missing stub function for topology_max_packages for !SMP case.
-- Rename set_sched_itmt() to sched_set_itmt_support().
-- Various updates to itmt.c to eliminate goto and make logic tighter.
-- Various change logs and comments update.
-- intel_pstate: Split function to process cppc and enable ITMT
-- intel_pstate: Just keep the cppc_perf information till we use CPPC for HWP
-
-v3:
-- Fix race clash when more than one program are enabling/disabling ITMT
-- Remove group_priority_cpu macro to simplify code.
-- Error reported by 0-day for compile issue on ARM
-
-v2
-- The patchset is split into two parts so that CPPC changes can be merged first
- 1. Only ACPI CPPC changes (It is posted separately)
- 2. ITMT changes (scheduler and Intel P-State)
-
-- Changes in patch: sched,x86: Enable Turbo Boost Max Technology
- 1. Use arch_update_cpu_topology to indicate need to completely
-    rebuild sched domain when ITMT related sched domain flags change
- 2. Enable client (single node) platform capable of ITMT with ITMT
-    scheduling by default
- 3. Implement arch_asym_cpu_priority to provide the cpu priority
-    value to scheduler for asym packing.
- 4. Fix a compile bug for i386 architecture.
-
-- Changes in patch: sched: Extend scheduler's asym packing
- 1. Use arch_asym_cpu_priority() to provide cpu priority
-    value used for asym packing to the scheduler.
-
-- Changes in acpi: bus: Enable HWP CPPC objects and
-  acpi: bus: Set _OSC for diverse core support
-  Minor code cleanup by removing #ifdef
-- Changes in Kconfig for Intel P-State
-  Avoid building CPPC lib for i386 for issue reported by 0-day
-
-- Feature is enabled by default for single socket systems
-
-
-Rafael J. Wysocki (1):
-  cpufreq: intel_pstate: Use CPPC to get max performance
-
-Srinivas Pandruvada (2):
-  acpi: bus: Enable HWP CPPC objects
-  acpi: bus: Set _OSC for diverse core support
-
-Tim Chen (5):
-  sched: Extend scheduler's asym packing
-  x86/topology: Define x86's arch_update_cpu_topology
-  x86: Enable Intel Turbo Boost Max Technology 3.0
-  x86/sysctl: Add sysctl for ITMT scheduling feature
-  x86/sched: Add SD_ASYM_PACKING flags to x86 ITMT CPU
-
- arch/x86/Kconfig                |   9 ++
- arch/x86/include/asm/topology.h |  32 ++++++
- arch/x86/kernel/Makefile        |   1 +
- arch/x86/kernel/itmt.c          | 231 ++++++++++++++++++++++++++++++++++++++++
- arch/x86/kernel/smpboot.c       |  39 ++++++-
- drivers/acpi/bus.c              |  10 ++
- drivers/cpufreq/Kconfig.x86     |   1 +
- drivers/cpufreq/intel_pstate.c  |  56 +++++++++-
- include/linux/acpi.h            |   1 +
- include/linux/sched.h           |   4 +
- kernel/sched/core.c             |  15 +++
- kernel/sched/fair.c             |  59 +++++++---
- kernel/sched/sched.h            |   6 ++
- 13 files changed, 444 insertions(+), 20 deletions(-)
- create mode 100644 arch/x86/kernel/itmt.c
-
--- 
-2.5.5
-
+Thanks,
