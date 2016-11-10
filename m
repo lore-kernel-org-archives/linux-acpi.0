@@ -1,82 +1,97 @@
-From: Peter Wu <peter@lekensteyn.nl>
-Subject: Re: [Nouveau] [PATCH] acpi: video: Move ACPI_VIDEO_NOTIFY_* defines
- to acpi/video.h
-Date: Thu, 10 Nov 2016 11:11:25 +0100
-Message-ID: <20161110101125.GA13197@al>
-References: <20161109171556.4003-1-hdegoede@redhat.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCHv2] PCI: QDF2432 32 bit config space accessors
+Date: Thu, 10 Nov 2016 18:25:16 +0800
+Message-ID: <CAKv+Gu9_sdcoN7rjQp-R=2vKY3rECt0BC3eWGpse32o2Q4LHXg@mail.gmail.com>
+References: <20160921173129.GA20006@localhost> <20160921223805.21652-1-cov@codeaurora.org>
+ <20161031214833.GB14603@bhelgaas-glaptop.roam.corp.google.com>
+ <dbf40b73baa71155f39e13d6e51073aa@codeaurora.org> <20161102160820.GA6568@bhelgaas-glaptop.roam.corp.google.com>
+ <aa37ca67-9909-e8f2-1a3e-b724cdb46c7b@codeaurora.org> <20161109200635.GM14322@bhelgaas-glaptop.roam.corp.google.com>
+ <CAKv+Gu82+5oHMeSvcOL1VG4vw-kVnhq4LjCRtLMw4Nmn0rK2CA@mail.gmail.com> <20161109224955.GO14322@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lekensteyn.nl ([178.21.112.251]:33630 "EHLO lekensteyn.nl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754788AbcKJKLj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 10 Nov 2016 05:11:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20161109171556.4003-1-hdegoede@redhat.com>
+Received: from mail-it0-f48.google.com ([209.85.214.48]:38778 "EHLO
+        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754183AbcKJKZR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2016 05:25:17 -0500
+Received: by mail-it0-f48.google.com with SMTP id q124so31221206itd.1
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Nov 2016 02:25:17 -0800 (PST)
+In-Reply-To: <20161109224955.GO14322@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Dave Airlie <airlied@redhat.com>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Christopher Covington <cov@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Jayachandran C <jchandra@broadcom.com>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infr>
 
-On Wed, Nov 09, 2016 at 06:15:56PM +0100, Hans de Goede wrote:
-> acpi_video.c passed the ACPI_VIDEO_NOTIFY_* defines as type code to
-> acpi_notifier_call_chain(). Move these defines to acpi/video.h so
-> that acpi_notifier listeners can check the type code using these
-> defines.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+On 10 November 2016 at 06:49, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Wed, Nov 09, 2016 at 08:29:23PM +0000, Ard Biesheuvel wrote:
+>> Hi Bjorn,
+>>
+>> On 9 November 2016 at 20:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> > On Wed, Nov 09, 2016 at 02:25:56PM -0500, Christopher Covington wrote:
+>> >> Hi Bjorn,
+>> >>
+>> [...]
+>> >>
+>> >> We're working to add the PNP0C02 resource to future firmware, but it's
+>> >> not in the current firmware. Are dmesg and /proc/iomem from the
+>> >> current firmware interesting or should we wait for the update to file?
+>> >
+>> > Note that the ECAM space is not the only thing that should be
+>> > described via these PNP0C02 devices.  *All* non-enumerable resources
+>> > should be described by the _CRS method of some ACPI device.  Here's a
+>> > sample from my laptop:
+>> >
+>> >   PCI: MMCONFIG for domain 0000 [bus 00-3f] at [mem 0xf8000000-0xfbffffff] (base 0xf8000000)
+>> >   system 00:01: [io  0x1800-0x189f] could not be reserved
+>> >   system 00:01: [io  0x0800-0x087f] has been reserved
+>> >   system 00:01: [io  0x0880-0x08ff] has been reserved
+>> >   system 00:01: [io  0x0900-0x097f] has been reserved
+>> >   system 00:01: [io  0x0980-0x09ff] has been reserved
+>> >   system 00:01: [io  0x0a00-0x0a7f] has been reserved
+>> >   system 00:01: [io  0x0a80-0x0aff] has been reserved
+>> >   system 00:01: [io  0x0b00-0x0b7f] has been reserved
+>> >   system 00:01: [io  0x0b80-0x0bff] has been reserved
+>> >   system 00:01: [io  0x15e0-0x15ef] has been reserved
+>> >   system 00:01: [io  0x1600-0x167f] has been reserved
+>> >   system 00:01: [io  0x1640-0x165f] has been reserved
+>> >   system 00:01: [mem 0xf8000000-0xfbffffff] could not be reserved
+>> >   system 00:01: [mem 0xfed10000-0xfed13fff] has been reserved
+>> >   system 00:01: [mem 0xfed18000-0xfed18fff] has been reserved
+>> >   system 00:01: [mem 0xfed19000-0xfed19fff] has been reserved
+>> >   system 00:01: [mem 0xfeb00000-0xfebfffff] has been reserved
+>> >   system 00:01: [mem 0xfed20000-0xfed3ffff] has been reserved
+>> >   system 00:01: [mem 0xfed90000-0xfed93fff] has been reserved
+>> >   system 00:01: [mem 0xf7fe0000-0xf7ffffff] has been reserved
+>> >   system 00:01: Plug and Play ACPI device, IDs PNP0c02 (active)
+>> >
+>> > Do you have firmware in the field that may not get updated?  If so,
+>> > I'd like to see the whole solution for that firmware, including the
+>> > MCFG quirk (which tells the PCI core where the ECAM region is) and
+>> > whatever PNP0C02 quirk you figure out to actually reserve the region.
+>> >
+>> > I proposed a PNP0C02 quirk to Duc along these lines of the below.  I
+>> > don't actually know if it's feasible, but it didn't look as bad as I
+>> > expected, so I'd kind of like somebody to try it out.  I think you
+>> > would have to call this via a DMI hook (do you have DMI on arm64?),
+>> > maybe from pnp_init() or similar.
+>>
+>> We do have SMBIOS/DMI on arm64, but we have been successful so far not
+>> to rely on it for quirks, and we'd very much like to keep it that way.
+>>
+>> Since this ACPI _CRS method has nothing to do with SMBIOS/DMI, surely
+>> there is a better way to wire up the reservation code to the
+>> information exposed by ACPI?
+>
+> I'm open to other ways, feel free to propose one :)
+>
+> If you do a quirk, you need some way to identify the machine/firmware
+> combination, because you don't want to apply the quirk on every
+> machine.  You're trying to work around a firmware issue, so you
+> probably want something tied to the firmware version.  On x86, that's
+> typically done with DMI.
+>
 
-Reviewed-by: Peter Wu <peter@lekensteyn.nl>
-
-> ---
->  drivers/acpi/acpi_video.c | 11 -----------
->  include/acpi/video.h      | 11 +++++++++++
->  2 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> index c5557d0..201292e 100644
-> --- a/drivers/acpi/acpi_video.c
-> +++ b/drivers/acpi/acpi_video.c
-> @@ -43,17 +43,6 @@
->  
->  #define ACPI_VIDEO_BUS_NAME		"Video Bus"
->  #define ACPI_VIDEO_DEVICE_NAME		"Video Device"
-> -#define ACPI_VIDEO_NOTIFY_SWITCH	0x80
-> -#define ACPI_VIDEO_NOTIFY_PROBE		0x81
-> -#define ACPI_VIDEO_NOTIFY_CYCLE		0x82
-> -#define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT	0x83
-> -#define ACPI_VIDEO_NOTIFY_PREV_OUTPUT	0x84
-> -
-> -#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x85
-> -#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x86
-> -#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x87
-> -#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x88
-> -#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x89
->  
->  #define MAX_NAME_LEN	20
->  
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index 4536bd3..bfe484d 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -30,6 +30,17 @@ struct acpi_device;
->  #define ACPI_VIDEO_DISPLAY_LEGACY_PANEL   0x0110
->  #define ACPI_VIDEO_DISPLAY_LEGACY_TV      0x0200
->  
-> +#define ACPI_VIDEO_NOTIFY_SWITCH		0x80
-> +#define ACPI_VIDEO_NOTIFY_PROBE			0x81
-> +#define ACPI_VIDEO_NOTIFY_CYCLE			0x82
-> +#define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT		0x83
-> +#define ACPI_VIDEO_NOTIFY_PREV_OUTPUT		0x84
-> +#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x85
-> +#define ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x86
-> +#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x87
-> +#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x88
-> +#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x89
-> +
->  enum acpi_backlight_type {
->  	acpi_backlight_undef = -1,
->  	acpi_backlight_none = 0,
-> -- 
-> 2.9.3
-> 
+I think I misunderstood the purpose of the example: that should only
+be necessary if the _CRS methods are missing from the firmware, right?
+If we update the firmware to cover all non-enumerable resources by
+such a method, we shouldn't need any such quirks at all IIUC
