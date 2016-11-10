@@ -1,107 +1,346 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCHv2] PCI: QDF2432 32 bit config space accessors
-Date: Thu, 10 Nov 2016 13:57:33 +0000
-Message-ID: <20161110135733.GA20403@red-moon>
-References: <20160921173129.GA20006@localhost>
- <20160921223805.21652-1-cov@codeaurora.org>
- <20161031214833.GB14603@bhelgaas-glaptop.roam.corp.google.com>
- <dbf40b73baa71155f39e13d6e51073aa@codeaurora.org>
- <20161102160820.GA6568@bhelgaas-glaptop.roam.corp.google.com>
- <aa37ca67-9909-e8f2-1a3e-b724cdb46c7b@codeaurora.org>
- <20161109200635.GM14322@bhelgaas-glaptop.roam.corp.google.com>
- <CAKv+Gu82+5oHMeSvcOL1VG4vw-kVnhq4LjCRtLMw4Nmn0rK2CA@mail.gmail.com>
- <20161109224955.GO14322@bhelgaas-glaptop.roam.corp.google.com>
- <CAKv+Gu9_sdcoN7rjQp-R=2vKY3rECt0BC3eWGpse32o2Q4LHXg@mail.gmail.com>
+From: agustinv@codeaurora.org
+Subject: Re: [PATCH V6 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Thu, 10 Nov 2016 10:02:35 -0500
+Message-ID: <60c1d53146c0aebd3a05095823229224@codeaurora.org>
+References: <1477687696-1509-1-git-send-email-agustinv@codeaurora.org>
+ <1477687696-1509-3-git-send-email-agustinv@codeaurora.org>
+ <42ff0a81-7836-11f6-58e0-979bd1d0be20@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48996 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932843AbcKJN4j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 10 Nov 2016 08:56:39 -0500
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu9_sdcoN7rjQp-R=2vKY3rECt0BC3eWGpse32o2Q4LHXg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <42ff0a81-7836-11f6-58e0-979bd1d0be20@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Christopher Covington <cov@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Jayachandran C <jchandra@broadcom.com>, Duc Dang <dhdang@apm.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Nov 10, 2016 at 06:25:16PM +0800, Ard Biesheuvel wrote:
-> On 10 November 2016 at 06:49, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Wed, Nov 09, 2016 at 08:29:23PM +0000, Ard Biesheuvel wrote:
-> >> Hi Bjorn,
-> >>
-> >> On 9 November 2016 at 20:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> >> > On Wed, Nov 09, 2016 at 02:25:56PM -0500, Christopher Covington wrote:
-> >> >> Hi Bjorn,
-> >> >>
-> >> [...]
-> >> >>
-> >> >> We're working to add the PNP0C02 resource to future firmware, but it's
-> >> >> not in the current firmware. Are dmesg and /proc/iomem from the
-> >> >> current firmware interesting or should we wait for the update to file?
-> >> >
-> >> > Note that the ECAM space is not the only thing that should be
-> >> > described via these PNP0C02 devices.  *All* non-enumerable resources
-> >> > should be described by the _CRS method of some ACPI device.  Here's a
-> >> > sample from my laptop:
-> >> >
-> >> >   PCI: MMCONFIG for domain 0000 [bus 00-3f] at [mem 0xf8000000-0xfbffffff] (base 0xf8000000)
-> >> >   system 00:01: [io  0x1800-0x189f] could not be reserved
-> >> >   system 00:01: [io  0x0800-0x087f] has been reserved
-> >> >   system 00:01: [io  0x0880-0x08ff] has been reserved
-> >> >   system 00:01: [io  0x0900-0x097f] has been reserved
-> >> >   system 00:01: [io  0x0980-0x09ff] has been reserved
-> >> >   system 00:01: [io  0x0a00-0x0a7f] has been reserved
-> >> >   system 00:01: [io  0x0a80-0x0aff] has been reserved
-> >> >   system 00:01: [io  0x0b00-0x0b7f] has been reserved
-> >> >   system 00:01: [io  0x0b80-0x0bff] has been reserved
-> >> >   system 00:01: [io  0x15e0-0x15ef] has been reserved
-> >> >   system 00:01: [io  0x1600-0x167f] has been reserved
-> >> >   system 00:01: [io  0x1640-0x165f] has been reserved
-> >> >   system 00:01: [mem 0xf8000000-0xfbffffff] could not be reserved
-> >> >   system 00:01: [mem 0xfed10000-0xfed13fff] has been reserved
-> >> >   system 00:01: [mem 0xfed18000-0xfed18fff] has been reserved
-> >> >   system 00:01: [mem 0xfed19000-0xfed19fff] has been reserved
-> >> >   system 00:01: [mem 0xfeb00000-0xfebfffff] has been reserved
-> >> >   system 00:01: [mem 0xfed20000-0xfed3ffff] has been reserved
-> >> >   system 00:01: [mem 0xfed90000-0xfed93fff] has been reserved
-> >> >   system 00:01: [mem 0xf7fe0000-0xf7ffffff] has been reserved
-> >> >   system 00:01: Plug and Play ACPI device, IDs PNP0c02 (active)
-> >> >
-> >> > Do you have firmware in the field that may not get updated?  If so,
-> >> > I'd like to see the whole solution for that firmware, including the
-> >> > MCFG quirk (which tells the PCI core where the ECAM region is) and
-> >> > whatever PNP0C02 quirk you figure out to actually reserve the region.
-> >> >
-> >> > I proposed a PNP0C02 quirk to Duc along these lines of the below.  I
-> >> > don't actually know if it's feasible, but it didn't look as bad as I
-> >> > expected, so I'd kind of like somebody to try it out.  I think you
-> >> > would have to call this via a DMI hook (do you have DMI on arm64?),
-> >> > maybe from pnp_init() or similar.
-> >>
-> >> We do have SMBIOS/DMI on arm64, but we have been successful so far not
-> >> to rely on it for quirks, and we'd very much like to keep it that way.
-> >>
-> >> Since this ACPI _CRS method has nothing to do with SMBIOS/DMI, surely
-> >> there is a better way to wire up the reservation code to the
-> >> information exposed by ACPI?
-> >
-> > I'm open to other ways, feel free to propose one :)
-> >
-> > If you do a quirk, you need some way to identify the machine/firmware
-> > combination, because you don't want to apply the quirk on every
-> > machine.  You're trying to work around a firmware issue, so you
-> > probably want something tied to the firmware version.  On x86, that's
-> > typically done with DMI.
-> >
+Hey Hanjun,
+
+On 2016-11-09 21:36, Hanjun Guo wrote:
+> Hi Marc, Rafael, Lorenzo,
 > 
-> I think I misunderstood the purpose of the example: that should only
-> be necessary if the _CRS methods are missing from the firmware, right?
-> If we update the firmware to cover all non-enumerable resources by
-> such a method, we shouldn't need any such quirks at all IIUC
+> Since we agreed to add a probe deferral if we failed to get irq
+> resources which mirroring the DT does (patch 1 in this patch set),
+> I think the last blocker to make things work both for Agustin and
+> me [1] is this patch, which makes the interrupt producer and consumer
+> work in ACPI, we have two different solution for one thing, we'd happy
+> to work together for one solution, could you give some suggestions
+> please?
+> 
+> [1]: 
+> https://mail-archive.com/linux-kernel@vger.kernel.org/msg1257419.html
+> 
+> Agustin, I have some comments below.
+> 
+> On 2016/10/29 4:48, Agustin Vega-Frias wrote:
+>> This allows irqchip drivers to associate an ACPI DSDT device to
+>> an IRQ domain and provides support for using the ResourceSource
+>> in Extended IRQ Resources to find the domain and map the IRQs
+>> specified on that domain.
+>> 
+>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+>> ---
+>>  drivers/acpi/Makefile    |   1 +
+>>  drivers/acpi/irqdomain.c | 119 
+>> +++++++++++++++++++++++++++++++++++++++++++++++
+> 
+> Could we just reuse the gsi.c and not introduce a new
+> file, probably we can change the gsi.c to irqdomain.c
+> or something similar, then reuse the code in gsi.c.
 
-Yes that's correct you need a quirk to fabricate a PNP0c02 motherboard
-resource if it is not present in FW.
+I was thinking just that after we chatted off-list.
+I might revisit and see what I come up with given that we already have
+a device argument and we could pass the IRQ source there.
 
-Lorenzo
+Thanks
+
+> 
+> Thanks
+> Hanjun
+> 
+>>  drivers/acpi/resource.c  |  21 +++++----
+>>  include/linux/acpi.h     |  25 ++++++++++
+>>  4 files changed, 157 insertions(+), 9 deletions(-)
+>>  create mode 100644 drivers/acpi/irqdomain.c
+>> 
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index 9ed0878..880401b 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>>  acpi-y				+= acpi_lpat.o
+>>  acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+>>  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+>> +acpi-$(CONFIG_IRQ_DOMAIN)	+= irqdomain.o
+>> 
+>>  # These are (potentially) separate modules
+>> 
+>> diff --git a/drivers/acpi/irqdomain.c b/drivers/acpi/irqdomain.c
+>> new file mode 100644
+>> index 0000000..11d3658
+>> --- /dev/null
+>> +++ b/drivers/acpi/irqdomain.c
+>> @@ -0,0 +1,119 @@
+>> +/*
+>> + * ACPI ResourceSource/IRQ domain mapping support
+>> + *
+>> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+>> + *
+>> + * This program is free software; you can redistribute it and/or 
+>> modify
+>> + * it under the terms of the GNU General Public License version 2 and
+>> + * only version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +#include <linux/acpi.h>
+>> +#include <linux/irq.h>
+>> +#include <linux/irqdomain.h>
+>> +
+>> +/**
+>> + * acpi_irq_domain_register_irq() - Register the mapping for an IRQ 
+>> produced
+>> + *                                  by the given acpi_resource_source 
+>> to a
+>> + *                                  Linux IRQ number
+>> + * @source: IRQ source
+>> + * @hwirq: Hardware IRQ number
+>> + * @trigger: trigger type of the IRQ number to be mapped
+>> + * @polarity: polarity of the IRQ to be mapped
+>> + *
+>> + * Returns: a valid linux IRQ number on success
+>> + *          -ENODEV if the given acpi_resource_source cannot be found
+>> + *          -EPROBE_DEFER if the IRQ domain has not been registered
+>> + *          -EINVAL for all other errors
+>> + */
+>> +int acpi_irq_domain_register_irq(const struct acpi_resource_source 
+>> *source,
+>> +				 u32 hwirq, int trigger, int polarity)
+>> +{
+>> +	struct irq_fwspec fwspec;
+>> +	struct acpi_device *device;
+>> +	acpi_handle handle;
+>> +	acpi_status status;
+>> +	int ret;
+>> +
+>> +	/* An empty acpi_resource_source means it is a GSI */
+>> +	if (!source->string_length)
+>> +		return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+>> +
+>> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
+>> +	if (ACPI_FAILURE(status))
+>> +		return -ENODEV;
+>> +
+>> +	device = acpi_bus_get_acpi_device(handle);
+>> +	if (!device)
+>> +		return -ENODEV;
+>> +
+>> +	if (irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY) == 
+>> NULL) {
+>> +		ret = -EPROBE_DEFER;
+>> +		goto out_put_device;
+>> +	}
+>> +
+>> +	fwspec.fwnode = &device->fwnode;
+>> +	fwspec.param[0] = hwirq;
+>> +	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
+>> +	fwspec.param_count = 2;
+>> +
+>> +	ret = irq_create_fwspec_mapping(&fwspec);
+>> +
+>> +out_put_device:
+>> +	acpi_bus_put_acpi_device(device);
+>> +
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(acpi_irq_domain_register_irq);
+>> +
+>> +/**
+>> + * acpi_irq_domain_unregister_irq() - Delete the mapping for an IRQ 
+>> produced
+>> + *                                    by the given 
+>> acpi_resource_source to a
+>> + *                                    Linux IRQ number
+>> + * @source: IRQ source
+>> + * @hwirq: Hardware IRQ number
+>> + *
+>> + * Returns: 0 on success
+>> + *          -ENODEV if the given acpi_resource_source cannot be found
+>> + *          -EINVAL for all other errors
+>> + */
+>> +int acpi_irq_domain_unregister_irq(const struct acpi_resource_source 
+>> *source,
+>> +				   u32 hwirq)
+>> +{
+>> +	struct irq_domain *domain;
+>> +	struct acpi_device *device;
+>> +	acpi_handle handle;
+>> +	acpi_status status;
+>> +	int ret = 0;
+>> +
+>> +	if (!source->string_length) {
+>> +		acpi_unregister_gsi(hwirq);
+>> +		return 0;
+>> +	}
+>> +
+>> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
+>> +	if (ACPI_FAILURE(status))
+>> +		return -ENODEV;
+>> +
+>> +	device = acpi_bus_get_acpi_device(handle);
+>> +	if (!device)
+>> +		return -ENODEV;
+>> +
+>> +	domain = irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY);
+>> +	if (!domain) {
+>> +		ret = -EINVAL;
+>> +		goto out_put_device;
+>> +	}
+>> +
+>> +	irq_dispose_mapping(irq_find_mapping(domain, hwirq));
+>> +
+>> +out_put_device:
+>> +	acpi_bus_put_acpi_device(device);
+>> +
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(acpi_irq_domain_unregister_irq);
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index 4beda15..ccb6f4f 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -381,14 +381,15 @@ static void acpi_dev_irqresource_disabled(struct 
+>> resource *res, u32 gsi)
+>>  	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | 
+>> IORESOURCE_UNSET;
+>>  }
+>> 
+>> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
+>> +				     const struct acpi_resource_source *source,
+>>  				     u8 triggering, u8 polarity, u8 shareable,
+>>  				     bool legacy)
+>>  {
+>>  	int irq, p, t;
+>> 
+>> -	if (!valid_IRQ(gsi)) {
+>> -		acpi_dev_irqresource_disabled(res, gsi);
+>> +	if ((source->string_length == 0) && !valid_IRQ(hwirq)) {
+>> +		acpi_dev_irqresource_disabled(res, hwirq);
+>>  		return;
+>>  	}
+>> 
+>> @@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct 
+>> resource *res, u32 gsi,
+>>  	 * using extended IRQ descriptors we take the IRQ configuration
+>>  	 * from _CRS directly.
+>>  	 */
+>> -	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
+>> +	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
+>>  		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
+>>  		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+>> 
+>>  		if (triggering != trig || polarity != pol) {
+>> -			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
+>> -				   t ? "level" : "edge", p ? "low" : "high");
+>> +			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
+>> +				t ? "level" : "edge", p ? "low" : "high");
+>>  			triggering = trig;
+>>  			polarity = pol;
+>>  		}
+>>  	}
+>> 
+>>  	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+>> -	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
+>> +	irq = acpi_irq_domain_register_irq(source, hwirq, triggering, 
+>> polarity);
+>>  	if (irq >= 0) {
+>>  		res->start = irq;
+>>  		res->end = irq;
+>>  	} else {
+>> -		acpi_dev_irqresource_disabled(res, gsi);
+>> +		acpi_dev_irqresource_disabled(res, hwirq);
+>>  	}
+>>  }
+>> 
+>> @@ -446,6 +447,7 @@ static void acpi_dev_get_irqresource(struct 
+>> resource *res, u32 gsi,
+>>  bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int 
+>> index,
+>>  				 struct resource *res)
+>>  {
+>> +	const struct acpi_resource_source dummy = { 0, 0, NULL };
+>>  	struct acpi_resource_irq *irq;
+>>  	struct acpi_resource_extended_irq *ext_irq;
+>> 
+>> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct 
+>> acpi_resource *ares, int index,
+>>  			acpi_dev_irqresource_disabled(res, 0);
+>>  			return false;
+>>  		}
+>> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+>> +		acpi_dev_get_irqresource(res, irq->interrupts[index], &dummy,
+>>  					 irq->triggering, irq->polarity,
+>>  					 irq->sharable, true);
+>>  		break;
+>> @@ -471,6 +473,7 @@ bool acpi_dev_resource_interrupt(struct 
+>> acpi_resource *ares, int index,
+>>  			return false;
+>>  		}
+>>  		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+>> +					 &ext_irq->resource_source,
+>>  					 ext_irq->triggering, ext_irq->polarity,
+>>  					 ext_irq->sharable, false);
+>>  		break;
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 40213c4..ce30a12 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -321,6 +321,31 @@ void acpi_set_irq_model(enum acpi_irq_model_id 
+>> model,
+>>   */
+>>  void acpi_unregister_gsi (u32 gsi);
+>> 
+>> +#ifdef CONFIG_IRQ_DOMAIN
+>> +
+>> +int acpi_irq_domain_register_irq(const struct acpi_resource_source 
+>> *source,
+>> +				 u32 hwirq, int trigger, int polarity);
+>> +int acpi_irq_domain_unregister_irq(const struct acpi_resource_source 
+>> *source,
+>> +				   u32 hwirq);
+>> +
+>> +#else
+>> +
+>> +static inline int acpi_irq_domain_register_irq(
+>> +	const struct acpi_resource_source *source, u32 hwirq, int trigger,
+>> +	int polarity)
+>> +{
+>> +	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+>> +}
+>> +
+>> +static inline int acpi_irq_domain_unregister_irq(
+>> +	const struct acpi_resource_source *source,  u32 hwirq)
+>> +{
+>> +	acpi_unregister_gsi(hwirq);
+>> +	return 0;
+>> +}
+>> +
+>> +#endif /* CONFIG_IRQ_DOMAIN */
+>> +
+>>  struct pci_dev;
+>> 
+>>  int acpi_pci_irq_enable (struct pci_dev *dev);
+>> 
+
+-- 
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
+Linux Foundation Collaborative Project.
