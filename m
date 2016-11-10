@@ -1,64 +1,313 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / platform: Add support for build-in properties
-Date: Thu, 10 Nov 2016 00:40:51 +0100
-Message-ID: <CAJZ5v0iALibO6Nub_Q4oZvY+SgehTQHrAZQG32ar8R281_NyAw@mail.gmail.com>
-References: <20161102154139.GD11523@kuha.fi.intel.com> <20161103142126.87413-1-heikki.krogerus@linux.intel.com>
- <1478448574.1591.2.camel@gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH V6 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Thu, 10 Nov 2016 10:36:38 +0800
+Message-ID: <42ff0a81-7836-11f6-58e0-979bd1d0be20@linaro.org>
+References: <1477687696-1509-1-git-send-email-agustinv@codeaurora.org>
+ <1477687696-1509-3-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33000 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752675AbcKIXkw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Nov 2016 18:40:52 -0500
-In-Reply-To: <1478448574.1591.2.camel@gmail.com>
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:33911 "EHLO
+        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753170AbcKJChB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Nov 2016 21:37:01 -0500
+Received: by mail-pf0-f172.google.com with SMTP id n85so137064466pfi.1
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Nov 2016 18:37:01 -0800 (PST)
+In-Reply-To: <1477687696-1509-3-git-send-email-agustinv@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?SsOpcsO0bWUgZGUgQnJldGFnbmU=?= <jerome.debretagne@gmail.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kefeng Wang <wangkefeng.wang@huawei.com>, Feng Kan <fkan@apm.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>
+To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
 
-On Sun, Nov 6, 2016 at 5:09 PM, J=C3=A9r=C3=B4me de Bretagne
-<jerome.debretagne@gmail.com> wrote:
-> Le jeudi 03 novembre 2016 =C3=A0 16:21 +0200, Heikki Krogerus a =C3=A9cri=
-t :
->> We have a couple of drivers, acpi_apd.c and acpi_lpss.c,
->> that need to pass extra build-in properties to the devices
->> they create. Previously the drivers added those properties
->> to the struct device which is member of the struct
->> acpi_device, but that does not work. Those properties need
->> to be assigned to the struct device of the platform device
->> instead in order for them to become available to the
->> drivers.
->>
->> To fix this, this patch changes acpi_create_platform_device
->> function to take struct property_entry pointer as parameter.
->>
->> Fixes: 20a875e2e86e ("serial: 8250_dw: Add quirk for APM X-Gene SoC")
->> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->> ---
->>
->> Hi,
->>
->> Found the problem, and this is my proposal for a fix.
->>
->> J=C3=A9r=C3=B4me, please test it when you have time.
->>
->
-> Hi Heikki,
->
-> I can confirm that this patch fixes the issue I've reported on the Lenovo
-> ThinkPad 8 tablet. You were fast to find the root cause, impressive, real=
-ly
-> appreciated.
->
-> Feel free to add:
-> Tested-by: J=C3=A9r=C3=B4me de Bretagne <jerome.debretagne@gmail.com>
->
-> Let's hope it can still make it during the remaining 4.9 rc timing.
+Hi Marc, Rafael, Lorenzo,
 
-It's in my linux-next branch now (it should hit linux-next on Friday)
-and I'm going to push it for -rc5 if it doesn't lead to problems.
+Since we agreed to add a probe deferral if we failed to get irq
+resources which mirroring the DT does (patch 1 in this patch set),
+I think the last blocker to make things work both for Agustin and
+me [1] is this patch, which makes the interrupt producer and consumer
+work in ACPI, we have two different solution for one thing, we'd happy
+to work together for one solution, could you give some suggestions
+please?
 
-Thanks,
-Rafael
+[1]: https://mail-archive.com/linux-kernel@vger.kernel.org/msg1257419.html
+
+Agustin, I have some comments below.
+
+On 2016/10/29 4:48, Agustin Vega-Frias wrote:
+> This allows irqchip drivers to associate an ACPI DSDT device to
+> an IRQ domain and provides support for using the ResourceSource
+> in Extended IRQ Resources to find the domain and map the IRQs
+> specified on that domain.
+>
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> ---
+>  drivers/acpi/Makefile    |   1 +
+>  drivers/acpi/irqdomain.c | 119 +++++++++++++++++++++++++++++++++++++++++++++++
+
+Could we just reuse the gsi.c and not introduce a new
+file, probably we can change the gsi.c to irqdomain.c
+or something similar, then reuse the code in gsi.c.
+
+Thanks
+Hanjun
+
+>  drivers/acpi/resource.c  |  21 +++++----
+>  include/linux/acpi.h     |  25 ++++++++++
+>  4 files changed, 157 insertions(+), 9 deletions(-)
+>  create mode 100644 drivers/acpi/irqdomain.c
+>
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 9ed0878..880401b 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  acpi-y				+= acpi_lpat.o
+>  acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+>  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+> +acpi-$(CONFIG_IRQ_DOMAIN)	+= irqdomain.o
+>
+>  # These are (potentially) separate modules
+>
+> diff --git a/drivers/acpi/irqdomain.c b/drivers/acpi/irqdomain.c
+> new file mode 100644
+> index 0000000..11d3658
+> --- /dev/null
+> +++ b/drivers/acpi/irqdomain.c
+> @@ -0,0 +1,119 @@
+> +/*
+> + * ACPI ResourceSource/IRQ domain mapping support
+> + *
+> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +#include <linux/acpi.h>
+> +#include <linux/irq.h>
+> +#include <linux/irqdomain.h>
+> +
+> +/**
+> + * acpi_irq_domain_register_irq() - Register the mapping for an IRQ produced
+> + *                                  by the given acpi_resource_source to a
+> + *                                  Linux IRQ number
+> + * @source: IRQ source
+> + * @hwirq: Hardware IRQ number
+> + * @trigger: trigger type of the IRQ number to be mapped
+> + * @polarity: polarity of the IRQ to be mapped
+> + *
+> + * Returns: a valid linux IRQ number on success
+> + *          -ENODEV if the given acpi_resource_source cannot be found
+> + *          -EPROBE_DEFER if the IRQ domain has not been registered
+> + *          -EINVAL for all other errors
+> + */
+> +int acpi_irq_domain_register_irq(const struct acpi_resource_source *source,
+> +				 u32 hwirq, int trigger, int polarity)
+> +{
+> +	struct irq_fwspec fwspec;
+> +	struct acpi_device *device;
+> +	acpi_handle handle;
+> +	acpi_status status;
+> +	int ret;
+> +
+> +	/* An empty acpi_resource_source means it is a GSI */
+> +	if (!source->string_length)
+> +		return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+> +
+> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	device = acpi_bus_get_acpi_device(handle);
+> +	if (!device)
+> +		return -ENODEV;
+> +
+> +	if (irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY) == NULL) {
+> +		ret = -EPROBE_DEFER;
+> +		goto out_put_device;
+> +	}
+> +
+> +	fwspec.fwnode = &device->fwnode;
+> +	fwspec.param[0] = hwirq;
+> +	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
+> +	fwspec.param_count = 2;
+> +
+> +	ret = irq_create_fwspec_mapping(&fwspec);
+> +
+> +out_put_device:
+> +	acpi_bus_put_acpi_device(device);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_irq_domain_register_irq);
+> +
+> +/**
+> + * acpi_irq_domain_unregister_irq() - Delete the mapping for an IRQ produced
+> + *                                    by the given acpi_resource_source to a
+> + *                                    Linux IRQ number
+> + * @source: IRQ source
+> + * @hwirq: Hardware IRQ number
+> + *
+> + * Returns: 0 on success
+> + *          -ENODEV if the given acpi_resource_source cannot be found
+> + *          -EINVAL for all other errors
+> + */
+> +int acpi_irq_domain_unregister_irq(const struct acpi_resource_source *source,
+> +				   u32 hwirq)
+> +{
+> +	struct irq_domain *domain;
+> +	struct acpi_device *device;
+> +	acpi_handle handle;
+> +	acpi_status status;
+> +	int ret = 0;
+> +
+> +	if (!source->string_length) {
+> +		acpi_unregister_gsi(hwirq);
+> +		return 0;
+> +	}
+> +
+> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	device = acpi_bus_get_acpi_device(handle);
+> +	if (!device)
+> +		return -ENODEV;
+> +
+> +	domain = irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY);
+> +	if (!domain) {
+> +		ret = -EINVAL;
+> +		goto out_put_device;
+> +	}
+> +
+> +	irq_dispose_mapping(irq_find_mapping(domain, hwirq));
+> +
+> +out_put_device:
+> +	acpi_bus_put_acpi_device(device);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_irq_domain_unregister_irq);
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 4beda15..ccb6f4f 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -381,14 +381,15 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
+>  	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
+>  }
+>
+> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
+> +				     const struct acpi_resource_source *source,
+>  				     u8 triggering, u8 polarity, u8 shareable,
+>  				     bool legacy)
+>  {
+>  	int irq, p, t;
+>
+> -	if (!valid_IRQ(gsi)) {
+> -		acpi_dev_irqresource_disabled(res, gsi);
+> +	if ((source->string_length == 0) && !valid_IRQ(hwirq)) {
+> +		acpi_dev_irqresource_disabled(res, hwirq);
+>  		return;
+>  	}
+>
+> @@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>  	 * using extended IRQ descriptors we take the IRQ configuration
+>  	 * from _CRS directly.
+>  	 */
+> -	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
+> +	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
+>  		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
+>  		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+>
+>  		if (triggering != trig || polarity != pol) {
+> -			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
+> -				   t ? "level" : "edge", p ? "low" : "high");
+> +			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
+> +				t ? "level" : "edge", p ? "low" : "high");
+>  			triggering = trig;
+>  			polarity = pol;
+>  		}
+>  	}
+>
+>  	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+> -	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
+> +	irq = acpi_irq_domain_register_irq(source, hwirq, triggering, polarity);
+>  	if (irq >= 0) {
+>  		res->start = irq;
+>  		res->end = irq;
+>  	} else {
+> -		acpi_dev_irqresource_disabled(res, gsi);
+> +		acpi_dev_irqresource_disabled(res, hwirq);
+>  	}
+>  }
+>
+> @@ -446,6 +447,7 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>  bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  				 struct resource *res)
+>  {
+> +	const struct acpi_resource_source dummy = { 0, 0, NULL };
+>  	struct acpi_resource_irq *irq;
+>  	struct acpi_resource_extended_irq *ext_irq;
+>
+> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+> +		acpi_dev_get_irqresource(res, irq->interrupts[index], &dummy,
+>  					 irq->triggering, irq->polarity,
+>  					 irq->sharable, true);
+>  		break;
+> @@ -471,6 +473,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  			return false;
+>  		}
+>  		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+> +					 &ext_irq->resource_source,
+>  					 ext_irq->triggering, ext_irq->polarity,
+>  					 ext_irq->sharable, false);
+>  		break;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 40213c4..ce30a12 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -321,6 +321,31 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
+>   */
+>  void acpi_unregister_gsi (u32 gsi);
+>
+> +#ifdef CONFIG_IRQ_DOMAIN
+> +
+> +int acpi_irq_domain_register_irq(const struct acpi_resource_source *source,
+> +				 u32 hwirq, int trigger, int polarity);
+> +int acpi_irq_domain_unregister_irq(const struct acpi_resource_source *source,
+> +				   u32 hwirq);
+> +
+> +#else
+> +
+> +static inline int acpi_irq_domain_register_irq(
+> +	const struct acpi_resource_source *source, u32 hwirq, int trigger,
+> +	int polarity)
+> +{
+> +	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+> +}
+> +
+> +static inline int acpi_irq_domain_unregister_irq(
+> +	const struct acpi_resource_source *source,  u32 hwirq)
+> +{
+> +	acpi_unregister_gsi(hwirq);
+> +	return 0;
+> +}
+> +
+> +#endif /* CONFIG_IRQ_DOMAIN */
+> +
+>  struct pci_dev;
+>
+>  int acpi_pci_irq_enable (struct pci_dev *dev);
+>
