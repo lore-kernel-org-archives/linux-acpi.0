@@ -1,193 +1,181 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
-	agnostic
-Date: Thu, 10 Nov 2016 11:05:29 +0000
-Message-ID: <20161110110529.GB20209@red-moon>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
-	<20161109141948.19244-5-lorenzo.pieralisi@arm.com>
-	<c3136fae-144c-5949-3933-671b783671c8@arm.com>
+From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] drm/nouveau: Intercept ACPI_VIDEO_NOTIFY_PROBE
+Date: Thu, 10 Nov 2016 12:15:18 +0100
+Message-ID: <29ec4f00-f2b7-d2df-8a26-3cb38337d2a9@redhat.com>
+References: <20161109171744.4064-1-hdegoede@redhat.com>
+ <20161110105819.GB13197@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c3136fae-144c-5949-3933-671b783671c8-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20161110105819.GB13197@al>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Peter Wu <peter-VTkQYDcBqhK7DlmcbJSQ7g@public.gmane.org>
+Cc: nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 09, 2016 at 02:40:08PM +0000, Robin Murphy wrote:
-
-[...]
-
-> > +void fwnode_iommu_set_ops(struct fwnode_handle *fwnode,
-> > +			  const struct iommu_ops *ops)
-> > +{
-> > +	struct iommu_fwentry *iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
-> > +
-> > +	if (WARN_ON(!iommu))
-> > +		return;
-> > +
-> > +	if (is_of_node(fwnode))
-> 
-> Nit: this check is actually redundant, since to_of_node() already does
-> the right thing and of_node_get() is NULL-safe - iommu_fwspec_init()
-> already works that way. On the other hand, though, it is perhaps more
-> intuitive to see it explicitly, and since to_of_node() is inline it
-> ought to result in the same object code (I've not checked, though).
-
-I can easily fold this change in the final code and I think we
-should keep this consistent so I am happy to change my code and
-make the is_of_node() check implicit.
-
-> Either way:
-> 
-> Reviewed-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-
-Thank you !
-Lorenzo
-
-> > +		of_node_get(to_of_node(fwnode));
-> > +
-> > +	INIT_LIST_HEAD(&iommu->list);
-> > +	iommu->fwnode = fwnode;
-> > +	iommu->ops = ops;
-> > +	spin_lock(&iommu_fwentry_lock);
-> > +	list_add_tail(&iommu->list, &iommu_fwentry_list);
-> > +	spin_unlock(&iommu_fwentry_lock);
-> > +}
-> > +
-> > +const struct iommu_ops *fwnode_iommu_get_ops(struct fwnode_handle *fwnode)
-> > +{
-> > +	struct iommu_fwentry *node;
-> > +	const struct iommu_ops *ops = NULL;
-> > +
-> > +	spin_lock(&iommu_fwentry_lock);
-> > +	list_for_each_entry(node, &iommu_fwentry_list, list)
-> > +		if (node->fwnode == fwnode) {
-> > +			ops = node->ops;
-> > +			break;
-> > +		}
-> > +	spin_unlock(&iommu_fwentry_lock);
-> > +	return ops;
-> > +}
-> > +
-> >  int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
-> >  		      const struct iommu_ops *ops)
-> >  {
-> > diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> > index 5b82862..0f57ddc 100644
-> > --- a/drivers/iommu/of_iommu.c
-> > +++ b/drivers/iommu/of_iommu.c
-> > @@ -96,45 +96,6 @@ int of_get_dma_window(struct device_node *dn, const char *prefix, int index,
-> >  }
-> >  EXPORT_SYMBOL_GPL(of_get_dma_window);
-> >  
-> > -struct of_iommu_node {
-> > -	struct list_head list;
-> > -	struct device_node *np;
-> > -	const struct iommu_ops *ops;
-> > -};
-> > -static LIST_HEAD(of_iommu_list);
-> > -static DEFINE_SPINLOCK(of_iommu_lock);
-> > -
-> > -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops)
-> > -{
-> > -	struct of_iommu_node *iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
-> > -
-> > -	if (WARN_ON(!iommu))
-> > -		return;
-> > -
-> > -	of_node_get(np);
-> > -	INIT_LIST_HEAD(&iommu->list);
-> > -	iommu->np = np;
-> > -	iommu->ops = ops;
-> > -	spin_lock(&of_iommu_lock);
-> > -	list_add_tail(&iommu->list, &of_iommu_list);
-> > -	spin_unlock(&of_iommu_lock);
-> > -}
-> > -
-> > -const struct iommu_ops *of_iommu_get_ops(struct device_node *np)
-> > -{
-> > -	struct of_iommu_node *node;
-> > -	const struct iommu_ops *ops = NULL;
-> > -
-> > -	spin_lock(&of_iommu_lock);
-> > -	list_for_each_entry(node, &of_iommu_list, list)
-> > -		if (node->np == np) {
-> > -			ops = node->ops;
-> > -			break;
-> > -		}
-> > -	spin_unlock(&of_iommu_lock);
-> > -	return ops;
-> > -}
-> > -
-> >  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> >  {
-> >  	struct of_phandle_args *iommu_spec = data;
-> > diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> > index 436dc21..15d5478 100644
-> > --- a/include/linux/iommu.h
-> > +++ b/include/linux/iommu.h
-> > @@ -351,6 +351,9 @@ int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
-> >  		      const struct iommu_ops *ops);
-> >  void iommu_fwspec_free(struct device *dev);
-> >  int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
-> > +void fwnode_iommu_set_ops(struct fwnode_handle *fwnode,
-> > +			  const struct iommu_ops *ops);
-> > +const struct iommu_ops *fwnode_iommu_get_ops(struct fwnode_handle *fwnode);
-> >  
-> >  #else /* CONFIG_IOMMU_API */
-> >  
-> > @@ -580,6 +583,17 @@ static inline int iommu_fwspec_add_ids(struct device *dev, u32 *ids,
-> >  	return -ENODEV;
-> >  }
-> >  
-> > +static inline void fwnode_iommu_set_ops(struct fwnode_handle *fwnode,
-> > +					const struct iommu_ops *ops)
-> > +{
-> > +}
-> > +
-> > +static inline
-> > +const struct iommu_ops *fwnode_iommu_get_ops(struct fwnode_handle *fwnode)
-> > +{
-> > +	return NULL;
-> > +}
-> > +
-> >  #endif /* CONFIG_IOMMU_API */
-> >  
-> >  #endif /* __LINUX_IOMMU_H */
-> > diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
-> > index e80b9c7..7681007 100644
-> > --- a/include/linux/of_iommu.h
-> > +++ b/include/linux/of_iommu.h
-> > @@ -31,8 +31,16 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
-> >  
-> >  #endif	/* CONFIG_OF_IOMMU */
-> >  
-> > -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
-> > -const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
-> > +static inline void of_iommu_set_ops(struct device_node *np,
-> > +				    const struct iommu_ops *ops)
-> > +{
-> > +	fwnode_iommu_set_ops(&np->fwnode, ops);
-> > +}
-> > +
-> > +static inline const struct iommu_ops *of_iommu_get_ops(struct device_node *np)
-> > +{
-> > +	return fwnode_iommu_get_ops(&np->fwnode);
-> > +}
-> >  
-> >  extern struct of_device_id __iommu_of_table;
-> >  
-> > 
-> 
+SGksCgpPbiAxMC0xMS0xNiAxMTo1OCwgUGV0ZXIgV3Ugd3JvdGU6Cj4gT24gV2VkLCBOb3YgMDks
+IDIwMTYgYXQgMDY6MTc6NDRQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3cm90ZToKPj4gVmFyaW91
+cyBub3RlYm9va3Mgd2l0aCBudmlkaWEgR1BVcyBnZW5lcmF0ZSBhbiBBQ1BJX1ZJREVPX05PVElG
+WV9QUk9CRQo+PiBhY3BpLXZpZGVvIGV2ZW50IHdoZW4gYW4gZXh0ZXJuYWwgZGV2aWNlIGdldHMg
+cGx1Z2dlZCBpbiAoYW5kIGFnYWluIG9uCj4+IG1vZGVzZXRzIG9uIHRoYXQgY29ubmVjdG9yKSwg
+dGhlIGRlZmF1bHQgYmVoYXZpb3IgaW4gdGhlIGFjcGktdmlkZW8KPj4gZHJpdmVyIGZvciB0aGlz
+IGlzIHRvIHNlbmQgYSBLRVlfU1dJVENIVklERU9NT0RFIGV2ZGV2IGV2ZW50LCB3aGljaAo+PiBj
+YXVzZXMgZS5nLiBnbm9tZS1zZXR0aW5ncy1kYWVtb24gdG8gYXNrIHVzIHRvIHJlc2NhbiB0aGUg
+Y29ubmVjdG9ycwo+PiAoZ29vZCksIGJ1dCBhbHNvIGNhdXNlcyBnLXMtZCB0byBzd2l0Y2ggdG8g
+bWlycm9yIG1vZGUgb24gYSBuZXdseSBwbHVnZ2VkCj4+IG1vbml0b3IgcmF0aGVyIHRoZW4gdXNp
+bmcgdGhlIG1vbml0b3IgdG8gZXh0ZW5kIHRoZSBkZXNrdG9wIChiYWQpCj4+IGFzIEtFWV9TV0lU
+Q0hWSURFT01PREUgaXMgc3VwcG9zZWQgdG8gc3dpdGNoIGJldHdlZW4gZXh0ZW5kIHRoZSBkZXNr
+dG9wCj4+IHZzIG1pcnJvciBtb2RlLgo+Cj4gQ2FuIGNvbmZpcm0gdGhpcyBiZWhhdmlvciBvbiBt
+eSBDbGV2byBQNjUxUkEgbGFwdG9wIHdpdGggR1RYIDk2NU0sIGl0Cj4gc2hvd3MgYSB3ZWlyZCBr
+ZXlzdHJva2Ugb24gY29uc29sZSBvbiBpbnNlcnRpbmcgYSBtb25pdG9yLiBPbiB0aGUgUGxhc21h
+Cj4gZGVza3RvcCwgaXQgc2hvd3MgYSBub3RpZmljYXRpb24gIm5vIG91dHB1dHMgZGV0ZWN0ZWQi
+LiBPbmx5IGFmdGVyCj4gcnVubmluZyAieHJhbmRyIiwgdGhlIGV4dGVybmFsIG1vbml0b3Igd291
+bGQgYmUgcGlja2VkIHVwLgoKR29vZCwgdGhhbmsgeW91IGZvciB0ZXN0aW5nLgoKPj4gTW9yZSB0
+cm91Ymxlc29tZSBhcmUgdGhlIHJlcGVhdGVkIEFDUElfVklERU9fTk9USUZZX1BST0JFIGV2ZW50
+cyBvbgo+PiBjaGFuZ2luZyB0aGUgbW9kZSBvbiB0aGUgY29ubmVjdG9yLCB3aGljaCBjYXVzZSBn
+LXMtZCB0byBzd2l0Y2gKPj4gYmV0d2VlbiBtaXJyb3IvZXh0ZW5kIG1vZGUsIHdoaWNoIGNhdXNl
+cyBhIG5ldyBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRQo+PiBldmVudCBhbmQgd2UgZW5kIHVwIHdp
+dGggYW4gZW5kbGVzcyBsb29wLgo+Pgo+PiBUaGlzIGNvbW1pdCBmaXhlcyB0aGlzIGJ5IGFkZGlu
+ZyBhbiBhY3BpIG5vdGlmaWVyIGJsb2NrIGhhbmRsZXIgdG8KPj4gbm91dmVhdV9kaXNwbGF5LmMg
+dG8gaW50ZXJjZXB0IEFDUElfVklERU9fTk9USUZZX1BST0JFIGFuZDoKPj4KPj4gMSkgV2FrZS11
+cCBydW50aW1lIHN1c3BlbmRlZCBHUFVzIGFuZCBjYWxsIGRybV9oZWxwZXJfaHBkX2lycV9ldmVu
+dCgpCj4+ICAgIG9uIHRoZW0sIHRoaXMgaXMgbmVjZXNzYXJ5IGluIHNvbWUgY2FzZXMgZm9yIHRo
+ZSBHUFUgdG8gZGV0ZWN0IGNvbm5lY3Rvcgo+PiAgICBob3RwbHVnIGV2ZW50cyB3aGlsZSBydW50
+aW1lIHN1c3BlbmRlZAo+PiAyKSBSZXR1cm4gTk9USUZZX0JBRCB0byBzdG9wIGFjcGktdmlkZW8g
+ZnJvbSBlbWl0dGluZyBhIGJvZ3VzCj4+ICAgIEtFWV9TV0lUQ0hWSURFT01PREUga2V5LXByZXNz
+IGV2ZW50Cj4+Cj4+IFRoZXJlIGFscmVhZHkgaXMgYW5vdGhlciBhY3BpIG5vdGlmaWVyIGJsb2Nr
+IGhhbmRsZXIgcmVnaXN0ZXJlZCBpbgo+PiBkcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9udmttL2Vu
+Z2luZS9kZXZpY2UvYWNwaS5jLCBidXQgdGhhdCBpcyBub3QKPj4gc3VpdGFibGUgc2luY2UgdGhh
+dCBvbmUgZ2V0cyB1bnJlZ2lzdGVyZWQgb24gcnVudGltZSBzdXNwZW5kLCBhbmQKPj4gd2UgYWxz
+byB3YW50IHRvIGludGVyY2VwdCBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRSB3aGVuIHJ1bnRpbWUg
+c3VzcGVuZGVkLgo+Cj4gRnJvbSBhIHF1aWNrIGxvb2ssIGl0IGxvb2tzIGxpa2UgYSBzdWl0YWJs
+ZSBtZWNoYW5pc20gZXhjZXB0IGZvciB0aGUKPiByZW1vdmFsIG9uIHJ1bnRpbWUgc3VzcGVuZC4K
+ClRoYXQgaXMgbm90IHRoZSBvbmx5IHByb2JsZW0sIHRoZXJlIGFsc28gaXMgbm8gd2F5IHRvIGdl
+dCB0byB0aGUKZHJtX2RldmljZSBwb2ludGVyIHRoYXQgZGVlcCBpbiB0aGUgbnZrbSBvYmplY3Qg
+dHJlZS4KCj4KPiBCYXNlZCBvbiBjb21taXQgbG9ncyBmb3IgY29yZS9jb3JlL2V2ZW50LmMsIHRo
+ZSBldmVudCBzeXN0ZW0gc2VlbXMKPiBpbml0aWFsbHkgdXNlZCBmb3IgY29tbXVuaWNhdGlvbiBi
+ZXR3ZWVuIGRybSBhbmQgbm91dmVhdSwgbGF0ZXIgdGhpcyB3YXMKPiBleHRlbmRlZCB0byB1c2Vy
+c3BhY2Ugbm90aWZpY2F0aW9ucy4gRm9yIHNvbWUgcmVhc29uLCBudmttX2FjcGlfaW5pdCBpcwo+
+IGNhbGxlZCB0aHJvdWdoIHRoaXMgdXNlci5jIHBhdGg6Cj4KPiAgICAgICAgICAgICAgIGxzcGNp
+LTE0NjU4IFswMDFdIGQuLjEgMzU4ODcuMzQ0NTkyOiBwX252a21fYWNwaV9pbml0XzA6IChudmtt
+X2FjcGlfaW5pdCsweDAvMHgyMCBbbm91dmVhdV0pCj4gICAgICAgICAgICAgICAgbHNwY2ktMTQ2
+NTggWzAwMV0gZC4uMSAzNTg4Ny4zNDQ1OTc6IDxzdGFjayB0cmFjZT4KPiAgICAgID0+IG52a21f
+dWRldmljZV9pbml0Cj4gICAgICA9PiBudmttX29iamVjdF9pbml0Cj4gICAgICA9PiBudmttX29i
+amVjdF9pbml0Cj4gICAgICA9PiBudmttX2NsaWVudF9pbml0Cj4gICAgICA9PiBudmttX2NsaWVu
+dF9yZXN1bWUKPiAgICAgID0+IG52aWZfY2xpZW50X3Jlc3VtZQo+ICAgICAgPT4gbm91dmVhdV9k
+b19yZXN1bWUKPiAgICAgID0+IG5vdXZlYXVfcG1vcHNfcnVudGltZV9yZXN1bWUKPiAgICAgID0+
+IHBjaV9wbV9ydW50aW1lX3Jlc3VtZQo+Cj4gcnVudGltZSBzdXNwZW5kIGZvbGxvd3Mgc2ltaWxh
+ciBjb2RlIHBhdGggd2l0aCByZXN1bWUgLT4gc3VzcGVuZCBhbmQKPiBpbml0IC0+IGZpbmksIGJ1
+dCBzb21laG93IEkgYWxzbyBzZWUgdGhpcyB3ZWlyZCBwYXRoIGp1c3QgYmVmb3JlIHJlc3VtZToK
+Pgo+ICAgICAgICAgICAgICAgIGxzcGNpLTE0NjU4IFswMDFdIGQuLjEgMzU4ODcuMTc2OTU5OiBw
+X252a21fYWNwaV9maW5pXzA6IChudmttX2FjcGlfZmluaSsweDAvMHgyMCBbbm91dmVhdV0pCj4g
+ICAgICAgICAgICAgICAgbHNwY2ktMTQ2NTggWzAwMV0gZC4uMSAzNTg4Ny4xNzY5NzQ6IDxzdGFj
+ayB0cmFjZT4KPiAgICAgID0+IG52a21fZGV2aWNlX2luaXQKPiAgICAgID0+IG52a21fdWRldmlj
+ZV9pbml0Cj4KPiBUaGlzIHdhcyBvYnNlcnZlZCBvbiBrZXJuZWwgNC44LjYtMS1BUkNIIHVzaW5n
+IGtwcm9iZSB0cmFjaW5nLgoKWWVzIEkgbm90aWNlZCB0aGF0IHRvbywgdGhpcyBpcyBpbmRlZWQg
+d2VpcmQuCgoKID4gSG9wZWZ1bGx5Cj4gQmVuIGNhbiBjbGFyaWZ5IHRoaXMgc2l0dWF0aW9uLiBP
+bmUgb3RoZXIgY29tbWVudCBiZWxvdy4KPgo+PiBTaWduZWQtb2ZmLWJ5OiBIYW5zIGRlIEdvZWRl
+IDxoZGVnb2VkZUByZWRoYXQuY29tPgo+PiAtLS0KPj4gTm90ZSB0aGF0IEFDUElfVklERU9fTk9U
+SUZZX1BST0JFIGN1cnJlbnRseSBpcyBhIHByaXZhdGUgZGVmaW5lIGluCj4+IGRyaXZlcnMvYWNw
+aS9hY3BpX3ZpZGVvLmMsIHNpbmNlIGl0IGlzIHBhc3NlZCB0byBhY3BpX25vdGlmaWVyX2NhbGxf
+Y2hhaW4oKQo+PiBpdCByZWFsbHkgc2hvdWxkIGJlIGluIGEgcHVibGljIGhlYWRlciwgc28gSSd2
+ZSBzdWJtaXR0ZWQgYSBwYXRjaCB0bwo+PiB0aGUgYWNwaSBzdWJzeXMgdG8gbW92ZSBpdCB0byBp
+bmNsdWRlL2FjcGkvdmlkZW8uaCAuIEluIHRoZSBtZWFuIHRpbWUKPj4gdGhpcyBwYXRjaCBkZWZp
+bmVzIGl0IHdpdGggYSAjaWZuZGVmIGd1YXJkIHRvIGFsbG93IG1lcmdpbmcgd2l0aG91dAo+PiBp
+bnRyb2R1Y2luZyBpbnRlciBzdWJzeXMgZGVwZW5kZW5jaWVzLiBJIHdpbGwgc3VibWl0IGEgZm9s
+bG93IHVwIHBhdGNoCj4+IHJlbW92aW5nIHRoZSAjaWZuZGVmIGJsb2NrIG9uY2UgYm90aCBwYXRj
+aGVzIGFyZSBpbiBMaW51cycgdHJlZS4KPj4gLS0tCj4+ICBkcml2ZXJzL2dwdS9kcm0vbm91dmVh
+dS9ub3V2ZWF1X2Rpc3BsYXkuYyB8IDYxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysK
+Pj4gIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfZHJ2LmggICAgIHwgIDYgKysrCj4+
+ICAyIGZpbGVzIGNoYW5nZWQsIDY3IGluc2VydGlvbnMoKykKPj4KPj4gZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfZGlzcGxheS5jIGIvZHJpdmVycy9ncHUvZHJt
+L25vdXZlYXUvbm91dmVhdV9kaXNwbGF5LmMKPj4gaW5kZXggYWZiZjU1Ny4uNmNkNjcyMyAxMDA2
+NDQKPj4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9kaXNwbGF5LmMKPj4g
+KysrIGIvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9kaXNwbGF5LmMKPj4gQEAgLTI0
+LDYgKzI0LDcgQEAKPj4gICAqCj4+ICAgKi8KPj4KPj4gKyNpbmNsdWRlIDxhY3BpL3ZpZGVvLmg+
+Cj4+ICAjaW5jbHVkZSA8ZHJtL2RybVAuaD4KPj4gICNpbmNsdWRlIDxkcm0vZHJtX2NydGNfaGVs
+cGVyLmg+Cj4+Cj4+IEBAIC00Miw2ICs0Myw4IEBACj4+ICAjaW5jbHVkZSA8bnZpZi9jbDAwNDYu
+aD4KPj4gICNpbmNsdWRlIDxudmlmL2V2ZW50Lmg+Cj4+Cj4+ICsKPj4gKwo+PiAgc3RhdGljIGlu
+dAo+PiAgbm91dmVhdV9kaXNwbGF5X3ZibGFua19oYW5kbGVyKHN0cnVjdCBudmlmX25vdGlmeSAq
+bm90aWZ5KQo+PiAgewo+PiBAQCAtMzU4LDYgKzM2MSw1NSBAQCBzdGF0aWMgc3RydWN0IG5vdXZl
+YXVfZHJtX3Byb3BfZW51bV9saXN0IGRpdGhlcl9kZXB0aFtdID0gewo+PiAgCX0gICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgXAo+PiAgfSB3aGlsZSgwKQo+Pgo+PiArI2lmZGVmIENPTkZJR19BQ1BJCj4+ICsKPj4gKy8q
+Cj4+ICsgKiBIYW5zIGRlIEdvZWRlOiBUaGlzIGRlZmluZSBiZWxvbmdzIGluIGFjcGkvdmlkZW8u
+aCwgSSd2ZSBzdWJtaXR0ZWQgYSBwYXRjaAo+PiArICogdG8gdGhlIGFjcGkgc3Vic3lzIHRvIG1v
+dmUgaXQgdGhlcmUgZnJvbSBkcml2ZXJzL2FjcGkvYWNwaV92aWRlby5jIC4KPj4gKyAqIFRoaXMg
+c2hvdWxkIGJlIGRyb3BwZWQgb25jZSB0aGF0IGlzIG1lcmdlZC4KPj4gKyAqLwo+PiArI2lmbmRl
+ZiBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRQo+PiArI2RlZmluZSBBQ1BJX1ZJREVPX05PVElGWV9Q
+Uk9CRQkJCTB4ODEKPj4gKyNlbmRpZgo+PiArCj4+ICtzdGF0aWMgdm9pZAo+PiArbm91dmVhdV9k
+aXNwbGF5X2FjcGlfd29yayhzdHJ1Y3Qgd29ya19zdHJ1Y3QgKndvcmspCj4+ICt7Cj4+ICsJc3Ry
+dWN0IG5vdXZlYXVfZHJtICpkcm0gPSBjb250YWluZXJfb2Yod29yaywgdHlwZW9mKCpkcm0pLCBh
+Y3BpX3dvcmspOwo+PiArCj4+ICsJcG1fcnVudGltZV9nZXRfc3luYyhkcm0tPmRldi0+ZGV2KTsK
+Pj4gKwo+PiArCWRybV9oZWxwZXJfaHBkX2lycV9ldmVudChkcm0tPmRldik7Cj4+ICsKPj4gKwlw
+bV9ydW50aW1lX21hcmtfbGFzdF9idXN5KGRybS0+ZGV2LT5kZXYpOwo+PiArCXBtX3J1bnRpbWVf
+cHV0X3N5bmMoZHJtLT5kZXYtPmRldik7Cj4KPiBOb3RoaW5nIGRlcGVuZHMgb24gdGhlIGRldmlj
+ZSBiZWluZyBzdXNwZW5kZWQgaW1tZWRpYXRlbHksIEkgZ3Vlc3MgeW91Cj4gY2FuIGRyb3AgX3N5
+bmMgYW5kIGFsc28gdXNlOgo+Cj4gICAgIHBtX3J1bnRpbWVfcHV0X2F1dG9zdXNwZW5kCgp0aGUg
+X3N5bmMgbWVyZWx5IG1lYW5zIHRoYXQgd2UgYXJlIGluIGEgY29udGV4dCB3aGVyZSB3ZSBjYW4g
+c2xlZXAsCnNvIHRoYXQgaWYgdGhlIHJ1bnRpbWUgdXNlIGNvdW50IGdvZXMgdG8gMCB0aGUgcnVu
+dGltZSBwbSBjb3JlIGNhbgpjYWxsIHRoZSBpZGxlIGhhbmRsZXIgZGlyZWN0bHkgcmF0aGVyIHRo
+ZW4gZnJvbSBhIHdxLiBUaGUgX3N5bmMgZG9lcwpub3QgbWVhbiB0aGF0IHdlIHdpbGwgc3VzcGVu
+ZCBhdXRtYXRpY2FsbHkuCgpwbV9ydW50aW1lX3B1dF9hdXRvc3VzcGVuZCBPVE9IIHdpbGwgYWN0
+dWFsbHkgY2F1c2UgYW4gKmltbWVkaWF0ZSoKc3VzcGVuZCBpZiB0aGUgcnVudGltZSB1c2UgY291
+bnQgZ29lcyB0byAwLCB3aGljaCBpcyBub3Qgd2hhdCB3ZQp3YW50LCB3ZSB3YW50IHVzZXJzcGFj
+ZSB0byBoYXZlIHNvbWUgdGltZSB0byByZWFjdCB0byBuZXcgY29ubmVjdGlvbnMKKGlmIGFueSkg
+YmVmb3JlIGRvaW5nIGEgbmVlZGxlc3Mgc3VzcGVuZC9yZXN1bWUgY3ljbGUuCgpSZWdhcmRzLAoK
+SGFucwoKCj4KPiBLaW5kIHJlZ2FyZHMsCj4gUGV0ZXIKPgo+PiArfQo+PiArCj4+ICtzdGF0aWMg
+aW50Cj4+ICtub3V2ZWF1X2Rpc3BsYXlfYWNwaV9udGZ5KHN0cnVjdCBub3RpZmllcl9ibG9jayAq
+bmIsIHVuc2lnbmVkIGxvbmcgdmFsLAo+PiArCQkJICB2b2lkICpkYXRhKQo+PiArewo+PiArCXN0
+cnVjdCBub3V2ZWF1X2RybSAqZHJtID0gY29udGFpbmVyX29mKG5iLCB0eXBlb2YoKmRybSksIGFj
+cGlfbmIpOwo+PiArCXN0cnVjdCBhY3BpX2J1c19ldmVudCAqaW5mbyA9IGRhdGE7Cj4+ICsKPj4g
+KwlpZiAoIXN0cmNtcChpbmZvLT5kZXZpY2VfY2xhc3MsIEFDUElfVklERU9fQ0xBU1MpKSB7Cj4+
+ICsJCWlmIChpbmZvLT50eXBlID09IEFDUElfVklERU9fTk9USUZZX1BST0JFKSB7Cj4+ICsJCQkv
+Kgo+PiArCQkJICogVGhpcyBtYXkgYmUgdGhlIG9ubHkgaW5kaWNhdGlvbiB3ZSByZWNlaXZlIG9m
+IGEKPj4gKwkJCSAqIGNvbm5lY3RvciBob3RwbHVnIG9uIGEgcnVudGltZSBzdXNwZW5kZWQgR1BV
+LAo+PiArCQkJICogc2NoZWR1bGUgYWNwaV93b3JrIHRvIGNoZWNrLgo+PiArCQkJICovCj4+ICsJ
+CQlzY2hlZHVsZV93b3JrKCZkcm0tPmFjcGlfd29yayk7Cj4+ICsKPj4gKwkJCS8qIGFjcGktdmlk
+ZW8gc2hvdWxkIG5vdCBnZW5lcmF0ZSBrZXlwcmVzc2VzIGZvciB0aGlzICovCj4+ICsJCQlyZXR1
+cm4gTk9USUZZX0JBRDsKPj4gKwkJfQo+PiArCX0KPj4gKwo+PiArCXJldHVybiBOT1RJRllfRE9O
+RTsKPj4gK30KPj4gKyNlbmRpZgo+PiArCj4+ICBpbnQKPj4gIG5vdXZlYXVfZGlzcGxheV9pbml0
+KHN0cnVjdCBkcm1fZGV2aWNlICpkZXYpCj4+ICB7Cj4+IEBAIC01MzcsNiArNTg5LDEyIEBAIG5v
+dXZlYXVfZGlzcGxheV9jcmVhdGUoc3RydWN0IGRybV9kZXZpY2UgKmRldikKPj4gIAl9Cj4+Cj4+
+ICAJbm91dmVhdV9iYWNrbGlnaHRfaW5pdChkZXYpOwo+PiArI2lmZGVmIENPTkZJR19BQ1BJCj4+
+ICsJSU5JVF9XT1JLKCZkcm0tPmFjcGlfd29yaywgbm91dmVhdV9kaXNwbGF5X2FjcGlfd29yayk7
+Cj4+ICsJZHJtLT5hY3BpX25iLm5vdGlmaWVyX2NhbGwgPSBub3V2ZWF1X2Rpc3BsYXlfYWNwaV9u
+dGZ5Owo+PiArCXJlZ2lzdGVyX2FjcGlfbm90aWZpZXIoJmRybS0+YWNwaV9uYik7Cj4+ICsjZW5k
+aWYKPj4gKwo+PiAgCXJldHVybiAwOwo+Pgo+PiAgdmJsYW5rX2VycjoKPj4gQEAgLTU1Miw2ICs2
+MTAsOSBAQCBub3V2ZWF1X2Rpc3BsYXlfZGVzdHJveShzdHJ1Y3QgZHJtX2RldmljZSAqZGV2KQo+
+PiAgewo+PiAgCXN0cnVjdCBub3V2ZWF1X2Rpc3BsYXkgKmRpc3AgPSBub3V2ZWF1X2Rpc3BsYXko
+ZGV2KTsKPj4KPj4gKyNpZmRlZiBDT05GSUdfQUNQSQo+PiArCXVucmVnaXN0ZXJfYWNwaV9ub3Rp
+Zmllcigmbm91dmVhdV9kcm0oZGV2KS0+YWNwaV9uYik7Cj4+ICsjZW5kaWYKPj4gIAlub3V2ZWF1
+X2JhY2tsaWdodF9leGl0KGRldik7Cj4+ICAJbm91dmVhdV9kaXNwbGF5X3ZibGFua19maW5pKGRl
+dik7Cj4+Cj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X2Ry
+di5oIGIvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9kcnYuaAo+PiBpbmRleCA4MjJh
+MDIxLi43MWQ0NTMyIDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2
+ZWF1X2Rydi5oCj4+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfZHJ2LmgK
+Pj4gQEAgLTM3LDYgKzM3LDggQEAKPj4gICAqICAgICAgLSBpbXBsZW1lbnRlZCBsaW1pdGVkIEFC
+STE2L05WSUYgaW50ZXJvcAo+PiAgICovCj4+Cj4+ICsjaW5jbHVkZSA8bGludXgvbm90aWZpZXIu
+aD4KPj4gKwo+PiAgI2luY2x1ZGUgPG52aWYvY2xpZW50Lmg+Cj4+ICAjaW5jbHVkZSA8bnZpZi9k
+ZXZpY2UuaD4KPj4gICNpbmNsdWRlIDxudmlmL2lvY3RsLmg+Cj4+IEBAIC0xNjEsNiArMTYzLDEw
+IEBAIHN0cnVjdCBub3V2ZWF1X2RybSB7Cj4+ICAJc3RydWN0IG52YmlvcyB2YmlvczsKPj4gIAlz
+dHJ1Y3Qgbm91dmVhdV9kaXNwbGF5ICpkaXNwbGF5Owo+PiAgCXN0cnVjdCBiYWNrbGlnaHRfZGV2
+aWNlICpiYWNrbGlnaHQ7Cj4+ICsjaWZkZWYgQ09ORklHX0FDUEkKPj4gKwlzdHJ1Y3Qgbm90aWZp
+ZXJfYmxvY2sgYWNwaV9uYjsKPj4gKwlzdHJ1Y3Qgd29ya19zdHJ1Y3QgYWNwaV93b3JrOwo+PiAr
+I2VuZGlmCj4+Cj4+ICAJLyogcG93ZXIgbWFuYWdlbWVudCAqLwo+PiAgCXN0cnVjdCBub3V2ZWF1
+X2h3bW9uICpod21vbjsKPj4gLS0KPj4gMi45LjMKPj4KPj4gX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KPj4gTm91dmVhdSBtYWlsaW5nIGxpc3QKPj4gTm91
+dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPj4gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5v
+cmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cj4KX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9ub3V2ZWF1Cg==
