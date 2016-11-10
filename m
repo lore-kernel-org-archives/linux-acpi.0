@@ -1,313 +1,196 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V6 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Thu, 10 Nov 2016 10:36:38 +0800
-Message-ID: <42ff0a81-7836-11f6-58e0-979bd1d0be20@linaro.org>
-References: <1477687696-1509-1-git-send-email-agustinv@codeaurora.org>
- <1477687696-1509-3-git-send-email-agustinv@codeaurora.org>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v3] mailbox: PCC: Fix lockdep warning when request PCC channel
+Date: Wed, 9 Nov 2016 22:39:35 -0800
+Message-ID: <CAFHUOYyJrFV4P9POyEx_fZ8c_AX-L0kHQrKqwqe4C2hKBu-Shg@mail.gmail.com>
+References: <1477607684-5314-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:33911 "EHLO
-        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753170AbcKJChB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Nov 2016 21:37:01 -0500
-Received: by mail-pf0-f172.google.com with SMTP id n85so137064466pfi.1
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Nov 2016 18:37:01 -0800 (PST)
-In-Reply-To: <1477687696-1509-3-git-send-email-agustinv@codeaurora.org>
+Received: from mail-ua0-f180.google.com ([209.85.217.180]:35090 "EHLO
+        mail-ua0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751582AbcKJGjh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Nov 2016 01:39:37 -0500
+Received: by mail-ua0-f180.google.com with SMTP id 12so193383378uas.2
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Nov 2016 22:39:37 -0800 (PST)
+In-Reply-To: <1477607684-5314-1-git-send-email-hotran@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
-Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>, Prakash Prashanth <pprakash@codeaurora.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
 
-Hi Marc, Rafael, Lorenzo,
+Hi All,
 
-Since we agreed to add a probe deferral if we failed to get irq
-resources which mirroring the DT does (patch 1 in this patch set),
-I think the last blocker to make things work both for Agustin and
-me [1] is this patch, which makes the interrupt producer and consumer
-work in ACPI, we have two different solution for one thing, we'd happy
-to work together for one solution, could you give some suggestions
-please?
-
-[1]: https://mail-archive.com/linux-kernel@vger.kernel.org/msg1257419.html
-
-Agustin, I have some comments below.
-
-On 2016/10/29 4:48, Agustin Vega-Frias wrote:
-> This allows irqchip drivers to associate an ACPI DSDT device to
-> an IRQ domain and provides support for using the ResourceSource
-> in Extended IRQ Resources to find the domain and map the IRQs
-> specified on that domain.
+On Thu, Oct 27, 2016 at 3:34 PM, Hoan Tran <hotran@apm.com> wrote:
+> This patch fixes the lockdep warning below
 >
-> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> [    7.229767] DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags))
+> [    7.229776] ------------[ cut here ]------------
+> [    7.229787] WARNING: CPU: 1 PID: 1 at linux-next/kernel/locking/lockdep.c:2876 loc
+> kdep_trace_alloc+0xe0/0xf0
+> [    7.229790] Modules linked in:
+> [    7.229793]
+> [    7.229798] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.8.0-11756-g86c5152 #46
+> ...
+> [    7.229900] Call trace:
+> [    7.229903] Exception stack(0xffff8007da837890 to 0xffff8007da8379c0)
+> [    7.229906] 7880:                                   ffff8007da834000 0001000000000000
+> [    7.229909] 78a0: ffff8007da837a70 ffff0000081111a0 00000000600000c5 000000000000003d
+> [    7.229912] 78c0: 9374bc6a7f3c7832 0000000000381878 ffff000009db7ab8 000000000000002f
+> [    7.229915] 78e0: ffff00000811aabc ffff000008be2548 ffff8007da837990 ffff00000811adf8
+> [    7.229918] 7900: ffff8007da834000 00000000024080c0 00000000000000c0 ffff000009021000
+> [    7.229921] 7920: 0000000000000000 0000000000000000 ffff000008c8f7c8 ffff8007da579810
+> [    7.229923] 7940: 000000000000002f ffff8007da858000 0000000000000000 0000000000000001
+> [    7.229926] 7960: 0000000000000001 0000000000000000 ffff00000811a468 0000000000000002
+> [    7.229929] 7980: 656c62617369645f 0000000000038187 00000000000000ee ffff8007da837850
+> [    7.229932] 79a0: ffff000009db50c0 ffff000009db569d 0000000000000006 ffff000089db568f
+> [    7.229936] [<ffff0000081111a0>] lockdep_trace_alloc+0xe0/0xf0
+> [    7.229940] [<ffff0000081f4950>] __kmalloc_track_caller+0x50/0x250
+> [    7.229945] [<ffff00000857c088>] devres_alloc_node+0x28/0x60
+> [    7.229949] [<ffff0000081220e0>] devm_request_threaded_irq+0x50/0xe0
+> [    7.229955] [<ffff0000087e6220>] pcc_mbox_request_channel+0x110/0x170
+> [    7.229960] [<ffff0000084b2660>] acpi_cppc_processor_probe+0x264/0x414
+> [    7.229963] [<ffff0000084ae9f4>] __acpi_processor_start+0x28/0xa0
+> [    7.229966] [<ffff0000084aeab0>] acpi_processor_start+0x44/0x54
+> [    7.229970] [<ffff00000857897c>] driver_probe_device+0x1fc/0x2b0
+> [    7.229974] [<ffff000008578ae4>] __driver_attach+0xb4/0xc0
+> [    7.229977] [<ffff00000857683c>] bus_for_each_dev+0x5c/0xa0
+> [    7.229980] [<ffff000008578110>] driver_attach+0x20/0x30
+> [    7.229983] [<ffff000008577c20>] bus_add_driver+0x110/0x230
+> [    7.229987] [<ffff000008579320>] driver_register+0x60/0x100
+> [    7.229991] [<ffff000008d478b8>] acpi_processor_driver_init+0x2c/0xb0
+> [    7.229996] [<ffff000008083168>] do_one_initcall+0x38/0x130
+> [    7.230000] [<ffff000008d20d6c>] kernel_init_freeable+0x210/0x2b4
+> [    7.230004] [<ffff000008945d90>] kernel_init+0x10/0x110
+> [    7.230007] [<ffff000008082e80>] ret_from_fork+0x10/0x50
+>
+> It's because the spinlock inside pcc_mbox_request_channel() is
+> kept too long. This patch releases spinlock before request_irq()
+> and free_irq() to fix this issue  as spinlock is only needed to
+> protect the channel data.
+>
+> Signed-off-by: Hoan Tran <hotran@apm.com>
 > ---
->  drivers/acpi/Makefile    |   1 +
->  drivers/acpi/irqdomain.c | 119 +++++++++++++++++++++++++++++++++++++++++++++++
+> v3
+>  * Free mailbox irq before reset the channel data
+>  * Free channel if it fails to request the mailbox irq
+>
+> v2
+>  * Release spinlock before request_irq() and free_irq() instead of
+> using mutex
+>
+>
+>  drivers/mailbox/pcc.c | 70 +++++++++++++++++++++++++--------------------------
+>  1 file changed, 35 insertions(+), 35 deletions(-)
+>
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 08c87fa..4b2f061 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -224,6 +224,38 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+>  }
+>
+>  /**
+> + * pcc_mbox_free_channel - Clients call this to free their Channel.
+> + *
+> + * @chan: Pointer to the mailbox channel as returned by
+> + *             pcc_mbox_request_channel()
+> + */
+> +void pcc_mbox_free_channel(struct mbox_chan *chan)
+> +{
+> +       u32 id = chan - pcc_mbox_channels;
+> +       unsigned long flags;
+> +
+> +       if (!chan || !chan->cl)
+> +               return;
+> +
+> +       if (id >= pcc_mbox_ctrl.num_chans) {
+> +               pr_debug("pcc_mbox_free_channel: Invalid mbox_chan passed\n");
+> +               return;
+> +       }
+> +
+> +       if (pcc_doorbell_irq[id] > 0)
+> +               devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
+> +
+> +       spin_lock_irqsave(&chan->lock, flags);
+> +       chan->cl = NULL;
+> +       chan->active_req = NULL;
+> +       if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
+> +               chan->txdone_method = TXDONE_BY_POLL;
+> +
+> +       spin_unlock_irqrestore(&chan->lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
+> +
+> +/**
+>   * pcc_mbox_request_channel - PCC clients call this function to
+>   *             request a pointer to their PCC subspace, from which they
+>   *             can get the details of communicating with the remote.
+> @@ -267,6 +299,8 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
+>         if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+>                 chan->txdone_method |= TXDONE_BY_ACK;
+>
+> +       spin_unlock_irqrestore(&chan->lock, flags);
+> +
+>         if (pcc_doorbell_irq[subspace_id] > 0) {
+>                 int rc;
+>
+> @@ -275,50 +309,16 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
+>                 if (unlikely(rc)) {
+>                         dev_err(dev, "failed to register PCC interrupt %d\n",
+>                                 pcc_doorbell_irq[subspace_id]);
+> +                       pcc_mbox_free_channel(chan);
+>                         chan = ERR_PTR(rc);
+>                 }
+>         }
+>
+> -       spin_unlock_irqrestore(&chan->lock, flags);
+> -
+>         return chan;
+>  }
+>  EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+>
+>  /**
+> - * pcc_mbox_free_channel - Clients call this to free their Channel.
+> - *
+> - * @chan: Pointer to the mailbox channel as returned by
+> - *             pcc_mbox_request_channel()
+> - */
+> -void pcc_mbox_free_channel(struct mbox_chan *chan)
+> -{
+> -       u32 id = chan - pcc_mbox_channels;
+> -       unsigned long flags;
+> -
+> -       if (!chan || !chan->cl)
+> -               return;
+> -
+> -       if (id >= pcc_mbox_ctrl.num_chans) {
+> -               pr_debug("pcc_mbox_free_channel: Invalid mbox_chan passed\n");
+> -               return;
+> -       }
+> -
+> -       spin_lock_irqsave(&chan->lock, flags);
+> -       chan->cl = NULL;
+> -       chan->active_req = NULL;
+> -       if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
+> -               chan->txdone_method = TXDONE_BY_POLL;
+> -
+> -       if (pcc_doorbell_irq[id] > 0)
+> -               devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
+> -
+> -       spin_unlock_irqrestore(&chan->lock, flags);
+> -}
+> -EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
+> -
+> -
+> -/**
+>   * pcc_send_data - Called from Mailbox Controller code. Used
+>   *             here only to ring the channel doorbell. The PCC client
+>   *             specific read/write is done in the client driver in
+> --
+> 1.9.1
+>
 
-Could we just reuse the gsi.c and not introduce a new
-file, probably we can change the gsi.c to irqdomain.c
-or something similar, then reuse the code in gsi.c.
+Do you have any comments about this patch ?
 
 Thanks
-Hanjun
-
->  drivers/acpi/resource.c  |  21 +++++----
->  include/linux/acpi.h     |  25 ++++++++++
->  4 files changed, 157 insertions(+), 9 deletions(-)
->  create mode 100644 drivers/acpi/irqdomain.c
->
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 9ed0878..880401b 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -57,6 +57,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->  acpi-y				+= acpi_lpat.o
->  acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
->  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
-> +acpi-$(CONFIG_IRQ_DOMAIN)	+= irqdomain.o
->
->  # These are (potentially) separate modules
->
-> diff --git a/drivers/acpi/irqdomain.c b/drivers/acpi/irqdomain.c
-> new file mode 100644
-> index 0000000..11d3658
-> --- /dev/null
-> +++ b/drivers/acpi/irqdomain.c
-> @@ -0,0 +1,119 @@
-> +/*
-> + * ACPI ResourceSource/IRQ domain mapping support
-> + *
-> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#include <linux/acpi.h>
-> +#include <linux/irq.h>
-> +#include <linux/irqdomain.h>
-> +
-> +/**
-> + * acpi_irq_domain_register_irq() - Register the mapping for an IRQ produced
-> + *                                  by the given acpi_resource_source to a
-> + *                                  Linux IRQ number
-> + * @source: IRQ source
-> + * @hwirq: Hardware IRQ number
-> + * @trigger: trigger type of the IRQ number to be mapped
-> + * @polarity: polarity of the IRQ to be mapped
-> + *
-> + * Returns: a valid linux IRQ number on success
-> + *          -ENODEV if the given acpi_resource_source cannot be found
-> + *          -EPROBE_DEFER if the IRQ domain has not been registered
-> + *          -EINVAL for all other errors
-> + */
-> +int acpi_irq_domain_register_irq(const struct acpi_resource_source *source,
-> +				 u32 hwirq, int trigger, int polarity)
-> +{
-> +	struct irq_fwspec fwspec;
-> +	struct acpi_device *device;
-> +	acpi_handle handle;
-> +	acpi_status status;
-> +	int ret;
-> +
-> +	/* An empty acpi_resource_source means it is a GSI */
-> +	if (!source->string_length)
-> +		return acpi_register_gsi(NULL, hwirq, trigger, polarity);
-> +
-> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	device = acpi_bus_get_acpi_device(handle);
-> +	if (!device)
-> +		return -ENODEV;
-> +
-> +	if (irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY) == NULL) {
-> +		ret = -EPROBE_DEFER;
-> +		goto out_put_device;
-> +	}
-> +
-> +	fwspec.fwnode = &device->fwnode;
-> +	fwspec.param[0] = hwirq;
-> +	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
-> +	fwspec.param_count = 2;
-> +
-> +	ret = irq_create_fwspec_mapping(&fwspec);
-> +
-> +out_put_device:
-> +	acpi_bus_put_acpi_device(device);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_irq_domain_register_irq);
-> +
-> +/**
-> + * acpi_irq_domain_unregister_irq() - Delete the mapping for an IRQ produced
-> + *                                    by the given acpi_resource_source to a
-> + *                                    Linux IRQ number
-> + * @source: IRQ source
-> + * @hwirq: Hardware IRQ number
-> + *
-> + * Returns: 0 on success
-> + *          -ENODEV if the given acpi_resource_source cannot be found
-> + *          -EINVAL for all other errors
-> + */
-> +int acpi_irq_domain_unregister_irq(const struct acpi_resource_source *source,
-> +				   u32 hwirq)
-> +{
-> +	struct irq_domain *domain;
-> +	struct acpi_device *device;
-> +	acpi_handle handle;
-> +	acpi_status status;
-> +	int ret = 0;
-> +
-> +	if (!source->string_length) {
-> +		acpi_unregister_gsi(hwirq);
-> +		return 0;
-> +	}
-> +
-> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	device = acpi_bus_get_acpi_device(handle);
-> +	if (!device)
-> +		return -ENODEV;
-> +
-> +	domain = irq_find_matching_fwnode(&device->fwnode, DOMAIN_BUS_ANY);
-> +	if (!domain) {
-> +		ret = -EINVAL;
-> +		goto out_put_device;
-> +	}
-> +
-> +	irq_dispose_mapping(irq_find_mapping(domain, hwirq));
-> +
-> +out_put_device:
-> +	acpi_bus_put_acpi_device(device);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_irq_domain_unregister_irq);
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 4beda15..ccb6f4f 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -381,14 +381,15 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
->  	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
->  }
->
-> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
-> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
-> +				     const struct acpi_resource_source *source,
->  				     u8 triggering, u8 polarity, u8 shareable,
->  				     bool legacy)
->  {
->  	int irq, p, t;
->
-> -	if (!valid_IRQ(gsi)) {
-> -		acpi_dev_irqresource_disabled(res, gsi);
-> +	if ((source->string_length == 0) && !valid_IRQ(hwirq)) {
-> +		acpi_dev_irqresource_disabled(res, hwirq);
->  		return;
->  	}
->
-> @@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
->  	 * using extended IRQ descriptors we take the IRQ configuration
->  	 * from _CRS directly.
->  	 */
-> -	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
-> +	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
->  		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
->  		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
->
->  		if (triggering != trig || polarity != pol) {
-> -			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
-> -				   t ? "level" : "edge", p ? "low" : "high");
-> +			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
-> +				t ? "level" : "edge", p ? "low" : "high");
->  			triggering = trig;
->  			polarity = pol;
->  		}
->  	}
->
->  	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
-> -	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
-> +	irq = acpi_irq_domain_register_irq(source, hwirq, triggering, polarity);
->  	if (irq >= 0) {
->  		res->start = irq;
->  		res->end = irq;
->  	} else {
-> -		acpi_dev_irqresource_disabled(res, gsi);
-> +		acpi_dev_irqresource_disabled(res, hwirq);
->  	}
->  }
->
-> @@ -446,6 +447,7 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
->  bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
->  				 struct resource *res)
->  {
-> +	const struct acpi_resource_source dummy = { 0, 0, NULL };
->  	struct acpi_resource_irq *irq;
->  	struct acpi_resource_extended_irq *ext_irq;
->
-> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
->  			acpi_dev_irqresource_disabled(res, 0);
->  			return false;
->  		}
-> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
-> +		acpi_dev_get_irqresource(res, irq->interrupts[index], &dummy,
->  					 irq->triggering, irq->polarity,
->  					 irq->sharable, true);
->  		break;
-> @@ -471,6 +473,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
->  			return false;
->  		}
->  		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
-> +					 &ext_irq->resource_source,
->  					 ext_irq->triggering, ext_irq->polarity,
->  					 ext_irq->sharable, false);
->  		break;
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 40213c4..ce30a12 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -321,6 +321,31 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
->   */
->  void acpi_unregister_gsi (u32 gsi);
->
-> +#ifdef CONFIG_IRQ_DOMAIN
-> +
-> +int acpi_irq_domain_register_irq(const struct acpi_resource_source *source,
-> +				 u32 hwirq, int trigger, int polarity);
-> +int acpi_irq_domain_unregister_irq(const struct acpi_resource_source *source,
-> +				   u32 hwirq);
-> +
-> +#else
-> +
-> +static inline int acpi_irq_domain_register_irq(
-> +	const struct acpi_resource_source *source, u32 hwirq, int trigger,
-> +	int polarity)
-> +{
-> +	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
-> +}
-> +
-> +static inline int acpi_irq_domain_unregister_irq(
-> +	const struct acpi_resource_source *source,  u32 hwirq)
-> +{
-> +	acpi_unregister_gsi(hwirq);
-> +	return 0;
-> +}
-> +
-> +#endif /* CONFIG_IRQ_DOMAIN */
-> +
->  struct pci_dev;
->
->  int acpi_pci_irq_enable (struct pci_dev *dev);
->
+Hoan
