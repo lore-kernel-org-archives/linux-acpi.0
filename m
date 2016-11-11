@@ -1,35 +1,60 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
- agnostic
-Date: Fri, 11 Nov 2016 16:22:48 +0100
-Message-ID: <20161111152248.GS2078@8bytes.org>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
- <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Fri, 11 Nov 2016 15:32:05 +0000
+Message-ID: <20161111153205.GI11945@leverpostej>
+References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org>
+ <1475086637-1914-5-git-send-email-fu.wei@linaro.org>
+ <20161020163719.GC27598@leverpostej>
+ <5825CBB5.8090104@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 8bytes.org ([81.169.241.247]:40197 "EHLO theia.8bytes.org"
+Received: from foss.arm.com ([217.140.101.70]:45642 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756576AbcKKPWw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 11 Nov 2016 10:22:52 -0500
+        id S933598AbcKKPcr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Nov 2016 10:32:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
+In-Reply-To: <5825CBB5.8090104@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Wed, Nov 09, 2016 at 02:19:36PM +0000, Lorenzo Pieralisi wrote:
-> +struct iommu_fwentry {
-> +	struct list_head list;
-> +	struct fwnode_handle *fwnode;
-> +	const struct iommu_ops *ops;
-> +};
+On Fri, Nov 11, 2016 at 09:46:29PM +0800, Hanjun Guo wrote:
+> On 10/21/2016 12:37 AM, Mark Rutland wrote:
+> >On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei@linaro.org wrote:
+> >>+static int __init map_gt_gsi(u32 interrupt, u32 flags)
+> >>+{
+> >>+	int trigger, polarity;
+> >>+
+> >>+	if (!interrupt)
+> >>+		return 0;
+> >
+> >Urgh.
+> >
+> >Only the secure interrupt (which we do not need) is optional in this
+> >manner, and (hilariously), zero appears to also be a valid GSIV, per
+> >figure 5-24 in the ACPI 6.1 spec.
+> >
+> >So, I think that:
+> >
+> >(a) we should not bother parsing the secure interrupt
+> >(b) we should drop the check above
+> >(c) we should report the spec issue to the ASWG
+> 
+> Sorry, I willing to do that, but I need to figure out the issue here.
+> What kind of issue in detail? do you mean that zero should not be valid
+> for arch timer interrupts?
 
-Is there a reason the iommu_ops need to be stored there? Currently it
-seems that the ops are only needed to get the of_xlate fn-ptr later. And
-the place where it is called the iommu-ops should also be available
-through pdev->dev->bus->iommu_ops.
+As above, zero is a valid GSIV, and is valid for the non-secure timer
+interrupts. The check is wrong for non-secure interrupts.
 
+We can ignore the secure timer interrupt since it's irrelevant to us,
+and remove the check.
 
-	Joerg
+Regardless, the spec is inconsistent w.r.t. the secure interrupt being
+zero if not present, since zero is a valid GSIV. That should be reported
+to the ASWG.
+
+Thanks,
+Mark.
