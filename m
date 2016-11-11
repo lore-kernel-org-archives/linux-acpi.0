@@ -1,60 +1,57 @@
-From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
-	agnostic
-Date: Fri, 11 Nov 2016 17:43:39 +0000
-Message-ID: <33769e3c-265f-6e89-adf9-6d35b1e03579@arm.com>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
-	<20161109141948.19244-5-lorenzo.pieralisi@arm.com>
-	<20161111152248.GS2078@8bytes.org>
-	<552e674a-f434-f08f-8e16-a94544ce8e6e@arm.com>
-	<20161111162736.GV2078@8bytes.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fix for v4.9-rc3
+Date: Sat, 12 Nov 2016 00:54:03 +0100
+Message-ID: <CAJZ5v0iDZk4YTPMZHEdWyLzG6OOdE5pmY+E=iKbjahi4dX+WAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20161111162736.GV2078-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:34025 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934770AbcKKXyF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2016 18:54:05 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 11/11/16 16:27, Joerg Roedel wrote:
-> On Fri, Nov 11, 2016 at 04:17:37PM +0000, Robin Murphy wrote:
->> In the original of_iommu_configure design, the thought was that an ops
->> structure could be IOMMU-instance-specific (hence the later-removed
->> "priv" member), so I suppose right now it is mostly a hangover from
->> that. However, it's also what we initialise a device's fwspec with, so
->> becomes important again if we're ever going to get past the limitations
->> of buses-which-are-not-actually-buses[1].
-> 
-> Yeah, I discussed this with a few others at LPC. My current idea is to
-> tell the iommu-core which hardware-iommus exist in the system and a
-> seperate iommu_ops ptr for each of them. Then every struct device can
-> link to the iommu-instance it is translated by.
+Hi Linus,
 
-Er, that sounds very much like a description of what we already have in
-4.9-rc. Every struct device now has an iommu_fwspec which encapsulates
-both an iommu_ops pointer (which can perfectly well be per-instance if
-the IOMMU driver wants) and a place for the IOMMU-private data to
-replace the mess of archdata.iommu and driver-internal globals.
+Please pull from the tag
 
-> We are not there yet, but this will give you the same per-device
-> iommu-ops as implemented here.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.9-rc5
 
-With those two patches I linked to, which make the bulk of the IOMMU
-core code per-device-ops-aware off the bat, I'd say we *are* already
-pretty much there. It's only iommu_domain_alloc() which needs a
-device-based alternative, and the non-of_xlate-based IOMMU drivers to
-either call iommu_fwspec_init() for themselves, or perhaps for x86
-plumbing in DMAR/IVRS equivalents of the IORT parsing to the
-infrastructure provided by this series.
+with top-most commit 66f5854c6894dc028fc13345838c6f82bfcfef0c
 
-Robin.
+ Merge branch 'device-properties'
+
+on top of commit bc33b0ca11e3df467777a4fa7639ba488c9d4911
+
+ Linux 4.9-rc4
+
+to receive an ACPI fix for v4.9-rc5.
+
+Fix a recent regression in the 8250_dw serial driver introduced by
+adding a quirk for the APM X-Gene SoC to it which uncovered an issue
+related to the handling of built-in device properties in the core
+ACPI device enumeration code (Heikki Krogerus).
+
+Thanks!
+
+
+---------------
+
+Heikki Krogerus (1):
+      ACPI / platform: Add support for build-in properties
+
+---------------
+
+ drivers/acpi/acpi_apd.c             | 10 ++--------
+ drivers/acpi/acpi_lpss.c            | 10 ++--------
+ drivers/acpi/acpi_platform.c        |  5 ++++-
+ drivers/acpi/dptf/int340x_thermal.c |  4 ++--
+ drivers/acpi/scan.c                 |  2 +-
+ drivers/platform/x86/intel-hid.c    |  2 +-
+ drivers/platform/x86/intel-vbtn.c   |  2 +-
+ include/linux/acpi.h                |  3 ++-
+ 8 files changed, 15 insertions(+), 23 deletions(-)
