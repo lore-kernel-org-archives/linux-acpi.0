@@ -1,32 +1,65 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 00/16] ACPI IORT ARM SMMU support
-Date: Fri, 11 Nov 2016 20:44:38 +0800
-Message-ID: <5825BD36.1040600@linaro.org>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
+From: <15042192@qq.com>
+Subject: 22201 linux-acpi
+Date: Fri, 11 Nov 2016 12:58:11 -0000
+Message-ID: <147886909143.29258.10779142339069103296@vnpt.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
-Cc: Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: application/zip; name="MESSAGE_95048024868_linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static.vnpt.vn ([14.162.202.141]:38652 "HELO vnpt.vn"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1755448AbcKKM6U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Nov 2016 07:58:20 -0500
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 11/09/2016 10:19 PM, Lorenzo Pieralisi wrote:
-> This patch series is v7 of a previous posting:
->
-> https://lkml.org/lkml/2016/10/18/506
->
-> v6 -> v7
-> 	- Rebased against v4.9-rc4
-> 	- Fixed IORT probing on ACPI systems with missing IORT table
-> 	- Fixed SMMUv1/v2 global interrupt detection
-> 	- Updated iommu_ops firmware look-up
-
-Although no major update for the new version, I tested
-this patchset again on hisilicon d03, and the platform
-device works as before with SMMUv3.
-
-Thanks
-Hanjun
+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
+AAAAAQABAFgAAAAaCgAAAAA=
