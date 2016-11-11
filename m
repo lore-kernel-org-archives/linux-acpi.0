@@ -1,63 +1,35 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v14 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Fri, 11 Nov 2016 21:58:01 +0800
-Message-ID: <5825CE69.1000501@linaro.org>
-References: <1475086637-1914-1-git-send-email-fu.wei@linaro.org> <1475086637-1914-5-git-send-email-fu.wei@linaro.org> <20161020163719.GC27598@leverpostej> <5825CBB5.8090104@linaro.org>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
+ agnostic
+Date: Fri, 11 Nov 2016 16:22:48 +0100
+Message-ID: <20161111152248.GS2078@8bytes.org>
+References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
+ <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f42.google.com ([74.125.83.42]:33716 "EHLO
-        mail-pg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755700AbcKKN6W (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2016 08:58:22 -0500
-Received: by mail-pg0-f42.google.com with SMTP id 3so13355445pgd.0
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Nov 2016 05:58:22 -0800 (PST)
-In-Reply-To: <5825CBB5.8090104@linaro.org>
+Received: from 8bytes.org ([81.169.241.247]:40197 "EHLO theia.8bytes.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756576AbcKKPWw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 11 Nov 2016 10:22:52 -0500
+Content-Disposition: inline
+In-Reply-To: <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 11/11/2016 09:46 PM, Hanjun Guo wrote:
-> Hi Mark,
->
-> Sorry for the late reply.
->
-> On 10/21/2016 12:37 AM, Mark Rutland wrote:
->> Hi,
->>
->> As a heads-up, on v4.9-rc1 I see conflicts at least against
->> arch/arm64/Kconfig. Luckily git am -3 seems to be able to fix that up
->> automatically, but this will need to be rebased before the next posting
->> and/or merging.
->>
->> On Thu, Sep 29, 2016 at 02:17:12AM +0800, fu.wei@linaro.org wrote:
->>> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
->>> +{
->>> +    int trigger, polarity;
->>> +
->>> +    if (!interrupt)
->>> +        return 0;
->>
->> Urgh.
->>
->> Only the secure interrupt (which we do not need) is optional in this
->> manner, and (hilariously), zero appears to also be a valid GSIV, per
->> figure 5-24 in the ACPI 6.1 spec.
->>
->> So, I think that:
->>
->> (a) we should not bother parsing the secure interrupt
->> (b) we should drop the check above
->> (c) we should report the spec issue to the ASWG
->
-> Sorry, I willing to do that, but I need to figure out the issue here.
-> What kind of issue in detail? do you mean that zero should not be valid
-> for arch timer interrupts?
+On Wed, Nov 09, 2016 at 02:19:36PM +0000, Lorenzo Pieralisi wrote:
+> +struct iommu_fwentry {
+> +	struct list_head list;
+> +	struct fwnode_handle *fwnode;
+> +	const struct iommu_ops *ops;
+> +};
 
-OK, I think you are referring to "we don't need the secure interrupt",
-correct me if I'm wrong (still in jet lag...).
+Is there a reason the iommu_ops need to be stored there? Currently it
+seems that the ops are only needed to get the of_xlate fn-ptr later. And
+the place where it is called the iommu-ops should also be available
+through pdev->dev->bus->iommu_ops.
 
-Thanks
-Hanjun
+
+	Joerg
