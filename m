@@ -1,58 +1,43 @@
-From: Michael Pobega <mpobega@neverware.com>
-Subject: [PATCH] Fix for Dell Latitude 3350 ethernet not working.
-Date: Fri, 11 Nov 2016 22:29:14 -0500
-Message-ID: <20161112032914.hg24zqqlkwirxx7z@hotbox>
+From: husson@stelsia-sa.com
+Subject: TRADING  ACCOUNT
+Date: Sat, 12 Nov 2016 11:16:53 +0000
+Message-ID: <be319e05017c96f461c4c324de7a5405@stelsia-sa.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33674 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933912AbcKLD3R (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Nov 2016 22:29:17 -0500
-Received: by mail-qk0-f194.google.com with SMTP id x190so4022628qkb.0
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Nov 2016 19:29:16 -0800 (PST)
-Content-Disposition: inline
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:55874 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753023AbcKLLQ7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Nov 2016 06:16:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: husson@stelsia-sa.com
 
-The Dell Latitude 3350's ethernet card attempts to use a reserved IRQ (18),
-resulting in ACPI being unable to enable the ethernet.
+  Dear sir ,
 
-This patch forces a specific _REV (ACPI revision) value as a workaround
-to allow the Dell Latitude 3350's board to work correctly.
+I HUSSON PIERRE FRANCOIS ANDRE , sale manager of STELSIA , company based 
+in france .Our Company specialised in Supplying computer hardware and 
+Electronic .We want to extend our supplier list because of concurrency 
+in prices on the international market .We are seeking a supplier with 
+whom we can to have  partnered long-term in order to have competitive 
+prices.we are interested to buy the products you sell and want to place 
+an order with you in big quantities.
+Can you give us payment facilities ( 14 , 30 or 60 days payment terms ) 
+?
+What is the procedure for our account opening  and credit line 
+application
 
-The approach is similar to 18d78b64fddc11eb336f01e46ad3303a3f55d039
+Cordially
 
-Signed-off-by: Michael Pobega <mpobega@neverware.com>
----
- drivers/acpi/blacklist.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+HUSSON PIERRE FRANCOIS ANDRE
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index bdc67ba..05cd61f 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -160,6 +160,18 @@ static struct dmi_system_id acpi_rev_dmi_table[] __initdata = {
- 		      DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9343"),
- 		},
- 	},
-+	/*
-+	 * Resolves a quirk with the Dell Latitude 3350 that
-+	 * causes the ethernet adapter to not function.
-+	 */
-+	{
-+	 .callback = dmi_enable_rev_override,
-+	 .ident = "DELL Latitude 3350",
-+	 .matches = {
-+		      DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		      DMI_MATCH(DMI_PRODUCT_NAME, "Latitude 3350"),
-+		},
-+	},
- #endif
- 	{}
- };
--- 
-2.9.3
-
+STELSIA SAS
+12 rue Henri Barbusse
+92110 Clichy - France
+REG N° 702042755
+VAT N°FR63702042755
+TEL +33172771022
+FAX +33184127001
+email husson@stelsia-sa.com
