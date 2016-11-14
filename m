@@ -1,43 +1,79 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: 6ea8c546f3655 breaks thermal management on thinkpad x60 and t40p
-Date: Mon, 14 Nov 2016 20:54:55 +0100
-Message-ID: <CAJZ5v0i7KDDuQX0itjnuEpHCpb+JdOQVHNzzpv_v4BwwwbW2-Q@mail.gmail.com>
-References: <20161104083849.GA32688@amd> <20161104085830.GA4089@amd>
- <1478268311.26953.17.camel@intel.com> <20161104204439.GA2581@amd>
- <20161104221600.GA7007@amd> <1478301649.7947.3.camel@intel.com>
- <20161105133719.GA3933@amd> <1478354115.19557.17.camel@intel.com> <20161114190343.GB20770@amd>
+Subject: Re: [PATCH] acpi: Use NULL from <linux/stddef.h>
+Date: Mon, 14 Nov 2016 21:20:32 +0100
+Message-ID: <CAJZ5v0jof4-JV+Fm_bBa+Fzxe2dLZ5KfoPNhZ_KfxvWX_NHDdg@mail.gmail.com>
+References: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161114190343.GB20770@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Robert Moore <Robert.Moore@intel.com>
-Cc: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, acpi_power-processor@kernel-bugs.osdl.org, rankincj@yahoo.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Len Brown <lenb@kernel.org>, Lv <lv.zheng@intel.com>, regressions@leemhuis.info, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "ibm-acpi-devel@lists.sourceforge.net" <ibm-acpi-devel@lists.sourceforge.net>, "ibm-acpi@hmh.eng.br" <ibm-acpi@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:33374 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936435AbcKNUUd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2016 15:20:33 -0500
+Received: by mail-qt0-f195.google.com with SMTP id n6so6520538qtd.0
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2016 12:20:33 -0800 (PST)
+In-Reply-To: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>, Lv <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Nov 14, 2016 at 8:03 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
+On Mon, Nov 14, 2016 at 5:50 PM, Bart Van Assche
+<bart.vanassche@sandisk.com> wrote:
+> Use the definition of NULL from <linux/stddef.h> instead of
+> redefining NULL. Additionally, change (void *)NULL into NULL.
 >
-> Bisection was not fun, but I've got the result:
+> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+>  include/acpi/actypes.h | 12 +++++-------
+>  1 file changed, 5 insertions(+), 7 deletions(-)
 >
-> # first bad commit: [6ea8c546f3655a81f82672f24b66dad6095bdd07] ACPICA:
-> FADT support cleanup
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index 1d798ab..f019641 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -44,6 +44,8 @@
+>  #ifndef __ACTYPES_H__
+>  #define __ACTYPES_H__
+>
+> +#include <linux/stddef.h> /* NULL */
 
-Bob?
+This is file is based on upstream ACPICA code and it should not
+contain Linux-specific includes etc. as a rule.
 
-> I've reverted the patch on top of 4.9-rc4, and thermal management now works.
+> +
+>  /* acpisrc:struct_defs -- for acpisrc conversion */
 >
-> More details are in https://bugzilla.kernel.org/show_bug.cgi?id=187311
+>  /*
+> @@ -437,10 +439,6 @@ typedef u64 acpi_physical_address;
+>  #endif
+>  #define TRUE                            (1 == 1)
 >
-> As this breaks thermal management on both thinkpad X60 and T40p, can
-> I ask for a revert?
+> -#ifndef NULL
+> -#define NULL                            (void *) 0
+> -#endif
+> -
+>  /*
+>   * Miscellaneous types
+>   */
+> @@ -530,9 +528,9 @@ typedef u64 acpi_integer;
 >
-> If you have other ideas, I can test them, but as this is just a
-> cleanup, it can wait for 4.10...
+>  /* Pointer/Integer type conversions */
+>
+> -#define ACPI_TO_POINTER(i)              ACPI_ADD_PTR (void, (void *) NULL,(acpi_size) i)
+> -#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p, (void *) NULL)
+> -#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF (&(((d *) 0)->f), (void *) NULL)
+> +#define ACPI_TO_POINTER(i)              ACPI_ADD_PTR(void, NULL, (acpi_size) i)
+> +#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF(p, NULL)
+> +#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF(&(((d *) 0)->f), NULL)
+>  #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
+>  #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
 
-Right.
 
-Besides, we're in the -rc6 time frame now, so I'll queue up a revert.
+Lv, Bob, can you have a look at this, please?
 
 Thanks,
 Rafael
