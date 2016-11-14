@@ -1,76 +1,71 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
- agnostic
-Date: Mon, 14 Nov 2016 18:25:16 +0000
-Message-ID: <313844ca-d948-1297-84b2-669f3a7d57d2@arm.com>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
- <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
- <20161111152248.GS2078@8bytes.org>
- <552e674a-f434-f08f-8e16-a94544ce8e6e@arm.com>
- <20161111162736.GV2078@8bytes.org>
- <33769e3c-265f-6e89-adf9-6d35b1e03579@arm.com>
- <20161114102654.GA1677@red-moon>
- <41e3eff1-9ce6-bcfb-5716-c65ef38add63@arm.com>
- <20161114155222.GZ2078@8bytes.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 6ea8c546f3655 breaks thermal management on thinkpad x60 and t40p
+Date: Mon, 14 Nov 2016 20:03:43 +0100
+Message-ID: <20161114190343.GB20770@amd>
+References: <20161104083849.GA32688@amd>
+ <20161104085830.GA4089@amd>
+ <1478268311.26953.17.camel@intel.com>
+ <20161104204439.GA2581@amd>
+ <20161104221600.GA7007@amd>
+ <1478301649.7947.3.camel@intel.com>
+ <20161105133719.GA3933@amd>
+ <1478354115.19557.17.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161114155222.GZ2078@8bytes.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35228 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934345AbcKNTDt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2016 14:03:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1478354115.19557.17.camel@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, Robert.Moore@intel.com, acpi_power-processor@kernel-bugs.osdl.org, rankincj@yahoo.com, srinivas.pandruvada@linux.intel.com, lenb@kernel.org, lv.zheng@intel.com, regressions@leemhuis.info
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "ibm-acpi-devel@lists.sourceforge.net" <ibm-acpi-devel@lists.sourceforge.net>, "ibm-acpi@hmh.eng.br" <ibm-acpi@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 14/11/16 15:52, Joerg Roedel wrote:
-> On Mon, Nov 14, 2016 at 12:00:47PM +0000, Robin Murphy wrote:
->> If we've already made the decision to move away from bus ops, I don't
->> see that it makes sense to deliberately introduce new dependencies on
->> them. Besides, as it stands, this patch literally implements "tell the
->> iommu-core which hardware-iommus exist in the system and a seperate
->> iommu_ops ptr for each of them" straight off.
-> 
-> Not sure which code you are looking at, but as I see it we have only
-> per-device iommu-ops now (with this patch). That is different from
-> having core-visible hardware-iommu instances where devices could link
-> to.
 
-The per-device IOMMU ops are already there since 57f98d2f61e1. This
-patch generalises the other end, moving the "registering an IOMMU
-instance" (i.e. iommu_fwentry) bit into the IOMMU core, from being
-OF-specific. I'd be perfectly happy if we rename iommu_fwentry to
-iommu_instance, fwnode_iommu_set_ops() to iommu_register_instance(), and
-such if that makes the design intent clearer.
+--yEPQxsgoJgBvi8ip
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If you'd also prefer to replace iommu_fwspec::ops with an opaque
-iommu_fwspec::iommu_instance pointer so that things are a bit more
-centralised (and users are forced to go through the API rather then call
-ops directly), I'd have no major objection either. My main point is that
-we've been deliberately putting the relevant building blocks in place -
-the of_iommu_{get,set}_ops stuff was designed from the start to
-accommodate per-instance ops, via the ops pointer *being* the instance
-token; the iommu_fwspec stuff is deliberately intended to provide
-per-device ops on top of that. The raw functionality is either there in
-iommu.c already, or moving there in patches already written, so if it
-doesn't look right all we need to focus on is making it look right.
+Hi!
 
-> Also the rest of iommu-core code still makes use of the per-bus ops. The
-> per-device ops are only used for the of_xlate fn-ptr.
+Bisection was not fun, but I've got the result:
 
-Hence my aforementioned patches intended for 4.10, directly following on
-from introducing iommu_fwspec in 4.9:
+# first bad commit: [6ea8c546f3655a81f82672f24b66dad6095bdd07] ACPICA:
+FADT support cleanup
 
-http://www.mail-archive.com/iommu@lists.linux-foundation.org/msg14576.html
+I've reverted the patch on top of 4.9-rc4, and thermal management now works.
 
-...the purpose being to provide a smooth transition from per-bus ops to
-per-device, per-instance ops. Apply those and we're 90% of the way there
-for OF-based IOMMU drivers (not that any of those actually need
-per-instance ops, admittedly; I did prototype it for the ARM SMMU ages
-ago, but it didn't seem worth the bother). Lorenzo's series broadens the
-scope to ACPI-based systems and moves the generically-useful parts into
-the core where we can easily build on them further if necessary. The
-major remaining work is to convert external callers of the current
-bus-dependent functions like iommu_domain_alloc(), iommu_present(), etc.
-to device-based alternatives.
+More details are in https://bugzilla.kernel.org/show_bug.cgi?id=3D187311
 
-Robin.
+As this breaks thermal management on both thinkpad X60 and T40p, can
+I ask for a revert?
+
+If you have other ideas, I can test them, but as this is just a
+cleanup, it can wait for 4.10...
+
+Thanks,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--yEPQxsgoJgBvi8ip
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgqCo8ACgkQMOfwapXb+vI0zgCfVeV89QHre8vCQrrkbxwj0s96
+18AAnAwYa9wduDaDgYiYzTuTLWKkS/cs
+=nYzO
+-----END PGP SIGNATURE-----
+
+--yEPQxsgoJgBvi8ip--
