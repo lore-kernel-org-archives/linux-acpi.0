@@ -1,57 +1,69 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
- agnostic
-Date: Mon, 14 Nov 2016 16:42:28 +0000
-Message-ID: <20161114164228.GA31339@red-moon>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
- <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
- <20161111152248.GS2078@8bytes.org>
- <552e674a-f434-f08f-8e16-a94544ce8e6e@arm.com>
- <20161111162736.GV2078@8bytes.org>
- <33769e3c-265f-6e89-adf9-6d35b1e03579@arm.com>
- <20161114102654.GA1677@red-moon>
- <41e3eff1-9ce6-bcfb-5716-c65ef38add63@arm.com>
- <20161114155222.GZ2078@8bytes.org>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH] acpi: Use NULL from <linux/stddef.h>
+Date: Mon, 14 Nov 2016 08:50:39 -0800
+Message-ID: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161114155222.GZ2078@8bytes.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Robin Murphy <robin.murphy@arm.com>, iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-sn1nam02on0055.outbound.protection.outlook.com ([104.47.36.55]:26943
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753274AbcKNRZB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 14 Nov 2016 12:25:01 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Nov 14, 2016 at 04:52:23PM +0100, Joerg Roedel wrote:
-> On Mon, Nov 14, 2016 at 12:00:47PM +0000, Robin Murphy wrote:
-> > If we've already made the decision to move away from bus ops, I don't
-> > see that it makes sense to deliberately introduce new dependencies on
-> > them. Besides, as it stands, this patch literally implements "tell the
-> > iommu-core which hardware-iommus exist in the system and a seperate
-> > iommu_ops ptr for each of them" straight off.
-> 
-> Not sure which code you are looking at, but as I see it we have only
-> per-device iommu-ops now (with this patch). That is different from
-> having core-visible hardware-iommu instances where devices could link
-> to.
+Use the definition of NULL from <linux/stddef.h> instead of
+redefining NULL. Additionally, change (void *)NULL into NULL.
 
-This patch enables the IOMMU-OF-node<->device look-up on non-OF (ie
-ACPI) systems by "converting" the of_node to a generic fwnode_handle,
-that's all it does (and move the related look-up code from
-drivers/iommu/of_iommu.c to drivers/iommu/iommu.c so that it does
-not depend on OF_IOMMU any longer).
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ include/acpi/actypes.h | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-> Also the rest of iommu-core code still makes use of the per-bus ops. The
-> per-device ops are only used for the of_xlate fn-ptr.
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 1d798ab..f019641 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -44,6 +44,8 @@
+ #ifndef __ACTYPES_H__
+ #define __ACTYPES_H__
+ 
++#include <linux/stddef.h> /* NULL */
++
+ /* acpisrc:struct_defs -- for acpisrc conversion */
+ 
+ /*
+@@ -437,10 +439,6 @@ typedef u64 acpi_physical_address;
+ #endif
+ #define TRUE                            (1 == 1)
+ 
+-#ifndef NULL
+-#define NULL                            (void *) 0
+-#endif
+-
+ /*
+  * Miscellaneous types
+  */
+@@ -530,9 +528,9 @@ typedef u64 acpi_integer;
+ 
+ /* Pointer/Integer type conversions */
+ 
+-#define ACPI_TO_POINTER(i)              ACPI_ADD_PTR (void, (void *) NULL,(acpi_size) i)
+-#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p, (void *) NULL)
+-#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF (&(((d *) 0)->f), (void *) NULL)
++#define ACPI_TO_POINTER(i)              ACPI_ADD_PTR(void, NULL, (acpi_size) i)
++#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF(p, NULL)
++#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF(&(((d *) 0)->f), NULL)
+ #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
+ #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
+ 
+-- 
+2.10.1
 
-I can put this patch on the backburner and retrieve the iommu_ops
-through the dev->bus path in the IORT xlate function (iort_iommu_xlate()
-introduced in the last patch), the change is trivial and should work
-just fine but it deserves a v8 to give everyone a chance to test it.
-
-We would end-up handling the device->iommu_ops look-up differently in DT
-and ACPI for streamid translations though, I am not sure I see a reason
-why.
-
-Thanks,
-Lorenzo
