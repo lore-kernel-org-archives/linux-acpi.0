@@ -1,79 +1,75 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] acpi: Use NULL from <linux/stddef.h>
-Date: Mon, 14 Nov 2016 21:20:32 +0100
-Message-ID: <CAJZ5v0jof4-JV+Fm_bBa+Fzxe2dLZ5KfoPNhZ_KfxvWX_NHDdg@mail.gmail.com>
-References: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v4] mailbox: PCC: Fix lockdep warning when request PCC
+ channel
+Date: Mon, 14 Nov 2016 13:50:02 -0700
+Message-ID: <6cdda541-7db1-4970-9497-d75b9017e97f@codeaurora.org>
+References: <1479151142-1876-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:33374 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936435AbcKNUUd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2016 15:20:33 -0500
-Received: by mail-qt0-f195.google.com with SMTP id n6so6520538qtd.0
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Nov 2016 12:20:33 -0800 (PST)
-In-Reply-To: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50628 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753175AbcKNUuF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2016 15:50:05 -0500
+In-Reply-To: <1479151142-1876-1-git-send-email-hotran@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>, Lv <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Hoan Tran <hotran@apm.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>
 
-On Mon, Nov 14, 2016 at 5:50 PM, Bart Van Assche
-<bart.vanassche@sandisk.com> wrote:
-> Use the definition of NULL from <linux/stddef.h> instead of
-> redefining NULL. Additionally, change (void *)NULL into NULL.
->
-> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> ---
->  include/acpi/actypes.h | 12 +++++-------
->  1 file changed, 5 insertions(+), 7 deletions(-)
->
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index 1d798ab..f019641 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -44,6 +44,8 @@
->  #ifndef __ACTYPES_H__
->  #define __ACTYPES_H__
->
-> +#include <linux/stddef.h> /* NULL */
+Hi Hoan,
 
-This is file is based on upstream ACPICA code and it should not
-contain Linux-specific includes etc. as a rule.
-
-> +
->  /* acpisrc:struct_defs -- for acpisrc conversion */
+On 11/14/2016 12:19 PM, Hoan Tran wrote:
+> This patch fixes the lockdep warning below
 >
->  /*
-> @@ -437,10 +439,6 @@ typedef u64 acpi_physical_address;
->  #endif
->  #define TRUE                            (1 == 1)
+> [    7.229767] DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags))
+> [    7.229776] ------------[ cut here ]------------
+> [    7.229787] WARNING: CPU: 1 PID: 1 at linux-next/kernel/locking/lockdep.c:2876 loc
+> kdep_trace_alloc+0xe0/0xf0
+> [    7.229790] Modules linked in:
+> [    7.229793]
+> [    7.229798] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.8.0-11756-g86c5152 #46
+> ...
+> [    7.229900] Call trace:
+> [    7.229903] Exception stack(0xffff8007da837890 to 0xffff8007da8379c0)
+> [    7.229906] 7880:                                   ffff8007da834000 0001000000000000
+> [    7.229909] 78a0: ffff8007da837a70 ffff0000081111a0 00000000600000c5 000000000000003d
+> [    7.229912] 78c0: 9374bc6a7f3c7832 0000000000381878 ffff000009db7ab8 000000000000002f
+> [    7.229915] 78e0: ffff00000811aabc ffff000008be2548 ffff8007da837990 ffff00000811adf8
+> [    7.229918] 7900: ffff8007da834000 00000000024080c0 00000000000000c0 ffff000009021000
+> [    7.229921] 7920: 0000000000000000 0000000000000000 ffff000008c8f7c8 ffff8007da579810
+> [    7.229923] 7940: 000000000000002f ffff8007da858000 0000000000000000 0000000000000001
+> [    7.229926] 7960: 0000000000000001 0000000000000000 ffff00000811a468 0000000000000002
+> [    7.229929] 7980: 656c62617369645f 0000000000038187 00000000000000ee ffff8007da837850
+> [    7.229932] 79a0: ffff000009db50c0 ffff000009db569d 0000000000000006 ffff000089db568f
+> [    7.229936] [<ffff0000081111a0>] lockdep_trace_alloc+0xe0/0xf0
+> [    7.229940] [<ffff0000081f4950>] __kmalloc_track_caller+0x50/0x250
+> [    7.229945] [<ffff00000857c088>] devres_alloc_node+0x28/0x60
+> [    7.229949] [<ffff0000081220e0>] devm_request_threaded_irq+0x50/0xe0
+> [    7.229955] [<ffff0000087e6220>] pcc_mbox_request_channel+0x110/0x170
+> [    7.229960] [<ffff0000084b2660>] acpi_cppc_processor_probe+0x264/0x414
+> [    7.229963] [<ffff0000084ae9f4>] __acpi_processor_start+0x28/0xa0
+> [    7.229966] [<ffff0000084aeab0>] acpi_processor_start+0x44/0x54
+> [    7.229970] [<ffff00000857897c>] driver_probe_device+0x1fc/0x2b0
+> [    7.229974] [<ffff000008578ae4>] __driver_attach+0xb4/0xc0
+> [    7.229977] [<ffff00000857683c>] bus_for_each_dev+0x5c/0xa0
+> [    7.229980] [<ffff000008578110>] driver_attach+0x20/0x30
+> [    7.229983] [<ffff000008577c20>] bus_add_driver+0x110/0x230
+> [    7.229987] [<ffff000008579320>] driver_register+0x60/0x100
+> [    7.229991] [<ffff000008d478b8>] acpi_processor_driver_init+0x2c/0xb0
+> [    7.229996] [<ffff000008083168>] do_one_initcall+0x38/0x130
+> [    7.230000] [<ffff000008d20d6c>] kernel_init_freeable+0x210/0x2b4
+> [    7.230004] [<ffff000008945d90>] kernel_init+0x10/0x110
+> [    7.230007] [<ffff000008082e80>] ret_from_fork+0x10/0x50
 >
-> -#ifndef NULL
-> -#define NULL                            (void *) 0
-> -#endif
-> -
->  /*
->   * Miscellaneous types
->   */
-> @@ -530,9 +528,9 @@ typedef u64 acpi_integer;
+> It's because the spinlock inside pcc_mbox_request_channel() is
+> kept too long. This patch releases spinlock before request_irq()
+> and free_irq() to fix this issue  as spinlock is only needed to
+> protect the channel data.
 >
->  /* Pointer/Integer type conversions */
->
-> -#define ACPI_TO_POINTER(i)              ACPI_ADD_PTR (void, (void *) NULL,(acpi_size) i)
-> -#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p, (void *) NULL)
-> -#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF (&(((d *) 0)->f), (void *) NULL)
-> +#define ACPI_TO_POINTER(i)              ACPI_ADD_PTR(void, NULL, (acpi_size) i)
-> +#define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF(p, NULL)
-> +#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF(&(((d *) 0)->f), NULL)
->  #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
->  #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
-
-
-Lv, Bob, can you have a look at this, please?
+> Signed-off-by: Hoan Tran <hotran@apm.com>
+Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
 
 Thanks,
-Rafael
+Prashanth
