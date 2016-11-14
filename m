@@ -1,75 +1,213 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH v4] mailbox: PCC: Fix lockdep warning when request PCC
- channel
-Date: Mon, 14 Nov 2016 13:50:02 -0700
-Message-ID: <6cdda541-7db1-4970-9497-d75b9017e97f@codeaurora.org>
-References: <1479151142-1876-1-git-send-email-hotran@apm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V4 1/2] PCI: hisi: Add ECAM support for devices that are
+ not RC
+Date: Mon, 14 Nov 2016 17:07:11 -0600
+Message-ID: <20161114230711.GA30262@bhelgaas-glaptop.roam.corp.google.com>
+References: <1478682897-119874-1-git-send-email-liudongdong3@huawei.com>
+ <1478682897-119874-2-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50628 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753175AbcKNUuF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Nov 2016 15:50:05 -0500
-In-Reply-To: <1479151142-1876-1-git-send-email-hotran@apm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1478682897-119874-2-git-send-email-liudongdong3@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dongdong Liu <liudongdong3@huawei.com>
+Cc: arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com, Jingoo Han <jingoohan1@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hoan Tran <hotran@apm.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jassi Brar <jassisinghbrar@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>
 
-Hi Hoan,
+[+cc Jingoo]
 
-On 11/14/2016 12:19 PM, Hoan Tran wrote:
-> This patch fixes the lockdep warning below
->
-> [    7.229767] DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags))
-> [    7.229776] ------------[ cut here ]------------
-> [    7.229787] WARNING: CPU: 1 PID: 1 at linux-next/kernel/locking/lockdep.c:2876 loc
-> kdep_trace_alloc+0xe0/0xf0
-> [    7.229790] Modules linked in:
-> [    7.229793]
-> [    7.229798] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.8.0-11756-g86c5152 #46
-> ...
-> [    7.229900] Call trace:
-> [    7.229903] Exception stack(0xffff8007da837890 to 0xffff8007da8379c0)
-> [    7.229906] 7880:                                   ffff8007da834000 0001000000000000
-> [    7.229909] 78a0: ffff8007da837a70 ffff0000081111a0 00000000600000c5 000000000000003d
-> [    7.229912] 78c0: 9374bc6a7f3c7832 0000000000381878 ffff000009db7ab8 000000000000002f
-> [    7.229915] 78e0: ffff00000811aabc ffff000008be2548 ffff8007da837990 ffff00000811adf8
-> [    7.229918] 7900: ffff8007da834000 00000000024080c0 00000000000000c0 ffff000009021000
-> [    7.229921] 7920: 0000000000000000 0000000000000000 ffff000008c8f7c8 ffff8007da579810
-> [    7.229923] 7940: 000000000000002f ffff8007da858000 0000000000000000 0000000000000001
-> [    7.229926] 7960: 0000000000000001 0000000000000000 ffff00000811a468 0000000000000002
-> [    7.229929] 7980: 656c62617369645f 0000000000038187 00000000000000ee ffff8007da837850
-> [    7.229932] 79a0: ffff000009db50c0 ffff000009db569d 0000000000000006 ffff000089db568f
-> [    7.229936] [<ffff0000081111a0>] lockdep_trace_alloc+0xe0/0xf0
-> [    7.229940] [<ffff0000081f4950>] __kmalloc_track_caller+0x50/0x250
-> [    7.229945] [<ffff00000857c088>] devres_alloc_node+0x28/0x60
-> [    7.229949] [<ffff0000081220e0>] devm_request_threaded_irq+0x50/0xe0
-> [    7.229955] [<ffff0000087e6220>] pcc_mbox_request_channel+0x110/0x170
-> [    7.229960] [<ffff0000084b2660>] acpi_cppc_processor_probe+0x264/0x414
-> [    7.229963] [<ffff0000084ae9f4>] __acpi_processor_start+0x28/0xa0
-> [    7.229966] [<ffff0000084aeab0>] acpi_processor_start+0x44/0x54
-> [    7.229970] [<ffff00000857897c>] driver_probe_device+0x1fc/0x2b0
-> [    7.229974] [<ffff000008578ae4>] __driver_attach+0xb4/0xc0
-> [    7.229977] [<ffff00000857683c>] bus_for_each_dev+0x5c/0xa0
-> [    7.229980] [<ffff000008578110>] driver_attach+0x20/0x30
-> [    7.229983] [<ffff000008577c20>] bus_add_driver+0x110/0x230
-> [    7.229987] [<ffff000008579320>] driver_register+0x60/0x100
-> [    7.229991] [<ffff000008d478b8>] acpi_processor_driver_init+0x2c/0xb0
-> [    7.229996] [<ffff000008083168>] do_one_initcall+0x38/0x130
-> [    7.230000] [<ffff000008d20d6c>] kernel_init_freeable+0x210/0x2b4
-> [    7.230004] [<ffff000008945d90>] kernel_init+0x10/0x110
-> [    7.230007] [<ffff000008082e80>] ret_from_fork+0x10/0x50
->
-> It's because the spinlock inside pcc_mbox_request_channel() is
-> kept too long. This patch releases spinlock before request_irq()
-> and free_irq() to fix this issue  as spinlock is only needed to
-> protect the channel data.
->
-> Signed-off-by: Hoan Tran <hotran@apm.com>
-Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+On Wed, Nov 09, 2016 at 05:14:56PM +0800, Dongdong Liu wrote:
+> This patch modifies the current Hip05/Hip06 PCIe host
+> controller driver to add support for 'almost ECAM'
+> compliant platforms. Some controllers are ECAM compliant
+> for all the devices of the hierarchy except the root
+> complex; this patch adds support for such controllers.
+> 
+> This is needed in preparation for the ACPI based driver
+> to allow both DT and ACPI drivers to use the same BIOS
+> (that configure the Designware iATUs).
+> This commit doesn't break backward compatibility with
+> previous non-ECAM platforms.
+> 
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> ---
+>  .../devicetree/bindings/pci/hisilicon-pcie.txt     | 15 +++++---
+>  drivers/pci/host/Kconfig                           |  4 +-
+>  drivers/pci/host/pcie-designware.c                 |  4 +-
+>  drivers/pci/host/pcie-designware.h                 |  2 +
+>  drivers/pci/host/pcie-hisi.c                       | 45 ++++++++++++++++++++++
+>  5 files changed, 60 insertions(+), 10 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> index 59c2f47..87a597a 100644
+> --- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> +++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> @@ -9,10 +9,13 @@ Additional properties are described here:
+>  
+>  Required properties
+>  - compatible: Should contain "hisilicon,hip05-pcie" or "hisilicon,hip06-pcie".
+> -- reg: Should contain rc_dbi, config registers location and length.
+> -- reg-names: Must include the following entries:
+> +- reg: Should contain rc_dbi and  either config or ecam-cfg registers
+> +       location and length (it depends on the platform BIOS).
+> +- reg-names: Must include
+>    "rc_dbi": controller configuration registers;
+> -  "config": PCIe configuration space registers.
+> +  and one of the following entries:
+> +    "config": PCIe configuration space registers for non-ECAM platforms.
+> +    "ecam-cfg": PCIe configuration space registers for ECAM platforms
+>  - msi-parent: Should be its_pcie which is an ITS receiving MSI interrupts.
+>  - port-id: Should be 0, 1, 2 or 3.
+>  
+> @@ -23,8 +26,10 @@ Optional properties:
+>  Hip05 Example (note that Hip06 is the same except compatible):
+>  	pcie@0xb0080000 {
+>  		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
+> -		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
+> -		reg-names = "rc_dbi", "config";
+> +		reg = <0 0xb0080000 0 0x10000>,
+> +		      <0x220 0x00000000 0 0x2000>
+> +		/* or <0x220 0x00100000 0 0x0f00000> for ecam-cfg*/;
 
-Thanks,
-Prashanth
+Add space before closing "*/".
+
+> +		reg-names = "rc_dbi", "config" /* or "ecam-cfg" */;
+>  		bus-range = <0  15>;
+>  		msi-parent = <&its_pcie>;
+>  		#address-cells = <3>;
+> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
+> index d7e7c0a..ae98644 100644
+> --- a/drivers/pci/host/Kconfig
+> +++ b/drivers/pci/host/Kconfig
+> @@ -219,13 +219,13 @@ config PCIE_ALTERA_MSI
+>  
+>  config PCI_HISI
+>  	depends on OF && ARM64
+> -	bool "HiSilicon Hip05 and Hip06 SoCs PCIe controllers"
+> +	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs PCIe controllers"
+>  	depends on PCI_MSI_IRQ_DOMAIN
+>  	select PCIEPORTBUS
+>  	select PCIE_DW
+>  	help
+>  	  Say Y here if you want PCIe controller support on HiSilicon
+> -	  Hip05 and Hip06 SoCs
+> +	  Hip05 and Hip06 and Hip07 SoCs
+>  
+>  config PCIE_QCOM
+>  	bool "Qualcomm PCIe controller"
+> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+> index 035f50c..da11644 100644
+> --- a/drivers/pci/host/pcie-designware.c
+> +++ b/drivers/pci/host/pcie-designware.c
+> @@ -101,8 +101,6 @@
+>  #define PCIE_PHY_DEBUG_R1_LINK_UP	(0x1 << 4)
+>  #define PCIE_PHY_DEBUG_R1_LINK_IN_TRAINING	(0x1 << 29)
+>  
+> -static struct pci_ops dw_pcie_ops;
+> -
+>  int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
+>  {
+>  	if ((uintptr_t)addr & (size - 1)) {
+> @@ -800,7 +798,7 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
+>  	return dw_pcie_wr_other_conf(pp, bus, devfn, where, size, val);
+>  }
+>  
+> -static struct pci_ops dw_pcie_ops = {
+> +struct pci_ops dw_pcie_ops = {
+>  	.read = dw_pcie_rd_conf,
+>  	.write = dw_pcie_wr_conf,
+>  };
+> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+> index a567ea2..30d228a 100644
+> --- a/drivers/pci/host/pcie-designware.h
+> +++ b/drivers/pci/host/pcie-designware.h
+> @@ -83,4 +83,6 @@ struct pcie_host_ops {
+>  void dw_pcie_setup_rc(struct pcie_port *pp);
+>  int dw_pcie_host_init(struct pcie_port *pp);
+>  
+> +extern struct pci_ops dw_pcie_ops;
+> +
+>  #endif /* _PCIE_DESIGNWARE_H */
+> diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
+> index 56154c2..555c964 100644
+> --- a/drivers/pci/host/pcie-hisi.c
+> +++ b/drivers/pci/host/pcie-hisi.c
+> @@ -43,6 +43,34 @@ struct hisi_pcie {
+>  	struct pcie_soc_ops *soc_ops;
+>  };
+>  
+> +static inline int hisi_rd_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
+> +				    unsigned int devfn, int where, int size,
+> +				    u32 *value)
+> +{
+> +	return pci_generic_config_read(bus, devfn, where, size, value);
+> +}
+> +
+> +static inline int hisi_wr_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
+> +				    unsigned int devfn, int where, int size,
+> +				    u32 value)
+> +{
+> +	return pci_generic_config_write(bus, devfn, where, size, value);
+> +}
+> +
+> +static void __iomem *hisi_pci_map_cfg_bus_cam(struct pci_bus *bus,
+> +					      unsigned int devfn,
+> +					      int where)
+> +{
+> +	void __iomem *addr;
+> +	struct pcie_port *pp = bus->sysdata;
+> +
+> +	addr = pp->va_cfg1_base - (pp->busn->start << 20) +
+> +		((bus->number << 20) | (devfn << 12)) +
+> +		where;
+> +
+> +	return addr;
+> +}
+> +
+>  /* HipXX PCIe host only supports 32-bit config access */
+>  static int hisi_pcie_cfg_read(struct pcie_port *pp, int where, int size,
+>  			      u32 *val)
+> @@ -190,6 +218,23 @@ static int hisi_pcie_probe(struct platform_device *pdev)
+>  		return PTR_ERR(pp->dbi_base);
+>  	}
+>  
+> +	reg = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecam-cfg");
+> +	if (reg) {
+> +		/* ECAM driver version */
+> +		hisi_pcie->pp.va_cfg0_base =
+> +		devm_ioremap_resource(&pdev->dev, reg);
+> +		if (IS_ERR(hisi_pcie->pp.va_cfg0_base)) {
+> +			dev_err(pp->dev, "cannot get ecam-cfg\n");
+> +			return PTR_ERR(hisi_pcie->pp.va_cfg0_base);
+> +		}
+> +		hisi_pcie->pp.va_cfg1_base = hisi_pcie->pp.va_cfg0_base;
+> +
+> +		dw_pcie_ops.map_bus = hisi_pci_map_cfg_bus_cam;
+
+I don't really like this part.  We're scribbling on dw_pcie_ops, which this
+driver does not own.  That breaks the encapsulation and means that using
+two different DW-based drivers in the same system (admittedly unlikely)
+would fail mysteriously.
+
+I wonder if this could be solved by allowing the DW-based drivers to supply
+their own pci_ops.  If we did that, it might let us get rid of the
+rd_own_conf, wr_own_conf, rd_other_conf, and wr_other_conf function
+pointers.  I haven't worked through it, but it's possible the result would
+be easier to read.
+
+It's also possible it would be a lot of code churn for no real gain, and
+breaking the encapsulation makes the most sense.  What do you think?
+
+> +
+> +		hisi_pcie_host_ops.rd_other_conf = hisi_rd_ecam_conf;
+> +		hisi_pcie_host_ops.wr_other_conf = hisi_wr_ecam_conf;
+> +	}
+> +
+>  	ret = hisi_add_pcie_port(hisi_pcie, pdev);
+>  	if (ret)
+>  		return ret;
+> -- 
+> 1.9.1
+> 
