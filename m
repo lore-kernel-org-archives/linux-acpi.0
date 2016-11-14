@@ -1,213 +1,68 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V4 1/2] PCI: hisi: Add ECAM support for devices that are
- not RC
-Date: Mon, 14 Nov 2016 17:07:11 -0600
-Message-ID: <20161114230711.GA30262@bhelgaas-glaptop.roam.corp.google.com>
-References: <1478682897-119874-1-git-send-email-liudongdong3@huawei.com>
- <1478682897-119874-2-git-send-email-liudongdong3@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Al Stone <ahs3@redhat.com>
+Subject: [PATCH] ACPI: allow compilation with bare metal compilers
+Date: Mon, 14 Nov 2016 16:08:46 -0700
+Message-ID: <1479164926-1733-1-git-send-email-ahs3@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1478682897-119874-2-git-send-email-liudongdong3@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com, Jingoo Han <jingoohan1@gmail.com>
+To: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+Cc: Al Stone <ahs3@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Jingoo]
+The ACPICA subsystem of the ACPI driver sets up a compilation environment
+for itself, adding in multiple typedefs unique to ACPICA that depend on
+where ACPICA will be used.
 
-On Wed, Nov 09, 2016 at 05:14:56PM +0800, Dongdong Liu wrote:
-> This patch modifies the current Hip05/Hip06 PCIe host
-> controller driver to add support for 'almost ECAM'
-> compliant platforms. Some controllers are ECAM compliant
-> for all the devices of the hierarchy except the root
-> complex; this patch adds support for such controllers.
-> 
-> This is needed in preparation for the ACPI based driver
-> to allow both DT and ACPI drivers to use the same BIOS
-> (that configure the Designware iATUs).
-> This commit doesn't break backward compatibility with
-> previous non-ECAM platforms.
-> 
-> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> ---
->  .../devicetree/bindings/pci/hisilicon-pcie.txt     | 15 +++++---
->  drivers/pci/host/Kconfig                           |  4 +-
->  drivers/pci/host/pcie-designware.c                 |  4 +-
->  drivers/pci/host/pcie-designware.h                 |  2 +
->  drivers/pci/host/pcie-hisi.c                       | 45 ++++++++++++++++++++++
->  5 files changed, 60 insertions(+), 10 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> index 59c2f47..87a597a 100644
-> --- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> +++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> @@ -9,10 +9,13 @@ Additional properties are described here:
->  
->  Required properties
->  - compatible: Should contain "hisilicon,hip05-pcie" or "hisilicon,hip06-pcie".
-> -- reg: Should contain rc_dbi, config registers location and length.
-> -- reg-names: Must include the following entries:
-> +- reg: Should contain rc_dbi and  either config or ecam-cfg registers
-> +       location and length (it depends on the platform BIOS).
-> +- reg-names: Must include
->    "rc_dbi": controller configuration registers;
-> -  "config": PCIe configuration space registers.
-> +  and one of the following entries:
-> +    "config": PCIe configuration space registers for non-ECAM platforms.
-> +    "ecam-cfg": PCIe configuration space registers for ECAM platforms
->  - msi-parent: Should be its_pcie which is an ITS receiving MSI interrupts.
->  - port-id: Should be 0, 1, 2 or 3.
->  
-> @@ -23,8 +26,10 @@ Optional properties:
->  Hip05 Example (note that Hip06 is the same except compatible):
->  	pcie@0xb0080000 {
->  		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
-> -		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
-> -		reg-names = "rc_dbi", "config";
-> +		reg = <0 0xb0080000 0 0x10000>,
-> +		      <0x220 0x00000000 0 0x2000>
-> +		/* or <0x220 0x00100000 0 0x0f00000> for ecam-cfg*/;
+The vast majority of such environments (Linux, QNX, ...) have an environment
+defined by the acenv.h header file.  When using a Linaro compiler [1]
+specifically built to be used in an embedded environment with perhaps a
+kernel and an init process as the only things running, there is no
+environment defined for ACPICA so the typedefs it needs are not set up,
+causing compilation to fail badly unless ACPI is completely disabled.
+Since ACPI is enabled in the default config for the kernel, the compilation
+failure is fairly obvious.
 
-Add space before closing "*/".
+This may not be the optimal solution, but add in to the ACPI header file
+include/acpi/platform/acenv.h a default so that if GCC is being used, and
+all else fails, assume that we are going to be in a Linux-like environment
+and re-use the environment definition for Linux.  This allows us to build
+a kernel using this compiler [1] with or without ACPI.
 
-> +		reg-names = "rc_dbi", "config" /* or "ecam-cfg" */;
->  		bus-range = <0  15>;
->  		msi-parent = <&its_pcie>;
->  		#address-cells = <3>;
-> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-> index d7e7c0a..ae98644 100644
-> --- a/drivers/pci/host/Kconfig
-> +++ b/drivers/pci/host/Kconfig
-> @@ -219,13 +219,13 @@ config PCIE_ALTERA_MSI
->  
->  config PCI_HISI
->  	depends on OF && ARM64
-> -	bool "HiSilicon Hip05 and Hip06 SoCs PCIe controllers"
-> +	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs PCIe controllers"
->  	depends on PCI_MSI_IRQ_DOMAIN
->  	select PCIEPORTBUS
->  	select PCIE_DW
->  	help
->  	  Say Y here if you want PCIe controller support on HiSilicon
-> -	  Hip05 and Hip06 SoCs
-> +	  Hip05 and Hip06 and Hip07 SoCs
->  
->  config PCIE_QCOM
->  	bool "Qualcomm PCIe controller"
-> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
-> index 035f50c..da11644 100644
-> --- a/drivers/pci/host/pcie-designware.c
-> +++ b/drivers/pci/host/pcie-designware.c
-> @@ -101,8 +101,6 @@
->  #define PCIE_PHY_DEBUG_R1_LINK_UP	(0x1 << 4)
->  #define PCIE_PHY_DEBUG_R1_LINK_IN_TRAINING	(0x1 << 29)
->  
-> -static struct pci_ops dw_pcie_ops;
-> -
->  int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
->  {
->  	if ((uintptr_t)addr & (size - 1)) {
-> @@ -800,7 +798,7 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
->  	return dw_pcie_wr_other_conf(pp, bus, devfn, where, size, val);
->  }
->  
-> -static struct pci_ops dw_pcie_ops = {
-> +struct pci_ops dw_pcie_ops = {
->  	.read = dw_pcie_rd_conf,
->  	.write = dw_pcie_wr_conf,
->  };
-> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
-> index a567ea2..30d228a 100644
-> --- a/drivers/pci/host/pcie-designware.h
-> +++ b/drivers/pci/host/pcie-designware.h
-> @@ -83,4 +83,6 @@ struct pcie_host_ops {
->  void dw_pcie_setup_rc(struct pcie_port *pp);
->  int dw_pcie_host_init(struct pcie_port *pp);
->  
-> +extern struct pci_ops dw_pcie_ops;
-> +
->  #endif /* _PCIE_DESIGNWARE_H */
-> diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
-> index 56154c2..555c964 100644
-> --- a/drivers/pci/host/pcie-hisi.c
-> +++ b/drivers/pci/host/pcie-hisi.c
-> @@ -43,6 +43,34 @@ struct hisi_pcie {
->  	struct pcie_soc_ops *soc_ops;
->  };
->  
-> +static inline int hisi_rd_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
-> +				    unsigned int devfn, int where, int size,
-> +				    u32 *value)
-> +{
-> +	return pci_generic_config_read(bus, devfn, where, size, value);
-> +}
-> +
-> +static inline int hisi_wr_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
-> +				    unsigned int devfn, int where, int size,
-> +				    u32 value)
-> +{
-> +	return pci_generic_config_write(bus, devfn, where, size, value);
-> +}
-> +
-> +static void __iomem *hisi_pci_map_cfg_bus_cam(struct pci_bus *bus,
-> +					      unsigned int devfn,
-> +					      int where)
-> +{
-> +	void __iomem *addr;
-> +	struct pcie_port *pp = bus->sysdata;
-> +
-> +	addr = pp->va_cfg1_base - (pp->busn->start << 20) +
-> +		((bus->number << 20) | (devfn << 12)) +
-> +		where;
-> +
-> +	return addr;
-> +}
-> +
->  /* HipXX PCIe host only supports 32-bit config access */
->  static int hisi_pcie_cfg_read(struct pcie_port *pp, int where, int size,
->  			      u32 *val)
-> @@ -190,6 +218,23 @@ static int hisi_pcie_probe(struct platform_device *pdev)
->  		return PTR_ERR(pp->dbi_base);
->  	}
->  
-> +	reg = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecam-cfg");
-> +	if (reg) {
-> +		/* ECAM driver version */
-> +		hisi_pcie->pp.va_cfg0_base =
-> +		devm_ioremap_resource(&pdev->dev, reg);
-> +		if (IS_ERR(hisi_pcie->pp.va_cfg0_base)) {
-> +			dev_err(pp->dev, "cannot get ecam-cfg\n");
-> +			return PTR_ERR(hisi_pcie->pp.va_cfg0_base);
-> +		}
-> +		hisi_pcie->pp.va_cfg1_base = hisi_pcie->pp.va_cfg0_base;
-> +
-> +		dw_pcie_ops.map_bus = hisi_pci_map_cfg_bus_cam;
+[1] https://releases.linaro.org/components/toolchain/binaries/latest/aarch64-elff/gcc-linaro-6.1.1-2016-08-x86_64_aarch64-elf.tar.xz
 
-I don't really like this part.  We're scribbling on dw_pcie_ops, which this
-driver does not own.  That breaks the encapsulation and means that using
-two different DW-based drivers in the same system (admittedly unlikely)
-would fail mysteriously.
+Signed-off-by: Al Stone <ahs3@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>
+---
+ include/acpi/platform/acenv.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-I wonder if this could be solved by allowing the DW-based drivers to supply
-their own pci_ops.  If we did that, it might let us get rid of the
-rd_own_conf, wr_own_conf, rd_other_conf, and wr_other_conf function
-pointers.  I haven't worked through it, but it's possible the result would
-be easier to read.
-
-It's also possible it would be a lot of code churn for no real gain, and
-breaking the encapsulation makes the most sense.  What do you think?
-
-> +
-> +		hisi_pcie_host_ops.rd_other_conf = hisi_rd_ecam_conf;
-> +		hisi_pcie_host_ops.wr_other_conf = hisi_wr_ecam_conf;
-> +	}
-> +
->  	ret = hisi_add_pcie_port(hisi_pcie, pdev);
->  	if (ret)
->  		return ret;
-> -- 
-> 1.9.1
-> 
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index 34cce72..cdd1cd6 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -234,6 +234,21 @@
+ #elif defined(_AED_EFI) || defined(_GNU_EFI) || defined(_EDK2_EFI)
+ #include "acefi.h"
+ 
++/*
++ * Up to this point, we've been looking for specific environments.  In
++ * some cases, there is no environment, and we're just working on bare
++ * metal.  However, since we're compiling the Linux kernel, let's just
++ * pretend we're in a Linux environment.
++ */
++#elif defined(__GNUC__) && !defined(__INTEL_COMPILER)
++#if !defined(_LINUX)
++#define _LINUX
++#endif
++#if !defined(__linux__)
++#define __linux__
++#endif
++#include <acpi/platform/aclinux.h>
++
+ #else
+ 
+ /* Unknown environment */
+-- 
+2.10.2
