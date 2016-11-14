@@ -1,149 +1,76 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: [PATCH][RFC] ACPI throttling: Save/restore tstate for each CPUs across suspend/resume
-Date: Tue, 15 Nov 2016 01:44:04 +0800
-Message-ID: <1479145444-29269-1-git-send-email-yu.c.chen@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Rui Wang <ruwang@redhat.com>, linux-kernel@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, Rui Zhang <rui.zhang@intel.com>, linux-pm@vger.kernel.org
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
+ agnostic
+Date: Mon, 14 Nov 2016 18:25:16 +0000
+Message-ID: <313844ca-d948-1297-84b2-669f3a7d57d2@arm.com>
+References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
+ <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
+ <20161111152248.GS2078@8bytes.org>
+ <552e674a-f434-f08f-8e16-a94544ce8e6e@arm.com>
+ <20161111162736.GV2078@8bytes.org>
+ <33769e3c-265f-6e89-adf9-6d35b1e03579@arm.com>
+ <20161114102654.GA1677@red-moon>
+ <41e3eff1-9ce6-bcfb-5716-c65ef38add63@arm.com>
+ <20161114155222.GZ2078@8bytes.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161114155222.GZ2078@8bytes.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a trial version and any comments are appreciated.
+On 14/11/16 15:52, Joerg Roedel wrote:
+> On Mon, Nov 14, 2016 at 12:00:47PM +0000, Robin Murphy wrote:
+>> If we've already made the decision to move away from bus ops, I don't
+>> see that it makes sense to deliberately introduce new dependencies on
+>> them. Besides, as it stands, this patch literally implements "tell the
+>> iommu-core which hardware-iommus exist in the system and a seperate
+>> iommu_ops ptr for each of them" straight off.
+> 
+> Not sure which code you are looking at, but as I see it we have only
+> per-device iommu-ops now (with this patch). That is different from
+> having core-visible hardware-iommu instances where devices could link
+> to.
 
-Previously a bug was reported that on certain Broadwell
-platforms, after resuming from S3, the CPU is running at
-an anomalously low speed, due to BIOS has enabled the
-throttling across S3. The solution to this is to introduce
-a quirk framework to save/restore tstate MSR register
-around suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
-Introduce quirk framework to save/restore extra MSR
-registers around suspend/resume").
+The per-device IOMMU ops are already there since 57f98d2f61e1. This
+patch generalises the other end, moving the "registering an IOMMU
+instance" (i.e. iommu_fwentry) bit into the IOMMU core, from being
+OF-specific. I'd be perfectly happy if we rename iommu_fwentry to
+iommu_instance, fwnode_iommu_set_ops() to iommu_register_instance(), and
+such if that makes the design intent clearer.
 
-However more and more reports show that other platforms also
-experienced the same issue, because some BIOSes would like to
-adjust the tstate if he thinks the temperature is too high.
-To deal with this situation, the Linux uses a compensation strategy
-that, the thermal management leverages thermal_pm_notify() upon resume
-to check if the Processors inside the thermal zone should be throttled
-or not, thus tstate would be re-evaluated. Unfortunately on these bogus
-platforms, none of the Processors are inside any thermal zones due
-to BIOS's implementation. Thus tstate for Processors never has a
-chance to be brought back to normal.
+If you'd also prefer to replace iommu_fwspec::ops with an opaque
+iommu_fwspec::iommu_instance pointer so that things are a bit more
+centralised (and users are forced to go through the API rather then call
+ops directly), I'd have no major objection either. My main point is that
+we've been deliberately putting the relevant building blocks in place -
+the of_iommu_{get,set}_ops stuff was designed from the start to
+accommodate per-instance ops, via the ops pointer *being* the instance
+token; the iommu_fwspec stuff is deliberately intended to provide
+per-device ops on top of that. The raw functionality is either there in
+iommu.c already, or moving there in patches already written, so if it
+doesn't look right all we need to focus on is making it look right.
 
-This patch tries to save/restore tstate on receiving the
-PM_SUSPEND_PREPARE and PM_POST_SUSPEND, to be more specific,
-the tstate is saved after thermal_pm_notify(PM_SUSPEND_PREPARE)
-is called, while it's restored before thermal_pm_notify(PM_POST_SUSPEND),
-in this way the thermal zone would adjust the tstate eventually and
-also help adjust the tstate for Processors which do not have
-thermal zone bound. Thus it does not imapct the old semantics.
+> Also the rest of iommu-core code still makes use of the per-bus ops. The
+> per-device ops are only used for the of_xlate fn-ptr.
 
-Another concern is that, each CPU should take care of the
-save/restore operation, thus this patch uses percpu workqueue
-to achieve this.
+Hence my aforementioned patches intended for 4.10, directly following on
+from introducing iommu_fwspec in 4.9:
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=90041
-Reported-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Reported-by: Kadir <kadir@colakoglu.nl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Rui Zhang <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
----
- drivers/acpi/processor_throttling.c | 70 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+http://www.mail-archive.com/iommu@lists.linux-foundation.org/msg14576.html
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index d51ca1c..8ddc7d6 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -29,6 +29,7 @@
- #include <linux/sched.h>
- #include <linux/cpufreq.h>
- #include <linux/acpi.h>
-+#include <linux/suspend.h>
- #include <acpi/processor.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
-@@ -758,6 +759,75 @@ static int acpi_throttling_wrmsr(u64 value)
- 	}
- 	return ret;
- }
-+
-+#ifdef CONFIG_PM_SLEEP
-+static DEFINE_PER_CPU(u64, tstate_msr);
-+
-+static long tstate_pm_fn(void *data)
-+{
-+	u64 value;
-+	bool save = *(bool *)data;
-+
-+	if (save) {
-+		acpi_throttling_rdmsr(&value);
-+		this_cpu_write(tstate_msr, value);
-+	} else {
-+		value = this_cpu_read(tstate_msr);
-+		if (value)
-+			acpi_throttling_wrmsr(value);
-+	}
-+	return 0;
-+}
-+
-+static void tstate_check(unsigned long mode, bool suspend)
-+{
-+	int cpu;
-+	bool save;
-+
-+	if (suspend && mode == PM_SUSPEND_PREPARE)
-+		save = true;
-+	else if (!suspend && mode == PM_POST_SUSPEND)
-+		save = false;
-+	else
-+		return;
-+
-+	get_online_cpus();
-+	for_each_online_cpu(cpu)
-+		work_on_cpu(cpu, tstate_pm_fn, &save);
-+	put_online_cpus();
-+}
-+
-+static int tstate_suspend(struct notifier_block *nb,
-+				unsigned long mode, void *_unused)
-+{
-+	tstate_check(mode, true);
-+	return 0;
-+}
-+
-+static int tstate_resume(struct notifier_block *nb,
-+				unsigned long mode, void *_unused)
-+{
-+	tstate_check(mode, false);
-+	return 0;
-+}
-+
-+static int __init tstate_pm_init(void)
-+{
-+	/*
-+	 * tstate_suspend should save tstate after
-+	 * thermal zone's update in thermal_pm_notify,
-+	 * vice versa tstate_resume restore tstate before
-+	 * thermal_pm_notify, thus the thermal framework
-+	 * has a chance to re-adjust tstate according to the
-+	 * temperature trend.
-+	 */
-+	pm_notifier(tstate_suspend, -1);
-+	pm_notifier(tstate_resume, 1);
-+	return 0;
-+}
-+
-+core_initcall(tstate_pm_init);
-+#endif
- #else
- static int acpi_throttling_rdmsr(u64 *value)
- {
--- 
-2.7.4
+...the purpose being to provide a smooth transition from per-bus ops to
+per-device, per-instance ops. Apply those and we're 90% of the way there
+for OF-based IOMMU drivers (not that any of those actually need
+per-instance ops, admittedly; I did prototype it for the ARM SMMU ages
+ago, but it didn't seem worth the bother). Lorenzo's series broadens the
+scope to ACPI-based systems and moves the generically-useful parts into
+the core where we can easily build on them further if necessary. The
+major remaining work is to convert external callers of the current
+bus-dependent functions like iommu_domain_alloc(), iommu_present(), etc.
+to device-based alternatives.
 
+Robin.
