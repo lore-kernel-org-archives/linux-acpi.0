@@ -1,58 +1,76 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v7 00/16] ACPI IORT ARM SMMU support
-Date: Tue, 15 Nov 2016 14:07:51 +0000
-Message-ID: <20161115140751.GA16710@red-moon>
-References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
-	<CAJZ5v0j09fsp4Y66v2UANOGnW4FNO7PWxpZY=Pgw=bUccEL_eA@mail.gmail.com>
-	<20161115101257.GB16261@red-moon>
-	<CAJZ5v0gh9qB41zcnvnETDA-5ho577uhxE4rehZqEXorFViY__w@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Tue, 15 Nov 2016 16:23:50 +0200
+Message-ID: <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
+References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com> <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gh9qB41zcnvnETDA-5ho577uhxE4rehZqEXorFViY__w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f172.google.com ([209.85.161.172]:34832 "EHLO
+        mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751088AbcKOOXv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2016 09:23:51 -0500
+Received: by mail-yw0-f172.google.com with SMTP id i145so96716948ywg.2
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2016 06:23:51 -0800 (PST)
+In-Reply-To: <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 15, 2016 at 02:04:09PM +0100, Rafael J. Wysocki wrote:
-> On Tue, Nov 15, 2016 at 11:12 AM, Lorenzo Pieralisi
-> <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> > Hi Rafael,
-> >
-> > On Thu, Nov 10, 2016 at 12:36:12AM +0100, Rafael J. Wysocki wrote:
-> >> Hi Lorenzo,
-> >>
-> >> On Wed, Nov 9, 2016 at 3:19 PM, Lorenzo Pieralisi
-> >> <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> >> > This patch series is v7 of a previous posting:
-> >> >
-> >> > https://lkml.org/lkml/2016/10/18/506
-> >>
-> >> I don't see anything objectionable in this series.
-> >>
-> >> Please let me know which patches in particular to look at in detail.
-> >
-> > Are patches 7 and consequently 16 (that builds on top of 7) ok with
-> > you ? They should be equivalent to nop on anything other than ARM64
-> > but they touch ACPI core so they require an ACK if they are ok please.
-> 
-> Yes, they are.  Please feel free to add my ACKs to those or I will
-> send them separately later today.
+On Tue, Nov 15, 2016 at 12:27 PM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Thu, Nov 3, 2016 at 5:04 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+>>> On Sun, Oct 30, 2016 at 9:04 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+>
+>>> >> > > Please try this patch:
+>>> >> > > https://patchwork.kernel.org/patch/9392155/
+>>> >> > > Which makes tools/power/acpi build more robust to survive toolch=
+ains that are not generated
+>>> from
+>>> >> the
+>>> >> > current kernel header.
 
-Thank you very much, I will add them to v8 that should be final,
-I will send it when the dust has settled on patch 4, which looks
-like the last bit to sort out (we may not even need a v8 at all).
+Okay, I did a totally clean build (latest linux-next kernel and
+buildroot) without mention patch and still see the issue described
+below:
 
-Thanks !
-Lorenzo
+> But reveals another, the output path is broken:
+>
+> output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -c -D_LINUX -I
+> $OUT/include -I $SRC/tools/power/acpi/../../../drivers/acpi/acpica
+> -Wall -Wst
+> rict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
+> -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGG
+> ER -I. -o $OUT/tools/acpidbg/acpidbg.o acpidbg.c
+> Assembler messages:
+> Fatal error: can't create $OUT/tools/acpidbg/acpidbg.o: No such file
+> or directory
+> ../../Makefile.rules:26: recipe for target '$OUT/tools/acpidbg/acpidbg.o'=
+ failed
+>
+> $OUT =E2=80=94 path to O=3D
+> $SRC =E2=80=94 path to kernel sources
+
+>From latest run
+
+output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -c -D_LINUX -I
+$OUT/include -I $SRC/tools/power/acpi/../../../drivers/acpi/acpica
+-Wall -Wst
+rict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
+-DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGG
+ER -I. -o $OUT/tools/acpidbg/acpidbg.o acpidbg.c
+
+Of course it fails since proper folder name should be
+'tools/power/acpi/tools' instead of 'tools'.
+
+--=20
+With Best Regards,
+Andy Shevchenko
