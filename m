@@ -1,45 +1,86 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V1 0/2] Add support for ThunderX SoCs ACPI Host Controllers
-Date: Tue, 15 Nov 2016 10:14:56 +0100
-Message-ID: <1479201298-25494-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f179.google.com ([209.85.216.179]:34838 "EHLO
-        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965188AbcKOJRA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2016 04:17:00 -0500
-Received: by mail-qt0-f179.google.com with SMTP id c47so64516604qtc.2
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2016 01:17:00 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH V1 2/2] PCI: thunder: Enable ACPI PCI controller for ThunderX pass1.x silicon version
+Date: Tue, 15 Nov 2016 10:14:58 +0100
+Message-ID: <1479201298-25494-3-git-send-email-tn@semihalf.com>
+References: <1479201298-25494-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1479201298-25494-1-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
 Cc: arnd@arndb.de, jchandra@broadcom.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, msalter@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-These patches were part of https://lkml.org/lkml/2016/9/9/666 series,
-however, only core part (first two patches) was approved. ThunderX quirk
-example had some comments which are address in this series (resetting version
-numbering).
+ThunderX pass1.x requires to emulate the EA headers for on-chip devices
+hence it has to use custom pci_thunder_ecam_ops for accessing PCI config
+space (pci-thuner-ecam.c). Add new entries to MCFG quirk array where it
+can be applied while probing ACPI based PCI host controller.
 
-Add ACPI PCI host controler support for ThunderX SoCs pass1.x & pass2.x using
-ACPI quirk mechanism [1]. Patches rework ThunderX ECAM and PEM driver to work
-with ACPI & DT boot method.
+ThunderX pass1.x is using the same way for accessing off-chip devices
+(so-called PEM) as silicon pass-2.x so we need to add PEM quirk
+entries too.
 
-Patch set can be found here:
-git@github.com:semihalf-nowicki-tomasz/linux.git (pci-quirks-thunderx-v1)
-It is based on branch pci/ecam-v6 which can be found here:
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git (pci/ecam-v6)
+Quirk is considered for ThunderX silicon pass1.x only which is identified
+via MCFG revision 2.
 
-Tomasz Nowicki (2):
-  PCI: thunder: Enable ACPI PCI controller for ThunderX pass2.x silicon
-    version
-  PCI: thunder: Enable ACPI PCI controller for ThunderX pass1.x silicon
-    version
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+---
+ drivers/acpi/pci_mcfg.c             | 15 +++++++++++++++
+ drivers/pci/host/pci-thunder-ecam.c |  2 +-
+ include/linux/pci-ecam.h            |  3 +++
+ 3 files changed, 19 insertions(+), 1 deletion(-)
 
- drivers/acpi/pci_mcfg.c             |  35 ++++++++++++
- drivers/pci/host/pci-thunder-ecam.c |   2 +-
- drivers/pci/host/pci-thunder-pem.c  | 107 +++++++++++++++++++++++++++++++-----
- include/linux/pci-ecam.h            |   7 +++
- 4 files changed, 136 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+index e4e2b9b..5e16211 100644
+--- a/drivers/acpi/pci_mcfg.c
++++ b/drivers/acpi/pci_mcfg.c
+@@ -76,6 +76,21 @@ static struct mcfg_fixup mcfg_quirks[] = {
+ 	/* SoC pass2.x */
+ 	THUNDER_MCFG_QUIRK(1, 0UL),
+ 	THUNDER_MCFG_QUIRK(1, 1UL),
++
++	/* SoC pass1.x */
++	THUNDER_MCFG_QUIRK(2, 0UL),
++	THUNDER_MCFG_QUIRK(2, 1UL),
++#endif
++#ifdef CONFIG_PCI_HOST_THUNDER_ECAM
++	/* SoC pass1.x */
++	{ "CAVIUM", "THUNDERX", 2, 0, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 1, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 2, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 3, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 10, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 11, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 12, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
++	{ "CAVIUM", "THUNDERX", 2, 13, MCFG_BUS_ANY, &pci_thunder_ecam_ops },
+ #endif
+ };
+ 
+diff --git a/drivers/pci/host/pci-thunder-ecam.c b/drivers/pci/host/pci-thunder-ecam.c
+index d50a3dc..b6c17e2 100644
+--- a/drivers/pci/host/pci-thunder-ecam.c
++++ b/drivers/pci/host/pci-thunder-ecam.c
+@@ -346,7 +346,7 @@ static int thunder_ecam_config_write(struct pci_bus *bus, unsigned int devfn,
+ 	return pci_generic_config_write(bus, devfn, where, size, val);
+ }
+ 
+-static struct pci_ecam_ops pci_thunder_ecam_ops = {
++struct pci_ecam_ops pci_thunder_ecam_ops = {
+ 	.bus_shift	= 20,
+ 	.pci_ops	= {
+ 		.map_bus        = pci_ecam_map_bus,
+diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
+index 3f2a98f..5a1f291 100644
+--- a/include/linux/pci-ecam.h
++++ b/include/linux/pci-ecam.h
+@@ -62,6 +62,9 @@ extern struct pci_ecam_ops pci_generic_ecam_ops;
+ #ifdef CONFIG_PCI_HOST_THUNDER_PEM
+ extern struct pci_ecam_ops pci_thunder_pem_ops;
+ #endif
++#ifdef CONFIG_PCI_HOST_THUNDER_ECAM
++extern struct pci_ecam_ops pci_thunder_ecam_ops;
++#endif
+ 
+ /* ops for buggy ECAM that supports only 32-bit accesses */
+ extern struct pci_ecam_ops pci_32b_ops;
 -- 
 2.7.4
-
