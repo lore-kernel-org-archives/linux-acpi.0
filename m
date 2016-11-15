@@ -1,98 +1,120 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Tue, 15 Nov 2016 12:27:20 +0200
-Message-ID: <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
+From: <efernow@gmail.com>
+Subject: 54837 linux-acpi
+Date: Tue, 15 Nov 2016 11:24:17 -0000
+Message-ID: <147920905766.32065.16237581816750787644@r218-pw-palmitos.ibys.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: application/zip; name="EMAIL_01015912_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f44.google.com ([209.85.214.44]:36211 "EHLO
-        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941399AbcKOK10 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Nov 2016 05:27:26 -0500
-Received: by mail-it0-f44.google.com with SMTP id q124so162356016itd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Nov 2016 02:27:26 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
+Received: from r218-pw-palmitos.ibys.com.br ([187.0.89.164]:38601 "HELO
+        r218-pw-palmitos.ibys.com.br" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with SMTP id S1752353AbcKOLYZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 15 Nov 2016 06:24:25 -0500
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Thu, Nov 3, 2016 at 5:04 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
->> On Sun, Oct 30, 2016 at 9:04 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-
->> >> > > Please try this patch:
->> >> > > https://patchwork.kernel.org/patch/9392155/
->> >> > > Which makes tools/power/acpi build more robust to survive toolcha=
-ins that are not generated
->> from
->> >> the
->> >> > current kernel header.
->> >> >
->> >> >
->> >> > Better, but no, it doesn't fully fix the issue.
->> >> >
->> >> >  DESCEND  power/acpi
->> >> >  DESCEND  tools/acpidbg
->> >> > output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -D_LINUX
->> >> > -I../../../include -I..
->> >> > /../../drivers/acpi/acpica -Wall -Wstrict-prototypes
->> >> > -Wdeclaration-after-statement -O1 -g -DDEBUG -DACPI_APPLICATI
->> >> > ON -DACPI_SINGLE_THREAD -DACPI_DEBUGGER -I.
->> >> > -I../../../../../drivers/acpi/acpica -I../../include   -c -o acpidb=
-g.o
->> >> > acpidbg.c
->> >> > acpidbg.c:12:23: fatal error: acpi/acpi.h: No such file or director=
-y
->> >> > #include <acpi/acpi.h>
->> >> >                       ^
->> >
-
-The following fixing the above issue...
-
---- a/tools/power/acpi/Makefile.rules
-+++ b/tools/power/acpi/Makefile.rules
-@@ -10,13 +10,13 @@
-
-objdir :=3D $(OUTPUT)tools/$(TOOL)/
-toolobjs :=3D $(addprefix $(objdir),$(TOOL_OBJS))
--$(OUTPUT)$(TOOL): $(KERNEL_INCLUDE) $(toolobjs) FORCE
-+$(OUTPUT)$(TOOL): $(KERNEL_INCLUDE)/acpi $(toolobjs) FORCE
-       $(ECHO) "  LD      " $(subst $(OUTPUT),,$@)
-       $(QUIET) $(LD) $(CFLAGS) $(LDFLAGS) $(toolobjs) -L$(OUTPUT) -o $@
-       $(ECHO) "  STRIP   " $(subst $(OUTPUT),,$@)
-       $(QUIET) $(STRIPCMD) $@
-
--$(KERNEL_INCLUDE):
-+$(KERNEL_INCLUDE)/acpi:
-       $(ECHO) "  MKDIR   " $(subst $(OUTPUT),,$@)
-       $(QUIET) mkdir -p $(KERNEL_INCLUDE)
-       $(ECHO) "  CP      " $(subst $(OUTPUT),,$@)
-
-
-But reveals another, the output path is broken:
-
-output/host/usr/bin/i586-buildroot-linux-uclibc-gcc -c -D_LINUX -I
-$OUT/include -I $SRC/tools/power/acpi/../../../drivers/acpi/acpica
--Wall -Wst
-rict-prototypes -Wdeclaration-after-statement -O1 -g -DDEBUG
--DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGG
-ER -I. -o $OUT/tools/acpidbg/acpidbg.o acpidbg.c
-Assembler messages:
-Fatal error: can't create $OUT/tools/acpidbg/acpidbg.o: No such file
-or directory
-../../Makefile.rules:26: recipe for target '$OUT/tools/acpidbg/acpidbg.o' f=
-ailed
-
-$OUT =E2=80=94 path to O=3D
-$SRC =E2=80=94 path to kernel sources
-
---=20
-With Best Regards,
-Andy Shevchenko
+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
