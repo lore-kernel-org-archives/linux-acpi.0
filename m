@@ -1,93 +1,90 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Wed, 16 Nov 2016 09:29:47 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A28F681@SHSMSX101.ccr.corp.intel.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
- <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
- <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
- <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
+ agnostic
+Date: Wed, 16 Nov 2016 09:56:15 +0000
+Message-ID: <20161116095615.GA25656@red-moon>
+References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
+ <20161109141948.19244-5-lorenzo.pieralisi@arm.com>
+ <20161111152248.GS2078@8bytes.org>
+ <552e674a-f434-f08f-8e16-a94544ce8e6e@arm.com>
+ <20161111162736.GV2078@8bytes.org>
+ <33769e3c-265f-6e89-adf9-6d35b1e03579@arm.com>
+ <20161114102654.GA1677@red-moon>
+ <41e3eff1-9ce6-bcfb-5716-c65ef38add63@arm.com>
+ <20161114155222.GZ2078@8bytes.org>
+ <313844ca-d948-1297-84b2-669f3a7d57d2@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:35071 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936642AbcKPJaB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 04:30:01 -0500
-In-Reply-To: <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <313844ca-d948-1297-84b2-669f3a7d57d2@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>
+Cc: iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksIEFuZHkNCg0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21haWx0bzphbmR5LnNoZXZjaGVu
-a29AZ21haWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogRml4IGluIEFDUElDQSB0b29scyBicm9rZSBj
-cm9zcyBjb21waWxhdGlvbiBvZiB0b29scy9wb3dlci9hY3BpDQo+IA0KPiBPbiBUdWUsIE5vdiAx
-NSwgMjAxNiBhdCA0OjIzIFBNLCBBbmR5IFNoZXZjaGVua28NCj4gPGFuZHkuc2hldmNoZW5rb0Bn
-bWFpbC5jb20+IHdyb3RlOg0KPiA+IE9uIFR1ZSwgTm92IDE1LCAyMDE2IGF0IDEyOjI3IFBNLCBB
-bmR5IFNoZXZjaGVua28NCj4gPiA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4gd3JvdGU6DQo+
-ID4+IE9uIFRodSwgTm92IDMsIDIwMTYgYXQgNTowNCBQTSwgWmhlbmcsIEx2IDxsdi56aGVuZ0Bp
-bnRlbC5jb20+IHdyb3RlOg0KPiA+Pj4+IE9uIFN1biwgT2N0IDMwLCAyMDE2IGF0IDk6MDQgQU0s
-IFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4gDQo+ID4+IEJ1dCByZXZl
-YWxzIGFub3RoZXIsIHRoZSBvdXRwdXQgcGF0aCBpcyBicm9rZW46DQo+ID4+DQo+ID4+IG91dHB1
-dC9ob3N0L3Vzci9iaW4vaTU4Ni1idWlsZHJvb3QtbGludXgtdWNsaWJjLWdjYyAtYyAtRF9MSU5V
-WCAtSQ0KPiA+PiAkT1VUL2luY2x1ZGUgLUkgJFNSQy90b29scy9wb3dlci9hY3BpLy4uLy4uLy4u
-L2RyaXZlcnMvYWNwaS9hY3BpY2ENCj4gPj4gLVdhbGwgLVdzdA0KPiA+PiByaWN0LXByb3RvdHlw
-ZXMgLVdkZWNsYXJhdGlvbi1hZnRlci1zdGF0ZW1lbnQgLU8xIC1nIC1EREVCVUcNCj4gPj4gLURB
-Q1BJX0FQUExJQ0FUSU9OIC1EQUNQSV9TSU5HTEVfVEhSRUFEIC1EQUNQSV9ERUJVR0cNCj4gPj4g
-RVIgLUkuIC1vICRPVVQvdG9vbHMvYWNwaWRiZy9hY3BpZGJnLm8gYWNwaWRiZy5jDQo+ID4+IEFz
-c2VtYmxlciBtZXNzYWdlczoNCj4gPj4gRmF0YWwgZXJyb3I6IGNhbid0IGNyZWF0ZSAkT1VUL3Rv
-b2xzL2FjcGlkYmcvYWNwaWRiZy5vOiBObyBzdWNoIGZpbGUNCj4gPj4gb3IgZGlyZWN0b3J5DQo+
-ID4+IC4uLy4uL01ha2VmaWxlLnJ1bGVzOjI2OiByZWNpcGUgZm9yIHRhcmdldCAnJE9VVC90b29s
-cy9hY3BpZGJnL2FjcGlkYmcubycgZmFpbGVkDQo+ID4+DQo+ID4+ICRPVVQg4oCUIHBhdGggdG8g
-Tz0NCj4gPj4gJFNSQyDigJQgcGF0aCB0byBrZXJuZWwgc291cmNlcw0KPiA+DQo+ID4gRnJvbSBs
-YXRlc3QgcnVuDQo+ID4NCj4gPiBvdXRwdXQvaG9zdC91c3IvYmluL2k1ODYtYnVpbGRyb290LWxp
-bnV4LXVjbGliYy1nY2MgLWMgLURfTElOVVggLUkNCj4gPiAkT1VUL2luY2x1ZGUgLUkgJFNSQy90
-b29scy9wb3dlci9hY3BpLy4uLy4uLy4uL2RyaXZlcnMvYWNwaS9hY3BpY2ENCj4gPiAtV2FsbCAt
-V3N0DQo+ID4gcmljdC1wcm90b3R5cGVzIC1XZGVjbGFyYXRpb24tYWZ0ZXItc3RhdGVtZW50IC1P
-MSAtZyAtRERFQlVHDQo+ID4gLURBQ1BJX0FQUExJQ0FUSU9OIC1EQUNQSV9TSU5HTEVfVEhSRUFE
-IC1EQUNQSV9ERUJVR0cNCj4gPiBFUiAtSS4gLW8gJE9VVC90b29scy9hY3BpZGJnL2FjcGlkYmcu
-byBhY3BpZGJnLmMNCj4gPg0KPiA+IE9mIGNvdXJzZSBpdCBmYWlscyBzaW5jZSBwcm9wZXIgZm9s
-ZGVyIG5hbWUgc2hvdWxkIGJlDQo+ID4gJ3Rvb2xzL3Bvd2VyL2FjcGkvdG9vbHMnIGluc3RlYWQg
-b2YgJ3Rvb2xzJy4NCj4gDQo+IFRoZSBiZWxvdyArIHNldmVyYWwgcnVucyAobmVlZCB0byBzZXJp
-YWxpemUgbWFrZWZpbGUsIGJ5IGRlZmF1bHQgaXQNCj4gcmFjZXMgaW5zdGFsbCB2cy4gYnVpbGQp
-ICBoZWxwZWQgZXZlbnR1YWxseS4NCg0KSSBjaGFuZ2VkIGRlcGVuZGVuY3kgaW4gdjQuDQpQbGVh
-c2UgY2hlY2sgaWYgaXQgd29ya3Mgbm93Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYN
-Cg0KPiANCj4gLS0tIGEvdG9vbHMvcG93ZXIvYWNwaS9NYWtlZmlsZS5ydWxlcw0KPiArKysgYi90
-b29scy9wb3dlci9hY3BpL01ha2VmaWxlLnJ1bGVzDQo+IEBAIC04LDkgKzgsOSBAQA0KPiAjIGFz
-IHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyB2ZXJzaW9uIDINCj4g
-IyBvZiB0aGUgTGljZW5zZS4NCj4gDQo+IC1vYmpkaXIgOj0gJChPVVRQVVQpdG9vbHMvJChUT09M
-KS8NCj4gK29iamRpciA6PSAkKE9VVFBVVCl0b29scy9wb3dlci9hY3BpL3Rvb2xzLyQoVE9PTCkv
-DQo+IHRvb2xvYmpzIDo9ICQoYWRkcHJlZml4ICQob2JqZGlyKSwkKFRPT0xfT0JKUykpDQo+IC0k
-KE9VVFBVVCkkKFRPT0wpOiAkKEtFUk5FTF9JTkNMVURFKSAkKHRvb2xvYmpzKSBGT1JDRQ0KPiAr
-JChvYmpkaXIpJChUT09MKTogJChLRVJORUxfSU5DTFVERSkgJCh0b29sb2JqcykgRk9SQ0UNCj4g
-ICAgICAgICQoRUNITykgIiAgTEQgICAgICAiICQoc3Vic3QgJChPVVRQVVQpLCwkQCkNCj4gICAg
-ICAgICQoUVVJRVQpICQoTEQpICQoQ0ZMQUdTKSAkKExERkxBR1MpICQodG9vbG9ianMpIC1MJChP
-VVRQVVQpIC1vICRADQo+ICAgICAgICAkKEVDSE8pICIgIFNUUklQICAgIiAkKHN1YnN0ICQoT1VU
-UFVUKSwsJEApDQo+IEBAIC0yNiwyMSArMjYsMjEgQEAgJChvYmpkaXIpJS5vOiAlLmMNCj4gICAg
-ICAgICQoRUNITykgIiAgQ0MgICAgICAiICQoc3Vic3QgJChPVVRQVVQpLCwkQCkNCj4gICAgICAg
-ICQoUVVJRVQpICQoQ0MpIC1jICQoQ0ZMQUdTKSAtbyAkQCAkPA0KPiANCj4gLWFsbDogJChPVVRQ
-VVQpJChUT09MKQ0KPiArYWxsOiAkKG9iamRpcikkKFRPT0wpDQo+IGNsZWFuOg0KPiAgICAgICAg
-JChFQ0hPKSAiICBSTU9CSiAgICIgJChzdWJzdCAkKE9VVFBVVCksLCQob2JqZGlyKSkNCj4gICAg
-ICAgICQoUVVJRVQpIGZpbmQgJChvYmpkaXIpIFwoIC1ub3QgLXR5cGUgZCBcKVwNCj4gICAgICAg
-ICAgICAgICAgIC1hbmQgXCggLW5hbWUgJyp+JyAtbyAtbmFtZSAnKi5bb2FzXScgXClcDQo+ICAg
-ICAgICAgICAgICAgICAtdHlwZSBmIC1wcmludCB8IHhhcmdzIHJtIC1mDQo+ICAgICAgICAkKEVD
-SE8pICIgIFJNICAgICAgIiAkKFRPT0wpDQo+IC0gICAgICAgJChRVUlFVCkgcm0gLWYgJChPVVRQ
-VVQpJChUT09MKQ0KPiArICAgICAgICQoUVVJRVQpIHJtIC1mICQob2JqZGlyKSQoVE9PTCkNCj4g
-ICAgICAgICQoRUNITykgIiAgUk1JTkMgICAiICQoc3Vic3QgJChPVVRQVVQpLCwkKEtFUk5FTF9J
-TkNMVURFKSkNCj4gICAgICAgICQoUVVJRVQpIHJtIC1yZiAkKEtFUk5FTF9JTkNMVURFKQ0KPiAN
-Cj4gaW5zdGFsbC10b29sczoNCj4gICAgICAgICQoRUNITykgIiAgSU5TVCAgICAiICQoVE9PTCkN
-Cj4gICAgICAgICQoUVVJRVQpICQoSU5TVEFMTCkgLWQgJChERVNURElSKSQoc2JpbmRpcikNCj4g
-LSAgICAgICAkKFFVSUVUKSAkKElOU1RBTExfUFJPR1JBTSkgJChPVVRQVVQpJChUT09MKSAkKERF
-U1RESVIpJChzYmluZGlyKQ0KPiArICAgICAgICQoUVVJRVQpICQoSU5TVEFMTF9QUk9HUkFNKSAk
-KG9iamRpcikkKFRPT0wpICQoREVTVERJUikkKHNiaW5kaXIpDQo+IHVuaW5zdGFsbC10b29sczoN
-Cj4gICAgICAgICQoRUNITykgIiAgVU5JTlNUICAiICQoVE9PTCkNCj4gICAgICAgICQoUVVJRVQp
-IHJtIC1mICQoREVTVERJUikkKHNiaW5kaXIpLyQoVE9PTCkNCj4gDQo+IA0KPiAtLQ0KPiBXaXRo
-IEJlc3QgUmVnYXJkcywNCj4gQW5keSBTaGV2Y2hlbmtvDQo=
+Hi Joerg,
+
+On Mon, Nov 14, 2016 at 06:25:16PM +0000, Robin Murphy wrote:
+> On 14/11/16 15:52, Joerg Roedel wrote:
+> > On Mon, Nov 14, 2016 at 12:00:47PM +0000, Robin Murphy wrote:
+> >> If we've already made the decision to move away from bus ops, I don't
+> >> see that it makes sense to deliberately introduce new dependencies on
+> >> them. Besides, as it stands, this patch literally implements "tell the
+> >> iommu-core which hardware-iommus exist in the system and a seperate
+> >> iommu_ops ptr for each of them" straight off.
+> > 
+> > Not sure which code you are looking at, but as I see it we have only
+> > per-device iommu-ops now (with this patch). That is different from
+> > having core-visible hardware-iommu instances where devices could link
+> > to.
+> 
+> The per-device IOMMU ops are already there since 57f98d2f61e1. This
+> patch generalises the other end, moving the "registering an IOMMU
+> instance" (i.e. iommu_fwentry) bit into the IOMMU core, from being
+> OF-specific. I'd be perfectly happy if we rename iommu_fwentry to
+> iommu_instance, fwnode_iommu_set_ops() to iommu_register_instance(), and
+> such if that makes the design intent clearer.
+
+I can easily make the changes Robin suggests above, I need to know
+what to do with this patch it is the last blocking point for this
+series and time is running out I can revert to using dev->bus to
+retrieve iommu_ops (even though I do not think it makes sense given
+what Robin outlines below) but I need to know please, we can't gate
+an entire series for this patch that is just syntactic sugar.
+
+Thanks !
+Lorenzo
+
+> If you'd also prefer to replace iommu_fwspec::ops with an opaque
+> iommu_fwspec::iommu_instance pointer so that things are a bit more
+> centralised (and users are forced to go through the API rather then call
+> ops directly), I'd have no major objection either. My main point is that
+> we've been deliberately putting the relevant building blocks in place -
+> the of_iommu_{get,set}_ops stuff was designed from the start to
+> accommodate per-instance ops, via the ops pointer *being* the instance
+> token; the iommu_fwspec stuff is deliberately intended to provide
+> per-device ops on top of that. The raw functionality is either there in
+> iommu.c already, or moving there in patches already written, so if it
+> doesn't look right all we need to focus on is making it look right.
+> 
+> > Also the rest of iommu-core code still makes use of the per-bus ops. The
+> > per-device ops are only used for the of_xlate fn-ptr.
+> 
+> Hence my aforementioned patches intended for 4.10, directly following on
+> from introducing iommu_fwspec in 4.9:
+> 
+> http://www.mail-archive.com/iommu@lists.linux-foundation.org/msg14576.html
+> 
+> ...the purpose being to provide a smooth transition from per-bus ops to
+> per-device, per-instance ops. Apply those and we're 90% of the way there
+> for OF-based IOMMU drivers (not that any of those actually need
+> per-instance ops, admittedly; I did prototype it for the ARM SMMU ages
+> ago, but it didn't seem worth the bother). Lorenzo's series broadens the
+> scope to ACPI-based systems and moves the generically-useful parts into
+> the core where we can easily build on them further if necessary. The
+> major remaining work is to convert external callers of the current
+> bus-dependent functions like iommu_domain_alloc(), iommu_present(), etc.
+> to device-based alternatives.
+> 
+> Robin.
