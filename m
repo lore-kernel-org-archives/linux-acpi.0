@@ -1,152 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] cpufreq: intel_pstate: Request P-states control from SMM if needed
-Date: Wed, 16 Nov 2016 03:36:45 +0100
-Message-ID: <1679905.fG5YOIvtAJ@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
+Date: Wed, 16 Nov 2016 08:43:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A28F62C@SHSMSX101.ccr.corp.intel.com>
+References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
+ <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
+ <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
+ <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
+ <CAHp75Vc3aSW09AXzWs5yY=iGSFPcz9zeB1F+dA=cNZTbPUG1Lg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:27267 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933016AbcKPInF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 03:43:05 -0500
+In-Reply-To: <CAHp75Vc3aSW09AXzWs5yY=iGSFPcz9zeB1F+dA=cNZTbPUG1Lg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Currently, intel_pstate is unable to control P-states on my
-IvyBridge-based Acer Aspire S5, because they are controlled by SMM
-on that machine by default and it is necessary to request OS control
-of P-states from it via the SMI Command register exposed in the ACPI
-FADT.  intel_pstate doesn't do that now, but acpi-cpufreq and other
-cpufreq drivers for x86 platforms do.
-
-Address this problem by making intel_pstate use the ACPI-defined
-mechanism as well.  However, intel_pstate is not modular and it
-doesn't need the module refcount tricks played by
-acpi_processor_notify_smm(), so export the core of this function
-to it as acpi_processor_pstate_control() and make it call that.
-[The changes in processor_perflib.c related to this should not
-make any functional difference for the acpi_processor_notify_smm()
-users].
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Suggested-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- drivers/acpi/processor_perflib.c |   45 ++++++++++++++++++++++++---------------
- drivers/cpufreq/intel_pstate.c   |    8 ++++++
- include/acpi/processor.h         |    1 
- 3 files changed, 37 insertions(+), 17 deletions(-)
-
-Index: linux-pm/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_perflib.c
-+++ linux-pm/drivers/acpi/processor_perflib.c
-@@ -465,11 +465,33 @@ int acpi_processor_get_performance_info(
- 	return result;
- }
- EXPORT_SYMBOL_GPL(acpi_processor_get_performance_info);
--int acpi_processor_notify_smm(struct module *calling_module)
-+
-+int acpi_processor_pstate_control(void)
- {
- 	acpi_status status;
--	static int is_done = 0;
- 
-+	if (!acpi_gbl_FADT.smi_command || !acpi_gbl_FADT.pstate_control)
-+		return 0;
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			  "Writing pstate_control [0x%x] to smi_command [0x%x]\n",
-+			  acpi_gbl_FADT.pstate_control, acpi_gbl_FADT.smi_command));
-+
-+	status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
-+				    (u32)acpi_gbl_FADT.pstate_control, 8);
-+	if (ACPI_SUCCESS(status))
-+		return 1;
-+
-+	ACPI_EXCEPTION((AE_INFO, status,
-+			"Failed to write pstate_control [0x%x] to smi_command [0x%x]",
-+			acpi_gbl_FADT.pstate_control, acpi_gbl_FADT.smi_command));
-+	return -EIO;
-+}
-+
-+int acpi_processor_notify_smm(struct module *calling_module)
-+{
-+	static int is_done = 0;
-+	int result;
- 
- 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
- 		return -EBUSY;
-@@ -492,26 +514,15 @@ int acpi_processor_notify_smm(struct mod
- 
- 	is_done = -EIO;
- 
--	/* Can't write pstate_control to smi_command if either value is zero */
--	if ((!acpi_gbl_FADT.smi_command) || (!acpi_gbl_FADT.pstate_control)) {
-+	result = acpi_processor_pstate_control();
-+	if (!result) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No SMI port or pstate_control\n"));
- 		module_put(calling_module);
- 		return 0;
- 	}
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Writing pstate_control [0x%x] to smi_command [0x%x]\n",
--			  acpi_gbl_FADT.pstate_control, acpi_gbl_FADT.smi_command));
--
--	status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
--				    (u32) acpi_gbl_FADT.pstate_control, 8);
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status,
--				"Failed to write pstate_control [0x%x] to "
--				"smi_command [0x%x]", acpi_gbl_FADT.pstate_control,
--				acpi_gbl_FADT.smi_command));
-+	if (result < 0) {
- 		module_put(calling_module);
--		return status;
-+		return result;
- 	}
- 
- 	/* Success. If there's no _PPC, we need to fear nothing, so
-Index: linux-pm/include/acpi/processor.h
-===================================================================
---- linux-pm.orig/include/acpi/processor.h
-+++ linux-pm/include/acpi/processor.h
-@@ -249,6 +249,7 @@ extern int acpi_processor_register_perfo
- 					       *performance, unsigned int cpu);
- extern void acpi_processor_unregister_performance(unsigned int cpu);
- 
-+int acpi_processor_pstate_control(void);
- /* note: this locks both the calling module and the processor module
-          if a _PPC object exists, rmmod is disallowed then */
- int acpi_processor_notify_smm(struct module *calling_module);
-Index: linux-pm/drivers/cpufreq/intel_pstate.c
-===================================================================
---- linux-pm.orig/drivers/cpufreq/intel_pstate.c
-+++ linux-pm/drivers/cpufreq/intel_pstate.c
-@@ -2034,9 +2034,15 @@ static bool __init intel_pstate_platform
- 
- 	return false;
- }
-+
-+static void intel_pstate_request_control(void)
-+{
-+	acpi_processor_pstate_control();
-+}
- #else /* CONFIG_ACPI not enabled */
- static inline bool intel_pstate_platform_pwr_mgmt_exists(void) { return false; }
- static inline bool intel_pstate_has_acpi_ppc(void) { return false; }
-+static inline void intel_pstate_request_control(void) {}
- #endif /* CONFIG_ACPI */
- 
- static const struct x86_cpu_id hwp_support_ids[] __initconst = {
-@@ -2088,6 +2094,8 @@ hwp_cpu_matched:
- 	if (!hwp_active && hwp_only)
- 		goto out;
- 
-+	intel_pstate_request_control();
-+
- 	rc = cpufreq_register_driver(intel_pstate_driver);
- 	if (rc)
- 		goto out;
-
+SGksIEFuZHkNCg0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21haWx0bzphbmR5LnNoZXZjaGVu
+a29AZ21haWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogRml4IGluIEFDUElDQSB0b29scyBicm9rZSBj
+cm9zcyBjb21waWxhdGlvbiBvZiB0b29scy9wb3dlci9hY3BpDQo+IA0KPiBPbiBUdWUsIE5vdiAx
+NSwgMjAxNiBhdCA1OjAxIFBNLCBBbmR5IFNoZXZjaGVua28NCj4gPGFuZHkuc2hldmNoZW5rb0Bn
+bWFpbC5jb20+IHdyb3RlOg0KPiANCj4gPiBUaGUgYmVsb3cgKyBzZXZlcmFsIHJ1bnMgKG5lZWQg
+dG8gc2VyaWFsaXplIG1ha2VmaWxlLCBieSBkZWZhdWx0IGl0DQo+ID4gcmFjZXMgaW5zdGFsbCB2
+cy4gYnVpbGQpICBoZWxwZWQgZXZlbnR1YWxseS4NCj4gDQo+IElzbid0IGJldHRlciBqdXN0IHRv
+IHJldmVydCBwYXRjaCBJIG1lbnRpb24gYW5kIGNvbnRpbnVlIGZyb20gd29ya2luZyBjYXNlPw0K
+DQpJdCdzIG5vdCBwb3NzaWJsZSB0byByZXZlcnQgdGhhdCBwYXRjaC4NCkl0IGNvbnRhaW5zIGNv
+cnJlY3QgaGVhZGVyIGluY2x1c2lvbiBjbGVhbnVwcy4NCldoaWxlIHRoaXMgY2FzZSBpcyBpbiBm
+YWN0IGEgc3BlY2lhbCBjYXNlLCBidWdzIGluIHRvb2xzL01ha2VmaWxlIGFyZSB0cmlnZ2VyZWQg
+KGFib3V0IE9VVC9TUkMpLg0KDQpPVE9ILCB0aGlzIGNhc2UgaXMgYWN0dWFsbHkgbm90IGEgdmVy
+eSB1c2VmdWwgY2FzZS4NCldlIGNhbiBzZWUgbWFueSB0b29scyBidWlsZCBicm9rZW4gZm9yIGNy
+b3NzLWNvbXBpbGVycywgYW5kIHRvb2xzL3Bvd2VyL2FjcGkgaXMgbm90IHRoZSBvbmx5IG9uZS4N
+CldlIGFyZSBqdXN0IHRvIGltcHJvdmUgaXQuDQoNClRoYW5rcw0KTHYNCg==
