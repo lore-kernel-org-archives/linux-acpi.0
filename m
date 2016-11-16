@@ -1,282 +1,294 @@
-From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: Re: [PATCH V7 1/3] ACPI: Retry IRQ conversion if it failed previously
-Date: Wed, 16 Nov 2016 13:29:57 -0500
-Message-ID: <e8133dc27a2fb1c92b107f1f34a71c20@codeaurora.org>
-References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
- <1479074375-2629-2-git-send-email-agustinv@codeaurora.org>
- <20161115154833.GA16906@red-moon>
- <0b6358b4c723bb08623c322051bb4c77@codeaurora.org>
- <20161116171817.GA23055@red-moon>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V4 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
+ SoCs Host Controllers
+Date: Wed, 16 Nov 2016 13:31:08 -0600
+Message-ID: <20161116193108.GD26600@bhelgaas-glaptop.roam.corp.google.com>
+References: <1478682897-119874-1-git-send-email-liudongdong3@huawei.com>
+ <1478682897-119874-3-git-send-email-liudongdong3@huawei.com>
+ <20161114233320.GB30262@bhelgaas-glaptop.roam.corp.google.com>
+ <a3dc9785-9a6f-3106-2edb-4f5443a35ca6@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:52510 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753202AbcKPS37 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2016 13:29:59 -0500
-In-Reply-To: <20161116171817.GA23055@red-moon>
+Received: from mail.kernel.org ([198.145.29.136]:58058 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752605AbcKPTbP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 14:31:15 -0500
+Content-Disposition: inline
+In-Reply-To: <a3dc9785-9a6f-3106-2edb-4f5443a35ca6@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
+To: Dongdong Liu <liudongdong3@huawei.com>
+Cc: arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-Hi Lorenzo,
-
-On 2016-11-16 12:18, Lorenzo Pieralisi wrote:
-> On Tue, Nov 15, 2016 at 12:43:38PM -0500, Agustin Vega-Frias wrote:
->> Hi Lorenzo,
->> 
->> On 2016-11-15 10:48, Lorenzo Pieralisi wrote:
->> >On Sun, Nov 13, 2016 at 04:59:33PM -0500, Agustin Vega-Frias wrote:
->> >>This allows probe deferral to work properly when a dependent device
->> >>fails to get a valid IRQ because the IRQ domain was not registered
->> >>at the time the resources were added to the platform_device.
->> >>
->> >>Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
->> >>---
->> >> drivers/acpi/resource.c | 59
->> >>+++++++++++++++++++++++++++++++++++++++++++++++++
->> >> drivers/base/platform.c |  9 +++++++-
->> >> include/linux/acpi.h    |  7 ++++++
->> >> 3 files changed, 74 insertions(+), 1 deletion(-)
->> >>
->> >>diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> >>index 56241eb..4beda15 100644
->> >>--- a/drivers/acpi/resource.c
->> >>+++ b/drivers/acpi/resource.c
->> >>@@ -664,3 +664,62 @@ int acpi_dev_filter_resource_type(struct
->> >>acpi_resource *ares,
->> >> 	return (type & types) ? 0 : 1;
->> >> }
->> >> EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
->> >>+
->> >>+struct acpi_irq_get_ctx {
->> >>+	unsigned int index;
->> >>+	struct resource *res;
->> >>+};
->> >>+
->> >>+static acpi_status acpi_irq_get_cb(struct acpi_resource *ares,
->> >>void *context)
->> >>+{
->> >>+	struct acpi_irq_get_ctx *ctx = context;
->> >>+	struct acpi_resource_irq *irq;
->> >>+	struct acpi_resource_extended_irq *ext_irq;
->> >>+
->> >>+	switch (ares->type) {
->> >>+	case ACPI_RESOURCE_TYPE_IRQ:
->> >>+		irq = &ares->data.irq;
->> >>+		if (ctx->index < irq->interrupt_count) {
->> >>+			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
->> >>+			return AE_CTRL_TERMINATE;
->> >>+		}
->> >>+		ctx->index -= irq->interrupt_count;
->> >
->> >I do not understand this code, mind explaining what it is meant to do ?
->> >
->> >In particular I do not understand the logic behind the index decrement,
->> >I think I am missing something here.
->> >
->> 
->> ACPI IRQ resources can be encoded into two types of structures:
->> 
->>    struct acpi_resource_irq,
->>    struct acpi_resource_extended_irq.
->> 
->> In theory only the extended version can contain multiple IRQs, but
->> the Linux
->> ACPI core accommodates non-compliant DSDT tables that have regular
->> IRQ resources
->> contain multiple IRQs.
->> 
->> To better explain, suppose you have a device that handles two GSIs
->> and one
->> other IRQ form a separate device:
->> 
->>    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, 0x00, )
->>    { 130, 131 }
->> 
->>    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, 0x00,
->> "\\_SB.TCS0.QIC0", )
->>    { 4 }
->> 
->> These are encoded into two separate structures with their own
->> interrupts array:
->> 
->>   res0.interrupts[] = { 130, 131 }
->>   res1.interrupts[] = { 4 }
->> 
->> However, from the perspective of a client driver these are indexed
->> into a flat space:
->> 
->>   [0] -> 130
->>   [1] -> 131
->>   [2] -> 4
->> 
->> Now say mapping of IRQ 4 failed during bus scan. When acpi_irq_get
->> retries to map it, the client code will pass index 2.
->> acpi_walk_resources will call acpi_irq_get_cb with the first IRQ
->> resource. If the index is less than the number of IRQs, we know this
->> IRQ resource contains the IRQ we want so we call
->> acpi_dev_resource_interrupt to do the actual mapping and return
->> AE_CTRL_TERMINATE so acpi_walk_resources does not continue walking the
->> resource buffer. On the other hand if the index is equal or larger it
->> means we need to skip this IRQ resource and look at the next one, but
->> we need to adjust the lookup index to that of the next IRQ resource.
->> 
->> Makes sense?
+On Wed, Nov 16, 2016 at 07:59:38PM +0800, Dongdong Liu wrote:
+> Hi Bjorn
 > 
-> Yes, basically it is to create a linear index out of multiple 
-> resources,
-> the DT case is simpler since you get the interrupt out of a single
-> property that we can easily index (ie we have to know which firmware
-> entry corresponds to the resource that we are retrying). That deserves
-> a comment.
+> Many Thanks for your review
 > 
-
-Good point. I will add the comment on the next version of the series,
-however, I will hold a few days for more feedback before I submit that.
-
-Thanks,
-Agustin
-
-> Thanks for explaining.
+> 在 2016/11/15 7:33, Bjorn Helgaas 写道:
+> >On Wed, Nov 09, 2016 at 05:14:57PM +0800, Dongdong Liu wrote:
+> >>PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
+> >>It is non ECAM only for the RC bus config space;for any other bus
+> >>underneath the root bus we support ECAM access.
+> >>Add specific quirks for PCI config space accessors.This involves:
+> >>1. New initialization call hisi_pcie_init() to obtain rc base
+> >>addresses from PNP0C02 as subdevice of PNP0A03.
+> >>2. New entry in common quirk array.
+> >>
+> >>Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> >>Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> >>---
+> >> MAINTAINERS                       |   1 +
+> >> drivers/acpi/pci_mcfg.c           |  13 ++++
+> >> drivers/pci/host/Kconfig          |   8 ++
+> >> drivers/pci/host/Makefile         |   1 +
+> >> drivers/pci/host/pcie-hisi-acpi.c | 157 ++++++++++++++++++++++++++++++++++++++
+> >> include/linux/pci-ecam.h          |   5 ++
+> >> 6 files changed, 185 insertions(+)
+> >> create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
+> >>
+> >>diff --git a/MAINTAINERS b/MAINTAINERS
+> >>index 1cd38a7..b224caa 100644
+> >>--- a/MAINTAINERS
+> >>+++ b/MAINTAINERS
+> >>@@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
+> >> S:	Maintained
+> >> F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> >> F:	drivers/pci/host/pcie-hisi.c
+> >>+F:	drivers/pci/host/pcie-hisi-acpi.c
+> >>
+> >> PCIE DRIVER FOR ROCKCHIP
+> >> M:	Shawn Lin <shawn.lin@rock-chips.com>
+> >>diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> >>index ac21db3..b1b6fc7 100644
+> >>--- a/drivers/acpi/pci_mcfg.c
+> >>+++ b/drivers/acpi/pci_mcfg.c
+> >>@@ -57,6 +57,19 @@ struct mcfg_fixup {
+> >> 	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
+> >> 	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
+> >> 	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
+> >>+#ifdef CONFIG_PCI_HISI_ACPI
+> >>+	#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
+> >>+	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
+> >>+	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
+> >>+	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
+> >>+	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
+> >>+	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
+> >>+	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
+> >>+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
+> >>+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
+> >>+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
+> >>+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
+> >>+#endif
+> >> };
+> >>
+> >> static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+> >>diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
+> >>index ae98644..9ff2bcd 100644
+> >>--- a/drivers/pci/host/Kconfig
+> >>+++ b/drivers/pci/host/Kconfig
+> >>@@ -227,6 +227,14 @@ config PCI_HISI
+> >> 	  Say Y here if you want PCIe controller support on HiSilicon
+> >> 	  Hip05 and Hip06 and Hip07 SoCs
+> >>
+> >>+config PCI_HISI_ACPI
+> >>+	depends on ACPI && ARM64
+> >>+	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe controllers"
+> >>+	select PNP
+> >>+	help
+> >>+	  Say Y here if you want ACPI PCIe controller support on HiSilicon
+> >>+	  Hip05 and Hip06 and Hip07 SoCs
+> >>+
+> >> config PCIE_QCOM
+> >> 	bool "Qualcomm PCIe controller"
+> >> 	depends on ARCH_QCOM && OF
+> >>diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
+> >>index 084cb49..9402858 100644
+> >>--- a/drivers/pci/host/Makefile
+> >>+++ b/drivers/pci/host/Makefile
+> >>@@ -26,6 +26,7 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
+> >> obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
+> >> obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
+> >> obj-$(CONFIG_PCI_HISI) += pcie-hisi.o
+> >>+obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o
+> >> obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
+> >> obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
+> >> obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
+> >>diff --git a/drivers/pci/host/pcie-hisi-acpi.c b/drivers/pci/host/pcie-hisi-acpi.c
+> >>new file mode 100644
+> >>index 0000000..aade4b5
+> >>--- /dev/null
+> >>+++ b/drivers/pci/host/pcie-hisi-acpi.c
+> >>@@ -0,0 +1,157 @@
+> >>+/*
+> >>+ * PCIe host controller driver for HiSilicon HipXX SoCs
+> >>+ *
+> >>+ * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
+> >>+ *
+> >>+ * Author: Dongdong Liu <liudongdong3@huawei.com>
+> >>+ *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> >>+ *
+> >>+ * This program is free software; you can redistribute it and/or modify
+> >>+ * it under the terms of the GNU General Public License version 2 as
+> >>+ * published by the Free Software Foundation.
+> >>+ */
+> >>+#include <linux/pci.h>
+> >>+#include <linux/pci-acpi.h>
+> >>+#include <linux/pci-ecam.h>
+> >>+
+> >>+#define DEBUG0				0x728
+> >>+#define PCIE_LTSSM_LINKUP_STATE		0x11
+> >>+#define PCIE_LTSSM_STATE_MASK		0x3F
+> >
+> >These are now unused.
 > 
-> Lorenzo
+> Thanks for pointing that, will delete them.
 > 
->> >>+		break;
->> >>+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
->> >>+		ext_irq = &ares->data.extended_irq;
->> >>+		if (ctx->index < ext_irq->interrupt_count) {
->> >>+			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
->> >>+			return AE_CTRL_TERMINATE;
->> >>+		}
->> >>+		ctx->index -= ext_irq->interrupt_count;
->> >
->> >Ditto.
->> 
->> The same logic is used for both types of resources because they are
->> handled in
->> the same way by the ACPI core when it comes to indexing.
->> 
->> Thanks,
->> Agustin
->> 
->> >
->> >Thanks,
->> >Lorenzo
->> >
->> >>+		break;
->> >>+	}
->> >>+
->> >>+	return AE_OK;
->> >>+}
->> >>+
->> >>+/**
->> >>+ * acpi_irq_get - Look for the ACPI IRQ resource with the given
->> >>index and
->> >>+ *                use it to initialize the given Linux IRQ resource.
->> >>+ * @handle ACPI device handle
->> >>+ * @index  ACPI IRQ resource index to lookup
->> >>+ * @res    Linux IRQ resource to initialize
->> >>+ *
->> >>+ * Return: 0 on success
->> >>+ *         -EINVAL if an error occurs
->> >>+ *         -EPROBE_DEFER if the IRQ lookup/conversion failed
->> >>+ */
->> >>+int acpi_irq_get(acpi_handle handle, unsigned int index, struct
->> >>resource *res)
->> >>+{
->> >>+	struct acpi_irq_get_ctx ctx = { index, res };
->> >>+	acpi_status status;
->> >>+
->> >>+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
->> >>+				     acpi_irq_get_cb, &ctx);
->> >>+	if (ACPI_FAILURE(status))
->> >>+		return -EINVAL;
->> >>+	if (res->flags & IORESOURCE_DISABLED)
->> >>+		return -EPROBE_DEFER;
->> >>+	return 0;
->> >>+}
->> >>+EXPORT_SYMBOL_GPL(acpi_irq_get);
->> >>diff --git a/drivers/base/platform.c b/drivers/base/platform.c
->> >>index c4af003..61423d2 100644
->> >>--- a/drivers/base/platform.c
->> >>+++ b/drivers/base/platform.c
->> >>@@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device
->> >>*dev, unsigned int num)
->> >> 	}
->> >>
->> >> 	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
->> >>+	if (r && r->flags & IORESOURCE_DISABLED &&
->> >>ACPI_COMPANION(&dev->dev)) {
->> >>+		int ret;
->> >>+
->> >>+		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
->> >>+		if (ret)
->> >>+			return ret;
->> >>+	}
->> >>+
->> >> 	/*
->> >> 	 * The resources may pass trigger flags to the irqs that need
->> >> 	 * to be set up. It so happens that the trigger flags for
->> >>@@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
->> >> 		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
->> >> 	}
->> >> }
->> >>-
->> >>diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> >>index 689a8b9..325bdb9 100644
->> >>--- a/include/linux/acpi.h
->> >>+++ b/include/linux/acpi.h
->> >>@@ -406,6 +406,7 @@ bool
->> >>acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
->> >> unsigned int acpi_dev_get_irq_type(int triggering, int polarity);
->> >> bool acpi_dev_resource_interrupt(struct acpi_resource *ares,
->> >>int index,
->> >> 				 struct resource *res);
->> >>+int acpi_irq_get(acpi_handle handle, unsigned int index, struct
->> >>resource *res);
->> >>
->> >> void acpi_dev_free_resource_list(struct list_head *list);
->> >> int acpi_dev_get_resources(struct acpi_device *adev, struct
->> >>list_head *list,
->> >>@@ -763,6 +764,12 @@ static inline int
->> >>acpi_reconfig_notifier_unregister(struct notifier_block *nb)
->> >> 	return -EINVAL;
->> >> }
->> >>
->> >>+static inline int acpi_irq_get(acpi_handle handle, unsigned int
->> >>index,
->> >>+			       struct resource *res)
->> >>+{
->> >>+	return -EINVAL;
->> >>+}
->> >>+
->> >> #endif	/* !CONFIG_ACPI */
->> >>
->> >> #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
->> >>--
->> >>Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm
->> >>Technologies, Inc.
->> >>Qualcomm Technologies, Inc. is a member of the Code Aurora
->> >>Forum, a Linux Foundation Collaborative Project.
->> >>
->> >>--
->> >>To unsubscribe from this list: send the line "unsubscribe
->> >>linux-acpi" in
->> >>the body of a message to majordomo@vger.kernel.org
->> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
->> --
->> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm
->> Technologies, Inc.
->> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a
->> Linux Foundation Collaborative Project.
+> >
+> >>+static const struct acpi_device_id hisi_pcie_rc_res_ids[] = {
+> >>+	{"HISI0081", 0},
+> >>+	{"", 0},
+> >>+};
+> >>+
+> >>+static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
+> >>+				  int size, u32 *val)
+> >>+{
+> >>+	struct pci_config_window *cfg = bus->sysdata;
+> >>+	int dev = PCI_SLOT(devfn);
+> >>+
+> >>+	if (bus->number == cfg->busr.start) {
+> >>+		/* access only one slot on each root port */
+> >>+		if (dev > 0)
+> >>+			return PCIBIOS_DEVICE_NOT_FOUND;
+> >>+		else
+> >>+			return pci_generic_config_read32(bus, devfn, where,
+> >>+							 size, val);
+> >>+	}
+> >>+
+> >>+	return pci_generic_config_read(bus, devfn, where, size, val);
+> >>+}
+> >>+
+> >>+static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
+> >>+				  int where, int size, u32 val)
+> >>+{
+> >>+	struct pci_config_window *cfg = bus->sysdata;
+> >>+	int dev = PCI_SLOT(devfn);
+> >>+
+> >>+	if (bus->number == cfg->busr.start) {
+> >>+		/* access only one slot on each root port */
+> >>+		if (dev > 0)
+> >>+			return PCIBIOS_DEVICE_NOT_FOUND;
+> >>+		else
+> >>+			return pci_generic_config_write32(bus, devfn, where,
+> >>+							  size, val);
+> >>+	}
+> >>+
+> >>+	return pci_generic_config_write(bus, devfn, where, size, val);
+> >>+}
+> >>+
+> >>+static void __iomem *hisi_pcie_map_bus(struct pci_bus *bus, unsigned int devfn,
+> >>+				       int where)
+> >>+{
+> >>+	struct pci_config_window *cfg = bus->sysdata;
+> >>+	void __iomem *reg_base = cfg->priv;
+> >>+
+> >>+	if (bus->number == cfg->busr.start)
+> >>+		return reg_base + where;
+> >>+	else
+> >>+		return pci_ecam_map_bus(bus, devfn, where);
+> >>+}
+> >>+
+> >>+/*
+> >>+ * Retrieve RC base and size from sub-device under the RC
+> >>+ * Device (RES1)
+> >>+ * {
+> >>+ *	Name (_HID, "HISI0081")
+> >>+ *	Name (_CID, "PNP0C02")
+> >>+ *	Name (_CRS, ResourceTemplate (){
+> >>+ *		Memory32Fixed (ReadWrite, 0xb0080000, 0x10000)
+> >>+ *	})
+> >>+ * }
+> >>+ */
+> >>+static int hisi_pcie_rc_addr_get(struct acpi_device *adev,
+> >>+				 void __iomem **addr)
+> >>+{
+> >>+	struct acpi_device *child_adev;
+> >>+	struct list_head list;
+> >>+	struct resource *res;
+> >>+	struct resource_entry *entry;
+> >>+	unsigned long flags;
+> >>+	int ret;
+> >>+
+> >>+	list_for_each_entry(child_adev, &adev->children, node) {
+> >>+		ret = acpi_match_device_ids(child_adev, hisi_pcie_rc_res_ids);
+> >>+		if (ret)
+> >>+			continue;
+> >>+
+> >>+		INIT_LIST_HEAD(&list);
+> >>+		flags = IORESOURCE_MEM;
+> >>+		ret = acpi_dev_get_resources(child_adev, &list,
+> >>+					     acpi_dev_filter_resource_type_cb,
+> >>+					     (void *)flags);
+> >>+		if (ret < 0) {
+> >>+			dev_err(&child_adev->dev,
+> >>+				"failed to parse _CRS method, error code %d\n",
+> >>+				ret);
+> >>+			return ret;
+> >>+		} else if (ret == 0) {
+> >>+			dev_err(&child_adev->dev,
+> >>+				"no IO and memory resources present in _CRS\n");
+> >>+			return -EINVAL;
+> >>+		}
+> >>+
+> >>+		entry = list_first_entry(&list, struct resource_entry, node);
+> >>+		res = entry->res;
+> >>+		*addr = devm_ioremap(&child_adev->dev,
+> >>+				     res->start, resource_size(res));
+> >>+		acpi_dev_free_resource_list(&list);
+> >>+		if (IS_ERR(*addr)) {
+> >>+			dev_err(&child_adev->dev, "error with ioremap\n");
+> >>+			return -ENOMEM;
+> >>+		}
+> >>+
+> >>+		return 0;
+> >>+	}
+> >>+
+> >>+	return -EINVAL;
+> >>+}
+> >
+> >OK, so MCFG (with the possible help of quirks) tells us where *most*
+> >of this RC's ECAM space is, but it doesn't tell us where the root bus
+> >ECAM space is, which is why we need this block of ugly code.  Right?
+> Yes, correct.
+> >
+> >Is there any way we can compute the root bus reg_base from the address
+> >we got from MCFG?
+> 
+> No, we can not,because RC base addresses are sequntial and MCFG impose a 4k boundaries.
 
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
-Linux Foundation Collaborative Project.
+I understand the "no" part, but not the "because ..." part :)
+
+I think the regions described by MCFG are aligned on 1MB boundaries,
+not 4K, because MCFG tells you about ECAM space for a given bus number
+range.  Each bus can have 256 devices (5 bit device number + 3 bit
+function number), and each device has 4K of config space.  256 * 4KB =
+1MB.
+
+In any case, it wouldn't have to be a simple function like this:
+
+  reg_base = pci_mcfg_lookup(seg, [bus 01]) - 1MB
+
+It could be *anything*, e.g.,
+
+  reg_base = 0x00100000 + (bus_num * 4096);
+
+> >Is it a constant that realistically is not going to be modified?
+> 
+> Yes, this is a hardware limitation
+
+If there's only one RC and the address is a constant, maybe you can
+just hard-code the address in the .map_bus() function?
+
+Bjorn
