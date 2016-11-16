@@ -1,68 +1,263 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: Use NULL from <linux/stddef.h>
-Date: Wed, 16 Nov 2016 17:08:21 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E523C92@ORSMSX108.amr.corp.intel.com>
-References: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
- <CAJZ5v0jof4-JV+Fm_bBa+Fzxe2dLZ5KfoPNhZ_KfxvWX_NHDdg@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V7 1/3] ACPI: Retry IRQ conversion if it failed previously
+Date: Wed, 16 Nov 2016 17:18:17 +0000
+Message-ID: <20161116171817.GA23055@red-moon>
+References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
+ <1479074375-2629-2-git-send-email-agustinv@codeaurora.org>
+ <20161115154833.GA16906@red-moon>
+ <0b6358b4c723bb08623c322051bb4c77@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:2097 "EHLO mga03.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:59796 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932221AbcKPRI2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 12:08:28 -0500
-In-Reply-To: <CAJZ5v0jof4-JV+Fm_bBa+Fzxe2dLZ5KfoPNhZ_KfxvWX_NHDdg@mail.gmail.com>
-Content-Language: en-US
+        id S1752805AbcKPRRQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 12:17:16 -0500
+Content-Disposition: inline
+In-Reply-To: <0b6358b4c723bb08623c322051bb4c77@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Bart Van Assche <bart.vanassche@sandisk.com>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-V2hhdCBpcyB0aGUgcG9pbnQgb2YgdGhlc2UgY2hhbmdlcz8NCg0KDQo+IC0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
-a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU2VudDog
-TW9uZGF5LCBOb3ZlbWJlciAxNCwgMjAxNiAxMjoyMSBQTQ0KPiBUbzogQmFydCBWYW4gQXNzY2hl
-IDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNrLmNvbT47IFpoZW5nLCBMdg0KPiA8bHYuemhlbmdAaW50
-ZWwuY29tPjsgTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gQ2M6IFJh
-ZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBCcm93biA8bGVuYkBrZXJu
-ZWwub3JnPjsNCj4gbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQ
-QVRDSF0gYWNwaTogVXNlIE5VTEwgZnJvbSA8bGludXgvc3RkZGVmLmg+DQo+IA0KPiBPbiBNb24s
-IE5vdiAxNCwgMjAxNiBhdCA1OjUwIFBNLCBCYXJ0IFZhbiBBc3NjaGUNCj4gPGJhcnQudmFuYXNz
-Y2hlQHNhbmRpc2suY29tPiB3cm90ZToNCj4gPiBVc2UgdGhlIGRlZmluaXRpb24gb2YgTlVMTCBm
-cm9tIDxsaW51eC9zdGRkZWYuaD4gaW5zdGVhZCBvZiByZWRlZmluaW5nDQo+ID4gTlVMTC4gQWRk
-aXRpb25hbGx5LCBjaGFuZ2UgKHZvaWQgKilOVUxMIGludG8gTlVMTC4NCj4gPg0KPiA+IFNpZ25l
-ZC1vZmYtYnk6IEJhcnQgVmFuIEFzc2NoZSA8YmFydC52YW5hc3NjaGVAc2FuZGlzay5jb20+DQo+
-ID4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4NCj4gPiBDYzogTGVu
-IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+DQo+ID4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
-b3JnDQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3R5cGVzLmggfCAxMiArKysrKy0tLS0t
-LS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkN
-Cj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0eXBlcy5oIGIvaW5jbHVkZS9h
-Y3BpL2FjdHlwZXMuaCBpbmRleA0KPiA+IDFkNzk4YWIuLmYwMTk2NDEgMTAwNjQ0DQo+ID4gLS0t
-IGEvaW5jbHVkZS9hY3BpL2FjdHlwZXMuaA0KPiA+ICsrKyBiL2luY2x1ZGUvYWNwaS9hY3R5cGVz
-LmgNCj4gPiBAQCAtNDQsNiArNDQsOCBAQA0KPiA+ICAjaWZuZGVmIF9fQUNUWVBFU19IX18NCj4g
-PiAgI2RlZmluZSBfX0FDVFlQRVNfSF9fDQo+ID4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L3N0ZGRl
-Zi5oPiAvKiBOVUxMICovDQo+IA0KPiBUaGlzIGlzIGZpbGUgaXMgYmFzZWQgb24gdXBzdHJlYW0g
-QUNQSUNBIGNvZGUgYW5kIGl0IHNob3VsZCBub3QgY29udGFpbg0KPiBMaW51eC1zcGVjaWZpYyBp
-bmNsdWRlcyBldGMuIGFzIGEgcnVsZS4NCj4gDQo+ID4gKw0KPiA+ICAvKiBhY3Bpc3JjOnN0cnVj
-dF9kZWZzIC0tIGZvciBhY3Bpc3JjIGNvbnZlcnNpb24gKi8NCj4gPg0KPiA+ICAvKg0KPiA+IEBA
-IC00MzcsMTAgKzQzOSw2IEBAIHR5cGVkZWYgdTY0IGFjcGlfcGh5c2ljYWxfYWRkcmVzczsgICNl
-bmRpZg0KPiA+ICAjZGVmaW5lIFRSVUUgICAgICAgICAgICAgICAgICAgICAgICAgICAgKDEgPT0g
-MSkNCj4gPg0KPiA+IC0jaWZuZGVmIE5VTEwNCj4gPiAtI2RlZmluZSBOVUxMICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICh2b2lkICopIDANCj4gPiAtI2VuZGlmDQo+ID4gLQ0KPiA+ICAvKg0K
-PiA+ICAgKiBNaXNjZWxsYW5lb3VzIHR5cGVzDQo+ID4gICAqLw0KPiA+IEBAIC01MzAsOSArNTI4
-LDkgQEAgdHlwZWRlZiB1NjQgYWNwaV9pbnRlZ2VyOw0KPiA+DQo+ID4gIC8qIFBvaW50ZXIvSW50
-ZWdlciB0eXBlIGNvbnZlcnNpb25zICovDQo+ID4NCj4gPiAtI2RlZmluZSBBQ1BJX1RPX1BPSU5U
-RVIoaSkgICAgICAgICAgICAgIEFDUElfQUREX1BUUiAodm9pZCwgKHZvaWQgKikNCj4gTlVMTCwo
-YWNwaV9zaXplKSBpKQ0KPiA+IC0jZGVmaW5lIEFDUElfVE9fSU5URUdFUihwKSAgICAgICAgICAg
-ICAgQUNQSV9QVFJfRElGRiAocCwgKHZvaWQgKikNCj4gTlVMTCkNCj4gPiAtI2RlZmluZSBBQ1BJ
-X09GRlNFVChkLCBmKSAgICAgICAgICAgICAgIEFDUElfUFRSX0RJRkYgKCYoKChkICopIDApLQ0K
-PiA+ZiksICh2b2lkICopIE5VTEwpDQo+ID4gKyNkZWZpbmUgQUNQSV9UT19QT0lOVEVSKGkpICAg
-ICAgICAgICAgICBBQ1BJX0FERF9QVFIodm9pZCwgTlVMTCwNCj4gKGFjcGlfc2l6ZSkgaSkNCj4g
-PiArI2RlZmluZSBBQ1BJX1RPX0lOVEVHRVIocCkgICAgICAgICAgICAgIEFDUElfUFRSX0RJRkYo
-cCwgTlVMTCkNCj4gPiArI2RlZmluZSBBQ1BJX09GRlNFVChkLCBmKSAgICAgICAgICAgICAgIEFD
-UElfUFRSX0RJRkYoJigoKGQgKikgMCktDQo+ID5mKSwgTlVMTCkNCj4gPiAgI2RlZmluZSBBQ1BJ
-X1BIWVNBRERSX1RPX1BUUihpKSAgICAgICAgIEFDUElfVE9fUE9JTlRFUihpKQ0KPiA+ICAjZGVm
-aW5lIEFDUElfUFRSX1RPX1BIWVNBRERSKGkpICAgICAgICAgQUNQSV9UT19JTlRFR0VSKGkpDQo+
-IA0KPiANCj4gTHYsIEJvYiwgY2FuIHlvdSBoYXZlIGEgbG9vayBhdCB0aGlzLCBwbGVhc2U/DQo+
-IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0K
+On Tue, Nov 15, 2016 at 12:43:38PM -0500, Agustin Vega-Frias wrote:
+> Hi Lorenzo,
+> 
+> On 2016-11-15 10:48, Lorenzo Pieralisi wrote:
+> >On Sun, Nov 13, 2016 at 04:59:33PM -0500, Agustin Vega-Frias wrote:
+> >>This allows probe deferral to work properly when a dependent device
+> >>fails to get a valid IRQ because the IRQ domain was not registered
+> >>at the time the resources were added to the platform_device.
+> >>
+> >>Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> >>---
+> >> drivers/acpi/resource.c | 59
+> >>+++++++++++++++++++++++++++++++++++++++++++++++++
+> >> drivers/base/platform.c |  9 +++++++-
+> >> include/linux/acpi.h    |  7 ++++++
+> >> 3 files changed, 74 insertions(+), 1 deletion(-)
+> >>
+> >>diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> >>index 56241eb..4beda15 100644
+> >>--- a/drivers/acpi/resource.c
+> >>+++ b/drivers/acpi/resource.c
+> >>@@ -664,3 +664,62 @@ int acpi_dev_filter_resource_type(struct
+> >>acpi_resource *ares,
+> >> 	return (type & types) ? 0 : 1;
+> >> }
+> >> EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
+> >>+
+> >>+struct acpi_irq_get_ctx {
+> >>+	unsigned int index;
+> >>+	struct resource *res;
+> >>+};
+> >>+
+> >>+static acpi_status acpi_irq_get_cb(struct acpi_resource *ares,
+> >>void *context)
+> >>+{
+> >>+	struct acpi_irq_get_ctx *ctx = context;
+> >>+	struct acpi_resource_irq *irq;
+> >>+	struct acpi_resource_extended_irq *ext_irq;
+> >>+
+> >>+	switch (ares->type) {
+> >>+	case ACPI_RESOURCE_TYPE_IRQ:
+> >>+		irq = &ares->data.irq;
+> >>+		if (ctx->index < irq->interrupt_count) {
+> >>+			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
+> >>+			return AE_CTRL_TERMINATE;
+> >>+		}
+> >>+		ctx->index -= irq->interrupt_count;
+> >
+> >I do not understand this code, mind explaining what it is meant to do ?
+> >
+> >In particular I do not understand the logic behind the index decrement,
+> >I think I am missing something here.
+> >
+> 
+> ACPI IRQ resources can be encoded into two types of structures:
+> 
+>    struct acpi_resource_irq,
+>    struct acpi_resource_extended_irq.
+> 
+> In theory only the extended version can contain multiple IRQs, but
+> the Linux
+> ACPI core accommodates non-compliant DSDT tables that have regular
+> IRQ resources
+> contain multiple IRQs.
+> 
+> To better explain, suppose you have a device that handles two GSIs
+> and one
+> other IRQ form a separate device:
+> 
+>    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, 0x00, )
+>    { 130, 131 }
+> 
+>    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, 0x00,
+> "\\_SB.TCS0.QIC0", )
+>    { 4 }
+> 
+> These are encoded into two separate structures with their own
+> interrupts array:
+> 
+>   res0.interrupts[] = { 130, 131 }
+>   res1.interrupts[] = { 4 }
+> 
+> However, from the perspective of a client driver these are indexed
+> into a flat space:
+> 
+>   [0] -> 130
+>   [1] -> 131
+>   [2] -> 4
+> 
+> Now say mapping of IRQ 4 failed during bus scan. When acpi_irq_get
+> retries to map it, the client code will pass index 2.
+> acpi_walk_resources will call acpi_irq_get_cb with the first IRQ
+> resource. If the index is less than the number of IRQs, we know this
+> IRQ resource contains the IRQ we want so we call
+> acpi_dev_resource_interrupt to do the actual mapping and return
+> AE_CTRL_TERMINATE so acpi_walk_resources does not continue walking the
+> resource buffer. On the other hand if the index is equal or larger it
+> means we need to skip this IRQ resource and look at the next one, but
+> we need to adjust the lookup index to that of the next IRQ resource.
+> 
+> Makes sense?
+
+Yes, basically it is to create a linear index out of multiple resources,
+the DT case is simpler since you get the interrupt out of a single
+property that we can easily index (ie we have to know which firmware
+entry corresponds to the resource that we are retrying). That deserves
+a comment.
+
+Thanks for explaining.
+
+Lorenzo
+
+> >>+		break;
+> >>+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> >>+		ext_irq = &ares->data.extended_irq;
+> >>+		if (ctx->index < ext_irq->interrupt_count) {
+> >>+			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
+> >>+			return AE_CTRL_TERMINATE;
+> >>+		}
+> >>+		ctx->index -= ext_irq->interrupt_count;
+> >
+> >Ditto.
+> 
+> The same logic is used for both types of resources because they are
+> handled in
+> the same way by the ACPI core when it comes to indexing.
+> 
+> Thanks,
+> Agustin
+> 
+> >
+> >Thanks,
+> >Lorenzo
+> >
+> >>+		break;
+> >>+	}
+> >>+
+> >>+	return AE_OK;
+> >>+}
+> >>+
+> >>+/**
+> >>+ * acpi_irq_get - Look for the ACPI IRQ resource with the given
+> >>index and
+> >>+ *                use it to initialize the given Linux IRQ resource.
+> >>+ * @handle ACPI device handle
+> >>+ * @index  ACPI IRQ resource index to lookup
+> >>+ * @res    Linux IRQ resource to initialize
+> >>+ *
+> >>+ * Return: 0 on success
+> >>+ *         -EINVAL if an error occurs
+> >>+ *         -EPROBE_DEFER if the IRQ lookup/conversion failed
+> >>+ */
+> >>+int acpi_irq_get(acpi_handle handle, unsigned int index, struct
+> >>resource *res)
+> >>+{
+> >>+	struct acpi_irq_get_ctx ctx = { index, res };
+> >>+	acpi_status status;
+> >>+
+> >>+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> >>+				     acpi_irq_get_cb, &ctx);
+> >>+	if (ACPI_FAILURE(status))
+> >>+		return -EINVAL;
+> >>+	if (res->flags & IORESOURCE_DISABLED)
+> >>+		return -EPROBE_DEFER;
+> >>+	return 0;
+> >>+}
+> >>+EXPORT_SYMBOL_GPL(acpi_irq_get);
+> >>diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> >>index c4af003..61423d2 100644
+> >>--- a/drivers/base/platform.c
+> >>+++ b/drivers/base/platform.c
+> >>@@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device
+> >>*dev, unsigned int num)
+> >> 	}
+> >>
+> >> 	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+> >>+	if (r && r->flags & IORESOURCE_DISABLED &&
+> >>ACPI_COMPANION(&dev->dev)) {
+> >>+		int ret;
+> >>+
+> >>+		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+> >>+		if (ret)
+> >>+			return ret;
+> >>+	}
+> >>+
+> >> 	/*
+> >> 	 * The resources may pass trigger flags to the irqs that need
+> >> 	 * to be set up. It so happens that the trigger flags for
+> >>@@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
+> >> 		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
+> >> 	}
+> >> }
+> >>-
+> >>diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> >>index 689a8b9..325bdb9 100644
+> >>--- a/include/linux/acpi.h
+> >>+++ b/include/linux/acpi.h
+> >>@@ -406,6 +406,7 @@ bool
+> >>acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+> >> unsigned int acpi_dev_get_irq_type(int triggering, int polarity);
+> >> bool acpi_dev_resource_interrupt(struct acpi_resource *ares,
+> >>int index,
+> >> 				 struct resource *res);
+> >>+int acpi_irq_get(acpi_handle handle, unsigned int index, struct
+> >>resource *res);
+> >>
+> >> void acpi_dev_free_resource_list(struct list_head *list);
+> >> int acpi_dev_get_resources(struct acpi_device *adev, struct
+> >>list_head *list,
+> >>@@ -763,6 +764,12 @@ static inline int
+> >>acpi_reconfig_notifier_unregister(struct notifier_block *nb)
+> >> 	return -EINVAL;
+> >> }
+> >>
+> >>+static inline int acpi_irq_get(acpi_handle handle, unsigned int
+> >>index,
+> >>+			       struct resource *res)
+> >>+{
+> >>+	return -EINVAL;
+> >>+}
+> >>+
+> >> #endif	/* !CONFIG_ACPI */
+> >>
+> >> #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+> >>--
+> >>Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm
+> >>Technologies, Inc.
+> >>Qualcomm Technologies, Inc. is a member of the Code Aurora
+> >>Forum, a Linux Foundation Collaborative Project.
+> >>
+> >>--
+> >>To unsubscribe from this list: send the line "unsubscribe
+> >>linux-acpi" in
+> >>the body of a message to majordomo@vger.kernel.org
+> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm
+> Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a
+> Linux Foundation Collaborative Project.
