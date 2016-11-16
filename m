@@ -1,174 +1,198 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v16 15/15] acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
-Date: Wed, 16 Nov 2016 21:49:08 +0800
-Message-ID: <1479304148-2965-16-git-send-email-fu.wei@linaro.org>
-References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH v8 00/16] ACPI IORT ARM SMMU support
+Date: Wed, 16 Nov 2016 15:29:20 +0000
+Message-ID: <20161116152936.22955-1-lorenzo.pieralisi@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41766 "EHLO mx1.redhat.com"
+Received: from foss.arm.com ([217.140.101.70]:55182 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753282AbcKPNwU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 08:52:20 -0500
-In-Reply-To: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+        id S932140AbcKPP2j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 10:28:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+To: iommu@lists.linux-foundation.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Fu Wei <fu.wei@linaro.org>
+This patch series is v8 of a previous posting:
 
-This driver adds support for parsing SBSA Generic Watchdog timer
-in GTDT, parse all info in SBSA Generic Watchdog Structure in GTDT,
-and creating a platform device with that information.
+https://lkml.org/lkml/2016/11/9/422
 
-This allows the operating system to obtain device data from the
-resource of platform device. The platform device named "sbsa-gwdt"
-can be used by the ARM SBSA Generic Watchdog driver.
+v7 -> v8
+	- Renamed fwnode iommu_ops registration API according to review
+	- Minor change in ARM SMMU driver DT/ACPI split
+	- Added review tags
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
----
- drivers/acpi/arm64/gtdt.c | 100 ++++++++++++++++++++++++++++++++++++++++++++++
- drivers/watchdog/Kconfig  |   1 +
- 2 files changed, 101 insertions(+)
+v6 -> v7
+	- Rebased against v4.9-rc4
+	- Fixed IORT probing on ACPI systems with missing IORT table
+	- Fixed SMMUv1/v2 global interrupt detection
+	- Updated iommu_ops firmware look-up
 
-diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
-index 08d9506..69483f6 100644
---- a/drivers/acpi/arm64/gtdt.c
-+++ b/drivers/acpi/arm64/gtdt.c
-@@ -14,6 +14,7 @@
- #include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/platform_device.h>
- 
- #include <clocksource/arm_arch_timer.h>
- 
-@@ -66,6 +67,14 @@ static inline bool is_watchdog(void *platform_timer)
- 	return gh->type == ACPI_GTDT_TYPE_WATCHDOG;
- }
- 
-+static inline struct acpi_gtdt_watchdog *get_watchdog(unsigned int index)
-+{
-+	if (index >= acpi_gtdt_desc.watchdog_count || !watchdog)
-+		return NULL;
-+
-+	return watchdog[index];
-+}
-+
- static int __init map_gt_gsi(u32 interrupt, u32 flags)
- {
- 	int trigger, polarity;
-@@ -309,3 +318,94 @@ int __init gtdt_arch_timer_mem_init(struct arch_timer_mem *data,
- 
- 	return 0;
- }
-+
-+/*
-+ * Initialize a SBSA generic Watchdog platform device info from GTDT
-+ */
-+static int __init gtdt_import_sbsa_gwdt(struct acpi_gtdt_watchdog *wd,
-+					int index)
-+{
-+	struct platform_device *pdev;
-+	int irq = map_gt_gsi(wd->timer_interrupt, wd->timer_flags);
-+	int no_irq = 1;
-+
-+	/*
-+	 * According to SBSA specification the size of refresh and control
-+	 * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 – 0xFFF).
-+	 */
-+	struct resource res[] = {
-+		DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
-+		DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
-+		DEFINE_RES_IRQ(irq),
-+	};
-+
-+	pr_debug("found a Watchdog (0x%llx/0x%llx gsi:%u flags:0x%x).\n",
-+		 wd->refresh_frame_address, wd->control_frame_address,
-+		 wd->timer_interrupt, wd->timer_flags);
-+
-+	if (!(wd->refresh_frame_address && wd->control_frame_address)) {
-+		pr_err(FW_BUG "failed to get the Watchdog base address.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!wd->timer_interrupt)
-+		pr_warn(FW_BUG "failed to get the Watchdog interrupt.\n");
-+	else if (irq <= 0)
-+		pr_warn("failed to map the Watchdog interrupt.\n");
-+	else
-+		no_irq = 0;
-+
-+	/*
-+	 * Add a platform device named "sbsa-gwdt" to match the platform driver.
-+	 * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watchdog
-+	 * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get device
-+	 * info below by matching this name.
-+	 */
-+	pdev = platform_device_register_simple("sbsa-gwdt", index, res,
-+					       ARRAY_SIZE(res) - no_irq);
-+	if (IS_ERR(pdev)) {
-+		acpi_unregister_gsi(wd->timer_interrupt);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init gtdt_sbsa_gwdt_init(void)
-+{
-+	int i, ret;
-+	struct acpi_table_header *table;
-+	struct acpi_gtdt_watchdog *watchdog;
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
-+		return -EINVAL;
-+
-+	ret = acpi_gtdt_init(table);
-+	if (ret)
-+		return ret;
-+
-+	if (!acpi_gtdt_desc.watchdog_count)
-+		return 0;
-+
-+	for (i = 0; i < acpi_gtdt_desc.watchdog_count; i++) {
-+		watchdog = get_watchdog(i);
-+		if (!watchdog) {
-+			ret = -ENODEV;
-+			break;
-+		}
-+		ret = gtdt_import_sbsa_gwdt(watchdog, i);
-+		if (ret)
-+			break;
-+	}
-+
-+	pr_info("found %d SBSA generic Watchdog(s), %d imported.\n",
-+		acpi_gtdt_desc.watchdog_count, i);
-+
-+	acpi_gtdt_release();
-+	return ret;
-+}
-+
-+device_initcall(gtdt_sbsa_gwdt_init);
-diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index fdd3228..e5ba1f0 100644
---- a/drivers/watchdog/Kconfig
-+++ b/drivers/watchdog/Kconfig
-@@ -218,6 +218,7 @@ config ARM_SBSA_WATCHDOG
- 	tristate "ARM SBSA Generic Watchdog"
- 	depends on ARM64
- 	depends on ARM_ARCH_TIMER
-+	depends on ACPI_GTDT || !ACPI
- 	select WATCHDOG_CORE
- 	help
- 	  ARM SBSA Generic Watchdog has two stage timeouts:
+v5 -> v6
+	- Rebased against v4.9-rc1
+	- Changed FWNODE_IOMMU to FWNODE_ACPI_STATIC
+	- Moved platform devices creation into IORT code
+	- Updated fwnode handling
+	- Added default dma masks initialization
+
+v4 -> v5
+	- Added SMMUv1/v2 support
+	- Rebased against v4.8-rc5 and dependencies series
+	- Consolidated IORT platform devices creation
+
+v3 -> v4
+	- Added single mapping API (for IORT named components)
+	- Fixed arm_smmu_iort_xlate() return value
+	- Reworked fwnode registration and platform device creation
+	  ordering to fix probe ordering dependencies
+	- Added code to keep device_node ref count with new iommu
+	  fwspec API
+	- Added patch to make iommu_fwspec arch agnostic
+	- Dropped RFC status
+	- Rebased against v4.8-rc2
+
+v2 -> v3
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc3)
+	- Added back reliance on ACPI early probing infrastructure
+	- Patch[1-3] merged through other dependent series
+	- Added back IOMMU fwnode generalization
+	- Move SMMU v3 static functions configuration to IORT code
+	- Implemented generic IOMMU fwspec API
+	- Added code to implement fwnode platform device look-up
+
+v1 -> v2:
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc1)
+	- Removed IOMMU fwnode generalization
+	- Implemented ARM SMMU v3 ACPI probing instead of ARM SMMU v2
+	  owing to patch series dependencies [1]
+	- Moved platform device creation logic to IORT code to
+	  generalize its usage for ARM SMMU v1-v2-v3 components
+	- Removed reliance on ACPI early device probing
+	- Created IORT specific iommu_xlate() translation hook leaving
+	  OF code unchanged according to v1 reviews
+
+The ACPI IORT table provides information that allows instantiating
+ARM SMMU devices and carrying out id mappings between components on
+ARM based systems (devices, IOMMUs, interrupt controllers).
+
+http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+
+Building on basic IORT support, this patchset enables ARM SMMUs support
+on ACPI systems.
+
+Most of the code is aimed at building the required generic ACPI
+infrastructure to create and enable IOMMU components and to bring
+the IOMMU infrastructure for ACPI on par with DT, which is going to
+make future ARM SMMU components easier to integrate.
+
+PATCH (1) adds a FWNODE_ACPI_STATIC type to the struct fwnode_handle type.
+          It is required to attach a fwnode identifier to platform
+          devices allocated/detected through static ACPI table entries
+          (ie IORT tables entries).
+          IOMMU devices have to have an identifier to look them up
+          eg IOMMU core layer carrying out id translation. This can be
+          done through a fwnode_handle (ie IOMMU platform devices created
+          out of IORT tables are not ACPI devices hence they can't be
+          allocated as such, otherwise they would have a fwnode_handle of
+          type FWNODE_ACPI).
+
+PATCH (2) makes use of the ACPI early probing API to add a linker script
+          section for probing devices via IORT ACPI kernel code.
+
+PATCH (3) provides IORT support for registering IOMMU IORT node through
+          their fwnode handle.
+
+PATCH (4) make of_iommu_{set/get}_ops() functions DT agnostic and
+          rename the registration API.
+
+PATCH (5) convert ARM SMMU driver to use fwnode instead of of_node as
+          look-up and iommu_ops retrieval token.
+
+PATCH (6) convert ARM SMMU v3 driver to use fwnode instead of of_node as
+          look-up and iommu_ops retrieval token.
+
+PATCH (7) implements the of_dma_configure() API in ACPI world -
+          acpi_dma_configure() - and patches PCI and ACPI core code to
+          start making use of it.
+
+PATCH (8) provides an IORT function to detect existence of specific type
+          of IORT components.
+
+PATCH (9) creates the kernel infrastructure required to create ARM SMMU
+          platform devices for IORT nodes.
+
+PATCH (10) refactors the ARM SMMU v3 driver so that the init functions are
+           split in a way that groups together code that probes through DT
+           and code that carries out HW registers FW agnostic probing, in
+           preparation for adding the ACPI probing path.
+
+PATCH (11) adds ARM SMMU v3 IORT IOMMU operations to create and probe
+           ARM SMMU v3 components.
+
+PATCH (12) refactors the ARM SMMU v1/v2 driver so that the init functions
+           are split in a way that groups together code that probes
+           through DT and code that carries out HW registers FW agnostic
+           probing, in preparation for adding the ACPI probing path.
+
+PATCH (13) adds ARM SMMU v1/v2 IORT IOMMU operations to create and
+           probe ARM SMMU v1/v2 components.
+
+PATCH (14) Extend the IORT iort_node_map_rid() to work on a type mask
+           instead of a single type so that the translation API can
+           be used on a range of components.
+
+PATCH (15) Add IORT API to carry out id mappings for components that do
+           do not have an input identifier/RIDs (ie named components).
+
+PATCH (16) provides IORT infrastructure to carry out IOMMU configuration
+           for devices and hook it up to the previously introduced ACPI
+           DMA configure API.
+
+This patchset is provided for review/testing purposes here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v8
+
+Tested on Juno and FVP models for ARM SMMU v1 and v3 probing path.
+
+Lorenzo Pieralisi (16):
+  drivers: acpi: add FWNODE_ACPI_STATIC fwnode type
+  drivers: acpi: iort: introduce linker section for IORT entries probing
+  drivers: acpi: iort: add support for IOMMU fwnode registration
+  drivers: iommu: make of_iommu_set/get_ops() DT agnostic
+  drivers: iommu: arm-smmu: convert struct device of_node to fwnode
+    usage
+  drivers: iommu: arm-smmu-v3: convert struct device of_node to fwnode
+    usage
+  drivers: acpi: implement acpi_dma_configure
+  drivers: acpi: iort: add node match function
+  drivers: acpi: iort: add support for ARM SMMU platform devices
+    creation
+  drivers: iommu: arm-smmu-v3: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu-v3: add IORT configuration
+  drivers: iommu: arm-smmu: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu: add IORT configuration
+  drivers: acpi: iort: replace rid map type with type mask
+  drivers: acpi: iort: add single mapping function
+  drivers: acpi: iort: introduce iort_iommu_configure
+
+ drivers/acpi/arm64/iort.c         | 595 +++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/glue.c               |   4 +-
+ drivers/acpi/scan.c               |  45 +++
+ drivers/iommu/arm-smmu-v3.c       | 105 +++++--
+ drivers/iommu/arm-smmu.c          | 154 ++++++++--
+ drivers/iommu/iommu.c             |  40 +++
+ drivers/iommu/of_iommu.c          |  39 ---
+ drivers/pci/probe.c               |   3 +-
+ include/acpi/acpi_bus.h           |   2 +
+ include/asm-generic/vmlinux.lds.h |   1 +
+ include/linux/acpi.h              |  26 ++
+ include/linux/acpi_iort.h         |  14 +
+ include/linux/fwnode.h            |   3 +-
+ include/linux/iommu.h             |  14 +
+ include/linux/of_iommu.h          |  12 +-
+ 15 files changed, 953 insertions(+), 104 deletions(-)
+
 -- 
-2.7.4
+2.10.0
 
