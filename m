@@ -1,56 +1,220 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Wed, 16 Nov 2016 08:48:30 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A28F642@SHSMSX101.ccr.corp.intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v4] tools/power/acpi: Remove direct kernel source include reference
+Date: Wed, 16 Nov 2016 17:27:34 +0800
+Message-ID: <e97ef944a00367f7024d6c92cf024df3fbf00647.1479288051.git.lv.zheng@intel.com>
 References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
- <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
- <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
- <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
- <CAHp75Vc3aSW09AXzWs5yY=iGSFPcz9zeB1F+dA=cNZTbPUG1Lg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27863 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752307AbcKPIse (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 03:48:34 -0500
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogWmhlbmcsIEx2DQo+IFN1YmplY3Q6IFJFOiBGaXggaW4gQUNQSUNBIHRv
-b2xzIGJyb2tlIGNyb3NzIGNvbXBpbGF0aW9uIG9mIHRvb2xzL3Bvd2VyL2FjcGkNCj4gDQo+IEhp
-LCBBbmR5DQo+IA0KPiA+IEZyb206IEFuZHkgU2hldmNoZW5rbyBbbWFpbHRvOmFuZHkuc2hldmNo
-ZW5rb0BnbWFpbC5jb21dDQo+ID4gU3ViamVjdDogUmU6IEZpeCBpbiBBQ1BJQ0EgdG9vbHMgYnJv
-a2UgY3Jvc3MgY29tcGlsYXRpb24gb2YgdG9vbHMvcG93ZXIvYWNwaQ0KPiA+DQo+ID4gT24gVHVl
-LCBOb3YgMTUsIDIwMTYgYXQgNTowMSBQTSwgQW5keSBTaGV2Y2hlbmtvDQo+ID4gPGFuZHkuc2hl
-dmNoZW5rb0BnbWFpbC5jb20+IHdyb3RlOg0KPiA+DQo+ID4gPiBUaGUgYmVsb3cgKyBzZXZlcmFs
-IHJ1bnMgKG5lZWQgdG8gc2VyaWFsaXplIG1ha2VmaWxlLCBieSBkZWZhdWx0IGl0DQo+ID4gPiBy
-YWNlcyBpbnN0YWxsIHZzLiBidWlsZCkgIGhlbHBlZCBldmVudHVhbGx5Lg0KPiA+DQo+ID4gSXNu
-J3QgYmV0dGVyIGp1c3QgdG8gcmV2ZXJ0IHBhdGNoIEkgbWVudGlvbiBhbmQgY29udGludWUgZnJv
-bSB3b3JraW5nIGNhc2U/DQo+IA0KPiBJdCdzIG5vdCBwb3NzaWJsZSB0byByZXZlcnQgdGhhdCBw
-YXRjaC4NCj4gSXQgY29udGFpbnMgY29ycmVjdCBoZWFkZXIgaW5jbHVzaW9uIGNsZWFudXBzLg0K
-PiBXaGlsZSB0aGlzIGNhc2UgaXMgaW4gZmFjdCBhIHNwZWNpYWwgY2FzZSwgYnVncyBpbiB0b29s
-cy9NYWtlZmlsZSBhcmUgdHJpZ2dlcmVkIChhYm91dCBPVVQvU1JDKS4NCj4gDQo+IE9UT0gsIHRo
-aXMgY2FzZSBpcyBhY3R1YWxseSBub3QgYSB2ZXJ5IHVzZWZ1bCBjYXNlLg0KPiBXZSBjYW4gc2Vl
-IG1hbnkgdG9vbHMgYnVpbGQgYnJva2VuIGZvciBjcm9zcy1jb21waWxlcnMsIGFuZCB0b29scy9w
-b3dlci9hY3BpIGlzIG5vdCB0aGUgb25seSBvbmUuDQo+IFdlIGFyZSBqdXN0IHRvIGltcHJvdmUg
-aXQuDQoNCldlIGNhbiBjbGVhcmx5IHNlZSB0aGF0Og0KMS4gdGhlIGNvbW1pdCBpcyBjb3JyZWN0
-LCBpdCBjYW4gY2xlYW5seSBzb3J0IHRoZSBpbmNsdXNpb24gb3JkZXJzLg0KMi4gdG9vbHMvcG93
-ZXIvYWNwaSBidWlsZCBpcyBzdGlsbCB3b3JraW5nLCBqdXN0IGhhdmUgaXNzdWVzIHdpdGggY3Jv
-c3MgdG9vbGNoYWlucy4NCjMuIHRoZSBzdHJpY3QgaW5jbHVzaW9uIG9yZGVyIChzaWduYWwuaCkg
-aXRzZWxmIGlzIGEgYnVnIC0gYmVjYXVzZSB0b29sY2hhaW4gaXNzdWUgYW5kIEFDUElDQSB0cmlj
-ay4NCjQuIHRvb2xzL3Bvd2VyL2FjcGkgbWFrZWZpbGVzIGFyZSBub3QgaGFuZGxpbmcgT1VUL1NS
-QyBjb3JyZWN0bHkuDQpTbyB3aHkgZG8gd2UgbmVlZCB0byByZXZlcnQgY29ycmVjdCB0aGluZyB0
-byBzdXBwb3J0IGEgYnVnZ3kgYmVoYXZpb3I/DQpXZSBhcmUganVzdCBmaW5kaW5nIGEgd2F5IHRv
-IG1ha2UgdG9vbHMvcG93ZXIvYWNwaSBidWlsZCBtb3JlIHJvYnVzdCBmb3Igc3VjaCBhIGJ1Z2d5
-IGJlaGF2aW9yLg0KDQpUaGFua3MNCkx2DQo=
+ACPICA tools trickily uses integer types, and trickily includes kernel
+include directory directly, which breaks tools build for some cross
+compilers.
+This patch improves ACPICA tools build to make it a bit more robust in such
+situation by splitting include/acpi into a separate output directory.
+
+This patch also contains OUTPUT/srctree cleanups in order to make above fix
+working for various build environments.
+
+Fixes: e323c02dee59 ("ACPICA: MSVC9: Fix <sys/stat.h> inclusion order issue")
+Reported-and-tested-by: Yisheng Xie <xieyisheng1@huawei.com>
+Reported-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+---
+ include/acpi/platform/aclinux.h          |  3 +++
+ tools/power/acpi/Makefile.config         | 23 +++++++++---------
+ tools/power/acpi/Makefile.rules          | 40 +++++++++++++++++++++-----------
+ tools/power/acpi/tools/acpidbg/Makefile  |  4 +---
+ tools/power/acpi/tools/acpidbg/acpidbg.c |  8 ++++++-
+ tools/power/acpi/tools/acpidump/Makefile | 12 +++++-----
+ 6 files changed, 56 insertions(+), 34 deletions(-)
+
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index a5d98d1..e861a24 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -191,6 +191,9 @@
+ #ifndef __init
+ #define __init
+ #endif
++#ifndef __iomem
++#define __iomem
++#endif
+ 
+ /* Host-dependent types and defines for user-space ACPICA */
+ 
+diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
+index a538ff4..a1883bb 100644
+--- a/tools/power/acpi/Makefile.config
++++ b/tools/power/acpi/Makefile.config
+@@ -8,18 +8,19 @@
+ # as published by the Free Software Foundation; version 2
+ # of the License.
+ 
+-include ../../../../scripts/Makefile.include
+-
+-OUTPUT=./
+-ifeq ("$(origin O)", "command line")
+-	OUTPUT := $(O)/
++ifeq ($(srctree),)
++srctree := $(patsubst %/,%,$(dir $(shell pwd)))
++srctree := $(patsubst %/,%,$(dir $(srctree)))
++#$(info Determined 'srctree' to be $(srctree))
+ endif
+ 
+-ifneq ($(OUTPUT),)
+-# check that the output directory actually exists
+-OUTDIR := $(shell cd $(OUTPUT) && /bin/pwd)
+-$(if $(OUTDIR),, $(error output directory "$(OUTPUT)" does not exist))
++include $(srctree)/../../scripts/Makefile.include
++
++OUTPUT=$(srctree)/
++ifeq ("$(origin O)", "command line")
++	OUTPUT := $(O)/power/acpi/
+ endif
++#$(info Determined 'OUTPUT' to be $(OUTPUT))
+ 
+ # --- CONFIGURATION BEGIN ---
+ 
+@@ -70,8 +71,8 @@ WARNINGS := -Wall
+ WARNINGS += $(call cc-supports,-Wstrict-prototypes)
+ WARNINGS += $(call cc-supports,-Wdeclaration-after-statement)
+ 
+-KERNEL_INCLUDE := ../../../include
+-ACPICA_INCLUDE := ../../../drivers/acpi/acpica
++KERNEL_INCLUDE := $(OUTPUT)include
++ACPICA_INCLUDE := $(srctree)/../../../drivers/acpi/acpica
+ CFLAGS += -D_LINUX -I$(KERNEL_INCLUDE) -I$(ACPICA_INCLUDE)
+ CFLAGS += $(WARNINGS)
+ 
+diff --git a/tools/power/acpi/Makefile.rules b/tools/power/acpi/Makefile.rules
+index ec87a9e..3737383 100644
+--- a/tools/power/acpi/Makefile.rules
++++ b/tools/power/acpi/Makefile.rules
+@@ -8,28 +8,42 @@
+ # as published by the Free Software Foundation; version 2
+ # of the License.
+ 
+-$(OUTPUT)$(TOOL): $(TOOL_OBJS) FORCE
+-	$(ECHO) "  LD      " $@
+-	$(QUIET) $(LD) $(CFLAGS) $(LDFLAGS) $(TOOL_OBJS) -L$(OUTPUT) -o $@
++objdir := $(OUTPUT)tools/$(TOOL)/
++toolobjs := $(addprefix $(objdir),$(TOOL_OBJS))
++$(OUTPUT)$(TOOL): $(toolobjs) FORCE
++	$(ECHO) "  LD      " $(subst $(OUTPUT),,$@)
++	$(QUIET) $(LD) $(CFLAGS) $(LDFLAGS) $(toolobjs) -L$(OUTPUT) -o $@
++	$(ECHO) "  STRIP   " $(subst $(OUTPUT),,$@)
+ 	$(QUIET) $(STRIPCMD) $@
+ 
+-$(OUTPUT)%.o: %.c
+-	$(ECHO) "  CC      " $@
++$(KERNEL_INCLUDE):
++	$(ECHO) "  MKDIR   " $(subst $(OUTPUT),,$@)
++	$(QUIET) mkdir -p $(KERNEL_INCLUDE)
++	$(ECHO) "  CP      " $(subst $(OUTPUT),,$@)
++	$(QUIET) cp -rf $(srctree)/../../../include/acpi $(KERNEL_INCLUDE)/
++
++$(objdir)%.o: %.c $(KERNEL_INCLUDE)
++	$(ECHO) "  CC      " $(subst $(OUTPUT),,$@)
+ 	$(QUIET) $(CC) -c $(CFLAGS) -o $@ $<
+ 
+ all: $(OUTPUT)$(TOOL)
+ clean:
+-	-find $(OUTPUT) \( -not -type d \) \
+-	-and \( -name '*~' -o -name '*.[oas]' \) \
+-	-type f -print \
+-	 | xargs rm -f
+-	-rm -f $(OUTPUT)$(TOOL)
++	$(ECHO) "  RMOBJ   " $(subst $(OUTPUT),,$(objdir))
++	$(QUIET) find $(objdir) \( -not -type d \)\
++		 -and \( -name '*~' -o -name '*.[oas]' \)\
++		 -type f -print | xargs rm -f
++	$(ECHO) "  RM      " $(TOOL)
++	$(QUIET) rm -f $(OUTPUT)$(TOOL)
++	$(ECHO) "  RMINC   " $(subst $(OUTPUT),,$(KERNEL_INCLUDE))
++	$(QUIET) rm -rf $(KERNEL_INCLUDE)
+ 
+ install-tools:
+-	$(INSTALL) -d $(DESTDIR)${sbindir}
+-	$(INSTALL_PROGRAM) $(OUTPUT)$(TOOL) $(DESTDIR)${sbindir}
++	$(ECHO) "  INST    " $(TOOL)
++	$(QUIET) $(INSTALL) -d $(DESTDIR)$(sbindir)
++	$(QUIET) $(INSTALL_PROGRAM) $(OUTPUT)$(TOOL) $(DESTDIR)$(sbindir)
+ uninstall-tools:
+-	- rm -f $(DESTDIR)${sbindir}/$(TOOL)
++	$(ECHO) "  UNINST  " $(TOOL)
++	$(QUIET) rm -f $(DESTDIR)$(sbindir)/$(TOOL)
+ 
+ install: all install-tools $(EXTRA_INSTALL)
+ uninstall: uninstall-tools $(EXTRA_UNINSTALL)
+diff --git a/tools/power/acpi/tools/acpidbg/Makefile b/tools/power/acpi/tools/acpidbg/Makefile
+index 352df4b..f2d06e7 100644
+--- a/tools/power/acpi/tools/acpidbg/Makefile
++++ b/tools/power/acpi/tools/acpidbg/Makefile
+@@ -17,9 +17,7 @@ vpath %.c \
+ 	../../os_specific/service_layers\
+ 	.
+ CFLAGS += -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER\
+-	-I.\
+-	-I../../../../../drivers/acpi/acpica\
+-	-I../../../../../include
++	-I.
+ LDFLAGS += -lpthread
+ TOOL_OBJS = \
+ 	acpidbg.o
+diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
+index a88ac45..4308362 100644
+--- a/tools/power/acpi/tools/acpidbg/acpidbg.c
++++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
+@@ -12,10 +12,16 @@
+ #include <acpi/acpi.h>
+ 
+ /* Headers not included by include/acpi/platform/aclinux.h */
++#include <unistd.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <error.h>
+ #include <stdbool.h>
+ #include <fcntl.h>
+ #include <assert.h>
+-#include <linux/circ_buf.h>
++#include <sys/select.h>
++#include "../../../../../include/linux/circ_buf.h"
+ 
+ #define ACPI_AML_FILE		"/sys/kernel/debug/acpi/acpidbg"
+ #define ACPI_AML_SEC_TICK	1
+diff --git a/tools/power/acpi/tools/acpidump/Makefile b/tools/power/acpi/tools/acpidump/Makefile
+index 04b5db7..f7c7af1 100644
+--- a/tools/power/acpi/tools/acpidump/Makefile
++++ b/tools/power/acpi/tools/acpidump/Makefile
+@@ -19,9 +19,7 @@ vpath %.c \
+ 	./\
+ 	../../common\
+ 	../../os_specific/service_layers
+-CFLAGS += -DACPI_DUMP_APP -I.\
+-	-I../../../../../drivers/acpi/acpica\
+-	-I../../../../../include
++CFLAGS += -DACPI_DUMP_APP -I.
+ TOOL_OBJS = \
+ 	apdump.o\
+ 	apfiles.o\
+@@ -49,7 +47,9 @@ TOOL_OBJS = \
+ 
+ include ../../Makefile.rules
+ 
+-install-man: ../../man/acpidump.8
+-	$(INSTALL_DATA) -D $< $(DESTDIR)${mandir}/man8/acpidump.8
++install-man: $(srctree)/man/acpidump.8
++	$(ECHO) "  INST    " acpidump.8
++	$(QUIET) $(INSTALL_DATA) -D $< $(DESTDIR)$(mandir)/man8/acpidump.8
+ uninstall-man:
+-	- rm -f $(DESTDIR)${mandir}/man8/acpidump.8
++	$(ECHO) "  UNINST  " acpidump.8
++	$(QUIET) rm -f $(DESTDIR)$(mandir)/man8/acpidump.8
+-- 
+2.7.4
