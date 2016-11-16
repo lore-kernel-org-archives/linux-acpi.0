@@ -1,63 +1,31 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH] acpi/sleep: Use the FADT to prefer Suspend-to-Idle
- instead of S3
-Date: Wed, 16 Nov 2016 20:18:13 +0000
-Message-ID: <7dafc2f8e66f4aeb9c242640af2e4988@ausx13mpc120.AMER.DELL.COM>
-References: <1478813718-12521-1-git-send-email-mario.limonciello@dell.com>
- <CAJZ5v0hLf+N7YakJrzfrWAgKF=Ywyx2v70hGes0+52brWMYnSA@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: GHES platform devices
+Date: Wed, 16 Nov 2016 15:36:25 -0600
+Message-ID: <20161116213625.GA10368@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa4.dell-outbound.iphmx.com ([68.232.149.214]:55926 "EHLO
-        esa4.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934384AbcKPUSQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 15:18:16 -0500
-In-Reply-To: <CAJZ5v0hLf+N7YakJrzfrWAgKF=Ywyx2v70hGes0+52brWMYnSA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail.kernel.org ([198.145.29.136]:51266 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932263AbcKPVg3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 16:36:29 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, luto@kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
-IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mDQo+IFJhZmFlbCBKLiBX
-eXNvY2tpDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJlciAxMCwgMjAxNiA1OjU0IFBNDQo+IFRv
-OiBMaW1vbmNpZWxsbywgTWFyaW8gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPg0KPiBDYzog
-QUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMZW4g
-QnJvd24NCj4gPGxlbmJAa2VybmVsLm9yZz47IFJhZmFlbCBKIC4gV3lzb2NraSA8cmp3QHJqd3lz
-b2NraS5uZXQ+OyBBbmR5DQo+IEx1dG9taXJza2kgPGx1dG9Aa2VybmVsLm9yZz4NCj4gU3ViamVj
-dDogUmU6IFtQQVRDSF0gYWNwaS9zbGVlcDogVXNlIHRoZSBGQURUIHRvIHByZWZlciBTdXNwZW5k
-LXRvLUlkbGUNCj4gaW5zdGVhZCBvZiBTMw0KPiANCj4gT24gVGh1LCBOb3YgMTAsIDIwMTYgYXQg
-MTA6MzUgUE0sIE1hcmlvIExpbW9uY2llbGxvDQo+IDxtYXJpby5saW1vbmNpZWxsb0BkZWxsLmNv
-bT4gd3JvdGU6DQo+ID4gSWYgdGhlIEFDUElfRkFEVF9MT1dfUE9XRVJfUzAgYml0IGlzIHNldCwg
-dGhpcyBpbmRpY2F0ZXMgdGhlIHBsYXRmb3JtDQo+ID4gc2hvdWxkIGdldCBpZGVudGljYWwgb3Ig
-YmV0dGVyIHBlcmZvcm1hbmNlIHVzaW5nIFN1c3BlbmQtVG8tSWRsZS4NCj4gPg0KPiA+IEJ5IHJl
-bW92aW5nIFMzIGFuZCBTMSB1c2Vyc3BhY2Ugd2lsbCBwcmVmZXIgc3VzcGVuZC10by1pZGxlIGlu
-DQo+ID4gdGhlc2Ugc2l0dWF0aW9ucyB0b28uDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBNYXJp
-byBMaW1vbmNpZWxsbyA8bWFyaW8ubGltb25jaWVsbG9AZGVsbC5jb20+DQo+ID4gLS0tDQo+ID4g
-IGRyaXZlcnMvYWNwaS9zbGVlcC5jIHwgMTEgKysrKysrKysrKysNCj4gPiAgMSBmaWxlIGNoYW5n
-ZWQsIDExIGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkv
-c2xlZXAuYyBiL2RyaXZlcnMvYWNwaS9zbGVlcC5jDQo+ID4gaW5kZXggZGViMGZmNy4uZmYxZDhm
-MSAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+ICsrKyBiL2RyaXZl
-cnMvYWNwaS9zbGVlcC5jDQo+ID4gQEAgLTE3MSw2ICsxNzEsMTIgQEAgc3RhdGljIGludCBfX2lu
-aXQgaW5pdF9udnNfbm9zYXZlKGNvbnN0IHN0cnVjdA0KPiBkbWlfc3lzdGVtX2lkICpkKQ0KPiA+
-ICAgICAgICAgcmV0dXJuIDA7DQo+ID4gIH0NCj4gPg0KPiA+ICtzdGF0aWMgYm9vbCBzdXNwZW5k
-X3RvX2lkbGVfcHJlZmVycmVkKHZvaWQpDQo+ID4gK3sNCj4gPiArICAgICAgIHJldHVybiAoYWNw
-aV9nYmxfRkFEVC5mbGFncyAmIEFDUElfRkFEVF9MT1dfUE9XRVJfUzApOw0KPiA+ICt9DQo+ID4g
-Kw0KPiA+ICsNCj4gPiAgc3RhdGljIHN0cnVjdCBkbWlfc3lzdGVtX2lkIGFjcGlzbGVlcF9kbWlf
-dGFibGVbXSBfX2luaXRkYXRhID0gew0KPiA+ICAgICAgICAgew0KPiA+ICAgICAgICAgLmNhbGxi
-YWNrID0gaW5pdF9vbGRfc3VzcGVuZF9vcmRlcmluZywNCj4gPiBAQCAtOTA4LDYgKzkxNCwxMSBA
-QCBpbnQgX19pbml0IGFjcGlfc2xlZXBfaW5pdCh2b2lkKQ0KPiA+ICAgICAgICAgICAgICAgICBh
-Y3BpX25vX3M1ID0gdHJ1ZTsNCj4gPiAgICAgICAgIH0NCj4gPg0KPiA+ICsgICAgICAgaWYgKHN1
-c3BlbmRfdG9faWRsZV9wcmVmZXJyZWQoKSkgew0KPiA+ICsgICAgICAgICAgICAgICBzbGVlcF9z
-dGF0ZXNbQUNQSV9TVEFURV9TM10gPSAwOw0KPiA+ICsgICAgICAgICAgICAgICBzbGVlcF9zdGF0
-ZXNbQUNQSV9TVEFURV9TMV0gPSAwOw0KPiA+ICsgICAgICAgfQ0KPiA+ICsNCj4gPiAgICAgICAg
-IHN1cHBvcnRlZFswXSA9IDA7DQo+ID4gICAgICAgICBmb3IgKGkgPSAwOyBpIDwgQUNQSV9TX1NU
-QVRFX0NPVU5UOyBpKyspIHsNCj4gPiAgICAgICAgICAgICAgICAgaWYgKHNsZWVwX3N0YXRlc1tp
-XSkNCj4gPiAtLQ0KPiANCj4gSSdkIGRvIHRoYXQgaW4gYSBkaWZmZXJlbnQgd2F5Lg0KPiANCj4g
-TGV0IG1lIGN1dCBhIHBhdGNoIGZvciB0aGF0IChJIGhhdmVuJ3QgaGFkIHRoZSB0aW1lIHRvIGRv
-IHRoYXQgeWV0KQ0KPiBhbmQgd2UnbGwgc2VlLg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCg0K
-T0ssIGxvb2sgZm9yd2FyZCB0byBzZWVpbmcgdGhlIGFwcHJvYWNoIHlvdSB3YW50IHRvIGdvIHdp
-dGggdGhpcw0KaW5zdGVhZC4NCg0KVGhhbmtzLA0K
+Hi Huang,
+
+7ad6e9435596 ("ACPI, APEI, Manage GHES as platform devices") added
+platform devices so the GHES driver could be built as a module and
+automatically loaded when needed.
+
+Later, 86cd47334b00 ("ACPI, APEI, GHES, Prevent GHES to be built as
+module") removed the ability to build GHES as a module.
+
+Should we revert 7ad6e9435596?  It's inconsistent to handle GHES, but
+not other error sources, as a platform device.  And having it as a
+platform device probably puts gunk in sysfs that we don't need.
+
+Bjorn
