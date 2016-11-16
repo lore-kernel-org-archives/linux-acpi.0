@@ -1,73 +1,60 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Wed, 16 Nov 2016 13:58:08 +0100
-Message-ID: <CAJZ5v0jtarN0svYwq6F6CmQJK=3MmY7CA77ywqHmVdi_3HVu8g@mail.gmail.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
- <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
- <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
- <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
- <CAHp75Vc3aSW09AXzWs5yY=iGSFPcz9zeB1F+dA=cNZTbPUG1Lg@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886A28F62C@SHSMSX101.ccr.corp.intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH v7 00/16] ACPI IORT ARM SMMU support
+Date: Wed, 16 Nov 2016 14:28:02 +0100
+Message-ID: <cd630404-3e75-f49f-9027-f2a79293aa7d@semihalf.com>
+References: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f180.google.com ([209.85.220.180]:32812 "EHLO
-        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752755AbcKPM6J (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2016 07:58:09 -0500
-Received: by mail-qk0-f180.google.com with SMTP id x190so173487682qkb.0
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Nov 2016 04:58:09 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A28F62C@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:36750 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751955AbcKPN2F (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2016 08:28:05 -0500
+Received: by mail-qt0-f172.google.com with SMTP id w33so100497363qtc.3
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Nov 2016 05:28:05 -0800 (PST)
+In-Reply-To: <20161109141948.19244-1-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Nov 16, 2016 at 9:43 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi, Andy
+On 09.11.2016 15:19, Lorenzo Pieralisi wrote:
+> This patch series is v7 of a previous posting:
 >
->> From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
->> Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
->>
->> On Tue, Nov 15, 2016 at 5:01 PM, Andy Shevchenko
->> <andy.shevchenko@gmail.com> wrote:
->>
->> > The below + several runs (need to serialize makefile, by default it
->> > races install vs. build)  helped eventually.
->>
->> Isn't better just to revert patch I mention and continue from working case?
+> https://lkml.org/lkml/2016/10/18/506
 >
-> It's not possible to revert that patch.
 
-It surely is possible to revert things, but it may not be a good idea.
-So I think you wanted to say that reverting this particular one would
-not be a good idea.
+[...]
 
-> It contains correct header inclusion cleanups.
+>
+> The ACPI IORT table provides information that allows instantiating
+> ARM SMMU devices and carrying out id mappings between components on
+> ARM based systems (devices, IOMMUs, interrupt controllers).
+>
+> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>
+> Building on basic IORT support, this patchset enables ARM SMMUs support
+> on ACPI systems.
+>
+> Most of the code is aimed at building the required generic ACPI
+> infrastructure to create and enable IOMMU components and to bring
+> the IOMMU infrastructure for ACPI on par with DT, which is going to
+> make future ARM SMMU components easier to integrate.
+>
 
-Cleanups are not a good enough reason for breaking builds.
+[...]
 
-> While this case is in fact a special case, bugs in tools/Makefile are triggered (about OUT/SRC).
+>
+> This patchset is provided for review/testing purposes here:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v7
+>
+> Tested on Juno and FVP models for ARM SMMU v1 and v3 probing path.
+>
 
-I'm not sure what you mean.
-
-> OTOH, this case is actually not a very useful case.
-
-In your opinion I guess?
-
-> We can see many tools build broken for cross-compilers, and tools/power/acpi is not the only one.
-
-I guess the issue is that it was not broken before and it is broken
-after your changes.  That's quite a bit of a difference.
-
-> We are just to improve it.
-
-That's nice, but see above.
+For all series:
+Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
 
 Thanks,
-Rafael
+Tomasz
