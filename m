@@ -1,61 +1,68 @@
-From: Jonathan Nicklin <jnicklin@blockbridge.com>
-Subject: Unable to use iTCO watchdog on Broadwell SOC:
-Date: Wed, 16 Nov 2016 11:08:54 -0500
-Message-ID: <CAHex0coy_mgDHi8N7UbAsWP5XLWhTAMK+JRkF1KMj7w=y5sbpw@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: Use NULL from <linux/stddef.h>
+Date: Wed, 16 Nov 2016 17:08:21 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E523C92@ORSMSX108.amr.corp.intel.com>
+References: <4f698429-49cf-689a-9eb5-978b182bb4bb@sandisk.com>
+ <CAJZ5v0jof4-JV+Fm_bBa+Fzxe2dLZ5KfoPNhZ_KfxvWX_NHDdg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:34813 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751589AbcKPQJl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2016 11:09:41 -0500
-Received: by mail-wm0-f46.google.com with SMTP id u144so33745711wmu.1
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Nov 2016 08:09:40 -0800 (PST)
+Received: from mga03.intel.com ([134.134.136.65]:2097 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932221AbcKPRI2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 12:08:28 -0500
+In-Reply-To: <CAJZ5v0jof4-JV+Fm_bBa+Fzxe2dLZ5KfoPNhZ_KfxvWX_NHDdg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Bart Van Assche <bart.vanassche@sandisk.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Everyone,
-
-We have a number of systems that fail to initialize the iTCO watchdog
-with =E2=80=9Cunable to reset NO_REBOOT flag, device disabled by
-hardware/BIOS=E2=80=9D. The systems include Broadwell SOC, Haswell w/ C222,
-and Ivy Bridge w/ C600/X79. These systems have different BIOS
-vendors/versions. We have tested with a few different kernel versions
-as recent as 4.4. We have only managed successfully configure the iTCO
-watchdog on a Haswell w/ C610/X99 system.
-
-Has anyone successfully used the iTCO watchdog on a Broadwell
-Xeon-D/SOC system? Can anyone provide advice on how to debug this
-issue?
-
-Thanks,
--Jonathan
-
-# uname -a
-Linux soc 4.4.23-1.el7.elrepo.x86_64 #1 SMP Fri Sep 30 09:11:50 EDT
-2016 x86_64 x86_64 x86_64 GNU/Linux
-
-# dmesg | grep iTCO
-[   18.544987] iTCO_vendor_support: vendor-support=3D0
-[   18.549213] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
-[   18.549245] iTCO_wdt: unable to reset NO_REBOOT flag, device
-disabled by hardware/BIOS
-
-# find /sys/devices | grep iTCO
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/control
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_active_t=
-ime
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/autosuspend_dela=
-y_ms
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_status
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_suspende=
-d_time
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/driver_override
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/modalias
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/subsystem
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/uevent
-/sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/firmware_node
+V2hhdCBpcyB0aGUgcG9pbnQgb2YgdGhlc2UgY2hhbmdlcz8NCg0KDQo+IC0tLS0tT3JpZ2luYWwg
+TWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
+a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU2VudDog
+TW9uZGF5LCBOb3ZlbWJlciAxNCwgMjAxNiAxMjoyMSBQTQ0KPiBUbzogQmFydCBWYW4gQXNzY2hl
+IDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNrLmNvbT47IFpoZW5nLCBMdg0KPiA8bHYuemhlbmdAaW50
+ZWwuY29tPjsgTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gQ2M6IFJh
+ZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBCcm93biA8bGVuYkBrZXJu
+ZWwub3JnPjsNCj4gbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQ
+QVRDSF0gYWNwaTogVXNlIE5VTEwgZnJvbSA8bGludXgvc3RkZGVmLmg+DQo+IA0KPiBPbiBNb24s
+IE5vdiAxNCwgMjAxNiBhdCA1OjUwIFBNLCBCYXJ0IFZhbiBBc3NjaGUNCj4gPGJhcnQudmFuYXNz
+Y2hlQHNhbmRpc2suY29tPiB3cm90ZToNCj4gPiBVc2UgdGhlIGRlZmluaXRpb24gb2YgTlVMTCBm
+cm9tIDxsaW51eC9zdGRkZWYuaD4gaW5zdGVhZCBvZiByZWRlZmluaW5nDQo+ID4gTlVMTC4gQWRk
+aXRpb25hbGx5LCBjaGFuZ2UgKHZvaWQgKilOVUxMIGludG8gTlVMTC4NCj4gPg0KPiA+IFNpZ25l
+ZC1vZmYtYnk6IEJhcnQgVmFuIEFzc2NoZSA8YmFydC52YW5hc3NjaGVAc2FuZGlzay5jb20+DQo+
+ID4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD4NCj4gPiBDYzogTGVu
+IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+DQo+ID4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
+b3JnDQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3R5cGVzLmggfCAxMiArKysrKy0tLS0t
+LS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkN
+Cj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0eXBlcy5oIGIvaW5jbHVkZS9h
+Y3BpL2FjdHlwZXMuaCBpbmRleA0KPiA+IDFkNzk4YWIuLmYwMTk2NDEgMTAwNjQ0DQo+ID4gLS0t
+IGEvaW5jbHVkZS9hY3BpL2FjdHlwZXMuaA0KPiA+ICsrKyBiL2luY2x1ZGUvYWNwaS9hY3R5cGVz
+LmgNCj4gPiBAQCAtNDQsNiArNDQsOCBAQA0KPiA+ICAjaWZuZGVmIF9fQUNUWVBFU19IX18NCj4g
+PiAgI2RlZmluZSBfX0FDVFlQRVNfSF9fDQo+ID4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L3N0ZGRl
+Zi5oPiAvKiBOVUxMICovDQo+IA0KPiBUaGlzIGlzIGZpbGUgaXMgYmFzZWQgb24gdXBzdHJlYW0g
+QUNQSUNBIGNvZGUgYW5kIGl0IHNob3VsZCBub3QgY29udGFpbg0KPiBMaW51eC1zcGVjaWZpYyBp
+bmNsdWRlcyBldGMuIGFzIGEgcnVsZS4NCj4gDQo+ID4gKw0KPiA+ICAvKiBhY3Bpc3JjOnN0cnVj
+dF9kZWZzIC0tIGZvciBhY3Bpc3JjIGNvbnZlcnNpb24gKi8NCj4gPg0KPiA+ICAvKg0KPiA+IEBA
+IC00MzcsMTAgKzQzOSw2IEBAIHR5cGVkZWYgdTY0IGFjcGlfcGh5c2ljYWxfYWRkcmVzczsgICNl
+bmRpZg0KPiA+ICAjZGVmaW5lIFRSVUUgICAgICAgICAgICAgICAgICAgICAgICAgICAgKDEgPT0g
+MSkNCj4gPg0KPiA+IC0jaWZuZGVmIE5VTEwNCj4gPiAtI2RlZmluZSBOVUxMICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICh2b2lkICopIDANCj4gPiAtI2VuZGlmDQo+ID4gLQ0KPiA+ICAvKg0K
+PiA+ICAgKiBNaXNjZWxsYW5lb3VzIHR5cGVzDQo+ID4gICAqLw0KPiA+IEBAIC01MzAsOSArNTI4
+LDkgQEAgdHlwZWRlZiB1NjQgYWNwaV9pbnRlZ2VyOw0KPiA+DQo+ID4gIC8qIFBvaW50ZXIvSW50
+ZWdlciB0eXBlIGNvbnZlcnNpb25zICovDQo+ID4NCj4gPiAtI2RlZmluZSBBQ1BJX1RPX1BPSU5U
+RVIoaSkgICAgICAgICAgICAgIEFDUElfQUREX1BUUiAodm9pZCwgKHZvaWQgKikNCj4gTlVMTCwo
+YWNwaV9zaXplKSBpKQ0KPiA+IC0jZGVmaW5lIEFDUElfVE9fSU5URUdFUihwKSAgICAgICAgICAg
+ICAgQUNQSV9QVFJfRElGRiAocCwgKHZvaWQgKikNCj4gTlVMTCkNCj4gPiAtI2RlZmluZSBBQ1BJ
+X09GRlNFVChkLCBmKSAgICAgICAgICAgICAgIEFDUElfUFRSX0RJRkYgKCYoKChkICopIDApLQ0K
+PiA+ZiksICh2b2lkICopIE5VTEwpDQo+ID4gKyNkZWZpbmUgQUNQSV9UT19QT0lOVEVSKGkpICAg
+ICAgICAgICAgICBBQ1BJX0FERF9QVFIodm9pZCwgTlVMTCwNCj4gKGFjcGlfc2l6ZSkgaSkNCj4g
+PiArI2RlZmluZSBBQ1BJX1RPX0lOVEVHRVIocCkgICAgICAgICAgICAgIEFDUElfUFRSX0RJRkYo
+cCwgTlVMTCkNCj4gPiArI2RlZmluZSBBQ1BJX09GRlNFVChkLCBmKSAgICAgICAgICAgICAgIEFD
+UElfUFRSX0RJRkYoJigoKGQgKikgMCktDQo+ID5mKSwgTlVMTCkNCj4gPiAgI2RlZmluZSBBQ1BJ
+X1BIWVNBRERSX1RPX1BUUihpKSAgICAgICAgIEFDUElfVE9fUE9JTlRFUihpKQ0KPiA+ICAjZGVm
+aW5lIEFDUElfUFRSX1RPX1BIWVNBRERSKGkpICAgICAgICAgQUNQSV9UT19JTlRFR0VSKGkpDQo+
+IA0KPiANCj4gTHYsIEJvYiwgY2FuIHlvdSBoYXZlIGEgbG9vayBhdCB0aGlzLCBwbGVhc2U/DQo+
+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0K
