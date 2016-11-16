@@ -1,46 +1,142 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v16 05/15] clocksource/drivers/arm_arch_timer: fix a bug in arch_timer_register about arch_timer_uses_ppi
-Date: Wed, 16 Nov 2016 21:48:58 +0800
-Message-ID: <1479304148-2965-6-git-send-email-fu.wei@linaro.org>
+Subject: [PATCH v16 06/15] clocksource/drivers/arm_arch_timer: separate out arch_timer_uses_ppi init code to prepare for GTDT.
+Date: Wed, 16 Nov 2016 21:48:59 +0800
+Message-ID: <1479304148-2965-7-git-send-email-fu.wei@linaro.org>
 References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55630 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932140AbcKPNud (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 08:50:33 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Fu Wei <fu.wei@linaro.org>
 
-The patch fix a potential bug about arch_timer_uses_ppi in
-arch_timer_register.
-On ARM64, we don't use ARCH_TIMER_PHYS_SECURE_PPI in Linux, so we will
-just igorne it in init code. If arch_timer_uses_ppi is
-ARCH_TIMER_PHYS_NONSECURE_PPI, the orignal code of
-arch_timer_uses_ppi may go wrong.
+The patch refactor original arch_timer_uses_ppi init code:
+(1) Extract a subfunction: arch_timer_uses_ppi_init
+(2) Use the new subfunction in arch_timer_of_init and
+arch_timer_acpi_init
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clocksource/arm_arch_timer.c | 73 +++++++++++++++++++++---------------
+ 1 file changed, 42 insertions(+), 31 deletions(-)
 
 diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index dd1040d..6de164f 100644
+index 6de164f..af22953 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
-@@ -699,7 +699,7 @@ static int __init arch_timer_register(void)
- 	case ARCH_TIMER_PHYS_NONSECURE_PPI:
- 		err = request_percpu_irq(ppi, arch_timer_handler_phys,
- 					 "arch_timer", arch_timer_evt);
--		if (!err && arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]) {
-+		if (!err && arch_timer_has_nonsecure_ppi()) {
- 			ppi = arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI];
- 			err = request_percpu_irq(ppi, arch_timer_handler_phys,
- 						 "arch_timer", arch_timer_evt);
+@@ -821,40 +821,42 @@ static int __init arch_timer_common_init(void)
+ 	return arch_timer_arch_init();
+ }
+ 
+-static int __init arch_timer_init(void)
++/*
++ * If HYP mode is available, we know that the physical timer
++ * has been configured to be accessible from PL1. Use it, so
++ * that a guest can use the virtual timer instead.
++ *
++ * If no interrupt provided for virtual timer, we'll have to
++ * stick to the physical timer. It'd better be accessible...
++ * On ARM64, we we only use ARCH_TIMER_PHYS_NONSECURE_PPI in Linux.
++ *
++ * On ARMv8.1 with VH extensions, the kernel runs in HYP. VHE
++ * accesses to CNTP_*_EL1 registers are silently redirected to
++ * their CNTHP_*_EL2 counterparts, and use a different PPI
++ * number.
++ */
++static int __init arch_timer_uses_ppi_init(void)
+ {
+-	int ret;
+-	/*
+-	 * If HYP mode is available, we know that the physical timer
+-	 * has been configured to be accessible from PL1. Use it, so
+-	 * that a guest can use the virtual timer instead.
+-	 *
+-	 * If no interrupt provided for virtual timer, we'll have to
+-	 * stick to the physical timer. It'd better be accessible...
+-	 *
+-	 * On ARMv8.1 with VH extensions, the kernel runs in HYP. VHE
+-	 * accesses to CNTP_*_EL1 registers are silently redirected to
+-	 * their CNTHP_*_EL2 counterparts, and use a different PPI
+-	 * number.
+-	 */
+-	if (is_hyp_mode_available() || !arch_timer_ppi[ARCH_TIMER_VIRT_PPI]) {
+-		bool has_ppi;
+-
+-		if (is_kernel_in_hyp_mode()) {
+-			arch_timer_uses_ppi = ARCH_TIMER_HYP_PPI;
+-			has_ppi = !!arch_timer_ppi[ARCH_TIMER_HYP_PPI];
+-		} else {
++	if (is_hyp_mode_available() && is_kernel_in_hyp_mode()) {
++		arch_timer_uses_ppi = ARCH_TIMER_HYP_PPI;
++	} else if (!arch_timer_ppi[ARCH_TIMER_VIRT_PPI]) {
++		if (IS_ENABLED(CONFIG_ARM64))
++			arch_timer_uses_ppi = ARCH_TIMER_PHYS_NONSECURE_PPI;
++		else
+ 			arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
+-			has_ppi = (!!arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI] ||
+-				   !!arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
+-		}
+-
+-		if (!has_ppi) {
+-			pr_warn("No interrupt available, giving up\n");
+-			return -EINVAL;
+-		}
+ 	}
+ 
++	if (arch_timer_ppi[arch_timer_uses_ppi])
++		return 0;
++
++	pr_warn("No interrupt available, giving up\n");
++	return -EINVAL;
++}
++
++static int __init arch_timer_init(void)
++{
++	int ret;
++
+ 	ret = arch_timer_register();
+ 	if (ret)
+ 		return ret;
+@@ -870,7 +872,7 @@ static int __init arch_timer_init(void)
+ 
+ static int __init arch_timer_of_init(struct device_node *np)
+ {
+-	int i;
++	int i, ret;
+ 
+ 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+ 		pr_warn("multiple nodes in dt, skipping\n");
+@@ -902,6 +904,10 @@ static int __init arch_timer_of_init(struct device_node *np)
+ 	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+ 		arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
+ 
++	ret = arch_timer_uses_ppi_init();
++	if (ret)
++		return ret;
++
+ 	return arch_timer_init();
+ }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
+@@ -1011,6 +1017,7 @@ static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
+ /* Initialize per-processor generic timer */
+ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ {
++	int ret;
+ 	struct acpi_table_gtdt *gtdt;
+ 
+ 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+@@ -1041,6 +1048,10 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 	/* Get the frequency from CNTFRQ */
+ 	arch_timer_detect_rate(NULL, NULL);
+ 
++	ret = arch_timer_uses_ppi_init();
++	if (ret)
++		return ret;
++
+ 	/* Always-on capability */
+ 	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
+ 
 -- 
 2.7.4
-
