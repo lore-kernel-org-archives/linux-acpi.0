@@ -1,138 +1,182 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Thu, 17 Nov 2016 16:02:34 +0100
-Message-ID: <CAJZ5v0hwV5gcGE-unmTdW6U5VFvoWs7RR17iKabbo5ahzgFTMw@mail.gmail.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
- <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
- <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
- <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
- <CAHp75Vc3aSW09AXzWs5yY=iGSFPcz9zeB1F+dA=cNZTbPUG1Lg@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A28F62C@SHSMSX101.ccr.corp.intel.com>
- <CAJZ5v0jtarN0svYwq6F6CmQJK=3MmY7CA77ywqHmVdi_3HVu8g@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886A28FB87@SHSMSX101.ccr.corp.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH] PCI: Add information about describing PCI in ACPI
+Date: Thu, 17 Nov 2016 11:59:38 -0600
+Message-ID: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f170.google.com ([209.85.216.170]:33144 "EHLO
-        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751948AbcKQQ4w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Nov 2016 11:56:52 -0500
-Received: by mail-qt0-f170.google.com with SMTP id p16so135872948qta.0
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Nov 2016 08:56:52 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A28FB87@SHSMSX101.ccr.corp.intel.com>
+Received: from mail.kernel.org ([198.145.29.136]:50246 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750813AbcKQR7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Nov 2016 12:59:42 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org
 
-On Thu, Nov 17, 2016 at 4:10 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi, Rafael
->
->> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of Rafael J. Wysocki
->> Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
->>
->> On Wed, Nov 16, 2016 at 9:43 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
->> > Hi, Andy
->> >
->> >> From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
->> >> Subject: Re: Fix in ACPICA tools broke cross compilation of tools/power/acpi
->> >>
->> >> On Tue, Nov 15, 2016 at 5:01 PM, Andy Shevchenko
->> >> <andy.shevchenko@gmail.com> wrote:
->> >>
->> >> > The below + several runs (need to serialize makefile, by default it
->> >> > races install vs. build)  helped eventually.
->> >>
->> >> Isn't better just to revert patch I mention and continue from working case?
->> >
->> > It's not possible to revert that patch.
->>
->> It surely is possible to revert things, but it may not be a good idea.
->> So I think you wanted to say that reverting this particular one would
->> not be a good idea.
->
-> Yes, it's not a good idea.
-> The cleanup is correct.
->
->>
->> > It contains correct header inclusion cleanups.
->>
->> Cleanups are not a good enough reason for breaking builds.
->
-> It doesn't break, build is OK in my environment.
->
->>
->> > While this case is in fact a special case, bugs in tools/Makefile are triggered (about OUT/SRC).
->>
->> I'm not sure what you mean.
->
-> I'm wrong here.
-> The only issue triggered is:
-> The following line in the acenv.h need to be commented out:
-> #include <signal.h>
->
->>
->> > OTOH, this case is actually not a very useful case.
->>
->> In your opinion I guess?
->
-> Yes. IMO,
-> The above breakage looks much more strange than the commit itself.
-> It's better to make the build successful without commenting this line out.
->
-> Such kind of regressions bothered me a lot.
-> It seems we can easily fell into such old traps.
->
-> If I cannot fix the new regression in time, I will sure suggest to revert breakage commit before a better solution can be offered after investigation.
-> However, for this issue:
-> 1. There is actually no serious breakage (only toolchains built with incompliant kernel headers)
-> 2. We have fixed the issue, but the fix need to be improved.
-> So reverting the correct commit isn't a good idea.
-> Reverting it may trigger more serious issues because of wrong header inclusion orders.
-> Let me improve it.
->
->>
->> > We can see many tools build broken for cross-compilers, and tools/power/acpi is not the only one.
->>
->> I guess the issue is that it was not broken before and it is broken
->> after your changes.  That's quite a bit of a difference.
->
-> IMO, the non-updated toolchains/or ACPICA's sX/uX definitions are actually buggy while the commit isn't.
->
->>
->> > We are just to improve it.
->>
->> That's nice, but see above.
->
-> Yes, we have fixed it.
-> And Yisheng Xie has feedback that this issue has been fixed.
->
-> However, the v1 fix contains problem:
-> There is one line dependency not correct:
->  acpidbg acpidump ec: include/acpi FORCE
-> I failed to correct it in v2/v3:
->  $(OUTPUT)$(TOOL): $(KERNEL_INCLUDE) $(toolobjs) FORCE
-> Which was criticized by Andy, complaining new breaks for parallel builds.
-> Now in v4, it is corrected:
->  $(objdir)%.o: %.c $(KERNEL_INCLUDE)
->
-> However, in v2/v3, I cleaned up OUTPUT related code and changed its behavior of build with "O=".
-> In v2/v3, build "O=" from tools/power/acpi folder passes, but build from tools folder fails.
-> In v4, build "O=" from tools folder passes, but build from tools/power/acpi folder fails.
->
-> There doesn't seem to be a solution to make both cases working.
-> Because the "descend" macro in tools/scripts/Makefile.include cannot handle both cases.
-> Stopping using "descend" macro in tools/power/acpi/Makefile could be the only possible fix...
-> So we only need one of them working and IMO v4 is suitable for Andy's needs.
->
-> As a conclusion, v4 should be OK now.
+Add a writeup about how PCI host bridges should be described in ACPI
+using PNP0A03/PNP0A08 devices, PNP0C02 devices, and the MCFG table.
 
-OK, I've queued it up and I'm going to push it for -rc6 tomorrow.
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ Documentation/PCI/00-INDEX      |    2 +
+ Documentation/PCI/acpi-info.txt |  136 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 138 insertions(+)
+ create mode 100644 Documentation/PCI/acpi-info.txt
 
-Thanks,
-Rafael
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index 147231f..0780280 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- this file
++acpi-info.txt
++	- info on how PCI host bridges are represented in ACPI
+ MSI-HOWTO.txt
+ 	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
+ PCIEBUS-HOWTO.txt
+diff --git a/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
+new file mode 100644
+index 0000000..ccbcfda
+--- /dev/null
++++ b/Documentation/PCI/acpi-info.txt
+@@ -0,0 +1,136 @@
++	    ACPI considerations for PCI host bridges
++
++The basic requirement is that the ACPI namespace should describe
++*everything* that consumes address space unless there's another
++standard way for the OS to find it [1, 2].  For example, windows that
++are forwarded to PCI by a PCI host bridge should be described via ACPI
++devices, since the OS can't locate the host bridge by itself.  PCI
++devices *below* the host bridge do not need to be described via ACPI,
++because the resources they consume are inside the host bridge windows,
++and the OS can discover them via the standard PCI enumeration
++mechanism (using config accesses to read and size the BARs).
++
++This ACPI resource description is done via _CRS methods of devices in
++the ACPI namespace [2].   _CRS methods are like generalized PCI BARs:
++the OS can read _CRS and figure out what resource is being consumed
++even if it doesn't have a driver for the device [3].  That's important
++because it means an old OS can work correctly even on a system with
++new devices unknown to the OS.  The new devices won't do anything, but
++the OS can at least make sure no resources conflict with them.
++
++Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms for
++reserving address space!  The static tables are for things the OS
++needs to know early in boot, before it can parse the ACPI namespace.
++If a new table is defined, an old OS needs to operate correctly even
++though it ignores the table.  _CRS allows that because it is generic
++and understood by the old OS; a static table does not.
++
++If the OS is expected to manage an ACPI device, that device will have
++a specific _HID/_CID that tells the OS what driver to bind to it, and
++the _CRS tells the OS and the driver where the device's registers are.
++
++PNP0C02 "motherboard" devices are basically a catch-all.  There's no
++programming model for them other than "don't use these resources for
++anything else."  So any address space that is (1) not claimed by some
++other ACPI device and (2) should not be assigned by the OS to
++something else, should be claimed by a PNP0C02 _CRS method.
++
++PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
++describe all the address space they consume.  In principle, this would
++be all the windows they forward down to the PCI bus, as well as the
++bridge registers themselves.  The bridge registers include things like
++secondary/subordinate bus registers that determine the bus range below
++the bridge, window registers that describe the apertures, etc.  These
++are all device-specific, non-architected things, so the only way a
++PNP0A03/PNP0A08 driver can manage them is via _PRS/_CRS/_SRS, which
++contain the device-specific details.  These bridge registers also
++include ECAM space, since it is consumed by the bridge.
++
++ACPI defined a Producer/Consumer bit that was intended to distinguish
++the bridge apertures from the bridge registers [4, 5].  However,
++BIOSes didn't use that bit correctly, and the result is that OSes have
++to assume that everything in a PCI host bridge _CRS is a window.  That
++leaves no way to describe the bridge registers in the PNP0A03/PNP0A08
++device itself.
++
++The workaround is to describe the bridge registers (including ECAM
++space) in PNP0C02 catch-all devices [6].  With the exception of ECAM,
++the bridge register space is device-specific anyway, so the generic
++PNP0A03/PNP0A08 driver (pci_root.c) has no need to know about it.  For
++ECAM, pci_root.c learns about the space from either MCFG or the _CBA
++method.
++
++Note that the PCIe spec actually does require ECAM unless there's a
++standard firmware interface for config access, e.g., the ia64 SAL
++interface [7].  One reason is that we want a generic host bridge
++driver (pci_root.c), and a generic driver requires a generic way to
++access config space.
++
++
++[1] ACPI 6.0, sec 6.1:
++    For any device that is on a non-enumerable type of bus (for
++    example, an ISA bus), OSPM enumerates the devices' identifier(s)
++    and the ACPI system firmware must supply an _HID object ... for
++    each device to enable OSPM to do that.
++
++[2] ACPI 6.0, sec 3.7:
++    The OS enumerates motherboard devices simply by reading through
++    the ACPI Namespace looking for devices with hardware IDs.
++
++    Each device enumerated by ACPI includes ACPI-defined objects in
++    the ACPI Namespace that report the hardware resources the device
++    could occupy [_PRS], an object that reports the resources that are
++    currently used by the device [_CRS], and objects for configuring
++    those resources [_SRS].  The information is used by the Plug and
++    Play OS (OSPM) to configure the devices.
++
++[3] ACPI 6.0, sec 6.2:
++    OSPM uses device configuration objects to configure hardware
++    resources for devices enumerated via ACPI.  Device configuration
++    objects provide information about current and possible resource
++    requirements, the relationship between shared resources, and
++    methods for configuring hardware resources.
++
++    When OSPM enumerates a device, it calls _PRS to determine the
++    resource requirements of the device.  It may also call _CRS to
++    find the current resource settings for the device.  Using this
++    information, the Plug and Play system determines what resources
++    the device should consume and sets those resources by calling the
++    device’s _SRS control method.
++
++    In ACPI, devices can consume resources (for example, legacy
++    keyboards), provide resources (for example, a proprietary PCI
++    bridge), or do both.  Unless otherwise specified, resources for a
++    device are assumed to be taken from the nearest matching resource
++    above the device in the device hierarchy.
++
++[4] ACPI 6.0, sec 6.4.3.5.4:
++    Extended Address Space Descriptor
++    General Flags: Bit [0] Consumer/Producer:
++	1–This device consumes this resource
++	0–This device produces and consumes this resource
++
++[5] ACPI 6.0, sec 19.6.43:
++    ResourceUsage specifies whether the Memory range is consumed by
++    this device (ResourceConsumer) or passed on to child devices
++    (ResourceProducer).  If nothing is specified, then
++    ResourceConsumer is assumed.
++
++[6] PCI Firmware 3.0, sec 4.1.2:
++    If the operating system does not natively comprehend reserving the
++    MMCFG region, the MMCFG region must be reserved by firmware.  The
++    address range reported in the MCFG table or by _CBA method (see
++    Section 4.1.3) must be reserved by declaring a motherboard
++    resource.  For most systems, the motherboard resource would appear
++    at the root of the ACPI namespace (under \_SB) in a node with a
++    _HID of EISAID (PNP0C02), and the resources in this case should
++    not be claimed in the root PCI bus’s _CRS.  The resources can
++    optionally be returned in Int15 E820 or EFIGetMemoryMap as
++    reserved memory but must always be reported through ACPI as a
++    motherboard resource.
++
++[7] PCI Express 3.0, sec 7.2.2:
++    For systems that are PC-compatible, or that do not implement a
++    processor-architecture-specific firmware interface standard that
++    allows access to the Configuration Space, the ECAM is required as
++    defined in this section.
+
