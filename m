@@ -1,57 +1,50 @@
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Subject: Re: [PATCH] tpm: vtpm_proxy: Do not access host's event log
-Date: Thu, 17 Nov 2016 12:37:43 -0800
-Message-ID: <20161117203743.odzdpwwynzlqyt5m@intel.com>
-References: <1479306245-14456-1-git-send-email-stefanb@linux.vnet.ibm.com>
- <20161116153731.pmmnxiai7ouuj6qf@intel.com>
- <3a38ddc6-1758-ae82-3df3-9cc55906880d@linux.vnet.ibm.com>
- <65f392b6-5141-c726-dacb-a1649ea215de@linux.vnet.ibm.com>
- <20161116200759.GA19593@obsidianresearch.com>
- <ef1f954d-fc52-0522-01f7-b0e31ea14c59@linux.vnet.ibm.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 0/2] PM / sleep: Support for using suspend-to-idle by
+ default
+Date: Thu, 17 Nov 2016 20:40:46 +0000
+Message-ID: <71203ae1bfe54eb39d79c54b51ba7ae8@ausx13mpc120.AMER.DELL.COM>
+References: <9316960.49SRRJV8RJ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:59689 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751233AbcKQUho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Nov 2016 15:37:44 -0500
-Content-Disposition: inline
-In-Reply-To: <ef1f954d-fc52-0522-01f7-b0e31ea14c59@linux.vnet.ibm.com>
+Received: from esa7.dell-outbound.iphmx.com ([68.232.153.96]:1874 "EHLO
+        esa7.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751059AbcKQUks (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Nov 2016 15:40:48 -0500
+In-Reply-To: <9316960.49SRRJV8RJ@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Berger <stefanb@linux.vnet.ibm.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, tpmdd-devel@lists.sourceforge.net, nayna@linux.vnet.ibm.com, linux-acpi@vger.kernel.org, linux-security-module@vger.kernel.org
+To: rjw@rjwysocki.net, linux-pm@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, linux-kernel@vger.kernel.org, luto@kernel.org
 
-On Thu, Nov 17, 2016 at 07:35:05AM -0500, Stefan Berger wrote:
-> On 11/16/2016 03:07 PM, Jason Gunthorpe wrote:
-> > On Wed, Nov 16, 2016 at 12:07:23PM -0500, Stefan Berger wrote:
-> > > The culprit seems to be 'tpm: fix the missing .owner in
-> > > tpm_bios_measurements_ops'
-> > That is unlikely, it is probably the patch before which calls read_log
-> > unconditionally now. That suggests the crashing is a little random..
-> 
-> I ran the vtpm driver test suite (with -j32) a few times at that patch and
-> it didn't crash. It crashes severely with later patches applied. Here's the
-> current experimental patch that fixes these problems:
-> 
-> iff --git a/drivers/char/tpm/tpm_acpi.c b/drivers/char/tpm/tpm_acpi.c
-> index 0cb43ef..a73295a 100644
-> --- a/drivers/char/tpm/tpm_acpi.c
-> +++ b/drivers/char/tpm/tpm_acpi.c
-> @@ -56,6 +56,9 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
-> 
->      log = &chip->log;
-> 
-> +    if (!chip->acpi_dev_handle)
-> +        return 0;
-> +
-
-If there is a problem in the TPM driver, this does not fix the
-problem. It will mask the problem. Maybe there's an ACPI regression
-in the rc tree?
-
-This is a funky situation because those lines need to be there but
-I do not want them before it is root caused that it is not a TPM
-bug.
-
-/Jarkko
+SGkgUmFmYWVsLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFl
+bCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+IFNlbnQ6IFdlZG5lc2Rh
+eSwgTm92ZW1iZXIgMTYsIDIwMTYgODoxOSBQTQ0KPiBUbzogTGludXggUE0gbGlzdCA8bGludXgt
+cG1Admdlci5rZXJuZWwub3JnPg0KPiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgt
+YWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMZW4gQnJvd24NCj4gPGxlbi5icm93bkBpbnRlbC5jb20+
+OyBMaW51eCBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVs
+Lm9yZz47IExpbW9uY2llbGxvLCBNYXJpbw0KPiA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+
+OyBBbmR5IEx1dG9taXJza2kgPGx1dG9Aa2VybmVsLm9yZz4NCj4gU3ViamVjdDogW1BBVENIIDAv
+Ml0gUE0gLyBzbGVlcDogU3VwcG9ydCBmb3IgdXNpbmcgc3VzcGVuZC10by1pZGxlIGJ5DQo+IGRl
+ZmF1bHQNCj4gDQo+IEhpLA0KPiANCj4gVGhpcyBzZXJpZXMgaXMgYSBmb2xsb3ctdXAgZm9yIGEg
+Qm9GIGRpc2N1c3Npb24gZHVyaW5nIHRoZSBMUEMuDQo+IA0KPiBUaGUgZGlzY3Vzc2lvbiB3YXMg
+YWJvdXQgc3VwcG9ydGluZyBMaW51eCBvbiBtb2Rlcm4gbGFwdG9wcyBhbmQgb25lIG9mDQo+IHRo
+ZSBpc3N1ZXMgbWVudGlvbmVkIHdhcyB0aGUgbGFjayBvZiBzdXBwb3J0IGZvciBzdXNwZW5kLXRv
+LWlkbGUgaW4gdXNlcg0KPiBzcGFjZSBhbmQgaWYgdGhlcmUncyBhbnl0aGluZyB0aGF0IGNhbiBi
+ZSBkb25lIGFib3V0IHRoYXQgaW4gdGhlIGtlcm5lbC4NCj4gDQo+IFRoZSBmb2xsb3dpbmcgcGF0
+Y2hlcyBhcmUgbXkgaW5wdXQuIDotKQ0KPiANCj4gVGhlIGZpcnN0IG9uZSByZXdvcmtzIHRoZSBz
+dXNwZW5kIGludGVyZmFjZSB0byBhbGxvdyB0aGUgIm1lbSIgc3RyaW5nDQo+IGluIC9zeXMvcG93
+ZXIvc3RhdGUgdG8gcmVwcmVzZW50IG11bHRpcGxlIHRoaW5ncyB0aGF0IGNhbiBiZSBzZWxlY3Rl
+ZCB2aWENCj4gYW4gYWRkaXRpb25hbCBzeXNmcyBhdHRyaWJ1dGUuDQo+IA0KPiBUaGUgc2Vjb25k
+IG9uZSBtYWtlcyBBQ1BJIHNlbGVjdCBzdXNwZW5kLXRvLWlkbGUgYXMgdGhlIGRlZmF1bHQgc3Vz
+cGVuZA0KPiBtb2RlDQo+IGlmIHNvIGluZGljYXRlZCBpbiB0aGUgRkFEVC4NCj4gDQo+IFBsZWFz
+ZSBsZXQgbWUga25vdyB3aGF0IHlvdSB0aGluay4NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoN
+ClRoYW5rcyBmb3Igc3VibWl0dGluZy4gIEkgbGlrZSB0aGUgYXBwcm9hY2gsIGVzcGVjaWFsbHkg
+dGhhdCBpdCBsZWF2ZXMgcm9vbQ0KdG8gZWFzaWx5IG1vZGlmeSB0aGUgYmVoYXZpb3IgZm9yIGRl
+YnVnZ2luZyBwdXJwb3NlcyBhbmQgYWRkaW5nIHF1aXJrcy4NCg0KSSB0ZXN0ZWQgeW91ciBzZXJp
+ZXMgb24gYSBtYWNoaW5lIHRoYXQgaGFkIHRoaXMgYml0IHNldCBpbiB0aGUgRkFEVCBhbmQNCmNv
+bmZpcm1lZCB0aGF0IGl0IHNldCB1cCBhbmQgdXNlZCBwb2xpY3kgcHJvcGVybHkuDQoNClRlc3Rl
+ZC1CeTogTWFyaW8gTGltb25jaWVsbG8gPG1hcmlvLmxpbW9uY2llbGxvQGRlbGwuY29tPg0K
