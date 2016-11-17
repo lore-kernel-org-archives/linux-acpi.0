@@ -1,96 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/sleep: Use the FADT to prefer Suspend-to-Idle instead of S3
-Date: Thu, 17 Nov 2016 16:25:50 +0100
-Message-ID: <1870300.pUnYT5AraT@vostro.rjw.lan>
-References: <1478813718-12521-1-git-send-email-mario.limonciello@dell.com> <CAJZ5v0hLf+N7YakJrzfrWAgKF=Ywyx2v70hGes0+52brWMYnSA@mail.gmail.com> <7dafc2f8e66f4aeb9c242640af2e4988@ausx13mpc120.AMER.DELL.COM>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
+ calls to hotplugged cpu")]
+Date: Thu, 17 Nov 2016 19:14:56 +0200
+Message-ID: <20161117171456.GZ31595@intel.com>
+References: <alpine.DEB.2.20.1610272035180.4913@nanos>
+ <20161027192006.GF4617@intel.com>
+ <alpine.DEB.2.20.1610272122510.4913@nanos>
+ <20161027203745.GH4617@intel.com>
+ <alpine.DEB.2.20.1610272238390.4913@nanos>
+ <20161028155603.GI4617@intel.com>
+ <alpine.DEB.2.20.1610282049500.5053@nanos>
+ <20161101204737.GB4617@intel.com>
+ <20161109035418.GA18246@shbuild888>
+ <CA+55aFyOSHrP0--+dNB0qcoCumTP4KUd6g=2Jt3WUw_W6o+aRg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44592 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754426AbcKQREx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Nov 2016 12:04:53 -0500
-In-Reply-To: <7dafc2f8e66f4aeb9c242640af2e4988@ausx13mpc120.AMER.DELL.COM>
+Received: from mga07.intel.com ([134.134.136.100]:58490 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754264AbcKQRPG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 17 Nov 2016 12:15:06 -0500
+Content-Disposition: inline
+In-Reply-To: <CA+55aFyOSHrP0--+dNB0qcoCumTP4KUd6g=2Jt3WUw_W6o+aRg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, luto@kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Feng Tang <feng.tang@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Feng Tang <feng.79.tang@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.k>
 
-On Wednesday, November 16, 2016 08:18:13 PM Mario.Limonciello@dell.com wrote:
-> > -----Original Message-----
-> > From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
-> > Rafael J. Wysocki
-> > Sent: Thursday, November 10, 2016 5:54 PM
-> > To: Limonciello, Mario <Mario_Limonciello@Dell.com>
-> > Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Len Brown
-> > <lenb@kernel.org>; Rafael J . Wysocki <rjw@rjwysocki.net>; Andy
-> > Lutomirski <luto@kernel.org>
-> > Subject: Re: [PATCH] acpi/sleep: Use the FADT to prefer Suspend-to-Idle
-> > instead of S3
-> > 
-> > On Thu, Nov 10, 2016 at 10:35 PM, Mario Limonciello
-> > <mario.limonciello@dell.com> wrote:
-> > > If the ACPI_FADT_LOW_POWER_S0 bit is set, this indicates the platform
-> > > should get identical or better performance using Suspend-To-Idle.
-> > >
-> > > By removing S3 and S1 userspace will prefer suspend-to-idle in
-> > > these situations too.
-> > >
-> > > Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
-> > > ---
-> > >  drivers/acpi/sleep.c | 11 +++++++++++
-> > >  1 file changed, 11 insertions(+)
-> > >
-> > > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> > > index deb0ff7..ff1d8f1 100644
-> > > --- a/drivers/acpi/sleep.c
-> > > +++ b/drivers/acpi/sleep.c
-> > > @@ -171,6 +171,12 @@ static int __init init_nvs_nosave(const struct
-> > dmi_system_id *d)
-> > >         return 0;
-> > >  }
-> > >
-> > > +static bool suspend_to_idle_preferred(void)
-> > > +{
-> > > +       return (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0);
-> > > +}
-> > > +
-> > > +
-> > >  static struct dmi_system_id acpisleep_dmi_table[] __initdata = {
-> > >         {
-> > >         .callback = init_old_suspend_ordering,
-> > > @@ -908,6 +914,11 @@ int __init acpi_sleep_init(void)
-> > >                 acpi_no_s5 = true;
-> > >         }
-> > >
-> > > +       if (suspend_to_idle_preferred()) {
-> > > +               sleep_states[ACPI_STATE_S3] = 0;
-> > > +               sleep_states[ACPI_STATE_S1] = 0;
-> > > +       }
-> > > +
-> > >         supported[0] = 0;
-> > >         for (i = 0; i < ACPI_S_STATE_COUNT; i++) {
-> > >                 if (sleep_states[i])
-> > > --
-> > 
-> > I'd do that in a different way.
-> > 
-> > Let me cut a patch for that (I haven't had the time to do that yet)
-> > and we'll see.
-> > 
-> > Thanks,
-> > Rafael
+On Tue, Nov 08, 2016 at 10:08:37PM -0800, Linus Torvalds wrote:
+> On Tue, Nov 8, 2016 at 7:54 PM, Feng Tang <feng.tang@intel.com> wrote:
+> > On Wed, Nov 02, 2016 at 04:47:37AM +0800, Ville Syrjälä wrote:
+> >>
+> >> I left the thing running for the weekend and it failed 26 out of 16057
+> >> times with the 25ms timeout. Looks like it takes ~5 minutes to resume
+> >> when it fails, but eventually it does come back.
+> >
+> > Just came back from a travel. Yes, the 5 minutes delay may be due to the
+> > expiration of the HPET timer, counting from 0 to 0xffffffff for a 13M
+> > frequencey HPET takes about 300 seconds. After resume, it seems nobody
+> > arms it so my old patch forces to arm one event.
 > 
-> OK, look forward to seeing the approach you want to go with this
-> instead.
+> Ville, what happens if you disable HPET? Can you force the TSC with
+> "clocksource=tsc" or "tsc=reliable". Does resume work reliably then?
+> 
+> Or is this one of the CPU's where tsc just doesn't work?
 
-Please have a look at
+tsc=reliable allows use of the tsc it seems. Doesn't seem to help
+with resuming though.
 
-https://patchwork.kernel.org/patch/9433421/
-https://patchwork.kernel.org/patch/9433429/
-
-Thanks,
-Rafael
-
+-- 
+Ville Syrjälä
+Intel OTC
