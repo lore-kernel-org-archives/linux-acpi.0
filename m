@@ -1,50 +1,62 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 0/2] PM / sleep: Support for using suspend-to-idle by
- default
-Date: Thu, 17 Nov 2016 20:40:46 +0000
-Message-ID: <71203ae1bfe54eb39d79c54b51ba7ae8@ausx13mpc120.AMER.DELL.COM>
-References: <9316960.49SRRJV8RJ@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/2] PM / sleep: Support for using suspend-to-idle by default
+Date: Thu, 17 Nov 2016 22:05:08 +0100
+Message-ID: <CAJZ5v0g-eOciw_3PZBvaHPzh8sMpe0Fbx6RmCTiS1Nax=Bxh3w@mail.gmail.com>
+References: <9316960.49SRRJV8RJ@vostro.rjw.lan> <71203ae1bfe54eb39d79c54b51ba7ae8@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa7.dell-outbound.iphmx.com ([68.232.153.96]:1874 "EHLO
-        esa7.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751059AbcKQUks (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 17 Nov 2016 15:40:48 -0500
-In-Reply-To: <9316960.49SRRJV8RJ@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <71203ae1bfe54eb39d79c54b51ba7ae8@ausx13mpc120.AMER.DELL.COM>
+Sender: linux-pm-owner@vger.kernel.org
+To: Mario Limonciello <Mario.Limonciello@dell.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, linux-pm@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, linux-kernel@vger.kernel.org, luto@kernel.org
 
-SGkgUmFmYWVsLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFl
-bCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+IFNlbnQ6IFdlZG5lc2Rh
-eSwgTm92ZW1iZXIgMTYsIDIwMTYgODoxOSBQTQ0KPiBUbzogTGludXggUE0gbGlzdCA8bGludXgt
-cG1Admdlci5rZXJuZWwub3JnPg0KPiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgt
-YWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMZW4gQnJvd24NCj4gPGxlbi5icm93bkBpbnRlbC5jb20+
-OyBMaW51eCBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVs
-Lm9yZz47IExpbW9uY2llbGxvLCBNYXJpbw0KPiA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+
-OyBBbmR5IEx1dG9taXJza2kgPGx1dG9Aa2VybmVsLm9yZz4NCj4gU3ViamVjdDogW1BBVENIIDAv
-Ml0gUE0gLyBzbGVlcDogU3VwcG9ydCBmb3IgdXNpbmcgc3VzcGVuZC10by1pZGxlIGJ5DQo+IGRl
-ZmF1bHQNCj4gDQo+IEhpLA0KPiANCj4gVGhpcyBzZXJpZXMgaXMgYSBmb2xsb3ctdXAgZm9yIGEg
-Qm9GIGRpc2N1c3Npb24gZHVyaW5nIHRoZSBMUEMuDQo+IA0KPiBUaGUgZGlzY3Vzc2lvbiB3YXMg
-YWJvdXQgc3VwcG9ydGluZyBMaW51eCBvbiBtb2Rlcm4gbGFwdG9wcyBhbmQgb25lIG9mDQo+IHRo
-ZSBpc3N1ZXMgbWVudGlvbmVkIHdhcyB0aGUgbGFjayBvZiBzdXBwb3J0IGZvciBzdXNwZW5kLXRv
-LWlkbGUgaW4gdXNlcg0KPiBzcGFjZSBhbmQgaWYgdGhlcmUncyBhbnl0aGluZyB0aGF0IGNhbiBi
-ZSBkb25lIGFib3V0IHRoYXQgaW4gdGhlIGtlcm5lbC4NCj4gDQo+IFRoZSBmb2xsb3dpbmcgcGF0
-Y2hlcyBhcmUgbXkgaW5wdXQuIDotKQ0KPiANCj4gVGhlIGZpcnN0IG9uZSByZXdvcmtzIHRoZSBz
-dXNwZW5kIGludGVyZmFjZSB0byBhbGxvdyB0aGUgIm1lbSIgc3RyaW5nDQo+IGluIC9zeXMvcG93
-ZXIvc3RhdGUgdG8gcmVwcmVzZW50IG11bHRpcGxlIHRoaW5ncyB0aGF0IGNhbiBiZSBzZWxlY3Rl
-ZCB2aWENCj4gYW4gYWRkaXRpb25hbCBzeXNmcyBhdHRyaWJ1dGUuDQo+IA0KPiBUaGUgc2Vjb25k
-IG9uZSBtYWtlcyBBQ1BJIHNlbGVjdCBzdXNwZW5kLXRvLWlkbGUgYXMgdGhlIGRlZmF1bHQgc3Vz
-cGVuZA0KPiBtb2RlDQo+IGlmIHNvIGluZGljYXRlZCBpbiB0aGUgRkFEVC4NCj4gDQo+IFBsZWFz
-ZSBsZXQgbWUga25vdyB3aGF0IHlvdSB0aGluay4NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoN
-ClRoYW5rcyBmb3Igc3VibWl0dGluZy4gIEkgbGlrZSB0aGUgYXBwcm9hY2gsIGVzcGVjaWFsbHkg
-dGhhdCBpdCBsZWF2ZXMgcm9vbQ0KdG8gZWFzaWx5IG1vZGlmeSB0aGUgYmVoYXZpb3IgZm9yIGRl
-YnVnZ2luZyBwdXJwb3NlcyBhbmQgYWRkaW5nIHF1aXJrcy4NCg0KSSB0ZXN0ZWQgeW91ciBzZXJp
-ZXMgb24gYSBtYWNoaW5lIHRoYXQgaGFkIHRoaXMgYml0IHNldCBpbiB0aGUgRkFEVCBhbmQNCmNv
-bmZpcm1lZCB0aGF0IGl0IHNldCB1cCBhbmQgdXNlZCBwb2xpY3kgcHJvcGVybHkuDQoNClRlc3Rl
-ZC1CeTogTWFyaW8gTGltb25jaWVsbG8gPG1hcmlvLmxpbW9uY2llbGxvQGRlbGwuY29tPg0K
+On Thu, Nov 17, 2016 at 9:40 PM,  <Mario.Limonciello@dell.com> wrote:
+> Hi Rafael,
+>
+>> -----Original Message-----
+>> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+>> Sent: Wednesday, November 16, 2016 8:19 PM
+>> To: Linux PM list <linux-pm@vger.kernel.org>
+>> Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Len Brown
+>> <len.brown@intel.com>; Linux Kernel Mailing List <linux-
+>> kernel@vger.kernel.org>; Limonciello, Mario
+>> <Mario_Limonciello@Dell.com>; Andy Lutomirski <luto@kernel.org>
+>> Subject: [PATCH 0/2] PM / sleep: Support for using suspend-to-idle by
+>> default
+>>
+>> Hi,
+>>
+>> This series is a follow-up for a BoF discussion during the LPC.
+>>
+>> The discussion was about supporting Linux on modern laptops and one of
+>> the issues mentioned was the lack of support for suspend-to-idle in user
+>> space and if there's anything that can be done about that in the kernel.
+>>
+>> The following patches are my input. :-)
+>>
+>> The first one reworks the suspend interface to allow the "mem" string
+>> in /sys/power/state to represent multiple things that can be selected via
+>> an additional sysfs attribute.
+>>
+>> The second one makes ACPI select suspend-to-idle as the default suspend
+>> mode
+>> if so indicated in the FADT.
+>>
+>> Please let me know what you think.
+>>
+>> Thanks,
+>> Rafael
+>
+> Thanks for submitting.  I like the approach, especially that it leaves room
+> to easily modify the behavior for debugging purposes and adding quirks.
+
+Well, that's the point. :-)
+
+> I tested your series on a machine that had this bit set in the FADT and
+> confirmed that it set up and used policy properly.
+>
+> Tested-By: Mario Limonciello <mario.limonciello@dell.com>
+
+Thanks!
