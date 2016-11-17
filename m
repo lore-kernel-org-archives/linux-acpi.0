@@ -1,496 +1,194 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V4 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Thu, 17 Nov 2016 09:28:03 +0100
-Message-ID: <326c0cd0-2a93-92b0-1293-4b8a0f99db8e@semihalf.com>
-References: <1478682897-119874-1-git-send-email-liudongdong3@huawei.com>
- <1478682897-119874-3-git-send-email-liudongdong3@huawei.com>
- <20161114233320.GB30262@bhelgaas-glaptop.roam.corp.google.com>
- <20161116230040.GA19913@bhelgaas-glaptop.roam.corp.google.com>
- <350379a5-733e-a91d-a3c1-ca932e8bde72@huawei.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v16 00/15] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 17 Nov 2016 17:25:14 +0800
+Message-ID: <d8b5ca3f-d756-ae2e-012c-3cabc38dd39a@huawei.com>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <944d11ac-3c0d-72c0-6888-df8e474e21bb@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38117 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751689AbcKQI2H (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Nov 2016 03:28:07 -0500
-Received: by mail-wm0-f43.google.com with SMTP id f82so129476973wmf.1
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Nov 2016 00:28:06 -0800 (PST)
-In-Reply-To: <350379a5-733e-a91d-a3c1-ca932e8bde72@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <944d11ac-3c0d-72c0-6888-df8e474e21bb@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-Hi Dongdong,
 
-I rewrite your code so that it could be used for ThunderX as well.
-This assumes _UID&segment is the right way of looking up corelated RC.
-Of course acpi_get_rc_resources() and its acpi_* helpers should go to 
-pci-acpi.c.
+Sorry for not describing specifically in the last mail.
+I have applied all the patches of this patchset on Linux 4.9, and tested
+the per-cpu timer and sbsa watchdog part, which function well on D05 board.
 
-Tomasz
-
-static int acpi_get_rc_addr(struct acpi_device *adev, struct resource *res)
-{
-	struct resource_entry *entry;
-	struct list_head list;
-	unsigned long flags;
-	int ret;
-
-	INIT_LIST_HEAD(&list);
-	flags = IORESOURCE_MEM;
-	ret = acpi_dev_get_resources(adev, &list,
-			acpi_dev_filter_resource_type_cb, (void *) flags);
-	if (ret < 0) {
-		dev_err(&adev->dev,
-				"failed to parse _CRS method, error code %d\n",
-				ret);
-		return ret;
-	} else if (ret == 0) {
-		dev_err(&adev->dev,
-				"no IO and memory resources present in _CRS\n");
-		return -EINVAL;
-	}
-
-	entry = list_first_entry(&list, struct resource_entry, node);
-	*res = *entry->res;
-	acpi_dev_free_resource_list(&list);
-	return 0;
-}
-
-static acpi_status acpi_match_rc(acpi_handle handle, u32 lvl, void *context,
-				 void **retval)
-{
-	u16 *segment = context;
-	unsigned long long uid;
-	acpi_status status;
-
-	status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
-	if (ACPI_FAILURE(status) || uid != *segment)
-		return AE_CTRL_DEPTH;
-
-	*(acpi_handle *)retval = handle;
-	return AE_CTRL_TERMINATE;
-}
-
-static int acpi_get_rc_resources(const char *hid, u16 segment,
-				 struct resource *res)
-{
-	struct acpi_device *adev;
-	acpi_status status;
-	acpi_handle handle;
-	int ret;
-
-	status = acpi_get_devices(hid, acpi_match_rc, &segment, &handle);
-	if (ACPI_FAILURE(status)) {
-		pr_err("Can't find _HID %s device", hid);
-		return -ENODEV;
-	}
-
-	ret = acpi_bus_get_device(handle, &adev);
-	if (ret)
-		return ret;
-
-	ret = acpi_get_rc_addr(adev, res);
-	if (ret) {
-		dev_err(&adev->dev, "can't get RC resource");
-		return ret;
-	}
-
-	return 0;
-}
-
-static int hisi_pcie_init(struct pci_config_window *cfg)
-{
-	struct acpi_device *adev = to_acpi_device(cfg->parent);
-	struct acpi_pci_root *root = acpi_driver_data(adev);
-	void __iomem *reg_base;
-	struct resource *res;
-	acpi_status status;
-	acpi_handle handle;
-	int ret;
-
-	res = devm_kzalloc(&adev->dev, sizeof(*res), GFP_KERNEL);
-	if (!res)
-		return -ENOMEM;
-
-	ret = acpi_get_rc_resources("HISI0081", root->segment, res);
-	if (ret) {
-		dev_err(&adev->dev, "can't get rc base address");
-		return ret;
-	}
-
-	reg_base = devm_ioremap(&adev->dev, res->start, resource_size(res));
-	if (!reg_base)
-		return -ENOMEM;
-
-	cfg->priv = reg_base;
-	return 0;
-}
-
-On 17.11.2016 04:02, Dongdong Liu wrote:
-> Hi Bjorn
-> 在 2016/11/17 7:00, Bjorn Helgaas 写道:
->> On Mon, Nov 14, 2016 at 05:33:20PM -0600, Bjorn Helgaas wrote:
->>> On Wed, Nov 09, 2016 at 05:14:57PM +0800, Dongdong Liu wrote:
->>>> PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
->>>> It is non ECAM only for the RC bus config space;for any other bus
->>>> underneath the root bus we support ECAM access.
->>>> Add specific quirks for PCI config space accessors.This involves:
->>>> 1. New initialization call hisi_pcie_init() to obtain rc base
->>>> addresses from PNP0C02 as subdevice of PNP0A03.
->>>> 2. New entry in common quirk array.
->>>>
->>>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
->>>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
->>>> ---
->>>>  MAINTAINERS                       |   1 +
->>>>  drivers/acpi/pci_mcfg.c           |  13 ++++
->>>>  drivers/pci/host/Kconfig          |   8 ++
->>>>  drivers/pci/host/Makefile         |   1 +
->>>>  drivers/pci/host/pcie-hisi-acpi.c | 157
->>>> ++++++++++++++++++++++++++++++++++++++
->>>>  include/linux/pci-ecam.h          |   5 ++
->>>>  6 files changed, 185 insertions(+)
->>>>  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
->>>>
->>>> diff --git a/MAINTAINERS b/MAINTAINERS
->>>> index 1cd38a7..b224caa 100644
->>>> --- a/MAINTAINERS
->>>> +++ b/MAINTAINERS
->>>> @@ -9358,6 +9358,7 @@ L:    linux-pci@vger.kernel.org
->>>>  S:    Maintained
->>>>  F:    Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
->>>>  F:    drivers/pci/host/pcie-hisi.c
->>>> +F:    drivers/pci/host/pcie-hisi-acpi.c
->>>>
->>>>  PCIE DRIVER FOR ROCKCHIP
->>>>  M:    Shawn Lin <shawn.lin@rock-chips.com>
->>>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->>>> index ac21db3..b1b6fc7 100644
->>>> --- a/drivers/acpi/pci_mcfg.c
->>>> +++ b/drivers/acpi/pci_mcfg.c
->>>> @@ -57,6 +57,19 @@ struct mcfg_fixup {
->>>>      { "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
->>>>      { "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
->>>>      { "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
->>>> +#ifdef CONFIG_PCI_HISI_ACPI
->>>> +    #define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
->>>> +    { "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
->>>> +    { "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
->>>> +    { "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
->>>> +    { "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
->>>> +    PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
->>>> +    PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
->>>> +    PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
->>>> +    PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
->>>> +    PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
->>>> +    PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
->>>> +#endif
->>>>  };
->>>>
->>>>  static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
->>>> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
->>>> index ae98644..9ff2bcd 100644
->>>> --- a/drivers/pci/host/Kconfig
->>>> +++ b/drivers/pci/host/Kconfig
->>>> @@ -227,6 +227,14 @@ config PCI_HISI
->>>>        Say Y here if you want PCIe controller support on HiSilicon
->>>>        Hip05 and Hip06 and Hip07 SoCs
->>>>
->>>> +config PCI_HISI_ACPI
->>>> +    depends on ACPI && ARM64
->>>> +    bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe
->>>> controllers"
->>>> +    select PNP
->>>> +    help
->>>> +      Say Y here if you want ACPI PCIe controller support on HiSilicon
->>>> +      Hip05 and Hip06 and Hip07 SoCs
->>>> +
->>>>  config PCIE_QCOM
->>>>      bool "Qualcomm PCIe controller"
->>>>      depends on ARCH_QCOM && OF
->>>> diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
->>>> index 084cb49..9402858 100644
->>>> --- a/drivers/pci/host/Makefile
->>>> +++ b/drivers/pci/host/Makefile
->>>> @@ -26,6 +26,7 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
->>>>  obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
->>>>  obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
->>>>  obj-$(CONFIG_PCI_HISI) += pcie-hisi.o
->>>> +obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o
->>>>  obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
->>>>  obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
->>>>  obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
->>>> diff --git a/drivers/pci/host/pcie-hisi-acpi.c
->>>> b/drivers/pci/host/pcie-hisi-acpi.c
->>>> new file mode 100644
->>>> index 0000000..aade4b5
->>>> --- /dev/null
->>>> +++ b/drivers/pci/host/pcie-hisi-acpi.c
->>>> @@ -0,0 +1,157 @@
->>>> +/*
->>>> + * PCIe host controller driver for HiSilicon HipXX SoCs
->>>> + *
->>>> + * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
->>>> + *
->>>> + * Author: Dongdong Liu <liudongdong3@huawei.com>
->>>> + *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or
->>>> modify
->>>> + * it under the terms of the GNU General Public License version 2 as
->>>> + * published by the Free Software Foundation.
->>>> + */
->>>> +#include <linux/pci.h>
->>>> +#include <linux/pci-acpi.h>
->>>> +#include <linux/pci-ecam.h>
->>>> +
->>>> +#define DEBUG0                0x728
->>>> +#define PCIE_LTSSM_LINKUP_STATE        0x11
->>>> +#define PCIE_LTSSM_STATE_MASK        0x3F
->>>
->>> These are now unused.
->>>
->>>> +static const struct acpi_device_id hisi_pcie_rc_res_ids[] = {
->>>> +    {"HISI0081", 0},
->>>> +    {"", 0},
->>>> +};
->>>> +
->>>> +static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn,
->>>> int where,
->>>> +                  int size, u32 *val)
->>>> +{
->>>> +    struct pci_config_window *cfg = bus->sysdata;
->>>> +    int dev = PCI_SLOT(devfn);
->>>> +
->>>> +    if (bus->number == cfg->busr.start) {
->>>> +        /* access only one slot on each root port */
->>>> +        if (dev > 0)
->>>> +            return PCIBIOS_DEVICE_NOT_FOUND;
->>>> +        else
->>>> +            return pci_generic_config_read32(bus, devfn, where,
->>>> +                             size, val);
->>>> +    }
->>>> +
->>>> +    return pci_generic_config_read(bus, devfn, where, size, val);
->>>> +}
->>>> +
->>>> +static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
->>>> +                  int where, int size, u32 val)
->>>> +{
->>>> +    struct pci_config_window *cfg = bus->sysdata;
->>>> +    int dev = PCI_SLOT(devfn);
->>>> +
->>>> +    if (bus->number == cfg->busr.start) {
->>>> +        /* access only one slot on each root port */
->>>> +        if (dev > 0)
->>>> +            return PCIBIOS_DEVICE_NOT_FOUND;
->>>> +        else
->>>> +            return pci_generic_config_write32(bus, devfn, where,
->>>> +                              size, val);
->>>> +    }
->>>> +
->>>> +    return pci_generic_config_write(bus, devfn, where, size, val);
->>>> +}
->>>> +
->>>> +static void __iomem *hisi_pcie_map_bus(struct pci_bus *bus,
->>>> unsigned int devfn,
->>>> +                       int where)
->>>> +{
->>>> +    struct pci_config_window *cfg = bus->sysdata;
->>>> +    void __iomem *reg_base = cfg->priv;
->>>> +
->>>> +    if (bus->number == cfg->busr.start)
->>>> +        return reg_base + where;
->>>> +    else
->>>> +        return pci_ecam_map_bus(bus, devfn, where);
->>>> +}
->>>> +
->>>> +/*
->>>> + * Retrieve RC base and size from sub-device under the RC
->>>> + * Device (RES1)
->>>> + * {
->>>> + *    Name (_HID, "HISI0081")
->>>> + *    Name (_CID, "PNP0C02")
->>>> + *    Name (_CRS, ResourceTemplate (){
->>>> + *        Memory32Fixed (ReadWrite, 0xb0080000, 0x10000)
->>>> + *    })
->>>> + * }
->>>> + */
->>>> +static int hisi_pcie_rc_addr_get(struct acpi_device *adev,
->>>> +                 void __iomem **addr)
->>>> +{
->>>> +    struct acpi_device *child_adev;
->>>> +    struct list_head list;
->>>> +    struct resource *res;
->>>> +    struct resource_entry *entry;
->>>> +    unsigned long flags;
->>>> +    int ret;
->>>> +
->>>> +    list_for_each_entry(child_adev, &adev->children, node) {
->>>> +        ret = acpi_match_device_ids(child_adev, hisi_pcie_rc_res_ids);
->>>> +        if (ret)
->>>> +            continue;
->>>> +
->>>> +        INIT_LIST_HEAD(&list);
->>>> +        flags = IORESOURCE_MEM;
->>>> +        ret = acpi_dev_get_resources(child_adev, &list,
->>>> +                         acpi_dev_filter_resource_type_cb,
->>>> +                         (void *)flags);
->>>> +        if (ret < 0) {
->>>> +            dev_err(&child_adev->dev,
->>>> +                "failed to parse _CRS method, error code %d\n",
->>>> +                ret);
->>>> +            return ret;
->>>> +        } else if (ret == 0) {
->>>> +            dev_err(&child_adev->dev,
->>>> +                "no IO and memory resources present in _CRS\n");
->>>> +            return -EINVAL;
->>>> +        }
->>>> +
->>>> +        entry = list_first_entry(&list, struct resource_entry, node);
->>>> +        res = entry->res;
->>>> +        *addr = devm_ioremap(&child_adev->dev,
->>>> +                     res->start, resource_size(res));
->>>> +        acpi_dev_free_resource_list(&list);
->>>> +        if (IS_ERR(*addr)) {
->>>> +            dev_err(&child_adev->dev, "error with ioremap\n");
->>>> +            return -ENOMEM;
->>>> +        }
->>>> +
->>>> +        return 0;
->>>> +    }
->>>> +
->>>> +    return -EINVAL;
->>>> +}
->>>
->>> OK, so MCFG (with the possible help of quirks) tells us where *most*
->>> of this RC's ECAM space is, but it doesn't tell us where the root bus
->>> ECAM space is, which is why we need this block of ugly code.  Right?
+On 2016/11/17 11:34, Xiongfeng Wang wrote:
+> Tested-by:  wangxiongfeng2@huawei.com on D05 board.
+> 
+> 
+> On 2016/11/16 21:48, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
 >>
->> Tomasz is doing the same thing for ThunderX.  Can we share the code
->> somehow, e.g., add something that takes the _HID to look for and just
->> returns the register address?  Maybe in pci-acpi.c, decl in
->> drivers/pci/pci.h, under #ifdef CONFIG_ARM64?0
->
-> As we have the PNP0C02 device at the root of the ACPI namespace (under
-> \_SB).
-> We need a way to tell which root bus the PNP0C02 resource belong to.
->
-> Firstly, use _HID(HISI0081) to get the PNP0C02 devices that we need..
-> Secondly, use _UID to match segment to tell which root bus the PNP0C02
-> resource belong to.
->
-> The implementaton is as below. What do you think about this?
-> If the code is ok for other manufacturers, we can share the code.
->
-> struct hisi_pcie_acpi {
->     u16 segment;
->     acpi_handle handle;
-> };
->
-> /*
->  * Retrieve RC base and size from PNP0C02 at the root of the ACPI namespace
->  * (under \_SB).
->  * Device (RES0)
->  * {
->  *    Name (_HID, "HISI0081")
->  *    Name (_CID, "PNP0C02")
->  *    Name (_UID, 0x0)
->  *    Name (_CRS, ResourceTemplate (){
->  *        Memory32Fixed (ReadWrite, 0xa0090000, 0x10000)
->  *    })
->  * }
->  */
-> static int hisi_pcie_rc_addr_get(struct acpi_device *adev,
->                  void __iomem **addr)
-> {
->     struct list_head list;
->     struct resource *res;
->     struct resource_entry *entry;
->     unsigned long flags;
->     int ret;
->
->     INIT_LIST_HEAD(&list);
->     flags = IORESOURCE_MEM;
->     ret = acpi_dev_get_resources(adev, &list,
->                      acpi_dev_filter_resource_type_cb,
->                      (void *)flags);
->     if (ret < 0) {
->         dev_err(&adev->dev,
->             "failed to parse _CRS method, error code %d\n",
->             ret);
->         return ret;
->     } else if (ret == 0) {
->         dev_err(&adev->dev,
->             "no IO and memory resources present in _CRS\n");
->         return -EINVAL;
->     }
->
->     entry = list_first_entry(&list, struct resource_entry, node);
->     res = entry->res;
->     *addr = devm_ioremap(&adev->dev,
->                  res->start, resource_size(res));
->     acpi_dev_free_resource_list(&list);
->     if (IS_ERR(*addr)) {
->         dev_err(&adev->dev, "error with ioremap\n");
->         return -ENOMEM;
->     }
->
->     return 0;
-> }
->
-> static acpi_status find_rc_resource(acpi_handle handle, u32 lvl,
->                     void *context, void **rv)
-> {
->     struct hisi_pcie_acpi *pcie_acpi = context;
->     acpi_status status;
->     unsigned long long uid;
->
->     status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
->     if (ACPI_FAILURE(status) || uid != pcie_acpi->segment)
->         return AE_CTRL_DEPTH;
->
->     pcie_acpi->handle = handle;
->     return AE_CTRL_TERMINATE;
-> }
->
-> static int hisi_pcie_init(struct pci_config_window *cfg)
-> {
->     struct acpi_device *adev = to_acpi_device(cfg->parent);
->     struct acpi_pci_root *root = acpi_driver_data(adev);
->     struct hisi_pcie_acpi *pcie_acpi;
->     int ret;
->     void __iomem *reg_base;
->
->     pcie_acpi = devm_kzalloc(&adev->dev, sizeof(*pcie_acpi), GFP_KERNEL);
->     if (!pcie_acpi)
->         return -ENOMEM;
->
->     pcie_acpi->segment = root->segment;
->     acpi_get_devices("HISI0081", find_rc_resource, pcie_acpi, NULL);
->
->     ret = acpi_bus_get_device(pcie_acpi->handle, &adev);
->     if (ret)
->         return ret;
->
->     ret = hisi_pcie_rc_addr_get(adev, &reg_base);
->     if (ret) {
->         dev_err(&adev->dev, "can't get rc base address");
->         return ret;
->     }
->
->     cfg->priv = pcie_acpi->reg_base;
->     return 0;
-> }
->
-> Thanks
-> Dongdong
+>> This patchset:
+>>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>>         1. Move some enums and marcos to header file;
+>>         2. Add a new enum for spi type;
+>>         3. Improve printk relevant code.
+>>         4. rename some  enums and defines, and some cleanups.
+>>         5. separate out arch_timer_uses_ppi init code and fix a potential bug
+>>         6. Refactor arch_timer_detect_rate to keep dt code only in *_of_init
+>>         7. Refactor arch_timer_needs_probing, and call it only if acpi disabled.
+>>         8. Introduce some new structs and refactor the timer init code
 >>
->> .
+>>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>>     memory-mapped timer and SBSA Generic Watchdog timer.
+>>     This driver can help to simplify all the relevant timer drivers,
+>>     and separate all the ACPI GTDT knowledge from them.
 >>
->
+>>     (3)Simplify ACPI code for arm_arch_timer
+>>
+>>     (4)Add GTDT support for ARM memory-mapped timer, also refactor
+>>     original memory-mapped timer dt support for reusing some common
+>>     code.
+>>
+>> This patchset has been tested on the following platforms with ACPI enabled:
+>>     (1)ARM Foundation v8 model
+>>
+>> Changelog:
+>> v16: https://lkml.org/lkml/2016/
+>>      Fix patchset problem about static enum ppi_nr of 01/13 in v15.
+>>      Refactor arch_timer_detect_rate.
+>>      Refactor arch_timer_needs_probing.
+>>
+>> v15: https://lkml.org/lkml/2016/11/15/366
+>>      Re-order patches
+>>      Add arm_arch_timer refactoring patches to prepare for GTDT:
+>>          1. rename some  enums and defines, and some cleanups
+>>          2. separate out arch_timer_uses_ppi init code and fix a potential bug
+>>          3. Improve some new structs, refactor the timer init code.
+>>      Since the some structs have been changed, GTDT parser for memory-mapped
+>>      timer and SBSA Generic Watchdog timer have been update.
+>>
+>> v14: https://lkml.org/lkml/2016/9/28/573
+>>      Separate memory-mapped timer GTDT support into two patches
+>>          1. Refactor the timer init code to prepare for GTDT
+>>          2. Add GTDT support for memory-mapped timer
+>>
+>> v13: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1231717.html
+>>      Improve arm_arch_timer code for memory-mapped
+>>      timer GTDT support, refactor original memory-mapped timer
+>>      dt support for reusing some common code.
+>>
+>> v12: https://lkml.org/lkml/2016/9/13/250
+>>      Rebase to latest Linux 4.8-rc6
+>>      Delete the confusing "skipping" in the error message.
+>>
+>> V11: https://lkml.org/lkml/2016/9/6/354
+>>      Rebase to latest Linux 4.8-rc5
+>>      Delete typedef (suggested by checkpatch.pl)
+>>
+>> V10: https://lkml.org/lkml/2016/7/26/215
+>>      Drop the "readq" patch.
+>>      Rebase to latest Linux 4.7.
+>>
+>> V9: https://lkml.org/lkml/2016/7/25/345
+>>     Improve pr_err message in acpi gtdt driver.
+>>     Update Commit message for 7/9
+>>     shorten the irq mapping function name
+>>     Improve GTDT driver for memory-mapped timer
+>>
+>> v8: https://lkml.org/lkml/2016/7/19/660
+>>     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+>>     and also improve printk message.
+>>     Simplify is_timer_block and is_watchdog.
+>>     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+>>     Delete __init in include/linux/acpi.h for GTDT API
+>>     Make ARM64 select GTDT.
+>>     Delete "#include <linux/module.h>" from acpi_gtdt.c
+>>     Simplify GT block parse code.
+>>
+>> v7: https://lkml.org/lkml/2016/7/13/769
+>>     Move the GTDT driver to drivers/acpi/arm64
+>>     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+>>     Merge 3 patches of GTDT parser driver.
+>>     Fix the for_each_platform_timer bug.
+>>
+>> v6: https://lkml.org/lkml/2016/6/29/580
+>>     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+>>     and SBSA Generic Watchdog timer
+>>     Improve driver by suggestions and example code from Daniel Lezcano
+>>
+>> v5: https://lkml.org/lkml/2016/5/24/356
+>>     Sorting out all patches, simplify the API of GTDT driver:
+>>     GTDT driver just fills the data struct for arm_arch_timer driver.
+>>
+>> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+>>     Delete the kvm relevant patches
+>>     Separate two patches for sorting out the code for arm_arch_timer.
+>>     Improve irq info export code to allow missing irq info in GTDT table.
+>>
+>> v3: https://lkml.org/lkml/2016/2/1/658
+>>     Improve GTDT driver code:
+>>       (1)improve pr_* by defining pr_fmt(fmt)
+>>       (2)simplify gtdt_sbsa_gwdt_init
+>>       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+>>       to get GTDT table.
+>>     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+>>     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+>>
+>> v2: https://lkml.org/lkml/2015/12/2/10
+>>     Rebase to latest kernel version(4.4-rc3).
+>>     Fix the bug about the config problem,
+>>     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+>>
+>> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+>>
+>> Fu Wei (15):
+>>   clocksource/drivers/arm_arch_timer: Move enums and defines to header
+>>     file
+>>   clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+>>   clocksource/drivers/arm_arch_timer: Improve printk relevant code
+>>   clocksource/drivers/arm_arch_timer: rename some enums and defines, and
+>>     some cleanups.
+>>   clocksource/drivers/arm_arch_timer: fix a bug in arch_timer_register
+>>     about arch_timer_uses_ppi
+>>   clocksource/drivers/arm_arch_timer: separate out arch_timer_uses_ppi
+>>     init code to prepare for GTDT.
+>>   clocksource/drivers/arm_arch_timer: Refactor arch_timer_detect_rate to
+>>     keep dt code in *_of_init
+>>   clocksource/drivers/arm_arch_timer: Refactor arch_timer_needs_probing,
+>>     and call it only if acpi disabled.
+>>   clocksource/drivers/arm_arch_timer: Introduce some new structs to
+>>     prepare for GTDT
+>>   clocksource/drivers/arm_arch_timer: Refactor the timer init code to
+>>     prepare for GTDT
+>>   acpi/arm64: Add GTDT table parse driver
+>>   clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+>>   acpi/arm64: Add memory-mapped timer support in GTDT driver
+>>   clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+>>     timer
+>>   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+>>
+>>  arch/arm64/Kconfig                   |   1 +
+>>  drivers/acpi/arm64/Kconfig           |   3 +
+>>  drivers/acpi/arm64/Makefile          |   1 +
+>>  drivers/acpi/arm64/gtdt.c            | 411 +++++++++++++++++++++++++++++
+>>  drivers/clocksource/arm_arch_timer.c | 484 ++++++++++++++++++++---------------
+>>  drivers/watchdog/Kconfig             |   1 +
+>>  include/clocksource/arm_arch_timer.h |  61 ++++-
+>>  include/linux/acpi.h                 |   8 +
+>>  virt/kvm/arm/hyp/timer-sr.c          |   6 +-
+>>  9 files changed, 759 insertions(+), 217 deletions(-)
+>>  create mode 100644 drivers/acpi/arm64/gtdt.c
+>>
+> 
+> 
+> .
+> 
