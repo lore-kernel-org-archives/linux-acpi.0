@@ -1,180 +1,43 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH] cpufreq: intel_pstate: Request P-states control from
- SMM if needed
-Date: Wed, 16 Nov 2016 16:04:52 -0800
-Message-ID: <1479341092.6544.121.camel@linux.intel.com>
-References: <1679905.fG5YOIvtAJ@vostro.rjw.lan>
+From: "Huang\, Ying" <ying.huang@intel.com>
+Subject: Re: GHES platform devices
+Date: Thu, 17 Nov 2016 09:27:02 +0800
+Message-ID: <87twb6uc9l.fsf@yhuang-dev.intel.com>
+References: <20161116213625.GA10368@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:13538 "EHLO mga03.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:60458 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753269AbcKQAEy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 16 Nov 2016 19:04:54 -0500
-In-Reply-To: <1679905.fG5YOIvtAJ@vostro.rjw.lan>
+        id S933805AbcKQB1F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 20:27:05 -0500
+In-Reply-To: <20161116213625.GA10368@bhelgaas-glaptop.roam.corp.google.com>
+        (Bjorn Helgaas's message of "Wed, 16 Nov 2016 15:36:25 -0600")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2016-11-16 at 03:36 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Currently, intel_pstate is unable to control P-states on my
-> IvyBridge-based Acer Aspire S5, because they are controlled by SMM
-> on that machine by default and it is necessary to request OS control
-> of P-states from it via the SMI Command register exposed in the ACPI
-> FADT.  intel_pstate doesn't do that now, but acpi-cpufreq and other
-> cpufreq drivers for x86 platforms do.
-> 
-> Address this problem by making intel_pstate use the ACPI-defined
-> mechanism as well.  However, intel_pstate is not modular and it
-> doesn't need the module refcount tricks played by
-> acpi_processor_notify_smm(), so export the core of this function
-> to it as acpi_processor_pstate_control() and make it call that.
-> [The changes in processor_perflib.c related to this should not
-> make any functional difference for the acpi_processor_notify_smm()
-> users].
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Suggested-by: Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com>
-Acked-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Hi, Bjorn,
 
-> ---
->  drivers/acpi/processor_perflib.c |   45 ++++++++++++++++++++++++--
-> -------------
->  drivers/cpufreq/intel_pstate.c   |    8 ++++++
->  include/acpi/processor.h         |    1 
->  3 files changed, 37 insertions(+), 17 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/processor_perflib.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/processor_perflib.c
-> +++ linux-pm/drivers/acpi/processor_perflib.c
-> @@ -465,11 +465,33 @@ int acpi_processor_get_performance_info(
->  	return result;
->  }
->  EXPORT_SYMBOL_GPL(acpi_processor_get_performance_info);
-> -int acpi_processor_notify_smm(struct module *calling_module)
-> +
-> +int acpi_processor_pstate_control(void)
->  {
->  	acpi_status status;
-> -	static int is_done = 0;
->  
-> +	if (!acpi_gbl_FADT.smi_command ||
-> !acpi_gbl_FADT.pstate_control)
-> +		return 0;
-> +
-> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +			  "Writing pstate_control [0x%x] to
-> smi_command [0x%x]\n",
-> +			  acpi_gbl_FADT.pstate_control,
-> acpi_gbl_FADT.smi_command));
-> +
-> +	status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
-> +				    (u32)acpi_gbl_FADT.pstate_contro
-> l, 8);
-> +	if (ACPI_SUCCESS(status))
-> +		return 1;
-> +
-> +	ACPI_EXCEPTION((AE_INFO, status,
-> +			"Failed to write pstate_control [0x%x] to
-> smi_command [0x%x]",
-> +			acpi_gbl_FADT.pstate_control,
-> acpi_gbl_FADT.smi_command));
-> +	return -EIO;
-> +}
-> +
-> +int acpi_processor_notify_smm(struct module *calling_module)
-> +{
-> +	static int is_done = 0;
-> +	int result;
->  
->  	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
->  		return -EBUSY;
-> @@ -492,26 +514,15 @@ int acpi_processor_notify_smm(struct mod
->  
->  	is_done = -EIO;
->  
-> -	/* Can't write pstate_control to smi_command if either value
-> is zero */
-> -	if ((!acpi_gbl_FADT.smi_command) ||
-> (!acpi_gbl_FADT.pstate_control)) {
-> +	result = acpi_processor_pstate_control();
-> +	if (!result) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No SMI port or
-> pstate_control\n"));
->  		module_put(calling_module);
->  		return 0;
->  	}
-> -
-> -	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> -			  "Writing pstate_control [0x%x] to
-> smi_command [0x%x]\n",
-> -			  acpi_gbl_FADT.pstate_control,
-> acpi_gbl_FADT.smi_command));
-> -
-> -	status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
-> -				    (u32)
-> acpi_gbl_FADT.pstate_control, 8);
-> -	if (ACPI_FAILURE(status)) {
-> -		ACPI_EXCEPTION((AE_INFO, status,
-> -				"Failed to write pstate_control
-> [0x%x] to "
-> -				"smi_command [0x%x]",
-> acpi_gbl_FADT.pstate_control,
-> -				acpi_gbl_FADT.smi_command));
-> +	if (result < 0) {
->  		module_put(calling_module);
-> -		return status;
-> +		return result;
->  	}
->  
->  	/* Success. If there's no _PPC, we need to fear nothing, so
-> Index: linux-pm/include/acpi/processor.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/processor.h
-> +++ linux-pm/include/acpi/processor.h
-> @@ -249,6 +249,7 @@ extern int acpi_processor_register_perfo
->  					       *performance,
-> unsigned int cpu);
->  extern void acpi_processor_unregister_performance(unsigned int cpu);
->  
-> +int acpi_processor_pstate_control(void);
->  /* note: this locks both the calling module and the processor module
->           if a _PPC object exists, rmmod is disallowed then */
->  int acpi_processor_notify_smm(struct module *calling_module);
-> Index: linux-pm/drivers/cpufreq/intel_pstate.c
-> ===================================================================
-> --- linux-pm.orig/drivers/cpufreq/intel_pstate.c
-> +++ linux-pm/drivers/cpufreq/intel_pstate.c
-> @@ -2034,9 +2034,15 @@ static bool __init intel_pstate_platform
->  
->  	return false;
->  }
-> +
-> +static void intel_pstate_request_control(void)
-> +{
-> +	acpi_processor_pstate_control();
-> +}
->  #else /* CONFIG_ACPI not enabled */
->  static inline bool intel_pstate_platform_pwr_mgmt_exists(void) {
-> return false; }
->  static inline bool intel_pstate_has_acpi_ppc(void) { return false; }
-> +static inline void intel_pstate_request_control(void) {}
->  #endif /* CONFIG_ACPI */
->  
->  static const struct x86_cpu_id hwp_support_ids[] __initconst = {
-> @@ -2088,6 +2094,8 @@ hwp_cpu_matched:
->  	if (!hwp_active && hwp_only)
->  		goto out;
->  
-> +	intel_pstate_request_control();
-> +
->  	rc = cpufreq_register_driver(intel_pstate_driver);
->  	if (rc)
->  		goto out;
-> 
+Bjorn Helgaas <helgaas@kernel.org> writes:
+
+> Hi Huang,
+>
+> 7ad6e9435596 ("ACPI, APEI, Manage GHES as platform devices") added
+> platform devices so the GHES driver could be built as a module and
+> automatically loaded when needed.
+>
+> Later, 86cd47334b00 ("ACPI, APEI, GHES, Prevent GHES to be built as
+> module") removed the ability to build GHES as a module.
+>
+> Should we revert 7ad6e9435596?  It's inconsistent to handle GHES, but
+> not other error sources, as a platform device.  And having it as a
+> platform device probably puts gunk in sysfs that we don't need.
+
+Although other error sources are not platform devices, I think it is
+generally good to make GHES platform devices.  To take advantage of
+automatic module loading, we can make ghes a module again, but prevent
+it from unloading.  What do you think about that?
+
+Best Regards,
+Huang, Ying
