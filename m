@@ -1,327 +1,106 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [PATCH V4 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Thu, 17 Nov 2016 09:53:46 +0800
-Message-ID: <c7af6b8f-fd2e-c88d-31d9-928e1b40c28d@huawei.com>
-References: <1478682897-119874-1-git-send-email-liudongdong3@huawei.com>
- <1478682897-119874-3-git-send-email-liudongdong3@huawei.com>
- <20161114233320.GB30262@bhelgaas-glaptop.roam.corp.google.com>
- <a3dc9785-9a6f-3106-2edb-4f5443a35ca6@huawei.com>
- <20161116193108.GD26600@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 2/2] PM / sleep / ACPI: Use the ACPI_FADT_LOW_POWER_S0 flag
+Date: Thu, 17 Nov 2016 03:28:53 +0100
+Message-ID: <1707436.1pT24M6iWQ@vostro.rjw.lan>
+References: <9316960.49SRRJV8RJ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:19637 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752270AbcKQBy2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Nov 2016 20:54:28 -0500
-In-Reply-To: <20161116193108.GD26600@bhelgaas-glaptop.roam.corp.google.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44632 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753963AbcKQCVh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 16 Nov 2016 21:21:37 -0500
+In-Reply-To: <9316960.49SRRJV8RJ@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>, Andy Lutomirski <luto@kernel.org>
 
-Hi Bjorn
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-在 2016/11/17 3:31, Bjorn Helgaas 写道:
-> On Wed, Nov 16, 2016 at 07:59:38PM +0800, Dongdong Liu wrote:
->> Hi Bjorn
->>
->> Many Thanks for your review
->>
->> 在 2016/11/15 7:33, Bjorn Helgaas 写道:
->>> On Wed, Nov 09, 2016 at 05:14:57PM +0800, Dongdong Liu wrote:
->>>> PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
->>>> It is non ECAM only for the RC bus config space;for any other bus
->>>> underneath the root bus we support ECAM access.
->>>> Add specific quirks for PCI config space accessors.This involves:
->>>> 1. New initialization call hisi_pcie_init() to obtain rc base
->>>> addresses from PNP0C02 as subdevice of PNP0A03.
->>>> 2. New entry in common quirk array.
->>>>
->>>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
->>>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
->>>> ---
->>>> MAINTAINERS                       |   1 +
->>>> drivers/acpi/pci_mcfg.c           |  13 ++++
->>>> drivers/pci/host/Kconfig          |   8 ++
->>>> drivers/pci/host/Makefile         |   1 +
->>>> drivers/pci/host/pcie-hisi-acpi.c | 157 ++++++++++++++++++++++++++++++++++++++
->>>> include/linux/pci-ecam.h          |   5 ++
->>>> 6 files changed, 185 insertions(+)
->>>> create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
->>>>
->>>> diff --git a/MAINTAINERS b/MAINTAINERS
->>>> index 1cd38a7..b224caa 100644
->>>> --- a/MAINTAINERS
->>>> +++ b/MAINTAINERS
->>>> @@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
->>>> S:	Maintained
->>>> F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
->>>> F:	drivers/pci/host/pcie-hisi.c
->>>> +F:	drivers/pci/host/pcie-hisi-acpi.c
->>>>
->>>> PCIE DRIVER FOR ROCKCHIP
->>>> M:	Shawn Lin <shawn.lin@rock-chips.com>
->>>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->>>> index ac21db3..b1b6fc7 100644
->>>> --- a/drivers/acpi/pci_mcfg.c
->>>> +++ b/drivers/acpi/pci_mcfg.c
->>>> @@ -57,6 +57,19 @@ struct mcfg_fixup {
->>>> 	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
->>>> 	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
->>>> 	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
->>>> +#ifdef CONFIG_PCI_HISI_ACPI
->>>> +	#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
->>>> +	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
->>>> +	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
->>>> +	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
->>>> +	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
->>>> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
->>>> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
->>>> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
->>>> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
->>>> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
->>>> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
->>>> +#endif
->>>> };
->>>>
->>>> static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
->>>> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
->>>> index ae98644..9ff2bcd 100644
->>>> --- a/drivers/pci/host/Kconfig
->>>> +++ b/drivers/pci/host/Kconfig
->>>> @@ -227,6 +227,14 @@ config PCI_HISI
->>>> 	  Say Y here if you want PCIe controller support on HiSilicon
->>>> 	  Hip05 and Hip06 and Hip07 SoCs
->>>>
->>>> +config PCI_HISI_ACPI
->>>> +	depends on ACPI && ARM64
->>>> +	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe controllers"
->>>> +	select PNP
->>>> +	help
->>>> +	  Say Y here if you want ACPI PCIe controller support on HiSilicon
->>>> +	  Hip05 and Hip06 and Hip07 SoCs
->>>> +
->>>> config PCIE_QCOM
->>>> 	bool "Qualcomm PCIe controller"
->>>> 	depends on ARCH_QCOM && OF
->>>> diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
->>>> index 084cb49..9402858 100644
->>>> --- a/drivers/pci/host/Makefile
->>>> +++ b/drivers/pci/host/Makefile
->>>> @@ -26,6 +26,7 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
->>>> obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
->>>> obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
->>>> obj-$(CONFIG_PCI_HISI) += pcie-hisi.o
->>>> +obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o
->>>> obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
->>>> obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
->>>> obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
->>>> diff --git a/drivers/pci/host/pcie-hisi-acpi.c b/drivers/pci/host/pcie-hisi-acpi.c
->>>> new file mode 100644
->>>> index 0000000..aade4b5
->>>> --- /dev/null
->>>> +++ b/drivers/pci/host/pcie-hisi-acpi.c
->>>> @@ -0,0 +1,157 @@
->>>> +/*
->>>> + * PCIe host controller driver for HiSilicon HipXX SoCs
->>>> + *
->>>> + * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
->>>> + *
->>>> + * Author: Dongdong Liu <liudongdong3@huawei.com>
->>>> + *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or modify
->>>> + * it under the terms of the GNU General Public License version 2 as
->>>> + * published by the Free Software Foundation.
->>>> + */
->>>> +#include <linux/pci.h>
->>>> +#include <linux/pci-acpi.h>
->>>> +#include <linux/pci-ecam.h>
->>>> +
->>>> +#define DEBUG0				0x728
->>>> +#define PCIE_LTSSM_LINKUP_STATE		0x11
->>>> +#define PCIE_LTSSM_STATE_MASK		0x3F
->>>
->>> These are now unused.
->>
->> Thanks for pointing that, will delete them.
->>
->>>
->>>> +static const struct acpi_device_id hisi_pcie_rc_res_ids[] = {
->>>> +	{"HISI0081", 0},
->>>> +	{"", 0},
->>>> +};
->>>> +
->>>> +static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
->>>> +				  int size, u32 *val)
->>>> +{
->>>> +	struct pci_config_window *cfg = bus->sysdata;
->>>> +	int dev = PCI_SLOT(devfn);
->>>> +
->>>> +	if (bus->number == cfg->busr.start) {
->>>> +		/* access only one slot on each root port */
->>>> +		if (dev > 0)
->>>> +			return PCIBIOS_DEVICE_NOT_FOUND;
->>>> +		else
->>>> +			return pci_generic_config_read32(bus, devfn, where,
->>>> +							 size, val);
->>>> +	}
->>>> +
->>>> +	return pci_generic_config_read(bus, devfn, where, size, val);
->>>> +}
->>>> +
->>>> +static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
->>>> +				  int where, int size, u32 val)
->>>> +{
->>>> +	struct pci_config_window *cfg = bus->sysdata;
->>>> +	int dev = PCI_SLOT(devfn);
->>>> +
->>>> +	if (bus->number == cfg->busr.start) {
->>>> +		/* access only one slot on each root port */
->>>> +		if (dev > 0)
->>>> +			return PCIBIOS_DEVICE_NOT_FOUND;
->>>> +		else
->>>> +			return pci_generic_config_write32(bus, devfn, where,
->>>> +							  size, val);
->>>> +	}
->>>> +
->>>> +	return pci_generic_config_write(bus, devfn, where, size, val);
->>>> +}
->>>> +
->>>> +static void __iomem *hisi_pcie_map_bus(struct pci_bus *bus, unsigned int devfn,
->>>> +				       int where)
->>>> +{
->>>> +	struct pci_config_window *cfg = bus->sysdata;
->>>> +	void __iomem *reg_base = cfg->priv;
->>>> +
->>>> +	if (bus->number == cfg->busr.start)
->>>> +		return reg_base + where;
->>>> +	else
->>>> +		return pci_ecam_map_bus(bus, devfn, where);
->>>> +}
->>>> +
->>>> +/*
->>>> + * Retrieve RC base and size from sub-device under the RC
->>>> + * Device (RES1)
->>>> + * {
->>>> + *	Name (_HID, "HISI0081")
->>>> + *	Name (_CID, "PNP0C02")
->>>> + *	Name (_CRS, ResourceTemplate (){
->>>> + *		Memory32Fixed (ReadWrite, 0xb0080000, 0x10000)
->>>> + *	})
->>>> + * }
->>>> + */
->>>> +static int hisi_pcie_rc_addr_get(struct acpi_device *adev,
->>>> +				 void __iomem **addr)
->>>> +{
->>>> +	struct acpi_device *child_adev;
->>>> +	struct list_head list;
->>>> +	struct resource *res;
->>>> +	struct resource_entry *entry;
->>>> +	unsigned long flags;
->>>> +	int ret;
->>>> +
->>>> +	list_for_each_entry(child_adev, &adev->children, node) {
->>>> +		ret = acpi_match_device_ids(child_adev, hisi_pcie_rc_res_ids);
->>>> +		if (ret)
->>>> +			continue;
->>>> +
->>>> +		INIT_LIST_HEAD(&list);
->>>> +		flags = IORESOURCE_MEM;
->>>> +		ret = acpi_dev_get_resources(child_adev, &list,
->>>> +					     acpi_dev_filter_resource_type_cb,
->>>> +					     (void *)flags);
->>>> +		if (ret < 0) {
->>>> +			dev_err(&child_adev->dev,
->>>> +				"failed to parse _CRS method, error code %d\n",
->>>> +				ret);
->>>> +			return ret;
->>>> +		} else if (ret == 0) {
->>>> +			dev_err(&child_adev->dev,
->>>> +				"no IO and memory resources present in _CRS\n");
->>>> +			return -EINVAL;
->>>> +		}
->>>> +
->>>> +		entry = list_first_entry(&list, struct resource_entry, node);
->>>> +		res = entry->res;
->>>> +		*addr = devm_ioremap(&child_adev->dev,
->>>> +				     res->start, resource_size(res));
->>>> +		acpi_dev_free_resource_list(&list);
->>>> +		if (IS_ERR(*addr)) {
->>>> +			dev_err(&child_adev->dev, "error with ioremap\n");
->>>> +			return -ENOMEM;
->>>> +		}
->>>> +
->>>> +		return 0;
->>>> +	}
->>>> +
->>>> +	return -EINVAL;
->>>> +}
->>>
->>> OK, so MCFG (with the possible help of quirks) tells us where *most*
->>> of this RC's ECAM space is, but it doesn't tell us where the root bus
->>> ECAM space is, which is why we need this block of ugly code.  Right?
->> Yes, correct.
->>>
->>> Is there any way we can compute the root bus reg_base from the address
->>> we got from MCFG?
->>
->> No, we can not,because RC base addresses are sequntial and MCFG impose a 4k boundaries.
->
-> I understand the "no" part, but not the "because ..." part :)
->
-> I think the regions described by MCFG are aligned on 1MB boundaries,
-> not 4K, because MCFG tells you about ECAM space for a given bus number
-> range.  Each bus can have 256 devices (5 bit device number + 3 bit
-> function number), and each device has 4K of config space.  256 * 4KB =
-> 1MB.
+Modify the ACPI system sleep support setup code to select
+suspend-to-idle as the default system sleep state if the
+ACPI_FADT_LOW_POWER_S0 flag is set in the FADT and the
+default sleep state was not selected from the kernel command
+line.
 
-Yes, your are right, thanks for your explanation.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/power/states.txt |    4 +++-
+ drivers/acpi/sleep.c           |    8 ++++++++
+ include/linux/suspend.h        |    2 ++
+ kernel/power/suspend.c         |    4 ++--
+ 4 files changed, 15 insertions(+), 3 deletions(-)
 
->
-> In any case, it wouldn't have to be a simple function like this:
->
->   reg_base = pci_mcfg_lookup(seg, [bus 01]) - 1MB
->
-> It could be *anything*, e.g.,
->
->   reg_base = 0x00100000 + (bus_num * 4096);
-
-Our hip06 SoC has 4 RCs. Each RCs has one root port. The RCs base addresses are as below.
-
-RC0 0xa0090000~0xa009ffff
-RC2 0xa00a0000~0xa00affff
-RC3 0xa00b0000~0xa00bffff
-RC1 0xa0200000~0xa020ffff
-
-The size is 64K ,the base addresses can be changed by UEFI but the size is fixed.
-4k is for RC itself config space, the left 60K spaces are for other uses.
-
-The regions described by MCFG are aligned on 1MB boundaries,
-So we can not get our RC base adreses from MCFG.
->
->>> Is it a constant that realistically is not going to be modified?
->>
->> Yes, this is a hardware limitation
->
-> If there's only one RC and the address is a constant, maybe you can
-> just hard-code the address in the .map_bus() function?
-
-As above said, the base adresses can be changed by UEFI but the size is fixed.
-hard-code maybe not a good way.
-
-Thanks
-Dongdong
->
-> Bjorn
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> .
->
+Index: linux-pm/include/linux/suspend.h
+===================================================================
+--- linux-pm.orig/include/linux/suspend.h
++++ linux-pm/include/linux/suspend.h
+@@ -194,6 +194,8 @@ struct platform_freeze_ops {
+ };
+ 
+ #ifdef CONFIG_SUSPEND
++extern suspend_state_t mem_sleep_default;
++
+ /**
+  * suspend_set_ops - set platform dependent suspend operations
+  * @ops: The new suspend operations to set.
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -691,6 +691,14 @@ static void acpi_sleep_suspend_setup(voi
+ 		if (acpi_sleep_state_supported(i))
+ 			sleep_states[i] = 1;
+ 
++	/*
++	 * Use suspend-to-idle by default if ACPI_FADT_LOW_POWER_S0 is set and
++	 * the default suspend mode was not selected from the command line.
++	 */
++	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0 &&
++	    mem_sleep_default > PM_SUSPEND_MEM)
++		mem_sleep_default = PM_SUSPEND_FREEZE;
++
+ 	suspend_set_ops(old_suspend_ordering ?
+ 		&acpi_suspend_ops_old : &acpi_suspend_ops);
+ 	freeze_set_ops(&acpi_freeze_ops);
+Index: linux-pm/kernel/power/suspend.c
+===================================================================
+--- linux-pm.orig/kernel/power/suspend.c
++++ linux-pm/kernel/power/suspend.c
+@@ -44,7 +44,7 @@ const char * const mem_sleep_labels[] =
+ const char *mem_sleep_states[PM_SUSPEND_MAX];
+ 
+ suspend_state_t mem_sleep_current = PM_SUSPEND_FREEZE;
+-static suspend_state_t mem_sleep_default = PM_SUSPEND_MEM;
++suspend_state_t mem_sleep_default = PM_SUSPEND_MAX;
+ 
+ unsigned int pm_suspend_global_flags;
+ EXPORT_SYMBOL_GPL(pm_suspend_global_flags);
+@@ -163,7 +163,7 @@ void suspend_set_ops(const struct platfo
+ 	}
+ 	if (valid_state(PM_SUSPEND_MEM)) {
+ 		mem_sleep_states[PM_SUSPEND_MEM] = mem_sleep_labels[PM_SUSPEND_MEM];
+-		if (mem_sleep_default == PM_SUSPEND_MEM)
++		if (mem_sleep_default >= PM_SUSPEND_MEM)
+ 			mem_sleep_current = PM_SUSPEND_MEM;
+ 	}
+ 
+Index: linux-pm/Documentation/power/states.txt
+===================================================================
+--- linux-pm.orig/Documentation/power/states.txt
++++ linux-pm/Documentation/power/states.txt
+@@ -35,7 +35,9 @@ only one way to cause the system to go i
+ The default suspend mode (ie. the one to be used without writing anything into
+ /sys/power/mem_sleep) is either "deep" (if Suspend-To-RAM is supported) or
+ "s2idle", but it can be overridden by the value of the "mem_sleep_default"
+-parameter in the kernel command line.
++parameter in the kernel command line.  On some ACPI-based systems, depending on
++the information in the FADT, the default may be "s2idle" even if Suspend-To-RAM
++is supported.
+ 
+ The properties of all of the sleep states are described below.
+ 
 
