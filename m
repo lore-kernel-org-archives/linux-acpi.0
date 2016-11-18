@@ -1,96 +1,77 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v16 14/15] clocksource/drivers/arm_arch_timer: Add GTDT
- support for memory-mapped timer
-Date: Fri, 18 Nov 2016 20:20:00 +0000
-Message-ID: <20161118202000.GP1197@leverpostej>
-References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
- <1479304148-2965-15-git-send-email-fu.wei@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.9-rc6
+Date: Fri, 18 Nov 2016 22:06:52 +0100
+Message-ID: <CAJZ5v0jC+iPnnB5sHE+6JMJxCLD6Mq8OKNuqKtFra_BzhiA2=g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58520 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752018AbcKRUUp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 18 Nov 2016 15:20:45 -0500
-Content-Disposition: inline
-In-Reply-To: <1479304148-2965-15-git-send-email-fu.wei@linaro.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35273 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753005AbcKRVGz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2016 16:06:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Nov 16, 2016 at 09:49:07PM +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
-> 
-> The patch add memory-mapped timer register support by using the
-> information provided by the new GTDT driver of ACPI.
-> 
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> ---
->  drivers/clocksource/arm_arch_timer.c | 26 +++++++++++++++++++++++++-
->  1 file changed, 25 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index c494ca8..0aad60a 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -1067,7 +1067,28 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
->  		       arch_timer_mem_of_init);
->  
->  #ifdef CONFIG_ACPI_GTDT
-> -/* Initialize per-processor generic timer */
-> +static int __init arch_timer_mem_acpi_init(void)
-> +{
-> +	struct arch_timer_mem *timer_mem;
-> +	int ret = 0;
-> +	int i = 0;
-> +
-> +	timer_mem = kzalloc(sizeof(*timer_mem), GFP_KERNEL);
+Hi Linus,
 
-Why do you need it zeroed? You don't clear it between iterations, so
-either you don't need this, or you have a bug in the loop.
+Please pull from the tag
 
-> +	if (!timer_mem)
-> +		return -ENOMEM;
-> +
-> +	while (!gtdt_arch_timer_mem_init(timer_mem, i)) {
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.9-rc6
 
-Huh?
+with top-most commit aab0b243b9a2fab7dcee0ce6e13789d3ab0394bf
 
-Why doesn't GTDT expose a function to fill in the entire arch_timer_mem
-in one go?
+ Merge branches 'acpica-fixes', 'acpi-cppc-fixes' and 'acpi-tools-fixes'
 
-There shouldn't be multiple instances, as far as I am aware. Am I
-mistaken?
+on top of commit a25f0944ba9b1d8a6813fd6f1a86f1bd59ac25a6
 
-> +		ret = arch_timer_mem_init(timer_mem);
-> +		if (ret)
-> +			break;
-> +		i++;
-> +	}
-> +
-> +	kfree(timer_mem);
-> +	return ret;
-> +}
+ Linux 4.9-rc5
 
+to receive ACPI fixes for v4.9-rc6.
 
-Regardless, arch_timer_mem is small enough that you don't need dynamic
-allocaiton. Just put it on the stack, e.g.
+They fix an ACPI thermal management regression introduced by a recent
+FADT handling cleanup, an ACPI tools build issue introduced by a
+recent ACPICA commit and a PCC mailbox initialization bug causing
+lockdep to complain loudly.
 
-static int __init arch_timer_mem_acpi_init(void)
-{
-	int i = 0;
-	struct arch_timer_mem timer_mem;
+Specifics:
 
-	while (!gtdt_arch_timer_mem_init(timer_mem, i)) {
-		int ret = arch_timer_mem_init();
-		if (ret)
-			return ret;
-		i++
-	}
+ - Revert a recent ACPICA cleanup that attempted to get rid of all
+   FADT version 2 legacy, but broke ACPI thermal management on at
+   least one system (Rafael Wysocki).
 
-	return 0;
-}
+ - Fix cross-compiled builds of ACPI tools that stopped working
+   after a recent cleanup related to the handling of header files
+   in ACPICA (Lv Zheng).
 
-Thanks,
-Mark.
+ - Fix a locking issue in the PCC channel initialization code that
+   invokes devm_request_irq() under a spinlock (among other things)
+   and causes lockdep to complain (Hoan Tran).
+
+Thanks!
+
+---------------
+
+Hoan Tran (1):
+      mailbox: PCC: Fix lockdep warning when request PCC channel
+
+Lv Zheng (1):
+      tools/power/acpi: Remove direct kernel source include reference
+
+Rafael J. Wysocki (1):
+      Revert "ACPICA: FADT support cleanup"
+
+---------------
+
+ drivers/acpi/acpica/tbfadt.c             |  10 +-
+ drivers/mailbox/pcc.c                    |  13 +--
+ include/acpi/actbl.h                     | 164 +++++++++++++------------------
+ include/acpi/platform/aclinux.h          |   3 +
+ tools/power/acpi/Makefile.config         |  23 ++---
+ tools/power/acpi/Makefile.rules          |  40 +++++---
+ tools/power/acpi/tools/acpidbg/Makefile  |   4 +-
+ tools/power/acpi/tools/acpidbg/acpidbg.c |   8 +-
+ tools/power/acpi/tools/acpidump/Makefile |  12 +--
+ 9 files changed, 137 insertions(+), 140 deletions(-)
