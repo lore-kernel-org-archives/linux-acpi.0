@@ -1,58 +1,103 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v8 12/16] drivers: iommu: arm-smmu: split probe functions
- into DT/generic portions
-Date: Fri, 18 Nov 2016 16:43:30 +0000
-Message-ID: <28abb42b-4a93-fbb0-d8bb-e6b82b2b992f@arm.com>
-References: <20161116152936.22955-1-lorenzo.pieralisi@arm.com>
- <20161116152936.22955-13-lorenzo.pieralisi@arm.com>
- <20161118160006.GW13470@arm.com>
+From: Stefan Berger <stefanb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] tpm: vtpm_proxy: Do not access host's
+	event log
+Date: Fri, 18 Nov 2016 11:58:08 -0500
+Message-ID: <8e1bea0b-5409-5b69-7ac1-1e3e29cc3da7@linux.vnet.ibm.com>
+References: <1479306245-14456-1-git-send-email-stefanb@linux.vnet.ibm.com>
+	<20161116153731.pmmnxiai7ouuj6qf@intel.com>
+	<3a38ddc6-1758-ae82-3df3-9cc55906880d@linux.vnet.ibm.com>
+	<65f392b6-5141-c726-dacb-a1649ea215de@linux.vnet.ibm.com>
+	<20161116200759.GA19593@obsidianresearch.com>
+	<ef1f954d-fc52-0522-01f7-b0e31ea14c59@linux.vnet.ibm.com>
+	<20161117203743.odzdpwwynzlqyt5m@intel.com>
+	<abef96f0-97e3-22e6-c63b-4be5622b4fc2@linux.vnet.ibm.com>
+	<77bf7806-5007-feb4-e4a0-fc94775a5271@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53042 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751971AbcKRQnf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 18 Nov 2016 11:43:35 -0500
-In-Reply-To: <20161118160006.GW13470@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <tpmdd-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <77bf7806-5007-feb4-e4a0-fc94775a5271-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tpmdd-devel>,
+	<mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tpmdd-devel>
+List-Post: <mailto:tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tpmdd-devel>,
+	<mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: tpmdd-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: iommu@lists.linux-foundation.org, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 18/11/16 16:00, Will Deacon wrote:
-> On Wed, Nov 16, 2016 at 03:29:32PM +0000, Lorenzo Pieralisi wrote:
->> Current ARM SMMU probe functions intermingle HW and DT probing
->> in the initialization functions to detect and programme the ARM SMMU
->> driver features. In order to allow probing the ARM SMMU with other
->> firmwares than DT, this patch splits the ARM SMMU init functions into
->> DT and HW specific portions so that other FW interfaces (ie ACPI) can
->> reuse the HW probing functions and skip the DT portion accordingly.
+On 11/18/2016 09:15 AM, Stefan Berger wrote:
+> On 11/18/2016 09:11 AM, Stefan Berger wrote:
+>> On 11/17/2016 03:37 PM, Jarkko Sakkinen wrote:
+>>> On Thu, Nov 17, 2016 at 07:35:05AM -0500, Stefan Berger wrote:
+>>>> On 11/16/2016 03:07 PM, Jason Gunthorpe wrote:
+>>>>> On Wed, Nov 16, 2016 at 12:07:23PM -0500, Stefan Berger wrote:
+>>>>>> The culprit seems to be 'tpm: fix the missing .owner in
+>>>>>> tpm_bios_measurements_ops'
+>>>>> That is unlikely, it is probably the patch before which calls 
+>>>>> read_log
+>>>>> unconditionally now. That suggests the crashing is a little random..
+>>>> I ran the vtpm driver test suite (with -j32) a few times at that 
+>>>> patch and
+>>>> it didn't crash. It crashes severely with later patches applied. 
+>>>> Here's the
+>>>> current experimental patch that fixes these problems:
+>>>>
+>>>> iff --git a/drivers/char/tpm/tpm_acpi.c b/drivers/char/tpm/tpm_acpi.c
+>>>> index 0cb43ef..a73295a 100644
+>>>> --- a/drivers/char/tpm/tpm_acpi.c
+>>>> +++ b/drivers/char/tpm/tpm_acpi.c
+>>>> @@ -56,6 +56,9 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
+>>>>
+>>>>       log = &chip->log;
+>>>>
+>>>> +    if (!chip->acpi_dev_handle)
+>>>> +        return 0;
+>>>> +
+>>> If there is a problem in the TPM driver, this does not fix the
+>>> problem. It will mask the problem. Maybe there's an ACPI regression
+>>> in the rc tree?
 >>
->> This patch implements no functional change, only code reshuffling.
+>> Following the path from here :
 >>
->> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
->> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Tested-by: Tomasz Nowicki <tn@semihalf.com>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: Hanjun Guo <hanjun.guo@linaro.org>
->> Cc: Robin Murphy <robin.murphy@arm.com>
->> ---
->>  drivers/iommu/arm-smmu.c | 62 +++++++++++++++++++++++++++++-------------------
->>  1 file changed, 37 insertions(+), 25 deletions(-)
-> 
-> Reviewed-by: Will Deacon <will.deacon@arm.com>
-> 
-> Although I'd also like Robin to have a look at this.
+>> http://lxr.free-electrons.com/source/drivers/acpi/acpica/tbxface.c#L282
+>>
+>> acpi_get_table_with_size -> acpi_tb_validate_table -> 
+>> acpi_tb_acquire_table
+>>
+>> I see acpi_os_map_memory being called in acpi_tb_acquire_table but 
+>> not the corresponding acpi_os_unmap_memory...
+>>
+>
+> And to add to this: the call to acpi_get_table() in tpm_acpi.c alone 
+> is causing the crash. I am fairly sure that it has something to do 
+> with the memory mapping call above not being matched by an unmapping 
+> call.
 
-Sorry, I've been slow this week. Having finally got round to taking a
-proper look, I swear this seems even tidier than the last version I
-looked at closely. It doesn't break DT boot on my Juno, either.
+Have to take that all back. This is not the reason. What seems to be the 
+reason is just the acpi_os_map_iomem() call. Without calling the 
+acpi_os_unmap_iomem() later on, which I assume should be allowed, the 
+driver will crash when the device terminates.
 
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+     Stefan
 
-> 
-> Will
-> 
+>
+>
+>>     Stefan
+>>
+>>
+>>>
+>>> This is a funky situation because those lines need to be there but
+>>> I do not want them before it is root caused that it is not a TPM
+>>> bug.
+>>>
+>>> /Jarkko
+>>>
+>>
+>
 
+
+------------------------------------------------------------------------------
