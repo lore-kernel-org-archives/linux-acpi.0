@@ -1,189 +1,304 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH] PCI: Add information about describing PCI in ACPI
-Date: Fri, 18 Nov 2016 17:17:34 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F921A88@lhreml507-mbx>
-References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v8 13/16] drivers: iommu: arm-smmu: add IORT configuration
+Date: Fri, 18 Nov 2016 17:36:46 +0000
+Message-ID: <83df7dba-8d04-96ae-f59b-b0d484085e12@arm.com>
+References: <20161116152936.22955-1-lorenzo.pieralisi@arm.com>
+ <20161116152936.22955-14-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:54780 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752516AbcKRRgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 18 Nov 2016 12:36:51 -0500
+In-Reply-To: <20161116152936.22955-14-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SGkgQmpvcm4NCg0KTWFueSB0aGFua3MgZm9yIHB1dHRpbmcgdGhpcyB0b2dldGhlciwgaXQgcmVh
-bGx5IGhlbHBzIQ0KDQpPbmUgdGhpbmcgYmVsb3cuLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2Fn
-ZS0tLS0tDQo+IEZyb206IGxpbnV4LWtlcm5lbC1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0
-bzpsaW51eC1rZXJuZWwtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJq
-b3JuIEhlbGdhYXMNCj4gU2VudDogMTcgTm92ZW1iZXIgMjAxNiAxODowMA0KPiBUbzogbGludXgt
-cGNpQHZnZXIua2VybmVsLm9yZw0KPiBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxp
-bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBhcm0ta2VybmVsQGxpc3RzLmlu
-ZnJhZGVhZC5vcmc7IGxpbmFyby1hY3BpQGxpc3RzLmxpbmFyby5vcmcNCj4gU3ViamVjdDogW1BB
-VENIXSBQQ0k6IEFkZCBpbmZvcm1hdGlvbiBhYm91dCBkZXNjcmliaW5nIFBDSSBpbiBBQ1BJDQo+
-IA0KPiBBZGQgYSB3cml0ZXVwIGFib3V0IGhvdyBQQ0kgaG9zdCBicmlkZ2VzIHNob3VsZCBiZSBk
-ZXNjcmliZWQgaW4gQUNQSQ0KPiB1c2luZyBQTlAwQTAzL1BOUDBBMDggZGV2aWNlcywgUE5QMEMw
-MiBkZXZpY2VzLCBhbmQgdGhlIE1DRkcgdGFibGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBCam9y
-biBIZWxnYWFzIDxiaGVsZ2Fhc0Bnb29nbGUuY29tPg0KPiAtLS0NCj4gIERvY3VtZW50YXRpb24v
-UENJLzAwLUlOREVYICAgICAgfCAgICAyICsNCj4gIERvY3VtZW50YXRpb24vUENJL2FjcGktaW5m
-by50eHQgfCAgMTM2DQo+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0K
-PiAgMiBmaWxlcyBjaGFuZ2VkLCAxMzggaW5zZXJ0aW9ucygrKQ0KPiAgY3JlYXRlIG1vZGUgMTAw
-NjQ0IERvY3VtZW50YXRpb24vUENJL2FjcGktaW5mby50eHQNCj4gDQo+IGRpZmYgLS1naXQgYS9E
-b2N1bWVudGF0aW9uL1BDSS8wMC1JTkRFWCBiL0RvY3VtZW50YXRpb24vUENJLzAwLUlOREVYDQo+
-IGluZGV4IDE0NzIzMWYuLjA3ODAyODAgMTAwNjQ0DQo+IC0tLSBhL0RvY3VtZW50YXRpb24vUENJ
-LzAwLUlOREVYDQo+ICsrKyBiL0RvY3VtZW50YXRpb24vUENJLzAwLUlOREVYDQo+IEBAIC0xLDUg
-KzEsNyBAQA0KPiAgMDAtSU5ERVgNCj4gIAktIHRoaXMgZmlsZQ0KPiArYWNwaS1pbmZvLnR4dA0K
-PiArCS0gaW5mbyBvbiBob3cgUENJIGhvc3QgYnJpZGdlcyBhcmUgcmVwcmVzZW50ZWQgaW4gQUNQ
-SQ0KPiAgTVNJLUhPV1RPLnR4dA0KPiAgCS0gdGhlIE1lc3NhZ2UgU2lnbmFsZWQgSW50ZXJydXB0
-cyAoTVNJKSBEcml2ZXIgR3VpZGUgSE9XVE8gYW5kDQo+IEZBUS4NCj4gIFBDSUVCVVMtSE9XVE8u
-dHh0DQo+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL1BDSS9hY3BpLWluZm8udHh0IGIvRG9j
-dW1lbnRhdGlvbi9QQ0kvYWNwaS0NCj4gaW5mby50eHQNCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQN
-Cj4gaW5kZXggMDAwMDAwMC4uY2NiY2ZkYQ0KPiAtLS0gL2Rldi9udWxsDQo+ICsrKyBiL0RvY3Vt
-ZW50YXRpb24vUENJL2FjcGktaW5mby50eHQNCj4gQEAgLTAsMCArMSwxMzYgQEANCj4gKwkgICAg
-QUNQSSBjb25zaWRlcmF0aW9ucyBmb3IgUENJIGhvc3QgYnJpZGdlcw0KPiArDQo+ICtUaGUgYmFz
-aWMgcmVxdWlyZW1lbnQgaXMgdGhhdCB0aGUgQUNQSSBuYW1lc3BhY2Ugc2hvdWxkIGRlc2NyaWJl
-DQo+ICsqZXZlcnl0aGluZyogdGhhdCBjb25zdW1lcyBhZGRyZXNzIHNwYWNlIHVubGVzcyB0aGVy
-ZSdzIGFub3RoZXINCj4gK3N0YW5kYXJkIHdheSBmb3IgdGhlIE9TIHRvIGZpbmQgaXQgWzEsIDJd
-LiDCoEZvciBleGFtcGxlLCB3aW5kb3dzIHRoYXQNCj4gK2FyZSBmb3J3YXJkZWQgdG8gUENJIGJ5
-IGEgUENJIGhvc3QgYnJpZGdlIHNob3VsZCBiZSBkZXNjcmliZWQgdmlhIEFDUEkNCj4gK2Rldmlj
-ZXMsIHNpbmNlIHRoZSBPUyBjYW4ndCBsb2NhdGUgdGhlIGhvc3QgYnJpZGdlIGJ5IGl0c2VsZi4g
-wqBQQ0kNCj4gK2RldmljZXMgKmJlbG93KiB0aGUgaG9zdCBicmlkZ2UgZG8gbm90IG5lZWQgdG8g
-YmUgZGVzY3JpYmVkIHZpYSBBQ1BJLA0KPiArYmVjYXVzZSB0aGUgcmVzb3VyY2VzIHRoZXkgY29u
-c3VtZSBhcmUgaW5zaWRlIHRoZSBob3N0IGJyaWRnZSB3aW5kb3dzLA0KPiArYW5kIHRoZSBPUyBj
-YW4gZGlzY292ZXIgdGhlbSB2aWEgdGhlIHN0YW5kYXJkIFBDSSBlbnVtZXJhdGlvbg0KPiArbWVj
-aGFuaXNtICh1c2luZyBjb25maWcgYWNjZXNzZXMgdG8gcmVhZCBhbmQgc2l6ZSB0aGUgQkFScyku
-DQo+ICsNCj4gK1RoaXMgQUNQSSByZXNvdXJjZSBkZXNjcmlwdGlvbiBpcyBkb25lIHZpYSBfQ1JT
-IG1ldGhvZHMgb2YgZGV2aWNlcyBpbg0KPiArdGhlIEFDUEkgbmFtZXNwYWNlIFsyXS4gwqAgX0NS
-UyBtZXRob2RzIGFyZSBsaWtlIGdlbmVyYWxpemVkIFBDSSBCQVJzOg0KPiArdGhlIE9TIGNhbiBy
-ZWFkIF9DUlMgYW5kIGZpZ3VyZSBvdXQgd2hhdCByZXNvdXJjZSBpcyBiZWluZyBjb25zdW1lZA0K
-PiArZXZlbiBpZiBpdCBkb2Vzbid0IGhhdmUgYSBkcml2ZXIgZm9yIHRoZSBkZXZpY2UgWzNdLiDC
-oFRoYXQncyBpbXBvcnRhbnQNCj4gK2JlY2F1c2UgaXQgbWVhbnMgYW4gb2xkIE9TIGNhbiB3b3Jr
-IGNvcnJlY3RseSBldmVuIG9uIGEgc3lzdGVtIHdpdGgNCj4gK25ldyBkZXZpY2VzIHVua25vd24g
-dG8gdGhlIE9TLiDCoFRoZSBuZXcgZGV2aWNlcyB3b24ndCBkbyBhbnl0aGluZywgYnV0DQo+ICt0
-aGUgT1MgY2FuIGF0IGxlYXN0IG1ha2Ugc3VyZSBubyByZXNvdXJjZXMgY29uZmxpY3Qgd2l0aCB0
-aGVtLg0KPiArDQo+ICtTdGF0aWMgdGFibGVzIGxpa2UgTUNGRywgSFBFVCwgRUNEVCwgZXRjLiwg
-YXJlICpub3QqIG1lY2hhbmlzbXMgZm9yDQo+ICtyZXNlcnZpbmcgYWRkcmVzcyBzcGFjZSEgIFRo
-ZSBzdGF0aWMgdGFibGVzIGFyZSBmb3IgdGhpbmdzIHRoZSBPUw0KPiArbmVlZHMgdG8ga25vdyBl
-YXJseSBpbiBib290LCBiZWZvcmUgaXQgY2FuIHBhcnNlIHRoZSBBQ1BJIG5hbWVzcGFjZS4NCj4g
-K0lmIGEgbmV3IHRhYmxlIGlzIGRlZmluZWQsIGFuIG9sZCBPUyBuZWVkcyB0byBvcGVyYXRlIGNv
-cnJlY3RseSBldmVuDQo+ICt0aG91Z2ggaXQgaWdub3JlcyB0aGUgdGFibGUuICBfQ1JTIGFsbG93
-cyB0aGF0IGJlY2F1c2UgaXQgaXMgZ2VuZXJpYw0KPiArYW5kIHVuZGVyc3Rvb2QgYnkgdGhlIG9s
-ZCBPUzsgYSBzdGF0aWMgdGFibGUgZG9lcyBub3QuDQoNClJpZ2h0IHNvIGlmIG15IHVuZGVyc3Rh
-bmRpbmcgaXMgY29ycmVjdCB5b3UgYXJlIHNheWluZyB0aGF0IHJlc291cmNlcw0KZGVzY3JpYmVk
-IGluIHRoZSBNQ0ZHIHRhYmxlIHNob3VsZCBhbHNvIGJlIGRlY2xhcmVkIGluIFBOUDBDMDIgZGV2
-aWNlcw0Kc28gdGhhdCB0aGUgUE5QIGRyaXZlciBjYW4gcmVzZXJ2ZSB0aGVzZSByZXNvdXJjZXMu
-DQoNCk9uIHRoZSBvdGhlciBzaWRlIHRoZSBQQ0kgUm9vdCBicmlkZ2UgZHJpdmVyIHNob3VsZCBu
-b3QgcmVzZXJ2ZSBzdWNoDQpyZXNvdXJjZXMuDQoNCldlbGwgaWYgbXkgdW5kZXJzdGFuZGluZyBp
-cyBjb3JyZWN0IEkgdGhpbmsgd2UgaGF2ZSBhIHByb2JsZW0gaGVyZToNCmh0dHA6Ly9seHIuZnJl
-ZS1lbGVjdHJvbnMuY29tL3NvdXJjZS9kcml2ZXJzL3BjaS9lY2FtLmMjTDc0DQoNCkFzIHlvdSBj
-YW4gc2VlIHBjaV9lY2FtX2NyZWF0ZSgpIHdpbGwgY29uZmxpY3Qgd2l0aCB0aGUgcG5wIGRyaXZl
-cg0KYXMgaXQgd2lsbCB0cnkgdG8gcmVzZXJ2ZSB0aGUgcmVzb3VyY2VzIGZyb20gdGhlIE1DRkcg
-dGFibGUuLi4NCg0KTWF5YmUgd2UgbmVlZCB0byByZXdvcmsgcGNpX2VjYW1fY3JlYXRlKCkgPw0K
-DQpUaGFua3MNCg0KR2FiDQoNCj4gKw0KPiArSWYgdGhlIE9TIGlzIGV4cGVjdGVkIHRvIG1hbmFn
-ZSBhbiBBQ1BJIGRldmljZSwgdGhhdCBkZXZpY2Ugd2lsbCBoYXZlDQo+ICthIHNwZWNpZmljIF9I
-SUQvX0NJRCB0aGF0IHRlbGxzIHRoZSBPUyB3aGF0IGRyaXZlciB0byBiaW5kIHRvIGl0LCBhbmQN
-Cj4gK3RoZSBfQ1JTIHRlbGxzIHRoZSBPUyBhbmQgdGhlIGRyaXZlciB3aGVyZSB0aGUgZGV2aWNl
-J3MgcmVnaXN0ZXJzIGFyZS4NCj4gKw0KPiArUE5QMEMwMiAibW90aGVyYm9hcmQiIGRldmljZXMg
-YXJlIGJhc2ljYWxseSBhIGNhdGNoLWFsbC4gwqBUaGVyZSdzIG5vDQo+ICtwcm9ncmFtbWluZyBt
-b2RlbCBmb3IgdGhlbSBvdGhlciB0aGFuICJkb24ndCB1c2UgdGhlc2UgcmVzb3VyY2VzIGZvcg0K
-PiArYW55dGhpbmcgZWxzZS4iIMKgU28gYW55IGFkZHJlc3Mgc3BhY2UgdGhhdCBpcyAoMSkgbm90
-IGNsYWltZWQgYnkgc29tZQ0KPiArb3RoZXIgQUNQSSBkZXZpY2UgYW5kICgyKSBzaG91bGQgbm90
-IGJlIGFzc2lnbmVkIGJ5IHRoZSBPUyB0bw0KPiArc29tZXRoaW5nIGVsc2UsIHNob3VsZCBiZSBj
-bGFpbWVkIGJ5IGEgUE5QMEMwMiBfQ1JTIG1ldGhvZC4NCj4gKw0KPiArUENJIGhvc3QgYnJpZGdl
-cyBhcmUgUE5QMEEwMyBvciBQTlAwQTA4IGRldmljZXMuIMKgVGhlaXIgX0NSUyBzaG91bGQNCj4g
-K2Rlc2NyaWJlIGFsbCB0aGUgYWRkcmVzcyBzcGFjZSB0aGV5IGNvbnN1bWUuIMKgSW4gcHJpbmNp
-cGxlLCB0aGlzIHdvdWxkDQo+ICtiZSBhbGwgdGhlIHdpbmRvd3MgdGhleSBmb3J3YXJkIGRvd24g
-dG8gdGhlIFBDSSBidXMsIGFzIHdlbGwgYXMgdGhlDQo+ICticmlkZ2UgcmVnaXN0ZXJzIHRoZW1z
-ZWx2ZXMuIMKgVGhlIGJyaWRnZSByZWdpc3RlcnMgaW5jbHVkZSB0aGluZ3MgbGlrZQ0KPiArc2Vj
-b25kYXJ5L3N1Ym9yZGluYXRlIGJ1cyByZWdpc3RlcnMgdGhhdCBkZXRlcm1pbmUgdGhlIGJ1cyBy
-YW5nZSBiZWxvdw0KPiArdGhlIGJyaWRnZSwgd2luZG93IHJlZ2lzdGVycyB0aGF0IGRlc2NyaWJl
-IHRoZSBhcGVydHVyZXMsIGV0Yy4gwqBUaGVzZQ0KPiArYXJlIGFsbCBkZXZpY2Utc3BlY2lmaWMs
-IG5vbi1hcmNoaXRlY3RlZCB0aGluZ3MsIHNvIHRoZSBvbmx5IHdheSBhDQo+ICtQTlAwQTAzL1BO
-UDBBMDggZHJpdmVyIGNhbiBtYW5hZ2UgdGhlbSBpcyB2aWEgX1BSUy9fQ1JTL19TUlMsIHdoaWNo
-DQo+ICtjb250YWluIHRoZSBkZXZpY2Utc3BlY2lmaWMgZGV0YWlscy4gwqBUaGVzZSBicmlkZ2Ug
-cmVnaXN0ZXJzIGFsc28NCj4gK2luY2x1ZGUgRUNBTSBzcGFjZSwgc2luY2UgaXQgaXMgY29uc3Vt
-ZWQgYnkgdGhlIGJyaWRnZS4NCj4gKw0KPiArQUNQSSBkZWZpbmVkIGEgUHJvZHVjZXIvQ29uc3Vt
-ZXIgYml0IHRoYXQgd2FzIGludGVuZGVkIHRvIGRpc3Rpbmd1aXNoDQo+ICt0aGUgYnJpZGdlIGFw
-ZXJ0dXJlcyBmcm9tIHRoZSBicmlkZ2UgcmVnaXN0ZXJzIFs0LCA1XS4gwqBIb3dldmVyLA0KPiAr
-QklPU2VzIGRpZG4ndCB1c2UgdGhhdCBiaXQgY29ycmVjdGx5LCBhbmQgdGhlIHJlc3VsdCBpcyB0
-aGF0IE9TZXMgaGF2ZQ0KPiArdG8gYXNzdW1lIHRoYXQgZXZlcnl0aGluZyBpbiBhIFBDSSBob3N0
-IGJyaWRnZSBfQ1JTIGlzIGEgd2luZG93LiDCoFRoYXQNCj4gK2xlYXZlcyBubyB3YXkgdG8gZGVz
-Y3JpYmUgdGhlIGJyaWRnZSByZWdpc3RlcnMgaW4gdGhlIFBOUDBBMDMvUE5QMEEwOA0KPiArZGV2
-aWNlIGl0c2VsZi4NCj4gKw0KPiArVGhlIHdvcmthcm91bmQgaXMgdG8gZGVzY3JpYmUgdGhlIGJy
-aWRnZSByZWdpc3RlcnMgKGluY2x1ZGluZyBFQ0FNDQo+ICtzcGFjZSkgaW4gUE5QMEMwMiBjYXRj
-aC1hbGwgZGV2aWNlcyBbNl0uIMKgV2l0aCB0aGUgZXhjZXB0aW9uIG9mIEVDQU0sDQo+ICt0aGUg
-YnJpZGdlIHJlZ2lzdGVyIHNwYWNlIGlzIGRldmljZS1zcGVjaWZpYyBhbnl3YXksIHNvIHRoZSBn
-ZW5lcmljDQo+ICtQTlAwQTAzL1BOUDBBMDggZHJpdmVyIChwY2lfcm9vdC5jKSBoYXMgbm8gbmVl
-ZCB0byBrbm93IGFib3V0IGl0LiDCoEZvcg0KPiArRUNBTSwgcGNpX3Jvb3QuYyBsZWFybnMgYWJv
-dXQgdGhlIHNwYWNlIGZyb20gZWl0aGVyIE1DRkcgb3IgdGhlIF9DQkENCj4gK21ldGhvZC4NCj4g
-Kw0KPiArTm90ZSB0aGF0IHRoZSBQQ0llIHNwZWMgYWN0dWFsbHkgZG9lcyByZXF1aXJlIEVDQU0g
-dW5sZXNzIHRoZXJlJ3MgYQ0KPiArc3RhbmRhcmQgZmlybXdhcmUgaW50ZXJmYWNlIGZvciBjb25m
-aWcgYWNjZXNzLCBlLmcuLCB0aGUgaWE2NCBTQUwNCj4gK2ludGVyZmFjZSBbN10uICBPbmUgcmVh
-c29uIGlzIHRoYXQgd2Ugd2FudCBhIGdlbmVyaWMgaG9zdCBicmlkZ2UNCj4gK2RyaXZlciAocGNp
-X3Jvb3QuYyksIGFuZCBhIGdlbmVyaWMgZHJpdmVyIHJlcXVpcmVzIGEgZ2VuZXJpYyB3YXkgdG8N
-Cj4gK2FjY2VzcyBjb25maWcgc3BhY2UuDQo+ICsNCj4gKw0KPiArWzFdIEFDUEkgNi4wLCBzZWMg
-Ni4xOg0KPiArICAgIEZvciBhbnkgZGV2aWNlIHRoYXQgaXMgb24gYSBub24tZW51bWVyYWJsZSB0
-eXBlIG9mIGJ1cyAoZm9yDQo+ICsgICAgZXhhbXBsZSwgYW4gSVNBIGJ1cyksIE9TUE0gZW51bWVy
-YXRlcyB0aGUgZGV2aWNlcycgaWRlbnRpZmllcihzKQ0KPiArICAgIGFuZCB0aGUgQUNQSSBzeXN0
-ZW0gZmlybXdhcmUgbXVzdCBzdXBwbHkgYW4gX0hJRCBvYmplY3QgLi4uIGZvcg0KPiArICAgIGVh
-Y2ggZGV2aWNlIHRvIGVuYWJsZSBPU1BNIHRvIGRvIHRoYXQuDQo+ICsNCj4gK1syXSBBQ1BJIDYu
-MCwgc2VjIDMuNzoNCj4gKyAgICBUaGUgT1MgZW51bWVyYXRlcyBtb3RoZXJib2FyZCBkZXZpY2Vz
-IHNpbXBseSBieSByZWFkaW5nIHRocm91Z2gNCj4gKyAgICB0aGUgQUNQSSBOYW1lc3BhY2UgbG9v
-a2luZyBmb3IgZGV2aWNlcyB3aXRoIGhhcmR3YXJlIElEcy4NCj4gKw0KPiArICAgIEVhY2ggZGV2
-aWNlIGVudW1lcmF0ZWQgYnkgQUNQSSBpbmNsdWRlcyBBQ1BJLWRlZmluZWQgb2JqZWN0cyBpbg0K
-PiArICAgIHRoZSBBQ1BJIE5hbWVzcGFjZSB0aGF0IHJlcG9ydCB0aGUgaGFyZHdhcmUgcmVzb3Vy
-Y2VzIHRoZSBkZXZpY2UNCj4gKyAgICBjb3VsZCBvY2N1cHkgW19QUlNdLCBhbiBvYmplY3QgdGhh
-dCByZXBvcnRzIHRoZSByZXNvdXJjZXMgdGhhdCBhcmUNCj4gKyAgICBjdXJyZW50bHkgdXNlZCBi
-eSB0aGUgZGV2aWNlIFtfQ1JTXSwgYW5kIG9iamVjdHMgZm9yIGNvbmZpZ3VyaW5nDQo+ICsgICAg
-dGhvc2UgcmVzb3VyY2VzIFtfU1JTXS4gIFRoZSBpbmZvcm1hdGlvbiBpcyB1c2VkIGJ5IHRoZSBQ
-bHVnIGFuZA0KPiArICAgIFBsYXkgT1MgKE9TUE0pIHRvIGNvbmZpZ3VyZSB0aGUgZGV2aWNlcy4N
-Cj4gKw0KPiArWzNdIEFDUEkgNi4wLCBzZWMgNi4yOg0KPiArICAgIE9TUE0gdXNlcyBkZXZpY2Ug
-Y29uZmlndXJhdGlvbiBvYmplY3RzIHRvIGNvbmZpZ3VyZSBoYXJkd2FyZQ0KPiArICAgIHJlc291
-cmNlcyBmb3IgZGV2aWNlcyBlbnVtZXJhdGVkIHZpYSBBQ1BJLiAgRGV2aWNlIGNvbmZpZ3VyYXRp
-b24NCj4gKyAgICBvYmplY3RzIHByb3ZpZGUgaW5mb3JtYXRpb24gYWJvdXQgY3VycmVudCBhbmQg
-cG9zc2libGUgcmVzb3VyY2UNCj4gKyAgICByZXF1aXJlbWVudHMsIHRoZSByZWxhdGlvbnNoaXAg
-YmV0d2VlbiBzaGFyZWQgcmVzb3VyY2VzLCBhbmQNCj4gKyAgICBtZXRob2RzIGZvciBjb25maWd1
-cmluZyBoYXJkd2FyZSByZXNvdXJjZXMuDQo+ICsNCj4gKyAgICBXaGVuIE9TUE0gZW51bWVyYXRl
-cyBhIGRldmljZSwgaXQgY2FsbHMgX1BSUyB0byBkZXRlcm1pbmUgdGhlDQo+ICsgICAgcmVzb3Vy
-Y2UgcmVxdWlyZW1lbnRzIG9mIHRoZSBkZXZpY2UuICBJdCBtYXkgYWxzbyBjYWxsIF9DUlMgdG8N
-Cj4gKyAgICBmaW5kIHRoZSBjdXJyZW50IHJlc291cmNlIHNldHRpbmdzIGZvciB0aGUgZGV2aWNl
-LiAgVXNpbmcgdGhpcw0KPiArICAgIGluZm9ybWF0aW9uLCB0aGUgUGx1ZyBhbmQgUGxheSBzeXN0
-ZW0gZGV0ZXJtaW5lcyB3aGF0IHJlc291cmNlcw0KPiArICAgIHRoZSBkZXZpY2Ugc2hvdWxkIGNv
-bnN1bWUgYW5kIHNldHMgdGhvc2UgcmVzb3VyY2VzIGJ5IGNhbGxpbmcgdGhlDQo+ICsgICAgZGV2
-aWNl4oCZcyBfU1JTIGNvbnRyb2wgbWV0aG9kLg0KPiArDQo+ICsgICAgSW4gQUNQSSwgZGV2aWNl
-cyBjYW4gY29uc3VtZSByZXNvdXJjZXMgKGZvciBleGFtcGxlLCBsZWdhY3kNCj4gKyAgICBrZXli
-b2FyZHMpLCBwcm92aWRlIHJlc291cmNlcyAoZm9yIGV4YW1wbGUsIGEgcHJvcHJpZXRhcnkgUENJ
-DQo+ICsgICAgYnJpZGdlKSwgb3IgZG8gYm90aC4gIFVubGVzcyBvdGhlcndpc2Ugc3BlY2lmaWVk
-LCByZXNvdXJjZXMgZm9yIGENCj4gKyAgICBkZXZpY2UgYXJlIGFzc3VtZWQgdG8gYmUgdGFrZW4g
-ZnJvbSB0aGUgbmVhcmVzdCBtYXRjaGluZyByZXNvdXJjZQ0KPiArICAgIGFib3ZlIHRoZSBkZXZp
-Y2UgaW4gdGhlIGRldmljZSBoaWVyYXJjaHkuDQo+ICsNCj4gK1s0XSBBQ1BJIDYuMCwgc2VjIDYu
-NC4zLjUuNDoNCj4gKyAgICBFeHRlbmRlZCBBZGRyZXNzIFNwYWNlIERlc2NyaXB0b3INCj4gKyAg
-ICBHZW5lcmFsIEZsYWdzOiBCaXQgWzBdIENvbnN1bWVyL1Byb2R1Y2VyOg0KPiArCTHigJNUaGlz
-IGRldmljZSBjb25zdW1lcyB0aGlzIHJlc291cmNlDQo+ICsJMOKAk1RoaXMgZGV2aWNlIHByb2R1
-Y2VzIGFuZCBjb25zdW1lcyB0aGlzIHJlc291cmNlDQo+ICsNCj4gK1s1XSBBQ1BJIDYuMCwgc2Vj
-IDE5LjYuNDM6DQo+ICsgICAgUmVzb3VyY2VVc2FnZSBzcGVjaWZpZXMgd2hldGhlciB0aGUgTWVt
-b3J5IHJhbmdlIGlzIGNvbnN1bWVkIGJ5DQo+ICsgICAgdGhpcyBkZXZpY2UgKFJlc291cmNlQ29u
-c3VtZXIpIG9yIHBhc3NlZCBvbiB0byBjaGlsZCBkZXZpY2VzDQo+ICsgICAgKFJlc291cmNlUHJv
-ZHVjZXIpLiAgSWYgbm90aGluZyBpcyBzcGVjaWZpZWQsIHRoZW4NCj4gKyAgICBSZXNvdXJjZUNv
-bnN1bWVyIGlzIGFzc3VtZWQuDQo+ICsNCj4gK1s2XSBQQ0kgRmlybXdhcmUgMy4wLCBzZWMgNC4x
-LjI6DQo+ICsgICAgSWYgdGhlIG9wZXJhdGluZyBzeXN0ZW0gZG9lcyBub3QgbmF0aXZlbHkgY29t
-cHJlaGVuZCByZXNlcnZpbmcgdGhlDQo+ICsgICAgTU1DRkcgcmVnaW9uLCB0aGUgTU1DRkcgcmVn
-aW9uIG11c3QgYmUgcmVzZXJ2ZWQgYnkgZmlybXdhcmUuICBUaGUNCj4gKyAgICBhZGRyZXNzIHJh
-bmdlIHJlcG9ydGVkIGluIHRoZSBNQ0ZHIHRhYmxlIG9yIGJ5IF9DQkEgbWV0aG9kIChzZWUNCj4g
-KyAgICBTZWN0aW9uIDQuMS4zKSBtdXN0IGJlIHJlc2VydmVkIGJ5IGRlY2xhcmluZyBhIG1vdGhl
-cmJvYXJkDQo+ICsgICAgcmVzb3VyY2UuICBGb3IgbW9zdCBzeXN0ZW1zLCB0aGUgbW90aGVyYm9h
-cmQgcmVzb3VyY2Ugd291bGQgYXBwZWFyDQo+ICsgICAgYXQgdGhlIHJvb3Qgb2YgdGhlIEFDUEkg
-bmFtZXNwYWNlICh1bmRlciBcX1NCKSBpbiBhIG5vZGUgd2l0aCBhDQo+ICsgICAgX0hJRCBvZiBF
-SVNBSUQgKFBOUDBDMDIpLCBhbmQgdGhlIHJlc291cmNlcyBpbiB0aGlzIGNhc2Ugc2hvdWxkDQo+
-ICsgICAgbm90IGJlIGNsYWltZWQgaW4gdGhlIHJvb3QgUENJIGJ1c+KAmXMgX0NSUy4gIFRoZSBy
-ZXNvdXJjZXMgY2FuDQo+ICsgICAgb3B0aW9uYWxseSBiZSByZXR1cm5lZCBpbiBJbnQxNSBFODIw
-IG9yIEVGSUdldE1lbW9yeU1hcCBhcw0KPiArICAgIHJlc2VydmVkIG1lbW9yeSBidXQgbXVzdCBh
-bHdheXMgYmUgcmVwb3J0ZWQgdGhyb3VnaCBBQ1BJIGFzIGENCj4gKyAgICBtb3RoZXJib2FyZCBy
-ZXNvdXJjZS4NCj4gKw0KPiArWzddIFBDSSBFeHByZXNzIDMuMCwgc2VjIDcuMi4yOg0KPiArICAg
-IEZvciBzeXN0ZW1zIHRoYXQgYXJlIFBDLWNvbXBhdGlibGUsIG9yIHRoYXQgZG8gbm90IGltcGxl
-bWVudCBhDQo+ICsgICAgcHJvY2Vzc29yLWFyY2hpdGVjdHVyZS1zcGVjaWZpYyBmaXJtd2FyZSBp
-bnRlcmZhY2Ugc3RhbmRhcmQgdGhhdA0KPiArICAgIGFsbG93cyBhY2Nlc3MgdG8gdGhlIENvbmZp
-Z3VyYXRpb24gU3BhY2UsIHRoZSBFQ0FNIGlzIHJlcXVpcmVkIGFzDQo+ICsgICAgZGVmaW5lZCBp
-biB0aGlzIHNlY3Rpb24uDQoNCg==
+On 16/11/16 15:29, Lorenzo Pieralisi wrote:
+> In ACPI bases systems, in order to be able to create platform
+
+          based?
+
+> devices and initialize them for ARM SMMU components, the IORT
+> kernel implementation requires a set of static functions to be
+> used by the IORT kernel layer to configure platform devices for
+> ARM SMMU components.
+> 
+> Add static configuration functions to the IORT kernel layer for
+> the ARM SMMU components, so that the ARM SMMU driver can
+> initialize its respective platform device by relying on the IORT
+> kernel infrastructure and by adding a corresponding ACPI device
+> early probe section entry.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 81 +++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/iommu/arm-smmu.c  | 83 ++++++++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/acpi_iort.h |  3 ++
+>  3 files changed, 166 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index fd52e4c..4708806 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -548,6 +548,78 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
+>  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
+>  }
+>  
+> +static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_smmu *smmu;
+> +	int num_irqs;
+> +	u64 *glb_irq;
+> +
+> +	/* Retrieve SMMU specific data */
+> +	smmu = (struct acpi_iort_smmu *)node->node_data;
+> +
+> +	glb_irq = ACPI_ADD_PTR(u64, node, smmu->global_interrupt_offset);
+> +	if (!IORT_IRQ_MASK(glb_irq[1]))	/* 0 means not implemented */
+> +		num_irqs = 1;
+> +	else
+> +		num_irqs = 2;
+
+Do we actually need this - I mean, the configuration access interrupt is
+of somewhat limited utility, implementation-defined, and we don't have
+any handling for it. Nor should it, if present, ever happen anyway,
+since it's not like anyone else should be randomly poking our SMMU in
+invalid ways. Can we simply ignore it?
+
+> +
+> +	num_irqs += smmu->context_interrupt_count;
+> +
+> +	return num_irqs + 1;
+> +}
+> +
+> +static void __init arm_smmu_init_resources(struct resource *res,
+> +					   struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_smmu *smmu;
+> +	int i, hw_irq, trigger, num_res = 0;
+> +	u64 *ctx_irq, *glb_irq;
+> +
+> +	/* Retrieve SMMU specific data */
+> +	smmu = (struct acpi_iort_smmu *)node->node_data;
+> +
+> +	res[num_res].start = smmu->base_address;
+> +	res[num_res].end = smmu->base_address + smmu->span - 1;
+> +	res[num_res].flags = IORESOURCE_MEM;
+> +	num_res++;
+> +
+> +	glb_irq = ACPI_ADD_PTR(u64, node, smmu->global_interrupt_offset);
+> +	/* Global IRQs */
+> +	hw_irq = IORT_IRQ_MASK(glb_irq[0]);
+> +	trigger = IORT_IRQ_TRIGGER_MASK(glb_irq[0]);
+> +
+> +	acpi_iort_register_irq(hw_irq, "arm-smmu-global", trigger,
+> +				     &res[num_res++]);
+> +
+> +	/* Global IRQs */
+> +	hw_irq = IORT_IRQ_MASK(glb_irq[1]);
+> +	if (hw_irq) {
+> +		trigger = IORT_IRQ_TRIGGER_MASK(glb_irq[1]);
+> +		acpi_iort_register_irq(hw_irq, "arm-smmu-global", trigger,
+> +					     &res[num_res++]);
+> +	}
+
+Related to the above, I think the driver generally assumes these to be
+the global fault interrupt. If we *are* going to claim the config
+interrupt as well, we should probably disambiguate them, although
+admittedly we can't really do that retrospectively on the DT side.
+
+> +
+> +	/* Context IRQs */
+> +	ctx_irq = ACPI_ADD_PTR(u64, node, smmu->context_interrupt_offset);
+> +	for (i = 0; i < smmu->context_interrupt_count; i++) {
+> +		hw_irq = IORT_IRQ_MASK(ctx_irq[i]);
+> +		trigger = IORT_IRQ_TRIGGER_MASK(ctx_irq[i]);
+> +
+> +		acpi_iort_register_irq(hw_irq, "arm-smmu-context", trigger,
+> +				       &res[num_res++]);
+> +	}
+> +}
+> +
+> +static bool __init arm_smmu_is_coherent(struct acpi_iort_node *node)
+> +{
+> +	struct acpi_iort_smmu *smmu;
+> +
+> +	/* Retrieve SMMU specific data */
+> +	smmu = (struct acpi_iort_smmu *)node->node_data;
+> +
+> +	return smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK;
+> +}
+> +
+>  struct iort_iommu_config {
+>  	const char *name;
+>  	int (*iommu_init)(struct acpi_iort_node *node);
+> @@ -564,12 +636,21 @@ static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
+>  	.iommu_init_resources = arm_smmu_v3_init_resources
+>  };
+>  
+> +static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
+> +	.name = "arm-smmu",
+> +	.iommu_is_coherent = arm_smmu_is_coherent,
+> +	.iommu_count_resources = arm_smmu_count_resources,
+> +	.iommu_init_resources = arm_smmu_init_resources
+> +};
+> +
+>  static __init
+>  const struct iort_iommu_config *iort_get_iommu_cfg(struct acpi_iort_node *node)
+>  {
+>  	switch (node->type) {
+>  	case ACPI_IORT_NODE_SMMU_V3:
+>  		return &iort_arm_smmu_v3_cfg;
+> +	case ACPI_IORT_NODE_SMMU:
+> +		return &iort_arm_smmu_cfg;
+>  	default:
+>  		return NULL;
+>  	}
+> diff --git a/drivers/iommu/arm-smmu.c b/drivers/iommu/arm-smmu.c
+> index 573b2b6..21d1892 100644
+> --- a/drivers/iommu/arm-smmu.c
+> +++ b/drivers/iommu/arm-smmu.c
+> @@ -28,6 +28,8 @@
+>  
+>  #define pr_fmt(fmt) "arm-smmu: " fmt
+>  
+> +#include <linux/acpi.h>
+> +#include <linux/acpi_iort.h>
+>  #include <linux/atomic.h>
+>  #include <linux/delay.h>
+>  #include <linux/dma-iommu.h>
+> @@ -1904,6 +1906,70 @@ static const struct of_device_id arm_smmu_of_match[] = {
+>  };
+>  MODULE_DEVICE_TABLE(of, arm_smmu_of_match);
+>  
+> +#ifdef CONFIG_ACPI
+> +static int acpi_smmu_get_data(u32 model, u32 *version, u32 *impl)
+> +{
+> +	int ret = 0;
+> +
+> +	switch (model) {
+> +	case ACPI_IORT_SMMU_V1:
+> +	case ACPI_IORT_SMMU_CORELINK_MMU400:
+> +		*version = ARM_SMMU_V1;
+> +		*impl = GENERIC_SMMU;
+
+Further to Will's comment, I'd say just pass the smmu pointer in and set
+the fields explicitly here.
+
+Robin.
+
+> +		break;
+> +	case ACPI_IORT_SMMU_V2:
+> +		*version = ARM_SMMU_V2;
+> +		*impl = GENERIC_SMMU;
+> +		break;
+> +	case ACPI_IORT_SMMU_CORELINK_MMU500:
+> +		*version = ARM_SMMU_V2;
+> +		*impl = ARM_MMU500;
+> +		break;
+> +	default:
+> +		ret = -ENODEV;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
+> +				      struct arm_smmu_device *smmu)
+> +{
+> +	struct device *dev = smmu->dev;
+> +	struct acpi_iort_node *node =
+> +		*(struct acpi_iort_node **)dev_get_platdata(dev);
+> +	struct acpi_iort_smmu *iort_smmu;
+> +	u64 *glb_irq;
+> +	int ret;
+> +
+> +	/* Retrieve SMMU1/2 specific data */
+> +	iort_smmu = (struct acpi_iort_smmu *)node->node_data;
+> +
+> +	ret = acpi_smmu_get_data(iort_smmu->model, &smmu->version,
+> +						   &smmu->model);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	glb_irq = ACPI_ADD_PTR(u64, node, iort_smmu->global_interrupt_offset);
+> +
+> +	if (!IORT_IRQ_MASK(glb_irq[1]))	/* 0 means not implemented */
+> +		smmu->num_global_irqs = 1;
+> +	else
+> +		smmu->num_global_irqs = 2;
+> +
+> +	if (iort_smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK)
+> +		smmu->features |= ARM_SMMU_FEAT_COHERENT_WALK;
+> +
+> +	return 0;
+> +}
+> +#else
+> +static inline int arm_smmu_device_acpi_probe(struct platform_device *pdev,
+> +					     struct arm_smmu_device *smmu)
+> +{
+> +	return -ENODEV;
+> +}
+> +#endif
+> +
+>  static int arm_smmu_device_dt_probe(struct platform_device *pdev,
+>  				    struct arm_smmu_device *smmu)
+>  {
+> @@ -1955,7 +2021,11 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
+>  	}
+>  	smmu->dev = dev;
+>  
+> -	err = arm_smmu_device_dt_probe(pdev, smmu);
+> +	if (dev->of_node)
+> +		err = arm_smmu_device_dt_probe(pdev, smmu);
+> +	else
+> +		err = arm_smmu_device_acpi_probe(pdev, smmu);
+> +
+>  	if (err)
+>  		return err;
+>  
+> @@ -2103,6 +2173,17 @@ IOMMU_OF_DECLARE(arm_mmu401, "arm,mmu-401", arm_smmu_of_init);
+>  IOMMU_OF_DECLARE(arm_mmu500, "arm,mmu-500", arm_smmu_of_init);
+>  IOMMU_OF_DECLARE(cavium_smmuv2, "cavium,smmu-v2", arm_smmu_of_init);
+>  
+> +#ifdef CONFIG_ACPI
+> +static int __init arm_smmu_acpi_init(struct acpi_table_header *table)
+> +{
+> +	if (iort_node_match(ACPI_IORT_NODE_SMMU))
+> +		return arm_smmu_init();
+> +
+> +	return 0;
+> +}
+> +IORT_ACPI_DECLARE(arm_smmu, ACPI_SIG_IORT, arm_smmu_acpi_init);
+> +#endif
+> +
+>  MODULE_DESCRIPTION("IOMMU API for ARM architected SMMU implementations");
+>  MODULE_AUTHOR("Will Deacon <will.deacon@arm.com>");
+>  MODULE_LICENSE("GPL v2");
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 17bb078..79ba1bb 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -23,6 +23,9 @@
+>  #include <linux/fwnode.h>
+>  #include <linux/irqdomain.h>
+>  
+> +#define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
+> +#define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
+> +
+>  int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
+>  void iort_deregister_domain_token(int trans_id);
+>  struct fwnode_handle *iort_find_domain_token(int trans_id);
+> 
+
