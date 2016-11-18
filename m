@@ -1,77 +1,81 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.9-rc6
-Date: Fri, 18 Nov 2016 22:06:52 +0100
-Message-ID: <CAJZ5v0jC+iPnnB5sHE+6JMJxCLD6Mq8OKNuqKtFra_BzhiA2=g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Unable to use iTCO watchdog on Broadwell SOC:
+Date: Fri, 18 Nov 2016 22:26:19 +0100
+Message-ID: <5145970.FrABMDTXiu@vostro.rjw.lan>
+References: <CAHex0coy_mgDHi8N7UbAsWP5XLWhTAMK+JRkF1KMj7w=y5sbpw@mail.gmail.com> <CAHex0cpzrVeKft6yB+4kphyi7jnOwrk7PERvDRgag7wp3ZbsKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35273 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753005AbcKRVGz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2016 16:06:55 -0500
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44854 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752421AbcKRVSm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 18 Nov 2016 16:18:42 -0500
+In-Reply-To: <CAHex0cpzrVeKft6yB+4kphyi7jnOwrk7PERvDRgag7wp3ZbsKA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jonathan Nicklin <jnicklin@blockbridge.com>
+Cc: linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Linus,
+On Friday, November 18, 2016 03:05:53 PM Jonathan Nicklin wrote:
+> Hello again,
+> 
+> We have confirmed with the board manufacturer that the TOC watchdog
+> was actually disabled via hardware. We have since modified the
+> hardware and successfully initialized the TOC watchdog on a Broadwell
+> SOC. Our immediate issue was not a software / driver issue. That said,
+> we have yet to hear back from SuperMicro regarding their boards.
 
-Please pull from the tag
+On some boards you may need to use the WDAT-based watchdog driver
+introduced by commit 058dfc767008 (ACPI / watchdog: Add support for WDAT
+hardware watchdog).
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.9-rc6
+Thanks,
+Rafael
 
-with top-most commit aab0b243b9a2fab7dcee0ce6e13789d3ab0394bf
 
- Merge branches 'acpica-fixes', 'acpi-cppc-fixes' and 'acpi-tools-fixes'
+> On Wed, Nov 16, 2016 at 11:08 AM, Jonathan Nicklin
+> <jnicklin@blockbridge.com> wrote:
+> > Hi Everyone,
+> >
+> > We have a number of systems that fail to initialize the iTCO watchdog
+> > with “unable to reset NO_REBOOT flag, device disabled by
+> > hardware/BIOS”. The systems include Broadwell SOC, Haswell w/ C222,
+> > and Ivy Bridge w/ C600/X79. These systems have different BIOS
+> > vendors/versions. We have tested with a few different kernel versions
+> > as recent as 4.4. We have only managed successfully configure the iTCO
+> > watchdog on a Haswell w/ C610/X99 system.
+> >
+> > Has anyone successfully used the iTCO watchdog on a Broadwell
+> > Xeon-D/SOC system? Can anyone provide advice on how to debug this
+> > issue?
+> >
+> > Thanks,
+> > -Jonathan
+> >
+> > # uname -a
+> > Linux soc 4.4.23-1.el7.elrepo.x86_64 #1 SMP Fri Sep 30 09:11:50 EDT
+> > 2016 x86_64 x86_64 x86_64 GNU/Linux
+> >
+> > # dmesg | grep iTCO
+> > [   18.544987] iTCO_vendor_support: vendor-support=0
+> > [   18.549213] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
+> > [   18.549245] iTCO_wdt: unable to reset NO_REBOOT flag, device
+> > disabled by hardware/BIOS
+> >
+> > # find /sys/devices | grep iTCO
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/control
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_active_time
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/autosuspend_delay_ms
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_status
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_suspended_time
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/driver_override
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/modalias
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/subsystem
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/uevent
+> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/firmware_node
+> --
 
-on top of commit a25f0944ba9b1d8a6813fd6f1a86f1bd59ac25a6
-
- Linux 4.9-rc5
-
-to receive ACPI fixes for v4.9-rc6.
-
-They fix an ACPI thermal management regression introduced by a recent
-FADT handling cleanup, an ACPI tools build issue introduced by a
-recent ACPICA commit and a PCC mailbox initialization bug causing
-lockdep to complain loudly.
-
-Specifics:
-
- - Revert a recent ACPICA cleanup that attempted to get rid of all
-   FADT version 2 legacy, but broke ACPI thermal management on at
-   least one system (Rafael Wysocki).
-
- - Fix cross-compiled builds of ACPI tools that stopped working
-   after a recent cleanup related to the handling of header files
-   in ACPICA (Lv Zheng).
-
- - Fix a locking issue in the PCC channel initialization code that
-   invokes devm_request_irq() under a spinlock (among other things)
-   and causes lockdep to complain (Hoan Tran).
-
-Thanks!
-
----------------
-
-Hoan Tran (1):
-      mailbox: PCC: Fix lockdep warning when request PCC channel
-
-Lv Zheng (1):
-      tools/power/acpi: Remove direct kernel source include reference
-
-Rafael J. Wysocki (1):
-      Revert "ACPICA: FADT support cleanup"
-
----------------
-
- drivers/acpi/acpica/tbfadt.c             |  10 +-
- drivers/mailbox/pcc.c                    |  13 +--
- include/acpi/actbl.h                     | 164 +++++++++++++------------------
- include/acpi/platform/aclinux.h          |   3 +
- tools/power/acpi/Makefile.config         |  23 ++---
- tools/power/acpi/Makefile.rules          |  40 +++++---
- tools/power/acpi/tools/acpidbg/Makefile  |   4 +-
- tools/power/acpi/tools/acpidbg/acpidbg.c |   8 +-
- tools/power/acpi/tools/acpidump/Makefile |  12 +--
- 9 files changed, 137 insertions(+), 140 deletions(-)
