@@ -1,252 +1,66 @@
 From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: [PATCH V5 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
-Date: Fri, 18 Nov 2016 17:22:31 +0800
-Message-ID: <1479460951-49281-3-git-send-email-liudongdong3@huawei.com>
-References: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
+Subject: [PATCH V5 0/2] Add ACPI support for HiSilicon SoCs Host Controllers
+Date: Fri, 18 Nov 2016 17:22:29 +0800
+Message-ID: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:29004 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752578AbcKRJGB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2016 04:06:01 -0500
-In-Reply-To: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+List-Id: linux-acpi@vger.kernel.org
 
-PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
-It is non ECAM only for the RC bus config space;for any other bus
-underneath the root bus we support ECAM access.
-Add specific quirks for PCI config space accessors.This involves:
-1. New initialization call hisi_pcie_init() to obtain rc base
-addresses from PNP0C02 at the root of the ACPI namespace (under \_SB).
-2. New entry in common quirk array.
+This patchset adds ACPI support for the HiSilicon Hip05/Hip06/Hip07 SoC
+PCIe controllers.
+The two patches respectively:
+        - provides the common function acpi_get_rc_resources() for ARM64
+          platform.
+        - adds the HiSilicon ACPI specific quirks.
 
-Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
----
+This patchset is based on branch pci/ecam-v6
+It can be found here:
+https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git(pci/ecam-v6)
+
+This patchset has been tested on HiSilicon D03 board.
+The dmesg log, /proc/iomem, and ACPI table information can be found:
+https://bugzilla.kernel.org/show_bug.cgi?id=187961
+
+v4 -> v5:
+- obtain rc base addresses from PNP0C02 at the root of the ACPI
+namespace (under \_SB) instead of from sub-device under the RC.
+- merge the rewrited get rc resources code by Tomasz.
+- delete unused code. 
+- drop the PATCH V4 1/2, will rework late as a seperate patch.
+
+v3 -> v4:
+- rebase on pci/ecam-v6.
+- delete the unnecessary link_up check code. 
+
+v2 -> v3:
+- rebase against 4.9-rc1 and add Tomasz quirks V6 pathcset. 
+- obtain rc base addresses from PNP0C02 as subdevice of PNP0A03 instead of
+  hardcode the addresses.
+- modify hisi_pcie_acpi_rd_conf/hisi_pcie_acpi_wr_conf() according to
+  Arnd comments.
+
+v1 -> v2:
+- rebase against Tomasz RFC V5 quirk mechanism
+- add ACPI support for the HiSilicon Hip07 SoC PCIe controllers.
+
+Dongdong Liu (2):
+  PCI/ACPI: Provide acpi_get_rc_resources() for ARM64 platform
+  PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
+
  MAINTAINERS                       |   1 +
  drivers/acpi/pci_mcfg.c           |  13 ++++
  drivers/pci/host/Kconfig          |   8 +++
  drivers/pci/host/Makefile         |   1 +
  drivers/pci/host/pcie-hisi-acpi.c | 124 ++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci-acpi.c            |  71 ++++++++++++++++++++++
+ drivers/pci/pci.h                 |   4 ++
  include/linux/pci-ecam.h          |   5 ++
- 6 files changed, 152 insertions(+)
+ 8 files changed, 227 insertions(+)
  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1cd38a7..b224caa 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
- F:	drivers/pci/host/pcie-hisi.c
-+F:	drivers/pci/host/pcie-hisi-acpi.c
- 
- PCIE DRIVER FOR ROCKCHIP
- M:	Shawn Lin <shawn.lin@rock-chips.com>
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index ac21db3..b1b6fc7 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -57,6 +57,19 @@ struct mcfg_fixup {
- 	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
- 	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
- 	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
-+#ifdef CONFIG_PCI_HISI_ACPI
-+	#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
-+	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
-+	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
-+	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
-+	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
-+	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
-+#endif
- };
- 
- static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-index ae98644..9ff2bcd 100644
---- a/drivers/pci/host/Kconfig
-+++ b/drivers/pci/host/Kconfig
-@@ -227,6 +227,14 @@ config PCI_HISI
- 	  Say Y here if you want PCIe controller support on HiSilicon
- 	  Hip05 and Hip06 and Hip07 SoCs
- 
-+config PCI_HISI_ACPI
-+	depends on ACPI && ARM64
-+	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe controllers"
-+	select PNP
-+	help
-+	  Say Y here if you want ACPI PCIe controller support on HiSilicon
-+	  Hip05 and Hip06 and Hip07 SoCs
-+
- config PCIE_QCOM
- 	bool "Qualcomm PCIe controller"
- 	depends on ARCH_QCOM && OF
-diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
-index 084cb49..9402858 100644
---- a/drivers/pci/host/Makefile
-+++ b/drivers/pci/host/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
- obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
- obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
- obj-$(CONFIG_PCI_HISI) += pcie-hisi.o
-+obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o
- obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
- obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
- obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
-diff --git a/drivers/pci/host/pcie-hisi-acpi.c b/drivers/pci/host/pcie-hisi-acpi.c
-new file mode 100644
-index 0000000..358c7c9
---- /dev/null
-+++ b/drivers/pci/host/pcie-hisi-acpi.c
-@@ -0,0 +1,124 @@
-+/*
-+ * PCIe host controller driver for HiSilicon HipXX SoCs
-+ *
-+ * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
-+ *
-+ * Author: Dongdong Liu <liudongdong3@huawei.com>
-+ *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/pci.h>
-+#include <linux/pci-acpi.h>
-+#include <linux/pci-ecam.h>
-+#include "../pci.h"
-+
-+static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-+				  int size, u32 *val)
-+{
-+	struct pci_config_window *cfg = bus->sysdata;
-+	int dev = PCI_SLOT(devfn);
-+
-+	if (bus->number == cfg->busr.start) {
-+		/* access only one slot on each root port */
-+		if (dev > 0)
-+			return PCIBIOS_DEVICE_NOT_FOUND;
-+		else
-+			return pci_generic_config_read32(bus, devfn, where,
-+							 size, val);
-+	}
-+
-+	return pci_generic_config_read(bus, devfn, where, size, val);
-+}
-+
-+static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
-+				  int where, int size, u32 val)
-+{
-+	struct pci_config_window *cfg = bus->sysdata;
-+	int dev = PCI_SLOT(devfn);
-+
-+	if (bus->number == cfg->busr.start) {
-+		/* access only one slot on each root port */
-+		if (dev > 0)
-+			return PCIBIOS_DEVICE_NOT_FOUND;
-+		else
-+			return pci_generic_config_write32(bus, devfn, where,
-+							  size, val);
-+	}
-+
-+	return pci_generic_config_write(bus, devfn, where, size, val);
-+}
-+
-+static void __iomem *hisi_pcie_map_bus(struct pci_bus *bus, unsigned int devfn,
-+				       int where)
-+{
-+	struct pci_config_window *cfg = bus->sysdata;
-+	void __iomem *reg_base = cfg->priv;
-+
-+	if (bus->number == cfg->busr.start)
-+		return reg_base + where;
-+	else
-+		return pci_ecam_map_bus(bus, devfn, where);
-+}
-+
-+/*
-+ * Retrieve RC base and size from PNP0C02 at the root of the ACPI namespace
-+ * (under \_SB).
-+ * Scope(_SB)
-+ * {
-+ *   Device (PCI0)
-+ *   {
-+ *     Name(_HID, "PNP0A08")
-+ *     Name(_CID, "PNP0A03")
-+ *     Name(_SEG, 0)
-+ *     ......
-+ *   }
-+ *   Device (RES0)
-+ *   {
-+ *     Name(_HID, "HISI0081")
-+ *     Name(_CID, "PNP0C02")
-+ *     Name(_UID, 0x0)
-+ *     Name(_CRS, ResourceTemplate (){
-+ *       Memory32Fixed (ReadWrite, 0xa0090000, 0x10000)
-+ *     })
-+ *   }
-+ *   ......
-+ * }
-+ */
-+static int hisi_pcie_init(struct pci_config_window *cfg)
-+{
-+	struct acpi_device *adev = to_acpi_device(cfg->parent);
-+	struct acpi_pci_root *root = acpi_driver_data(adev);
-+	void __iomem *reg_base;
-+	struct resource *res;
-+	int ret;
-+
-+	res = devm_kzalloc(&adev->dev, sizeof(*res), GFP_KERNEL);
-+	if (!res)
-+		return -ENOMEM;
-+
-+	ret = acpi_get_rc_resources("HISI0081", root->segment, res);
-+	if (ret) {
-+		dev_err(&adev->dev, "can't get rc base address");
-+		return ret;
-+	}
-+
-+	reg_base = devm_ioremap(&adev->dev, res->start, resource_size(res));
-+	if (!reg_base)
-+		return -ENOMEM;
-+
-+	cfg->priv = reg_base;
-+	return 0;
-+}
-+
-+struct pci_ecam_ops hisi_pcie_ops = {
-+	.bus_shift    = 20,
-+	.init         =  hisi_pcie_init,
-+	.pci_ops      = {
-+		.map_bus    = hisi_pcie_map_bus,
-+		.read       = hisi_pcie_acpi_rd_conf,
-+		.write      = hisi_pcie_acpi_wr_conf,
-+	}
-+};
-diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-index f5740b7..1b24d97 100644
---- a/include/linux/pci-ecam.h
-+++ b/include/linux/pci-ecam.h
-@@ -67,4 +67,9 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
- int pci_host_common_probe(struct platform_device *pdev,
- 			  struct pci_ecam_ops *ops);
- #endif
-+
-+#ifdef CONFIG_PCI_HISI_ACPI
-+extern struct pci_ecam_ops hisi_pcie_ops;
-+#endif
-+
- #endif
 -- 
 1.9.1
-
