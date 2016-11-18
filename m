@@ -1,324 +1,454 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v8 13/16] drivers: iommu: arm-smmu: add IORT configuration
-Date: Fri, 18 Nov 2016 18:03:56 +0000
-Message-ID: <20161118180356.GA30496@red-moon>
-References: <20161116152936.22955-1-lorenzo.pieralisi@arm.com>
-	<20161116152936.22955-14-lorenzo.pieralisi@arm.com>
-	<83df7dba-8d04-96ae-f59b-b0d484085e12@arm.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v16 04/15] clocksource/drivers/arm_arch_timer: rename
+ some enums and defines, and some cleanups.
+Date: Fri, 18 Nov 2016 18:49:13 +0000
+Message-ID: <20161118184913.GH1197@leverpostej>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <1479304148-2965-5-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:56324 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751995AbcKRSt7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 18 Nov 2016 13:49:59 -0500
 Content-Disposition: inline
-In-Reply-To: <83df7dba-8d04-96ae-f59b-b0d484085e12-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1479304148-2965-5-git-send-email-fu.wei@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Fri, Nov 18, 2016 at 05:36:46PM +0000, Robin Murphy wrote:
-> On 16/11/16 15:29, Lorenzo Pieralisi wrote:
-> > In ACPI bases systems, in order to be able to create platform
+On Wed, Nov 16, 2016 at 09:48:57PM +0800, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 > 
->           based?
+> Rename some enums and defines, to unify the format of enums and defines
+> in arm_arch_timer.h, also update all the users of these enums and defines:
+>     drivers/clocksource/arm_arch_timer.c
+>     virt/kvm/arm/hyp/timer-sr.c
 
-Ok.
+I'm happy with making definitions use a consistent ARCH_TIMER_ prefix,
+given they're exposed in headers...
 
-> > devices and initialize them for ARM SMMU components, the IORT
-> > kernel implementation requires a set of static functions to be
-> > used by the IORT kernel layer to configure platform devices for
-> > ARM SMMU components.
-> > 
-> > Add static configuration functions to the IORT kernel layer for
-> > the ARM SMMU components, so that the ARM SMMU driver can
-> > initialize its respective platform device by relying on the IORT
-> > kernel infrastructure and by adding a corresponding ACPI device
-> > early probe section entry.
-> > 
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> > Reviewed-by: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> > Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Tested-by: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> > Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/acpi/arm64/iort.c | 81 +++++++++++++++++++++++++++++++++++++++++++++
-> >  drivers/iommu/arm-smmu.c  | 83 ++++++++++++++++++++++++++++++++++++++++++++++-
-> >  include/linux/acpi_iort.h |  3 ++
-> >  3 files changed, 166 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index fd52e4c..4708806 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -548,6 +548,78 @@ static bool __init arm_smmu_v3_is_coherent(struct acpi_iort_node *node)
-> >  	return smmu->flags & ACPI_IORT_SMMU_V3_COHACC_OVERRIDE;
-> >  }
-> >  
-> > +static int __init arm_smmu_count_resources(struct acpi_iort_node *node)
-> > +{
-> > +	struct acpi_iort_smmu *smmu;
-> > +	int num_irqs;
-> > +	u64 *glb_irq;
-> > +
-> > +	/* Retrieve SMMU specific data */
-> > +	smmu = (struct acpi_iort_smmu *)node->node_data;
-> > +
-> > +	glb_irq = ACPI_ADD_PTR(u64, node, smmu->global_interrupt_offset);
-> > +	if (!IORT_IRQ_MASK(glb_irq[1]))	/* 0 means not implemented */
-> > +		num_irqs = 1;
-> > +	else
-> > +		num_irqs = 2;
+> And do some cleanups, according to the suggestion from checkpatch.pl:
+> (1) using BIT(nr) instead of (1 << nr)
+> (2) using 'unsigned int' instead of 'unsigned'
+
+... but these changes are pointless churn. They make the patch larger,
+hardwer to review, and more painful to merge.
+
+Please leave these as they are unless there is a functional problem. If
+there will be a functional problem unless these are changed, describe
+that in the commit message.
+
+Thanks,
+Mark.
+
 > 
-> Do we actually need this - I mean, the configuration access interrupt is
-> of somewhat limited utility, implementation-defined, and we don't have
-> any handling for it. Nor should it, if present, ever happen anyway,
-> since it's not like anyone else should be randomly poking our SMMU in
-> invalid ways. Can we simply ignore it?
-
-I added its parsing to bring the same capabilities present in DT to
-ACPI, from what you are saying I think that we'd better ignore it
-and add its parsing later if we _ever_ need to handle it.
-
-> > +
-> > +	num_irqs += smmu->context_interrupt_count;
-> > +
-> > +	return num_irqs + 1;
-> > +}
-> > +
-> > +static void __init arm_smmu_init_resources(struct resource *res,
-> > +					   struct acpi_iort_node *node)
-> > +{
-> > +	struct acpi_iort_smmu *smmu;
-> > +	int i, hw_irq, trigger, num_res = 0;
-> > +	u64 *ctx_irq, *glb_irq;
-> > +
-> > +	/* Retrieve SMMU specific data */
-> > +	smmu = (struct acpi_iort_smmu *)node->node_data;
-> > +
-> > +	res[num_res].start = smmu->base_address;
-> > +	res[num_res].end = smmu->base_address + smmu->span - 1;
-> > +	res[num_res].flags = IORESOURCE_MEM;
-> > +	num_res++;
-> > +
-> > +	glb_irq = ACPI_ADD_PTR(u64, node, smmu->global_interrupt_offset);
-> > +	/* Global IRQs */
-> > +	hw_irq = IORT_IRQ_MASK(glb_irq[0]);
-> > +	trigger = IORT_IRQ_TRIGGER_MASK(glb_irq[0]);
-> > +
-> > +	acpi_iort_register_irq(hw_irq, "arm-smmu-global", trigger,
-> > +				     &res[num_res++]);
-> > +
-> > +	/* Global IRQs */
-> > +	hw_irq = IORT_IRQ_MASK(glb_irq[1]);
-> > +	if (hw_irq) {
-> > +		trigger = IORT_IRQ_TRIGGER_MASK(glb_irq[1]);
-> > +		acpi_iort_register_irq(hw_irq, "arm-smmu-global", trigger,
-> > +					     &res[num_res++]);
-> > +	}
+> No functional change.
 > 
-> Related to the above, I think the driver generally assumes these to be
-> the global fault interrupt. If we *are* going to claim the config
-> interrupt as well, we should probably disambiguate them, although
-> admittedly we can't really do that retrospectively on the DT side.
-
-I do not think we are missing functionality if for the time being
-we just ignore the configuration access interrupt so that's what
-I will do for this first version.
-
-Thanks !
-Lorenzo
-
-> > +
-> > +	/* Context IRQs */
-> > +	ctx_irq = ACPI_ADD_PTR(u64, node, smmu->context_interrupt_offset);
-> > +	for (i = 0; i < smmu->context_interrupt_count; i++) {
-> > +		hw_irq = IORT_IRQ_MASK(ctx_irq[i]);
-> > +		trigger = IORT_IRQ_TRIGGER_MASK(ctx_irq[i]);
-> > +
-> > +		acpi_iort_register_irq(hw_irq, "arm-smmu-context", trigger,
-> > +				       &res[num_res++]);
-> > +	}
-> > +}
-> > +
-> > +static bool __init arm_smmu_is_coherent(struct acpi_iort_node *node)
-> > +{
-> > +	struct acpi_iort_smmu *smmu;
-> > +
-> > +	/* Retrieve SMMU specific data */
-> > +	smmu = (struct acpi_iort_smmu *)node->node_data;
-> > +
-> > +	return smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK;
-> > +}
-> > +
-> >  struct iort_iommu_config {
-> >  	const char *name;
-> >  	int (*iommu_init)(struct acpi_iort_node *node);
-> > @@ -564,12 +636,21 @@ static const struct iort_iommu_config iort_arm_smmu_v3_cfg __initconst = {
-> >  	.iommu_init_resources = arm_smmu_v3_init_resources
-> >  };
-> >  
-> > +static const struct iort_iommu_config iort_arm_smmu_cfg __initconst = {
-> > +	.name = "arm-smmu",
-> > +	.iommu_is_coherent = arm_smmu_is_coherent,
-> > +	.iommu_count_resources = arm_smmu_count_resources,
-> > +	.iommu_init_resources = arm_smmu_init_resources
-> > +};
-> > +
-> >  static __init
-> >  const struct iort_iommu_config *iort_get_iommu_cfg(struct acpi_iort_node *node)
-> >  {
-> >  	switch (node->type) {
-> >  	case ACPI_IORT_NODE_SMMU_V3:
-> >  		return &iort_arm_smmu_v3_cfg;
-> > +	case ACPI_IORT_NODE_SMMU:
-> > +		return &iort_arm_smmu_cfg;
-> >  	default:
-> >  		return NULL;
-> >  	}
-> > diff --git a/drivers/iommu/arm-smmu.c b/drivers/iommu/arm-smmu.c
-> > index 573b2b6..21d1892 100644
-> > --- a/drivers/iommu/arm-smmu.c
-> > +++ b/drivers/iommu/arm-smmu.c
-> > @@ -28,6 +28,8 @@
-> >  
-> >  #define pr_fmt(fmt) "arm-smmu: " fmt
-> >  
-> > +#include <linux/acpi.h>
-> > +#include <linux/acpi_iort.h>
-> >  #include <linux/atomic.h>
-> >  #include <linux/delay.h>
-> >  #include <linux/dma-iommu.h>
-> > @@ -1904,6 +1906,70 @@ static const struct of_device_id arm_smmu_of_match[] = {
-> >  };
-> >  MODULE_DEVICE_TABLE(of, arm_smmu_of_match);
-> >  
-> > +#ifdef CONFIG_ACPI
-> > +static int acpi_smmu_get_data(u32 model, u32 *version, u32 *impl)
-> > +{
-> > +	int ret = 0;
-> > +
-> > +	switch (model) {
-> > +	case ACPI_IORT_SMMU_V1:
-> > +	case ACPI_IORT_SMMU_CORELINK_MMU400:
-> > +		*version = ARM_SMMU_V1;
-> > +		*impl = GENERIC_SMMU;
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> ---
+>  drivers/clocksource/arm_arch_timer.c | 111 ++++++++++++++++++-----------------
+>  include/clocksource/arm_arch_timer.h |  40 ++++++-------
+>  virt/kvm/arm/hyp/timer-sr.c          |   6 +-
+>  3 files changed, 81 insertions(+), 76 deletions(-)
 > 
-> Further to Will's comment, I'd say just pass the smmu pointer in and set
-> the fields explicitly here.
-> 
-> Robin.
-> 
-> > +		break;
-> > +	case ACPI_IORT_SMMU_V2:
-> > +		*version = ARM_SMMU_V2;
-> > +		*impl = GENERIC_SMMU;
-> > +		break;
-> > +	case ACPI_IORT_SMMU_CORELINK_MMU500:
-> > +		*version = ARM_SMMU_V2;
-> > +		*impl = ARM_MMU500;
-> > +		break;
-> > +	default:
-> > +		ret = -ENODEV;
-> > +	}
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int arm_smmu_device_acpi_probe(struct platform_device *pdev,
-> > +				      struct arm_smmu_device *smmu)
-> > +{
-> > +	struct device *dev = smmu->dev;
-> > +	struct acpi_iort_node *node =
-> > +		*(struct acpi_iort_node **)dev_get_platdata(dev);
-> > +	struct acpi_iort_smmu *iort_smmu;
-> > +	u64 *glb_irq;
-> > +	int ret;
-> > +
-> > +	/* Retrieve SMMU1/2 specific data */
-> > +	iort_smmu = (struct acpi_iort_smmu *)node->node_data;
-> > +
-> > +	ret = acpi_smmu_get_data(iort_smmu->model, &smmu->version,
-> > +						   &smmu->model);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	glb_irq = ACPI_ADD_PTR(u64, node, iort_smmu->global_interrupt_offset);
-> > +
-> > +	if (!IORT_IRQ_MASK(glb_irq[1]))	/* 0 means not implemented */
-> > +		smmu->num_global_irqs = 1;
-> > +	else
-> > +		smmu->num_global_irqs = 2;
-> > +
-> > +	if (iort_smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK)
-> > +		smmu->features |= ARM_SMMU_FEAT_COHERENT_WALK;
-> > +
-> > +	return 0;
-> > +}
-> > +#else
-> > +static inline int arm_smmu_device_acpi_probe(struct platform_device *pdev,
-> > +					     struct arm_smmu_device *smmu)
-> > +{
-> > +	return -ENODEV;
-> > +}
-> > +#endif
-> > +
-> >  static int arm_smmu_device_dt_probe(struct platform_device *pdev,
-> >  				    struct arm_smmu_device *smmu)
-> >  {
-> > @@ -1955,7 +2021,11 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
-> >  	}
-> >  	smmu->dev = dev;
-> >  
-> > -	err = arm_smmu_device_dt_probe(pdev, smmu);
-> > +	if (dev->of_node)
-> > +		err = arm_smmu_device_dt_probe(pdev, smmu);
-> > +	else
-> > +		err = arm_smmu_device_acpi_probe(pdev, smmu);
-> > +
-> >  	if (err)
-> >  		return err;
-> >  
-> > @@ -2103,6 +2173,17 @@ IOMMU_OF_DECLARE(arm_mmu401, "arm,mmu-401", arm_smmu_of_init);
-> >  IOMMU_OF_DECLARE(arm_mmu500, "arm,mmu-500", arm_smmu_of_init);
-> >  IOMMU_OF_DECLARE(cavium_smmuv2, "cavium,smmu-v2", arm_smmu_of_init);
-> >  
-> > +#ifdef CONFIG_ACPI
-> > +static int __init arm_smmu_acpi_init(struct acpi_table_header *table)
-> > +{
-> > +	if (iort_node_match(ACPI_IORT_NODE_SMMU))
-> > +		return arm_smmu_init();
-> > +
-> > +	return 0;
-> > +}
-> > +IORT_ACPI_DECLARE(arm_smmu, ACPI_SIG_IORT, arm_smmu_acpi_init);
-> > +#endif
-> > +
-> >  MODULE_DESCRIPTION("IOMMU API for ARM architected SMMU implementations");
-> >  MODULE_AUTHOR("Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>");
-> >  MODULE_LICENSE("GPL v2");
-> > diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> > index 17bb078..79ba1bb 100644
-> > --- a/include/linux/acpi_iort.h
-> > +++ b/include/linux/acpi_iort.h
-> > @@ -23,6 +23,9 @@
-> >  #include <linux/fwnode.h>
-> >  #include <linux/irqdomain.h>
-> >  
-> > +#define IORT_IRQ_MASK(irq)		(irq & 0xffffffffULL)
-> > +#define IORT_IRQ_TRIGGER_MASK(irq)	((irq >> 32) & 0xffffffffULL)
-> > +
-> >  int iort_register_domain_token(int trans_id, struct fwnode_handle *fw_node);
-> >  void iort_deregister_domain_token(int trans_id);
-> >  struct fwnode_handle *iort_find_domain_token(int trans_id);
-> > 
+> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+> index 15341cf..dd1040d 100644
+> --- a/drivers/clocksource/arm_arch_timer.c
+> +++ b/drivers/clocksource/arm_arch_timer.c
+> @@ -66,11 +66,11 @@ struct arch_timer {
+>  #define to_arch_timer(e) container_of(e, struct arch_timer, evt)
+>  
+>  static u32 arch_timer_rate;
+> -static int arch_timer_ppi[MAX_TIMER_PPI];
+> +static int arch_timer_ppi[ARCH_TIMER_MAX_TIMER_PPI];
+>  
+>  static struct clock_event_device __percpu *arch_timer_evt;
+>  
+> -static enum arch_timer_ppi_nr arch_timer_uses_ppi = VIRT_PPI;
+> +static enum arch_timer_ppi_nr arch_timer_uses_ppi = ARCH_TIMER_VIRT_PPI;
+>  static bool arch_timer_c3stop;
+>  static bool arch_timer_mem_use_virtual;
+>  
+> @@ -340,7 +340,7 @@ static void fsl_a008585_set_sne(struct clock_event_device *clk)
+>  	if (!static_branch_unlikely(&arch_timer_read_ool_enabled))
+>  		return;
+>  
+> -	if (arch_timer_uses_ppi == VIRT_PPI)
+> +	if (arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI)
+>  		clk->set_next_event = fsl_a008585_set_next_event_virt;
+>  	else
+>  		clk->set_next_event = fsl_a008585_set_next_event_phys;
+> @@ -352,7 +352,7 @@ static void __arch_timer_setup(unsigned type,
+>  {
+>  	clk->features = CLOCK_EVT_FEAT_ONESHOT;
+>  
+> -	if (type == ARCH_CP15_TIMER) {
+> +	if (type == ARCH_TIMER_TYPE_CP15) {
+>  		if (arch_timer_c3stop)
+>  			clk->features |= CLOCK_EVT_FEAT_C3STOP;
+>  		clk->name = "arch_sys_timer";
+> @@ -360,14 +360,14 @@ static void __arch_timer_setup(unsigned type,
+>  		clk->cpumask = cpumask_of(smp_processor_id());
+>  		clk->irq = arch_timer_ppi[arch_timer_uses_ppi];
+>  		switch (arch_timer_uses_ppi) {
+> -		case VIRT_PPI:
+> +		case ARCH_TIMER_VIRT_PPI:
+>  			clk->set_state_shutdown = arch_timer_shutdown_virt;
+>  			clk->set_state_oneshot_stopped = arch_timer_shutdown_virt;
+>  			clk->set_next_event = arch_timer_set_next_event_virt;
+>  			break;
+> -		case PHYS_SECURE_PPI:
+> -		case PHYS_NONSECURE_PPI:
+> -		case HYP_PPI:
+> +		case ARCH_TIMER_PHYS_SECURE_PPI:
+> +		case ARCH_TIMER_PHYS_NONSECURE_PPI:
+> +		case ARCH_TIMER_HYP_PPI:
+>  			clk->set_state_shutdown = arch_timer_shutdown_phys;
+>  			clk->set_state_oneshot_stopped = arch_timer_shutdown_phys;
+>  			clk->set_next_event = arch_timer_set_next_event_phys;
+> @@ -447,8 +447,8 @@ static void arch_counter_set_user_access(void)
+>  
+>  static bool arch_timer_has_nonsecure_ppi(void)
+>  {
+> -	return (arch_timer_uses_ppi == PHYS_SECURE_PPI &&
+> -		arch_timer_ppi[PHYS_NONSECURE_PPI]);
+> +	return (arch_timer_uses_ppi == ARCH_TIMER_PHYS_SECURE_PPI &&
+> +		arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
+>  }
+>  
+>  static u32 check_ppi_trigger(int irq)
+> @@ -469,14 +469,15 @@ static int arch_timer_starting_cpu(unsigned int cpu)
+>  	struct clock_event_device *clk = this_cpu_ptr(arch_timer_evt);
+>  	u32 flags;
+>  
+> -	__arch_timer_setup(ARCH_CP15_TIMER, clk);
+> +	__arch_timer_setup(ARCH_TIMER_TYPE_CP15, clk);
+>  
+>  	flags = check_ppi_trigger(arch_timer_ppi[arch_timer_uses_ppi]);
+>  	enable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi], flags);
+>  
+>  	if (arch_timer_has_nonsecure_ppi()) {
+> -		flags = check_ppi_trigger(arch_timer_ppi[PHYS_NONSECURE_PPI]);
+> -		enable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI], flags);
+> +		flags = check_ppi_trigger(arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
+> +		enable_percpu_irq(arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI],
+> +				  flags);
+>  	}
+>  
+>  	arch_counter_set_user_access();
+> @@ -513,16 +514,17 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+>  static void arch_timer_banner(unsigned type)
+>  {
+>  	pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
+> -		type & ARCH_CP15_TIMER ? "cp15" : "",
+> -		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
+> -		type & ARCH_MEM_TIMER ? "mmio" : "",
+> +		type & ARCH_TIMER_TYPE_CP15 ? "cp15" : "",
+> +		type == (ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM) ?
+> +			" and " : "",
+> +		type & ARCH_TIMER_TYPE_MEM ? "mmio" : "",
+>  		(unsigned long)arch_timer_rate / 1000000,
+>  		(unsigned long)(arch_timer_rate / 10000) % 100,
+> -		type & ARCH_CP15_TIMER ?
+> -			(arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+> +		type & ARCH_TIMER_TYPE_CP15 ?
+> +			(arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI) ? "virt" : "phys" :
+>  			"",
+> -		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
+> -		type & ARCH_MEM_TIMER ?
+> +		type == (ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM) ? "/" : "",
+> +		type & ARCH_TIMER_TYPE_MEM ?
+>  			arch_timer_mem_use_virtual ? "virt" : "phys" :
+>  			"");
+>  }
+> @@ -588,8 +590,9 @@ static void __init arch_counter_register(unsigned type)
+>  	u64 start_count;
+>  
+>  	/* Register the CP15 based counter if we have one */
+> -	if (type & ARCH_CP15_TIMER) {
+> -		if (IS_ENABLED(CONFIG_ARM64) || arch_timer_uses_ppi == VIRT_PPI)
+> +	if (type & ARCH_TIMER_TYPE_CP15) {
+> +		if (IS_ENABLED(CONFIG_ARM64) ||
+> +		    arch_timer_uses_ppi == ARCH_TIMER_VIRT_PPI)
+>  			arch_timer_read_counter = arch_counter_get_cntvct;
+>  		else
+>  			arch_timer_read_counter = arch_counter_get_cntpct;
+> @@ -625,7 +628,7 @@ static void arch_timer_stop(struct clock_event_device *clk)
+>  
+>  	disable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi]);
+>  	if (arch_timer_has_nonsecure_ppi())
+> -		disable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI]);
+> +		disable_percpu_irq(arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
+>  
+>  	clk->set_state_shutdown(clk);
+>  }
+> @@ -688,24 +691,24 @@ static int __init arch_timer_register(void)
+>  
+>  	ppi = arch_timer_ppi[arch_timer_uses_ppi];
+>  	switch (arch_timer_uses_ppi) {
+> -	case VIRT_PPI:
+> +	case ARCH_TIMER_VIRT_PPI:
+>  		err = request_percpu_irq(ppi, arch_timer_handler_virt,
+>  					 "arch_timer", arch_timer_evt);
+>  		break;
+> -	case PHYS_SECURE_PPI:
+> -	case PHYS_NONSECURE_PPI:
+> +	case ARCH_TIMER_PHYS_SECURE_PPI:
+> +	case ARCH_TIMER_PHYS_NONSECURE_PPI:
+>  		err = request_percpu_irq(ppi, arch_timer_handler_phys,
+>  					 "arch_timer", arch_timer_evt);
+> -		if (!err && arch_timer_ppi[PHYS_NONSECURE_PPI]) {
+> -			ppi = arch_timer_ppi[PHYS_NONSECURE_PPI];
+> +		if (!err && arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]) {
+> +			ppi = arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI];
+>  			err = request_percpu_irq(ppi, arch_timer_handler_phys,
+>  						 "arch_timer", arch_timer_evt);
+>  			if (err)
+> -				free_percpu_irq(arch_timer_ppi[PHYS_SECURE_PPI],
+> +				free_percpu_irq(arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI],
+>  						arch_timer_evt);
+>  		}
+>  		break;
+> -	case HYP_PPI:
+> +	case ARCH_TIMER_HYP_PPI:
+>  		err = request_percpu_irq(ppi, arch_timer_handler_phys,
+>  					 "arch_timer", arch_timer_evt);
+>  		break;
+> @@ -737,7 +740,7 @@ static int __init arch_timer_register(void)
+>  out_unreg_notify:
+>  	free_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi], arch_timer_evt);
+>  	if (arch_timer_has_nonsecure_ppi())
+> -		free_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI],
+> +		free_percpu_irq(arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI],
+>  				arch_timer_evt);
+>  
+>  out_free:
+> @@ -758,7 +761,7 @@ static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
+>  
+>  	t->base = base;
+>  	t->evt.irq = irq;
+> -	__arch_timer_setup(ARCH_MEM_TIMER, &t->evt);
+> +	__arch_timer_setup(ARCH_TIMER_TYPE_MEM, &t->evt);
+>  
+>  	if (arch_timer_mem_use_virtual)
+>  		func = arch_timer_handler_virt_mem;
+> @@ -801,13 +804,15 @@ arch_timer_needs_probing(int type, const struct of_device_id *matches)
+>  
+>  static int __init arch_timer_common_init(void)
+>  {
+> -	unsigned mask = ARCH_CP15_TIMER | ARCH_MEM_TIMER;
+> +	unsigned int mask = ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM;
+>  
+>  	/* Wait until both nodes are probed if we have two timers */
+>  	if ((arch_timers_present & mask) != mask) {
+> -		if (arch_timer_needs_probing(ARCH_MEM_TIMER, arch_timer_mem_of_match))
+> +		if (arch_timer_needs_probing(ARCH_TIMER_TYPE_MEM,
+> +					     arch_timer_mem_of_match))
+>  			return 0;
+> -		if (arch_timer_needs_probing(ARCH_CP15_TIMER, arch_timer_of_match))
+> +		if (arch_timer_needs_probing(ARCH_TIMER_TYPE_CP15,
+> +					     arch_timer_of_match))
+>  			return 0;
+>  	}
+>  
+> @@ -832,16 +837,16 @@ static int __init arch_timer_init(void)
+>  	 * their CNTHP_*_EL2 counterparts, and use a different PPI
+>  	 * number.
+>  	 */
+> -	if (is_hyp_mode_available() || !arch_timer_ppi[VIRT_PPI]) {
+> +	if (is_hyp_mode_available() || !arch_timer_ppi[ARCH_TIMER_VIRT_PPI]) {
+>  		bool has_ppi;
+>  
+>  		if (is_kernel_in_hyp_mode()) {
+> -			arch_timer_uses_ppi = HYP_PPI;
+> -			has_ppi = !!arch_timer_ppi[HYP_PPI];
+> +			arch_timer_uses_ppi = ARCH_TIMER_HYP_PPI;
+> +			has_ppi = !!arch_timer_ppi[ARCH_TIMER_HYP_PPI];
+>  		} else {
+> -			arch_timer_uses_ppi = PHYS_SECURE_PPI;
+> -			has_ppi = (!!arch_timer_ppi[PHYS_SECURE_PPI] ||
+> -				   !!arch_timer_ppi[PHYS_NONSECURE_PPI]);
+> +			arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
+> +			has_ppi = (!!arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI] ||
+> +				   !!arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
+>  		}
+>  
+>  		if (!has_ppi) {
+> @@ -858,7 +863,7 @@ static int __init arch_timer_init(void)
+>  	if (ret)
+>  		return ret;
+>  
+> -	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[VIRT_PPI];
+> +	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
+>  
+>  	return 0;
+>  }
+> @@ -867,13 +872,13 @@ static int __init arch_timer_of_init(struct device_node *np)
+>  {
+>  	int i;
+>  
+> -	if (arch_timers_present & ARCH_CP15_TIMER) {
+> +	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+>  		pr_warn("multiple nodes in dt, skipping\n");
+>  		return 0;
+>  	}
+>  
+> -	arch_timers_present |= ARCH_CP15_TIMER;
+> -	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+> +	arch_timers_present |= ARCH_TIMER_TYPE_CP15;
+> +	for (i = ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
+>  		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+>  
+>  	arch_timer_detect_rate(NULL, np);
+> @@ -895,7 +900,7 @@ static int __init arch_timer_of_init(struct device_node *np)
+>  	 */
+>  	if (IS_ENABLED(CONFIG_ARM) &&
+>  	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+> -		arch_timer_uses_ppi = PHYS_SECURE_PPI;
+> +		arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
+>  
+>  	return arch_timer_init();
+>  }
+> @@ -909,7 +914,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
+>  	unsigned int irq, ret = -EINVAL;
+>  	u32 cnttidr;
+>  
+> -	arch_timers_present |= ARCH_MEM_TIMER;
+> +	arch_timers_present |= ARCH_TIMER_TYPE_MEM;
+>  	cntctlbase = of_iomap(np, 0);
+>  	if (!cntctlbase) {
+>  		pr_err("Can't find CNTCTLBase\n");
+> @@ -1008,28 +1013,28 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+>  {
+>  	struct acpi_table_gtdt *gtdt;
+>  
+> -	if (arch_timers_present & ARCH_CP15_TIMER) {
+> +	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+>  		pr_warn("already initialized, skipping\n");
+>  		return -EINVAL;
+>  	}
+>  
+>  	gtdt = container_of(table, struct acpi_table_gtdt, header);
+>  
+> -	arch_timers_present |= ARCH_CP15_TIMER;
+> +	arch_timers_present |= ARCH_TIMER_TYPE_CP15;
+>  
+> -	arch_timer_ppi[PHYS_SECURE_PPI] =
+> +	arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI] =
+>  		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
+>  		gtdt->secure_el1_flags);
+>  
+> -	arch_timer_ppi[PHYS_NONSECURE_PPI] =
+> +	arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI] =
+>  		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
+>  		gtdt->non_secure_el1_flags);
+>  
+> -	arch_timer_ppi[VIRT_PPI] =
+> +	arch_timer_ppi[ARCH_TIMER_VIRT_PPI] =
+>  		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
+>  		gtdt->virtual_timer_flags);
+>  
+> -	arch_timer_ppi[HYP_PPI] =
+> +	arch_timer_ppi[ARCH_TIMER_HYP_PPI] =
+>  		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
+>  		gtdt->non_secure_el2_flags);
+>  
+> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+> index d23c381..2625ff1 100644
+> --- a/include/clocksource/arm_arch_timer.h
+> +++ b/include/clocksource/arm_arch_timer.h
+> @@ -20,18 +20,18 @@
+>  #include <linux/timecounter.h>
+>  #include <linux/types.h>
+>  
+> -#define ARCH_CP15_TIMER			BIT(0)
+> -#define ARCH_MEM_TIMER			BIT(1)
+> +#define ARCH_TIMER_TYPE_CP15		BIT(0)
+> +#define ARCH_TIMER_TYPE_MEM		BIT(1)
+>  
+> -#define ARCH_TIMER_CTRL_ENABLE		(1 << 0)
+> -#define ARCH_TIMER_CTRL_IT_MASK		(1 << 1)
+> -#define ARCH_TIMER_CTRL_IT_STAT		(1 << 2)
+> +#define ARCH_TIMER_CTRL_ENABLE		BIT(0)
+> +#define ARCH_TIMER_CTRL_IT_MASK		BIT(1)
+> +#define ARCH_TIMER_CTRL_IT_STAT		BIT(2)
+>  
+> -#define CNTHCTL_EL1PCTEN		(1 << 0)
+> -#define CNTHCTL_EL1PCEN			(1 << 1)
+> -#define CNTHCTL_EVNTEN			(1 << 2)
+> -#define CNTHCTL_EVNTDIR			(1 << 3)
+> -#define CNTHCTL_EVNTI			(0xF << 4)
+> +#define ARCH_TIMER_CNTHCTL_EL1PCTEN	BIT(0)
+> +#define ARCH_TIMER_CNTHCTL_EL1PCEN	BIT(1)
+> +#define ARCH_TIMER_CNTHCTL_EVNTEN	BIT(2)
+> +#define ARCH_TIMER_CNTHCTL_EVNTDIR	BIT(3)
+> +#define ARCH_TIMER_CNTHCTL_EVNTI	(0xF << 4)
+>  
+>  enum arch_timer_reg {
+>  	ARCH_TIMER_REG_CTRL,
+> @@ -39,11 +39,11 @@ enum arch_timer_reg {
+>  };
+>  
+>  enum arch_timer_ppi_nr {
+> -	PHYS_SECURE_PPI,
+> -	PHYS_NONSECURE_PPI,
+> -	VIRT_PPI,
+> -	HYP_PPI,
+> -	MAX_TIMER_PPI
+> +	ARCH_TIMER_PHYS_SECURE_PPI,
+> +	ARCH_TIMER_PHYS_NONSECURE_PPI,
+> +	ARCH_TIMER_VIRT_PPI,
+> +	ARCH_TIMER_HYP_PPI,
+> +	ARCH_TIMER_MAX_TIMER_PPI
+>  };
+>  
+>  enum arch_timer_spi_nr {
+> @@ -57,13 +57,13 @@ enum arch_timer_spi_nr {
+>  #define ARCH_TIMER_MEM_PHYS_ACCESS	2
+>  #define ARCH_TIMER_MEM_VIRT_ACCESS	3
+>  
+> -#define ARCH_TIMER_USR_PCT_ACCESS_EN	(1 << 0) /* physical counter */
+> -#define ARCH_TIMER_USR_VCT_ACCESS_EN	(1 << 1) /* virtual counter */
+> -#define ARCH_TIMER_VIRT_EVT_EN		(1 << 2)
+> +#define ARCH_TIMER_USR_PCT_ACCESS_EN	BIT(0) /* physical counter */
+> +#define ARCH_TIMER_USR_VCT_ACCESS_EN	BIT(1) /* virtual counter */
+> +#define ARCH_TIMER_VIRT_EVT_EN		BIT(2)
+>  #define ARCH_TIMER_EVT_TRIGGER_SHIFT	(4)
+>  #define ARCH_TIMER_EVT_TRIGGER_MASK	(0xF << ARCH_TIMER_EVT_TRIGGER_SHIFT)
+> -#define ARCH_TIMER_USR_VT_ACCESS_EN	(1 << 8) /* virtual timer registers */
+> -#define ARCH_TIMER_USR_PT_ACCESS_EN	(1 << 9) /* physical timer registers */
+> +#define ARCH_TIMER_USR_VT_ACCESS_EN	BIT(8) /* virtual timer registers */
+> +#define ARCH_TIMER_USR_PT_ACCESS_EN	BIT(9) /* physical timer registers */
+>  
+>  #define ARCH_TIMER_EVT_STREAM_FREQ	10000	/* 100us */
+>  
+> diff --git a/virt/kvm/arm/hyp/timer-sr.c b/virt/kvm/arm/hyp/timer-sr.c
+> index 798866a..695b9d9 100644
+> --- a/virt/kvm/arm/hyp/timer-sr.c
+> +++ b/virt/kvm/arm/hyp/timer-sr.c
+> @@ -37,7 +37,7 @@ void __hyp_text __timer_save_state(struct kvm_vcpu *vcpu)
+>  
+>  	/* Allow physical timer/counter access for the host */
+>  	val = read_sysreg(cnthctl_el2);
+> -	val |= CNTHCTL_EL1PCTEN | CNTHCTL_EL1PCEN;
+> +	val |= ARCH_TIMER_CNTHCTL_EL1PCTEN | ARCH_TIMER_CNTHCTL_EL1PCEN;
+>  	write_sysreg(val, cnthctl_el2);
+>  
+>  	/* Clear cntvoff for the host */
+> @@ -55,8 +55,8 @@ void __hyp_text __timer_restore_state(struct kvm_vcpu *vcpu)
+>  	 * Physical counter access is allowed
+>  	 */
+>  	val = read_sysreg(cnthctl_el2);
+> -	val &= ~CNTHCTL_EL1PCEN;
+> -	val |= CNTHCTL_EL1PCTEN;
+> +	val &= ~ARCH_TIMER_CNTHCTL_EL1PCEN;
+> +	val |= ARCH_TIMER_CNTHCTL_EL1PCTEN;
+>  	write_sysreg(val, cnthctl_el2);
+>  
+>  	if (timer->enabled) {
+> -- 
+> 2.7.4
 > 
