@@ -1,81 +1,159 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Unable to use iTCO watchdog on Broadwell SOC:
-Date: Fri, 18 Nov 2016 22:26:19 +0100
-Message-ID: <5145970.FrABMDTXiu@vostro.rjw.lan>
-References: <CAHex0coy_mgDHi8N7UbAsWP5XLWhTAMK+JRkF1KMj7w=y5sbpw@mail.gmail.com> <CAHex0cpzrVeKft6yB+4kphyi7jnOwrk7PERvDRgag7wp3ZbsKA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V5 1/2] PCI/ACPI: Provide acpi_get_rc_resources() for
+ ARM64 platform
+Date: Fri, 18 Nov 2016 23:00:00 +0100
+Message-ID: <CAJZ5v0gMg6=ueeZz-PcNvuUW5ht=r8vn-gEru-2Cbx7HDCf+jA@mail.gmail.com>
+References: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com> <1479460951-49281-2-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44854 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752421AbcKRVSm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 18 Nov 2016 16:18:42 -0500
-In-Reply-To: <CAHex0cpzrVeKft6yB+4kphyi7jnOwrk7PERvDRgag7wp3ZbsKA@mail.gmail.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35599 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752057AbcKRWAC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2016 17:00:02 -0500
+In-Reply-To: <1479460951-49281-2-git-send-email-liudongdong3@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Nicklin <jnicklin@blockbridge.com>
-Cc: linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Dongdong Liu <liudongdong3@huawei.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, wangzhou1@hisilicon.com, Pratyush Anand Thakur <pratyush.anand@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Masters <jcm@redhat.com>, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, linuxarm@huawei.com
 
-On Friday, November 18, 2016 03:05:53 PM Jonathan Nicklin wrote:
-> Hello again,
-> 
-> We have confirmed with the board manufacturer that the TOC watchdog
-> was actually disabled via hardware. We have since modified the
-> hardware and successfully initialized the TOC watchdog on a Broadwell
-> SOC. Our immediate issue was not a software / driver issue. That said,
-> we have yet to hear back from SuperMicro regarding their boards.
+On Fri, Nov 18, 2016 at 10:22 AM, Dongdong Liu <liudongdong3@huawei.com> wrote:
+> The acpi_get_rc_resources() is used to get the RC register address that can
+> not be described in MCFG. It takes the _HID&segment to look for and outputs
+> the RC address resource. Use PNP0C02 devices to describe such RC address
+> resource. Use _UID to match segment to tell which root bus the PNP0C02
+> resource belong to.
+>
+> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  drivers/pci/pci-acpi.c | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/pci.h      |  4 +++
+>  2 files changed, 75 insertions(+)
+>
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index d966d47..3557e3a 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -29,6 +29,77 @@
+>         0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
+>  };
+>
+> +#ifdef CONFIG_ARM64
+> +static int acpi_get_rc_addr(struct acpi_device *adev, struct resource *res)
 
-On some boards you may need to use the WDAT-based watchdog driver
-introduced by commit 058dfc767008 (ACPI / watchdog: Add support for WDAT
-hardware watchdog).
+Why can't it return a resource pointer?
+
+> +{
+> +       struct resource_entry *entry;
+> +       struct list_head list;
+> +       unsigned long flags;
+> +       int ret;
+> +
+> +       INIT_LIST_HEAD(&list);
+> +       flags = IORESOURCE_MEM;
+> +       ret = acpi_dev_get_resources(adev, &list,
+> +                                    acpi_dev_filter_resource_type_cb,
+> +                                    (void *) flags);
+> +       if (ret < 0) {
+> +               dev_err(&adev->dev,
+
+The dev_err() log level is quite excessive here IMO.  Why is the
+message useful to users at all?  IOW, what is the user supposed to do
+if this message is present in the log?
+
+> +                       "failed to parse _CRS method, error code %d\n", ret);
+> +               return ret;
+> +       } else if (ret == 0) {
+> +               dev_err(&adev->dev,
+> +                       "no IO and memory resources present in _CRS\n");
+
+Same here.
+
+> +               return -EINVAL;
+> +       }
+> +
+> +       entry = list_first_entry(&list, struct resource_entry, node);
+> +       *res = *entry->res;
+> +       acpi_dev_free_resource_list(&list);
+> +       return 0;
+> +}
+> +
+> +static acpi_status acpi_match_rc(acpi_handle handle, u32 lvl, void *context,
+> +                                void **retval)
+> +{
+> +       u16 *segment = context;
+> +       unsigned long long uid;
+> +       acpi_status status;
+> +
+> +       status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
+> +       if (ACPI_FAILURE(status) || uid != *segment)
+> +               return AE_CTRL_DEPTH;
+> +
+> +       *(acpi_handle *)retval = handle;
+> +       return AE_CTRL_TERMINATE;
+> +}
+> +
+
+Please add a kerneldoc comment describing acpi_get_rc_resources().
+
+> +int acpi_get_rc_resources(const char *hid, u16 segment, struct resource *res)
+> +{
+> +       struct acpi_device *adev;
+> +       acpi_status status;
+> +       acpi_handle handle;
+> +       int ret;
+> +
+> +       status = acpi_get_devices(hid, acpi_match_rc, &segment, &handle);
+> +       if (ACPI_FAILURE(status)) {
+> +               pr_err("Can't find _HID %s device", hid);
+
+Same here.
+
+> +               return -ENODEV;
+> +       }
+> +
+> +       ret = acpi_bus_get_device(handle, &adev);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret = acpi_get_rc_addr(adev, res);
+> +       if (ret) {
+> +               dev_err(&adev->dev, "can't get RC resource");
+
+Same here.
+
+> +               return ret;
+> +       }
+> +
+> +       return 0;
+> +}
+
+It looks like this function could return the resource pointer just
+fine.  What's the problem with that?
+
+> +#endif
+> +
+>  phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
+>  {
+>         acpi_status status = AE_NOT_EXIST;
+> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+> index 4518562..17ffa38 100644
+> --- a/drivers/pci/pci.h
+> +++ b/drivers/pci/pci.h
+> @@ -356,4 +356,8 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
+>  }
+>  #endif
+>
+> +#ifdef CONFIG_ARM64
+> +int acpi_get_rc_resources(const char *hid, u16 segment, struct resource *res);
+> +#endif
+
+Doesn't that depend on ACPI too?
+
+> +
+>  #endif /* DRIVERS_PCI_H */
+> --
 
 Thanks,
 Rafael
-
-
-> On Wed, Nov 16, 2016 at 11:08 AM, Jonathan Nicklin
-> <jnicklin@blockbridge.com> wrote:
-> > Hi Everyone,
-> >
-> > We have a number of systems that fail to initialize the iTCO watchdog
-> > with “unable to reset NO_REBOOT flag, device disabled by
-> > hardware/BIOS”. The systems include Broadwell SOC, Haswell w/ C222,
-> > and Ivy Bridge w/ C600/X79. These systems have different BIOS
-> > vendors/versions. We have tested with a few different kernel versions
-> > as recent as 4.4. We have only managed successfully configure the iTCO
-> > watchdog on a Haswell w/ C610/X99 system.
-> >
-> > Has anyone successfully used the iTCO watchdog on a Broadwell
-> > Xeon-D/SOC system? Can anyone provide advice on how to debug this
-> > issue?
-> >
-> > Thanks,
-> > -Jonathan
-> >
-> > # uname -a
-> > Linux soc 4.4.23-1.el7.elrepo.x86_64 #1 SMP Fri Sep 30 09:11:50 EDT
-> > 2016 x86_64 x86_64 x86_64 GNU/Linux
-> >
-> > # dmesg | grep iTCO
-> > [   18.544987] iTCO_vendor_support: vendor-support=0
-> > [   18.549213] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
-> > [   18.549245] iTCO_wdt: unable to reset NO_REBOOT flag, device
-> > disabled by hardware/BIOS
-> >
-> > # find /sys/devices | grep iTCO
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/control
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_active_time
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/autosuspend_delay_ms
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_status
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_suspended_time
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/driver_override
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/modalias
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/subsystem
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/uevent
-> > /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/firmware_node
-> --
-
