@@ -1,90 +1,206 @@
-From: Stefan Berger <stefanb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] tpm: vtpm_proxy: Do not access host's
-	event log
-Date: Fri, 18 Nov 2016 09:15:32 -0500
-Message-ID: <77bf7806-5007-feb4-e4a0-fc94775a5271@linux.vnet.ibm.com>
-References: <1479306245-14456-1-git-send-email-stefanb@linux.vnet.ibm.com>
-	<20161116153731.pmmnxiai7ouuj6qf@intel.com>
-	<3a38ddc6-1758-ae82-3df3-9cc55906880d@linux.vnet.ibm.com>
-	<65f392b6-5141-c726-dacb-a1649ea215de@linux.vnet.ibm.com>
-	<20161116200759.GA19593@obsidianresearch.com>
-	<ef1f954d-fc52-0522-01f7-b0e31ea14c59@linux.vnet.ibm.com>
-	<20161117203743.odzdpwwynzlqyt5m@intel.com>
-	<abef96f0-97e3-22e6-c63b-4be5622b4fc2@linux.vnet.ibm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v16 13/15] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Fri, 18 Nov 2016 14:22:49 +0000
+Message-ID: <20161118142249.GA18029@red-moon>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <1479304148-2965-14-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <tpmdd-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <abef96f0-97e3-22e6-c63b-4be5622b4fc2-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/tpmdd-devel>,
-	<mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=tpmdd-devel>
-List-Post: <mailto:tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/tpmdd-devel>,
-	<mailto:tpmdd-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: tpmdd-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tpmdd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1479304148-2965-14-git-send-email-fu.wei@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/18/2016 09:11 AM, Stefan Berger wrote:
-> On 11/17/2016 03:37 PM, Jarkko Sakkinen wrote:
->> On Thu, Nov 17, 2016 at 07:35:05AM -0500, Stefan Berger wrote:
->>> On 11/16/2016 03:07 PM, Jason Gunthorpe wrote:
->>>> On Wed, Nov 16, 2016 at 12:07:23PM -0500, Stefan Berger wrote:
->>>>> The culprit seems to be 'tpm: fix the missing .owner in
->>>>> tpm_bios_measurements_ops'
->>>> That is unlikely, it is probably the patch before which calls read_log
->>>> unconditionally now. That suggests the crashing is a little random..
->>> I ran the vtpm driver test suite (with -j32) a few times at that 
->>> patch and
->>> it didn't crash. It crashes severely with later patches applied. 
->>> Here's the
->>> current experimental patch that fixes these problems:
->>>
->>> iff --git a/drivers/char/tpm/tpm_acpi.c b/drivers/char/tpm/tpm_acpi.c
->>> index 0cb43ef..a73295a 100644
->>> --- a/drivers/char/tpm/tpm_acpi.c
->>> +++ b/drivers/char/tpm/tpm_acpi.c
->>> @@ -56,6 +56,9 @@ int tpm_read_log_acpi(struct tpm_chip *chip)
->>>
->>>       log = &chip->log;
->>>
->>> +    if (!chip->acpi_dev_handle)
->>> +        return 0;
->>> +
->> If there is a problem in the TPM driver, this does not fix the
->> problem. It will mask the problem. Maybe there's an ACPI regression
->> in the rc tree?
->
-> Following the path from here :
->
-> http://lxr.free-electrons.com/source/drivers/acpi/acpica/tbxface.c#L282
->
-> acpi_get_table_with_size -> acpi_tb_validate_table -> 
-> acpi_tb_acquire_table
->
-> I see acpi_os_map_memory being called in acpi_tb_acquire_table but not 
-> the corresponding acpi_os_unmap_memory...
->
+On Wed, Nov 16, 2016 at 09:49:06PM +0800, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+> 
+> On platforms booting with ACPI, architected memory-mapped timers'
+> configuration data is provided by firmware through the ACPI GTDT
+> static table.
+> 
+> The clocksource architected timer kernel driver requires a firmware
+> interface to collect timer configuration and configure its driver.
+> this infrastructure is present for device tree systems, but it is
+> missing on systems booting with ACPI.
+> 
+> Implement the kernel infrastructure required to parse the static
+> ACPI GTDT table so that the architected timer clocksource driver can
+> make use of it on systems booting with ACPI, therefore enabling
+> the corresponding timers configuration.
+> 
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/arm64/gtdt.c | 95 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h      |  1 +
+>  2 files changed, 96 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+> index 2de79aa..08d9506 100644
+> --- a/drivers/acpi/arm64/gtdt.c
+> +++ b/drivers/acpi/arm64/gtdt.c
+> @@ -51,6 +51,14 @@ static inline bool is_timer_block(void *platform_timer)
+>  	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
+>  }
+>  
+> +static inline struct acpi_gtdt_timer_block *get_timer_block(unsigned int index)
+> +{
+> +	if (index >= acpi_gtdt_desc.timer_block_count || !timer_block)
+> +		return NULL;
+> +
+> +	return timer_block[index];
+> +}
+> +
+>  static inline bool is_watchdog(void *platform_timer)
+>  {
+>  	struct acpi_gtdt_header *gh = platform_timer;
+> @@ -214,3 +222,90 @@ int __init acpi_gtdt_init(struct acpi_table_header *table)
+>  	acpi_gtdt_release();
+>  	return -EINVAL;
+>  }
+> +
+> +/*
+> + * Get ONE GT block info for memory-mapped timer from GTDT table.
+> + * @data: the GT block data (parsing result)
+> + * @index: the index number of GT block
+> + * Note: we already verify @data in caller, it can't be NULL here.
+> + * Returns 0 if success, -EINVAL/-ENODEV if error.
+> + */
 
-And to add to this: the call to acpi_get_table() in tpm_acpi.c alone is 
-causing the crash. I am fairly sure that it has something to do with the 
-memory mapping call above not being matched by an unmapping call.
+Documentation/kernel-doc-nano-HOWTO.txt
 
+> +int __init gtdt_arch_timer_mem_init(struct arch_timer_mem *data,
+> +				    unsigned int index)
 
->     Stefan
->
->
->>
->> This is a funky situation because those lines need to be there but
->> I do not want them before it is root caused that it is not a TPM
->> bug.
->>
->> /Jarkko
->>
->
+Nit: acpi_arch_timer_mem_init() to make it consistent with other ACPI
+calls ?
 
+> +{
+> +	struct acpi_gtdt_timer_block *block;
+> +	struct acpi_gtdt_timer_entry *frame;
+> +	int i;
+> +
+> +	block = get_timer_block(index);
+> +	if (!block)
+> +		return -ENODEV;
+> +
+> +	if (!block->timer_count) {
+> +		pr_err(FW_BUG "GT block present, but frame count is zero.");
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
+> +		pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
+> +		       block->timer_count);
+> +		return -EINVAL;
+> +	}
 
-------------------------------------------------------------------------------
+Nit: these two checks can be carried out at GTDT init where the GTDT
+is parsed first. Actually you could have two functions one to init
+timers (say acpi_gtdt_timers_init()) and one watchdogs, that would
+eliminate the duplicated timer_block/watchdog arrays (both sized
+Platform Timer Count) and acpi_gtdt_timers_init() can return
+the number of entries found so that you can loop with a determined
+upper bound in the arm arch timer driver.
+
+Just thinking aloud, these are just improvements I can carry them
+out later, the more important question here is the interface between the
+parsing code and the arch timer probing code which depends on other
+patches and that needs to be agreed, this patch is not really a problem.
+
+> +	data->cntctlbase = (phys_addr_t)block->block_address;
+> +	/*
+> +	 * We can NOT get the size info from GTDT table,
+> +	 * but according to "Table * CNTCTLBase memory map" of
+> +	 * <ARM Architecture Reference Manual> for ARMv8,
+> +	 * it should be 4KB(Offset 0x000 – 0xFFC).
+
+That's the reason why it is not explicit in the GTDT table :)
+
+> +	data->size = SZ_4K;
+> +	data->num_frames = block->timer_count;
+> +
+> +	frame = (void *)block + block->timer_offset;
+> +	if (frame + block->timer_count != (void *)block + block->header.length)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * Get the GT timer Frame data for every GT Block Timer
+> +	 */
+> +	for (i = 0; i < block->timer_count; i++, frame++) {
+> +		if (!frame->base_address || !frame->timer_interrupt)
+> +			return -EINVAL;
+> +
+> +		data->frame[i].phys_irq = map_gt_gsi(frame->timer_interrupt,
+> +						     frame->timer_flags);
+> +		if (data->frame[i].phys_irq <= 0) {
+> +			pr_warn("failed to map physical timer irq in frame %d.\n",
+> +				i);
+> +			return -EINVAL;
+> +		}
+> +
+> +		if (frame->virtual_timer_interrupt) {
+> +			data->frame[i].virt_irq =
+> +				map_gt_gsi(frame->virtual_timer_interrupt,
+> +					   frame->virtual_timer_flags);
+> +			if (data->frame[i].virt_irq <= 0) {
+> +				pr_warn("failed to map virtual timer irq in frame %d.\n",
+> +					i);
+> +				return -EINVAL;
+
+You should unregister phys_irq here for correctness, right ?
+
+> +			}
+> +		}
+> +
+> +		data->frame[i].frame_nr = frame->frame_number;
+> +		data->frame[i].cntbase = frame->base_address;
+> +		/*
+> +		 * We can NOT get the size info from GTDT table,
+> +		 * but according to "Table * CNTBaseN memory map" of
+> +		 * <ARM Architecture Reference Manual> for ARMv8,
+> +		 * it should be 4KB(Offset 0x000 – 0xFFC).
+
+See above.
+
+> +		 */
+> +		data->frame[i].size = SZ_4K;
+> +	}
+> +
+> +	if (acpi_gtdt_desc.timer_block_count)
+> +		pr_info("parsed No.%d of %d memory-mapped timer block(s).\n",
+> +			index, acpi_gtdt_desc.timer_block_count);
+
+I am not sure how helpful this message can be honestly.
+
+> +
+> +	return 0;
+> +}
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index a1611d1..44b8c1b 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -582,6 +582,7 @@ int acpi_gtdt_init(struct acpi_table_header *table);
+>  int acpi_gtdt_map_ppi(int type);
+>  bool acpi_gtdt_c3stop(int type);
+>  void acpi_gtdt_release(void);
+> +int gtdt_arch_timer_mem_init(struct arch_timer_mem *data, unsigned int index);
+
+See above.
+
+Overall it looks fine as long as the interface with clocksource is
+settled, which is what really needs to be agreed upon in this series.
+
+Lorenzo
+
+>  #endif
+>  
+>  #else	/* !CONFIG_ACPI */
+> -- 
+> 2.7.4
+> 
