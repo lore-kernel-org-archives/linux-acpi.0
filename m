@@ -1,77 +1,105 @@
-From: Jonathan Nicklin <jnicklin@blockbridge.com>
-Subject: Re: Unable to use iTCO watchdog on Broadwell SOC:
-Date: Fri, 18 Nov 2016 15:05:53 -0500
-Message-ID: <CAHex0cpzrVeKft6yB+4kphyi7jnOwrk7PERvDRgag7wp3ZbsKA@mail.gmail.com>
-References: <CAHex0coy_mgDHi8N7UbAsWP5XLWhTAMK+JRkF1KMj7w=y5sbpw@mail.gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v16 11/15] acpi/arm64: Add GTDT table parse driver
+Date: Fri, 18 Nov 2016 20:12:50 +0000
+Message-ID: <20161118201250.GO1197@leverpostej>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <1479304148-2965-12-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:35260 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752043AbcKRUGf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2016 15:06:35 -0500
-Received: by mail-wm0-f50.google.com with SMTP id a197so59938321wmd.0
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Nov 2016 12:06:34 -0800 (PST)
-In-Reply-To: <CAHex0coy_mgDHi8N7UbAsWP5XLWhTAMK+JRkF1KMj7w=y5sbpw@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:58394 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751971AbcKRUNf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 18 Nov 2016 15:13:35 -0500
+Content-Disposition: inline
+In-Reply-To: <1479304148-2965-12-git-send-email-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-Hello again,
+On Wed, Nov 16, 2016 at 09:49:04PM +0800, fu.wei@linaro.org wrote:
 
-We have confirmed with the board manufacturer that the TOC watchdog
-was actually disabled via hardware. We have since modified the
-hardware and successfully initialized the TOC watchdog on a Broadwell
-SOC. Our immediate issue was not a software / driver issue. That said,
-we have yet to hear back from SuperMicro regarding their boards.
+> +#define for_each_platform_timer(_g) for (; _g; _g = next_platform_timer(_g))
+
+This doesn't fit the usual for_each_* pattern, since _g has to be
+manually initialised first. Either come up with a way of maknig this fit
+the usual pattern, or get rid of this, and use:
+
+	t = however_you_get_the_first_timer();
+
+	if (!t)
+		bailt_out_somehow();
+	
+	do { 
+		...
+	} while (t = next_platform_timer(t));
+
+> +/*
+> + * Release the memory we have allocated in acpi_gtdt_init.
+> + * This should be called, when the driver who called "acpi_gtdt_init" previously
+> + * doesn't need the GTDT info anymore.
+> + */
+> +void __init acpi_gtdt_release(void)
+> +{
+> +	kfree(timer_block);
+> +	kfree(watchdog);
+> +	timer_block = NULL;
+> +	watchdog = NULL;
+> +}
+
+Why is this not simply in the error path of acpi_gtdt_init()?
+
+> +
+> +/*
+> + * Get some basic info from GTDT table, and init the global variables above
+> + * for all timers initialization of Generic Timer.
+> + * This function does some validation on GTDT table.
+> + */
+> +int __init acpi_gtdt_init(struct acpi_table_header *table)
+> +{
+
+> +	timer_block = kcalloc(timer_count,
+> +			      sizeof(struct acpi_gtdt_timer_block *),
+> +			      GFP_KERNEL);
+> +	if (!timer_block)
+> +		return -ENOMEM;
+> +
+> +	watchdog = kcalloc(timer_count, sizeof(struct acpi_gtdt_watchdog *),
+> +			   GFP_KERNEL);
+> +	if (!watchdog) {
+> +		kfree(timer_block);
+> +		timer_block = NULL;
+> +		return -ENOMEM;
+> +	}
+
+Please have a common error path below, and branch to that when you need
+to free these.
+
+> +error:
+> +	acpi_gtdt_release();
+> +	return -EINVAL;
+> +}
+
+[...]
+
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 61a3d90..a1611d1 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -577,6 +577,13 @@ enum acpi_reconfig_event  {
+>  int acpi_reconfig_notifier_register(struct notifier_block *nb);
+>  int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
+>  
+> +#ifdef CONFIG_ACPI_GTDT
+> +int acpi_gtdt_init(struct acpi_table_header *table);
+> +int acpi_gtdt_map_ppi(int type);
+> +bool acpi_gtdt_c3stop(int type);
+> +void acpi_gtdt_release(void);
+
+Why do these need to be here?
+
+What possible value is ther in exporting acpi_gtdt_release() !?
 
 Thanks,
--Jonathan
-
-On Wed, Nov 16, 2016 at 11:08 AM, Jonathan Nicklin
-<jnicklin@blockbridge.com> wrote:
-> Hi Everyone,
->
-> We have a number of systems that fail to initialize the iTCO watchdog
-> with =E2=80=9Cunable to reset NO_REBOOT flag, device disabled by
-> hardware/BIOS=E2=80=9D. The systems include Broadwell SOC, Haswell w/ C22=
-2,
-> and Ivy Bridge w/ C600/X79. These systems have different BIOS
-> vendors/versions. We have tested with a few different kernel versions
-> as recent as 4.4. We have only managed successfully configure the iTCO
-> watchdog on a Haswell w/ C610/X99 system.
->
-> Has anyone successfully used the iTCO watchdog on a Broadwell
-> Xeon-D/SOC system? Can anyone provide advice on how to debug this
-> issue?
->
-> Thanks,
-> -Jonathan
->
-> # uname -a
-> Linux soc 4.4.23-1.el7.elrepo.x86_64 #1 SMP Fri Sep 30 09:11:50 EDT
-> 2016 x86_64 x86_64 x86_64 GNU/Linux
->
-> # dmesg | grep iTCO
-> [   18.544987] iTCO_vendor_support: vendor-support=3D0
-> [   18.549213] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.11
-> [   18.549245] iTCO_wdt: unable to reset NO_REBOOT flag, device
-> disabled by hardware/BIOS
->
-> # find /sys/devices | grep iTCO
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/control
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_active=
-_time
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/autosuspend_de=
-lay_ms
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_status
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/power/runtime_suspen=
-ded_time
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/driver_override
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/modalias
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/subsystem
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/uevent
-> /sys/devices/pci0000:00/0000:00:1f.0/iTCO_wdt.0.auto/firmware_node
+Mark.
