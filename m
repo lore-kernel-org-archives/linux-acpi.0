@@ -1,309 +1,189 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V5 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Fri, 18 Nov 2016 11:08:21 -0600
-Message-ID: <20161118170821.GH25762@bhelgaas-glaptop.roam.corp.google.com>
-References: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
- <1479460951-49281-3-git-send-email-liudongdong3@huawei.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH] PCI: Add information about describing PCI in ACPI
+Date: Fri, 18 Nov 2016 17:17:34 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F921A88@lhreml507-mbx>
+References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1479460951-49281-3-git-send-email-liudongdong3@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi guys,
-
-On Fri, Nov 18, 2016 at 05:22:31PM +0800, Dongdong Liu wrote:
-> PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
-> It is non ECAM only for the RC bus config space;for any other bus
-> underneath the root bus we support ECAM access.
-> Add specific quirks for PCI config space accessors.This involves:
-> 1. New initialization call hisi_pcie_init() to obtain rc base
-> addresses from PNP0C02 at the root of the ACPI namespace (under \_SB).
-> 2. New entry in common quirk array.
-
-This is great!  I think we're almost there.
-
-The only real technical issue I see is that based on the logs at
-https://bugzilla.kernel.org/show_bug.cgi?id=187961 (thank you very
-much for them!), there is no _CRS description of the ECAM space.
-
-You have a PNP0C02 device for every host bridge, which is good.  It
-describes the RC register space, as it should.  But it should *also*
-describe the ECAM space, which it currently does not.
-
-The result is this in /proc/iomem:
-
-  a0200000-a020ffff : pnp 00:01           # PCI1 registers, from _CRS
-  a0090000-a009ffff : pnp 00:00           # PCI0 registers, from _CRS
-  a00a0000-a00affff : pnp 00:02           # PCI2 registers, from _CRS
-  a8000000-a9ffffff : PCI ECAM            # pci/ecam.c request for PCI2
-  b0000000-b1ffffff : PCI ECAM            # pci/ecam.c request for PCI0
-  be000000-bfffffff : PCI ECAM            # pci/ecam.c request for PCI1
-
-We *should* have this:
-
-  a0200000-a020ffff : pnp 00:01           # PCI1 registers, from _CRS
-  a0090000-a009ffff : pnp 00:00           # PCI0 registers, from _CRS
-  a00a0000-a00affff : pnp 00:02           # PCI2 registers, from _CRS
-  a8000000-a9ffffff : pnp 00:02           # PCI2 ECAM space, from _CRS
-    a8000000-a9ffffff : PCI ECAM          # pci/ecam.c request for PCI2
-  b0000000-b1ffffff : pnp 00:00           # PCI0 ECAM space, from _CRS
-    b0000000-b1ffffff : PCI ECAM          # pci/ecam.c request for PCI0
-  be000000-bfffffff : pnp 00:01           # PCI1 ECAM space, from _CRS
-    be000000-bfffffff : PCI ECAM          # pci/ecam.c request for PCI1
-
-If you add the ECAM space to the HISI0081 _CRS and it doesn't change
-the /proc/iomem contents, don't worry.  Those "pnp 00:xx" reservations
-are done by pnp/system.c, and we currently do those out of order
-(after the ECAM requests), so they might fail.  For example, on my x86
-laptop, I have this:
-
-  PCI: MMCONFIG for domain 0000 [bus 00-3f] at [mem 0xf8000000-0xfbffffff] (base 0xf8000000)
-  system 00:01: [mem 0xf8000000-0xfbffffff] could not be reserved
-
-Another minor comment/question below.
-
-> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> ---
->  MAINTAINERS                       |   1 +
->  drivers/acpi/pci_mcfg.c           |  13 ++++
->  drivers/pci/host/Kconfig          |   8 +++
->  drivers/pci/host/Makefile         |   1 +
->  drivers/pci/host/pcie-hisi-acpi.c | 124 ++++++++++++++++++++++++++++++++++++++
->  include/linux/pci-ecam.h          |   5 ++
->  6 files changed, 152 insertions(+)
->  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 1cd38a7..b224caa 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
->  S:	Maintained
->  F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
->  F:	drivers/pci/host/pcie-hisi.c
-> +F:	drivers/pci/host/pcie-hisi-acpi.c
->  
->  PCIE DRIVER FOR ROCKCHIP
->  M:	Shawn Lin <shawn.lin@rock-chips.com>
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index ac21db3..b1b6fc7 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -57,6 +57,19 @@ struct mcfg_fixup {
->  	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
->  	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
->  	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
-> +#ifdef CONFIG_PCI_HISI_ACPI
-> +	#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
-> +	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
-> +	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
-> +	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
-> +	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
-> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
-> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
-> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
-> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
-> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
-> +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
-> +#endif
->  };
->  
->  static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-> index ae98644..9ff2bcd 100644
-> --- a/drivers/pci/host/Kconfig
-> +++ b/drivers/pci/host/Kconfig
-> @@ -227,6 +227,14 @@ config PCI_HISI
->  	  Say Y here if you want PCIe controller support on HiSilicon
->  	  Hip05 and Hip06 and Hip07 SoCs
->  
-> +config PCI_HISI_ACPI
-> +	depends on ACPI && ARM64
-> +	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe controllers"
-> +	select PNP
-> +	help
-> +	  Say Y here if you want ACPI PCIe controller support on HiSilicon
-> +	  Hip05 and Hip06 and Hip07 SoCs
-
-I'm not sure about this Kconfig setup.  Do we really want to force
-people to enable a special config option to get this support?
-
-I'm comparing it in my mind with other PCI quirks.  They're all
-enabled as a group by CONFIG_PCI_QUIRKS.  Ultimately we want an ACPI
-kernel to work without requiring any platform-specific config options.
-
-I'm wondering if we should consolidate all the ECAM quirk code in a
-single place (maybe pci/ecam-quirks.c, pci/ecam.c, or pci/pci-acpi.c),
-under a config option like CONFIG_PCI_ECAM_QUIRKS or maybe even plain
-CONFIG_PCI_QUIRKS (of course, it could still be qualified by
-CONFIG_ACPI and CONFIG_ARM64).
-
->  config PCIE_QCOM
->  	bool "Qualcomm PCIe controller"
->  	depends on ARCH_QCOM && OF
-> diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
-> index 084cb49..9402858 100644
-> --- a/drivers/pci/host/Makefile
-> +++ b/drivers/pci/host/Makefile
-> @@ -26,6 +26,7 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
->  obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
->  obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
->  obj-$(CONFIG_PCI_HISI) += pcie-hisi.o
-> +obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o
->  obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
->  obj-$(CONFIG_PCI_HOST_THUNDER_ECAM) += pci-thunder-ecam.o
->  obj-$(CONFIG_PCI_HOST_THUNDER_PEM) += pci-thunder-pem.o
-> diff --git a/drivers/pci/host/pcie-hisi-acpi.c b/drivers/pci/host/pcie-hisi-acpi.c
-> new file mode 100644
-> index 0000000..358c7c9
-> --- /dev/null
-> +++ b/drivers/pci/host/pcie-hisi-acpi.c
-> @@ -0,0 +1,124 @@
-> +/*
-> + * PCIe host controller driver for HiSilicon HipXX SoCs
-> + *
-> + * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
-> + *
-> + * Author: Dongdong Liu <liudongdong3@huawei.com>
-> + *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
-> +#include <linux/pci-ecam.h>
-> +#include "../pci.h"
-> +
-> +static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-> +				  int size, u32 *val)
-> +{
-> +	struct pci_config_window *cfg = bus->sysdata;
-> +	int dev = PCI_SLOT(devfn);
-> +
-> +	if (bus->number == cfg->busr.start) {
-> +		/* access only one slot on each root port */
-> +		if (dev > 0)
-> +			return PCIBIOS_DEVICE_NOT_FOUND;
-> +		else
-> +			return pci_generic_config_read32(bus, devfn, where,
-> +							 size, val);
-> +	}
-> +
-> +	return pci_generic_config_read(bus, devfn, where, size, val);
-> +}
-> +
-> +static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
-> +				  int where, int size, u32 val)
-> +{
-> +	struct pci_config_window *cfg = bus->sysdata;
-> +	int dev = PCI_SLOT(devfn);
-> +
-> +	if (bus->number == cfg->busr.start) {
-> +		/* access only one slot on each root port */
-> +		if (dev > 0)
-> +			return PCIBIOS_DEVICE_NOT_FOUND;
-> +		else
-> +			return pci_generic_config_write32(bus, devfn, where,
-> +							  size, val);
-> +	}
-> +
-> +	return pci_generic_config_write(bus, devfn, where, size, val);
-> +}
-> +
-> +static void __iomem *hisi_pcie_map_bus(struct pci_bus *bus, unsigned int devfn,
-> +				       int where)
-> +{
-> +	struct pci_config_window *cfg = bus->sysdata;
-> +	void __iomem *reg_base = cfg->priv;
-> +
-> +	if (bus->number == cfg->busr.start)
-> +		return reg_base + where;
-> +	else
-> +		return pci_ecam_map_bus(bus, devfn, where);
-> +}
-> +
-> +/*
-> + * Retrieve RC base and size from PNP0C02 at the root of the ACPI namespace
-> + * (under \_SB).
-> + * Scope(_SB)
-> + * {
-> + *   Device (PCI0)
-> + *   {
-> + *     Name(_HID, "PNP0A08")
-> + *     Name(_CID, "PNP0A03")
-> + *     Name(_SEG, 0)
-> + *     ......
-> + *   }
-> + *   Device (RES0)
-> + *   {
-> + *     Name(_HID, "HISI0081")
-> + *     Name(_CID, "PNP0C02")
-> + *     Name(_UID, 0x0)
-> + *     Name(_CRS, ResourceTemplate (){
-> + *       Memory32Fixed (ReadWrite, 0xa0090000, 0x10000)
-> + *     })
-> + *   }
-> + *   ......
-> + * }
-> + */
-> +static int hisi_pcie_init(struct pci_config_window *cfg)
-> +{
-> +	struct acpi_device *adev = to_acpi_device(cfg->parent);
-> +	struct acpi_pci_root *root = acpi_driver_data(adev);
-> +	void __iomem *reg_base;
-> +	struct resource *res;
-> +	int ret;
-> +
-> +	res = devm_kzalloc(&adev->dev, sizeof(*res), GFP_KERNEL);
-> +	if (!res)
-> +		return -ENOMEM;
-> +
-> +	ret = acpi_get_rc_resources("HISI0081", root->segment, res);
-> +	if (ret) {
-> +		dev_err(&adev->dev, "can't get rc base address");
-> +		return ret;
-> +	}
-> +
-> +	reg_base = devm_ioremap(&adev->dev, res->start, resource_size(res));
-> +	if (!reg_base)
-> +		return -ENOMEM;
-> +
-> +	cfg->priv = reg_base;
-> +	return 0;
-> +}
-> +
-> +struct pci_ecam_ops hisi_pcie_ops = {
-> +	.bus_shift    = 20,
-> +	.init         =  hisi_pcie_init,
-> +	.pci_ops      = {
-> +		.map_bus    = hisi_pcie_map_bus,
-> +		.read       = hisi_pcie_acpi_rd_conf,
-> +		.write      = hisi_pcie_acpi_wr_conf,
-> +	}
-> +};
-> diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-> index f5740b7..1b24d97 100644
-> --- a/include/linux/pci-ecam.h
-> +++ b/include/linux/pci-ecam.h
-> @@ -67,4 +67,9 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
->  int pci_host_common_probe(struct platform_device *pdev,
->  			  struct pci_ecam_ops *ops);
->  #endif
-> +
-> +#ifdef CONFIG_PCI_HISI_ACPI
-> +extern struct pci_ecam_ops hisi_pcie_ops;
-> +#endif
-> +
->  #endif
-> -- 
-> 1.9.1
-> 
+SGkgQmpvcm4NCg0KTWFueSB0aGFua3MgZm9yIHB1dHRpbmcgdGhpcyB0b2dldGhlciwgaXQgcmVh
+bGx5IGhlbHBzIQ0KDQpPbmUgdGhpbmcgYmVsb3cuLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2Fn
+ZS0tLS0tDQo+IEZyb206IGxpbnV4LWtlcm5lbC1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0
+bzpsaW51eC1rZXJuZWwtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJq
+b3JuIEhlbGdhYXMNCj4gU2VudDogMTcgTm92ZW1iZXIgMjAxNiAxODowMA0KPiBUbzogbGludXgt
+cGNpQHZnZXIua2VybmVsLm9yZw0KPiBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxp
+bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBhcm0ta2VybmVsQGxpc3RzLmlu
+ZnJhZGVhZC5vcmc7IGxpbmFyby1hY3BpQGxpc3RzLmxpbmFyby5vcmcNCj4gU3ViamVjdDogW1BB
+VENIXSBQQ0k6IEFkZCBpbmZvcm1hdGlvbiBhYm91dCBkZXNjcmliaW5nIFBDSSBpbiBBQ1BJDQo+
+IA0KPiBBZGQgYSB3cml0ZXVwIGFib3V0IGhvdyBQQ0kgaG9zdCBicmlkZ2VzIHNob3VsZCBiZSBk
+ZXNjcmliZWQgaW4gQUNQSQ0KPiB1c2luZyBQTlAwQTAzL1BOUDBBMDggZGV2aWNlcywgUE5QMEMw
+MiBkZXZpY2VzLCBhbmQgdGhlIE1DRkcgdGFibGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBCam9y
+biBIZWxnYWFzIDxiaGVsZ2Fhc0Bnb29nbGUuY29tPg0KPiAtLS0NCj4gIERvY3VtZW50YXRpb24v
+UENJLzAwLUlOREVYICAgICAgfCAgICAyICsNCj4gIERvY3VtZW50YXRpb24vUENJL2FjcGktaW5m
+by50eHQgfCAgMTM2DQo+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0K
+PiAgMiBmaWxlcyBjaGFuZ2VkLCAxMzggaW5zZXJ0aW9ucygrKQ0KPiAgY3JlYXRlIG1vZGUgMTAw
+NjQ0IERvY3VtZW50YXRpb24vUENJL2FjcGktaW5mby50eHQNCj4gDQo+IGRpZmYgLS1naXQgYS9E
+b2N1bWVudGF0aW9uL1BDSS8wMC1JTkRFWCBiL0RvY3VtZW50YXRpb24vUENJLzAwLUlOREVYDQo+
+IGluZGV4IDE0NzIzMWYuLjA3ODAyODAgMTAwNjQ0DQo+IC0tLSBhL0RvY3VtZW50YXRpb24vUENJ
+LzAwLUlOREVYDQo+ICsrKyBiL0RvY3VtZW50YXRpb24vUENJLzAwLUlOREVYDQo+IEBAIC0xLDUg
+KzEsNyBAQA0KPiAgMDAtSU5ERVgNCj4gIAktIHRoaXMgZmlsZQ0KPiArYWNwaS1pbmZvLnR4dA0K
+PiArCS0gaW5mbyBvbiBob3cgUENJIGhvc3QgYnJpZGdlcyBhcmUgcmVwcmVzZW50ZWQgaW4gQUNQ
+SQ0KPiAgTVNJLUhPV1RPLnR4dA0KPiAgCS0gdGhlIE1lc3NhZ2UgU2lnbmFsZWQgSW50ZXJydXB0
+cyAoTVNJKSBEcml2ZXIgR3VpZGUgSE9XVE8gYW5kDQo+IEZBUS4NCj4gIFBDSUVCVVMtSE9XVE8u
+dHh0DQo+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL1BDSS9hY3BpLWluZm8udHh0IGIvRG9j
+dW1lbnRhdGlvbi9QQ0kvYWNwaS0NCj4gaW5mby50eHQNCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQN
+Cj4gaW5kZXggMDAwMDAwMC4uY2NiY2ZkYQ0KPiAtLS0gL2Rldi9udWxsDQo+ICsrKyBiL0RvY3Vt
+ZW50YXRpb24vUENJL2FjcGktaW5mby50eHQNCj4gQEAgLTAsMCArMSwxMzYgQEANCj4gKwkgICAg
+QUNQSSBjb25zaWRlcmF0aW9ucyBmb3IgUENJIGhvc3QgYnJpZGdlcw0KPiArDQo+ICtUaGUgYmFz
+aWMgcmVxdWlyZW1lbnQgaXMgdGhhdCB0aGUgQUNQSSBuYW1lc3BhY2Ugc2hvdWxkIGRlc2NyaWJl
+DQo+ICsqZXZlcnl0aGluZyogdGhhdCBjb25zdW1lcyBhZGRyZXNzIHNwYWNlIHVubGVzcyB0aGVy
+ZSdzIGFub3RoZXINCj4gK3N0YW5kYXJkIHdheSBmb3IgdGhlIE9TIHRvIGZpbmQgaXQgWzEsIDJd
+LiDCoEZvciBleGFtcGxlLCB3aW5kb3dzIHRoYXQNCj4gK2FyZSBmb3J3YXJkZWQgdG8gUENJIGJ5
+IGEgUENJIGhvc3QgYnJpZGdlIHNob3VsZCBiZSBkZXNjcmliZWQgdmlhIEFDUEkNCj4gK2Rldmlj
+ZXMsIHNpbmNlIHRoZSBPUyBjYW4ndCBsb2NhdGUgdGhlIGhvc3QgYnJpZGdlIGJ5IGl0c2VsZi4g
+wqBQQ0kNCj4gK2RldmljZXMgKmJlbG93KiB0aGUgaG9zdCBicmlkZ2UgZG8gbm90IG5lZWQgdG8g
+YmUgZGVzY3JpYmVkIHZpYSBBQ1BJLA0KPiArYmVjYXVzZSB0aGUgcmVzb3VyY2VzIHRoZXkgY29u
+c3VtZSBhcmUgaW5zaWRlIHRoZSBob3N0IGJyaWRnZSB3aW5kb3dzLA0KPiArYW5kIHRoZSBPUyBj
+YW4gZGlzY292ZXIgdGhlbSB2aWEgdGhlIHN0YW5kYXJkIFBDSSBlbnVtZXJhdGlvbg0KPiArbWVj
+aGFuaXNtICh1c2luZyBjb25maWcgYWNjZXNzZXMgdG8gcmVhZCBhbmQgc2l6ZSB0aGUgQkFScyku
+DQo+ICsNCj4gK1RoaXMgQUNQSSByZXNvdXJjZSBkZXNjcmlwdGlvbiBpcyBkb25lIHZpYSBfQ1JT
+IG1ldGhvZHMgb2YgZGV2aWNlcyBpbg0KPiArdGhlIEFDUEkgbmFtZXNwYWNlIFsyXS4gwqAgX0NS
+UyBtZXRob2RzIGFyZSBsaWtlIGdlbmVyYWxpemVkIFBDSSBCQVJzOg0KPiArdGhlIE9TIGNhbiBy
+ZWFkIF9DUlMgYW5kIGZpZ3VyZSBvdXQgd2hhdCByZXNvdXJjZSBpcyBiZWluZyBjb25zdW1lZA0K
+PiArZXZlbiBpZiBpdCBkb2Vzbid0IGhhdmUgYSBkcml2ZXIgZm9yIHRoZSBkZXZpY2UgWzNdLiDC
+oFRoYXQncyBpbXBvcnRhbnQNCj4gK2JlY2F1c2UgaXQgbWVhbnMgYW4gb2xkIE9TIGNhbiB3b3Jr
+IGNvcnJlY3RseSBldmVuIG9uIGEgc3lzdGVtIHdpdGgNCj4gK25ldyBkZXZpY2VzIHVua25vd24g
+dG8gdGhlIE9TLiDCoFRoZSBuZXcgZGV2aWNlcyB3b24ndCBkbyBhbnl0aGluZywgYnV0DQo+ICt0
+aGUgT1MgY2FuIGF0IGxlYXN0IG1ha2Ugc3VyZSBubyByZXNvdXJjZXMgY29uZmxpY3Qgd2l0aCB0
+aGVtLg0KPiArDQo+ICtTdGF0aWMgdGFibGVzIGxpa2UgTUNGRywgSFBFVCwgRUNEVCwgZXRjLiwg
+YXJlICpub3QqIG1lY2hhbmlzbXMgZm9yDQo+ICtyZXNlcnZpbmcgYWRkcmVzcyBzcGFjZSEgIFRo
+ZSBzdGF0aWMgdGFibGVzIGFyZSBmb3IgdGhpbmdzIHRoZSBPUw0KPiArbmVlZHMgdG8ga25vdyBl
+YXJseSBpbiBib290LCBiZWZvcmUgaXQgY2FuIHBhcnNlIHRoZSBBQ1BJIG5hbWVzcGFjZS4NCj4g
+K0lmIGEgbmV3IHRhYmxlIGlzIGRlZmluZWQsIGFuIG9sZCBPUyBuZWVkcyB0byBvcGVyYXRlIGNv
+cnJlY3RseSBldmVuDQo+ICt0aG91Z2ggaXQgaWdub3JlcyB0aGUgdGFibGUuICBfQ1JTIGFsbG93
+cyB0aGF0IGJlY2F1c2UgaXQgaXMgZ2VuZXJpYw0KPiArYW5kIHVuZGVyc3Rvb2QgYnkgdGhlIG9s
+ZCBPUzsgYSBzdGF0aWMgdGFibGUgZG9lcyBub3QuDQoNClJpZ2h0IHNvIGlmIG15IHVuZGVyc3Rh
+bmRpbmcgaXMgY29ycmVjdCB5b3UgYXJlIHNheWluZyB0aGF0IHJlc291cmNlcw0KZGVzY3JpYmVk
+IGluIHRoZSBNQ0ZHIHRhYmxlIHNob3VsZCBhbHNvIGJlIGRlY2xhcmVkIGluIFBOUDBDMDIgZGV2
+aWNlcw0Kc28gdGhhdCB0aGUgUE5QIGRyaXZlciBjYW4gcmVzZXJ2ZSB0aGVzZSByZXNvdXJjZXMu
+DQoNCk9uIHRoZSBvdGhlciBzaWRlIHRoZSBQQ0kgUm9vdCBicmlkZ2UgZHJpdmVyIHNob3VsZCBu
+b3QgcmVzZXJ2ZSBzdWNoDQpyZXNvdXJjZXMuDQoNCldlbGwgaWYgbXkgdW5kZXJzdGFuZGluZyBp
+cyBjb3JyZWN0IEkgdGhpbmsgd2UgaGF2ZSBhIHByb2JsZW0gaGVyZToNCmh0dHA6Ly9seHIuZnJl
+ZS1lbGVjdHJvbnMuY29tL3NvdXJjZS9kcml2ZXJzL3BjaS9lY2FtLmMjTDc0DQoNCkFzIHlvdSBj
+YW4gc2VlIHBjaV9lY2FtX2NyZWF0ZSgpIHdpbGwgY29uZmxpY3Qgd2l0aCB0aGUgcG5wIGRyaXZl
+cg0KYXMgaXQgd2lsbCB0cnkgdG8gcmVzZXJ2ZSB0aGUgcmVzb3VyY2VzIGZyb20gdGhlIE1DRkcg
+dGFibGUuLi4NCg0KTWF5YmUgd2UgbmVlZCB0byByZXdvcmsgcGNpX2VjYW1fY3JlYXRlKCkgPw0K
+DQpUaGFua3MNCg0KR2FiDQoNCj4gKw0KPiArSWYgdGhlIE9TIGlzIGV4cGVjdGVkIHRvIG1hbmFn
+ZSBhbiBBQ1BJIGRldmljZSwgdGhhdCBkZXZpY2Ugd2lsbCBoYXZlDQo+ICthIHNwZWNpZmljIF9I
+SUQvX0NJRCB0aGF0IHRlbGxzIHRoZSBPUyB3aGF0IGRyaXZlciB0byBiaW5kIHRvIGl0LCBhbmQN
+Cj4gK3RoZSBfQ1JTIHRlbGxzIHRoZSBPUyBhbmQgdGhlIGRyaXZlciB3aGVyZSB0aGUgZGV2aWNl
+J3MgcmVnaXN0ZXJzIGFyZS4NCj4gKw0KPiArUE5QMEMwMiAibW90aGVyYm9hcmQiIGRldmljZXMg
+YXJlIGJhc2ljYWxseSBhIGNhdGNoLWFsbC4gwqBUaGVyZSdzIG5vDQo+ICtwcm9ncmFtbWluZyBt
+b2RlbCBmb3IgdGhlbSBvdGhlciB0aGFuICJkb24ndCB1c2UgdGhlc2UgcmVzb3VyY2VzIGZvcg0K
+PiArYW55dGhpbmcgZWxzZS4iIMKgU28gYW55IGFkZHJlc3Mgc3BhY2UgdGhhdCBpcyAoMSkgbm90
+IGNsYWltZWQgYnkgc29tZQ0KPiArb3RoZXIgQUNQSSBkZXZpY2UgYW5kICgyKSBzaG91bGQgbm90
+IGJlIGFzc2lnbmVkIGJ5IHRoZSBPUyB0bw0KPiArc29tZXRoaW5nIGVsc2UsIHNob3VsZCBiZSBj
+bGFpbWVkIGJ5IGEgUE5QMEMwMiBfQ1JTIG1ldGhvZC4NCj4gKw0KPiArUENJIGhvc3QgYnJpZGdl
+cyBhcmUgUE5QMEEwMyBvciBQTlAwQTA4IGRldmljZXMuIMKgVGhlaXIgX0NSUyBzaG91bGQNCj4g
+K2Rlc2NyaWJlIGFsbCB0aGUgYWRkcmVzcyBzcGFjZSB0aGV5IGNvbnN1bWUuIMKgSW4gcHJpbmNp
+cGxlLCB0aGlzIHdvdWxkDQo+ICtiZSBhbGwgdGhlIHdpbmRvd3MgdGhleSBmb3J3YXJkIGRvd24g
+dG8gdGhlIFBDSSBidXMsIGFzIHdlbGwgYXMgdGhlDQo+ICticmlkZ2UgcmVnaXN0ZXJzIHRoZW1z
+ZWx2ZXMuIMKgVGhlIGJyaWRnZSByZWdpc3RlcnMgaW5jbHVkZSB0aGluZ3MgbGlrZQ0KPiArc2Vj
+b25kYXJ5L3N1Ym9yZGluYXRlIGJ1cyByZWdpc3RlcnMgdGhhdCBkZXRlcm1pbmUgdGhlIGJ1cyBy
+YW5nZSBiZWxvdw0KPiArdGhlIGJyaWRnZSwgd2luZG93IHJlZ2lzdGVycyB0aGF0IGRlc2NyaWJl
+IHRoZSBhcGVydHVyZXMsIGV0Yy4gwqBUaGVzZQ0KPiArYXJlIGFsbCBkZXZpY2Utc3BlY2lmaWMs
+IG5vbi1hcmNoaXRlY3RlZCB0aGluZ3MsIHNvIHRoZSBvbmx5IHdheSBhDQo+ICtQTlAwQTAzL1BO
+UDBBMDggZHJpdmVyIGNhbiBtYW5hZ2UgdGhlbSBpcyB2aWEgX1BSUy9fQ1JTL19TUlMsIHdoaWNo
+DQo+ICtjb250YWluIHRoZSBkZXZpY2Utc3BlY2lmaWMgZGV0YWlscy4gwqBUaGVzZSBicmlkZ2Ug
+cmVnaXN0ZXJzIGFsc28NCj4gK2luY2x1ZGUgRUNBTSBzcGFjZSwgc2luY2UgaXQgaXMgY29uc3Vt
+ZWQgYnkgdGhlIGJyaWRnZS4NCj4gKw0KPiArQUNQSSBkZWZpbmVkIGEgUHJvZHVjZXIvQ29uc3Vt
+ZXIgYml0IHRoYXQgd2FzIGludGVuZGVkIHRvIGRpc3Rpbmd1aXNoDQo+ICt0aGUgYnJpZGdlIGFw
+ZXJ0dXJlcyBmcm9tIHRoZSBicmlkZ2UgcmVnaXN0ZXJzIFs0LCA1XS4gwqBIb3dldmVyLA0KPiAr
+QklPU2VzIGRpZG4ndCB1c2UgdGhhdCBiaXQgY29ycmVjdGx5LCBhbmQgdGhlIHJlc3VsdCBpcyB0
+aGF0IE9TZXMgaGF2ZQ0KPiArdG8gYXNzdW1lIHRoYXQgZXZlcnl0aGluZyBpbiBhIFBDSSBob3N0
+IGJyaWRnZSBfQ1JTIGlzIGEgd2luZG93LiDCoFRoYXQNCj4gK2xlYXZlcyBubyB3YXkgdG8gZGVz
+Y3JpYmUgdGhlIGJyaWRnZSByZWdpc3RlcnMgaW4gdGhlIFBOUDBBMDMvUE5QMEEwOA0KPiArZGV2
+aWNlIGl0c2VsZi4NCj4gKw0KPiArVGhlIHdvcmthcm91bmQgaXMgdG8gZGVzY3JpYmUgdGhlIGJy
+aWRnZSByZWdpc3RlcnMgKGluY2x1ZGluZyBFQ0FNDQo+ICtzcGFjZSkgaW4gUE5QMEMwMiBjYXRj
+aC1hbGwgZGV2aWNlcyBbNl0uIMKgV2l0aCB0aGUgZXhjZXB0aW9uIG9mIEVDQU0sDQo+ICt0aGUg
+YnJpZGdlIHJlZ2lzdGVyIHNwYWNlIGlzIGRldmljZS1zcGVjaWZpYyBhbnl3YXksIHNvIHRoZSBn
+ZW5lcmljDQo+ICtQTlAwQTAzL1BOUDBBMDggZHJpdmVyIChwY2lfcm9vdC5jKSBoYXMgbm8gbmVl
+ZCB0byBrbm93IGFib3V0IGl0LiDCoEZvcg0KPiArRUNBTSwgcGNpX3Jvb3QuYyBsZWFybnMgYWJv
+dXQgdGhlIHNwYWNlIGZyb20gZWl0aGVyIE1DRkcgb3IgdGhlIF9DQkENCj4gK21ldGhvZC4NCj4g
+Kw0KPiArTm90ZSB0aGF0IHRoZSBQQ0llIHNwZWMgYWN0dWFsbHkgZG9lcyByZXF1aXJlIEVDQU0g
+dW5sZXNzIHRoZXJlJ3MgYQ0KPiArc3RhbmRhcmQgZmlybXdhcmUgaW50ZXJmYWNlIGZvciBjb25m
+aWcgYWNjZXNzLCBlLmcuLCB0aGUgaWE2NCBTQUwNCj4gK2ludGVyZmFjZSBbN10uICBPbmUgcmVh
+c29uIGlzIHRoYXQgd2Ugd2FudCBhIGdlbmVyaWMgaG9zdCBicmlkZ2UNCj4gK2RyaXZlciAocGNp
+X3Jvb3QuYyksIGFuZCBhIGdlbmVyaWMgZHJpdmVyIHJlcXVpcmVzIGEgZ2VuZXJpYyB3YXkgdG8N
+Cj4gK2FjY2VzcyBjb25maWcgc3BhY2UuDQo+ICsNCj4gKw0KPiArWzFdIEFDUEkgNi4wLCBzZWMg
+Ni4xOg0KPiArICAgIEZvciBhbnkgZGV2aWNlIHRoYXQgaXMgb24gYSBub24tZW51bWVyYWJsZSB0
+eXBlIG9mIGJ1cyAoZm9yDQo+ICsgICAgZXhhbXBsZSwgYW4gSVNBIGJ1cyksIE9TUE0gZW51bWVy
+YXRlcyB0aGUgZGV2aWNlcycgaWRlbnRpZmllcihzKQ0KPiArICAgIGFuZCB0aGUgQUNQSSBzeXN0
+ZW0gZmlybXdhcmUgbXVzdCBzdXBwbHkgYW4gX0hJRCBvYmplY3QgLi4uIGZvcg0KPiArICAgIGVh
+Y2ggZGV2aWNlIHRvIGVuYWJsZSBPU1BNIHRvIGRvIHRoYXQuDQo+ICsNCj4gK1syXSBBQ1BJIDYu
+MCwgc2VjIDMuNzoNCj4gKyAgICBUaGUgT1MgZW51bWVyYXRlcyBtb3RoZXJib2FyZCBkZXZpY2Vz
+IHNpbXBseSBieSByZWFkaW5nIHRocm91Z2gNCj4gKyAgICB0aGUgQUNQSSBOYW1lc3BhY2UgbG9v
+a2luZyBmb3IgZGV2aWNlcyB3aXRoIGhhcmR3YXJlIElEcy4NCj4gKw0KPiArICAgIEVhY2ggZGV2
+aWNlIGVudW1lcmF0ZWQgYnkgQUNQSSBpbmNsdWRlcyBBQ1BJLWRlZmluZWQgb2JqZWN0cyBpbg0K
+PiArICAgIHRoZSBBQ1BJIE5hbWVzcGFjZSB0aGF0IHJlcG9ydCB0aGUgaGFyZHdhcmUgcmVzb3Vy
+Y2VzIHRoZSBkZXZpY2UNCj4gKyAgICBjb3VsZCBvY2N1cHkgW19QUlNdLCBhbiBvYmplY3QgdGhh
+dCByZXBvcnRzIHRoZSByZXNvdXJjZXMgdGhhdCBhcmUNCj4gKyAgICBjdXJyZW50bHkgdXNlZCBi
+eSB0aGUgZGV2aWNlIFtfQ1JTXSwgYW5kIG9iamVjdHMgZm9yIGNvbmZpZ3VyaW5nDQo+ICsgICAg
+dGhvc2UgcmVzb3VyY2VzIFtfU1JTXS4gIFRoZSBpbmZvcm1hdGlvbiBpcyB1c2VkIGJ5IHRoZSBQ
+bHVnIGFuZA0KPiArICAgIFBsYXkgT1MgKE9TUE0pIHRvIGNvbmZpZ3VyZSB0aGUgZGV2aWNlcy4N
+Cj4gKw0KPiArWzNdIEFDUEkgNi4wLCBzZWMgNi4yOg0KPiArICAgIE9TUE0gdXNlcyBkZXZpY2Ug
+Y29uZmlndXJhdGlvbiBvYmplY3RzIHRvIGNvbmZpZ3VyZSBoYXJkd2FyZQ0KPiArICAgIHJlc291
+cmNlcyBmb3IgZGV2aWNlcyBlbnVtZXJhdGVkIHZpYSBBQ1BJLiAgRGV2aWNlIGNvbmZpZ3VyYXRp
+b24NCj4gKyAgICBvYmplY3RzIHByb3ZpZGUgaW5mb3JtYXRpb24gYWJvdXQgY3VycmVudCBhbmQg
+cG9zc2libGUgcmVzb3VyY2UNCj4gKyAgICByZXF1aXJlbWVudHMsIHRoZSByZWxhdGlvbnNoaXAg
+YmV0d2VlbiBzaGFyZWQgcmVzb3VyY2VzLCBhbmQNCj4gKyAgICBtZXRob2RzIGZvciBjb25maWd1
+cmluZyBoYXJkd2FyZSByZXNvdXJjZXMuDQo+ICsNCj4gKyAgICBXaGVuIE9TUE0gZW51bWVyYXRl
+cyBhIGRldmljZSwgaXQgY2FsbHMgX1BSUyB0byBkZXRlcm1pbmUgdGhlDQo+ICsgICAgcmVzb3Vy
+Y2UgcmVxdWlyZW1lbnRzIG9mIHRoZSBkZXZpY2UuICBJdCBtYXkgYWxzbyBjYWxsIF9DUlMgdG8N
+Cj4gKyAgICBmaW5kIHRoZSBjdXJyZW50IHJlc291cmNlIHNldHRpbmdzIGZvciB0aGUgZGV2aWNl
+LiAgVXNpbmcgdGhpcw0KPiArICAgIGluZm9ybWF0aW9uLCB0aGUgUGx1ZyBhbmQgUGxheSBzeXN0
+ZW0gZGV0ZXJtaW5lcyB3aGF0IHJlc291cmNlcw0KPiArICAgIHRoZSBkZXZpY2Ugc2hvdWxkIGNv
+bnN1bWUgYW5kIHNldHMgdGhvc2UgcmVzb3VyY2VzIGJ5IGNhbGxpbmcgdGhlDQo+ICsgICAgZGV2
+aWNl4oCZcyBfU1JTIGNvbnRyb2wgbWV0aG9kLg0KPiArDQo+ICsgICAgSW4gQUNQSSwgZGV2aWNl
+cyBjYW4gY29uc3VtZSByZXNvdXJjZXMgKGZvciBleGFtcGxlLCBsZWdhY3kNCj4gKyAgICBrZXli
+b2FyZHMpLCBwcm92aWRlIHJlc291cmNlcyAoZm9yIGV4YW1wbGUsIGEgcHJvcHJpZXRhcnkgUENJ
+DQo+ICsgICAgYnJpZGdlKSwgb3IgZG8gYm90aC4gIFVubGVzcyBvdGhlcndpc2Ugc3BlY2lmaWVk
+LCByZXNvdXJjZXMgZm9yIGENCj4gKyAgICBkZXZpY2UgYXJlIGFzc3VtZWQgdG8gYmUgdGFrZW4g
+ZnJvbSB0aGUgbmVhcmVzdCBtYXRjaGluZyByZXNvdXJjZQ0KPiArICAgIGFib3ZlIHRoZSBkZXZp
+Y2UgaW4gdGhlIGRldmljZSBoaWVyYXJjaHkuDQo+ICsNCj4gK1s0XSBBQ1BJIDYuMCwgc2VjIDYu
+NC4zLjUuNDoNCj4gKyAgICBFeHRlbmRlZCBBZGRyZXNzIFNwYWNlIERlc2NyaXB0b3INCj4gKyAg
+ICBHZW5lcmFsIEZsYWdzOiBCaXQgWzBdIENvbnN1bWVyL1Byb2R1Y2VyOg0KPiArCTHigJNUaGlz
+IGRldmljZSBjb25zdW1lcyB0aGlzIHJlc291cmNlDQo+ICsJMOKAk1RoaXMgZGV2aWNlIHByb2R1
+Y2VzIGFuZCBjb25zdW1lcyB0aGlzIHJlc291cmNlDQo+ICsNCj4gK1s1XSBBQ1BJIDYuMCwgc2Vj
+IDE5LjYuNDM6DQo+ICsgICAgUmVzb3VyY2VVc2FnZSBzcGVjaWZpZXMgd2hldGhlciB0aGUgTWVt
+b3J5IHJhbmdlIGlzIGNvbnN1bWVkIGJ5DQo+ICsgICAgdGhpcyBkZXZpY2UgKFJlc291cmNlQ29u
+c3VtZXIpIG9yIHBhc3NlZCBvbiB0byBjaGlsZCBkZXZpY2VzDQo+ICsgICAgKFJlc291cmNlUHJv
+ZHVjZXIpLiAgSWYgbm90aGluZyBpcyBzcGVjaWZpZWQsIHRoZW4NCj4gKyAgICBSZXNvdXJjZUNv
+bnN1bWVyIGlzIGFzc3VtZWQuDQo+ICsNCj4gK1s2XSBQQ0kgRmlybXdhcmUgMy4wLCBzZWMgNC4x
+LjI6DQo+ICsgICAgSWYgdGhlIG9wZXJhdGluZyBzeXN0ZW0gZG9lcyBub3QgbmF0aXZlbHkgY29t
+cHJlaGVuZCByZXNlcnZpbmcgdGhlDQo+ICsgICAgTU1DRkcgcmVnaW9uLCB0aGUgTU1DRkcgcmVn
+aW9uIG11c3QgYmUgcmVzZXJ2ZWQgYnkgZmlybXdhcmUuICBUaGUNCj4gKyAgICBhZGRyZXNzIHJh
+bmdlIHJlcG9ydGVkIGluIHRoZSBNQ0ZHIHRhYmxlIG9yIGJ5IF9DQkEgbWV0aG9kIChzZWUNCj4g
+KyAgICBTZWN0aW9uIDQuMS4zKSBtdXN0IGJlIHJlc2VydmVkIGJ5IGRlY2xhcmluZyBhIG1vdGhl
+cmJvYXJkDQo+ICsgICAgcmVzb3VyY2UuICBGb3IgbW9zdCBzeXN0ZW1zLCB0aGUgbW90aGVyYm9h
+cmQgcmVzb3VyY2Ugd291bGQgYXBwZWFyDQo+ICsgICAgYXQgdGhlIHJvb3Qgb2YgdGhlIEFDUEkg
+bmFtZXNwYWNlICh1bmRlciBcX1NCKSBpbiBhIG5vZGUgd2l0aCBhDQo+ICsgICAgX0hJRCBvZiBF
+SVNBSUQgKFBOUDBDMDIpLCBhbmQgdGhlIHJlc291cmNlcyBpbiB0aGlzIGNhc2Ugc2hvdWxkDQo+
+ICsgICAgbm90IGJlIGNsYWltZWQgaW4gdGhlIHJvb3QgUENJIGJ1c+KAmXMgX0NSUy4gIFRoZSBy
+ZXNvdXJjZXMgY2FuDQo+ICsgICAgb3B0aW9uYWxseSBiZSByZXR1cm5lZCBpbiBJbnQxNSBFODIw
+IG9yIEVGSUdldE1lbW9yeU1hcCBhcw0KPiArICAgIHJlc2VydmVkIG1lbW9yeSBidXQgbXVzdCBh
+bHdheXMgYmUgcmVwb3J0ZWQgdGhyb3VnaCBBQ1BJIGFzIGENCj4gKyAgICBtb3RoZXJib2FyZCBy
+ZXNvdXJjZS4NCj4gKw0KPiArWzddIFBDSSBFeHByZXNzIDMuMCwgc2VjIDcuMi4yOg0KPiArICAg
+IEZvciBzeXN0ZW1zIHRoYXQgYXJlIFBDLWNvbXBhdGlibGUsIG9yIHRoYXQgZG8gbm90IGltcGxl
+bWVudCBhDQo+ICsgICAgcHJvY2Vzc29yLWFyY2hpdGVjdHVyZS1zcGVjaWZpYyBmaXJtd2FyZSBp
+bnRlcmZhY2Ugc3RhbmRhcmQgdGhhdA0KPiArICAgIGFsbG93cyBhY2Nlc3MgdG8gdGhlIENvbmZp
+Z3VyYXRpb24gU3BhY2UsIHRoZSBFQ0FNIGlzIHJlcXVpcmVkIGFzDQo+ICsgICAgZGVmaW5lZCBp
+biB0aGlzIHNlY3Rpb24uDQoNCg==
