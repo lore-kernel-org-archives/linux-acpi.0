@@ -1,129 +1,169 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH V10 0/6] Enable PMUs in ACPI Systems
-Date: Mon, 21 Nov 2016 16:34:54 +0000
-Message-ID: <87wpfwkd01.fsf@e105922-lin.cambridge.arm.com>
-References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
+Date: Mon, 21 Nov 2016 10:47:01 -0600
+Message-ID: <20161121164700.GL25762@bhelgaas-glaptop.roam.corp.google.com>
+References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F921A88@lhreml507-mbx>
+ <20161118175404.GI25762@bhelgaas-glaptop.roam.corp.google.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F927053@lhreml507-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com> (Jeremy
- Linton's message of "Wed, 9 Nov 2016 17:39:47 -0600")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: mark.rutland@arm.com, linux-acpi@vger.kernel.org, steve.capper@arm.com, will.deacon@arm.com, mlangsdorf@redhat.com, msalter@redhat.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F927053@lhreml507-mbx>
+Sender: linux-pci-owner@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jeremy,
+On Mon, Nov 21, 2016 at 08:52:52AM +0000, Gabriele Paoloni wrote:
+> Hi Bjorn
+> 
+> > -----Original Message-----
+> > From: Bjorn Helgaas [mailto:helgaas@kernel.org]
+> > Sent: 18 November 2016 17:54
+> > To: Gabriele Paoloni
+> > Cc: Bjorn Helgaas; linux-pci@vger.kernel.org; linux-
+> > acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> > kernel@lists.infradead.org; linaro-acpi@lists.linaro.org
+> > Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
+> > 
+> > On Fri, Nov 18, 2016 at 05:17:34PM +0000, Gabriele Paoloni wrote:
+> > > > -----Original Message-----
+> > > > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+> > > > owner@vger.kernel.org] On Behalf Of Bjorn Helgaas
+> > > > Sent: 17 November 2016 18:00
+> > 
+> > > > +Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms
+> > for
+> > > > +reserving address space!  The static tables are for things the OS
+> > > > +needs to know early in boot, before it can parse the ACPI
+> > namespace.
+> > > > +If a new table is defined, an old OS needs to operate correctly
+> > even
+> > > > +though it ignores the table.  _CRS allows that because it is
+> > generic
+> > > > +and understood by the old OS; a static table does not.
+> > >
+> > > Right so if my understanding is correct you are saying that resources
+> > > described in the MCFG table should also be declared in PNP0C02
+> > devices
+> > > so that the PNP driver can reserve these resources.
+> > 
+> > Yes.
+> > 
+> > > On the other side the PCI Root bridge driver should not reserve such
+> > > resources.
+> > >
+> > > Well if my understanding is correct I think we have a problem here:
+> > > http://lxr.free-electrons.com/source/drivers/pci/ecam.c#L74
+> > >
+> > > As you can see pci_ecam_create() will conflict with the pnp driver
+> > > as it will try to reserve the resources from the MCFG table...
+> > >
+> > > Maybe we need to rework pci_ecam_create() ?
+> > 
+> > I think it's OK as it is.
+> > 
+> > The pnp/system.c driver does try to reserve PNP0C02 resources, and it
+> > marks them as "not busy".  That way they appear in /proc/iomem and
+> > won't be allocated for anything else, but they can still be requested
+> > by drivers, e.g., pci/ecam.c, which will mark them "busy".
+> > 
+> > This is analogous to what the PCI core does in pci_claim_resource().
+> > This is really a function of the ACPI/PNP *core*, which should reserve
+> > all _CRS resources for all devices (not just PNP0C02 devices).  But
+> > it's done by pnp/system.c, and only for PNP0C02, because there's a
+> > bunch of historical baggage there.
+> > 
+> > You'll also notice that in this case, things are out of order:
+> > logically the pnp/system.c reservation should happen first, but in
+> > fact the pci/ecam.c request happens *before* the pnp/system.c one.
+> > That means the pnp/system.c one might fail and complain "[mem ...]
+> > could not be reserved".
+> 
+> Correct me if I am wrong...
+> 
+> So currently we are relying on the fact that pci_ecam_create() is called
+> before the pnp driver.
+> If the pnp driver came first we would end up in pci_ecam_create() failing
+> here:
+> http://lxr.free-electrons.com/source/drivers/pci/ecam.c#L76
+> 
+> I am not sure but it seems to me like a bit weak condition to rely on...
+> what about removing the error condition in pci_ecam_create() and logging
+> just a dev_info()?
 
-Jeremy Linton <jeremy.linton@arm.com> writes:
+Huh.  I'm confused.  I *thought* it would be safe to reverse the
+order, which would effectively be this:
 
-> This patch expands and reworks the patches published by Mark Salter
-> in order to clean up a few of the previous review comments, as well as
-> add support for newer CPUs and big/little configurations.
->
-> v10:
-> - Rebase to 4.9
-> - Rework the arm_perf_start_cpu changes to support the 4.9 hotplug
->   changes.
-> - Remove the call to acpi_register_gsi() from the cpu online code path.
->   Instead the GSI's are registered during the initcall. This changes
->   the error handling a bit because we now try to clean up the
->   previously registered GSIs in a couple important places. This
->   was also a result of the rebase.
-> - Dropped the MIDR partnumber usage, its no longer necessary to
->   differentiate by only the partnum, so this helps to clarify the code
->   a bit. 
-> - Shuffle some code around and rename a few variables.
-> - Added a few comments to hopefully clarify some questions people have
->   previously had about unused MADT entries, skipping processing cores
->   with MIDR=0, etc.
->
+  system_pnp_probe
+    reserve_resources_of_dev
+      reserve_range
+        request_mem_region([mem 0xb0000000-0xb1ffffff])
+  ...
+  pci_ecam_create
+    request_resource_conflict([mem 0xb0000000-0xb1ffffff])
 
-I've had a look at the code and tested the patches on a Juno and a
-Seattle based system I have and the pmus seem to be behaving themselves.
 
-FWIW,
+but I experimented with the patch below on qemu, and it failed as you
+predicted:
 
-Acked-by: Punit Agrawal <punit.agrawal@arm.com>
+  ** res test **
+  requested [mem 0xa0000000-0xafffffff]
+  can't claim ECAM area [mem 0xa0000000-0xafffffff]: conflict with ECAM PNP [mem 0xa0000000-0xafffffff]
 
-Tested-by: Punit Agrawal <punit.agrawal@arm.com>
+I expected the request_resource_conflict() to succeed since it's
+completely contained in the "ECAM PNP" region.  But I guess I don't
+understand kernel/resource.c well enough.
 
-> v9:
-> - Add/cleanup an additional hotplug patch I've had sitting around. This
->   patch brings the ACPI PMU mostly on par with the DT functionality with
->   respect to having CPUs offline during boot. This should help clarify
->   some of the code structuring.
-> - Cleanup the list of PMU types early if we fail to allocate memory for an
->   additional pmu type.
->
-> v8:
-> - Rebase to 4.8rc4
-> - Assorted minor comment/hunk placement/etc tweaks per Punit Agrawal
->
-> v7:
-> - Rebase to 4.8rc3
-> - Remove cpu affinity sysfs entry. While providing a CPU mask for
->   ARMv8 PMU's is really helpful in big/little environments, reworking
->   the PMU code to support the cpumask attribute for !arm64 PMUs is out
->   of the scope of this patch set.
-> - Fix CPU miscount problem where an alloc failure followed by successfully
->   allocating the structure can result in under counting the CPUs associated
->   with the PMU. This bug was created in v6 with the conversion to a linked
->   list.
-> -  Remove initial platform device creation code by Mark Salter, and re-squash
->    multiple platform device creation code together with helper routines.
->    Other minor tweakage.
->
-> v6:
-> - Added cpu affinity sysfs entry
-> - Converted pmu_types array, to linked list
-> - Restrict use of the armv8_pmu_probe_table to ACPI systems
-> - Rename MADT parsing routines in smp.c
-> - Convert sysfs PMU name to use index rather than partnum
-> - Remove pr_devel statements
-> - Other Minor cleanups
-> - Add Partial Ack-by Will Deacon
->
-> v5:
-> - Remove list of CPU types for ACPI systems. We now match a generic
->   event list, and use the PMCIED[01] to select events which exist on
->   the given PMU. This avoids the need to update the kernel every time
->   a new CPU is released.
-> - Update the maintainers list to include the new file.
->
-> v4:
-> - Correct build issues with ARM (!ARM64) kernels.
-> - Add ThunderX to list of PMU types.
->
-> v3:
-> - Enable ARM performance monitoring units on ACPI/arm64 machines.
->
-> Jeremy Linton (5):
->   arm64: Rename the common MADT parse routine
->   arm: arm64: Add routine to determine cpuid of other cpus
->   arm: arm64: pmu: Assign platform PMU CPU affinity
->   arm64: pmu: Detect and enable multiple PMUs in an ACPI system
->   arm: pmu: Add PMU definitions for cores not initially online
->
-> Mark Salter (1):
->   arm64: pmu: Cache PMU interrupt numbers from MADT parse
->
->  arch/arm/include/asm/cputype.h   |   2 +
->  arch/arm64/include/asm/cputype.h |   3 +
->  arch/arm64/kernel/smp.c          |  18 ++-
->  drivers/perf/Kconfig             |   4 +
->  drivers/perf/Makefile            |   1 +
->  drivers/perf/arm_pmu.c           | 107 +++++++++++++--
->  drivers/perf/arm_pmu_acpi.c      | 272 +++++++++++++++++++++++++++++++++++++++
->  include/linux/perf/arm_pmu.h     |  11 ++
->  8 files changed, 400 insertions(+), 18 deletions(-)
->  create mode 100644 drivers/perf/arm_pmu_acpi.c
+I'm not sure we need to fix anything yet, since we currently do the
+ecam.c request before the system.c one, and any change there would be
+a long ways off.  If/when that *does* change, I think the correct fix
+would be to change ecam.c so its request succeeds (by changing the way
+it does the request, fixing kernel/resource.c, or whatever) rather
+than to reduce the log level and ignore the failure.
+
+Bjorn
+
+
+diff --git a/arch/x86/pci/init.c b/arch/x86/pci/init.c
+index adb62aa..5a35638 100644
+--- a/arch/x86/pci/init.c
++++ b/arch/x86/pci/init.c
+@@ -7,6 +7,8 @@
+    in the right sequence from here. */
+ static __init int pci_arch_init(void)
+ {
++	struct resource *res, *conflict;
++	static struct resource cfg;
+ #ifdef CONFIG_PCI_DIRECT
+ 	int type = 0;
+ 
+@@ -39,6 +41,26 @@ static __init int pci_arch_init(void)
+ 
+ 	dmi_check_skip_isa_align();
+ 
++	printk("\n** res test **\n");
++
++	res = request_mem_region(0xa0000000, 0x10000000, "ECAM PNP");
++	printk("requested %pR\n", res);
++	if (!res)
++		return 0;
++	res->flags &= ~IORESOURCE_BUSY;
++
++	cfg.start = 0xa0000000;
++	cfg.end = 0xafffffff;
++	cfg.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
++	cfg.name = "PCI ECAM";
++
++	conflict = request_resource_conflict(&iomem_resource, &cfg);
++	if (conflict)
++		printk("can't claim ECAM area %pR: conflict with %s %pR\n",
++		    &cfg, conflict->name, conflict);
++
++	printk("\n");
++
+ 	return 0;
+ }
+ arch_initcall(pci_arch_init);
