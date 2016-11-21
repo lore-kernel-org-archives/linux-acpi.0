@@ -1,150 +1,232 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V5 09/10] trace, ras: add ARM processor error trace event
-Date: Mon, 21 Nov 2016 15:36:02 -0700
-Message-ID: <1479767763-27532-10-git-send-email-tbaicar@codeaurora.org>
-References: <1479767763-27532-1-git-send-email-tbaicar@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / property: Hierarchical properties support update
+Date: Tue, 22 Nov 2016 00:02:19 +0100
+Message-ID: <3837037.oamKiZqo1g@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1479767763-27532-1-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.com, harba@codeaurora.org, hanjun.guo@linaro.org
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57016 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755096AbcKUWyg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 21 Nov 2016 17:54:36 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Currently there are trace events for the various RAS
-errors with the exception of ARM processor type errors.
-Add a new trace event for such errors so that the user
-will know when they occur. These trace events are
-consistent with the ARM processor error section type
-defined in UEFI 2.6 spec section N.2.4.4.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+The definition document of the Hierarchical Properties Extension UUID
+for _DSD has been changed recently to allow local references to be
+used as sub-node link targets (previously, it only allowed strings to
+be used for that purpose).
+
+Update the code in drivers/acpi/property.c to reflect that change.
+
+Link: http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/apei/ghes.c    |  9 +++++++-
- drivers/firmware/efi/cper.c |  1 +
- drivers/ras/ras.c           |  1 +
- include/ras/ras_event.h     | 55 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 65 insertions(+), 1 deletion(-)
+ drivers/acpi/device_sysfs.c |    8 +-
+ drivers/acpi/property.c     |  127 +++++++++++++++++++++++++++++++-------------
+ 2 files changed, 94 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index c7fbbc1..1147e17 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -516,7 +516,14 @@ static void ghes_do_proc(struct ghes *ghes,
+Index: linux-pm/drivers/acpi/property.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/property.c
++++ linux-pm/drivers/acpi/property.c
+@@ -41,14 +41,13 @@ static bool acpi_enumerate_nondev_subnod
+ static bool acpi_extract_properties(const union acpi_object *desc,
+ 				    struct acpi_device_data *data);
  
- 		}
- #endif
--		else {
-+		else if (!uuid_le_cmp(sec_type, CPER_SEC_PROC_ARMV8)) {
-+			struct cper_sec_proc_armv8 *armv8_err;
-+			struct cper_armv8_err_info *err_info;
-+
-+			armv8_err = acpi_hest_generic_data_payload(gdata);
-+			err_info = (void *)(armv8_err +1);
-+			trace_arm_event(armv8_err, err_info);
-+		} else {
- 			void *unknown_err = acpi_hest_generic_data_payload(gdata);
- 			trace_unknown_sec_event(&sec_type,
- 					fru_id, fru_text, sec_sev,
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index bbb576e..0a0cd74 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -35,6 +35,7 @@
- #include <linux/printk.h>
- #include <linux/bcd.h>
- #include <acpi/ghes.h>
-+#include <ras/ras_event.h>
+-static bool acpi_nondev_subnode_ok(acpi_handle scope,
+-				   const union acpi_object *link,
+-				   struct list_head *list)
++static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
++					acpi_handle handle,
++					const union acpi_object *link,
++					struct list_head *list)
+ {
+-	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
+ 	struct acpi_data_node *dn;
+-	acpi_handle handle;
+-	acpi_status status;
++	bool result;
  
- #define INDENT_SP	" "
+ 	dn = kzalloc(sizeof(*dn), GFP_KERNEL);
+ 	if (!dn)
+@@ -58,43 +57,75 @@ static bool acpi_nondev_subnode_ok(acpi_
+ 	dn->fwnode.type = FWNODE_ACPI_DATA;
+ 	INIT_LIST_HEAD(&dn->data.subnodes);
  
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index fb2500b..8ba5a94 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -28,3 +28,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
- #endif
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
- EXPORT_TRACEPOINT_SYMBOL_GPL(unknown_sec_event);
-+EXPORT_TRACEPOINT_SYMBOL_GPL(arm_event);
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index 5861b6f..0060bba 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -162,6 +162,61 @@ TRACE_EVENT(mc_event,
- );
+-	status = acpi_get_handle(scope, link->package.elements[1].string.pointer,
+-				 &handle);
+-	if (ACPI_FAILURE(status))
+-		goto fail;
+-
+-	status = acpi_evaluate_object_typed(handle, NULL, NULL, &buf,
+-					    ACPI_TYPE_PACKAGE);
+-	if (ACPI_FAILURE(status))
+-		goto fail;
++	result = acpi_extract_properties(desc, &dn->data);
  
- /*
-+ * ARM Processor Events Report
-+ *
-+ * This event is generated when hardware detects an ARM processor error
-+ * has occurred. UEFI 2.6 spec section N.2.4.4.
-+ */
-+TRACE_EVENT(arm_event,
+-	if (acpi_extract_properties(buf.pointer, &dn->data))
+-		dn->handle = handle;
++	if (handle) {
++		acpi_handle scope;
++		acpi_status status;
 +
-+	TP_PROTO(const struct cper_sec_proc_armv8 *proc,
-+		 struct cper_armv8_err_info *err_info),
++		/*
++		 * The scope for the subnode object lookup is the one of the
++		 * namespace node (device) containing the object that has
++		 * returned the package.  That is, it's the scope of that
++		 * object's parent.
++		 */
++		status = acpi_get_parent(handle, &scope);
++		if (ACPI_SUCCESS(status)
++		    && acpi_enumerate_nondev_subnodes(scope, desc, &dn->data))
++			result = true;
++	} else if (acpi_enumerate_nondev_subnodes(NULL, desc, &dn->data)) {
++		result = true;
++	}
+ 
+-	/*
+-	 * The scope for the subnode object lookup is the one of the namespace
+-	 * node (device) containing the object that has returned the package.
+-	 * That is, it's the scope of that object's parent.
+-	 */
+-	status = acpi_get_parent(handle, &scope);
+-	if (ACPI_SUCCESS(status)
+-	    && acpi_enumerate_nondev_subnodes(scope, buf.pointer, &dn->data))
++	if (result) {
+ 		dn->handle = handle;
+-
+-	if (dn->handle) {
+-		dn->data.pointer = buf.pointer;
++		dn->data.pointer = desc;
+ 		list_add_tail(&dn->sibling, list);
+ 		return true;
+ 	}
+ 
++	kfree(dn);
+ 	acpi_handle_debug(handle, "Invalid properties/subnodes data, skipping\n");
++	return false;
++}
 +
-+	TP_ARGS(proc, err_info),
++static bool acpi_nondev_subnode_data_ok(acpi_handle handle,
++					const union acpi_object *link,
++					struct list_head *list)
++{
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
++	acpi_status status;
 +
-+	TP_STRUCT__entry(
-+		__field(u64, mpidr)
-+		__field(u64, midr)
-+		__field(u64, info)
-+		__field(u64, virt_fault_addr)
-+		__field(u64, phys_fault_addr)
-+		__field(u32, running_state)
-+		__field(u32, psci_state)
-+		__field(u16, err_count)
-+		__field(u8, affinity)
-+		__field(u8, version)
-+		__field(u8, type)
-+		__field(u8, flags)
-+	),
++	status = acpi_evaluate_object_typed(handle, NULL, NULL, &buf,
++					    ACPI_TYPE_PACKAGE);
++	if (ACPI_FAILURE(status))
++		return false;
 +
-+	TP_fast_assign(
-+		__entry->affinity = proc->affinity_level;
-+		__entry->mpidr = proc->mpidr;
-+		__entry->midr = proc->midr;
-+		__entry->running_state = proc->running_state;
-+		__entry->psci_state = proc->psci_state;
-+		__entry->version = err_info->version;
-+		__entry->type = err_info->type;
-+		__entry->err_count = err_info->multiple_error;
-+		__entry->flags = err_info->flags;
-+		__entry->info = err_info->error_info;
-+		__entry->virt_fault_addr = err_info->virt_fault_addr;
-+		__entry->phys_fault_addr = err_info->physical_fault_addr;
-+	),
++	if (acpi_nondev_subnode_extract(buf.pointer, handle, link, list))
++		return true;
+ 
+- fail:
+ 	ACPI_FREE(buf.pointer);
+-	kfree(dn);
+ 	return false;
+ }
+ 
++static bool acpi_nondev_subnode_ok(acpi_handle scope,
++				   const union acpi_object *link,
++				   struct list_head *list)
++{
++	acpi_handle handle;
++	acpi_status status;
 +
-+	TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
-+		  "running state: %d; PSCI state: %d; version: %d; type: %d; "
-+		  "error count: 0x%04x; flags: 0x%02x; info: %016llx; "
-+		  "virtual fault address: %016llx; "
-+		  "physical fault address: %016llx",
-+		  __entry->affinity, __entry->mpidr, __entry->midr,
-+		  __entry->running_state, __entry->psci_state, __entry->version,
-+		  __entry->type, __entry->err_count, __entry->flags,
-+		  __entry->info, __entry->virt_fault_addr,
-+		  __entry->phys_fault_addr)
-+);
++	if (!scope)
++		return false;
 +
-+/*
-  * Unknown Section Report
-  *
-  * This event is generated when hardware detected a hardware
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
++	status = acpi_get_handle(scope, link->package.elements[1].string.pointer,
++				 &handle);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	return acpi_nondev_subnode_data_ok(handle, link, list);
++}
++
+ static int acpi_add_nondev_subnodes(acpi_handle scope,
+ 				    const union acpi_object *links,
+ 				    struct list_head *list)
+@@ -103,15 +134,37 @@ static int acpi_add_nondev_subnodes(acpi
+ 	int i;
+ 
+ 	for (i = 0; i < links->package.count; i++) {
+-		const union acpi_object *link;
++		const union acpi_object *link, *desc;
++		acpi_handle handle;
++		bool result;
+ 
+ 		link = &links->package.elements[i];
+-		/* Only two elements allowed, both must be strings. */
+-		if (link->package.count == 2
+-		    && link->package.elements[0].type == ACPI_TYPE_STRING
+-		    && link->package.elements[1].type == ACPI_TYPE_STRING
+-		    && acpi_nondev_subnode_ok(scope, link, list))
+-			ret = true;
++		/* Only two elements allowed. */
++		if (link->package.count != 2)
++			continue;
++
++		/* The first one must be a string. */
++		if (link->package.elements[0].type != ACPI_TYPE_STRING)
++			continue;
++
++		/* The second one may be a string, a reference or a package. */
++		switch (link->package.elements[1].type) {
++		case ACPI_TYPE_STRING:
++			result = acpi_nondev_subnode_ok(scope, link, list);
++			break;
++		case ACPI_TYPE_LOCAL_REFERENCE:
++			handle = link->package.elements[1].reference.handle;
++			result = acpi_nondev_subnode_data_ok(handle, link, list);
++			break;
++		case ACPI_TYPE_PACKAGE:
++			desc = &link->package.elements[1];
++			result = acpi_nondev_subnode_extract(desc, NULL, link, list);
++			break;
++		default:
++			result = false;
++			break;
++		}
++		ret = ret || result;
+ 	}
+ 
+ 	return ret;
+Index: linux-pm/drivers/acpi/device_sysfs.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_sysfs.c
++++ linux-pm/drivers/acpi/device_sysfs.c
+@@ -52,7 +52,7 @@ struct acpi_data_node_attr {
+ 
+ static ssize_t data_node_show_path(struct acpi_data_node *dn, char *buf)
+ {
+-	return acpi_object_path(dn->handle, buf);
++	return dn->handle ? acpi_object_path(dn->handle, buf) : 0;
+ }
+ 
+ DATA_NODE_ATTR(path);
+@@ -105,10 +105,10 @@ static void acpi_expose_nondev_subnodes(
+ 		init_completion(&dn->kobj_done);
+ 		ret = kobject_init_and_add(&dn->kobj, &acpi_data_node_ktype,
+ 					   kobj, "%s", dn->name);
+-		if (ret)
+-			acpi_handle_err(dn->handle, "Failed to expose (%d)\n", ret);
+-		else
++		if (!ret)
+ 			acpi_expose_nondev_subnodes(&dn->kobj, &dn->data);
++		else if (dn->handle)
++			acpi_handle_err(dn->handle, "Failed to expose (%d)\n", ret);
+ 	}
+ }
+ 
+
