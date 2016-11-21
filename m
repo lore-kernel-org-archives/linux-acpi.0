@@ -1,54 +1,32 @@
-From: AceLan Kao <acelan.kao@canonical.com>
-Subject: [PATCH] ACPI: Override rev for DELL Latitude 3350
-Date: Mon, 21 Nov 2016 10:07:05 +0800
-Message-ID: <1479694025-13372-1-git-send-email-acelan.kao@canonical.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 0/2] ACPI / processor / cpufreq: Function return value
+ cleanups
+Date: Mon, 21 Nov 2016 09:08:39 +0530
+Message-ID: <20161121033839.GB4722@vireshk-i7>
+References: <1975886.qL3AyWerjl@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34871 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752075AbcKUCHK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Nov 2016 21:07:10 -0500
+Received: from mail-pf0-f174.google.com ([209.85.192.174]:36396 "EHLO
+        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752830AbcKUDim (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Nov 2016 22:38:42 -0500
+Received: by mail-pf0-f174.google.com with SMTP id 189so61769822pfz.3
+        for <linux-acpi@vger.kernel.org>; Sun, 20 Nov 2016 19:38:42 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1975886.qL3AyWerjl@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-The ethernet network fails to work on DELL Latitude 3350 after this commit
-   ea7d521 Revert 'Revert "ACPICA: Permanently set _REV to the value '2'."'
+On 18-11-16, 13:57, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> Two cleanups related to unused function return values, [1/2] in processor_perflib.c
+> and [2/2] in cpufreq.c.
 
-dmesg shows
-   r8169 Gigabit Ethernet driver 2.3LK-NAPI loaded
-   r8169 0000:03:00.0: can't disable ASPM; OS doesn't have ASPM control
-   pci 0000:00:1c.2: PCI INT C: failed to register GSI
-   pci 0000:00:1c.2: Error enabling bridge (-16), continuing
-   r8169 0000:03:00.0: PCI INT A: failed to register GSI
-   r8169 0000:03:00.0 (unnamed net_device) (uninitialized): enable failure
-   r8169: probe of 0000:03:00.0 failed with error -16
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-So override the ACPI _REV for this machine to fix the issue.
-
-Signed-off-by: AceLan Kao <acelan.kao@canonical.com>
----
- drivers/acpi/blacklist.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index bdc67ba..a8c10f2 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -160,6 +160,14 @@ static struct dmi_system_id acpi_rev_dmi_table[] __initdata = {
- 		      DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9343"),
- 		},
- 	},
-+	{
-+	 .callback = dmi_enable_rev_override,
-+	 .ident = "DELL Latitude 3350",
-+	 .matches = {
-+		      DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		      DMI_MATCH(DMI_PRODUCT_NAME, "Latitude 3350"),
-+		},
-+	},
- #endif
- 	{}
- };
 -- 
-2.7.4
-
+viresh
