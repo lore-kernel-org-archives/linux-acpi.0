@@ -1,84 +1,190 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v16 05/15] clocksource/drivers/arm_arch_timer: fix a bug
- in arch_timer_register about arch_timer_uses_ppi
-Date: Mon, 21 Nov 2016 15:32:21 +0800
-Message-ID: <CADyBb7v0c6t=Bn72qnpfVZjTVqcy+8QLr7XhfXP156DPXT2Vqw@mail.gmail.com>
-References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
- <1479304148-2965-6-git-send-email-fu.wei@linaro.org> <20161118185252.GI1197@leverpostej>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: Re: [PATCH V5 1/2] PCI/ACPI: Provide acpi_get_rc_resources() for
+ ARM64 platform
+Date: Mon, 21 Nov 2016 16:19:25 +0800
+Message-ID: <41b92e95-7dcd-dbc5-8163-bac8cd3fb441@huawei.com>
+References: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
+ <1479460951-49281-2-git-send-email-liudongdong3@huawei.com>
+ <CAJZ5v0gMg6=ueeZz-PcNvuUW5ht=r8vn-gEru-2Cbx7HDCf+jA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161118185252.GI1197@leverpostej>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:15990 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752149AbcKUIU3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2016 03:20:29 -0500
+In-Reply-To: <CAJZ5v0gMg6=ueeZz-PcNvuUW5ht=r8vn-gEru-2Cbx7HDCf+jA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, wangzhou1@hisilicon.com, Pratyush Anand Thakur <pratyush.anand@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Masters <jcm@redhat.com>, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, linuxarm@huawei.com
 
-Hi Mark,
+Hi Rafael
 
-On 19 November 2016 at 02:52, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Wed, Nov 16, 2016 at 09:48:58PM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Many Thanks for your review.
+
+在 2016/11/19 6:00, Rafael J. Wysocki 写道:
+> On Fri, Nov 18, 2016 at 10:22 AM, Dongdong Liu <liudongdong3@huawei.com> wrote:
+>> The acpi_get_rc_resources() is used to get the RC register address that can
+>> not be described in MCFG. It takes the _HID&segment to look for and outputs
+>> the RC address resource. Use PNP0C02 devices to describe such RC address
+>> resource. Use _UID to match segment to tell which root bus the PNP0C02
+>> resource belong to.
 >>
->> The patch fix a potential bug about arch_timer_uses_ppi in
->> arch_timer_register.
->> On ARM64, we don't use ARCH_TIMER_PHYS_SECURE_PPI in Linux, so we will
->> just igorne it in init code.
+>> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> ---
+>>  drivers/pci/pci-acpi.c | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  drivers/pci/pci.h      |  4 +++
+>>  2 files changed, 75 insertions(+)
+>>
+>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+>> index d966d47..3557e3a 100644
+>> --- a/drivers/pci/pci-acpi.c
+>> +++ b/drivers/pci/pci-acpi.c
+>> @@ -29,6 +29,77 @@
+>>         0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
+>>  };
+>>
+>> +#ifdef CONFIG_ARM64
+>> +static int acpi_get_rc_addr(struct acpi_device *adev, struct resource *res)
 >
-> That's not currently the case. I assume you mean we will in later
-> patches? If so, please make that clear in the commit message.
->
->> If arch_timer_uses_ppi is ARCH_TIMER_PHYS_NONSECURE_PPI, the orignal
->> code of arch_timer_uses_ppi may go wrong.
->
-> How? What specifically happens?
->
-> We don't currently assign ARCH_TIMER_PHYS_NONSECURE_PPI to
-> arch_timer_uses_ppi, so I assume a later patch changes this. This change
-> should be folded into said patch; it doesn't make sense in isolation.
+> Why can't it return a resource pointer?
 
-yes, this patch is a preparation for the next which may set
-arch_timer_use_ppi as ARCH_TIMER_PHYS_NONSECURE_PPI.
-So you are right, I will merge this into the next and mention this
-change in the commit message.
+Yes, it can return a resource pointer.
+Good catch. will fix.
 
-Great thanks
+>
+>> +{
+>> +       struct resource_entry *entry;
+>> +       struct list_head list;
+>> +       unsigned long flags;
+>> +       int ret;
+>> +
+>> +       INIT_LIST_HEAD(&list);
+>> +       flags = IORESOURCE_MEM;
+>> +       ret = acpi_dev_get_resources(adev, &list,
+>> +                                    acpi_dev_filter_resource_type_cb,
+>> +                                    (void *) flags);
+>> +       if (ret < 0) {
+>> +               dev_err(&adev->dev,
+>
+> The dev_err() log level is quite excessive here IMO.  Why is the
+> message useful to users at all?  IOW, what is the user supposed to do
+> if this message is present in the log?
 
+Ok, this is not really needed, I will delete it.
+>
+>> +                       "failed to parse _CRS method, error code %d\n", ret);
+>> +               return ret;
+>> +       } else if (ret == 0) {
+>> +               dev_err(&adev->dev,
+>> +                       "no IO and memory resources present in _CRS\n");
+>
+> Same here.
+will delete.
+>
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       entry = list_first_entry(&list, struct resource_entry, node);
+>> +       *res = *entry->res;
+>> +       acpi_dev_free_resource_list(&list);
+>> +       return 0;
+>> +}
+>> +
+>> +static acpi_status acpi_match_rc(acpi_handle handle, u32 lvl, void *context,
+>> +                                void **retval)
+>> +{
+>> +       u16 *segment = context;
+>> +       unsigned long long uid;
+>> +       acpi_status status;
+>> +
+>> +       status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
+>> +       if (ACPI_FAILURE(status) || uid != *segment)
+>> +               return AE_CTRL_DEPTH;
+>> +
+>> +       *(acpi_handle *)retval = handle;
+>> +       return AE_CTRL_TERMINATE;
+>> +}
+>> +
+>
+> Please add a kerneldoc comment describing acpi_get_rc_resources().
+OK, will do.
+>
+>> +int acpi_get_rc_resources(const char *hid, u16 segment, struct resource *res)
+>> +{
+>> +       struct acpi_device *adev;
+>> +       acpi_status status;
+>> +       acpi_handle handle;
+>> +       int ret;
+>> +
+>> +       status = acpi_get_devices(hid, acpi_match_rc, &segment, &handle);
+>> +       if (ACPI_FAILURE(status)) {
+>> +               pr_err("Can't find _HID %s device", hid);
+>
+> Same here.
+
+will delete
+>
+>> +               return -ENODEV;
+>> +       }
+>> +
+>> +       ret = acpi_bus_get_device(handle, &adev);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = acpi_get_rc_addr(adev, res);
+>> +       if (ret) {
+>> +               dev_err(&adev->dev, "can't get RC resource");
+>
+> Same here.
+
+will delete
+>
+>> +               return ret;
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>
+> It looks like this function could return the resource pointer just
+> fine.  What's the problem with that?
+It is ok to return the resource pointer, will fix it.
+>
+>> +#endif
+>> +
+>>  phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
+>>  {
+>>         acpi_status status = AE_NOT_EXIST;
+>> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+>> index 4518562..17ffa38 100644
+>> --- a/drivers/pci/pci.h
+>> +++ b/drivers/pci/pci.h
+>> @@ -356,4 +356,8 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
+>>  }
+>>  #endif
+>>
+>> +#ifdef CONFIG_ARM64
+>> +int acpi_get_rc_resources(const char *hid, u16 segment, struct resource *res);
+>> +#endif
+>
+> Doesn't that depend on ACPI too?
+
+Yes, that depends on ACPI too.
+will fix.
+
+Thanks
+Dongdong.
+>
+>> +
+>>  #endif /* DRIVERS_PCI_H */
+>> --
 >
 > Thanks,
-> Mark.
+> Rafael
 >
->> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> ---
->>  drivers/clocksource/arm_arch_timer.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
->> index dd1040d..6de164f 100644
->> --- a/drivers/clocksource/arm_arch_timer.c
->> +++ b/drivers/clocksource/arm_arch_timer.c
->> @@ -699,7 +699,7 @@ static int __init arch_timer_register(void)
->>       case ARCH_TIMER_PHYS_NONSECURE_PPI:
->>               err = request_percpu_irq(ppi, arch_timer_handler_phys,
->>                                        "arch_timer", arch_timer_evt);
->> -             if (!err && arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]) {
->> +             if (!err && arch_timer_has_nonsecure_ppi()) {
->>                       ppi = arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI];
->>                       err = request_percpu_irq(ppi, arch_timer_handler_phys,
->>                                                "arch_timer", arch_timer_evt);
->> --
->> 2.7.4
->>
+> .
+>
 
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
