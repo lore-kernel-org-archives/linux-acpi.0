@@ -1,190 +1,106 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [PATCH V5 1/2] PCI/ACPI: Provide acpi_get_rc_resources() for
- ARM64 platform
-Date: Mon, 21 Nov 2016 16:19:25 +0800
-Message-ID: <41b92e95-7dcd-dbc5-8163-bac8cd3fb441@huawei.com>
-References: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
- <1479460951-49281-2-git-send-email-liudongdong3@huawei.com>
- <CAJZ5v0gMg6=ueeZz-PcNvuUW5ht=r8vn-gEru-2Cbx7HDCf+jA@mail.gmail.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH] PCI: Add information about describing PCI in ACPI
+Date: Mon, 21 Nov 2016 08:52:52 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F927053@lhreml507-mbx>
+References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F921A88@lhreml507-mbx>
+ <20161118175404.GI25762@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:15990 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752149AbcKUIU3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2016 03:20:29 -0500
-In-Reply-To: <CAJZ5v0gMg6=ueeZz-PcNvuUW5ht=r8vn-gEru-2Cbx7HDCf+jA@mail.gmail.com>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:4218 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751754AbcKUIxL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2016 03:53:11 -0500
+In-Reply-To: <20161118175404.GI25762@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, wangzhou1@hisilicon.com, Pratyush Anand Thakur <pratyush.anand@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Masters <jcm@redhat.com>, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, linuxarm@huawei.com
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi Rafael
+Hi Bjorn
 
-Many Thanks for your review.
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
+> Sent: 18 November 2016 17:54
+> To: Gabriele Paoloni
+> Cc: Bjorn Helgaas; linux-pci@vger.kernel.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; linaro-acpi@lists.linaro.org
+> Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
+> 
+> On Fri, Nov 18, 2016 at 05:17:34PM +0000, Gabriele Paoloni wrote:
+> > > -----Original Message-----
+> > > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+> > > owner@vger.kernel.org] On Behalf Of Bjorn Helgaas
+> > > Sent: 17 November 2016 18:00
+> 
+> > > +Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms
+> for
+> > > +reserving address space!  The static tables are for things the OS
+> > > +needs to know early in boot, before it can parse the ACPI
+> namespace.
+> > > +If a new table is defined, an old OS needs to operate correctly
+> even
+> > > +though it ignores the table.  _CRS allows that because it is
+> generic
+> > > +and understood by the old OS; a static table does not.
+> >
+> > Right so if my understanding is correct you are saying that resources
+> > described in the MCFG table should also be declared in PNP0C02
+> devices
+> > so that the PNP driver can reserve these resources.
+> 
+> Yes.
+> 
+> > On the other side the PCI Root bridge driver should not reserve such
+> > resources.
+> >
+> > Well if my understanding is correct I think we have a problem here:
+> > http://lxr.free-electrons.com/source/drivers/pci/ecam.c#L74
+> >
+> > As you can see pci_ecam_create() will conflict with the pnp driver
+> > as it will try to reserve the resources from the MCFG table...
+> >
+> > Maybe we need to rework pci_ecam_create() ?
+> 
+> I think it's OK as it is.
+> 
+> The pnp/system.c driver does try to reserve PNP0C02 resources, and it
+> marks them as "not busy".  That way they appear in /proc/iomem and
+> won't be allocated for anything else, but they can still be requested
+> by drivers, e.g., pci/ecam.c, which will mark them "busy".
+> 
+> This is analogous to what the PCI core does in pci_claim_resource().
+> This is really a function of the ACPI/PNP *core*, which should reserve
+> all _CRS resources for all devices (not just PNP0C02 devices).  But
+> it's done by pnp/system.c, and only for PNP0C02, because there's a
+> bunch of historical baggage there.
+> 
+> You'll also notice that in this case, things are out of order:
+> logically the pnp/system.c reservation should happen first, but in
+> fact the pci/ecam.c request happens *before* the pnp/system.c one.
+> That means the pnp/system.c one might fail and complain "[mem ...]
+> could not be reserved".
 
-在 2016/11/19 6:00, Rafael J. Wysocki 写道:
-> On Fri, Nov 18, 2016 at 10:22 AM, Dongdong Liu <liudongdong3@huawei.com> wrote:
->> The acpi_get_rc_resources() is used to get the RC register address that can
->> not be described in MCFG. It takes the _HID&segment to look for and outputs
->> the RC address resource. Use PNP0C02 devices to describe such RC address
->> resource. Use _UID to match segment to tell which root bus the PNP0C02
->> resource belong to.
->>
->> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> ---
->>  drivers/pci/pci-acpi.c | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>  drivers/pci/pci.h      |  4 +++
->>  2 files changed, 75 insertions(+)
->>
->> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->> index d966d47..3557e3a 100644
->> --- a/drivers/pci/pci-acpi.c
->> +++ b/drivers/pci/pci-acpi.c
->> @@ -29,6 +29,77 @@
->>         0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
->>  };
->>
->> +#ifdef CONFIG_ARM64
->> +static int acpi_get_rc_addr(struct acpi_device *adev, struct resource *res)
->
-> Why can't it return a resource pointer?
+Correct me if I am wrong...
 
-Yes, it can return a resource pointer.
-Good catch. will fix.
+So currently we are relying on the fact that pci_ecam_create() is called
+before the pnp driver.
+If the pnp driver came first we would end up in pci_ecam_create() failing
+here:
+http://lxr.free-electrons.com/source/drivers/pci/ecam.c#L76
 
->
->> +{
->> +       struct resource_entry *entry;
->> +       struct list_head list;
->> +       unsigned long flags;
->> +       int ret;
->> +
->> +       INIT_LIST_HEAD(&list);
->> +       flags = IORESOURCE_MEM;
->> +       ret = acpi_dev_get_resources(adev, &list,
->> +                                    acpi_dev_filter_resource_type_cb,
->> +                                    (void *) flags);
->> +       if (ret < 0) {
->> +               dev_err(&adev->dev,
->
-> The dev_err() log level is quite excessive here IMO.  Why is the
-> message useful to users at all?  IOW, what is the user supposed to do
-> if this message is present in the log?
-
-Ok, this is not really needed, I will delete it.
->
->> +                       "failed to parse _CRS method, error code %d\n", ret);
->> +               return ret;
->> +       } else if (ret == 0) {
->> +               dev_err(&adev->dev,
->> +                       "no IO and memory resources present in _CRS\n");
->
-> Same here.
-will delete.
->
->> +               return -EINVAL;
->> +       }
->> +
->> +       entry = list_first_entry(&list, struct resource_entry, node);
->> +       *res = *entry->res;
->> +       acpi_dev_free_resource_list(&list);
->> +       return 0;
->> +}
->> +
->> +static acpi_status acpi_match_rc(acpi_handle handle, u32 lvl, void *context,
->> +                                void **retval)
->> +{
->> +       u16 *segment = context;
->> +       unsigned long long uid;
->> +       acpi_status status;
->> +
->> +       status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
->> +       if (ACPI_FAILURE(status) || uid != *segment)
->> +               return AE_CTRL_DEPTH;
->> +
->> +       *(acpi_handle *)retval = handle;
->> +       return AE_CTRL_TERMINATE;
->> +}
->> +
->
-> Please add a kerneldoc comment describing acpi_get_rc_resources().
-OK, will do.
->
->> +int acpi_get_rc_resources(const char *hid, u16 segment, struct resource *res)
->> +{
->> +       struct acpi_device *adev;
->> +       acpi_status status;
->> +       acpi_handle handle;
->> +       int ret;
->> +
->> +       status = acpi_get_devices(hid, acpi_match_rc, &segment, &handle);
->> +       if (ACPI_FAILURE(status)) {
->> +               pr_err("Can't find _HID %s device", hid);
->
-> Same here.
-
-will delete
->
->> +               return -ENODEV;
->> +       }
->> +
->> +       ret = acpi_bus_get_device(handle, &adev);
->> +       if (ret)
->> +               return ret;
->> +
->> +       ret = acpi_get_rc_addr(adev, res);
->> +       if (ret) {
->> +               dev_err(&adev->dev, "can't get RC resource");
->
-> Same here.
-
-will delete
->
->> +               return ret;
->> +       }
->> +
->> +       return 0;
->> +}
->
-> It looks like this function could return the resource pointer just
-> fine.  What's the problem with that?
-It is ok to return the resource pointer, will fix it.
->
->> +#endif
->> +
->>  phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
->>  {
->>         acpi_status status = AE_NOT_EXIST;
->> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
->> index 4518562..17ffa38 100644
->> --- a/drivers/pci/pci.h
->> +++ b/drivers/pci/pci.h
->> @@ -356,4 +356,8 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
->>  }
->>  #endif
->>
->> +#ifdef CONFIG_ARM64
->> +int acpi_get_rc_resources(const char *hid, u16 segment, struct resource *res);
->> +#endif
->
-> Doesn't that depend on ACPI too?
-
-Yes, that depends on ACPI too.
-will fix.
+I am not sure but it seems to me like a bit weak condition to rely on...
+what about removing the error condition in pci_ecam_create() and logging
+just a dev_info()?
 
 Thanks
-Dongdong.
->
->> +
->>  #endif /* DRIVERS_PCI_H */
->> --
->
-> Thanks,
-> Rafael
->
-> .
->
 
+Gab
+
+
+> 
+> Bjorn
