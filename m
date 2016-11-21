@@ -1,138 +1,211 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v16 06/15] clocksource/drivers/arm_arch_timer: separate
- out arch_timer_uses_ppi init code to prepare for GTDT.
-Date: Mon, 21 Nov 2016 17:45:56 +0800
-Message-ID: <CADyBb7uaDjkovJYmWC+kt7mKyiy7tEo3_KHXf0cDawHTp5dGPg@mail.gmail.com>
-References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
- <1479304148-2965-7-git-send-email-fu.wei@linaro.org> <20161118193054.GK1197@leverpostej>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v9 00/16] ACPI IORT ARM SMMU support
+Date: Mon, 21 Nov 2016 10:01:32 +0000
+Message-ID: <20161121100148.24769-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:35355 "EHLO
-        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752149AbcKUJp5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Nov 2016 04:45:57 -0500
-Received: by mail-io0-f176.google.com with SMTP id n13so35223074ioe.2
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Nov 2016 01:45:57 -0800 (PST)
-In-Reply-To: <20161118193054.GK1197@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-Hi Mark,
+This patch series is v9 of a previous posting:
 
-On 19 November 2016 at 03:30, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Nov 16, 2016 at 09:48:59PM +0800, fu.wei@linaro.org wrote:
->> From: Fu Wei <fu.wei@linaro.org>
->>
->> The patch refactor original arch_timer_uses_ppi init code:
->> (1) Extract a subfunction: arch_timer_uses_ppi_init
->> (2) Use the new subfunction in arch_timer_of_init and
->> arch_timer_acpi_init
->
-> This isn't a strict refactoring, since this now assigns
-> ARCH_TIMER_PHYS_NONSECURE_PPI to arch_timer_uses_ppi, which we didn't do
-> previously.
->
-> As a general note, please write your commit messages as prose rather
-> than a list of bullet points. Please also explain the rationale for the
-> change, rather than enumerating the changes. Call out things which are
-> important and/or likely to surprise reviewers, for example:
->
-> * Can 32-bit ARM still use non-secure interrupts afer this change?
->
-> * Does the "arm,cpu-registers-not-fw-configured"  proeprty still work?
->
-> That will make it vastly easier to have this code reviewed, and it will
-> be far more helpful for anyone looking at this in future.
->
-> For example:
->
->   arm_arch_timer: rework PPI determination
->
->   Currently, the arch timer driver uses ARCH_TIMER_PHYS_SECURE_PPI to
->   mean the driver will use the secure PPI *and* potentialy also use the
->   non-secure PPI. This is somewhat confusing.
->
->   For arm64, where it never makes sense to use the secure PPI, this
->   means we must always request the useless secure PPI, adding to the
->   confusion. For ACPI, where we may not even have a valid secure PPI
->   number, this is additionally problematic. We need the driver to be
->   able to use *only* the non-secure PPI.
->
->   The logic to choose which PPI to use is intertwined with other logic
->   in arch_timer_init(). This patch factors the PPI determination out
->   into a new function, and then reworks it so that we can handle having
->   only a non-secure PPI.
+https://lkml.org/lkml/2016/11/16/386
 
-Great thanks for your example, will use this,  :-)
+v8 -> v9
+	- Updated bypass flag handling in ARM SMMU v3 according to
+	  reviews
+	- Removed SMMUv1/v2 configuration interrupt handling
+	- Rebased against v4.9-rc5
+	- Updated tags
 
-maybe add :
-For ARM32, it still can use non-secure interrupts after this change, and
-the "arm,cpu-registers-not-fw-configured"  property still works.
+v7 -> v8
+	- Renamed fwnode iommu_ops registration API according to review
+	- Minor change in ARM SMMU driver DT/ACPI split
+	- Added review tags
 
->
-> [...]
->
->> +/*
->> + * If HYP mode is available, we know that the physical timer
->> + * has been configured to be accessible from PL1. Use it, so
->> + * that a guest can use the virtual timer instead.
->> + *
->> + * If no interrupt provided for virtual timer, we'll have to
->> + * stick to the physical timer. It'd better be accessible...
->> + * On ARM64, we we only use ARCH_TIMER_PHYS_NONSECURE_PPI in Linux.
->
-> It would be better to say that for arm64 we never use the secure
-> interrupt.
+v6 -> v7
+	- Rebased against v4.9-rc4
+	- Fixed IORT probing on ACPI systems with missing IORT table
+	- Fixed SMMUv1/v2 global interrupt detection
+	- Updated iommu_ops firmware look-up
 
-For ARM64, we never use the secure interrupt, so it will be set to
-ARCH_TIMER_PHYS_NONSECURE_PPI instead.
+v5 -> v6
+	- Rebased against v4.9-rc1
+	- Changed FWNODE_IOMMU to FWNODE_ACPI_STATIC
+	- Moved platform devices creation into IORT code
+	- Updated fwnode handling
+	- Added default dma masks initialization
 
->
->> + *
->> + * On ARMv8.1 with VH extensions, the kernel runs in HYP. VHE
->> + * accesses to CNTP_*_EL1 registers are silently redirected to
->> + * their CNTHP_*_EL2 counterparts, and use a different PPI
->> + * number.
->> + */
->> +static int __init arch_timer_uses_ppi_init(void)
->
-> It would be better to call this something like arch_timer_select_ppi().
-> As it stands, the name is difficult to read.
+v4 -> v5
+	- Added SMMUv1/v2 support
+	- Rebased against v4.8-rc5 and dependencies series
+	- Consolidated IORT platform devices creation
 
-Yes, good idea, will do
+v3 -> v4
+	- Added single mapping API (for IORT named components)
+	- Fixed arm_smmu_iort_xlate() return value
+	- Reworked fwnode registration and platform device creation
+	  ordering to fix probe ordering dependencies
+	- Added code to keep device_node ref count with new iommu
+	  fwspec API
+	- Added patch to make iommu_fwspec arch agnostic
+	- Dropped RFC status
+	- Rebased against v4.8-rc2
 
->
->> @@ -902,6 +904,10 @@ static int __init arch_timer_of_init(struct device_node *np)
->>           of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
->>               arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
->>
->> +     ret = arch_timer_uses_ppi_init();
->> +     if (ret)
->> +             return ret;
->
-> This is clearly broken if you consider what the statement above is
-> doing.
+v2 -> v3
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc3)
+	- Added back reliance on ACPI early probing infrastructure
+	- Patch[1-3] merged through other dependent series
+	- Added back IOMMU fwnode generalization
+	- Move SMMU v3 static functions configuration to IORT code
+	- Implemented generic IOMMU fwspec API
+	- Added code to implement fwnode platform device look-up
 
-Maybe I misunderstand this, I tried to follow the original logic.
+v1 -> v2:
+	- Rebased on top of dependencies series [1][2][3](v4.7-rc1)
+	- Removed IOMMU fwnode generalization
+	- Implemented ARM SMMU v3 ACPI probing instead of ARM SMMU v2
+	  owing to patch series dependencies [1]
+	- Moved platform device creation logic to IORT code to
+	  generalize its usage for ARM SMMU v1-v2-v3 components
+	- Removed reliance on ACPI early device probing
+	- Created IORT specific iommu_xlate() translation hook leaving
+	  OF code unchanged according to v1 reviews
 
-Are you saying: we should use arch_timer_select_ppi() first,
-then (maybe) change arch_timer_uses_ppi according to
-"arm,cpu-registers-not-fw-configured"?
+The ACPI IORT table provides information that allows instantiating
+ARM SMMU devices and carrying out id mappings between components on
+ARM based systems (devices, IOMMUs, interrupt controllers).
 
-Please correct me, if I misunderstand this.
+http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
 
->
-> Thanks,
-> Mark.
+Building on basic IORT support, this patchset enables ARM SMMUs support
+on ACPI systems.
 
+Most of the code is aimed at building the required generic ACPI
+infrastructure to create and enable IOMMU components and to bring
+the IOMMU infrastructure for ACPI on par with DT, which is going to
+make future ARM SMMU components easier to integrate.
 
+PATCH (1) adds a FWNODE_ACPI_STATIC type to the struct fwnode_handle type.
+          It is required to attach a fwnode identifier to platform
+          devices allocated/detected through static ACPI table entries
+          (ie IORT tables entries).
+          IOMMU devices have to have an identifier to look them up
+          eg IOMMU core layer carrying out id translation. This can be
+          done through a fwnode_handle (ie IOMMU platform devices created
+          out of IORT tables are not ACPI devices hence they can't be
+          allocated as such, otherwise they would have a fwnode_handle of
+          type FWNODE_ACPI).
+
+PATCH (2) makes use of the ACPI early probing API to add a linker script
+          section for probing devices via IORT ACPI kernel code.
+
+PATCH (3) provides IORT support for registering IOMMU IORT node through
+          their fwnode handle.
+
+PATCH (4) make of_iommu_{set/get}_ops() functions DT agnostic and
+          rename the registration API.
+
+PATCH (5) convert ARM SMMU driver to use fwnode instead of of_node as
+          look-up and iommu_ops retrieval token.
+
+PATCH (6) convert ARM SMMU v3 driver to use fwnode instead of of_node as
+          look-up and iommu_ops retrieval token.
+
+PATCH (7) implements the of_dma_configure() API in ACPI world -
+          acpi_dma_configure() - and patches PCI and ACPI core code to
+          start making use of it.
+
+PATCH (8) provides an IORT function to detect existence of specific type
+          of IORT components.
+
+PATCH (9) creates the kernel infrastructure required to create ARM SMMU
+          platform devices for IORT nodes.
+
+PATCH (10) refactors the ARM SMMU v3 driver so that the init functions are
+           split in a way that groups together code that probes through DT
+           and code that carries out HW registers FW agnostic probing, in
+           preparation for adding the ACPI probing path.
+
+PATCH (11) adds ARM SMMU v3 IORT IOMMU operations to create and probe
+           ARM SMMU v3 components.
+
+PATCH (12) refactors the ARM SMMU v1/v2 driver so that the init functions
+           are split in a way that groups together code that probes
+           through DT and code that carries out HW registers FW agnostic
+           probing, in preparation for adding the ACPI probing path.
+
+PATCH (13) adds ARM SMMU v1/v2 IORT IOMMU operations to create and
+           probe ARM SMMU v1/v2 components.
+
+PATCH (14) Extend the IORT iort_node_map_rid() to work on a type mask
+           instead of a single type so that the translation API can
+           be used on a range of components.
+
+PATCH (15) Add IORT API to carry out id mappings for components that do
+           do not have an input identifier/RIDs (ie named components).
+
+PATCH (16) provides IORT infrastructure to carry out IOMMU configuration
+           for devices and hook it up to the previously introduced ACPI
+           DMA configure API.
+
+This patchset is provided for review/testing purposes here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v9
+
+Tested on Juno and FVP models for ARM SMMU v1 and v3 probing path.
+
+Lorenzo Pieralisi (16):
+  drivers: acpi: add FWNODE_ACPI_STATIC fwnode type
+  drivers: acpi: iort: introduce linker section for IORT entries probing
+  drivers: acpi: iort: add support for IOMMU fwnode registration
+  drivers: iommu: make of_iommu_set/get_ops() DT agnostic
+  drivers: iommu: arm-smmu: convert struct device of_node to fwnode
+    usage
+  drivers: iommu: arm-smmu-v3: convert struct device of_node to fwnode
+    usage
+  drivers: acpi: implement acpi_dma_configure
+  drivers: acpi: iort: add node match function
+  drivers: acpi: iort: add support for ARM SMMU platform devices
+    creation
+  drivers: iommu: arm-smmu-v3: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu-v3: add IORT configuration
+  drivers: iommu: arm-smmu: split probe functions into DT/generic
+    portions
+  drivers: iommu: arm-smmu: add IORT configuration
+  drivers: acpi: iort: replace rid map type with type mask
+  drivers: acpi: iort: add single mapping function
+  drivers: acpi: iort: introduce iort_iommu_configure
+
+ drivers/acpi/arm64/iort.c         | 585 +++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/glue.c               |   4 +-
+ drivers/acpi/scan.c               |  45 +++
+ drivers/iommu/arm-smmu-v3.c       | 102 +++++--
+ drivers/iommu/arm-smmu.c          | 148 ++++++++--
+ drivers/iommu/iommu.c             |  40 +++
+ drivers/iommu/of_iommu.c          |  39 ---
+ drivers/pci/probe.c               |   3 +-
+ include/acpi/acpi_bus.h           |   2 +
+ include/asm-generic/vmlinux.lds.h |   1 +
+ include/linux/acpi.h              |  26 ++
+ include/linux/acpi_iort.h         |  14 +
+ include/linux/fwnode.h            |   3 +-
+ include/linux/iommu.h             |  14 +
+ include/linux/of_iommu.h          |  12 +-
+ 15 files changed, 934 insertions(+), 104 deletions(-)
 
 -- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+2.10.0
