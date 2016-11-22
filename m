@@ -1,223 +1,78 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 1/1] ACPI: Document _OSI and _REV for Linux BIOS writers
-Date: Tue, 22 Nov 2016 00:29:46 -0500
-Message-ID: <d122d41c1cc7230ae5283caf2a4c18fd4d0cd93e.1479792558.git.len.brown@intel.com>
-Reply-To: Len Brown <lenb@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:32804 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754435AbcKVFaV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2016 00:30:21 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V5 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
+ SoCs Host Controllers
+Date: Tue, 22 Nov 2016 07:43:39 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F92B77E@lhreml507-mbx>
+References: <1479460951-49281-1-git-send-email-liudongdong3@huawei.com>
+ <1479460951-49281-3-git-send-email-liudongdong3@huawei.com>
+ <20161118170821.GH25762@bhelgaas-glaptop.roam.corp.google.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F9270ED@lhreml507-mbx>
+ <20161121223145.GC4832@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161121223145.GC4832@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "liudongdong (C)" <liudongdong3@huawei.com>, "arnd@arndb.de" <arnd@arndb.de>, "rafael@kernel.org" <rafael@kernel.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
+> Sent: 21 November 2016 22:32
+> To: Gabriele Paoloni
+> Cc: liudongdong (C); arnd@arndb.de; rafael@kernel.org;
+> Lorenzo.Pieralisi@arm.com; tn@semihalf.com; Wangzhou (B);
+> pratyush.anand@gmail.com; linux-pci@vger.kernel.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; jcm@redhat.com;
+> Chenxin (Charles); hanjun.guo@linaro.org; Linuxarm
+> Subject: Re: [PATCH V5 2/2] PCI/ACPI: hisi: Add ACPI support for
+> HiSilicon SoCs Host Controllers
+> 
+> On Mon, Nov 21, 2016 at 09:09:28AM +0000, Gabriele Paoloni wrote:
+> 
+> > > > +config PCI_HISI_ACPI
+> > > > +	depends on ACPI && ARM64
+> > > > +	bool "HiSilicon Hip05 and Hip06 and Hip07 SoCs ACPI PCIe
+> > > controllers"
+> > > > +	select PNP
+> > > > +	help
+> > > > +	  Say Y here if you want ACPI PCIe controller support on
+> > > HiSilicon
+> > > > +	  Hip05 and Hip06 and Hip07 SoCs
+> > >
+> > > I'm not sure about this Kconfig setup.  Do we really want to force
+> > > people to enable a special config option to get this support?
+> > >
+> > > I'm comparing it in my mind with other PCI quirks.  They're all
+> > > enabled as a group by CONFIG_PCI_QUIRKS.  Ultimately we want an
+> ACPI
+> > > kernel to work without requiring any platform-specific config
+> options.
+> > >
+> > > I'm wondering if we should consolidate all the ECAM quirk code in a
+> > > single place (maybe pci/ecam-quirks.c, pci/ecam.c, or pci/pci-
+> acpi.c),
+> > > under a config option like CONFIG_PCI_ECAM_QUIRKS or maybe even
+> plain
+> > > CONFIG_PCI_QUIRKS (of course, it could still be qualified by
+> > > CONFIG_ACPI and CONFIG_ARM64).
+> >
+> > What about having a single config options but keeping separate files
+> > for each vendors (at least as first step)?
+> 
+> That sounds fine.  The main thing is that we're trying to build a
+> generic kernel that can run on any ACPI arm64 platform, so we really
+> shouldn't have to turn on platform-specific config options.
 
-Based on a recent session at the Linux Plumber's Conference,
-we need to be more clear about how a BIOS should use _OSI
-to properly support Linux.
+Ok great we'll do so then
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- Documentation/acpi/osi.txt | 187 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 187 insertions(+)
- create mode 100644 Documentation/acpi/osi.txt
+Thanks
 
-diff --git a/Documentation/acpi/osi.txt b/Documentation/acpi/osi.txt
-new file mode 100644
-index 000000000000..f9a0352f1d28
---- /dev/null
-+++ b/Documentation/acpi/osi.txt
-@@ -0,0 +1,187 @@
-+ACPI _OSI and _REV methods
-+--------------------------
-+
-+The ACPI _OSI method, "Operating System Interfaces",
-+informs the ACPI BIOS about 'interfaces' supported by the Operating System.
-+
-+The ACPI _REV method returns the "Revision of the ACPI specification
-+that OSPM supports"
-+
-+This document explains how and why the BIOS and Linux should use these methods.
-+It also explains how and why they are widely mis-used.
-+
-+How to use _OSI
-+---------------
-+
-+Linux runs on two groups of machines -- those that are tested by the OEM
-+to be compatible with Linux, and those that were never tested with Linux,
-+but where Linux was installed to replace the original OS (Windows or OSX).
-+
-+The larger group is the systems tested to run only Windows.
-+Many of those systems were not only tested with just Windows, they were
-+tested with just one specific version of Windows.  Even though the BIOS
-+uses _OSI to query what version of Windows is running, only a single
-+path through the BIOS has every been tested.
-+For that reason, Linux must continue to claim compatibility with
-+all versions of Windows.  To do otherwise exposes BIOS bugs on this
-+large group of machines.
-+
-+But Linux isn't actually compatible with Windows, and the Linux community
-+has also been hurt with regressions when Linux adds the latest version of
-+Windows to its list of _OSI strings.  So it is possible that additional strings
-+will be more thoroughly vetted before shipping upstream in the future.
-+But it is likely that they will all eventually be added.
-+
-+Then there are systems designed and tested to run Linux.
-+Often an OEM's ACPI BIOS team wants to support a unique feature
-+in Linux, to do this, the BIOS should ask exactly what it wants to know:
-+
-+_OSI("Linux-OEM-my_interface_name")
-+where 'OEM' is needed if this is an OEM-specific hook,
-+and 'my_interface_name' describes the hook, which could be a
-+quirk, a bug, or a bug-fix.
-+
-+For this to work, a patch must be sent to upstream Linux
-+via the linux-acpi@vger.kernel.org mailing list.  When that patch
-+is checked into Linux, the OS will answer "YES" when the BIOS
-+on the OEM's system uses _OSI to ask if the interface is supported
-+by the OS.  Linux distributors can back-port that patch for Linux
-+pre-installs, and it will be included by all distributions that
-+re-base to upstream.  If the distribution can not update the kernel binary,
-+they can also add an acpi_osi= cmdline parameter to the boot loader, as needed.
-+
-+If the string refers to a feature where the upstream kernel
-+eventually grows support, a patch should be sent to remove
-+the string when that support is added to the kernel.
-+
-+That was easy.  Read on, to find out how to do it wrong.
-+
-+Before _OSI, there was _OS
-+--------------------------
-+
-+ACPI 1.0 specified "_OS" as an
-+"object that evaluates to a string that identifies the operating system."
-+
-+The ACPI BIOS flow would include an evaluation of _OS, and the AML
-+interpreter in the kernel would return to it a string identifying
-+the OS.  _OS returned "Microsoft Windows" on Windows 98 and SE.
-+It returned "Microsoft WindowsME:Millenium Edition" for Win-ME,
-+and for Windows NT it returned "Microsoft Windows NT".  After that,
-+_OS was abandoned, though modern BIOS continue to contain
-+an ancient idiom looking for "Microsoft Windows NT" -- just
-+in case time travel becomes possible?
-+
-+On a platform tasked with running multiple versions of Windows,
-+the BIOS could use _OS to enable/disable devices that and OS
-+might support, or enable/disable quirks or bug work-arounds
-+necessary to make the platform compatible with a pre-existing OS.
-+
-+If a BIOS invokes _OS today, Linux will return
-+"Microsoft Windows NT".  That is the *only* possible choice,
-+as doing otherwise can steer the BIOS down an un-tested path.
-+
-+_OS had fundamental problems.  First, the BIOS needed to know the name
-+of every version of the OS that would run on it, and needed to know
-+all the quirks of those OS's.  Certainly it would make more sense
-+for the BIOS to ask *specific* things of the OS, such
-+"do you support a specific interface", and thus in ACPI 3.0,
-+_OSI was born to replace _OS.
-+
-+_OSI is born, and immediately mis-used
-+--------------------------------------
-+
-+With _OSI, the *BIOS* provides the string describing an interface,
-+and asks the OS: "YES/NO, are you compatible with this interface?"
-+
-+eg. _OSI("3.0 Thermal Model") would return TRUE if the OS knows how
-+to deal with the thermal extensions made to the ACPI 3.0 specification.
-+An old OS that doesn't know about those extensions would answer FALSE,
-+and a new OS may be able to return TRUE.
-+
-+For an OS-specific interface, the BIOS and the OS
-+were to agree on a string of the form such as "Windows-interface_name".
-+
-+But two bad things happened.  First, the Windows ecosystem used _OSI
-+not as designed, but as a direct replacement for _OS -- identifying
-+the OS version, rather than an OS supported interface.  Indeed, right
-+from the start, the ACPI 3.0 spec itself codified this mis-use
-+in example code using _OSI("Windows 2001").
-+
-+The Windows BIOS/OS ecosystem continues to mis-use this method today.
-+
-+Linux had no choice but to also return TRUE to _OSI("Windows 2001")
-+and its successors.  To do otherwise would virtually guarantee breaking
-+a BIOS that has been tested only with that _OSI returning TRUE.
-+
-+This strategy is problematic, as Linux is never completely compatible with
-+the latest version of Windows, and sometimes it takes more than a year
-+to iron out incompatibilities.
-+
-+The Linux community made things worse by returning TRUE
-+to _OSI("Linux").  Doing so is even worse than the Windows mis-use
-+of _OSI, as "Linux" contains no version information.
-+_OSI("Linux") led to some BIOS' malfunctioning due to BIOS writer's
-+using it in un-tested BIOS flows.  But some OEM's used _OSI("Linux")
-+in tested flows to support real Linux features.  In 2009, Linux
-+removed _OSI("Linux"), and added a cmdline parameter to restore it
-+for legacy systems that needed it, and added a BIOS_BUG warning
-+for all BIOS's that invoke it.  No BIOS ever should use _OSI("Linux").
-+
-+The result is a strategy for Linux to maximize compatibility with
-+ACPI BIOS that are tested on Windows machines.  There is a real risk
-+of over-stating that compatibility; but the alternative has often been
-+catastrophic failure resulting from the BIOS taking paths that
-+were never validated under *any* OS.
-+
-+BIOS for Linux and Windows
-+--------------------------
-+
-+For some platforms, a BIOS that wants to properly run Windows
-+and Linux needs to know which is running.  This is a valid requirement,
-+and it may be, for example, due to specific hardware that is supported by one
-+OS is incompatible with the same hardware support in the other OS.
-+Examples may be sound or storage devices with different hardware modes.
-+The BIOS can handle such quirks, only if it can reliably identify
-+what software is running.
-+
-+Do not use _REV
-+---------------
-+
-+Some BIOS writers decided to use _REV to tell the difference
-+between Linux and Windows.  _REV was defined in ACPI 1.0 to return
-+the version of ACPI supported by the OS and the OS AML interpreter.
-+
-+Modern Windows returns _REV = 2.  Linux used ACPI_CA_SUPPORT_LEVEL,
-+which would increment, based on the version of the spec supported.
-+
-+Unfortunately, _REV was also mis-used.  eg. some BIOS would check
-+for _REV = 3, and do something for Linux, but when Linux returned
-+_REV = 4, that support broke.
-+
-+In response to this problem, Linux returns _REV = 2 always,
-+from mid-2015 onward.  The ACPI specification will also be updated
-+to reflect that _REV is deprecated, and always returns 2.
-+
-+_OSI("Darwin")
-+--------------
-+
-+No description of _OSI would be complete without mentioning _OSI("Darwin").
-+This string is mis-used by Apple on Mac platforms, just as Linux
-+mis-used _OSI("Linux").
-+
-+Linux did not originally return TRUE to _OSI("Darwin"),
-+on the assumption that on Apple hardware, Linux was
-+probably best pretending to be Windows,
-+rather than pretending to be OSX.
-+
-+But _OSI("Darwin") was required to make Thunderbolt work,
-+and so Linux changed to enable it by default.  Making matters worse,
-+that change did not include the ability to disable _OSI("Darwin")
-+on the cmdline with acpi_OSI=!Darwin, and so the resulting
-+regressions had no workaround.
-+
-+The cmdline has since been fixed to enable !Darwin.
-+Today "Darwin" enables Thunderbolt, but significantly
-+hurts battery life, and so the default for _OSI("Darwin")
-+is still under debate.
-+
--- 
-2.11.0.rc1
+Gab
 
+> 
+> > Maybe if we see that we can consolidate all the vendors in one file
+> > we can do it as a second step...
