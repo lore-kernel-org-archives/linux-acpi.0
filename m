@@ -1,175 +1,81 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH][RFC] ACPI throttling: Save/restore tstate for each CPUs
- across suspend/resume
-Date: Wed, 23 Nov 2016 00:03:22 +0100
-Message-ID: <CAJZ5v0iMT4+qVdQ-8ev_NRavLNnLhr_+eEO9M=85WJC+zfDySw@mail.gmail.com>
-References: <1479145444-29269-1-git-send-email-yu.c.chen@intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V9 11/11] ARM64/PCI: Support for ACPI based PCI host
+ controller
+Date: Tue, 22 Nov 2016 17:13:21 -0600
+Message-ID: <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-12-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1479145444-29269-1-git-send-email-yu.c.chen@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Chen Yu <yu.c.chen@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rui Wang <ruwang@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, Rui Zhang <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:43398 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755651AbcKVXNn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 22 Nov 2016 18:13:43 -0500
+Content-Disposition: inline
+In-Reply-To: <1465588519-11334-12-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-On Mon, Nov 14, 2016 at 6:44 PM, Chen Yu <yu.c.chen@intel.com> wrote:
-> This is a trial version and any comments are appreciated.
->
-> Previously a bug was reported that on certain Broadwell
-> platforms, after resuming from S3, the CPU is running at
-> an anomalously low speed, due to BIOS has enabled the
-> throttling across S3. The solution to this is to introduce
-> a quirk framework to save/restore tstate MSR register
-> around suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
-> Introduce quirk framework to save/restore extra MSR
-> registers around suspend/resume").
->
-> However more and more reports show that other platforms also
-> experienced the same issue, because some BIOSes would like to
-> adjust the tstate if he thinks the temperature is too high.
-> To deal with this situation, the Linux uses a compensation strategy
-> that, the thermal management leverages thermal_pm_notify() upon resume
-> to check if the Processors inside the thermal zone should be throttled
-> or not, thus tstate would be re-evaluated. Unfortunately on these bogus
-> platforms, none of the Processors are inside any thermal zones due
-> to BIOS's implementation. Thus tstate for Processors never has a
-> chance to be brought back to normal.
->
-> This patch tries to save/restore tstate on receiving the
-> PM_SUSPEND_PREPARE and PM_POST_SUSPEND, to be more specific,
-> the tstate is saved after thermal_pm_notify(PM_SUSPEND_PREPARE)
-> is called, while it's restored before thermal_pm_notify(PM_POST_SUSPEND),
-> in this way the thermal zone would adjust the tstate eventually and
-> also help adjust the tstate for Processors which do not have
-> thermal zone bound. Thus it does not imapct the old semantics.
->
-> Another concern is that, each CPU should take care of the
-> save/restore operation, thus this patch uses percpu workqueue
-> to achieve this.
->
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=90041
-> Reported-by: Matthew Garrett <mjg59@srcf.ucam.org>
-> Reported-by: Kadir <kadir@colakoglu.nl>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-> Cc: Rui Zhang <rui.zhang@intel.com>
-> Cc: linux-pm@vger.kernel.org
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> ---
->  drivers/acpi/processor_throttling.c | 70 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 70 insertions(+)
->
-> diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-> index d51ca1c..8ddc7d6 100644
-> --- a/drivers/acpi/processor_throttling.c
-> +++ b/drivers/acpi/processor_throttling.c
-> @@ -29,6 +29,7 @@
->  #include <linux/sched.h>
->  #include <linux/cpufreq.h>
->  #include <linux/acpi.h>
-> +#include <linux/suspend.h>
->  #include <acpi/processor.h>
->  #include <asm/io.h>
->  #include <asm/uaccess.h>
-> @@ -758,6 +759,75 @@ static int acpi_throttling_wrmsr(u64 value)
->         }
->         return ret;
->  }
+Hi Tomasz,
+
+On Fri, Jun 10, 2016 at 09:55:19PM +0200, Tomasz Nowicki wrote:
+> Implement pci_acpi_scan_root and other arch-specific call so that ARM64
+> can start using ACPI to setup and enumerate PCI buses.
+> 
+> Prior to buses enumeration the pci_acpi_scan_root() implementation looks
+> for configuration space start address (obtained through ACPI _CBA method or
+> MCFG interface). If succeed, it uses ECAM library to create new mapping.
+> Then it attaches generic ECAM ops (pci_generic_ecam_ops) which are used
+> for accessing configuration space later on.
+> ...
+
+> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
+> +	.release_info = pci_acpi_generic_release_info,
+> +};
 > +
-> +#ifdef CONFIG_PM_SLEEP
-> +static DEFINE_PER_CPU(u64, tstate_msr);
-
-Call it saved_tstate_msr maybe?
-
-> +
-> +static long tstate_pm_fn(void *data)
-> +{
-> +       u64 value;
-> +       bool save = *(bool *)data;
-> +
-> +       if (save) {
-> +               acpi_throttling_rdmsr(&value);
-> +               this_cpu_write(tstate_msr, value);
-> +       } else {
-> +               value = this_cpu_read(tstate_msr);
-> +               if (value)
-> +                       acpi_throttling_wrmsr(value);
-> +       }
-> +       return 0;
-> +}
-
-I would split the above into two functions, one for saving and one for
-restoring ->
-
-> +
-> +static void tstate_check(unsigned long mode, bool suspend)
-> +{
-> +       int cpu;
-> +       bool save;
-> +
-> +       if (suspend && mode == PM_SUSPEND_PREPARE)
-> +               save = true;
-> +       else if (!suspend && mode == PM_POST_SUSPEND)
-> +               save = false;
-> +       else
-> +               return;
-> +
-> +       get_online_cpus();
-> +       for_each_online_cpu(cpu)
-
--> and decide here which one to invoke.
-
-> +               work_on_cpu(cpu, tstate_pm_fn, &save);
-
-Does work_on_cpu() wait for the work to complete?
-
-> +       put_online_cpus();
-> +}
-> +
-> +static int tstate_suspend(struct notifier_block *nb,
-> +                               unsigned long mode, void *_unused)
-> +{
-> +       tstate_check(mode, true);
-> +       return 0;
-> +}
-> +
-> +static int tstate_resume(struct notifier_block *nb,
-> +                               unsigned long mode, void *_unused)
-> +{
-> +       tstate_check(mode, false);
-> +       return 0;
-> +}
-> +
-> +static int __init tstate_pm_init(void)
-> +{
-> +       /*
-> +        * tstate_suspend should save tstate after
-> +        * thermal zone's update in thermal_pm_notify,
-> +        * vice versa tstate_resume restore tstate before
-> +        * thermal_pm_notify, thus the thermal framework
-> +        * has a chance to re-adjust tstate according to the
-> +        * temperature trend.
-> +        */
-> +       pm_notifier(tstate_suspend, -1);
-> +       pm_notifier(tstate_resume, 1);
-
-I don't think this is going to do what you really want.
-
-Each of these notifiers is going to be invoked during both suspend and
-resume, so I guess you only need one notifier?
-
-> +       return 0;
-> +}
-> +
-> +core_initcall(tstate_pm_init);
-> +#endif
->  #else
->  static int acpi_throttling_rdmsr(u64 *value)
+> +/* Interface called from ACPI code to setup PCI host controller */
+>  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
 >  {
-> --
+> -	/* TODO: Should be revisited when implementing PCI on ACPI */
+> -	return NULL;
+> +	int node = acpi_get_node(root->device->handle);
+> +	struct acpi_pci_generic_root_info *ri;
+> +	struct pci_bus *bus, *child;
+> +
+> +	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+> +	if (!ri)
+> +		return NULL;
+> +
+> +	ri->cfg = pci_acpi_setup_ecam_mapping(root);
+> +	if (!ri->cfg) {
+> +		kfree(ri);
+> +		return NULL;
+> +	}
+> +
+> +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
 
-Thanks,
-Rafael
+This has already been merged, but this isn't right, is it?  We're
+writing a host controller-specific pointer into the single system-wide
+acpi_pci_root_ops, then passing it on to acpi_pci_root_create().
+
+Today, I think ri->cfg->ops->pci_ops is always &pci_generic_ecam_ops,
+from this path:
+
+  ri->cfg = pci_acpi_setup_ecam_mapping
+    cfg = pci_ecam_create(..., &pci_generic_ecam_ops)
+      cfg = kzalloc(...)
+      cfg->ops = ops             # &pci_generic_ecam_ops
+
+But we're about to merge the ECAM quirks series, which will mean it
+may not be &pci_generic_ecam_ops.  Even apart from the ECAM quirks, we
+should avoid this pattern of putting device-specific info in a single
+shared structure because it's too difficult to verify that it's
+correct.
+
+> +	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+> +				   ri->cfg);
+
+Bjorn
