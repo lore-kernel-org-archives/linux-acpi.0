@@ -1,169 +1,75 @@
-From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V5 00/10] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
- ARM64
-Date: Tue, 22 Nov 2016 11:11:55 +0000
-Message-ID: <d5e199f2-c23e-9599-7ed7-e54475311a39@huawei.com>
-References: <1479767763-27532-1-git-send-email-tbaicar@codeaurora.org>
+From: Dongdong Liu <liudongdong3@huawei.com>
+Subject: [PATCH V6 0/2] Add ACPI support for HiSilicon SoCs Host Controllers
+Date: Tue, 22 Nov 2016 20:08:47 +0800
+Message-ID: <1479816529-97410-1-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479767763-27532-1-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TbrhsbdSgBK9A@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:28196 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753068AbcKVLwX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2016 06:52:23 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, wangzhou1@hisilicon.com, pratyush.anand@gmail.com
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, hanjun.guo@linaro.org, linuxarm@huawei.com
 
-+
+This patchset adds ACPI support for the HiSilicon Hip05/Hip06/Hip07 SoC
+PCIe controllers.
+The two patches respectively:
+        - provides the common function acpi_get_rc_resources() for ARM64
+          platform.
+        - adds the HiSilicon ACPI specific quirks.
 
-We'll try and test this on our platform.
+This patchset is based on branch pci/ecam-v6
+It can be found here:
+https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git(pci/ecam-v6)
 
-Cheers,
-John
+This patchset has been tested on HiSilicon D03 board.
+The dmesg log, /proc/iomem, and ACPI table information can be found:
+https://bugzilla.kernel.org/show_bug.cgi?id=187961
 
-On 21/11/2016 22:35, Tyler Baicar wrote:
-> When a memory error, CPU error, PCIe error, or other type of hardware error
-> that's covered by RAS occurs, firmware should populate the shared GHES memory
-> location with the proper GHES structures to notify the OS of the error.
-> For example, platforms that implement firmware first handling may implement
-> separate GHES sources for corrected errors and uncorrected errors. If the
-> error is an uncorrectable error, then the firmware will notify the OS
-> immediately since the error needs to be handled ASAP. The OS will then be able
-> to take the appropriate action needed such as offlining a page. If the error
-> is a corrected error, then the firmware will not interrupt the OS immediately.
-> Instead, the OS will see and report the error the next time it's GHES timer
-> expires. The kernel will first parse the GHES structures and report the errors
-> through the kernel logs and then notify the user space through RAS trace
-> events. This allows user space applications such as RAS Daemon to see the
-> errors and report them however the user desires. This patchset extends the
-> kernel functionality for RAS errors based on updates in the UEFI 2.6 and
-> ACPI 6.1 specifications.
->
-> An example flow from firmware to user space could be:
->
->                  +---------------+
->        +-------->|               |
->        |         |  GHES polling |--+
-> +-------------+  |    source     |  |   +---------------+   +------------+
-> |             |  +---------------+  |   |  Kernel GHES  |   |            |
-> |  Firmware   |                     +-->|  CPER AER and |-->|  RAS trace |
-> |             |  +---------------+  |   |  EDAC drivers |   |   event    |
-> +-------------+  |               |  |   +---------------+   +------------+
->        |         |  GHES sci     |--+
->        +-------->|   source      |
->                  +---------------+
->
-> Add support for Generic Hardware Error Source (GHES) v2, which introduces the
-> capability for the OS to acknowledge the consumption of the error record
-> generated by the Reliability, Availability and Serviceability (RAS) controller.
-> This eliminates potential race conditions between the OS and the RAS controller.
->
-> Add support for the timestamp field added to the Generic Error Data Entry v3,
-> allowing the OS to log the time that the error is generated by the firmware,
-> rather than the time the error is consumed. This improves the correctness of
-> event sequences when analyzing error logs. The timestamp is added in
-> ACPI 6.1, reference Table 18-343 Generic Error Data Entry.
->
-> Add support for ARMv8 Common Platform Error Record (CPER) per UEFI 2.6
-> specification. ARMv8 specific processor error information is reported as part of
-> the CPER records.  This provides more detail on for processor error logs. This
-> can help describe ARMv8 cache, tlb, and bus errors.
->
-> Synchronous External Abort (SEA) represents a specific processor error condition
-> in ARM systems. A handler is added to recognize SEA errors, and a notifier is
-> added to parse and report the errors before the process is killed. Refer to
-> section N.2.1.1 in the Common Platform Error Record appendix of the UEFI 2.6
-> specification.
->
-> Currently the kernel ignores CPER records that are unrecognized.
-> On the other hand, UEFI spec allows for non-standard (eg. vendor
-> proprietary) error section type in CPER (Common Platform Error Record),
-> as defined in section N2.3 of UEFI version 2.5. Therefore, user
-> is not able to see hardware error data of non-standard section.
->
-> If section Type field of Generic Error Data Entry is unrecognized,
-> prints out the raw data in dmesg buffer, and also adds a tracepoint
-> for reporting such hardware errors.
->
-> Currently even if an error status block's severity is fatal, the kernel
-> does not honor the severity level and panic. With the firmware first
-> model, the platform could inform the OS about a fatal hardware error
-> through the non-NMI GHES notification type. The OS should panic when a
-> hardware error record is received with this severity.
->
-> Add support to handle SEAs that occur while a KVM guest kernel is
-> running. Currently these are unsupported by the guest abort handling.
->
-> Depends on: [PATCH v14] acpi, apei, arm64: APEI initial support for aarch64.
->             https://lkml.org/lkml/2016/8/10/231
->
-> V5: Fix GHES goto logic for error conditions
->     Change ghes_do_read_ack to ghes_ack_error
->     Make sure data version check is >= 3
->     Use CPER helper functions in print functions
->     Make handle_guest_sea() dummy function static for arm
->     Add arm to subject line for KVM patch
->
-> V4: Add bit offset left shift to read_ack_write value
->     Make HEST generic and generic_v2 structures a union in the ghes structure
->     Move gdata v3 helper functions into ghes.h to avoid duplication
->     Reorder the timestamp print and avoid memcpy
->     Add helper functions for gdata size checking
->     Rename the SEA functions
->     Add helper function for GHES panics
->     Set fru_id to NULL UUID at variable declaration
->     Limit ARM trace event parameters to the needed structures
->     Reorder the ARM trace event variables to save space
->     Add comment for why we don't pass SEAs to the guest when it aborts
->     Move ARM trace event call into GHES driver instead of CPER
->
-> V3: Fix unmapped address to the read_ack_register in ghes.c
->     Add helper function to get the proper payload based on generic data entry
->      version
->     Move timestamp print to avoid changing function calls in cper.c
->     Remove patch "arm64: exception: handle instruction abort at current EL"
->      since the el1_ia handler is already added in 4.8
->     Add EFI and ARM64 dependencies for HAVE_ACPI_APEI_SEA
->     Add a new trace event for ARM type errors
->     Add support to handle KVM guest SEAs
->
-> V2: Add PSCI state print for the ARMv8 error type.
->     Separate timestamp year into year and century using BCD format.
->     Rebase on top of ACPICA 20160318 release and remove header file changes
->      in include/acpi/actbl1.h.
->     Add panic OS with fatal error status block patch.
->     Add processing of unrecognized CPER error section patches with updates
->      from previous comments. Original patches: https://lkml.org/lkml/2015/9/8/646
->
-> V1: https://lkml.org/lkml/2016/2/5/544
->
-> Jonathan (Zhixiong) Zhang (1):
->   acpi: apei: panic OS with fatal error status block
->
-> Tyler Baicar (9):
->   acpi: apei: read ack upon ghes record consumption
->   ras: acpi/apei: cper: generic error data entry v3 per ACPI 6.1
->   efi: parse ARMv8 processor error
->   arm64: exception: handle Synchronous External Abort
->   acpi: apei: handle SEA notification type for ARMv8
->   efi: print unrecognized CPER section
->   ras: acpi / apei: generate trace event for unrecognized CPER section
->   trace, ras: add ARM processor error trace event
->   arm/arm64: KVM: add guest SEA support
->
->  arch/arm/include/asm/kvm_arm.h       |   1 +
->  arch/arm/include/asm/system_misc.h   |   5 +
->  arch/arm/kvm/mmu.c                   |  18 ++-
->  arch/arm64/Kconfig                   |   1 +
->  arch/arm64/include/asm/kvm_arm.h     |   1 +
->  arch/arm64/include/asm/system_misc.h |  15 +++
->  arch/arm64/mm/fault.c                |  71 ++++++++++--
->  drivers/acpi/apei/Kconfig            |  14 +++
->  drivers/acpi/apei/ghes.c             | 188 ++++++++++++++++++++++++++++---
->  drivers/acpi/apei/hest.c             |   7 +-
->  drivers/firmware/efi/cper.c          | 210 ++++++++++++++++++++++++++++++++---
->  drivers/ras/ras.c                    |   2 +
->  include/acpi/ghes.h                  |  15 ++-
->  include/linux/cper.h                 |  84 ++++++++++++++
->  include/ras/ras_event.h              | 100 +++++++++++++++++
->  15 files changed, 688 insertions(+), 44 deletions(-)
->
+v5 -> v6:
+- change the config option to CONFIG_PCI_ECAM_QUIRKS.
+- fix some commets about acpi_get_rc_resources().
+
+v4 -> v5:
+- obtain rc base addresses from PNP0C02 at the root of the ACPI
+  namespace (under \_SB) instead of from sub-device under the RC.
+- merge the rewrited get rc resources code by Tomasz.
+- delete unused code. 
+- drop the PATCH V4 1/2, will rework late as a separate patch.
+
+v3 -> v4:
+- rebase on pci/ecam-v6.
+- delete the unnecessary link_up check code. 
+
+v2 -> v3:
+- rebase against 4.9-rc1 and add Tomasz quirks V6 pathcset. 
+- obtain rc base addresses from PNP0C02 as subdevice of PNP0A03 instead of
+  hardcode the addresses.
+- modify hisi_pcie_acpi_rd_conf/hisi_pcie_acpi_wr_conf() according to
+  Arnd comments.
+
+v1 -> v2:
+- rebase against Tomasz RFC V5 quirk mechanism
+- add ACPI support for the HiSilicon Hip07 SoC PCIe controllers.
+
+Dongdong Liu (2):
+  PCI/ACPI: Provide acpi_get_rc_resources() for ARM64 platform
+  PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
+
+ MAINTAINERS                       |   1 +
+ drivers/acpi/pci_mcfg.c           |  13 +++++
+ drivers/pci/host/Kconfig          |   7 +++
+ drivers/pci/host/Makefile         |   1 +
+ drivers/pci/host/pcie-hisi-acpi.c | 119 ++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci-acpi.c            |  69 ++++++++++++++++++++++
+ drivers/pci/pci.h                 |   4 ++
+ include/linux/pci-ecam.h          |   5 ++
+ 8 files changed, 219 insertions(+)
+ create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
+
+-- 
+1.9.1
+
