@@ -1,197 +1,220 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V6 1/2] PCI/ACPI: Provide acpi_get_rc_resources() for
- ARM64 platform
-Date: Tue, 22 Nov 2016 17:03:45 +0000
-Message-ID: <20161122170345.GA2509@red-moon>
-References: <1479816529-97410-1-git-send-email-liudongdong3@huawei.com>
- <1479816529-97410-2-git-send-email-liudongdong3@huawei.com>
- <20161122155648.GA2022@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F92CC43@lhreml507-mbx>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V5 00/10] Add UEFI 2.6 and ACPI 6.1 updates for RAS on
+ ARM64
+Date: Tue, 22 Nov 2016 10:13:19 -0700
+Message-ID: <1baa09bb-a42f-05bb-0523-4942d60c0619@codeaurora.org>
+References: <1479767763-27532-1-git-send-email-tbaicar@codeaurora.org>
+ <d5e199f2-c23e-9599-7ed7-e54475311a39@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34318 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755105AbcKVRMh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Nov 2016 12:12:37 -0500
-Content-Disposition: inline
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F92CC43@lhreml507-mbx>
+Received: from smtp.codeaurora.org ([198.145.29.96]:41966 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751986AbcKVRN0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Nov 2016 12:13:26 -0500
+In-Reply-To: <d5e199f2-c23e-9599-7ed7-e54475311a39@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: "liudongdong (C)" <liudongdong3@huawei.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "rafael@kernel.org" <rafael@kernel.org>, "tn@semihalf.com" <tn@semihalf.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Linuxarm <linuxarm@huawei.com>
+To: John Garry <john.garry@huawei.com>, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Po
 
-On Tue, Nov 22, 2016 at 04:09:57PM +0000, Gabriele Paoloni wrote:
+Thank you John! Let me know how it goes and if you have any questions :)
 
-[...]
+Tyler
 
-> > On Tue, Nov 22, 2016 at 08:08:48PM +0800, Dongdong Liu wrote:
-> > > The acpi_get_rc_resources() is used to get the RC register address
-> > that can
-> > > not be described in MCFG. It takes the _HID&segment to look for and
-> > returns
-> > > the RC address resource. Use PNP0C02 devices to describe such RC
-> > address
-> > > resource. Use _UID to match segment to tell which root bus the
-> > PNP0C02
-> > > resource belong to.
-> > 
-> > Here (ie interpreting the _UID as a segment identifier) is where we
-> > start interpreting the specs instead of relying on them, if you want to
-> > go ahead with this feel free but I do not like this attitude at all.
-> 
-> Obviously there are no specs to specify the segment id of a quirk.
+On 11/22/2016 4:11 AM, John Garry wrote:
+> +
+>
+> We'll try and test this on our platform.
+>
+> Cheers,
+> John
+>
+> On 21/11/2016 22:35, Tyler Baicar wrote:
+>> When a memory error, CPU error, PCIe error, or other type of hardware 
+>> error
+>> that's covered by RAS occurs, firmware should populate the shared 
+>> GHES memory
+>> location with the proper GHES structures to notify the OS of the error.
+>> For example, platforms that implement firmware first handling may 
+>> implement
+>> separate GHES sources for corrected errors and uncorrected errors. If 
+>> the
+>> error is an uncorrectable error, then the firmware will notify the OS
+>> immediately since the error needs to be handled ASAP. The OS will 
+>> then be able
+>> to take the appropriate action needed such as offlining a page. If 
+>> the error
+>> is a corrected error, then the firmware will not interrupt the OS 
+>> immediately.
+>> Instead, the OS will see and report the error the next time it's GHES 
+>> timer
+>> expires. The kernel will first parse the GHES structures and report 
+>> the errors
+>> through the kernel logs and then notify the user space through RAS trace
+>> events. This allows user space applications such as RAS Daemon to see 
+>> the
+>> errors and report them however the user desires. This patchset 
+>> extends the
+>> kernel functionality for RAS errors based on updates in the UEFI 2.6 and
+>> ACPI 6.1 specifications.
+>>
+>> An example flow from firmware to user space could be:
+>>
+>>                  +---------------+
+>>        +-------->|               |
+>>        |         |  GHES polling |--+
+>> +-------------+  |    source     |  |   +---------------+ +------------+
+>> |             |  +---------------+  |   |  Kernel GHES  | |            |
+>> |  Firmware   |                     +-->|  CPER AER and |-->|  RAS 
+>> trace |
+>> |             |  +---------------+  |   |  EDAC drivers |   | event    |
+>> +-------------+  |               |  |   +---------------+ +------------+
+>>        |         |  GHES sci     |--+
+>>        +-------->|   source      |
+>>                  +---------------+
+>>
+>> Add support for Generic Hardware Error Source (GHES) v2, which 
+>> introduces the
+>> capability for the OS to acknowledge the consumption of the error record
+>> generated by the Reliability, Availability and Serviceability (RAS) 
+>> controller.
+>> This eliminates potential race conditions between the OS and the RAS 
+>> controller.
+>>
+>> Add support for the timestamp field added to the Generic Error Data 
+>> Entry v3,
+>> allowing the OS to log the time that the error is generated by the 
+>> firmware,
+>> rather than the time the error is consumed. This improves the 
+>> correctness of
+>> event sequences when analyzing error logs. The timestamp is added in
+>> ACPI 6.1, reference Table 18-343 Generic Error Data Entry.
+>>
+>> Add support for ARMv8 Common Platform Error Record (CPER) per UEFI 2.6
+>> specification. ARMv8 specific processor error information is reported 
+>> as part of
+>> the CPER records.  This provides more detail on for processor error 
+>> logs. This
+>> can help describe ARMv8 cache, tlb, and bus errors.
+>>
+>> Synchronous External Abort (SEA) represents a specific processor 
+>> error condition
+>> in ARM systems. A handler is added to recognize SEA errors, and a 
+>> notifier is
+>> added to parse and report the errors before the process is killed. 
+>> Refer to
+>> section N.2.1.1 in the Common Platform Error Record appendix of the 
+>> UEFI 2.6
+>> specification.
+>>
+>> Currently the kernel ignores CPER records that are unrecognized.
+>> On the other hand, UEFI spec allows for non-standard (eg. vendor
+>> proprietary) error section type in CPER (Common Platform Error Record),
+>> as defined in section N2.3 of UEFI version 2.5. Therefore, user
+>> is not able to see hardware error data of non-standard section.
+>>
+>> If section Type field of Generic Error Data Entry is unrecognized,
+>> prints out the raw data in dmesg buffer, and also adds a tracepoint
+>> for reporting such hardware errors.
+>>
+>> Currently even if an error status block's severity is fatal, the kernel
+>> does not honor the severity level and panic. With the firmware first
+>> model, the platform could inform the OS about a fatal hardware error
+>> through the non-NMI GHES notification type. The OS should panic when a
+>> hardware error record is received with this severity.
+>>
+>> Add support to handle SEAs that occur while a KVM guest kernel is
+>> running. Currently these are unsupported by the guest abort handling.
+>>
+>> Depends on: [PATCH v14] acpi, apei, arm64: APEI initial support for 
+>> aarch64.
+>>             https://lkml.org/lkml/2016/8/10/231
+>>
+>> V5: Fix GHES goto logic for error conditions
+>>     Change ghes_do_read_ack to ghes_ack_error
+>>     Make sure data version check is >= 3
+>>     Use CPER helper functions in print functions
+>>     Make handle_guest_sea() dummy function static for arm
+>>     Add arm to subject line for KVM patch
+>>
+>> V4: Add bit offset left shift to read_ack_write value
+>>     Make HEST generic and generic_v2 structures a union in the ghes 
+>> structure
+>>     Move gdata v3 helper functions into ghes.h to avoid duplication
+>>     Reorder the timestamp print and avoid memcpy
+>>     Add helper functions for gdata size checking
+>>     Rename the SEA functions
+>>     Add helper function for GHES panics
+>>     Set fru_id to NULL UUID at variable declaration
+>>     Limit ARM trace event parameters to the needed structures
+>>     Reorder the ARM trace event variables to save space
+>>     Add comment for why we don't pass SEAs to the guest when it aborts
+>>     Move ARM trace event call into GHES driver instead of CPER
+>>
+>> V3: Fix unmapped address to the read_ack_register in ghes.c
+>>     Add helper function to get the proper payload based on generic 
+>> data entry
+>>      version
+>>     Move timestamp print to avoid changing function calls in cper.c
+>>     Remove patch "arm64: exception: handle instruction abort at 
+>> current EL"
+>>      since the el1_ia handler is already added in 4.8
+>>     Add EFI and ARM64 dependencies for HAVE_ACPI_APEI_SEA
+>>     Add a new trace event for ARM type errors
+>>     Add support to handle KVM guest SEAs
+>>
+>> V2: Add PSCI state print for the ARMv8 error type.
+>>     Separate timestamp year into year and century using BCD format.
+>>     Rebase on top of ACPICA 20160318 release and remove header file 
+>> changes
+>>      in include/acpi/actbl1.h.
+>>     Add panic OS with fatal error status block patch.
+>>     Add processing of unrecognized CPER error section patches with 
+>> updates
+>>      from previous comments. Original patches: 
+>> https://lkml.org/lkml/2015/9/8/646
+>>
+>> V1: https://lkml.org/lkml/2016/2/5/544
+>>
+>> Jonathan (Zhixiong) Zhang (1):
+>>   acpi: apei: panic OS with fatal error status block
+>>
+>> Tyler Baicar (9):
+>>   acpi: apei: read ack upon ghes record consumption
+>>   ras: acpi/apei: cper: generic error data entry v3 per ACPI 6.1
+>>   efi: parse ARMv8 processor error
+>>   arm64: exception: handle Synchronous External Abort
+>>   acpi: apei: handle SEA notification type for ARMv8
+>>   efi: print unrecognized CPER section
+>>   ras: acpi / apei: generate trace event for unrecognized CPER section
+>>   trace, ras: add ARM processor error trace event
+>>   arm/arm64: KVM: add guest SEA support
+>>
+>>  arch/arm/include/asm/kvm_arm.h       |   1 +
+>>  arch/arm/include/asm/system_misc.h   |   5 +
+>>  arch/arm/kvm/mmu.c                   |  18 ++-
+>>  arch/arm64/Kconfig                   |   1 +
+>>  arch/arm64/include/asm/kvm_arm.h     |   1 +
+>>  arch/arm64/include/asm/system_misc.h |  15 +++
+>>  arch/arm64/mm/fault.c                |  71 ++++++++++--
+>>  drivers/acpi/apei/Kconfig            |  14 +++
+>>  drivers/acpi/apei/ghes.c             | 188 
+>> ++++++++++++++++++++++++++++---
+>>  drivers/acpi/apei/hest.c             |   7 +-
+>>  drivers/firmware/efi/cper.c          | 210 
+>> ++++++++++++++++++++++++++++++++---
+>>  drivers/ras/ras.c                    |   2 +
+>>  include/acpi/ghes.h                  |  15 ++-
+>>  include/linux/cper.h                 |  84 ++++++++++++++
+>>  include/ras/ras_event.h              | 100 +++++++++++++++++
+>>  15 files changed, 688 insertions(+), 44 deletions(-)
+>>
+>
+>
 
-That's the reason why _UID (or any other standard object) should not be
-(ab)used to do that, again, that's just my opinion.
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
-> Looking at the ACPI specs it seems to me that the _UID is no worse
-> than other device identification objects...
-
-There are no bindings in the specs describing what you need. If you want
-to say "for this _HID, _UID means something completely different
-- ie root bridge segment identifier - go ahead if that's fine with Bjorn
-and Rafael; another solution would be adding a _DSM/DSD to the PNP0c02
-device to retrieve the segment number, other than that I have run out
-of ideas.
-
-Lorenzo
-
-> 
-> > 
-> > > Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> > > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > > ---
-> > >  drivers/pci/pci-acpi.c | 69
-> > ++++++++++++++++++++++++++++++++++++++++++++++++++
-> > >  drivers/pci/pci.h      |  4 +++
-> > >  2 files changed, 73 insertions(+)
-> > >
-> > > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > > index d966d47..76fd6f4 100644
-> > > --- a/drivers/pci/pci-acpi.c
-> > > +++ b/drivers/pci/pci-acpi.c
-> > > @@ -29,6 +29,75 @@
-> > >  	0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
-> > >  };
-> > >
-> > > +#ifdef CONFIG_ARM64
-> > 
-> > CONFIG_PCI_ECAM_QUIRKS (that you will introduce earlier in your
-> > series).
-> > 
-> > The way you did it seems to imply that on ARM64 to get RC address we
-> > need to (and are allowed to) use this function (and related, *Linux
-> > specific*, ACPI bindings) and that's a generic way of getting config
-> > space. It is not and it must not be and I consider it a bit of a
-> > stretch
-> > to have it in generic code but I can live with that as long as it comes
-> > with its own config option that describes that this stuff is
-> > non-compliant code used by non-compliant platform drivers.
-> 
-> Yes probably better to have
-> 
-> #ifdef CONFIG_PCI_ECAM_QUIRKS
-> 
-> Thanks
-> 
-> Gab
-> 
-> > 
-> > Thanks,
-> > Lorenzo
-> > 
-> > > +static struct resource *acpi_get_rc_addr(struct acpi_device *adev)
-> > > +{
-> > > +	struct resource_entry *entry;
-> > > +	struct list_head list;
-> > > +	unsigned long flags;
-> > > +	int ret;
-> > > +	struct resource *res;
-> > > +
-> > > +	INIT_LIST_HEAD(&list);
-> > > +	flags = IORESOURCE_MEM;
-> > > +	ret = acpi_dev_get_resources(adev, &list,
-> > > +				     acpi_dev_filter_resource_type_cb,
-> > > +				     (void *) flags);
-> > > +	if (ret <= 0)
-> > > +		return NULL;
-> > > +
-> > > +	entry = list_first_entry(&list, struct resource_entry, node);
-> > > +	res = entry->res;
-> > > +	acpi_dev_free_resource_list(&list);
-> > > +	return res;
-> > > +}
-> > > +
-> > > +static acpi_status acpi_match_rc(acpi_handle handle, u32 lvl, void
-> > *context,
-> > > +				 void **retval)
-> > > +{
-> > > +	u16 *segment = context;
-> > > +	unsigned long long uid;
-> > > +	acpi_status status;
-> > > +
-> > > +	status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
-> > > +	if (ACPI_FAILURE(status) || uid != *segment)
-> > > +		return AE_CTRL_DEPTH;
-> > > +
-> > > +	*(acpi_handle *)retval = handle;
-> > > +	return AE_CTRL_TERMINATE;
-> > > +}
-> > > +
-> > > +/**
-> > > + * acpi_get_rc_resources() - get the RC address resource.
-> > > + * @hid:	HID to search for.
-> > > + * @segment:	PCI Segment number.
-> > > + *
-> > > + * Get the RC address resource that can not be described in MCFG. It
-> > takes
-> > > + * the _HID&segment to look for and returns the RC address resource.
-> > Use
-> > > + * _CRS of PNP0C02 devices to describe such RC address resource. Use
-> > _UID
-> > > + * to match segment to tell which root bus the PNP0C02 resource
-> > belong to.
-> > > + *
-> > > + * Return: RC address resource.
-> > > + */
-> > > +struct resource *acpi_get_rc_resources(const char *hid, u16 segment)
-> > > +{
-> > > +	struct acpi_device *adev;
-> > > +	acpi_status status;
-> > > +	acpi_handle handle;
-> > > +	int ret;
-> > > +
-> > > +	status = acpi_get_devices(hid, acpi_match_rc, &segment, &handle);
-> > > +	if (ACPI_FAILURE(status))
-> > > +		return -ENODEV;
-> > > +
-> > > +	ret = acpi_bus_get_device(handle, &adev);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	return acpi_get_rc_addr(adev);
-> > > +}
-> > > +#endif
-> > > +
-> > >  phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
-> > >  {
-> > >  	acpi_status status = AE_NOT_EXIST;
-> > > diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-> > > index 4518562..bf1dbfe 100644
-> > > --- a/drivers/pci/pci.h
-> > > +++ b/drivers/pci/pci.h
-> > > @@ -356,4 +356,8 @@ static inline int pci_dev_specific_reset(struct
-> > pci_dev *dev, int probe)
-> > >  }
-> > >  #endif
-> > >
-> > > +#if defined(CONFIG_ARM64) && defined(CONFIG_ACPI)
-> > > +struct resource *acpi_get_rc_resources(const char *hid, u16
-> > segment);
-> > > +#endif
-> > > +
-> > >  #endif /* DRIVERS_PCI_H */
-> > > --
-> > > 1.9.1
-> > >
