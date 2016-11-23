@@ -1,129 +1,142 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH V6 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
- SoCs Host Controllers
-Date: Wed, 23 Nov 2016 09:44:28 +0000
-Message-ID: <20161123094428.GA878@linaro-xps13.localdomain>
-References: <1479816529-97410-1-git-send-email-liudongdong3@huawei.com>
- <1479816529-97410-3-git-send-email-liudongdong3@huawei.com>
- <026faf89-93de-4238-f69a-ea02c57e5ee0@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F92CA85@lhreml507-mbx>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V9 11/11] ARM64/PCI: Support for ACPI based PCI host
+ controller
+Date: Wed, 23 Nov 2016 12:21:03 +0100
+Message-ID: <edf72769-e9c8-4617-8dc4-8f3d05a678e7@semihalf.com>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-12-git-send-email-tn@semihalf.com>
+ <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F92CA85@lhreml507-mbx>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, "liudongdong (C)" <liudongdong3@huawei.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "rafael@kernel.org" <rafael@kernel.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f48.google.com ([209.85.215.48]:33385 "EHLO
+        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935622AbcKWLVH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Nov 2016 06:21:07 -0500
+Received: by mail-lf0-f48.google.com with SMTP id c13so1134047lfg.0
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Nov 2016 03:21:06 -0800 (PST)
+In-Reply-To: <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-On Tue, Nov 22, 2016 at 03:05:29PM +0000, Gabriele Paoloni wrote:
-> Hi Tomasz
-> 
-> > -----Original Message-----
-> > From: Tomasz Nowicki [mailto:tn@semihalf.com]
-> > Sent: 22 November 2016 13:58
-> > To: liudongdong (C); helgaas@kernel.org; arnd@arndb.de;
-> > rafael@kernel.org; Lorenzo.Pieralisi@arm.com; Wangzhou (B);
-> > pratyush.anand@gmail.com
-> > Cc: linux-pci@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; jcm@redhat.com; Gabriele Paoloni; Chenxin
-> > (Charles); hanjun.guo@linaro.org; Linuxarm
-> > Subject: Re: [PATCH V6 2/2] PCI/ACPI: hisi: Add ACPI support for
-> > HiSilicon SoCs Host Controllers
-> > 
-> > On 22.11.2016 13:08, Dongdong Liu wrote:
-> > > PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
-> > > It is non ECAM only for the RC bus config space;for any other bus
-> > > underneath the root bus we support ECAM access.
-> > > Add specific quirks for PCI config space accessors.This involves:
-> > > 1. New initialization call hisi_pcie_init() to obtain rc base
-> > > addresses from PNP0C02 at the root of the ACPI namespace (under
-> > \_SB).
-> > > 2. New entry in common quirk array.
-> > >
-> > > Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> > > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> > > ---
-> > >  MAINTAINERS                       |   1 +
-> > >  drivers/acpi/pci_mcfg.c           |  13 +++++
-> > >  drivers/pci/host/Kconfig          |   7 +++
-> > >  drivers/pci/host/Makefile         |   1 +
-> > >  drivers/pci/host/pcie-hisi-acpi.c | 119
-> > ++++++++++++++++++++++++++++++++++++++
-> > >  include/linux/pci-ecam.h          |   5 ++
-> > >  6 files changed, 146 insertions(+)
-> > >  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
-> > >
-> > > diff --git a/MAINTAINERS b/MAINTAINERS
-> > > index 1cd38a7..b224caa 100644
-> > > --- a/MAINTAINERS
-> > > +++ b/MAINTAINERS
-> > > @@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
-> > >  S:	Maintained
-> > >  F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> > >  F:	drivers/pci/host/pcie-hisi.c
-> > > +F:	drivers/pci/host/pcie-hisi-acpi.c
-> > >
-> > >  PCIE DRIVER FOR ROCKCHIP
-> > >  M:	Shawn Lin <shawn.lin@rock-chips.com>
-> > > diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> > > index ac21db3..3297c5a 100644
-> > > --- a/drivers/acpi/pci_mcfg.c
-> > > +++ b/drivers/acpi/pci_mcfg.c
-> > > @@ -57,6 +57,19 @@ struct mcfg_fixup {
-> > >  	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
-> > >  	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
-> > >  	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
-> > > +#ifdef CONFIG_PCI_ECAM_QUIRKS
-> > > +	#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
-> > > +	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
-> > > +	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
-> > > +	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
-> > > +	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
-> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
-> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
-> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
-> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
-> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
-> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
-> > > +#endif
-> > >  };
-> > >
-> > >  static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
-> > > diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-> > > index ae98644..1fbade5 100644
-> > > --- a/drivers/pci/host/Kconfig
-> > > +++ b/drivers/pci/host/Kconfig
-> > > @@ -301,4 +301,11 @@ config VMD
-> > >  	  To compile this driver as a module, choose M here: the
-> > >  	  module will be called vmd.
-> > >
-> > > +config PCI_ECAM_QUIRKS
-> > > +	bool "PCI ECAM quirks for ARM64 platform"
-> > > +	depends on PCI_ECAM && ARM64 && ACPI
-> > > +	help
-> > > +	  Say y here to enable your platform-specific config access that
-> > > +	  is not ECAM compliant.
-> > > +
-> > 
-> > ARM64 selects PCI_ECAM for ACPI anyway so we can skip it here.
-> 
-> Yes sure
-> 
-> > 
-> > How about selecting PCI_ECAM_QUIRKS from ARM64 Kconfig:
-> 
-> I don't think we should assume that ARM64 platforms should
-> support quirks by default...
-> i.e. from my perspective the quirk module should go in only
-> if strictly required by the platform you're working on.
-> 
-> Thoughts?
-> 
-> Thanks
-> 
-No, same kernel multiple machines is the model, code should go in
-unconditional.
+Hi Bjorn,
 
-Graeme
+On 23.11.2016 00:13, Bjorn Helgaas wrote:
+> Hi Tomasz,
+>
+> On Fri, Jun 10, 2016 at 09:55:19PM +0200, Tomasz Nowicki wrote:
+>> Implement pci_acpi_scan_root and other arch-specific call so that ARM64
+>> can start using ACPI to setup and enumerate PCI buses.
+>>
+>> Prior to buses enumeration the pci_acpi_scan_root() implementation looks
+>> for configuration space start address (obtained through ACPI _CBA method or
+>> MCFG interface). If succeed, it uses ECAM library to create new mapping.
+>> Then it attaches generic ECAM ops (pci_generic_ecam_ops) which are used
+>> for accessing configuration space later on.
+>> ...
+>
+>> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
+>> +	.release_info = pci_acpi_generic_release_info,
+>> +};
+>> +
+>> +/* Interface called from ACPI code to setup PCI host controller */
+>>  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>  {
+>> -	/* TODO: Should be revisited when implementing PCI on ACPI */
+>> -	return NULL;
+>> +	int node = acpi_get_node(root->device->handle);
+>> +	struct acpi_pci_generic_root_info *ri;
+>> +	struct pci_bus *bus, *child;
+>> +
+>> +	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+>> +	if (!ri)
+>> +		return NULL;
+>> +
+>> +	ri->cfg = pci_acpi_setup_ecam_mapping(root);
+>> +	if (!ri->cfg) {
+>> +		kfree(ri);
+>> +		return NULL;
+>> +	}
+>> +
+>> +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+>
+> This has already been merged, but this isn't right, is it?  We're
+> writing a host controller-specific pointer into the single system-wide
+> acpi_pci_root_ops, then passing it on to acpi_pci_root_create().
+>
+> Today, I think ri->cfg->ops->pci_ops is always &pci_generic_ecam_ops,
+> from this path:
+>
+>   ri->cfg = pci_acpi_setup_ecam_mapping
+>     cfg = pci_ecam_create(..., &pci_generic_ecam_ops)
+>       cfg = kzalloc(...)
+>       cfg->ops = ops             # &pci_generic_ecam_ops
+>
+> But we're about to merge the ECAM quirks series, which will mean it
+> may not be &pci_generic_ecam_ops.  Even apart from the ECAM quirks, we
+> should avoid this pattern of putting device-specific info in a single
+> shared structure because it's too difficult to verify that it's
+> correct.
+>
+
+Well spotted. I agree, we need to fix this. How about this:
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index fb439c7..31c0e1c 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -152,33 +152,35 @@ static void pci_acpi_generic_release_info(struct 
+acpi_pci_root_info *ci)
+
+         ri = container_of(ci, struct acpi_pci_generic_root_info, common);
+         pci_ecam_free(ri->cfg);
++       kfree(ci->ops);
+         kfree(ri);
+  }
+
+-static struct acpi_pci_root_ops acpi_pci_root_ops = {
+-       .release_info = pci_acpi_generic_release_info,
+-};
+-
+  /* Interface called from ACPI code to setup PCI host controller */
+  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+  {
+         int node = acpi_get_node(root->device->handle);
+         struct acpi_pci_generic_root_info *ri;
+         struct pci_bus *bus, *child;
++       struct acpi_pci_root_ops *root_ops;
+
+         ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+         if (!ri)
+                 return NULL;
+
++       root_ops = kzalloc_node(sizeof(*root_ops), GFP_KERNEL, node);
++       if (!root_ops)
++               return NULL;
++
+         ri->cfg = pci_acpi_setup_ecam_mapping(root);
+         if (!ri->cfg) {
+                 kfree(ri);
++               kfree(root_ops);
+                 return NULL;
+         }
+
+-       acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+-       bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+-                                  ri->cfg);
++       root_ops->release_info = pci_acpi_generic_release_info;
++       root_ops->pci_ops = &ri->cfg->ops->pci_ops;
++       bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
+         if (!bus)
+                 return NULL;
+
+Of course, this should be the part of ECAM quirks core patches.
+
+The other option we have is to remove "struct pci_ops *pci_ops;" from 
+acpi_pci_root_ops structure and pass struct pci_ops as an extra argument 
+to acpi_pci_root_create(). What do you think?
+
+Thanks,
+Tomasz
