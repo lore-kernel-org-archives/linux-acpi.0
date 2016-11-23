@@ -1,118 +1,261 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
-Date: Wed, 23 Nov 2016 09:06:33 -0600
-Message-ID: <20161123150632.GA16033@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <CAKv+Gu_xW+7KAC8fHquEwHynYzpy6OoO1ZjEm5mVKMo1S8j4Nw@mail.gmail.com>
- <20161123010600.GF4832@bhelgaas-glaptop.roam.corp.google.com>
- <CAKv+Gu-TW__+eZFS2p=1ZLN7fBs7pqQ+SitbEX46Z4JiS64egA@mail.gmail.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v8 1/8] sched: Extend scheduler's asym packing
+Date: Wed, 23 Nov 2016 09:32:28 -0800
+Message-ID: <20161123173227.GA6876@linux.intel.com>
+References: <cover.1479844244.git.tim.c.chen@linux.intel.com>
+ <0e73ae12737dfaafa46c07066cc7c5d3f1675e46.1479844244.git.tim.c.chen@linux.intel.com>
+ <20161123130911.GT3092@twins.programming.kicks-ass.net>
+Reply-To: tim.c.chen@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:32089 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933539AbcKWRca (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 23 Nov 2016 12:32:30 -0500
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu-TW__+eZFS2p=1ZLN7fBs7pqQ+SitbEX46Z4JiS64egA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20161123130911.GT3092@twins.programming.kicks-ass.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-On Wed, Nov 23, 2016 at 07:28:12AM +0000, Ard Biesheuvel wrote:
-> On 23 November 2016 at 01:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Tue, Nov 22, 2016 at 10:09:50AM +0000, Ard Biesheuvel wrote:
-> >> On 17 November 2016 at 17:59, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> >
-> >> > +PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
-> >> > +describe all the address space they consume.  In principle, this would
-> >> > +be all the windows they forward down to the PCI bus, as well as the
-> >> > +bridge registers themselves.  The bridge registers include things like
-> >> > +secondary/subordinate bus registers that determine the bus range below
-> >> > +the bridge, window registers that describe the apertures, etc.  These
-> >> > +are all device-specific, non-architected things, so the only way a
-> >> > +PNP0A03/PNP0A08 driver can manage them is via _PRS/_CRS/_SRS, which
-> >> > +contain the device-specific details.  These bridge registers also
-> >> > +include ECAM space, since it is consumed by the bridge.
-> >> > +
-> >> > +ACPI defined a Producer/Consumer bit that was intended to distinguish
-> >> > +the bridge apertures from the bridge registers [4, 5].  However,
-> >> > +BIOSes didn't use that bit correctly, and the result is that OSes have
-> >> > +to assume that everything in a PCI host bridge _CRS is a window.  That
-> >> > +leaves no way to describe the bridge registers in the PNP0A03/PNP0A08
-> >> > +device itself.
-> >>
-> >> Is that universally true? Or is it still possible to do the right
-> >> thing here on new ACPI architectures such as arm64?
-> >
-> > That's a very good question.  I had thought that the ACPI spec had
-> > given up on Consumer/Producer completely, but I was wrong.  In the 6.0
-> > spec, the Consumer/Producer bit is still documented in the Extended
-> > Address Space Descriptor (sec 6.4.3.5.4).  It is documented as
-> > "ignored" in the QWord, DWord, and Word descriptors (sec 6.4.3.5.1,2,3).
-> >
-> > Linux looks at the producer_consumer bit in acpi_decode_space(), which
-> > I think is used for all these descriptors (QWord, DWord, Word, and
-> > Extended).  This doesn't quite follow the spec -- we probably should
-> > ignore it except for Extended.  In any event, acpi_decode_space() sets
-> > IORESOURCE_WINDOW for Producer descriptors, but we don't test
-> > IORESOURCE_WINDOW in the PCI host bridge code.
-> >
-> > x86 and ia64 supply their own pci_acpi_root_prepare_resources()
-> > functions that call acpi_pci_probe_root_resources(), which parses _CRS
-> > and looks at producer_consumer.  Then they do a little arch-specific
-> > stuff on the result.
-> >
-> > On arm64 we use acpi_pci_probe_root_resources() directly, with no
-> > arch-specific stuff.
-> >
-> > On all three arches, we ignore the Consumer/Producer bit, so all the
-> > resources are treated as Producers, e.g., as bridge windows.
-> >
-> > I think we *could* implement an arm64 version of
-> > pci_acpi_root_prepare_resources() that would pay attention to the
-> > Consumer/Producer bit by checking IORESOURCE_WINDOW.  To be spec
-> > compliant, we would have to use Extended descriptors for all bridge
-> > windows, even if they would fit in a DWord or QWord.
-> >
-> > Should we do that?  I dunno.  I'd like to hear your opinion(s).
-> >
+On Wed, Nov 23, 2016 at 02:09:11PM +0100, Peter Zijlstra wrote:
 > 
-> Yes, I think we should. If the spec allows for a way for a PNP0A03
-> device to describe all of its resources unambiguously, we should not
-> be relying on workarounds that were designed for another architecture
-> in another decade (for, presumably, another OS)
+> With the two little edits below:
 > 
-> Just for my understanding, we will need to use extended descriptors
-> for all consumed *and* produced regions, even though dword/qword are
-> implicitly produced-only, due to the fact that the bit is ignored?
+> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> 
+> > ---
+> >  include/linux/sched.h |  4 ++++
+> >  kernel/sched/core.c   | 15 ++++++++++++++
+> >  kernel/sched/fair.c   | 54 +++++++++++++++++++++++++++++++++++----------------
+> >  kernel/sched/sched.h  |  6 ++++++
+> >  4 files changed, 62 insertions(+), 17 deletions(-)
+> > 
+> > diff --git a/include/linux/sched.h b/include/linux/sched.h
+> > index 348f51b..ca02475 100644
+> > --- a/include/linux/sched.h
+> > +++ b/include/linux/sched.h
+> > @@ -1057,6 +1057,10 @@ static inline int cpu_numa_flags(void)
+> >  }
+> >  #endif
+> >  
+> > +int arch_asym_cpu_priority(int cpu);
+> 
+> extern
+> 
+> > +int arch_asym_max_cpu_and(const struct cpumask *mask1,
+> > +			  const struct cpumask *mask2);
+> > +
+> 
+> And that needs to go too; that function no longer exists.
+> 
+> >  struct sched_domain_attr {
+> >  	int relax_domain_level;
+> >  };
 
->From an ACPI spec point of view, I would say QWord/DWord/Word
-descriptors are implicitly *consumer*-only because ResourceConsumer
-is the default and they don't have a bit to indicate otherwise.
+Thanks for catching that.  The patch updated below.
 
-The current code assumes all PNP0A03 resources are producers.  If we
-implement an arm64 pci_acpi_root_prepare_resources() that pays
-attention to the Consumer/Producer bit, we would have to:
+Tim
 
-  - Reserve all producer regions in the iomem/ioport trees.  This is
-    already done via pci_acpi_root_add_resources(), but we might need
-    a new check to handle consumers differently.
+---->8----
 
-  - Reserve all consumer regions.  This corresponds to what
-    pnp/system.c does for PNP0C02 devices.  This is similar to the
-    producer regions, but I think the consumer ones should be marked
-    IORESOURCE_BUSY.
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: [PATCH v8 1/8] sched: Extend scheduler's asym packing
+To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
+Cc: x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, Tim Chen <tim.c.chen@linux.intel.com>, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-  - Use every producer (IORESOURCE_WINDOW) as a host bridge window.
+We generalize the scheduler's asym packing to provide an ordering
+of the cpu beyond just the cpu number.  This allows the use of the
+ASYM_PACKING scheduler machinery to move loads to preferred CPU in a
+sched domain. The preference is defined with the cpu priority
+given by arch_asym_cpu_priority(cpu).
 
-I think it's a bug that acpi_decode_space() looks at producer_consumer
-for QWord/DWord/Word descriptors, but I think QWord/DWord/Word
-descriptors for consumed regions should be safe, as long as they don't
-set the Consumer/Producer bit.
+We also record the most preferred cpu in a sched group when
+we build the cpu's capacity for fast lookup of preferred cpu
+during load balancing.
+
+Co-developed-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org> 
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+---
+ include/linux/sched.h |  2 ++
+ kernel/sched/core.c   | 15 ++++++++++++++
+ kernel/sched/fair.c   | 54 +++++++++++++++++++++++++++++++++++----------------
+ kernel/sched/sched.h  |  6 ++++++
+ 4 files changed, 60 insertions(+), 17 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 348f51b..c75f778 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1057,6 +1057,8 @@ static inline int cpu_numa_flags(void)
+ }
+ #endif
+ 
++extern int arch_asym_cpu_priority(int cpu);
++
+ struct sched_domain_attr {
+ 	int relax_domain_level;
+ };
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 154fd68..d54c6e1 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -6301,7 +6301,22 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
+ 	WARN_ON(!sg);
+ 
+ 	do {
++		int cpu, max_cpu = -1;
++
+ 		sg->group_weight = cpumask_weight(sched_group_cpus(sg));
++
++		if (!(sd->flags & SD_ASYM_PACKING))
++			goto next;
++
++		for_each_cpu(cpu, sched_group_cpus(sg)) {
++			if (max_cpu < 0)
++				max_cpu = cpu;
++			else if (sched_asym_prefer(cpu, max_cpu))
++				max_cpu = cpu;
++		}
++		sg->asym_prefer_cpu = max_cpu;
++
++next:
+ 		sg = sg->next;
+ 	} while (sg != sd->groups);
+ 
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index c242944..af97dc8 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -100,6 +100,17 @@ const_debug unsigned int sysctl_sched_migration_cost = 500000UL;
+  */
+ unsigned int __read_mostly sysctl_sched_shares_window = 10000000UL;
+ 
++#ifdef CONFIG_SMP
++/*
++ * For asym packing, by default the lower numbered cpu has higher priority.
++ */
++int __weak arch_asym_cpu_priority(int cpu)
++{
++	return -cpu;
++}
++
++#endif
++
+ #ifdef CONFIG_CFS_BANDWIDTH
+ /*
+  * Amount of runtime to allocate from global (tg) to local (per-cfs_rq) pool
+@@ -7113,16 +7124,18 @@ static bool update_sd_pick_busiest(struct lb_env *env,
+ 	if (env->idle == CPU_NOT_IDLE)
+ 		return true;
+ 	/*
+-	 * ASYM_PACKING needs to move all the work to the lowest
+-	 * numbered CPUs in the group, therefore mark all groups
+-	 * higher than ourself as busy.
++	 * ASYM_PACKING needs to move all the work to the highest
++	 * prority CPUs in the group, therefore mark all groups
++	 * of lower priority than ourself as busy.
+ 	 */
+-	if (sgs->sum_nr_running && env->dst_cpu < group_first_cpu(sg)) {
++	if (sgs->sum_nr_running &&
++	    sched_asym_prefer(env->dst_cpu, sg->asym_prefer_cpu)) {
+ 		if (!sds->busiest)
+ 			return true;
+ 
+-		/* Prefer to move from highest possible cpu's work */
+-		if (group_first_cpu(sds->busiest) < group_first_cpu(sg))
++		/* Prefer to move from lowest priority cpu's work */
++		if (sched_asym_prefer(sds->busiest->asym_prefer_cpu,
++				      sg->asym_prefer_cpu))
+ 			return true;
+ 	}
+ 
+@@ -7274,8 +7287,8 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
+ 	if (!sds->busiest)
+ 		return 0;
+ 
+-	busiest_cpu = group_first_cpu(sds->busiest);
+-	if (env->dst_cpu > busiest_cpu)
++	busiest_cpu = sds->busiest->asym_prefer_cpu;
++	if (sched_asym_prefer(busiest_cpu, env->dst_cpu))
+ 		return 0;
+ 
+ 	env->imbalance = DIV_ROUND_CLOSEST(
+@@ -7613,10 +7626,11 @@ static int need_active_balance(struct lb_env *env)
+ 
+ 		/*
+ 		 * ASYM_PACKING needs to force migrate tasks from busy but
+-		 * higher numbered CPUs in order to pack all tasks in the
+-		 * lowest numbered CPUs.
++		 * lower priority CPUs in order to pack all tasks in the
++		 * highest priority CPUs.
+ 		 */
+-		if ((sd->flags & SD_ASYM_PACKING) && env->src_cpu > env->dst_cpu)
++		if ((sd->flags & SD_ASYM_PACKING) &&
++		    sched_asym_prefer(env->dst_cpu, env->src_cpu))
+ 			return 1;
+ 	}
+ 
+@@ -8465,7 +8479,7 @@ static inline bool nohz_kick_needed(struct rq *rq)
+ 	unsigned long now = jiffies;
+ 	struct sched_domain_shared *sds;
+ 	struct sched_domain *sd;
+-	int nr_busy, cpu = rq->cpu;
++	int nr_busy, i, cpu = rq->cpu;
+ 	bool kick = false;
+ 
+ 	if (unlikely(rq->idle_balance))
+@@ -8516,12 +8530,18 @@ static inline bool nohz_kick_needed(struct rq *rq)
+ 	}
+ 
+ 	sd = rcu_dereference(per_cpu(sd_asym, cpu));
+-	if (sd && (cpumask_first_and(nohz.idle_cpus_mask,
+-				  sched_domain_span(sd)) < cpu)) {
+-		kick = true;
+-		goto unlock;
+-	}
++	if (sd) {
++		for_each_cpu(i, sched_domain_span(sd)) {
++			if (i == cpu ||
++			    !cpumask_test_cpu(i, nohz.idle_cpus_mask))
++				continue;
+ 
++			if (sched_asym_prefer(i, cpu)) {
++				kick = true;
++				goto unlock;
++			}
++		}
++	}
+ unlock:
+ 	rcu_read_unlock();
+ 	return kick;
+diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+index 055f935..cd3d413 100644
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -539,6 +539,11 @@ struct dl_rq {
+ 
+ #ifdef CONFIG_SMP
+ 
++static inline bool sched_asym_prefer(int a, int b)
++{
++	return arch_asym_cpu_priority(a) > arch_asym_cpu_priority(b);
++}
++
+ /*
+  * We add the notion of a root-domain which will be used to define per-domain
+  * variables. Each exclusive cpuset essentially defines an island domain by
+@@ -905,6 +910,7 @@ struct sched_group {
+ 
+ 	unsigned int group_weight;
+ 	struct sched_group_capacity *sgc;
++	int asym_prefer_cpu;		/* cpu of highest priority in group */
+ 
+ 	/*
+ 	 * The CPUs this group covers.
+-- 
+2.5.5
+
