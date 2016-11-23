@@ -1,142 +1,266 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V9 11/11] ARM64/PCI: Support for ACPI based PCI host
- controller
-Date: Wed, 23 Nov 2016 12:21:03 +0100
-Message-ID: <edf72769-e9c8-4617-8dc4-8f3d05a678e7@semihalf.com>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
- <1465588519-11334-12-git-send-email-tn@semihalf.com>
- <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v16 13/15] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Wed, 23 Nov 2016 19:53:12 +0800
+Message-ID: <CADyBb7sTVWC3d6kRDTA=SGYz9J4pwWvaJxXu3AMBAgQT4y7fTw@mail.gmail.com>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <1479304148-2965-14-git-send-email-fu.wei@linaro.org> <20161118142249.GA18029@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:33385 "EHLO
-        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935622AbcKWLVH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Nov 2016 06:21:07 -0500
-Received: by mail-lf0-f48.google.com with SMTP id c13so1134047lfg.0
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Nov 2016 03:21:06 -0800 (PST)
-In-Reply-To: <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161118142249.GA18029@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-Hi Bjorn,
+Hi Lorenzo,
 
-On 23.11.2016 00:13, Bjorn Helgaas wrote:
-> Hi Tomasz,
->
-> On Fri, Jun 10, 2016 at 09:55:19PM +0200, Tomasz Nowicki wrote:
->> Implement pci_acpi_scan_root and other arch-specific call so that ARM64
->> can start using ACPI to setup and enumerate PCI buses.
+On 18 November 2016 at 22:22, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Wed, Nov 16, 2016 at 09:49:06PM +0800, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
 >>
->> Prior to buses enumeration the pci_acpi_scan_root() implementation looks
->> for configuration space start address (obtained through ACPI _CBA method or
->> MCFG interface). If succeed, it uses ECAM library to create new mapping.
->> Then it attaches generic ECAM ops (pci_generic_ecam_ops) which are used
->> for accessing configuration space later on.
->> ...
->
->> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
->> +	.release_info = pci_acpi_generic_release_info,
->> +};
+>> On platforms booting with ACPI, architected memory-mapped timers'
+>> configuration data is provided by firmware through the ACPI GTDT
+>> static table.
+>>
+>> The clocksource architected timer kernel driver requires a firmware
+>> interface to collect timer configuration and configure its driver.
+>> this infrastructure is present for device tree systems, but it is
+>> missing on systems booting with ACPI.
+>>
+>> Implement the kernel infrastructure required to parse the static
+>> ACPI GTDT table so that the architected timer clocksource driver can
+>> make use of it on systems booting with ACPI, therefore enabling
+>> the corresponding timers configuration.
+>>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  drivers/acpi/arm64/gtdt.c | 95 ++++++++++++++++++++++++++++++++++++++++=
++++++++
+>>  include/linux/acpi.h      |  1 +
+>>  2 files changed, 96 insertions(+)
+>>
+>> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+>> index 2de79aa..08d9506 100644
+>> --- a/drivers/acpi/arm64/gtdt.c
+>> +++ b/drivers/acpi/arm64/gtdt.c
+>> @@ -51,6 +51,14 @@ static inline bool is_timer_block(void *platform_time=
+r)
+>>       return gh->type =3D=3D ACPI_GTDT_TYPE_TIMER_BLOCK;
+>>  }
+>>
+>> +static inline struct acpi_gtdt_timer_block *get_timer_block(unsigned in=
+t index)
+>> +{
+>> +     if (index >=3D acpi_gtdt_desc.timer_block_count || !timer_block)
+>> +             return NULL;
 >> +
->> +/* Interface called from ACPI code to setup PCI host controller */
->>  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>> +     return timer_block[index];
+>> +}
+>> +
+>>  static inline bool is_watchdog(void *platform_timer)
 >>  {
->> -	/* TODO: Should be revisited when implementing PCI on ACPI */
->> -	return NULL;
->> +	int node = acpi_get_node(root->device->handle);
->> +	struct acpi_pci_generic_root_info *ri;
->> +	struct pci_bus *bus, *child;
+>>       struct acpi_gtdt_header *gh =3D platform_timer;
+>> @@ -214,3 +222,90 @@ int __init acpi_gtdt_init(struct acpi_table_header =
+*table)
+>>       acpi_gtdt_release();
+>>       return -EINVAL;
+>>  }
 >> +
->> +	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
->> +	if (!ri)
->> +		return NULL;
+>> +/*
+>> + * Get ONE GT block info for memory-mapped timer from GTDT table.
+>> + * @data: the GT block data (parsing result)
+>> + * @index: the index number of GT block
+>> + * Note: we already verify @data in caller, it can't be NULL here.
+>> + * Returns 0 if success, -EINVAL/-ENODEV if error.
+>> + */
+>
+> Documentation/kernel-doc-nano-HOWTO.txt
+
+Great thanks , will fix all the comments :-)
+
+>
+>> +int __init gtdt_arch_timer_mem_init(struct arch_timer_mem *data,
+>> +                                 unsigned int index)
+>
+> Nit: acpi_arch_timer_mem_init() to make it consistent with other ACPI
+> calls ?
+
+yes, it makes sense, will do this way for the function  which is exported
+
+>
+>> +{
+>> +     struct acpi_gtdt_timer_block *block;
+>> +     struct acpi_gtdt_timer_entry *frame;
+>> +     int i;
 >> +
->> +	ri->cfg = pci_acpi_setup_ecam_mapping(root);
->> +	if (!ri->cfg) {
->> +		kfree(ri);
->> +		return NULL;
->> +	}
+>> +     block =3D get_timer_block(index);
+>> +     if (!block)
+>> +             return -ENODEV;
 >> +
->> +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+>> +     if (!block->timer_count) {
+>> +             pr_err(FW_BUG "GT block present, but frame count is zero."=
+);
+>> +             return -ENODEV;
+>> +     }
+>> +
+>> +     if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
+>> +             pr_err(FW_BUG "GT block lists %d frames, ACPI spec only al=
+lows 8\n",
+>> +                    block->timer_count);
+>> +             return -EINVAL;
+>> +     }
 >
-> This has already been merged, but this isn't right, is it?  We're
-> writing a host controller-specific pointer into the single system-wide
-> acpi_pci_root_ops, then passing it on to acpi_pci_root_create().
+> Nit: these two checks can be carried out at GTDT init where the GTDT
+> is parsed first. Actually you could have two functions one to init
+
+this check is  the verify the data in GT block, but the GTDT init
+won't get into the block,
+so I think that is better to keep this in GT block init function
+"acpi_arch_timer_mem_init()"
+
+> timers (say acpi_gtdt_timers_init()) and one watchdogs, that would
+> eliminate the duplicated timer_block/watchdog arrays (both sized
+> Platform Timer Count) and acpi_gtdt_timers_init() can return
+> the number of entries found so that you can loop with a determined
+> upper bound in the arm arch timer driver.
+
+Yes, I did this way in previous patchset, but we still need to do scan
+loop in both  functions for
+two types of platform timer.
+So I decide to keep the scan loop in the acpi_gtdt_init to get the
+number and the entries pointer
+of each type of platform timers in one go.  then we don't need to scan
+GTDT in two functions.
+
 >
-> Today, I think ri->cfg->ops->pci_ops is always &pci_generic_ecam_ops,
-> from this path:
+> Just thinking aloud, these are just improvements I can carry them
+> out later, the more important question here is the interface between the
+> parsing code and the arch timer probing code which depends on other
+> patches and that needs to be agreed, this patch is not really a problem.
+
+yes, every time I modify the interface I have to change the driver :-(
+
 >
->   ri->cfg = pci_acpi_setup_ecam_mapping
->     cfg = pci_ecam_create(..., &pci_generic_ecam_ops)
->       cfg = kzalloc(...)
->       cfg->ops = ops             # &pci_generic_ecam_ops
+>> +     data->cntctlbase =3D (phys_addr_t)block->block_address;
+>> +     /*
+>> +      * We can NOT get the size info from GTDT table,
+>> +      * but according to "Table * CNTCTLBase memory map" of
+>> +      * <ARM Architecture Reference Manual> for ARMv8,
+>> +      * it should be 4KB(Offset 0x000 =E2=80=93 0xFFC).
 >
-> But we're about to merge the ECAM quirks series, which will mean it
-> may not be &pci_generic_ecam_ops.  Even apart from the ECAM quirks, we
-> should avoid this pattern of putting device-specific info in a single
-> shared structure because it's too difficult to verify that it's
-> correct.
+> That's the reason why it is not explicit in the GTDT table :)
 >
+>> +     data->size =3D SZ_4K;
+>> +     data->num_frames =3D block->timer_count;
+>> +
+>> +     frame =3D (void *)block + block->timer_offset;
+>> +     if (frame + block->timer_count !=3D (void *)block + block->header.=
+length)
+>> +             return -EINVAL;
+>> +
+>> +     /*
+>> +      * Get the GT timer Frame data for every GT Block Timer
+>> +      */
+>> +     for (i =3D 0; i < block->timer_count; i++, frame++) {
+>> +             if (!frame->base_address || !frame->timer_interrupt)
+>> +                     return -EINVAL;
+>> +
+>> +             data->frame[i].phys_irq =3D map_gt_gsi(frame->timer_interr=
+upt,
+>> +                                                  frame->timer_flags);
+>> +             if (data->frame[i].phys_irq <=3D 0) {
+>> +                     pr_warn("failed to map physical timer irq in frame=
+ %d.\n",
+>> +                             i);
+>> +                     return -EINVAL;
+>> +             }
+>> +
+>> +             if (frame->virtual_timer_interrupt) {
+>> +                     data->frame[i].virt_irq =3D
+>> +                             map_gt_gsi(frame->virtual_timer_interrupt,
+>> +                                        frame->virtual_timer_flags);
+>> +                     if (data->frame[i].virt_irq <=3D 0) {
+>> +                             pr_warn("failed to map virtual timer irq i=
+n frame %d.\n",
+>> +                                     i);
+>> +                             return -EINVAL;
+>
+> You should unregister phys_irq here for correctness, right ?
 
-Well spotted. I agree, we need to fix this. How about this:
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index fb439c7..31c0e1c 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -152,33 +152,35 @@ static void pci_acpi_generic_release_info(struct 
-acpi_pci_root_info *ci)
+yup, thanks for pointing this  bug out. :-)
 
-         ri = container_of(ci, struct acpi_pci_generic_root_info, common);
-         pci_ecam_free(ri->cfg);
-+       kfree(ci->ops);
-         kfree(ri);
-  }
+>
+>> +                     }
+>> +             }
+>> +
+>> +             data->frame[i].frame_nr =3D frame->frame_number;
+>> +             data->frame[i].cntbase =3D frame->base_address;
+>> +             /*
+>> +              * We can NOT get the size info from GTDT table,
+>> +              * but according to "Table * CNTBaseN memory map" of
+>> +              * <ARM Architecture Reference Manual> for ARMv8,
+>> +              * it should be 4KB(Offset 0x000 =E2=80=93 0xFFC).
+>
+> See above.
 
--static struct acpi_pci_root_ops acpi_pci_root_ops = {
--       .release_info = pci_acpi_generic_release_info,
--};
--
-  /* Interface called from ACPI code to setup PCI host controller */
-  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-  {
-         int node = acpi_get_node(root->device->handle);
-         struct acpi_pci_generic_root_info *ri;
-         struct pci_bus *bus, *child;
-+       struct acpi_pci_root_ops *root_ops;
+yes, you are right, I will fix both comments
 
-         ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
-         if (!ri)
-                 return NULL;
+>
+>> +              */
+>> +             data->frame[i].size =3D SZ_4K;
+>> +     }
+>> +
+>> +     if (acpi_gtdt_desc.timer_block_count)
+>> +             pr_info("parsed No.%d of %d memory-mapped timer block(s).\=
+n",
+>> +                     index, acpi_gtdt_desc.timer_block_count);
+>
+> I am not sure how helpful this message can be honestly.
 
-+       root_ops = kzalloc_node(sizeof(*root_ops), GFP_KERNEL, node);
-+       if (!root_ops)
-+               return NULL;
-+
-         ri->cfg = pci_acpi_setup_ecam_mapping(root);
-         if (!ri->cfg) {
-                 kfree(ri);
-+               kfree(root_ops);
-                 return NULL;
-         }
+yup, I will simplify it  :-)
 
--       acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
--       bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
--                                  ri->cfg);
-+       root_ops->release_info = pci_acpi_generic_release_info;
-+       root_ops->pci_ops = &ri->cfg->ops->pci_ops;
-+       bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
-         if (!bus)
-                 return NULL;
+>
+>> +
+>> +     return 0;
+>> +}
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index a1611d1..44b8c1b 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -582,6 +582,7 @@ int acpi_gtdt_init(struct acpi_table_header *table);
+>>  int acpi_gtdt_map_ppi(int type);
+>>  bool acpi_gtdt_c3stop(int type);
+>>  void acpi_gtdt_release(void);
+>> +int gtdt_arch_timer_mem_init(struct arch_timer_mem *data, unsigned int =
+index);
+>
+> See above.
+>
+> Overall it looks fine as long as the interface with clocksource is
+> settled, which is what really needs to be agreed upon in this series.
 
-Of course, this should be the part of ECAM quirks core patches.
+Thanks for your help :-)
 
-The other option we have is to remove "struct pci_ops *pci_ops;" from 
-acpi_pci_root_ops structure and pass struct pci_ops as an extra argument 
-to acpi_pci_root_create(). What do you think?
+>
+> Lorenzo
+>
+>>  #endif
+>>
+>>  #else        /* !CONFIG_ACPI */
+>> --
+>> 2.7.4
+>>
 
-Thanks,
-Tomasz
+
+
+--=20
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
