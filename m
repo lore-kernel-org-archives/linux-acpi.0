@@ -1,186 +1,269 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] PCI: Add information about describing PCI in ACPI
-Date: Wed, 23 Nov 2016 03:23:35 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2949AF@SHSMSX101.ccr.corp.intel.com>
-References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v16 10/15] clocksource/drivers/arm_arch_timer: Refactor
+ the timer init code to prepare for GTDT
+Date: Wed, 23 Nov 2016 14:10:13 +0800
+Message-ID: <CADyBb7uzFkZH6d8Prg3eW5uNyU9=w2zCxgfPTG0vU7-YZn7uDQ@mail.gmail.com>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <1479304148-2965-11-git-send-email-fu.wei@linaro.org> <20161118200335.GN1197@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:48271 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755409AbcKWDYU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Nov 2016 22:24:20 -0500
-In-Reply-To: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20161118200335.GN1197@leverpostej>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-SGksIEJqb3JuDQoNClRoYW5rcyBmb3IgdGhlIGRvY3VtZW50YXRpb24uDQpJdCByZWFsbHkgaGVs
-cHMhDQoNCkhvd2V2ZXIgSSBoYXZlIGEgcXVlc3Rpb24gYmVsb3cuDQoNCj4gRnJvbTogbGludXgt
-YWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIu
-a2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJqb3JuDQo+IEhlbGdhYXMNCj4gU3ViamVjdDogW1BB
-VENIXSBQQ0k6IEFkZCBpbmZvcm1hdGlvbiBhYm91dCBkZXNjcmliaW5nIFBDSSBpbiBBQ1BJDQo+
-IA0KPiBBZGQgYSB3cml0ZXVwIGFib3V0IGhvdyBQQ0kgaG9zdCBicmlkZ2VzIHNob3VsZCBiZSBk
-ZXNjcmliZWQgaW4gQUNQSQ0KPiB1c2luZyBQTlAwQTAzL1BOUDBBMDggZGV2aWNlcywgUE5QMEMw
-MiBkZXZpY2VzLCBhbmQgdGhlIE1DRkcgdGFibGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBCam9y
-biBIZWxnYWFzIDxiaGVsZ2Fhc0Bnb29nbGUuY29tPg0KPiAtLS0NCj4gIERvY3VtZW50YXRpb24v
-UENJLzAwLUlOREVYICAgICAgfCAgICAyICsNCj4gIERvY3VtZW50YXRpb24vUENJL2FjcGktaW5m
-by50eHQgfCAgMTM2ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiAg
-MiBmaWxlcyBjaGFuZ2VkLCAxMzggaW5zZXJ0aW9ucygrKQ0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0
-IERvY3VtZW50YXRpb24vUENJL2FjcGktaW5mby50eHQNCj4gDQo+IGRpZmYgLS1naXQgYS9Eb2N1
-bWVudGF0aW9uL1BDSS8wMC1JTkRFWCBiL0RvY3VtZW50YXRpb24vUENJLzAwLUlOREVYDQo+IGlu
-ZGV4IDE0NzIzMWYuLjA3ODAyODAgMTAwNjQ0DQo+IC0tLSBhL0RvY3VtZW50YXRpb24vUENJLzAw
-LUlOREVYDQo+ICsrKyBiL0RvY3VtZW50YXRpb24vUENJLzAwLUlOREVYDQo+IEBAIC0xLDUgKzEs
-NyBAQA0KPiAgMDAtSU5ERVgNCj4gIAktIHRoaXMgZmlsZQ0KPiArYWNwaS1pbmZvLnR4dA0KPiAr
-CS0gaW5mbyBvbiBob3cgUENJIGhvc3QgYnJpZGdlcyBhcmUgcmVwcmVzZW50ZWQgaW4gQUNQSQ0K
-PiAgTVNJLUhPV1RPLnR4dA0KPiAgCS0gdGhlIE1lc3NhZ2UgU2lnbmFsZWQgSW50ZXJydXB0cyAo
-TVNJKSBEcml2ZXIgR3VpZGUgSE9XVE8gYW5kIEZBUS4NCj4gIFBDSUVCVVMtSE9XVE8udHh0DQo+
-IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL1BDSS9hY3BpLWluZm8udHh0IGIvRG9jdW1lbnRh
-dGlvbi9QQ0kvYWNwaS1pbmZvLnR4dA0KPiBuZXcgZmlsZSBtb2RlIDEwMDY0NA0KPiBpbmRleCAw
-MDAwMDAwLi5jY2JjZmRhDQo+IC0tLSAvZGV2L251bGwNCj4gKysrIGIvRG9jdW1lbnRhdGlvbi9Q
-Q0kvYWNwaS1pbmZvLnR4dA0KPiBAQCAtMCwwICsxLDEzNiBAQA0KPiArCSAgICBBQ1BJIGNvbnNp
-ZGVyYXRpb25zIGZvciBQQ0kgaG9zdCBicmlkZ2VzDQo+ICsNCj4gK1RoZSBiYXNpYyByZXF1aXJl
-bWVudCBpcyB0aGF0IHRoZSBBQ1BJIG5hbWVzcGFjZSBzaG91bGQgZGVzY3JpYmUNCj4gKypldmVy
-eXRoaW5nKiB0aGF0IGNvbnN1bWVzIGFkZHJlc3Mgc3BhY2UgdW5sZXNzIHRoZXJlJ3MgYW5vdGhl
-cg0KPiArc3RhbmRhcmQgd2F5IGZvciB0aGUgT1MgdG8gZmluZCBpdCBbMSwgMl0uIMKgRm9yIGV4
-YW1wbGUsIHdpbmRvd3MgdGhhdA0KPiArYXJlIGZvcndhcmRlZCB0byBQQ0kgYnkgYSBQQ0kgaG9z
-dCBicmlkZ2Ugc2hvdWxkIGJlIGRlc2NyaWJlZCB2aWEgQUNQSQ0KPiArZGV2aWNlcywgc2luY2Ug
-dGhlIE9TIGNhbid0IGxvY2F0ZSB0aGUgaG9zdCBicmlkZ2UgYnkgaXRzZWxmLiDCoFBDSQ0KPiAr
-ZGV2aWNlcyAqYmVsb3cqIHRoZSBob3N0IGJyaWRnZSBkbyBub3QgbmVlZCB0byBiZSBkZXNjcmli
-ZWQgdmlhIEFDUEksDQo+ICtiZWNhdXNlIHRoZSByZXNvdXJjZXMgdGhleSBjb25zdW1lIGFyZSBp
-bnNpZGUgdGhlIGhvc3QgYnJpZGdlIHdpbmRvd3MsDQo+ICthbmQgdGhlIE9TIGNhbiBkaXNjb3Zl
-ciB0aGVtIHZpYSB0aGUgc3RhbmRhcmQgUENJIGVudW1lcmF0aW9uDQo+ICttZWNoYW5pc20gKHVz
-aW5nIGNvbmZpZyBhY2Nlc3NlcyB0byByZWFkIGFuZCBzaXplIHRoZSBCQVJzKS4NCj4gKw0KPiAr
-VGhpcyBBQ1BJIHJlc291cmNlIGRlc2NyaXB0aW9uIGlzIGRvbmUgdmlhIF9DUlMgbWV0aG9kcyBv
-ZiBkZXZpY2VzIGluDQo+ICt0aGUgQUNQSSBuYW1lc3BhY2UgWzJdLiDCoCBfQ1JTIG1ldGhvZHMg
-YXJlIGxpa2UgZ2VuZXJhbGl6ZWQgUENJIEJBUnM6DQo+ICt0aGUgT1MgY2FuIHJlYWQgX0NSUyBh
-bmQgZmlndXJlIG91dCB3aGF0IHJlc291cmNlIGlzIGJlaW5nIGNvbnN1bWVkDQo+ICtldmVuIGlm
-IGl0IGRvZXNuJ3QgaGF2ZSBhIGRyaXZlciBmb3IgdGhlIGRldmljZSBbM10uIMKgVGhhdCdzIGlt
-cG9ydGFudA0KPiArYmVjYXVzZSBpdCBtZWFucyBhbiBvbGQgT1MgY2FuIHdvcmsgY29ycmVjdGx5
-IGV2ZW4gb24gYSBzeXN0ZW0gd2l0aA0KPiArbmV3IGRldmljZXMgdW5rbm93biB0byB0aGUgT1Mu
-IMKgVGhlIG5ldyBkZXZpY2VzIHdvbid0IGRvIGFueXRoaW5nLCBidXQNCj4gK3RoZSBPUyBjYW4g
-YXQgbGVhc3QgbWFrZSBzdXJlIG5vIHJlc291cmNlcyBjb25mbGljdCB3aXRoIHRoZW0uDQo+ICsN
-Cj4gK1N0YXRpYyB0YWJsZXMgbGlrZSBNQ0ZHLCBIUEVULCBFQ0RULCBldGMuLCBhcmUgKm5vdCog
-bWVjaGFuaXNtcyBmb3INCj4gK3Jlc2VydmluZyBhZGRyZXNzIHNwYWNlISAgVGhlIHN0YXRpYyB0
-YWJsZXMgYXJlIGZvciB0aGluZ3MgdGhlIE9TDQo+ICtuZWVkcyB0byBrbm93IGVhcmx5IGluIGJv
-b3QsIGJlZm9yZSBpdCBjYW4gcGFyc2UgdGhlIEFDUEkgbmFtZXNwYWNlLg0KPiArSWYgYSBuZXcg
-dGFibGUgaXMgZGVmaW5lZCwgYW4gb2xkIE9TIG5lZWRzIHRvIG9wZXJhdGUgY29ycmVjdGx5IGV2
-ZW4NCj4gK3Rob3VnaCBpdCBpZ25vcmVzIHRoZSB0YWJsZS4gIF9DUlMgYWxsb3dzIHRoYXQgYmVj
-YXVzZSBpdCBpcyBnZW5lcmljDQo+ICthbmQgdW5kZXJzdG9vZCBieSB0aGUgb2xkIE9TOyBhIHN0
-YXRpYyB0YWJsZSBkb2VzIG5vdC4NCg0KVGhlIGVudGlyZSBkb2N1bWVudCBkb2Vzbid0IHRhbGsg
-YWJvdXQgdGhlIGRldGFpbHMgb2YgX0NCQS4NClRoZXJlIGlzIG9ubHkgb25lIGxpbmUgYmVsb3cg
-bWVudGlvbmVkIF9DQkEgYXMgYW4gZXhhbXBsZS4NCg0KPiArDQo+ICtJZiB0aGUgT1MgaXMgZXhw
-ZWN0ZWQgdG8gbWFuYWdlIGFuIEFDUEkgZGV2aWNlLCB0aGF0IGRldmljZSB3aWxsIGhhdmUNCj4g
-K2Egc3BlY2lmaWMgX0hJRC9fQ0lEIHRoYXQgdGVsbHMgdGhlIE9TIHdoYXQgZHJpdmVyIHRvIGJp
-bmQgdG8gaXQsIGFuZA0KPiArdGhlIF9DUlMgdGVsbHMgdGhlIE9TIGFuZCB0aGUgZHJpdmVyIHdo
-ZXJlIHRoZSBkZXZpY2UncyByZWdpc3RlcnMgYXJlLg0KPiArDQo+ICtQTlAwQzAyICJtb3RoZXJi
-b2FyZCIgZGV2aWNlcyBhcmUgYmFzaWNhbGx5IGEgY2F0Y2gtYWxsLiDCoFRoZXJlJ3Mgbm8NCj4g
-K3Byb2dyYW1taW5nIG1vZGVsIGZvciB0aGVtIG90aGVyIHRoYW4gImRvbid0IHVzZSB0aGVzZSBy
-ZXNvdXJjZXMgZm9yDQo+ICthbnl0aGluZyBlbHNlLiIgwqBTbyBhbnkgYWRkcmVzcyBzcGFjZSB0
-aGF0IGlzICgxKSBub3QgY2xhaW1lZCBieSBzb21lDQo+ICtvdGhlciBBQ1BJIGRldmljZSBhbmQg
-KDIpIHNob3VsZCBub3QgYmUgYXNzaWduZWQgYnkgdGhlIE9TIHRvDQo+ICtzb21ldGhpbmcgZWxz
-ZSwgc2hvdWxkIGJlIGNsYWltZWQgYnkgYSBQTlAwQzAyIF9DUlMgbWV0aG9kLg0KPiArDQo+ICtQ
-Q0kgaG9zdCBicmlkZ2VzIGFyZSBQTlAwQTAzIG9yIFBOUDBBMDggZGV2aWNlcy4gwqBUaGVpciBf
-Q1JTIHNob3VsZA0KPiArZGVzY3JpYmUgYWxsIHRoZSBhZGRyZXNzIHNwYWNlIHRoZXkgY29uc3Vt
-ZS4gwqBJbiBwcmluY2lwbGUsIHRoaXMgd291bGQNCj4gK2JlIGFsbCB0aGUgd2luZG93cyB0aGV5
-IGZvcndhcmQgZG93biB0byB0aGUgUENJIGJ1cywgYXMgd2VsbCBhcyB0aGUNCj4gK2JyaWRnZSBy
-ZWdpc3RlcnMgdGhlbXNlbHZlcy4gwqBUaGUgYnJpZGdlIHJlZ2lzdGVycyBpbmNsdWRlIHRoaW5n
-cyBsaWtlDQo+ICtzZWNvbmRhcnkvc3Vib3JkaW5hdGUgYnVzIHJlZ2lzdGVycyB0aGF0IGRldGVy
-bWluZSB0aGUgYnVzIHJhbmdlIGJlbG93DQo+ICt0aGUgYnJpZGdlLCB3aW5kb3cgcmVnaXN0ZXJz
-IHRoYXQgZGVzY3JpYmUgdGhlIGFwZXJ0dXJlcywgZXRjLiDCoFRoZXNlDQo+ICthcmUgYWxsIGRl
-dmljZS1zcGVjaWZpYywgbm9uLWFyY2hpdGVjdGVkIHRoaW5ncywgc28gdGhlIG9ubHkgd2F5IGEN
-Cj4gK1BOUDBBMDMvUE5QMEEwOCBkcml2ZXIgY2FuIG1hbmFnZSB0aGVtIGlzIHZpYSBfUFJTL19D
-UlMvX1NSUywgd2hpY2gNCj4gK2NvbnRhaW4gdGhlIGRldmljZS1zcGVjaWZpYyBkZXRhaWxzLiDC
-oFRoZXNlIGJyaWRnZSByZWdpc3RlcnMgYWxzbw0KPiAraW5jbHVkZSBFQ0FNIHNwYWNlLCBzaW5j
-ZSBpdCBpcyBjb25zdW1lZCBieSB0aGUgYnJpZGdlLg0KPiArDQo+ICtBQ1BJIGRlZmluZWQgYSBQ
-cm9kdWNlci9Db25zdW1lciBiaXQgdGhhdCB3YXMgaW50ZW5kZWQgdG8gZGlzdGluZ3Vpc2gNCj4g
-K3RoZSBicmlkZ2UgYXBlcnR1cmVzIGZyb20gdGhlIGJyaWRnZSByZWdpc3RlcnMgWzQsIDVdLiDC
-oEhvd2V2ZXIsDQo+ICtCSU9TZXMgZGlkbid0IHVzZSB0aGF0IGJpdCBjb3JyZWN0bHksIGFuZCB0
-aGUgcmVzdWx0IGlzIHRoYXQgT1NlcyBoYXZlDQo+ICt0byBhc3N1bWUgdGhhdCBldmVyeXRoaW5n
-IGluIGEgUENJIGhvc3QgYnJpZGdlIF9DUlMgaXMgYSB3aW5kb3cuIMKgVGhhdA0KPiArbGVhdmVz
-IG5vIHdheSB0byBkZXNjcmliZSB0aGUgYnJpZGdlIHJlZ2lzdGVycyBpbiB0aGUgUE5QMEEwMy9Q
-TlAwQTA4DQo+ICtkZXZpY2UgaXRzZWxmLg0KPiArDQo+ICtUaGUgd29ya2Fyb3VuZCBpcyB0byBk
-ZXNjcmliZSB0aGUgYnJpZGdlIHJlZ2lzdGVycyAoaW5jbHVkaW5nIEVDQU0NCj4gK3NwYWNlKSBp
-biBQTlAwQzAyIGNhdGNoLWFsbCBkZXZpY2VzIFs2XS4gwqBXaXRoIHRoZSBleGNlcHRpb24gb2Yg
-RUNBTSwNCj4gK3RoZSBicmlkZ2UgcmVnaXN0ZXIgc3BhY2UgaXMgZGV2aWNlLXNwZWNpZmljIGFu
-eXdheSwgc28gdGhlIGdlbmVyaWMNCj4gK1BOUDBBMDMvUE5QMEEwOCBkcml2ZXIgKHBjaV9yb290
-LmMpIGhhcyBubyBuZWVkIHRvIGtub3cgYWJvdXQgaXQuIMKgRm9yDQo+ICtFQ0FNLCBwY2lfcm9v
-dC5jIGxlYXJucyBhYm91dCB0aGUgc3BhY2UgZnJvbSBlaXRoZXIgTUNGRyBvciB0aGUgX0NCQQ0K
-PiArbWV0aG9kLg0KDQpTaG91bGQgdGhlIHJlbGF0aW9uc2hpcCBvZiBNQ0ZHIGFuZCBfQ0JBIGJl
-IGNvdmVyZWQgaW4gdGhpcyBkb2N1bWVudD8NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2
-DQoNCj4gKw0KPiArTm90ZSB0aGF0IHRoZSBQQ0llIHNwZWMgYWN0dWFsbHkgZG9lcyByZXF1aXJl
-IEVDQU0gdW5sZXNzIHRoZXJlJ3MgYQ0KPiArc3RhbmRhcmQgZmlybXdhcmUgaW50ZXJmYWNlIGZv
-ciBjb25maWcgYWNjZXNzLCBlLmcuLCB0aGUgaWE2NCBTQUwNCj4gK2ludGVyZmFjZSBbN10uICBP
-bmUgcmVhc29uIGlzIHRoYXQgd2Ugd2FudCBhIGdlbmVyaWMgaG9zdCBicmlkZ2UNCj4gK2RyaXZl
-ciAocGNpX3Jvb3QuYyksIGFuZCBhIGdlbmVyaWMgZHJpdmVyIHJlcXVpcmVzIGEgZ2VuZXJpYyB3
-YXkgdG8NCj4gK2FjY2VzcyBjb25maWcgc3BhY2UuDQo+ICsNCj4gKw0KPiArWzFdIEFDUEkgNi4w
-LCBzZWMgNi4xOg0KPiArICAgIEZvciBhbnkgZGV2aWNlIHRoYXQgaXMgb24gYSBub24tZW51bWVy
-YWJsZSB0eXBlIG9mIGJ1cyAoZm9yDQo+ICsgICAgZXhhbXBsZSwgYW4gSVNBIGJ1cyksIE9TUE0g
-ZW51bWVyYXRlcyB0aGUgZGV2aWNlcycgaWRlbnRpZmllcihzKQ0KPiArICAgIGFuZCB0aGUgQUNQ
-SSBzeXN0ZW0gZmlybXdhcmUgbXVzdCBzdXBwbHkgYW4gX0hJRCBvYmplY3QgLi4uIGZvcg0KPiAr
-ICAgIGVhY2ggZGV2aWNlIHRvIGVuYWJsZSBPU1BNIHRvIGRvIHRoYXQuDQo+ICsNCj4gK1syXSBB
-Q1BJIDYuMCwgc2VjIDMuNzoNCj4gKyAgICBUaGUgT1MgZW51bWVyYXRlcyBtb3RoZXJib2FyZCBk
-ZXZpY2VzIHNpbXBseSBieSByZWFkaW5nIHRocm91Z2gNCj4gKyAgICB0aGUgQUNQSSBOYW1lc3Bh
-Y2UgbG9va2luZyBmb3IgZGV2aWNlcyB3aXRoIGhhcmR3YXJlIElEcy4NCj4gKw0KPiArICAgIEVh
-Y2ggZGV2aWNlIGVudW1lcmF0ZWQgYnkgQUNQSSBpbmNsdWRlcyBBQ1BJLWRlZmluZWQgb2JqZWN0
-cyBpbg0KPiArICAgIHRoZSBBQ1BJIE5hbWVzcGFjZSB0aGF0IHJlcG9ydCB0aGUgaGFyZHdhcmUg
-cmVzb3VyY2VzIHRoZSBkZXZpY2UNCj4gKyAgICBjb3VsZCBvY2N1cHkgW19QUlNdLCBhbiBvYmpl
-Y3QgdGhhdCByZXBvcnRzIHRoZSByZXNvdXJjZXMgdGhhdCBhcmUNCj4gKyAgICBjdXJyZW50bHkg
-dXNlZCBieSB0aGUgZGV2aWNlIFtfQ1JTXSwgYW5kIG9iamVjdHMgZm9yIGNvbmZpZ3VyaW5nDQo+
-ICsgICAgdGhvc2UgcmVzb3VyY2VzIFtfU1JTXS4gIFRoZSBpbmZvcm1hdGlvbiBpcyB1c2VkIGJ5
-IHRoZSBQbHVnIGFuZA0KPiArICAgIFBsYXkgT1MgKE9TUE0pIHRvIGNvbmZpZ3VyZSB0aGUgZGV2
-aWNlcy4NCj4gKw0KPiArWzNdIEFDUEkgNi4wLCBzZWMgNi4yOg0KPiArICAgIE9TUE0gdXNlcyBk
-ZXZpY2UgY29uZmlndXJhdGlvbiBvYmplY3RzIHRvIGNvbmZpZ3VyZSBoYXJkd2FyZQ0KPiArICAg
-IHJlc291cmNlcyBmb3IgZGV2aWNlcyBlbnVtZXJhdGVkIHZpYSBBQ1BJLiAgRGV2aWNlIGNvbmZp
-Z3VyYXRpb24NCj4gKyAgICBvYmplY3RzIHByb3ZpZGUgaW5mb3JtYXRpb24gYWJvdXQgY3VycmVu
-dCBhbmQgcG9zc2libGUgcmVzb3VyY2UNCj4gKyAgICByZXF1aXJlbWVudHMsIHRoZSByZWxhdGlv
-bnNoaXAgYmV0d2VlbiBzaGFyZWQgcmVzb3VyY2VzLCBhbmQNCj4gKyAgICBtZXRob2RzIGZvciBj
-b25maWd1cmluZyBoYXJkd2FyZSByZXNvdXJjZXMuDQo+ICsNCj4gKyAgICBXaGVuIE9TUE0gZW51
-bWVyYXRlcyBhIGRldmljZSwgaXQgY2FsbHMgX1BSUyB0byBkZXRlcm1pbmUgdGhlDQo+ICsgICAg
-cmVzb3VyY2UgcmVxdWlyZW1lbnRzIG9mIHRoZSBkZXZpY2UuICBJdCBtYXkgYWxzbyBjYWxsIF9D
-UlMgdG8NCj4gKyAgICBmaW5kIHRoZSBjdXJyZW50IHJlc291cmNlIHNldHRpbmdzIGZvciB0aGUg
-ZGV2aWNlLiAgVXNpbmcgdGhpcw0KPiArICAgIGluZm9ybWF0aW9uLCB0aGUgUGx1ZyBhbmQgUGxh
-eSBzeXN0ZW0gZGV0ZXJtaW5lcyB3aGF0IHJlc291cmNlcw0KPiArICAgIHRoZSBkZXZpY2Ugc2hv
-dWxkIGNvbnN1bWUgYW5kIHNldHMgdGhvc2UgcmVzb3VyY2VzIGJ5IGNhbGxpbmcgdGhlDQo+ICsg
-ICAgZGV2aWNl4oCZcyBfU1JTIGNvbnRyb2wgbWV0aG9kLg0KPiArDQo+ICsgICAgSW4gQUNQSSwg
-ZGV2aWNlcyBjYW4gY29uc3VtZSByZXNvdXJjZXMgKGZvciBleGFtcGxlLCBsZWdhY3kNCj4gKyAg
-ICBrZXlib2FyZHMpLCBwcm92aWRlIHJlc291cmNlcyAoZm9yIGV4YW1wbGUsIGEgcHJvcHJpZXRh
-cnkgUENJDQo+ICsgICAgYnJpZGdlKSwgb3IgZG8gYm90aC4gIFVubGVzcyBvdGhlcndpc2Ugc3Bl
-Y2lmaWVkLCByZXNvdXJjZXMgZm9yIGENCj4gKyAgICBkZXZpY2UgYXJlIGFzc3VtZWQgdG8gYmUg
-dGFrZW4gZnJvbSB0aGUgbmVhcmVzdCBtYXRjaGluZyByZXNvdXJjZQ0KPiArICAgIGFib3ZlIHRo
-ZSBkZXZpY2UgaW4gdGhlIGRldmljZSBoaWVyYXJjaHkuDQo+ICsNCj4gK1s0XSBBQ1BJIDYuMCwg
-c2VjIDYuNC4zLjUuNDoNCj4gKyAgICBFeHRlbmRlZCBBZGRyZXNzIFNwYWNlIERlc2NyaXB0b3IN
-Cj4gKyAgICBHZW5lcmFsIEZsYWdzOiBCaXQgWzBdIENvbnN1bWVyL1Byb2R1Y2VyOg0KPiArCTHi
-gJNUaGlzIGRldmljZSBjb25zdW1lcyB0aGlzIHJlc291cmNlDQo+ICsJMOKAk1RoaXMgZGV2aWNl
-IHByb2R1Y2VzIGFuZCBjb25zdW1lcyB0aGlzIHJlc291cmNlDQo+ICsNCj4gK1s1XSBBQ1BJIDYu
-MCwgc2VjIDE5LjYuNDM6DQo+ICsgICAgUmVzb3VyY2VVc2FnZSBzcGVjaWZpZXMgd2hldGhlciB0
-aGUgTWVtb3J5IHJhbmdlIGlzIGNvbnN1bWVkIGJ5DQo+ICsgICAgdGhpcyBkZXZpY2UgKFJlc291
-cmNlQ29uc3VtZXIpIG9yIHBhc3NlZCBvbiB0byBjaGlsZCBkZXZpY2VzDQo+ICsgICAgKFJlc291
-cmNlUHJvZHVjZXIpLiAgSWYgbm90aGluZyBpcyBzcGVjaWZpZWQsIHRoZW4NCj4gKyAgICBSZXNv
-dXJjZUNvbnN1bWVyIGlzIGFzc3VtZWQuDQo+ICsNCj4gK1s2XSBQQ0kgRmlybXdhcmUgMy4wLCBz
-ZWMgNC4xLjI6DQo+ICsgICAgSWYgdGhlIG9wZXJhdGluZyBzeXN0ZW0gZG9lcyBub3QgbmF0aXZl
-bHkgY29tcHJlaGVuZCByZXNlcnZpbmcgdGhlDQo+ICsgICAgTU1DRkcgcmVnaW9uLCB0aGUgTU1D
-RkcgcmVnaW9uIG11c3QgYmUgcmVzZXJ2ZWQgYnkgZmlybXdhcmUuICBUaGUNCj4gKyAgICBhZGRy
-ZXNzIHJhbmdlIHJlcG9ydGVkIGluIHRoZSBNQ0ZHIHRhYmxlIG9yIGJ5IF9DQkEgbWV0aG9kIChz
-ZWUNCj4gKyAgICBTZWN0aW9uIDQuMS4zKSBtdXN0IGJlIHJlc2VydmVkIGJ5IGRlY2xhcmluZyBh
-IG1vdGhlcmJvYXJkDQo+ICsgICAgcmVzb3VyY2UuICBGb3IgbW9zdCBzeXN0ZW1zLCB0aGUgbW90
-aGVyYm9hcmQgcmVzb3VyY2Ugd291bGQgYXBwZWFyDQo+ICsgICAgYXQgdGhlIHJvb3Qgb2YgdGhl
-IEFDUEkgbmFtZXNwYWNlICh1bmRlciBcX1NCKSBpbiBhIG5vZGUgd2l0aCBhDQo+ICsgICAgX0hJ
-RCBvZiBFSVNBSUQgKFBOUDBDMDIpLCBhbmQgdGhlIHJlc291cmNlcyBpbiB0aGlzIGNhc2Ugc2hv
-dWxkDQo+ICsgICAgbm90IGJlIGNsYWltZWQgaW4gdGhlIHJvb3QgUENJIGJ1c+KAmXMgX0NSUy4g
-IFRoZSByZXNvdXJjZXMgY2FuDQo+ICsgICAgb3B0aW9uYWxseSBiZSByZXR1cm5lZCBpbiBJbnQx
-NSBFODIwIG9yIEVGSUdldE1lbW9yeU1hcCBhcw0KPiArICAgIHJlc2VydmVkIG1lbW9yeSBidXQg
-bXVzdCBhbHdheXMgYmUgcmVwb3J0ZWQgdGhyb3VnaCBBQ1BJIGFzIGENCj4gKyAgICBtb3RoZXJi
-b2FyZCByZXNvdXJjZS4NCj4gKw0KPiArWzddIFBDSSBFeHByZXNzIDMuMCwgc2VjIDcuMi4yOg0K
-PiArICAgIEZvciBzeXN0ZW1zIHRoYXQgYXJlIFBDLWNvbXBhdGlibGUsIG9yIHRoYXQgZG8gbm90
-IGltcGxlbWVudCBhDQo+ICsgICAgcHJvY2Vzc29yLWFyY2hpdGVjdHVyZS1zcGVjaWZpYyBmaXJt
-d2FyZSBpbnRlcmZhY2Ugc3RhbmRhcmQgdGhhdA0KPiArICAgIGFsbG93cyBhY2Nlc3MgdG8gdGhl
-IENvbmZpZ3VyYXRpb24gU3BhY2UsIHRoZSBFQ0FNIGlzIHJlcXVpcmVkIGFzDQo+ICsgICAgZGVm
-aW5lZCBpbiB0aGlzIHNlY3Rpb24uDQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRo
-aXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4NCj4gdGhl
-IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBt
-YWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5o
-dG1sDQo=
+Hi Mark,
+
+
+On 19 November 2016 at 04:03, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
+> On Wed, Nov 16, 2016 at 09:49:03PM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>
+>> The patch refactor original memory-mapped timer init code:
+>>     (1) Extract a subfunction for detecting a bast time frame:
+>>         is_best_frame.
+>
+> Please leave this logic in arch_timer_mem_init(). Pulling it out gains
+> us nothing, but makes the patch harder to review.
+
+OK, I have put it back to arch_timer_mem_init() in next version: v17
+
+>
+>>     (2) Refactor "arch_timer_mem_init", make it become a common code for
+>>         memory-mapped timer init.
+>>     (3) Add a new function "arch_timer_mem_of_init" for DT init.
+>
+> These generally look fine.
+>
+> Thanks,
+> Mark.
+>
+>> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> ---
+>>  drivers/clocksource/arm_arch_timer.c | 162 +++++++++++++++++++++++------------
+>>  1 file changed, 107 insertions(+), 55 deletions(-)
+>>
+>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+>> index 9ddc091..0836bb9 100644
+>> --- a/drivers/clocksource/arm_arch_timer.c
+>> +++ b/drivers/clocksource/arm_arch_timer.c
+>> @@ -923,17 +923,35 @@ static int __init arch_timer_of_init(struct device_node *np)
+>>  CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
+>>  CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+>>
+>> -static int __init arch_timer_mem_init(struct device_node *np)
+>> +static bool __init is_best_frame(void __iomem *cntctlbase, u32 cnttidr, int n)
+>> +{
+>> +     u32 cntacr = CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT | CNTACR_RWVT |
+>> +                  CNTACR_RVOFF | CNTACR_RVCT;
+>> +
+>> +     /* Try enabling everything, and see what sticks */
+>> +     writel_relaxed(cntacr, cntctlbase + CNTACR(n));
+>> +     cntacr = readl_relaxed(cntctlbase + CNTACR(n));
+>> +
+>> +     if ((cnttidr & CNTTIDR_VIRT(n)) &&
+>> +         !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT)))
+>> +             arch_timer_mem_use_virtual = true;
+>> +     else if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
+>> +             return false;
+>> +
+>> +     return true;
+>> +}
+>> +
+>> +static int __init arch_timer_mem_init(struct arch_timer_mem *timer_mem)
+>>  {
+>> -     struct device_node *frame, *best_frame = NULL;
+>>       void __iomem *cntctlbase, *base;
+>> -     unsigned int irq, ret = -EINVAL;
+>> +     struct arch_timer_mem_frame *best_frame = NULL;
+>> +     unsigned int irq;
+>>       u32 cnttidr;
+>> +     int i, ret;
+>>
+>> -     arch_timers_present |= ARCH_TIMER_TYPE_MEM;
+>> -     cntctlbase = of_iomap(np, 0);
+>> +     cntctlbase = ioremap(timer_mem->cntctlbase, timer_mem->size);
+>>       if (!cntctlbase) {
+>> -             pr_err("Can't find CNTCTLBase\n");
+>> +             pr_err("Can't map CNTCTLBase.\n");
+>>               return -ENXIO;
+>>       }
+>>
+>> @@ -943,76 +961,110 @@ static int __init arch_timer_mem_init(struct device_node *np)
+>>        * Try to find a virtual capable frame. Otherwise fall back to a
+>>        * physical capable frame.
+>>        */
+>> -     for_each_available_child_of_node(np, frame) {
+>> -             int n;
+>> -             u32 cntacr;
+>> -
+>> -             if (of_property_read_u32(frame, "frame-number", &n)) {
+>> -                     pr_err("Missing frame-number\n");
+>> -                     of_node_put(frame);
+>> -                     goto out;
+>> -             }
+>> -
+>> -             /* Try enabling everything, and see what sticks */
+>> -             cntacr = CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT |
+>> -                      CNTACR_RWVT | CNTACR_RVOFF | CNTACR_RVCT;
+>> -             writel_relaxed(cntacr, cntctlbase + CNTACR(n));
+>> -             cntacr = readl_relaxed(cntctlbase + CNTACR(n));
+>> -
+>> -             if ((cnttidr & CNTTIDR_VIRT(n)) &&
+>> -                 !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT))) {
+>> -                     of_node_put(best_frame);
+>> -                     best_frame = frame;
+>> -                     arch_timer_mem_use_virtual = true;
+>> -                     break;
+>> +     for (i = 0; i < timer_mem->num_frames; i++) {
+>> +             if (is_best_frame(cntctlbase, cnttidr,
+>> +                               timer_mem->frame[i].frame_nr)) {
+>> +                     best_frame = &timer_mem->frame[i];
+>> +                     if (arch_timer_mem_use_virtual)
+>> +                             break;
+>>               }
+>> -
+>> -             if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
+>> -                     continue;
+>> -
+>> -             of_node_put(best_frame);
+>> -             best_frame = of_node_get(frame);
+>>       }
+>> +     iounmap(cntctlbase);
+>>
+>> -     ret= -ENXIO;
+>> -     base = arch_counter_base = of_iomap(best_frame, 0);
+>> -     if (!base) {
+>> -             pr_err("Can't map frame's registers\n");
+>> -             goto out;
+>> +     if (!best_frame) {
+>> +             pr_err("Can't find frame for register\n");
+>> +             return -EINVAL;
+>>       }
+>>
+>>       if (arch_timer_mem_use_virtual)
+>> -             irq = irq_of_parse_and_map(best_frame, ARCH_TIMER_VIRT_SPI);
+>> +             irq = best_frame->virt_irq;
+>>       else
+>> -             irq = irq_of_parse_and_map(best_frame, ARCH_TIMER_PHYS_SPI);
+>> +             irq = best_frame->phys_irq;
+>>
+>> -     ret = -EINVAL;
+>>       if (!irq) {
+>>               pr_err("Frame missing %s irq",
+>>                      arch_timer_mem_use_virtual ? "virt" : "phys");
+>> -             goto out;
+>> +             return -EINVAL;
+>>       }
+>>
+>> -     /*
+>> -      * Try to determine the frequency from the device tree,
+>> -      * if fail, get the frequency from CNTFRQ.
+>> -      */
+>> -     if (!arch_timer_rate &&
+>> -         of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+>> -             arch_timer_detect_rate(base);
+>> +     base = ioremap(best_frame->cntbase, best_frame->size);
+>> +     if (!base) {
+>> +             pr_err("Can't map frame's registers\n");
+>> +             return -ENXIO;
+>> +     }
+>> +
+>> +     arch_timer_detect_rate(base);
+>>
+>>       ret = arch_timer_mem_register(base, irq);
+>> -     if (ret)
+>> +     if (ret) {
+>> +             iounmap(base);
+>> +             return ret;
+>> +     }
+>> +
+>> +     arch_counter_base = base;
+>> +     arch_timers_present |= ARCH_TIMER_TYPE_MEM;
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int __init arch_timer_mem_of_init(struct device_node *np)
+>> +{
+>> +     struct arch_timer_mem *timer_mem;
+>> +     struct device_node *frame_node;
+>> +     struct resource res;
+>> +     int i, ret = -EINVAL;
+>> +
+>> +     timer_mem = kzalloc(sizeof(*timer_mem), GFP_KERNEL);
+>> +     if (!timer_mem)
+>> +             return -ENOMEM;
+>> +
+>> +     if (of_address_to_resource(np, 0, &res))
+>>               goto out;
+>> +     timer_mem->cntctlbase = res.start;
+>> +     timer_mem->size = resource_size(&res);
+>>
+>> -     return arch_timer_common_init();
+>> +     i = 0;
+>> +     for_each_available_child_of_node(np, frame_node) {
+>> +             int n;
+>> +             struct arch_timer_mem_frame *frame = &timer_mem->frame[i];
+>> +
+>> +             if (of_property_read_u32(frame_node, "frame-number", &n)) {
+>> +                     pr_err("Missing frame-number\n");
+>> +                     of_node_put(frame_node);
+>> +                     goto out;
+>> +             }
+>> +             frame->frame_nr = n;
+>> +
+>> +             if (of_address_to_resource(frame_node, 0, &res)) {
+>> +                     of_node_put(frame_node);
+>> +                     goto out;
+>> +             }
+>> +             frame->cntbase = res.start;
+>> +             frame->size = resource_size(&res);
+>> +
+>> +             frame->virt_irq = irq_of_parse_and_map(frame_node,
+>> +                                                    ARCH_TIMER_VIRT_SPI);
+>> +             frame->phys_irq = irq_of_parse_and_map(frame_node,
+>> +                                                    ARCH_TIMER_PHYS_SPI);
+>> +
+>> +             if (++i >= ARCH_TIMER_MEM_MAX_FRAMES)
+>> +                     break;
+>> +     }
+>> +     timer_mem->num_frames = i;
+>> +
+>> +     /* Try to determine the frequency from the device tree */
+>> +     if (!arch_timer_rate)
+>> +             of_property_read_u32(np, "clock-frequency", &arch_timer_rate);
+>> +
+>> +     ret = arch_timer_mem_init(timer_mem);
+>> +     if (!ret)
+>> +             ret = arch_timer_common_init();
+>>  out:
+>> -     iounmap(cntctlbase);
+>> -     of_node_put(best_frame);
+>> +     kfree(timer_mem);
+>>       return ret;
+>>  }
+>>  CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+>> -                    arch_timer_mem_init);
+>> +                    arch_timer_mem_of_init);
+>>
+>>  #ifdef CONFIG_ACPI
+>>  static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
+>> --
+>> 2.7.4
+>>
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
