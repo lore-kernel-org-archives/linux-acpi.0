@@ -1,104 +1,129 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
-Date: Wed, 23 Nov 2016 07:28:12 +0000
-Message-ID: <CAKv+Gu-TW__+eZFS2p=1ZLN7fBs7pqQ+SitbEX46Z4JiS64egA@mail.gmail.com>
-References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <CAKv+Gu_xW+7KAC8fHquEwHynYzpy6OoO1ZjEm5mVKMo1S8j4Nw@mail.gmail.com> <20161123010600.GF4832@bhelgaas-glaptop.roam.corp.google.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH V6 2/2] PCI/ACPI: hisi: Add ACPI support for HiSilicon
+ SoCs Host Controllers
+Date: Wed, 23 Nov 2016 09:44:28 +0000
+Message-ID: <20161123094428.GA878@linaro-xps13.localdomain>
+References: <1479816529-97410-1-git-send-email-liudongdong3@huawei.com>
+ <1479816529-97410-3-git-send-email-liudongdong3@huawei.com>
+ <026faf89-93de-4238-f69a-ea02c57e5ee0@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F92CA85@lhreml507-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161123010600.GF4832@bhelgaas-glaptop.roam.corp.google.com>
+Content-Disposition: inline
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F92CA85@lhreml507-mbx>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, "liudongdong (C)" <liudongdong3@huawei.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "rafael@kernel.org" <rafael@kernel.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 23 November 2016 at 01:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, Nov 22, 2016 at 10:09:50AM +0000, Ard Biesheuvel wrote:
->> On 17 November 2016 at 17:59, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
->> > +PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
->> > +describe all the address space they consume.  In principle, this would
->> > +be all the windows they forward down to the PCI bus, as well as the
->> > +bridge registers themselves.  The bridge registers include things like
->> > +secondary/subordinate bus registers that determine the bus range below
->> > +the bridge, window registers that describe the apertures, etc.  These
->> > +are all device-specific, non-architected things, so the only way a
->> > +PNP0A03/PNP0A08 driver can manage them is via _PRS/_CRS/_SRS, which
->> > +contain the device-specific details.  These bridge registers also
->> > +include ECAM space, since it is consumed by the bridge.
->> > +
->> > +ACPI defined a Producer/Consumer bit that was intended to distinguish
->> > +the bridge apertures from the bridge registers [4, 5].  However,
->> > +BIOSes didn't use that bit correctly, and the result is that OSes have
->> > +to assume that everything in a PCI host bridge _CRS is a window.  That
->> > +leaves no way to describe the bridge registers in the PNP0A03/PNP0A08
->> > +device itself.
->>
->> Is that universally true? Or is it still possible to do the right
->> thing here on new ACPI architectures such as arm64?
->
-> That's a very good question.  I had thought that the ACPI spec had
-> given up on Consumer/Producer completely, but I was wrong.  In the 6.0
-> spec, the Consumer/Producer bit is still documented in the Extended
-> Address Space Descriptor (sec 6.4.3.5.4).  It is documented as
-> "ignored" in the QWord, DWord, and Word descriptors (sec 6.4.3.5.1,2,3).
->
-> Linux looks at the producer_consumer bit in acpi_decode_space(), which
-> I think is used for all these descriptors (QWord, DWord, Word, and
-> Extended).  This doesn't quite follow the spec -- we probably should
-> ignore it except for Extended.  In any event, acpi_decode_space() sets
-> IORESOURCE_WINDOW for Producer descriptors, but we don't test
-> IORESOURCE_WINDOW in the PCI host bridge code.
->
-> x86 and ia64 supply their own pci_acpi_root_prepare_resources()
-> functions that call acpi_pci_probe_root_resources(), which parses _CRS
-> and looks at producer_consumer.  Then they do a little arch-specific
-> stuff on the result.
->
-> On arm64 we use acpi_pci_probe_root_resources() directly, with no
-> arch-specific stuff.
->
-> On all three arches, we ignore the Consumer/Producer bit, so all the
-> resources are treated as Producers, e.g., as bridge windows.
->
-> I think we *could* implement an arm64 version of
-> pci_acpi_root_prepare_resources() that would pay attention to the
-> Consumer/Producer bit by checking IORESOURCE_WINDOW.  To be spec
-> compliant, we would have to use Extended descriptors for all bridge
-> windows, even if they would fit in a DWord or QWord.
->
-> Should we do that?  I dunno.  I'd like to hear your opinion(s).
->
+On Tue, Nov 22, 2016 at 03:05:29PM +0000, Gabriele Paoloni wrote:
+> Hi Tomasz
+> 
+> > -----Original Message-----
+> > From: Tomasz Nowicki [mailto:tn@semihalf.com]
+> > Sent: 22 November 2016 13:58
+> > To: liudongdong (C); helgaas@kernel.org; arnd@arndb.de;
+> > rafael@kernel.org; Lorenzo.Pieralisi@arm.com; Wangzhou (B);
+> > pratyush.anand@gmail.com
+> > Cc: linux-pci@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
+> > kernel@vger.kernel.org; jcm@redhat.com; Gabriele Paoloni; Chenxin
+> > (Charles); hanjun.guo@linaro.org; Linuxarm
+> > Subject: Re: [PATCH V6 2/2] PCI/ACPI: hisi: Add ACPI support for
+> > HiSilicon SoCs Host Controllers
+> > 
+> > On 22.11.2016 13:08, Dongdong Liu wrote:
+> > > PCIe controller in Hip05/HIP06/HIP07 SoCs is not ECAM compliant.
+> > > It is non ECAM only for the RC bus config space;for any other bus
+> > > underneath the root bus we support ECAM access.
+> > > Add specific quirks for PCI config space accessors.This involves:
+> > > 1. New initialization call hisi_pcie_init() to obtain rc base
+> > > addresses from PNP0C02 at the root of the ACPI namespace (under
+> > \_SB).
+> > > 2. New entry in common quirk array.
+> > >
+> > > Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> > > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> > > ---
+> > >  MAINTAINERS                       |   1 +
+> > >  drivers/acpi/pci_mcfg.c           |  13 +++++
+> > >  drivers/pci/host/Kconfig          |   7 +++
+> > >  drivers/pci/host/Makefile         |   1 +
+> > >  drivers/pci/host/pcie-hisi-acpi.c | 119
+> > ++++++++++++++++++++++++++++++++++++++
+> > >  include/linux/pci-ecam.h          |   5 ++
+> > >  6 files changed, 146 insertions(+)
+> > >  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
+> > >
+> > > diff --git a/MAINTAINERS b/MAINTAINERS
+> > > index 1cd38a7..b224caa 100644
+> > > --- a/MAINTAINERS
+> > > +++ b/MAINTAINERS
+> > > @@ -9358,6 +9358,7 @@ L:	linux-pci@vger.kernel.org
+> > >  S:	Maintained
+> > >  F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> > >  F:	drivers/pci/host/pcie-hisi.c
+> > > +F:	drivers/pci/host/pcie-hisi-acpi.c
+> > >
+> > >  PCIE DRIVER FOR ROCKCHIP
+> > >  M:	Shawn Lin <shawn.lin@rock-chips.com>
+> > > diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> > > index ac21db3..3297c5a 100644
+> > > --- a/drivers/acpi/pci_mcfg.c
+> > > +++ b/drivers/acpi/pci_mcfg.c
+> > > @@ -57,6 +57,19 @@ struct mcfg_fixup {
+> > >  	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
+> > >  	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
+> > >  	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
+> > > +#ifdef CONFIG_PCI_ECAM_QUIRKS
+> > > +	#define PCI_ACPI_QUIRK_QUAD_DOM(table_id, seg, ops) \
+> > > +	{ "HISI  ", table_id, 0, seg + 0, MCFG_BUS_ANY, ops }, \
+> > > +	{ "HISI  ", table_id, 0, seg + 1, MCFG_BUS_ANY, ops }, \
+> > > +	{ "HISI  ", table_id, 0, seg + 2, MCFG_BUS_ANY, ops }, \
+> > > +	{ "HISI  ", table_id, 0, seg + 3, MCFG_BUS_ANY, ops }
+> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP05   ", 0, &hisi_pcie_ops),
+> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP06   ", 0, &hisi_pcie_ops),
+> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 0, &hisi_pcie_ops),
+> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 4, &hisi_pcie_ops),
+> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 8, &hisi_pcie_ops),
+> > > +	PCI_ACPI_QUIRK_QUAD_DOM("HIP07   ", 12, &hisi_pcie_ops),
+> > > +#endif
+> > >  };
+> > >
+> > >  static char mcfg_oem_id[ACPI_OEM_ID_SIZE];
+> > > diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
+> > > index ae98644..1fbade5 100644
+> > > --- a/drivers/pci/host/Kconfig
+> > > +++ b/drivers/pci/host/Kconfig
+> > > @@ -301,4 +301,11 @@ config VMD
+> > >  	  To compile this driver as a module, choose M here: the
+> > >  	  module will be called vmd.
+> > >
+> > > +config PCI_ECAM_QUIRKS
+> > > +	bool "PCI ECAM quirks for ARM64 platform"
+> > > +	depends on PCI_ECAM && ARM64 && ACPI
+> > > +	help
+> > > +	  Say y here to enable your platform-specific config access that
+> > > +	  is not ECAM compliant.
+> > > +
+> > 
+> > ARM64 selects PCI_ECAM for ACPI anyway so we can skip it here.
+> 
+> Yes sure
+> 
+> > 
+> > How about selecting PCI_ECAM_QUIRKS from ARM64 Kconfig:
+> 
+> I don't think we should assume that ARM64 platforms should
+> support quirks by default...
+> i.e. from my perspective the quirk module should go in only
+> if strictly required by the platform you're working on.
+> 
+> Thoughts?
+> 
+> Thanks
+> 
+No, same kernel multiple machines is the model, code should go in
+unconditional.
 
-Yes, I think we should. If the spec allows for a way for a PNP0A03
-device to describe all of its resources unambiguously, we should not
-be relying on workarounds that were designed for another architecture
-in another decade (for, presumably, another OS)
-
-Just for my understanding, we will need to use extended descriptors
-for all consumed *and* produced regions, even though dword/qword are
-implicitly produced-only, due to the fact that the bit is ignored?
-
-> It *would* be nice to have bridge registers in the bridge _CRS.  That
-> would eliminate the need for looking up the HISI0081/PNP0C02 devices
-> to find the bridge registers.  Avoiding that lookup is only a
-> temporary advantage -- the next round of bridges are supposed to fully
-> implement ECAM, and then we won't need to know where the registers
-> are.
->
-> Apart from the lookup, there's still some advantage in describing the
-> registers in the PNP0A03 device instead of an unrelated PNP0C02
-> device, because it makes /proc/iomem more accurate and potentially
-> makes host bridge hotplug cleaner.  We would have to enhance the host
-> bridge driver to do the reservations currently done by pnp/system.c.
->
-> There's some value in doing it the same way as on x86, even though
-> that way is somewhat broken.
->
-> Whatever we decide, I think it's very important to get it figured out
-> ASAP because it affects the ECAM quirks that we're trying to merge in
-> v4.10.
->
-
-I agree. What exactly is the impact for the quirks mechanism as proposed?
+Graeme
