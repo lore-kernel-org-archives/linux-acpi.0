@@ -1,81 +1,184 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V9 11/11] ARM64/PCI: Support for ACPI based PCI host
- controller
-Date: Tue, 22 Nov 2016 17:13:21 -0600
-Message-ID: <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
- <1465588519-11334-12-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
+Date: Tue, 22 Nov 2016 19:06:00 -0600
+Message-ID: <20161123010600.GF4832@bhelgaas-glaptop.roam.corp.google.com>
+References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <CAKv+Gu_xW+7KAC8fHquEwHynYzpy6OoO1ZjEm5mVKMo1S8j4Nw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43398 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755651AbcKVXNn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 22 Nov 2016 18:13:43 -0500
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1465588519-11334-12-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAKv+Gu_xW+7KAC8fHquEwHynYzpy6OoO1ZjEm5mVKMo1S8j4Nw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-Hi Tomasz,
+On Tue, Nov 22, 2016 at 10:09:50AM +0000, Ard Biesheuvel wrote:
+> On 17 November 2016 at 17:59, Bjorn Helgaas <bhelgaas@google.com> wrote:
 
-On Fri, Jun 10, 2016 at 09:55:19PM +0200, Tomasz Nowicki wrote:
-> Implement pci_acpi_scan_root and other arch-specific call so that ARM64
-> can start using ACPI to setup and enumerate PCI buses.
+> > +PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
+> > +describe all the address space they consume.  In principle, this would
+> > +be all the windows they forward down to the PCI bus, as well as the
+> > +bridge registers themselves.  The bridge registers include things like
+> > +secondary/subordinate bus registers that determine the bus range below
+> > +the bridge, window registers that describe the apertures, etc.  These
+> > +are all device-specific, non-architected things, so the only way a
+> > +PNP0A03/PNP0A08 driver can manage them is via _PRS/_CRS/_SRS, which
+> > +contain the device-specific details.  These bridge registers also
+> > +include ECAM space, since it is consumed by the bridge.
+> > +
+> > +ACPI defined a Producer/Consumer bit that was intended to distinguish
+> > +the bridge apertures from the bridge registers [4, 5].  However,
+> > +BIOSes didn't use that bit correctly, and the result is that OSes have
+> > +to assume that everything in a PCI host bridge _CRS is a window.  That
+> > +leaves no way to describe the bridge registers in the PNP0A03/PNP0A08
+> > +device itself.
 > 
-> Prior to buses enumeration the pci_acpi_scan_root() implementation looks
-> for configuration space start address (obtained through ACPI _CBA method or
-> MCFG interface). If succeed, it uses ECAM library to create new mapping.
-> Then it attaches generic ECAM ops (pci_generic_ecam_ops) which are used
-> for accessing configuration space later on.
-> ...
+> Is that universally true? Or is it still possible to do the right
+> thing here on new ACPI architectures such as arm64?
 
-> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
-> +	.release_info = pci_acpi_generic_release_info,
-> +};
-> +
-> +/* Interface called from ACPI code to setup PCI host controller */
->  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->  {
-> -	/* TODO: Should be revisited when implementing PCI on ACPI */
-> -	return NULL;
-> +	int node = acpi_get_node(root->device->handle);
-> +	struct acpi_pci_generic_root_info *ri;
-> +	struct pci_bus *bus, *child;
-> +
-> +	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
-> +	if (!ri)
-> +		return NULL;
-> +
-> +	ri->cfg = pci_acpi_setup_ecam_mapping(root);
-> +	if (!ri->cfg) {
-> +		kfree(ri);
-> +		return NULL;
-> +	}
-> +
-> +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+That's a very good question.  I had thought that the ACPI spec had
+given up on Consumer/Producer completely, but I was wrong.  In the 6.0
+spec, the Consumer/Producer bit is still documented in the Extended
+Address Space Descriptor (sec 6.4.3.5.4).  It is documented as
+"ignored" in the QWord, DWord, and Word descriptors (sec 6.4.3.5.1,2,3).
 
-This has already been merged, but this isn't right, is it?  We're
-writing a host controller-specific pointer into the single system-wide
-acpi_pci_root_ops, then passing it on to acpi_pci_root_create().
+Linux looks at the producer_consumer bit in acpi_decode_space(), which
+I think is used for all these descriptors (QWord, DWord, Word, and
+Extended).  This doesn't quite follow the spec -- we probably should
+ignore it except for Extended.  In any event, acpi_decode_space() sets
+IORESOURCE_WINDOW for Producer descriptors, but we don't test
+IORESOURCE_WINDOW in the PCI host bridge code.
 
-Today, I think ri->cfg->ops->pci_ops is always &pci_generic_ecam_ops,
-from this path:
+x86 and ia64 supply their own pci_acpi_root_prepare_resources()
+functions that call acpi_pci_probe_root_resources(), which parses _CRS
+and looks at producer_consumer.  Then they do a little arch-specific
+stuff on the result.
 
-  ri->cfg = pci_acpi_setup_ecam_mapping
-    cfg = pci_ecam_create(..., &pci_generic_ecam_ops)
-      cfg = kzalloc(...)
-      cfg->ops = ops             # &pci_generic_ecam_ops
+On arm64 we use acpi_pci_probe_root_resources() directly, with no
+arch-specific stuff.
 
-But we're about to merge the ECAM quirks series, which will mean it
-may not be &pci_generic_ecam_ops.  Even apart from the ECAM quirks, we
-should avoid this pattern of putting device-specific info in a single
-shared structure because it's too difficult to verify that it's
-correct.
+On all three arches, we ignore the Consumer/Producer bit, so all the
+resources are treated as Producers, e.g., as bridge windows.
 
-> +	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
-> +				   ri->cfg);
+I think we *could* implement an arm64 version of
+pci_acpi_root_prepare_resources() that would pay attention to the
+Consumer/Producer bit by checking IORESOURCE_WINDOW.  To be spec
+compliant, we would have to use Extended descriptors for all bridge
+windows, even if they would fit in a DWord or QWord.
 
-Bjorn
+Should we do that?  I dunno.  I'd like to hear your opinion(s).
+
+It *would* be nice to have bridge registers in the bridge _CRS.  That
+would eliminate the need for looking up the HISI0081/PNP0C02 devices
+to find the bridge registers.  Avoiding that lookup is only a
+temporary advantage -- the next round of bridges are supposed to fully
+implement ECAM, and then we won't need to know where the registers
+are.
+
+Apart from the lookup, there's still some advantage in describing the
+registers in the PNP0A03 device instead of an unrelated PNP0C02
+device, because it makes /proc/iomem more accurate and potentially
+makes host bridge hotplug cleaner.  We would have to enhance the host
+bridge driver to do the reservations currently done by pnp/system.c.
+
+There's some value in doing it the same way as on x86, even though
+that way is somewhat broken.
+
+Whatever we decide, I think it's very important to get it figured out
+ASAP because it affects the ECAM quirks that we're trying to merge in
+v4.10.
+
+> > +The workaround is to describe the bridge registers (including ECAM
+> > +space) in PNP0C02 catch-all devices [6].  With the exception of ECAM,
+> > +the bridge register space is device-specific anyway, so the generic
+> > +PNP0A03/PNP0A08 driver (pci_root.c) has no need to know about it.  For
+> > +ECAM, pci_root.c learns about the space from either MCFG or the _CBA
+> > +method.
+> > +
+> > +Note that the PCIe spec actually does require ECAM unless there's a
+> > +standard firmware interface for config access, e.g., the ia64 SAL
+> > +interface [7].  One reason is that we want a generic host bridge
+> > +driver (pci_root.c), and a generic driver requires a generic way to
+> > +access config space.
+> > +
+> > +
+> > +[1] ACPI 6.0, sec 6.1:
+> > +    For any device that is on a non-enumerable type of bus (for
+> > +    example, an ISA bus), OSPM enumerates the devices' identifier(s)
+> > +    and the ACPI system firmware must supply an _HID object ... for
+> > +    each device to enable OSPM to do that.
+> > +
+> > +[2] ACPI 6.0, sec 3.7:
+> > +    The OS enumerates motherboard devices simply by reading through
+> > +    the ACPI Namespace looking for devices with hardware IDs.
+> > +
+> > +    Each device enumerated by ACPI includes ACPI-defined objects in
+> > +    the ACPI Namespace that report the hardware resources the device
+> > +    could occupy [_PRS], an object that reports the resources that are
+> > +    currently used by the device [_CRS], and objects for configuring
+> > +    those resources [_SRS].  The information is used by the Plug and
+> > +    Play OS (OSPM) to configure the devices.
+> > +
+> > +[3] ACPI 6.0, sec 6.2:
+> > +    OSPM uses device configuration objects to configure hardware
+> > +    resources for devices enumerated via ACPI.  Device configuration
+> > +    objects provide information about current and possible resource
+> > +    requirements, the relationship between shared resources, and
+> > +    methods for configuring hardware resources.
+> > +
+> > +    When OSPM enumerates a device, it calls _PRS to determine the
+> > +    resource requirements of the device.  It may also call _CRS to
+> > +    find the current resource settings for the device.  Using this
+> > +    information, the Plug and Play system determines what resources
+> > +    the device should consume and sets those resources by calling the
+> > +    device’s _SRS control method.
+> > +
+> > +    In ACPI, devices can consume resources (for example, legacy
+> > +    keyboards), provide resources (for example, a proprietary PCI
+> > +    bridge), or do both.  Unless otherwise specified, resources for a
+> > +    device are assumed to be taken from the nearest matching resource
+> > +    above the device in the device hierarchy.
+> > +
+> > +[4] ACPI 6.0, sec 6.4.3.5.4:
+> > +    Extended Address Space Descriptor
+> > +    General Flags: Bit [0] Consumer/Producer:
+> > +       1–This device consumes this resource
+> > +       0–This device produces and consumes this resource
+> > +
+> > +[5] ACPI 6.0, sec 19.6.43:
+> > +    ResourceUsage specifies whether the Memory range is consumed by
+> > +    this device (ResourceConsumer) or passed on to child devices
+> > +    (ResourceProducer).  If nothing is specified, then
+> > +    ResourceConsumer is assumed.
+> > +
+> > +[6] PCI Firmware 3.0, sec 4.1.2:
+> > +    If the operating system does not natively comprehend reserving the
+> > +    MMCFG region, the MMCFG region must be reserved by firmware.  The
+> > +    address range reported in the MCFG table or by _CBA method (see
+> > +    Section 4.1.3) must be reserved by declaring a motherboard
+> > +    resource.  For most systems, the motherboard resource would appear
+> > +    at the root of the ACPI namespace (under \_SB) in a node with a
+> > +    _HID of EISAID (PNP0C02), and the resources in this case should
+> > +    not be claimed in the root PCI bus’s _CRS.  The resources can
+> > +    optionally be returned in Int15 E820 or EFIGetMemoryMap as
+> > +    reserved memory but must always be reported through ACPI as a
+> > +    motherboard resource.
+> > +
+> > +[7] PCI Express 3.0, sec 7.2.2:
+> > +    For systems that are PC-compatible, or that do not implement a
+> > +    processor-architecture-specific firmware interface standard that
+> > +    allows access to the Configuration Space, the ECAM is required as
+> > +    defined in this section.
+> >
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
