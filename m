@@ -1,90 +1,298 @@
-From: Ben Skeggs <skeggsb@gmail.com>
-Subject: Re: [PATCH] acpi: video: Move ACPI_VIDEO_NOTIFY_* defines to
- acpi/video.h
-Date: Thu, 24 Nov 2016 11:30:36 +1000
-Message-ID: <e7e4b056-d375-49cc-fcc3-21917b024f9d@gmail.com>
-References: <20161109171556.4003-1-hdegoede@redhat.com>
- <4010260.RhimP6FkGx@vostro.rjw.lan>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v16 13/15] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Thu, 24 Nov 2016 11:57:23 +0800
+Message-ID: <CADyBb7tqALWDSh2PK=aLTYfrPKpLnyj5ecgd4YGZcSe73XCwyA@mail.gmail.com>
+References: <1479304148-2965-1-git-send-email-fu.wei@linaro.org>
+ <1479304148-2965-14-git-send-email-fu.wei@linaro.org> <20161118142249.GA18029@red-moon>
+ <CADyBb7sTVWC3d6kRDTA=SGYz9J4pwWvaJxXu3AMBAgQT4y7fTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="cNaheDAiX5HIFQUquodQpivsnKve8rqf3"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34123 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935138AbcKXBam (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Nov 2016 20:30:42 -0500
-Received: by mail-pf0-f193.google.com with SMTP id y68so1181435pfb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Nov 2016 17:30:42 -0800 (PST)
-In-Reply-To: <4010260.RhimP6FkGx@vostro.rjw.lan>
+Received: from mail-io0-f172.google.com ([209.85.223.172]:36125 "EHLO
+        mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752517AbcKXD5Y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Nov 2016 22:57:24 -0500
+Received: by mail-io0-f172.google.com with SMTP id x94so59413388ioi.3
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Nov 2016 19:57:24 -0800 (PST)
+In-Reply-To: <CADyBb7sTVWC3d6kRDTA=SGYz9J4pwWvaJxXu3AMBAgQT4y7fTw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Dave Airlie <airlied@redhat.com>, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---cNaheDAiX5HIFQUquodQpivsnKve8rqf3
-Content-Type: multipart/mixed; boundary="RqC9ctgKXQCjegg9pL4oRkMvN8hqFEg6t"
-From: Ben Skeggs <skeggsb@gmail.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>,
- Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>,
- Dave Airlie <airlied@redhat.com>, nouveau@lists.freedesktop.org,
- dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
-Message-ID: <e7e4b056-d375-49cc-fcc3-21917b024f9d@gmail.com>
-Subject: Re: [PATCH] acpi: video: Move ACPI_VIDEO_NOTIFY_* defines to
- acpi/video.h
-References: <20161109171556.4003-1-hdegoede@redhat.com>
- <4010260.RhimP6FkGx@vostro.rjw.lan>
-In-Reply-To: <4010260.RhimP6FkGx@vostro.rjw.lan>
+Hi Lorenzo,
 
---RqC9ctgKXQCjegg9pL4oRkMvN8hqFEg6t
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 11/24/2016 11:27 AM, Rafael J. Wysocki wrote:
-> On Wednesday, November 09, 2016 06:15:56 PM Hans de Goede wrote:
->> acpi_video.c passed the ACPI_VIDEO_NOTIFY_* defines as type code to
->> acpi_notifier_call_chain(). Move these defines to acpi/video.h so
->> that acpi_notifier listeners can check the type code using these
->> defines.
+On 23 November 2016 at 19:53, Fu Wei <fu.wei@linaro.org> wrote:
+> Hi Lorenzo,
+>
+> On 18 November 2016 at 22:22, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+>> On Wed, Nov 16, 2016 at 09:49:06PM +0800, fu.wei@linaro.org wrote:
+>>> From: Fu Wei <fu.wei@linaro.org>
+>>>
+>>> On platforms booting with ACPI, architected memory-mapped timers'
+>>> configuration data is provided by firmware through the ACPI GTDT
+>>> static table.
+>>>
+>>> The clocksource architected timer kernel driver requires a firmware
+>>> interface to collect timer configuration and configure its driver.
+>>> this infrastructure is present for device tree systems, but it is
+>>> missing on systems booting with ACPI.
+>>>
+>>> Implement the kernel infrastructure required to parse the static
+>>> ACPI GTDT table so that the architected timer clocksource driver can
+>>> make use of it on systems booting with ACPI, therefore enabling
+>>> the corresponding timers configuration.
+>>>
+>>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>  drivers/acpi/arm64/gtdt.c | 95 +++++++++++++++++++++++++++++++++++++++=
+++++++++
+>>>  include/linux/acpi.h      |  1 +
+>>>  2 files changed, 96 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+>>> index 2de79aa..08d9506 100644
+>>> --- a/drivers/acpi/arm64/gtdt.c
+>>> +++ b/drivers/acpi/arm64/gtdt.c
+>>> @@ -51,6 +51,14 @@ static inline bool is_timer_block(void *platform_tim=
+er)
+>>>       return gh->type =3D=3D ACPI_GTDT_TYPE_TIMER_BLOCK;
+>>>  }
+>>>
+>>> +static inline struct acpi_gtdt_timer_block *get_timer_block(unsigned i=
+nt index)
+>>> +{
+>>> +     if (index >=3D acpi_gtdt_desc.timer_block_count || !timer_block)
+>>> +             return NULL;
+>>> +
+>>> +     return timer_block[index];
+>>> +}
+>>> +
+>>>  static inline bool is_watchdog(void *platform_timer)
+>>>  {
+>>>       struct acpi_gtdt_header *gh =3D platform_timer;
+>>> @@ -214,3 +222,90 @@ int __init acpi_gtdt_init(struct acpi_table_header=
+ *table)
+>>>       acpi_gtdt_release();
+>>>       return -EINVAL;
+>>>  }
+>>> +
+>>> +/*
+>>> + * Get ONE GT block info for memory-mapped timer from GTDT table.
+>>> + * @data: the GT block data (parsing result)
+>>> + * @index: the index number of GT block
+>>> + * Note: we already verify @data in caller, it can't be NULL here.
+>>> + * Returns 0 if success, -EINVAL/-ENODEV if error.
+>>> + */
 >>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->=20
-> I've applied this one, but I'd like to get an ACK from the DRM folks on=
+>> Documentation/kernel-doc-nano-HOWTO.txt
+>
+> Great thanks , will fix all the comments :-)
+>
+>>
+>>> +int __init gtdt_arch_timer_mem_init(struct arch_timer_mem *data,
+>>> +                                 unsigned int index)
+>>
+>> Nit: acpi_arch_timer_mem_init() to make it consistent with other ACPI
+>> calls ?
+>
+> yes, it makes sense, will do this way for the function  which is exported
+>
+>>
+>>> +{
+>>> +     struct acpi_gtdt_timer_block *block;
+>>> +     struct acpi_gtdt_timer_entry *frame;
+>>> +     int i;
+>>> +
+>>> +     block =3D get_timer_block(index);
+>>> +     if (!block)
+>>> +             return -ENODEV;
+>>> +
+>>> +     if (!block->timer_count) {
+>>> +             pr_err(FW_BUG "GT block present, but frame count is zero.=
+");
+>>> +             return -ENODEV;
+>>> +     }
+>>> +
+>>> +     if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
+>>> +             pr_err(FW_BUG "GT block lists %d frames, ACPI spec only a=
+llows 8\n",
+>>> +                    block->timer_count);
+>>> +             return -EINVAL;
+>>> +     }
+>>
+>> Nit: these two checks can be carried out at GTDT init where the GTDT
+>> is parsed first. Actually you could have two functions one to init
+>
+> this check is  the verify the data in GT block, but the GTDT init
+> won't get into the block,
+> so I think that is better to keep this in GT block init function
+> "acpi_arch_timer_mem_init()"
+>
+>> timers (say acpi_gtdt_timers_init()) and one watchdogs, that would
+>> eliminate the duplicated timer_block/watchdog arrays (both sized
+>> Platform Timer Count) and acpi_gtdt_timers_init() can return
+>> the number of entries found so that you can loop with a determined
+>> upper bound in the arm arch timer driver.
+>
+> Yes, I did this way in previous patchset, but we still need to do scan
+> loop in both  functions for
+> two types of platform timer.
+> So I decide to keep the scan loop in the acpi_gtdt_init to get the
+> number and the entries pointer
+> of each type of platform timers in one go.  then we don't need to scan
+> GTDT in two functions.
 
-> the second one.
-I've already taken the Nouveau patch through my tree.
+I have thought about this again, I think I should keep the loop in each
+type of platform timers. The benefit we can get from this are:
+(1) reduce the global variables:
+static struct acpi_gtdt_timer_block **timer_block __initdata;
+static struct acpi_gtdt_watchdog **watchdog __initdata;
+make them in thire own init function.
+(2) avoid allocating and free memory in different functions.
 
-Ben.
->=20
-> Thanks,
-> Rafael
->=20
+we also can return all the GT block info in one go.
+
+>
+>>
+>> Just thinking aloud, these are just improvements I can carry them
+>> out later, the more important question here is the interface between the
+>> parsing code and the arch timer probing code which depends on other
+>> patches and that needs to be agreed, this patch is not really a problem.
+>
+> yes, every time I modify the interface I have to change the driver :-(
+>
+>>
+>>> +     data->cntctlbase =3D (phys_addr_t)block->block_address;
+>>> +     /*
+>>> +      * We can NOT get the size info from GTDT table,
+>>> +      * but according to "Table * CNTCTLBase memory map" of
+>>> +      * <ARM Architecture Reference Manual> for ARMv8,
+>>> +      * it should be 4KB(Offset 0x000 =E2=80=93 0xFFC).
+>>
+>> That's the reason why it is not explicit in the GTDT table :)
+>>
+>>> +     data->size =3D SZ_4K;
+>>> +     data->num_frames =3D block->timer_count;
+>>> +
+>>> +     frame =3D (void *)block + block->timer_offset;
+>>> +     if (frame + block->timer_count !=3D (void *)block + block->header=
+.length)
+>>> +             return -EINVAL;
+>>> +
+>>> +     /*
+>>> +      * Get the GT timer Frame data for every GT Block Timer
+>>> +      */
+>>> +     for (i =3D 0; i < block->timer_count; i++, frame++) {
+>>> +             if (!frame->base_address || !frame->timer_interrupt)
+>>> +                     return -EINVAL;
+>>> +
+>>> +             data->frame[i].phys_irq =3D map_gt_gsi(frame->timer_inter=
+rupt,
+>>> +                                                  frame->timer_flags);
+>>> +             if (data->frame[i].phys_irq <=3D 0) {
+>>> +                     pr_warn("failed to map physical timer irq in fram=
+e %d.\n",
+>>> +                             i);
+>>> +                     return -EINVAL;
+>>> +             }
+>>> +
+>>> +             if (frame->virtual_timer_interrupt) {
+>>> +                     data->frame[i].virt_irq =3D
+>>> +                             map_gt_gsi(frame->virtual_timer_interrupt=
+,
+>>> +                                        frame->virtual_timer_flags);
+>>> +                     if (data->frame[i].virt_irq <=3D 0) {
+>>> +                             pr_warn("failed to map virtual timer irq =
+in frame %d.\n",
+>>> +                                     i);
+>>> +                             return -EINVAL;
+>>
+>> You should unregister phys_irq here for correctness, right ?
+>
+> yup, thanks for pointing this  bug out. :-)
+>
+>>
+>>> +                     }
+>>> +             }
+>>> +
+>>> +             data->frame[i].frame_nr =3D frame->frame_number;
+>>> +             data->frame[i].cntbase =3D frame->base_address;
+>>> +             /*
+>>> +              * We can NOT get the size info from GTDT table,
+>>> +              * but according to "Table * CNTBaseN memory map" of
+>>> +              * <ARM Architecture Reference Manual> for ARMv8,
+>>> +              * it should be 4KB(Offset 0x000 =E2=80=93 0xFFC).
+>>
+>> See above.
+>
+> yes, you are right, I will fix both comments
+>
+>>
+>>> +              */
+>>> +             data->frame[i].size =3D SZ_4K;
+>>> +     }
+>>> +
+>>> +     if (acpi_gtdt_desc.timer_block_count)
+>>> +             pr_info("parsed No.%d of %d memory-mapped timer block(s).=
+\n",
+>>> +                     index, acpi_gtdt_desc.timer_block_count);
+>>
+>> I am not sure how helpful this message can be honestly.
+>
+> yup, I will simplify it  :-)
+>
+>>
+>>> +
+>>> +     return 0;
+>>> +}
+>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>>> index a1611d1..44b8c1b 100644
+>>> --- a/include/linux/acpi.h
+>>> +++ b/include/linux/acpi.h
+>>> @@ -582,6 +582,7 @@ int acpi_gtdt_init(struct acpi_table_header *table)=
+;
+>>>  int acpi_gtdt_map_ppi(int type);
+>>>  bool acpi_gtdt_c3stop(int type);
+>>>  void acpi_gtdt_release(void);
+>>> +int gtdt_arch_timer_mem_init(struct arch_timer_mem *data, unsigned int=
+ index);
+>>
+>> See above.
+>>
+>> Overall it looks fine as long as the interface with clocksource is
+>> settled, which is what really needs to be agreed upon in this series.
+>
+> Thanks for your help :-)
+>
+>>
+>> Lorenzo
+>>
+>>>  #endif
+>>>
+>>>  #else        /* !CONFIG_ACPI */
+>>> --
+>>> 2.7.4
+>>>
+>
+>
+>
+> --
+> Best regards,
+>
+> Fu Wei
+> Software Engineer
+> Red Hat
 
 
---RqC9ctgKXQCjegg9pL4oRkMvN8hqFEg6t--
 
---cNaheDAiX5HIFQUquodQpivsnKve8rqf3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+--=20
+Best regards,
 
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCAAGBQJYNkK8AAoJEHYLnGJQkpH7UpUP/RUqdr7r/tv5RkkX4BTLDBv2
-Z6sWWaeKpoNhW1zHFlTnu4XsHWnaIHrwHr+eehH3H6MZbnwc3YFP0WPnXpbJ3N9H
-OPgw0qMxmSupRxHPsqZCaCABgvgBin/VNjvZhSx98jh2kylkZF/ukaCioGd1u5Iv
-PYBLab0e9LCblmDtvIbeMJu5CWRN/PRA9Ttvl0Imm/EjT9lXJbMBqa7i4XZWBbmH
-Y+YhjdK0aeAif6L20lYeBSl6fOZy3eo62vVw0YDHtVclHa2bjBxCAZPSaUm69d3n
-tfKDOx06MmwYZCJ6IN0WD42atsq4dInNvX5QDCejnRDuKQvVaZfTZTMBYDYDYliz
-VlKLdiChzQHanTuFycUFG/52pWOLgXpIEo3+i0/SMcvE3MoRTtVmqOF9jQlexvJU
-oADBw6X3oHzA0w5nKN1qHkG/AHu7gDDP1GesiorYR8ZMyuJafxCaF/D6g2HuMWrO
-+AJ0pAXHERedxU4cZ4vvH8g3V4jo5fPYi+boIjQiJl/yNRKLAoaC0G8rDLiAmKyG
-SW/ZFhBtBkxZLMMqvlPYDQ/NDp4be2x2awvfMP97762/2YU6cTCEV7Yu1LhBq5s6
-S84AkIjrOzMgCnHVHg+3KVtK1TQ+fFS1022OXt2rFVx+lKyZC1el++LiwXjQjk0W
-Wafb4llvEkAxEgLGl9cd
-=udwz
------END PGP SIGNATURE-----
-
---cNaheDAiX5HIFQUquodQpivsnKve8rqf3--
+Fu Wei
+Software Engineer
+Red Hat
