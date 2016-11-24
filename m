@@ -1,70 +1,374 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] gpiolib: Forbid irqchip default trigger for ACPI
- enumerated devices
-Date: Thu, 24 Nov 2016 14:45:55 +0100
-Message-ID: <CAJZ5v0hV2ce-CJYoVhrKEK13m7_Duy3KsKGeUErznAHFZ2KgMA@mail.gmail.com>
-References: <20160912112951.76598-1-mika.westerberg@linux.intel.com>
- <3728863.ohrj1SkIMB@vostro.rjw.lan> <20161124075925.GD1476@lahna.fi.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V7 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Thu, 24 Nov 2016 16:15:48 +0000
+Message-ID: <20161124161548.GA11766@red-moon>
+References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
+ <1479074375-2629-3-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34596 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964844AbcKXNp5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Nov 2016 08:45:57 -0500
-In-Reply-To: <20161124075925.GD1476@lahna.fi.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:57252 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750801AbcKXQOm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 24 Nov 2016 11:14:42 -0500
+Content-Disposition: inline
+In-Reply-To: <1479074375-2629-3-git-send-email-agustinv@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-gpio@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-On Thu, Nov 24, 2016 at 8:59 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Thu, Nov 24, 2016 at 02:33:55AM +0100, Rafael J. Wysocki wrote:
->> On Monday, September 12, 2016 02:29:51 PM Mika Westerberg wrote:
->> > Follow DT and forbid default trigger if the GPIO irqchip device is
->> > enumerated from ACPI. Triggering for these devices will be configured
->> > automatically from ACPI interrupt resources provided by the BIOS.
->> >
->> > Suggested-by: Linus Walleij <linus.walleij@linaro.org>
->> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> > ---
->> > This is on top of Marc's patch here:
->> >
->> >   https://lkml.org/lkml/2016/9/7/121
->> >
->> >  drivers/gpio/gpiolib.c | 7 ++++++-
->> >  1 file changed, 6 insertions(+), 1 deletion(-)
->> >
->> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
->> > index 5707b5d12b28..0efb67f387ea 100644
->> > --- a/drivers/gpio/gpiolib.c
->> > +++ b/drivers/gpio/gpiolib.c
->> > @@ -1618,13 +1618,18 @@ int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
->> >             of_node = gpiochip->of_node;
->> >  #endif
->> >     /*
->> > -    * Specifying a default trigger is a terrible idea if DT is
->> > +    * Specifying a default trigger is a terrible idea if DT or ACPI is
->> >      * used to configure the interrupts, as you may end-up with
->> >      * conflicting triggers. Tell the user, and reset to NONE.
->> >      */
->> >     if (WARN(of_node && type != IRQ_TYPE_NONE,
->> >              "%s: Ignoring %d default trigger\n", of_node->full_name, type))
->> >             type = IRQ_TYPE_NONE;
->> > +   if (has_acpi_companion(gpiochip->parent) && type != IRQ_TYPE_NONE) {
->> > +           acpi_handle_warn(ACPI_HANDLE(gpiochip->parent),
->> > +                            "Ignoring %d default trigger\n", type);
->> > +           type = IRQ_TYPE_NONE;
->> > +   }
->> >
->> >     gpiochip->irqchip = irqchip;
->> >     gpiochip->irq_handler = handler;
->> >
->>
->> Has this gone anywhere already?
->
-> Yes, it should be in the mainline kernel with commit id
-> 0a1e005374910180c30247386992565b05109eac.
+Hi Agustin,
 
-OK, thanks!
+On Sun, Nov 13, 2016 at 04:59:34PM -0500, Agustin Vega-Frias wrote:
+> When an Extended IRQ Resource contains a valid ResourceSource
+> use it to map the IRQ on the domain associated with the ACPI
+> device referenced.
+> 
+> With this in place an irqchip driver can create its domain using
+> irq_domain_create_linear and pass the device fwnode to create
+> the domain mapping. When dependent devices are probed these
+> changes allow the ACPI core find the domain and map the IRQ.
+> 
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> ---
+>  drivers/acpi/Makefile         |  2 +-
+>  drivers/acpi/{gsi.c => irq.c} | 98 +++++++++++++++++++++++++++++++++++++------
+>  drivers/acpi/resource.c       | 29 +++++++------
+>  include/linux/acpi.h          | 19 +++++++++
+>  4 files changed, 121 insertions(+), 27 deletions(-)
+>  rename drivers/acpi/{gsi.c => irq.c} (53%)
+
+It looks to me the direction is the right one but I have a question
+for you and others below.
+
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 9ed0878..a391bbc 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,7 +55,7 @@ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+>  acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+>  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  acpi-y				+= acpi_lpat.o
+> -acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+> +acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+>  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+>  
+>  # These are (potentially) separate modules
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/irq.c
+> similarity index 53%
+> rename from drivers/acpi/gsi.c
+> rename to drivers/acpi/irq.c
+> index ee9e0f2..c6ecaab 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/irq.c
+> @@ -18,6 +18,45 @@
+>  static struct fwnode_handle *acpi_gsi_domain_id;
+>  
+>  /**
+> + * acpi_get_irq_source_fwhandle() - Retrieve the fwhandle of the given
+> + *                                  acpi_resource_source which is used
+> + *                                  to be used as an IRQ domain id
+> + * @source: acpi_resource_source to use for the lookup
+> + *
+> + * Returns: The appropriate IRQ fwhandle domain id
+> + *          NULL on failure
+> + */
+> +struct fwnode_handle *
+> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
+> +{
+> +	struct fwnode_handle *result;
+> +	struct acpi_device *device;
+> +	acpi_handle handle;
+> +	acpi_status status;
+> +
+> +	if (!source->string_length)
+> +		return acpi_gsi_domain_id;
+> +
+> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_warn("Could not find handle for %s\n", source->string_ptr);
+> +		return NULL;
+> +	}
+> +
+> +	device = acpi_bus_get_acpi_device(handle);
+> +	if (!device) {
+> +		pr_warn("Could not get device for %s\n", source->string_ptr);
+> +		return NULL;
+> +	}
+> +
+> +	result = &device->fwnode;
+> +	acpi_bus_put_acpi_device(device);
+> +
+> +	return result;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_irq_source_fwhandle);
+> +
+> +/**
+>   * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
+>   * @gsi: GSI IRQ number to map
+>   * @irq: pointer where linux IRQ number is stored
+> @@ -42,6 +81,50 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+>  
+>  /**
+> + * acpi_register_irq() - Map a hardware to a linux IRQ number
+> + * @source: IRQ source
+> + * @hwirq: Hardware IRQ number
+> + * @trigger: trigger type of the IRQ number to be mapped
+> + * @polarity: polarity of the IRQ to be mapped
+> + *
+> + * Returns: a valid linux IRQ number on success
+> + *          -EINVAL on failure
+
+Nit: You need to update the return values list.
+
+> + */
+> +int acpi_register_irq(struct fwnode_handle *source, u32 hwirq, int trigger,
+> +		      int polarity)
+> +{
+> +	struct irq_fwspec fwspec;
+> +
+> +	if (!source)
+> +		return -EINVAL;
+> +
+> +	if (irq_find_matching_fwnode(source, DOMAIN_BUS_ANY) == NULL)
+> +		return -EPROBE_DEFER;
+> +
+> +	fwspec.fwnode = source;
+> +	fwspec.param[0] = hwirq;
+> +	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
+> +	fwspec.param_count = 2;
+> +
+> +	return irq_create_fwspec_mapping(&fwspec);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_register_irq);
+> +
+> +/**
+> + * acpi_unregister_irq() - Free a Hardware IRQ<->linux IRQ number mapping
+> + * @hwirq: Hardware IRQ number
+> + */
+> +void acpi_unregister_irq(struct fwnode_handle *source, u32 hwirq)
+> +{
+> +	struct irq_domain *d = irq_find_matching_fwnode(source,
+> +							DOMAIN_BUS_ANY);
+> +	int irq = irq_find_mapping(d, hwirq);
+> +
+> +	irq_dispose_mapping(irq);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_unregister_irq);
+> +
+> +/**
+>   * acpi_register_gsi() - Map a GSI to a linux IRQ number
+>   * @dev: device for which IRQ has to be mapped
+>   * @gsi: GSI IRQ number
+> @@ -54,19 +137,12 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>  		      int polarity)
+>  {
+> -	struct irq_fwspec fwspec;
+> -
+>  	if (WARN_ON(!acpi_gsi_domain_id)) {
+>  		pr_warn("GSI: No registered irqchip, giving up\n");
+>  		return -EINVAL;
+>  	}
+>  
+> -	fwspec.fwnode = acpi_gsi_domain_id;
+> -	fwspec.param[0] = gsi;
+> -	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
+> -	fwspec.param_count = 2;
+> -
+> -	return irq_create_fwspec_mapping(&fwspec);
+> +	return acpi_register_irq(acpi_gsi_domain_id, gsi, trigger, polarity);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>  
+> @@ -76,11 +152,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>   */
+>  void acpi_unregister_gsi(u32 gsi)
+>  {
+> -	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
+> -							DOMAIN_BUS_ANY);
+> -	int irq = irq_find_mapping(d, gsi);
+> -
+> -	irq_dispose_mapping(irq);
+> +	acpi_unregister_irq(acpi_gsi_domain_id, gsi);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+>  
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 4beda15..83cff00 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -374,21 +374,22 @@ unsigned int acpi_dev_get_irq_type(int triggering, int polarity)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_get_irq_type);
+>  
+> -static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
+> +static void acpi_dev_irqresource_disabled(struct resource *res, u32 hwirq)
+>  {
+> -	res->start = gsi;
+> -	res->end = gsi;
+> +	res->start = hwirq;
+> +	res->end = hwirq;
+>  	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
+>  }
+>  
+> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
+> +				     struct fwnode_handle *source,
+>  				     u8 triggering, u8 polarity, u8 shareable,
+>  				     bool legacy)
+>  {
+>  	int irq, p, t;
+>  
+> -	if (!valid_IRQ(gsi)) {
+> -		acpi_dev_irqresource_disabled(res, gsi);
+> +	if (!source && !valid_IRQ(hwirq)) {
+> +		acpi_dev_irqresource_disabled(res, hwirq);
+>  		return;
+>  	}
+>  
+> @@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>  	 * using extended IRQ descriptors we take the IRQ configuration
+>  	 * from _CRS directly.
+>  	 */
+> -	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
+> +	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
+>  		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
+>  		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+>  
+>  		if (triggering != trig || polarity != pol) {
+> -			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
+> -				   t ? "level" : "edge", p ? "low" : "high");
+> +			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
+> +				t ? "level" : "edge", p ? "low" : "high");
+>  			triggering = trig;
+>  			polarity = pol;
+>  		}
+>  	}
+>  
+>  	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+> -	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
+> +	irq = acpi_register_irq(source, hwirq, triggering, polarity);
+>  	if (irq >= 0) {
+>  		res->start = irq;
+>  		res->end = irq;
+>  	} else {
+> -		acpi_dev_irqresource_disabled(res, gsi);
+> +		acpi_dev_irqresource_disabled(res, hwirq);
+>  	}
+>  }
+>  
+> @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  {
+>  	struct acpi_resource_irq *irq;
+>  	struct acpi_resource_extended_irq *ext_irq;
+> +	struct fwnode_handle *src;
+>  
+>  	switch (ares->type) {
+>  	case ACPI_RESOURCE_TYPE_IRQ:
+> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+> +		acpi_dev_get_irqresource(res, irq->interrupts[index], NULL,
+>  					 irq->triggering, irq->polarity,
+>  					 irq->sharable, true);
+>  		break;
+> @@ -470,7 +472,8 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+> +		src = acpi_get_irq_source_fwhandle(&ext_irq->resource_source);
+
+Is there a reason why we need to do the domain look-up here ?
+
+I would like to understand if, by reshuffling the code (and by returning
+the resource_source to the calling code - somehow), it would be possible
+to just mirror what the OF code does in of_irq_get(), namely:
+
+(1) parse the irq entry -> of_irq_parse_one()
+(2) look the domain up -> irq_find_host()
+(3) create the mapping -> irq_create_of_mapping()
+
+You wrote the code already, I think it is just a matter of shuffling
+it around (well, minus returning the resource_source to the caller
+which is phandle equivalent in DT).
+
+You abstracted away (2) and (3) behind acpi_register_irq(), that
+on anything than does not use ACPI_GENERIC_GSI is just glue code
+to acpi_register_gsi().
+
+Also, it is not a question on this patch but I ask it here because it
+is related. On ACPI you are doing the reverse of what is done in
+DT in platform_get_irq():
+
+- get the resources already parsed -> platform_get_resource()
+- if they are disabled -> acpi_irq_get()
+
+and I think the ordering is tied to my question above because
+you carry out the domain look up in acpi_dev_resource_interrupt()
+so that if for any reason it fails the corresponding resource
+is disabled so that we try to get it again through acpi_irq_get().
+
+I suspect you did it this way to make sure:
+
+a) keep the current ACPI IRQ parsing interface changes to a mininum
+b) avoid changing the behaviour on x86/ia64; in particular, calling
+   acpi_register_gsi() for the _same_ mapping (an IRQ that was already
+   registered at device creation resource parsing) multiple times can
+   trigger issues on x86/ia64
+
+I think that's a reasonable approach but I wanted to get these
+clarifications, I do not think you are far from getting this
+done but since it is a significant change I think it is worth
+discussing the points I raised above because I think the DT code
+sequence in of_irq_get() (1-2-3 above) is cleaner from an IRQ
+layer perspective (instead of having the domain look-up buried
+inside the ACPI IRQ resource parsing API).
+
+Thanks !
+Lorenzo
+
+> +		acpi_dev_get_irqresource(res, ext_irq->interrupts[index], src,
+>  					 ext_irq->triggering, ext_irq->polarity,
+>  					 ext_irq->sharable, false);
+>  		break;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 325bdb9..1099b51 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -321,6 +321,25 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
+>   */
+>  void acpi_unregister_gsi (u32 gsi);
+>  
+> +#ifdef CONFIG_ACPI_GENERIC_GSI
+> +struct fwnode_handle *
+> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source);
+> +int acpi_register_irq(struct fwnode_handle *source, u32 hwirq, int trigger,
+> +		      int polarity);
+> +void acpi_unregister_irq(struct fwnode_handle *source, u32 hwirq);
+> +#else
+> +#define acpi_get_irq_source_fwhandle(source) (NULL)
+> +static inline int acpi_register_irq(struct fwnode_handle *source, u32 hwirq,
+> +				    int trigger, int polarity)
+> +{
+> +	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+> +}
+> +static inline void acpi_unregister_irq(struct fwnode_handle *source, u32 hwirq)
+> +{
+> +	acpi_unregister_gsi(hwirq);
+> +}
+> +#endif
+> +
+>  struct pci_dev;
+>  
+>  int acpi_pci_irq_enable (struct pci_dev *dev);
+> -- 
+> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> 
