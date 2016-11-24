@@ -1,26 +1,104 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5 4/5] ACPI 2.0 / AML: Improve module level execution by
- moving the If/Else/While execution to per-table basis
-Date: Thu, 24 Nov 2016 22:16:39 +0100
-Message-ID: <CAJZ5v0jwydmsBDyWSVxAhzqNcPyjoCMPRrbYjNQJdhSu-g5nPw@mail.gmail.com>
-References: <cover.1474600034.git.lv.zheng@intel.com> <d64177f75f03dc05b0fe63cbb84ff352e15d4f11.1474600034.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] MAINTAINERS: Add bug tracking system location entry type
+Date: Fri, 25 Nov 2016 00:13:56 +0100
+Message-ID: <2170547.PZqCrC6KTi@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f177.google.com ([209.85.210.177]:35535 "EHLO
-        mail-wj0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941269AbcKXVQl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Nov 2016 16:16:41 -0500
-In-Reply-To: <d64177f75f03dc05b0fe63cbb84ff352e15d4f11.1474600034.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <len.brown@intel.com>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <darren.hart@intel.com>, Laura Abbott <labbott@redhat.com>, Konstantin Ryabitsev <konstantin@linuxfoundation.org>, Jon Corbet <corbet@lwn.net>, James Bottomley <jejb@kernel.org>, Theodore Tso <tytso@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Sep 23, 2016 at 5:26 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> This reverts commit 00c611def8748a0a1cf1d31842e49b42dfdb3de1.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-It would be good to say why it is now OK to revert it.
+Following the kernel Bugzilla discussion during the Kernel Summit
+(https://lwn.net/Articles/705245/), add bug tracking system location
+entry type (B) to MAINTAINERS and populate it for several subsystems
+known to be using the kernel BZ actively (and add the upstream BZ for
+ACPICA too).
 
-Thanks,
-Rafael
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ MAINTAINERS |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+Index: linux-pm/MAINTAINERS
+===================================================================
+--- linux-pm.orig/MAINTAINERS
++++ linux-pm/MAINTAINERS
+@@ -77,6 +77,7 @@ Descriptions of section entries:
+ 	Q: Patchwork web based patch tracking system site
+ 	T: SCM tree type and location.
+ 	   Type is one of: git, hg, quilt, stgit, topgit
++	B: Bug tracking system location.
+ 	S: Status, one of the following:
+ 	   Supported:	Someone is actually paid to look after this.
+ 	   Maintained:	Someone actually looks after it.
+@@ -281,6 +282,7 @@ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
+ Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	drivers/acpi/
+ F:	drivers/pnp/pnpacpi/
+@@ -304,6 +306,8 @@ W:	https://acpica.org/
+ W:	https://github.com/acpica/acpica/
+ Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
++B:	https://bugzilla.kernel.org
++B:	https://bugs.acpica.org
+ S:	Supported
+ F:	drivers/acpi/acpica/
+ F:	include/acpi/
+@@ -313,6 +317,7 @@ ACPI FAN DRIVER
+ M:	Zhang Rui <rui.zhang@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	drivers/acpi/fan.c
+ 
+@@ -328,6 +333,7 @@ ACPI THERMAL DRIVER
+ M:	Zhang Rui <rui.zhang@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	drivers/acpi/*thermal*
+ 
+@@ -335,6 +341,7 @@ ACPI VIDEO DRIVER
+ M:	Zhang Rui <rui.zhang@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	drivers/acpi/acpi_video.c
+ 
+@@ -5671,6 +5678,7 @@ HIBERNATION (aka Software Suspend, aka s
+ M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ M:	Pavel Machek <pavel@ucw.cz>
+ L:	linux-pm@vger.kernel.org
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	arch/x86/power/
+ F:	drivers/base/power/
+@@ -9632,6 +9640,7 @@ POWER MANAGEMENT CORE
+ M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ L:	linux-pm@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	drivers/base/power/
+ F:	include/linux/pm.h
+@@ -11621,6 +11630,7 @@ M:	"Rafael J. Wysocki" <rjw@rjwysocki.ne
+ M:	Len Brown <len.brown@intel.com>
+ M:	Pavel Machek <pavel@ucw.cz>
+ L:	linux-pm@vger.kernel.org
++B:	https://bugzilla.kernel.org
+ S:	Supported
+ F:	Documentation/power/
+ F:	arch/x86/kernel/acpi/
+
