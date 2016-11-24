@@ -1,83 +1,149 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 1/1] ARM64/PCI: Manage controller-specific information on the host controller basis
-Date: Thu, 24 Nov 2016 12:05:23 +0100
-Message-ID: <1479985523-10006-1-git-send-email-tn@semihalf.com>
-References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH V9 11/11] ARM64/PCI: Support for ACPI based PCI host
+ controller
+Date: Thu, 24 Nov 2016 12:10:44 +0100
+Message-ID: <a3548d7a-73cb-21d5-a3d9-a0e4f07a5db5@semihalf.com>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-12-git-send-email-tn@semihalf.com>
+ <20161122231321.GA20246@bhelgaas-glaptop.roam.corp.google.com>
+ <edf72769-e9c8-4617-8dc4-8f3d05a678e7@semihalf.com>
+ <20161123182243.GF16033@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+In-Reply-To: <20161123182243.GF16033@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
-Cc: arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, cov@codeaurora.org, dhdang@apm.com, Liviu.Dudau@arm.com, msalter@redhat.com, wangyijing@huawei.com, jchandra@broadcom.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, jhugo@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-Currently we use one shared global acpi_pci_root_ops structure to keep
-controller-specific ops. Then its pointer is passed to acpi_pci_root_create()
-and associated with host bridge instance for good. Such design implies
-serious drawback. Any potential manipulation on the single system-wide
-acpi_pci_root_ops leads to kernel crash. The structure content is not
-really changing even across multiple host bridges creation thus it was not
-the issue so far.
+On 23.11.2016 19:22, Bjorn Helgaas wrote:
+> On Wed, Nov 23, 2016 at 12:21:03PM +0100, Tomasz Nowicki wrote:
+>> Hi Bjorn,
+>>
+>> On 23.11.2016 00:13, Bjorn Helgaas wrote:
+>>> Hi Tomasz,
+>>>
+>>> On Fri, Jun 10, 2016 at 09:55:19PM +0200, Tomasz Nowicki wrote:
+>>>> Implement pci_acpi_scan_root and other arch-specific call so that ARM64
+>>>> can start using ACPI to setup and enumerate PCI buses.
+>>>>
+>>>> Prior to buses enumeration the pci_acpi_scan_root() implementation looks
+>>>> for configuration space start address (obtained through ACPI _CBA method or
+>>>> MCFG interface). If succeed, it uses ECAM library to create new mapping.
+>>>> Then it attaches generic ECAM ops (pci_generic_ecam_ops) which are used
+>>>> for accessing configuration space later on.
+>>>> ...
+>>>
+>>>> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
+>>>> +	.release_info = pci_acpi_generic_release_info,
+>>>> +};
+>>>> +
+>>>> +/* Interface called from ACPI code to setup PCI host controller */
+>>>> struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>>> {
+>>>> -	/* TODO: Should be revisited when implementing PCI on ACPI */
+>>>> -	return NULL;
+>>>> +	int node = acpi_get_node(root->device->handle);
+>>>> +	struct acpi_pci_generic_root_info *ri;
+>>>> +	struct pci_bus *bus, *child;
+>>>> +
+>>>> +	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+>>>> +	if (!ri)
+>>>> +		return NULL;
+>>>> +
+>>>> +	ri->cfg = pci_acpi_setup_ecam_mapping(root);
+>>>> +	if (!ri->cfg) {
+>>>> +		kfree(ri);
+>>>> +		return NULL;
+>>>> +	}
+>>>> +
+>>>> +	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+>>>
+>>> This has already been merged, but this isn't right, is it?  We're
+>>> writing a host controller-specific pointer into the single system-wide
+>>> acpi_pci_root_ops, then passing it on to acpi_pci_root_create().
+>>>
+>>> Today, I think ri->cfg->ops->pci_ops is always &pci_generic_ecam_ops,
+>> >from this path:
+>>>
+>>>  ri->cfg = pci_acpi_setup_ecam_mapping
+>>>    cfg = pci_ecam_create(..., &pci_generic_ecam_ops)
+>>>      cfg = kzalloc(...)
+>>>      cfg->ops = ops             # &pci_generic_ecam_ops
+>>>
+>>> But we're about to merge the ECAM quirks series, which will mean it
+>>> may not be &pci_generic_ecam_ops.  Even apart from the ECAM quirks, we
+>>> should avoid this pattern of putting device-specific info in a single
+>>> shared structure because it's too difficult to verify that it's
+>>> correct.
+>>>
+>>
+>> Well spotted. I agree, we need to fix this. How about this:
+>> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+>> index fb439c7..31c0e1c 100644
+>> --- a/arch/arm64/kernel/pci.c
+>> +++ b/arch/arm64/kernel/pci.c
+>> @@ -152,33 +152,35 @@ static void
+>> pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
+>>
+>>         ri = container_of(ci, struct acpi_pci_generic_root_info, common);
+>>         pci_ecam_free(ri->cfg);
+>> +       kfree(ci->ops);
+>>         kfree(ri);
+>>  }
+>>
+>> -static struct acpi_pci_root_ops acpi_pci_root_ops = {
+>> -       .release_info = pci_acpi_generic_release_info,
+>> -};
+>> -
+>>  /* Interface called from ACPI code to setup PCI host controller */
+>>  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>  {
+>>         int node = acpi_get_node(root->device->handle);
+>>         struct acpi_pci_generic_root_info *ri;
+>>         struct pci_bus *bus, *child;
+>> +       struct acpi_pci_root_ops *root_ops;
+>>
+>>         ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+>>         if (!ri)
+>>                 return NULL;
+>>
+>> +       root_ops = kzalloc_node(sizeof(*root_ops), GFP_KERNEL, node);
+>> +       if (!root_ops)
+>> +               return NULL;
+>> +
+>>         ri->cfg = pci_acpi_setup_ecam_mapping(root);
+>>         if (!ri->cfg) {
+>>                 kfree(ri);
+>> +               kfree(root_ops);
+>>                 return NULL;
+>>         }
+>>
+>> -       acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+>> -       bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+>> -                                  ri->cfg);
+>> +       root_ops->release_info = pci_acpi_generic_release_info;
+>> +       root_ops->pci_ops = &ri->cfg->ops->pci_ops;
+>> +       bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
+>>         if (!bus)
+>>                 return NULL;
+>>
+>> Of course, this should be the part of ECAM quirks core patches.
+>>
+>> The other option we have is to remove "struct pci_ops *pci_ops;"
+>> from acpi_pci_root_ops structure and pass struct pci_ops as an extra
+>> argument to acpi_pci_root_create(). What do you think?
+>
+> I think your patch above is fine and avoids the need to change the x86 and
+> ia64 code.  Would you mind packaging this up with a changelog and
+> signed-off-by?  I can take care of putting it in the ECAM series.
+>
 
-In preparation for adding ECAM quirks mechanism (where controller-specific
-PCI ops may be different for each host bridge) allocate new
-acpi_pci_root_ops and fill in with data for each bridge. Now it is safe
-to have different controller-specific info. As a consequence free
-acpi_pci_root_ops when host bridge is released.
+Sure, I have just sent the patch in replay to ECAM quirks V6 patch set.
 
-No functional changes in this patch.
+Let us know when you update your branch so we base our quirks on it.
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- arch/arm64/kernel/pci.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index fb439c7..5c08baf 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -152,33 +152,36 @@ static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
- 
- 	ri = container_of(ci, struct acpi_pci_generic_root_info, common);
- 	pci_ecam_free(ri->cfg);
-+	kfree(ci->ops);
- 	kfree(ri);
- }
- 
--static struct acpi_pci_root_ops acpi_pci_root_ops = {
--	.release_info = pci_acpi_generic_release_info,
--};
--
- /* Interface called from ACPI code to setup PCI host controller */
- struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- {
- 	int node = acpi_get_node(root->device->handle);
- 	struct acpi_pci_generic_root_info *ri;
- 	struct pci_bus *bus, *child;
-+	struct acpi_pci_root_ops *root_ops;
- 
- 	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
- 	if (!ri)
- 		return NULL;
- 
-+	root_ops = kzalloc_node(sizeof(*root_ops), GFP_KERNEL, node);
-+	if (!root_ops)
-+		return NULL;
-+
- 	ri->cfg = pci_acpi_setup_ecam_mapping(root);
- 	if (!ri->cfg) {
- 		kfree(ri);
-+		kfree(root_ops);
- 		return NULL;
- 	}
- 
--	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
--	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
--				   ri->cfg);
-+	root_ops->release_info = pci_acpi_generic_release_info;
-+	root_ops->pci_ops = &ri->cfg->ops->pci_ops;
-+	bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
- 	if (!bus)
- 		return NULL;
- 
--- 
-2.7.4
+Thanks,
+Tomasz
