@@ -1,61 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] gpiolib: Forbid irqchip default trigger for ACPI enumerated devices
-Date: Thu, 24 Nov 2016 02:33:55 +0100
-Message-ID: <3728863.ohrj1SkIMB@vostro.rjw.lan>
-References: <20160912112951.76598-1-mika.westerberg@linux.intel.com>
+From: Ben Skeggs <skeggsb@gmail.com>
+Subject: Re: [PATCH] acpi: video: Move ACPI_VIDEO_NOTIFY_* defines to
+ acpi/video.h
+Date: Thu, 24 Nov 2016 11:30:36 +1000
+Message-ID: <e7e4b056-d375-49cc-fcc3-21917b024f9d@gmail.com>
+References: <20161109171556.4003-1-hdegoede@redhat.com>
+ <4010260.RhimP6FkGx@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160912112951.76598-1-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="cNaheDAiX5HIFQUquodQpivsnKve8rqf3"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34123 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935138AbcKXBam (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Nov 2016 20:30:42 -0500
+Received: by mail-pf0-f193.google.com with SMTP id y68so1181435pfb.1
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Nov 2016 17:30:42 -0800 (PST)
+In-Reply-To: <4010260.RhimP6FkGx@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Dave Airlie <airlied@redhat.com>, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
 
-On Monday, September 12, 2016 02:29:51 PM Mika Westerberg wrote:
-> Follow DT and forbid default trigger if the GPIO irqchip device is
-> enumerated from ACPI. Triggering for these devices will be configured
-> automatically from ACPI interrupt resources provided by the BIOS.
-> 
-> Suggested-by: Linus Walleij <linus.walleij@linaro.org>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
-> This is on top of Marc's patch here:
-> 
->   https://lkml.org/lkml/2016/9/7/121
-> 
->  drivers/gpio/gpiolib.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> index 5707b5d12b28..0efb67f387ea 100644
-> --- a/drivers/gpio/gpiolib.c
-> +++ b/drivers/gpio/gpiolib.c
-> @@ -1618,13 +1618,18 @@ int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
->  		of_node = gpiochip->of_node;
->  #endif
->  	/*
-> -	 * Specifying a default trigger is a terrible idea if DT is
-> +	 * Specifying a default trigger is a terrible idea if DT or ACPI is
->  	 * used to configure the interrupts, as you may end-up with
->  	 * conflicting triggers. Tell the user, and reset to NONE.
->  	 */
->  	if (WARN(of_node && type != IRQ_TYPE_NONE,
->  		 "%s: Ignoring %d default trigger\n", of_node->full_name, type))
->  		type = IRQ_TYPE_NONE;
-> +	if (has_acpi_companion(gpiochip->parent) && type != IRQ_TYPE_NONE) {
-> +		acpi_handle_warn(ACPI_HANDLE(gpiochip->parent),
-> +				 "Ignoring %d default trigger\n", type);
-> +		type = IRQ_TYPE_NONE;
-> +	}
->  
->  	gpiochip->irqchip = irqchip;
->  	gpiochip->irq_handler = handler;
-> 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--cNaheDAiX5HIFQUquodQpivsnKve8rqf3
+Content-Type: multipart/mixed; boundary="RqC9ctgKXQCjegg9pL4oRkMvN8hqFEg6t"
+From: Ben Skeggs <skeggsb@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+ Hans de Goede <hdegoede@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>,
+ Dave Airlie <airlied@redhat.com>, nouveau@lists.freedesktop.org,
+ dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+Message-ID: <e7e4b056-d375-49cc-fcc3-21917b024f9d@gmail.com>
+Subject: Re: [PATCH] acpi: video: Move ACPI_VIDEO_NOTIFY_* defines to
+ acpi/video.h
+References: <20161109171556.4003-1-hdegoede@redhat.com>
+ <4010260.RhimP6FkGx@vostro.rjw.lan>
+In-Reply-To: <4010260.RhimP6FkGx@vostro.rjw.lan>
 
-Has this gone anywhere already?
+--RqC9ctgKXQCjegg9pL4oRkMvN8hqFEg6t
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+On 11/24/2016 11:27 AM, Rafael J. Wysocki wrote:
+> On Wednesday, November 09, 2016 06:15:56 PM Hans de Goede wrote:
+>> acpi_video.c passed the ACPI_VIDEO_NOTIFY_* defines as type code to
+>> acpi_notifier_call_chain(). Move these defines to acpi/video.h so
+>> that acpi_notifier listeners can check the type code using these
+>> defines.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>=20
+> I've applied this one, but I'd like to get an ACK from the DRM folks on=
 
+> the second one.
+I've already taken the Nouveau patch through my tree.
+
+Ben.
+>=20
+> Thanks,
+> Rafael
+>=20
+
+
+--RqC9ctgKXQCjegg9pL4oRkMvN8hqFEg6t--
+
+--cNaheDAiX5HIFQUquodQpivsnKve8rqf3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJYNkK8AAoJEHYLnGJQkpH7UpUP/RUqdr7r/tv5RkkX4BTLDBv2
+Z6sWWaeKpoNhW1zHFlTnu4XsHWnaIHrwHr+eehH3H6MZbnwc3YFP0WPnXpbJ3N9H
+OPgw0qMxmSupRxHPsqZCaCABgvgBin/VNjvZhSx98jh2kylkZF/ukaCioGd1u5Iv
+PYBLab0e9LCblmDtvIbeMJu5CWRN/PRA9Ttvl0Imm/EjT9lXJbMBqa7i4XZWBbmH
+Y+YhjdK0aeAif6L20lYeBSl6fOZy3eo62vVw0YDHtVclHa2bjBxCAZPSaUm69d3n
+tfKDOx06MmwYZCJ6IN0WD42atsq4dInNvX5QDCejnRDuKQvVaZfTZTMBYDYDYliz
+VlKLdiChzQHanTuFycUFG/52pWOLgXpIEo3+i0/SMcvE3MoRTtVmqOF9jQlexvJU
+oADBw6X3oHzA0w5nKN1qHkG/AHu7gDDP1GesiorYR8ZMyuJafxCaF/D6g2HuMWrO
++AJ0pAXHERedxU4cZ4vvH8g3V4jo5fPYi+boIjQiJl/yNRKLAoaC0G8rDLiAmKyG
+SW/ZFhBtBkxZLMMqvlPYDQ/NDp4be2x2awvfMP97762/2YU6cTCEV7Yu1LhBq5s6
+S84AkIjrOzMgCnHVHg+3KVtK1TQ+fFS1022OXt2rFVx+lKyZC1el++LiwXjQjk0W
+Wafb4llvEkAxEgLGl9cd
+=udwz
+-----END PGP SIGNATURE-----
+
+--cNaheDAiX5HIFQUquodQpivsnKve8rqf3--
