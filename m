@@ -1,67 +1,83 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] gpiolib: Forbid irqchip default trigger for ACPI
- enumerated devices
-Date: Thu, 24 Nov 2016 09:59:25 +0200
-Message-ID: <20161124075925.GD1476@lahna.fi.intel.com>
-References: <20160912112951.76598-1-mika.westerberg@linux.intel.com>
- <3728863.ohrj1SkIMB@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:18461 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755197AbcKXH73 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 24 Nov 2016 02:59:29 -0500
-Content-Disposition: inline
-In-Reply-To: <3728863.ohrj1SkIMB@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH V6 1/1] ARM64/PCI: Manage controller-specific information on the host controller basis
+Date: Thu, 24 Nov 2016 12:05:23 +0100
+Message-ID: <1479985523-10006-1-git-send-email-tn@semihalf.com>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com
+Cc: arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, cov@codeaurora.org, dhdang@apm.com, Liviu.Dudau@arm.com, msalter@redhat.com, wangyijing@huawei.com, jchandra@broadcom.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, jhugo@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 
-On Thu, Nov 24, 2016 at 02:33:55AM +0100, Rafael J. Wysocki wrote:
-> On Monday, September 12, 2016 02:29:51 PM Mika Westerberg wrote:
-> > Follow DT and forbid default trigger if the GPIO irqchip device is
-> > enumerated from ACPI. Triggering for these devices will be configured
-> > automatically from ACPI interrupt resources provided by the BIOS.
-> > 
-> > Suggested-by: Linus Walleij <linus.walleij@linaro.org>
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > ---
-> > This is on top of Marc's patch here:
-> > 
-> >   https://lkml.org/lkml/2016/9/7/121
-> > 
-> >  drivers/gpio/gpiolib.c | 7 ++++++-
-> >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> > index 5707b5d12b28..0efb67f387ea 100644
-> > --- a/drivers/gpio/gpiolib.c
-> > +++ b/drivers/gpio/gpiolib.c
-> > @@ -1618,13 +1618,18 @@ int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
-> >  		of_node = gpiochip->of_node;
-> >  #endif
-> >  	/*
-> > -	 * Specifying a default trigger is a terrible idea if DT is
-> > +	 * Specifying a default trigger is a terrible idea if DT or ACPI is
-> >  	 * used to configure the interrupts, as you may end-up with
-> >  	 * conflicting triggers. Tell the user, and reset to NONE.
-> >  	 */
-> >  	if (WARN(of_node && type != IRQ_TYPE_NONE,
-> >  		 "%s: Ignoring %d default trigger\n", of_node->full_name, type))
-> >  		type = IRQ_TYPE_NONE;
-> > +	if (has_acpi_companion(gpiochip->parent) && type != IRQ_TYPE_NONE) {
-> > +		acpi_handle_warn(ACPI_HANDLE(gpiochip->parent),
-> > +				 "Ignoring %d default trigger\n", type);
-> > +		type = IRQ_TYPE_NONE;
-> > +	}
-> >  
-> >  	gpiochip->irqchip = irqchip;
-> >  	gpiochip->irq_handler = handler;
-> > 
-> 
-> Has this gone anywhere already?
+Currently we use one shared global acpi_pci_root_ops structure to keep
+controller-specific ops. Then its pointer is passed to acpi_pci_root_create()
+and associated with host bridge instance for good. Such design implies
+serious drawback. Any potential manipulation on the single system-wide
+acpi_pci_root_ops leads to kernel crash. The structure content is not
+really changing even across multiple host bridges creation thus it was not
+the issue so far.
 
-Yes, it should be in the mainline kernel with commit id
-0a1e005374910180c30247386992565b05109eac.
+In preparation for adding ECAM quirks mechanism (where controller-specific
+PCI ops may be different for each host bridge) allocate new
+acpi_pci_root_ops and fill in with data for each bridge. Now it is safe
+to have different controller-specific info. As a consequence free
+acpi_pci_root_ops when host bridge is released.
+
+No functional changes in this patch.
+
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+---
+ arch/arm64/kernel/pci.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index fb439c7..5c08baf 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -152,33 +152,36 @@ static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
+ 
+ 	ri = container_of(ci, struct acpi_pci_generic_root_info, common);
+ 	pci_ecam_free(ri->cfg);
++	kfree(ci->ops);
+ 	kfree(ri);
+ }
+ 
+-static struct acpi_pci_root_ops acpi_pci_root_ops = {
+-	.release_info = pci_acpi_generic_release_info,
+-};
+-
+ /* Interface called from ACPI code to setup PCI host controller */
+ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ {
+ 	int node = acpi_get_node(root->device->handle);
+ 	struct acpi_pci_generic_root_info *ri;
+ 	struct pci_bus *bus, *child;
++	struct acpi_pci_root_ops *root_ops;
+ 
+ 	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+ 	if (!ri)
+ 		return NULL;
+ 
++	root_ops = kzalloc_node(sizeof(*root_ops), GFP_KERNEL, node);
++	if (!root_ops)
++		return NULL;
++
+ 	ri->cfg = pci_acpi_setup_ecam_mapping(root);
+ 	if (!ri->cfg) {
+ 		kfree(ri);
++		kfree(root_ops);
+ 		return NULL;
+ 	}
+ 
+-	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+-	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+-				   ri->cfg);
++	root_ops->release_info = pci_acpi_generic_release_info;
++	root_ops->pci_ops = &ri->cfg->ops->pci_ops;
++	bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
+ 	if (!bus)
+ 		return NULL;
+ 
+-- 
+2.7.4
