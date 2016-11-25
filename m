@@ -1,83 +1,233 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v17 08/15] clocksource/drivers/arm_arch_timer: move
- arch_timer_needs_of_probing into DT init call
-Date: Fri, 25 Nov 2016 23:06:32 +0800
-Message-ID: <CADyBb7uAObQn_JVp_qw9+7POiqUctdzy3cYLsb0rk-JMX5W1uw@mail.gmail.com>
-References: <20161125084623.22515-9-fu.wei@linaro.org> <201611252221.UyJ9iWPV%fengguang.wu@intel.com>
+From: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V5 01/10] acpi: apei: read ack upon ghes record consumption
+Date: Fri, 25 Nov 2016 18:19:03 +0000
+Message-ID: <58388097.9000106@arm.com>
+References: <1479767763-27532-1-git-send-email-tbaicar@codeaurora.org> <1479767763-27532-2-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201611252221.UyJ9iWPV%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1479767763-27532-2-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org, punit.agrawal-5wv7dgnIgG8@public.gmane.org, astone-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ,
+Hi Tyler,
 
-On 25 November 2016 at 22:32, kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Hi Fu,
->
-> [auto build test ERROR on pm/linux-next]
-> [also build test ERROR on v4.9-rc6]
-> [cannot apply to tip/timers/core next-20161125]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/fu-wei-linaro-org/acpi-clocksource-add-GTDT-driver-and-GTDT-support-in-arm_arch_timer/20161125-171111
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-> config: arm64-defconfig (attached as .config)
-> compiler: aarch64-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=arm64
->
-> Note: the linux-review/fu-wei-linaro-org/acpi-clocksource-add-GTDT-driver-and-GTDT-support-in-arm_arch_timer/20161125-171111 HEAD 498f1f2503da21841b0e7679ddbdb86a40451bdb builds fine.
->       It only hurts bisectibility.
->
-> All errors (new ones prefixed by >>):
->
->    drivers/clocksource/arm_arch_timer.c: In function 'arch_timer_acpi_init':
+On 21/11/16 22:35, Tyler Baicar wrote:
+> A RAS (Reliability, Availability, Serviceability) controller
+> may be a separate processor running in parallel with OS
+> execution, and may generate error records for consumption by
+> the OS. If the RAS controller produces multiple error records,
+> then they may be overwritten before the OS has consumed them.
+> 
+> The Generic Hardware Error Source (GHES) v2 structure
+> introduces the capability for the OS to acknowledge the
+> consumption of the error record generated by the RAS
+> controller. A RAS controller supporting GHESv2 shall wait for
+> the acknowledgment before writing a new error record, thus
+> eliminating the race condition.
 
-Sorry, again,
+This patch also adds support for parsing GHESv2 sub-tables.
+Before they would be rejected as an unknown hardware error source.
 
-a "+ int ret;" should be move from [12/15] to here, I have fix the
-problem in my repo, it would happen in next patchset
 
-https://git.linaro.org/people/fu.wei/linux.git/log/?h=topic-gtdt-wakeup-timer_upstream_v18_devel
+> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 
->>> drivers/clocksource/arm_arch_timer.c:1071:2: error: 'ret' undeclared (first use in this function)
->      ret = arch_timer_register();
->      ^~~
->    drivers/clocksource/arm_arch_timer.c:1071:2: note: each undeclared identifier is reported only once for each function it appears in
->
-> vim +/ret +1071 drivers/clocksource/arm_arch_timer.c
->
->   1065                  return -EINVAL;
->   1066          }
->   1067
->   1068          /* Always-on capability */
->   1069          arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
->   1070
->> 1071          ret = arch_timer_register();
->   1072          if (ret)
->   1073                  return ret;
->   1074
->
+Nit: the patch author's Sign-off should come first, you either need a 'From:
+Jonathan (Zhixiong) Zhang ...' on this patch, or re-order these Signed-off-by's.
+
+
+> Signed-off-by: Richard Ruigrok <rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Signed-off-by: Naveen Kaje <nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 > ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>  drivers/acpi/apei/ghes.c | 49 +++++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/acpi/apei/hest.c |  7 +++++--
+>  include/acpi/ghes.h      |  5 ++++-
+>  3 files changed, 55 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 60746ef..b79abc5 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -45,6 +45,7 @@
+>  #include <linux/aer.h>
+>  #include <linux/nmi.h>
+>  
+> +#include <acpi/actbl1.h>
+>  #include <acpi/ghes.h>
+>  #include <acpi/apei.h>
+>  #include <asm/tlbflush.h>
+> @@ -79,6 +80,10 @@
+>  	((struct acpi_hest_generic_status *)				\
+>  	 ((struct ghes_estatus_node *)(estatus_node) + 1))
+>  
+> +#define HEST_TYPE_GENERIC_V2(ghes)				\
+> +	((struct acpi_hest_header *)ghes->generic)->type ==	\
+> +	 ACPI_HEST_TYPE_GENERIC_ERROR_V2
+> +
+
+IS_ HEST_TYPE_GENERIC_V2() ? (for the sake of readability)
 
 
+>  /*
+>   * This driver isn't really modular, however for the time being,
+>   * continuing to use module_param is the easiest way to remain
+> @@ -248,10 +253,18 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>  	ghes = kzalloc(sizeof(*ghes), GFP_KERNEL);
+>  	if (!ghes)
+>  		return ERR_PTR(-ENOMEM);
+> +
+>  	ghes->generic = generic;
+> +	if (HEST_TYPE_GENERIC_V2(ghes)) {
+> +		rc = apei_map_generic_address(
+> +			&ghes->generic_v2->read_ack_register);
+> +		if (rc)
+> +			goto err_free;
+> +	}
+> +
+>  	rc = apei_map_generic_address(&generic->error_status_address);
+>  	if (rc)
+> -		goto err_free;
+> +		goto err_unmap_read_ack_addr;
+>  	error_block_length = generic->error_block_length;
+>  	if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
+>  		pr_warning(FW_WARN GHES_PFX
+> @@ -263,13 +276,17 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
+>  	ghes->estatus = kmalloc(error_block_length, GFP_KERNEL);
+>  	if (!ghes->estatus) {
+>  		rc = -ENOMEM;
+> -		goto err_unmap;
+> +		goto err_unmap_status_addr;
+>  	}
+>  
+>  	return ghes;
+>  
+> -err_unmap:
+> +err_unmap_status_addr:
+>  	apei_unmap_generic_address(&generic->error_status_address);
+> +err_unmap_read_ack_addr:
+> +	if (HEST_TYPE_GENERIC_V2(ghes))
+> +		apei_unmap_generic_address(
+> +			&ghes->generic_v2->read_ack_register);
+>  err_free:
+>  	kfree(ghes);
+>  	return ERR_PTR(rc);
+> @@ -279,6 +296,9 @@ static void ghes_fini(struct ghes *ghes)
+>  {
+>  	kfree(ghes->estatus);
+>  	apei_unmap_generic_address(&ghes->generic->error_status_address);
+> +	if (HEST_TYPE_GENERIC_V2(ghes))
+> +		apei_unmap_generic_address(
+> +			&ghes->generic_v2->read_ack_register);
+>  }
+>  
+>  static inline int ghes_severity(int severity)
+> @@ -648,6 +668,23 @@ static void ghes_estatus_cache_add(
+>  	rcu_read_unlock();
+>  }
+>  
+> +static int ghes_ack_error(struct acpi_hest_generic_v2 *generic_v2)
+> +{
+> +	int rc;
+> +	u64 val = 0;
+> +
+> +	rc = apei_read(&val, &generic_v2->read_ack_register);
+> +	if (rc)
+> +		return rc;
+> +	val &= generic_v2->read_ack_preserve <<
+> +		generic_v2->read_ack_register.bit_offset;
+> +	val |= generic_v2->read_ack_write <<
+> +		generic_v2->read_ack_register.bit_offset;
 
--- 
-Best regards,
+Is this bit_offset shifting needed in case the read_ack_register is in the
+'system io' (or embedded controller) address space and shares a register with
+some other stuff?
 
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The read_ack_{preserve,write} values are u64, so if bit_offset is non-zero the
+high order bits get lost, but both ends of this are in the firmware's control.
+
+(I assumed this thing would always be in memory and these fields would never be
+used - but I guess that isn't true!)
+
+
+> +	rc = apei_write(val, &generic_v2->read_ack_register);
+> +
+> +	return rc;
+> +}
+> +
+>  static int ghes_proc(struct ghes *ghes)
+>  {
+>  	int rc;
+> @@ -660,6 +697,12 @@ static int ghes_proc(struct ghes *ghes)
+>  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>  	}
+>  	ghes_do_proc(ghes, ghes->estatus);
+> +
+> +	if (HEST_TYPE_GENERIC_V2(ghes)) {
+> +		rc = ghes_ack_error(ghes->generic_v2);
+> +		if (rc)
+> +			return rc;
+> +	}
+>  out:
+>  	ghes_clear_estatus(ghes);
+>  	return 0;
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index 792a0d9..ef725a9 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -52,6 +52,7 @@ static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
+>  	[ACPI_HEST_TYPE_AER_ENDPOINT] = sizeof(struct acpi_hest_aer),
+>  	[ACPI_HEST_TYPE_AER_BRIDGE] = sizeof(struct acpi_hest_aer_bridge),
+>  	[ACPI_HEST_TYPE_GENERIC_ERROR] = sizeof(struct acpi_hest_generic),
+> +	[ACPI_HEST_TYPE_GENERIC_ERROR_V2] = sizeof(struct acpi_hest_generic_v2),
+>  };
+>  
+>  static int hest_esrc_len(struct acpi_hest_header *hest_hdr)
+> @@ -146,7 +147,8 @@ static int __init hest_parse_ghes_count(struct acpi_hest_header *hest_hdr, void
+>  {
+>  	int *count = data;
+>  
+> -	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR)
+> +	if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR ||
+> +	    hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR_V2)
+>  		(*count)++;
+>  	return 0;
+>  }
+> @@ -157,7 +159,8 @@ static int __init hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
+>  	struct ghes_arr *ghes_arr = data;
+>  	int rc, i;
+>  
+> -	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR)
+> +	if (hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR &&
+> +	    hest_hdr->type != ACPI_HEST_TYPE_GENERIC_ERROR_V2)
+>  		return 0;
+>  
+>  	if (!((struct acpi_hest_generic *)hest_hdr)->enabled)
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 720446c..68f088a 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -13,7 +13,10 @@
+>  #define GHES_EXITING		0x0002
+>  
+>  struct ghes {
+> -	struct acpi_hest_generic *generic;
+> +	union {
+> +		struct acpi_hest_generic *generic;
+> +		struct acpi_hest_generic_v2 *generic_v2;
+> +	};
+>  	struct acpi_hest_generic_status *estatus;
+>  	u64 buffer_paddr;
+>  	unsigned long flags;
+> 
+
+Looks good to me, for what its worth:
+Reviewed-by: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+
+
+Thanks,
+
+James
