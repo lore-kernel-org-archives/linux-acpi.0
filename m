@@ -1,92 +1,196 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v17 07/15] clocksource/drivers/arm_arch_timer: Refactor arch_timer_needs_probing
-Date: Fri, 25 Nov 2016 16:46:15 +0800
-Message-ID: <20161125084623.22515-8-fu.wei@linaro.org>
+Subject: [PATCH v17 13/15] acpi/arm64: Add memory-mapped timer support in GTDT driver
+Date: Fri, 25 Nov 2016 16:46:21 +0800
+Message-ID: <20161125084623.22515-14-fu.wei@linaro.org>
 References: <20161125084623.22515-1-fu.wei@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:40248 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754285AbcKYItF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 25 Nov 2016 03:49:05 -0500
 In-Reply-To: <20161125084623.22515-1-fu.wei@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Fu Wei <fu.wei@linaro.org>
 
-When system init with device-tree, we don't know which node will be
-initialized first. And the code in arch_timer_common_init should wait
-until per-cpu timer and MMIO timer are both initialized. So we need
-arch_timer_needs_probing to detect the init status of system.
+On platforms booting with ACPI, architected memory-mapped timers'
+configuration data is provided by firmware through the ACPI GTDT
+static table.
 
-But currently the code is dispersed in arch_timer_needs_probing and
-arch_timer_common_init. And the function name doesn't specify that
-it's only for device-tree. This is somewhat confusing.
+The clocksource architected timer kernel driver requires a firmware
+interface to collect timer configuration and configure its driver.
+this infrastructure is present for device tree systems, but it is
+missing on systems booting with ACPI.
 
-This patch move all related code from arch_timer_common_init to
-arch_timer_needs_probing, refactor it, and rename it to
-arch_timer_needs_of_probing. And make sure that it will be called
-only if acpi is disabled.
+Implement the kernel infrastructure required to parse the static
+ACPI GTDT table so that the architected timer clocksource driver can
+make use of it on systems booting with ACPI, therefore enabling
+the corresponding timers configuration.
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ drivers/acpi/arm64/gtdt.c | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h      |   1 +
+ 2 files changed, 125 insertions(+)
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index e554081..2c9085a 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -792,15 +792,28 @@ static const struct of_device_id arch_timer_mem_of_match[] __initconst = {
- 	{},
- };
+diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+index d93a790..91ea6cb 100644
+--- a/drivers/acpi/arm64/gtdt.c
++++ b/drivers/acpi/arm64/gtdt.c
+@@ -37,6 +37,28 @@ struct acpi_gtdt_descriptor {
  
--static bool __init
--arch_timer_needs_probing(int type, const struct of_device_id *matches)
-+static bool __init arch_timer_needs_of_probing(void)
+ static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
+ 
++static inline void *next_platform_timer(void *platform_timer)
++{
++	struct acpi_gtdt_header *gh = platform_timer;
++
++	platform_timer += gh->length;
++	if (platform_timer < acpi_gtdt_desc.gtdt_end)
++		return platform_timer;
++
++	return NULL;
++}
++
++#define for_each_platform_timer(_g)				\
++	for (_g = acpi_gtdt_desc.platform_timer; _g;	\
++	     _g = next_platform_timer(_g))
++
++static inline bool is_timer_block(void *platform_timer)
++{
++	struct acpi_gtdt_header *gh = platform_timer;
++
++	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
++}
++
+ static int __init map_gt_gsi(u32 interrupt, u32 flags)
  {
- 	struct device_node *dn;
- 	bool needs_probing = false;
-+	unsigned int mask = ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM;
+ 	int trigger, polarity;
+@@ -155,3 +177,105 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
  
--	dn = of_find_matching_node(NULL, matches);
--	if (dn && of_device_is_available(dn) && !(arch_timers_present & type))
-+	/* We have two timers, and both device-tree nodes are probed. */
-+	if ((arch_timers_present & mask) == mask)
-+		return false;
+ 	return ret;
+ }
++
++static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
++					 struct arch_timer_mem *data)
++{
++	int i;
++	struct acpi_gtdt_timer_entry *frame;
++
++	if (!block->timer_count) {
++		pr_err(FW_BUG "GT block present, but frame count is zero.");
++		return -ENODEV;
++	}
++
++	if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
++		pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
++		       block->timer_count);
++		return -EINVAL;
++	}
++
++	data->cntctlbase = (phys_addr_t)block->block_address;
++	/*
++	 * According to "Table * CNTCTLBase memory map" of
++	 * <ARM Architecture Reference Manual> for ARMv8,
++	 * The size of the CNTCTLBase frame is 4KB(Offset 0x000 – 0xFFC).
++	 */
++	data->size = SZ_4K;
++	data->num_frames = block->timer_count;
++
++	frame = (void *)block + block->timer_offset;
++	if (frame + block->timer_count != (void *)block + block->header.length)
++		return -EINVAL;
 +
 +	/*
-+	 * Only one type of timer is probed,
-+	 * check if we have another type of timer node in device-tree.
++	 * Get the GT timer Frame data for every GT Block Timer
 +	 */
-+	if (arch_timers_present & ARCH_TIMER_TYPE_CP15)
-+		dn = of_find_matching_node(NULL, arch_timer_mem_of_match);
-+	else
-+		dn = of_find_matching_node(NULL, arch_timer_of_match);
++	for (i = 0; i < block->timer_count; i++, frame++) {
++		if (!frame->base_address || !frame->timer_interrupt)
++			return -EINVAL;
 +
-+	if (dn && of_device_is_available(dn))
- 		needs_probing = true;
++		data->frame[i].phys_irq = map_gt_gsi(frame->timer_interrupt,
++						     frame->timer_flags);
++		if (data->frame[i].phys_irq <= 0) {
++			pr_warn("failed to map physical timer irq in frame %d.\n",
++				i);
++			return -EINVAL;
++		}
 +
- 	of_node_put(dn);
++		data->frame[i].virt_irq =
++			map_gt_gsi(frame->virtual_timer_interrupt,
++				   frame->virtual_timer_flags);
++		if (data->frame[i].virt_irq <= 0) {
++			pr_warn("failed to map virtual timer irq in frame %d.\n",
++				i);
++			acpi_unregister_gsi(frame->timer_interrupt);
++			return -EINVAL;
++		}
++
++		data->frame[i].frame_nr = frame->frame_number;
++		data->frame[i].cntbase = frame->base_address;
++		/*
++		 * According to "Table * CNTBaseN memory map" of
++		 * <ARM Architecture Reference Manual> for ARMv8,
++		 * The size of the CNTBaseN frame is 4KB(Offset 0x000 – 0xFFC).
++		 */
++		data->frame[i].size = SZ_4K;
++	}
++
++	return 0;
++}
++
++/**
++ * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
++ * @data:	the pointer to the array of struct arch_timer_mem for returning
++ *		the result of parsing. The element number of this array should
++ *		be platform_timer_count(the total number of platform timers).
++ * @count:	The pointer of int variate for returning the number of GT
++ *		blocks we have parsed.
++ *
++ * Return: 0 if success, -EINVAL/-ENODEV if error.
++ */
++int __init acpi_arch_timer_mem_init(struct arch_timer_mem *data,
++				    int *timer_count)
++{
++	int ret;
++	void *platform_timer;
++
++	*timer_count = 0;
++	for_each_platform_timer(platform_timer) {
++		if (is_timer_block(platform_timer)) {
++			ret = gtdt_parse_timer_block(platform_timer, data);
++			if (ret)
++				return ret;
++			data++;
++			(*timer_count)++;
++		}
++	}
++
++	if (*timer_count)
++		pr_info("found %d memory-mapped timer block(s).\n",
++			*timer_count);
++
++	return 0;
++}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d201ce4..f5881de 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -581,6 +581,7 @@ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
+ int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
+ int acpi_gtdt_map_ppi(int type);
+ bool acpi_gtdt_c3stop(int type);
++int acpi_arch_timer_mem_init(struct arch_timer_mem *data, int *timer_count);
+ #endif
  
- 	return needs_probing;
-@@ -808,17 +821,8 @@ arch_timer_needs_probing(int type, const struct of_device_id *matches)
- 
- static int __init arch_timer_common_init(void)
- {
--	unsigned mask = ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM;
--
--	/* Wait until both nodes are probed if we have two timers */
--	if ((arch_timers_present & mask) != mask) {
--		if (arch_timer_needs_probing(ARCH_TIMER_TYPE_MEM,
--					     arch_timer_mem_of_match))
--			return 0;
--		if (arch_timer_needs_probing(ARCH_TIMER_TYPE_CP15,
--					     arch_timer_of_match))
--			return 0;
--	}
-+	if (acpi_disabled && arch_timer_needs_of_probing())
-+		return 0;
- 
- 	arch_timer_banner(arch_timers_present);
- 	arch_counter_register(arch_timers_present);
+ #else	/* !CONFIG_ACPI */
 -- 
 2.9.3
+
