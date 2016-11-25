@@ -1,137 +1,130 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v17 08/15] clocksource/drivers/arm_arch_timer: move arch_timer_needs_of_probing into DT init call
-Date: Fri, 25 Nov 2016 16:46:16 +0800
-Message-ID: <20161125084623.22515-9-fu.wei@linaro.org>
-References: <20161125084623.22515-1-fu.wei@linaro.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V7 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Fri, 25 Nov 2016 11:40:35 +0000
+Message-ID: <20161125114035.GA13739@red-moon>
+References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
+ <1479074375-2629-3-git-send-email-agustinv@codeaurora.org>
+ <20161124161548.GA11766@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50756 "EHLO mx1.redhat.com"
+Received: from foss.arm.com ([217.140.101.70]:43664 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753141AbcKYIsR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 25 Nov 2016 03:48:17 -0500
-In-Reply-To: <20161125084623.22515-1-fu.wei@linaro.org>
+        id S1751021AbcKYLka (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 25 Nov 2016 06:40:30 -0500
+Content-Disposition: inline
+In-Reply-To: <20161124161548.GA11766@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-From: Fu Wei <fu.wei@linaro.org>
+Hi Agustin,
 
-Because arch_timer_needs_of_probing is only for booting with device-tree,
-but arch_timer_common_init is a generic init call which shouldn't include
-the FW-specific code. It's better to put arch_timer_needs_of_probing into
-DT init function.
+On Thu, Nov 24, 2016 at 04:15:48PM +0000, Lorenzo Pieralisi wrote:
 
-But for per-cpu timer, the arch_timer_common_init is called from
-arch_timer_init. For reaching the goal above, this patch disassemble
-arch_timer_init and use arch_timer_register and arch_timer_common_init
-directly, just like arch_timer_mem init code is doing.
-By this way, all the DT relevant code are only called from DT init call.
+[...]
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
----
- drivers/clocksource/arm_arch_timer.c | 45 ++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 25 deletions(-)
+> > @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+> >  {
+> >  	struct acpi_resource_irq *irq;
+> >  	struct acpi_resource_extended_irq *ext_irq;
+> > +	struct fwnode_handle *src;
+> >  
+> >  	switch (ares->type) {
+> >  	case ACPI_RESOURCE_TYPE_IRQ:
+> > @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+> >  			acpi_dev_irqresource_disabled(res, 0);
+> >  			return false;
+> >  		}
+> > -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+> > +		acpi_dev_get_irqresource(res, irq->interrupts[index], NULL,
+> >  					 irq->triggering, irq->polarity,
+> >  					 irq->sharable, true);
+> >  		break;
+> > @@ -470,7 +472,8 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+> >  			acpi_dev_irqresource_disabled(res, 0);
+> >  			return false;
+> >  		}
+> > -		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+> > +		src = acpi_get_irq_source_fwhandle(&ext_irq->resource_source);
+> 
+> Is there a reason why we need to do the domain look-up here ?
+> 
+> I would like to understand if, by reshuffling the code (and by returning
+> the resource_source to the calling code - somehow), it would be possible
+> to just mirror what the OF code does in of_irq_get(), namely:
+> 
+> (1) parse the irq entry -> of_irq_parse_one()
+> (2) look the domain up -> irq_find_host()
+> (3) create the mapping -> irq_create_of_mapping()
+> 
+> You wrote the code already, I think it is just a matter of shuffling
+> it around (well, minus returning the resource_source to the caller
+> which is phandle equivalent in DT).
+> 
+> You abstracted away (2) and (3) behind acpi_register_irq(), that
+> on anything than does not use ACPI_GENERIC_GSI is just glue code
+> to acpi_register_gsi().
+> 
+> Also, it is not a question on this patch but I ask it here because it
+> is related. On ACPI you are doing the reverse of what is done in
+> DT in platform_get_irq():
+> 
+> - get the resources already parsed -> platform_get_resource()
+> - if they are disabled -> acpi_irq_get()
+> 
+> and I think the ordering is tied to my question above because
+> you carry out the domain look up in acpi_dev_resource_interrupt()
+> so that if for any reason it fails the corresponding resource
+> is disabled so that we try to get it again through acpi_irq_get().
+> 
+> I suspect you did it this way to make sure:
+> 
+> a) keep the current ACPI IRQ parsing interface changes to a mininum
+> b) avoid changing the behaviour on x86/ia64; in particular, calling
+>    acpi_register_gsi() for the _same_ mapping (an IRQ that was already
+>    registered at device creation resource parsing) multiple times can
+>    trigger issues on x86/ia64
+> 
+> I think that's a reasonable approach but I wanted to get these
+> clarifications, I do not think you are far from getting this
+> done but since it is a significant change I think it is worth
+> discussing the points I raised above because I think the DT code
+> sequence in of_irq_get() (1-2-3 above) is cleaner from an IRQ
+> layer perspective (instead of having the domain look-up buried
+> inside the ACPI IRQ resource parsing API).
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 2c9085a..4549008 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -821,9 +821,6 @@ static bool __init arch_timer_needs_of_probing(void)
- 
- static int __init arch_timer_common_init(void)
- {
--	if (acpi_disabled && arch_timer_needs_of_probing())
--		return 0;
--
- 	arch_timer_banner(arch_timers_present);
- 	arch_counter_register(arch_timers_present);
- 	return arch_timer_arch_init();
-@@ -861,26 +858,9 @@ static enum arch_timer_ppi_nr __init arch_timer_select_ppi(void)
- 	return ARCH_TIMER_PHYS_SECURE_PPI;
- }
- 
--static int __init arch_timer_init(void)
--{
--	int ret;
--
--	ret = arch_timer_register();
--	if (ret)
--		return ret;
--
--	ret = arch_timer_common_init();
--	if (ret)
--		return ret;
--
--	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
--
--	return 0;
--}
--
- static int __init arch_timer_of_init(struct device_node *np)
- {
--	int i;
-+	int i, ret;
- 
- 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
- 		pr_warn("multiple nodes in dt, skipping\n");
-@@ -891,6 +871,8 @@ static int __init arch_timer_of_init(struct device_node *np)
- 	for (i = ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
- 		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
- 
-+	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
-+
- 	if (!arch_timer_rate &&
- 	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
- 		arch_timer_detect_rate();
-@@ -921,7 +903,14 @@ static int __init arch_timer_of_init(struct device_node *np)
- 		return -EINVAL;
- 	}
- 
--	return arch_timer_init();
-+	ret = arch_timer_register();
-+	if (ret)
-+		return ret;
-+
-+	if (arch_timer_needs_of_probing())
-+		return 0;
-+
-+	return arch_timer_common_init();
- }
- CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
- CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
-@@ -1008,7 +997,8 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 	if (ret)
- 		goto out;
- 
--	return arch_timer_common_init();
-+	if (!arch_timer_needs_of_probing())
-+		ret = arch_timer_common_init();
- out:
- 	iounmap(cntctlbase);
- 	of_node_put(best_frame);
-@@ -1064,6 +1054,8 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
- 		gtdt->non_secure_el2_flags);
- 
-+	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
-+
- 	/* Get the frequency from CNTFRQ */
- 	arch_timer_detect_rate();
- 
-@@ -1076,8 +1068,11 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	/* Always-on capability */
- 	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
- 
--	arch_timer_init();
--	return 0;
-+	ret = arch_timer_register();
-+	if (ret)
-+		return ret;
-+
-+	return arch_timer_common_init();
- }
- CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
- #endif
--- 
-2.9.3
+I had another look and to achieve the above one way of doing that is to
+implement acpi_irq_get() only for ACPI_GENERIC_GSI and stub it out for
+!ACPI_GENERIC_GSI (ie return an error code so that on !ACPI_GENERIC_GSI
+we would fall back to current solution for ACPI). Within acpi_irq_get()
+you can easily carry out the same steps (1->2->3) above in ACPI you have
+the code already there I think it is easy to change the
+acpi_irq_get_cb() interface to return a filled in struct irq_fwspec and
+the interface would become identical to of_irq_get() that is an
+advantage to maintain it from an IRQ maintainership perspective I think,
+that's my opinion.
 
+There is still a nagging snag though. When platform devices are
+created, core ACPI code parse the resources through:
+
+acpi_dev_get_resources()
+
+and we _have_ to have way to avoid initializing IRQ resources that
+have a dependency (ie there is a resource_source pointer that is valid
+in their descriptors) that's easy to do if we think that's the right
+thing to do and can hardly break current code (which ignores the
+resource_source altogether).
+
+It is an important difference with DT probing, where the IRQ
+resources are only created if the domain reference (ie interrupt
+controller phandle) is satisfied at of_device_alloc() time
+(see of_device_alloc()).
+
+Thoughts ? Please let me know, the code to implement what I say
+is already in these patches, it is just a matter of reshuffling it.
+
+Thanks !
+Lorenzo
