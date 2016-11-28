@@ -1,63 +1,25 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.9-rc7
-Date: Fri, 25 Nov 2016 22:48:00 +0100
-Message-ID: <CAJZ5v0gNzC9XJmCGpwkc_VacLsPEix9hYNqkJ5dz+h+6Pzf6rg@mail.gmail.com>
+From: BMW <INFO@nbrc.ac.in>
+Subject: BMW PROMO
+Date: Mon, 28 Nov 2016 07:20:43 +0200
+Message-ID: <201611280444.uAS4dsg7026681__40990.0604784072$1480311702$gmane$org@mx1.nbrc.ac.in>
+Reply-To: tonyrichy26@usa.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from webmail.nbrc.ac.in ([14.139.62.5]:44558 "EHLO mx1.nbrc.ac.in"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751623AbcK1Fla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 28 Nov 2016 00:41:30 -0500
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <INFO@nbrc.ac.in>
 
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.9-rc7
-
-with top-most commit 7e5c07af8693e72b23aefb70da88b31b30c35b22
-
- Merge branches 'acpi-sleep-fixes' and 'acpi-wdat-fixes'
-
-on top of commit 9c763584b7c8911106bb77af7e648bef09af9d80
-
- Linux 4.9-rc6
-
-to receive ACPI fixes for v4.9-rc7.
-
-One of them reverts a recent ACPI commit that attempted to improve
-reboot/power-off on some systems, but introduced problems elsewhere,
-and the other one fixes kernel builds with the new WDAT watchdog
-driver enabled in some configurations.
-
-Specifics:
-
- - Revert the recent commit that caused the ACPI _PTS method to
-   be executed in the power-off/reboot code path (as per the
-   specification) in an attempt to improve things on some systems
-   (apparently expecting _PTS to be executed in that code path),
-   but broke power-off/reboot on at least one other machine (Rafael
-   Wysocki).
-
- - Fix kernel builds with the new WDAT watchdog driver enabled in
-   some configurations by explicitly selecting WATCHDOG_CORE when
-   enabling the WDAT watchdog driver (Mika Westerberg).
-
-Thanks!
-
-
----------------
-
-Mika Westerberg (1):
-      watchdog: wdat_wdt: Select WATCHDOG_CORE
-
-Rafael J. Wysocki (1):
-      Revert "ACPI: Execute _PTS before system reboot"
-
----------------
-
- drivers/acpi/sleep.c     | 29 ++++++-----------------------
- drivers/watchdog/Kconfig |  1 +
- 2 files changed, 7 insertions(+), 23 deletions(-)
+Congratulations,
+Dear Mr. /Mrs. you are lucky to have been chosen in the BMW 2016 lottery draw.
+That was just concluded in an E lottery online machine draw and the  email with lotto number BMW216021653096 and ticket draw number 5000342. Has won $150,000(ONE HUNDRED AND FIFTHY THOUSAND DOLLARS)
+VERIFY TO CLAIM YOUR PRIZE .EMAIL THE PROMOTIONAL HEAD MANAGER ON (tonyrichy26@usa.com) FOR YOUR CLAIMS.
+THANKS.
+tony richmond
+(promotional head)
