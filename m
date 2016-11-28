@@ -1,273 +1,199 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V5 02/10] ras: acpi/apei: cper: generic error data entry
- v3 per ACPI 6.1
-Date: Mon, 28 Nov 2016 11:55:14 -0700
-Message-ID: <ba3c08e4-72b5-d05d-e44f-65d11240da28@codeaurora.org>
-References: <1479767763-27532-1-git-send-email-tbaicar@codeaurora.org>
- <1479767763-27532-3-git-send-email-tbaicar@codeaurora.org>
- <583880E0.8080705@arm.com>
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: Re: [PATCH V7 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Mon, 28 Nov 2016 17:40:24 -0500
+Message-ID: <e12155805a9d92d3f5edc81395a76f48@codeaurora.org>
+References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
+ <1479074375-2629-3-git-send-email-agustinv@codeaurora.org>
+ <20161124161548.GA11766@red-moon> <20161125114035.GA13739@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:33510 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:36354 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751824AbcK1SzU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 13:55:20 -0500
-In-Reply-To: <583880E0.8080705@arm.com>
+        with ESMTP id S1753405AbcK1Wk1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 17:40:27 -0500
+In-Reply-To: <20161125114035.GA13739@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.com
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-Hello James,
+Hi Rafael,
 
-On 11/25/2016 11:20 AM, James Morse wrote:
-> Hi Tyler,
->
-> On 21/11/16 22:35, Tyler Baicar wrote:
->> Currently when a RAS error is reported it is not timestamped.
->> The ACPI 6.1 spec adds the timestamp field to the generic error
->> data entry v3 structure. The timestamp of when the firmware
->> generated the error is now being reported.
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index b79abc5..9063d68 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -420,7 +420,8 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
->>   	int flags = -1;
->>   	int sec_sev = ghes_severity(gdata->error_severity);
->>   	struct cper_sec_mem_err *mem_err;
->> -	mem_err = (struct cper_sec_mem_err *)(gdata + 1);
->> +
->> +	mem_err = acpi_hest_generic_data_payload(gdata);
->>   
->>   	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
->>   		return;
->> @@ -450,14 +451,18 @@ static void ghes_do_proc(struct ghes *ghes,
->>   {
->>   	int sev, sec_sev;
->>   	struct acpi_hest_generic_data *gdata;
->> +	uuid_le sec_type;
-> ghes.c doesn't include <linux/uuid.h>, but I see it already uses uuid_le_cmp().
-> Worth fixing as part of this patch?
+Can you chime in on Lorenzo's feedback and the discussion below?
+It would be great if you can comment on the reason ACPI does things
+in a certain way.
 
-I can add it here, but it shouldn't be needed. ghes.c includes 
-<linux/cper.h> and that header
-includes <linux/uuid.h>. Should it be added just to make the dependency 
-more clear?
+Hi Lorenzo,
 
->>   
->>   	sev = ghes_severity(estatus->error_severity);
->>   	apei_estatus_for_each_section(estatus, gdata) {
->>   		sec_sev = ghes_severity(gdata->error_severity);
->> -		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
->> +		sec_type = *(uuid_le *)gdata->section_type;
->> +
-> You don't use sec_type again here, why change this?
-> (should it be in a later patch?)
+On 2016-11-25 06:40, Lorenzo Pieralisi wrote:
+> Hi Agustin,
+> 
+> On Thu, Nov 24, 2016 at 04:15:48PM +0000, Lorenzo Pieralisi wrote:
+> 
+> [...]
+> 
+>> > @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>> >  {
+>> >  	struct acpi_resource_irq *irq;
+>> >  	struct acpi_resource_extended_irq *ext_irq;
+>> > +	struct fwnode_handle *src;
+>> >
+>> >  	switch (ares->type) {
+>> >  	case ACPI_RESOURCE_TYPE_IRQ:
+>> > @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>> >  			acpi_dev_irqresource_disabled(res, 0);
+>> >  			return false;
+>> >  		}
+>> > -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+>> > +		acpi_dev_get_irqresource(res, irq->interrupts[index], NULL,
+>> >  					 irq->triggering, irq->polarity,
+>> >  					 irq->sharable, true);
+>> >  		break;
+>> > @@ -470,7 +472,8 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>> >  			acpi_dev_irqresource_disabled(res, 0);
+>> >  			return false;
+>> >  		}
+>> > -		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+>> > +		src = acpi_get_irq_source_fwhandle(&ext_irq->resource_source);
+>> 
+>> Is there a reason why we need to do the domain look-up here ?
 
-Ah, yes, this change should be moved to patch 8 in this patchset.
+Because we need to pass the resource down to acpi_dev_get_irqresource
+which does the mapping through acpi_register_irq/acpi_register_gsi.
 
->> +		if (!uuid_le_cmp(sec_type,
->>   				 CPER_SEC_PLATFORM_MEM)) {
->>   			struct cper_sec_mem_err *mem_err;
->> -			mem_err = (struct cper_sec_mem_err *)(gdata+1);
->> +
->> +			mem_err = acpi_hest_generic_data_payload(gdata);
->>   			ghes_edac_report_mem_error(ghes, sev, mem_err);
->>   
->>   			arch_apei_report_mem_error(sev, mem_err);
->> @@ -467,7 +472,8 @@ static void ghes_do_proc(struct ghes *ghes,
->>   		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
->>   				      CPER_SEC_PCIE)) {
->>   			struct cper_sec_pcie *pcie_err;
->> -			pcie_err = (struct cper_sec_pcie *)(gdata+1);
->> +
->> +			pcie_err = acpi_hest_generic_data_payload(gdata);
->>   			if (sev == GHES_SEV_RECOVERABLE &&
->>   			    sec_sev == GHES_SEV_RECOVERABLE &&
->>   			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
->> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
->> index d425374..7e2439e 100644
->> --- a/drivers/firmware/efi/cper.c
->> +++ b/drivers/firmware/efi/cper.c
->> @@ -32,6 +32,9 @@
->>   #include <linux/acpi.h>
->>   #include <linux/pci.h>
->>   #include <linux/aer.h>
->> +#include <linux/printk.h>
->> +#include <linux/bcd.h>
->> +#include <acpi/ghes.h>
->>   
->>   #define INDENT_SP	" "
->>   
->> @@ -386,13 +389,37 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->>   	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->>   }
->>   
->> +static void cper_estatus_print_section_v300(const char *pfx,
->> +	const struct acpi_hest_generic_data_v300 *gdata)
->> +{
->> +	__u8 hour, min, sec, day, mon, year, century, *timestamp;
->> +
->> +	if (gdata->validation_bits & ACPI_HEST_GEN_VALID_TIMESTAMP) {
->> +		timestamp = (__u8 *)&(gdata->time_stamp);
->> +		sec = bcd2bin(timestamp[0]);
->> +		min = bcd2bin(timestamp[1]);
->> +		hour = bcd2bin(timestamp[2]);
->> +		day = bcd2bin(timestamp[4]);
->> +		mon = bcd2bin(timestamp[5]);
->> +		year = bcd2bin(timestamp[6]);
->> +		century = bcd2bin(timestamp[7]);
->> +		printk("%stime: %7s %02d%02d-%02d-%02d %02d:%02d:%02d\n", pfx,
->> +			0x01 & *(timestamp + 3) ? "precise" : "", century,
->> +			year, mon, day, hour, min, sec);
->> +	}
->> +}
->> +
->>   static void cper_estatus_print_section(
->> -	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
->> +	const char *pfx, struct acpi_hest_generic_data *gdata, int sec_no)
->>   {
->>   	uuid_le *sec_type = (uuid_le *)gdata->section_type;
->>   	__u16 severity;
->>   	char newpfx[64];
->>   
->> +	if (acpi_hest_generic_data_version(gdata) >= 3)
->> +		cper_estatus_print_section_v300(pfx,
->> +			(const struct acpi_hest_generic_data_v300 *)gdata);
->> +
->>   	severity = gdata->error_severity;
->>   	printk("%s""Error %d, type: %s\n", pfx, sec_no,
->>   	       cper_severity_str(severity));
->> @@ -403,14 +430,18 @@ static void cper_estatus_print_section(
->>   
->>   	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
->>   	if (!uuid_le_cmp(*sec_type, CPER_SEC_PROC_GENERIC)) {
->> -		struct cper_sec_proc_generic *proc_err = (void *)(gdata + 1);
->> +		struct cper_sec_proc_generic *proc_err;
->> +
->> +		proc_err = acpi_hest_generic_data_payload(gdata);
->>   		printk("%s""section_type: general processor error\n", newpfx);
->>   		if (gdata->error_data_length >= sizeof(*proc_err))
->>   			cper_print_proc_generic(newpfx, proc_err);
->>   		else
->>   			goto err_section_too_small;
->>   	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
->> -		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
->> +		struct cper_sec_mem_err *mem_err;
->> +
->> +		mem_err = acpi_hest_generic_data_payload(gdata);
->>   		printk("%s""section_type: memory error\n", newpfx);
->>   		if (gdata->error_data_length >=
->>   		    sizeof(struct cper_sec_mem_err_old))
->> @@ -419,7 +450,9 @@ static void cper_estatus_print_section(
->>   		else
->>   			goto err_section_too_small;
->>   	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
->> -		struct cper_sec_pcie *pcie = (void *)(gdata + 1);
->> +		struct cper_sec_pcie *pcie;
->> +
->> +		pcie = acpi_hest_generic_data_payload(gdata);
->>   		printk("%s""section_type: PCIe error\n", newpfx);
->>   		if (gdata->error_data_length >= sizeof(*pcie))
->>   			cper_print_pcie(newpfx, pcie, gdata);
->> @@ -438,7 +471,7 @@ void cper_estatus_print(const char *pfx,
->>   			const struct acpi_hest_generic_status *estatus)
->>   {
->>   	struct acpi_hest_generic_data *gdata;
->> -	unsigned int data_len, gedata_len;
->> +	unsigned int data_len;
->>   	int sec_no = 0;
->>   	char newpfx[64];
->>   	__u16 severity;
->> @@ -451,12 +484,12 @@ void cper_estatus_print(const char *pfx,
->>   	printk("%s""event severity: %s\n", pfx, cper_severity_str(severity));
->>   	data_len = estatus->data_length;
->>   	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
->> +
->>   	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
->> -	while (data_len >= sizeof(*gdata)) {
->> -		gedata_len = gdata->error_data_length;
->> +
->> +	while (data_len >= acpi_hest_generic_data_size(gdata)) {
->>   		cper_estatus_print_section(newpfx, gdata, sec_no);
->> -		data_len -= gedata_len + sizeof(*gdata);
->> -		gdata = (void *)(gdata + 1) + gedata_len;
->> +		gdata = acpi_hest_generic_data_next(gdata);
->>   		sec_no++;
->>   	}
->>   }
->> @@ -486,12 +519,13 @@ int cper_estatus_check(const struct acpi_hest_generic_status *estatus)
->>   		return rc;
->>   	data_len = estatus->data_length;
->>   	gdata = (struct acpi_hest_generic_data *)(estatus + 1);
->> -	while (data_len >= sizeof(*gdata)) {
->> -		gedata_len = gdata->error_data_length;
->> -		if (gedata_len > data_len - sizeof(*gdata))
->> +
->> +	while (data_len >= acpi_hest_generic_data_size(gdata)) {
->> +		gedata_len = acpi_hest_generic_data_error_length(gdata);
->> +		if (gedata_len > data_len - acpi_hest_generic_data_size(gdata))
->>   			return -EINVAL;
->> -		data_len -= gedata_len + sizeof(*gdata);
->> -		gdata = (void *)(gdata + 1) + gedata_len;
->> +		data_len -= gedata_len + acpi_hest_generic_data_size(gdata);
->> +		gdata = acpi_hest_generic_data_next(gdata);
->>   	}
->>   	if (data_len)
->>   		return -EINVAL;
->> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
->> index 68f088a..56b9679 100644
->> --- a/include/acpi/ghes.h
->> +++ b/include/acpi/ghes.h
->> @@ -73,3 +73,13 @@ static inline void ghes_edac_unregister(struct ghes *ghes)
->>   {
->>   }
->>   #endif
->> +
->> +#define acpi_hest_generic_data_version(gdata)			\
->> +	(gdata->revision >> 8)
->> +
->> +static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data *gdata)
->> +{
->> +	return acpi_hest_generic_data_version(gdata) >= 3 ?
->> +		(void *)(((struct acpi_hest_generic_data_v300 *)(gdata)) + 1) :
->> +		gdata + 1;
->> +}
->> diff --git a/include/linux/cper.h b/include/linux/cper.h
->> index dcacb1a..13ea41c 100644
->> --- a/include/linux/cper.h
->> +++ b/include/linux/cper.h
->> @@ -255,6 +255,18 @@ enum {
->>   
->>   #define CPER_PCIE_SLOT_SHIFT			3
->>   
->> +#define acpi_hest_generic_data_error_length(gdata)	\
->> +	(((struct acpi_hest_generic_data *)(gdata))->error_data_length)
->> +#define acpi_hest_generic_data_size(gdata)		\
->> +	((acpi_hest_generic_data_version(gdata) >= 3) ?	\
->> +	sizeof(struct acpi_hest_generic_data_v300) :	\
->> +	sizeof(struct acpi_hest_generic_data))
->> +#define acpi_hest_generic_data_record_size(gdata)	\
->> +	(acpi_hest_generic_data_size(gdata) +		\
->> +	acpi_hest_generic_data_error_length(gdata))
->> +#define acpi_hest_generic_data_next(gdata)		\
->> +	((void *)(gdata) + acpi_hest_generic_data_record_size(gdata))
->> +
-> How come these aren't in ghes.h?
+>> 
+>> I would like to understand if, by reshuffling the code (and by 
+>> returning
+>> the resource_source to the calling code - somehow), it would be 
+>> possible
+>> to just mirror what the OF code does in of_irq_get(), namely:
+>> 
+>> (1) parse the irq entry -> of_irq_parse_one()
+>> (2) look the domain up -> irq_find_host()
+>> (3) create the mapping -> irq_create_of_mapping()
+>> 
+>> You wrote the code already, I think it is just a matter of shuffling
+>> it around (well, minus returning the resource_source to the caller
+>> which is phandle equivalent in DT).
 
-It probably does make more sense to add these in ghes.h, I'll move them 
-there in the next set.
+This is one area in which DT and ACPI are fundamentally different. In DT
+once the flattened blob is expanded the data is fixed. In ACPI the data
+returned by a method can change. In reality most methods like CRS return
+constants, but given that per-spec they are methods the interpreter has
+to be involved, which makes it an expensive operation. I believe that is
+the reason the resource parsing code in ACPI attempts all mappings 
+during
+the bus scan. Rafael can you comment on this?
 
-> Reviewed-by: James Morse <james.morse@arm.com>
->
-Thanks!
-Tyler
+One way to do what you suggest would be to defer IRQ mapping by, e.g.,
+populating res->start with the HW IRQ number and res->end with the 
+fwnode.
+That way we can avoid having to walk the resource buffer when a mapping
+is needed. I don't think that approach would deviate much more from
+the spec from what the current ahead-of-time mapping does, but it would
+require more changes in the core code. An alternative would be to do
+that only for resources that fail to map.
+
+>> 
+>> You abstracted away (2) and (3) behind acpi_register_irq(), that
+>> on anything than does not use ACPI_GENERIC_GSI is just glue code
+>> to acpi_register_gsi().
+>> 
+>> Also, it is not a question on this patch but I ask it here because it
+>> is related. On ACPI you are doing the reverse of what is done in
+>> DT in platform_get_irq():
+>> 
+>> - get the resources already parsed -> platform_get_resource()
+>> - if they are disabled -> acpi_irq_get()
+>> 
+>> and I think the ordering is tied to my question above because
+>> you carry out the domain look up in acpi_dev_resource_interrupt()
+>> so that if for any reason it fails the corresponding resource
+>> is disabled so that we try to get it again through acpi_irq_get().
+>> 
+>> I suspect you did it this way to make sure:
+>> 
+>> a) keep the current ACPI IRQ parsing interface changes to a mininum
+>> b) avoid changing the behaviour on x86/ia64; in particular, calling
+>>    acpi_register_gsi() for the _same_ mapping (an IRQ that was already
+>>    registered at device creation resource parsing) multiple times can
+>>    trigger issues on x86/ia64
+
+You are correct about my reasons. I wanted to keep ACPI core code 
+changes
+to a minimum, and I also needed to work within the current 
+implementation
+which uses the pre-converted IRQ resources.
+
+>> 
+>> I think that's a reasonable approach but I wanted to get these
+>> clarifications, I do not think you are far from getting this
+>> done but since it is a significant change I think it is worth
+>> discussing the points I raised above because I think the DT code
+>> sequence in of_irq_get() (1-2-3 above) is cleaner from an IRQ
+>> layer perspective (instead of having the domain look-up buried
+>> inside the ACPI IRQ resource parsing API).
+> 
+> I had another look and to achieve the above one way of doing that is to
+> implement acpi_irq_get() only for ACPI_GENERIC_GSI and stub it out for
+> !ACPI_GENERIC_GSI (ie return an error code so that on !ACPI_GENERIC_GSI
+> we would fall back to current solution for ACPI). Within acpi_irq_get()
+> you can easily carry out the same steps (1->2->3) above in ACPI you 
+> have
+> the code already there I think it is easy to change the
+> acpi_irq_get_cb() interface to return a filled in struct irq_fwspec and
+> the interface would become identical to of_irq_get() that is an
+> advantage to maintain it from an IRQ maintainership perspective I 
+> think,
+> that's my opinion.
+
+I think I get what you mean. I'll take a stab at implementing 
+acpi_irq_get()
+in the way you suggest.
+
+> 
+> There is still a nagging snag though. When platform devices are
+> created, core ACPI code parse the resources through:
+> 
+> acpi_dev_get_resources()
+> 
+> and we _have_ to have way to avoid initializing IRQ resources that
+> have a dependency (ie there is a resource_source pointer that is valid
+> in their descriptors) that's easy to do if we think that's the right
+> thing to do and can hardly break current code (which ignores the
+> resource_source altogether).
+
+I'd rather keep the core code as-is with regard to the ahead-of-time
+conversion. Whether a resource source is available at the time of the 
+bus
+scan should be transparent to the code in drivers/acpi/resource.c, and
+we need the initialization as a disabled resource to signal the need
+to retry anyway.
+
+Rafael, do you have any other suggestions/feedback on how to go about
+doing this?
+
+Thanks,
+Agustin
+
+> 
+> It is an important difference with DT probing, where the IRQ
+> resources are only created if the domain reference (ie interrupt
+> controller phandle) is satisfied at of_device_alloc() time
+> (see of_device_alloc()).
+> 
+> Thoughts ? Please let me know, the code to implement what I say
+> is already in these patches, it is just a matter of reshuffling it.
+> 
+> Thanks !
+> Lorenzo
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
-
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
+Linux Foundation Collaborative Project.
