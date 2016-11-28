@@ -1,71 +1,154 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v8 4/8] x86/sysctl: Add sysctl for ITMT scheduling feature
-Date: Mon, 28 Nov 2016 09:56:08 +0100
-Message-ID: <20161128085608.v7ujy5j2iftn6qs5@pd.tnic>
-References: <cover.1479844244.git.tim.c.chen@linux.intel.com>
- <07cc62426a28bad57b01ab16bb903a9c84fa5421.1479844244.git.tim.c.chen@linux.intel.com>
+From: "majun (Euler7)" <majun258@huawei.com>
+Subject: Re: [PATCH V7 1/3] ACPI: Retry IRQ conversion if it failed previously
+Date: Mon, 28 Nov 2016 18:52:44 +0800
+Message-ID: <583C0C7C.10500@huawei.com>
+References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
+ <1479074375-2629-2-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="gbk"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:54069 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754109AbcK1I4L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 28 Nov 2016 03:56:11 -0500
-Content-Disposition: inline
-In-Reply-To: <07cc62426a28bad57b01ab16bb903a9c84fa5421.1479844244.git.tim.c.chen@linux.intel.com>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:37237 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932741AbcK1K6D (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 05:58:03 -0500
+In-Reply-To: <1479074375-2629-2-git-send-email-agustinv@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: majun258@huawei.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-On Tue, Nov 22, 2016 at 12:23:56PM -0800, Tim Chen wrote:
-> Intel Turbo Boost Max Technology 3.0 (ITMT) feature
-> allows some cores to be boosted to higher turbo
-> frequency than others.
+This patch works fine on my D05 board.
+
+Tested-by: Majun <majun258@huawei.com>
+
+‘⁄ 2016/11/14 5:59, Agustin Vega-Frias –¥µ¿:
+> This allows probe deferral to work properly when a dependent device
+> fails to get a valid IRQ because the IRQ domain was not registered
+> at the time the resources were added to the platform_device.
 > 
-> Add /proc/sys/kernel/sched_itmt_enabled so operator
-> can enable/disable scheduling of tasks that favor cores
-> with higher turbo boost frequency potential.
-> 
-> By default, system that is ITMT capable and single
-> socket has this feature turned on.  It is more likely
-> to be lightly loaded and operates in Turbo range.
-> 
-> When there is a change in the ITMT scheduling operation
-> desired, a rebuild of the sched domain is initiated
-> so the scheduler can set up sched domains with appropriate
-> flag to enable/disable ITMT scheduling operations.
-> 
-> Co-developed-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> Co-developed-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
 > ---
->  arch/x86/include/asm/topology.h |   7 ++-
->  arch/x86/kernel/itmt.c          | 108 +++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 112 insertions(+), 3 deletions(-)
-
-...
-
-> +/*
-> + * Boolean to control whether we want to move processes to cpu capable
-> + * of higher turbo frequency for cpus supporting Intel Turbo Boost Max
-> + * Technology 3.0.
+>  drivers/acpi/resource.c | 59 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/base/platform.c |  9 +++++++-
+>  include/linux/acpi.h    |  7 ++++++
+>  3 files changed, 74 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 56241eb..4beda15 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -664,3 +664,62 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>  	return (type & types) ? 0 : 1;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
+> +
+> +struct acpi_irq_get_ctx {
+> +	unsigned int index;
+> +	struct resource *res;
+> +};
+> +
+> +static acpi_status acpi_irq_get_cb(struct acpi_resource *ares, void *context)
+> +{
+> +	struct acpi_irq_get_ctx *ctx = context;
+> +	struct acpi_resource_irq *irq;
+> +	struct acpi_resource_extended_irq *ext_irq;
+> +
+> +	switch (ares->type) {
+> +	case ACPI_RESOURCE_TYPE_IRQ:
+> +		irq = &ares->data.irq;
+> +		if (ctx->index < irq->interrupt_count) {
+> +			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
+> +			return AE_CTRL_TERMINATE;
+> +		}
+> +		ctx->index -= irq->interrupt_count;
+> +		break;
+> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> +		ext_irq = &ares->data.extended_irq;
+> +		if (ctx->index < ext_irq->interrupt_count) {
+> +			acpi_dev_resource_interrupt(ares, ctx->index, ctx->res);
+> +			return AE_CTRL_TERMINATE;
+> +		}
+> +		ctx->index -= ext_irq->interrupt_count;
+> +		break;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +/**
+> + * acpi_irq_get - Look for the ACPI IRQ resource with the given index and
+> + *                use it to initialize the given Linux IRQ resource.
+> + * @handle ACPI device handle
+> + * @index  ACPI IRQ resource index to lookup
+> + * @res    Linux IRQ resource to initialize
 > + *
-> + * It can be set via /proc/sys/kernel/sched_itmt_enabled
+> + * Return: 0 on success
+> + *         -EINVAL if an error occurs
+> + *         -EPROBE_DEFER if the IRQ lookup/conversion failed
 > + */
-> +unsigned int __read_mostly sysctl_sched_itmt_enabled;
+> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
+> +{
+> +	struct acpi_irq_get_ctx ctx = { index, res };
+> +	acpi_status status;
+> +
+> +	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> +				     acpi_irq_get_cb, &ctx);
+> +	if (ACPI_FAILURE(status))
+> +		return -EINVAL;
+> +	if (res->flags & IORESOURCE_DISABLED)
+> +		return -EPROBE_DEFER;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_irq_get);
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index c4af003..61423d2 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+>  	}
+>  
+>  	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+> +	if (r && r->flags & IORESOURCE_DISABLED && ACPI_COMPANION(&dev->dev)) {
+> +		int ret;
+> +
+> +		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	/*
+>  	 * The resources may pass trigger flags to the irqs that need
+>  	 * to be set up. It so happens that the trigger flags for
+> @@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
+>  		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
+>  	}
+>  }
+> -
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 689a8b9..325bdb9 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -406,6 +406,7 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+>  unsigned int acpi_dev_get_irq_type(int triggering, int polarity);
+>  bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  				 struct resource *res);
+> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
+>  
+>  void acpi_dev_free_resource_list(struct list_head *list);
+>  int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+> @@ -763,6 +764,12 @@ static inline int acpi_reconfig_notifier_unregister(struct notifier_block *nb)
+>  	return -EINVAL;
+>  }
+>  
+> +static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
+> +			       struct resource *res)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+>  #endif	/* !CONFIG_ACPI */
+>  
+>  #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+> 
 
-Err, can we not have the boolean in the name itself?
-
-I.e., have it called sysctl_sched_itmt and 1 means enabled and 0
-disabled? I.e., the classic thing. :)
-
-Ditto for the sysctl name?
-
--- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imend√∂rffer, Jane Smithard, Graham Norton, HRB 21284 (AG N√ºrnberg)
--- 
