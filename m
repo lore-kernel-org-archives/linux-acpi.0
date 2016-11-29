@@ -1,16 +1,16 @@
 From: Hans de Goede <hdegoede@redhat.com>
 Subject: [PATCH 1/2] acpi/video_detect: Add force_native quirk for Dell XPS 17 L702X
-Date: Tue, 29 Nov 2016 15:30:15 +0100
-Message-ID: <20161129143016.6670-1-hdegoede@redhat.com>
+Date: Tue, 29 Nov 2016 15:32:15 +0100
+Message-ID: <20161129143216.7261-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57698 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42784 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754373AbcK2OaU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 09:30:20 -0500
+        id S1757660AbcK2OcT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 09:32:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
 
 The Dell XPS 17 L702X has a non-working acpi_video0 backlight interface
 and an intel_backlight interface which works fine. Add a force_native
@@ -22,6 +22,7 @@ they do not generate key-press events in anyway. That is not solved by
 this patch.
 
 BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1123661
+Cc: stable@vger.kernel.org
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
  drivers/acpi/video_detect.c | 9 +++++++++
