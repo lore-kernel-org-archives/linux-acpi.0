@@ -1,49 +1,71 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v7 04/16] drivers: iommu: make of_iommu_set/get_ops() DT
- agnostic
-Date: Tue, 29 Nov 2016 17:06:40 +0000
-Message-ID: <20161129170639.GH30283@arm.com>
-References: <20161111152248.GS2078@8bytes.org>
- <552e674a-f434-f08f-8e16-a94544ce8e6e@arm.com>
- <20161111162736.GV2078@8bytes.org>
- <33769e3c-265f-6e89-adf9-6d35b1e03579@arm.com>
- <20161114102654.GA1677@red-moon>
- <41e3eff1-9ce6-bcfb-5716-c65ef38add63@arm.com>
- <20161114155222.GZ2078@8bytes.org>
- <313844ca-d948-1297-84b2-669f3a7d57d2@arm.com>
- <20161116095615.GA25656@red-moon>
- <20161129160549.GH2078@8bytes.org>
+From: Peter Rosin <peda@axentia.se>
+Subject: Re: [PATCH V5] i2c: mux: pca954x: Add ACPI support for pca954x
+Date: Tue, 29 Nov 2016 16:50:51 +0100
+Message-ID: <8351922e-f006-da76-1b76-e850113d4e7a@axentia.se>
+References: <1480414363-16318-1-git-send-email-tnhuynh@apm.com>
+ <d1576b0e-75e7-a8e7-b752-301d125ea765@axentia.se>
+ <CANQ9TuC64k8Ub_Pn01aJkQqL6kKrcXaJp35bPJR6c5WScUHj9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52652 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752395AbcK2RGl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 12:06:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20161129160549.GH2078@8bytes.org>
+Received: from mail-he1eur01on0102.outbound.protection.outlook.com ([104.47.0.102]:35048
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1757904AbcK2RXF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 12:23:05 -0500
+In-Reply-To: <CANQ9TuC64k8Ub_Pn01aJkQqL6kKrcXaJp35bPJR6c5WScUHj9A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>, iommu@lists.linux-foundation.org, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tin Huynh <tnhuynh@apm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
 
-On Tue, Nov 29, 2016 at 05:05:49PM +0100, Joerg Roedel wrote:
-> On Wed, Nov 16, 2016 at 09:56:15AM +0000, Lorenzo Pieralisi wrote:
-> > I can easily make the changes Robin suggests above, I need to know
-> > what to do with this patch it is the last blocking point for this
-> > series and time is running out I can revert to using dev->bus to
-> > retrieve iommu_ops (even though I do not think it makes sense given
-> > what Robin outlines below) but I need to know please, we can't gate
-> > an entire series for this patch that is just syntactic sugar.
+On 2016-11-29 16:12, Tin Huynh wrote:
+> On Tue, Nov 29, 2016 at 5:15 PM, Peter Rosin <peda@axentia.se> wrote:
+>> On 2016-11-29 11:12, Tin Huynh wrote:
+>>> This patch enables ACPI support for mux-pca954x driver.
+>>
+>> Looks good, thanks!
+>>
+>>> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+>>
+>> Acked-by: Peter Rosin <peda@axentia.se>
+>>
+>> Cheers,
+>> Peter
+>>
+> Added Mika
+> However , in http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/gpio/gpio-pca953x.c?id=f32517bf1ae0a2de72b3f27200233bd3ad65bfeb
+>  log , i didn't see the CONFIG_ACPI and CONFIG_PTR.
+> I have been acked with the same patch to support for i2c-leds (
+> without CONFIG_ACPI)
+> About logic , if we don't enable CONFIG_ACPI , acpi_match_table will
+> be NULL . So , the probe functions will be not called
+> and nothing happens.
+> I though we should use V3 (https://lkml.org/lkml/2016/11/28/893)
 > 
-> Well, I didn't really object to the approach per-se, I just wanted to
-> know the rationale behind the need for the iommu-ops pointer. So through
-> which tree should this series be merged?
 
-I was just about to send a pull request to you, since it conflicts with
-my ARM SMMU patches and the PCI/ACPI bits are acked by Rafael and Bjorn.
+V3 will work, but you waste resources (not much, but still) for the
+ACPI table even though it is never going to be used, so it's best
+to #ifdef it out. (At least I think so, but maybe GCC sees that the
+variable isn't really used for anything useful and manages to kill
+it off? Anyway, I'm assuming that there really are resources wasted
+if you don't do the #ifdef...)
 
-My for-joerg/arm-smmu/updates is ready to go; just need to write the
-pull request.
+But the thing is that you do not want a bunch of #ifdefs *in* the
+code. It's ok to #ifdef out a variable, but not *in* the code. That
+way lies madness.
 
-Will
+So the code is going to have a call to acpi_match_device(). If
+CONFIG_ACPI isn't set, that function compiles to an inline function
+simply returning NULL, but the compiler still evaluates its args
+and complains if the above variable is not found, which it isn't
+since it's #ifdef out. So, we need to "hide" the variable if it
+doesn't exist, using the ACPI_PTR macro.
+
+For gpio-pca953x, the same reasoning can be used, but the resource
+waste is even less in that case.
+
+Cheers,
+Peter
+
