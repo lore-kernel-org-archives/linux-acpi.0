@@ -1,85 +1,40 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V2] leds: pca963x: Add ACPI support
-Date: Tue, 29 Nov 2016 13:04:00 +0200
-Message-ID: <20161129110400.GY1459@lahna.fi.intel.com>
-References: <CGME20161129102236epcas1p36ba8b4160c78cfd62d5748538174ca05@epcas1p3.samsung.com>
- <1480414910-16691-1-git-send-email-tnhuynh@apm.com>
- <676881f2-07e1-9c77-3559-3cf9832852a6@samsung.com>
+From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v9 00/16] ACPI IORT ARM SMMU support
+Date: Tue, 29 Nov 2016 19:11:45 +0800
+Message-ID: <af1d9b6c-1229-4e2c-918c-423ae5a48afd@linaro.org>
+References: <20161121100148.24769-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48306 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755425AbcK2LEJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 06:04:09 -0500
-Content-Disposition: inline
-In-Reply-To: <676881f2-07e1-9c77-3559-3cf9832852a6@samsung.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20161121100148.24769-1-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Tin Huynh <tnhuynh@apm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-On Tue, Nov 29, 2016 at 11:55:47AM +0100, Jacek Anaszewski wrote:
-> On 11/29/2016 11:21 AM, Tin Huynh wrote:
-> > This patch enables ACPI support for leds-pca963x driver.
-> > 
-> > Signed-off-by: Tin Huynh <tnhuynh@apm.com>
-> > ---
-> >  drivers/leds/leds-pca963x.c |   25 ++++++++++++++++++++++++-
-> >  1 files changed, 24 insertions(+), 1 deletions(-)
-> > 
-> > Change from V1:
-> >   -Add CONFIG_ACPI.
-> > 
-> > diff --git a/drivers/leds/leds-pca963x.c b/drivers/leds/leds-pca963x.c
-> > index 407eba1..57f11e3 100644
-> > --- a/drivers/leds/leds-pca963x.c
-> > +++ b/drivers/leds/leds-pca963x.c
-> > @@ -25,6 +25,7 @@
-> >   * or by adding the 'nxp,hw-blink' property to the DTS.
-> >   */
-> > 
-> > +#include <linux/acpi.h>
-> >  #include <linux/module.h>
-> >  #include <linux/delay.h>
-> >  #include <linux/string.h>
-> > @@ -95,6 +96,17 @@ struct pca963x_chipdef {
-> >  };
-> >  MODULE_DEVICE_TABLE(i2c, pca963x_id);
-> > 
-> > +#ifdef CONFIG_ACPI
-> > +static const struct acpi_device_id pca963x_acpi_ids[] = {
-> > +	{ "PCA9632", pca9633 },
-> > +	{ "PCA9633", pca9633 },
-> > +	{ "PCA9634", pca9634 },
-> > +	{ "PCA9635", pca9635 },
-> > +	{ }
-> > +};
-> > +MODULE_DEVICE_TABLE(acpi, pca963x_acpi_ids);
-> > +#endif
-> > +
-> >  struct pca963x_led;
-> > 
-> >  struct pca963x {
-> > @@ -322,7 +334,17 @@ static int pca963x_probe(struct i2c_client *client,
-> >  	struct pca963x_chipdef *chip;
-> >  	int i, err;
-> > 
-> > -	chip = &pca963x_chipdefs[id->driver_data];
-> > +	if (id) {
-> > +		chip = &pca963x_chipdefs[id->driver_data];
-> > +	} else {
-> > +		const struct acpi_device_id *acpi_id;
-> > +
-> > +		acpi_id = acpi_match_device(ACPI_PTR(pca963x_acpi_ids),
-> > +						&client->dev);
-> 
-> What kind of problem did you get while compiling without ACPI_PTR here,
-> when CONFIG_ACPI is disabled? I also tried this configuration but
-> nothing wrong happened. Also at first glance I don't see why lack of
-> ACPI_PTR macro could cause problems.
-> 
-> Grep also doesn't show any call to acpi_match_device
-> with ACPI_PTR as the first argument in the existing drivers.
+On 2016/11/21 18:01, Lorenzo Pieralisi wrote:
+> This patch series is v9 of a previous posting:
+>
+> https://lkml.org/lkml/2016/11/16/386
+>
+> v8 -> v9
+> 	- Updated bypass flag handling in ARM SMMU v3 according to
+> 	  reviews
+> 	- Removed SMMUv1/v2 configuration interrupt handling
+> 	- Rebased against v4.9-rc5
+> 	- Updated tags
 
-Indeed, that is not needed at all.
+I rebased on top of latest 4.9-rc7 (can apply cleanly), and tested on
+Hisilicon D03, the SMMUv3 works fine as previous version.
+
+Thanks
+Hanjun
