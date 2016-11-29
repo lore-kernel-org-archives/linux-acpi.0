@@ -1,135 +1,86 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH][RFC] ACPI throttling: Save/restore tstate for each CPUs
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH][RFC] ACPI throttling: Save/restore tstate for each CPUs
  across suspend/resume
-Date: Tue, 29 Nov 2016 01:27:36 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE6405E63B74D@shsmsx102.ccr.corp.intel.com>
+Date: Tue, 29 Nov 2016 02:50:08 +0100
+Message-ID: <CAJZ5v0hAE_+pnpBkfOpr1fKTR2tJOBDyMwULCEstZrO_D4aJjw@mail.gmail.com>
 References: <1479145444-29269-1-git-send-email-yu.c.chen@intel.com>
- <CAJZ5v0iMT4+qVdQ-8ev_NRavLNnLhr_+eEO9M=85WJC+zfDySw@mail.gmail.com>
+ <CAJZ5v0iMT4+qVdQ-8ev_NRavLNnLhr_+eEO9M=85WJC+zfDySw@mail.gmail.com> <36DF59CE26D8EE47B0655C516E9CE6405E63B74D@shsmsx102.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iMT4+qVdQ-8ev_NRavLNnLhr_+eEO9M=85WJC+zfDySw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rui Wang <ruwang@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wj0-f194.google.com ([209.85.210.194]:36575 "EHLO
+        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754044AbcK2BuK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 20:50:10 -0500
+In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE6405E63B74D@shsmsx102.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rui Wang <ruwang@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>
 
-SGksDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFp
-bC5jb20gW21haWx0bzpyand5c29ja2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVs
-IEouIFd5c29ja2kNCj4gU2VudDogV2VkbmVzZGF5LCBOb3ZlbWJlciAyMywgMjAxNiA3OjAzIEFN
-DQo+IFRvOiBDaGVuLCBZdSBDDQo+IENjOiBBQ1BJIERldmVsIE1hbGluZyBMaXN0OyBSdWkgV2Fu
-ZzsgTGludXggS2VybmVsIE1haWxpbmcgTGlzdDsgTGVuIEJyb3duOw0KPiBSYWZhZWwgSi4gV3lz
-b2NraTsgUGF2ZWwgTWFjaGVrOyBNYXR0aGV3IEdhcnJldHQ7IFpoYW5nLCBSdWk7IExpbnV4IFBN
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdW1JGQ10gQUNQSSB0aHJvdHRsaW5nOiBTYXZlL3Jlc3Rv
-cmUgdHN0YXRlIGZvciBlYWNoIENQVXMNCj4gYWNyb3NzIHN1c3BlbmQvcmVzdW1lDQo+IA0KPiBP
-biBNb24sIE5vdiAxNCwgMjAxNiBhdCA2OjQ0IFBNLCBDaGVuIFl1IDx5dS5jLmNoZW5AaW50ZWwu
-Y29tPiB3cm90ZToNCj4gPiBUaGlzIGlzIGEgdHJpYWwgdmVyc2lvbiBhbmQgYW55IGNvbW1lbnRz
-IGFyZSBhcHByZWNpYXRlZC4NCj4gPg0KPiA+IFByZXZpb3VzbHkgYSBidWcgd2FzIHJlcG9ydGVk
-IHRoYXQgb24gY2VydGFpbiBCcm9hZHdlbGwgcGxhdGZvcm1zLA0KPiA+IGFmdGVyIHJlc3VtaW5n
-IGZyb20gUzMsIHRoZSBDUFUgaXMgcnVubmluZyBhdCBhbiBhbm9tYWxvdXNseSBsb3cNCj4gPiBz
-cGVlZCwgZHVlIHRvIEJJT1MgaGFzIGVuYWJsZWQgdGhlIHRocm90dGxpbmcgYWNyb3NzIFMzLiBU
-aGUgc29sdXRpb24NCj4gPiB0byB0aGlzIGlzIHRvIGludHJvZHVjZSBhIHF1aXJrIGZyYW1ld29y
-ayB0byBzYXZlL3Jlc3RvcmUgdHN0YXRlIE1TUg0KPiA+IHJlZ2lzdGVyIGFyb3VuZCBzdXNwZW5k
-L3Jlc3VtZSwgaW4gQ29tbWl0IDdhOWMyZGQwOGVhZCAoIng4Ni9wbToNCj4gPiBJbnRyb2R1Y2Ug
-cXVpcmsgZnJhbWV3b3JrIHRvIHNhdmUvcmVzdG9yZSBleHRyYSBNU1IgcmVnaXN0ZXJzIGFyb3Vu
-ZA0KPiA+IHN1c3BlbmQvcmVzdW1lIikuDQo+ID4NCj4gPiBIb3dldmVyIG1vcmUgYW5kIG1vcmUg
-cmVwb3J0cyBzaG93IHRoYXQgb3RoZXIgcGxhdGZvcm1zIGFsc28NCj4gPiBleHBlcmllbmNlZCB0
-aGUgc2FtZSBpc3N1ZSwgYmVjYXVzZSBzb21lIEJJT1NlcyB3b3VsZCBsaWtlIHRvIGFkanVzdA0K
-PiA+IHRoZSB0c3RhdGUgaWYgaGUgdGhpbmtzIHRoZSB0ZW1wZXJhdHVyZSBpcyB0b28gaGlnaC4N
-Cj4gPiBUbyBkZWFsIHdpdGggdGhpcyBzaXR1YXRpb24sIHRoZSBMaW51eCB1c2VzIGEgY29tcGVu
-c2F0aW9uIHN0cmF0ZWd5DQo+ID4gdGhhdCwgdGhlIHRoZXJtYWwgbWFuYWdlbWVudCBsZXZlcmFn
-ZXMgdGhlcm1hbF9wbV9ub3RpZnkoKSB1cG9uIHJlc3VtZQ0KPiA+IHRvIGNoZWNrIGlmIHRoZSBQ
-cm9jZXNzb3JzIGluc2lkZSB0aGUgdGhlcm1hbCB6b25lIHNob3VsZCBiZSB0aHJvdHRsZWQNCj4g
-PiBvciBub3QsIHRodXMgdHN0YXRlIHdvdWxkIGJlIHJlLWV2YWx1YXRlZC4gVW5mb3J0dW5hdGVs
-eSBvbiB0aGVzZQ0KPiA+IGJvZ3VzIHBsYXRmb3Jtcywgbm9uZSBvZiB0aGUgUHJvY2Vzc29ycyBh
-cmUgaW5zaWRlIGFueSB0aGVybWFsIHpvbmVzDQo+ID4gZHVlIHRvIEJJT1MncyBpbXBsZW1lbnRh
-dGlvbi4gVGh1cyB0c3RhdGUgZm9yIFByb2Nlc3NvcnMgbmV2ZXIgaGFzIGENCj4gPiBjaGFuY2Ug
-dG8gYmUgYnJvdWdodCBiYWNrIHRvIG5vcm1hbC4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggdHJpZXMg
-dG8gc2F2ZS9yZXN0b3JlIHRzdGF0ZSBvbiByZWNlaXZpbmcgdGhlDQo+ID4gUE1fU1VTUEVORF9Q
-UkVQQVJFIGFuZCBQTV9QT1NUX1NVU1BFTkQsIHRvIGJlIG1vcmUgc3BlY2lmaWMsIHRoZQ0KPiA+
-IHRzdGF0ZSBpcyBzYXZlZCBhZnRlciB0aGVybWFsX3BtX25vdGlmeShQTV9TVVNQRU5EX1BSRVBB
-UkUpDQo+ID4gaXMgY2FsbGVkLCB3aGlsZSBpdCdzIHJlc3RvcmVkIGJlZm9yZQ0KPiA+IHRoZXJt
-YWxfcG1fbm90aWZ5KFBNX1BPU1RfU1VTUEVORCksDQo+ID4gaW4gdGhpcyB3YXkgdGhlIHRoZXJt
-YWwgem9uZSB3b3VsZCBhZGp1c3QgdGhlIHRzdGF0ZSBldmVudHVhbGx5IGFuZA0KPiA+IGFsc28g
-aGVscCBhZGp1c3QgdGhlIHRzdGF0ZSBmb3IgUHJvY2Vzc29ycyB3aGljaCBkbyBub3QgaGF2ZSB0
-aGVybWFsDQo+ID4gem9uZSBib3VuZC4gVGh1cyBpdCBkb2VzIG5vdCBpbWFwY3QgdGhlIG9sZCBz
-ZW1hbnRpY3MuDQo+ID4NCj4gPiBBbm90aGVyIGNvbmNlcm4gaXMgdGhhdCwgZWFjaCBDUFUgc2hv
-dWxkIHRha2UgY2FyZSBvZiB0aGUgc2F2ZS9yZXN0b3JlDQo+ID4gb3BlcmF0aW9uLCB0aHVzIHRo
-aXMgcGF0Y2ggdXNlcyBwZXJjcHUgd29ya3F1ZXVlIHRvIGFjaGlldmUgdGhpcy4NCj4gPg0KPiA+
-IEJ1Z3ppbGxhOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTkw
-MDQxDQo+ID4gUmVwb3J0ZWQtYnk6IE1hdHRoZXcgR2FycmV0dCA8bWpnNTlAc3JjZi51Y2FtLm9y
-Zz4NCj4gPiBSZXBvcnRlZC1ieTogS2FkaXIgPGthZGlyQGNvbGFrb2dsdS5ubD4NCj4gPiBDYzog
-TGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+DQo+ID4gQ2M6ICJSYWZhZWwgSi4gV3lzb2NraSIg
-PHJhZmFlbEBrZXJuZWwub3JnPg0KPiA+IENjOiBQYXZlbCBNYWNoZWsgPHBhdmVsQHVjdy5jej4N
-Cj4gPiBDYzogTWF0dGhldyBHYXJyZXR0IDxtamc1OUBzcmNmLnVjYW0ub3JnPg0KPiA+IENjOiBS
-dWkgWmhhbmcgPHJ1aS56aGFuZ0BpbnRlbC5jb20+DQo+ID4gQ2M6IGxpbnV4LXBtQHZnZXIua2Vy
-bmVsLm9yZw0KPiA+IFNpZ25lZC1vZmYtYnk6IENoZW4gWXUgPHl1LmMuY2hlbkBpbnRlbC5jb20+
-DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfdGhyb3R0bGluZy5jIHwgNzAN
-Cj4gPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gIDEgZmlsZSBj
-aGFuZ2VkLCA3MCBpbnNlcnRpb25zKCspDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9h
-Y3BpL3Byb2Nlc3Nvcl90aHJvdHRsaW5nLmMNCj4gPiBiL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3Jf
-dGhyb3R0bGluZy5jDQo+ID4gaW5kZXggZDUxY2ExYy4uOGRkYzdkNiAxMDA2NDQNCj4gPiAtLS0g
-YS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX3Rocm90dGxpbmcuYw0KPiA+ICsrKyBiL2RyaXZlcnMv
-YWNwaS9wcm9jZXNzb3JfdGhyb3R0bGluZy5jDQo+ID4gQEAgLTI5LDYgKzI5LDcgQEANCj4gPiAg
-I2luY2x1ZGUgPGxpbnV4L3NjaGVkLmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9jcHVmcmVxLmg+
-DQo+ID4gICNpbmNsdWRlIDxsaW51eC9hY3BpLmg+DQo+ID4gKyNpbmNsdWRlIDxsaW51eC9zdXNw
-ZW5kLmg+DQo+ID4gICNpbmNsdWRlIDxhY3BpL3Byb2Nlc3Nvci5oPg0KPiA+ICAjaW5jbHVkZSA8
-YXNtL2lvLmg+DQo+ID4gICNpbmNsdWRlIDxhc20vdWFjY2Vzcy5oPg0KPiA+IEBAIC03NTgsNiAr
-NzU5LDc1IEBAIHN0YXRpYyBpbnQgYWNwaV90aHJvdHRsaW5nX3dybXNyKHU2NCB2YWx1ZSkNCj4g
-PiAgICAgICAgIH0NCj4gPiAgICAgICAgIHJldHVybiByZXQ7DQo+ID4gIH0NCj4gPiArDQo+ID4g
-KyNpZmRlZiBDT05GSUdfUE1fU0xFRVANCj4gPiArc3RhdGljIERFRklORV9QRVJfQ1BVKHU2NCwg
-dHN0YXRlX21zcik7DQo+IA0KPiBDYWxsIGl0IHNhdmVkX3RzdGF0ZV9tc3IgbWF5YmU/DQpPSy4N
-Cj4gDQo+ID4gKw0KPiA+ICtzdGF0aWMgbG9uZyB0c3RhdGVfcG1fZm4odm9pZCAqZGF0YSkNCj4g
-PiArew0KPiA+ICsgICAgICAgdTY0IHZhbHVlOw0KPiA+ICsgICAgICAgYm9vbCBzYXZlID0gKihi
-b29sICopZGF0YTsNCj4gPiArDQo+ID4gKyAgICAgICBpZiAoc2F2ZSkgew0KPiA+ICsgICAgICAg
-ICAgICAgICBhY3BpX3Rocm90dGxpbmdfcmRtc3IoJnZhbHVlKTsNCj4gPiArICAgICAgICAgICAg
-ICAgdGhpc19jcHVfd3JpdGUodHN0YXRlX21zciwgdmFsdWUpOw0KPiA+ICsgICAgICAgfSBlbHNl
-IHsNCj4gPiArICAgICAgICAgICAgICAgdmFsdWUgPSB0aGlzX2NwdV9yZWFkKHRzdGF0ZV9tc3Ip
-Ow0KPiA+ICsgICAgICAgICAgICAgICBpZiAodmFsdWUpDQo+ID4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgYWNwaV90aHJvdHRsaW5nX3dybXNyKHZhbHVlKTsNCj4gPiArICAgICAgIH0NCj4gPiAr
-ICAgICAgIHJldHVybiAwOw0KPiA+ICt9DQo+IA0KPiBJIHdvdWxkIHNwbGl0IHRoZSBhYm92ZSBp
-bnRvIHR3byBmdW5jdGlvbnMsIG9uZSBmb3Igc2F2aW5nIGFuZCBvbmUgZm9yIHJlc3RvcmluZyAt
-Pg0KPiANCk9LLg0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgdHN0YXRlX2NoZWNrKHVuc2lnbmVk
-IGxvbmcgbW9kZSwgYm9vbCBzdXNwZW5kKSB7DQo+ID4gKyAgICAgICBpbnQgY3B1Ow0KPiA+ICsg
-ICAgICAgYm9vbCBzYXZlOw0KPiA+ICsNCj4gPiArICAgICAgIGlmIChzdXNwZW5kICYmIG1vZGUg
-PT0gUE1fU1VTUEVORF9QUkVQQVJFKQ0KPiA+ICsgICAgICAgICAgICAgICBzYXZlID0gdHJ1ZTsN
-Cj4gPiArICAgICAgIGVsc2UgaWYgKCFzdXNwZW5kICYmIG1vZGUgPT0gUE1fUE9TVF9TVVNQRU5E
-KQ0KPiA+ICsgICAgICAgICAgICAgICBzYXZlID0gZmFsc2U7DQo+ID4gKyAgICAgICBlbHNlDQo+
-ID4gKyAgICAgICAgICAgICAgIHJldHVybjsNCj4gPiArDQo+ID4gKyAgICAgICBnZXRfb25saW5l
-X2NwdXMoKTsNCj4gPiArICAgICAgIGZvcl9lYWNoX29ubGluZV9jcHUoY3B1KQ0KPiANCj4gLT4g
-YW5kIGRlY2lkZSBoZXJlIHdoaWNoIG9uZSB0byBpbnZva2UuDQpPSy4NCj4gDQo+ID4gKyAgICAg
-ICAgICAgICAgIHdvcmtfb25fY3B1KGNwdSwgdHN0YXRlX3BtX2ZuLCAmc2F2ZSk7DQo+IA0KPiBE
-b2VzIHdvcmtfb25fY3B1KCkgd2FpdCBmb3IgdGhlIHdvcmsgdG8gY29tcGxldGU/DQo+IA0KWWVz
-LCBpdCBtaWdodCBpbmNyZWFzZSB0aGUgc3VzcGVuZC9yZXN1bWUgdGltZSwgYSAncXVldWVfd29y
-a19vbicgbWlnaHQgYmUgYmV0dGVyPyANCj4gPiArICAgICAgIHB1dF9vbmxpbmVfY3B1cygpOw0K
-PiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW50IHRzdGF0ZV9zdXNwZW5kKHN0cnVjdCBub3Rp
-Zmllcl9ibG9jayAqbmIsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNp
-Z25lZCBsb25nIG1vZGUsIHZvaWQgKl91bnVzZWQpIHsNCj4gPiArICAgICAgIHRzdGF0ZV9jaGVj
-ayhtb2RlLCB0cnVlKTsNCj4gPiArICAgICAgIHJldHVybiAwOw0KPiA+ICt9DQo+ID4gKw0KPiA+
-ICtzdGF0aWMgaW50IHRzdGF0ZV9yZXN1bWUoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpuYiwNCj4g
-PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgbW9kZSwgdm9p
-ZCAqX3VudXNlZCkgew0KPiA+ICsgICAgICAgdHN0YXRlX2NoZWNrKG1vZGUsIGZhbHNlKTsNCj4g
-PiArICAgICAgIHJldHVybiAwOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW50IF9faW5p
-dCB0c3RhdGVfcG1faW5pdCh2b2lkKSB7DQo+ID4gKyAgICAgICAvKg0KPiA+ICsgICAgICAgICog
-dHN0YXRlX3N1c3BlbmQgc2hvdWxkIHNhdmUgdHN0YXRlIGFmdGVyDQo+ID4gKyAgICAgICAgKiB0
-aGVybWFsIHpvbmUncyB1cGRhdGUgaW4gdGhlcm1hbF9wbV9ub3RpZnksDQo+ID4gKyAgICAgICAg
-KiB2aWNlIHZlcnNhIHRzdGF0ZV9yZXN1bWUgcmVzdG9yZSB0c3RhdGUgYmVmb3JlDQo+ID4gKyAg
-ICAgICAgKiB0aGVybWFsX3BtX25vdGlmeSwgdGh1cyB0aGUgdGhlcm1hbCBmcmFtZXdvcmsNCj4g
-PiArICAgICAgICAqIGhhcyBhIGNoYW5jZSB0byByZS1hZGp1c3QgdHN0YXRlIGFjY29yZGluZyB0
-byB0aGUNCj4gPiArICAgICAgICAqIHRlbXBlcmF0dXJlIHRyZW5kLg0KPiA+ICsgICAgICAgICov
-DQo+ID4gKyAgICAgICBwbV9ub3RpZmllcih0c3RhdGVfc3VzcGVuZCwgLTEpOw0KPiA+ICsgICAg
-ICAgcG1fbm90aWZpZXIodHN0YXRlX3Jlc3VtZSwgMSk7DQo+IA0KPiBJIGRvbid0IHRoaW5rIHRo
-aXMgaXMgZ29pbmcgdG8gZG8gd2hhdCB5b3UgcmVhbGx5IHdhbnQuDQo+IA0KPiBFYWNoIG9mIHRo
-ZXNlIG5vdGlmaWVycyBpcyBnb2luZyB0byBiZSBpbnZva2VkIGR1cmluZyBib3RoIHN1c3BlbmQg
-YW5kIHJlc3VtZSwNClllcywNCj4gc28gSSBndWVzcyB5b3Ugb25seSBuZWVkIG9uZSBub3RpZmll
-cj8NCkhlcmUncyBteSBvcmlnaW5hbCB0aG91Z2h0OiAgdHN0YXRlX3N1c3BlbmQgbmVlZHMgdG8g
-YmUgaW52b2tlZCBhZnRlcg0KIHRoZXJtYWxfcG1fbm90aWZ5LCB3aGljaCBoYXMgYSBwcmlvcml0
-eSBvZiAnMCcsDQpzbyB0aGUgbm90aWZpZXIgb2YgdHN0YXRlX3N1c3BlbmQgc2hvdWxkIGJlIGxv
-d2VyIHRoYW4gJzAnLCANCnRodXMgJy0xJy4gQW5kIHRoZSBzYW1lIGZvciB0c3RhdGVfcmVzdW1l
-LA0KaXQgc2hvdWxkIGJlIGludm9rZWQgYmVmb3JlIHRoZXJtYWxfcG1fbm90aWZ5LCANCnRodXMg
-cHJpb3JpdHkgaXMgJzEnID8NCj4gDQo+ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0KPiA+
-ICsNCj4gPiArY29yZV9pbml0Y2FsbCh0c3RhdGVfcG1faW5pdCk7DQo+ID4gKyNlbmRpZg0KPiA+
-ICAjZWxzZQ0KPiA+ICBzdGF0aWMgaW50IGFjcGlfdGhyb3R0bGluZ19yZG1zcih1NjQgKnZhbHVl
-KSAgew0KPiA+IC0tDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KDQpUaGFua3MsDQpZdQ0K
+On Tue, Nov 29, 2016 at 2:27 AM, Chen, Yu C <yu.c.chen@intel.com> wrote:
+> Hi,
+>> -----Original Message-----
+>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
+>> Rafael J. Wysocki
+>> Sent: Wednesday, November 23, 2016 7:03 AM
+
+[cut]
+
+>>
+>> > +               work_on_cpu(cpu, tstate_pm_fn, &save);
+>>
+>> Does work_on_cpu() wait for the work to complete?
+>>
+> Yes, it might increase the suspend/resume time, a 'queue_work_on' might be better?
+
+Not really, because you'd need to wait before doing the
+put_online_cpus() anyway.
+
+>> > +       put_online_cpus();
+>> > +}
+>> > +
+>> > +static int tstate_suspend(struct notifier_block *nb,
+>> > +                               unsigned long mode, void *_unused) {
+>> > +       tstate_check(mode, true);
+>> > +       return 0;
+>> > +}
+>> > +
+>> > +static int tstate_resume(struct notifier_block *nb,
+>> > +                               unsigned long mode, void *_unused) {
+>> > +       tstate_check(mode, false);
+>> > +       return 0;
+>> > +}
+>> > +
+>> > +static int __init tstate_pm_init(void) {
+>> > +       /*
+>> > +        * tstate_suspend should save tstate after
+>> > +        * thermal zone's update in thermal_pm_notify,
+>> > +        * vice versa tstate_resume restore tstate before
+>> > +        * thermal_pm_notify, thus the thermal framework
+>> > +        * has a chance to re-adjust tstate according to the
+>> > +        * temperature trend.
+>> > +        */
+>> > +       pm_notifier(tstate_suspend, -1);
+>> > +       pm_notifier(tstate_resume, 1);
+>>
+>> I don't think this is going to do what you really want.
+>>
+>> Each of these notifiers is going to be invoked during both suspend and resume,
+> Yes,
+>
+>> so I guess you only need one notifier?
+>
+> Here's my original thought:  tstate_suspend needs to be invoked after
+>  thermal_pm_notify, which has a priority of '0',
+> so the notifier of tstate_suspend should be lower than '0',
+> thus '-1'. And the same for tstate_resume,
+> it should be invoked before thermal_pm_notify,
+> thus priority is '1' ?
+
+If there's a dependency like that, it needs to be explicit.  That is,
+thermal_pm_notify() needs to invoke your new code in the right order
+with respect to what it does already.
+
+Thanks,
+Rafael
