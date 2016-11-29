@@ -1,113 +1,55 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: [PATCH V3] i2c: mux: pca954x: Add ACPI support for pca954x
-Date: Tue, 29 Nov 2016 06:55:52 +0100
-Message-ID: <07dfd83e-e878-fae6-6a9d-8a9678235744@axentia.se>
-References: <1480391189-1775-1-git-send-email-tnhuynh@apm.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: do not warn if _BQC  does not exist
+Date: Tue, 29 Nov 2016 16:30:05 +0800
+Message-ID: <1480408205.2202.5.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1480391189-1775-1-git-send-email-tnhuynh@apm.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: tnhuynh@apm.com, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:42569 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753284AbcK2IaJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 03:30:09 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi!
+>From da38c4f4decae22797aa39d5ac8518cada0302e3 Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Tue, 29 Nov 2016 16:13:56 +0800
+Subject: [PATCH] ACPI: do not warn if _BQC does not exist
 
-We're apparently misunderstanding each other, I meant only that last
-#ifdef in the v2 review... Sorry for not being clearer, new attempt
-below.
+Starting from ACPI spec 3.0, it's only clarified that _BCM control
+method is required if _BCL is implemented. There is no word
+saying _BQC is required.
 
-Cheers,
-Peter
+And in ACPI spec 6.1 B.5.4, for _BQC, it is explicitly stated that
+"This optional method returns the current brightness level of a
+built-in display output device. If present, it must be set by
+the platform for initial brightness."
 
-On 2016-11-29 04:46, tnhuynh@apm.com wrote:
-> From: Tin Huynh <tnhuynh@apm.com>
-> 
-> This patch enables ACPI support for mux-pca954x driver.
-> 
-> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
-> 
-> ---
->  drivers/i2c/muxes/i2c-mux-pca954x.c |   25 ++++++++++++++++++++++++-
->  1 files changed, 24 insertions(+), 1 deletions(-)
-> 
-> Change from V2:
->  -Remove CONFIG_ACPI.
-> 
-> Change from V1:
->  -Don't shadow id variable.
->  -Include sorted header.
->  -Redefine acpi_device_id.
->  -Add CONFIG_ACPI.
-> 
-> diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
-> index 1091346..f80191e 100644
-> --- a/drivers/i2c/muxes/i2c-mux-pca954x.c
-> +++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
-> @@ -35,6 +35,7 @@
->   * warranty of any kind, whether express or implied.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/device.h>
->  #include <linux/gpio/consumer.h>
->  #include <linux/i2c.h>
-> @@ -120,6 +121,19 @@ struct pca954x {
->  };
->  MODULE_DEVICE_TABLE(i2c, pca954x_id);
->  
+Thus remove the obsolete warning message.
 
-#ifdef CONFIG_ACPI
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/scan.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-> +static const struct acpi_device_id pca954x_acpi_ids[] = {
-> +	{ .id = "PCA9540", .driver_data = pca_9540 },
-> +	{ .id = "PCA9542", .driver_data = pca_9540 },
-> +	{ .id = "PCA9543", .driver_data = pca_9543 },
-> +	{ .id = "PCA9544", .driver_data = pca_9544 },
-> +	{ .id = "PCA9545", .driver_data = pca_9545 },
-> +	{ .id = "PCA9546", .driver_data = pca_9545 },
-> +	{ .id = "PCA9547", .driver_data = pca_9547 },
-> +	{ .id = "PCA9548", .driver_data = pca_9548 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, pca954x_acpi_ids);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 3d1856f..07aa2e6 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1119,9 +1119,6 @@ acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
+ 				  "support\n"));
+ 		*cap |= ACPI_VIDEO_BACKLIGHT;
+-		if (!acpi_has_method(handle, "_BQC"))
+-			printk(KERN_WARNING FW_BUG PREFIX "No _BQC method, "
+-				"cannot determine initial brightness\n");
+ 		/* We have backlight support, no need to scan further */
+ 		return AE_CTRL_TERMINATE;
+ 	}
+-- 
+2.7.4
 
-#endif
-
-> +
->  #ifdef CONFIG_OF
->  static const struct of_device_id pca954x_of_match[] = {
->  	{ .compatible = "nxp,pca9540", .data = &chips[pca_9540] },
-> @@ -245,8 +259,16 @@ static int pca954x_probe(struct i2c_client *client,
->  	match = of_match_device(of_match_ptr(pca954x_of_match), &client->dev);
->  	if (match)
->  		data->chip = of_device_get_match_data(&client->dev);
-> -	else
-> +	else if (id)
->  		data->chip = &chips[id->driver_data];
-> +	else {
-> +		const struct acpi_device_id *acpi_id;
-> +
-> +		acpi_id = acpi_match_device(pca954x_acpi_ids, &client->dev);
-
-		acpi_id = acpi_match_device(ACPI_PTR(pca954x_acpi_ids),
-					    &client->dev);
-
-> +		if (!acpi_id)
-> +			return -ENODEV;
-> +		data->chip = &chips[acpi_id->driver_data];
-> +	}
->  
->  	data->last_chan = 0;		   /* force the first selection */
->  
-> @@ -321,6 +343,7 @@ static int pca954x_resume(struct device *dev)
->  		.name	= "pca954x",
->  		.pm	= &pca954x_pm,
->  		.of_match_table = of_match_ptr(pca954x_of_match),
-> +		.acpi_match_table = ACPI_PTR(pca954x_acpi_ids),
->  	},
->  	.probe		= pca954x_probe,
->  	.remove		= pca954x_remove,
-> 
