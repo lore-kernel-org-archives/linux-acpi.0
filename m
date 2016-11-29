@@ -1,73 +1,59 @@
-From: Tin Huynh <tnhuynh@apm.com>
-Subject: [PATCH V1] leds: pca963x: Add ACPI support
-Date: Tue, 29 Nov 2016 11:18:20 +0700
-Message-ID: <1480393100-1397-1-git-send-email-tnhuynh@apm.com>
-Return-path: <linux-leds-owner@vger.kernel.org>
-Sender: linux-leds-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
+From: <h.piontek@mistravel.pl>
+Subject: (unknown)
+Date: Tue, 29 Nov 2016 05:51:05 -0000
+Message-ID: <148039866515.14474.4326100112052711815@webair.com>
+Mime-Version: 1.0
+Content-Type: application/zip; name="MESSAGE_428046_linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from doorway.webair.com ([209.200.25.26]:38883 "HELO webair.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1755713AbcK2FvI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 00:51:08 -0500
+Content-Disposition: attachment
+Subject: 
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This patch enables ACPI support for leds-pca963x driver.
-
-Signed-off-by: Tin Huynh <tnhuynh@apm.com>
----
- drivers/leds/leds-pca963x.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/leds/leds-pca963x.c b/drivers/leds/leds-pca963x.c
-index 407eba1..be51a12 100644
---- a/drivers/leds/leds-pca963x.c
-+++ b/drivers/leds/leds-pca963x.c
-@@ -25,6 +25,7 @@
-  * or by adding the 'nxp,hw-blink' property to the DTS.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/string.h>
-@@ -95,6 +96,15 @@ struct pca963x_chipdef {
- };
- MODULE_DEVICE_TABLE(i2c, pca963x_id);
- 
-+static const struct acpi_device_id pca963x_acpi_ids[] = {
-+	{ "PCA9632", pca9633 },
-+	{ "PCA9633", pca9633 },
-+	{ "PCA9634", pca9634 },
-+	{ "PCA9635", pca9635 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, pca963x_acpi_ids);
-+
- struct pca963x_led;
- 
- struct pca963x {
-@@ -322,7 +332,16 @@ static int pca963x_probe(struct i2c_client *client,
- 	struct pca963x_chipdef *chip;
- 	int i, err;
- 
--	chip = &pca963x_chipdefs[id->driver_data];
-+	if (id) {
-+		chip = &pca963x_chipdefs[id->driver_data];
-+	} else {
-+		const struct acpi_device_id *acpi_id;
-+
-+		acpi_id = acpi_match_device(pca963x_acpi_ids, &client->dev);
-+		if (!acpi_id)
-+			return -ENODEV;
-+		chip = &pca963x_chipdefs[acpi_id->driver_data];
-+	}
- 	pdata = dev_get_platdata(&client->dev);
- 
- 	if (!pdata) {
-@@ -426,6 +445,7 @@ static int pca963x_remove(struct i2c_client *client)
- 	.driver = {
- 		.name	= "leds-pca963x",
- 		.of_match_table = of_match_ptr(of_pca963x_match),
-+		.acpi_match_table = ACPI_PTR(pca963x_acpi_ids),
- 	},
- 	.probe	= pca963x_probe,
- 	.remove	= pca963x_remove,
--- 
-1.7.1
+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
