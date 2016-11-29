@@ -1,49 +1,96 @@
 From: Tin Huynh <tnhuynh@apm.com>
-Subject: Re: [PATCH V1] leds: pca963x: Add ACPI support
-Date: Tue, 29 Nov 2016 17:09:11 +0700
-Message-ID: <CANQ9TuDtaGeBO+nTvTEqE9jegSf7q81hKKxPZX=STC5+wGkmWw@mail.gmail.com>
-References: <1480393100-1397-1-git-send-email-tnhuynh@apm.com>
- <CGME20161129091640epcas5p41c7b2953a079bd3b67bafd8b222df76b@epcas5p4.samsung.com>
- <20161129091536.GO1459@lahna.fi.intel.com> <8d800666-28b9-fa4e-8897-e689e9e644c4@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36728 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933530AbcK2KJO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 05:09:14 -0500
-Received: by mail-wm0-f44.google.com with SMTP id g23so232434929wme.1
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Nov 2016 02:09:13 -0800 (PST)
-In-Reply-To: <8d800666-28b9-fa4e-8897-e689e9e644c4@samsung.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [PATCH V5] i2c: mux: pca954x: Add ACPI support for pca954x
+Date: Tue, 29 Nov 2016 17:12:43 +0700
+Message-ID: <1480414363-16318-1-git-send-email-tnhuynh@apm.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
 
-Hi
-I got a small bug when compiling without CONFIG_ACPI
-I will send out the patch to fix the problem later.
+This patch enables ACPI support for mux-pca954x driver.
 
-On Tue, Nov 29, 2016 at 5:04 PM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> Hi Tin,
->
-> Thanks for the update.
->
-> On 11/29/2016 10:15 AM, Mika Westerberg wrote:
->>
->> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->
->
-> Mika, thanks for the review.
->
-> Patch applied to the for-next branch of linux-leds.git.
->
-> --
-> Best regards,
-> Jacek Anaszewski
+Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+---
+ drivers/i2c/muxes/i2c-mux-pca954x.c |   28 +++++++++++++++++++++++++++-
+ 1 files changed, 27 insertions(+), 1 deletions(-)
+
+Change from V4:
+  -Add ACPI_PTR.
+
+Change from V3:
+ -Readd CONFIG_ACPI.
+
+Change from V2:
+ -Remove CONFIG_ACPI.
+
+Change from V1 :
+ -Don't shadow id variable.
+ -Include sorted header.
+ -Redefine acpi_device_id.
+ -Add CONFIG_ACPI.
 
 
-
+diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
+index 1091346..f81f8b5 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca954x.c
++++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
+@@ -35,6 +35,7 @@
+  * warranty of any kind, whether express or implied.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/device.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/i2c.h>
+@@ -120,6 +121,21 @@ struct pca954x {
+ };
+ MODULE_DEVICE_TABLE(i2c, pca954x_id);
+ 
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id pca954x_acpi_ids[] = {
++	{ .id = "PCA9540", .driver_data = pca_9540 },
++	{ .id = "PCA9542", .driver_data = pca_9540 },
++	{ .id = "PCA9543", .driver_data = pca_9543 },
++	{ .id = "PCA9544", .driver_data = pca_9544 },
++	{ .id = "PCA9545", .driver_data = pca_9545 },
++	{ .id = "PCA9546", .driver_data = pca_9545 },
++	{ .id = "PCA9547", .driver_data = pca_9547 },
++	{ .id = "PCA9548", .driver_data = pca_9548 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, pca954x_acpi_ids);
++#endif
++
+ #ifdef CONFIG_OF
+ static const struct of_device_id pca954x_of_match[] = {
+ 	{ .compatible = "nxp,pca9540", .data = &chips[pca_9540] },
+@@ -245,8 +261,17 @@ static int pca954x_probe(struct i2c_client *client,
+ 	match = of_match_device(of_match_ptr(pca954x_of_match), &client->dev);
+ 	if (match)
+ 		data->chip = of_device_get_match_data(&client->dev);
+-	else
++	else if (id)
+ 		data->chip = &chips[id->driver_data];
++	else {
++		const struct acpi_device_id *acpi_id;
++
++		acpi_id = acpi_match_device(ACPI_PTR(pca954x_acpi_ids), 
++						&client->dev);
++		if (!acpi_id)
++			return -ENODEV;
++		data->chip = &chips[acpi_id->driver_data];
++	}
+ 
+ 	data->last_chan = 0;		   /* force the first selection */
+ 
+@@ -321,6 +346,7 @@ static int pca954x_resume(struct device *dev)
+ 		.name	= "pca954x",
+ 		.pm	= &pca954x_pm,
+ 		.of_match_table = of_match_ptr(pca954x_of_match),
++		.acpi_match_table = ACPI_PTR(pca954x_acpi_ids),
+ 	},
+ 	.probe		= pca954x_probe,
+ 	.remove		= pca954x_remove,
 -- 
-Sr SW Eng
+1.7.1
