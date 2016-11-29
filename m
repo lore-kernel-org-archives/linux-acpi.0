@@ -1,101 +1,132 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v4 00/11] ACPI platform MSI support
-Date: Tue, 29 Nov 2016 21:39:28 +0800
-Message-ID: <1480426779-31387-1-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v4 10/11] ACPI: ARM64: IORT: rework iort_node_get_id() for
+ NC->SMMU->ITS case
+Date: Tue, 29 Nov 2016 21:39:38 +0800
+Message-ID: <1480426779-31387-11-git-send-email-guohanjun@huawei.com>
+References: <1480426779-31387-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:46983 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933598AbcK2NqT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 08:46:19 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1480426779-31387-1-git-send-email-guohanjun@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, G Gregory <graeme.gregory@linaro.org>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-v3 -> v4:
-	- Drop mbi-gen patches to just submit platform msi support because
-	  will rebase mbi-gen patches on top of Agustin's patchset, and discusion
-	  is going there.
-	- Add a patch to support device topology such as NC(named componant, paltform device)
-	  ->SMMU->ITS which suggested by Lorenzo;
-	- rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
-	- rebased on top of 4.9-rc7
+iort_node_get_id() for now only support NC(named componant)->SMMU
+or NC->ITS cases, we also have other device topology such NC->
+SMMU->ITS, so rework iort_node_get_id() for those cases.
 
-v2 -> v3:
-        - Drop RFC tag
-        - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
-        - Add 3 cleanup patches (patch 1, 2, 3)
-        - Drop arch_init call patch from last version
-        - Introduce a callback for platform device to set msi domain
-        - Introduce a new API to get paltform device's domain instead of
-          reusing the PCI one in previous version
-        - Add a patch to rework iort_node_get_id()
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+---
+ drivers/acpi/arm64/iort.c | 59 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 33 insertions(+), 26 deletions(-)
 
-[1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
-
-v1 -> v2:
-        - Fix the bug of if multi Interrupt() resoures in single _PRS,
-          we need to calculate all the irq numbers (I missed it in previous
-          version);
-        - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
-          SMMU patches (also Robin's SMMu patches)
-        - Add patch irqchip: mbigen: promote mbigen init.
-
-With platform msi support landed in the kernel, and the introduction
-of IORT for GICv3 ITS (PCI MSI), the framework for platform msi
-is ready, this patch set add few patches to enable the ACPI platform
-msi support.
-
-For platform device connecting to ITS on arm platform, we have IORT
-table with the named componant node to describe the mappings of paltform
-device and ITS, so we can retrieve the dev id and find its parent
-irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
-
-The fisrt 3 patches are cleanups;
-
-Patch 4,5 are refactoring its_pmsi_prepare() for both DT and ACPI
-then retrieve the dev id from iort;
-
-Patch 6,7 to create platform msi domain to ACPI case which scanned
-the MADT table;
-
-Patch 8,9,10,11 to setup the msi domain for platform device based
-on IORT table.
-
-Teasted on Hisilicon D03.
-
-Thanks
-Hanjun
-
-Hanjun Guo (11):
-  ACPI: ARM64: IORT: minor cleanup for iort_match_node_callback()
-  irqchip: gic-v3-its: keep the head file include in alphabetic order
-  ACPI: ARM64: IORT: add missing comment for iort_dev_find_its_id()
-  irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
-  ACPI: platform-msi: retrieve dev id from IORT
-  irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
-    for ACPI
-  irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
-    domain
-  ACPI: ARM64: IORT: rework iort_node_get_id()
-  ACPI: platform: setup MSI domain for ACPI based platform device
-  ACPI: ARM64: IORT: rework iort_node_get_id() for NC->SMMU->ITS case
-  msi: platform: make platform_msi_create_device_domain() ACPI aware
-
- drivers/acpi/acpi_platform.c                  |  11 ++
- drivers/acpi/arm64/iort.c                     | 138 ++++++++++++++++++++------
- drivers/base/platform-msi.c                   |   3 +-
- drivers/base/platform.c                       |   3 +
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++++-----
- drivers/irqchip/irq-gic-v3-its.c              |   3 +-
- include/linux/acpi_iort.h                     |  11 ++
- include/linux/platform_device.h               |   3 +
- 8 files changed, 217 insertions(+), 61 deletions(-)
-
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 8714f70..2e2d231 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -292,22 +292,28 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+ 	return status;
+ }
+ 
+-static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+-		       u32 *rid_out)
++static int iort_id_single_map(struct acpi_iort_id_mapping *map, u8 type,
++			      u32 *rid_out)
+ {
+ 	/* Single mapping does not care for input id */
+ 	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+ 		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+ 		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+-			*rid_out = map->output_base;
++			if (rid_out)
++				*rid_out = map->output_base;
+ 			return 0;
+ 		}
+ 
+ 		pr_warn(FW_BUG "[map %p] SINGLE MAPPING flag not allowed for node type %d, skipping ID map\n",
+ 			map, type);
+-		return -ENXIO;
+ 	}
+ 
++	return -ENXIO;
++}
++
++static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
++		       u32 *rid_out)
++{
+ 	if (rid_in < map->input_base ||
+ 	    (rid_in >= map->input_base + map->id_count))
+ 		return -ENXIO;
+@@ -324,33 +330,34 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ 	struct acpi_iort_node *parent;
+ 	struct acpi_iort_id_mapping *map;
+ 
+-	if (!node->mapping_offset || !node->mapping_count ||
+-				     index >= node->mapping_count)
+-		return NULL;
+-
+-	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
+-			   node->mapping_offset);
++	while (node) {
++		if (!node->mapping_offset || !node->mapping_count ||
++					     index >= node->mapping_count)
++			return NULL;
+ 
+-	/* Firmware bug! */
+-	if (!map->output_reference) {
+-		pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
+-		       node, node->type);
+-		return NULL;
+-	}
++		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
++				   node->mapping_offset);
+ 
+-	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+-			       map->output_reference);
++		/* Firmware bug! */
++		if (!map->output_reference) {
++			pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
++			       node, node->type);
++			return NULL;
++		}
+ 
+-	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
+-		return NULL;
++		parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
++				      map->output_reference);
+ 
+-	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+-		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+-		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+-			if (id_out)
+-				*id_out = map[index].output_base;
+-			return parent;
++		/* go upstream to find its parent */
++		if (!(IORT_TYPE_MASK(parent->type) & type_mask)) {
++			node = parent;
++			continue;
+ 		}
++
++		if (iort_id_single_map(&map[index], node->type, id_out))
++			break;
++
++		return parent;
+ 	}
+ 
+ 	return NULL;
 -- 
 1.7.12.4
-
