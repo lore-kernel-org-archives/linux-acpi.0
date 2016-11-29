@@ -1,139 +1,222 @@
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: [PATCH] sched/x86: Change CONFIG_SCHED_ITMT to CONFIG_SCHED_MC_PRIO
-Date: Tue, 29 Nov 2016 10:43:27 -0800
-Message-ID: <2b2ee29d93e3f162922d72d0165a1405864fbb23.1480444902.git.tim.c.chen@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28392 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934406AbcK2Snn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 13:43:43 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 1/2] ACPI: Combine acpi_dev_resource_address_space() and
+ acpi_dev_resource_ext_address_space()
+Date: Tue, 29 Nov 2016 12:43:26 -0600
+Message-ID: <20161129184326.7618.60729.stgit@bhelgaas-glaptop.roam.corp.google.com>
+References: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de
-Cc: Tim Chen <tim.c.chen@linux.intel.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Update CONFIG_SCHED_ITMT for Intel Turbo Boost Max Technology 3.0
-to CONFIG_SCHED_MC_PRIO.  This makes the configuration extensible
-in future to other architectures that wish to similarly establish CPU
-core priorities support in the scheduler.
+Previously acpi_dev_resource_address_space() and
+acpi_dev_resource_ext_address_space() were wrappers that called
+acpi_decode_space().  We need to distinguish between Word/DWord/QWord
+address descriptors and Extended address descriptors, which was impossible
+in acpi_decode_space().
 
-The description in Kconfig is updated to reflect this change with
-added details for better clarity.  The configuration is explicitly
-defaulted to be on for cpus that have this feature.
+Fold the acpi_dev_resource_address_space() and
+acpi_dev_resource_ext_address_space() functionality into
+acpi_decode_space() and call the result acpi_dev_resource_address_space().
 
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+No functional change intended.
+
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/x86/Kconfig                | 22 ++++++++++++++++------
- arch/x86/include/asm/topology.h |  6 +++---
- arch/x86/kernel/Makefile        |  2 +-
- drivers/acpi/bus.c              |  2 +-
- drivers/cpufreq/Kconfig.x86     |  2 +-
- 5 files changed, 22 insertions(+), 12 deletions(-)
+ drivers/acpi/ioapic.c          |    3 -
+ drivers/acpi/resource.c        |  114 ++++++++++++++++------------------------
+ drivers/pnp/pnpacpi/rsparser.c |    3 -
+ include/linux/acpi.h           |    2 -
+ 4 files changed, 48 insertions(+), 74 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 25950f0..715c1f3 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -939,14 +939,24 @@ config SCHED_MC
- 	  making when dealing with multi-core CPU chips at a cost of slightly
- 	  increased overhead in some places. If unsure say N here.
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index 6d7ce6e..6d91417 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -50,8 +50,7 @@ static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
+ 		return AE_OK;
  
--config SCHED_ITMT
--	bool "Intel Turbo Boost Max Technology (ITMT) scheduler support"
-+config SCHED_MC_PRIO
-+	bool "CPU core priorities scheduler support"
- 	depends on SCHED_MC && CPU_SUP_INTEL && X86_INTEL_PSTATE
-+	default y
- 	---help---
--	  ITMT enabled scheduler support improves the CPU scheduler's decision
--	  to move tasks to cpu core that can be boosted to a higher frequency
--	  than others. It will have better performance at a cost of slightly
--	  increased overhead in task migrations. If unsure say N here.
-+	   Intel Turbo Boost Max Technology 3.0 enabled CPUs have a
-+	   core ordering determined at manufacturing time, which allows
-+	   certain cores to reach higher turbo frequencies (when running
-+	   single threaded workloads) than others.
-+
-+	   Enabling this kernel feature teaches the scheduler about
-+	   the TBM3 (aka ITMT) priority order of the CPU cores and adjusts the
-+	   scheduler's CPU selection logic accordingly, so that higher
-+	   overall system performance can be achieved.
-+
-+	   This feature will have no effect on CPUs without this feature.
-+
-+	   If unsure say Y here.
- 
- source "kernel/Kconfig.preempt"
- 
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 4813df5..6358a85 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -148,7 +148,7 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources);
- 
- extern bool x86_topology_update;
- 
--#ifdef CONFIG_SCHED_ITMT
-+#ifdef CONFIG_SCHED_MC_PRIO
- #include <asm/percpu.h>
- 
- DECLARE_PER_CPU_READ_MOSTLY(int, sched_core_priority);
-@@ -163,7 +163,7 @@ int sched_set_itmt_support(void);
- /* Interface to notify scheduler that system revokes ITMT support */
- void sched_clear_itmt_support(void);
- 
--#else /* CONFIG_SCHED_ITMT */
-+#else /* CONFIG_SCHED_MC_PRIO */
- 
- #define sysctl_sched_itmt_enabled	0
- static inline void sched_set_itmt_core_prio(int prio, int core_cpu)
-@@ -176,6 +176,6 @@ static inline int sched_set_itmt_support(void)
- static inline void sched_clear_itmt_support(void)
- {
- }
--#endif /* CONFIG_SCHED_ITMT */
-+#endif /* CONFIG_SCHED_MC_PRIO */
- 
- #endif /* _ASM_X86_TOPOLOGY_H */
-diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
-index bbd0ebc..05110c1 100644
---- a/arch/x86/kernel/Makefile
-+++ b/arch/x86/kernel/Makefile
-@@ -123,7 +123,7 @@ obj-$(CONFIG_EFI)			+= sysfb_efi.o
- 
- obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
- obj-$(CONFIG_TRACING)			+= tracepoint.o
--obj-$(CONFIG_SCHED_ITMT)		+= itmt.o
-+obj-$(CONFIG_SCHED_MC_PRIO)		+= itmt.o
- 
- ifdef CONFIG_FRAME_POINTER
- obj-y					+= unwind_frame.o
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 806db0d..5cbefd7 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -338,7 +338,7 @@ static void acpi_bus_osc_support(void)
+ 	if (!acpi_dev_resource_memory(acpi_res, res)) {
+-		if (acpi_dev_resource_address_space(acpi_res, &win) ||
+-		    acpi_dev_resource_ext_address_space(acpi_res, &win))
++		if (acpi_dev_resource_address_space(acpi_res, &win))
+ 			*res = win.res;
  	}
- #endif
+ 	if ((res->flags & IORESOURCE_PREFETCH) ||
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 56241eb..2732d39e 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -197,16 +197,54 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
  
--	if (IS_ENABLED(CONFIG_SCHED_ITMT))
-+	if (IS_ENABLED(CONFIG_SCHED_MC_PRIO))
- 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_CPC_DIVERSE_HIGH_SUPPORT;
+-static bool acpi_decode_space(struct resource_win *win,
+-			      struct acpi_resource_address *addr,
+-			      struct acpi_address64_attribute *attr)
++/**
++ * acpi_dev_resource_address_space - Extract ACPI address space information.
++ * @ares: Input ACPI resource object.
++ * @win: Output generic resource object.
++ *
++ * Check if the given ACPI resource object represents an address space resource
++ * and if that's the case, use the information in it to populate the generic
++ * resource object pointed to by @win.
++ *
++ * Return:
++ * 1) false with win->res.flags setting to zero: not the expected resource type
++ * 2) false with IORESOURCE_DISABLED in win->res.flags: valid unassigned
++ *    resource
++ * 3) true: valid assigned resource
++ XXX check these return values
++ */
++bool acpi_dev_resource_address_space(struct acpi_resource *ares,
++				     struct resource_win *win)
+ {
+-	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
+-	bool wp = addr->info.mem.write_protect;
+-	u64 len = attr->address_length;
+-	u64 start, end, offset = 0;
++	struct acpi_resource_address *addr;
++	struct acpi_address64_attribute *attr;
++	struct acpi_resource_extended_address64 *ext_addr;
++	struct acpi_resource_address64 addr64;
++	acpi_status status;
++	u8 iodec;
++	bool wp;
++	u64 len, start, end, offset = 0;
+ 	struct resource *res = &win->res;
  
- 	if (!ghes_disable)
-diff --git a/drivers/cpufreq/Kconfig.x86 b/drivers/cpufreq/Kconfig.x86
-index c6d273b..35f7182 100644
---- a/drivers/cpufreq/Kconfig.x86
-+++ b/drivers/cpufreq/Kconfig.x86
-@@ -6,7 +6,7 @@ config X86_INTEL_PSTATE
-        bool "Intel P state control"
-        depends on X86
-        select ACPI_PROCESSOR if ACPI
--       select ACPI_CPPC_LIB if X86_64 && ACPI && SCHED_ITMT
-+       select ACPI_CPPC_LIB if X86_64 && ACPI && SCHED_MC_PRIO
-        help
-           This driver provides a P state for Intel core processors.
- 	  The driver implements an internal governor and will become
--- 
-2.5.5
-
++	win->res.flags = 0;
++
++	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64) {
++		ext_addr = &ares->data.ext_address64;
++		addr = (struct acpi_resource_address *)ext_addr;
++		attr = &ext_addr->address;
++	} else {
++		status = acpi_resource_to_address64(ares, &addr64);
++		if (ACPI_FAILURE(status))
++			return false;
++
++		addr = (struct acpi_resource_address *)&addr64;
++		attr = &addr64.address;
++	}
++
++	iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
++	wp = addr->info.mem.write_protect;
++	len = attr->address_length;
++
+ 	/*
+ 	 * Filter out invalid descriptor according to ACPI Spec 5.0, section
+ 	 * 6.4.3.5 Address Space Resource Descriptors.
+@@ -264,68 +302,9 @@ static bool acpi_decode_space(struct resource_win *win,
+ 
+ 	return !(res->flags & IORESOURCE_DISABLED);
+ }
+-
+-/**
+- * acpi_dev_resource_address_space - Extract ACPI address space information.
+- * @ares: Input ACPI resource object.
+- * @win: Output generic resource object.
+- *
+- * Check if the given ACPI resource object represents an address space resource
+- * and if that's the case, use the information in it to populate the generic
+- * resource object pointed to by @win.
+- *
+- * Return:
+- * 1) false with win->res.flags setting to zero: not the expected resource type
+- * 2) false with IORESOURCE_DISABLED in win->res.flags: valid unassigned
+- *    resource
+- * 3) true: valid assigned resource
+- */
+-bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+-				     struct resource_win *win)
+-{
+-	struct acpi_resource_address64 addr;
+-
+-	win->res.flags = 0;
+-	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
+-		return false;
+-
+-	return acpi_decode_space(win, (struct acpi_resource_address *)&addr,
+-				 &addr.address);
+-}
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
+ 
+ /**
+- * acpi_dev_resource_ext_address_space - Extract ACPI address space information.
+- * @ares: Input ACPI resource object.
+- * @win: Output generic resource object.
+- *
+- * Check if the given ACPI resource object represents an extended address space
+- * resource and if that's the case, use the information in it to populate the
+- * generic resource object pointed to by @win.
+- *
+- * Return:
+- * 1) false with win->res.flags setting to zero: not the expected resource type
+- * 2) false with IORESOURCE_DISABLED in win->res.flags: valid unassigned
+- *    resource
+- * 3) true: valid assigned resource
+- */
+-bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+-					 struct resource_win *win)
+-{
+-	struct acpi_resource_extended_address64 *ext_addr;
+-
+-	win->res.flags = 0;
+-	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
+-		return false;
+-
+-	ext_addr = &ares->data.ext_address64;
+-
+-	return acpi_decode_space(win, (struct acpi_resource_address *)ext_addr,
+-				 &ext_addr->address);
+-}
+-EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
+-
+-/**
+  * acpi_dev_irq_flags - Determine IRQ resource flags.
+  * @triggering: Triggering type as provided by ACPI.
+  * @polarity: Interrupt polarity as provided by ACPI.
+@@ -542,8 +521,7 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+ 
+ 	if (acpi_dev_resource_memory(ares, res)
+ 	    || acpi_dev_resource_io(ares, res)
+-	    || acpi_dev_resource_address_space(ares, &win)
+-	    || acpi_dev_resource_ext_address_space(ares, &win))
++	    || acpi_dev_resource_address_space(ares, &win))
+ 		return acpi_dev_new_resource_entry(&win, c);
+ 
+ 	for (i = 0; acpi_dev_resource_interrupt(ares, i, res); i++) {
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 4b717c6..bc61651 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -184,8 +184,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	struct resource *r = &win.res;
+ 	int i, flags;
+ 
+-	if (acpi_dev_resource_address_space(res, &win)
+-	    || acpi_dev_resource_ext_address_space(res, &win)) {
++	if (acpi_dev_resource_address_space(res, &win)) {
+ 		pnp_add_resource(dev, &win.res);
+ 		return AE_OK;
+ 	}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ddbeda6..a06a877 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -399,8 +399,6 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res);
+ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
+ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 				     struct resource_win *win);
+-bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+-					 struct resource_win *win);
+ unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
+ unsigned int acpi_dev_get_irq_type(int triggering, int polarity);
+ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
