@@ -1,56 +1,145 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH V1] leds: pca963x: Add ACPI support
-Date: Tue, 29 Nov 2016 11:24:23 +0100
-Message-ID: <cccf580e-65f3-7cdb-2db3-dee60c1522ae@samsung.com>
-References: <1480393100-1397-1-git-send-email-tnhuynh@apm.com>
- <CGME20161129091640epcas5p41c7b2953a079bd3b67bafd8b222df76b@epcas5p4.samsung.com>
- <20161129091536.GO1459@lahna.fi.intel.com>
- <8d800666-28b9-fa4e-8897-e689e9e644c4@samsung.com>
- <CANQ9TuDtaGeBO+nTvTEqE9jegSf7q81hKKxPZX=STC5+wGkmWw@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V10 5/6] arm64: pmu: Detect and enable multiple PMUs in
+ an ACPI system
+Date: Tue, 29 Nov 2016 10:29:14 +0000
+Message-ID: <20161129102913.GB30283@arm.com>
+References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
+ <1478734793-6341-6-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:62570 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754234AbcK2KY3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 05:24:29 -0500
-In-reply-to: <CANQ9TuDtaGeBO+nTvTEqE9jegSf7q81hKKxPZX=STC5+wGkmWw@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:41074 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756882AbcK2K3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 05:29:16 -0500
+Content-Disposition: inline
+In-Reply-To: <1478734793-6341-6-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
 
-On 11/29/2016 11:09 AM, Tin Huynh wrote:
-> Hi
-> I got a small bug when compiling without CONFIG_ACPI
-> I will send out the patch to fix the problem later.
+On Wed, Nov 09, 2016 at 05:39:52PM -0600, Jeremy Linton wrote:
+> Its possible that an ACPI system has multiple CPU types in it
+> with differing PMU counters. Iterate the CPU's and make a determination
+> about how many of each type exist in the system. Then take and create
+> a PMU platform device for each type, and assign it the interrupts parsed
+> from the MADT. Creating a platform device is necessary because the PMUs
+> are not described as devices in the DSDT table.
+> 
+> This code is loosely based on earlier work by Mark Salter.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/perf/arm_pmu.c      |   8 +-
+>  drivers/perf/arm_pmu_acpi.c | 234 +++++++++++++++++++++++++++++++++++++++++++-
+>  2 files changed, 240 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+> index 6008be9..07e1404 100644
+> --- a/drivers/perf/arm_pmu.c
+> +++ b/drivers/perf/arm_pmu.c
+> @@ -1087,7 +1087,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+>  		if (!ret)
+>  			ret = init_fn(pmu);
+>  	} else if (probe_table) {
+> -		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
+> +		if (acpi_disabled) {
+> +			/* use the current cpu. */
+> +			ret = probe_plat_pmu(pmu, probe_table,
+> +					     read_cpuid_id());
+> +		} else {
+> +			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
+> +		}
+>  	}
+>  
+>  	if (ret) {
+> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+> index 135851c..eecf1c1 100644
+> --- a/drivers/perf/arm_pmu_acpi.c
+> +++ b/drivers/perf/arm_pmu_acpi.c
+> @@ -2,13 +2,17 @@
+>   * ARM ACPI PMU support
+>   *
+>   * Copyright (C) 2015 Red Hat Inc.
+> + * Copyright (C) 2016 ARM Ltd.
+>   * Author: Mark Salter <msalter@redhat.com>
+> + *	   Jeremy Linton <jeremy.linton@arm.com>
+>   *
+>   * This work is licensed under the terms of the GNU GPL, version 2.  See
+>   * the COPYING file in the top-level directory.
+>   *
+>   */
+>  
+> +#define pr_fmt(fmt) "ACPI-PMU: " fmt
+> +
+>  #include <asm/cpu.h>
+>  #include <linux/acpi.h>
+>  #include <linux/irq.h>
+> @@ -20,7 +24,14 @@
+>  struct pmu_irq {
+>  	int  gsi;
+>  	int  trigger;
+> -	bool registered;
+> +	int  irq;
+> +	bool used;
+> +};
+> +
+> +struct pmu_types {
+> +	struct list_head list;
+> +	int		 cpu_type;
+> +	int		 cpu_count;
+>  };
+>  
+>  static struct pmu_irq pmu_irqs[NR_CPUS];
+> @@ -38,3 +49,224 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+>  	else
+>  		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
+>  }
+> +
+> +static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
+> +{
+> +	int i;
+> +	struct pmu_types *pmu, *safe_temp;
+> +
+> +	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
+> +		list_del(&pmu->list);
+> +		kfree(pmu);
+> +	}
+> +
+> +	for_each_possible_cpu(i)
+> +		if (pmu_irqs[i].irq > 0)
+> +			acpi_unregister_gsi(pmu_irqs[i].gsi);
+> +}
+> +
+> +/*
+> + * Count number and type of CPU cores in the system. Returns the number
+> + * of "unused" MADT entries we could not associate with a PMU. This can
+> + * be the result of CPU's not being online,  or errors in the MADT.
+> + * Under normal circumstances this will be 0.
+> + */
+> +static int __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
+> +{
+> +	int i;
+> +	int unused_madt_entries = 0;
+> +
+> +	for_each_possible_cpu(i) {
+> +		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
+> +		struct pmu_types *pmu;
+> +
+> +		/*
+> +		 * Ignore GSI registration failure for now, as
+> +		 * some of the MADT entries may not be used.
+> +		 */
+> +		pmu_irqs[i].irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
+> +						    pmu_irqs[i].trigger,
+> +						    ACPI_ACTIVE_HIGH);
+> +		/* likely not online */
+> +		if (cinfo->reg_midr == 0) {
 
-Dropping the patch then.
-Could you share the details?
+I appreciate that this code only gets built for arm64 at the moment, but
+given that you've introduced the read_specific_cpuid macro, it seems like
+it would be better to use it here too and avoid the reference to struct
+cpuinfo_arm64 altogether. Similarly for the other references in this file.
 
-Thanks,
-Jacek Anaszewski
-
-> On Tue, Nov 29, 2016 at 5:04 PM, Jacek Anaszewski
-> <j.anaszewski@samsung.com> wrote:
->> Hi Tin,
->>
->> Thanks for the update.
->>
->> On 11/29/2016 10:15 AM, Mika Westerberg wrote:
->>>
->>> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->>
->>
->> Mika, thanks for the review.
->>
->> Patch applied to the for-next branch of linux-leds.git.
->>
->> --
->> Best regards,
->> Jacek Anaszewski
->
->
->
-
+Will
