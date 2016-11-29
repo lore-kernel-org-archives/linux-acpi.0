@@ -1,86 +1,83 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH][RFC] ACPI throttling: Save/restore tstate for each CPUs
- across suspend/resume
-Date: Tue, 29 Nov 2016 02:50:08 +0100
-Message-ID: <CAJZ5v0hAE_+pnpBkfOpr1fKTR2tJOBDyMwULCEstZrO_D4aJjw@mail.gmail.com>
-References: <1479145444-29269-1-git-send-email-yu.c.chen@intel.com>
- <CAJZ5v0iMT4+qVdQ-8ev_NRavLNnLhr_+eEO9M=85WJC+zfDySw@mail.gmail.com> <36DF59CE26D8EE47B0655C516E9CE6405E63B74D@shsmsx102.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Tin Huynh <tnhuynh@apm.com>
+Subject: [PATCH V2] leds: pca955x: Add ACPI support for pca955x
+Date: Tue, 29 Nov 2016 10:18:47 +0700
+Message-ID: <1480389527-12005-1-git-send-email-tnhuynh@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:36575 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754044AbcK2BuK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 20:50:10 -0500
-In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE6405E63B74D@shsmsx102.ccr.corp.intel.com>
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:35657 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754574AbcK2DT3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 22:19:29 -0500
+Received: by mail-pg0-f44.google.com with SMTP id p66so64073914pga.2
+        for <linux-acpi@vger.kernel.org>; Mon, 28 Nov 2016 19:19:29 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Yu C" <yu.c.chen@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rui Wang <ruwang@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 
-On Tue, Nov 29, 2016 at 2:27 AM, Chen, Yu C <yu.c.chen@intel.com> wrote:
-> Hi,
->> -----Original Message-----
->> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
->> Rafael J. Wysocki
->> Sent: Wednesday, November 23, 2016 7:03 AM
+This patch enables ACPI support for leds-pca955x driver.
 
-[cut]
+Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+---
+ drivers/leds/leds-pca955x.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
->>
->> > +               work_on_cpu(cpu, tstate_pm_fn, &save);
->>
->> Does work_on_cpu() wait for the work to complete?
->>
-> Yes, it might increase the suspend/resume time, a 'queue_work_on' might be better?
+Change from V1:
+ -Remove CONFIG_ACPI.
 
-Not really, because you'd need to wait before doing the
-put_online_cpus() anyway.
+diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+index 840401a..9ac3d53 100644
+--- a/drivers/leds/leds-pca955x.c
++++ b/drivers/leds/leds-pca955x.c
+@@ -40,6 +40,7 @@
+  *  bits the chip supports.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/string.h>
+@@ -100,6 +101,15 @@ struct pca955x_chipdef {
+ };
+ MODULE_DEVICE_TABLE(i2c, pca955x_id);
+ 
++static const struct acpi_device_id pca955x_acpi_ids[] = {
++	{ .id = "PCA9550", .driver_data = pca9550 },
++	{ .id = "PCA9551", .driver_data = pca9551 },
++	{ .id = "PCA9552", .driver_data = pca9552 },
++	{ .id = "PCA9553", .driver_data = pca9553 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
++
+ struct pca955x {
+ 	struct mutex lock;
+ 	struct pca955x_led *leds;
+@@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
+ 	struct led_platform_data *pdata;
+ 	int i, err;
+ 
+-	chip = &pca955x_chipdefs[id->driver_data];
++	if (id)
++		chip = &pca955x_chipdefs[id->driver_data];
++	else {
++		const struct acpi_device_id *acpi_id;
++
++		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
++		if (!acpi_id)
++			return -ENODEV;
++		chip = &pca955x_chipdefs[acpi_id->driver_data];
++	}
+ 	adapter = to_i2c_adapter(client->dev.parent);
+ 	pdata = dev_get_platdata(&client->dev);
+ 
+@@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
+ static struct i2c_driver pca955x_driver = {
+ 	.driver = {
+ 		.name	= "leds-pca955x",
++		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
+ 	},
+ 	.probe	= pca955x_probe,
+ 	.remove	= pca955x_remove,
+-- 
+1.7.1
 
->> > +       put_online_cpus();
->> > +}
->> > +
->> > +static int tstate_suspend(struct notifier_block *nb,
->> > +                               unsigned long mode, void *_unused) {
->> > +       tstate_check(mode, true);
->> > +       return 0;
->> > +}
->> > +
->> > +static int tstate_resume(struct notifier_block *nb,
->> > +                               unsigned long mode, void *_unused) {
->> > +       tstate_check(mode, false);
->> > +       return 0;
->> > +}
->> > +
->> > +static int __init tstate_pm_init(void) {
->> > +       /*
->> > +        * tstate_suspend should save tstate after
->> > +        * thermal zone's update in thermal_pm_notify,
->> > +        * vice versa tstate_resume restore tstate before
->> > +        * thermal_pm_notify, thus the thermal framework
->> > +        * has a chance to re-adjust tstate according to the
->> > +        * temperature trend.
->> > +        */
->> > +       pm_notifier(tstate_suspend, -1);
->> > +       pm_notifier(tstate_resume, 1);
->>
->> I don't think this is going to do what you really want.
->>
->> Each of these notifiers is going to be invoked during both suspend and resume,
-> Yes,
->
->> so I guess you only need one notifier?
->
-> Here's my original thought:  tstate_suspend needs to be invoked after
->  thermal_pm_notify, which has a priority of '0',
-> so the notifier of tstate_suspend should be lower than '0',
-> thus '-1'. And the same for tstate_resume,
-> it should be invoked before thermal_pm_notify,
-> thus priority is '1' ?
-
-If there's a dependency like that, it needs to be explicit.  That is,
-thermal_pm_notify() needs to invoke your new code in the right order
-with respect to what it does already.
-
-Thanks,
-Rafael
