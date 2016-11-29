@@ -1,42 +1,97 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Tue, 29 Nov 2016 15:39:11 -0800
-Message-ID: <CAADWXX_ipJ+pVmV5s2oLCKBrC5qUDASOZf=tpBfJWELExam+hQ@mail.gmail.com>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V6 1/1] ARM64/PCI: Manage controller-specific information
+ on the host controller basis
+Date: Tue, 29 Nov 2016 17:40:39 -0600
+Message-ID: <20161129234039.GB7375@bhelgaas-glaptop.roam.corp.google.com>
+References: <1473449047-10499-1-git-send-email-tn@semihalf.com>
+ <1479985523-10006-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:34547 "EHLO
-        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752694AbcK2XjN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 18:39:13 -0500
-Received: by mail-io0-f177.google.com with SMTP id c21so301682932ioj.1
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Nov 2016 15:39:12 -0800 (PST)
-In-Reply-To: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Received: from mail.kernel.org ([198.145.29.136]:58552 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752872AbcK2Xkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 18:40:43 -0500
+Content-Disposition: inline
+In-Reply-To: <1479985523-10006-1-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, linaro-acpi@lists.linaro.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, okaya@codeaurora.org, cov@codeaurora.org, dhdang@apm.com, Liviu.Dudau@arm.com, msalter@redhat.com, wangyijing@huawei.com, jchandra@broadcom.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com, jhugo@codeaurora.org
 
-Bjorn, this email was marked as spam, because:
+On Thu, Nov 24, 2016 at 12:05:23PM +0100, Tomasz Nowicki wrote:
+> Currently we use one shared global acpi_pci_root_ops structure to keep
+> controller-specific ops. Then its pointer is passed to acpi_pci_root_create()
+> and associated with host bridge instance for good. Such design implies
+> serious drawback. Any potential manipulation on the single system-wide
+> acpi_pci_root_ops leads to kernel crash. The structure content is not
+> really changing even across multiple host bridges creation thus it was not
+> the issue so far.
+> 
+> In preparation for adding ECAM quirks mechanism (where controller-specific
+> PCI ops may be different for each host bridge) allocate new
+> acpi_pci_root_ops and fill in with data for each bridge. Now it is safe
+> to have different controller-specific info. As a consequence free
+> acpi_pci_root_ops when host bridge is released.
+> 
+> No functional changes in this patch.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 
-  It has a from address in google.com but has failed google.com's
-required tests for authentication
+Applied to pci/ecam for v4.10, thanks, Tomasz!
 
-in particular, it looks like you used a non-google smtp server
-(kernel.org) to send the email, so there is no DKIM hash (or perhaps
-google just uses some other non-standard marker for "this actually
-came from google"). So gmail marks it as spam because dmarc fails:
-
-       dmarc=fail (p=REJECT dis=NONE) header.from=google.com
-
-Just to let you know. If you use your google.com email, you do need to
-go through the google smtp server.
-
-This may or may not be new - I didn't go and look at old messages of
-yours, but it is possible that google.com enabled dmarc/dkim recently.
-
-             Linus
-
-On Tue, Nov 29, 2016 at 1:39 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> Here's another stab at this writeup.  I'd appreciate any comments!
+> ---
+>  arch/arm64/kernel/pci.c | 17 ++++++++++-------
+>  1 file changed, 10 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> index fb439c7..5c08baf 100644
+> --- a/arch/arm64/kernel/pci.c
+> +++ b/arch/arm64/kernel/pci.c
+> @@ -152,33 +152,36 @@ static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
+>  
+>  	ri = container_of(ci, struct acpi_pci_generic_root_info, common);
+>  	pci_ecam_free(ri->cfg);
+> +	kfree(ci->ops);
+>  	kfree(ri);
+>  }
+>  
+> -static struct acpi_pci_root_ops acpi_pci_root_ops = {
+> -	.release_info = pci_acpi_generic_release_info,
+> -};
+> -
+>  /* Interface called from ACPI code to setup PCI host controller */
+>  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>  {
+>  	int node = acpi_get_node(root->device->handle);
+>  	struct acpi_pci_generic_root_info *ri;
+>  	struct pci_bus *bus, *child;
+> +	struct acpi_pci_root_ops *root_ops;
+>  
+>  	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+>  	if (!ri)
+>  		return NULL;
+>  
+> +	root_ops = kzalloc_node(sizeof(*root_ops), GFP_KERNEL, node);
+> +	if (!root_ops)
+> +		return NULL;
+> +
+>  	ri->cfg = pci_acpi_setup_ecam_mapping(root);
+>  	if (!ri->cfg) {
+>  		kfree(ri);
+> +		kfree(root_ops);
+>  		return NULL;
+>  	}
+>  
+> -	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
+> -	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+> -				   ri->cfg);
+> +	root_ops->release_info = pci_acpi_generic_release_info;
+> +	root_ops->pci_ops = &ri->cfg->ops->pci_ops;
+> +	bus = acpi_pci_root_create(root, root_ops, &ri->common, ri->cfg);
+>  	if (!bus)
+>  		return NULL;
+>  
+> -- 
+> 2.7.4
+> 
