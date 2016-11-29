@@ -1,61 +1,68 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 0/2] ACPI: Ignore Consumer/Producer for QWord/DWord/Word
+Subject: [PATCH 2/2] ACPI: Ignore Consumer/Producer for QWord/DWord/Word
  Address Space
-Date: Tue, 29 Nov 2016 12:43:19 -0600
-Message-ID: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Date: Tue, 29 Nov 2016 12:43:34 -0600
+Message-ID: <20161129184334.7618.5495.stgit@bhelgaas-glaptop.roam.corp.google.com>
+References: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:40650 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754420AbcK2SnX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 13:43:23 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: linux-pci@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org
+List-Id: linux-acpi@vger.kernel.org
 
-Per spec, the Consumer/Producer bit is defined only for Extended
-Address Space descriptors and should be ignored for QWord/DWord/Word
-Address Space descriptors.  My understanding is that this is because
-x86 BIOSes didn't use the bit consistently, so it couldn't be relied
-upon.  The Extended descriptors were added later and are presumably
-more reliable.
+Per ACPI spec r6.0, sec 6.4.3.5.1, 2, 3, Bit [0] of General Flags (the
+Consumer/Producer bit) should be ignored for QWord/DWord/Word Address Space
+descriptors.  The Consumer/Producer bit is defined only for the Extended
+Address Space descriptor.
 
-Linux currently looks at Consumer/Producer for all Address Space
-descriptors, although we don't use the result very much.  The x86 and
-ia64 host bridge driver code doesn't use Consumer/Producer to identify
-windows; it assumes all descriptors are windows.
+Ignore Consumer/Producer except for Extended Address Space descriptors.
 
-We do currently use Consumer/Producer to decide whether to apply _TRA.
-The change in these patches is to ignore Consumer/Producer for
-QWord/DWord/Word, so we'll apply _TRA from Consumer descriptors where
-we didn't before.  Per spec, that should be safe because _TRA is
-required to be zero for Consumer resources.
+Note that for QWord/DWord/Word descriptors, we previously applied the
+translation offset (_TRA) only when the Consumer/Producer bit was set.
+This patch changes that: for those descriptors, we ignore Consumer/Producer
+and always apply the translation offset.
 
-If we want to describe host bridge register space and ECAM space
-directly in the PNP0A03 device on ARM64 (and I guess potentially even
-on x86 & ia64), I think we need changes like this so the arch code can
-use IORESOURCE_WINDOW to tell which descriptors are windows and which
-are registers.
-
-This is a subtle area, so please take a look and let me know what you
-think.
-
-These patches are based on v4.9-rc1.  It's getting pretty late in the
-cycle, but I think we'd really like to get the ARM64 ACPI PCI story
-sorted out for the v4.10 merge window.
-
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
+ drivers/acpi/resource.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-Bjorn Helgaas (2):
-      ACPI: Combine acpi_dev_resource_address_space() and acpi_dev_resource_ext_address_space()
-      ACPI: Ignore Consumer/Producer for QWord/DWord/Word Address Space
-
-
- drivers/acpi/ioapic.c          |    3 -
- drivers/acpi/resource.c        |  130 ++++++++++++++++++----------------------
- drivers/pnp/pnpacpi/rsparser.c |    3 -
- include/linux/acpi.h           |    2 -
- 4 files changed, 59 insertions(+), 79 deletions(-)
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 2732d39e..b45cd8f 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -261,11 +261,16 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 	 * primary side. Non-bridge devices must list 0 for all Address
+ 	 * Translation offset bits.
+ 	 */
+-	if (addr->producer_consumer == ACPI_PRODUCER)
++	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64) {
++		if (addr->producer_consumer == ACPI_PRODUCER)
++			offset = attr->translation_offset;
++		else if (attr->translation_offset)
++			pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
++				 attr->translation_offset);
++	} else {
+ 		offset = attr->translation_offset;
+-	else if (attr->translation_offset)
+-		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+-			 attr->translation_offset);
++	}
++
+ 	start = attr->minimum + offset;
+ 	end = attr->maximum + offset;
+ 
+@@ -294,7 +299,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 		return false;
+ 	}
+ 
+-	if (addr->producer_consumer == ACPI_PRODUCER)
++	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64 &&
++	    addr->producer_consumer == ACPI_PRODUCER)
+ 		res->flags |= IORESOURCE_WINDOW;
+ 
+ 	if (addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
