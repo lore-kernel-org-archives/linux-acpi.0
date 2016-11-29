@@ -1,108 +1,121 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] ACPI: Document _OSI and _REV for Linux BIOS writers
-Date: Tue, 29 Nov 2016 13:07:55 -0500
-Message-ID: <CAJvTdK=P6BHoDgtuF1co7iT-f23Edm7C00aZT3QF=tgQ3fM3ng@mail.gmail.com>
-References: <d122d41c1cc7230ae5283caf2a4c18fd4d0cd93e.1479792558.git.len.brown@intel.com>
- <20161122100258.GA1552@wunner.de>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
+Date: Tue, 29 Nov 2016 12:19:27 -0600
+Message-ID: <20161129181927.GB17112@bhelgaas-glaptop.roam.corp.google.com>
+References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <CAKv+Gu_xW+7KAC8fHquEwHynYzpy6OoO1ZjEm5mVKMo1S8j4Nw@mail.gmail.com>
+ <20161123010600.GF4832@bhelgaas-glaptop.roam.corp.google.com>
+ <CAKv+Gu-TW__+eZFS2p=1ZLN7fBs7pqQ+SitbEX46Z4JiS64egA@mail.gmail.com>
+ <20161123150632.GA16033@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:36024 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752106AbcK2SH5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 13:07:57 -0500
-In-Reply-To: <20161122100258.GA1552@wunner.de>
+Received: from mail.kernel.org ([198.145.29.136]:36098 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754314AbcK2STc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 13:19:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20161123150632.GA16033@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Tue, Nov 22, 2016 at 5:02 AM, Lukas Wunner <lukas@wunner.de> wrote:
-> On Tue, Nov 22, 2016 at 12:29:46AM -0500, Len Brown wrote:
->> +On a platform tasked with running multiple versions of Windows,
->> +the BIOS could use _OS to enable/disable devices that and OS
->                                                            ^
->                                                            delete
+On Wed, Nov 23, 2016 at 09:06:33AM -0600, Bjorn Helgaas wrote:
+> On Wed, Nov 23, 2016 at 07:28:12AM +0000, Ard Biesheuvel wrote:
+> > On 23 November 2016 at 01:06, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > > On Tue, Nov 22, 2016 at 10:09:50AM +0000, Ard Biesheuvel wrote:
+> > >> On 17 November 2016 at 17:59, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> > >
+> > >> > +PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
+> > >> > +describe all the address space they consume.  In principle, this would
+> > >> > +be all the windows they forward down to the PCI bus, as well as the
+> > >> > +bridge registers themselves.  The bridge registers include things like
+> > >> > +secondary/subordinate bus registers that determine the bus range below
+> > >> > +the bridge, window registers that describe the apertures, etc.  These
+> > >> > +are all device-specific, non-architected things, so the only way a
+> > >> > +PNP0A03/PNP0A08 driver can manage them is via _PRS/_CRS/_SRS, which
+> > >> > +contain the device-specific details.  These bridge registers also
+> > >> > +include ECAM space, since it is consumed by the bridge.
+> > >> > +
+> > >> > +ACPI defined a Producer/Consumer bit that was intended to distinguish
+> > >> > +the bridge apertures from the bridge registers [4, 5].  However,
+> > >> > +BIOSes didn't use that bit correctly, and the result is that OSes have
+> > >> > +to assume that everything in a PCI host bridge _CRS is a window.  That
+> > >> > +leaves no way to describe the bridge registers in the PNP0A03/PNP0A08
+> > >> > +device itself.
+> > >>
+> > >> Is that universally true? Or is it still possible to do the right
+> > >> thing here on new ACPI architectures such as arm64?
+> > >
+> > > That's a very good question.  I had thought that the ACPI spec had
+> > > given up on Consumer/Producer completely, but I was wrong.  In the 6.0
+> > > spec, the Consumer/Producer bit is still documented in the Extended
+> > > Address Space Descriptor (sec 6.4.3.5.4).  It is documented as
+> > > "ignored" in the QWord, DWord, and Word descriptors (sec 6.4.3.5.1,2,3).
+> > >
+> > > Linux looks at the producer_consumer bit in acpi_decode_space(), which
+> > > I think is used for all these descriptors (QWord, DWord, Word, and
+> > > Extended).  This doesn't quite follow the spec -- we probably should
+> > > ignore it except for Extended.  In any event, acpi_decode_space() sets
+> > > IORESOURCE_WINDOW for Producer descriptors, but we don't test
+> > > IORESOURCE_WINDOW in the PCI host bridge code.
+> > >
+> > > x86 and ia64 supply their own pci_acpi_root_prepare_resources()
+> > > functions that call acpi_pci_probe_root_resources(), which parses _CRS
+> > > and looks at producer_consumer.  Then they do a little arch-specific
+> > > stuff on the result.
+> > >
+> > > On arm64 we use acpi_pci_probe_root_resources() directly, with no
+> > > arch-specific stuff.
+> > >
+> > > On all three arches, we ignore the Consumer/Producer bit, so all the
+> > > resources are treated as Producers, e.g., as bridge windows.
+> > >
+> > > I think we *could* implement an arm64 version of
+> > > pci_acpi_root_prepare_resources() that would pay attention to the
+> > > Consumer/Producer bit by checking IORESOURCE_WINDOW.  To be spec
+> > > compliant, we would have to use Extended descriptors for all bridge
+> > > windows, even if they would fit in a DWord or QWord.
+> > >
+> > > Should we do that?  I dunno.  I'd like to hear your opinion(s).
+> > >
+> > 
+> > Yes, I think we should. If the spec allows for a way for a PNP0A03
+> > device to describe all of its resources unambiguously, we should not
+> > be relying on workarounds that were designed for another architecture
+> > in another decade (for, presumably, another OS)
+> > 
+> > Just for my understanding, we will need to use extended descriptors
+> > for all consumed *and* produced regions, even though dword/qword are
+> > implicitly produced-only, due to the fact that the bit is ignored?
+> 
+> From an ACPI spec point of view, I would say QWord/DWord/Word
+> descriptors are implicitly *consumer*-only because ResourceConsumer
+> is the default and they don't have a bit to indicate otherwise.
+> 
+> The current code assumes all PNP0A03 resources are producers.  If we
+> implement an arm64 pci_acpi_root_prepare_resources() that pays
+> attention to the Consumer/Producer bit, we would have to:
+> 
+>   - Reserve all producer regions in the iomem/ioport trees.  This is
+>     already done via pci_acpi_root_add_resources(), but we might need
+>     a new check to handle consumers differently.
+> 
+>   - Reserve all consumer regions.  This corresponds to what
+>     pnp/system.c does for PNP0C02 devices.  This is similar to the
+>     producer regions, but I think the consumer ones should be marked
+>     IORESOURCE_BUSY.
+> 
+>   - Use every producer (IORESOURCE_WINDOW) as a host bridge window.
+> 
+> I think it's a bug that acpi_decode_space() looks at producer_consumer
+> for QWord/DWord/Word descriptors, but I think QWord/DWord/Word
+> descriptors for consumed regions should be safe, as long as they don't
+> set the Consumer/Producer bit.
 
-Here I was trying to describe that the BIOS may enable or disable
-devices and quirks based on the OS.  Yes, there are examples
-of disabling in addition to enabling -- as sometimes there is a device
-that may appear as different specific flavors of device based on the OS.
-Are you  pointing out that I should use the word "or" instead of a '/'?
+I'm going to post a couple very lightly-tested patches that should
+make us ignore the Consumer/Producer bit for QWord/DWord/Word.  I'd
+appreciate any discussion about whether that's the right approach.
 
->> +_OSI("Darwin")
->> +--------------
->> +
->> +No description of _OSI would be complete without mentioning _OSI("Darwin").
->> +This string is mis-used by Apple on Mac platforms, just as Linux
->> +mis-used _OSI("Linux").
->> +
->> +Linux did not originally return TRUE to _OSI("Darwin"),
->> +on the assumption that on Apple hardware, Linux was
->> +probably best pretending to be Windows,
->> +rather than pretending to be OSX.
->> +
->> +But _OSI("Darwin") was required to make Thunderbolt work,
->> +and so Linux changed to enable it by default.  Making matters worse,
->> +that change did not include the ability to disable _OSI("Darwin")
->> +on the cmdline with acpi_OSI=!Darwin, and so the resulting
->> +regressions had no workaround.
->> +
->> +The cmdline has since been fixed to enable !Darwin.
->> +Today "Darwin" enables Thunderbolt, but significantly
->> +hurts battery life, and so the default for _OSI("Darwin")
->> +is still under debate.
->
-> So first of all, I'm currently upstreaming a series which enables
-> runtime PM for Thunderbolt on Macs.  Two series with prep work went
-> into 4.9 and 4.10.  The final bits are slated for 4.11.
->
-> IOW the whole "answering affirmative to Darwin hurts battery life"
-> argument will be nonsensical and moot from 4.11 onwards.
->
-> Link to the series:
-> https://github.com/l1k/linux/commits/thunderbolt_runpm_v3
->
-> All patches up to 3890c45 ("mfd: intel-lpss: Avoid resuming
-> runtime-suspended lpss unnecessarily") are either already in
-> mainline or queued up for it.
-
-I'm delighted to learn this is in progress, as I'm sure,
-is the entire community of users running Linux on Mac.
-
->
-> Second, your description is incorrect in that Thunderbolt is only
-> powered down in the non-Darwin case on Macs introduced before 2015.
-> That's because they didn't support Thunderbolt on Windows (with
-> BootCamp) on the older machines, so they powered the controller down
-> and made it invisible to the OS.
->
-> However on Macs introduced 2015+, they now seem to support Thunderbolt
-> on Windows.  They seem to switch the controller between SMM-managed
-> versus OS-managed mode based on the _OSI string.  In any case they no
-> longer just power it down.
->
->
-> Third, Apple uses _OSI("Darwin") not just for Thunderbolt, so the
-> above description is incomplete.  They use it *generally* to
-> distinguish between macOS versus Windows code paths in AML.
-> (These are the only two OSes they care about.)
->
-> E.g. on the 12" MacBook, which doesn't even have Thunderbolt, the
-> _PS0 and _PS3 methods become no-ops in the non-Darwin case.
->
-> Usually Apple only supports a subset of the hardware on Windows,
-> so we have to pretend being Darwin to be afforded full access to
-> the machine.
->
-> One noteworthy issue with _OSI("Darwin") is that we have to respond
-> negatively to all other vendor strings once it's encountered.
-> See here for details:  http://mjg59.dreamwidth.org/29954.html
->
-
-Great feedback!
-Yes, I did a somewhat superficial job on the Darwin section.
-I'll re-write it, incorporating your feedback, and send out an updated patch.
-
-thanks,
-Len Brown, Intel Open Source Technology Center
+Bjorn
