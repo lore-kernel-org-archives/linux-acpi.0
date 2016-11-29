@@ -1,95 +1,46 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: Add information about describing PCI in ACPI
-Date: Tue, 29 Nov 2016 12:20:14 -0600
-Message-ID: <20161129182014.GC17112@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161117175938.17465.45820.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <1AE640813FDE7649BE1B193DEA596E886A2949AF@SHSMSX101.ccr.corp.intel.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 1/1] ACPI: Document _OSI and _REV for Linux BIOS writers
+Date: Tue, 29 Nov 2016 19:27:14 +0100
+Message-ID: <20161129182714.GA4848@wunner.de>
+References: <d122d41c1cc7230ae5283caf2a4c18fd4d0cd93e.1479792558.git.len.brown@intel.com>
+ <20161122100258.GA1552@wunner.de>
+ <CAJvTdK=P6BHoDgtuF1co7iT-f23Edm7C00aZT3QF=tgQ3fM3ng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36304 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932088AbcK2SUS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 13:20:18 -0500
+Received: from mailout3.hostsharing.net ([176.9.242.54]:43743 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932508AbcK2SZj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 13:25:39 -0500
 Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A2949AF@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <CAJvTdK=P6BHoDgtuF1co7iT-f23Edm7C00aZT3QF=tgQ3fM3ng@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>
 
-On Wed, Nov 23, 2016 at 03:23:35AM +0000, Zheng, Lv wrote:
-> Hi, Bjorn
+On Tue, Nov 29, 2016 at 01:07:55PM -0500, Len Brown wrote:
+> On Tue, Nov 22, 2016 at 5:02 AM, Lukas Wunner <lukas@wunner.de> wrote:
+> > On Tue, Nov 22, 2016 at 12:29:46AM -0500, Len Brown wrote:
+> >> +On a platform tasked with running multiple versions of Windows,
+> >> +the BIOS could use _OS to enable/disable devices that and OS
+> >                                                            ^
+> >                                                            delete
 > 
-> Thanks for the documentation.
-> It really helps!
-> 
-> However I have a question below.
-> 
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Bjorn
-> > Helgaas
-> > Subject: [PATCH] PCI: Add information about describing PCI in ACPI
-> > 
-> > Add a writeup about how PCI host bridges should be described in ACPI
-> > using PNP0A03/PNP0A08 devices, PNP0C02 devices, and the MCFG table.
-> > 
-> > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> > ---
-> >  Documentation/PCI/00-INDEX      |    2 +
-> >  Documentation/PCI/acpi-info.txt |  136 +++++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 138 insertions(+)
-> >  create mode 100644 Documentation/PCI/acpi-info.txt
-> > 
-> > diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-> > index 147231f..0780280 100644
-> > --- a/Documentation/PCI/00-INDEX
-> > +++ b/Documentation/PCI/00-INDEX
-> > @@ -1,5 +1,7 @@
-> >  00-INDEX
-> >  	- this file
-> > +acpi-info.txt
-> > +	- info on how PCI host bridges are represented in ACPI
-> >  MSI-HOWTO.txt
-> >  	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
-> >  PCIEBUS-HOWTO.txt
-> > diff --git a/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
-> > new file mode 100644
-> > index 0000000..ccbcfda
-> > --- /dev/null
-> > +++ b/Documentation/PCI/acpi-info.txt
-> > @@ -0,0 +1,136 @@
-> > +	    ACPI considerations for PCI host bridges
-> > +
-> > +The basic requirement is that the ACPI namespace should describe
-> > +*everything* that consumes address space unless there's another
-> > +standard way for the OS to find it [1, 2].  For example, windows that
-> > +are forwarded to PCI by a PCI host bridge should be described via ACPI
-> > +devices, since the OS can't locate the host bridge by itself.  PCI
-> > +devices *below* the host bridge do not need to be described via ACPI,
-> > +because the resources they consume are inside the host bridge windows,
-> > +and the OS can discover them via the standard PCI enumeration
-> > +mechanism (using config accesses to read and size the BARs).
-> > +
-> > +This ACPI resource description is done via _CRS methods of devices in
-> > +the ACPI namespace [2].   _CRS methods are like generalized PCI BARs:
-> > +the OS can read _CRS and figure out what resource is being consumed
-> > +even if it doesn't have a driver for the device [3].  That's important
-> > +because it means an old OS can work correctly even on a system with
-> > +new devices unknown to the OS.  The new devices won't do anything, but
-> > +the OS can at least make sure no resources conflict with them.
-> > +
-> > +Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms for
-> > +reserving address space!  The static tables are for things the OS
-> > +needs to know early in boot, before it can parse the ACPI namespace.
-> > +If a new table is defined, an old OS needs to operate correctly even
-> > +though it ignores the table.  _CRS allows that because it is generic
-> > +and understood by the old OS; a static table does not.
-> 
-> The entire document doesn't talk about the details of _CBA.
-> There is only one line below mentioned _CBA as an example.
+> Here I was trying to describe that the BIOS may enable or disable
+> devices and quirks based on the OS.  Yes, there are examples
+> of disabling in addition to enabling -- as sometimes there is a device
+> that may appear as different specific flavors of device based on the OS.
+> Are you  pointing out that I should use the word "or" instead of a '/'?
 
-Yes, that's a good point.  I'll add some more details about MCFG
-and _CBA.
+I meant s/and/an/, so "devices that an OS", it looked like a typo to me.
+Sorry for not making this clear enough.
 
-Bjorn
+
+> Great feedback!
+> Yes, I did a somewhat superficial job on the Darwin section.
+> I'll re-write it, incorporating your feedback, and send out an updated patch.
+
+Great, thanks!
+
+Lukas
