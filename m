@@ -1,132 +1,191 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v4 10/11] ACPI: ARM64: IORT: rework iort_node_get_id() for
- NC->SMMU->ITS case
-Date: Tue, 29 Nov 2016 21:39:38 +0800
-Message-ID: <1480426779-31387-11-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v4 09/11] ACPI: platform: setup MSI domain for ACPI based platform device
+Date: Tue, 29 Nov 2016 21:39:37 +0800
+Message-ID: <1480426779-31387-10-git-send-email-guohanjun@huawei.com>
 References: <1480426779-31387-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:24742 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752677AbcK2NpL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 08:45:11 -0500
 In-Reply-To: <1480426779-31387-1-git-send-email-guohanjun@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, G Gregory <graeme.gregory@linaro.org>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-iort_node_get_id() for now only support NC(named componant)->SMMU
-or NC->ITS cases, we also have other device topology such NC->
-SMMU->ITS, so rework iort_node_get_id() for those cases.
+With the platform msi domain created, we can set up the msi domain
+for a platform device when it's probed.
+
+In order to do that, we need to get the domain that the platform
+device connecting to, so the iort_get_platform_device_domain() is
+introduced to retrieve the domain from iort.
+
+After the domain is retrieved, we need a proper way to set the
+domain to paltform device, as some platform devices such as an
+irqchip needs the msi irqdomain to be the interrupt parent domain,
+we need to get irqdomain before platform device is probed but after
+the platform device is allocated, so introduce a callback (pre_add_cb)
+in pdevinfo to prepare firmware related information which is needed
+for device probe, then set the msi domain in that callback.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/arm64/iort.c | 59 ++++++++++++++++++++++++++---------------------
- 1 file changed, 33 insertions(+), 26 deletions(-)
+ drivers/acpi/acpi_platform.c    | 11 +++++++++++
+ drivers/acpi/arm64/iort.c       | 43 +++++++++++++++++++++++++++++++++++++++++
+ drivers/base/platform.c         |  3 +++
+ include/linux/acpi_iort.h       |  3 +++
+ include/linux/platform_device.h |  3 +++
+ 5 files changed, 63 insertions(+)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 8714f70..2e2d231 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -292,22 +292,28 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
- 	return status;
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index b4c1a6a..5d8d61b4 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -12,6 +12,7 @@
+  */
+ 
+ #include <linux/acpi.h>
++#include <linux/acpi_iort.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+@@ -48,6 +49,15 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
  }
  
--static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
--		       u32 *rid_out)
-+static int iort_id_single_map(struct acpi_iort_id_mapping *map, u8 type,
-+			      u32 *rid_out)
- {
- 	/* Single mapping does not care for input id */
- 	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
- 		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
- 		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
--			*rid_out = map->output_base;
-+			if (rid_out)
-+				*rid_out = map->output_base;
- 			return 0;
- 		}
- 
- 		pr_warn(FW_BUG "[map %p] SINGLE MAPPING flag not allowed for node type %d, skipping ID map\n",
- 			map, type);
--		return -ENXIO;
- 	}
- 
-+	return -ENXIO;
+ /**
++ * acpi_platform_pre_add_cb - callback before platform device is added, to
++ * prepare firmware related information which is needed for device probe
++ */
++static void acpi_platform_pre_add_cb(struct device *dev)
++{
++	acpi_configure_pmsi_domain(dev);
 +}
 +
-+static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
-+		       u32 *rid_out)
++/**
+  * acpi_create_platform_device - Create platform device for ACPI device node
+  * @adev: ACPI device node to create a platform device for.
+  * @properties: Optional collection of build-in properties.
+@@ -109,6 +119,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 	pdevinfo.num_res = count;
+ 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
+ 	pdevinfo.properties = properties;
++	pdevinfo.pre_add_cb = acpi_platform_pre_add_cb;
+ 
+ 	if (acpi_dma_supported(adev))
+ 		pdevinfo.dma_mask = DMA_BIT_MASK(32);
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 788f445..8714f70 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+ 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+ }
+ 
++/**
++ * iort_get_platform_device_domain() - Find MSI domain related to a
++ * platform device
++ * @dev: the dev pointer associated with the platform device
++ *
++ * Returns: the MSI domain for this device, NULL otherwise
++ */
++static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
 +{
- 	if (rid_in < map->input_base ||
- 	    (rid_in >= map->input_base + map->id_count))
- 		return -ENXIO;
-@@ -324,33 +330,34 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 	struct acpi_iort_node *parent;
- 	struct acpi_iort_id_mapping *map;
- 
--	if (!node->mapping_offset || !node->mapping_count ||
--				     index >= node->mapping_count)
--		return NULL;
--
--	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
--			   node->mapping_offset);
-+	while (node) {
-+		if (!node->mapping_offset || !node->mapping_count ||
-+					     index >= node->mapping_count)
-+			return NULL;
- 
--	/* Firmware bug! */
--	if (!map->output_reference) {
--		pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
--		       node, node->type);
--		return NULL;
--	}
-+		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
-+				   node->mapping_offset);
- 
--	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
--			       map->output_reference);
-+		/* Firmware bug! */
-+		if (!map->output_reference) {
-+			pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
-+			       node, node->type);
-+			return NULL;
-+		}
- 
--	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
--		return NULL;
-+		parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
-+				      map->output_reference);
- 
--	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
--		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
--		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
--			if (id_out)
--				*id_out = map[index].output_base;
--			return parent;
-+		/* go upstream to find its parent */
-+		if (!(IORT_TYPE_MASK(parent->type) & type_mask)) {
-+			node = parent;
-+			continue;
- 		}
++	struct acpi_iort_node *node, *msi_parent;
++	struct fwnode_handle *iort_fwnode;
++	struct acpi_iort_its_group *its;
 +
-+		if (iort_id_single_map(&map[index], node->type, id_out))
-+			break;
++	/* find its associated iort node */
++	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++			      iort_match_node_callback, dev);
++	if (!node)
++		return NULL;
 +
-+		return parent;
++	/* then find its msi parent node */
++	msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
++	if (!msi_parent)
++		return NULL;
++
++	/* Move to ITS specific data */
++	its = (struct acpi_iort_its_group *)msi_parent->node_data;
++
++	iort_fwnode = iort_find_domain_token(its->identifiers[0]);
++	if (!iort_fwnode)
++		return NULL;
++
++	return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
++}
++
++void acpi_configure_pmsi_domain(struct device *dev)
++{
++	struct irq_domain *msi_domain;
++
++	msi_domain = iort_get_platform_device_domain(dev);
++	if (msi_domain)
++		dev_set_msi_domain(dev, msi_domain);
++}
++
+ static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+ {
+ 	u32 *rid = data;
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index c4af003..3e68f31 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -537,6 +537,9 @@ struct platform_device *platform_device_register_full(
+ 			goto err;
  	}
  
- 	return NULL;
++	if (pdevinfo->pre_add_cb)
++		pdevinfo->pre_add_cb(&pdev->dev);
++
+ 	ret = platform_device_add(pdev);
+ 	if (ret) {
+ err:
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index 3f717cc..21e33b6 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -37,6 +37,7 @@
+ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+ /* IOMMU interface */
+ const struct iommu_ops *iort_iommu_configure(struct device *dev);
++void acpi_configure_pmsi_domain(struct device *dev);
+ #else
+ static inline void acpi_iort_init(void) { }
+ static inline bool iort_node_match(u8 type) { return false; }
+@@ -56,6 +57,8 @@ static inline int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+ static inline
+ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ { return NULL; }
++
++static inline void acpi_configure_pmsi_domain(struct device *dev) { }
+ #endif
+ 
+ #define IORT_ACPI_DECLARE(name, table_id, fn)		\
+diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
+index 98c2a7c..280d366fb 100644
+--- a/include/linux/platform_device.h
++++ b/include/linux/platform_device.h
+@@ -74,6 +74,9 @@ struct platform_device_info {
+ 		u64 dma_mask;
+ 
+ 		struct property_entry *properties;
++
++		/* preparation callback before the platform device is added */
++		void (*pre_add_cb)(struct device *);
+ };
+ extern struct platform_device *platform_device_register_full(
+ 		const struct platform_device_info *pdevinfo);
 -- 
 1.7.12.4
+
