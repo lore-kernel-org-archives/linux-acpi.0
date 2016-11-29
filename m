@@ -1,55 +1,26 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: do not warn if _BQC  does not exist
-Date: Tue, 29 Nov 2016 16:30:05 +0800
-Message-ID: <1480408205.2202.5.camel@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH V1] i2c: designware: fix wrong tx/rx fifo for ACPI
+Date: Tue, 29 Nov 2016 11:04:31 +0200
+Message-ID: <20161129090431.GM1459@lahna.fi.intel.com>
+References: <1480390327-24562-1-git-send-email-tnhuynh@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:42569 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753284AbcK2IaJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 03:30:09 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1480390327-24562-1-git-send-email-tnhuynh@apm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tin Huynh <tnhuynh@apm.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
->From da38c4f4decae22797aa39d5ac8518cada0302e3 Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Tue, 29 Nov 2016 16:13:56 +0800
-Subject: [PATCH] ACPI: do not warn if _BQC does not exist
+On Tue, Nov 29, 2016 at 10:32:07AM +0700, Tin Huynh wrote:
+> ACPI always sets txfifo and rxfifo to 32. This configuration will
+> cause problem if the IP core supports a fifo size of 16 bytes only.
+> Set the default value to 0 so the driver will get these parameters 
+> from IP core.
 
-Starting from ACPI spec 3.0, it's only clarified that _BCM control
-method is required if _BCL is implemented. There is no word
-saying _BQC is required.
+Except when those values are not available which is the reason why we
+have the default 32 for ACPI systems.
 
-And in ACPI spec 6.1 B.5.4, for _BQC, it is explicitly stated that
-"This optional method returns the current brightness level of a
-built-in display output device. If present, it must be set by
-the platform for initial brightness."
-
-Thus remove the obsolete warning message.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/scan.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3d1856f..07aa2e6 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1119,9 +1119,6 @@ acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
- 				  "support\n"));
- 		*cap |= ACPI_VIDEO_BACKLIGHT;
--		if (!acpi_has_method(handle, "_BQC"))
--			printk(KERN_WARNING FW_BUG PREFIX "No _BQC method, "
--				"cannot determine initial brightness\n");
- 		/* We have backlight support, no need to scan further */
- 		return AE_CTRL_TERMINATE;
- 	}
--- 
-2.7.4
-
+Are you saying you have DW I2C controller on ACPI system where the FIFO
+is smaller than 32?
