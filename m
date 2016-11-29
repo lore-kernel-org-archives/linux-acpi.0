@@ -1,66 +1,25 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH V10 2/6] arm: arm64: Add routine to determine cpuid of
- other cpus
-Date: Tue, 29 Nov 2016 10:46:18 +0000
-Message-ID: <20161129104617.GV14217@n2100.armlinux.org.uk>
-References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
- <1478734793-6341-3-git-send-email-jeremy.linton@arm.com>
- <20161129103112.GC30283@arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH V2] leds: pca963x: Add ACPI support
+Date: Tue, 29 Nov 2016 12:47:02 +0200
+Message-ID: <20161129104702.GV1459@lahna.fi.intel.com>
+References: <1480414910-16691-1-git-send-email-tnhuynh@apm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:39230 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750853AbcK2Kqa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 05:46:30 -0500
+Received: from mga05.intel.com ([192.55.52.43]:10374 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757203AbcK2KtS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 05:49:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20161129103112.GC30283@arm.com>
+In-Reply-To: <1480414910-16691-1-git-send-email-tnhuynh@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
+To: Tin Huynh <tnhuynh@apm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>, linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-On Tue, Nov 29, 2016 at 10:31:12AM +0000, Will Deacon wrote:
-> [adding Russell]
+On Tue, Nov 29, 2016 at 05:21:50PM +0700, Tin Huynh wrote:
+> This patch enables ACPI support for leds-pca963x driver.
 > 
-> On Wed, Nov 09, 2016 at 05:39:49PM -0600, Jeremy Linton wrote:
-> > It is helpful if we can read the cpuid/midr of other CPUs
-> > in the system independent of arm/arm64.
-> > 
-> > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> > ---
-> >  arch/arm/include/asm/cputype.h   | 2 ++
-> >  arch/arm64/include/asm/cputype.h | 3 +++
-> >  2 files changed, 5 insertions(+)
-> > 
-> > diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
-> > index 522b5fe..31fb273 100644
-> > --- a/arch/arm/include/asm/cputype.h
-> > +++ b/arch/arm/include/asm/cputype.h
-> > @@ -235,6 +235,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
-> >  #define cpu_is_sa1100() (read_cpuid_part() == ARM_CPU_PART_SA1100)
-> >  #define cpu_is_sa1110() (read_cpuid_part() == ARM_CPU_PART_SA1110)
-> >  
-> > +#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->cpuid
-> > +
-> >  /*
-> >   * Intel's XScale3 core supports some v6 features (supersections, L2)
-> >   * but advertises itself as v5 as it does not support the v6 ISA.  For
-> 
-> Russell -- are you ok with adding this macro to arch/arm/? It will get used
-> by the CPU PMU driver, which needs a portable (i.e. between arm and arm64)
-> way to convert a logical CPU ID into the MIDR register for that CPU.
+> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
 
-No, because we don't set the cpuid member in uniprocessor configurations,
-so it's going to be a fragile macro - it'll return zero for kernels
-configured without SMP support.
-
-I'd ideally like cpuid for the boot CPU to be set early, so that we can
-get rid of many ifdefs in this area, but haven't convinced myself that
-it's safe to do so in all configurations with the percpu stuff not being
-up and running in setup_arch().
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
