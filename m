@@ -1,85 +1,61 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH V10 2/6] arm: arm64: Add routine to determine cpuid of
- other cpus
-Date: Tue, 29 Nov 2016 12:25:43 -0600
-Message-ID: <67b08fa0-cff4-4d74-b72c-fa66e927f201@arm.com>
-References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
- <1478734793-6341-3-git-send-email-jeremy.linton@arm.com>
- <20161129103112.GC30283@arm.com>
- <20161129104617.GV14217@n2100.armlinux.org.uk>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 0/2] ACPI: Ignore Consumer/Producer for QWord/DWord/Word
+ Address Space
+Date: Tue, 29 Nov 2016 12:43:19 -0600
+Message-ID: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54456 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.136]:40650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934029AbcK2SZr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 13:25:47 -0500
-In-Reply-To: <20161129104617.GV14217@n2100.armlinux.org.uk>
+        id S1754420AbcK2SnX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 13:43:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>, Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org
 
-Hi,
+Per spec, the Consumer/Producer bit is defined only for Extended
+Address Space descriptors and should be ignored for QWord/DWord/Word
+Address Space descriptors.  My understanding is that this is because
+x86 BIOSes didn't use the bit consistently, so it couldn't be relied
+upon.  The Extended descriptors were added later and are presumably
+more reliable.
 
-On 11/29/2016 04:46 AM, Russell King - ARM Linux wrote:
-> On Tue, Nov 29, 2016 at 10:31:12AM +0000, Will Deacon wrote:
->> [adding Russell]
->>
->> On Wed, Nov 09, 2016 at 05:39:49PM -0600, Jeremy Linton wrote:
->>> It is helpful if we can read the cpuid/midr of other CPUs
->>> in the system independent of arm/arm64.
->>>
->>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>> ---
->>>  arch/arm/include/asm/cputype.h   | 2 ++
->>>  arch/arm64/include/asm/cputype.h | 3 +++
->>>  2 files changed, 5 insertions(+)
->>>
->>> diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
->>> index 522b5fe..31fb273 100644
->>> --- a/arch/arm/include/asm/cputype.h
->>> +++ b/arch/arm/include/asm/cputype.h
->>> @@ -235,6 +235,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
->>>  #define cpu_is_sa1100() (read_cpuid_part() == ARM_CPU_PART_SA1100)
->>>  #define cpu_is_sa1110() (read_cpuid_part() == ARM_CPU_PART_SA1110)
->>>
->>> +#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->cpuid
->>> +
->>>  /*
->>>   * Intel's XScale3 core supports some v6 features (supersections, L2)
->>>   * but advertises itself as v5 as it does not support the v6 ISA.  For
->>
->> Russell -- are you ok with adding this macro to arch/arm/? It will get used
->> by the CPU PMU driver, which needs a portable (i.e. between arm and arm64)
->> way to convert a logical CPU ID into the MIDR register for that CPU.
->
-> No, because we don't set the cpuid member in uniprocessor configurations,
-> so it's going to be a fragile macro - it'll return zero for kernels
-> configured without SMP support.
+Linux currently looks at Consumer/Producer for all Address Space
+descriptors, although we don't use the result very much.  The x86 and
+ia64 host bridge driver code doesn't use Consumer/Producer to identify
+windows; it assumes all descriptors are windows.
 
-By itself is easy enough to fix, it could be tweaked to do the same 
-thing as c_show()
+We do currently use Consumer/Producer to decide whether to apply _TRA.
+The change in these patches is to ignore Consumer/Producer for
+QWord/DWord/Word, so we'll apply _TRA from Consumer descriptors where
+we didn't before.  Per spec, that should be safe because _TRA is
+required to be zero for Consumer resources.
 
-#define read_specific_cpuid(cpu_num) is_smp() ? per_cpu(&cpu_data, 
-cpu_num)->cpuid : read_cpuid_id()
+If we want to describe host bridge register space and ECAM space
+directly in the PNP0A03 device on ARM64 (and I guess potentially even
+on x86 & ia64), I think we need changes like this so the arch code can
+use IORESOURCE_WINDOW to tell which descriptors are windows and which
+are registers.
 
-c_show could then be updated to use read_specific_cpuid().
+This is a subtle area, so please take a look and let me know what you
+think.
 
->
-> I'd ideally like cpuid for the boot CPU to be set early, so that we can
-> get rid of many ifdefs in this area, but haven't convinced myself that
-> it's safe to do so in all configurations with the percpu stuff not being
-> up and running in setup_arch().
+These patches are based on v4.9-rc1.  It's getting pretty late in the
+cycle, but I think we'd really like to get the ARM64 ACPI PCI story
+sorted out for the v4.10 merge window.
 
-As the above change is a little ugly... It seems something like 
-smp_prepare_boot_cpu() call would be perfect if it were available for 
-!SMP. Although this is getting a little off base for the PMU changes.
+---
 
-The alternative to all this, is yet another #ifdef in the pmu code, 
-which is IMHO the worse choice.
-
-Suggestions?
+Bjorn Helgaas (2):
+      ACPI: Combine acpi_dev_resource_address_space() and acpi_dev_resource_ext_address_space()
+      ACPI: Ignore Consumer/Producer for QWord/DWord/Word Address Space
 
 
+ drivers/acpi/ioapic.c          |    3 -
+ drivers/acpi/resource.c        |  130 ++++++++++++++++++----------------------
+ drivers/pnp/pnpacpi/rsparser.c |    3 -
+ include/linux/acpi.h           |    2 -
+ 4 files changed, 59 insertions(+), 79 deletions(-)
