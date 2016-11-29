@@ -1,42 +1,76 @@
-From: Tin Huynh <tnhuynh@apm.com>
-Subject: Re: [PATCH V5] i2c: mux: pca954x: Add ACPI support for pca954x
-Date: Tue, 29 Nov 2016 22:12:41 +0700
-Message-ID: <CANQ9TuC64k8Ub_Pn01aJkQqL6kKrcXaJp35bPJR6c5WScUHj9A@mail.gmail.com>
-References: <1480414363-16318-1-git-send-email-tnhuynh@apm.com> <d1576b0e-75e7-a8e7-b752-301d125ea765@axentia.se>
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: Re: [PATCH V7 0/3] irqchip: qcom: Add IRQ combiner driver
+Date: Tue, 29 Nov 2016 10:14:22 -0500
+Message-ID: <467d339ba4998e74d7951cf424c055e4@codeaurora.org>
+References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
+ <4126fa80-c8da-764f-9ea3-ec9966a19ea9@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f171.google.com ([209.85.210.171]:36547 "EHLO
-        mail-wj0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756584AbcK2PMn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 10:12:43 -0500
-Received: by mail-wj0-f171.google.com with SMTP id qp4so147977204wjc.3
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Nov 2016 07:12:42 -0800 (PST)
-In-Reply-To: <d1576b0e-75e7-a8e7-b752-301d125ea765@axentia.se>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39020 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756665AbcK2POY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 10:14:24 -0500
+In-Reply-To: <4126fa80-c8da-764f-9ea3-ec9966a19ea9@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Rosin <peda@axentia.se>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-On Tue, Nov 29, 2016 at 5:15 PM, Peter Rosin <peda@axentia.se> wrote:
-> On 2016-11-29 11:12, Tin Huynh wrote:
->> This patch enables ACPI support for mux-pca954x driver.
->
-> Looks good, thanks!
->
->> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
->
-> Acked-by: Peter Rosin <peda@axentia.se>
->
-> Cheers,
-> Peter
->
-Added Mika
-However , in http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/gpio/gpio-pca953x.c?id=f32517bf1ae0a2de72b3f27200233bd3ad65bfeb
- log , i didn't see the CONFIG_ACPI and CONFIG_PTR.
-I have been acked with the same patch to support for i2c-leds (
-without CONFIG_ACPI)
-About logic , if we don't enable CONFIG_ACPI , acpi_match_table will
-be NULL . So , the probe functions will be not called
-and nothing happens.
-I though we should use V3 (https://lkml.org/lkml/2016/11/28/893)
+Hi Hanjun,
+
+On 2016-11-29 06:31, Hanjun Guo wrote:
+> Hi Agustin,
+> 
+> On 2016/11/14 5:59, Agustin Vega-Frias wrote:
+>> Add support for IRQ combiners in the Top-level Control and Status
+>> Registers (TCSR) hardware block in Qualcomm Technologies chips.
+>> 
+>> The first patch fixes IRQ probe deferral by allowing platform_device
+>> IRQ resources to be re-initialized if the ACPI core failed to find
+>> the IRQ domain during ACPI bus scan.
+>> 
+>> The second patch adds support for ResourceSource/IRQ domain mapping
+>> when using Extended IRQ Resources with a specific ResourceSource.
+>> These changes are conditional on the ACPI_GENERIC_GSI config.
+>> 
+>> The third patch takes advantage of the new capabilities to implement
+>> the driver for the IRQ combiners.
+>> 
+>> Tested on top of v4.9-rc4.
+>> 
+>> Changes V6 -> V7:
+>> * Consolidate changes for ResourceSource/IRQ domain mapping to the 
+>> same
+>>   source file implementing the generic GSI support, making it 
+>> conditional
+>>   on CONFIG_ACPI_GENERIC_GSI.
+>> * Eliminate some code duplication by implementing acpi_register_gsi in
+>>   terms of the new acpi_register_irq API.
+> 
+> I had a test on Hisilicon D03 which needs patch 1 and 2 in this patch
+> set to enable the mbigen irqchip, and it works pretty good.
+> 
+> Patch 1/3 can remove the device dependency for the irqchip and platform
+> devices, and I removed my patch (ACPI: irq: introduce interrupt
+> producer) then add your patch 2/3, devices such as SAS and native
+> network works fine on my D03.
+
+Thanks for testing. I will submit V8 with some of the changes suggested
+by Lorenzo hopefully later today.
+
+Agustin
+
+> 
+> I will comment on the patches later.
+> 
+> Thanks
+> Hanjun
+
+-- 
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
+Linux Foundation Collaborative Project.
