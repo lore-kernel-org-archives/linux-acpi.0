@@ -1,223 +1,117 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Tue, 29 Nov 2016 15:39:55 -0600
-Message-ID: <20161129213955.15663.21173.stgit@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH V10 4/6] arm: arm64: pmu: Assign platform PMU CPU affinity
+Date: Tue, 29 Nov 2016 15:44:06 -0600
+Message-ID: <8e7fc0d1-7d09-24a2-42a5-4042eeab7010@arm.com>
+References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
+ <1478734793-6341-5-git-send-email-jeremy.linton@arm.com>
+ <20161129105255.GD30283@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20161129105255.GD30283@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: mark.rutland@arm.com, linux-acpi@vger.kernel.org, punit.agrawal@arm.com, mlangsdorf@redhat.com, msalter@redhat.com, linux-arm-kernel@lists.infradead.org, steve.capper@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Add a writeup about how PCI host bridges should be described in ACPI
-using PNP0A03/PNP0A08 devices, PNP0C02 devices, and the MCFG table.
+Hi,
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- Documentation/PCI/00-INDEX      |    2 
- Documentation/PCI/acpi-info.txt |  180 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 182 insertions(+)
- create mode 100644 Documentation/PCI/acpi-info.txt
+On 11/29/2016 04:52 AM, Will Deacon wrote:
+> On Wed, Nov 09, 2016 at 05:39:51PM -0600, Jeremy Linton wrote:
+>> On systems with multiple PMU types the PMU to CPU affinity
+>> needs to be detected and set. The CPU to interrupt affinity
+>> should also be set.
+>>
 
-diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index 147231f..0780280 100644
---- a/Documentation/PCI/00-INDEX
-+++ b/Documentation/PCI/00-INDEX
-@@ -1,5 +1,7 @@
- 00-INDEX
- 	- this file
-+acpi-info.txt
-+	- info on how PCI host bridges are represented in ACPI
- MSI-HOWTO.txt
- 	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
- PCIEBUS-HOWTO.txt
-diff --git a/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
-new file mode 100644
-index 0000000..06b877f
---- /dev/null
-+++ b/Documentation/PCI/acpi-info.txt
-@@ -0,0 +1,180 @@
-+	    ACPI considerations for PCI host bridges
-+
-+The basic requirement is that the ACPI namespace should describe
-+*everything* that consumes address space unless there's another standard
-+way for the OS to find it [1, 2].  For example, windows that are forwarded
-+to PCI by a PCI host bridge should be described via ACPI devices, since the
-+OS can't locate the host bridge by itself.  PCI devices *below* the host
-+bridge do not need to be described via ACPI, because the resources they
-+consume are inside the host bridge windows, and the OS can discover them
-+via the standard PCI enumeration mechanism (using config accesses to read
-+and size the BARs).
-+
-+This ACPI resource description is done via _CRS objects of devices in the
-+ACPI namespace [2].   The _CRS is like a generalized PCI BAR: the OS can
-+read _CRS and figure out what resource is being consumed even if it doesn't
-+have a driver for the device [3].  That's important because it means an old
-+OS can work correctly even on a system with new devices unknown to the OS.
-+The new devices won't do anything, but the OS can at least make sure no
-+resources conflict with them.
-+
-+Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms for
-+reserving address space!  The static tables are for things the OS needs to
-+know early in boot, before it can parse the ACPI namespace.  If a new table
-+is defined, an old OS needs to operate correctly even though it ignores the
-+table.  _CRS allows that because it is generic and understood by the old
-+OS; a static table does not.
-+
-+If the OS is expected to manage a non-discoverable device described via
-+ACPI, that device will have a specific _HID/_CID that tells the OS what
-+driver to bind to it, and the _CRS tells the OS and the driver where the
-+device's registers are.
-+
-+PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
-+describe all the address space they consume.  This includes all the windows
-+they forward down to the PCI bus, as well as bridge registers that are not
-+forwarded to PCI.  The bridge registers include things like secondary/
-+subordinate bus registers that determine the bus range below the bridge,
-+window registers that describe the apertures, etc.  These are all
-+device-specific, non-architected things, so the only way a PNP0A03/PNP0A08
-+driver can manage them is via _PRS/_CRS/_SRS, which contain the
-+device-specific details.  The bridge registers also include ECAM space,
-+since it is consumed by the bridge.
-+
-+ACPI defines a Consumer/Producer bit to distinguish the bridge registers
-+("Consumer") from the bridge apertures ("Producer") [4, 5], but early
-+BIOSes didn't use that bit correctly.  The result is that the current ACPI
-+spec defines Consumer/Producer only for the relatively new Extended Address
-+Space descriptors; the bit should be ignored in the older QWord/DWord/Word
-+Address Space descriptors.  Consequently, OSes have to assume all
-+QWord/DWord/Word descriptors are windows.
-+
-+Prior to the addition of Extended Address Space descriptors, the failure of
-+Consumer/Producer meant there was no way to describe bridge registers in
-+the PNP0A03/PNP0A08 device itself.  The workaround was to describe the
-+bridge registers (including ECAM space) in PNP0C02 catch-all devices [6].
-+With the exception of ECAM, the bridge register space is device-specific
-+anyway, so the generic PNP0A03/PNP0A08 driver (pci_root.c) has no need to
-+know about it.  
-+
-+New architectures should be able to use "Consumer" Extended Address Space
-+descriptors in the PNP0A03 device for bridge registers, including ECAM,
-+although a strict interpretation of [6] might prohibit this.  Old x86 and
-+ia64 kernels assume all address space descriptors, including "Consumer"
-+Extended Address Space ones, are windows, so it would not be safe to
-+describe bridge registers this way on those architectures.
-+
-+PNP0C02 "motherboard" devices are basically a catch-all.  There's no
-+programming model for them other than "don't use these resources for
-+anything else."  So a PNP0C02 _CRS should claim any address space that is
-+(1) not claimed by _CRS under any other device object in the ACPI namespace
-+and (2) should not be assigned by the OS to something else.
-+
-+The PCIe spec requires the Enhanced Configuration Access Method (ECAM)
-+unless there's a standard firmware interface for config access, e.g., the
-+ia64 SAL interface [7].  A host bridge consumes ECAM memory address space
-+and converts memory accesses into PCI configuration accesses.  The spec
-+defines the ECAM address space layout and functionality; only the base of
-+the address space is device-specific.  An ACPI OS learns the base address
-+from either the static MCFG table or a _CBA method in the PNP0A03 device.
-+
-+The MCFG table must describe the ECAM space of non-hot pluggable host
-+bridges [8].  Since MCFG is a static table and can't be updated by hotplug,
-+a _CBA method in the PNP0A03 device describes the ECAM space of a
-+hot-pluggable host bridge [9].  Note that for both MCFG and _CBA, the base
-+address always corresponds to bus 0, even if the bus range below the bridge
-+(which is reported via _CRS) doesn't start at 0.
-+
-+
-+[1] ACPI 6.0, sec 6.1:
-+    For any device that is on a non-enumerable type of bus (for example, an
-+    ISA bus), OSPM enumerates the devices' identifier(s) and the ACPI
-+    system firmware must supply an _HID object ... for each device to
-+    enable OSPM to do that.
-+
-+[2] ACPI 6.0, sec 3.7:
-+    The OS enumerates motherboard devices simply by reading through the
-+    ACPI Namespace looking for devices with hardware IDs.
-+
-+    Each device enumerated by ACPI includes ACPI-defined objects in the
-+    ACPI Namespace that report the hardware resources the device could
-+    occupy [_PRS], an object that reports the resources that are currently
-+    used by the device [_CRS], and objects for configuring those resources
-+    [_SRS].  The information is used by the Plug and Play OS (OSPM) to
-+    configure the devices.
-+
-+[3] ACPI 6.0, sec 6.2:
-+    OSPM uses device configuration objects to configure hardware resources
-+    for devices enumerated via ACPI.  Device configuration objects provide
-+    information about current and possible resource requirements, the
-+    relationship between shared resources, and methods for configuring
-+    hardware resources.
-+
-+    When OSPM enumerates a device, it calls _PRS to determine the resource
-+    requirements of the device.  It may also call _CRS to find the current
-+    resource settings for the device.  Using this information, the Plug and
-+    Play system determines what resources the device should consume and
-+    sets those resources by calling the device’s _SRS control method.
-+
-+    In ACPI, devices can consume resources (for example, legacy keyboards),
-+    provide resources (for example, a proprietary PCI bridge), or do both.
-+    Unless otherwise specified, resources for a device are assumed to be
-+    taken from the nearest matching resource above the device in the device
-+    hierarchy.
-+
-+[4] ACPI 6.0, sec 6.4.3.5.1, 2, 3, 4:
-+    QWord/DWord/Word Address Space Descriptor (.1, .2, .3)
-+    General Flags: Bit [0] Ignored
-+
-+    Extended Address Space Descriptor (.4)
-+    General Flags: Bit [0] Consumer/Producer:
-+	1–This device consumes this resource
-+	0–This device produces and consumes this resource
-+
-+[5] ACPI 6.0, sec 19.6.43:
-+    ResourceUsage specifies whether the Memory range is consumed by
-+    this device (ResourceConsumer) or passed on to child devices
-+    (ResourceProducer).  If nothing is specified, then
-+    ResourceConsumer is assumed.
-+
-+[6] PCI Firmware 3.0, sec 4.1.2:
-+    If the operating system does not natively comprehend reserving the
-+    MMCFG region, the MMCFG region must be reserved by firmware.  The
-+    address range reported in the MCFG table or by _CBA method (see Section
-+    4.1.3) must be reserved by declaring a motherboard resource.  For most
-+    systems, the motherboard resource would appear at the root of the ACPI
-+    namespace (under \_SB) in a node with a _HID of EISAID (PNP0C02), and
-+    the resources in this case should not be claimed in the root PCI bus’s
-+    _CRS.  The resources can optionally be returned in Int15 E820 or
-+    EFIGetMemoryMap as reserved memory but must always be reported through
-+    ACPI as a motherboard resource.
-+
-+[7] PCI Express 3.0, sec 7.2.2:
-+    For systems that are PC-compatible, or that do not implement a
-+    processor-architecture-specific firmware interface standard that allows
-+    access to the Configuration Space, the ECAM is required as defined in
-+    this section.
-+
-+[8] PCI Firmware 3.0, sec 4.1.2:
-+    The MCFG table is an ACPI table that is used to communicate the base
-+    addresses corresponding to the non-hot removable PCI Segment Groups
-+    range within a PCI Segment Group available to the operating system at
-+    boot. This is required for the PC-compatible systems.
-+
-+    The MCFG table is only used to communicate the base addresses
-+    corresponding to the PCI Segment Groups available to the system at
-+    boot.
-+
-+[9] PCI Firmware 3.0, sec 4.1.3:
-+    The _CBA (Memory mapped Configuration Base Address) control method is
-+    an optional ACPI object that returns the 64-bit memory mapped
-+    configuration base address for the hot plug capable host bridge. The
-+    base address returned by _CBA is processor-relative address. The _CBA
-+    control method evaluates to an Integer.
-+
-+    This control method appears under a host bridge object. When the _CBA
-+    method appears under an active host bridge object, the operating system
-+    evaluates this structure to identify the memory mapped configuration
-+    base address corresponding to the PCI Segment Group for the bus number
-+    range specified in _CRS method. An ACPI name space object that contains
-+    the _CBA method must also contain a corresponding _SEG method.
+(trimming)
+
+>> +static int probe_plat_pmu(struct arm_pmu *pmu,
+>> +			     const struct pmu_probe_info *info,
+>> +			     unsigned int pmuid)
+>>  {
+>> -	int cpu = get_cpu();
+>> -	unsigned int cpuid = read_cpuid_id();
+>>  	int ret = -ENODEV;
+>> +	int cpu;
+>> +	int aff_ctr = 0;
+>> +	static int duplicate_pmus;
+>> +	struct platform_device *pdev = pmu->plat_device;
+>> +	int irq = platform_get_irq(pdev, 0);
+>>
+>> -	pr_info("probing PMU on CPU %d\n", cpu);
+>> +	if (irq >= 0 && !irq_is_percpu(irq)) {
+>> +		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
+>> +					    GFP_KERNEL);
+>> +		if (!pmu->irq_affinity)
+>> +			return -ENOMEM;
+>> +	}
+>>
+>> +	for_each_possible_cpu(cpu) {
+>> +		unsigned int cpuid = read_specific_cpuid(cpu);
+>> +
+>> +		if (cpuid == pmuid) {
+>> +			cpumask_set_cpu(cpu, &pmu->supported_cpus);
+>> +			if (pmu->irq_affinity) {
+>> +				pmu->irq_affinity[aff_ctr] = cpu;
+>> +				aff_ctr++;
+>> +			}
+>> +		}
+>> +	}
+>> +
+>> +	/* find the type of PMU given the CPU */
+>>  	for (; info->init != NULL; info++) {
+>> -		if ((cpuid & info->mask) != info->cpuid)
+>> +		if ((pmuid & info->mask) != info->cpuid)
+>>  			continue;
+>>  		ret = info->init(pmu);
+>> +		/*
+>> +		 * if this pmu declaration is unspecified and we have
+>> +		 * previously found a PMU on this platform then append
+>> +		 * a PMU number to the pmu name. This avoids changing
+>> +		 * the names of PMUs that are specific to a class of CPUs.
+>> +		 * The assumption is that if we match a specific PMU in the
+>> +		 * provided pmu_probe_info then it's unique, and another PMU
+>> +		 * in the system will match a different entry rather than
+>> +		 * needing the _number to assure its unique.
+>> +		 */
+>> +		if ((!info->cpuid) && (duplicate_pmus)) {
+>
+> This is a bit grim: if you had a PMU with a non-zero info->cpuid, then you
+> later found a PMU with a zeroed info->cpuid, the latter would get a
+> redundant suffix. This doesn't happen in reality, because the ACPI case
+> always has info->cpuid == 0, but if somebody extends armv8_pmu_probe_table
+> then we'd get this and probably not realise.
+
+Hoisting the duplicate_pmus inside the !info->cpuid fixes that...
+
+>
+> I think the duplicate_pmus counter needs to be tied explicitly to the
+> "default type" (i.e. when info->cpuid == 0, but see my next comment).
+>
+>> +			pmu->name = kasprintf(GFP_KERNEL, "%s_%d",
+>> +					    pmu->name, duplicate_pmus);
+>> +			if (!pmu->name) {
+>> +				kfree(pmu->irq_affinity);
+>> +				ret = -ENOMEM;
+>> +			}
+>> +		}
+>
+> This code doesn't run for the device-tree probing case, but I think it would
+> be useful to do the same numbering trick for e.g. systems with multiple PMUs
+> that all end up matching on armv8_pmuv3.
+
+Ok, its pretty straightforward to move the check into 
+arm_pmu_device_probe() itself and do a string compare against 
+DEFAULT_V8_PMU define rather than !cpuid.
+
+Ok, I will do that and post v11 as soon as I hear from Russell about 
+what he wants to do with read_specific_cpuid().
