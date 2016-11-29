@@ -1,117 +1,73 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH V10 4/6] arm: arm64: pmu: Assign platform PMU CPU affinity
-Date: Tue, 29 Nov 2016 15:44:06 -0600
-Message-ID: <8e7fc0d1-7d09-24a2-42a5-4042eeab7010@arm.com>
-References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
- <1478734793-6341-5-git-send-email-jeremy.linton@arm.com>
- <20161129105255.GD30283@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20161129105255.GD30283@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: mark.rutland@arm.com, linux-acpi@vger.kernel.org, punit.agrawal@arm.com, mlangsdorf@redhat.com, msalter@redhat.com, linux-arm-kernel@lists.infradead.org, steve.capper@arm.com
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: [PATCH V8 0/3] irqchip: qcom: Add IRQ combiner driver
+Date: Tue, 29 Nov 2016 17:57:36 -0500
+Message-ID: <1480460259-8585-1-git-send-email-agustinv@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:59476 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754672AbcK2W5y (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 17:57:54 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
 
-Hi,
+Add support for IRQ combiners in the Top-level Control and Status
+Registers (TCSR) hardware block in Qualcomm Technologies chips.
 
-On 11/29/2016 04:52 AM, Will Deacon wrote:
-> On Wed, Nov 09, 2016 at 05:39:51PM -0600, Jeremy Linton wrote:
->> On systems with multiple PMU types the PMU to CPU affinity
->> needs to be detected and set. The CPU to interrupt affinity
->> should also be set.
->>
+The first patch adds support for ResourceSource/IRQ domain mapping
+when using Extended IRQ Resources with a specific ResourceSource.
+The patch prevents the ACPI core from attempting to map IRQ resources
+with a valid ResourceSource as GSIs.
 
-(trimming)
+The second patch fixes IRQ probe deferral by allowing platform_device
+IRQ resources to be re-initialized if the ACPI core failed to find
+the IRQ domain during ACPI bus scan.
 
->> +static int probe_plat_pmu(struct arm_pmu *pmu,
->> +			     const struct pmu_probe_info *info,
->> +			     unsigned int pmuid)
->>  {
->> -	int cpu = get_cpu();
->> -	unsigned int cpuid = read_cpuid_id();
->>  	int ret = -ENODEV;
->> +	int cpu;
->> +	int aff_ctr = 0;
->> +	static int duplicate_pmus;
->> +	struct platform_device *pdev = pmu->plat_device;
->> +	int irq = platform_get_irq(pdev, 0);
->>
->> -	pr_info("probing PMU on CPU %d\n", cpu);
->> +	if (irq >= 0 && !irq_is_percpu(irq)) {
->> +		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
->> +					    GFP_KERNEL);
->> +		if (!pmu->irq_affinity)
->> +			return -ENOMEM;
->> +	}
->>
->> +	for_each_possible_cpu(cpu) {
->> +		unsigned int cpuid = read_specific_cpuid(cpu);
->> +
->> +		if (cpuid == pmuid) {
->> +			cpumask_set_cpu(cpu, &pmu->supported_cpus);
->> +			if (pmu->irq_affinity) {
->> +				pmu->irq_affinity[aff_ctr] = cpu;
->> +				aff_ctr++;
->> +			}
->> +		}
->> +	}
->> +
->> +	/* find the type of PMU given the CPU */
->>  	for (; info->init != NULL; info++) {
->> -		if ((cpuid & info->mask) != info->cpuid)
->> +		if ((pmuid & info->mask) != info->cpuid)
->>  			continue;
->>  		ret = info->init(pmu);
->> +		/*
->> +		 * if this pmu declaration is unspecified and we have
->> +		 * previously found a PMU on this platform then append
->> +		 * a PMU number to the pmu name. This avoids changing
->> +		 * the names of PMUs that are specific to a class of CPUs.
->> +		 * The assumption is that if we match a specific PMU in the
->> +		 * provided pmu_probe_info then it's unique, and another PMU
->> +		 * in the system will match a different entry rather than
->> +		 * needing the _number to assure its unique.
->> +		 */
->> +		if ((!info->cpuid) && (duplicate_pmus)) {
->
-> This is a bit grim: if you had a PMU with a non-zero info->cpuid, then you
-> later found a PMU with a zeroed info->cpuid, the latter would get a
-> redundant suffix. This doesn't happen in reality, because the ACPI case
-> always has info->cpuid == 0, but if somebody extends armv8_pmu_probe_table
-> then we'd get this and probably not realise.
+Both changes described above are conditional on the ACPI_GENERIC_GSI config.
 
-Hoisting the duplicate_pmus inside the !info->cpuid fixes that...
+The third patch takes advantage of the new capabilities to implement
+the driver for the IRQ combiners.
 
->
-> I think the duplicate_pmus counter needs to be tied explicitly to the
-> "default type" (i.e. when info->cpuid == 0, but see my next comment).
->
->> +			pmu->name = kasprintf(GFP_KERNEL, "%s_%d",
->> +					    pmu->name, duplicate_pmus);
->> +			if (!pmu->name) {
->> +				kfree(pmu->irq_affinity);
->> +				ret = -ENOMEM;
->> +			}
->> +		}
->
-> This code doesn't run for the device-tree probing case, but I think it would
-> be useful to do the same numbering trick for e.g. systems with multiple PMUs
-> that all end up matching on armv8_pmuv3.
+Tested on top of v4.9-rc7.
 
-Ok, its pretty straightforward to move the check into 
-arm_pmu_device_probe() itself and do a string compare against 
-DEFAULT_V8_PMU define rather than !cpuid.
+Changes V7 -> V8:
+* Reorder patches to allow all new code to be under drivers/acpi/irq.c.
+* Change acpi_irq_get implementation to be more similar to of_irq_get
+  to improve maintainability.
 
-Ok, I will do that and post v11 as soon as I hear from Russell about 
-what he wants to do with read_specific_cpuid().
+Changes V6 -> V7:
+* Consolidate changes for ResourceSource/IRQ domain mapping to the same
+  source file implementing the generic GSI support, making it conditional
+  on CONFIG_ACPI_GENERIC_GSI.
+* Eliminate some code duplication by implementing acpi_register_gsi in
+  terms of the new acpi_register_irq API.
+
+Changes V5 -> V6:
+* Drop probe table and on-demand probing based on resource_source
+* Add patch to fix probe deferral
+* Change back combiner driver to use the platform_device/platform_driver
+  APIs
+
+Agustin Vega-Frias (3):
+  ACPI: Add support for ResourceSource/IRQ domain mapping
+  ACPI: Retry IRQ conversion if it failed previously
+  irqchip: qcom: Add IRQ combiner driver
+
+ drivers/acpi/Makefile               |   2 +-
+ drivers/acpi/gsi.c                  |  98 -----------
+ drivers/acpi/irq.c                  | 315 +++++++++++++++++++++++++++++++++
+ drivers/acpi/resource.c             |  29 ++--
+ drivers/base/platform.c             |   9 +-
+ drivers/irqchip/Kconfig             |   8 +
+ drivers/irqchip/Makefile            |   1 +
+ drivers/irqchip/qcom-irq-combiner.c | 337 ++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h                |  28 +++
+ 9 files changed, 714 insertions(+), 113 deletions(-)
+ delete mode 100644 drivers/acpi/gsi.c
+ create mode 100644 drivers/acpi/irq.c
+ create mode 100644 drivers/irqchip/qcom-irq-combiner.c
+
+--
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
