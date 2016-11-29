@@ -1,96 +1,73 @@
-From: tnhuynh@apm.com
-Subject: [PATCH V3] i2c: mux: pca954x: Add ACPI support for pca954x
-Date: Tue, 29 Nov 2016 10:46:29 +0700
-Message-ID: <1480391189-1775-1-git-send-email-tnhuynh@apm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f51.google.com ([74.125.83.51]:36737 "EHLO
-        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753231AbcK2Dqn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Nov 2016 22:46:43 -0500
-Received: by mail-pg0-f51.google.com with SMTP id f188so64038446pgc.3
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Nov 2016 19:46:42 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
-
 From: Tin Huynh <tnhuynh@apm.com>
+Subject: [PATCH V1] leds: pca963x: Add ACPI support
+Date: Tue, 29 Nov 2016 11:18:20 +0700
+Message-ID: <1480393100-1397-1-git-send-email-tnhuynh@apm.com>
+Return-path: <linux-leds-owner@vger.kernel.org>
+Sender: linux-leds-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This patch enables ACPI support for mux-pca954x driver.
+This patch enables ACPI support for leds-pca963x driver.
 
 Signed-off-by: Tin Huynh <tnhuynh@apm.com>
-
 ---
- drivers/i2c/muxes/i2c-mux-pca954x.c |   25 ++++++++++++++++++++++++-
- 1 files changed, 24 insertions(+), 1 deletions(-)
+ drivers/leds/leds-pca963x.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
-Change from V2:
- -Remove CONFIG_ACPI.
-
-Change from V1:
- -Don't shadow id variable.
- -Include sorted header.
- -Redefine acpi_device_id.
- -Add CONFIG_ACPI.
-
-diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
-index 1091346..f80191e 100644
---- a/drivers/i2c/muxes/i2c-mux-pca954x.c
-+++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
-@@ -35,6 +35,7 @@
-  * warranty of any kind, whether express or implied.
+diff --git a/drivers/leds/leds-pca963x.c b/drivers/leds/leds-pca963x.c
+index 407eba1..be51a12 100644
+--- a/drivers/leds/leds-pca963x.c
++++ b/drivers/leds/leds-pca963x.c
+@@ -25,6 +25,7 @@
+  * or by adding the 'nxp,hw-blink' property to the DTS.
   */
  
 +#include <linux/acpi.h>
- #include <linux/device.h>
- #include <linux/gpio/consumer.h>
- #include <linux/i2c.h>
-@@ -120,6 +121,19 @@ struct pca954x {
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/string.h>
+@@ -95,6 +96,15 @@ struct pca963x_chipdef {
  };
- MODULE_DEVICE_TABLE(i2c, pca954x_id);
+ MODULE_DEVICE_TABLE(i2c, pca963x_id);
  
-+static const struct acpi_device_id pca954x_acpi_ids[] = {
-+	{ .id = "PCA9540", .driver_data = pca_9540 },
-+	{ .id = "PCA9542", .driver_data = pca_9540 },
-+	{ .id = "PCA9543", .driver_data = pca_9543 },
-+	{ .id = "PCA9544", .driver_data = pca_9544 },
-+	{ .id = "PCA9545", .driver_data = pca_9545 },
-+	{ .id = "PCA9546", .driver_data = pca_9545 },
-+	{ .id = "PCA9547", .driver_data = pca_9547 },
-+	{ .id = "PCA9548", .driver_data = pca_9548 },
++static const struct acpi_device_id pca963x_acpi_ids[] = {
++	{ "PCA9632", pca9633 },
++	{ "PCA9633", pca9633 },
++	{ "PCA9634", pca9634 },
++	{ "PCA9635", pca9635 },
 +	{ }
 +};
-+MODULE_DEVICE_TABLE(acpi, pca954x_acpi_ids);
++MODULE_DEVICE_TABLE(acpi, pca963x_acpi_ids);
 +
- #ifdef CONFIG_OF
- static const struct of_device_id pca954x_of_match[] = {
- 	{ .compatible = "nxp,pca9540", .data = &chips[pca_9540] },
-@@ -245,8 +259,16 @@ static int pca954x_probe(struct i2c_client *client,
- 	match = of_match_device(of_match_ptr(pca954x_of_match), &client->dev);
- 	if (match)
- 		data->chip = of_device_get_match_data(&client->dev);
--	else
-+	else if (id)
- 		data->chip = &chips[id->driver_data];
-+	else {
+ struct pca963x_led;
+ 
+ struct pca963x {
+@@ -322,7 +332,16 @@ static int pca963x_probe(struct i2c_client *client,
+ 	struct pca963x_chipdef *chip;
+ 	int i, err;
+ 
+-	chip = &pca963x_chipdefs[id->driver_data];
++	if (id) {
++		chip = &pca963x_chipdefs[id->driver_data];
++	} else {
 +		const struct acpi_device_id *acpi_id;
 +
-+		acpi_id = acpi_match_device(pca954x_acpi_ids, &client->dev);
++		acpi_id = acpi_match_device(pca963x_acpi_ids, &client->dev);
 +		if (!acpi_id)
 +			return -ENODEV;
-+		data->chip = &chips[acpi_id->driver_data];
++		chip = &pca963x_chipdefs[acpi_id->driver_data];
 +	}
+ 	pdata = dev_get_platdata(&client->dev);
  
- 	data->last_chan = 0;		   /* force the first selection */
- 
-@@ -321,6 +343,7 @@ static int pca954x_resume(struct device *dev)
- 		.name	= "pca954x",
- 		.pm	= &pca954x_pm,
- 		.of_match_table = of_match_ptr(pca954x_of_match),
-+		.acpi_match_table = ACPI_PTR(pca954x_acpi_ids),
+ 	if (!pdata) {
+@@ -426,6 +445,7 @@ static int pca963x_remove(struct i2c_client *client)
+ 	.driver = {
+ 		.name	= "leds-pca963x",
+ 		.of_match_table = of_match_ptr(of_pca963x_match),
++		.acpi_match_table = ACPI_PTR(pca963x_acpi_ids),
  	},
- 	.probe		= pca954x_probe,
- 	.remove		= pca954x_remove,
+ 	.probe	= pca963x_probe,
+ 	.remove	= pca963x_remove,
 -- 
 1.7.1
-
