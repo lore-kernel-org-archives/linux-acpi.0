@@ -1,145 +1,54 @@
 From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH V10 5/6] arm64: pmu: Detect and enable multiple PMUs in
- an ACPI system
-Date: Tue, 29 Nov 2016 10:29:14 +0000
-Message-ID: <20161129102913.GB30283@arm.com>
+Subject: Re: [PATCH V10 2/6] arm: arm64: Add routine to determine cpuid of
+ other cpus
+Date: Tue, 29 Nov 2016 10:31:12 +0000
+Message-ID: <20161129103112.GC30283@arm.com>
 References: <1478734793-6341-1-git-send-email-jeremy.linton@arm.com>
- <1478734793-6341-6-git-send-email-jeremy.linton@arm.com>
+ <1478734793-6341-3-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41074 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:41112 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756882AbcK2K3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 05:29:16 -0500
+        id S1754000AbcK2KbN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 29 Nov 2016 05:31:13 -0500
 Content-Disposition: inline
-In-Reply-To: <1478734793-6341-6-git-send-email-jeremy.linton@arm.com>
+In-Reply-To: <1478734793-6341-3-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
+To: Jeremy Linton <jeremy.linton@arm.com>, linux@armlinux.org.uk
 Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, linux-acpi@vger.kernel.org, msalter@redhat.com
 
-On Wed, Nov 09, 2016 at 05:39:52PM -0600, Jeremy Linton wrote:
-> Its possible that an ACPI system has multiple CPU types in it
-> with differing PMU counters. Iterate the CPU's and make a determination
-> about how many of each type exist in the system. Then take and create
-> a PMU platform device for each type, and assign it the interrupts parsed
-> from the MADT. Creating a platform device is necessary because the PMUs
-> are not described as devices in the DSDT table.
-> 
-> This code is loosely based on earlier work by Mark Salter.
+[adding Russell]
+
+On Wed, Nov 09, 2016 at 05:39:49PM -0600, Jeremy Linton wrote:
+> It is helpful if we can read the cpuid/midr of other CPUs
+> in the system independent of arm/arm64.
 > 
 > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
->  drivers/perf/arm_pmu.c      |   8 +-
->  drivers/perf/arm_pmu_acpi.c | 234 +++++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 240 insertions(+), 2 deletions(-)
+>  arch/arm/include/asm/cputype.h   | 2 ++
+>  arch/arm64/include/asm/cputype.h | 3 +++
+>  2 files changed, 5 insertions(+)
 > 
-> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-> index 6008be9..07e1404 100644
-> --- a/drivers/perf/arm_pmu.c
-> +++ b/drivers/perf/arm_pmu.c
-> @@ -1087,7 +1087,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
->  		if (!ret)
->  			ret = init_fn(pmu);
->  	} else if (probe_table) {
-> -		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
-> +		if (acpi_disabled) {
-> +			/* use the current cpu. */
-> +			ret = probe_plat_pmu(pmu, probe_table,
-> +					     read_cpuid_id());
-> +		} else {
-> +			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
-> +		}
->  	}
+> diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
+> index 522b5fe..31fb273 100644
+> --- a/arch/arm/include/asm/cputype.h
+> +++ b/arch/arm/include/asm/cputype.h
+> @@ -235,6 +235,8 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
+>  #define cpu_is_sa1100() (read_cpuid_part() == ARM_CPU_PART_SA1100)
+>  #define cpu_is_sa1110() (read_cpuid_part() == ARM_CPU_PART_SA1110)
 >  
->  	if (ret) {
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> index 135851c..eecf1c1 100644
-> --- a/drivers/perf/arm_pmu_acpi.c
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -2,13 +2,17 @@
->   * ARM ACPI PMU support
->   *
->   * Copyright (C) 2015 Red Hat Inc.
-> + * Copyright (C) 2016 ARM Ltd.
->   * Author: Mark Salter <msalter@redhat.com>
-> + *	   Jeremy Linton <jeremy.linton@arm.com>
->   *
->   * This work is licensed under the terms of the GNU GPL, version 2.  See
->   * the COPYING file in the top-level directory.
->   *
->   */
->  
-> +#define pr_fmt(fmt) "ACPI-PMU: " fmt
+> +#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->cpuid
 > +
->  #include <asm/cpu.h>
->  #include <linux/acpi.h>
->  #include <linux/irq.h>
-> @@ -20,7 +24,14 @@
->  struct pmu_irq {
->  	int  gsi;
->  	int  trigger;
-> -	bool registered;
-> +	int  irq;
-> +	bool used;
-> +};
-> +
-> +struct pmu_types {
-> +	struct list_head list;
-> +	int		 cpu_type;
-> +	int		 cpu_count;
->  };
->  
->  static struct pmu_irq pmu_irqs[NR_CPUS];
-> @@ -38,3 +49,224 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
->  	else
->  		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
->  }
-> +
-> +static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
-> +{
-> +	int i;
-> +	struct pmu_types *pmu, *safe_temp;
-> +
-> +	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
-> +		list_del(&pmu->list);
-> +		kfree(pmu);
-> +	}
-> +
-> +	for_each_possible_cpu(i)
-> +		if (pmu_irqs[i].irq > 0)
-> +			acpi_unregister_gsi(pmu_irqs[i].gsi);
-> +}
-> +
-> +/*
-> + * Count number and type of CPU cores in the system. Returns the number
-> + * of "unused" MADT entries we could not associate with a PMU. This can
-> + * be the result of CPU's not being online,  or errors in the MADT.
-> + * Under normal circumstances this will be 0.
-> + */
-> +static int __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
-> +{
-> +	int i;
-> +	int unused_madt_entries = 0;
-> +
-> +	for_each_possible_cpu(i) {
-> +		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
-> +		struct pmu_types *pmu;
-> +
-> +		/*
-> +		 * Ignore GSI registration failure for now, as
-> +		 * some of the MADT entries may not be used.
-> +		 */
-> +		pmu_irqs[i].irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
-> +						    pmu_irqs[i].trigger,
-> +						    ACPI_ACTIVE_HIGH);
-> +		/* likely not online */
-> +		if (cinfo->reg_midr == 0) {
+>  /*
+>   * Intel's XScale3 core supports some v6 features (supersections, L2)
+>   * but advertises itself as v5 as it does not support the v6 ISA.  For
 
-I appreciate that this code only gets built for arm64 at the moment, but
-given that you've introduced the read_specific_cpuid macro, it seems like
-it would be better to use it here too and avoid the reference to struct
-cpuinfo_arm64 altogether. Similarly for the other references in this file.
+Russell -- are you ok with adding this macro to arch/arm/? It will get used
+by the CPU PMU driver, which needs a portable (i.e. between arm and arm64)
+way to convert a logical CPU ID into the MIDR register for that CPU.
+
+Thanks,
 
 Will
