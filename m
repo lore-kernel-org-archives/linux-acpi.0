@@ -1,71 +1,70 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: [PATCH V5] i2c: mux: pca954x: Add ACPI support for pca954x
-Date: Tue, 29 Nov 2016 16:50:51 +0100
-Message-ID: <8351922e-f006-da76-1b76-e850113d4e7a@axentia.se>
-References: <1480414363-16318-1-git-send-email-tnhuynh@apm.com>
- <d1576b0e-75e7-a8e7-b752-301d125ea765@axentia.se>
- <CANQ9TuC64k8Ub_Pn01aJkQqL6kKrcXaJp35bPJR6c5WScUHj9A@mail.gmail.com>
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: Re: [PATCH v8 4/8] x86/sysctl: Add sysctl for ITMT scheduling
+ feature
+Date: Tue, 29 Nov 2016 09:30:49 -0800
+Message-ID: <1480440649.3064.39.camel@linux.intel.com>
+References: <cover.1479844244.git.tim.c.chen@linux.intel.com>
+         <07cc62426a28bad57b01ab16bb903a9c84fa5421.1479844244.git.tim.c.chen@linux.intel.com>
+         <20161128085608.v7ujy5j2iftn6qs5@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-he1eur01on0102.outbound.protection.outlook.com ([104.47.0.102]:35048
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1757904AbcK2RXF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 29 Nov 2016 12:23:05 -0500
-In-Reply-To: <CANQ9TuC64k8Ub_Pn01aJkQqL6kKrcXaJp35bPJR6c5WScUHj9A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20161128085608.v7ujy5j2iftn6qs5@pd.tnic>
+Sender: linux-pm-owner@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>
+Cc: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
 
-On 2016-11-29 16:12, Tin Huynh wrote:
-> On Tue, Nov 29, 2016 at 5:15 PM, Peter Rosin <peda@axentia.se> wrote:
->> On 2016-11-29 11:12, Tin Huynh wrote:
->>> This patch enables ACPI support for mux-pca954x driver.
->>
->> Looks good, thanks!
->>
->>> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
->>
->> Acked-by: Peter Rosin <peda@axentia.se>
->>
->> Cheers,
->> Peter
->>
-> Added Mika
-> However , in http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/gpio/gpio-pca953x.c?id=f32517bf1ae0a2de72b3f27200233bd3ad65bfeb
->  log , i didn't see the CONFIG_ACPI and CONFIG_PTR.
-> I have been acked with the same patch to support for i2c-leds (
-> without CONFIG_ACPI)
-> About logic , if we don't enable CONFIG_ACPI , acpi_match_table will
-> be NULL . So , the probe functions will be not called
-> and nothing happens.
-> I though we should use V3 (https://lkml.org/lkml/2016/11/28/893)
+On Mon, 2016-11-28 at 09:56 +0100, Borislav Petkov wrote:
+> On Tue, Nov 22, 2016 at 12:23:56PM -0800, Tim Chen wrote:
+> > 
+> > Intel Turbo Boost Max Technology 3.0 (ITMT) feature
+> > allows some cores to be boosted to higher turbo
+> > frequency than others.
+> > 
+> > Add /proc/sys/kernel/sched_itmt_enabled so operator
+> > can enable/disable scheduling of tasks that favor cores
+> > with higher turbo boost frequency potential.
+> > 
+> > By default, system that is ITMT capable and single
+> > socket has this feature turned on.  It is more likely
+> > to be lightly loaded and operates in Turbo range.
+> > 
+> > When there is a change in the ITMT scheduling operation
+> > desired, a rebuild of the sched domain is initiated
+> > so the scheduler can set up sched domains with appropriate
+> > flag to enable/disable ITMT scheduling operations.
+> > 
+> > Co-developed-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> > Co-developed-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> > Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+> > ---
+> >  arch/x86/include/asm/topology.h |   7 ++-
+> >  arch/x86/kernel/itmt.c          | 108 +++++++++++++++++++++++++++++++++++++++-
+> >  2 files changed, 112 insertions(+), 3 deletions(-)
+> ...
 > 
+> > 
+> > +/*
+> > + * Boolean to control whether we want to move processes to cpu capable
+> > + * of higher turbo frequency for cpus supporting Intel Turbo Boost Max
+> > + * Technology 3.0.
+> > + *
+> > + * It can be set via /proc/sys/kernel/sched_itmt_enabled
+> > + */sched_autogroup_enabled
+> > +unsigned int __read_mostly sysctl_sched_itmt_enabled;
+> Err, can we not have the boolean in the name itself?
+> 
+> I.e., have it called sysctl_sched_itmt and 1 means enabled and 0
+> disabled? I.e., the classic thing. :)
+> 
+> Ditto for the sysctl name?
 
-V3 will work, but you waste resources (not much, but still) for the
-ACPI table even though it is never going to be used, so it's best
-to #ifdef it out. (At least I think so, but maybe GCC sees that the
-variable isn't really used for anything useful and manages to kill
-it off? Anyway, I'm assuming that there really are resources wasted
-if you don't do the #ifdef...)
+I am following the convention in /proc/sys/kernel/sched_autogroup_enabled
+and sysctl_sched_autogroup_enabled that's also in /proc/sys/kernel.
 
-But the thing is that you do not want a bunch of #ifdefs *in* the
-code. It's ok to #ifdef out a variable, but not *in* the code. That
-way lies madness.
+Thanks.
 
-So the code is going to have a call to acpi_match_device(). If
-CONFIG_ACPI isn't set, that function compiles to an inline function
-simply returning NULL, but the compiler still evaluates its args
-and complains if the above variable is not found, which it isn't
-since it's #ifdef out. So, we need to "hide" the variable if it
-doesn't exist, using the ACPI_PTR macro.
-
-For gpio-pca953x, the same reasoning can be used, but the resource
-waste is even less in that case.
-
-Cheers,
-Peter
+Tim
 
