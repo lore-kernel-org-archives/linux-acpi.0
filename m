@@ -1,89 +1,36 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/2] ACPI: Ignore Consumer/Producer for QWord/DWord/Word
- Address Space
-Date: Wed, 30 Nov 2016 12:04:25 +0000
-Message-ID: <20161130120425.GA13765@red-moon>
-References: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <20161129184334.7618.5495.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / property: Document usage rules for _DSD properties
+Date: Wed, 30 Nov 2016 16:32:29 +0200
+Message-ID: <20161130143229.GI1459@lahna.fi.intel.com>
+References: <1760010.oD1shqWuRz@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44182 "EHLO foss.arm.com"
+Received: from mga04.intel.com ([192.55.52.120]:44668 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753108AbcK3MDP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Nov 2016 07:03:15 -0500
+        id S1757601AbcK3Oce (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 30 Nov 2016 09:32:34 -0500
 Content-Disposition: inline
-In-Reply-To: <20161129184334.7618.5495.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <1760010.oD1shqWuRz@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Darren Hart <darren.hart@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Tue, Nov 29, 2016 at 12:43:34PM -0600, Bjorn Helgaas wrote:
-> Per ACPI spec r6.0, sec 6.4.3.5.1, 2, 3, Bit [0] of General Flags (the
-> Consumer/Producer bit) should be ignored for QWord/DWord/Word Address Space
-> descriptors.  The Consumer/Producer bit is defined only for the Extended
-> Address Space descriptor.
+On Wed, Nov 30, 2016 at 02:52:38AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Ignore Consumer/Producer except for Extended Address Space descriptors.
+> Following some discussions during the Kernel Summit and LPC, document
+> what can be returned from ACPI _DSD as device properties and when it
+> is valid to use the special PRP0001 device ID.
 > 
-> Note that for QWord/DWord/Word descriptors, we previously applied the
-> translation offset (_TRA) only when the Consumer/Producer bit was set.
-
-"..Consumer/Producer bit was clear" ? If that bit was set:
-
-struct acpi_resource_address->producer_consumer == ACPI_CONSUMER
-
-and we are not applying the _TRA offset in that case, right ?
-
-Thanks,
-Lorenzo
-
-> This patch changes that: for those descriptors, we ignore Consumer/Producer
-> and always apply the translation offset.
-> 
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/resource.c |   16 +++++++++++-----
->  1 file changed, 11 insertions(+), 5 deletions(-)
 > 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 2732d39e..b45cd8f 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -261,11 +261,16 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->  	 * primary side. Non-bridge devices must list 0 for all Address
->  	 * Translation offset bits.
->  	 */
-> -	if (addr->producer_consumer == ACPI_PRODUCER)
-> +	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64) {
-> +		if (addr->producer_consumer == ACPI_PRODUCER)
-> +			offset = attr->translation_offset;
-> +		else if (attr->translation_offset)
-> +			pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
-> +				 attr->translation_offset);
-> +	} else {
->  		offset = attr->translation_offset;
-> -	else if (attr->translation_offset)
-> -		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
-> -			 attr->translation_offset);
-> +	}
-> +
->  	start = attr->minimum + offset;
->  	end = attr->maximum + offset;
->  
-> @@ -294,7 +299,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->  		return false;
->  	}
->  
-> -	if (addr->producer_consumer == ACPI_PRODUCER)
-> +	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64 &&
-> +	    addr->producer_consumer == ACPI_PRODUCER)
->  		res->flags |= IORESOURCE_WINDOW;
->  
->  	if (addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+> Here's my follow-up to the discussions we had during the KS and LPC.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please let me know if that's sufficient or it needs to be extended somehow.
+
+I think this explains the usage pretty well. Thanks for doing this!
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
