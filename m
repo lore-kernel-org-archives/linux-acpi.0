@@ -1,53 +1,58 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [patch] ACPI / CPPC: set an error code on probe error path
-Date: Wed, 30 Nov 2016 23:14:23 +0100
-Message-ID: <CAJZ5v0gNeD_gDKEBCoYcr52dFC=YFVZ7=ADF0WYUQt+hPhbNsA@mail.gmail.com>
-References: <20161130192254.GE28180@mwanda> <CAJZ5v0h06CXGzdAt=ZmB+pnWRumDGiic-eEpyLAojKVUVrJnnw@mail.gmail.com>
- <20161130215819.GN28558@mwanda>
+Subject: Re: [PATCH 02/11] ACPICA: Back port of "ACPICA: Dispatcher: Tune
+ interpreter lock around AcpiEvInitializeRegion()"
+Date: Wed, 30 Nov 2016 23:30:07 +0100
+Message-ID: <CAJZ5v0gvXuvKSkgMqUYw+7OhqohA1rXx-tM2DfvtC-CG7BT0gA@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <26416a54d74f43b07e27cf6f79d6b8f2976f84bb.1480490191.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36116 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754104AbcK3WOZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2016 17:14:25 -0500
-In-Reply-To: <20161130215819.GN28558@mwanda>
+Received: from mail-wj0-f195.google.com ([209.85.210.195]:34061 "EHLO
+        mail-wj0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754924AbcK3WaJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2016 17:30:09 -0500
+In-Reply-To: <26416a54d74f43b07e27cf6f79d6b8f2976f84bb.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
 
-On Wed, Nov 30, 2016 at 11:03 PM, Dan Carpenter
-<dan.carpenter@oracle.com> wrote:
-> On Wed, Nov 30, 2016 at 10:53:55PM +0100, Rafael J. Wysocki wrote:
->> On Wed, Nov 30, 2016 at 8:22 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
->> > We should return -EINVAL if get_cpu_device() fails.
->> >
->> > Fixes: 158c998ea44b ("ACPI / CPPC: add sysfs support to compute delivered performance")
->> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->> >
->> > diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> > index d0d0504..e0ea8f5 100644
->> > --- a/drivers/acpi/cppc_acpi.c
->> > +++ b/drivers/acpi/cppc_acpi.c
->> > @@ -784,8 +784,10 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->> >
->> >         /* Add per logical CPU nodes for reading its feedback counters. */
->> >         cpu_dev = get_cpu_device(pr->id);
->> > -       if (!cpu_dev)
->> > +       if (!cpu_dev) {
->> > +               ret = -EINVAL;
->>
->> ret is initialized here AFAICS.
->>
->> Do you that its value is not the right one?
+On Wed, Nov 30, 2016 at 8:20 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> ACPICA commit bc481e758e54f7644fd0b657119ca7763d8b6a9c
 >
-> I'm looking at linux-next.  It's set to zero but we presumably want to
-> return an error code.
+> This is a back port result of the following commit:
+>   Commit: 8633db6b027952449e155a316f4ae3a530bbe18f
+>   Subject: ACPICA: Dispatcher: Fix interpreter locking around acpi_ev_initialize_region()
+>
+> Link: https://github.com/acpica/acpica/commit/bc481e75
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> ---
+>  drivers/acpi/acpica/dsinit.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
+> index 54d48b9..5de3f10 100644
+> --- a/drivers/acpi/acpica/dsinit.c
+> +++ b/drivers/acpi/acpica/dsinit.c
+> @@ -221,8 +221,8 @@
+>          */
+>         status =
+>             acpi_ns_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
+> -                                  0, acpi_ds_init_one_object, NULL, &info,
+> -                                  NULL);
+> +                                  ACPI_NS_WALK_NO_UNLOCK,
+> +                                  acpi_ds_init_one_object, NULL, &info, NULL);
+>         if (ACPI_FAILURE(status)) {
+>                 ACPI_EXCEPTION((AE_INFO, status, "During WalkNamespace"));
+>         }
+> --
 
-OK
+This isn't necessary IMO, the current code linux-next code looks like
+the change has been made in there already AFAICS (please double check,
+though).
 
-It was slightly unclear what the bug was.
+I'm skipping this patch.
 
 Thanks,
 Rafael
