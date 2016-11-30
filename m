@@ -1,163 +1,127 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 05/11] ACPICA: Tables: Cleanup acpi_tb_install_and_load_table()
-Date: Wed, 30 Nov 2016 15:21:19 +0800
-Message-ID: <95c9d9326e34c9b498ee698cf410739b2f4401d5.1480490191.git.lv.zheng@intel.com>
+Subject: [PATCH 10/11] ACPICA: Utilities: Add new decode function for parser values
+Date: Wed, 30 Nov 2016 15:21:57 +0800
+Message-ID: <248be85c58ad646f6196c034835d75ded69178d5.1480490191.git.lv.zheng@intel.com>
 References: <cover.1480490191.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15732 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:1991 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756508AbcK3HVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Nov 2016 02:21:47 -0500
+        id S1756991AbcK3HWB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 30 Nov 2016 02:22:01 -0500
 In-Reply-To: <cover.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 7fdac0289faa1c28b91413c8e394e87372aa69e6
+From: Bob Moore <robert.moore@intel.com>
 
-acpi_tb_install_and_load_table() can invoke acpi_tb_load_table() to eliminate
-redundant code.
+ACPICA commit 198fde8a061ac77357bcf1752e3c988fbe59f128
 
-No functional change. Lv Zheng.
+Implements a decode function for the ARGP_* parser info values
+for all AML opcodes.
 
-Link: https://github.com/acpica/acpica/commit/7fdac028
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/198fde8a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/actables.h |    3 +--
- drivers/acpi/acpica/exconfig.c |    7 +++----
- drivers/acpi/acpica/tbdata.c   |   45 +++++-----------------------------------
- drivers/acpi/acpica/tbxfload.c |    7 +++----
- 4 files changed, 12 insertions(+), 50 deletions(-)
+ drivers/acpi/acpica/acutils.h  |    2 ++
+ drivers/acpi/acpica/amlcode.h  |    1 +
+ drivers/acpi/acpica/utdecode.c |   49 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 52 insertions(+)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index e85953b..1850005 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -127,8 +127,7 @@
- acpi_tb_load_table(u32 table_index, struct acpi_namespace_node *parent_node);
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 0a1b53c..845afb1 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -232,6 +232,8 @@ struct acpi_pkg_info {
  
- acpi_status
--acpi_tb_install_and_load_table(struct acpi_table_header *table,
--			       acpi_physical_address address,
-+acpi_tb_install_and_load_table(acpi_physical_address address,
- 			       u8 flags, u8 override, u32 *table_index);
+ const char *acpi_ut_get_event_name(u32 event_id);
  
- void acpi_tb_terminate(void);
-diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
-index 718428b..8b8d620 100644
---- a/drivers/acpi/acpica/exconfig.c
-+++ b/drivers/acpi/acpica/exconfig.c
-@@ -437,10 +437,9 @@
++const char *acpi_ut_get_argument_type_name(u32 arg_type);
++
+ char acpi_ut_hex_to_ascii_char(u64 integer, u32 position);
  
- 	ACPI_INFO(("Dynamic OEM Table Load:"));
- 	acpi_ex_exit_interpreter();
--	status =
--	    acpi_tb_install_and_load_table(table, ACPI_PTR_TO_PHYSADDR(table),
--					   ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL,
--					   TRUE, &table_index);
-+	status = acpi_tb_install_and_load_table(ACPI_PTR_TO_PHYSADDR(table),
-+						ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL,
-+						TRUE, &table_index);
- 	acpi_ex_enter_interpreter();
- 	if (ACPI_FAILURE(status)) {
+ acpi_status acpi_ut_ascii_to_hex_byte(char *two_ascii_chars, u8 *return_byte);
+diff --git a/drivers/acpi/acpica/amlcode.h b/drivers/acpi/acpica/amlcode.h
+index 04fbd88..8a0f959 100644
+--- a/drivers/acpi/acpica/amlcode.h
++++ b/drivers/acpi/acpica/amlcode.h
+@@ -240,6 +240,7 @@
+ #define ARGP_QWORDDATA              0x11
+ #define ARGP_SIMPLENAME             0x12	/* name_string | local_term | arg_term */
+ #define ARGP_NAME_OR_REF            0x13	/* For object_type only */
++#define ARGP_MAX                    0x13
  
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index d9ca8c2..4cbfa30 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -832,9 +832,9 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
-  *
-  * FUNCTION:    acpi_tb_install_and_load_table
-  *
-- * PARAMETERS:  table                   - Pointer to the table
-- *              address                 - Physical address of the table
-+ * PARAMETERS:  address                 - Physical address of the table
-  *              flags                   - Allocation flags of the table
-+ *              override                - Whether override should be performed
-  *              table_index             - Where table index is returned
-  *
-  * RETURN:      Status
-@@ -844,15 +844,13 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
-  ******************************************************************************/
+ /*
+  * Resolved argument types for the AML Interpreter
+diff --git a/drivers/acpi/acpica/utdecode.c b/drivers/acpi/acpica/utdecode.c
+index 15728ad..b3d8421 100644
+--- a/drivers/acpi/acpica/utdecode.c
++++ b/drivers/acpi/acpica/utdecode.c
+@@ -44,6 +44,7 @@
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+ #include "acnamesp.h"
++#include "amlcode.h"
  
- acpi_status
--acpi_tb_install_and_load_table(struct acpi_table_header *table,
--			       acpi_physical_address address,
-+acpi_tb_install_and_load_table(acpi_physical_address address,
- 			       u8 flags, u8 override, u32 *table_index)
- {
- 	acpi_status status;
- 	u32 i;
--	acpi_owner_id owner_id;
+ #define _COMPONENT          ACPI_UTILITIES
+ ACPI_MODULE_NAME("utdecode")
+@@ -532,6 +533,54 @@ const char *acpi_ut_get_notify_name(u32 notify_value, acpi_object_type type)
  
--	ACPI_FUNCTION_TRACE(acpi_load_table);
-+	ACPI_FUNCTION_TRACE(tb_install_and_load_table);
- 
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 
-@@ -864,41 +862,8 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
- 		goto unlock_and_exit;
- 	}
- 
--	/*
--	 * Note: Now table is "INSTALLED", it must be validated before
--	 * using.
--	 */
--	status = acpi_tb_validate_table(&acpi_gbl_root_table_list.tables[i]);
--	if (ACPI_FAILURE(status)) {
--		goto unlock_and_exit;
--	}
--
- 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--	status = acpi_ns_load_table(i, acpi_gbl_root_node);
--
--	/* Execute any module-level code that was found in the table */
--
--	if (!acpi_gbl_parse_table_as_term_list
--	    && acpi_gbl_group_module_level_code) {
--		acpi_ns_exec_module_code_list();
--	}
--
--	/*
--	 * Update GPEs for any new _Lxx/_Exx methods. Ignore errors. The host is
--	 * responsible for discovering any new wake GPEs by running _PRW methods
--	 * that may have been loaded by this table.
--	 */
--	status = acpi_tb_get_owner_id(i, &owner_id);
--	if (ACPI_SUCCESS(status)) {
--		acpi_ev_update_gpes(owner_id);
--	}
--
--	/* Invoke table handler if present */
--
--	if (acpi_gbl_table_handler) {
--		(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_LOAD, table,
--					     acpi_gbl_table_handler_context);
--	}
-+	status = acpi_tb_load_table(i, acpi_gbl_root_node);
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 
- unlock_and_exit:
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 2599e831..77de33b 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -330,10 +330,9 @@ acpi_status acpi_load_table(struct acpi_table_header *table)
- 	/* Install the table and load it into the namespace */
- 
- 	ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
--	status =
--	    acpi_tb_install_and_load_table(table, ACPI_PTR_TO_PHYSADDR(table),
--					   ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL,
--					   FALSE, &table_index);
-+	status = acpi_tb_install_and_load_table(ACPI_PTR_TO_PHYSADDR(table),
-+						ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL,
-+						FALSE, &table_index);
- 	return_ACPI_STATUS(status);
+ 	return ("Hardware-Specific");
  }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_get_argument_type_name
++ *
++ * PARAMETERS:  arg_type            - an ARGP_* parser argument type
++ *
++ * RETURN:      Decoded ARGP_* type
++ *
++ * DESCRIPTION: Decode an ARGP_* parser type, as defined in the amlcode.h file,
++ *              and used in the acopcode.h file. For example, ARGP_TERMARG.
++ *              Used for debug only.
++ *
++ ******************************************************************************/
++
++static const char *acpi_gbl_argument_type[20] = {
++	/* 00 */ "Unknown ARGP",
++	/* 01 */ "ByteData",
++	/* 02 */ "ByteList",
++	/* 03 */ "CharList",
++	/* 04 */ "DataObject",
++	/* 05 */ "DataObjectList",
++	/* 06 */ "DWordData",
++	/* 07 */ "FieldList",
++	/* 08 */ "Name",
++	/* 09 */ "NameString",
++	/* 0A */ "ObjectList",
++	/* 0B */ "PackageLength",
++	/* 0C */ "SuperName",
++	/* 0D */ "Target",
++	/* 0E */ "TermArg",
++	/* 0F */ "TermList",
++	/* 10 */ "WordData",
++	/* 11 */ "QWordData",
++	/* 12 */ "SimpleName",
++	/* 13 */ "NameOrRef"
++};
++
++const char *acpi_ut_get_argument_type_name(u32 arg_type)
++{
++
++	if (arg_type > ARGP_MAX) {
++		return ("Unknown ARGP");
++	}
++
++	return (acpi_gbl_argument_type[arg_type]);
++}
++
+ #endif
  
+ /*******************************************************************************
 -- 
 1.7.10
 
