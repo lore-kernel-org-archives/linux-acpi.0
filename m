@@ -1,12 +1,12 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
-Date: Wed, 30 Nov 2016 15:21:42 +0800
-Message-ID: <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+Subject: [PATCH 04/11] ACPICA: Events: Fix acpi_ev_initialize_region() return value
+Date: Wed, 30 Nov 2016 15:21:12 +0800
+Message-ID: <e70ef2444fb571fa7c6642c56f9d49333143b60c.1480490191.git.lv.zheng@intel.com>
 References: <cover.1480490191.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:1991 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:5854 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756895AbcK3HVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1756331AbcK3HVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 30 Nov 2016 02:21:47 -0500
 In-Reply-To: <cover.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,489 +14,189 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+ACPICA commit 543342ab7a676f4eb0c9f100d349388a84dff0e8
 
-This patch back ports Linux acpi_get_table_with_size() and
-early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
+This patch changes acpi_ev_initialize_region(), stop returning AE_NOT_EXIST
+from it so that, not only in acpi_ds_load2_end_op(), but all places invoking
+this function won't emit exceptions. The exception can be seen in
+acpi_ds_initialize_objects() when certain table loading mode is chosen.
 
-The 2 APIs are used by Linux as table management APIs for long time, it
-contains a hidden logic that during the early stage, the mapped tables
-should be unmapped before the early stage ends.
+This patch also removes useless acpi_ns_locked from acpi_ev_initialize_region()
+as this function will always be invoked with interpreter lock held now, and
+the lock granularity has been tuned to lock around _REG execution, thus it
+is now handled by acpi_ex_exit_interpreter(). Lv Zheng.
 
-During the early stage, tables are handled by the following sequence:
- acpi_get_table_with_size();
- parse the table
- early_acpi_os_unmap_memory();
-During the late stage, tables are handled by the following sequence:
- acpi_get_table();
- parse the table
-Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
-late stage.
-
-The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
-remember the early mapped pointer in acpi_get_table() and Linux isn't able to
-prevent ACPICA from using the wrong early mapped pointer during the late
-stage as there is no API provided from ACPICA to be an inverse of
-acpi_get_table() to forget the early mapped pointer.
-
-But how ACPICA can work with the early/late stage requirement? Inside of
-ACPICA, tables are ensured to be remained in "INSTALLED" state during the
-early stage, and they are carefully not transitioned to "VALIDATED" state
-until the late stage. So the same logic is in fact implemented inside of
-ACPICA in a different way. The gap is only that the feature is not provided
-to the OSPMs in an accessible external API style.
-
-It then is possible to fix the gap by providing an inverse of
-acpi_get_table() from ACPICA, so that the two Linux sequences can be
-combined:
- acpi_get_table();
- parse the table
- acpi_put_table();
-In order to work easier with the current Linux code, acpi_get_table() and
-acpi_put_table() is implemented in a usage counting based style:
- 1. When the usage count of the table is increased from 0 to 1, table is
-    mapped and .Pointer is set with the mapping address (VALIDATED);
- 2. When the usage count of the table is decreased from 1 to 0, .Pointer
-    is unset and the mapping address is unmapped (INVALIDATED).
-So that we can deploy the new APIs to Linux with minimal effort by just
-invoking acpi_get_table() in acpi_get_table_with_size() and invoking
-acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
-
-Link: https://github.com/acpica/acpica/commit/cac67909
+Link: https://github.com/acpica/acpica/commit/543342ab
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/actables.h    |    6 ++
- drivers/acpi/acpica/tbutils.c     |   85 ++++++++++++++++++++++++
- drivers/acpi/acpica/tbxface.c     |  130 +++++++++++++++++++++++--------------
- drivers/acpi/osl.c                |   31 ++++++++-
- include/acpi/acpixf.h             |   12 +++-
- include/acpi/actbl.h              |    1 +
- include/acpi/platform/aclinuxex.h |    1 -
- 7 files changed, 212 insertions(+), 54 deletions(-)
+ drivers/acpi/acpica/acevents.h |    4 +--
+ drivers/acpi/acpica/dsopcode.c |    2 +-
+ drivers/acpi/acpica/dswload2.c |   13 +--------
+ drivers/acpi/acpica/evrgnini.c |   59 ++++++++++++++++------------------------
+ 4 files changed, 27 insertions(+), 51 deletions(-)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 7dd527f..94be8a8 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -166,6 +166,12 @@
- 
- acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
- 
-+acpi_status
-+acpi_tb_get_table(struct acpi_table_desc *table_desc,
-+		  struct acpi_table_header **out_table);
-+
-+void acpi_tb_put_table(struct acpi_table_desc *table_desc);
-+
- /*
-  * tbxfload
-  */
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 51eb07c..86854e8 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -381,3 +381,88 @@ struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index)
- 	acpi_os_unmap_memory(table, length);
- 	return_ACPI_STATUS(AE_OK);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_get_table
-+ *
-+ * PARAMETERS:  table_desc          - Table descriptor
-+ *              out_table           - Where the pointer to the table is returned
-+ *
-+ * RETURN:      Status and pointer to the requested table
-+ *
-+ * DESCRIPTION: Increase a reference to a table descriptor and return the
-+ *              validated table pointer.
-+ *              If the table descriptor is an entry of the root table list,
-+ *              this API must be invoked with ACPI_MTX_TABLES acquired.
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_tb_get_table(struct acpi_table_desc *table_desc,
-+		  struct acpi_table_header **out_table)
-+{
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE(acpi_tb_get_table);
-+
-+	if (table_desc->validation_count == 0) {
-+
-+		/* Table need to be "VALIDATED" */
-+
-+		status = acpi_tb_validate_table(table_desc);
-+		if (ACPI_FAILURE(status)) {
-+			return_ACPI_STATUS(status);
-+		}
-+	}
-+
-+	table_desc->validation_count++;
-+	if (table_desc->validation_count == 0) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Table %p, Validation count is zero after increment\n",
-+			    table_desc));
-+		table_desc->validation_count--;
-+		return_ACPI_STATUS(AE_LIMIT);
-+	}
-+
-+	*out_table = table_desc->pointer;
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_put_table
-+ *
-+ * PARAMETERS:  table_desc          - Table descriptor
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Decrease a reference to a table descriptor and release the
-+ *              validated table pointer if no references.
-+ *              If the table descriptor is an entry of the root table list,
-+ *              this API must be invoked with ACPI_MTX_TABLES acquired.
-+ *
-+ ******************************************************************************/
-+
-+void acpi_tb_put_table(struct acpi_table_desc *table_desc)
-+{
-+
-+	ACPI_FUNCTION_TRACE(acpi_tb_put_table);
-+
-+	if (table_desc->validation_count == 0) {
-+		ACPI_WARNING((AE_INFO,
-+			      "Table %p, Validation count is zero before decrement\n",
-+			      table_desc));
-+		return_VOID;
-+	}
-+	table_desc->validation_count--;
-+
-+	if (table_desc->validation_count == 0) {
-+
-+		/* Table need to be "INVALIDATED" */
-+
-+		acpi_tb_invalidate_table(table_desc);
-+	}
-+
-+	return_VOID;
-+}
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index d5adb7a..7684707 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -282,7 +282,7 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_get_table_with_size
-+ * FUNCTION:    acpi_get_table
-  *
-  * PARAMETERS:  signature           - ACPI signature of needed table
-  *              instance            - Which instance (for SSDTs)
-@@ -292,16 +292,21 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
-  *
-  * DESCRIPTION: Finds and verifies an ACPI table. Table must be in the
-  *              RSDT/XSDT.
-+ *              Note that an early stage acpi_get_table() call must be paired
-+ *              with an early stage acpi_put_table() call. otherwise the table
-+ *              pointer mapped by the early stage mapping implementation may be
-+ *              erroneously unmapped by the late stage unmapping implementation
-+ *              in an acpi_put_table() invoked during the late stage.
-  *
-  ******************************************************************************/
- acpi_status
--acpi_get_table_with_size(char *signature,
--	       u32 instance, struct acpi_table_header **out_table,
--	       acpi_size *tbl_size)
-+acpi_get_table(char *signature,
-+	       u32 instance, struct acpi_table_header ** out_table)
- {
- 	u32 i;
- 	u32 j;
--	acpi_status status;
-+	acpi_status status = AE_NOT_FOUND;
-+	struct acpi_table_desc *table_desc;
- 
- 	/* Parameter validation */
- 
-@@ -309,13 +314,22 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 		return (AE_BAD_PARAMETER);
- 	}
- 
-+	/*
-+	 * Note that the following line is required by some OSPMs, they only
-+	 * check if the returned table is NULL instead of the returned status
-+	 * to determined if this function is succeeded.
-+	 */
-+	*out_table = NULL;
-+
-+	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-+
- 	/* Walk the root table list */
- 
- 	for (i = 0, j = 0; i < acpi_gbl_root_table_list.current_table_count;
- 	     i++) {
--		if (!ACPI_COMPARE_NAME
--		    (&(acpi_gbl_root_table_list.tables[i].signature),
--		     signature)) {
-+		table_desc = &acpi_gbl_root_table_list.tables[i];
-+
-+		if (!ACPI_COMPARE_NAME(&table_desc->signature, signature)) {
- 			continue;
- 		}
- 
-@@ -323,43 +337,65 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 			continue;
- 		}
- 
--		status =
--		    acpi_tb_validate_table(&acpi_gbl_root_table_list.tables[i]);
--		if (ACPI_SUCCESS(status)) {
--			*out_table = acpi_gbl_root_table_list.tables[i].pointer;
--			*tbl_size = acpi_gbl_root_table_list.tables[i].length;
--		}
--
--		if (!acpi_gbl_permanent_mmap) {
--			acpi_gbl_root_table_list.tables[i].pointer = NULL;
--		}
--
--		return (status);
-+		status = acpi_tb_get_table(table_desc, out_table);
-+		break;
- 	}
- 
--	return (AE_NOT_FOUND);
-+	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-+	return (status);
- }
- 
--ACPI_EXPORT_SYMBOL(acpi_get_table_with_size)
-+ACPI_EXPORT_SYMBOL(acpi_get_table)
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index 92fa47c..8a0049d 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -243,9 +243,7 @@ union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
+ 			     u32 function,
+ 			     void *handler_context, void **region_context);
  
 -acpi_status
--acpi_get_table(char *signature,
--	       u32 instance, struct acpi_table_header **out_table)
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_put_table
-+ *
-+ * PARAMETERS:  table               - The pointer to the table
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Release a table returned by acpi_get_table() and its clones.
-+ *              Note that it is not safe if this function was invoked after an
-+ *              uninstallation happened to the original table descriptor.
-+ *              Currently there is no OSPMs' requirement to handle such
-+ *              situations.
-+ *
-+ ******************************************************************************/
-+void acpi_put_table(struct acpi_table_header *table)
- {
--	acpi_size tbl_size;
-+	u32 i;
-+	struct acpi_table_desc *table_desc;
-+
-+	ACPI_FUNCTION_TRACE(acpi_put_table);
-+
-+	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-+
-+	/* Walk the root table list */
-+
-+	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; i++) {
-+		table_desc = &acpi_gbl_root_table_list.tables[i];
+-acpi_ev_initialize_region(union acpi_operand_object *region_obj,
+-			  u8 acpi_ns_locked);
++acpi_status acpi_ev_initialize_region(union acpi_operand_object *region_obj);
  
--	return acpi_get_table_with_size(signature,
--		       instance, out_table, &tbl_size);
-+		if (table_desc->pointer != table) {
-+			continue;
-+		}
-+
-+		acpi_tb_put_table(table_desc);
-+		break;
-+	}
-+
-+	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-+	return_VOID;
- }
- 
--ACPI_EXPORT_SYMBOL(acpi_get_table)
-+ACPI_EXPORT_SYMBOL(acpi_put_table)
- 
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_get_table_by_index
-  *
-  * PARAMETERS:  table_index         - Table index
-- *              table               - Where the pointer to the table is returned
-+ *              out_table           - Where the pointer to the table is returned
-  *
-  * RETURN:      Status and pointer to the requested table
-  *
-@@ -368,7 +404,7 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
-  *
-  ******************************************************************************/
- acpi_status
--acpi_get_table_by_index(u32 table_index, struct acpi_table_header **table)
-+acpi_get_table_by_index(u32 table_index, struct acpi_table_header **out_table)
- {
- 	acpi_status status;
- 
-@@ -376,35 +412,33 @@ acpi_status ACPI_INIT_FUNCTION acpi_reallocate_root_table(void)
- 
- 	/* Parameter validation */
- 
--	if (!table) {
-+	if (!out_table) {
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
- 
-+	/*
-+	 * Note that the following line is required by some OSPMs, they only
-+	 * check if the returned table is NULL instead of the returned status
-+	 * to determined if this function is succeeded.
-+	 */
-+	*out_table = NULL;
-+
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 
- 	/* Validate index */
- 
- 	if (table_index >= acpi_gbl_root_table_list.current_table_count) {
--		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		status = AE_BAD_PARAMETER;
-+		goto unlock_and_exit;
- 	}
- 
--	if (!acpi_gbl_root_table_list.tables[table_index].pointer) {
--
--		/* Table is not mapped, map it */
-+	status =
-+	    acpi_tb_get_table(&acpi_gbl_root_table_list.tables[table_index],
-+			      out_table);
- 
--		status =
--		    acpi_tb_validate_table(&acpi_gbl_root_table_list.
--					   tables[table_index]);
--		if (ACPI_FAILURE(status)) {
--			(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--			return_ACPI_STATUS(status);
--		}
--	}
--
--	*table = acpi_gbl_root_table_list.tables[table_index].pointer;
-+unlock_and_exit:
- 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--	return_ACPI_STATUS(AE_OK);
-+	return_ACPI_STATUS(status);
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_get_table_by_index)
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 416953a..4d8f2cd 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -433,10 +433,37 @@ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
- }
- EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
- 
-+/*******************************************************************************
-+ *
-+ * acpi_get_table_with_size()/early_acpi_os_unmap_memory():
-+ *
-+ * These 2 functions are traditionally used by Linux to map/unmap physical
-+ * addressed ACPI tables during the early stage.
-+ * They are deprectated now. Do not use them in the new code, but use
-+ * acpi_get_table()/acpi_put_table() instead.
-+ *
-+ ******************************************************************************/
-+acpi_status
-+acpi_get_table_with_size(char *signature,
-+	       u32 instance, struct acpi_table_header **out_table,
-+	       acpi_size *tbl_size)
-+{
-+	acpi_status status;
-+
-+	status = acpi_get_table(signature, instance, out_table);
-+	if (ACPI_SUCCESS(status)) {
-+		/* No longer used by early_acpi_os_unmap_memory() */
-+		*tbl_size = 0;
-+	}
-+
-+	return (status);
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_get_table_with_size)
-+
- void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
- {
--	if (!acpi_gbl_permanent_mmap)
--		__acpi_unmap_table(virt, size);
-+	acpi_put_table(ACPI_CAST_PTR(struct acpi_table_header, virt));
- }
- 
- int acpi_os_map_generic_address(struct acpi_generic_address *gas)
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 5c7356a..33828dd 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -513,10 +513,12 @@
- 			     acpi_get_table(acpi_string signature, u32 instance,
- 					    struct acpi_table_header
- 					    **out_table))
-+ACPI_EXTERNAL_RETURN_VOID(void acpi_put_table(struct acpi_table_header *table))
-+
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
--			     acpi_get_table_by_index(u32 table_index,
--						     struct acpi_table_header
--						     **out_table))
-+			    acpi_get_table_by_index(u32 table_index,
-+						    struct acpi_table_header
-+						    **out_table))
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_install_table_handler(acpi_table_handler
- 							handler, void *context))
-@@ -974,6 +976,10 @@
- 						     **out_table,
- 						     acpi_size *tbl_size))
- 
-+ACPI_EXTERNAL_RETURN_VOID(void
-+			  early_acpi_os_unmap_memory(void __iomem * virt,
-+						     acpi_size size))
-+
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			    acpi_get_data_full(acpi_handle object,
- 					       acpi_object_handler handler,
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index c19700e..da5708c 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -371,6 +371,7 @@ struct acpi_table_desc {
- 	union acpi_name_union signature;
- 	acpi_owner_id owner_id;
- 	u8 flags;
-+	u16 validation_count;
- };
- 
- /* Masks for Flags field above */
-diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
-index a5509d8..7dbb114 100644
---- a/include/acpi/platform/aclinuxex.h
-+++ b/include/acpi/platform/aclinuxex.h
-@@ -142,7 +142,6 @@ static inline void acpi_os_terminate_command_signals(void)
  /*
-  * OSL interfaces added by Linux
-  */
--void early_acpi_os_unmap_memory(void __iomem * virt, acpi_size size);
+  * evsci - SCI (System Control Interrupt) handling/dispatch
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 4cc9d98..77fd7c8 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -84,7 +84,7 @@ acpi_status acpi_ds_initialize_region(acpi_handle obj_handle)
  
- #endif				/* __KERNEL__ */
+ 	/* Namespace is NOT locked */
  
+-	status = acpi_ev_initialize_region(obj_desc, FALSE);
++	status = acpi_ev_initialize_region(obj_desc);
+ 	return (status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
+index e362182..651f35a 100644
+--- a/drivers/acpi/acpica/dswload2.c
++++ b/drivers/acpi/acpica/dswload2.c
+@@ -609,18 +609,7 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
+ 
+ 			status =
+ 			    acpi_ev_initialize_region
+-			    (acpi_ns_get_attached_object(node), FALSE);
+-
+-			if (ACPI_FAILURE(status)) {
+-				/*
+-				 *  If AE_NOT_EXIST is returned, it is not fatal
+-				 *  because many regions get created before a handler
+-				 *  is installed for said region.
+-				 */
+-				if (AE_NOT_EXIST == status) {
+-					status = AE_OK;
+-				}
+-			}
++			    (acpi_ns_get_attached_object(node));
+ 			break;
+ 
+ 		case AML_NAME_OP:
+diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+index 75ddd16..a909225 100644
+--- a/drivers/acpi/acpica/evrgnini.c
++++ b/drivers/acpi/acpica/evrgnini.c
+@@ -479,7 +479,6 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+  * FUNCTION:    acpi_ev_initialize_region
+  *
+  * PARAMETERS:  region_obj      - Region we are initializing
+- *              acpi_ns_locked  - Is namespace locked?
+  *
+  * RETURN:      Status
+  *
+@@ -497,19 +496,28 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+  * MUTEX:       Interpreter should be unlocked, because we may run the _REG
+  *              method for this region.
+  *
++ * NOTE:        Possible incompliance:
++ *              There is a behavior conflict in automatic _REG execution:
++ *              1. When the interpreter is evaluating a method, we can only
++ *                 automatically run _REG for the following case:
++ *                   operation_region (OPR1, 0x80, 0x1000010, 0x4)
++ *              2. When the interpreter is loading a table, we can also
++ *                 automatically run _REG for the following case:
++ *                   operation_region (OPR1, 0x80, 0x1000010, 0x4)
++ *              Though this may not be compliant to the de-facto standard, the
++ *              logic is kept in order not to trigger regressions. And keeping
++ *              this logic should be taken care by the caller of this function.
++ *
+  ******************************************************************************/
+ 
+-acpi_status
+-acpi_ev_initialize_region(union acpi_operand_object *region_obj,
+-			  u8 acpi_ns_locked)
++acpi_status acpi_ev_initialize_region(union acpi_operand_object *region_obj)
+ {
+ 	union acpi_operand_object *handler_obj;
+ 	union acpi_operand_object *obj_desc;
+ 	acpi_adr_space_type space_id;
+ 	struct acpi_namespace_node *node;
+-	acpi_status status;
+ 
+-	ACPI_FUNCTION_TRACE_U32(ev_initialize_region, acpi_ns_locked);
++	ACPI_FUNCTION_TRACE(ev_initialize_region);
+ 
+ 	if (!region_obj) {
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+@@ -580,39 +588,17 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+ 						  handler_obj, region_obj,
+ 						  obj_desc));
+ 
+-				status =
+-				    acpi_ev_attach_region(handler_obj,
+-							  region_obj,
+-							  acpi_ns_locked);
++				(void)acpi_ev_attach_region(handler_obj,
++							    region_obj, FALSE);
+ 
+ 				/*
+ 				 * Tell all users that this region is usable by
+ 				 * running the _REG method
+ 				 */
+-				if (acpi_ns_locked) {
+-					status =
+-					    acpi_ut_release_mutex
+-					    (ACPI_MTX_NAMESPACE);
+-					if (ACPI_FAILURE(status)) {
+-						return_ACPI_STATUS(status);
+-					}
+-				}
+-
+ 				acpi_ex_exit_interpreter();
+-				status =
+-				    acpi_ev_execute_reg_method(region_obj,
+-							       ACPI_REG_CONNECT);
++				(void)acpi_ev_execute_reg_method(region_obj,
++								 ACPI_REG_CONNECT);
+ 				acpi_ex_enter_interpreter();
+-
+-				if (acpi_ns_locked) {
+-					status =
+-					    acpi_ut_acquire_mutex
+-					    (ACPI_MTX_NAMESPACE);
+-					if (ACPI_FAILURE(status)) {
+-						return_ACPI_STATUS(status);
+-					}
+-				}
+-
+ 				return_ACPI_STATUS(AE_OK);
+ 			}
+ 		}
+@@ -622,12 +608,15 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+ 		node = node->parent;
+ 	}
+ 
+-	/* If we get here, there is no handler for this region */
+-
++	/*
++	 * If we get here, there is no handler for this region. This is not
++	 * fatal because many regions get created before a handler is installed
++	 * for said region.
++	 */
+ 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+ 			  "No handler for RegionType %s(%X) (RegionObj %p)\n",
+ 			  acpi_ut_get_region_name(space_id), space_id,
+ 			  region_obj));
+ 
+-	return_ACPI_STATUS(AE_NOT_EXIST);
++	return_ACPI_STATUS(AE_OK);
+ }
 -- 
 1.7.10
 
