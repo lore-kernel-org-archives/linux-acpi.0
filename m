@@ -1,43 +1,44 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: do not warn if _BQC  does not exist
-Date: Wed, 30 Nov 2016 23:29:01 +0100
-Message-ID: <9198995.9godKGSKmc@aspire.rjw.lan>
-References: <1480408205.2202.5.camel@intel.com>
+Subject: Re: [PATCH 2/2] acpi/video_detect: Add force_native quirk for HP Pavilion dv6
+Date: Wed, 30 Nov 2016 23:31:26 +0100
+Message-ID: <1881928.OixtbhRnUt@aspire.rjw.lan>
+References: <20161129143216.7261-1-hdegoede@redhat.com> <20161129143216.7261-2-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49874 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51754 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752078AbcK3Wcg (ORCPT
+        by vger.kernel.org with ESMTP id S1754141AbcK3WfA (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Nov 2016 17:32:36 -0500
-In-Reply-To: <1480408205.2202.5.camel@intel.com>
+        Wed, 30 Nov 2016 17:35:00 -0500
+In-Reply-To: <20161129143216.7261-2-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 
-On Tuesday, November 29, 2016 04:30:05 PM Zhang Rui wrote:
-> From da38c4f4decae22797aa39d5ac8518cada0302e3 Mon Sep 17 00:00:00 2001
-> From: Zhang Rui <rui.zhang@intel.com>
-> Date: Tue, 29 Nov 2016 16:13:56 +0800
-> Subject: [PATCH] ACPI: do not warn if _BQC does not exist
+On Tuesday, November 29, 2016 03:32:16 PM Hans de Goede wrote:
+> The HP Pavilion dv6 has a non-working acpi_video0 backlight interface
+> and an intel_backlight interface which works fine. Add a force_native
+> quirk for it so that the non-working acpi_video0 interface does not get
+> registered.
 > 
-> Starting from ACPI spec 3.0, it's only clarified that _BCM control
-> method is required if _BCL is implemented. There is no word
-> saying _BQC is required.
+> Note that there are quite a few HP Pavilion dv6 variants, some
+> woth ATI and some with NVIDIA hybrid gfx, both seem to need this
+> quirk to have working backlight control. There are also some versions
+> with only Intel integrated gfx, these may not need this quirk, but it
+> should not hurt there.
 > 
-> And in ACPI spec 6.1 B.5.4, for _BQC, it is explicitly stated that
-> "This optional method returns the current brightness level of a
-> built-in display output device. If present, it must be set by
-> the platform for initial brightness."
-> 
-> Thus remove the obsolete warning message.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1204476
+> BugLink: https://bugs.launchpad.net/ubuntu/+source/linux-lts-trusty/+bug/1416940
+> Cc: stable@vger.kernel.org
 
-Applied.
+It's always good to say what the oldest -stable series this applies to is.
+
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+Anyway, both [1-2/2] applied.
 
 Thanks,
 Rafael
