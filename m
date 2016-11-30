@@ -1,201 +1,99 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/11] ACPICA: Tables: Add acpi_tb_unload_table()
-Date: Wed, 30 Nov 2016 15:21:26 +0800
-Message-ID: <ab2412d78f77a64c3754e7a54550114d052add22.1480490191.git.lv.zheng@intel.com>
-References: <cover.1480490191.git.lv.zheng@intel.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH V3] leds: pca955x: Add ACPI support for pca955x
+Date: Wed, 30 Nov 2016 08:51:52 +0100
+Message-ID: <302ebc57-6f52-b0ff-e354-0c67556a88ed@samsung.com>
+References: <CGME20161130030845epcas5p2369d1c7cabb765ef0039b8e8d5aaa965@epcas5p2.samsung.com>
+ <1480475311-14385-1-git-send-email-tnhuynh@apm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:33613 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756680AbcK3HVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Nov 2016 02:21:47 -0500
-In-Reply-To: <cover.1480490191.git.lv.zheng@intel.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:49225 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754787AbcK3Hv7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2016 02:51:59 -0500
+In-reply-to: <1480475311-14385-1-git-send-email-tnhuynh@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+To: Tin Huynh <tnhuynh@apm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-ACPICA commit 80e24663b212daac0c32767fdbd8a46892292f1f
+Hi Tin,
 
-This patch introduces acpi_tb_unload_table() to eliminate redundant code from
-acpi_ex_unload_table() and acpi_unload_parent_table().
+How this patch is different from the one already merged?
 
-No functional change. Lv Zheng.
+Best regards,
+Jacek Anaszewski
 
-Link: https://github.com/acpica/acpica/commit/80e24663
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- drivers/acpi/acpica/actables.h |    2 ++
- drivers/acpi/acpica/exconfig.c |   35 +----------------------------
- drivers/acpi/acpica/tbdata.c   |   48 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/tbxfload.c |   31 +-------------------------
- 4 files changed, 52 insertions(+), 64 deletions(-)
+On 11/30/2016 04:08 AM, Tin Huynh wrote:
+> This patch enables ACPI support for leds-pca955x driver.
+>
+> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+> ---
+>  drivers/leds/leds-pca955x.c |   22 +++++++++++++++++++++-
+>  1 files changed, 21 insertions(+), 1 deletions(-)
+>
+> Change from V2:
+>  -Correct coding conventions.
+>
+> Change from V1:
+>  -Remove CONFIG_ACPI.
+>
+> diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+> index 840401a..b168ebe 100644
+> --- a/drivers/leds/leds-pca955x.c
+> +++ b/drivers/leds/leds-pca955x.c
+> @@ -40,6 +40,7 @@
+>   *  bits the chip supports.
+>   */
+>
+> +#include <linux/acpi.h>
+>  #include <linux/module.h>
+>  #include <linux/delay.h>
+>  #include <linux/string.h>
+> @@ -100,6 +101,15 @@ struct pca955x_chipdef {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, pca955x_id);
+>
+> +static const struct acpi_device_id pca955x_acpi_ids[] = {
+> +	{ .id = "PCA9550", .driver_data = pca9550 },
+> +	{ .id = "PCA9551", .driver_data = pca9551 },
+> +	{ .id = "PCA9552", .driver_data = pca9552 },
+> +	{ .id = "PCA9553", .driver_data = pca9553 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
+> +
+>  struct pca955x {
+>  	struct mutex lock;
+>  	struct pca955x_led *leds;
+> @@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
+>  	struct led_platform_data *pdata;
+>  	int i, err;
+>
+> -	chip = &pca955x_chipdefs[id->driver_data];
+> +	if (id) {
+> +		chip = &pca955x_chipdefs[id->driver_data];
+> +	} else {
+> +		const struct acpi_device_id *acpi_id;
+> +
+> +		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
+> +		if (!acpi_id)
+> +			return -ENODEV;
+> +		chip = &pca955x_chipdefs[acpi_id->driver_data];
+> +	}
+>  	adapter = to_i2c_adapter(client->dev.parent);
+>  	pdata = dev_get_platdata(&client->dev);
+>
+> @@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
+>  static struct i2c_driver pca955x_driver = {
+>  	.driver = {
+>  		.name	= "leds-pca955x",
+> +		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
+>  	},
+>  	.probe	= pca955x_probe,
+>  	.remove	= pca955x_remove,
+>
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 1850005..7dd527f 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -130,6 +130,8 @@
- acpi_tb_install_and_load_table(acpi_physical_address address,
- 			       u8 flags, u8 override, u32 *table_index);
- 
-+acpi_status acpi_tb_unload_table(u32 table_index);
-+
- void acpi_tb_terminate(void);
- 
- acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index);
-diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
-index 8b8d620..c32c782 100644
---- a/drivers/acpi/acpica/exconfig.c
-+++ b/drivers/acpi/acpica/exconfig.c
-@@ -499,7 +499,6 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
- 	acpi_status status = AE_OK;
- 	union acpi_operand_object *table_desc = ddb_handle;
- 	u32 table_index;
--	struct acpi_table_header *table;
- 
- 	ACPI_FUNCTION_TRACE(ex_unload_table);
- 
-@@ -536,39 +535,7 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
- 	 * strict order requirement against it.
- 	 */
- 	acpi_ex_exit_interpreter();
--
--	/* Ensure the table is still loaded */
--
--	if (!acpi_tb_is_table_loaded(table_index)) {
--		status = AE_NOT_EXIST;
--		goto lock_and_exit;
--	}
--
--	/* Invoke table handler if present */
--
--	if (acpi_gbl_table_handler) {
--		status = acpi_get_table_by_index(table_index, &table);
--		if (ACPI_SUCCESS(status)) {
--			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
--						     table,
--						     acpi_gbl_table_handler_context);
--		}
--	}
--
--	/* Delete the portion of the namespace owned by this table */
--
--	status = acpi_tb_delete_namespace_by_owner(table_index);
--	if (ACPI_FAILURE(status)) {
--		goto lock_and_exit;
--	}
--
--	(void)acpi_tb_release_owner_id(table_index);
--	acpi_tb_set_table_loaded_flag(table_index, FALSE);
--
--lock_and_exit:
--
--	/* Re-acquire the interpreter lock */
--
-+	status = acpi_tb_unload_table(table_index);
- 	acpi_ex_enter_interpreter();
- 
- 	/*
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 4cbfa30..82b0b57 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -871,3 +871,51 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
- 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
- 	return_ACPI_STATUS(status);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_unload_table
-+ *
-+ * PARAMETERS:  table_index             - Table index
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Unload an ACPI table
-+ *
-+ ******************************************************************************/
-+
-+acpi_status acpi_tb_unload_table(u32 table_index)
-+{
-+	acpi_status status = AE_OK;
-+	struct acpi_table_header *table;
-+
-+	ACPI_FUNCTION_TRACE(tb_unload_table);
-+
-+	/* Ensure the table is still loaded */
-+
-+	if (!acpi_tb_is_table_loaded(table_index)) {
-+		return_ACPI_STATUS(AE_NOT_EXIST);
-+	}
-+
-+	/* Invoke table handler if present */
-+
-+	if (acpi_gbl_table_handler) {
-+		status = acpi_get_table_by_index(table_index, &table);
-+		if (ACPI_SUCCESS(status)) {
-+			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
-+						     table,
-+						     acpi_gbl_table_handler_context);
-+		}
-+	}
-+
-+	/* Delete the portion of the namespace owned by this table */
-+
-+	status = acpi_tb_delete_namespace_by_owner(table_index);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	(void)acpi_tb_release_owner_id(table_index);
-+	acpi_tb_set_table_loaded_flag(table_index, FALSE);
-+	return_ACPI_STATUS(status);
-+}
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 77de33b..82019c0 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -408,37 +408,8 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
- 			break;
- 		}
- 
--		/* Ensure the table is actually loaded */
--
- 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--		if (!acpi_tb_is_table_loaded(i)) {
--			status = AE_NOT_EXIST;
--			(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
--			break;
--		}
--
--		/* Invoke table handler if present */
--
--		if (acpi_gbl_table_handler) {
--			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
--						     acpi_gbl_root_table_list.
--						     tables[i].pointer,
--						     acpi_gbl_table_handler_context);
--		}
--
--		/*
--		 * Delete all namespace objects owned by this table. Note that
--		 * these objects can appear anywhere in the namespace by virtue
--		 * of the AML "Scope" operator. Thus, we need to track ownership
--		 * by an ID, not simply a position within the hierarchy.
--		 */
--		status = acpi_tb_delete_namespace_by_owner(i);
--		if (ACPI_FAILURE(status)) {
--			break;
--		}
--
--		status = acpi_tb_release_owner_id(i);
--		acpi_tb_set_table_loaded_flag(i, FALSE);
-+		status = acpi_tb_unload_table(i);
- 		(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 		break;
- 	}
--- 
-1.7.10
+
 
