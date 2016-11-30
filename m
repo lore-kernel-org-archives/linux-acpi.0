@@ -1,42 +1,89 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH V4] leds: pca955x: Add ACPI support for pca955x
-Date: Wed, 30 Nov 2016 11:23:31 +0100
-Message-ID: <15a2678c-f224-a83e-082f-49a5fd36cc38@samsung.com>
-References: <1480499245-25781-1-git-send-email-tnhuynh@apm.com>
- <CGME20161130100042epcas2p2af1319fc4718c205b7b1f9f5a0c40492@epcas2p2.samsung.com>
- <20161130100030.GE1459@lahna.fi.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 2/2] ACPI: Ignore Consumer/Producer for QWord/DWord/Word
+ Address Space
+Date: Wed, 30 Nov 2016 12:04:25 +0000
+Message-ID: <20161130120425.GA13765@red-moon>
+References: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <20161129184334.7618.5495.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51068 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757111AbcK3KXh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2016 05:23:37 -0500
-In-reply-to: <20161130100030.GE1459@lahna.fi.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:44182 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753108AbcK3MDP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 30 Nov 2016 07:03:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20161129184334.7618.5495.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Peter Rosin <peda@axentia.se>, linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org
 
-Hi Tin,
+On Tue, Nov 29, 2016 at 12:43:34PM -0600, Bjorn Helgaas wrote:
+> Per ACPI spec r6.0, sec 6.4.3.5.1, 2, 3, Bit [0] of General Flags (the
+> Consumer/Producer bit) should be ignored for QWord/DWord/Word Address Space
+> descriptors.  The Consumer/Producer bit is defined only for the Extended
+> Address Space descriptor.
+> 
+> Ignore Consumer/Producer except for Extended Address Space descriptors.
+> 
+> Note that for QWord/DWord/Word descriptors, we previously applied the
+> translation offset (_TRA) only when the Consumer/Producer bit was set.
 
-Thanks for the patch.
+"..Consumer/Producer bit was clear" ? If that bit was set:
 
-On 11/30/2016 11:00 AM, Mika Westerberg wrote:
-> On Wed, Nov 30, 2016 at 04:47:25PM +0700, Tin Huynh wrote:
->> This patch enables ACPI support for leds-pca955x driver.
->>
->> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
->
-> Looks good to me now,
->
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+struct acpi_resource_address->producer_consumer == ACPI_CONSUMER
 
-Thanks for the review, Mika.
+and we are not applying the _TRA offset in that case, right ?
 
-Patch applied to the for-next branch of linux-leds.git.
+Thanks,
+Lorenzo
 
--- 
-Best regards,
-Jacek Anaszewski
+> This patch changes that: for those descriptors, we ignore Consumer/Producer
+> and always apply the translation offset.
+> 
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/acpi/resource.c |   16 +++++++++++-----
+>  1 file changed, 11 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 2732d39e..b45cd8f 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -261,11 +261,16 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+>  	 * primary side. Non-bridge devices must list 0 for all Address
+>  	 * Translation offset bits.
+>  	 */
+> -	if (addr->producer_consumer == ACPI_PRODUCER)
+> +	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64) {
+> +		if (addr->producer_consumer == ACPI_PRODUCER)
+> +			offset = attr->translation_offset;
+> +		else if (attr->translation_offset)
+> +			pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+> +				 attr->translation_offset);
+> +	} else {
+>  		offset = attr->translation_offset;
+> -	else if (attr->translation_offset)
+> -		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+> -			 attr->translation_offset);
+> +	}
+> +
+>  	start = attr->minimum + offset;
+>  	end = attr->maximum + offset;
+>  
+> @@ -294,7 +299,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+>  		return false;
+>  	}
+>  
+> -	if (addr->producer_consumer == ACPI_PRODUCER)
+> +	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64 &&
+> +	    addr->producer_consumer == ACPI_PRODUCER)
+>  		res->flags |= IORESOURCE_WINDOW;
+>  
+>  	if (addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
