@@ -1,32 +1,79 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 1/3] MAINTAINERS: Add bug tracking system location entry
- for cpufreq
-Date: Wed, 30 Nov 2016 08:32:29 +0530
-Message-ID: <20161130030229.GH3288@vireshk-i7>
-References: <1768401.hlc2LWNWsP@aspire.rjw.lan>
- <1749629.bXnquB1jqi@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1749629.bXnquB1jqi@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
+From: Tin Huynh <tnhuynh@apm.com>
+Subject: [PATCH V3] leds: pca955x: Add ACPI support for pca955x
+Date: Wed, 30 Nov 2016 10:08:31 +0700
+Message-ID: <1480475311-14385-1-git-send-email-tnhuynh@apm.com>
+Return-path: <linux-leds-owner@vger.kernel.org>
+Sender: linux-leds-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 30-11-16, 02:31, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The kernel Bugzilla is used for tracking cpufreq bugs, so document
-> that.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  MAINTAINERS |    1 +
->  1 file changed, 1 insertion(+)
+This patch enables ACPI support for leds-pca955x driver.
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+---
+ drivers/leds/leds-pca955x.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
+Change from V2:
+ -Correct coding conventions.
+
+Change from V1: 
+ -Remove CONFIG_ACPI.
+
+diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+index 840401a..b168ebe 100644
+--- a/drivers/leds/leds-pca955x.c
++++ b/drivers/leds/leds-pca955x.c
+@@ -40,6 +40,7 @@
+  *  bits the chip supports.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/string.h>
+@@ -100,6 +101,15 @@ struct pca955x_chipdef {
+ };
+ MODULE_DEVICE_TABLE(i2c, pca955x_id);
+ 
++static const struct acpi_device_id pca955x_acpi_ids[] = {
++	{ .id = "PCA9550", .driver_data = pca9550 },
++	{ .id = "PCA9551", .driver_data = pca9551 },
++	{ .id = "PCA9552", .driver_data = pca9552 },
++	{ .id = "PCA9553", .driver_data = pca9553 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
++
+ struct pca955x {
+ 	struct mutex lock;
+ 	struct pca955x_led *leds;
+@@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
+ 	struct led_platform_data *pdata;
+ 	int i, err;
+ 
+-	chip = &pca955x_chipdefs[id->driver_data];
++	if (id) {
++		chip = &pca955x_chipdefs[id->driver_data];
++	} else {
++		const struct acpi_device_id *acpi_id;
++
++		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
++		if (!acpi_id)
++			return -ENODEV;
++		chip = &pca955x_chipdefs[acpi_id->driver_data];
++	}
+ 	adapter = to_i2c_adapter(client->dev.parent);
+ 	pdata = dev_get_platdata(&client->dev);
+ 
+@@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
+ static struct i2c_driver pca955x_driver = {
+ 	.driver = {
+ 		.name	= "leds-pca955x",
++		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
+ 	},
+ 	.probe	= pca955x_probe,
+ 	.remove	= pca955x_remove,
 -- 
-viresh
+1.7.1
