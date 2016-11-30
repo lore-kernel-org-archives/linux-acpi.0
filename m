@@ -1,12 +1,12 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/11] ACPICA: Events: Fix acpi_ev_initialize_region() return value
-Date: Wed, 30 Nov 2016 15:21:12 +0800
-Message-ID: <e70ef2444fb571fa7c6642c56f9d49333143b60c.1480490191.git.lv.zheng@intel.com>
+Subject: [PATCH 06/11] ACPICA: Tables: Add acpi_tb_unload_table()
+Date: Wed, 30 Nov 2016 15:21:26 +0800
+Message-ID: <ab2412d78f77a64c3754e7a54550114d052add22.1480490191.git.lv.zheng@intel.com>
 References: <cover.1480490191.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5854 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:33613 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756331AbcK3HVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1756680AbcK3HVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 30 Nov 2016 02:21:47 -0500
 In-Reply-To: <cover.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,189 +14,188 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 543342ab7a676f4eb0c9f100d349388a84dff0e8
+ACPICA commit 80e24663b212daac0c32767fdbd8a46892292f1f
 
-This patch changes acpi_ev_initialize_region(), stop returning AE_NOT_EXIST
-from it so that, not only in acpi_ds_load2_end_op(), but all places invoking
-this function won't emit exceptions. The exception can be seen in
-acpi_ds_initialize_objects() when certain table loading mode is chosen.
+This patch introduces acpi_tb_unload_table() to eliminate redundant code from
+acpi_ex_unload_table() and acpi_unload_parent_table().
 
-This patch also removes useless acpi_ns_locked from acpi_ev_initialize_region()
-as this function will always be invoked with interpreter lock held now, and
-the lock granularity has been tuned to lock around _REG execution, thus it
-is now handled by acpi_ex_exit_interpreter(). Lv Zheng.
+No functional change. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/543342ab
+Link: https://github.com/acpica/acpica/commit/80e24663
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acevents.h |    4 +--
- drivers/acpi/acpica/dsopcode.c |    2 +-
- drivers/acpi/acpica/dswload2.c |   13 +--------
- drivers/acpi/acpica/evrgnini.c |   59 ++++++++++++++++------------------------
- 4 files changed, 27 insertions(+), 51 deletions(-)
+ drivers/acpi/acpica/actables.h |    2 ++
+ drivers/acpi/acpica/exconfig.c |   35 +----------------------------
+ drivers/acpi/acpica/tbdata.c   |   48 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/tbxfload.c |   31 +-------------------------
+ 4 files changed, 52 insertions(+), 64 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
-index 92fa47c..8a0049d 100644
---- a/drivers/acpi/acpica/acevents.h
-+++ b/drivers/acpi/acpica/acevents.h
-@@ -243,9 +243,7 @@ union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
- 			     u32 function,
- 			     void *handler_context, void **region_context);
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index 1850005..7dd527f 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -130,6 +130,8 @@
+ acpi_tb_install_and_load_table(acpi_physical_address address,
+ 			       u8 flags, u8 override, u32 *table_index);
  
--acpi_status
--acpi_ev_initialize_region(union acpi_operand_object *region_obj,
--			  u8 acpi_ns_locked);
-+acpi_status acpi_ev_initialize_region(union acpi_operand_object *region_obj);
++acpi_status acpi_tb_unload_table(u32 table_index);
++
+ void acpi_tb_terminate(void);
  
- /*
-  * evsci - SCI (System Control Interrupt) handling/dispatch
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index 4cc9d98..77fd7c8 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -84,7 +84,7 @@ acpi_status acpi_ds_initialize_region(acpi_handle obj_handle)
+ acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index);
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 8b8d620..c32c782 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -499,7 +499,6 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 	acpi_status status = AE_OK;
+ 	union acpi_operand_object *table_desc = ddb_handle;
+ 	u32 table_index;
+-	struct acpi_table_header *table;
  
- 	/* Namespace is NOT locked */
+ 	ACPI_FUNCTION_TRACE(ex_unload_table);
  
--	status = acpi_ev_initialize_region(obj_desc, FALSE);
-+	status = acpi_ev_initialize_region(obj_desc);
- 	return (status);
- }
- 
-diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
-index e362182..651f35a 100644
---- a/drivers/acpi/acpica/dswload2.c
-+++ b/drivers/acpi/acpica/dswload2.c
-@@ -609,18 +609,7 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
- 
- 			status =
- 			    acpi_ev_initialize_region
--			    (acpi_ns_get_attached_object(node), FALSE);
+@@ -536,39 +535,7 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 	 * strict order requirement against it.
+ 	 */
+ 	acpi_ex_exit_interpreter();
 -
--			if (ACPI_FAILURE(status)) {
--				/*
--				 *  If AE_NOT_EXIST is returned, it is not fatal
--				 *  because many regions get created before a handler
--				 *  is installed for said region.
--				 */
--				if (AE_NOT_EXIST == status) {
--					status = AE_OK;
--				}
--			}
-+			    (acpi_ns_get_attached_object(node));
- 			break;
+-	/* Ensure the table is still loaded */
+-
+-	if (!acpi_tb_is_table_loaded(table_index)) {
+-		status = AE_NOT_EXIST;
+-		goto lock_and_exit;
+-	}
+-
+-	/* Invoke table handler if present */
+-
+-	if (acpi_gbl_table_handler) {
+-		status = acpi_get_table_by_index(table_index, &table);
+-		if (ACPI_SUCCESS(status)) {
+-			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
+-						     table,
+-						     acpi_gbl_table_handler_context);
+-		}
+-	}
+-
+-	/* Delete the portion of the namespace owned by this table */
+-
+-	status = acpi_tb_delete_namespace_by_owner(table_index);
+-	if (ACPI_FAILURE(status)) {
+-		goto lock_and_exit;
+-	}
+-
+-	(void)acpi_tb_release_owner_id(table_index);
+-	acpi_tb_set_table_loaded_flag(table_index, FALSE);
+-
+-lock_and_exit:
+-
+-	/* Re-acquire the interpreter lock */
+-
++	status = acpi_tb_unload_table(table_index);
+ 	acpi_ex_enter_interpreter();
  
- 		case AML_NAME_OP:
-diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
-index 75ddd16..a909225 100644
---- a/drivers/acpi/acpica/evrgnini.c
-+++ b/drivers/acpi/acpica/evrgnini.c
-@@ -479,7 +479,6 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
-  * FUNCTION:    acpi_ev_initialize_region
-  *
-  * PARAMETERS:  region_obj      - Region we are initializing
-- *              acpi_ns_locked  - Is namespace locked?
-  *
-  * RETURN:      Status
-  *
-@@ -497,19 +496,28 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
-  * MUTEX:       Interpreter should be unlocked, because we may run the _REG
-  *              method for this region.
-  *
-+ * NOTE:        Possible incompliance:
-+ *              There is a behavior conflict in automatic _REG execution:
-+ *              1. When the interpreter is evaluating a method, we can only
-+ *                 automatically run _REG for the following case:
-+ *                   operation_region (OPR1, 0x80, 0x1000010, 0x4)
-+ *              2. When the interpreter is loading a table, we can also
-+ *                 automatically run _REG for the following case:
-+ *                   operation_region (OPR1, 0x80, 0x1000010, 0x4)
-+ *              Though this may not be compliant to the de-facto standard, the
-+ *              logic is kept in order not to trigger regressions. And keeping
-+ *              this logic should be taken care by the caller of this function.
+ 	/*
+diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+index 4cbfa30..82b0b57 100644
+--- a/drivers/acpi/acpica/tbdata.c
++++ b/drivers/acpi/acpica/tbdata.c
+@@ -871,3 +871,51 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+ 	return_ACPI_STATUS(status);
+ }
++
++/*******************************************************************************
 + *
-  ******************************************************************************/
- 
--acpi_status
--acpi_ev_initialize_region(union acpi_operand_object *region_obj,
--			  u8 acpi_ns_locked)
-+acpi_status acpi_ev_initialize_region(union acpi_operand_object *region_obj)
- {
- 	union acpi_operand_object *handler_obj;
- 	union acpi_operand_object *obj_desc;
- 	acpi_adr_space_type space_id;
- 	struct acpi_namespace_node *node;
--	acpi_status status;
- 
--	ACPI_FUNCTION_TRACE_U32(ev_initialize_region, acpi_ns_locked);
-+	ACPI_FUNCTION_TRACE(ev_initialize_region);
- 
- 	if (!region_obj) {
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
-@@ -580,39 +588,17 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
- 						  handler_obj, region_obj,
- 						  obj_desc));
- 
--				status =
--				    acpi_ev_attach_region(handler_obj,
--							  region_obj,
--							  acpi_ns_locked);
-+				(void)acpi_ev_attach_region(handler_obj,
-+							    region_obj, FALSE);
- 
- 				/*
- 				 * Tell all users that this region is usable by
- 				 * running the _REG method
- 				 */
--				if (acpi_ns_locked) {
--					status =
--					    acpi_ut_release_mutex
--					    (ACPI_MTX_NAMESPACE);
--					if (ACPI_FAILURE(status)) {
--						return_ACPI_STATUS(status);
--					}
--				}
--
- 				acpi_ex_exit_interpreter();
--				status =
--				    acpi_ev_execute_reg_method(region_obj,
--							       ACPI_REG_CONNECT);
-+				(void)acpi_ev_execute_reg_method(region_obj,
-+								 ACPI_REG_CONNECT);
- 				acpi_ex_enter_interpreter();
--
--				if (acpi_ns_locked) {
--					status =
--					    acpi_ut_acquire_mutex
--					    (ACPI_MTX_NAMESPACE);
--					if (ACPI_FAILURE(status)) {
--						return_ACPI_STATUS(status);
--					}
--				}
--
- 				return_ACPI_STATUS(AE_OK);
- 			}
++ * FUNCTION:    acpi_tb_unload_table
++ *
++ * PARAMETERS:  table_index             - Table index
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Unload an ACPI table
++ *
++ ******************************************************************************/
++
++acpi_status acpi_tb_unload_table(u32 table_index)
++{
++	acpi_status status = AE_OK;
++	struct acpi_table_header *table;
++
++	ACPI_FUNCTION_TRACE(tb_unload_table);
++
++	/* Ensure the table is still loaded */
++
++	if (!acpi_tb_is_table_loaded(table_index)) {
++		return_ACPI_STATUS(AE_NOT_EXIST);
++	}
++
++	/* Invoke table handler if present */
++
++	if (acpi_gbl_table_handler) {
++		status = acpi_get_table_by_index(table_index, &table);
++		if (ACPI_SUCCESS(status)) {
++			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
++						     table,
++						     acpi_gbl_table_handler_context);
++		}
++	}
++
++	/* Delete the portion of the namespace owned by this table */
++
++	status = acpi_tb_delete_namespace_by_owner(table_index);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	(void)acpi_tb_release_owner_id(table_index);
++	acpi_tb_set_table_loaded_flag(table_index, FALSE);
++	return_ACPI_STATUS(status);
++}
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 77de33b..82019c0 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -408,37 +408,8 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
+ 			break;
  		}
-@@ -622,12 +608,15 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
- 		node = node->parent;
- 	}
  
--	/* If we get here, there is no handler for this region */
+-		/* Ensure the table is actually loaded */
 -
-+	/*
-+	 * If we get here, there is no handler for this region. This is not
-+	 * fatal because many regions get created before a handler is installed
-+	 * for said region.
-+	 */
- 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
- 			  "No handler for RegionType %s(%X) (RegionObj %p)\n",
- 			  acpi_ut_get_region_name(space_id), space_id,
- 			  region_obj));
- 
--	return_ACPI_STATUS(AE_NOT_EXIST);
-+	return_ACPI_STATUS(AE_OK);
- }
+ 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+-		if (!acpi_tb_is_table_loaded(i)) {
+-			status = AE_NOT_EXIST;
+-			(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+-			break;
+-		}
+-
+-		/* Invoke table handler if present */
+-
+-		if (acpi_gbl_table_handler) {
+-			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
+-						     acpi_gbl_root_table_list.
+-						     tables[i].pointer,
+-						     acpi_gbl_table_handler_context);
+-		}
+-
+-		/*
+-		 * Delete all namespace objects owned by this table. Note that
+-		 * these objects can appear anywhere in the namespace by virtue
+-		 * of the AML "Scope" operator. Thus, we need to track ownership
+-		 * by an ID, not simply a position within the hierarchy.
+-		 */
+-		status = acpi_tb_delete_namespace_by_owner(i);
+-		if (ACPI_FAILURE(status)) {
+-			break;
+-		}
+-
+-		status = acpi_tb_release_owner_id(i);
+-		acpi_tb_set_table_loaded_flag(i, FALSE);
++		status = acpi_tb_unload_table(i);
+ 		(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 		break;
+ 	}
 -- 
 1.7.10
 
