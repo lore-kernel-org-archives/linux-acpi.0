@@ -1,45 +1,219 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] acpi/video_detect: Add force_native quirk for HP Pavilion dv6
-Date: Wed, 30 Nov 2016 23:31:26 +0100
-Message-ID: <1881928.OixtbhRnUt@aspire.rjw.lan>
-References: <20161129143216.7261-1-hdegoede@redhat.com> <20161129143216.7261-2-hdegoede@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 04/11] ACPICA: Events: Fix acpi_ev_initialize_region()
+ return value
+Date: Thu, 1 Dec 2016 00:07:57 +0100
+Message-ID: <CAJZ5v0j50UvtnzzYKaQ=KUSO7SCOzU_DooVE+hbMznQ-sQ0yHQ@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <e70ef2444fb571fa7c6642c56f9d49333143b60c.1480490191.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51754 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754141AbcK3WfA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Nov 2016 17:35:00 -0500
-In-Reply-To: <20161129143216.7261-2-hdegoede@redhat.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35367 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755549AbcK3XH7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2016 18:07:59 -0500
+In-Reply-To: <e70ef2444fb571fa7c6642c56f9d49333143b60c.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
 
-On Tuesday, November 29, 2016 03:32:16 PM Hans de Goede wrote:
-> The HP Pavilion dv6 has a non-working acpi_video0 backlight interface
-> and an intel_backlight interface which works fine. Add a force_native
-> quirk for it so that the non-working acpi_video0 interface does not get
-> registered.
-> 
-> Note that there are quite a few HP Pavilion dv6 variants, some
-> woth ATI and some with NVIDIA hybrid gfx, both seem to need this
-> quirk to have working backlight control. There are also some versions
-> with only Intel integrated gfx, these may not need this quirk, but it
-> should not hurt there.
-> 
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1204476
-> BugLink: https://bugs.launchpad.net/ubuntu/+source/linux-lts-trusty/+bug/1416940
-> Cc: stable@vger.kernel.org
+On Wed, Nov 30, 2016 at 8:21 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> ACPICA commit 543342ab7a676f4eb0c9f100d349388a84dff0e8
+>
+> This patch changes acpi_ev_initialize_region(), stop returning AE_NOT_EXIST
+> from it so that, not only in acpi_ds_load2_end_op(), but all places invoking
+> this function won't emit exceptions. The exception can be seen in
+> acpi_ds_initialize_objects() when certain table loading mode is chosen.
+>
+> This patch also removes useless acpi_ns_locked from acpi_ev_initialize_region()
+> as this function will always be invoked with interpreter lock held now, and
+> the lock granularity has been tuned to lock around _REG execution, thus it
+> is now handled by acpi_ex_exit_interpreter(). Lv Zheng.
+>
+> Link: https://github.com/acpica/acpica/commit/543342ab
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> ---
+>  drivers/acpi/acpica/acevents.h |    4 +--
+>  drivers/acpi/acpica/dsopcode.c |    2 +-
+>  drivers/acpi/acpica/dswload2.c |   13 +--------
+>  drivers/acpi/acpica/evrgnini.c |   59 ++++++++++++++++------------------------
+>  4 files changed, 27 insertions(+), 51 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+> index 92fa47c..8a0049d 100644
+> --- a/drivers/acpi/acpica/acevents.h
+> +++ b/drivers/acpi/acpica/acevents.h
+> @@ -243,9 +243,7 @@ union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
+>                              u32 function,
+>                              void *handler_context, void **region_context);
+>
+> -acpi_status
+> -acpi_ev_initialize_region(union acpi_operand_object *region_obj,
+> -                         u8 acpi_ns_locked);
+> +acpi_status acpi_ev_initialize_region(union acpi_operand_object *region_obj);
+>
+>  /*
+>   * evsci - SCI (System Control Interrupt) handling/dispatch
+> diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+> index 4cc9d98..77fd7c8 100644
+> --- a/drivers/acpi/acpica/dsopcode.c
+> +++ b/drivers/acpi/acpica/dsopcode.c
+> @@ -84,7 +84,7 @@ acpi_status acpi_ds_initialize_region(acpi_handle obj_handle)
+>
+>         /* Namespace is NOT locked */
+>
+> -       status = acpi_ev_initialize_region(obj_desc, FALSE);
+> +       status = acpi_ev_initialize_region(obj_desc);
+>         return (status);
+>  }
+>
+> diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
+> index e362182..651f35a 100644
+> --- a/drivers/acpi/acpica/dswload2.c
+> +++ b/drivers/acpi/acpica/dswload2.c
+> @@ -609,18 +609,7 @@ acpi_status acpi_ds_load2_end_op(struct acpi_walk_state *walk_state)
+>
+>                         status =
+>                             acpi_ev_initialize_region
+> -                           (acpi_ns_get_attached_object(node), FALSE);
+> -
+> -                       if (ACPI_FAILURE(status)) {
+> -                               /*
+> -                                *  If AE_NOT_EXIST is returned, it is not fatal
+> -                                *  because many regions get created before a handler
+> -                                *  is installed for said region.
+> -                                */
+> -                               if (AE_NOT_EXIST == status) {
+> -                                       status = AE_OK;
+> -                               }
+> -                       }
+> +                           (acpi_ns_get_attached_object(node));
 
-It's always good to say what the oldest -stable series this applies to is.
+This hunk doesn't apply for me.
 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+We have acpi_ex_exit_interpreter() / acpi_ex_enter_interpreter()
+around the acpi_ev_initialize_region() in linux-next.
 
-Anyway, both [1-2/2] applied.
+>                         break;
+>
+>                 case AML_NAME_OP:
+> diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+> index 75ddd16..a909225 100644
+> --- a/drivers/acpi/acpica/evrgnini.c
+> +++ b/drivers/acpi/acpica/evrgnini.c
+> @@ -479,7 +479,6 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+>   * FUNCTION:    acpi_ev_initialize_region
+>   *
+>   * PARAMETERS:  region_obj      - Region we are initializing
+> - *              acpi_ns_locked  - Is namespace locked?
+>   *
+>   * RETURN:      Status
+>   *
+> @@ -497,19 +496,28 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+>   * MUTEX:       Interpreter should be unlocked, because we may run the _REG
+>   *              method for this region.
+>   *
+> + * NOTE:        Possible incompliance:
+> + *              There is a behavior conflict in automatic _REG execution:
+> + *              1. When the interpreter is evaluating a method, we can only
+> + *                 automatically run _REG for the following case:
+> + *                   operation_region (OPR1, 0x80, 0x1000010, 0x4)
+> + *              2. When the interpreter is loading a table, we can also
+> + *                 automatically run _REG for the following case:
+> + *                   operation_region (OPR1, 0x80, 0x1000010, 0x4)
+> + *              Though this may not be compliant to the de-facto standard, the
+> + *              logic is kept in order not to trigger regressions. And keeping
+> + *              this logic should be taken care by the caller of this function.
+> + *
+>   ******************************************************************************/
+>
+> -acpi_status
+> -acpi_ev_initialize_region(union acpi_operand_object *region_obj,
+> -                         u8 acpi_ns_locked)
+> +acpi_status acpi_ev_initialize_region(union acpi_operand_object *region_obj)
+>  {
+>         union acpi_operand_object *handler_obj;
+>         union acpi_operand_object *obj_desc;
+>         acpi_adr_space_type space_id;
+>         struct acpi_namespace_node *node;
+> -       acpi_status status;
+>
+> -       ACPI_FUNCTION_TRACE_U32(ev_initialize_region, acpi_ns_locked);
+> +       ACPI_FUNCTION_TRACE(ev_initialize_region);
+>
+>         if (!region_obj) {
+>                 return_ACPI_STATUS(AE_BAD_PARAMETER);
+> @@ -580,39 +588,17 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+>                                                   handler_obj, region_obj,
+>                                                   obj_desc));
+>
+> -                               status =
+> -                                   acpi_ev_attach_region(handler_obj,
+> -                                                         region_obj,
+> -                                                         acpi_ns_locked);
+> +                               (void)acpi_ev_attach_region(handler_obj,
+> +                                                           region_obj, FALSE);
+>
+>                                 /*
+>                                  * Tell all users that this region is usable by
+>                                  * running the _REG method
+>                                  */
+> -                               if (acpi_ns_locked) {
+> -                                       status =
+> -                                           acpi_ut_release_mutex
+> -                                           (ACPI_MTX_NAMESPACE);
+> -                                       if (ACPI_FAILURE(status)) {
+> -                                               return_ACPI_STATUS(status);
+> -                                       }
+> -                               }
+> -
+>                                 acpi_ex_exit_interpreter();
+> -                               status =
+> -                                   acpi_ev_execute_reg_method(region_obj,
+> -                                                              ACPI_REG_CONNECT);
+> +                               (void)acpi_ev_execute_reg_method(region_obj,
+> +                                                                ACPI_REG_CONNECT);
+>                                 acpi_ex_enter_interpreter();
+
+And this also doesn't apply, because we don't invoke
+acpi_ex_exit_interpreter() / acpi_ex_enter_interpreter() around the
+acpi_ev_execute_reg_method() call in linux-next.
+
+
+> -
+> -                               if (acpi_ns_locked) {
+> -                                       status =
+> -                                           acpi_ut_acquire_mutex
+> -                                           (ACPI_MTX_NAMESPACE);
+> -                                       if (ACPI_FAILURE(status)) {
+> -                                               return_ACPI_STATUS(status);
+> -                                       }
+> -                               }
+> -
+>                                 return_ACPI_STATUS(AE_OK);
+>                         }
+>                 }
+> @@ -622,12 +608,15 @@ static u8 acpi_ev_is_pci_root_bridge(struct acpi_namespace_node *node)
+>                 node = node->parent;
+>         }
+>
+> -       /* If we get here, there is no handler for this region */
+> -
+> +       /*
+> +        * If we get here, there is no handler for this region. This is not
+> +        * fatal because many regions get created before a handler is installed
+> +        * for said region.
+> +        */
+>         ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+>                           "No handler for RegionType %s(%X) (RegionObj %p)\n",
+>                           acpi_ut_get_region_name(space_id), space_id,
+>                           region_obj));
+>
+> -       return_ACPI_STATUS(AE_NOT_EXIST);
+> +       return_ACPI_STATUS(AE_OK);
+>  }
+> --
 
 Thanks,
 Rafael
-
