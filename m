@@ -1,241 +1,143 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V7 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Wed, 30 Nov 2016 10:07:48 +0800
-Message-ID: <583E3474.8090409@huawei.com>
-References: <1479074375-2629-1-git-send-email-agustinv@codeaurora.org>
- <1479074375-2629-3-git-send-email-agustinv@codeaurora.org>
- <20161124161548.GA11766@red-moon> <20161125114035.GA13739@red-moon>
- <e12155805a9d92d3f5edc81395a76f48@codeaurora.org>
- <20161129121152.GA32453@red-moon>
- <CAJZ5v0guuqb6OzSJgz0L537EhH75EkR--Mmm+QSpKhYXBZxV9w@mail.gmail.com>
- <c13596d9b4f86f1b603fb979a0083889@codeaurora.org>
- <CAJZ5v0gpYqH9psHz4YQp=c5_M9NyZ4qppLFF5NK0XRHbm5nbbQ@mail.gmail.com>
+From: "'Tin Huynh' via rtc-linux" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Subject: [PATCH V1] rtc: ds1307: Add ACPI support
+Date: Wed, 30 Nov 2016 09:57:31 +0700
+Message-ID: <1480474651-13984-1-git-send-email-tnhuynh@apm.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:8941 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751732AbcK3CJU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Nov 2016 21:09:20 -0500
-In-Reply-To: <CAJZ5v0gpYqH9psHz4YQp=c5_M9NyZ4qppLFF5NK0XRHbm5nbbQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBCKZ7AUOVICRBJUA7HAQKGQECLBA5LY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, Thang Nguyen <tqnguyen-qTEPVZfXA3Y@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, patches-qTEPVZfXA3Y@public.gmane.org, Tin Huynh <tnhuynh-qTEPVZfXA3Y@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, Char
 
-On 2016/11/30 0:26, Rafael J. Wysocki wrote:
-> On Tue, Nov 29, 2016 at 4:20 PM, Agustin Vega-Frias
-> <agustinv@codeaurora.org> wrote:
->> Hi Rafael,
->>
->>
->> On 2016-11-29 07:43, Rafael J. Wysocki wrote:
->>> On Tue, Nov 29, 2016 at 1:11 PM, Lorenzo Pieralisi
->>> <lorenzo.pieralisi@arm.com> wrote:
->>>> Hi Agustin,
->>>>
->>>> On Mon, Nov 28, 2016 at 05:40:24PM -0500, Agustin Vega-Frias wrote:
->>>>> Hi Rafael,
->>>>>
->>>>> Can you chime in on Lorenzo's feedback and the discussion below?
->>>>> It would be great if you can comment on the reason ACPI does things
->>>>> in a certain way.
->>>>>
->>>>> Hi Lorenzo,
->>>>>
->>>>> On 2016-11-25 06:40, Lorenzo Pieralisi wrote:
->>>>>> Hi Agustin,
->>>>>>
->>>>>> On Thu, Nov 24, 2016 at 04:15:48PM +0000, Lorenzo Pieralisi wrote:
->>>>>>
->>>>>> [...]
->>>>>>
->>>>>>>> @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct
->>>>>>>> acpi_resource *ares, int index,
->>>>>>>>  {
->>>>>>>>   struct acpi_resource_irq *irq;
->>>>>>>>   struct acpi_resource_extended_irq *ext_irq;
->>>>>>>> + struct fwnode_handle *src;
->>>>>>>>
->>>>>>>>   switch (ares->type) {
->>>>>>>>   case ACPI_RESOURCE_TYPE_IRQ:
->>>>>>>> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct
->>>>>>>> acpi_resource *ares, int index,
->>>>>>>>                   acpi_dev_irqresource_disabled(res, 0);
->>>>>>>>                   return false;
->>>>>>>>           }
->>>>>>>> -         acpi_dev_get_irqresource(res, irq->interrupts[index],
->>>>>>>> +         acpi_dev_get_irqresource(res, irq->interrupts[index],
->>>>>>>> NULL,
->>>>>>>>                                    irq->triggering, irq->polarity,
->>>>>>>>                                    irq->sharable, true);
->>>>>>>>           break;
->>>>>>>> @@ -470,7 +472,8 @@ bool acpi_dev_resource_interrupt(struct
->>>>>>>> acpi_resource *ares, int index,
->>>>>>>>                   acpi_dev_irqresource_disabled(res, 0);
->>>>>>>>                   return false;
->>>>>>>>           }
->>>>>>>> -         acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
->>>>>>>> +         src =
->>>>>>>> acpi_get_irq_source_fwhandle(&ext_irq->resource_source);
->>>>>>> Is there a reason why we need to do the domain look-up here ?
->>>>> Because we need to pass the resource down to acpi_dev_get_irqresource
->>>>> which does the mapping through acpi_register_irq/acpi_register_gsi.
->>>>>
->>>>>>> I would like to understand if, by reshuffling the code (and by
->>>>>>> returning
->>>>>>> the resource_source to the calling code - somehow), it would be
->>>>>>> possible
->>>>>>> to just mirror what the OF code does in of_irq_get(), namely:
->>>>>>>
->>>>>>> (1) parse the irq entry -> of_irq_parse_one()
->>>>>>> (2) look the domain up -> irq_find_host()
->>>>>>> (3) create the mapping -> irq_create_of_mapping()
->>>>>>>
->>>>>>> You wrote the code already, I think it is just a matter of shuffling
->>>>>>> it around (well, minus returning the resource_source to the caller
->>>>>>> which is phandle equivalent in DT).
->>>>> This is one area in which DT and ACPI are fundamentally different. In DT
->>>>> once the flattened blob is expanded the data is fixed. In ACPI the data
->>>>> returned by a method can change. In reality most methods like CRS return
->>>>> constants, but given that per-spec they are methods the interpreter has
->>>>> to be involved, which makes it an expensive operation. I believe that is
->>>>> the reason the resource parsing code in ACPI attempts all mappings
->>>>> during
->>>>> the bus scan. Rafael can you comment on this?
->>>>>
->>>>> One way to do what you suggest would be to defer IRQ mapping by, e.g.,
->>>>> populating res->start with the HW IRQ number and res->end with the
->>>>> fwnode.
->>>>> That way we can avoid having to walk the resource buffer when a mapping
->>>>> is needed. I don't think that approach would deviate much more from
->>>>> the spec from what the current ahead-of-time mapping does, but it would
->>>>> require more changes in the core code. An alternative would be to do
->>>>> that only for resources that fail to map.
->>>>>
->>>>>>> You abstracted away (2) and (3) behind acpi_register_irq(), that
->>>>>>> on anything than does not use ACPI_GENERIC_GSI is just glue code
->>>>>>> to acpi_register_gsi().
->>>>>>>
->>>>>>> Also, it is not a question on this patch but I ask it here because it
->>>>>>> is related. On ACPI you are doing the reverse of what is done in
->>>>>>> DT in platform_get_irq():
->>>>>>>
->>>>>>> - get the resources already parsed -> platform_get_resource()
->>>>>>> - if they are disabled -> acpi_irq_get()
->>>>>>>
->>>>>>> and I think the ordering is tied to my question above because
->>>>>>> you carry out the domain look up in acpi_dev_resource_interrupt()
->>>>>>> so that if for any reason it fails the corresponding resource
->>>>>>> is disabled so that we try to get it again through acpi_irq_get().
->>>>>>>
->>>>>>> I suspect you did it this way to make sure:
->>>>>>>
->>>>>>> a) keep the current ACPI IRQ parsing interface changes to a mininum
->>>>>>> b) avoid changing the behaviour on x86/ia64; in particular, calling
->>>>>>>   acpi_register_gsi() for the _same_ mapping (an IRQ that was already
->>>>>>>   registered at device creation resource parsing) multiple times can
->>>>>>>   trigger issues on x86/ia64
->>>>> You are correct about my reasons. I wanted to keep ACPI core code
->>>>> changes
->>>>> to a minimum, and I also needed to work within the current
->>>>> implementation
->>>>> which uses the pre-converted IRQ resources.
->>>>>
->>>>>>> I think that's a reasonable approach but I wanted to get these
->>>>>>> clarifications, I do not think you are far from getting this
->>>>>>> done but since it is a significant change I think it is worth
->>>>>>> discussing the points I raised above because I think the DT code
->>>>>>> sequence in of_irq_get() (1-2-3 above) is cleaner from an IRQ
->>>>>>> layer perspective (instead of having the domain look-up buried
->>>>>>> inside the ACPI IRQ resource parsing API).
->>>>>> I had another look and to achieve the above one way of doing that is to
->>>>>> implement acpi_irq_get() only for ACPI_GENERIC_GSI and stub it out for
->>>>>> !ACPI_GENERIC_GSI (ie return an error code so that on !ACPI_GENERIC_GSI
->>>>>> we would fall back to current solution for ACPI). Within acpi_irq_get()
->>>>>> you can easily carry out the same steps (1->2->3) above in ACPI
->>>>>> you have
->>>>>> the code already there I think it is easy to change the
->>>>>> acpi_irq_get_cb() interface to return a filled in struct irq_fwspec and
->>>>>> the interface would become identical to of_irq_get() that is an
->>>>>> advantage to maintain it from an IRQ maintainership perspective I
->>>>>> think,
->>>>>> that's my opinion.
->>>>> I think I get what you mean. I'll take a stab at implementing
->>>>> acpi_irq_get()
->>>>> in the way you suggest.
->>>>>
->>>>>> There is still a nagging snag though. When platform devices are
->>>>>> created, core ACPI code parse the resources through:
->>>>>>
->>>>>> acpi_dev_get_resources()
->>>>>>
->>>>>> and we _have_ to have way to avoid initializing IRQ resources that
->>>>>> have a dependency (ie there is a resource_source pointer that is valid
->>>>>> in their descriptors) that's easy to do if we think that's the right
->>>>>> thing to do and can hardly break current code (which ignores the
->>>>>> resource_source altogether).
->>>>> I'd rather keep the core code as-is with regard to the ahead-of-time
->>>>> conversion. Whether a resource source is available at the time of
->>>>> the bus
->>>>> scan should be transparent to the code in drivers/acpi/resource.c, and
->>>>> we need the initialization as a disabled resource to signal the need
->>>>> to retry anyway.
->>>>
->>>> Yes, exactly that's the nub. Your current code works, I am trying to
->>>> make it more modular and similar to the DT/irqdomain IRQ look-up path,
->>>> which has its advantages.
->>>>
->>>> There are two options IMHO:
->>>>
->>>> - always disable the resource if it has a resource_source dependency and
->>>> defer
->>>>   its parsing to acpi_irq_get() (where you can easily implement steps
->>>> 1-2-3 above).
->>>>   What I wanted to say is that, by disabling the resource if it has a
->>>>   resource_source dependency you can't break x86/ia64 (it is ignored at
->>>>   present - hopefully there is nothing that we are not aware of behind
->>>>   that choice). On x86/ia64 acpi_irq_get() would be an empty stub.
->>>>   This way you would keep the irqdomain look-up out of the ACPI resource
->>>>   parsing API, correct ?
->>>> - keep code as-is
->>>>
->>>> Your point on _CRS being _current_ resource setting is perfectly valid
->>>> so platform_get_resource() in platform_get_irq() must always take
->>>> precedence over acpi_irq_get() (which should just apply to disabled
->>>> resources), I am not sure that doing it the other way around is safe.
->>>>
->>>>> Rafael, do you have any other suggestions/feedback on how to go about
->>>>> doing this?
->>>>
->>>> Yes, comments very appreciated, these changes are not trivial and need
->>>> agreement.
->>>
->>> So I need more time.
->>
->> Please wait for V8 which will address some issues raised by Lorenzo.
->>
->>> But basically, _CRS can't really change on the fly AFAICS.  I'm not
->>> even sure it is valid for it to change at all after the first
->>> evaluation if _SRS/_PRS are not present.
->>
->> That's good to know and it opens more possibilities.
-> Actually, to me it follows from the very purpose of _CRS that, as long
-> as the device is enabled, it should be expected to return the same
-> data every time it is evaluated, unless _SRS is invoked in the
-> meantime.  Otherwise, it would be possible for the device's resources
-> to change unexpectedly under a driver using it.
+This patch enables ACPI support for rtc-ds1307 driver.
 
-Agreed, here is the hotplug case:
+Signed-off-by: Tin Huynh <tnhuynh-qTEPVZfXA3Y@public.gmane.org>
+---
+ drivers/rtc/rtc-ds1307.c |   51 ++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 43 insertions(+), 8 deletions(-)
 
-For hotplug cases, _CRS is updated before the device is enabled. for example
-for a memory hot add, BIOS will update the _CRS to collect memory address
-ranges before notify OS, but once the BIOS notified OS to add the memory in
-(BIOS will enable the device to set the _STA to functional), _CRS can't be updated.
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index 4e31036..2a1a4d3 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -11,6 +11,7 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/bcd.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
+@@ -191,6 +192,26 @@ static u8 do_trickle_setup_ds1339(struct i2c_client *,
+ };
+ MODULE_DEVICE_TABLE(i2c, ds1307_id);
+ 
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id ds1307_acpi_ids[] = {
++	{ .id = "DS1307", .driver_data = ds_1307 },
++	{ .id = "DS1337", .driver_data = ds_1337 },
++	{ .id = "DS1338", .driver_data = ds_1338 },
++	{ .id = "DS1339", .driver_data = ds_1339 },
++	{ .id = "DS1388", .driver_data = ds_1388 },
++	{ .id = "DS1340", .driver_data = ds_1340 },
++	{ .id = "DS3231", .driver_data = ds_3231 },
++	{ .id = "M41T00", .driver_data = m41t00 },
++	{ .id = "MCP7940X", .driver_data = mcp794xx },
++	{ .id = "MCP7941X", .driver_data = mcp794xx },
++	{ .id = "PT7C4338", .driver_data = ds_1307 },
++	{ .id = "RX8025", .driver_data = rx_8025 },
++	{ .id = "ISL12057", .driver_data = ds_1337 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, ds1307_acpi_ids);
++#endif
++
+ /*----------------------------------------------------------------------*/
+ 
+ #define BLOCK_DATA_MAX_TRIES 10
+@@ -874,7 +895,7 @@ static u8 do_trickle_setup_ds1339(struct i2c_client *client,
+ 	return setup;
+ }
+ 
+-static void ds1307_trickle_of_init(struct i2c_client *client,
++static void ds1307_trickle_init(struct i2c_client *client,
+ 				   struct chip_desc *chip)
+ {
+ 	uint32_t ohms = 0;
+@@ -882,9 +903,10 @@ static void ds1307_trickle_of_init(struct i2c_client *client,
+ 
+ 	if (!chip->do_trickle_setup)
+ 		goto out;
+-	if (of_property_read_u32(client->dev.of_node, "trickle-resistor-ohms" , &ohms))
++	if (device_property_read_u32(&client->dev, "trickle-resistor-ohms",
++					&ohms))
+ 		goto out;
+-	if (of_property_read_bool(client->dev.of_node, "trickle-diode-disable"))
++	if (device_property_read_bool(&client->dev, "trickle-diode-disable"))
+ 		diode = false;
+ 	chip->trickle_charger_setup = chip->do_trickle_setup(client,
+ 							     ohms, diode);
+@@ -1268,7 +1290,7 @@ static int ds1307_probe(struct i2c_client *client,
+ 	struct ds1307		*ds1307;
+ 	int			err = -ENODEV;
+ 	int			tmp, wday;
+-	struct chip_desc	*chip = &chips[id->driver_data];
++	struct chip_desc	*chip;
+ 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+ 	bool			want_irq = false;
+ 	bool			ds1307_can_wakeup_device = false;
+@@ -1297,11 +1319,23 @@ static int ds1307_probe(struct i2c_client *client,
+ 	i2c_set_clientdata(client, ds1307);
+ 
+ 	ds1307->client	= client;
+-	ds1307->type	= id->driver_data;
++	if (id) {
++		chip = &chips[id->driver_data];
++		ds1307->type = id->driver_data;
++	} else {
++		const struct acpi_device_id *acpi_id;
++
++		acpi_id = acpi_match_device(ACPI_PTR(ds1307_acpi_ids),
++						&client->dev);
++		if (!acpi_id)
++			return -ENODEV;
++		chip = &chips[acpi_id->driver_data];
++		ds1307->type = acpi_id->driver_data;
++	}
+ 
+-	if (!pdata && client->dev.of_node)
+-		ds1307_trickle_of_init(client, chip);
+-	else if (pdata && pdata->trickle_charger_setup)
++	if (!pdata)
++		ds1307_trickle_init(client, chip);
++	else if (pdata->trickle_charger_setup)
+ 		chip->trickle_charger_setup = pdata->trickle_charger_setup;
+ 
+ 	if (chip->trickle_charger_setup && chip->trickle_charger_reg) {
+@@ -1678,6 +1712,7 @@ static int ds1307_remove(struct i2c_client *client)
+ static struct i2c_driver ds1307_driver = {
+ 	.driver = {
+ 		.name	= "rtc-ds1307",
++		.acpi_match_table = ACPI_PTR(ds1307_acpi_ids),
+ 	},
+ 	.probe		= ds1307_probe,
+ 	.remove		= ds1307_remove,
+-- 
+1.7.1
 
-Thanks
-Hanjun
-
-
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
