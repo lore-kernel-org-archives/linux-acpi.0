@@ -1,43 +1,106 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Wed, 30 Nov 2016 10:17:30 -0600
-Message-ID: <20161130161730.GB13411@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <CAADWXX_ipJ+pVmV5s2oLCKBrC5qUDASOZf=tpBfJWELExam+hQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 2/2] ACPI: Ignore Consumer/Producer for QWord/DWord/Word
+ Address Space
+Date: Wed, 30 Nov 2016 16:24:36 +0000
+Message-ID: <20161130162436.GA9093@red-moon>
+References: <20161129182415.7618.99129.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <20161129184334.7618.5495.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <20161130120425.GA13765@red-moon>
+ <20161130155616.GA9693@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:56484 "EHLO mail.kernel.org"
+Received: from foss.arm.com ([217.140.101.70]:51864 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752594AbcK3QRe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 30 Nov 2016 11:17:34 -0500
+        id S1752789AbcK3QXX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 30 Nov 2016 11:23:23 -0500
 Content-Disposition: inline
-In-Reply-To: <CAADWXX_ipJ+pVmV5s2oLCKBrC5qUDASOZf=tpBfJWELExam+hQ@mail.gmail.com>
+In-Reply-To: <20161130155616.GA9693@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, linaro-acpi@lists.linaro.org, lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On Tue, Nov 29, 2016 at 03:39:11PM -0800, Linus Torvalds wrote:
-> Bjorn, this email was marked as spam, because:
+On Wed, Nov 30, 2016 at 09:56:17AM -0600, Bjorn Helgaas wrote:
+> On Wed, Nov 30, 2016 at 12:04:25PM +0000, Lorenzo Pieralisi wrote:
+> > On Tue, Nov 29, 2016 at 12:43:34PM -0600, Bjorn Helgaas wrote:
+> > > Per ACPI spec r6.0, sec 6.4.3.5.1, 2, 3, Bit [0] of General Flags (the
+> > > Consumer/Producer bit) should be ignored for QWord/DWord/Word Address Space
+> > > descriptors.  The Consumer/Producer bit is defined only for the Extended
+> > > Address Space descriptor.
+> > > 
+> > > Ignore Consumer/Producer except for Extended Address Space descriptors.
+> > > 
+> > > Note that for QWord/DWord/Word descriptors, we previously applied the
+> > > translation offset (_TRA) only when the Consumer/Producer bit was set.
+> > 
+> > "..Consumer/Producer bit was clear" ? If that bit was set:
+> > 
+> > struct acpi_resource_address->producer_consumer == ACPI_CONSUMER
+> > 
+> > and we are not applying the _TRA offset in that case, right ?
 > 
->   It has a from address in google.com but has failed google.com's
-> required tests for authentication
+> Right, of course.  How about this instead?
 > 
-> in particular, it looks like you used a non-google smtp server
-> (kernel.org) to send the email, so there is no DKIM hash (or perhaps
-> google just uses some other non-standard marker for "this actually
-> came from google"). So gmail marks it as spam because dmarc fails:
-> 
->        dmarc=fail (p=REJECT dis=NONE) header.from=google.com
-> 
-> Just to let you know. If you use your google.com email, you do need to
-> go through the google smtp server.
-> 
-> This may or may not be new - I didn't go and look at old messages of
-> yours, but it is possible that google.com enabled dmarc/dkim recently.
+>     Note that for QWord/DWord/Word descriptors, we previously applied the
+>     translation offset (_TRA) only for Producers, i.e., when the Consumer/
+>     Producer bit was clear.  This patch changes that: for those descriptors,
+>     we ignore Consumer/Producer and always apply the translation offset.
 
-Argh, thanks for letting me know.  Looks like I've had this broken for a
-long time, but I didn't notice.  I think I have it fixed so git will record
-the author as bhelgaas@google.com, but git/stgit will send email from
-helgaas@kernel.org via the kernel.org smtp server.
+Yes that's a perfect description, thanks a lot !
+
+Lorenzo
+
+> > > This patch changes that: for those descriptors, we ignore Consumer/Producer
+> > > and always apply the translation offset.
+> > > 
+> > > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> > > ---
+> > >  drivers/acpi/resource.c |   16 +++++++++++-----
+> > >  1 file changed, 11 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> > > index 2732d39e..b45cd8f 100644
+> > > --- a/drivers/acpi/resource.c
+> > > +++ b/drivers/acpi/resource.c
+> > > @@ -261,11 +261,16 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+> > >  	 * primary side. Non-bridge devices must list 0 for all Address
+> > >  	 * Translation offset bits.
+> > >  	 */
+> > > -	if (addr->producer_consumer == ACPI_PRODUCER)
+> > > +	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64) {
+> > > +		if (addr->producer_consumer == ACPI_PRODUCER)
+> > > +			offset = attr->translation_offset;
+> > > +		else if (attr->translation_offset)
+> > > +			pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+> > > +				 attr->translation_offset);
+> > > +	} else {
+> > >  		offset = attr->translation_offset;
+> > > -	else if (attr->translation_offset)
+> > > -		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+> > > -			 attr->translation_offset);
+> > > +	}
+> > > +
+> > >  	start = attr->minimum + offset;
+> > >  	end = attr->maximum + offset;
+> > >  
+> > > @@ -294,7 +299,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+> > >  		return false;
+> > >  	}
+> > >  
+> > > -	if (addr->producer_consumer == ACPI_PRODUCER)
+> > > +	if (ares->type == ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64 &&
+> > > +	    addr->producer_consumer == ACPI_PRODUCER)
+> > >  		res->flags |= IORESOURCE_WINDOW;
+> > >  
+> > >  	if (addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
