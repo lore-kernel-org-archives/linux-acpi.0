@@ -1,77 +1,80 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v14] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 1 Dec 2016 19:53:47 +0800
-Message-ID: <CADyBb7vYzFnJjQvbMvGkqDvfBWL4jofMDhjPCvwS6u0S-yw3sw@mail.gmail.com>
-References: <1470834168-1780-1-git-send-email-fu.wei@linaro.org> <20161201114137.herpemkbg3rqxrc4@pd.tnic>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 02/11] ACPICA: Back port of "ACPICA: Dispatcher: Tune
+ interpreter lock around AcpiEvInitializeRegion()"
+Date: Thu, 1 Dec 2016 14:29:39 +0100
+Message-ID: <CAJZ5v0hB2UTqOzLC0RU0rbPkE84=8ytsL3gaBEE3nTRcd1Xz9w@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <26416a54d74f43b07e27cf6f79d6b8f2976f84bb.1480490191.git.lv.zheng@intel.com>
+ <CAJZ5v0gvXuvKSkgMqUYw+7OhqohA1rXx-tM2DfvtC-CG7BT0gA@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886A297686@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161201114137.herpemkbg3rqxrc4@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:32874 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755703AbcLAN3m (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2016 08:29:42 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A297686@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi Borislav,
-
-On 1 December 2016 at 19:41, Borislav Petkov <bp@suse.de> wrote:
-> On Wed, Aug 10, 2016 at 09:02:48PM +0800, fu.wei@linaro.org wrote:
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+On Thu, Dec 1, 2016 at 8:50 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi, Rafael
+>
+>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of Rafael J. Wysocki
+>> Subject: Re: [PATCH 02/11] ACPICA: Back port of "ACPICA: Dispatcher: Tune interpreter lock around
+>> AcpiEvInitializeRegion()"
 >>
->> This patch provides APEI arch-specific bits for aarch64
+>> On Wed, Nov 30, 2016 at 8:20 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> > ACPICA commit bc481e758e54f7644fd0b657119ca7763d8b6a9c
+>> >
+>> > This is a back port result of the following commit:
+>> >   Commit: 8633db6b027952449e155a316f4ae3a530bbe18f
+>> >   Subject: ACPICA: Dispatcher: Fix interpreter locking around acpi_ev_initialize_region()
+>> >
+>> > Link: https://github.com/acpica/acpica/commit/bc481e75
+>> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> > Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> > ---
+>> >  drivers/acpi/acpica/dsinit.c |    4 ++--
+>> >  1 file changed, 2 insertions(+), 2 deletions(-)
+>> >
+>> > diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
+>> > index 54d48b9..5de3f10 100644
+>> > --- a/drivers/acpi/acpica/dsinit.c
+>> > +++ b/drivers/acpi/acpica/dsinit.c
+>> > @@ -221,8 +221,8 @@
+>> >          */
+>> >         status =
+>> >             acpi_ns_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
+>> > -                                  0, acpi_ds_init_one_object, NULL, &info,
+>> > -                                  NULL);
+>> > +                                  ACPI_NS_WALK_NO_UNLOCK,
+>> > +                                  acpi_ds_init_one_object, NULL, &info, NULL);
+>> >         if (ACPI_FAILURE(status)) {
+>> >                 ACPI_EXCEPTION((AE_INFO, status, "During WalkNamespace"));
+>> >         }
+>> > --
 >>
->> Meanwhile,
->> (1)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
->> a generic place.
->> (2)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
->> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64=
-.
+>> This isn't necessary IMO, the current code linux-next code looks like
+>> the change has been made in there already AFAICS (please double check,
+>> though).
 >
-> ...
+> The fix was in Linux, however, when it is back ported to ACPICA, Bob asked me to do this change.
+> Using ACPI_NS_WALK_NO_UNLOCK instead of meaningless 0.
+> So during this release cycle, this change is detected out as the only difference of the back ported commit.
 >
->> @@ -110,8 +111,27 @@ static inline const char *acpi_get_enable_method(in=
-t cpu)
->>  }
 >>
->>  #ifdef       CONFIG_ACPI_APEI
->> +/*
->> + * acpi_disable_cmcff is used in drivers/acpi/apei/hest.c for disabling
->> + * IA-32 Architecture Corrected Machine Check (CMC) Firmware-First mode=
- by
->> + * boot parameter(acpi=3Dnocmcff). But we don't have this IA-32 specifi=
-c
+>> I'm skipping this patch.
 >
-> Make that
->
-> "... with a kernel command line parameter "acpi=3Dnocmcoff"."
->
-> Please fix that up when applying.
->
-> With that:
->
-> Reviewed-by: Borislav Petkov <bp@suse.de>
+> If this is skipped, it leaves us 14 lines divergences.
+> Hope we can have this kind of divergences eliminated.
 
-Great thanks for your rapidly feedback :-)
+OK, my bad.
 
-will send v15 with that fix  immediately
+I forgot to merge back the revert I made before into the acpica branch.
 
->
-> Thanks!
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> SUSE Linux GmbH, GF: Felix Imend=C3=B6rffer, Jane Smithard, Graham Norton=
-, HRB 21284 (AG N=C3=BCrnberg)
-> --
+Sorry for the noise, everything applies now.
 
-
-
---=20
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+Thanks,
+Rafael
