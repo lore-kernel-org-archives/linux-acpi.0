@@ -1,235 +1,225 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v14] acpi, apei, arm64: APEI initial support
- for aarch64.
-Date: Thu, 1 Dec 2016 12:02:14 +0800
-Message-ID: <CADyBb7sC=-ywEtHFS2x4dTp=75piOHuSr7AD5HxikEoYWkwAGQ@mail.gmail.com>
-References: <1470834168-1780-1-git-send-email-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1470834168-1780-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Nowicki <tn@semihalf.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-pm@vger.kernel.org, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH v2] ACPI: Document _OSI and _REV for Linux BIOS writers
+Date: Wed, 30 Nov 2016 23:00:30 -0500
+Message-ID: <619282eab16a5847ff71d601c43b7df48d306d9e.1480564794.git.len.brown@intel.com>
+Reply-To: Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:32774 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753591AbcLAEPr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Nov 2016 23:15:47 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, Lukas Wunner <lukas@wunner.de>
 
-Hi Borislav, Rafael,
+From: Len Brown <len.brown@intel.com>
 
-any comment or suggestion for this patch?
-I wonder if there is anything I need to improve for it?
-Or will it be accepted ?
+Based on a recent session at the Linux Plumber's Conference,
+we need to be more clear about how a BIOS should use _OSI
+to properly support Linux.
 
-Great thanks for your attention.
+Signed-off-by: Len Brown <len.brown@intel.com>
+Cc: Lukas Wunner <lukas@wunner.de>
+---
+ Documentation/acpi/osi.txt | 188 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 188 insertions(+)
+ create mode 100644 Documentation/acpi/osi.txt
 
-On 10 August 2016 at 21:02,  <fu.wei@linaro.org> wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> This patch provides APEI arch-specific bits for aarch64
->
-> Meanwhile,
-> (1)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-> a generic place.
-> (2)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
-> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
->
-> [Fu Wei: improve && upstream]
->
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Acked-by: Will Deacon <will.deacon@arm.com>
-> ---
-> This patchset has been tested on the following platforms:
->     (1)ARM Foundation v8 model
->
-> Changelog:
-> v14:https://lkml.org/lkml/2016/8/10/
->     Delete hest_ia32_init().
->     Fix a comment typo for acpi_disable_cmcff.
->     Rebase to 4.8.0-rc1-ge6c4d92
->
-> v13:https://lkml.org/lkml/2016/8/10/
->     Fix a comment problem(add a "end").
->     Add a comment for the definition of acpi_disable_cmcff.
->     Rebase to 4.8.0-rc1-g372734a
->
-> v12:https://lkml.org/lkml/2016/7/29/97
->     Fix a comment problem(redundant "with").
->     Rebase to 4.7.0-g680eee2.
->
-> v11:https://lkml.org/lkml/2016/7/27/427
->     Rebase to v4.7-0e06f5c0.
->
-> v10:https://lkml.org/lkml/2016/4/14
->     Fix the Alphabetical order problem in arch/arm64/Kconfig.
->
-> v9: https://lkml.org/lkml/2016/4/5/522
->     Improve the comment for arch_apei_flush_tlb_one.
->     Using select "HAVE_ACPI_APEI if (ACPI && EFI)" to fix the EFI dependence
->     problem.
->
-> v8: https://lkml.org/lkml/2016/3/29/132
->     Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
->     on ARM64.
->
-> v7: https://lkml.org/lkml/2016/3/17/183
->     Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h.
->
-> v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
->     Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
->     a generic place.
->     Delete HAVE_ACPI_APEI_HEST_IA32.
->
-> v5: https://lkml.org/lkml/2015/12/10/131
->     Add "HAVE_ACPI_APEI_HEST_IA32" instead of
->     "#if defined(__i386__) || defined(__x86_64__)".
->
-> v4: https://lkml.org/lkml/2015/12/8/188
->     Rebase to latest kernel version(4.4-rc4).
->     Move arch_apei_flush_tlb_one into header file as a inline function
->     Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
->
-> v3: https://lkml.org/lkml/2015/12/3/521
->     Remove "acpi_disable_cmcff" from arm64 code,
->     and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
->
-> v2: https://lkml.org/lkml/2015/12/2/432
->     Rebase to latest kernel version(4.4-rc3).
->     Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
->
-> v1: https://lkml.org/lkml/2015/8/14/199
->     Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->     Delete arch/arm64/kernel/apei.c.
->     Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
->
->  arch/arm64/Kconfig            |  1 +
->  arch/arm64/include/asm/acpi.h | 22 +++++++++++++++++++++-
->  arch/x86/kernel/acpi/apei.c   |  3 ---
->  drivers/acpi/apei/hest.c      | 13 ++++++++++---
->  4 files changed, 32 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index bc3f00f..385cf13 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -51,6 +51,7 @@ config ARM64
->         select GENERIC_TIME_VSYSCALL
->         select HANDLE_DOMAIN_IRQ
->         select HARDIRQS_SW_RESEND
-> +       select HAVE_ACPI_APEI if (ACPI && EFI)
->         select HAVE_ALIGNED_STRUCT_PAGE if SLUB
->         select HAVE_ARCH_AUDITSYSCALL
->         select HAVE_ARCH_BITREVERSE
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 5420cb0..f435967 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -17,6 +17,7 @@
->
->  #include <asm/cputype.h>
->  #include <asm/smp_plat.h>
-> +#include <asm/tlbflush.h>
->
->  /* Macros for consistency checks of the GICC subtable of MADT */
->  #define ACPI_MADT_GICC_LENGTH  \
-> @@ -110,8 +111,27 @@ static inline const char *acpi_get_enable_method(int cpu)
->  }
->
->  #ifdef CONFIG_ACPI_APEI
-> +/*
-> + * acpi_disable_cmcff is used in drivers/acpi/apei/hest.c for disabling
-> + * IA-32 Architecture Corrected Machine Check (CMC) Firmware-First mode by
-> + * boot parameter(acpi=nocmcff). But we don't have this IA-32 specific
-> + * feature on ARM64, this definition is only for compatibility.
-> + */
-> +#define acpi_disable_cmcff 1
->  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-> -#endif
-> +
-> +/*
-> + * Despite its name, this function must still broadcast the TLB
-> + * invalidation in order to ensure other CPUs don't end up with junk
-> + * entries as a result of speculation. Unusually, its also called in
-> + * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
-> + * TLB broadcasting, then we're in trouble here.
-> + */
-> +static inline void arch_apei_flush_tlb_one(unsigned long addr)
-> +{
-> +       flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-> +}
-> +#endif /* CONFIG_ACPI_APEI */
->
->  #ifdef CONFIG_ACPI_NUMA
->  int arm64_acpi_numa_init(void);
-> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-> index c280df6..ea3046e 100644
-> --- a/arch/x86/kernel/acpi/apei.c
-> +++ b/arch/x86/kernel/acpi/apei.c
-> @@ -24,9 +24,6 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
->         struct acpi_hest_ia_corrected *cmc;
->         struct acpi_hest_ia_error_bank *mc_bank;
->
-> -       if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-> -               return 0;
-> -
->         cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
->         if (!cmc->enabled)
->                 return 0;
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index 20b3fcf..8f2a98e 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -123,7 +123,13 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
->   */
->  static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
->  {
-> -       return arch_apei_enable_cmcff(hest_hdr, data);
-> +       if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-> +               return 0;
-> +
-> +       if (!acpi_disable_cmcff)
-> +               return !arch_apei_enable_cmcff(hest_hdr, data);
-> +
-> +       return 0;
->  }
->
->  struct ghes_arr {
-> @@ -232,8 +238,9 @@ void __init acpi_hest_init(void)
->                 goto err;
->         }
->
-> -       if (!acpi_disable_cmcff)
-> -               apei_hest_parse(hest_parse_cmc, NULL);
-> +       rc = apei_hest_parse(hest_parse_cmc, NULL);
-> +       if (rc)
-> +               goto err;
->
->         if (!ghes_disable) {
->                 rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
-> --
-> 2.5.5
->
-> _______________________________________________
-> Linaro-acpi mailing list
-> Linaro-acpi@lists.linaro.org
-> https://lists.linaro.org/mailman/listinfo/linaro-acpi
-
-
-
+diff --git a/Documentation/acpi/osi.txt b/Documentation/acpi/osi.txt
+new file mode 100644
+index 000000000000..c385024409a7
+--- /dev/null
++++ b/Documentation/acpi/osi.txt
+@@ -0,0 +1,188 @@
++ACPI _OSI and _REV methods
++--------------------------
++
++An ACPI BIOS can use the "Operating System Interfaces" method (_OSI)
++to find out what the operating system supports. Eg. If BIOS
++AML code includes _OSI("XYZ"), the kernel's AML interpreter
++can evaluate that method, look to see if it supports 'XYZ'
++and answer YES or NO to the BIOS.
++
++The ACPI _REV method returns the "Revision of the ACPI specification
++that OSPM supports"
++
++This document explains how and why the BIOS and Linux should use these methods.
++It also explains how and why they are widely misused.
++
++How to use _OSI
++---------------
++
++Linux runs on two groups of machines -- those that are tested by the OEM
++to be compatible with Linux, and those that were never tested with Linux,
++but where Linux was installed to replace the original OS (Windows or OSX).
++
++The larger group is the systems tested to run only Windows.  Not only that,
++but many were tested to run with just one specific version of Windows.
++So even though the BIOS may use _OSI to query what version of Windows is running,
++only a single path through the BIOS has actually been tested.
++Experience shows that taking untested paths through the BIOS
++exposes Linux to an entire category of BIOS bugs.
++For this reason, Linux _OSI defaults must continue to claim compatibility
++with all versions of Windows.
++
++But Linux isn't actually compatible with Windows, and the Linux community
++has also been hurt with regressions when Linux adds the latest version of
++Windows to its list of _OSI strings.  So it is possible that additional strings
++will be more thoroughly vetted before shipping upstream in the future.
++But it is likely that they will all eventually be added.
++
++What should an OEM do if they want to support Linux and Windows
++using the same BIOS image?  Often they need to do something different
++for Linux to deal with how Linux is different from Windows.
++Here the BIOS should ask exactly what it wants to know:
++
++_OSI("Linux-OEM-my_interface_name")
++where 'OEM' is needed if this is an OEM-specific hook,
++and 'my_interface_name' describes the hook, which could be a
++quirk, a bug, or a bug-fix.
++
++In addition, the OEM should send a patch to upstream Linux
++via the linux-acpi@vger.kernel.org mailing list.  When that patch
++is checked into Linux, the OS will answer "YES" when the BIOS
++on the OEM's system uses _OSI to ask if the interface is supported
++by the OS.  Linux distributors can back-port that patch for Linux
++pre-installs, and it will be included by all distributions that
++re-base to upstream.  If the distribution can not update the kernel binary,
++they can also add an acpi_osi=Linux-OEM-my_interface_name
++cmdline parameter to the boot loader, as needed.
++
++If the string refers to a feature where the upstream kernel
++eventually grows support, a patch should be sent to remove
++the string when that support is added to the kernel.
++
++That was easy.  Read on, to find out how to do it wrong.
++
++Before _OSI, there was _OS
++--------------------------
++
++ACPI 1.0 specified "_OS" as an
++"object that evaluates to a string that identifies the operating system."
++
++The ACPI BIOS flow would include an evaluation of _OS, and the AML
++interpreter in the kernel would return to it a string identifying the OS:
++
++Windows 98, SE: "Microsoft Windows"
++Windows ME: "Microsoft WindowsME:Millenium Edition"
++Windows NT: "Microsoft Windows NT"
++
++The idea was on a platform tasked with running multiple OS's,
++the BIOS could use _OS to enable devices that an OS
++might support, or enable quirks or bug workarounds
++necessary to make the platform compatible with that pre-existing OS.
++
++But _OS had fundamental problems.  First, the BIOS needed to know the name
++of every possible version of the OS that would run on it, and needed to know
++all the quirks of those OS's.  Certainly it would make more sense
++for the BIOS to ask *specific* things of the OS, such
++"do you support a specific interface", and thus in ACPI 3.0,
++_OSI was born to replace _OS.
++
++_OS was abandoned, though even today, many BIOS look for
++_OS "Microsoft Windows NT", though it seems somewhat far-fetched
++that anybody would install those old operating systems
++over what came with the machine.
++
++Linux answers "Microsoft Windows NT" to please that BIOS idiom.
++That is the *only* viable strategy, as that is what modern Windows does,
++and so doing otherwise could steer the BIOS down an untested path.
++
++_OSI is born, and immediately misused
++--------------------------------------
++
++With _OSI, the *BIOS* provides the string describing an interface,
++and asks the OS: "YES/NO, are you compatible with this interface?"
++
++eg. _OSI("3.0 Thermal Model") would return TRUE if the OS knows how
++to deal with the thermal extensions made to the ACPI 3.0 specification.
++An old OS that doesn't know about those extensions would answer FALSE,
++and a new OS may be able to return TRUE.
++
++For an OS-specific interface, the ACPI spec said that the BIOS and the OS
++were to agree on a string of the form such as "Windows-interface_name".
++
++But two bad things happened.  First, the Windows ecosystem used _OSI
++not as designed, but as a direct replacement for _OS -- identifying
++the OS version, rather than an OS supported interface.  Indeed, right
++from the start, the ACPI 3.0 spec itself codified this misuse
++in example code using _OSI("Windows 2001").
++
++This misuse was adopted and continues today.
++
++Linux had no choice but to also return TRUE to _OSI("Windows 2001")
++and its successors.  To do otherwise would virtually guarantee breaking
++a BIOS that has been tested only with that _OSI returning TRUE.
++
++This strategy is problematic, as Linux is never completely compatible with
++the latest version of Windows, and sometimes it takes more than a year
++to iron out incompatibilities.
++
++Not to be out-done, the Linux community made things worse by returning TRUE
++to _OSI("Linux").  Doing so is even worse than the Windows misuse
++of _OSI, as "Linux" does not even contain any version information.
++_OSI("Linux") led to some BIOS' malfunctioning due to BIOS writer's
++using it in untested BIOS flows.  But some OEM's used _OSI("Linux")
++in tested flows to support real Linux features.  In 2009, Linux
++removed _OSI("Linux"), and added a cmdline parameter to restore it
++for legacy systems still needed it.  Further a BIOS_BUG warning prints
++for all BIOS's that invoke it.
++
++No BIOS should use _OSI("Linux").
++
++The result is a strategy for Linux to maximize compatibility with
++ACPI BIOS that are tested on Windows machines.  There is a real risk
++of over-stating that compatibility; but the alternative has often been
++catastrophic failure resulting from the BIOS taking paths that
++were never validated under *any* OS.
++
++Do not use _REV
++---------------
++
++Since _OSI("Linux") went away, some BIOS writers used _REV
++to support Linux and Windows differences in the same BIOS.
++
++_REV was defined in ACPI 1.0 to return the version of ACPI
++supported by the OS and the OS AML interpreter.
++
++Modern Windows returns _REV = 2.  Linux used ACPI_CA_SUPPORT_LEVEL,
++which would increment, based on the version of the spec supported.
++
++Unfortunately, _REV was also misused.  eg. some BIOS would check
++for _REV = 3, and do something for Linux, but when Linux returned
++_REV = 4, that support broke.
++
++In response to this problem, Linux returns _REV = 2 always,
++from mid-2015 onward.  The ACPI specification will also be updated
++to reflect that _REV is deprecated, and always returns 2.
++
++Apple Mac and _OSI("Darwin")
++----------------------------
++
++On Apple's Mac platforms, the ACPI BIOS invokes _OSI("Darwin")
++to determine if the machine is running Apple OSX.
++
++Like Linux's _OSI("*Windows*") strategy, Linux defaults to
++answering YES to _OSI("Darwin") to enable full access
++to the hardware and validated BIOS paths seen by OSX.
++Just like on Windows-tested platforms, this strategy has risks.
++
++Starting in Linux-3.18, the kernel answered YES to _OSI("Darwin")
++for the purpose of enabling Mac Thunderbolt support.  Further,
++if the kernel noticed _OSI("Darwin") being invoked, it additionally
++disabled all _OSI("*Windows*") to keep poorly written Mac BIOS
++from going down untested combinations of paths.
++
++The Linux-3.18 change in default caused power regressions on Mac
++laptops, and the 3.18 implementation did not allow changing
++the default via cmdline "acpi_osi=!Darwin".  Linux-4.7 fixed
++the ability to use acpi_osi=!Darwin as a workaround, and
++we hope to see Mac Thunderbolt power management support in Linux-4.11.
++
 -- 
-Best regards,
+2.11.0.rc1
 
-Fu Wei
-Software Engineer
-Red Hat
