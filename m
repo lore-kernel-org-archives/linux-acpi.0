@@ -1,78 +1,63 @@
-From: Majun <majun258@huawei.com>
-Subject: [RFC PATCH 3/3]irqchip/gicv3-its: Add a new flag to control indirect route in ACPI mode.
-Date: Thu, 1 Dec 2016 15:46:00 +0800
-Message-ID: <1480578360-9268-4-git-send-email-majun258@huawei.com>
-References: <1480578360-9268-1-git-send-email-majun258@huawei.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 02/11] ACPICA: Back port of "ACPICA: Dispatcher: Tune
+ interpreter lock around AcpiEvInitializeRegion()"
+Date: Thu, 1 Dec 2016 07:50:46 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A297686@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1480490191.git.lv.zheng@intel.com>
+ <26416a54d74f43b07e27cf6f79d6b8f2976f84bb.1480490191.git.lv.zheng@intel.com>
+ <CAJZ5v0gvXuvKSkgMqUYw+7OhqohA1rXx-tM2DfvtC-CG7BT0gA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:55059 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758717AbcLAHqj (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2016 02:46:39 -0500
-In-Reply-To: <1480578360-9268-1-git-send-email-majun258@huawei.com>
+Received: from mga09.intel.com ([134.134.136.24]:36172 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751638AbcLAHvJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Dec 2016 02:51:09 -0500
+In-Reply-To: <CAJZ5v0gvXuvKSkgMqUYw+7OhqohA1rXx-tM2DfvtC-CG7BT0gA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, marc.zyngier@arm.com, linux-acpi@vger.kernel.org, robert.moore@intel.com, lenb@kernel.org, lv.zheng@intel.com, rafael.j.wysocki@intel.com, devel@acpica.org, mark.rutland@arm.com, robh+dt@kernel.org, jason@lakedaemon.net
-Cc: dingtianhong@huawei.com, guohanjun@huawei.com, majun258@huawei.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-From: MaJun <majun258@huawei.com>
-
-Add a new flag to control indirect route function for ACPI mode.
-To carry the user defined flags information, we used the reserved byte
-in ITS MADT table
-
-Signed-off-by: MaJun <majun258@huawei.com>
----
- drivers/irqchip/irq-gic-v3-its.c | 5 ++++-
- include/acpi/actbl1.h            | 3 ++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index ee54133..4420283 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1848,6 +1848,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
- 	struct fwnode_handle *dom_handle;
- 	struct resource res;
- 	int err;
-+	u8 flags = 0;
- 
- 	its_entry = (struct acpi_madt_generic_translator *)header;
- 	memset(&res, 0, sizeof(res));
-@@ -1855,6 +1856,8 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
- 	res.end = its_entry->base_address + ACPI_GICV3_ITS_MEM_SIZE - 1;
- 	res.flags = IORESOURCE_MEM;
- 
-+	flags = its_entry->flags;
-+
- 	dom_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
- 	if (!dom_handle) {
- 		pr_err("ITS@%pa: Unable to allocate GICv3 ITS domain token\n",
-@@ -1869,7 +1872,7 @@ static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
- 		goto dom_err;
- 	}
- 
--	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE, 0);
-+	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE, flags);
- 	if (!err)
- 		return 0;
- 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 796d6ba..42a08ae 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -930,7 +930,8 @@ struct acpi_madt_generic_translator {
- 	u16 reserved;		/* reserved - must be zero */
- 	u32 translation_id;
- 	u64 base_address;
--	u32 reserved2;
-+	u8 flags;
-+	u8 reserved2[3];
- };
- 
- /*
--- 
-1.7.12.4
-
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
+a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDog
+UmU6IFtQQVRDSCAwMi8xMV0gQUNQSUNBOiBCYWNrIHBvcnQgb2YgIkFDUElDQTogRGlzcGF0Y2hl
+cjogVHVuZSBpbnRlcnByZXRlciBsb2NrIGFyb3VuZA0KPiBBY3BpRXZJbml0aWFsaXplUmVnaW9u
+KCkiDQo+IA0KPiBPbiBXZWQsIE5vdiAzMCwgMjAxNiBhdCA4OjIwIEFNLCBMdiBaaGVuZyA8bHYu
+emhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBBQ1BJQ0EgY29tbWl0IGJjNDgxZTc1OGU1NGY3
+NjQ0ZmQwYjY1NzExOWNhNzc2M2Q4YjZhOWMNCj4gPg0KPiA+IFRoaXMgaXMgYSBiYWNrIHBvcnQg
+cmVzdWx0IG9mIHRoZSBmb2xsb3dpbmcgY29tbWl0Og0KPiA+ICAgQ29tbWl0OiA4NjMzZGI2YjAy
+Nzk1MjQ0OWUxNTVhMzE2ZjRhZTNhNTMwYmJlMThmDQo+ID4gICBTdWJqZWN0OiBBQ1BJQ0E6IERp
+c3BhdGNoZXI6IEZpeCBpbnRlcnByZXRlciBsb2NraW5nIGFyb3VuZCBhY3BpX2V2X2luaXRpYWxp
+emVfcmVnaW9uKCkNCj4gPg0KPiA+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNw
+aWNhL2NvbW1pdC9iYzQ4MWU3NQ0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVu
+Z0BpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVA
+aW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2RzaW5pdC5jIHwg
+ICAgNCArKy0tDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRp
+b25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9kc2luaXQu
+YyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHNpbml0LmMNCj4gPiBpbmRleCA1NGQ0OGI5Li41ZGUz
+ZjEwIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHNpbml0LmMNCj4gPiAr
+KysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzaW5pdC5jDQo+ID4gQEAgLTIyMSw4ICsyMjEsOCBA
+QA0KPiA+ICAgICAgICAgICovDQo+ID4gICAgICAgICBzdGF0dXMgPQ0KPiA+ICAgICAgICAgICAg
+IGFjcGlfbnNfd2Fsa19uYW1lc3BhY2UoQUNQSV9UWVBFX0FOWSwgc3RhcnRfbm9kZSwgQUNQSV9V
+SU5UMzJfTUFYLA0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgMCwgYWNw
+aV9kc19pbml0X29uZV9vYmplY3QsIE5VTEwsICZpbmZvLA0KPiA+IC0gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgTlVMTCk7DQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICBBQ1BJX05TX1dBTEtfTk9fVU5MT0NLLA0KPiA+ICsgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgYWNwaV9kc19pbml0X29uZV9vYmplY3QsIE5VTEwsICZpbmZvLCBOVUxM
+KTsNCj4gPiAgICAgICAgIGlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkgew0KPiA+ICAgICAgICAg
+ICAgICAgICBBQ1BJX0VYQ0VQVElPTigoQUVfSU5GTywgc3RhdHVzLCAiRHVyaW5nIFdhbGtOYW1l
+c3BhY2UiKSk7DQo+ID4gICAgICAgICB9DQo+ID4gLS0NCj4gDQo+IFRoaXMgaXNuJ3QgbmVjZXNz
+YXJ5IElNTywgdGhlIGN1cnJlbnQgY29kZSBsaW51eC1uZXh0IGNvZGUgbG9va3MgbGlrZQ0KPiB0
+aGUgY2hhbmdlIGhhcyBiZWVuIG1hZGUgaW4gdGhlcmUgYWxyZWFkeSBBRkFJQ1MgKHBsZWFzZSBk
+b3VibGUgY2hlY2ssDQo+IHRob3VnaCkuDQoNClRoZSBmaXggd2FzIGluIExpbnV4LCBob3dldmVy
+LCB3aGVuIGl0IGlzIGJhY2sgcG9ydGVkIHRvIEFDUElDQSwgQm9iIGFza2VkIG1lIHRvIGRvIHRo
+aXMgY2hhbmdlLg0KVXNpbmcgQUNQSV9OU19XQUxLX05PX1VOTE9DSyBpbnN0ZWFkIG9mIG1lYW5p
+bmdsZXNzIDAuDQpTbyBkdXJpbmcgdGhpcyByZWxlYXNlIGN5Y2xlLCB0aGlzIGNoYW5nZSBpcyBk
+ZXRlY3RlZCBvdXQgYXMgdGhlIG9ubHkgZGlmZmVyZW5jZSBvZiB0aGUgYmFjayBwb3J0ZWQgY29t
+bWl0Lg0KDQo+IA0KPiBJJ20gc2tpcHBpbmcgdGhpcyBwYXRjaC4NCg0KSWYgdGhpcyBpcyBza2lw
+cGVkLCBpdCBsZWF2ZXMgdXMgMTQgbGluZXMgZGl2ZXJnZW5jZXMuDQpIb3BlIHdlIGNhbiBoYXZl
+IHRoaXMga2luZCBvZiBkaXZlcmdlbmNlcyBlbGltaW5hdGVkLg0KDQpUaGFua3MgYW5kIGJlc3Qg
+cmVnYXJkcw0KTHYNCg==
