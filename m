@@ -1,56 +1,36 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Thu, 1 Dec 2016 16:36:04 -0600
-Message-ID: <20161201223604.GC15867@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2] ACPI / APEI: Fix NMI notification handling
+Date: Thu, 01 Dec 2016 23:29:45 +0100
+Message-ID: <10086382.uM7IovncFW@aspire.rjw.lan>
+References: <20161129193624.krjz2bpinl2ioi7o@pd.tnic> <3848089.cIkXoRipBG@aspire.rjw.lan> <20161201215149.fvb3ki77det7bnjq@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:34506 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932649AbcLAWgQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Dec 2016 17:36:16 -0500
-Content-Disposition: inline
-In-Reply-To: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51666 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752680AbcLAWeM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2016 17:34:12 -0500
+In-Reply-To: <20161201215149.fvb3ki77det7bnjq@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
+To: Borislav Petkov <bp@kernel.org>
+Cc: Prarit Bhargava <prarit@redhat.com>, linux-kernel@vger.kernel.org, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Tyler Baicar <tbaicar@codeaurora.org>, Punit Agrawal <punit.agrawal@arm.com>, Don Zickus <dzickus@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 29, 2016 at 03:39:48PM -0600, Bjorn Helgaas wrote:
-> Here's another stab at this writeup.  I'd appreciate any comments!
+On Thursday, December 01, 2016 10:51:49 PM Borislav Petkov wrote:
+> On Thu, Dec 01, 2016 at 10:17:54PM +0100, Rafael J. Wysocki wrote:
+> > I guess I should pick up this one, then?
 > 
-> Changes from v1 to v2:
->   - Consumer/Producer is defined for Extended Address Space descriptors;
->     should be ignored for QWord/DWord/Word Address Space descriptors
->   - New arches may use Extended Address Space descriptors in PNP0A03 for
->     bridge registers, including ECAM (if the arch adds support for this)
->   - Add more details about MCFG and _CBA (Lv's suggestion)
->   - Incorporate Rafael's suggestions
-> 
-> ---
-> 
-> Bjorn Helgaas (1):
->       PCI: Add information about describing PCI in ACPI
-> 
-> 
->  Documentation/PCI/00-INDEX      |    2 
->  Documentation/PCI/acpi-info.txt |  180 +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 182 insertions(+)
->  create mode 100644 Documentation/PCI/acpi-info.txt
+> If you already have stuff touching this area, it probably would be more
+> prudent if you took it. If not, I can take it through tip's ras branch,
+> if you prefer.
 
-It's very late in the cycle, but I'm considering trying to squeeze
-this into v4.9 on the grounds that:
+Well, there's another ARM-related patch touching APEI.
 
-  - It's only a documentation change and can't break anything, and
+I guess whoever takes this one should also take the other one and
+honestly they can go in via any tree as far as I'm concerned, I'm just trying to
+avoid merge clashes here. :-)
 
-  - Distributing it more widely may help the arm64 firmware ecosystem
+Thanks,
+Rafael
 
-But I don't want to disseminate misleading or incorrect information,
-so if it needs clarification or wordsmithing, or even just maturation,
-I'll wait until v4.10.
-
-The Consumer/Producer stuff, in particular, doesn't seem 100% settled
-yet.  Your thoughts, and especially your improvements, are welcome!
-
-Bjorn
