@@ -1,220 +1,145 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 04/11] ACPICA: Events: Fix acpi_ev_initialize_region()
- return value
-Date: Thu, 1 Dec 2016 08:00:39 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A297699@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1480490191.git.lv.zheng@intel.com>
- <e70ef2444fb571fa7c6642c56f9d49333143b60c.1480490191.git.lv.zheng@intel.com>
- <CAJZ5v0j50UvtnzzYKaQ=KUSO7SCOzU_DooVE+hbMznQ-sQ0yHQ@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V1 1/2] PCI: thunder: Enable ACPI PCI controller for
+ ThunderX pass2.x silicon version
+Date: Thu, 1 Dec 2016 09:49:51 +0100
+Message-ID: <eba92ea8-bdab-9a3a-7b18-caaeac15db5d@semihalf.com>
+References: <1479201298-25494-1-git-send-email-tn@semihalf.com>
+ <1479201298-25494-2-git-send-email-tn@semihalf.com>
+ <20161201002812.GB9409@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:63211 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750847AbcLAIAn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Dec 2016 03:00:43 -0500
-In-Reply-To: <CAJZ5v0j50UvtnzzYKaQ=KUSO7SCOzU_DooVE+hbMznQ-sQ0yHQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20161201002812.GB9409@bhelgaas-glaptop.roam.corp.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: gabriele.paoloni@huawei.com, rafael@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, andrea.gallo@linaro.org, Lorenzo.Pieralisi@arm.com, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, liudongdong3@huawei.com, msalter@redhat.com, arnd@arndb.de, jcm@redhat.com, Christopher Covington <cov@codeaurora.org>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, ard.biesheuvel@linaro.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, jeremy.linton@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
-YWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZh
-ZWwgSi4NCj4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDA0LzExXSBBQ1BJQ0E6IEV2
-ZW50czogRml4IGFjcGlfZXZfaW5pdGlhbGl6ZV9yZWdpb24oKSByZXR1cm4gdmFsdWUNCj4gDQo+
-IE9uIFdlZCwgTm92IDMwLCAyMDE2IGF0IDg6MjEgQU0sIEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRl
-bC5jb20+IHdyb3RlOg0KPiA+IEFDUElDQSBjb21taXQgNTQzMzQyYWI3YTY3NmY0ZWIwYzlmMTAw
-ZDM0OTM4OGE4NGRmZjBlOA0KPiA+DQo+ID4gVGhpcyBwYXRjaCBjaGFuZ2VzIGFjcGlfZXZfaW5p
-dGlhbGl6ZV9yZWdpb24oKSwgc3RvcCByZXR1cm5pbmcgQUVfTk9UX0VYSVNUDQo+ID4gZnJvbSBp
-dCBzbyB0aGF0LCBub3Qgb25seSBpbiBhY3BpX2RzX2xvYWQyX2VuZF9vcCgpLCBidXQgYWxsIHBs
-YWNlcyBpbnZva2luZw0KPiA+IHRoaXMgZnVuY3Rpb24gd29uJ3QgZW1pdCBleGNlcHRpb25zLiBU
-aGUgZXhjZXB0aW9uIGNhbiBiZSBzZWVuIGluDQo+ID4gYWNwaV9kc19pbml0aWFsaXplX29iamVj
-dHMoKSB3aGVuIGNlcnRhaW4gdGFibGUgbG9hZGluZyBtb2RlIGlzIGNob3Nlbi4NCj4gPg0KPiA+
-IFRoaXMgcGF0Y2ggYWxzbyByZW1vdmVzIHVzZWxlc3MgYWNwaV9uc19sb2NrZWQgZnJvbSBhY3Bp
-X2V2X2luaXRpYWxpemVfcmVnaW9uKCkNCj4gPiBhcyB0aGlzIGZ1bmN0aW9uIHdpbGwgYWx3YXlz
-IGJlIGludm9rZWQgd2l0aCBpbnRlcnByZXRlciBsb2NrIGhlbGQgbm93LCBhbmQNCj4gPiB0aGUg
-bG9jayBncmFudWxhcml0eSBoYXMgYmVlbiB0dW5lZCB0byBsb2NrIGFyb3VuZCBfUkVHIGV4ZWN1
-dGlvbiwgdGh1cyBpdA0KPiA+IGlzIG5vdyBoYW5kbGVkIGJ5IGFjcGlfZXhfZXhpdF9pbnRlcnBy
-ZXRlcigpLiBMdiBaaGVuZy4NCj4gPg0KPiA+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3Bp
-Y2EvYWNwaWNhL2NvbW1pdC81NDMzNDJhYg0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxs
-di56aGVuZ0BpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogQm9iIE1vb3JlIDxyb2JlcnQu
-bW9vcmVAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2FjZXZl
-bnRzLmggfCAgICA0ICstLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2Rzb3Bjb2RlLmMgfCAg
-ICAyICstDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvZHN3bG9hZDIuYyB8ICAgMTMgKy0tLS0t
-LS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvZXZyZ25pbmkuYyB8ICAgNTkgKysrKysrKysr
-KysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICA0IGZpbGVzIGNoYW5nZWQsIDI3
-IGluc2VydGlvbnMoKyksIDUxIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvYWNwaS9hY3BpY2EvYWNldmVudHMuaCBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvYWNldmVu
-dHMuaA0KPiA+IGluZGV4IDkyZmE0N2MuLjhhMDA0OWQgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVy
-cy9hY3BpL2FjcGljYS9hY2V2ZW50cy5oDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9h
-Y2V2ZW50cy5oDQo+ID4gQEAgLTI0Myw5ICsyNDMsNyBAQCB1bmlvbiBhY3BpX29wZXJhbmRfb2Jq
-ZWN0ICphY3BpX2V2X2ZpbmRfcmVnaW9uX2hhbmRsZXIoYWNwaV9hZHJfc3BhY2VfdHlwZQ0KPiA+
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdTMyIGZ1bmN0aW9uLA0KPiA+ICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgdm9pZCAqaGFuZGxlcl9jb250ZXh0LCB2b2lkICoqcmVnaW9u
-X2NvbnRleHQpOw0KPiA+DQo+ID4gLWFjcGlfc3RhdHVzDQo+ID4gLWFjcGlfZXZfaW5pdGlhbGl6
-ZV9yZWdpb24odW5pb24gYWNwaV9vcGVyYW5kX29iamVjdCAqcmVnaW9uX29iaiwNCj4gPiAtICAg
-ICAgICAgICAgICAgICAgICAgICAgIHU4IGFjcGlfbnNfbG9ja2VkKTsNCj4gPiArYWNwaV9zdGF0
-dXMgYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbih1bmlvbiBhY3BpX29wZXJhbmRfb2JqZWN0ICpy
-ZWdpb25fb2JqKTsNCj4gPg0KPiA+ICAvKg0KPiA+ICAgKiBldnNjaSAtIFNDSSAoU3lzdGVtIENv
-bnRyb2wgSW50ZXJydXB0KSBoYW5kbGluZy9kaXNwYXRjaA0KPiA+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL2FjcGkvYWNwaWNhL2Rzb3Bjb2RlLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2Rzb3Bjb2Rl
-LmMNCj4gPiBpbmRleCA0Y2M5ZDk4Li43N2ZkN2M4IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMv
-YWNwaS9hY3BpY2EvZHNvcGNvZGUuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHNv
-cGNvZGUuYw0KPiA+IEBAIC04NCw3ICs4NCw3IEBAIGFjcGlfc3RhdHVzIGFjcGlfZHNfaW5pdGlh
-bGl6ZV9yZWdpb24oYWNwaV9oYW5kbGUgb2JqX2hhbmRsZSkNCj4gPg0KPiA+ICAgICAgICAgLyog
-TmFtZXNwYWNlIGlzIE5PVCBsb2NrZWQgKi8NCj4gPg0KPiA+IC0gICAgICAgc3RhdHVzID0gYWNw
-aV9ldl9pbml0aWFsaXplX3JlZ2lvbihvYmpfZGVzYywgRkFMU0UpOw0KPiA+ICsgICAgICAgc3Rh
-dHVzID0gYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbihvYmpfZGVzYyk7DQo+ID4gICAgICAgICBy
-ZXR1cm4gKHN0YXR1cyk7DQo+ID4gIH0NCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2Fj
-cGkvYWNwaWNhL2Rzd2xvYWQyLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2Rzd2xvYWQyLmMNCj4g
-PiBpbmRleCBlMzYyMTgyLi42NTFmMzVhIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9h
-Y3BpY2EvZHN3bG9hZDIuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHN3bG9hZDIu
-Yw0KPiA+IEBAIC02MDksMTggKzYwOSw3IEBAIGFjcGlfc3RhdHVzIGFjcGlfZHNfbG9hZDJfZW5k
-X29wKHN0cnVjdCBhY3BpX3dhbGtfc3RhdGUgKndhbGtfc3RhdGUpDQo+ID4NCj4gPiAgICAgICAg
-ICAgICAgICAgICAgICAgICBzdGF0dXMgPQ0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBhY3BpX2V2X2luaXRpYWxpemVfcmVnaW9uDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIChhY3BpX25zX2dldF9hdHRhY2hlZF9vYmplY3Qobm9kZSksIEZBTFNFKTsNCj4gPiAtDQo+
-ID4gLSAgICAgICAgICAgICAgICAgICAgICAgaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKSB7DQo+
-ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvKg0KPiA+IC0gICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICogIElmIEFFX05PVF9FWElTVCBpcyByZXR1cm5lZCwgaXQgaXMg
-bm90IGZhdGFsDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKiAgYmVjYXVz
-ZSBtYW55IHJlZ2lvbnMgZ2V0IGNyZWF0ZWQgYmVmb3JlIGEgaGFuZGxlcg0KPiA+IC0gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICogIGlzIGluc3RhbGxlZCBmb3Igc2FpZCByZWdpb24u
-DQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKi8NCj4gPiAtICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIGlmIChBRV9OT1RfRVhJU1QgPT0gc3RhdHVzKSB7DQo+ID4g
-LSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0YXR1cyA9IEFFX09LOw0K
-PiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfQ0KPiA+IC0gICAgICAgICAgICAg
-ICAgICAgICAgIH0NCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgKGFjcGlfbnNfZ2V0
-X2F0dGFjaGVkX29iamVjdChub2RlKSk7DQo+IA0KPiBUaGlzIGh1bmsgZG9lc24ndCBhcHBseSBm
-b3IgbWUuDQo+IA0KPiBXZSBoYXZlIGFjcGlfZXhfZXhpdF9pbnRlcnByZXRlcigpIC8gYWNwaV9l
-eF9lbnRlcl9pbnRlcnByZXRlcigpDQo+IGFyb3VuZCB0aGUgYWNwaV9ldl9pbml0aWFsaXplX3Jl
-Z2lvbigpIGluIGxpbnV4LW5leHQuDQoNClRoaXMgY29tbWl0IG9ubHkgY2hhbmdlcyByZXR1cm5p
-bmcgdmFsdWUuDQpMb2NrIGNoYW5nZXMgYXJlIG5vdCBpbmNsdWRlZC4NCg0KV2UgbmV2ZXIgaW52
-b2tlcyBhY3BpX2V2X2luaXRpYWxpemVfcmVnaW9uIHdpdGggYWNwaV9uc19sb2NrZWQ9dHJ1ZS4N
-ClNvIGFsbCBpZiAoYWNwaV9uc19sb2NrZWQpIGNvZGUgcGllY2VzIGFyZSB1c2VsZXNzIGFuZCBk
-ZWxldGVkIGluIHRoaXMgY29tbWl0Lg0KDQo+IA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAg
-IGJyZWFrOw0KPiA+DQo+ID4gICAgICAgICAgICAgICAgIGNhc2UgQU1MX05BTUVfT1A6DQo+ID4g
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZXZyZ25pbmkuYyBiL2RyaXZlcnMvYWNw
-aS9hY3BpY2EvZXZyZ25pbmkuYw0KPiA+IGluZGV4IDc1ZGRkMTYuLmE5MDkyMjUgMTAwNjQ0DQo+
-ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9ldnJnbmluaS5jDQo+ID4gKysrIGIvZHJpdmVy
-cy9hY3BpL2FjcGljYS9ldnJnbmluaS5jDQo+ID4gQEAgLTQ3OSw3ICs0NzksNiBAQCBzdGF0aWMg
-dTggYWNwaV9ldl9pc19wY2lfcm9vdF9icmlkZ2Uoc3RydWN0IGFjcGlfbmFtZXNwYWNlX25vZGUg
-Km5vZGUpDQo+ID4gICAqIEZVTkNUSU9OOiAgICBhY3BpX2V2X2luaXRpYWxpemVfcmVnaW9uDQo+
-ID4gICAqDQo+ID4gICAqIFBBUkFNRVRFUlM6ICByZWdpb25fb2JqICAgICAgLSBSZWdpb24gd2Ug
-YXJlIGluaXRpYWxpemluZw0KPiA+IC0gKiAgICAgICAgICAgICAgYWNwaV9uc19sb2NrZWQgIC0g
-SXMgbmFtZXNwYWNlIGxvY2tlZD8NCj4gPiAgICoNCj4gPiAgICogUkVUVVJOOiAgICAgIFN0YXR1
-cw0KPiA+ICAgKg0KPiA+IEBAIC00OTcsMTkgKzQ5NiwyOCBAQCBzdGF0aWMgdTggYWNwaV9ldl9p
-c19wY2lfcm9vdF9icmlkZ2Uoc3RydWN0IGFjcGlfbmFtZXNwYWNlX25vZGUgKm5vZGUpDQo+ID4g
-ICAqIE1VVEVYOiAgICAgICBJbnRlcnByZXRlciBzaG91bGQgYmUgdW5sb2NrZWQsIGJlY2F1c2Ug
-d2UgbWF5IHJ1biB0aGUgX1JFRw0KPiA+ICAgKiAgICAgICAgICAgICAgbWV0aG9kIGZvciB0aGlz
-IHJlZ2lvbi4NCj4gPiAgICoNCj4gPiArICogTk9URTogICAgICAgIFBvc3NpYmxlIGluY29tcGxp
-YW5jZToNCj4gPiArICogICAgICAgICAgICAgIFRoZXJlIGlzIGEgYmVoYXZpb3IgY29uZmxpY3Qg
-aW4gYXV0b21hdGljIF9SRUcgZXhlY3V0aW9uOg0KPiA+ICsgKiAgICAgICAgICAgICAgMS4gV2hl
-biB0aGUgaW50ZXJwcmV0ZXIgaXMgZXZhbHVhdGluZyBhIG1ldGhvZCwgd2UgY2FuIG9ubHkNCj4g
-PiArICogICAgICAgICAgICAgICAgIGF1dG9tYXRpY2FsbHkgcnVuIF9SRUcgZm9yIHRoZSBmb2xs
-b3dpbmcgY2FzZToNCj4gPiArICogICAgICAgICAgICAgICAgICAgb3BlcmF0aW9uX3JlZ2lvbiAo
-T1BSMSwgMHg4MCwgMHgxMDAwMDEwLCAweDQpDQo+ID4gKyAqICAgICAgICAgICAgICAyLiBXaGVu
-IHRoZSBpbnRlcnByZXRlciBpcyBsb2FkaW5nIGEgdGFibGUsIHdlIGNhbiBhbHNvDQo+ID4gKyAq
-ICAgICAgICAgICAgICAgICBhdXRvbWF0aWNhbGx5IHJ1biBfUkVHIGZvciB0aGUgZm9sbG93aW5n
-IGNhc2U6DQo+ID4gKyAqICAgICAgICAgICAgICAgICAgIG9wZXJhdGlvbl9yZWdpb24gKE9QUjEs
-IDB4ODAsIDB4MTAwMDAxMCwgMHg0KQ0KPiA+ICsgKiAgICAgICAgICAgICAgVGhvdWdoIHRoaXMg
-bWF5IG5vdCBiZSBjb21wbGlhbnQgdG8gdGhlIGRlLWZhY3RvIHN0YW5kYXJkLCB0aGUNCj4gPiAr
-ICogICAgICAgICAgICAgIGxvZ2ljIGlzIGtlcHQgaW4gb3JkZXIgbm90IHRvIHRyaWdnZXIgcmVn
-cmVzc2lvbnMuIEFuZCBrZWVwaW5nDQo+ID4gKyAqICAgICAgICAgICAgICB0aGlzIGxvZ2ljIHNo
-b3VsZCBiZSB0YWtlbiBjYXJlIGJ5IHRoZSBjYWxsZXIgb2YgdGhpcyBmdW5jdGlvbi4NCj4gPiAr
-ICoNCj4gPiAgICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8NCj4gPg0KPiA+IC1hY3BpX3N0YXR1cw0K
-PiA+IC1hY3BpX2V2X2luaXRpYWxpemVfcmVnaW9uKHVuaW9uIGFjcGlfb3BlcmFuZF9vYmplY3Qg
-KnJlZ2lvbl9vYmosDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICB1OCBhY3BpX25zX2xv
-Y2tlZCkNCj4gPiArYWNwaV9zdGF0dXMgYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbih1bmlvbiBh
-Y3BpX29wZXJhbmRfb2JqZWN0ICpyZWdpb25fb2JqKQ0KPiA+ICB7DQo+ID4gICAgICAgICB1bmlv
-biBhY3BpX29wZXJhbmRfb2JqZWN0ICpoYW5kbGVyX29iajsNCj4gPiAgICAgICAgIHVuaW9uIGFj
-cGlfb3BlcmFuZF9vYmplY3QgKm9ial9kZXNjOw0KPiA+ICAgICAgICAgYWNwaV9hZHJfc3BhY2Vf
-dHlwZSBzcGFjZV9pZDsNCj4gPiAgICAgICAgIHN0cnVjdCBhY3BpX25hbWVzcGFjZV9ub2RlICpu
-b2RlOw0KPiA+IC0gICAgICAgYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+DQo+ID4gLSAgICAgICBB
-Q1BJX0ZVTkNUSU9OX1RSQUNFX1UzMihldl9pbml0aWFsaXplX3JlZ2lvbiwgYWNwaV9uc19sb2Nr
-ZWQpOw0KPiA+ICsgICAgICAgQUNQSV9GVU5DVElPTl9UUkFDRShldl9pbml0aWFsaXplX3JlZ2lv
-bik7DQo+ID4NCj4gPiAgICAgICAgIGlmICghcmVnaW9uX29iaikgew0KPiA+ICAgICAgICAgICAg
-ICAgICByZXR1cm5fQUNQSV9TVEFUVVMoQUVfQkFEX1BBUkFNRVRFUik7DQo+ID4gQEAgLTU4MCwz
-OSArNTg4LDE3IEBAIHN0YXRpYyB1OCBhY3BpX2V2X2lzX3BjaV9yb290X2JyaWRnZShzdHJ1Y3Qg
-YWNwaV9uYW1lc3BhY2Vfbm9kZSAqbm9kZSkNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIGhhbmRsZXJfb2JqLCByZWdpb25fb2JqLA0KPiA+ICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb2JqX2Rlc2Mp
-KTsNCj4gPg0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RhdHVzID0NCj4g
-PiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhY3BpX2V2X2F0dGFjaF9yZWdp
-b24oaGFuZGxlcl9vYmosDQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIHJlZ2lvbl9vYmosDQo+ID4gLSAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjcGlfbnNfbG9ja2VkKTsN
-Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh2b2lkKWFjcGlfZXZfYXR0YWNo
-X3JlZ2lvbihoYW5kbGVyX29iaiwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZWdpb25fb2JqLCBGQUxTRSk7DQo+ID4NCj4g
-PiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8qDQo+ID4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgKiBUZWxsIGFsbCB1c2VycyB0aGF0IHRoaXMgcmVnaW9uIGlzIHVz
-YWJsZSBieQ0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICogcnVubmluZyB0
-aGUgX1JFRyBtZXRob2QNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqLw0K
-PiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGFjcGlfbnNfbG9ja2VkKSB7
-DQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0YXR1cyA9DQo+
-ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhY3BpX3V0X3Jl
-bGVhc2VfbXV0ZXgNCj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIChBQ1BJX01UWF9OQU1FU1BBQ0UpOw0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpIHsNCj4gPiAtICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm5fQUNQSV9TVEFUVVMo
-c3RhdHVzKTsNCj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfQ0K
-PiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfQ0KPiA+IC0NCj4gPiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIGFjcGlfZXhfZXhpdF9pbnRlcnByZXRlcigpOw0KPiA+
-IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RhdHVzID0NCj4gPiAtICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBhY3BpX2V2X2V4ZWN1dGVfcmVnX21ldGhvZChyZWdp
-b25fb2JqLA0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIEFDUElfUkVHX0NPTk5FQ1QpOw0KPiA+ICsgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgKHZvaWQpYWNwaV9ldl9leGVjdXRlX3JlZ19tZXRob2QocmVnaW9u
-X29iaiwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIEFDUElfUkVHX0NPTk5FQ1QpOw0KPiA+ICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgYWNwaV9leF9lbnRlcl9pbnRlcnByZXRlcigpOw0KPiANCj4gQW5k
-IHRoaXMgYWxzbyBkb2Vzbid0IGFwcGx5LCBiZWNhdXNlIHdlIGRvbid0IGludm9rZQ0KPiBhY3Bp
-X2V4X2V4aXRfaW50ZXJwcmV0ZXIoKSAvIGFjcGlfZXhfZW50ZXJfaW50ZXJwcmV0ZXIoKSBhcm91
-bmQgdGhlDQo+IGFjcGlfZXZfZXhlY3V0ZV9yZWdfbWV0aG9kKCkgY2FsbCBpbiBsaW51eC1uZXh0
-Lg0KPiANCg0KYWNwaV9leF9leGl0X2ludGVycHJldGVyKCkgLyBhY3BpX2V4X2VudGVyX2ludGVy
-cHJldGVyKCkgYXJlIG5vdC1tb2RpZmllZC1saW5lcy4NClBsZWFzZSBjaGVjayBhZ2Fpbi4NCg0K
-VW5sb2NrIGJlZm9yZSBfUkVHIGlzIHRoZSBtaW5pbXVtIHJlcXVpcmVtZW50IGFzIEFDUElDQSB3
-aWxsIHJlYWNxdWlyZSBpbnRlcnByZXRlciBsb2NrIHdoZW4gX1JFRyBpcyBldmFsdWF0ZWQuDQpC
-ZWZvcmUgYXBwbHlpbmcgdGhlIGZvbGxvd2luZyBjb21taXQgKHdoaWNoIGlzIGluIHRoZSB1cHN0
-cmVhbSk6DQpodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC90b3J2
-YWxkcy9saW51eC5naXQvY29tbWl0Lz9pZD04NjMzZGI2YjAyDQpBQ1BJQ0EgdW5sb2NrcyB0aGUg
-ZW50aXJlIHdhbGsgbmFtZXNwYWNlIHByb2Nlc3MuDQoNCkhvd2V2ZXIgdGhpcyBjaGFuZ2UgZGlk
-IG5vdGhpbmcgdG8gdGhlIGxvY2tzLg0KT25seSBjaGFuZ2VkIHRoZSByZXR1cm5pbmcgdmFsdWUg
-b2YgYWNwaV9ldl9pbml0aWFsaXplX3JlZ2lvbigpLg0KQWx3YXlzIHJldHVybmluZyBBRV9PSyBp
-bnN0ZWFkIG9mIEFFX05PVF9FWElTVC4NCk90aGVyIHRoYW4gdGhpcywgY2hhbmdlcyBhcmUgbm8t
-b3BzLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYNCg0KPiANCj4gPiAtDQo+ID4gLSAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZiAoYWNwaV9uc19sb2NrZWQpIHsNCj4gPiAt
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RhdHVzID0NCj4gPiAtICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjcGlfdXRfYWNxdWlyZV9t
-dXRleA0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKEFD
-UElfTVRYX05BTUVTUEFDRSk7DQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIGlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkgew0KPiA+IC0gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybl9BQ1BJX1NUQVRVUyhzdGF0dXMp
-Ow0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQo+ID4gLSAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQo+ID4gLQ0KPiA+ICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgcmV0dXJuX0FDUElfU1RBVFVTKEFFX09LKTsNCj4gPiAgICAgICAg
-ICAgICAgICAgICAgICAgICB9DQo+ID4gICAgICAgICAgICAgICAgIH0NCj4gPiBAQCAtNjIyLDEy
-ICs2MDgsMTUgQEAgc3RhdGljIHU4IGFjcGlfZXZfaXNfcGNpX3Jvb3RfYnJpZGdlKHN0cnVjdCBh
-Y3BpX25hbWVzcGFjZV9ub2RlICpub2RlKQ0KPiA+ICAgICAgICAgICAgICAgICBub2RlID0gbm9k
-ZS0+cGFyZW50Ow0KPiA+ICAgICAgICAgfQ0KPiA+DQo+ID4gLSAgICAgICAvKiBJZiB3ZSBnZXQg
-aGVyZSwgdGhlcmUgaXMgbm8gaGFuZGxlciBmb3IgdGhpcyByZWdpb24gKi8NCj4gPiAtDQo+ID4g
-KyAgICAgICAvKg0KPiA+ICsgICAgICAgICogSWYgd2UgZ2V0IGhlcmUsIHRoZXJlIGlzIG5vIGhh
-bmRsZXIgZm9yIHRoaXMgcmVnaW9uLiBUaGlzIGlzIG5vdA0KPiA+ICsgICAgICAgICogZmF0YWwg
-YmVjYXVzZSBtYW55IHJlZ2lvbnMgZ2V0IGNyZWF0ZWQgYmVmb3JlIGEgaGFuZGxlciBpcyBpbnN0
-YWxsZWQNCj4gPiArICAgICAgICAqIGZvciBzYWlkIHJlZ2lvbi4NCj4gPiArICAgICAgICAqLw0K
-PiA+ICAgICAgICAgQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9PUFJFR0lPTiwNCj4gPiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICJObyBoYW5kbGVyIGZvciBSZWdpb25UeXBlICVzKCVYKSAo
-UmVnaW9uT2JqICVwKVxuIiwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjcGlfdXRf
-Z2V0X3JlZ2lvbl9uYW1lKHNwYWNlX2lkKSwgc3BhY2VfaWQsDQo+ID4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICByZWdpb25fb2JqKSk7DQo+ID4NCj4gPiAtICAgICAgIHJldHVybl9BQ1BJX1NU
-QVRVUyhBRV9OT1RfRVhJU1QpOw0KPiA+ICsgICAgICAgcmV0dXJuX0FDUElfU1RBVFVTKEFFX09L
-KTsNCj4gPiAgfQ0KPiA+IC0tDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KPiAtLQ0KPiBUbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtYWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtl
-cm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9y
-Zy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Hi Bjorn,
+
+On 01.12.2016 01:28, Bjorn Helgaas wrote:
+> Hi Tomasz,
+>
+> On Tue, Nov 15, 2016 at 10:14:57AM +0100, Tomasz Nowicki wrote:
+>> ThunderX PCIe controller to off-chip devices (so-called PEM) is not fully
+>> compliant with ECAM standard. It uses non-standard configuration space
+>> accessors (see pci_thunder_pem_ops) and custom configuration space granulation
+>> (see bus_shift = 24). In order to access configuration space and
+>> probe PEM as ACPI based PCI host controller we need to add MCFG quirk
+>> infrastructure. This involves:
+>> 1. thunder_pem_init() ACPI extension so that we can probe PEM-specific
+>>    register ranges analogously to DT
+>> 2. Export PEM pci_thunder_pem_ops structure so it is visible to MCFG quirk
+>>    code.
+>> 3. New quirk entries for each PEM segment. Each contains platform IDs,
+>>    mentioned pci_thunder_pem_ops and CFG resources.
+>>
+>> Quirk is considered for ThunderX silicon pass2.x only which is identified
+>> via MCFG revision 1.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> ---
+>>  drivers/acpi/pci_mcfg.c            |  20 +++++++
+>>  drivers/pci/host/pci-thunder-pem.c | 107 ++++++++++++++++++++++++++++++++-----
+>>  include/linux/pci-ecam.h           |   4 ++
+>>  3 files changed, 117 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> index ac21db3..e4e2b9b 100644
+>> --- a/drivers/acpi/pci_mcfg.c
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -57,6 +57,26 @@ static struct mcfg_fixup mcfg_quirks[] = {
+>>  	{ "QCOM  ", "QDF2432 ", 1, 5, MCFG_BUS_ANY, &pci_32b_ops },
+>>  	{ "QCOM  ", "QDF2432 ", 1, 6, MCFG_BUS_ANY, &pci_32b_ops },
+>>  	{ "QCOM  ", "QDF2432 ", 1, 7, MCFG_BUS_ANY, &pci_32b_ops },
+>> +#ifdef CONFIG_PCI_HOST_THUNDER_PEM
+>> +#define THUNDER_MCFG_RES(addr, node) \
+>> +	DEFINE_RES_MEM(addr + (node << 44), 0x39 * SZ_16M)
+>> +#define THUNDER_MCFG_QUIRK(rev, node) \
+>> +	{ "CAVIUM", "THUNDERX", rev, 4 + (10 * node), MCFG_BUS_ANY, \
+>> +	  &pci_thunder_pem_ops, THUNDER_MCFG_RES(0x88001f000000UL, node) }, \
+>> +	{ "CAVIUM", "THUNDERX", rev, 5 + (10 * node), MCFG_BUS_ANY, \
+>> +	  &pci_thunder_pem_ops, THUNDER_MCFG_RES(0x884057000000UL, node) }, \
+>> +	{ "CAVIUM", "THUNDERX", rev, 6 + (10 * node), MCFG_BUS_ANY, \
+>> +	  &pci_thunder_pem_ops, THUNDER_MCFG_RES(0x88808f000000UL, node) }, \
+>> +	{ "CAVIUM", "THUNDERX", rev, 7 + (10 * node), MCFG_BUS_ANY, \
+>> +	  &pci_thunder_pem_ops, THUNDER_MCFG_RES(0x89001f000000UL, node) }, \
+>> +	{ "CAVIUM", "THUNDERX", rev, 8 + (10 * node), MCFG_BUS_ANY, \
+>> +	  &pci_thunder_pem_ops, THUNDER_MCFG_RES(0x894057000000UL, node) }, \
+>> +	{ "CAVIUM", "THUNDERX", rev, 9 + (10 * node), MCFG_BUS_ANY, \
+>> +	  &pci_thunder_pem_ops, THUNDER_MCFG_RES(0x89808f000000UL, node) }
+>> +	/* SoC pass2.x */
+>> +	THUNDER_MCFG_QUIRK(1, 0UL),
+>> +	THUNDER_MCFG_QUIRK(1, 1UL),
+>> +#endif
+>
+> I want all these quirks to work without having to enable
+> device-specific config options like CONFIG_PCI_HOST_THUNDER_PEM.
+>
+> I tweaked the preceding MCFG quirk support to wrap it in
+> CONFIG_PCI_QUIRKS.  I also tweaked the qualcomm and hisi patches to
+> move the meat of them to pci/quirks.c.  My work-in-progress is on
+> pci/ecam, but I can't easily build for arm64, so there are likely some
+> issues to be resolved.
+
+Please see compilation fix patch in [1] for your series.
+
+>
+> I'm hoping to end up with something like this:
+> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/commit/?h=pci/ecam&id=51ad4df79a9b7f2a66b346a46b21a785a2937469
+>
+> The problem with ThunderX is that the config accessors are much bigger
+> and I don't really want to duplicate them in both pci/quirks.c and
+> pci-thunder-pem.c.
+>
+> Actually, that raises a question for qualcomm and hisi: in the DT
+> model, we use non-ECAM config accessors in the driver, but in the ACPI
+> model, we use ECAM accessors.  It seems like the accessors should be
+> the same regardless of whether we discover the bridge via DT or ACPI.
+>
+> Anyway, it's almost like we want to build pci-thunder-pem.o if
+> CONFIG_PCI_HOST_THUNDER_PEM || (CONFIG_PCI_QUIRKS && CONFIG_ARM64).
+> I don't know how to express that nicely.
+>
+> I was trying to avoid adding an ecam-quirks.c, but maybe we need to
+> add it and collect all the different accessors there and add #ifdefs
+> inside.
+>
+> Sorry, this is only half-baked, but I just wanted to throw this out in
+> case you have any ideas.
+
+I agree that pci-thunder-pem.c and pci-thunder-ecam.c are too big to be 
+duplicated. The same for new ecam-quirks.c container. So treating this 
+as a necessary evil how about:
+
+  config PCI_HOST_THUNDER_PEM
+  	bool "Cavium Thunder PCIe controller to off-chip devices"
+-	depends on OF && ARM64
++	depends on ARM64
++	depends on OF || (ACPI && PCI_QUIRKS)
+  	select PCI_HOST_COMMON
+
+Moreover, IMO we should select PCI_QUIRKS for ARM64 && ACPI by default. 
+Then it becomes:
+  config PCI_HOST_THUNDER_PEM
+  	bool "Cavium Thunder PCIe controller to off-chip devices"
+-	depends on OF && ARM64
++	depends on ARM64
++	depends on OF || ACPI
+  	select PCI_HOST_COMMON
+
+I put the picture together here (on top of your pci/ecam branch):
+[1] 
+https://github.com/semihalf-nowicki-tomasz/linux/commits/pci-quirks-thunderx-v2
+
+Thanks,
+Tomasz
