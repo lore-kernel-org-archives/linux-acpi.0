@@ -1,233 +1,73 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v9 07/16] drivers: acpi: implement acpi_dma_configure
-Date: Fri, 2 Dec 2016 15:38:16 +0000
-Message-ID: <20161202153816.GA18290@red-moon>
-References: <20161121100148.24769-1-lorenzo.pieralisi@arm.com>
- <20161121100148.24769-8-lorenzo.pieralisi@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [Linaro-acpi] [PATCH V1 1/2] PCI: thunder: Enable ACPI PCI
+ controller for ThunderX pass2.x silicon version
+Date: Fri, 2 Dec 2016 10:27:43 -0600
+Message-ID: <20161202162743.GB9903@bhelgaas-glaptop.roam.corp.google.com>
+References: <1479201298-25494-1-git-send-email-tn@semihalf.com>
+ <1479201298-25494-2-git-send-email-tn@semihalf.com>
+ <20161201002812.GB9409@bhelgaas-glaptop.roam.corp.google.com>
+ <e5b1f09c-ca4c-fbf0-e9d7-c943ad0df2ff@redhat.com>
+ <CADaLNDm8Zp_kAqVvSd0po9S3j2rSXxtUJ1M33dW7gLZzvueweQ@mail.gmail.com>
+ <30ad6c65-4a4a-6346-00f6-11250133a251@semihalf.com>
+ <20161202104500.GE10776@rric.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:42812 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.136]:46568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751219AbcLBPhE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Dec 2016 10:37:04 -0500
+        id S1751387AbcLBQ1r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 2 Dec 2016 11:27:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20161121100148.24769-8-lorenzo.pieralisi@arm.com>
+In-Reply-To: <20161202104500.GE10776@rric.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: iommu@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Salter <msalter@redhat.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Robert Richter <robert.richter@cavium.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Jayachandran C <jchandra@broadcom.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Arnd Bergmann <arnd@arndb.de>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, Jon Masters <jcm@redhat.com>, Duc Dang <dhdang@apm.com>, Will Deacon <will.deacon@arm.com>, David Daney <ddaney@caviumnetworks.com>, Jeremy Linton <jeremy.linton@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, Christopher Covington <cov@codeaurora.org>, Catalin Marinas <catalin.marinas@arm.com>, Marcin Wojtas <mw@semihalf.com>, Andrea Gallo <andrea.gallo@linaro.org>, linux-arm <linux-arm-kern>
 
-Rafael, Mark, Suravee,
-
-On Mon, Nov 21, 2016 at 10:01:39AM +0000, Lorenzo Pieralisi wrote:
-> On DT based systems, the of_dma_configure() API implements DMA
-> configuration for a given device. On ACPI systems an API equivalent to
-> of_dma_configure() is missing which implies that it is currently not
-> possible to set-up DMA operations for devices through the ACPI generic
-> kernel layer.
+On Fri, Dec 02, 2016 at 11:45:00AM +0100, Robert Richter wrote:
+> On 02.12.16 11:06:24, Tomasz Nowicki wrote:
+> > On 02.12.2016 07:42, Duc Dang wrote:
 > 
-> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> calls that for now are just wrappers around arch_setup_dma_ops() and
-> arch_teardown_dma_ops() and also updates ACPI and PCI core code to use
-> the newly introduced acpi_dma_configure/acpi_dma_deconfigure functions.
+> > >@@ -98,16 +98,16 @@ struct mcfg_fixup {
+> > >        { "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,                 \
+> > >        &pci_thunder_ecam_ops }
+> > >        /* SoC pass1.x */
+> > >-   THUNDER_PEM_QUIRK(2,  0),       /* off-chip devices */
+> > >-   THUNDER_PEM_QUIRK(2,  1),       /* off-chip devices */
+> > >-   THUNDER_ECAM_QUIRK(2,  0),
+> > >-   THUNDER_ECAM_QUIRK(2,  1),
+> > >-   THUNDER_ECAM_QUIRK(2,  2),
+> > >-   THUNDER_ECAM_QUIRK(2,  3),
+> > >-   THUNDER_ECAM_QUIRK(2, 10),
+> > >-   THUNDER_ECAM_QUIRK(2, 11),
+> > >-   THUNDER_ECAM_QUIRK(2, 12),
+> > >-   THUNDER_ECAM_QUIRK(2, 13),
+> > >+ THUNDER_PEM_QUIRK(2, 0UL),  /* off-chip devices */
+> > >+ THUNDER_PEM_QUIRK(2, 1UL),  /* off-chip devices */
+> > >+ THUNDER_ECAM_QUIRK(2, 0UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 1UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 2UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 3UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 10UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 11UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 12UL),
+> > >+ THUNDER_ECAM_QUIRK(2, 13UL),
+> > >
+> > 
+> > The UL suffix is needed for *THUNDER_PEM_QUIRK* only. THUNDER_ECAM_QUIRK is
+> > fine.
 > 
-> Since acpi_dma_configure() is used to configure DMA operations, the
-> function initializes the dma/coherent_dma masks to sane default values
-> if the current masks are uninitialized (also to keep the default values
-> consistent with DT systems) to make sure the device has a complete
-> default DMA set-up.
-
-I spotted a niggle that unfortunately was hard to spot (and should not
-be a problem per se but better safe than sorry) and I am not comfortable
-with it.
-
-Following commit d0562674838c ("ACPI / scan: Parse _CCA and setup
-device coherency") in acpi_bind_one() we check if the acpi_device
-associated with a device just added supports DMA, first it was
-done with acpi_check_dma() and then commit 1831eff876bd ("device
-property: ACPI: Make use of the new DMA Attribute APIs") changed
-it to acpi_get_dma_attr().
-
-The subsequent check (attr != DEV_DMA_NOT_SUPPORTED) is always true
-on _any_ acpi device we pass to acpi_bind_one() on x86, which was
-fine because we used it to call arch_setup_dma_ops(), which is a nop
-on x86. On ARM64 a _CCA method is required to define if a device
-supports DMA so (attr != DEV_DMA_NOT_SUPPORTED) may well be false.
-
-Now, acpi_bind_one() is used to bind an acpi_device to its physical
-node also for pseudo-devices like cpus and memory nodes. For those
-objects, on x86, attr will always be != DEV_DMA_NOT_SUPPORTED.
-
-So far so good, because on x86 arch_setup_dma_ops() is empty code.
-
-With this patch, I use the (attr != DEV_DMA_NOT_SUPPORTED) check
-to call acpi_dma_configure() which is basically a nop on x86 except
-that it sets up the dma_mask/coherent_dma_mask to a sane default value
-(after all we are setting up DMA for the device so it makes sense to
-initialize the masks there if they were unset since we are configuring
-DMA for the device in question) for the given device.
-
-Problem is, as per the explanation above, we are also setting the
-default dma masks for pseudo-devices (eg CPUs) that were previously
-untouched, it should not be a problem per-se but I am not comfortable
-with that, honestly it does not make much sense.
-
-An easy "fix" would be to move the default dma masks initialization out
-of acpi_dma_configure() (as it was in previous patch versions of this
-series - I moved it to acpi_dma_configure() just a consolidation point
-for initializing the masks instead of scattering them in every
-acpi_dma_configure caller) I can send this as a fix-up patch to Joerg if
-we think that's the right thing to do (or I can send it to Rafael later
-when the code is in the merged depending on the timing) just let me
-know please.
-
-Thanks !
-Lorenzo
-
-> The DMA range size passed to arch_setup_dma_ops() is sized according
-> to the device coherent_dma_mask (starting at address 0x0), mirroring the
-> DT probing path behaviour when a dma-ranges property is not provided
-> for the device being probed; this changes the current arch_setup_dma_ops()
-> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
-> is a NOP on all architectures but ARM/ARM64 this patch does not change
-> the current kernel behaviour on them.
+> We should better make the type cast part of the macro.
 > 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com> [pci]
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Joerg Roedel <joro@8bytes.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> + this:
+> 
 > ---
->  drivers/acpi/glue.c     |  4 ++--
->  drivers/acpi/scan.c     | 40 ++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/probe.c     |  3 +--
->  include/acpi/acpi_bus.h |  2 ++
->  include/linux/acpi.h    |  5 +++++
->  5 files changed, 50 insertions(+), 4 deletions(-)
+> #define THUNDER_MCFG_RES(addr, node) \
+>        DEFINE_RES_MEM(addr + (node << 44), 0x39 * SZ_16M)
+> ---
 > 
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 5ea5dc2..f8d6564 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->  
->  	attr = acpi_get_dma_attr(acpi_dev);
->  	if (attr != DEV_DMA_NOT_SUPPORTED)
-> -		arch_setup_dma_ops(dev, 0, 0, NULL,
-> -				   attr == DEV_DMA_COHERENT);
-> +		acpi_dma_configure(dev, attr);
->  
->  	acpi_physnode_link_name(physical_node_name, node_id);
->  	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->  	return 0;
->  
->   err:
-> +	acpi_dma_deconfigure(dev);
->  	ACPI_COMPANION_SET(dev, NULL);
->  	put_device(dev);
->  	put_device(&acpi_dev->dev);
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 3d1856f..45b5710 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1370,6 +1370,46 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  		return DEV_DMA_NON_COHERENT;
->  }
->  
-> +/**
-> + * acpi_dma_configure - Set-up DMA configuration for the device.
-> + * @dev: The pointer to the device
-> + * @attr: device dma attributes
-> + */
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
-> +{
-> +	/*
-> +	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
-> +	 * setup the correct supported mask.
-> +	 */
-> +	if (!dev->coherent_dma_mask)
-> +		dev->coherent_dma_mask = DMA_BIT_MASK(32);
-> +
-> +	/*
-> +	 * Set it to coherent_dma_mask by default if the architecture
-> +	 * code has not set it.
-> +	 */
-> +	if (!dev->dma_mask)
-> +		dev->dma_mask = &dev->coherent_dma_mask;
-> +
-> +	/*
-> +	 * Assume dma valid range starts at 0 and covers the whole
-> +	 * coherent_dma_mask.
-> +	 */
-> +	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
-> +			   attr == DEV_DMA_COHERENT);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_configure);
-> +
-> +/**
-> + * acpi_dma_deconfigure - Tear-down DMA configuration for the device.
-> + * @dev: The pointer to the device
-> + */
-> +void acpi_dma_deconfigure(struct device *dev)
-> +{
-> +	arch_teardown_dma_ops(dev);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_dma_deconfigure);
-> +
->  static void acpi_init_coherency(struct acpi_device *adev)
->  {
->  	unsigned long long cca = 0;
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index ab00267..c29e07a 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1738,8 +1738,7 @@ static void pci_dma_configure(struct pci_dev *dev)
->  		if (attr == DEV_DMA_NOT_SUPPORTED)
->  			dev_warn(&dev->dev, "DMA not supported.\n");
->  		else
-> -			arch_setup_dma_ops(&dev->dev, 0, 0, NULL,
-> -					   attr == DEV_DMA_COHERENT);
-> +			acpi_dma_configure(&dev->dev, attr);
->  	}
->  
->  	pci_put_host_bridge_device(bridge);
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index c1a524d..4242c31 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -573,6 +573,8 @@ struct acpi_pci_root {
->  
->  bool acpi_dma_supported(struct acpi_device *adev);
->  enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
-> +void acpi_dma_deconfigure(struct device *dev);
->  
->  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
->  					   u64 address, bool check_children);
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 996a29c..8d15fc5 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -765,6 +765,11 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  	return DEV_DMA_NOT_SUPPORTED;
->  }
->  
-> +static inline void acpi_dma_configure(struct device *dev,
-> +				      enum dev_dma_attr attr) { }
-> +
-> +static inline void acpi_dma_deconfigure(struct device *dev) { }
-> +
->  #define ACPI_PTR(_ptr)	(NULL)
->  
->  static inline void acpi_device_set_enumerated(struct acpi_device *adev)
-> -- 
-> 2.10.0
-> 
+> The args in the macro need parentheses.
+
+Would you mind sending me a little incremental patch doing what you
+want?  I could try myself, but since I don't have an arm64 cross-build
+setup, I'm working in the dark.
