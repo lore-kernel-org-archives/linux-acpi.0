@@ -1,323 +1,236 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v11 6/7] arm64: pmu: Detect and enable multiple PMUs in an
- ACPI system
-Date: Fri,  2 Dec 2016 12:56:00 -0600
-Message-ID: <1480704961-6910-7-git-send-email-jeremy.linton@arm.com>
-References: <1480704961-6910-1-git-send-email-jeremy.linton@arm.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2] ACPI: Document _OSI and _REV for Linux BIOS writers
+Date: Fri, 2 Dec 2016 21:14:48 +0100
+Message-ID: <20161202201448.GA6211@wunner.de>
+References: <619282eab16a5847ff71d601c43b7df48d306d9e.1480564794.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1480704961-6910-1-git-send-email-jeremy.linton@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout3.hostsharing.net ([176.9.242.54]:40327 "EHLO
+        mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751547AbcLBUND (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Dec 2016 15:13:03 -0500
+Content-Disposition: inline
+In-Reply-To: <619282eab16a5847ff71d601c43b7df48d306d9e.1480564794.git.len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Its possible that an ACPI system has multiple CPU types in it
-with differing PMU counters. Iterate the CPU's and make a determination
-about how many of each type exist in the system. Then take and create
-a PMU platform device for each type, and assign it the interrupts parsed
-from the MADT. Creating a platform device is necessary because the PMUs
-are not described as devices in the DSDT table.
+On Wed, Nov 30, 2016 at 11:00:30PM -0500, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+> 
+> Based on a recent session at the Linux Plumber's Conference,
+> we need to be more clear about how a BIOS should use _OSI
+> to properly support Linux.
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-This code is loosely based on earlier work by Mark Salter.
+Reviewed-by: Lukas Wunner <lukas@wunner.de>
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- drivers/perf/arm_pmu.c      |   8 +-
- drivers/perf/arm_pmu_acpi.c | 231 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 238 insertions(+), 1 deletion(-)
+Thanks!
 
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index f676573..fa40294 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -1068,7 +1068,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		if (!ret)
- 			ret = init_fn(pmu);
- 	} else if (probe_table) {
--		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
-+		if (acpi_disabled) {
-+			/* use the current cpu. */
-+			ret = probe_plat_pmu(pmu, probe_table,
-+					     read_cpuid_id());
-+		} else {
-+			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
-+		}
- 	}
- 
- 	if (ret) {
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index 2008001..e4e107c 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -2,13 +2,17 @@
-  * ARM ACPI PMU support
-  *
-  * Copyright (C) 2015 Red Hat Inc.
-+ * Copyright (C) 2016 ARM Ltd.
-  * Author: Mark Salter <msalter@redhat.com>
-+ *	   Jeremy Linton <jeremy.linton@arm.com>
-  *
-  * This work is licensed under the terms of the GNU GPL, version 2.  See
-  * the COPYING file in the top-level directory.
-  *
-  */
- 
-+#define pr_fmt(fmt) "ACPI-PMU: " fmt
-+
- #include <asm/cpu.h>
- #include <linux/acpi.h>
- #include <linux/irq.h>
-@@ -20,9 +24,16 @@
- struct pmu_irq {
- 	int  gsi;
- 	int  trigger;
-+	int  irq;
- 	bool used;
- };
- 
-+struct pmu_types {
-+	struct list_head list;
-+	int		 cpu_type;
-+	int		 cpu_count;
-+};
-+
- static struct pmu_irq pmu_irqs[NR_CPUS];
- 
- /*
-@@ -38,3 +49,223 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
- 	else
- 		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
- }
-+
-+static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
-+{
-+	int i;
-+	struct pmu_types *pmu, *safe_temp;
-+
-+	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
-+		list_del(&pmu->list);
-+		kfree(pmu);
-+	}
-+
-+	for_each_possible_cpu(i)
-+		if (pmu_irqs[i].irq > 0)
-+			acpi_unregister_gsi(pmu_irqs[i].gsi);
-+}
-+
-+/*
-+ * Count number and type of CPU cores in the system. Returns the number
-+ * of "unused" MADT entries we could not associate with a PMU. This can
-+ * be the result of CPU's not being online,  or errors in the MADT.
-+ * Under normal circumstances this will be 0.
-+ */
-+static int __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
-+{
-+	int i;
-+	int unused_madt_entries = 0;
-+
-+	for_each_possible_cpu(i) {
-+		u32 reg_midr = read_specific_cpuid(i);
-+		struct pmu_types *pmu;
-+
-+		/*
-+		 * Ignore GSI registration failure for now, as
-+		 * some of the MADT entries may not be used.
-+		 */
-+		pmu_irqs[i].irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
-+						    pmu_irqs[i].trigger,
-+						    ACPI_ACTIVE_HIGH);
-+		/* likely not online */
-+		if (reg_midr == 0) {
-+			unused_madt_entries++;
-+			continue;
-+		}
-+
-+		list_for_each_entry(pmu, pmus, list) {
-+			if (pmu->cpu_type == reg_midr) {
-+				pmu->cpu_count++;
-+				break;
-+			}
-+		}
-+
-+		/* we didn't find the CPU type, add an entry to identify it */
-+		if (&pmu->list == pmus) {
-+			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
-+			if (!pmu) {
-+				pr_err("Unable to allocate pmu_types\n");
-+				arm_pmu_acpi_handle_alloc_failure(pmus);
-+				break;
-+			}
-+			pmu->cpu_type = reg_midr;
-+			pmu->cpu_count++;
-+			list_add_tail(&pmu->list, pmus);
-+		}
-+	}
-+
-+	return unused_madt_entries;
-+}
-+
-+static int __init arm_pmu_acpi_register_device(int count, struct resource *res,
-+					       int cpu_id)
-+{
-+	struct platform_device *pdev;
-+	int err = -ENOMEM;
-+
-+	pdev = platform_device_alloc(ARMV8_PMU_PDEV_NAME, cpu_id);
-+	if (pdev) {
-+		err = platform_device_add_resources(pdev, res, count);
-+		if (!err)
-+			err = platform_device_add(pdev);
-+		if (err) {
-+			pr_warn("Unable to register PMU device\n");
-+			platform_device_put(pdev);
-+		}
-+	} else {
-+	    pr_warn("Unable to allocate platform device\n");
-+	}
-+
-+	return err;
-+}
-+
-+static void __init arm_pmu_acpi_unregister_pmu_gsi(int cpu_id)
-+{
-+	int i;
-+
-+	for_each_possible_cpu(i) {
-+
-+		if (read_specific_cpuid(i) == cpu_id) {
-+			pmu_irqs[i].used = false;
-+			if (pmu_irqs[i].irq > 0)
-+				acpi_unregister_gsi(pmu_irqs[i].gsi);
-+			pmu_irqs[i].gsi = -ENODEV;
-+		}
-+	}
-+}
-+
-+/*
-+ * Registers the group of PMU interfaces which correspond to the 'cpu_id'.
-+ * This group utilizes 'count' resources in the 'res'.
-+ */
-+static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
-+					    int cpu_id)
-+{
-+	int err;
-+
-+	err = arm_pmu_acpi_register_device(count, res, cpu_id);
-+
-+	/* unmark and unregister GSIs for this PMU */
-+	if (err)
-+		arm_pmu_acpi_unregister_pmu_gsi(cpu_id);
-+
-+	return err;
-+}
-+
-+int arm_pmu_acpi_retrieve_irq(struct resource *res, int cpu)
-+{
-+	int irq = -ENODEV;
-+
-+	if (pmu_irqs[cpu].used) {
-+		pr_info("CPU %d's interrupt is already used\n", cpu);
-+	} else {
-+		pmu_irqs[cpu].used = true;
-+		res->start = pmu_irqs[cpu].irq;
-+		res->end = pmu_irqs[cpu].irq;
-+		res->flags = IORESOURCE_IRQ;
-+		if (pmu_irqs[cpu].trigger == ACPI_EDGE_SENSITIVE)
-+			res->flags |= IORESOURCE_IRQ_HIGHEDGE;
-+		else
-+			res->flags |= IORESOURCE_IRQ_HIGHLEVEL;
-+	}
-+	return irq;
-+}
-+
-+/*
-+ * For the given cpu/pmu type, walk all known GSIs, register them, and add
-+ * them to the resource structure. Return the number of GSI's contained
-+ * in the res structure, and the id of the last CPU/PMU we added.
-+ */
-+static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
-+				       struct resource *res)
-+{
-+	int i, count;
-+
-+	/* lets group all the PMU's from similar CPU's together */
-+	count = 0;
-+	for_each_possible_cpu(i) {
-+		u32 reg_midr = read_specific_cpuid(i);
-+
-+		if (pmus->cpu_type == reg_midr) {
-+			if ((pmu_irqs[i].gsi == 0) && (reg_midr != 0))
-+				continue;
-+
-+			/* likely not online */
-+			if (!reg_midr)
-+				continue;
-+
-+			arm_pmu_acpi_retrieve_irq(&res[count], i);
-+			count++;
-+		}
-+	}
-+	return count;
-+}
-+
-+static int __init pmu_acpi_register(struct pmu_types *pmu)
-+{
-+	int count;
-+	int err = -ENOMEM;
-+	struct resource	*res;
-+
-+	res = kcalloc(pmu->cpu_count, sizeof(struct resource), GFP_KERNEL);
-+
-+	/* for a given PMU type, collect all the GSIs. */
-+	if (res) {
-+		count = arm_pmu_acpi_gsi_res(pmu, res);
-+		/* register this set of interrupts with a new PMU device */
-+		err = arm_pmu_acpi_register_pmu(pmu->cpu_count, res,
-+						pmu->cpu_type);
-+		if (!err)
-+			pr_info("Register %d devices for %X\n", count,
-+				pmu->cpu_type);
-+		kfree(res);
-+	} else {
-+		pr_warn("PMU unable to allocate interrupt resource\n");
-+		arm_pmu_acpi_unregister_pmu_gsi(pmu->cpu_type);
-+	}
-+	return err;
-+}
-+
-+static int __init pmu_acpi_init(void)
-+{
-+	struct pmu_types *pmu, *safe_temp;
-+	bool unused_madt_entries;
-+	LIST_HEAD(pmus);
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
-+
-+	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
-+		pmu->cpu_count += unused_madt_entries;
-+		pmu_acpi_register(pmu);
-+
-+		list_del(&pmu->list);
-+		kfree(pmu);
-+	}
-+
-+	return 0;
-+}
-+
-+arch_initcall(pmu_acpi_init);
--- 
-2.5.5
+Lukas
+
+> ---
+>  Documentation/acpi/osi.txt | 188 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 188 insertions(+)
+>  create mode 100644 Documentation/acpi/osi.txt
+> 
+> diff --git a/Documentation/acpi/osi.txt b/Documentation/acpi/osi.txt
+> new file mode 100644
+> index 000000000000..c385024409a7
+> --- /dev/null
+> +++ b/Documentation/acpi/osi.txt
+> @@ -0,0 +1,188 @@
+> +ACPI _OSI and _REV methods
+> +--------------------------
+> +
+> +An ACPI BIOS can use the "Operating System Interfaces" method (_OSI)
+> +to find out what the operating system supports. Eg. If BIOS
+> +AML code includes _OSI("XYZ"), the kernel's AML interpreter
+> +can evaluate that method, look to see if it supports 'XYZ'
+> +and answer YES or NO to the BIOS.
+> +
+> +The ACPI _REV method returns the "Revision of the ACPI specification
+> +that OSPM supports"
+> +
+> +This document explains how and why the BIOS and Linux should use these methods.
+> +It also explains how and why they are widely misused.
+> +
+> +How to use _OSI
+> +---------------
+> +
+> +Linux runs on two groups of machines -- those that are tested by the OEM
+> +to be compatible with Linux, and those that were never tested with Linux,
+> +but where Linux was installed to replace the original OS (Windows or OSX).
+> +
+> +The larger group is the systems tested to run only Windows.  Not only that,
+> +but many were tested to run with just one specific version of Windows.
+> +So even though the BIOS may use _OSI to query what version of Windows is running,
+> +only a single path through the BIOS has actually been tested.
+> +Experience shows that taking untested paths through the BIOS
+> +exposes Linux to an entire category of BIOS bugs.
+> +For this reason, Linux _OSI defaults must continue to claim compatibility
+> +with all versions of Windows.
+> +
+> +But Linux isn't actually compatible with Windows, and the Linux community
+> +has also been hurt with regressions when Linux adds the latest version of
+> +Windows to its list of _OSI strings.  So it is possible that additional strings
+> +will be more thoroughly vetted before shipping upstream in the future.
+> +But it is likely that they will all eventually be added.
+> +
+> +What should an OEM do if they want to support Linux and Windows
+> +using the same BIOS image?  Often they need to do something different
+> +for Linux to deal with how Linux is different from Windows.
+> +Here the BIOS should ask exactly what it wants to know:
+> +
+> +_OSI("Linux-OEM-my_interface_name")
+> +where 'OEM' is needed if this is an OEM-specific hook,
+> +and 'my_interface_name' describes the hook, which could be a
+> +quirk, a bug, or a bug-fix.
+> +
+> +In addition, the OEM should send a patch to upstream Linux
+> +via the linux-acpi@vger.kernel.org mailing list.  When that patch
+> +is checked into Linux, the OS will answer "YES" when the BIOS
+> +on the OEM's system uses _OSI to ask if the interface is supported
+> +by the OS.  Linux distributors can back-port that patch for Linux
+> +pre-installs, and it will be included by all distributions that
+> +re-base to upstream.  If the distribution can not update the kernel binary,
+> +they can also add an acpi_osi=Linux-OEM-my_interface_name
+> +cmdline parameter to the boot loader, as needed.
+> +
+> +If the string refers to a feature where the upstream kernel
+> +eventually grows support, a patch should be sent to remove
+> +the string when that support is added to the kernel.
+> +
+> +That was easy.  Read on, to find out how to do it wrong.
+> +
+> +Before _OSI, there was _OS
+> +--------------------------
+> +
+> +ACPI 1.0 specified "_OS" as an
+> +"object that evaluates to a string that identifies the operating system."
+> +
+> +The ACPI BIOS flow would include an evaluation of _OS, and the AML
+> +interpreter in the kernel would return to it a string identifying the OS:
+> +
+> +Windows 98, SE: "Microsoft Windows"
+> +Windows ME: "Microsoft WindowsME:Millenium Edition"
+> +Windows NT: "Microsoft Windows NT"
+> +
+> +The idea was on a platform tasked with running multiple OS's,
+> +the BIOS could use _OS to enable devices that an OS
+> +might support, or enable quirks or bug workarounds
+> +necessary to make the platform compatible with that pre-existing OS.
+> +
+> +But _OS had fundamental problems.  First, the BIOS needed to know the name
+> +of every possible version of the OS that would run on it, and needed to know
+> +all the quirks of those OS's.  Certainly it would make more sense
+> +for the BIOS to ask *specific* things of the OS, such
+> +"do you support a specific interface", and thus in ACPI 3.0,
+> +_OSI was born to replace _OS.
+> +
+> +_OS was abandoned, though even today, many BIOS look for
+> +_OS "Microsoft Windows NT", though it seems somewhat far-fetched
+> +that anybody would install those old operating systems
+> +over what came with the machine.
+> +
+> +Linux answers "Microsoft Windows NT" to please that BIOS idiom.
+> +That is the *only* viable strategy, as that is what modern Windows does,
+> +and so doing otherwise could steer the BIOS down an untested path.
+> +
+> +_OSI is born, and immediately misused
+> +--------------------------------------
+> +
+> +With _OSI, the *BIOS* provides the string describing an interface,
+> +and asks the OS: "YES/NO, are you compatible with this interface?"
+> +
+> +eg. _OSI("3.0 Thermal Model") would return TRUE if the OS knows how
+> +to deal with the thermal extensions made to the ACPI 3.0 specification.
+> +An old OS that doesn't know about those extensions would answer FALSE,
+> +and a new OS may be able to return TRUE.
+> +
+> +For an OS-specific interface, the ACPI spec said that the BIOS and the OS
+> +were to agree on a string of the form such as "Windows-interface_name".
+> +
+> +But two bad things happened.  First, the Windows ecosystem used _OSI
+> +not as designed, but as a direct replacement for _OS -- identifying
+> +the OS version, rather than an OS supported interface.  Indeed, right
+> +from the start, the ACPI 3.0 spec itself codified this misuse
+> +in example code using _OSI("Windows 2001").
+> +
+> +This misuse was adopted and continues today.
+> +
+> +Linux had no choice but to also return TRUE to _OSI("Windows 2001")
+> +and its successors.  To do otherwise would virtually guarantee breaking
+> +a BIOS that has been tested only with that _OSI returning TRUE.
+> +
+> +This strategy is problematic, as Linux is never completely compatible with
+> +the latest version of Windows, and sometimes it takes more than a year
+> +to iron out incompatibilities.
+> +
+> +Not to be out-done, the Linux community made things worse by returning TRUE
+> +to _OSI("Linux").  Doing so is even worse than the Windows misuse
+> +of _OSI, as "Linux" does not even contain any version information.
+> +_OSI("Linux") led to some BIOS' malfunctioning due to BIOS writer's
+> +using it in untested BIOS flows.  But some OEM's used _OSI("Linux")
+> +in tested flows to support real Linux features.  In 2009, Linux
+> +removed _OSI("Linux"), and added a cmdline parameter to restore it
+> +for legacy systems still needed it.  Further a BIOS_BUG warning prints
+> +for all BIOS's that invoke it.
+> +
+> +No BIOS should use _OSI("Linux").
+> +
+> +The result is a strategy for Linux to maximize compatibility with
+> +ACPI BIOS that are tested on Windows machines.  There is a real risk
+> +of over-stating that compatibility; but the alternative has often been
+> +catastrophic failure resulting from the BIOS taking paths that
+> +were never validated under *any* OS.
+> +
+> +Do not use _REV
+> +---------------
+> +
+> +Since _OSI("Linux") went away, some BIOS writers used _REV
+> +to support Linux and Windows differences in the same BIOS.
+> +
+> +_REV was defined in ACPI 1.0 to return the version of ACPI
+> +supported by the OS and the OS AML interpreter.
+> +
+> +Modern Windows returns _REV = 2.  Linux used ACPI_CA_SUPPORT_LEVEL,
+> +which would increment, based on the version of the spec supported.
+> +
+> +Unfortunately, _REV was also misused.  eg. some BIOS would check
+> +for _REV = 3, and do something for Linux, but when Linux returned
+> +_REV = 4, that support broke.
+> +
+> +In response to this problem, Linux returns _REV = 2 always,
+> +from mid-2015 onward.  The ACPI specification will also be updated
+> +to reflect that _REV is deprecated, and always returns 2.
+> +
+> +Apple Mac and _OSI("Darwin")
+> +----------------------------
+> +
+> +On Apple's Mac platforms, the ACPI BIOS invokes _OSI("Darwin")
+> +to determine if the machine is running Apple OSX.
+> +
+> +Like Linux's _OSI("*Windows*") strategy, Linux defaults to
+> +answering YES to _OSI("Darwin") to enable full access
+> +to the hardware and validated BIOS paths seen by OSX.
+> +Just like on Windows-tested platforms, this strategy has risks.
+> +
+> +Starting in Linux-3.18, the kernel answered YES to _OSI("Darwin")
+> +for the purpose of enabling Mac Thunderbolt support.  Further,
+> +if the kernel noticed _OSI("Darwin") being invoked, it additionally
+> +disabled all _OSI("*Windows*") to keep poorly written Mac BIOS
+> +from going down untested combinations of paths.
+> +
+> +The Linux-3.18 change in default caused power regressions on Mac
+> +laptops, and the 3.18 implementation did not allow changing
+> +the default via cmdline "acpi_osi=!Darwin".  Linux-4.7 fixed
+> +the ability to use acpi_osi=!Darwin as a workaround, and
+> +we hope to see Mac Thunderbolt power management support in Linux-4.11.
+> +
+> -- 
+> 2.11.0.rc1
+> 
