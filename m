@@ -1,77 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/rt: convert acpi_gbl_gpe_lock to raw spinlock
-Date: Fri, 02 Dec 2016 00:27:03 +0100
-Message-ID: <2036785.eB1G0pEAXS@aspire.rjw.lan>
-References: <390489414.497553.1480534166735.JavaMail.zimbra@xes-inc.com> <alpine.DEB.2.20.1612011458590.3453@nanos> <1883606374.779009.1480634160092.JavaMail.zimbra@xes-inc.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
+Date: Fri, 2 Dec 2016 01:28:50 +0100
+Message-ID: <CAJZ5v0gtG6++GqyOb_B=o-=R4YuFia8PH6W3NFiCZuay=pV7TA@mail.gmail.com>
+References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <20161201223604.GC15867@bhelgaas-glaptop.roam.corp.google.com>
+ <47776378.8X3TnsHd3Q@aspire.rjw.lan> <20161201232732.GB17948@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43795 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751164AbcLAXai (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2016 18:30:38 -0500
-In-Reply-To: <1883606374.779009.1480634160092.JavaMail.zimbra@xes-inc.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20161201232732.GB17948@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Sierra <asierra@xes-inc.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, linux-kernel <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Thursday, December 01, 2016 05:16:00 PM Aaron Sierra wrote:
-> ----- Original Message -----
-> > From: "Thomas Gleixner" <tglx@linutronix.de>
-> > Sent: Thursday, December 1, 2016 8:52:48 AM
-> 
-> > On Wed, 30 Nov 2016, Aaron Sierra wrote:
-> >> When testing GPE interrupts with CONFIG_PREEMPT_RT_FULL enabled, a
-> >> verbose WARN_ONCE message would print to the kernel log. It turned out
-> >> that the GPE interrupt handler was being called with local interrupts
-> >> enabled because acpi_gbl_gpe_lock was implemented as a spinlock_t. Full
-> >> preemption strips local interrupt disabling from spinlock_t operations,
-> >> but not for raw_spinlock_t operations.
-> >> 
-> >> This is the warning that was triggered:
-> >> 
-> >> ------------[ cut here ]------------
-> >> WARNING: CPU: 8 PID: 483 at kernel/irq/handle.c:149
-> >> __handle_irq_event_percpu+0x6f/0xcf
-> >> irq 33 handler irq_default_primary_handler+0x0/0xb enabled interrupts
-> >> Modules linked in: gpio_irq_demo(O)
-> >> CPU: 8 PID: 483 Comm: irq/9-acpi Tainted: G           O
-> >> 4.8.6-rt5-00012-geaa3b7c #6
-> >> Hardware name: Extreme Engineering Solutions, Inc. XCalibur4643/XCalibur4643,
-> >> BIOS 1-1.1.12.3_Alpha 04/29/2016
-> >>  0000000000000000 ffff880858f3bc10 ffffffff81219a93 ffff880858f3bc60
-> >>  0000000000000000 ffff880858f3bc50 ffffffff8104b84a 0000009500000000
-> >>  ffff880855b76880 0000000000000021 0000000000000002 ffff880856356800
-> >> Call Trace:
-> >>  [<ffffffff81219a93>] dump_stack+0x4d/0x63
-> >>  [<ffffffff8104b84a>] __warn+0xc0/0xdb
-> >>  [<ffffffff8104b8af>] warn_slowpath_fmt+0x4a/0x4c
-> >>  [<ffffffff810f7192>] ? path_openat+0xbf8/0xc62
-> >>  [<ffffffff8107d7c3>] ? handle_irq_event+0x75/0x75
-> >>  [<ffffffff8107d68d>] __handle_irq_event_percpu+0x6f/0xcf
-> >>  [<ffffffff8107d727>] handle_irq_event_percpu+0x3a/0x61
-> >>  [<ffffffff8107d7a3>] handle_irq_event+0x55/0x75
-> >>  [<ffffffff8107ff76>] handle_simple_irq+0x5c/0x92
-> >>  [<ffffffff81243a53>] gpe_irq_handler+0x2a/0x31
-> > 
-> > gpe_irq_handler is not in tree, so I really cannot tell what this is
-> > about. It looks like it does interrupt demultiplexing, which triggers the
-> > warning.
-> 
-> Thomas,
-> Your guess is correct, this involves a currently out-of-tree extension to
-> the gpio-ich driver which allows GPIO pins to be mapped to IRQs by demuxing
-> their corresponding GPE events.
-> 
-> The gpio_irq_demo module requests a GPIO pin, converts it to an IRQ using
-> gpio_to_irq() and registers a trivial handler against the IRQ.
+On Fri, Dec 2, 2016 at 12:27 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Thu, Dec 01, 2016 at 11:37:39PM +0100, Rafael J. Wysocki wrote:
+>> On Thursday, December 01, 2016 04:36:04 PM Bjorn Helgaas wrote:
+>> > On Tue, Nov 29, 2016 at 03:39:48PM -0600, Bjorn Helgaas wrote:
+>> > > Here's another stab at this writeup.  I'd appreciate any comments!
+>> > >
+>> > > Changes from v1 to v2:
+>> > >   - Consumer/Producer is defined for Extended Address Space descriptors;
+>> > >     should be ignored for QWord/DWord/Word Address Space descriptors
+>> > >   - New arches may use Extended Address Space descriptors in PNP0A03 for
+>> > >     bridge registers, including ECAM (if the arch adds support for this)
+>> > >   - Add more details about MCFG and _CBA (Lv's suggestion)
+>> > >   - Incorporate Rafael's suggestions
+>> > >
+>> > > ---
+>> > >
+>> > > Bjorn Helgaas (1):
+>> > >       PCI: Add information about describing PCI in ACPI
+>> > >
+>> > >
+>> > >  Documentation/PCI/00-INDEX      |    2
+>> > >  Documentation/PCI/acpi-info.txt |  180 +++++++++++++++++++++++++++++++++++++++
+>> > >  2 files changed, 182 insertions(+)
+>> > >  create mode 100644 Documentation/PCI/acpi-info.txt
+>> >
+>> > It's very late in the cycle, but I'm considering trying to squeeze
+>> > this into v4.9 on the grounds that:
+>> >
+>> >   - It's only a documentation change and can't break anything, and
+>> >
+>> >   - Distributing it more widely may help the arm64 firmware ecosystem
+>> >
+>> > But I don't want to disseminate misleading or incorrect information,
+>> > so if it needs clarification or wordsmithing, or even just maturation,
+>> > I'll wait until v4.10.
+>> >
+>> > The Consumer/Producer stuff, in particular, doesn't seem 100% settled
+>> > yet.  Your thoughts, and especially your improvements, are welcome!
+>>
+>> Well, what's the drawback if it doesn't go into 4.9?
+>
+> Only that it's not as easily accessible.  ARM64 ACPI firmware is brand
+> new.  Neither the firmware nor the kernel developers, nor even the
+> hardware designers, have the benefit of all the x86/ia64 history, so I
+> wrote this to try to come to a common understanding of what Linux
+> expects.
+>
+> The first generation of ARM64 hardware is already in the field, and it
+> has teething problems in hardware, firmware, and kernel.  For example,
+> the current MCFG quirk situation: the ECAM hardware doesn't work quite
+> per spec, the ACPI firmware doesn't describe the address space
+> completely, and we don't really have consensus on how the firmware
+> should communicate register space to the kernel.
+>
+> We're hoping the second generation can fix some of these problems, and
+> I think this is the time to try to influence that.
 
-And what does it have to do with GPEs, if I may ask?
+Well, I would be super-careful if I were you, then. :-)
 
-In the future, please CC all ACPI-related changes to linux-acpi@vger.kernel.org.
+I'm not sure if squeezing it into 4.9.0 buys you anything here.  If
+you get it into 4.10-rc, you can request -stable to pick it up (at
+least in principle) and then it will show up in 4.9.y at one point
+which should suffice I suppose?
 
 Thanks,
 Rafael
-
