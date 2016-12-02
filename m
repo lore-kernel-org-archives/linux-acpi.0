@@ -1,67 +1,78 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 2/2] ACPI / osl: Refactor acpi_os_get_root_pointer() to drop 'else':s
-Date: Fri,  2 Dec 2016 19:42:47 +0200
-Message-ID: <20161202174247.141284-2-andriy.shevchenko@linux.intel.com>
-References: <20161202174247.141284-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63451 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751372AbcLBRnV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Dec 2016 12:43:21 -0500
-In-Reply-To: <20161202174247.141284-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v11 2/7] arm: arm64: Add routine to determine cpuid of other
+ cpus
+Date: Fri,  2 Dec 2016 12:55:56 -0600
+Message-ID: <1480704961-6910-3-git-send-email-jeremy.linton@arm.com>
+References: <1480704961-6910-1-git-send-email-jeremy.linton@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1480704961-6910-1-git-send-email-jeremy.linton@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-There are few 'else' keywords which are redundant in
-acpi_os_get_root_pointer(). Refactor function to get rid of them.
+It is helpful if we can read the cpuid/midr of other CPUs
+in the system independent of arm/arm64.
 
-While here, switch to pr_err() instead of printk(KERN_ERR ...).
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/acpi/osl.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ arch/arm/include/asm/cputype.h   | 4 ++++
+ arch/arm/kernel/setup.c          | 2 +-
+ arch/arm64/include/asm/cputype.h | 3 +++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 35230cd..5bef0f65 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -188,6 +188,8 @@ early_param("acpi_rsdp", setup_acpi_rsdp);
+diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
+index 522b5fe..1e87d06 100644
+--- a/arch/arm/include/asm/cputype.h
++++ b/arch/arm/include/asm/cputype.h
+@@ -235,6 +235,10 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
+ #define cpu_is_sa1100() (read_cpuid_part() == ARM_CPU_PART_SA1100)
+ #define cpu_is_sa1110() (read_cpuid_part() == ARM_CPU_PART_SA1110)
  
- acpi_physical_address __init acpi_os_get_root_pointer(void)
- {
-+	acpi_physical_address pa = 0;
++#define read_specific_cpuid(cpu_num) (is_smp() ? \
++				      per_cpu_ptr(&cpu_data, cpu_num)->cpuid \
++				      : read_cpuid_id())
 +
- #ifdef CONFIG_KEXEC
- 	if (acpi_rsdp)
- 		return acpi_rsdp;
-@@ -196,21 +198,14 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
- 	if (efi_enabled(EFI_CONFIG_TABLES)) {
- 		if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
- 			return efi.acpi20;
--		else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
-+		if (efi.acpi != EFI_INVALID_TABLE_ADDR)
- 			return efi.acpi;
--		else {
--			printk(KERN_ERR PREFIX
--			       "System description tables not found\n");
--			return 0;
--		}
-+		pr_err(PREFIX "System description tables not found\n");
- 	} else if (IS_ENABLED(CONFIG_ACPI_LEGACY_TABLES_LOOKUP)) {
--		acpi_physical_address pa = 0;
--
- 		acpi_find_root_pointer(&pa);
--		return pa;
- 	}
+ /*
+  * Intel's XScale3 core supports some v6 features (supersections, L2)
+  * but advertises itself as v5 as it does not support the v6 ISA.  For
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index 34e3f3c..d443c97 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -1217,7 +1217,7 @@ static int c_show(struct seq_file *m, void *v)
+ 		 * "processor".  Give glibc what it expects.
+ 		 */
+ 		seq_printf(m, "processor\t: %d\n", i);
+-		cpuid = is_smp() ? per_cpu(cpu_data, i).cpuid : read_cpuid_id();
++		cpuid = read_specific_cpuid(i);
+ 		seq_printf(m, "model name\t: %s rev %d (%s)\n",
+ 			   cpu_name, cpuid & 15, elf_platform);
  
--	return 0;
-+	return pa;
+diff --git a/arch/arm64/include/asm/cputype.h b/arch/arm64/include/asm/cputype.h
+index 26a68dd..a6d26e1 100644
+--- a/arch/arm64/include/asm/cputype.h
++++ b/arch/arm64/include/asm/cputype.h
+@@ -124,6 +124,9 @@ static inline u32 __attribute_const__ read_cpuid_cachetype(void)
+ {
+ 	return read_cpuid(CTR_EL0);
  }
++
++#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->reg_midr
++
+ #endif /* __ASSEMBLY__ */
  
- /* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
+ #endif
 -- 
-2.10.2
-
+2.5.5
