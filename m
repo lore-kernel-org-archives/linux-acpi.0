@@ -1,56 +1,172 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [RFC v1 3/7] iommu/arm-smmu-v3: Replace the device tree binding
- for hisilicon broken prefetch cmd with erratum id
-Date: Tue, 16 May 2017 10:15:28 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838350804@FRAEML521-MBX.china.huawei.com>
-References: <20170513094731.3676-1-shameerali.kolothum.thodi@huawei.com>
- <20170513094731.3676-4-shameerali.kolothum.thodi@huawei.com>
- <CAL_JsqLH7iT7O2U3g6J26YGBUmt53PDymLJ5VCLByW_97L_M4w@mail.gmail.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH] ACPI / property: Document usage rules for _DSD properties
+Date: Fri, 2 Dec 2016 09:30:01 +0000
+Message-ID: <20161202093001.GB1115@linaro-xps13.localdomain>
+References: <1760010.oD1shqWuRz@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([45.249.212.187]:6304 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751752AbdEPKP5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2017 06:15:57 -0400
-In-Reply-To: <CAL_JsqLH7iT7O2U3g6J26YGBUmt53PDymLJ5VCLByW_97L_M4w@mail.gmail.com>
-Content-Language: en-US
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:56481 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751912AbdEPK5z (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 May 2017 06:57:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1760010.oD1shqWuRz@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, Linux IOMMU <iommu@lists.linux-foundation.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <darren.hart@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iIEhlcnJpbmcgW21h
-aWx0bzpyb2JoQGtlcm5lbC5vcmddDQo+IFNlbnQ6IE1vbmRheSwgTWF5IDE1LCAyMDE3IDQ6MjQg
-UE0NCj4gVG86IFNoYW1lZXJhbGkgS29sb3RodW0gVGhvZGkNCj4gQ2M6IFdpbGwgRGVhY29uOyBS
-b2JpbiBNdXJwaHk7IE1hcmsgUnV0bGFuZDsgTG9yZW56byBQaWVyYWxpc2k7IEhhbmp1biBHdW87
-DQo+IEdhYnJpZWxlIFBhb2xvbmk7IEpvaG4gR2Fycnk7IExpbnV4IElPTU1VOyBkZXZpY2V0cmVl
-QHZnZXIua2VybmVsLm9yZzsNCj4gbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3Jn
-OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gZGV2ZWxAYWNwaWNhLm9yZzsgTGludXhh
-cm07IFdhbmd6aG91IChCKTsgR3VvaGFuanVuIChIYW5qdW4gR3VvKQ0KPiBTdWJqZWN0OiBSZTog
-W1JGQyB2MSAzLzddIGlvbW11L2FybS1zbW11LXYzOiBSZXBsYWNlIHRoZSBkZXZpY2UgdHJlZQ0K
-PiBiaW5kaW5nIGZvciBoaXNpbGljb24gYnJva2VuIHByZWZldGNoIGNtZCB3aXRoIGVycmF0dW0g
-aWQNCj4gDQo+IE9uIFNhdCwgTWF5IDEzLCAyMDE3IGF0IDQ6NDcgQU0sIHNoYW1lZXINCj4gPHNo
-YW1lZXJhbGkua29sb3RodW0udGhvZGlAaHVhd2VpLmNvbT4gd3JvdGU6DQo+ID4gU2lnbmVkLW9m
-Zi1ieTogc2hhbWVlciA8c2hhbWVlcmFsaS5rb2xvdGh1bS50aG9kaUBodWF3ZWkuY29tPg0KPiA+
-IC0tLQ0KPiA+ICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvaW9tbXUvYXJtLHNt
-bXUtdjMudHh0IHwgMiArLQ0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEg
-ZGVsZXRpb24oLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRy
-ZWUvYmluZGluZ3MvaW9tbXUvYXJtLHNtbXUtdjMudHh0DQo+ID4gYi9Eb2N1bWVudGF0aW9uL2Rl
-dmljZXRyZWUvYmluZGluZ3MvaW9tbXUvYXJtLHNtbXUtdjMudHh0DQo+ID4gaW5kZXggYmU1NzU1
-MC4uYmY0OGU5MiAxMDA2NDQNCj4gPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmlu
-ZGluZ3MvaW9tbXUvYXJtLHNtbXUtdjMudHh0DQo+ID4gKysrIGIvRG9jdW1lbnRhdGlvbi9kZXZp
-Y2V0cmVlL2JpbmRpbmdzL2lvbW11L2FybSxzbW11LXYzLnR4dA0KPiA+IEBAIC00Niw3ICs0Niw3
-IEBAIHRoZSBQQ0llIHNwZWNpZmljYXRpb24uDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAg
-IGRldmljZXRyZWUvYmluZGluZ3MvaW50ZXJydXB0LWNvbnRyb2xsZXIvbXNpLnR4dA0KPiA+ICAg
-ICAgICAgICAgICAgICAgICAgICAgZm9yIGEgZGVzY3JpcHRpb24gb2YgdGhlIG1zaS1wYXJlbnQg
-cHJvcGVydHkuDQo+ID4NCj4gPiAtLSBoaXNpbGljb24sYnJva2VuLXByZWZldGNoLWNtZA0KPiA+
-ICstIGhpc2lsaWNvbixlcnJhdHVtLTE2MTAxMDcwMQ0KPiANCj4gV2h5PyBZb3VyIG1pc3Npbmcg
-Y29tbWl0IG1zZyBzaG91bGQgYW5zd2VyIHRoYXQuIFRoaXMgYnJlYWtzDQo+IGNvbXBhdGliaWxp
-dHksIHNvIHlvdSBhcmUgc3R1Y2sgd2l0aCB0aGUgb2xkIHN0cmluZy4NCj4gDQo+IEknZCBwcmVm
-ZXIgdGhhdCB5b3Ugc3RhcnQgdXNpbmcgdGhlIGNvbXBhdGlibGUgc3RyaW5nIHJhdGhlciB0aGFu
-IGV2ZXJ5IHZlbmRvcg0KPiBhZGRpbmcgYSBwcm9wZXJ0eSBmb3IgZXZlcnkgZXJyYXRhLg0KDQpP
-ay4gSSB3aWxsIHdhaXQgZm9yIHRoZSByZXZpZXcgb2Ygb3RoZXIgcGF0Y2hlcyBpbiB0aGlzIHNl
-cmllcyBhbmQgdXBkYXRlIGl0IGFjY29yZGluZ2x5DQppbiB0aGUgbmV4dCByZXZpc2lvbi4NCg0K
-VGhhbmtzLA0KU2hhbWVlcg0KDQoNCg==
+On Wed, Nov 30, 2016 at 02:52:38AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Following some discussions during the Kernel Summit and LPC, document
+> what can be returned from ACPI _DSD as device properties and when it
+> is valid to use the special PRP0001 device ID.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Thanks Rafael, that looks really good.
+
+Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+
+
+> ---
+> 
+> Here's my follow-up to the discussions we had during the KS and LPC.
+> 
+> Please let me know if that's sufficient or it needs to be extended somehow.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+>  Documentation/acpi/DSD-properties-rules.txt |   97 ++++++++++++++++++++++++++++
+>  Documentation/acpi/enumeration.txt          |    9 ++
+>  2 files changed, 106 insertions(+)
+> 
+> Index: linux-pm/Documentation/acpi/enumeration.txt
+> ===================================================================
+> --- linux-pm.orig/Documentation/acpi/enumeration.txt
+> +++ linux-pm/Documentation/acpi/enumeration.txt
+> @@ -415,3 +415,12 @@ the "compatible" property in the _DSD or
+>  ancestors provides a _DSD with a valid "compatible" property.  Such device
+>  objects are then simply regarded as additional "blocks" providing hierarchical
+>  configuration information to the driver of the composite ancestor device.
+> +
+> +However, PRP0001 can only be returned from either _HID or _CID of a device
+> +object if all of the properties returned by the _DSD associated with it (either
+> +the _DSD of the device object itself or the _DSD of its ancestor in the
+> +"composite device" case described above) can be used in the ACPI environment.
+> +Otherwise, the _DSD itself is regarded as invalid and therefore the "compatible"
+> +property returned by it is meaningless.
+> +
+> +Refer to DSD-properties-rules.txt for more information.
+> Index: linux-pm/Documentation/acpi/DSD-properties-rules.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-pm/Documentation/acpi/DSD-properties-rules.txt
+> @@ -0,0 +1,97 @@
+> +_DSD Device Properties Usage Rules
+> +----------------------------------
+> +
+> +Properties, Property Sets and Property Subsets
+> +----------------------------------------------
+> +
+> +The _DSD (Device Specific Data) configuration object, introduced in ACPI 5.1,
+> +allows any type of device configuration data to be provided via the ACPI
+> +namespace.  In principle, the format of the data may be arbitrary, but it has to
+> +be identified by a UUID which must be recognized by the driver processing the
+> +_DSD output.  However, there are generic UUIDs defined for _DSD recognized by
+> +the ACPI subsystem in the Linux kernel which automatically processes the data
+> +packages associated with them and makes those data available to device drivers
+> +as "device properties".
+> +
+> +A device property is a data item consisting of a string key and a value (of a
+> +specific type) associated with it.
+> +
+> +In the ACPI _DSD context it is an element of the sub-package following the
+> +generic Device Properties UUID in the _DSD return package as specified in the
+> +Device Properties UUID definition document [1].
+> +
+> +It also may be regarded as the definition of a key and the associated data type
+> +that can be returned by _DSD in the Device Properties UUID sub-package for a
+> +given device.
+> +
+> +A property set is a collection of properties applicable to a hardware entity
+> +like a device.  In the ACPI _DSD context it is the set of all properties that
+> +can be returned in the Device Properties UUID sub-package for the device in
+> +question.
+> +
+> +Property subsets are nested collections of properties.  Each of them is
+> +associated with an additional key (name) allowing the subset to be referred
+> +to as a whole (and to be treated as a separate entity).  The canonical
+> +representation of property subsets is via the mechanism specified in the
+> +Hierarchical Properties Extension UUID definition document [2].
+> +
+> +Property sets may be hierarchical.  That is, a property set may contain
+> +multiple property subsets that each may contain property subsets of its
+> +own and so on.
+> +
+> +General Validity Rule for Property Sets
+> +---------------------------------------
+> +
+> +Valid property sets must follow the guidance given by the Device Properties UUID
+> +definition document [1].
+> +
+> +_DSD properties are intended to be used in addition to, and not instead of, the
+> +existing mechanisms defined by the ACPI specification.  Therefore, as a rule,
+> +they should only be used if the ACPI specification does not make direct
+> +provisions for handling the underlying use case.  It generally is invalid to
+> +return property sets which do not follow that rule from _DSD in data packages
+> +associated with the Device Properties UUID.
+> +
+> +Additional Considerations
+> +-------------------------
+> +
+> +There are cases in which, even if the general rule given above is followed in
+> +principle, the property set may still not be regarded as a valid one.
+> +
+> +For example, that applies to device properties which may cause kernel code
+> +(either a device driver or a library/subsystem) to access hardware in a way
+> +possibly leading to a conflict with AML methods in the ACPI namespace.  In
+> +particular, that may happen if the kernel code uses device properties to
+> +manipulate hardware normally controlled by ACPI methods related to power
+> +management, like _PSx and _DSW (for device objects) or _ON and _OFF (for power
+> +resource objects), or by ACPI device disabling/enabling methods, like _DIS and
+> +_SRS.
+> +
+> +In all cases in which kernel code may do something that will confuse AML as a
+> +result of using device properties, the device properties in question are not
+> +suitable for the ACPI environment and consequently they cannot belong to a valid
+> +property set.
+> +
+> +Property Sets and Device Tree Bindings
+> +--------------------------------------
+> +
+> +It often is useful to make _DSD return property sets that follow Device Tree
+> +bindings.
+> +
+> +In those cases, however, the above validity considerations must be taken into
+> +account in the first place and returning invalid property sets from _DSD must be
+> +avoided.  For this reason, it may not be possible to make _DSD return a property
+> +set following the given DT binding literally and completely.  Still, for the
+> +sake of code re-use, it may make sense to provide as much of the configuration
+> +data as possible in the form of device properties and complement that with an
+> +ACPI-specific mechanism suitable for the use case at hand.
+> +
+> +In any case, property sets following DT bindings literally should not be
+> +expected to automatically work in the ACPI environment regardless of their
+> +contents.
+> +
+> +References
+> +----------
+> +
+> +[1] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+> +[2] http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
