@@ -1,150 +1,113 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [Linaro-acpi] [PATCH V1 1/2] PCI: thunder: Enable ACPI PCI
- controller for ThunderX pass2.x silicon version
-Date: Fri, 2 Dec 2016 01:45:59 -0500
-Message-ID: <35d2f3b3-7337-f763-86be-2426d6041251@redhat.com>
-References: <1479201298-25494-1-git-send-email-tn@semihalf.com>
- <1479201298-25494-2-git-send-email-tn@semihalf.com>
- <20161201002812.GB9409@bhelgaas-glaptop.roam.corp.google.com>
- <e5b1f09c-ca4c-fbf0-e9d7-c943ad0df2ff@redhat.com>
- <CADaLNDm8Zp_kAqVvSd0po9S3j2rSXxtUJ1M33dW7gLZzvueweQ@mail.gmail.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH V5] leds: pca955x: Add ACPI support for pca955x
+Date: Fri, 02 Dec 2016 09:40:05 +0100
+Message-ID: <991a5ed9-f91d-ef2b-46df-0e71b30ea0e2@samsung.com>
+References: <CGME20161202043935epcas3p4a265da1fbc45fb7de8e9ec2a0f308e18@epcas3p4.samsung.com>
+ <1480653553-22911-1-git-send-email-tnhuynh@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56968 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750774AbcLBGqJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 2 Dec 2016 01:46:09 -0500
-In-Reply-To: <CADaLNDm8Zp_kAqVvSd0po9S3j2rSXxtUJ1M33dW7gLZzvueweQ@mail.gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:22253 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758508AbcLBIkM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Dec 2016 03:40:12 -0500
+In-reply-to: <1480653553-22911-1-git-send-email-tnhuynh@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Duc Dang <dhdang@apm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Arnd Bergmann <arnd@arndb.de>, Rafael Wysocki <rafael@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, David Daney <ddaney@caviumnetworks.com>, Jeremy Linton <jeremy.linton@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, Robert Richter <robert.richter@caviumnetworks.com>, linux-pci@vger.kernel.org, Marcin Wojtas <mw@semihalf.com>, Andrea Gallo <andrea.gallo@linaro.org>, linux-arm <linux-arm-kernel@lists.infr>
+To: Tin Huynh <tnhuynh@apm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Peter Rosin <peda@axentia.se>, Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-On 12/02/2016 01:42 AM, Duc Dang wrote:
-> On Thu, Dec 1, 2016 at 9:50 PM, Jon Masters <jcm@redhat.com> wrote:
->> On 11/30/2016 07:28 PM, Bjorn Helgaas wrote:
->>
->>> I'm hoping to end up with something like this:
->>> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/commit/?h=pci/ecam&id=51ad4df79a9b7f2a66b346a46b21a785a2937469
->>
->> The following build warnings happen using your branch on RHELSA7.3:
->>
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->>   THUNDER_PEM_QUIRK(2,  0), /* off-chip devices */
->>   ^
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[44].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[44].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[45].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[45].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[46].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[46].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[47].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[47].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[48].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[48].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[49].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:101:2: warning: (near initialization for ‘mcfg_quirks[49].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->>   THUNDER_PEM_QUIRK(2,  1), /* off-chip devices */
->>   ^
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[50].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[50].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[51].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[51].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[52].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[52].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[53].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[53].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[54].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[54].cfgres.end’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[55].cfgres.start’) [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: left shift count >= width of type [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: initializer element is not a constant expression [enabled by default]
->> drivers/acpi/pci_mcfg.c:102:2: warning: (near initialization for ‘mcfg_quirks[55].cfgres.end’) [enabled by default]
-> 
-> I saw this too. It can be fixed by changes below:
-> 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index 7319188..3d7c5cc 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -98,16 +98,16 @@ struct mcfg_fixup {
->         { "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,                 \
->         &pci_thunder_ecam_ops }
->         /* SoC pass1.x */
-> -   THUNDER_PEM_QUIRK(2,  0),       /* off-chip devices */
-> -   THUNDER_PEM_QUIRK(2,  1),       /* off-chip devices */
-> -   THUNDER_ECAM_QUIRK(2,  0),
-> -   THUNDER_ECAM_QUIRK(2,  1),
-> -   THUNDER_ECAM_QUIRK(2,  2),
-> -   THUNDER_ECAM_QUIRK(2,  3),
-> -   THUNDER_ECAM_QUIRK(2, 10),
-> -   THUNDER_ECAM_QUIRK(2, 11),
-> -   THUNDER_ECAM_QUIRK(2, 12),
-> -   THUNDER_ECAM_QUIRK(2, 13),
-> + THUNDER_PEM_QUIRK(2, 0UL),  /* off-chip devices */
-> + THUNDER_PEM_QUIRK(2, 1UL),  /* off-chip devices */
-> + THUNDER_ECAM_QUIRK(2, 0UL),
-> + THUNDER_ECAM_QUIRK(2, 1UL),
-> + THUNDER_ECAM_QUIRK(2, 2UL),
-> + THUNDER_ECAM_QUIRK(2, 3UL),
-> + THUNDER_ECAM_QUIRK(2, 10UL),
-> + THUNDER_ECAM_QUIRK(2, 11UL),
-> + THUNDER_ECAM_QUIRK(2, 12UL),
-> + THUNDER_ECAM_QUIRK(2, 13UL),
-> 
->  #define XGENE_V1_ECAM_MCFG(rev, seg) \
->         {"APM   ", "XGENE   ", rev, seg, MCFG_BUS_ANY, \
+Hi Tin,
 
-...which reminds me to followup on that project to get an Intel-style
-0-day test service running for arm64. It's been kicking around too long.
+On 12/02/2016 05:39 AM, Tin Huynh wrote:
+> This patch enables ACPI support for leds-pca955x driver.
+>
+> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+> ---
+>  drivers/leds/leds-pca955x.c |   24 ++++++++++++++++++++++--
+>  1 files changed, 22 insertions(+), 2 deletions(-)
+>
+> Change from V4:
+>  -Using client->name instead of id->name to avoid NULL pointer in ACPI.
+>
+> Change from V3:
+>  -Drop ".id =" and ".driver_data =" from pca955x_acpi_ids initializers.
+>
+> Change from V2:
+>  -Correct coding conventions.
+>
+> Change from V1:
+>  -Remove CONFIG_ACPI.
+>
+> diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+> index 840401a..78a7ce8 100644
+> --- a/drivers/leds/leds-pca955x.c
+> +++ b/drivers/leds/leds-pca955x.c
+> @@ -40,6 +40,7 @@
+>   *  bits the chip supports.
+>   */
+>
+> +#include <linux/acpi.h>
+>  #include <linux/module.h>
+>  #include <linux/delay.h>
+>  #include <linux/string.h>
+> @@ -100,6 +101,15 @@ struct pca955x_chipdef {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, pca955x_id);
+>
+> +static const struct acpi_device_id pca955x_acpi_ids[] = {
+> +	{ "PCA9550",  pca9550 },
+> +	{ "PCA9551",  pca9551 },
+> +	{ "PCA9552",  pca9552 },
+> +	{ "PCA9553",  pca9553 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
+> +
+>  struct pca955x {
+>  	struct mutex lock;
+>  	struct pca955x_led *leds;
+> @@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
+>  	struct led_platform_data *pdata;
+>  	int i, err;
+>
+> -	chip = &pca955x_chipdefs[id->driver_data];
+> +	if (id) {
+> +		chip = &pca955x_chipdefs[id->driver_data];
+> +	} else {
+> +		const struct acpi_device_id *acpi_id;
+> +
+> +		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
+> +		if (!acpi_id)
+> +			return -ENODEV;
+> +		chip = &pca955x_chipdefs[acpi_id->driver_data];
+> +	}
+>  	adapter = to_i2c_adapter(client->dev.parent);
+>  	pdata = dev_get_platdata(&client->dev);
+>
+> @@ -264,7 +283,7 @@ static int pca955x_probe(struct i2c_client *client,
+>
+>  	dev_info(&client->dev, "leds-pca955x: Using %s %d-bit LED driver at "
+>  			"slave address 0x%02x\n",
+> -			id->name, chip->bits, client->addr);
+> +			client->name, chip->bits, client->addr);
+>
+>  	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
+>  		return -EIO;
+> @@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
+>  static struct i2c_driver pca955x_driver = {
+>  	.driver = {
+>  		.name	= "leds-pca955x",
+> +		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
+>  	},
+>  	.probe	= pca955x_probe,
+>  	.remove	= pca955x_remove,
+>
+
+Thanks for the quick reaction. Replaced v4 with v5 on the for-next
+branch.
 
 -- 
-Computer Architect | Sent from my Fedora powered laptop
-
+Best regards,
+Jacek Anaszewski
