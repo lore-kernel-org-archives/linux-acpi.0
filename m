@@ -1,101 +1,51 @@
-From: Tin Huynh <tnhuynh@apm.com>
-Subject: [PATCH V5] leds: pca955x: Add ACPI support for pca955x
-Date: Fri,  2 Dec 2016 11:39:13 +0700
-Message-ID: <1480653553-22911-1-git-send-email-tnhuynh@apm.com>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [PATCHv2] PCI: QDF2432 32 bit config space accessors
+Date: Thu, 1 Dec 2016 23:58:52 -0500
+Message-ID: <3a386ce0-33df-fb88-33df-88b9ca8816c7@redhat.com>
+References: <20160921173129.GA20006@localhost>
+ <20160921223805.21652-1-cov@codeaurora.org>
+ <20161031214833.GB14603@bhelgaas-glaptop.roam.corp.google.com>
+ <dbf40b73baa71155f39e13d6e51073aa@codeaurora.org>
+ <20161102160820.GA6568@bhelgaas-glaptop.roam.corp.google.com>
+ <3fd26a0d-a5c2-c385-866e-b957dffb7dda@codeaurora.org>
+ <20161103140058.GA31142@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f53.google.com ([74.125.83.53]:32983 "EHLO
-        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756585AbcLBEjc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2016 23:39:32 -0500
-Received: by mail-pg0-f53.google.com with SMTP id 3so102979186pgd.0
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Dec 2016 20:39:32 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:33092 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751140AbcLBE7E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Dec 2016 23:59:04 -0500
+In-Reply-To: <20161103140058.GA31142@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>, Peter Rosin <peda@axentia.se>, Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
+To: Bjorn Helgaas <helgaas@kernel.org>, Sinan Kaya <okaya@codeaurora.org>
+Cc: cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, Lorenzo.Pieralisi@arm.com, arnd@arndb.de, hanjun.guo@linaro.org, jchandra@broadcom.com, dhdang@apm.com, ard.biesheuvel@linaro.org, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch enables ACPI support for leds-pca955x driver.
+On 11/03/2016 10:00 AM, Bjorn Helgaas wrote:
 
-Signed-off-by: Tin Huynh <tnhuynh@apm.com>
----
- drivers/leds/leds-pca955x.c |   24 ++++++++++++++++++++++--
- 1 files changed, 22 insertions(+), 2 deletions(-)
+> It turns out that we can't use the _CRS of host bridges because of the
+> Producer/Consumer bit screwup [1].  So the fallback is to include the
+> ECAM space in the _CRS of a PNP0C02 device.  This is what the PCI
+> Firmware spec r3.0, Table 4-2, footnote 2 is talking about.
+> 
+> Bjorn
+> 
+> [1] The original ACPI spec intent was that Consumer resources would be
+> space like ECAM that is consumed directly by the bridge, and Producer
+> resources would be the windows forwarded down to PCI.  But BIOSes
+> didn't use the Producer/Consumer bit consistently, so we have to
+> assume that all resources in host bridge _CRS are windows, which
+> leaves us no way to describe the Consumer resources.
 
-Change from V4:
- -Using client->name instead of id->name to avoid NULL pointer in ACPI.
- 
-Change from V3:
- -Drop ".id =" and ".driver_data =" from pca955x_acpi_ids initializers.
+Aside - and now I realize you'd called this out as recently as last
+month. Alas the HPE m400 I reference on the other thread about the
+APM quirks doesn't have the motherboard resource entry so we're
+stuck with exactly the situation you describe above there.
 
-Change from V2:
- -Correct coding conventions.
+Jon.
 
-Change from V1:
- -Remove CONFIG_ACPI.
-
-diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
-index 840401a..78a7ce8 100644
---- a/drivers/leds/leds-pca955x.c
-+++ b/drivers/leds/leds-pca955x.c
-@@ -40,6 +40,7 @@
-  *  bits the chip supports.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/string.h>
-@@ -100,6 +101,15 @@ struct pca955x_chipdef {
- };
- MODULE_DEVICE_TABLE(i2c, pca955x_id);
- 
-+static const struct acpi_device_id pca955x_acpi_ids[] = {
-+	{ "PCA9550",  pca9550 },
-+	{ "PCA9551",  pca9551 },
-+	{ "PCA9552",  pca9552 },
-+	{ "PCA9553",  pca9553 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
-+
- struct pca955x {
- 	struct mutex lock;
- 	struct pca955x_led *leds;
-@@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
- 	struct led_platform_data *pdata;
- 	int i, err;
- 
--	chip = &pca955x_chipdefs[id->driver_data];
-+	if (id) {
-+		chip = &pca955x_chipdefs[id->driver_data];
-+	} else {
-+		const struct acpi_device_id *acpi_id;
-+
-+		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
-+		if (!acpi_id)
-+			return -ENODEV;
-+		chip = &pca955x_chipdefs[acpi_id->driver_data];
-+	}
- 	adapter = to_i2c_adapter(client->dev.parent);
- 	pdata = dev_get_platdata(&client->dev);
- 
-@@ -264,7 +283,7 @@ static int pca955x_probe(struct i2c_client *client,
- 
- 	dev_info(&client->dev, "leds-pca955x: Using %s %d-bit LED driver at "
- 			"slave address 0x%02x\n",
--			id->name, chip->bits, client->addr);
-+			client->name, chip->bits, client->addr);
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
- 		return -EIO;
-@@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
- static struct i2c_driver pca955x_driver = {
- 	.driver = {
- 		.name	= "leds-pca955x",
-+		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
- 	},
- 	.probe	= pca955x_probe,
- 	.remove	= pca955x_remove,
 -- 
-1.7.1
+Computer Architect | Sent from my Fedora powered laptop
 
