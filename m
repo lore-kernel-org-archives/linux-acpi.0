@@ -1,90 +1,101 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Thu, 1 Dec 2016 20:18:48 -0600
-Message-ID: <20161202021848.GA26714@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <20161201223604.GC15867@bhelgaas-glaptop.roam.corp.google.com>
- <47776378.8X3TnsHd3Q@aspire.rjw.lan>
- <20161201232732.GB17948@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0gtG6++GqyOb_B=o-=R4YuFia8PH6W3NFiCZuay=pV7TA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tin Huynh <tnhuynh@apm.com>
+Subject: [PATCH V5] leds: pca955x: Add ACPI support for pca955x
+Date: Fri,  2 Dec 2016 11:39:13 +0700
+Message-ID: <1480653553-22911-1-git-send-email-tnhuynh@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:52894 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750960AbcLBCSx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 1 Dec 2016 21:18:53 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gtG6++GqyOb_B=o-=R4YuFia8PH6W3NFiCZuay=pV7TA@mail.gmail.com>
+Received: from mail-pg0-f53.google.com ([74.125.83.53]:32983 "EHLO
+        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756585AbcLBEjc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Dec 2016 23:39:32 -0500
+Received: by mail-pg0-f53.google.com with SMTP id 3so102979186pgd.0
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Dec 2016 20:39:32 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Duc Dang <dhdang@apm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>, Peter Rosin <peda@axentia.se>, Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 
-On Fri, Dec 02, 2016 at 01:28:50AM +0100, Rafael J. Wysocki wrote:
-> On Fri, Dec 2, 2016 at 12:27 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Thu, Dec 01, 2016 at 11:37:39PM +0100, Rafael J. Wysocki wrote:
-> >> On Thursday, December 01, 2016 04:36:04 PM Bjorn Helgaas wrote:
-> >> > On Tue, Nov 29, 2016 at 03:39:48PM -0600, Bjorn Helgaas wrote:
-> >> > > Here's another stab at this writeup.  I'd appreciate any comments!
-> >> > >
-> >> > > Changes from v1 to v2:
-> >> > >   - Consumer/Producer is defined for Extended Address Space descriptors;
-> >> > >     should be ignored for QWord/DWord/Word Address Space descriptors
-> >> > >   - New arches may use Extended Address Space descriptors in PNP0A03 for
-> >> > >     bridge registers, including ECAM (if the arch adds support for this)
-> >> > >   - Add more details about MCFG and _CBA (Lv's suggestion)
-> >> > >   - Incorporate Rafael's suggestions
-> >> > >
-> >> > > ---
-> >> > >
-> >> > > Bjorn Helgaas (1):
-> >> > >       PCI: Add information about describing PCI in ACPI
-> >> > >
-> >> > >
-> >> > >  Documentation/PCI/00-INDEX      |    2
-> >> > >  Documentation/PCI/acpi-info.txt |  180 +++++++++++++++++++++++++++++++++++++++
-> >> > >  2 files changed, 182 insertions(+)
-> >> > >  create mode 100644 Documentation/PCI/acpi-info.txt
-> >> >
-> >> > It's very late in the cycle, but I'm considering trying to squeeze
-> >> > this into v4.9 on the grounds that:
-> >> >
-> >> >   - It's only a documentation change and can't break anything, and
-> >> >
-> >> >   - Distributing it more widely may help the arm64 firmware ecosystem
-> >> >
-> >> > But I don't want to disseminate misleading or incorrect information,
-> >> > so if it needs clarification or wordsmithing, or even just maturation,
-> >> > I'll wait until v4.10.
-> >> >
-> >> > The Consumer/Producer stuff, in particular, doesn't seem 100% settled
-> >> > yet.  Your thoughts, and especially your improvements, are welcome!
-> >>
-> >> Well, what's the drawback if it doesn't go into 4.9?
-> >
-> > Only that it's not as easily accessible.  ARM64 ACPI firmware is brand
-> > new.  Neither the firmware nor the kernel developers, nor even the
-> > hardware designers, have the benefit of all the x86/ia64 history, so I
-> > wrote this to try to come to a common understanding of what Linux
-> > expects.
-> >
-> > The first generation of ARM64 hardware is already in the field, and it
-> > has teething problems in hardware, firmware, and kernel.  For example,
-> > the current MCFG quirk situation: the ECAM hardware doesn't work quite
-> > per spec, the ACPI firmware doesn't describe the address space
-> > completely, and we don't really have consensus on how the firmware
-> > should communicate register space to the kernel.
-> >
-> > We're hoping the second generation can fix some of these problems, and
-> > I think this is the time to try to influence that.
-> 
-> Well, I would be super-careful if I were you, then. :-)
-> 
-> I'm not sure if squeezing it into 4.9.0 buys you anything here.  If
-> you get it into 4.10-rc, you can request -stable to pick it up (at
-> least in principle) and then it will show up in 4.9.y at one point
-> which should suffice I suppose?
+This patch enables ACPI support for leds-pca955x driver.
 
-You're right, there's no real hurry, and the rate of change is a good
-indication that we need to let things settle out for a while.
+Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+---
+ drivers/leds/leds-pca955x.c |   24 ++++++++++++++++++++++--
+ 1 files changed, 22 insertions(+), 2 deletions(-)
+
+Change from V4:
+ -Using client->name instead of id->name to avoid NULL pointer in ACPI.
+ 
+Change from V3:
+ -Drop ".id =" and ".driver_data =" from pca955x_acpi_ids initializers.
+
+Change from V2:
+ -Correct coding conventions.
+
+Change from V1:
+ -Remove CONFIG_ACPI.
+
+diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+index 840401a..78a7ce8 100644
+--- a/drivers/leds/leds-pca955x.c
++++ b/drivers/leds/leds-pca955x.c
+@@ -40,6 +40,7 @@
+  *  bits the chip supports.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/string.h>
+@@ -100,6 +101,15 @@ struct pca955x_chipdef {
+ };
+ MODULE_DEVICE_TABLE(i2c, pca955x_id);
+ 
++static const struct acpi_device_id pca955x_acpi_ids[] = {
++	{ "PCA9550",  pca9550 },
++	{ "PCA9551",  pca9551 },
++	{ "PCA9552",  pca9552 },
++	{ "PCA9553",  pca9553 },
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
++
+ struct pca955x {
+ 	struct mutex lock;
+ 	struct pca955x_led *leds;
+@@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
+ 	struct led_platform_data *pdata;
+ 	int i, err;
+ 
+-	chip = &pca955x_chipdefs[id->driver_data];
++	if (id) {
++		chip = &pca955x_chipdefs[id->driver_data];
++	} else {
++		const struct acpi_device_id *acpi_id;
++
++		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
++		if (!acpi_id)
++			return -ENODEV;
++		chip = &pca955x_chipdefs[acpi_id->driver_data];
++	}
+ 	adapter = to_i2c_adapter(client->dev.parent);
+ 	pdata = dev_get_platdata(&client->dev);
+ 
+@@ -264,7 +283,7 @@ static int pca955x_probe(struct i2c_client *client,
+ 
+ 	dev_info(&client->dev, "leds-pca955x: Using %s %d-bit LED driver at "
+ 			"slave address 0x%02x\n",
+-			id->name, chip->bits, client->addr);
++			client->name, chip->bits, client->addr);
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
+ 		return -EIO;
+@@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
+ static struct i2c_driver pca955x_driver = {
+ 	.driver = {
+ 		.name	= "leds-pca955x",
++		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
+ 	},
+ 	.probe	= pca955x_probe,
+ 	.remove	= pca955x_remove,
+-- 
+1.7.1
+
