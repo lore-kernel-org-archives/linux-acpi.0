@@ -1,113 +1,53 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH V5] leds: pca955x: Add ACPI support for pca955x
-Date: Fri, 02 Dec 2016 09:40:05 +0100
-Message-ID: <991a5ed9-f91d-ef2b-46df-0e71b30ea0e2@samsung.com>
-References: <CGME20161202043935epcas3p4a265da1fbc45fb7de8e9ec2a0f308e18@epcas3p4.samsung.com>
- <1480653553-22911-1-git-send-email-tnhuynh@apm.com>
+From: "majun (Euler7)" <majun258@huawei.com>
+Subject: Re: [RFC PATCH 0/3] Add a new flag for ITS device to control indirect
+ route
+Date: Fri, 2 Dec 2016 17:29:50 +0800
+Message-ID: <58413F0E.3030604@huawei.com>
+References: <1480578360-9268-1-git-send-email-majun258@huawei.com>
+ <3ce161a7-ee63-a018-4a75-9e7520143d97@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:22253 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758508AbcLBIkM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Dec 2016 03:40:12 -0500
-In-reply-to: <1480653553-22911-1-git-send-email-tnhuynh@apm.com>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:39052 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751731AbcLBJaV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Dec 2016 04:30:21 -0500
+In-Reply-To: <3ce161a7-ee63-a018-4a75-9e7520143d97@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Richard Purdie <rpurdie@rpsys.net>, Peter Rosin <peda@axentia.se>, Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
+To: Marc Zyngier <marc.zyngier@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, lenb@kernel.org, lv.zheng@intel.com, rafael.j.wysocki@intel.com, devel@acpica.org, mark.rutland@arm.com, robh+dt@kernel.org, jason@lakedaemon.net
+Cc: majun258@huawei.com, dingtianhong@huawei.com, guohanjun@huawei.com
 
-Hi Tin,
 
-On 12/02/2016 05:39 AM, Tin Huynh wrote:
-> This patch enables ACPI support for leds-pca955x driver.
->
-> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
-> ---
->  drivers/leds/leds-pca955x.c |   24 ++++++++++++++++++++++--
->  1 files changed, 22 insertions(+), 2 deletions(-)
->
-> Change from V4:
->  -Using client->name instead of id->name to avoid NULL pointer in ACPI.
->
-> Change from V3:
->  -Drop ".id =" and ".driver_data =" from pca955x_acpi_ids initializers.
->
-> Change from V2:
->  -Correct coding conventions.
->
-> Change from V1:
->  -Remove CONFIG_ACPI.
->
-> diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
-> index 840401a..78a7ce8 100644
-> --- a/drivers/leds/leds-pca955x.c
-> +++ b/drivers/leds/leds-pca955x.c
-> @@ -40,6 +40,7 @@
->   *  bits the chip supports.
->   */
->
-> +#include <linux/acpi.h>
->  #include <linux/module.h>
->  #include <linux/delay.h>
->  #include <linux/string.h>
-> @@ -100,6 +101,15 @@ struct pca955x_chipdef {
->  };
->  MODULE_DEVICE_TABLE(i2c, pca955x_id);
->
-> +static const struct acpi_device_id pca955x_acpi_ids[] = {
-> +	{ "PCA9550",  pca9550 },
-> +	{ "PCA9551",  pca9551 },
-> +	{ "PCA9552",  pca9552 },
-> +	{ "PCA9553",  pca9553 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, pca955x_acpi_ids);
-> +
->  struct pca955x {
->  	struct mutex lock;
->  	struct pca955x_led *leds;
-> @@ -250,7 +260,16 @@ static int pca955x_probe(struct i2c_client *client,
->  	struct led_platform_data *pdata;
->  	int i, err;
->
-> -	chip = &pca955x_chipdefs[id->driver_data];
-> +	if (id) {
-> +		chip = &pca955x_chipdefs[id->driver_data];
-> +	} else {
-> +		const struct acpi_device_id *acpi_id;
-> +
-> +		acpi_id = acpi_match_device(pca955x_acpi_ids, &client->dev);
-> +		if (!acpi_id)
-> +			return -ENODEV;
-> +		chip = &pca955x_chipdefs[acpi_id->driver_data];
-> +	}
->  	adapter = to_i2c_adapter(client->dev.parent);
->  	pdata = dev_get_platdata(&client->dev);
->
-> @@ -264,7 +283,7 @@ static int pca955x_probe(struct i2c_client *client,
->
->  	dev_info(&client->dev, "leds-pca955x: Using %s %d-bit LED driver at "
->  			"slave address 0x%02x\n",
-> -			id->name, chip->bits, client->addr);
-> +			client->name, chip->bits, client->addr);
->
->  	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
->  		return -EIO;
-> @@ -358,6 +377,7 @@ static int pca955x_remove(struct i2c_client *client)
->  static struct i2c_driver pca955x_driver = {
->  	.driver = {
->  		.name	= "leds-pca955x",
-> +		.acpi_match_table = ACPI_PTR(pca955x_acpi_ids),
->  	},
->  	.probe	= pca955x_probe,
->  	.remove	= pca955x_remove,
->
 
-Thanks for the quick reaction. Replaced v4 with v5 on the for-next
-branch.
+在 2016/12/1 17:07, Marc Zyngier 写道:
+> On 01/12/16 07:45, Majun wrote:
+>> From: MaJun <majun258@huawei.com>
+>>
+>> For current ITS driver, two level table (indirect route) is enabled when the memory used
+>> for LPI route table over the limit(64KB * 2) size. But this function impact the 
+>> performance of LPI interrupt actually because need more time to look up the table.
+> 
+> Are you implying that your ITS doesn't have a cache to lookup the most
+> active devices, hence performing a full lookup on each interrupt?
 
--- 
-Best regards,
-Jacek Anaszewski
+Our ITS chip has the cache with depth 64. But this seems not enough for some
+scenario,espeically on virtulization platform.
+> 
+> Anyway, doing this as a DT quirk doesn't feel right. Please use the ITS
+> quirk infrastructure.
+
+If there is no other better solutions, I will do this.
+
+Thanks!
+Majun
+
+
+
+> 
+> Thanks,
+> 
+> 	M.
+> 
+
