@@ -1,65 +1,62 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [Linaro-acpi] [PATCH V1 1/2] PCI: thunder: Enable ACPI PCI
- controller for ThunderX pass2.x silicon version
-Date: Fri, 2 Dec 2016 11:45:00 +0100
-Message-ID: <20161202104500.GE10776@rric.localdomain>
-References: <1479201298-25494-1-git-send-email-tn@semihalf.com>
- <1479201298-25494-2-git-send-email-tn@semihalf.com>
- <20161201002812.GB9409@bhelgaas-glaptop.roam.corp.google.com>
- <e5b1f09c-ca4c-fbf0-e9d7-c943ad0df2ff@redhat.com>
- <CADaLNDm8Zp_kAqVvSd0po9S3j2rSXxtUJ1M33dW7gLZzvueweQ@mail.gmail.com>
- <30ad6c65-4a4a-6346-00f6-11250133a251@semihalf.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v2] ACPI / APEI: Fix NMI notification handling
+Date: Fri, 2 Dec 2016 19:39:31 +0800
+Message-ID: <CADyBb7s=B5U3nUwKAtT145q2_yoQYjZ+wGEc6NHEUKE-PcEfzg@mail.gmail.com>
+References: <20161129193624.krjz2bpinl2ioi7o@pd.tnic> <10086382.uM7IovncFW@aspire.rjw.lan>
+ <20161201224717.4tkp5glpib5fhusv@pd.tnic> <5033158.rooYzydQzm@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <30ad6c65-4a4a-6346-00f6-11250133a251@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Duc Dang <dhdang@apm.com>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>, Jayachandran C <jchandra@broadcom.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Arnd Bergmann <arnd@arndb.de>, Rafael Wysocki <rafael@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, David Daney <ddaney@caviumnetworks.com>, Jeremy Linton <jeremy.linton@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Marcin Wojtas <mw@semihalf.com>, Andrea Gallo <andrea.gallo@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Christopher
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f181.google.com ([209.85.223.181]:34011 "EHLO
+        mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753396AbcLBLjd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Dec 2016 06:39:33 -0500
+Received: by mail-io0-f181.google.com with SMTP id c21so436124031ioj.1
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Dec 2016 03:39:32 -0800 (PST)
+In-Reply-To: <5033158.rooYzydQzm@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@alien8.de>, Borislav Petkov <bp@kernel.org>, Prarit Bhargava <prarit@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Tyler Baicar <tbaicar@codeaurora.org>, Punit Agrawal <punit.agrawal@arm.com>, Don Zickus <dzickus@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On 02.12.16 11:06:24, Tomasz Nowicki wrote:
-> On 02.12.2016 07:42, Duc Dang wrote:
+Hi Rafael,
 
-> >@@ -98,16 +98,16 @@ struct mcfg_fixup {
-> >        { "CAVIUM", "THUNDERX", rev, seg, MCFG_BUS_ANY,                 \
-> >        &pci_thunder_ecam_ops }
-> >        /* SoC pass1.x */
-> >-   THUNDER_PEM_QUIRK(2,  0),       /* off-chip devices */
-> >-   THUNDER_PEM_QUIRK(2,  1),       /* off-chip devices */
-> >-   THUNDER_ECAM_QUIRK(2,  0),
-> >-   THUNDER_ECAM_QUIRK(2,  1),
-> >-   THUNDER_ECAM_QUIRK(2,  2),
-> >-   THUNDER_ECAM_QUIRK(2,  3),
-> >-   THUNDER_ECAM_QUIRK(2, 10),
-> >-   THUNDER_ECAM_QUIRK(2, 11),
-> >-   THUNDER_ECAM_QUIRK(2, 12),
-> >-   THUNDER_ECAM_QUIRK(2, 13),
-> >+ THUNDER_PEM_QUIRK(2, 0UL),  /* off-chip devices */
-> >+ THUNDER_PEM_QUIRK(2, 1UL),  /* off-chip devices */
-> >+ THUNDER_ECAM_QUIRK(2, 0UL),
-> >+ THUNDER_ECAM_QUIRK(2, 1UL),
-> >+ THUNDER_ECAM_QUIRK(2, 2UL),
-> >+ THUNDER_ECAM_QUIRK(2, 3UL),
-> >+ THUNDER_ECAM_QUIRK(2, 10UL),
-> >+ THUNDER_ECAM_QUIRK(2, 11UL),
-> >+ THUNDER_ECAM_QUIRK(2, 12UL),
-> >+ THUNDER_ECAM_QUIRK(2, 13UL),
-> >
-> 
-> The UL suffix is needed for *THUNDER_PEM_QUIRK* only. THUNDER_ECAM_QUIRK is
-> fine.
+On 2 December 2016 at 07:12, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, December 01, 2016 11:47:17 PM Borislav Petkov wrote:
+>> On Thu, Dec 01, 2016 at 11:29:45PM +0100, Rafael J. Wysocki wrote:
+>> > Well, there's another ARM-related patch touching APEI.
+>> >
+>> > I guess whoever takes this one should also take the other one and
+>> > honestly they can go in via any tree as far as I'm concerned, I'm just trying to
+>> > avoid merge clashes here. :-)
+>>
+>> Maybe have ARM-folk ACK the other one and take both through your ACPI
+>> tree? They both do have ACPI in common :-)
+>
+> That one have been ACKed already.
 
-We should better make the type cast part of the macro.
+I guess that is "[PATCH v15] acpi, apei, arm64: APEI initial support
+for aarch64."
 
-+ this:
+>
+> OK, I'll take them both.
 
----
-#define THUNDER_MCFG_RES(addr, node) \
-       DEFINE_RES_MEM(addr + (node << 44), 0x39 * SZ_16M)
----
+Great thanks, Rafael :-)
 
-The args in the macro need parentheses.
+>
+> Thanks,
+> Rafael
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--Robert
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
