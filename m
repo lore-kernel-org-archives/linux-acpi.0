@@ -1,122 +1,319 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v9 07/16] drivers: acpi: implement acpi_dma_configure
-Date: Sat, 3 Dec 2016 10:39:44 +0000
-Message-ID: <20161203103927.GA14953@red-moon>
-References: <20161121100148.24769-1-lorenzo.pieralisi@arm.com>
-	<20161121100148.24769-8-lorenzo.pieralisi@arm.com>
-	<20161202153816.GA18290@red-moon>
-	<CAJZ5v0jfwGBaHepToB9U3qQZ3KTB6XzoRDwEskV0B9fK7+OoDg@mail.gmail.com>
+From: G Gregory <graeme.gregory@linaro.org>
+Subject: Re: [PATCH v3 11/14] ACPI: irq: introduce interrupt producer
+Date: Sat, 3 Dec 2016 12:18:02 +0000
+Message-ID: <20161203121802.GG1115@linaro-xps13.localdomain>
+References: <1477408169-22217-1-git-send-email-guohanjun@huawei.com>
+ <1477408169-22217-12-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35494 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751056AbcLCMSW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Dec 2016 07:18:22 -0500
+Received: by mail-wm0-f50.google.com with SMTP id a197so40095027wmd.0
+        for <linux-acpi@vger.kernel.org>; Sat, 03 Dec 2016 04:18:22 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jfwGBaHepToB9U3qQZ3KTB6XzoRDwEskV0B9fK7+OoDg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1477408169-22217-12-git-send-email-guohanjun@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Sat, Dec 03, 2016 at 03:11:09AM +0100, Rafael J. Wysocki wrote:
-> On Fri, Dec 2, 2016 at 4:38 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> > Rafael, Mark, Suravee,
-> >
-> > On Mon, Nov 21, 2016 at 10:01:39AM +0000, Lorenzo Pieralisi wrote:
-> >> On DT based systems, the of_dma_configure() API implements DMA
-> >> configuration for a given device. On ACPI systems an API equivalent to
-> >> of_dma_configure() is missing which implies that it is currently not
-> >> possible to set-up DMA operations for devices through the ACPI generic
-> >> kernel layer.
-> >>
-> >> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> >> calls that for now are just wrappers around arch_setup_dma_ops() and
-> >> arch_teardown_dma_ops() and also updates ACPI and PCI core code to use
-> >> the newly introduced acpi_dma_configure/acpi_dma_deconfigure functions.
-> >>
-> >> Since acpi_dma_configure() is used to configure DMA operations, the
-> >> function initializes the dma/coherent_dma masks to sane default values
-> >> if the current masks are uninitialized (also to keep the default values
-> >> consistent with DT systems) to make sure the device has a complete
-> >> default DMA set-up.
-> >
-> > I spotted a niggle that unfortunately was hard to spot (and should not
-> > be a problem per se but better safe than sorry) and I am not comfortable
-> > with it.
-> >
-> > Following commit d0562674838c ("ACPI / scan: Parse _CCA and setup
-> > device coherency") in acpi_bind_one() we check if the acpi_device
-> > associated with a device just added supports DMA, first it was
-> > done with acpi_check_dma() and then commit 1831eff876bd ("device
-> > property: ACPI: Make use of the new DMA Attribute APIs") changed
-> > it to acpi_get_dma_attr().
-> >
-> > The subsequent check (attr != DEV_DMA_NOT_SUPPORTED) is always true
-> > on _any_ acpi device we pass to acpi_bind_one() on x86, which was
-> > fine because we used it to call arch_setup_dma_ops(), which is a nop
-> > on x86. On ARM64 a _CCA method is required to define if a device
-> > supports DMA so (attr != DEV_DMA_NOT_SUPPORTED) may well be false.
-> >
-> > Now, acpi_bind_one() is used to bind an acpi_device to its physical
-> > node also for pseudo-devices like cpus and memory nodes. For those
-> > objects, on x86, attr will always be != DEV_DMA_NOT_SUPPORTED.
-> >
-> > So far so good, because on x86 arch_setup_dma_ops() is empty code.
-> >
-> > With this patch, I use the (attr != DEV_DMA_NOT_SUPPORTED) check
-> > to call acpi_dma_configure() which is basically a nop on x86 except
-> > that it sets up the dma_mask/coherent_dma_mask to a sane default value
-> > (after all we are setting up DMA for the device so it makes sense to
-> > initialize the masks there if they were unset since we are configuring
-> > DMA for the device in question) for the given device.
-> >
-> > Problem is, as per the explanation above, we are also setting the
-> > default dma masks for pseudo-devices (eg CPUs) that were previously
-> > untouched, it should not be a problem per-se but I am not comfortable
-> > with that, honestly it does not make much sense.
-> >
-> > An easy "fix" would be to move the default dma masks initialization out
-> > of acpi_dma_configure() (as it was in previous patch versions of this
-> > series - I moved it to acpi_dma_configure() just a consolidation point
-> > for initializing the masks instead of scattering them in every
-> > acpi_dma_configure caller) I can send this as a fix-up patch to Joerg if
-> > we think that's the right thing to do (or I can send it to Rafael later
-> > when the code is in the merged depending on the timing) just let me
-> > know please.
-> 
-> Why can't arch_setup_dma_ops() set those masks too?
+On Tue, Oct 25, 2016 at 11:09:26PM +0800, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
+>=20
+> In ACPI 6.1 spec, section 19.6.62, Interrupt Resource Descriptor Macro,
+>=20
+> Interrupt (ResourceUsage, EdgeLevel, ActiveLevel, Shared,
+> ResourceSourceIndex, ResourceSource, DescriptorName)
+> { InterruptList } =3D> Buffer
+>=20
+> For the arguement ResourceUsage and DescriptorName, which means:
+>=20
+> ResourceUsage describes whether the device consumes the specified
+> interrupt ( ResourceConsumer ) or produces it for use by a child
+> device ( ResourceProducer ).
+> If nothing is specified, then ResourceConsumer is assumed.
+>=20
+> DescriptorName evaluates to a name string which refers to the
+> entire resource descriptor.
+>=20
+> So it can be used for devices connecting to a specific interrupt
+> prodcucer instead of the main interrupt controller in MADT. In the
+> real world, we have irqchip such as mbi-gen which connecting to
+> a group of wired interrupts and then issue msi to the ITS, devices
+> connecting to such interrupt controller fit this scope.
+>=20
+> For now the irq for ACPI only pointer to the main interrupt
+> controller's irqdomain, for devices not connecting to those
+> irqdomains, which need to present its irq parent, we can use
+> following ASL code to represent it:
+>=20
+> Interrupt(ResourceConsumer,..., "\_SB.IRQP") {12,14,....}
+>=20
+> then we can parse the interrupt producer with the full
+> path name "\_SB.IRQP".
+>=20
+> In order to do that, we introduce a pointer interrupt_producer
+> in struct acpi_device, and fill it when scanning irq resources
+> for acpi device if it specifies the interrupt producer.
+>=20
+> But for now when parsing the resources for acpi devices, we don't
+> pass the acpi device for acpi_walk_resoures() in drivers/acpi/resource.c,
+> so introduce a adev in struct res_proc_context to pass it as a context
+> to scan the interrupt resources, then finally pass to acpi_register_gsi()
+> to find its interrupt producer to get the virq from diffrent domains.
+>=20
+> With steps above ready, rework acpi_register_gsi() to get other
+> interrupt producer if devices not connecting to main interrupt
+> controller.
+>=20
+> Since we often pass NULL to acpi_register_gsi() and there is no interrupt
+> producer for devices connect to gicd on ARM or io-apic on X86, so it will
+> use the default irqdomain for those deivces and no functional changes to
+> those devices.
+>=20
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Agustin Vega-Frias <agustinv@codeaurora.org>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>  drivers/acpi/gsi.c      | 10 ++++--
+>  drivers/acpi/resource.c | 85 ++++++++++++++++++++++++++++++++++---------=
+------
+>  include/acpi/acpi_bus.h |  1 +
+>  3 files changed, 68 insertions(+), 28 deletions(-)
+>=20
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> index ee9e0f2..29ee547 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/gsi.c
+> @@ -55,13 +55,19 @@ int acpi_register_gsi(struct device *dev, u32 gsi, in=
+t trigger,
+>  		      int polarity)
+>  {
+>  	struct irq_fwspec fwspec;
+> +	struct acpi_device *adev =3D dev ? to_acpi_device(dev) : NULL;
+> =20
+> -	if (WARN_ON(!acpi_gsi_domain_id)) {
+> +	if (adev && &adev->fwnode && adev->interrupt_producer)
+> +		/* devices in DSDT connecting to spefic interrupt producer */
+> +		fwspec.fwnode =3D adev->interrupt_producer;
+> +	else if (acpi_gsi_domain_id)
+> +		/* devices connecting to gicd in default */
+> +		fwspec.fwnode =3D acpi_gsi_domain_id;
+> +	else {
+>  		pr_warn("GSI: No registered irqchip, giving up\n");
+>  		return -EINVAL;
+>  	}
+> =20
+> -	fwspec.fwnode =3D acpi_gsi_domain_id;
+>  	fwspec.param[0] =3D gsi;
+>  	fwspec.param[1] =3D acpi_dev_get_irq_type(trigger, polarity);
+>  	fwspec.param_count =3D 2;
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 56241eb..f1371cf 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -381,7 +381,7 @@ static void acpi_dev_irqresource_disabled(struct reso=
+urce *res, u32 gsi)
+>  	res->flags =3D IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
+>  }
+> =20
+> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+> +static void acpi_dev_get_irqresource(struct acpi_device *adev, struct re=
+source *res, u32 gsi,
+>  				     u8 triggering, u8 polarity, u8 shareable,
+>  				     bool legacy)
+>  {
+> @@ -415,7 +415,7 @@ static void acpi_dev_get_irqresource(struct resource =
+*res, u32 gsi,
+>  	}
+> =20
+>  	res->flags =3D acpi_dev_irq_flags(triggering, polarity, shareable);
+> -	irq =3D acpi_register_gsi(NULL, gsi, triggering, polarity);
+> +	irq =3D acpi_register_gsi(&adev->dev, gsi, triggering, polarity);
+>  	if (irq >=3D 0) {
+>  		res->start =3D irq;
+>  		res->end =3D irq;
+> @@ -424,27 +424,9 @@ static void acpi_dev_get_irqresource(struct resource=
+ *res, u32 gsi,
+>  	}
+>  }
+> =20
+> -/**
+> - * acpi_dev_resource_interrupt - Extract ACPI interrupt resource informa=
+tion.
+> - * @ares: Input ACPI resource object.
+> - * @index: Index into the array of GSIs represented by the resource.
+> - * @res: Output generic resource object.
+> - *
+> - * Check if the given ACPI resource object represents an interrupt resou=
+rce
+> - * and @index does not exceed the resource's interrupt count (true is re=
+turned
+> - * in that case regardless of the results of the other checks)).  If tha=
+t's the
+> - * case, register the GSI corresponding to @index from the array of inte=
+rrupts
+> - * represented by the resource and populate the generic resource object =
+pointed
+> - * to by @res accordingly.  If the registration of the GSI is not succes=
+sful,
+> - * IORESOURCE_DISABLED will be set it that object's flags.
+> - *
+> - * Return:
+> - * 1) false with res->flags setting to zero: not the expected resource t=
+ype
+> - * 2) false with IORESOURCE_DISABLED in res->flags: valid unassigned res=
+ource
+> - * 3) true: valid assigned resource
+> - */
+> -bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+> -				 struct resource *res)
+> +static bool __acpi_dev_resource_interrupt(struct acpi_device *adev,
+> +					  struct acpi_resource *ares, int index,
+> +					  struct resource *res)
+>  {
+>  	struct acpi_resource_irq *irq;
+>  	struct acpi_resource_extended_irq *ext_irq;
+> @@ -460,7 +442,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource=
+ *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+> +		acpi_dev_get_irqresource(adev, res, irq->interrupts[index],
+>  					 irq->triggering, irq->polarity,
+>  					 irq->sharable, true);
+>  		break;
+> @@ -470,7 +452,31 @@ bool acpi_dev_resource_interrupt(struct acpi_resourc=
+e *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+> +
+> +		/*
+> +		 * It's a interrupt consumer device and connecting to specfic
+> +		 * interrupt controller. For now, we only support connecting
+> +		 * interrupts to one irq controller for a single device
+> +		 */
+> +		if (ext_irq->producer_consumer =3D=3D ACPI_CONSUMER
+> +		    && ext_irq->resource_source.string_length !=3D 0
+> +		    && !adev->interrupt_producer) {
+> +			acpi_status status;
+> +			acpi_handle handle;
+> +			struct acpi_device *device;
+> +
+> +			status =3D acpi_get_handle(NULL, ext_irq->resource_source.string_ptr,=
+ &handle);
+> +			if (ACPI_FAILURE(status))
+> +				return false;
+> +
+> +			device =3D acpi_bus_get_acpi_device(handle);
+> +			if (!device)
+> +				return false;
+> +
+> +			adev->interrupt_producer =3D &device->fwnode;
+> +		}
+> +
+> +		acpi_dev_get_irqresource(adev, res, ext_irq->interrupts[index],
+>  					 ext_irq->triggering, ext_irq->polarity,
+>  					 ext_irq->sharable, false);
+>  		break;
+> @@ -481,6 +487,31 @@ bool acpi_dev_resource_interrupt(struct acpi_resourc=
+e *ares, int index,
+> =20
+>  	return true;
+>  }
+> +
+> +/**
+> + * acpi_dev_resource_interrupt - Extract ACPI interrupt resource informa=
+tion.
+> + * @ares: Input ACPI resource object.
+> + * @index: Index into the array of GSIs represented by the resource.
+> + * @res: Output generic resource object.
+> + *
+> + * Check if the given ACPI resource object represents an interrupt resou=
+rce
+> + * and @index does not exceed the resource's interrupt count (true is re=
+turned
+> + * in that case regardless of the results of the other checks)).  If tha=
+t's the
+> + * case, register the GSI corresponding to @index from the array of inte=
+rrupts
+> + * represented by the resource and populate the generic resource object =
+pointed
+> + * to by @res accordingly.  If the registration of the GSI is not succes=
+sful,
+> + * IORESOURCE_DISABLED will be set it that object's flags.
+> + *
+> + * Return:
+> + * 1) false with res->flags setting to zero: not the expected resource t=
+ype
+> + * 2) false with IORESOURCE_DISABLED in res->flags: valid unassigned res=
+ource
+> + * 3) true: valid assigned resource
+> + */
+> +bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+> +				 struct resource *res)
+> +{
+> +	return __acpi_dev_resource_interrupt(NULL, ares, index, res);
+> +}
+>  EXPORT_SYMBOL_GPL(acpi_dev_resource_interrupt);
 
-Because the dma masks set-up is done by the caller (see
-of_dma_configure()) according to firmware configuration or
-platform data knowledge. I wanted to replicate the of_dma_configure()
-interface on ACPI for obvious reasons (on ARM systems), I stopped
-short of adding ACPI code to mirror of_dma_get_range() equivalent
-(through the _DMA object) but I am really really nervous about changing
-the code path on x86 because in theory all is fine, in practice even
-just setting the masks to sane values can have unexpected consequences,
-I just can't know (that's why I wasn't doing it in the first iterations
-of this series).
+You cannot do this as &adev->dev is deferenced in acpi_dev_get_irqresource
+without a check that adev is NULL, and so passes an offset from NULL to
+acpi_register_gsi() which breaks everything.
 
-Side note: DT with of_dma_configure() and ACPI with
-acpi_create_platform_device() set the default dma mask for all
-platform devices already _regardless_ of what they really are, though
-arguably acpi_bind_one() touches ways more devices.
+Graeme
 
-I really think that removing the default dma masks settings from
-acpi_dma_configure() is the safer thing to do for the time being (or
-moving acpi_dma_configure() to acpi_create_platform_device(), where the
-DMA masks are set-up by default by core ACPI. Mark, Suravee, what was
-the rationale behind calling arch_setup_dma_ops() in acpi_bind_one() ?)
-
-Please let me know, fix-up is trivial however we decide to proceed.
-
-Thank you !
-Lorenzo
+> =20
+>  /**
+> @@ -499,6 +530,7 @@ struct res_proc_context {
+>  	void *preproc_data;
+>  	int count;
+>  	int error;
+> +	struct acpi_device *adev;
+>  };
+> =20
+>  static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
+> @@ -546,7 +578,7 @@ static acpi_status acpi_dev_process_resource(struct a=
+cpi_resource *ares,
+>  	    || acpi_dev_resource_ext_address_space(ares, &win))
+>  		return acpi_dev_new_resource_entry(&win, c);
+> =20
+> -	for (i =3D 0; acpi_dev_resource_interrupt(ares, i, res); i++) {
+> +	for (i =3D 0; __acpi_dev_resource_interrupt(c->adev, ares, i, res); i++=
+) {
+>  		acpi_status status;
+> =20
+>  		status =3D acpi_dev_new_resource_entry(&win, c);
+> @@ -599,6 +631,7 @@ int acpi_dev_get_resources(struct acpi_device *adev, =
+struct list_head *list,
+>  	c.preproc_data =3D preproc_data;
+>  	c.count =3D 0;
+>  	c.error =3D 0;
+> +	c.adev =3D adev;
+>  	status =3D acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+>  				     acpi_dev_process_resource, &c);
+>  	if (ACPI_FAILURE(status)) {
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 4242c31..5410d3b 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -355,6 +355,7 @@ struct acpi_device {
+>  	int device_type;
+>  	acpi_handle handle;		/* no handle for fixed hardware */
+>  	struct fwnode_handle fwnode;
+> +	struct fwnode_handle *interrupt_producer;
+>  	struct acpi_device *parent;
+>  	struct list_head children;
+>  	struct list_head node;
+> --=20
+> 1.7.12.4
+>=20
