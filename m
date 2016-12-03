@@ -1,121 +1,44 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw)
- UART
-Date: Sat, 03 Dec 2016 12:15:08 -0500
-Message-ID: <1480785308.4751.41.camel@redhat.com>
-References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
-         <f18738b7096fb06a5865214ddc299ce99630673b.1480644928.git.dhdang@apm.com>
-         <6d593615-e97f-8738-42be-1f8f4906d2f4@redhat.com>
-         <CADaLNDkyCrheZLNG3_9BVgvGBW8WrA-VPWOCezz3U-g+nt5W9w@mail.gmail.com>
-         <175F32B0-C73F-4250-9E60-3CE7409F0B0C@redhat.com>
-         <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
-         <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
+From: <lswedroe@bamadvisor.com>
+Subject: (unknown)
+Date: Sat, 03 Dec 2016 17:18:40 -0000
+Message-ID: <148078552066.13446.17524198925575757701@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>, Duc Dang <dhdang@apm.com>
-Cc: Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, patches <patches@apm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@hpe.com>
+Content-Type: application/zip; name="MESSAGE_40_linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 36-231-43-216.dynamic-ip.hinet.net ([36.231.43.216]:33804 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750919AbcLCRSr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 3 Dec 2016 12:18:47 -0500
+Subject: 
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sat, 2016-12-03 at 05:06 -0500, Jon Masters wrote:
-> Hi Duc, all,
-> 
-> (and changing the subject and trimming/adjusting the CC)
-> 
-> On 12/02/2016 02:39 PM, Duc Dang wrote:
-> > 
-> > On Fri, Dec 2, 2016 at 12:11 AM, Jon Masters <jcm@redhat.com> wrote:
-> > > 
-> > > You're welcome.
-> > > 
-> > > (Unrelated) Note that I added a console= and earlycon in my test (and
-> > > got the baud rate wrong for the console but nevermind...was ssh'd in
-> > > after the earlycon output I cared about anyway) because of some other
-> > > cleanup work for the SPCR parsing that apparently is still not quite
-> > > fixed for upstream, or rather, there is a need to match on the 32-bit
-> > > access required for the UART and that isn't happening so it's not
-> > > getting setup. Folks are tracking that one and fixing it though.
-> > 
-> > I don't see this console issue on X-Gene1 (Mustang board). I tried
-> > with X-Gene 2 as well. I used both console=ttyS0,115200 and
-> > earlycon=uart8250,mmio32,0x1c020000. Are you setting baudrate to
-> > 115200 or something else?
-> Let me clarify. What I meant above is that when I generated the boot
-> log, I had specified earlycon and console parameters, but had fat
-> fingered the baud rate (m400 uses 9600, mustang uses 115200 baud).
-> That's what I was referring to in the original text above.
-> 
-> HOWEVER...
-> 
-> There is a broader problem with X-Gene SPCR support. The problem is
-> that the 16550 UART in X-Gene requires the 32-bit access quirk (the
-> iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
-> that when univ8250_console_match runs later, it will compare the
-> iotype (MEM32) with the type previously registered with the
-> kernel when the earlycon setup the preferred console.
-
-Linaro has a kernel patch which looks at the bit_width field of the
-port address:
-
-Author: Aleksey Makarov <aleksey.makarov@linaro.org>
-Date:   Thu Apr 28 19:52:38 2016 +0300
-
-    serial: SPCR: check bit width for the 16550 UART
-
-The SPCR in 3.06.25 firmware has a bit_width field set to 32 and with the
-above patch, I don't need to use console=. But HP firmware on m400 sets
-bit width to 8 so that needs a firmware fix to work with above.
-
-
-> 
-> The earlycon preferred console will parse the SPCR and find:
-> 
->         iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
->                         "mmio" : "io";
-> 
-> Which sets it to "mmio" (not "mmio32"). There is a DBG2 (the table
-> referenced by the SPCR that provides the actual port types for all
-> modern revisions of the SPCR with revision2+, as required by Linux)
-> port subtype for non-compliant SBSA ARM Generic UARTs that require
-> 32-bit accesses, and this is ACPI_DBG2_ARM_SBSA_32BIT (type 0xd).
-> 
-> However that only applies for "pl011" devices, and doesn't provide
-> for 16550 UARTs that require 32-bit accessors.
-> 
-> So you'll end up with Linux thinking it's registering a non-32-bit
-> mmio preferred console during earlycon setup and then never match
-> against that later in the 8250_core/8250_dw match function by
-> virtue of the fact that these differ.
-> 
-> There are a couple of possibilities:
-> 
-> 1). Perhaps (for some reason) the IP actually does support sub-32-bit
->     access and the iotype simply needs to be changed to reflect this.
->     That would be the easiest option. But it's been this way for a
->     long time in various codebases, so I would be pleasantly
->     surprised if this were the case. Let me/us know :)
-> 
-> 2). We find some way during SPCR setup to quirk for X-Gene as a non
->     standard 16550 and set it up as an mmio32 iotype.
-> 
-> 3). We get the DBG2 table updated to add a subtype of the 16650
->     called something like "(deprecated) 16550 subset supporting
->     only 32-bit accesses". Then we add this to Linux and get
->     the firmware updated on systems to switch to this type. We
->     would probably still want to quirk for existing machines.
-> 
-> Perhaps I'm missing something. I would love for that to be true,
-> but I don't think it is. I think we need a subtype of the 16550
-> defined that encapsulates this mmio32 requirement properly. To
-> that end, I've preemptively asked some friends at MS for a
-> favor to look into adding a new subtype for this.
-> 
-> Let me know what you think is the best path... :)
-> 
-> Thanks,
-> 
-> Jon.
-> 
+UEsDBBQAAgAIAAG4g0lDOL4x8gQAAPUEAAANABwAMTA3MThfWklQLnppcFVUCQADEfpCWBH6Qlh1
+eAsAAQQAAAAABAAAAAAL8GZmEWFgYuBgYNzR7HlMaMsJfxYGhvsBDEARGQZDA3NDC72s4tAQTgZm
+wV9OESBcWsHNwAhUxMAAJt7G+PrfdhCwPbw+4u3RTodni121FqxYtOUC85RVjqyaZxOT85Osv63b
+WP54xqr/e/k8FQtXF52cLcbRLiNw82PFvnt7ZqaqGJl9Kb0yfc3Rvk0+U2TVz265uMxn6eXS4Lly
+69prr73wqVv4ew3H1PXdeem7T0fpPot4erpuxZL3Jsvjy9/vj5UNeRZpWbBq/5yTFjHyoZ/+LNGp
+OtS/bfX98jm86ZN1nx9mSYyz/Tj3glux1ulvWzhLlBaV1J+8JGc3RedGZ+g8zq1ZOrEs51XqL3Tl
+Nkx5cOzRkQ8+jaUPzjDa1d1WNnQUm9Thyds5I2Bih+SOjOtWCw29e/qK7+ldFCrakl04k+Hxn0Xu
+SS871BZXOyQXPC949yFtcaT+HseMlKT8qRJs66fHVO58dnflBMcZVUk5glNlo68sr+ph8Y1MfLFg
+C2On0mEBzsCGYw/sbLZvFvvw8aboHpNKj8t2wjFH7yY/iWb6pSF+IkpFv6H9u5LQ84kmum2ZEzo2
+ZigcNb20kInXxmbhyl+BXWYH64R1Hwr0xczjZpndFci84P4ridye6JQblVJ/f1gX5Ocyqj5w/HP5
+6PsQhXu2rZfVT2ziVD/FYbFpvckdn2mLRTknngxZmKhS3uf5puDD2l+M+1ac/Bh+vjnv+T61wCUN
+7W2flzRq8/8+cFjaJVjaQqo731Pkotyey3crT91RlNtxLumWo3fGodII31/yxSEWh2dFSm17P/Hl
+zL0fTx9wS3rz/uC1sB8VRm6z33w7cyzD91ttra7QxE2Zgn1dc70+/V3lx/6FJzw35fT8iwr6FpfN
+3n+bevaai921xdKRd/atzDFJN5wyta/TaLKBkNXd/gdvvx46s7dbSsa+uVblxZacrdVf9n/UcuH2
++KGr8oJJqI775fw3cqEL0t6mZRw3C1/d9PUQV1jrhweyRWzuCcYSz7ZdXMUiZJfanT1Rs6f3zT8t
+vXifmE+fv5n++nn+fFkjW8H6843L59fucdk/7/T5rQo6IZLTj53YsX971xHxMMX+e4cFVWMOWYtX
+/m17dogr1EXlK5ONyD6ZzrtaH+Q75j49bmuvumj6xClxXWfU5Ca9FzAs+sxk7/c5s+NjT5P97bWu
+C77l6F+sVPj+0ZBDPjHGab3H0vkPqsM6Yz40djayhfb5LA4Xfn2nVJvh9AsRTylNgzaLvw5C8z4f
+qBBWVTHw+Kdne0OpMjTalfHKogLeL1ocn4xC8oxTVqS+8DpqO51twqsSbk6PGovJslop0RPYTkz5
+u61/T+D214f2ljw8JaoQ+fmtVJeSxqWdR/It/7HZPdsh2eC1bInienEH0byVKXWRuZdu81UpXUve
+yP6la+UDfaPlO5+ufKg343T5h6VO+9e8neIRrBUvJmS58HHuDy8+/s5/e092upp9Mdx0dlVpBPdK
+6dlv9Dhmr1GbG7fZU/3PPEvz7rUfa8uWXpy6/WjHsrDYrBemS2fse2T2LvIe7zcH84m/XxT6FHcq
+/5du/5wtvqT5xn1XY924R8rqs4t6zkzoafv9IWv1p/ovtU3Tnhz3D/BmZJJjxlUkSYBKHAZGIF7S
+CGIhCihWSAGFVjgFeLOyQXQwMvgB6YlgUQBQSwECHgMUAAIACAABuINJQzi+MfIEAAD1BAAADQAY
+AAAAAAAAAAAApIEAAAAAMTA3MThfWklQLnppcFVUBQADEfpCWHV4CwABBAAAAAAEAAAAAFBLBQYA
+AAAAAQABAFMAAAA5BQAAAAA=
