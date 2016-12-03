@@ -1,172 +1,124 @@
 From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH] ACPI / property: Document usage rules for _DSD properties
-Date: Fri, 2 Dec 2016 09:30:01 +0000
-Message-ID: <20161202093001.GB1115@linaro-xps13.localdomain>
-References: <1760010.oD1shqWuRz@aspire.rjw.lan>
+Subject: Re: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw)
+ UART
+Date: Sat, 3 Dec 2016 17:11:04 +0000
+Message-ID: <20161203171104.GH1115@linaro-xps13.localdomain>
+References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
+ <f18738b7096fb06a5865214ddc299ce99630673b.1480644928.git.dhdang@apm.com>
+ <6d593615-e97f-8738-42be-1f8f4906d2f4@redhat.com>
+ <CADaLNDkyCrheZLNG3_9BVgvGBW8WrA-VPWOCezz3U-g+nt5W9w@mail.gmail.com>
+ <175F32B0-C73F-4250-9E60-3CE7409F0B0C@redhat.com>
+ <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
+ <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:56481 "EHLO
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:41621 "EHLO
         out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751912AbdEPK5z (ORCPT
+        by vger.kernel.org with ESMTP id S1752073AbdEPK57 (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 May 2017 06:57:55 -0400
+        Tue, 16 May 2017 06:57:59 -0400
 Content-Disposition: inline
-In-Reply-To: <1760010.oD1shqWuRz@aspire.rjw.lan>
+In-Reply-To: <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <darren.hart@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Jon Masters <jcm@redhat.com>
+Cc: Duc Dang <dhdang@apm.com>, Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mark Salter <msalter@redhat.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, patches <patches@apm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@hpe.com>
 
-On Wed, Nov 30, 2016 at 02:52:38AM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Sat, Dec 03, 2016 at 05:06:31AM -0500, Jon Masters wrote:
+> Hi Duc, all,
 > 
-> Following some discussions during the Kernel Summit and LPC, document
-> what can be returned from ACPI _DSD as device properties and when it
-> is valid to use the special PRP0001 device ID.
+> (and changing the subject and trimming/adjusting the CC)
 > 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> On 12/02/2016 02:39 PM, Duc Dang wrote:
+> > On Fri, Dec 2, 2016 at 12:11 AM, Jon Masters <jcm@redhat.com> wrote:
+> >> You're welcome.
+> >>
+> >> (Unrelated) Note that I added a console= and earlycon in my test (and
+> >> got the baud rate wrong for the console but nevermind...was ssh'd in
+> >> after the earlycon output I cared about anyway) because of some other
+> >> cleanup work for the SPCR parsing that apparently is still not quite
+> >> fixed for upstream, or rather, there is a need to match on the 32-bit
+> >> access required for the UART and that isn't happening so it's not
+> >> getting setup. Folks are tracking that one and fixing it though.
+> 
+> > I don't see this console issue on X-Gene1 (Mustang board). I tried
+> > with X-Gene 2 as well. I used both console=ttyS0,115200 and
+> > earlycon=uart8250,mmio32,0x1c020000. Are you setting baudrate to
+> > 115200 or something else?
+> 
+> Let me clarify. What I meant above is that when I generated the boot
+> log, I had specified earlycon and console parameters, but had fat
+> fingered the baud rate (m400 uses 9600, mustang uses 115200 baud).
+> That's what I was referring to in the original text above.
+> 
+> HOWEVER...
+> 
+> There is a broader problem with X-Gene SPCR support. The problem is
+> that the 16550 UART in X-Gene requires the 32-bit access quirk (the
+> iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
+> that when univ8250_console_match runs later, it will compare the
+> iotype (MEM32) with the type previously registered with the
+> kernel when the earlycon setup the preferred console.
+> 
+> The earlycon preferred console will parse the SPCR and find:
+> 
+>         iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
+>                         "mmio" : "io";
+> 
+> Which sets it to "mmio" (not "mmio32"). There is a DBG2 (the table
+> referenced by the SPCR that provides the actual port types for all
+> modern revisions of the SPCR with revision2+, as required by Linux)
+> port subtype for non-compliant SBSA ARM Generic UARTs that require
+> 32-bit accesses, and this is ACPI_DBG2_ARM_SBSA_32BIT (type 0xd).
+> 
+> However that only applies for "pl011" devices, and doesn't provide
+> for 16550 UARTs that require 32-bit accessors.
+> 
+> So you'll end up with Linux thinking it's registering a non-32-bit
+> mmio preferred console during earlycon setup and then never match
+> against that later in the 8250_core/8250_dw match function by
+> virtue of the fact that these differ.
+> 
+> There are a couple of possibilities:
+> 
+> 1). Perhaps (for some reason) the IP actually does support sub-32-bit
+>     access and the iotype simply needs to be changed to reflect this.
+>     That would be the easiest option. But it's been this way for a
+>     long time in various codebases, so I would be pleasantly
+>     surprised if this were the case. Let me/us know :)
+> 
+> 2). We find some way during SPCR setup to quirk for X-Gene as a non
+>     standard 16550 and set it up as an mmio32 iotype.
+> 
+Aleksey is going to send a patch for review that uses the register width
+field in the Generic Address Structure to select mmio vs mmio32 for the
+8250 UARTS.
 
-Thanks Rafael, that looks really good.
+The registers in xgene are 8 bits wide with a padding of 24 dont care
+bits, they do allow AFAIK 8 bit address, but they are at 32bit spacing
+unlike real 16550 at 8 bit spacing.
 
-Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+> 3). We get the DBG2 table updated to add a subtype of the 16650
+>     called something like "(deprecated) 16550 subset supporting
+>     only 32-bit accesses". Then we add this to Linux and get
+>     the firmware updated on systems to switch to this type. We
+>     would probably still want to quirk for existing machines.
+> 
+> Perhaps I'm missing something. I would love for that to be true,
+> but I don't think it is. I think we need a subtype of the 16550
+> defined that encapsulates this mmio32 requirement properly. To
+> that end, I've preemptively asked some friends at MS for a
+> favor to look into adding a new subtype for this.
+> 
+> Let me know what you think is the best path... :)
+> 
 
+I think the new subtype is the way to go as we can also use this to
+detect that we have no knowledge of the clocks set by firmware so we
+should not attempt a baud rate change like we can on 16550.
 
-> ---
-> 
-> Here's my follow-up to the discussions we had during the KS and LPC.
-> 
-> Please let me know if that's sufficient or it needs to be extended somehow.
-> 
-> Thanks,
-> Rafael
-> 
-> ---
->  Documentation/acpi/DSD-properties-rules.txt |   97 ++++++++++++++++++++++++++++
->  Documentation/acpi/enumeration.txt          |    9 ++
->  2 files changed, 106 insertions(+)
-> 
-> Index: linux-pm/Documentation/acpi/enumeration.txt
-> ===================================================================
-> --- linux-pm.orig/Documentation/acpi/enumeration.txt
-> +++ linux-pm/Documentation/acpi/enumeration.txt
-> @@ -415,3 +415,12 @@ the "compatible" property in the _DSD or
->  ancestors provides a _DSD with a valid "compatible" property.  Such device
->  objects are then simply regarded as additional "blocks" providing hierarchical
->  configuration information to the driver of the composite ancestor device.
-> +
-> +However, PRP0001 can only be returned from either _HID or _CID of a device
-> +object if all of the properties returned by the _DSD associated with it (either
-> +the _DSD of the device object itself or the _DSD of its ancestor in the
-> +"composite device" case described above) can be used in the ACPI environment.
-> +Otherwise, the _DSD itself is regarded as invalid and therefore the "compatible"
-> +property returned by it is meaningless.
-> +
-> +Refer to DSD-properties-rules.txt for more information.
-> Index: linux-pm/Documentation/acpi/DSD-properties-rules.txt
-> ===================================================================
-> --- /dev/null
-> +++ linux-pm/Documentation/acpi/DSD-properties-rules.txt
-> @@ -0,0 +1,97 @@
-> +_DSD Device Properties Usage Rules
-> +----------------------------------
-> +
-> +Properties, Property Sets and Property Subsets
-> +----------------------------------------------
-> +
-> +The _DSD (Device Specific Data) configuration object, introduced in ACPI 5.1,
-> +allows any type of device configuration data to be provided via the ACPI
-> +namespace.  In principle, the format of the data may be arbitrary, but it has to
-> +be identified by a UUID which must be recognized by the driver processing the
-> +_DSD output.  However, there are generic UUIDs defined for _DSD recognized by
-> +the ACPI subsystem in the Linux kernel which automatically processes the data
-> +packages associated with them and makes those data available to device drivers
-> +as "device properties".
-> +
-> +A device property is a data item consisting of a string key and a value (of a
-> +specific type) associated with it.
-> +
-> +In the ACPI _DSD context it is an element of the sub-package following the
-> +generic Device Properties UUID in the _DSD return package as specified in the
-> +Device Properties UUID definition document [1].
-> +
-> +It also may be regarded as the definition of a key and the associated data type
-> +that can be returned by _DSD in the Device Properties UUID sub-package for a
-> +given device.
-> +
-> +A property set is a collection of properties applicable to a hardware entity
-> +like a device.  In the ACPI _DSD context it is the set of all properties that
-> +can be returned in the Device Properties UUID sub-package for the device in
-> +question.
-> +
-> +Property subsets are nested collections of properties.  Each of them is
-> +associated with an additional key (name) allowing the subset to be referred
-> +to as a whole (and to be treated as a separate entity).  The canonical
-> +representation of property subsets is via the mechanism specified in the
-> +Hierarchical Properties Extension UUID definition document [2].
-> +
-> +Property sets may be hierarchical.  That is, a property set may contain
-> +multiple property subsets that each may contain property subsets of its
-> +own and so on.
-> +
-> +General Validity Rule for Property Sets
-> +---------------------------------------
-> +
-> +Valid property sets must follow the guidance given by the Device Properties UUID
-> +definition document [1].
-> +
-> +_DSD properties are intended to be used in addition to, and not instead of, the
-> +existing mechanisms defined by the ACPI specification.  Therefore, as a rule,
-> +they should only be used if the ACPI specification does not make direct
-> +provisions for handling the underlying use case.  It generally is invalid to
-> +return property sets which do not follow that rule from _DSD in data packages
-> +associated with the Device Properties UUID.
-> +
-> +Additional Considerations
-> +-------------------------
-> +
-> +There are cases in which, even if the general rule given above is followed in
-> +principle, the property set may still not be regarded as a valid one.
-> +
-> +For example, that applies to device properties which may cause kernel code
-> +(either a device driver or a library/subsystem) to access hardware in a way
-> +possibly leading to a conflict with AML methods in the ACPI namespace.  In
-> +particular, that may happen if the kernel code uses device properties to
-> +manipulate hardware normally controlled by ACPI methods related to power
-> +management, like _PSx and _DSW (for device objects) or _ON and _OFF (for power
-> +resource objects), or by ACPI device disabling/enabling methods, like _DIS and
-> +_SRS.
-> +
-> +In all cases in which kernel code may do something that will confuse AML as a
-> +result of using device properties, the device properties in question are not
-> +suitable for the ACPI environment and consequently they cannot belong to a valid
-> +property set.
-> +
-> +Property Sets and Device Tree Bindings
-> +--------------------------------------
-> +
-> +It often is useful to make _DSD return property sets that follow Device Tree
-> +bindings.
-> +
-> +In those cases, however, the above validity considerations must be taken into
-> +account in the first place and returning invalid property sets from _DSD must be
-> +avoided.  For this reason, it may not be possible to make _DSD return a property
-> +set following the given DT binding literally and completely.  Still, for the
-> +sake of code re-use, it may make sense to provide as much of the configuration
-> +data as possible in the form of device properties and complement that with an
-> +ACPI-specific mechanism suitable for the use case at hand.
-> +
-> +In any case, property sets following DT bindings literally should not be
-> +expected to automatically work in the ACPI environment regardless of their
-> +contents.
-> +
-> +References
-> +----------
-> +
-> +[1] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-> +[2] http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.1.pdf
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+
+Graeme
+
