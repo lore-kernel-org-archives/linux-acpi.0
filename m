@@ -1,89 +1,110 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v9 07/16] drivers: acpi: implement acpi_dma_configure
-Date: Sat, 3 Dec 2016 03:11:09 +0100
-Message-ID: <CAJZ5v0jfwGBaHepToB9U3qQZ3KTB6XzoRDwEskV0B9fK7+OoDg@mail.gmail.com>
-References: <20161121100148.24769-1-lorenzo.pieralisi@arm.com>
- <20161121100148.24769-8-lorenzo.pieralisi@arm.com> <20161202153816.GA18290@red-moon>
+From: Jon Masters <jcm@redhat.com>
+Subject: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw) UART
+Date: Sat, 3 Dec 2016 05:06:31 -0500
+Message-ID: <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
+References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
+ <f18738b7096fb06a5865214ddc299ce99630673b.1480644928.git.dhdang@apm.com>
+ <6d593615-e97f-8738-42be-1f8f4906d2f4@redhat.com>
+ <CADaLNDkyCrheZLNG3_9BVgvGBW8WrA-VPWOCezz3U-g+nt5W9w@mail.gmail.com>
+ <175F32B0-C73F-4250-9E60-3CE7409F0B0C@redhat.com>
+ <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:36257 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757062AbcLCCLN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Dec 2016 21:11:13 -0500
-In-Reply-To: <20161202153816.GA18290@red-moon>
+Received: from mx1.redhat.com ([209.132.183.28]:39452 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750787AbcLCKGj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 3 Dec 2016 05:06:39 -0500
+In-Reply-To: <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Salter <msalter@redhat.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Eric Auger <eric.auger@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, Nate Watterson <nwatters@codeaurora.org>, Prem Mallappa <prem.mallappa@broadcom.com>, Dennis Chen <dennis.chen@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel>
+To: Duc Dang <dhdang@apm.com>
+Cc: Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mark Salter <msalter@redhat.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, patches <patches@apm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@hpe.com>
 
-On Fri, Dec 2, 2016 at 4:38 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> Rafael, Mark, Suravee,
->
-> On Mon, Nov 21, 2016 at 10:01:39AM +0000, Lorenzo Pieralisi wrote:
->> On DT based systems, the of_dma_configure() API implements DMA
->> configuration for a given device. On ACPI systems an API equivalent to
->> of_dma_configure() is missing which implies that it is currently not
->> possible to set-up DMA operations for devices through the ACPI generic
->> kernel layer.
->>
->> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
->> calls that for now are just wrappers around arch_setup_dma_ops() and
->> arch_teardown_dma_ops() and also updates ACPI and PCI core code to use
->> the newly introduced acpi_dma_configure/acpi_dma_deconfigure functions.
->>
->> Since acpi_dma_configure() is used to configure DMA operations, the
->> function initializes the dma/coherent_dma masks to sane default values
->> if the current masks are uninitialized (also to keep the default values
->> consistent with DT systems) to make sure the device has a complete
->> default DMA set-up.
->
-> I spotted a niggle that unfortunately was hard to spot (and should not
-> be a problem per se but better safe than sorry) and I am not comfortable
-> with it.
->
-> Following commit d0562674838c ("ACPI / scan: Parse _CCA and setup
-> device coherency") in acpi_bind_one() we check if the acpi_device
-> associated with a device just added supports DMA, first it was
-> done with acpi_check_dma() and then commit 1831eff876bd ("device
-> property: ACPI: Make use of the new DMA Attribute APIs") changed
-> it to acpi_get_dma_attr().
->
-> The subsequent check (attr != DEV_DMA_NOT_SUPPORTED) is always true
-> on _any_ acpi device we pass to acpi_bind_one() on x86, which was
-> fine because we used it to call arch_setup_dma_ops(), which is a nop
-> on x86. On ARM64 a _CCA method is required to define if a device
-> supports DMA so (attr != DEV_DMA_NOT_SUPPORTED) may well be false.
->
-> Now, acpi_bind_one() is used to bind an acpi_device to its physical
-> node also for pseudo-devices like cpus and memory nodes. For those
-> objects, on x86, attr will always be != DEV_DMA_NOT_SUPPORTED.
->
-> So far so good, because on x86 arch_setup_dma_ops() is empty code.
->
-> With this patch, I use the (attr != DEV_DMA_NOT_SUPPORTED) check
-> to call acpi_dma_configure() which is basically a nop on x86 except
-> that it sets up the dma_mask/coherent_dma_mask to a sane default value
-> (after all we are setting up DMA for the device so it makes sense to
-> initialize the masks there if they were unset since we are configuring
-> DMA for the device in question) for the given device.
->
-> Problem is, as per the explanation above, we are also setting the
-> default dma masks for pseudo-devices (eg CPUs) that were previously
-> untouched, it should not be a problem per-se but I am not comfortable
-> with that, honestly it does not make much sense.
->
-> An easy "fix" would be to move the default dma masks initialization out
-> of acpi_dma_configure() (as it was in previous patch versions of this
-> series - I moved it to acpi_dma_configure() just a consolidation point
-> for initializing the masks instead of scattering them in every
-> acpi_dma_configure caller) I can send this as a fix-up patch to Joerg if
-> we think that's the right thing to do (or I can send it to Rafael later
-> when the code is in the merged depending on the timing) just let me
-> know please.
+Hi Duc, all,
 
-Why can't arch_setup_dma_ops() set those masks too?
+(and changing the subject and trimming/adjusting the CC)
+
+On 12/02/2016 02:39 PM, Duc Dang wrote:
+> On Fri, Dec 2, 2016 at 12:11 AM, Jon Masters <jcm@redhat.com> wrote:
+>> You're welcome.
+>>
+>> (Unrelated) Note that I added a console= and earlycon in my test (and
+>> got the baud rate wrong for the console but nevermind...was ssh'd in
+>> after the earlycon output I cared about anyway) because of some other
+>> cleanup work for the SPCR parsing that apparently is still not quite
+>> fixed for upstream, or rather, there is a need to match on the 32-bit
+>> access required for the UART and that isn't happening so it's not
+>> getting setup. Folks are tracking that one and fixing it though.
+
+> I don't see this console issue on X-Gene1 (Mustang board). I tried
+> with X-Gene 2 as well. I used both console=ttyS0,115200 and
+> earlycon=uart8250,mmio32,0x1c020000. Are you setting baudrate to
+> 115200 or something else?
+
+Let me clarify. What I meant above is that when I generated the boot
+log, I had specified earlycon and console parameters, but had fat
+fingered the baud rate (m400 uses 9600, mustang uses 115200 baud).
+That's what I was referring to in the original text above.
+
+HOWEVER...
+
+There is a broader problem with X-Gene SPCR support. The problem is
+that the 16550 UART in X-Gene requires the 32-bit access quirk (the
+iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
+that when univ8250_console_match runs later, it will compare the
+iotype (MEM32) with the type previously registered with the
+kernel when the earlycon setup the preferred console.
+
+The earlycon preferred console will parse the SPCR and find:
+
+        iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
+                        "mmio" : "io";
+
+Which sets it to "mmio" (not "mmio32"). There is a DBG2 (the table
+referenced by the SPCR that provides the actual port types for all
+modern revisions of the SPCR with revision2+, as required by Linux)
+port subtype for non-compliant SBSA ARM Generic UARTs that require
+32-bit accesses, and this is ACPI_DBG2_ARM_SBSA_32BIT (type 0xd).
+
+However that only applies for "pl011" devices, and doesn't provide
+for 16550 UARTs that require 32-bit accessors.
+
+So you'll end up with Linux thinking it's registering a non-32-bit
+mmio preferred console during earlycon setup and then never match
+against that later in the 8250_core/8250_dw match function by
+virtue of the fact that these differ.
+
+There are a couple of possibilities:
+
+1). Perhaps (for some reason) the IP actually does support sub-32-bit
+    access and the iotype simply needs to be changed to reflect this.
+    That would be the easiest option. But it's been this way for a
+    long time in various codebases, so I would be pleasantly
+    surprised if this were the case. Let me/us know :)
+
+2). We find some way during SPCR setup to quirk for X-Gene as a non
+    standard 16550 and set it up as an mmio32 iotype.
+
+3). We get the DBG2 table updated to add a subtype of the 16650
+    called something like "(deprecated) 16550 subset supporting
+    only 32-bit accesses". Then we add this to Linux and get
+    the firmware updated on systems to switch to this type. We
+    would probably still want to quirk for existing machines.
+
+Perhaps I'm missing something. I would love for that to be true,
+but I don't think it is. I think we need a subtype of the 16550
+defined that encapsulates this mmio32 requirement properly. To
+that end, I've preemptively asked some friends at MS for a
+favor to look into adding a new subtype for this.
+
+Let me know what you think is the best path... :)
 
 Thanks,
-Rafael
+
+Jon.
+
+-- 
+Computer Architect | Sent from my Fedora powered laptop
+
