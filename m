@@ -1,76 +1,67 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw) UART
-Date: Sun, 4 Dec 2016 02:35:28 -0800
-Message-ID: <CADaLNDnTFYhJK76DhRNvxb5eAEQGtaJtag1CoyLb73iweUkMGw@mail.gmail.com>
-References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
- <f18738b7096fb06a5865214ddc299ce99630673b.1480644928.git.dhdang@apm.com>
- <6d593615-e97f-8738-42be-1f8f4906d2f4@redhat.com>
- <CADaLNDkyCrheZLNG3_9BVgvGBW8WrA-VPWOCezz3U-g+nt5W9w@mail.gmail.com>
- <175F32B0-C73F-4250-9E60-3CE7409F0B0C@redhat.com>
- <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
- <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
- <1480785308.4751.41.camel@redhat.com>
- <c6a0c134-2fde-21c2-03fb-6e1961161a26@redhat.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Sun, 4 Dec 2016 19:52:19 +0100
+Message-ID: <20161204185219.j45aabkpvptadmcx@sig21.net>
+References: <20160920091840.GN1811@lahna.fi.intel.com>
+ <20160920101450.ylohouriienzrgtj@sig21.net>
+ <20160920104014.GO1811@lahna.fi.intel.com>
+ <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
+ <20160920211153.y7ntwwik2l6ppoqz@sig21.net>
+ <20160921090614.GY1811@lahna.fi.intel.com>
+ <20160921091635.tjnc2gvj75jixycv@sig21.net>
+ <20160923081904.GM1218@lahna.fi.intel.com>
+ <20161005124648.4fkl55q2i4qnug2x@sig21.net>
+ <20161005130511.GM1765@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <c6a0c134-2fde-21c2-03fb-6e1961161a26@redhat.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>
-Cc: Grant Likely <grant.likely@hpe.com>, Arnd Bergmann <arnd@arndb.de>, Rafael Wysocki <rafael@kernel.org>, patches <patches@apm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sig21.net ([80.244.240.74]:41935 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750917AbcLDSw2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 4 Dec 2016 13:52:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20161005130511.GM1765@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, David Cohen <david.a.cohen@linux.intel.com>
 
-On Sat, Dec 3, 2016 at 12:33 PM, Jon Masters <jcm@redhat.com> wrote:
-> Hi Mark,
->
-> On 12/03/2016 12:15 PM, Mark Salter wrote:
->> On Sat, 2016-12-03 at 05:06 -0500, Jon Masters wrote:
->
->>> There is a broader problem with X-Gene SPCR support. The problem is
->>> that the 16550 UART in X-Gene requires the 32-bit access quirk (the
->>> iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
->>> that when univ8250_console_match runs later, it will compare the
->>> iotype (MEM32) with the type previously registered with the
->>> kernel when the earlycon setup the preferred console.
->>
->> Linaro has a kernel patch which looks at the bit_width field of the
->> port address:
->>
->> Author: Aleksey Makarov <aleksey.makarov@linaro.org>
->> Date:   Thu Apr 28 19:52:38 2016 +0300
->>
->>     serial: SPCR: check bit width for the 16550 UART
->>
->> The SPCR in 3.06.25 firmware has a bit_width field set to 32 and with the
->> above patch, I don't need to use console=. But HP firmware on m400 sets
->> bit width to 8 so that needs a firmware fix to work with above.
+Hi,
 
-Will this patch be posted for upstream?
+On Wed, Oct 05, 2016 at 04:05:11PM +0300, Mika Westerberg wrote:
+> On Wed, Oct 05, 2016 at 02:46:48PM +0200, Johannes Stezenbach wrote:
+> > On Fri, Sep 23, 2016 at 11:19:04AM +0300, Mika Westerberg wrote:
+> > > David (CC'd) is working on getting the Dollar Cove PMIC driver
+> > > upstreamed to the mainline kernel.
+> > 
+> > May I ask when to expect a patch?  I'm ready if you
+> > have something to test, even if it's not in
+> > shape for mainline yet.
+> 
+> It typically takes quite some time to get all the legal stuff done
+> before the code can be published. And if people are busy with other
+> things it takes even more time.
+> 
+> So please be patient, it will happen sooner or later ;-)
 
->
-> Indeed, thanks. Graeme also mentioned that last night. I think this
-> a good solution for the moment, but still that it makes sense to
-> have a new 16650 UART type defined in the DBG2 spec for those
-> requiring 32-bit access (to mirror the type D for pl011). I
-> heard back from Microsoft this morning that they're looking.
+I don't want to nag, but just so it doesn't drop off
+the TODO list due to "lack of interest":  What's the
+status?  Will Santa bring the the TI Dollar Cove PMIC driver?
 
-Yes, thanks, Jon. It will be nice to have a new 16550 UART type for
-those requiring 32-bit access.
+While I'm at it, I also have questions about S0ix support
+in Linux which I didn't find answers to by web search.
+Does S0ix depend on the PMIC driver?  And will it be
+used during run time or only in "sleep" state
+(which would mean "echo freeze >/sys/power/state"
+since ACPI S3 isn't supported)?
+Now all I know is it doesn't seem to be used so far (running 4.9.0-rc7+):
 
->
-> Jon.
->
-> --
-> Computer Architect | Sent from my Fedora powered laptop
->
-Regards,
-Duc Dang.
+/sys/kernel/debug/pmc_atom/sleep_state:S0IR Residency:  0us
+/sys/kernel/debug/pmc_atom/sleep_state:S0I1 Residency:  0us
+/sys/kernel/debug/pmc_atom/sleep_state:S0I2 Residency:  0us
+/sys/kernel/debug/pmc_atom/sleep_state:S0I3 Residency:  0us
+/sys/kernel/debug/pmc_atom/sleep_state:S0   Residency: 160934496us
+
+
+Thanks,
+Johannes
