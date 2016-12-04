@@ -1,8 +1,7 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw)
- UART
-Date: Sat, 3 Dec 2016 15:33:15 -0500
-Message-ID: <c6a0c134-2fde-21c2-03fb-6e1961161a26@redhat.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: [SPCR] mmio32 iotype access requirements for X-Gene 8250(_dw) UART
+Date: Sun, 4 Dec 2016 02:35:28 -0800
+Message-ID: <CADaLNDnTFYhJK76DhRNvxb5eAEQGtaJtag1CoyLb73iweUkMGw@mail.gmail.com>
 References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
  <f18738b7096fb06a5865214ddc299ce99630673b.1480644928.git.dhdang@apm.com>
  <6d593615-e97f-8738-42be-1f8f4906d2f4@redhat.com>
@@ -11,52 +10,67 @@ References: <20161201183350.GF30746@bhelgaas-glaptop.roam.corp.google.com>
  <CADaLNDmWRn+UKzF8PH2LmYCSF+NhHaw26RTN+QoaByh1wS7jfQ@mail.gmail.com>
  <7fa523de-3fbb-1566-f521-927143f73d1e@redhat.com>
  <1480785308.4751.41.camel@redhat.com>
+ <c6a0c134-2fde-21c2-03fb-6e1961161a26@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50634 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750764AbcLCUdV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 3 Dec 2016 15:33:21 -0500
-In-Reply-To: <1480785308.4751.41.camel@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <c6a0c134-2fde-21c2-03fb-6e1961161a26@redhat.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>
+Cc: Grant Likely <grant.likely@hpe.com>, Arnd Bergmann <arnd@arndb.de>, Rafael Wysocki <rafael@kernel.org>, patches <patches@apm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>, Duc Dang <dhdang@apm.com>
-Cc: Rafael Wysocki <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, patches <patches@apm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@hpe.com>
 
-Hi Mark,
+On Sat, Dec 3, 2016 at 12:33 PM, Jon Masters <jcm@redhat.com> wrote:
+> Hi Mark,
+>
+> On 12/03/2016 12:15 PM, Mark Salter wrote:
+>> On Sat, 2016-12-03 at 05:06 -0500, Jon Masters wrote:
+>
+>>> There is a broader problem with X-Gene SPCR support. The problem is
+>>> that the 16550 UART in X-Gene requires the 32-bit access quirk (the
+>>> iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
+>>> that when univ8250_console_match runs later, it will compare the
+>>> iotype (MEM32) with the type previously registered with the
+>>> kernel when the earlycon setup the preferred console.
+>>
+>> Linaro has a kernel patch which looks at the bit_width field of the
+>> port address:
+>>
+>> Author: Aleksey Makarov <aleksey.makarov@linaro.org>
+>> Date:   Thu Apr 28 19:52:38 2016 +0300
+>>
+>>     serial: SPCR: check bit width for the 16550 UART
+>>
+>> The SPCR in 3.06.25 firmware has a bit_width field set to 32 and with the
+>> above patch, I don't need to use console=. But HP firmware on m400 sets
+>> bit width to 8 so that needs a firmware fix to work with above.
 
-On 12/03/2016 12:15 PM, Mark Salter wrote:
-> On Sat, 2016-12-03 at 05:06 -0500, Jon Masters wrote:
+Will this patch be posted for upstream?
 
->> There is a broader problem with X-Gene SPCR support. The problem is
->> that the 16550 UART in X-Gene requires the 32-bit access quirk (the
->> iotype is set to UPIO_MEM32 for the APMC0D08 device). This means
->> that when univ8250_console_match runs later, it will compare the
->> iotype (MEM32) with the type previously registered with the
->> kernel when the earlycon setup the preferred console.
-> 
-> Linaro has a kernel patch which looks at the bit_width field of the
-> port address:
-> 
-> Author: Aleksey Makarov <aleksey.makarov@linaro.org>
-> Date:   Thu Apr 28 19:52:38 2016 +0300
-> 
->     serial: SPCR: check bit width for the 16550 UART
-> 
-> The SPCR in 3.06.25 firmware has a bit_width field set to 32 and with the
-> above patch, I don't need to use console=. But HP firmware on m400 sets
-> bit width to 8 so that needs a firmware fix to work with above.
+>
+> Indeed, thanks. Graeme also mentioned that last night. I think this
+> a good solution for the moment, but still that it makes sense to
+> have a new 16650 UART type defined in the DBG2 spec for those
+> requiring 32-bit access (to mirror the type D for pl011). I
+> heard back from Microsoft this morning that they're looking.
 
-Indeed, thanks. Graeme also mentioned that last night. I think this
-a good solution for the moment, but still that it makes sense to
-have a new 16650 UART type defined in the DBG2 spec for those
-requiring 32-bit access (to mirror the type D for pl011). I
-heard back from Microsoft this morning that they're looking.
+Yes, thanks, Jon. It will be nice to have a new 16550 UART type for
+those requiring 32-bit access.
 
-Jon.
-
--- 
-Computer Architect | Sent from my Fedora powered laptop
-
+>
+> Jon.
+>
+> --
+> Computer Architect | Sent from my Fedora powered laptop
+>
+Regards,
+Duc Dang.
