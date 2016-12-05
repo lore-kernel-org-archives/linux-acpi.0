@@ -1,66 +1,153 @@
-From: "majun (Euler7)" <majun258@huawei.com>
-Subject: Re: [RFC PATCH 0/3] Add a new flag for ITS device to control indirect
- route
-Date: Mon, 5 Dec 2016 11:11:28 +0800
-Message-ID: <5844DAE0.9050101@huawei.com>
-References: <1480578360-9268-1-git-send-email-majun258@huawei.com>
- <3ce161a7-ee63-a018-4a75-9e7520143d97@arm.com> <58413F0E.3030604@huawei.com>
- <bd4114c2-a6d9-123c-8f9f-e6da33a481ba@arm.com>
+From: "'Tin Huynh' via rtc-linux" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Subject: Re: [PATCH V1] rtc: ds1307: Add ACPI support
+Date: Mon, 5 Dec 2016 14:48:56 +0700
+Message-ID: <CANQ9TuAsLAJQxiW4cHkAJod3LaDsDsFB22Pk1+oQYDRSGooYWw@mail.gmail.com>
+References: <1480474651-13984-1-git-send-email-tnhuynh@apm.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:24564 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751120AbcLEDLz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Dec 2016 22:11:55 -0500
-In-Reply-To: <bd4114c2-a6d9-123c-8f9f-e6da33a481ba@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBCKZ7AUOVICRB2NXSTBAKGQEEYVZG5Y-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <1480474651-13984-1-git-send-email-tnhuynh-qTEPVZfXA3Y@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, Thang Nguyen <tqnguyen-qTEPVZfXA3Y@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>, Tin Huynh <tnhuynh-qTEPVZfXA3Y@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, lenb@kernel.org, lv.zheng@intel.com, rafael.j.wysocki@intel.com, devel@acpica.org, mark.rutland@arm.com, robh+dt@kernel.org, jason@lakedaemon.net
-Cc: majun258@huawei.com, dingtianhong@huawei.com, guohanjun@huawei.com
 
-Hi Marc:
+On Wed, Nov 30, 2016 at 9:57 AM, Tin Huynh <tnhuynh-qTEPVZfXA3Y@public.gmane.org> wrote:
+>
+> This patch enables ACPI support for rtc-ds1307 driver.
+>
+> Signed-off-by: Tin Huynh <tnhuynh-qTEPVZfXA3Y@public.gmane.org>
+> ---
+>  drivers/rtc/rtc-ds1307.c |   51 ++++++++++++++++++++++++++++++++++++++-------
+>  1 files changed, 43 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+> index 4e31036..2a1a4d3 100644
+> --- a/drivers/rtc/rtc-ds1307.c
+> +++ b/drivers/rtc/rtc-ds1307.c
+> @@ -11,6 +11,7 @@
+>   * published by the Free Software Foundation.
+>   */
+>
+> +#include <linux/acpi.h>
+>  #include <linux/bcd.h>
+>  #include <linux/i2c.h>
+>  #include <linux/init.h>
+> @@ -191,6 +192,26 @@ static u8 do_trickle_setup_ds1339(struct i2c_client *,
+>  };
+>  MODULE_DEVICE_TABLE(i2c, ds1307_id);
+>
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id ds1307_acpi_ids[] = {
+> +       { .id = "DS1307", .driver_data = ds_1307 },
+> +       { .id = "DS1337", .driver_data = ds_1337 },
+> +       { .id = "DS1338", .driver_data = ds_1338 },
+> +       { .id = "DS1339", .driver_data = ds_1339 },
+> +       { .id = "DS1388", .driver_data = ds_1388 },
+> +       { .id = "DS1340", .driver_data = ds_1340 },
+> +       { .id = "DS3231", .driver_data = ds_3231 },
+> +       { .id = "M41T00", .driver_data = m41t00 },
+> +       { .id = "MCP7940X", .driver_data = mcp794xx },
+> +       { .id = "MCP7941X", .driver_data = mcp794xx },
+> +       { .id = "PT7C4338", .driver_data = ds_1307 },
+> +       { .id = "RX8025", .driver_data = rx_8025 },
+> +       { .id = "ISL12057", .driver_data = ds_1337 },
+> +       { }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, ds1307_acpi_ids);
+> +#endif
+> +
+>  /*----------------------------------------------------------------------*/
+>
+>  #define BLOCK_DATA_MAX_TRIES 10
+> @@ -874,7 +895,7 @@ static u8 do_trickle_setup_ds1339(struct i2c_client *client,
+>         return setup;
+>  }
+>
+> -static void ds1307_trickle_of_init(struct i2c_client *client,
+> +static void ds1307_trickle_init(struct i2c_client *client,
+>                                    struct chip_desc *chip)
+>  {
+>         uint32_t ohms = 0;
+> @@ -882,9 +903,10 @@ static void ds1307_trickle_of_init(struct i2c_client *client,
+>
+>         if (!chip->do_trickle_setup)
+>                 goto out;
+> -       if (of_property_read_u32(client->dev.of_node, "trickle-resistor-ohms" , &ohms))
+> +       if (device_property_read_u32(&client->dev, "trickle-resistor-ohms",
+> +                                       &ohms))
+>                 goto out;
+> -       if (of_property_read_bool(client->dev.of_node, "trickle-diode-disable"))
+> +       if (device_property_read_bool(&client->dev, "trickle-diode-disable"))
+>                 diode = false;
+>         chip->trickle_charger_setup = chip->do_trickle_setup(client,
+>                                                              ohms, diode);
+> @@ -1268,7 +1290,7 @@ static int ds1307_probe(struct i2c_client *client,
+>         struct ds1307           *ds1307;
+>         int                     err = -ENODEV;
+>         int                     tmp, wday;
+> -       struct chip_desc        *chip = &chips[id->driver_data];
+> +       struct chip_desc        *chip;
+>         struct i2c_adapter      *adapter = to_i2c_adapter(client->dev.parent);
+>         bool                    want_irq = false;
+>         bool                    ds1307_can_wakeup_device = false;
+> @@ -1297,11 +1319,23 @@ static int ds1307_probe(struct i2c_client *client,
+>         i2c_set_clientdata(client, ds1307);
+>
+>         ds1307->client  = client;
+> -       ds1307->type    = id->driver_data;
+> +       if (id) {
+> +               chip = &chips[id->driver_data];
+> +               ds1307->type = id->driver_data;
+> +       } else {
+> +               const struct acpi_device_id *acpi_id;
+> +
+> +               acpi_id = acpi_match_device(ACPI_PTR(ds1307_acpi_ids),
+> +                                               &client->dev);
+> +               if (!acpi_id)
+> +                       return -ENODEV;
+> +               chip = &chips[acpi_id->driver_data];
+> +               ds1307->type = acpi_id->driver_data;
+> +       }
+>
+> -       if (!pdata && client->dev.of_node)
+> -               ds1307_trickle_of_init(client, chip);
+> -       else if (pdata && pdata->trickle_charger_setup)
+> +       if (!pdata)
+> +               ds1307_trickle_init(client, chip);
+> +       else if (pdata->trickle_charger_setup)
+>                 chip->trickle_charger_setup = pdata->trickle_charger_setup;
+>
+>         if (chip->trickle_charger_setup && chip->trickle_charger_reg) {
+> @@ -1678,6 +1712,7 @@ static int ds1307_remove(struct i2c_client *client)
+>  static struct i2c_driver ds1307_driver = {
+>         .driver = {
+>                 .name   = "rtc-ds1307",
+> +               .acpi_match_table = ACPI_PTR(ds1307_acpi_ids),
+>         },
+>         .probe          = ds1307_probe,
+>         .remove         = ds1307_remove,
+> --
+> 1.7.1
+>
 
-在 2016/12/2 17:35, Marc Zyngier 写道:
-> On 02/12/16 09:29, majun (Euler7) wrote:
->>
->>
->> 在 2016/12/1 17:07, Marc Zyngier 写道:
->>> On 01/12/16 07:45, Majun wrote:
->>>> From: MaJun <majun258@huawei.com>
->>>>
->>>> For current ITS driver, two level table (indirect route) is enabled when the memory used
->>>> for LPI route table over the limit(64KB * 2) size. But this function impact the 
->>>> performance of LPI interrupt actually because need more time to look up the table.
->>>
->>> Are you implying that your ITS doesn't have a cache to lookup the most
->>> active devices, hence performing a full lookup on each interrupt?
->>
->> Our ITS chip has the cache with depth 64. But this seems not enough for some
->> scenario,espeically on virtulization platform.
-> 
-> Then I don't see how switching to to flat tables is going to improve
-> things. Can you share actual performance numbers?
-> 
-Sorry, I run this code on EMU and have no actual performance numbers now.
+Hi ,
+Any update for this patch ?
+Thank you ,
+Tin
 
-Suppose there are 66 devices in system.
-As far as our chip concerned, there are always 2 devices can't benefit from
-cache fully when they report the interrupt.
-
-If i'm wrong, please correct me.
-
-Thanks
-Majun
-
->>> Anyway, doing this as a DT quirk doesn't feel right. Please use the ITS
->>> quirk infrastructure.
->>
->> If there is no other better solutions, I will do this.
-> 
-> Thanks,
-> 
-> 	M.
-> 
-
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
