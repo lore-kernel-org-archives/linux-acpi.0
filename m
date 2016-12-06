@@ -1,70 +1,56 @@
-From: Tin Huynh <tnhuynh@apm.com>
-Subject: [PATCH V2] i2c: designware: fix wrong tx/rx fifo for ACPI
-Date: Tue,  6 Dec 2016 14:57:53 +0700
-Message-ID: <1481011073-29143-1-git-send-email-tnhuynh@apm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f46.google.com ([74.125.83.46]:35010 "EHLO
-        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751443AbcLFH6m (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2016 02:58:42 -0500
-Received: by mail-pg0-f46.google.com with SMTP id p66so146694011pga.2
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Dec 2016 23:58:07 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ACPI/IORT: Make dma masks set-up IORT specific
+Date: Tue, 6 Dec 2016 15:55:40 +0800
+Message-ID: <58466EFC.3070109@huawei.com>
+References: <20161205122619.25045-1-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20161205122619.25045-1-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 
-ACPI always sets txfifo and rxfifo to 32. This configuration will
-cause problem if the IP core supports a fifo size of less than 32.
-The driver should read the fifo size from the IP and select the 
-smaller one of the two.
+On 2016/12/5 20:26, Lorenzo Pieralisi wrote:
+> The introduction of acpi_dma_configure() allows to configure DMA
+> and related IOMMU for any device that is DMA capable. To achieve
+> that goal it ensures DMA masks are set-up to sane default values
+> before proceeding with IOMMU and DMA ops configuration.
+>
+> On x86/ia64 systems, through acpi_bind_one(), acpi_dma_configure() is
+> called for every device that has an ACPI companion, in that every device
+> is considered DMA capable on x86/ia64 systems (ie acpi_get_dma_attr() API),
+> which has the side effect of initializing dma masks also for
+> pseudo-devices (eg CPUs and memory nodes) and potentially for devices
+> whose dma masks were not set-up before the acpi_dma_configure() API was
+> introduced, which may have noxious side effects.
+>
+> Therefore, in preparation for IORT firmware specific DMA masks set-up,
+> wrap the default DMA masks set-up in acpi_dma_configure() inside an IORT
+> specific wrapper that reverts to a NOP on x86/ia64 systems, restoring the
+> default expected behaviour on x86/ia64 systems and keeping DMA default
+> masks set-up on IORT based (ie ARM) arch configurations.
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+Add this patch on top of your v9 acpi smmu patchset,
+tested on Hisilicon D03 (ARM64), devices with SMMU
+enabled work fine,
 
----
- drivers/i2c/busses/i2c-designware-platdrv.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Reviewed-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Change from V1:
- -Revert the default 32 for fifo, read parameter from IP core
- and pick the smaller one of the two.
- -Correct the title to describe new approach.
-
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index 0b42a12..76b061f 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -153,6 +153,7 @@ static int i2c_dw_plat_prepare_clk(struct dw_i2c_dev *i_dev, bool prepare)
- static int dw_i2c_plat_probe(struct platform_device *pdev)
- {
- 	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
-+	u32 param1, tx_fifo_depth, rx_fifo_depth;
- 	struct dw_i2c_dev *dev;
- 	struct i2c_adapter *adap;
- 	struct resource *mem;
-@@ -246,12 +247,18 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
- 				1000000);
- 	}
- 
-+	param1 = i2c_dw_read_comp_param(dev);
-+	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
-+	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
- 	if (!dev->tx_fifo_depth) {
--		u32 param1 = i2c_dw_read_comp_param(dev);
--
--		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
--		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
-+		dev->tx_fifo_depth = tx_fifo_depth;
-+		dev->rx_fifo_depth = rx_fifo_depth;
- 		dev->adapter.nr = pdev->id;
-+	} else if (tx_fifo_depth) {
-+		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
-+							tx_fifo_depth);
-+		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
-+							rx_fifo_depth);
- 	}
- 
- 	adap = &dev->adapter;
--- 
-1.7.1
-
+Thanks
+Hanjun
