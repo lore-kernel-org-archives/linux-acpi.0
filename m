@@ -1,189 +1,172 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH] SPCR: check bit width for the 16550 UART
-Date: Tue, 6 Dec 2016 14:40:52 +0600
-Message-ID: <d114928b-172c-0140-9a97-4550bd5bbf5d@linaro.org>
-References: <20161205130534.11080-1-aleksey.makarov@linaro.org>
- <CADaLND=cpfnrNUAR+hHBjMk=ei50Z=TFhgzDy0T+EkqUuM7ZWQ@mail.gmail.com>
- <c5bc8527-4dbc-8411-a441-7e7aebcbbfed@redhat.com>
- <CADaLNDn9ZVaZNc0B6_gJ7wBUBPne4qNpYeiPmUO7_SBzsW+srA@mail.gmail.com>
- <CADaLND=t3O9J+KvaK=xb455HjaLYMA+4yodFVrozMEMtgPi-pw@mail.gmail.com>
- <3a6193ef-ca86-c113-b09a-5d6c882137e2@redhat.com>
- <CADaLNDmZQsmx6V8nveOUKJqEUAoeijxYhqWhKEhLGh_RiQo+ZA@mail.gmail.com>
- <53421849-d031-77e1-9edb-53c9d673d462@redhat.com>
- <966938c5-4540-593d-e763-18cf879b325d@redhat.com>
- <0b8324fe-e564-226a-94b1-8ed2946db3d1@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH] ACPI/IORT: Make dma masks set-up IORT specific
+Date: Tue, 6 Dec 2016 09:37:10 +0000
+Message-ID: <20161206093710.GA4432@red-moon>
+References: <20161205122619.25045-1-lorenzo.pieralisi@arm.com>
+	<CAJZ5v0hbc61=QCYDgHZ_KbxR7VkSSWrHVGvU47fG6hsQrSJKhw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:34783 "EHLO
-        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752961AbcLFIk5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2016 03:40:57 -0500
-Received: by mail-lf0-f50.google.com with SMTP id o141so240103407lff.1
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Dec 2016 00:40:56 -0800 (PST)
-In-Reply-To: <0b8324fe-e564-226a-94b1-8ed2946db3d1@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hbc61=QCYDgHZ_KbxR7VkSSWrHVGvU47fG6hsQrSJKhw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Prem Mallappa <prem.mallappa-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>, Duc Dang <dhdang@apm.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Mark Salter <msalter@redhat.com>, Graeme Gregory <graeme.gregory@linaro.org>, Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>
 
+Hi Joerg,
 
-Hi Jon,
+On Mon, Dec 05, 2016 at 11:18:56PM +0100, Rafael J. Wysocki wrote:
+> On Mon, Dec 5, 2016 at 1:26 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
+> > The introduction of acpi_dma_configure() allows to configure DMA
+> > and related IOMMU for any device that is DMA capable. To achieve
+> > that goal it ensures DMA masks are set-up to sane default values
+> > before proceeding with IOMMU and DMA ops configuration.
+> >
+> > On x86/ia64 systems, through acpi_bind_one(), acpi_dma_configure() is
+> > called for every device that has an ACPI companion, in that every device
+> > is considered DMA capable on x86/ia64 systems (ie acpi_get_dma_attr() API),
+> > which has the side effect of initializing dma masks also for
+> > pseudo-devices (eg CPUs and memory nodes) and potentially for devices
+> > whose dma masks were not set-up before the acpi_dma_configure() API was
+> > introduced, which may have noxious side effects.
+> >
+> > Therefore, in preparation for IORT firmware specific DMA masks set-up,
+> > wrap the default DMA masks set-up in acpi_dma_configure() inside an IORT
+> > specific wrapper that reverts to a NOP on x86/ia64 systems, restoring the
+> > default expected behaviour on x86/ia64 systems and keeping DMA default
+> > masks set-up on IORT based (ie ARM) arch configurations.
+> >
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> > Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> > Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> > Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> > Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+> > Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+> > Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> > Cc: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> 
+> Acked -by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> > ---
+> > Joerg,
+> >
+> > pending Rafael's ACK on it, given the 4.10 release timing and that the
+> > series is queued via the IOMMU tree please consider applying this patch to
+> > your arm/smmu branch for 4.10, it is not fixing a bug but it is modifying
+> > the x86/ia64 code path; I prefer preventing any issue related to default
+> > dma masks on x86/ia64 so I hope it can get merged along with the rest of
+> > the ACPI IORT SMMU series.
 
-On 12/06/2016 01:13 PM, Jon Masters wrote:
-> On 12/06/2016 01:53 AM, Jon Masters wrote:
->> On 12/06/2016 01:34 AM, Jon Masters wrote:
->>> On 12/05/2016 10:55 PM, Duc Dang wrote:
->>>> On Mon, Dec 5, 2016 at 6:27 PM, Jon Masters <jcm@redhat.com> wrote:
->
->>                         ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301") /* Device Properties for _DSD */,
->>                         Package (0x01)
->>                         {
->>                             Package (0x02)
->>                             {
->>                                 "clock-frequency",
->>                                 Zero
->>                             }
->>                         }
->
->> I suspect Mustang is doing similar. So you read the magic frequency
->                        ^^^^^^^^^^^^^
->                      spoiler, it is :)
->
->> info and pass this in through a DSD in the AML. It's ok, I've made my
->> peace with this (but obviously we're trying to kill all DSD hacks),
->> but it explains how this "works" after boot, but not for early console.
->>
->> To fix this, we're going to need to be able to know that your 8250 is
->> both needful of 32-bit accesses *AND* needs a different base UART clock.
->> Fortunately our good friends at Microsoft are amenable to adding a
->> subtype that covers this and are going to followup tomorrow for me.
->
-> For the earlycon setup, you'll probably benefit from figuring out
-> ahead of time how you'll want to handle this. The "easy" option
-> is to remove the baud in the case of X-Gene with new subtype
-> but that'll be potential fragile. You might also decide that
-> struct earlycon_device wants to grow a "quirks" flag that
-> you can set for this kind of thing (bound to be more).
+I can apply Rafael and Hanjun's tags and resend a v2 to you if you
+prefer, it would be great if you could apply this patch to your arm/smmu
+branch for v4.10 as per description above, please let me know.
 
-I don't see why new subtypes or quirk flags are required.
+Thank you !
+Lorenzo
 
-My suggestion is to change SPCR spec so that
-
-- Access width should be specified by the "Bit width" subfield of the
-   "Base address" field.
-   When "Interface type" is ACPI_DBG2_ARM_SBSA_32BIT, disregard this value
-   and use mmio32 (legacy case)
-
-- Add a new value 0 (now it is reserved) for "Baud rate" field
-   with meaning "do not change pre-initialized clock rate"
-
-Then spcr.c should be fixed this way:
-
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 6c6710b..9c6c0b4 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -37,7 +37,7 @@ int __init parse_spcr(bool earlycon)
-  	acpi_status status;
-  	char *uart;
-  	char *iotype;
--	int baud_rate;
-+	char *baud_rate_string;
-  	int err;
-  
-  	if (acpi_disabled)
-@@ -56,13 +56,19 @@ int __init parse_spcr(bool earlycon)
-  		goto done;
-  	}
-  
--	iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
--			"mmio" : "io";
-+	if (table->interface_type == ACPI_DBG2_ARM_SBSA_32BIT) {
-+		iotype = "mmio32";
-+	} else if (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-+		if (table->serial_port.bit_width == 32)
-+			iotype = "mmio32";
-+		else
-+			iotype = "mmio";
-+	} else {
-+		iotype = "io";
-+	}
-  
-  	switch (table->interface_type) {
-  	case ACPI_DBG2_ARM_SBSA_32BIT:
--		iotype = "mmio32";
--		/* fall through */
-  	case ACPI_DBG2_ARM_PL011:
-  	case ACPI_DBG2_ARM_SBSA_GENERIC:
-  	case ACPI_DBG2_BCM2835:
-@@ -70,10 +76,6 @@ int __init parse_spcr(bool earlycon)
-  		break;
-  	case ACPI_DBG2_16550_COMPATIBLE:
-  	case ACPI_DBG2_16550_SUBSET:
--		if (table->serial_port.space_id ==
--			ACPI_ADR_SPACE_SYSTEM_MEMORY &&
--		    table->serial_port.bit_width == 32)
--			iotype = "mmio32";
-  		uart = "uart";
-  		break;
-  	default:
-@@ -82,25 +84,33 @@ int __init parse_spcr(bool earlycon)
-  	}
-  
-  	switch (table->baud_rate) {
-+	case 0:
-+		/*
-+		 * This value is not standaritzed by ACPI SPCR for now.
-+		 * It means that hardware should not be re-initialized with
-+		 * new speed.
-+		 */
-+		baud_rate_string = "";
-+		break;
-  	case 3:
--		baud_rate = 9600;
-+		baud_rate_string = ",9600";
-  		break;
-  	case 4:
--		baud_rate = 19200;
-+		baud_rate_string = ",19200";
-  		break;
-  	case 6:
--		baud_rate = 57600;
-+		baud_rate_string = ",57600";
-  		break;
-  	case 7:
--		baud_rate = 115200;
-+		baud_rate_string = ",115200";
-  		break;
-  	default:
-  		err = -ENOENT;
-  		goto done;
-  	}
-  
--	snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iotype,
--		 table->serial_port.address, baud_rate);
-+	snprintf(opts, sizeof(opts), "%s,%s,0x%llx%s", uart, iotype,
-+		 table->serial_port.address, baud_rate_string);
-  
-  	pr_info("console: %s\n", opts);
-  
-------------------------------
-
-All the best
-Aleksey Makarov
-
-> Copying Rob as well in case he has suggestions for you. Rob, as
-> an FYI the AppliedMicro X-Gene 16550 "compatible" requires both
-> 32-bit accesses (which Aleksey tried to address earlier in this
-> thread) but also has a special non-standard clock (to be fair,
-> it's not as if we architected a standard UART clock for arm64,
-> we just assumed it was like x86 but didn't mandate this early
-> when Applied were doing their design - another life lesson).
-> Microsoft will add a new DBG2 subtype that allows for both
-> of these situations. But you'll want to somehow convey this
-> information (quirks) in one of the earlycon structures.
->
-> Jon.
->
+> >
+> > Thanks a lot and apologies,
+> > Lorenzo
+> >
+> >  drivers/acpi/arm64/iort.c | 22 ++++++++++++++++++++++
+> >  drivers/acpi/scan.c       | 14 +-------------
+> >  include/linux/acpi_iort.h |  2 ++
+> >  3 files changed, 25 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index 47bace8..e0d2e6e 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -547,6 +547,28 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+> >  }
+> >
+> >  /**
+> > + * iort_set_dma_mask - Set-up dma mask for a device.
+> > + *
+> > + * @dev: device to configure
+> > + */
+> > +void iort_set_dma_mask(struct device *dev)
+> > +{
+> > +       /*
+> > +        * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
+> > +        * setup the correct supported mask.
+> > +        */
+> > +       if (!dev->coherent_dma_mask)
+> > +               dev->coherent_dma_mask = DMA_BIT_MASK(32);
+> > +
+> > +       /*
+> > +        * Set it to coherent_dma_mask by default if the architecture
+> > +        * code has not set it.
+> > +        */
+> > +       if (!dev->dma_mask)
+> > +               dev->dma_mask = &dev->coherent_dma_mask;
+> > +}
+> > +
+> > +/**
+> >   * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> >   *
+> >   * @dev: device to configure
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index 80698d3..93b00cf 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -1380,19 +1380,7 @@ void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> >  {
+> >         const struct iommu_ops *iommu;
+> >
+> > -       /*
+> > -        * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
+> > -        * setup the correct supported mask.
+> > -        */
+> > -       if (!dev->coherent_dma_mask)
+> > -               dev->coherent_dma_mask = DMA_BIT_MASK(32);
+> > -
+> > -       /*
+> > -        * Set it to coherent_dma_mask by default if the architecture
+> > -        * code has not set it.
+> > -        */
+> > -       if (!dev->dma_mask)
+> > -               dev->dma_mask = &dev->coherent_dma_mask;
+> > +       iort_set_dma_mask(dev);
+> >
+> >         iommu = iort_iommu_configure(dev);
+> >
+> > diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> > index dcb2b60..77e0809 100644
+> > --- a/include/linux/acpi_iort.h
+> > +++ b/include/linux/acpi_iort.h
+> > @@ -35,6 +35,7 @@ bool iort_node_match(u8 type);
+> >  u32 iort_msi_map_rid(struct device *dev, u32 req_id);
+> >  struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+> >  /* IOMMU interface */
+> > +void iort_set_dma_mask(struct device *dev);
+> >  const struct iommu_ops *iort_iommu_configure(struct device *dev);
+> >  #else
+> >  static inline void acpi_iort_init(void) { }
+> > @@ -45,6 +46,7 @@ static inline struct irq_domain *iort_get_device_domain(struct device *dev,
+> >                                                         u32 req_id)
+> >  { return NULL; }
+> >  /* IOMMU interface */
+> > +static inline void iort_set_dma_mask(struct device *dev) { }
+> >  static inline
+> >  const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> >  { return NULL; }
+> > --
+> > 2.10.0
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
