@@ -1,127 +1,66 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
- ids through ACPI
-Date: Tue, 6 Dec 2016 09:00:36 -0800
-Message-ID: <20161206170036.GA12356@dtor-ws>
-References: <8a69cdff155793e8e687d527d9ace97f@mail.gmail.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v11 7/7] arm: pmu: Add PMU definitions for cores not
+ initially online
+Date: Tue, 6 Dec 2016 11:56:56 -0600
+Message-ID: <457894f4-67f8-9d32-ee8b-5a34e9a21488@arm.com>
+References: <1480704961-6910-1-git-send-email-jeremy.linton@arm.com>
+ <1480704961-6910-8-git-send-email-jeremy.linton@arm.com>
+ <20161206152118.GK2498@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35082 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752372AbcLFRAk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2016 12:00:40 -0500
-Content-Disposition: inline
-In-Reply-To: <8a69cdff155793e8e687d527d9ace97f@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:49334 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751762AbcLFR5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Dec 2016 12:57:23 -0500
+In-Reply-To: <20161206152118.GK2498@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Phong Vo <pvo@apm.com>
-Cc: mika.westerberg@linux.intel.com, leonard.crestez@intel.com, wsa+renesas@sang-engineering.com, rafael.j.wysocki@intel.com, len.brown@intel.com, irina.tirdea@intel.com, octavian.purdila@intel.com, daniel.baluta@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Tin Huynh <tnhuynh@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-On Tue, Nov 01, 2016 at 01:14:16PM +0700, Phong Vo wrote:
-> >From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when
-> using DT ids through ACPI
-> >Date: Monday 13th June 2016 09:26:55 UTC (5 months ago)
-> >
-> >On Fri, Jun 10, 2016 at 06:57:36PM +0300, Crestez Dan Leonard wrote:
-> >> On 06/10/2016 09:32 AM, Mika Westerberg wrote:
-> >> > On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
-> >> >> When devices are instatiated through devicetree the i2c_client->name
-> is
-> >> >> set to the compatible string with company name stripped out. This is
-> >> >> then matched to the i2c_device_id table to pass the device_id to the
-> >> >> probe function. This id parameter is used by some device drivers to
-> >> >> differentiate between model numbers.
-> >> >>
-> >> >> When using ACPI this id parameter is NULL and the driver usually
-> needs
-> >> >> to do ACPI-specific differentiation.
-> >> >>
-> >> >> This patch attempts to find a valid i2c_device_id when using ACPI
-> with
-> >> >> DT-like compatible strings.
-> >> >
-> >> > So I don't really understand why it would be good idea to pass
-> >> > i2c_device_id for devices which are matched against their ACPI/DT
-> >> > tables. Apparently DT is already doing that so maybe there is some
-> >> > reason.
-> >> >
-> >> > Anyway, why not fill in the device name when it is first enumerated
-> >> > if it uses DT compatible property? Just like DT does.
-> >> >
-> >> This automatic matching of i2c_device_id works for devicetree because
-> >> of_i2c_register_device sets i2c_board_info.type to the compatible
-> string
-> >> with the vendor prefix removed. For I2C devices described via ACPI the
-> >> i2c_board_info.type string is set to the ACPI device name. This ends up
-> >> something like "PRP0001:00".
-> >>
-> >> This could be changed in acpi_i2c_get_info to use the of_compatible
-> >> string from DSD if present. Is that what you mean? That would work and
-> >> it would be cleaner than my patch. Something like this:
-> >>
-> >> diff --git drivers/i2c/i2c-core.c drivers/i2c/i2c-core.c
-> >> index 1e0ef9b..ba2fe7f 100644
-> >> --- drivers/i2c/i2c-core.c
-> >> +++ drivers/i2c/i2c-core.c
-> >> @@ -181,7 +181,24 @@ static int acpi_i2c_get_info(struct acpi_device
-> >*adev,
-> >>
-> >>         acpi_dev_free_resource_list(&resource_list);
-> >>
-> >> -       strlcpy(info->type, dev_name(&adev->dev), sizeof(info->type));
-> >> +       /*
-> >> +        * If we have a DT id set info.type to the first compatible
-> >> string with
-> >> +        * the vendor prefix stripped. This is similar to
-> >of_modalias_node
-> >> +        */
-> >> +       if (adev->data.of_compatible) {
-> >> +               const union acpi_object *obj;
-> >> +               const char *str, *chr;
-> >> +
-> >> +               obj = adev->data.of_compatible;
-> >> +               if (obj->type == ACPI_TYPE_PACKAGE)
-> >> +                       obj = obj->package.elements;
-> >> +               str = obj->string.pointer;
-> >> +               chr = strchr(str, ',');
-> >> +               if (chr)
-> >> +                       str = chr + 1;
-> >> +               strlcpy(info->type, str, sizeof(info->type));
-> >> +       } else
-> >> +               strlcpy(info->type, dev_name(&adev->dev),
-> >> sizeof(info->type));
-> >>
-> >>         return 0;
-> >>  }>
-> >
-> >Yes, that's what I mean.
-> >
-> >> The biggest concern is that this would change the i2c device name
-> >> between kernel versions. Is that acceptable?
-> >
-> >I don't think that is a problem since I still have not seen a single
-> >system using ACPI _DSD so I would not expect anything to break.
-> >
-> >However, I'm still not convinced it is good idea to return i2c_device_id
-> >from a completely different table if we match using ACPI/DT table.
-> 
-> All,
-> 
-> Is there a conclusion on this? We have been tackling the same issue and
-> incidentally arrived at a
-> similar solution as like Lenard proposed  in the patch above.
+Hi,
 
-FWIW I agree with Mika (I think?) and I do not like that we mangle OF
-data. This causes issues with module loading (where every OF ID has to
-be stripped and added to the legacy table), and so forth. Drivers can
-either use of_device_get_match_data() to get "real" OF id, or maybe we
-could temporarily transform of_device_id into i2c_device_id in i2c bus
-code and pass it to probe(), and do the same with ACPI match data.
+On 12/06/2016 09:21 AM, Will Deacon wrote:
+> On Fri, Dec 02, 2016 at 12:56:01PM -0600, Jeremy Linton wrote:
+>> ACPI CPUs aren't associated with a PMU until they have been put
+>> online. This means that we potentially have to update a PMU
+>> definition the first time a CPU is hot added to the machine.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>  drivers/perf/arm_pmu.c       | 38 ++++++++++++++++++++++++++++++++++++--
+>>  include/linux/perf/arm_pmu.h |  4 ++++
+>>  2 files changed, 40 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+>> index fa40294..4abb2fe 100644
+>> --- a/drivers/perf/arm_pmu.c
+>> +++ b/drivers/perf/arm_pmu.c
+>> @@ -711,6 +711,30 @@ static int cpu_pmu_request_irq(struct arm_pmu *cpu_pmu, irq_handler_t handler)
+>>  	return 0;
+>>  }
+>>
+>> +static DEFINE_SPINLOCK(arm_pmu_resource_lock);
+>
+> Why do you need this spinlock? The hotplug notifiers are serialised afaik,
+> and you don't take it anywhere else.
 
-Thanks.
+Well, I assumed they were serialized, but then I went looking for a 
+guarantee and couldn't find one specific to the notifiers, even though 
+the previous lock was removed. Admittedly, I didn't spend too long 
+looking, but there is a piece missing...
 
--- 
-Dmitry
+Which is the sync between the hotplug notification and perf start/stop. 
+By itself that extends this lock into the consumers of the resource 
+structure. Which might not be the right choice because even without 
+these ACPI specific bits, simply running a few cpus online/offline while 
+simultaneously doing something like `perf stat -e cache-misses ls &` in 
+a loop causes deadlocks/crashes.
+
+That problem doesn't appear to be specific to the ACPI/PMU so I've 
+stayed away from it in this patch set, although potentially a larger fix 
+might cover this as well.
+
+
