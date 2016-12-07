@@ -1,70 +1,65 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC v2 3/4] ACPI: DBG2: add 16550 UART with 32-bit access
-Date: Tue, 6 Dec 2016 22:19:06 +0100
-Message-ID: <CAJZ5v0gnMb=eEJ1c_mWZyRvy6xNZxx=_E78D0fksKJTWwGKGLg@mail.gmail.com>
-References: <20161206175830.6989-1-aleksey.makarov@linaro.org>
- <20161206175830.6989-4-aleksey.makarov@linaro.org> <CAJZ5v0gqHSSYEFkQu_1c=MZeV8xaZjmLRAmtwDcHf8ctGstpvw@mail.gmail.com>
- <B3FFAD47-041F-48DC-B305-AABA420D6E27@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 0/5] acpi, nfit: acpi_nfit_ctl() corner case fixes + tests
+Date: Tue, 06 Dec 2016 16:39:20 -0800
+Message-ID: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33765 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751790AbcLFVe2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2016 16:34:28 -0500
-In-Reply-To: <B3FFAD47-041F-48DC-B305-AABA420D6E27@redhat.com>
+Received: from mga09.intel.com ([134.134.136.24]:13877 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750960AbcLGAna (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 6 Dec 2016 19:43:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Mark Salter <msalter@redhat.com>, Duc Dang <dhdang@apm.com>, Rob Herring <robh@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Dec 6, 2016 at 10:15 PM, Jon Masters <jcm@redhat.com> wrote:
-> Quick note - specifically, Rafael, this is not currently part of the SPCR specification and
-> should not be considered for inclusion in Linux until that is decided. Once it is determined
-> what the fix for SPCR is, that should then be driven into the component architecture and
-> proposed here.
+>From [PATCH 5/5] tools/testing/nvdimm: unit test acpi_nfit_ctl():
+---
 
-OK, good to know, thanks!
+A recent flurry of bug discoveries in the nfit driver's DSM marshalling
+routine has highlighted the fact that we do not have unit test coverage
+for this routine. Add a self-test of acpi_nfit_ctl() routine before
+probing the "nfit_test.0" device. This mocks stimulus to acpi_nfit_ctl()
+and if any of the tests fail "nfit_test.0" will be unavailable causing
+the rest of the tests to not run / fail.
+    
+This unit test will also be a place to land reproductions of quirky
+BIOS behavior discovered in the field and ensure the kernel does not
+regress against implementations it has seen in practice.
+
+---
+
+The problems addressed in this round of fixes date are concentrated
+around the variable-length output from the ARS (Address Range Scrub)
+Status command, and the proper handling of per-command extended status
+values.
+
+They are urgent as improper handling of ARS commands can lead to a
+platform that fails to boot. If there are media errors in the boot path
+on a platform that does not support machine-check recovery we rely on
+the ARS to inform the pmem driver which address ranges may trigger a
+machine-check when read.
+
+---
+
+Dan Williams (4):
+      acpi, nfit, libnvdimm: fix / harden ars_status output length handling
+      acpi, nfit: validate ars_status output buffer size
+      acpi, nfit: fix bus vs dimm confusion in xlat_status
+      tools/testing/nvdimm: unit test acpi_nfit_ctl()
+
+Vishal Verma (1):
+      acpi, nfit: fix extended status translations for ACPI DSMs
 
 
-> --
-> Computer Architect | Sent from my 64-bit #ARM Powered phone
->
->> On Dec 6, 2016, at 16:00, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>
->> On Tue, Dec 6, 2016 at 6:58 PM, Aleksey Makarov
->> <aleksey.makarov@linaro.org> wrote:
->>> It was suggested to add a new Microsoft Debug Port Table 2
->>> (DBG2) (the table used to enumerate the various subtypes of serial
->>> port covered by the SPCR) 16550 UART subtype that may be needed for
->>> some additional platforms, such as those based upon AppliedMicro
->>> X-Gene ARMv8 SoCs.  This new subtype would be 16550-compatible
->>> with 32-bit access.  There already exists 32-bit variant
->>> ACPI_DBG2_ARM_SBSA_32BIT of SBSA console ACPI_DBG2_ARM_SBSA_GENERIC.
->>>
->>> This patch introduces it to Linux kernel.
->>>
->>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>> ---
->>> include/acpi/actbl2.h | 1 +
->>> 1 file changed, 1 insertion(+)
->>>
->>> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->>> index c93dbad..f219b04 100644
->>> --- a/include/acpi/actbl2.h
->>> +++ b/include/acpi/actbl2.h
->>> @@ -371,6 +371,7 @@ struct acpi_dbg2_device {
->>>
->>> #define ACPI_DBG2_16550_COMPATIBLE  0x0000
->>> #define ACPI_DBG2_16550_SUBSET      0x0001
->>> +#define ACPI_DBG2_16550_32BIT       0x0002
->>> #define ACPI_DBG2_ARM_PL011         0x0003
->>> #define ACPI_DBG2_ARM_SBSA_32BIT    0x000D
->>> #define ACPI_DBG2_ARM_SBSA_GENERIC  0x000E
->>> --
->>
->> This is an ACPICA change and it first needs to be made to the upstream
->> ACPICA code base.
->>
->> Thanks,
->> Rafael
+ drivers/acpi/nfit/core.c              |   54 +++++---
+ drivers/acpi/nfit/nfit.h              |    2 
+ drivers/nvdimm/bus.c                  |   25 +++
+ include/linux/libnvdimm.h             |    2 
+ tools/testing/nvdimm/Kbuild           |    1 
+ tools/testing/nvdimm/test/iomap.c     |   23 +++
+ tools/testing/nvdimm/test/nfit.c      |  236 ++++++++++++++++++++++++++++++++-
+ tools/testing/nvdimm/test/nfit_test.h |    8 +
+ 8 files changed, 324 insertions(+), 27 deletions(-)
