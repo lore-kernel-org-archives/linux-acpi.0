@@ -1,79 +1,59 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] SPCR: check bit width for the 16550 UART
-Date: Wed, 07 Dec 2016 10:23:19 -0500
-Message-ID: <1481124199.4751.50.camel@redhat.com>
-References: <20161205130534.11080-1-aleksey.makarov@linaro.org>
-         <CADaLND=cpfnrNUAR+hHBjMk=ei50Z=TFhgzDy0T+EkqUuM7ZWQ@mail.gmail.com>
-         <c5bc8527-4dbc-8411-a441-7e7aebcbbfed@redhat.com>
-         <CADaLNDn9ZVaZNc0B6_gJ7wBUBPne4qNpYeiPmUO7_SBzsW+srA@mail.gmail.com>
-         <CADaLND=t3O9J+KvaK=xb455HjaLYMA+4yodFVrozMEMtgPi-pw@mail.gmail.com>
-         <3a6193ef-ca86-c113-b09a-5d6c882137e2@redhat.com>
-         <CADaLNDmZQsmx6V8nveOUKJqEUAoeijxYhqWhKEhLGh_RiQo+ZA@mail.gmail.com>
-         <53421849-d031-77e1-9edb-53c9d673d462@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53421849-d031-77e1-9edb-53c9d673d462@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>, Duc Dang <dhdang@apm.com>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Len Brown <lenb@kernel.org>
+From: Irina Tirdea <irina.tirdea@intel.com>
+Subject: [PATCH v5 0/2] Add platform clock for BayTrail platforms
+Date: Wed,  7 Dec 2016 17:43:24 +0200
+Message-ID: <1481125406-29097-1-git-send-email-irina.tirdea@intel.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2016-12-06 at 01:34 -0500, Jon Masters wrote:
-> On 12/05/2016 10:55 PM, Duc Dang wrote:
-> > 
-> > On Mon, Dec 5, 2016 at 6:27 PM, Jon Masters <jcm@redhat.com> wrote:
-> > > 
-> > > Hi Duc, all,
-> > > 
-> > > So after regenerating the initrd override (I must have fat fingered)
-> > > it is now detecting the correct bit width on boot (attached dmesg log).
-> > > 
-> > > HOWEVER while the console does come up, the use of "earlycon" on the
-> > > command line (with no parameters) doesn't result in the early SPCR
-> > > console coming up correctly. I see some garbled characters that
-> > > suggest the baud (or register access width) is off somewhere.
-> > My bad that I did not catch this in the morning. Yes, earlycon does
-> > not seems to work as expected. I can see that earlycon parameters
-> > seems to be correct, but the bootconsole message does not come out
-> > (the following is from 'dmesg')
-> > 
-> > [    0.000000] ACPI: SPCR: console: uart,mmio32,0x1c020000,115200
-> > [    0.000000] earlycon: uart0 at MMIO32 0x000000001c020000 (options '115200')
-> > [    0.000000] bootconsole [uart0] enabled
-> The difference appears to be in the baud rate. When I explicitly specify
-> "earlycon=uart8250,mmio32,0x1c021000" no baud is set. When booting with
-> the SPCR, the baud is set to 9600 in my case or 115200 in yours. But we
-> both know that the base clock on the X-Gene UART is weird. Maybe
-> somehow we can explain this through the lack of setting a baud.
+These patches specifically enable the audio MCLK required by Baytrail CR
+devices. It is the remaining part of a bigger set of patches
+(already merged in Mark's tree) that enable sound for Baytrail CR devices
+(especially Asus T100TAF) [1]. They include the clock driver and a move
+of the non-architectural pmc_atom driver code into drivers/platform/x86.
 
-BTW, this behavior is same with devicetree.
-If you specify a baudrate with earlycon=, the driver tries to set that
-baudrate and if you have an 8250 with some non-standard baud clock, then
-it will fail. Perhaps SPCR shouldn't pass baud option to setup_earlycon().
-Then again, setup_earlycon() has this comment:
+[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-August/111704.html
 
- *	setup_earlycon - match and register earlycon console
- *	@buf:	earlycon param string
- *
- *	Registers the earlycon console matching the earlycon specified
- *	in the param string @buf. Acceptable param strings are of the form
- *	   <name>,io|mmio|mmio32|mmio32be,<addr>,<options>
- *	   <name>,0x<addr>,<options>
- *	   <name>,<options>
- *	   <name>
- *
- *	Only for the third form does the earlycon setup() method receive the
- *	<options> string in the 'options' parameter; all other forms set
- *	the parameter to NULL.
+Changes from v4:
+ - move the pmc_atom driver from arch/x86/platform/atom to
+drivers/platform/x86
 
-That part about the 3rd form doesn't seem to be true. I don't see where
-options gets set to NULL for forms other than the third.
+Changes from v3:
+ - replace devm_kzalloc with devm_kcalloc
+ - add x86 architecture maintainers
 
-> 
-> I am pondering some more currently. If it's X-Gene specific, let's add
-> that to the quirk (and to perhaps a more APM specific SPCR subtype).
-> 
-> Jon.
-> 
+Changes from v2:
+ - move clk platform data structures to a separate include file
+ - store clk_hw pointer for the fixed rate clocks
+
+Changes from v1:
+ - register the clk device as child of pmc device
+ - pass iomem pointer from pmc driver to clk driver to avoid using
+pmc_atom_read()/write() and use readl/writel API instead
+ - use devm_clk_hw_register/clkdev_hw_create instead of
+clk_register/clkdev_create
+
+Irina Tirdea (2):
+  arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
+  clk: x86: Add Atom PMC platform clocks
+
+ arch/x86/Kconfig                                   |   4 -
+ arch/x86/platform/atom/Makefile                    |   1 -
+ drivers/acpi/acpi_lpss.c                           |   2 +-
+ drivers/clk/x86/Makefile                           |   1 +
+ drivers/clk/x86/clk-byt-plt.c                      | 380 +++++++++++++++++++++
+ drivers/platform/x86/Kconfig                       |   6 +
+ drivers/platform/x86/Makefile                      |   1 +
+ .../atom => drivers/platform/x86}/pmc_atom.c       |  81 ++++-
+ include/linux/platform_data/x86/clk-byt-plt.h      |  31 ++
+ .../linux/platform_data/x86}/pmc_atom.h            |   3 +
+ 10 files changed, 499 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/clk/x86/clk-byt-plt.c
+ rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c (88%)
+ create mode 100644 include/linux/platform_data/x86/clk-byt-plt.h
+ rename {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h (98%)
+
+-- 
+1.9.1
