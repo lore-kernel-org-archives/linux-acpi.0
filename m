@@ -1,66 +1,81 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 4/5] acpi, nfit: fix bus vs dimm confusion in xlat_status
-Date: Tue, 6 Dec 2016 17:46:31 -0800
-Message-ID: <CAPcyv4h2c+CCHcdQ6h282n=iDJZXF6piPuWDSVvHxXp8EVs5DQ@mail.gmail.com>
-References: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
- <148107118149.25138.14111118284998590831.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH V2] i2c: designware: fix wrong tx/rx fifo for ACPI
+Date: Wed, 07 Dec 2016 12:15:11 +0200
+Message-ID: <1481105711.21899.88.camel@linux.intel.com>
+References: <1481011073-29143-1-git-send-email-tnhuynh@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:33773 "EHLO
-        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751064AbcLGBqc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Dec 2016 20:46:32 -0500
-Received: by mail-oi0-f48.google.com with SMTP id w63so401035976oiw.0
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Dec 2016 17:46:31 -0800 (PST)
-In-Reply-To: <148107118149.25138.14111118284998590831.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1481011073-29143-1-git-send-email-tnhuynh@apm.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Tin Huynh <tnhuynh@apm.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 
-On Tue, Dec 6, 2016 at 4:39 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> Given dimms and bus commands share the same command number space we need
-> to be careful that we are translating status in the correct context.
-> Otherwise we can, for example, fail an ND_CMD_GET_CONFIG_SIZE command
-> because max_xfer is zero. It fails because that condition erroneously
-> correlates with the 'cleared == 0' failure of ND_CMD_CLEAR_ERROR.
->
-> Cc: <stable@vger.kernel.org>
-> Fixes: aef253382266 ("libnvdimm, nfit: centralize command status translation")
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/acpi/nfit/core.c |   16 +++++++++++++---
->  1 file changed, 13 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 4b8b4f520d76..9690b28f0da7 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -94,7 +94,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
->         return to_acpi_device(acpi_desc->dev);
->  }
->
-> -static int xlat_status(void *buf, unsigned int cmd, u32 status)
-> +static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
->  {
->         struct nd_cmd_clear_error *clear_err;
->         struct nd_cmd_ars_status *ars_status;
-> @@ -175,6 +175,15 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
->         return 0;
->  }
->
-> +static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
-> +               u32 status)
-> +{
-> +       if (!nvdimm)
-> +               return xlat_bus_status(buf, cmd, status);
-> +       if (status)
-> +               return -EIO;
+On Tue, 2016-12-06 at 14:57 +0700, Tin Huynh wrote:
+> ACPI always sets txfifo and rxfifo to 32. This configuration will
+> cause problem if the IP core supports a fifo size of less than 32.
+> The driver should read the fifo size from the IP and select the 
+> smaller one of the two.
+> 
+> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+> 
 
-Here comes a 0day report:
+The idea looks good, but see my comment below.
 
-drivers/acpi/nfit/core.c:185:1: warning: control reaches end of
-non-void function [-Wreturn-type]
+> >dev);
+> +	u32 param1, tx_fifo_depth, rx_fifo_depth;
+>  	struct dw_i2c_dev *dev;
+>  	struct i2c_adapter *adap;
+>  	struct resource *mem;
+> @@ -246,12 +247,18 @@ static int dw_i2c_plat_probe(struct
+> platform_device *pdev)
+>  				1000000);
+>  	}
+>  
+> +	param1 = i2c_dw_read_comp_param(dev);
+> +	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+> +	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
+>  	if (!dev->tx_fifo_depth) {
+> -		u32 param1 = i2c_dw_read_comp_param(dev);
+> -
+> -		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+> -		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
+> +		dev->tx_fifo_depth = tx_fifo_depth;
+> +		dev->rx_fifo_depth = rx_fifo_depth;
+>  		dev->adapter.nr = pdev->id;
+> +	} else if (tx_fifo_depth) {
+> +		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
+> +							tx_fifo_depth
+> );
+> +		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
+> +							rx_fifo_dept
 
-...fixed up the patch to add a return 0;
+Can we move this to a separate function like
+
+static void dw_i2c_set_fifo_size(... *dev, ... id)
+{
+	u32 param, tx_fifo_depth, rx_fifo_depth;
+
+	param = i2c_dw_read_comp_param(dev);
+	tx_fifo_depth = ((param >> 16) & 0xff) + 1;
+	rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
+
+ 	if (!dev->tx_fifo_depth) {
+		dev->tx_fifo_depth = tx_fifo_depth;
+		dev->rx_fifo_depth = rx_fifo_depth;
+ 		dev->adapter.nr = id;
+	}
+
+	dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
+tx_fifo_depth);
+	dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
+rx_fifo_depth);
+}
+
+?
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
