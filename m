@@ -1,65 +1,81 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 0/5] acpi, nfit: acpi_nfit_ctl() corner case fixes + tests
-Date: Tue, 06 Dec 2016 16:39:20 -0800
-Message-ID: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/5] acpi, nfit: fix extended status translations for ACPI DSMs
+Date: Tue, 06 Dec 2016 16:39:25 -0800
+Message-ID: <148107116563.25138.8542559534788044870.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:13877 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750960AbcLGAna (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 6 Dec 2016 19:43:30 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <148107115997.25138.3445497812509173966.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 
->From [PATCH 5/5] tools/testing/nvdimm: unit test acpi_nfit_ctl():
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+ACPI DSMs can have an 'extended' status which can be non-zero to convey
+additional information about the command. In the xlat_status routine,
+where we translate the command statuses, we were returning an error for
+a non-zero extended status, even if the primary status indicated success.
+
+Return from each command's 'case' once we have verified both its status
+and extend status are good.
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: 11294d63ac91 ("nfit: fail DSMs that return non-zero status by default")
+Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/acpi/nfit/core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-A recent flurry of bug discoveries in the nfit driver's DSM marshalling
-routine has highlighted the fact that we do not have unit test coverage
-for this routine. Add a self-test of acpi_nfit_ctl() routine before
-probing the "nfit_test.0" device. This mocks stimulus to acpi_nfit_ctl()
-and if any of the tests fail "nfit_test.0" will be unavailable causing
-the rest of the tests to not run / fail.
-    
-This unit test will also be a place to land reproductions of quirky
-BIOS behavior discovered in the field and ensure the kernel does not
-regress against implementations it has seen in practice.
-
----
-
-The problems addressed in this round of fixes date are concentrated
-around the variable-length output from the ARS (Address Range Scrub)
-Status command, and the proper handling of per-command extended status
-values.
-
-They are urgent as improper handling of ARS commands can lead to a
-platform that fails to boot. If there are media errors in the boot path
-on a platform that does not support machine-check recovery we rely on
-the ARS to inform the pmem driver which address ranges may trigger a
-machine-check when read.
-
----
-
-Dan Williams (4):
-      acpi, nfit, libnvdimm: fix / harden ars_status output length handling
-      acpi, nfit: validate ars_status output buffer size
-      acpi, nfit: fix bus vs dimm confusion in xlat_status
-      tools/testing/nvdimm: unit test acpi_nfit_ctl()
-
-Vishal Verma (1):
-      acpi, nfit: fix extended status translations for ACPI DSMs
-
-
- drivers/acpi/nfit/core.c              |   54 +++++---
- drivers/acpi/nfit/nfit.h              |    2 
- drivers/nvdimm/bus.c                  |   25 +++
- include/linux/libnvdimm.h             |    2 
- tools/testing/nvdimm/Kbuild           |    1 
- tools/testing/nvdimm/test/iomap.c     |   23 +++
- tools/testing/nvdimm/test/nfit.c      |  236 ++++++++++++++++++++++++++++++++-
- tools/testing/nvdimm/test/nfit_test.h |    8 +
- 8 files changed, 324 insertions(+), 27 deletions(-)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 71a7d07c28c9..60acbb1d159c 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -113,7 +113,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
+ 		flags = ND_ARS_PERSISTENT | ND_ARS_VOLATILE;
+ 		if ((status >> 16 & flags) == 0)
+ 			return -ENOTTY;
+-		break;
++		return 0;
+ 	case ND_CMD_ARS_START:
+ 		/* ARS is in progress */
+ 		if ((status & 0xffff) == NFIT_ARS_START_BUSY)
+@@ -122,7 +122,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
+ 		/* Command failed */
+ 		if (status & 0xffff)
+ 			return -EIO;
+-		break;
++		return 0;
+ 	case ND_CMD_ARS_STATUS:
+ 		ars_status = buf;
+ 		/* Command failed */
+@@ -154,7 +154,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
+ 		/* Unknown status */
+ 		if (status >> 16)
+ 			return -EIO;
+-		break;
++		return 0;
+ 	case ND_CMD_CLEAR_ERROR:
+ 		clear_err = buf;
+ 		if (status & 0xffff)
+@@ -163,7 +163,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
+ 			return -EIO;
+ 		if (clear_err->length > clear_err->cleared)
+ 			return clear_err->cleared;
+-		break;
++		return 0;
+ 	default:
+ 		break;
+ 	}
