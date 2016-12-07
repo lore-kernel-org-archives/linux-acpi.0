@@ -1,455 +1,104 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V8 3/3] irqchip: qcom: Add IRQ combiner driver
-Date: Wed, 7 Dec 2016 18:16:33 +0000
-Message-ID: <b009635d-8a10-5e22-4438-0019d79d01d3@arm.com>
-References: <1480460259-8585-1-git-send-email-agustinv@codeaurora.org>
- <1480460259-8585-4-git-send-email-agustinv@codeaurora.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v8 8/8] cpufreq: intel_pstate: Use CPPC to get max
+ performance
+Date: Wed, 7 Dec 2016 20:06:08 +0100
+Message-ID: <20161207190608.boi7svavwrkx3epm@breakpoint.cc>
+References: <cover.1479844244.git.tim.c.chen@linux.intel.com>
+ <0998b98943bcdec7d1ddd4ff27358da555ea8e92.1479844244.git.tim.c.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44522 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753008AbcLGSQi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Dec 2016 13:16:38 -0500
-In-Reply-To: <1480460259-8585-4-git-send-email-agustinv@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0998b98943bcdec7d1ddd4ff27358da555ea8e92.1479844244.git.tim.c.chen@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: rjw@rjwysocki.net, tglx@linutronix.de, mingo@redhat.com, bp@suse.de, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net
-Cc: timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-Hi Agustin,
-
-On 29/11/16 22:57, Agustin Vega-Frias wrote:
-> Driver for interrupt combiners in the Top-level Control and Status
-> Registers (TCSR) hardware block in Qualcomm Technologies chips.
+On 2016-11-22 12:24:00 [-0800], Tim Chen wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> An interrupt combiner in this block combines a set of interrupts by
-> OR'ing the individual interrupt signals into a summary interrupt
-> signal routed to a parent interrupt controller, and provides read-
-> only, 32-bit registers to query the status of individual interrupts.
-> The status bit for IRQ n is bit (n % 32) within register (n / 32)
-> of the given combiner. Thus, each combiner can be described as a set
-> of register offsets and the number of IRQs managed.
+> This change uses acpi cppc_lib interface to get CPPC performance limits
+> and calls scheduler interface to update per cpu highest priority. If
+> there is a difference in highest performance of each CPUs, call scheduler
+> interface to enable ITMT feature for only one time.
 > 
-> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
-> ---
->  drivers/irqchip/Kconfig             |   8 +
->  drivers/irqchip/Makefile            |   1 +
->  drivers/irqchip/qcom-irq-combiner.c | 337 ++++++++++++++++++++++++++++++++++++
->  3 files changed, 346 insertions(+)
->  create mode 100644 drivers/irqchip/qcom-irq-combiner.c
-> 
-> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-> index bc0af33..610f902 100644
-> --- a/drivers/irqchip/Kconfig
-> +++ b/drivers/irqchip/Kconfig
-> @@ -279,3 +279,11 @@ config EZNPS_GIC
->  config STM32_EXTI
->  	bool
->  	select IRQ_DOMAIN
-> +
-> +config QCOM_IRQ_COMBINER
-> +	bool "QCOM IRQ combiner support"
-> +	depends on ARCH_QCOM
-> +	select IRQ_DOMAIN
-> +	help
-> +	  Say yes here to add support for the IRQ combiner devices embedded
-> +	  in Qualcomm Technologies chips.
-> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
-> index e4dbfc8..1818a0b 100644
-> --- a/drivers/irqchip/Makefile
-> +++ b/drivers/irqchip/Makefile
-> @@ -74,3 +74,4 @@ obj-$(CONFIG_LS_SCFG_MSI)		+= irq-ls-scfg-msi.o
->  obj-$(CONFIG_EZNPS_GIC)			+= irq-eznps.o
->  obj-$(CONFIG_ARCH_ASPEED)		+= irq-aspeed-vic.o
->  obj-$(CONFIG_STM32_EXTI) 		+= irq-stm32-exti.o
-> +obj-$(CONFIG_QCOM_IRQ_COMBINER)		+= qcom-irq-combiner.o
-> diff --git a/drivers/irqchip/qcom-irq-combiner.c b/drivers/irqchip/qcom-irq-combiner.c
-> new file mode 100644
-> index 0000000..fc25251
-> --- /dev/null
-> +++ b/drivers/irqchip/qcom-irq-combiner.c
-> @@ -0,0 +1,337 @@
-> +/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +/*
-> + * Driver for interrupt combiners in the Top-level Control and Status
-> + * Registers (TCSR) hardware block in Qualcomm Technologies chips.
-> + * An interrupt combiner in this block combines a set of interrupts by
-> + * OR'ing the individual interrupt signals into a summary interrupt
-> + * signal routed to a parent interrupt controller, and provides read-
-> + * only, 32-bit registers to query the status of individual interrupts.
-> + * The status bit for IRQ n is bit (n % 32) within register (n / 32)
-> + * of the given combiner. Thus, each combiner can be described as a set
-> + * of register offsets and the number of IRQs managed.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/irqchip/chained_irq.h>
-> +#include <linux/irqdomain.h>
-> +#include <linux/platform_device.h>
-> +
-> +#define REG_SIZE 32
-> +
-> +struct combiner_reg {
-> +	void __iomem *addr;
-> +	unsigned long mask;
-> +};
-> +
-> +struct combiner {
-> +	struct irq_chip     irq_chip;
-> +	struct irq_domain   *domain;
-> +	int                 parent_irq;
-> +	u32                 nirqs;
-> +	u32                 nregs;
-> +	struct combiner_reg regs[0];
-> +};
-> +
-> +static inline u32 irq_register(int irq)
-> +{
-> +	return irq / REG_SIZE;
-> +}
-> +
-> +static inline u32 irq_bit(int irq)
-> +{
-> +	return irq % REG_SIZE;
-> +
-> +}
-> +
-> +static inline int irq_nr(u32 reg, u32 bit)
-> +{
-> +	return reg * REG_SIZE + bit;
-> +}
-> +
-> +/*
-> + * Handler for the cascaded IRQ.
-> + */
-> +static void combiner_handle_irq(struct irq_desc *desc)
-> +{
-> +	struct combiner *combiner = irq_desc_get_handler_data(desc);
-> +	struct irq_chip *chip = irq_desc_get_chip(desc);
-> +	u32 reg;
-> +
-> +	chained_irq_enter(chip, desc);
-> +
-> +	for (reg = 0; reg < combiner->nregs; reg++) {
-> +		int virq;
-> +		int hwirq;
-> +		u32 bit;
-> +		u32 status;
-> +
-> +		if (combiner->regs[reg].mask == 0)
-> +			continue;
-> +
-> +		status = readl_relaxed(combiner->regs[reg].addr);
-> +		status &= combiner->regs[reg].mask;
-> +
-> +		while (status) {
-> +			bit = __ffs(status);
-> +			status &= ~(1 << bit);
-> +			hwirq = irq_nr(reg, bit);
-> +			virq = irq_find_mapping(combiner->domain, hwirq);
-> +			if (virq >= 0)
-> +				generic_handle_irq(virq);
-> +
-> +		}
-> +	}
-> +
-> +	chained_irq_exit(chip, desc);
-> +}
-> +
-> +/*
-> + * irqchip callbacks
-> + */
-> +
-> +static void combiner_irq_chip_mask_irq(struct irq_data *data)
-> +{
-> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
-> +	struct combiner_reg *reg = combiner->regs + irq_register(data->hwirq);
-> +
-> +	clear_bit(irq_bit(data->hwirq), &reg->mask);
-> +}
-> +
-> +static void combiner_irq_chip_unmask_irq(struct irq_data *data)
-> +{
-> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
-> +	struct combiner_reg *reg = combiner->regs + irq_register(data->hwirq);
-> +
-> +	set_bit(irq_bit(data->hwirq), &reg->mask);
-> +}
-> +
-> +/*
-> + * irq_domain_ops callbacks
-> + */
-> +
-> +static int combiner_irq_map(struct irq_domain *domain, unsigned int irq,
-> +				   irq_hw_number_t hwirq)
-> +{
-> +	struct combiner *combiner = domain->host_data;
-> +
-> +	if (hwirq >= combiner->nirqs)
-> +		return -EINVAL;
-> +
-> +	irq_set_chip_and_handler(irq, &combiner->irq_chip, handle_level_irq);
-> +	irq_set_chip_data(irq, combiner);
-> +	irq_set_parent(irq, combiner->parent_irq);
+> Here sched_set_itmt_core_prio() is called to set priorities and
+> sched_set_itmt_support() is called to enable ITMT feature.
 
-Do you really need this irq_set_parent? This only makes sense if you're
-resending edge interrupts, and you seem to be level only.
+First I had crashed what I bisected down to de966cf4a4fa ("sched/x86: Change
+CONFIG_SCHED_ITMT to CONFIG_SCHED_MC_PRIO") because it made SCHED_ITMT the
+default.
+Then I run another bisect round and got here with the same backtrace:
+|BUG: unable to handle kernel NULL pointer dereference at           (null)
+|IP: [<ffffffff812aab6e>] acpi_cppc_processor_exit+0x40/0x60
+|PGD 0 [    0.577616]
+|Oops: 0000 [#1] SMP
+|Modules linked in:
+|CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.9.0-rc6-00146-g17669006adf6 #51
+|task: ffff88003f878000 task.stack: ffffc90000008000
+|RIP: 0010:[<ffffffff812aab6e>]  [<ffffffff812aab6e>] acpi_cppc_processor_exit+0x40/0x60
+|RSP: 0000:ffffc9000000bd48  EFLAGS: 00010296
+|RAX: 00000000000137e0 RBX: 0000000000000000 RCX: 0000000000000001
+|RDX: ffff88003fc00000 RSI: 0000000000000000 RDI: ffff88003fbca130
+|RBP: ffffc9000000bd60 R08: 0000000000000514 R09: 0000000000000000
+|R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000002
+|R13: 0000000000000020 R14: ffffffff8167cb00 R15: 0000000000000000
+|FS:  0000000000000000(0000) GS:ffff88003fcc0000(0000) knlGS:0000000000000000
+|CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+|CR2: 0000000000000000 CR3: 0000000001618000 CR4: 00000000000406e0
+|Stack:
+| ffff88003f939848 ffff88003fbca130 0000000000000001 ffffc9000000bd80
+| ffffffff812a4ccb ffff88003fc0cee8 0000000000000000 ffffc9000000bdb8
+| ffffffff812dc20d ffff88003fc0cee8 ffffffff8167cb00 ffff88003fc0cf48
+|Call Trace:
+| [<ffffffff812a4ccb>] acpi_processor_stop+0xb2/0xc5
+| [<ffffffff812dc20d>] driver_probe_device+0x14d/0x2f0
+| [<ffffffff812dc41e>] __driver_attach+0x6e/0x90
+| [<ffffffff812da234>] bus_for_each_dev+0x54/0x90
+| [<ffffffff812dbbf9>] driver_attach+0x19/0x20
+| [<ffffffff812db6a6>] bus_add_driver+0xe6/0x200
+| [<ffffffff812dcb23>] driver_register+0x83/0xc0
+| [<ffffffff816f050a>] acpi_processor_driver_init+0x20/0x94
+| [<ffffffff81000487>] do_one_initcall+0x97/0x180
+| [<ffffffff816ccf5c>] kernel_init_freeable+0x112/0x1a6
+| [<ffffffff813a0fc9>] kernel_init+0x9/0xf0
+| [<ffffffff813acf35>] ret_from_fork+0x25/0x30
+|Code: 02 00 00 00 48 8b 14 d5 e0 c3 55 81 48 8b 1c 02 4c 8d 6b 20 eb 15 49 8b 7d 00 48 85 ff 74 05 e8 39 8c d9 ff 41 ff c4 49 83 c5 20 <44> 3b 23 72 e6 48 8d bb a0 02 00 00 e8 b1 6f f9 ff 48 89 df e8
+|RIP  [<ffffffff812aab6e>] acpi_cppc_processor_exit+0x40/0x60
+| RSP <ffffc9000000bd48>
+|CR2: 0000000000000000
+|---[ end trace 917a625107b09711 ]---
 
-> +	irq_set_noprobe(irq);
-> +	return 0;
-> +}
-> +
-> +static void combiner_irq_unmap(struct irq_domain *domain, unsigned int irq)
-> +{
-> +	irq_set_chip_and_handler(irq, NULL, NULL);
-> +	irq_set_chip_data(irq, NULL);
-> +	irq_set_parent(irq, -1);
+The patch attached fixes it. Could someone who looked longer at the code
+than I actually confirm that this fine or fix it differently? This makes
+the crash on boot on a "default" kvm setup go away.
 
-All of this should probably be replaced with a call to
-irq_domain_reset_irq_data().
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/acpi/cppc_acpi.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> +}
-> +
-> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
-
-Is there any case where this is not valid?
-
-> +static int combiner_irq_translate(struct irq_domain *d, struct irq_fwspec *fws,
-> +				  unsigned long *hwirq, unsigned int *type)
-> +{
-> +	if (is_acpi_node(fws->fwnode)) {
-> +		if (fws->param_count != 2)
-> +			return -EINVAL;
-> +
-> +		*hwirq = fws->param[0];
-> +		*type = fws->param[1];
-
-Given that you're only handling level interrupts, shouldn't you abort if
-detecting an edge interrupt?
-
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +#endif
-> +
-> +static const struct irq_domain_ops domain_ops = {
-> +	.map = combiner_irq_map,
-> +	.unmap = combiner_irq_unmap,
-> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
-> +	.translate = combiner_irq_translate
-> +#endif
-> +};
-> +
-> +/*
-> + * Device probing
-> + */
-> +
-> +#ifdef CONFIG_ACPI
-> +
-> +static acpi_status count_registers_cb(struct acpi_resource *ares, void *context)
-> +{
-> +	int *count = context;
-> +
-> +	if (ares->type == ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
-> +		++(*count);
-> +	return AE_OK;
-> +}
-> +
-> +static int count_registers(struct platform_device *pdev)
-> +{
-> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
-> +	acpi_status status;
-> +	int count = 0;
-> +
-> +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
-> +		return -EINVAL;
-> +
-> +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-> +				     count_registers_cb, &count);
-> +	if (ACPI_FAILURE(status))
-> +		return -EINVAL;
-> +	return count;
-> +}
-> +
-> +struct get_registers_context {
-> +	struct device *dev;
-> +	struct combiner *combiner;
-> +	int err;
-> +};
-> +
-> +static acpi_status get_registers_cb(struct acpi_resource *ares, void *context)
-> +{
-> +	struct get_registers_context *ctx = context;
-> +	struct acpi_resource_generic_register *reg;
-> +	phys_addr_t paddr;
-> +	void __iomem *vaddr;
-> +
-> +	if (ares->type != ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
-> +		return AE_OK;
-> +
-> +	reg = &ares->data.generic_reg;
-> +	paddr = reg->address;
-> +	if ((reg->space_id != ACPI_SPACE_MEM) ||
-> +	    (reg->bit_offset != 0) ||
-> +	    (reg->bit_width > REG_SIZE)) {
-> +		dev_err(ctx->dev, "Bad register resource @%pa\n", &paddr);
-> +		ctx->err = -EINVAL;
-> +		return AE_ERROR;
-> +	}
-> +
-> +	vaddr = devm_ioremap(ctx->dev, reg->address, REG_SIZE);
-> +	if (IS_ERR(vaddr)) {
-> +		dev_err(ctx->dev, "Can't map register @%pa\n", &paddr);
-> +		ctx->err = PTR_ERR(vaddr);
-> +		return AE_ERROR;
-> +	}
-> +
-> +	ctx->combiner->regs[ctx->combiner->nregs].addr = vaddr;
-> +	ctx->combiner->nirqs += reg->bit_width;
-> +	ctx->combiner->nregs++;
-> +	return AE_OK;
-> +}
-> +
-> +static int get_registers(struct platform_device *pdev, struct combiner *comb)
-> +{
-> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
-> +	acpi_status status;
-> +	struct get_registers_context ctx;
-> +
-> +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
-> +		return -EINVAL;
-> +
-> +	ctx.dev = &pdev->dev;
-> +	ctx.combiner = comb;
-> +	ctx.err = 0;
-> +
-> +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-> +				     get_registers_cb, &ctx);
-> +	if (ACPI_FAILURE(status))
-> +		return ctx.err;
-> +	return 0;
-> +}
-> +
-> +#else /* !CONFIG_ACPI */
-> +
-> +static int count_registers(struct platform_device *pdev)
-> +{
-> +	return -EINVAL;
-> +}
-> +
-> +static int get_registers(struct platform_device *pdev, struct combiner *comb)
-> +{
-> +	return -EINVAL;
-> +}
-
-So this driver is obviously ACPI only. Can't you just get rid of these,
-of the #ifdef CONFIG_ACPI, and simply make it depend on ACPI?
-
-> +
-> +#endif
-> +
-> +static int __init combiner_probe(struct platform_device *pdev)
-> +{
-> +	struct combiner *combiner;
-> +	size_t alloc_sz;
-> +	u32 nregs;
-> +	int err;
-> +
-> +	nregs = count_registers(pdev);
-> +	if (nregs <= 0) {
-> +		dev_err(&pdev->dev, "Error reading register resources\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	alloc_sz = sizeof(*combiner) + sizeof(struct combiner_reg) * nregs;
-> +	combiner = devm_kzalloc(&pdev->dev, alloc_sz, GFP_KERNEL);
-> +	if (!combiner)
-> +		return -ENOMEM;
-> +
-> +	err = get_registers(pdev, combiner);
-> +	if (err < 0)
-> +		return err;
-> +
-> +	combiner->parent_irq = platform_get_irq(pdev, 0);
-> +	if (combiner->parent_irq <= 0) {
-> +		dev_err(&pdev->dev, "Error getting IRQ resource\n");
-> +		return -EINVAL;
-
-Can you ever get in a situation where it'd be more sensible to return
--EPROBE_DEFER? I'm thinking of a case where you'd have this irq chip
-cascaded into another one, which is not present yet?
-
-> +	}
-> +
-> +	combiner->domain = irq_domain_create_linear(
-> +		pdev->dev.fwnode, combiner->nirqs, &domain_ops, combiner);
-
-On a single line, please. Do no listen to the checkpatch police that
-will tell you otherwise. It really hurt my eyes to see this opening
-bracket and *nothing* after that.
-
-> +	if (!combiner->domain)
-> +		/* Errors printed by irq_domain_create_linear */
-> +		return -ENODEV;
-> +
-> +	irq_set_chained_handler_and_data(combiner->parent_irq,
-> +					 combiner_handle_irq, combiner);
-> +	combiner->irq_chip.irq_mask = combiner_irq_chip_mask_irq;
-> +	combiner->irq_chip.irq_unmask = combiner_irq_chip_unmask_irq;
-> +	combiner->irq_chip.name = pdev->name;
-
-Arghh. Please don't do that. Once you've called irq_set_chained_*, the
-interrupt is live, and can be requested. Unlikely, but still. In
-general, feeding uninitialized data to a function is pretty bad.
-
-Also, do you really need to show pdev->name in /proc/cpuinfo? Just make
-the irq_chip structure static, outside of combiner, and have "QCOM80B1"
-(or something of your liking) as the name once and for all.
-
-> +
-> +	dev_info(&pdev->dev, "Initialized with [p=%d,n=%d,r=%p]\n",
-> +		 combiner->parent_irq, combiner->nirqs, combiner->regs[0].addr);
-> +	return 0;
-> +}
-> +
-> +static const struct acpi_device_id qcom_irq_combiner_acpi_match[] = {
-> +	{ "QCOM80B1", },
-> +	{ }
-> +};
-> +
-> +static struct platform_driver qcom_irq_combiner_probe = {
-> +	.driver = {
-> +		.name = "qcom-irq-combiner",
-> +		.owner = THIS_MODULE,
-> +		.acpi_match_table = ACPI_PTR(qcom_irq_combiner_acpi_match),
-> +	},
-> +	.probe = combiner_probe,
-> +};
-> +
-> +static int __init register_qcom_irq_combiner(void)
-> +{
-> +	return platform_driver_register(&qcom_irq_combiner_probe);
-> +}
-> +device_initcall(register_qcom_irq_combiner);
-> 
-
-Thanks,
-
-	M.
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index d0d0504b7c89..93252e5374c5 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -803,6 +803,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 		if (addr)
+ 			iounmap(addr);
+ 	}
++	per_cpu(cpc_desc_ptr, pr->id) = NULL;
+ 	kfree(cpc_ptr);
+ 
+ out_buf_free:
+@@ -824,6 +825,8 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ 	void __iomem *addr;
+ 
+ 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
++	if (!cpc_ptr)
++		return;
+ 
+ 	/* Free all the mapped sys mem areas for this CPU */
+ 	for (i = 2; i < cpc_ptr->num_entries; i++) {
 -- 
-Jazz is not dead. It just smells funny...
+2.11.0
