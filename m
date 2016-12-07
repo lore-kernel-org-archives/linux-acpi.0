@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5] acpi, nfit: validate ars_status output buffer size
-Date: Tue, 06 Dec 2016 16:39:36 -0800
-Message-ID: <148107117614.25138.4254032116058462860.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 4/5] acpi, nfit: fix bus vs dimm confusion in xlat_status
+Date: Tue, 06 Dec 2016 16:39:41 -0800
+Message-ID: <148107118149.25138.14111118284998590831.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,71 +21,64 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If an ARS Status command returns truncated output, do not process
-partial records or otherwise consume non-status fields.
+Given dimms and bus commands share the same command number space we need
+to be careful that we are translating status in the correct context.
+Otherwise we can, for example, fail an ND_CMD_GET_CONFIG_SIZE command
+because max_xfer is zero. It fails because that condition erroneously
+correlates with the 'cleared == 0' failure of ND_CMD_CLEAR_ERROR.
 
 Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Fixes: 0caeef63e6d2 ("libnvdimm: Add a poison list and export badblocks")
+Fixes: aef253382266 ("libnvdimm, nfit: centralize command status translation")
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ drivers/acpi/nfit/core.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e58ec32393b7..4b8b4f520d76 100644
+index 4b8b4f520d76..9690b28f0da7 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -146,7 +146,8 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		 * then just continue with the returned results.
- 		 */
- 		if (status == NFIT_ARS_STATUS_INTR) {
--			if (ars_status->flags & NFIT_ARS_F_OVERFLOW)
-+			if (ars_status->out_length >= 40 && (ars_status->flags
-+						& NFIT_ARS_F_OVERFLOW))
- 				return -ENOSPC;
- 			return 0;
- 		}
-@@ -2002,19 +2003,32 @@ static int ars_get_status(struct acpi_nfit_desc *acpi_desc)
- 	return cmd_rc;
+@@ -94,7 +94,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
+ 	return to_acpi_device(acpi_desc->dev);
  }
  
--static int ars_status_process_records(struct nvdimm_bus *nvdimm_bus,
-+static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc,
- 		struct nd_cmd_ars_status *ars_status)
+-static int xlat_status(void *buf, unsigned int cmd, u32 status)
++static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
  {
-+	struct nvdimm_bus *nvdimm_bus = acpi_desc->nvdimm_bus;
- 	int rc;
- 	u32 i;
- 
-+	/*
-+	 * First record starts at 44 byte offset from the start of the
-+	 * payload.
-+	 */
-+	if (ars_status->out_length < 44)
-+		return 0;
- 	for (i = 0; i < ars_status->num_records; i++) {
-+		/* only process full records */
-+		if (ars_status->out_length
-+				< 44 + sizeof(struct nd_ars_record) * (i + 1))
-+			break;
- 		rc = nvdimm_bus_add_poison(nvdimm_bus,
- 				ars_status->records[i].err_address,
- 				ars_status->records[i].length);
- 		if (rc)
- 			return rc;
- 	}
-+	if (i < ars_status->num_records)
-+		dev_warn(acpi_desc->dev, "detected truncated ars results\n");
- 
+ 	struct nd_cmd_clear_error *clear_err;
+ 	struct nd_cmd_ars_status *ars_status;
+@@ -175,6 +175,15 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
  	return 0;
  }
-@@ -2267,8 +2281,7 @@ static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc,
- 	if (rc < 0 && rc != -ENOSPC)
- 		return rc;
  
--	if (ars_status_process_records(acpi_desc->nvdimm_bus,
--				acpi_desc->ars_status))
-+	if (ars_status_process_records(acpi_desc, acpi_desc->ars_status))
- 		return -ENOMEM;
++static int xlat_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd,
++		u32 status)
++{
++	if (!nvdimm)
++		return xlat_bus_status(buf, cmd, status);
++	if (status)
++		return -EIO;
++}
++
+ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len, int *cmd_rc)
+@@ -335,7 +344,8 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 			 */
+ 			rc = buf_len - offset - in_buf.buffer.length;
+ 			if (cmd_rc)
+-				*cmd_rc = xlat_status(buf, cmd, fw_status);
++				*cmd_rc = xlat_status(nvdimm, buf, cmd,
++						fw_status);
+ 		} else {
+ 			dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
+ 					__func__, dimm_name, cmd_name, buf_len,
+@@ -345,7 +355,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	} else {
+ 		rc = 0;
+ 		if (cmd_rc)
+-			*cmd_rc = xlat_status(buf, cmd, fw_status);
++			*cmd_rc = xlat_status(nvdimm, buf, cmd, fw_status);
+ 	}
  
- 	return 0;
+  out:
