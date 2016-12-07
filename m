@@ -1,81 +1,44 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH V2] i2c: designware: fix wrong tx/rx fifo for ACPI
-Date: Wed, 07 Dec 2016 12:15:11 +0200
-Message-ID: <1481105711.21899.88.camel@linux.intel.com>
-References: <1481011073-29143-1-git-send-email-tnhuynh@apm.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v11 7/7] arm: pmu: Add PMU definitions for cores not
+ initially online
+Date: Wed, 7 Dec 2016 11:08:23 +0000
+Message-ID: <20161207110823.GA7054@leverpostej>
+References: <1480704961-6910-1-git-send-email-jeremy.linton@arm.com>
+ <1480704961-6910-8-git-send-email-jeremy.linton@arm.com>
+ <20161206152118.GK2498@arm.com>
+ <457894f4-67f8-9d32-ee8b-5a34e9a21488@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1481011073-29143-1-git-send-email-tnhuynh@apm.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:34624 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752630AbcLGLJR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Dec 2016 06:09:17 -0500
+Content-Disposition: inline
+In-Reply-To: <457894f4-67f8-9d32-ee8b-5a34e9a21488@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-On Tue, 2016-12-06 at 14:57 +0700, Tin Huynh wrote:
-> ACPI always sets txfifo and rxfifo to 32. This configuration will
-> cause problem if the IP core supports a fifo size of less than 32.
-> The driver should read the fifo size from the IP and select the 
-> smaller one of the two.
+On Tue, Dec 06, 2016 at 11:56:56AM -0600, Jeremy Linton wrote:
+> Hi,
+
+> Which might not be the right choice because
+> even without these ACPI specific bits, simply running a few cpus
+> online/offline while simultaneously doing something like `perf stat
+> -e cache-misses ls &` in a loop causes deadlocks/crashes.
 > 
-> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
-> 
+> That problem doesn't appear to be specific to the ACPI/PMU so I've
+> stayed away from it in this patch set, although potentially a larger
+> fix might cover this as well.
 
-The idea looks good, but see my comment below.
+Urrgh; I can reproduce lockups on Seattle with v4.9-rc8.
 
-> >dev);
-> +	u32 param1, tx_fifo_depth, rx_fifo_depth;
->  	struct dw_i2c_dev *dev;
->  	struct i2c_adapter *adap;
->  	struct resource *mem;
-> @@ -246,12 +247,18 @@ static int dw_i2c_plat_probe(struct
-> platform_device *pdev)
->  				1000000);
->  	}
->  
-> +	param1 = i2c_dw_read_comp_param(dev);
-> +	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
-> +	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
->  	if (!dev->tx_fifo_depth) {
-> -		u32 param1 = i2c_dw_read_comp_param(dev);
-> -
-> -		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
-> -		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
-> +		dev->tx_fifo_depth = tx_fifo_depth;
-> +		dev->rx_fifo_depth = rx_fifo_depth;
->  		dev->adapter.nr = pdev->id;
-> +	} else if (tx_fifo_depth) {
-> +		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
-> +							tx_fifo_depth
-> );
-> +		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
-> +							rx_fifo_dept
+I'll look into that.
 
-Can we move this to a separate function like
+If you see any more issues in this area, please report them in a new
+thread.
 
-static void dw_i2c_set_fifo_size(... *dev, ... id)
-{
-	u32 param, tx_fifo_depth, rx_fifo_depth;
-
-	param = i2c_dw_read_comp_param(dev);
-	tx_fifo_depth = ((param >> 16) & 0xff) + 1;
-	rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
-
- 	if (!dev->tx_fifo_depth) {
-		dev->tx_fifo_depth = tx_fifo_depth;
-		dev->rx_fifo_depth = rx_fifo_depth;
- 		dev->adapter.nr = id;
-	}
-
-	dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
-tx_fifo_depth);
-	dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
-rx_fifo_depth);
-}
-
-?
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks,
+Mark.
