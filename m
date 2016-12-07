@@ -1,7 +1,8 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/5] acpi, nfit: fix extended status translations for ACPI DSMs
-Date: Tue, 06 Dec 2016 16:39:25 -0800
-Message-ID: <148107116563.25138.8542559534788044870.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 2/5] acpi, nfit,
+ libnvdimm: fix / harden ars_status output length handling
+Date: Tue, 06 Dec 2016 16:39:31 -0800
+Message-ID: <148107117099.25138.2646752128326948109.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <148107115997.25138.3445497812509173966.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,64 +19,129 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Given ambiguities in the ACPI 6.1 definition of the "Output (Size)"
+field of the ARS (Address Range Scrub) Status command, a firmware
+implementation may in practice return 0, 4, or 8 to indicate that there
+is no output payload to process.
 
-ACPI DSMs can have an 'extended' status which can be non-zero to convey
-additional information about the command. In the xlat_status routine,
-where we translate the command statuses, we were returning an error for
-a non-zero extended status, even if the primary status indicated success.
+The specification states "Size of Output Buffer in bytes, including this
+field.". However, 'Output Buffer' is also the name of the entire
+payload, and earlier in the specification it states "Max Query ARS
+Status Output Buffer Size: Maximum size of buffer (including the Status
+and Extended Status fields)".
 
-Return from each command's 'case' once we have verified both its status
-and extend status are good.
+Without this fix if the BIOS happens to return 0 it causes memory
+corruption as evidenced by this result from the acpi_nfit_ctl() unit
+test.
+
+ ars_status00000000: 00020000 00000000                    ........
+ BUG: stack guard page was hit at ffffc90001750000 (stack is ffffc9000174c000..ffffc9000174ffff)
+ kernel stack overflow (page fault): 0000 [#1] SMP DEBUG_PAGEALLOC
+ task: ffff8803332d2ec0 task.stack: ffffc9000174c000
+ RIP: 0010:[<ffffffff814cfe72>]  [<ffffffff814cfe72>] __memcpy+0x12/0x20
+ RSP: 0018:ffffc9000174f9a8  EFLAGS: 00010246
+ RAX: ffffc9000174fab8 RBX: 0000000000000000 RCX: 000000001fffff56
+ RDX: 0000000000000000 RSI: ffff8803231f5a08 RDI: ffffc90001750000
+ RBP: ffffc9000174fa88 R08: ffffc9000174fab0 R09: ffff8803231f54b8
+ R10: 0000000000000008 R11: 0000000000000001 R12: 0000000000000000
+ R13: 0000000000000000 R14: 0000000000000003 R15: ffff8803231f54a0
+ FS:  00007f3a611af640(0000) GS:ffff88033ed00000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: ffffc90001750000 CR3: 0000000325b20000 CR4: 00000000000406e0
+ Stack:
+  ffffffffa00bc60d 0000000000000008 ffffc90000000001 ffffc9000174faac
+  0000000000000292 ffffffffa00c24e4 ffffffffa00c2914 0000000000000000
+  0000000000000000 ffffffff00000003 ffff880331ae8ad0 0000000800000246
+ Call Trace:
+  [<ffffffffa00bc60d>] ? acpi_nfit_ctl+0x49d/0x750 [nfit]
+  [<ffffffffa01f4fe0>] nfit_test_probe+0x670/0xb1b [nfit_test]
 
 Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Fixes: 11294d63ac91 ("nfit: fail DSMs that return non-zero status by default")
-Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: 747ffe11b440 ("libnvdimm, tools/testing/nvdimm: fix 'ars_status' output buffer sizing")
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/nfit/core.c  |    3 ++-
+ drivers/nvdimm/bus.c      |   25 ++++++++++++++++++++-----
+ include/linux/libnvdimm.h |    2 +-
+ 3 files changed, 23 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 71a7d07c28c9..60acbb1d159c 100644
+index 60acbb1d159c..e58ec32393b7 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -113,7 +113,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		flags = ND_ARS_PERSISTENT | ND_ARS_VOLATILE;
- 		if ((status >> 16 & flags) == 0)
- 			return -ENOTTY;
--		break;
-+		return 0;
- 	case ND_CMD_ARS_START:
- 		/* ARS is in progress */
- 		if ((status & 0xffff) == NFIT_ARS_START_BUSY)
-@@ -122,7 +122,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		/* Command failed */
- 		if (status & 0xffff)
- 			return -EIO;
--		break;
-+		return 0;
- 	case ND_CMD_ARS_STATUS:
- 		ars_status = buf;
- 		/* Command failed */
-@@ -154,7 +154,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 		/* Unknown status */
- 		if (status >> 16)
- 			return -EIO;
--		break;
-+		return 0;
- 	case ND_CMD_CLEAR_ERROR:
- 		clear_err = buf;
- 		if (status & 0xffff)
-@@ -163,7 +163,7 @@ static int xlat_status(void *buf, unsigned int cmd, u32 status)
- 			return -EIO;
- 		if (clear_err->length > clear_err->cleared)
- 			return clear_err->cleared;
--		break;
-+		return 0;
- 	default:
- 		break;
- 	}
+@@ -298,7 +298,8 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 
+ 	for (i = 0, offset = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
+-				(u32 *) out_obj->buffer.pointer);
++				(u32 *) out_obj->buffer.pointer,
++				out_obj->buffer.length - offset);
+ 
+ 		if (offset + out_size > out_obj->buffer.length) {
+ 			dev_dbg(dev, "%s:%s output object underflow cmd: %s field: %d\n",
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index a8b6949a8778..23d4a1728cdf 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -715,7 +715,7 @@ EXPORT_SYMBOL_GPL(nd_cmd_in_size);
+ 
+ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
+-		const u32 *out_field)
++		const u32 *out_field, unsigned long remainder)
+ {
+ 	if (idx >= desc->out_num)
+ 		return UINT_MAX;
+@@ -727,9 +727,24 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		return in_field[1];
+ 	else if (nvdimm && cmd == ND_CMD_VENDOR && idx == 2)
+ 		return out_field[1];
+-	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
+-		return out_field[1] - 8;
+-	else if (cmd == ND_CMD_CALL) {
++	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2) {
++		/*
++		 * Per table 9-276 ARS Data in ACPI 6.1, out_field[1] is
++		 * "Size of Output Buffer in bytes, including this
++		 * field."
++		 */
++		if (out_field[1] < 4)
++			return 0;
++		/*
++		 * ACPI 6.1 is ambiguous if 'status' is included in the
++		 * output size. If we encounter an output size that
++		 * overshoots the remainder by 4 bytes, assume it was
++		 * including 'status'.
++		 */
++		if (out_field[1] - 8 == remainder)
++			return remainder;
++		return out_field[1] - 4;
++	} else if (cmd == ND_CMD_CALL) {
+ 		struct nd_cmd_pkg *pkg = (struct nd_cmd_pkg *) in_field;
+ 
+ 		return pkg->nd_size_out;
+@@ -876,7 +891,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	/* process an output envelope */
+ 	for (i = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
+-				(u32 *) in_env, (u32 *) out_env);
++				(u32 *) in_env, (u32 *) out_env, 0);
+ 		u32 copy;
+ 
+ 		if (out_size == UINT_MAX) {
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f4947fda11e7..8458c5351e56 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -143,7 +143,7 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+ 		const struct nd_cmd_desc *desc, int idx, void *buf);
+ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
+-		const u32 *out_field);
++		const u32 *out_field, unsigned long remainder);
+ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count);
+ struct nd_region *nvdimm_pmem_region_create(struct nvdimm_bus *nvdimm_bus,
+ 		struct nd_region_desc *ndr_desc);
