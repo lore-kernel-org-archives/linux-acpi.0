@@ -1,125 +1,58 @@
-From: Irina Tirdea <irina.tirdea@intel.com>
-Subject: [PATCH v5 1/2] arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
-Date: Wed,  7 Dec 2016 17:43:25 +0200
-Message-ID: <1481125406-29097-2-git-send-email-irina.tirdea@intel.com>
-References: <1481125406-29097-1-git-send-email-irina.tirdea@intel.com>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH V1] acpi : nfit : core :- No need of devm functions
+Date: Wed,  7 Dec 2016 21:12:36 +0530
+Message-ID: <1481125356-7806-1-git-send-email-arvind.yadav.cs@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20924 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932236AbcLGPoN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Dec 2016 10:44:13 -0500
-In-Reply-To: <1481125406-29097-1-git-send-email-irina.tirdea@intel.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34403 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932359AbcLGP6A (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 10:58:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com, joeyli.kernel@gmail.com, toshi.kani@hpe.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The pmc_atom driver does not contain any architecture specific
-code. It only enables the SOC Power Management Controller Driver
-for BayTrail and CherryTrail platforms.
+In function acpi_nfit_init_interleave_set, the memory allocated
+for 'info' is live within the function only. After the allocation
+it is immediately freed with devm_kfree. There is no need to
+allocate memory for 'info' with devm function so replace
+devm_kzalloc with kzalloc and devm_kfree with kfree.
 
-Move the pmc_atom driver from arch/x86/platform/atom to
-drivers/platform/x86.
-
-Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- arch/x86/Kconfig                                                     | 4 ----
- arch/x86/platform/atom/Makefile                                      | 1 -
- drivers/acpi/acpi_lpss.c                                             | 2 +-
- drivers/platform/x86/Kconfig                                         | 5 +++++
- drivers/platform/x86/Makefile                                        | 1 +
- {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c          | 3 +--
- {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h | 0
- 7 files changed, 8 insertions(+), 8 deletions(-)
- rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c (99%)
- rename {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h (100%)
+ drivers/acpi/nfit/core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index bada636..5a009f0 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -2753,10 +2753,6 @@ config X86_DMA_REMAP
- 	bool
- 	depends on STA2X11
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 71a7d07..bd7e4e7 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1631,7 +1631,7 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+ 	if (!nd_set)
+ 		return -ENOMEM;
  
--config PMC_ATOM
--	def_bool y
--        depends on PCI
--
- source "net/Kconfig"
+-	info = devm_kzalloc(dev, sizeof_nfit_set_info(nr), GFP_KERNEL);
++	info = kzalloc(sizeof_nfit_set_info(nr), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 	for (i = 0; i < nr; i++) {
+@@ -1644,6 +1644,7 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
  
- source "drivers/Kconfig"
-diff --git a/arch/x86/platform/atom/Makefile b/arch/x86/platform/atom/Makefile
-index 40983f5..57be88f 100644
---- a/arch/x86/platform/atom/Makefile
-+++ b/arch/x86/platform/atom/Makefile
-@@ -1,2 +1 @@
--obj-$(CONFIG_PMC_ATOM)		+= pmc_atom.o
- obj-$(CONFIG_PUNIT_ATOM_DEBUG)	+= punit_atom_debug.o
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 373657f..3e4c566 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -18,6 +18,7 @@
- #include <linux/mutex.h>
- #include <linux/platform_device.h>
- #include <linux/platform_data/clk-lpss.h>
-+#include <linux/platform_data/x86/pmc_atom.h>
- #include <linux/pm_domain.h>
- #include <linux/pm_runtime.h>
- #include <linux/delay.h>
-@@ -31,7 +32,6 @@
- #include <asm/cpu_device_id.h>
- #include <asm/intel-family.h>
- #include <asm/iosf_mbi.h>
--#include <asm/pmc_atom.h>
+ 		if (!memdev || !nfit_mem->dcr) {
+ 			dev_err(dev, "%s: failed to find DCR\n", __func__);
++			kfree(info);
+ 			return -ENODEV;
+ 		}
  
- #define LPSS_ADDR(desc) ((unsigned long)&desc)
+@@ -1655,7 +1656,7 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+ 			cmp_map, NULL);
+ 	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
+ 	ndr_desc->nd_set = nd_set;
+-	devm_kfree(dev, info);
++	kfree(info);
  
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index b8a21d7..7b74c53 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -1027,4 +1027,9 @@ config INTEL_TELEMETRY
- 	  used to get various SoC events and parameters
- 	  directly via debugfs files. Various tools may use
- 	  this interface for SoC state monitoring.
-+
-+config PMC_ATOM
-+	def_bool y
-+        depends on PCI
-+
- endif # X86_PLATFORM_DEVICES
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index 2efa86d..8568d74 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -71,3 +71,4 @@ obj-$(CONFIG_INTEL_TELEMETRY)	+= intel_telemetry_core.o \
- 				   intel_telemetry_pltdrv.o \
- 				   intel_telemetry_debugfs.o
- obj-$(CONFIG_INTEL_PMC_CORE)    += intel_pmc_core.o
-+obj-$(CONFIG_PMC_ATOM)		+= pmc_atom.o
-diff --git a/arch/x86/platform/atom/pmc_atom.c b/drivers/platform/x86/pmc_atom.c
-similarity index 99%
-rename from arch/x86/platform/atom/pmc_atom.c
-rename to drivers/platform/x86/pmc_atom.c
-index 964ff4f..b53fbc1 100644
---- a/arch/x86/platform/atom/pmc_atom.c
-+++ b/drivers/platform/x86/pmc_atom.c
-@@ -21,8 +21,7 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/io.h>
--
--#include <asm/pmc_atom.h>
-+#include <linux/platform_data/x86/pmc_atom.h>
- 
- struct pmc_bit_map {
- 	const char *name;
-diff --git a/arch/x86/include/asm/pmc_atom.h b/include/linux/platform_data/x86/pmc_atom.h
-similarity index 100%
-rename from arch/x86/include/asm/pmc_atom.h
-rename to include/linux/platform_data/x86/pmc_atom.h
+ 	return 0;
+ }
 -- 
-1.9.1
+2.7.4
 
