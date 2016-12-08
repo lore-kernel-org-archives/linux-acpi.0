@@ -1,25 +1,116 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Notice] Submissions of new 4.10 material for ACPI/PM closed
-Date: Thu, 08 Dec 2016 01:45:45 +0100
-Message-ID: <3989107.iPZvgSYVs5@aspire.rjw.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
+ and early_acpi_os_unmap_memory() from Linux kernel
+Date: Wed, 7 Dec 2016 17:11:14 -0800
+Message-ID: <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62707 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933027AbcLHAtn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 19:49:43 -0500
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:32814 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932216AbcLHBLQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 20:11:16 -0500
+In-Reply-To: <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
 
-Dear ACPI/PM patch submitters,
+On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+>
+> This patch back ports Linux acpi_get_table_with_size() and
+> early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
+>
+> The 2 APIs are used by Linux as table management APIs for long time, it
+> contains a hidden logic that during the early stage, the mapped tables
+> should be unmapped before the early stage ends.
+>
+> During the early stage, tables are handled by the following sequence:
+>  acpi_get_table_with_size();
+>  parse the table
+>  early_acpi_os_unmap_memory();
+> During the late stage, tables are handled by the following sequence:
+>  acpi_get_table();
+>  parse the table
+> Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
+> late stage.
+>
+> The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
+> remember the early mapped pointer in acpi_get_table() and Linux isn't able to
+> prevent ACPICA from using the wrong early mapped pointer during the late
+> stage as there is no API provided from ACPICA to be an inverse of
+> acpi_get_table() to forget the early mapped pointer.
+>
+> But how ACPICA can work with the early/late stage requirement? Inside of
+> ACPICA, tables are ensured to be remained in "INSTALLED" state during the
+> early stage, and they are carefully not transitioned to "VALIDATED" state
+> until the late stage. So the same logic is in fact implemented inside of
+> ACPICA in a different way. The gap is only that the feature is not provided
+> to the OSPMs in an accessible external API style.
+>
+> It then is possible to fix the gap by providing an inverse of
+> acpi_get_table() from ACPICA, so that the two Linux sequences can be
+> combined:
+>  acpi_get_table();
+>  parse the table
+>  acpi_put_table();
+> In order to work easier with the current Linux code, acpi_get_table() and
+> acpi_put_table() is implemented in a usage counting based style:
+>  1. When the usage count of the table is increased from 0 to 1, table is
+>     mapped and .Pointer is set with the mapping address (VALIDATED);
+>  2. When the usage count of the table is decreased from 1 to 0, .Pointer
+>     is unset and the mapping address is unmapped (INVALIDATED).
+> So that we can deploy the new APIs to Linux with minimal effort by just
+> invoking acpi_get_table() in acpi_get_table_with_size() and invoking
+> acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
+>
+> Link: https://github.com/acpica/acpica/commit/cac67909
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
 
-Please note that general ACPI/PM material that is not in the bleeding-edge
-branch of the linux-pm.git tree at kernel.org right now is not going to be
-taken for 4.10-rc unless it is a fix (ie. more than a cleanup).
+This commit in -next (071b39575679 ACPICA: Tables: Back port
+acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+kernel) causes a regression in my nfit/nvdimm test environment. The
+nfit produced by QEMU no longer results in a nvdimm bus being created.
 
-Thanks,
-Rafael
+I have not root caused it, but I'm using the following command line
+options to create an nfit in qemu-2.6.  Reverting the commit leads
+compile failures.
 
+qemu=$HOME/git/qemu/build/x86_64-softmmu/qemu-system-x86_64
+mem=$HOME/mem
+label_size=$((128*1024))
+mem_size=$(((3*1024*1024*1024) + (64 * 1024 *1024)))
+IMAGE=$HOME/ahci.img
+
+kvm=(
+        $qemu
+        -enable-kvm
+        -cpu kvm64
+        -kernel $kernel
+        -initrd $initrd
+        -m 12G,slots=3,maxmem=40G
+
+        -machine pc-i440fx-2.4,accel=kvm,usb=off,vmport=off,nvdimm
+        -cpu SandyBridge
+        -smp 2
+        -netdev tap,id=hostnet0,ifname=tap0,script=no,downscript=no
+        -device
+virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:b7:a1:ad,bus=pci.0,addr=0x7
+        -object
+memory-backend-file,id=mem1,share,mem-path=${mem},size=$((label_size +
+mem_size))
+        -device nvdimm,memdev=mem1,id=nv1,label-size=${label_size}
+        -device ahci,id=sata0,bus=pci.0,addr=0x8
+        -drive file=$IMAGE,if=none,id=drive-sata0-0-0,format=raw
+        -device ide-hd,bus=sata0.0,drive=drive-sata0-0-0,id=sata0-0-0
+        -boot order=nc
+        -no-reboot
+        -watchdog i6300esb
+        -rtc base=localtime
+        -serial stdio
+        -display none
+        -monitor null
+)
