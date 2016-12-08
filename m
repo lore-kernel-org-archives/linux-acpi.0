@@ -1,7 +1,7 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v18 01/15] clocksource/drivers/arm_arch_timer: Move enums and defines to header file
-Date: Fri,  9 Dec 2016 01:33:05 +0800
-Message-ID: <20161208173319.6618-2-fu.wei@linaro.org>
+Subject: [PATCH v18 02/15] clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+Date: Fri,  9 Dec 2016 01:33:06 +0800
+Message-ID: <20161208173319.6618-3-fu.wei@linaro.org>
 References: <20161208173319.6618-1-fu.wei@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161208173319.6618-1-fu.wei@linaro.org>
@@ -12,87 +12,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Fu Wei <fu.wei@linaro.org>
 
-To support the arm_arch_timer via ACPI we need to share defines and enums
-between the driver and the ACPI parser code.
-
-Split out the relevant defines and enums into arm_arch_timer.h, and
-change "enum ppi_nr" to "enum arch_timer_ppi_nr" to avoid the potential
-name clashes.
-Also switch "enum ppi_nr" to "enum arch_timer_ppi_nr" in
-arm_arch_timer.c.
-No functional change.
+This patch add a new enum "arch_timer_spi_nr" and use it in the driver.
+Just for code's readability, no functional change.
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
 Acked-by: Mark Rutland <mark.rutland@arm.com>
-Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
 ---
- drivers/clocksource/arm_arch_timer.c | 13 +------------
- include/clocksource/arm_arch_timer.h | 12 ++++++++++++
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ drivers/clocksource/arm_arch_timer.c | 4 ++--
+ include/clocksource/arm_arch_timer.h | 6 ++++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 73c487d..21068be 100644
+index 21068be..63bb532 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
-@@ -51,8 +51,6 @@
- #define CNTV_TVAL	0x38
- #define CNTV_CTL	0x3c
+@@ -960,9 +960,9 @@ static int __init arch_timer_mem_init(struct device_node *np)
+ 	}
  
--#define ARCH_CP15_TIMER	BIT(0)
--#define ARCH_MEM_TIMER	BIT(1)
- static unsigned arch_timers_present __initdata;
+ 	if (arch_timer_mem_use_virtual)
+-		irq = irq_of_parse_and_map(best_frame, 1);
++		irq = irq_of_parse_and_map(best_frame, ARCH_TIMER_VIRT_SPI);
+ 	else
+-		irq = irq_of_parse_and_map(best_frame, 0);
++		irq = irq_of_parse_and_map(best_frame, ARCH_TIMER_PHYS_SPI);
  
- static void __iomem *arch_counter_base;
-@@ -65,20 +63,11 @@ struct arch_timer {
- #define to_arch_timer(e) container_of(e, struct arch_timer, evt)
- 
- static u32 arch_timer_rate;
--
--enum ppi_nr {
--	PHYS_SECURE_PPI,
--	PHYS_NONSECURE_PPI,
--	VIRT_PPI,
--	HYP_PPI,
--	MAX_TIMER_PPI
--};
--
- static int arch_timer_ppi[MAX_TIMER_PPI];
- 
- static struct clock_event_device __percpu *arch_timer_evt;
- 
--static enum ppi_nr arch_timer_uses_ppi = VIRT_PPI;
-+static enum arch_timer_ppi_nr arch_timer_uses_ppi = VIRT_PPI;
- static bool arch_timer_c3stop;
- static bool arch_timer_mem_use_virtual;
- 
+ 	ret = -EINVAL;
+ 	if (!irq) {
 diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
-index caedb74..557f869 100644
+index 557f869..d23c381 100644
 --- a/include/clocksource/arm_arch_timer.h
 +++ b/include/clocksource/arm_arch_timer.h
-@@ -16,9 +16,13 @@
- #ifndef __CLKSOURCE_ARM_ARCH_TIMER_H
- #define __CLKSOURCE_ARM_ARCH_TIMER_H
- 
-+#include <linux/bitops.h>
- #include <linux/timecounter.h>
- #include <linux/types.h>
- 
-+#define ARCH_CP15_TIMER			BIT(0)
-+#define ARCH_MEM_TIMER			BIT(1)
-+
- #define ARCH_TIMER_CTRL_ENABLE		(1 << 0)
- #define ARCH_TIMER_CTRL_IT_MASK		(1 << 1)
- #define ARCH_TIMER_CTRL_IT_STAT		(1 << 2)
-@@ -34,6 +38,14 @@ enum arch_timer_reg {
- 	ARCH_TIMER_REG_TVAL,
+@@ -46,6 +46,12 @@ enum arch_timer_ppi_nr {
+ 	MAX_TIMER_PPI
  };
  
-+enum arch_timer_ppi_nr {
-+	PHYS_SECURE_PPI,
-+	PHYS_NONSECURE_PPI,
-+	VIRT_PPI,
-+	HYP_PPI,
-+	MAX_TIMER_PPI
++enum arch_timer_spi_nr {
++	ARCH_TIMER_PHYS_SPI,
++	ARCH_TIMER_VIRT_SPI,
++	ARCH_TIMER_MAX_TIMER_SPI
 +};
 +
  #define ARCH_TIMER_PHYS_ACCESS		0
