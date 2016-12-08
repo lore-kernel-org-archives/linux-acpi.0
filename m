@@ -1,116 +1,55 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
- and early_acpi_os_unmap_memory() from Linux kernel
-Date: Wed, 7 Dec 2016 17:11:14 -0800
-Message-ID: <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
-References: <cover.1480490191.git.lv.zheng@intel.com> <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v17 08/15] clocksource/drivers/arm_arch_timer:
+ move arch_timer_needs_of_probing into DT init call
+Date: Thu, 8 Dec 2016 11:16:21 +0800
+Message-ID: <CADyBb7vAfMGV5ERFqAbwo4v4BhJv5s_-x4DXmdvy=iUacBzJWQ@mail.gmail.com>
+References: <20161125084623.22515-9-fu.wei@linaro.org> <201611252221.UyJ9iWPV%fengguang.wu@intel.com>
+ <CADyBb7uAObQn_JVp_qw9+7POiqUctdzy3cYLsb0rk-JMX5W1uw@mail.gmail.com> <CAOZdJXU7Lg66RKvA=sYtUXUdwLLbh9FtcW0_U-fmjaztnqS3Ng@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:32814 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932216AbcLHBLQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 20:11:16 -0500
-In-Reply-To: <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+Received: from mail-io0-f176.google.com ([209.85.223.176]:33642 "EHLO
+        mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933056AbcLHDQe (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 22:16:34 -0500
+Received: by mail-io0-f176.google.com with SMTP id j65so6558825iof.0
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Dec 2016 19:16:22 -0800 (PST)
+In-Reply-To: <CAOZdJXU7Lg66RKvA=sYtUXUdwLLbh9FtcW0_U-fmjaztnqS3Ng@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: kbuild test robot <lkp@intel.com>, Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, kbuild-all@01.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-ke
 
-On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
->
-> This patch back ports Linux acpi_get_table_with_size() and
-> early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
->
-> The 2 APIs are used by Linux as table management APIs for long time, it
-> contains a hidden logic that during the early stage, the mapped tables
-> should be unmapped before the early stage ends.
->
-> During the early stage, tables are handled by the following sequence:
->  acpi_get_table_with_size();
->  parse the table
->  early_acpi_os_unmap_memory();
-> During the late stage, tables are handled by the following sequence:
->  acpi_get_table();
->  parse the table
-> Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
-> late stage.
->
-> The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
-> remember the early mapped pointer in acpi_get_table() and Linux isn't able to
-> prevent ACPICA from using the wrong early mapped pointer during the late
-> stage as there is no API provided from ACPICA to be an inverse of
-> acpi_get_table() to forget the early mapped pointer.
->
-> But how ACPICA can work with the early/late stage requirement? Inside of
-> ACPICA, tables are ensured to be remained in "INSTALLED" state during the
-> early stage, and they are carefully not transitioned to "VALIDATED" state
-> until the late stage. So the same logic is in fact implemented inside of
-> ACPICA in a different way. The gap is only that the feature is not provided
-> to the OSPMs in an accessible external API style.
->
-> It then is possible to fix the gap by providing an inverse of
-> acpi_get_table() from ACPICA, so that the two Linux sequences can be
-> combined:
->  acpi_get_table();
->  parse the table
->  acpi_put_table();
-> In order to work easier with the current Linux code, acpi_get_table() and
-> acpi_put_table() is implemented in a usage counting based style:
->  1. When the usage count of the table is increased from 0 to 1, table is
->     mapped and .Pointer is set with the mapping address (VALIDATED);
->  2. When the usage count of the table is decreased from 1 to 0, .Pointer
->     is unset and the mapping address is unmapped (INVALIDATED).
-> So that we can deploy the new APIs to Linux with minimal effort by just
-> invoking acpi_get_table() in acpi_get_table_with_size() and invoking
-> acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
->
-> Link: https://github.com/acpica/acpica/commit/cac67909
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
+Hi Timur,
 
-This commit in -next (071b39575679 ACPICA: Tables: Back port
-acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
-kernel) causes a regression in my nfit/nvdimm test environment. The
-nfit produced by QEMU no longer results in a nvdimm bus being created.
+On 8 December 2016 at 01:25, Timur Tabi <timur@codeaurora.org> wrote:
+> On Fri, Nov 25, 2016 at 9:06 AM, Fu Wei <fu.wei@linaro.org> wrote:
+>>
+>> a "+ int ret;" should be move from [12/15] to here, I have fix the
+>> problem in my repo, it would happen in next patchset
+>>
+>> https://git.linaro.org/people/fu.wei/linux.git/log/?h=topic-gtdt-wakeup-timer_upstream_v18_devel
+>
+> Fu, please post v18 to the mailing list so that it can be picked up
+> for 4.10 (if it's not too late already).
 
-I have not root caused it, but I'm using the following command line
-options to create an nfit in qemu-2.6.  Reverting the commit leads
-compile failures.
+Great thanks for your suggestion!  :-)
+yes, you are right, I would love to post v18 ASAP.
 
-qemu=$HOME/git/qemu/build/x86_64-softmmu/qemu-system-x86_64
-mem=$HOME/mem
-label_size=$((128*1024))
-mem_size=$(((3*1024*1024*1024) + (64 * 1024 *1024)))
-IMAGE=$HOME/ahci.img
+But I am still waiting for more feedback from the maintainers.
+For Now, the only feedback is this fix from "kbuild test robot" :-(
 
-kvm=(
-        $qemu
-        -enable-kvm
-        -cpu kvm64
-        -kernel $kernel
-        -initrd $initrd
-        -m 12G,slots=3,maxmem=40G
+>
+> --
+> Qualcomm Innovation Center, Inc.
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+> a Linux Foundation Collaborative Project.
 
-        -machine pc-i440fx-2.4,accel=kvm,usb=off,vmport=off,nvdimm
-        -cpu SandyBridge
-        -smp 2
-        -netdev tap,id=hostnet0,ifname=tap0,script=no,downscript=no
-        -device
-virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:b7:a1:ad,bus=pci.0,addr=0x7
-        -object
-memory-backend-file,id=mem1,share,mem-path=${mem},size=$((label_size +
-mem_size))
-        -device nvdimm,memdev=mem1,id=nv1,label-size=${label_size}
-        -device ahci,id=sata0,bus=pci.0,addr=0x8
-        -drive file=$IMAGE,if=none,id=drive-sata0-0-0,format=raw
-        -device ide-hd,bus=sata0.0,drive=drive-sata0-0-0,id=sata0-0-0
-        -boot order=nc
-        -no-reboot
-        -watchdog i6300esb
-        -rtc base=localtime
-        -serial stdio
-        -display none
-        -monitor null
-)
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
