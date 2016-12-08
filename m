@@ -1,7 +1,7 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v18 07/15] clocksource/drivers/arm_arch_timer: Refactor arch_timer_needs_probing
-Date: Fri,  9 Dec 2016 01:33:11 +0800
-Message-ID: <20161208173319.6618-8-fu.wei@linaro.org>
+Subject: [PATCH v18 09/15] clocksource/drivers/arm_arch_timer: Introduce some new structs to prepare for GTDT
+Date: Fri,  9 Dec 2016 01:33:13 +0800
+Message-ID: <20161208173319.6618-10-fu.wei@linaro.org>
 References: <20161208173319.6618-1-fu.wei@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20161208173319.6618-1-fu.wei@linaro.org>
@@ -12,81 +12,51 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Fu Wei <fu.wei@linaro.org>
 
-When system init with device-tree, we don't know which node will be
-initialized first. And the code in arch_timer_common_init should wait
-until per-cpu timer and MMIO timer are both initialized. So we need
-arch_timer_needs_probing to detect the init status of system.
+The patch introduce two new structs: arch_timer_mem, arch_timer_mem_frame.
+And also introduce a new define: ARCH_TIMER_MEM_MAX_FRAMES
 
-But currently the code is dispersed in arch_timer_needs_probing and
-arch_timer_common_init. And the function name doesn't specify that
-it's only for device-tree. This is somewhat confusing.
-
-This patch move all related code from arch_timer_common_init to
-arch_timer_needs_probing, refactor it, and rename it to
-arch_timer_needs_of_probing. And make sure that it will be called
-only if acpi is disabled.
+These will be used for refactoring the memory-mapped timer init code to
+prepare for GTDT
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ include/clocksource/arm_arch_timer.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index e554081..2c9085a 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -792,15 +792,28 @@ static const struct of_device_id arch_timer_mem_of_match[] __initconst = {
- 	{},
+diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+index 48376a5..3403247 100644
+--- a/include/clocksource/arm_arch_timer.h
++++ b/include/clocksource/arm_arch_timer.h
+@@ -57,6 +57,8 @@ enum arch_timer_spi_nr {
+ #define ARCH_TIMER_MEM_PHYS_ACCESS	2
+ #define ARCH_TIMER_MEM_VIRT_ACCESS	3
+ 
++#define ARCH_TIMER_MEM_MAX_FRAMES	8
++
+ #define ARCH_TIMER_USR_PCT_ACCESS_EN	(1 << 0) /* physical counter */
+ #define ARCH_TIMER_USR_VCT_ACCESS_EN	(1 << 1) /* virtual counter */
+ #define ARCH_TIMER_VIRT_EVT_EN		(1 << 2)
+@@ -72,6 +74,21 @@ struct arch_timer_kvm_info {
+ 	int virtual_irq;
  };
  
--static bool __init
--arch_timer_needs_probing(int type, const struct of_device_id *matches)
-+static bool __init arch_timer_needs_of_probing(void)
- {
- 	struct device_node *dn;
- 	bool needs_probing = false;
-+	unsigned int mask = ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM;
- 
--	dn = of_find_matching_node(NULL, matches);
--	if (dn && of_device_is_available(dn) && !(arch_timers_present & type))
-+	/* We have two timers, and both device-tree nodes are probed. */
-+	if ((arch_timers_present & mask) == mask)
-+		return false;
++struct arch_timer_mem_frame {
++	int frame_nr;
++	phys_addr_t cntbase;
++	size_t size;
++	int phys_irq;
++	int virt_irq;
++};
 +
-+	/*
-+	 * Only one type of timer is probed,
-+	 * check if we have another type of timer node in device-tree.
-+	 */
-+	if (arch_timers_present & ARCH_TIMER_TYPE_CP15)
-+		dn = of_find_matching_node(NULL, arch_timer_mem_of_match);
-+	else
-+		dn = of_find_matching_node(NULL, arch_timer_of_match);
++struct arch_timer_mem {
++	phys_addr_t cntctlbase;
++	size_t size;
++	int num_frames;
++	struct arch_timer_mem_frame frame[ARCH_TIMER_MEM_MAX_FRAMES];
++};
 +
-+	if (dn && of_device_is_available(dn))
- 		needs_probing = true;
-+
- 	of_node_put(dn);
+ #ifdef CONFIG_ARM_ARCH_TIMER
  
- 	return needs_probing;
-@@ -808,17 +821,8 @@ arch_timer_needs_probing(int type, const struct of_device_id *matches)
- 
- static int __init arch_timer_common_init(void)
- {
--	unsigned mask = ARCH_TIMER_TYPE_CP15 | ARCH_TIMER_TYPE_MEM;
--
--	/* Wait until both nodes are probed if we have two timers */
--	if ((arch_timers_present & mask) != mask) {
--		if (arch_timer_needs_probing(ARCH_TIMER_TYPE_MEM,
--					     arch_timer_mem_of_match))
--			return 0;
--		if (arch_timer_needs_probing(ARCH_TIMER_TYPE_CP15,
--					     arch_timer_of_match))
--			return 0;
--	}
-+	if (acpi_disabled && arch_timer_needs_of_probing())
-+		return 0;
- 
- 	arch_timer_banner(arch_timers_present);
- 	arch_counter_register(arch_timers_present);
+ extern u32 arch_timer_get_rate(void);
 -- 
 2.9.3
