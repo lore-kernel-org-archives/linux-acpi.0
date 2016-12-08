@@ -1,102 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 8/8] cpufreq: intel_pstate: Use CPPC to get max performance
-Date: Thu, 08 Dec 2016 00:29:29 +0100
-Message-ID: <4248602.ecJ9y5gJMR@aspire.rjw.lan>
-References: <cover.1479844244.git.tim.c.chen@linux.intel.com> <20161207190608.boi7svavwrkx3epm@breakpoint.cc> <1481152373.3064.77.camel@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v1 1/2] ACPI / osl: Propagate actual error code for kstrtoul()
+Date: Thu, 8 Dec 2016 01:12:18 +0100
+Message-ID: <CAJZ5v0gF7aM6NRXUhpbssBweCCs_LNwzVm4eVQvj5KKnbdKEuQ@mail.gmail.com>
+References: <20161202174247.141284-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42937 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933179AbcLGXdM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 18:33:12 -0500
-In-Reply-To: <1481152373.3064.77.camel@linux.intel.com>
+Received: from mail-wj0-f179.google.com ([209.85.210.179]:35692 "EHLO
+        mail-wj0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932478AbcLHAMU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Dec 2016 19:12:20 -0500
+Received: by mail-wj0-f179.google.com with SMTP id v7so375387267wjy.2
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Dec 2016 16:12:19 -0800 (PST)
+In-Reply-To: <20161202174247.141284-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Chen <tim.c.chen@linux.intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: tglx@linutronix.de, mingo@redhat.com, bp@suse.de, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wednesday, December 07, 2016 03:12:53 PM Tim Chen wrote:
-> On Wed, 2016-12-07 at 20:06 +0100, Sebastian Andrzej Siewior wrote:
-> > 
-> > 
-> > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> > ---
-> >  drivers/acpi/cppc_acpi.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> > index d0d0504b7c89..93252e5374c5 100644
-> > --- a/drivers/acpi/cppc_acpi.c
-> > +++ b/drivers/acpi/cppc_acpi.c
-> > @@ -803,6 +803,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
-> >  		if (addr)
-> >  			iounmap(addr);
-> >  	}
-> > +	per_cpu(cpc_desc_ptr, pr->id) = NULL;
-> >  	kfree(cpc_ptr);
-> >  
-> >  out_buf_free:
-> > @@ -824,6 +825,8 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
-> >  	void __iomem *addr;
-> >  
-> >  	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
-> > +	if (!cpc_ptr)
-> > +		return;
-> 
-> I agree that not handling null pointer here is a bug that should be fixed.
-> The cpc_ptr is checked at other places like acpi_get_psd_map.  
-> We could potentially have a null cpc_ptr say when
-> the parsing of CPC table failed. We should handle such cases gracefully.
+On Fri, Dec 2, 2016 at 6:42 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> There is no need to override the error code returned by kstrtoul().
+> Propagate it directly to the caller.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Agreed, but the bug fixed by the first hunk is real too.  I'd fix it a bit
-differently, though:
+Both this and the [2/2] applied.
 
-Tentatively-signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
----
- drivers/acpi/cppc_acpi.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-
-Index: linux-pm/drivers/acpi/cppc_acpi.c
-===================================================================
---- linux-pm.orig/drivers/acpi/cppc_acpi.c
-+++ linux-pm/drivers/acpi/cppc_acpi.c
-@@ -776,9 +776,6 @@ int acpi_cppc_processor_probe(struct acp
- 		init_waitqueue_head(&pcc_data.pcc_write_wait_q);
- 	}
- 
--	/* Plug PSD data into this CPUs CPC descriptor. */
--	per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
--
- 	/* Everything looks okay */
- 	pr_debug("Parsed CPC struct for CPU: %d\n", pr->id);
- 
-@@ -789,10 +786,15 @@ int acpi_cppc_processor_probe(struct acp
- 		goto out_free;
- 	}
- 
-+	/* Plug PSD data into this CPUs CPC descriptor. */
-+	per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
-+
- 	ret = kobject_init_and_add(&cpc_ptr->kobj, &cppc_ktype, &cpu_dev->kobj,
- 			"acpi_cppc");
--	if (ret)
-+	if (ret) {
-+		per_cpu(cpc_desc_ptr, pr->id) = NULL;
- 		goto out_free;
-+	}
- 
- 	kfree(output.pointer);
- 	return 0;
-@@ -826,6 +828,8 @@ void acpi_cppc_processor_exit(struct acp
- 	void __iomem *addr;
- 
- 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
-+	if (!cpc_ptr)
-+		return;
- 
- 	/* Free all the mapped sys mem areas for this CPU */
- 	for (i = 2; i < cpc_ptr->num_entries; i++) {
-
+Thanks,
+Rafael
