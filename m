@@ -1,86 +1,100 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v18 14/15] clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped timer
-Date: Fri,  9 Dec 2016 01:33:18 +0800
-Message-ID: <20161208173319.6618-15-fu.wei@linaro.org>
-References: <20161208173319.6618-1-fu.wei@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161208173319.6618-1-fu.wei@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
+ and early_acpi_os_unmap_memory() from Linux kernel
+Date: Thu, 8 Dec 2016 11:04:50 -0800
+Message-ID: <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com>
+ <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+ <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
+ <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <zetalog-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bob Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Fu Wei <fu.wei@linaro.org>
+On Thu, Dec 8, 2016 at 5:18 AM, Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Thu, Dec 8, 2016 at 2:11 AM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>> ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+>>>
+>>> This patch back ports Linux acpi_get_table_with_size() and
+>>> early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
+>>>
+>>> The 2 APIs are used by Linux as table management APIs for long time, it
+>>> contains a hidden logic that during the early stage, the mapped tables
+>>> should be unmapped before the early stage ends.
+>>>
+>>> During the early stage, tables are handled by the following sequence:
+>>>  acpi_get_table_with_size();
+>>>  parse the table
+>>>  early_acpi_os_unmap_memory();
+>>> During the late stage, tables are handled by the following sequence:
+>>>  acpi_get_table();
+>>>  parse the table
+>>> Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
+>>> late stage.
+>>>
+>>> The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
+>>> remember the early mapped pointer in acpi_get_table() and Linux isn't able to
+>>> prevent ACPICA from using the wrong early mapped pointer during the late
+>>> stage as there is no API provided from ACPICA to be an inverse of
+>>> acpi_get_table() to forget the early mapped pointer.
+>>>
+>>> But how ACPICA can work with the early/late stage requirement? Inside of
+>>> ACPICA, tables are ensured to be remained in "INSTALLED" state during the
+>>> early stage, and they are carefully not transitioned to "VALIDATED" state
+>>> until the late stage. So the same logic is in fact implemented inside of
+>>> ACPICA in a different way. The gap is only that the feature is not provided
+>>> to the OSPMs in an accessible external API style.
+>>>
+>>> It then is possible to fix the gap by providing an inverse of
+>>> acpi_get_table() from ACPICA, so that the two Linux sequences can be
+>>> combined:
+>>>  acpi_get_table();
+>>>  parse the table
+>>>  acpi_put_table();
+>>> In order to work easier with the current Linux code, acpi_get_table() and
+>>> acpi_put_table() is implemented in a usage counting based style:
+>>>  1. When the usage count of the table is increased from 0 to 1, table is
+>>>     mapped and .Pointer is set with the mapping address (VALIDATED);
+>>>  2. When the usage count of the table is decreased from 1 to 0, .Pointer
+>>>     is unset and the mapping address is unmapped (INVALIDATED).
+>>> So that we can deploy the new APIs to Linux with minimal effort by just
+>>> invoking acpi_get_table() in acpi_get_table_with_size() and invoking
+>>> acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
+>>>
+>>> Link: https://github.com/acpica/acpica/commit/cac67909
+>>> Signed-off-by: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>> Signed-off-by: Bob Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>> This commit in -next (071b39575679 ACPICA: Tables: Back port
+>> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+>> kernel) causes a regression in my nfit/nvdimm test environment. The
+>> nfit produced by QEMU no longer results in a nvdimm bus being created.
+>>
+>> I have not root caused it, but I'm using the following command line
+>> options to create an nfit in qemu-2.6.  Reverting the commit leads
+>> compile failures.
+>
+> Would the build problems go away if you reverted "ACPICA: Tables:
+> Allow FADT to be customized with virtual address" (linux-next commit
+> cf334d3174f9) in addition to it?
 
-The patch add memory-mapped timer register support by using the
-information provided by the new GTDT driver of ACPI.
+Yes, reverting those two commits gets me back to a functional environment:
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
----
- drivers/clocksource/arm_arch_timer.c | 35 ++++++++++++++++++++++++++++++++---
- 1 file changed, 32 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 7f059f9..1fe1c08 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -1054,10 +1054,36 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
- 		       arch_timer_mem_of_init);
- 
- #ifdef CONFIG_ACPI_GTDT
--/* Initialize per-processor generic timer */
-+static int __init arch_timer_mem_acpi_init(int platform_timer_count)
-+{
-+	struct arch_timer_mem *timer_mem;
-+	int timer_count, i, ret;
-+
-+	timer_mem = kcalloc(platform_timer_count, sizeof(*timer_mem),
-+			    GFP_KERNEL);
-+	if (!timer_mem)
-+		return -ENOMEM;
-+
-+	ret = acpi_arch_timer_mem_init(timer_mem, &timer_count);
-+	if (ret || !timer_count)
-+		goto error;
-+
-+	for (i = 0; i < timer_count; i++) {
-+		ret = arch_timer_mem_init(timer_mem);
-+		if (!ret)
-+			break;
-+		timer_mem++;
-+	}
-+
-+error:
-+	kfree(timer_mem);
-+	return ret;
-+}
-+
-+/* Initialize per-processor generic timer and memory-mapped timer(if present) */
- static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- {
--	int ret;
-+	int ret, platform_timer_count;
- 
- 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
- 		pr_warn("already initialized, skipping\n");
-@@ -1066,7 +1092,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 
- 	arch_timers_present |= ARCH_TIMER_TYPE_CP15;
- 
--	ret = acpi_gtdt_init(table, NULL);
-+	ret = acpi_gtdt_init(table, &platform_timer_count);
- 	if (ret) {
- 		pr_err("Failed to init GTDT table.\n");
- 		return ret;
-@@ -1099,6 +1125,9 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	if (ret)
- 		return ret;
- 
-+	if (arch_timer_mem_acpi_init(platform_timer_count))
-+		pr_err("Failed to initialize memory-mapped timer.\n");
-+
- 	return arch_timer_common_init();
- }
- CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
--- 
-2.9.3
+Revert "ACPICA: Tables: Allow FADT to be customized with virtual address"
+Revert "ACPICA: Tables: Back port acpi_get_table_with_size() and
+early_acpi_os_un
