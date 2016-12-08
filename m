@@ -1,72 +1,89 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [Linaro-acpi] [PATCH v17 08/15] clocksource/drivers/arm_arch_timer:
- move arch_timer_needs_of_probing into DT init call
-Date: Thu, 8 Dec 2016 19:20:59 +0800
-Message-ID: <CADyBb7u+EJ2ehan4suUCtXaP09S-OuZ6BMnCVF3=MpE0W2-Nag@mail.gmail.com>
-References: <20161125084623.22515-9-fu.wei@linaro.org> <201611252221.UyJ9iWPV%fengguang.wu@intel.com>
- <CADyBb7uAObQn_JVp_qw9+7POiqUctdzy3cYLsb0rk-JMX5W1uw@mail.gmail.com>
- <CAOZdJXU7Lg66RKvA=sYtUXUdwLLbh9FtcW0_U-fmjaztnqS3Ng@mail.gmail.com>
- <CADyBb7vAfMGV5ERFqAbwo4v4BhJv5s_-x4DXmdvy=iUacBzJWQ@mail.gmail.com> <20161208110410.GA9768@leverpostej>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
+ and early_acpi_os_unmap_memory() from Linux kernel
+Date: Thu, 8 Dec 2016 14:18:03 +0100
+Message-ID: <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+ <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161208110410.GA9768@leverpostej>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Wei Huang <wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Julien Grall <julien.grall-5wv7dgnIgG8@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-arm-kern
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33678 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751064AbcLHNSG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2016 08:18:06 -0500
+In-Reply-To: <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
 
-Hi Mark,
-
-On 8 December 2016 at 19:04, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Thu, Dec 08, 2016 at 11:16:21AM +0800, Fu Wei wrote:
->> Hi Timur,
+On Thu, Dec 8, 2016 at 2:11 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
 >>
->> On 8 December 2016 at 01:25, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
->> > On Fri, Nov 25, 2016 at 9:06 AM, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
->> >>
->> >> a "+ int ret;" should be move from [12/15] to here, I have fix the
->> >> problem in my repo, it would happen in next patchset
->> >>
->> >> https://git.linaro.org/people/fu.wei/linux.git/log/?h=topic-gtdt-wakeup-timer_upstream_v18_devel
->> >
->> > Fu, please post v18 to the mailing list so that it can be picked up
->> > for 4.10 (if it's not too late already).
->
-> Unfortunately, it's too late for v4.10. It hasn't been sat in linux-next
-> at all, and we've seen kbuild test failures.
->
-> Hopefully there's time to beat this into shape and get it into
-> linux-next so that it's ready to queue for v4.11, though.
-
-cross fingers for getting into v4.11 :-)
-
->
->> Great thanks for your suggestion!  :-)
->> yes, you are right, I would love to post v18 ASAP.
+>> This patch back ports Linux acpi_get_table_with_size() and
+>> early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
 >>
->> But I am still waiting for more feedback from the maintainers.
+>> The 2 APIs are used by Linux as table management APIs for long time, it
+>> contains a hidden logic that during the early stage, the mapped tables
+>> should be unmapped before the early stage ends.
+>>
+>> During the early stage, tables are handled by the following sequence:
+>>  acpi_get_table_with_size();
+>>  parse the table
+>>  early_acpi_os_unmap_memory();
+>> During the late stage, tables are handled by the following sequence:
+>>  acpi_get_table();
+>>  parse the table
+>> Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
+>> late stage.
+>>
+>> The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
+>> remember the early mapped pointer in acpi_get_table() and Linux isn't able to
+>> prevent ACPICA from using the wrong early mapped pointer during the late
+>> stage as there is no API provided from ACPICA to be an inverse of
+>> acpi_get_table() to forget the early mapped pointer.
+>>
+>> But how ACPICA can work with the early/late stage requirement? Inside of
+>> ACPICA, tables are ensured to be remained in "INSTALLED" state during the
+>> early stage, and they are carefully not transitioned to "VALIDATED" state
+>> until the late stage. So the same logic is in fact implemented inside of
+>> ACPICA in a different way. The gap is only that the feature is not provided
+>> to the OSPMs in an accessible external API style.
+>>
+>> It then is possible to fix the gap by providing an inverse of
+>> acpi_get_table() from ACPICA, so that the two Linux sequences can be
+>> combined:
+>>  acpi_get_table();
+>>  parse the table
+>>  acpi_put_table();
+>> In order to work easier with the current Linux code, acpi_get_table() and
+>> acpi_put_table() is implemented in a usage counting based style:
+>>  1. When the usage count of the table is increased from 0 to 1, table is
+>>     mapped and .Pointer is set with the mapping address (VALIDATED);
+>>  2. When the usage count of the table is decreased from 1 to 0, .Pointer
+>>     is unset and the mapping address is unmapped (INVALIDATED).
+>> So that we can deploy the new APIs to Linux with minimal effort by just
+>> invoking acpi_get_table() in acpi_get_table_with_size() and invoking
+>> acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
+>>
+>> Link: https://github.com/acpica/acpica/commit/cac67909
+>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> Signed-off-by: Bob Moore <robert.moore@intel.com>
 >
-> Please post a version which passes inspection by the kbuild test robot.
-> I haven't had a chance to look at this yet, and it'll be better to look
-> at a version that actually works.
-
-OK, NP, will post them in several hours
-Great thanks for your feedback.
-
+> This commit in -next (071b39575679 ACPICA: Tables: Back port
+> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+> kernel) causes a regression in my nfit/nvdimm test environment. The
+> nfit produced by QEMU no longer results in a nvdimm bus being created.
 >
-> Thanks,
-> Mark.
+> I have not root caused it, but I'm using the following command line
+> options to create an nfit in qemu-2.6.  Reverting the commit leads
+> compile failures.
 
+Would the build problems go away if you reverted "ACPICA: Tables:
+Allow FADT to be customized with virtual address" (linux-next commit
+cf334d3174f9) in addition to it?
 
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
