@@ -1,151 +1,179 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
-Date: Thu,  8 Dec 2016 12:50:51 +0800
-Message-ID: <20e06a1b76c0dd0187dfaed14789ecf434b90e29.1481172564.git.lv.zheng@intel.com>
-References: <cover.1463389639.git.lv.zheng@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V8 1/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Thu, 8 Dec 2016 11:05:52 +0000
+Message-ID: <20161208110552.GA17398@red-moon>
+References: <1480460259-8585-1-git-send-email-agustinv@codeaurora.org>
+ <1480460259-8585-2-git-send-email-agustinv@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:9179 "EHLO mga04.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:58206 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751091AbcLHEu7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 7 Dec 2016 23:50:59 -0500
-In-Reply-To: <cover.1463389639.git.lv.zheng@intel.com>
+        id S1750827AbcLHLFK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Dec 2016 06:05:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1480460259-8585-2-git-send-email-agustinv@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-Sometimes, the users may require a quirk to be provided from ACPI subsystem
-core to prevent a GPE from flooding. Normally, if a GPE cannot be
-dispatched, ACPICA core automatically prevents the GPE from firing. But
-there are cases the GPE is dispatched by _Lxx/_Exx provided via AML table,
-and OSPM is lacking of the knowledge to get _Lxx/_Exx correctly executed to
-handle the GPE, thus the GPE flooding may still occur.
+Hi Agustin,
 
-This patch provides a quirk mechanism to stop this kind of GPE flooding.
+please CC me for next version.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=117481
-Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- Documentation/kernel-parameters.txt |   10 +++++++
- drivers/acpi/internal.h             |    1 +
- drivers/acpi/scan.c                 |    1 +
- drivers/acpi/sysfs.c                |   56 +++++++++++++++++++++++++++++++++++
- 4 files changed, 68 insertions(+)
+On Tue, Nov 29, 2016 at 05:57:37PM -0500, Agustin Vega-Frias wrote:
+> When an Extended IRQ Resource contains a valid ResourceSource
+> use it to map the IRQ on the domain associated with the ACPI
+> device referenced.
+> 
+> With this in place an irqchip driver can create its domain using
+> irq_domain_create_linear and pass the device fwnode to create
+> the domain mapping. When dependent devices are probed these
+> changes allow the ACPI core find the domain and map the IRQ.
+> 
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> ---
+>  drivers/acpi/Makefile         |  2 +-
+>  drivers/acpi/{gsi.c => irq.c} | 99 +++++++++++++++++++++++++++++++++++++------
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 1f6cecc..12cab01 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -305,6 +305,16 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			use by PCI
- 			Format: <irq>,<irq>...
- 
-+	acpi_mask_gpe=  [HW,ACPI]
-+			Due to the existence of _Lxx/_Exx, some GPEs triggered
-+			by unsupported hardware/firmware features can result in
-+                        GPE floodings that cannot be automatically disabled by
-+                        the GPE dispatcher.
-+			This facility can be used to prevent such uncontrolled
-+			GPE floodings.
-+			Format: <int>
-+			Support masking of GPEs numbered from 0x00 to 0x7f.
-+
- 	acpi_no_auto_serialize	[HW,ACPI]
- 			Disable auto-serialization of AML methods
- 			AML control methods that contain the opcodes to create
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 1b41a27..0c45226 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -37,6 +37,7 @@
- static inline void acpi_amba_init(void) {}
- #endif
- int acpi_sysfs_init(void);
-+void acpi_gpe_apply_masked_gpes(void);
- void acpi_container_init(void);
- void acpi_memory_hotplug_init(void);
- #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3d1856f..5a2fdf1 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2044,6 +2044,7 @@ int __init acpi_scan_init(void)
- 		}
- 	}
- 
-+	acpi_gpe_apply_masked_gpes();
- 	acpi_update_all_gpes();
- 	acpi_ec_ecdt_start();
- 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 703c26e..47d7182 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -708,6 +708,62 @@ static ssize_t counter_set(struct kobject *kobj,
- 	return result ? result : size;
- }
- 
-+/*
-+ * A Quirk Mechanism for GPE Flooding Prevention:
-+ *
-+ * Quirks may be needed to prevent GPE flooding on a specific GPE. The
-+ * flooding typically cannot be detected and automatically prevented by
-+ * ACPI_GPE_DISPATCH_NONE check because there is a _Lxx/_Exx prepared in
-+ * the AML tables. This normally indicates a feature gap in Linux, thus
-+ * instead of providing endless quirk tables, we provide a boot parameter
-+ * for those who want this quirk. For example, if the users want to prevent
-+ * the GPE flooding for GPE 00, they need to specify the following boot
-+ * parameter:
-+ *   acpi_mask_gpe=0x00
-+ * The masking status can be modified by the following runtime controlling
-+ * interface:
-+ *   echo unmask > /sys/firmware/acpi/interrupts/gpe00
-+ */
-+
-+/*
-+ * Currently, the GPE flooding prevention only supports to mask the GPEs
-+ * numbered from 00 to 7f.
-+ */
-+#define ACPI_MASKABLE_GPE_MAX	0x80
-+
-+static u64 acpi_masked_gpes;
-+
-+static int __init acpi_gpe_set_masked_gpes(char *val)
-+{
-+	u8 gpe;
-+
-+	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_MASKABLE_GPE_MAX)
-+		return -EINVAL;
-+	acpi_masked_gpes |= ((u64)1<<gpe);
-+
-+	return 1;
-+}
-+__setup("acpi_mask_gpe=", acpi_gpe_set_masked_gpes);
-+
-+void acpi_gpe_apply_masked_gpes(void)
-+{
-+	acpi_handle handle;
-+	acpi_status status;
-+	u8 gpe;
-+
-+	for (gpe = 0;
-+	     gpe < min_t(u8, ACPI_MASKABLE_GPE_MAX, acpi_current_gpe_count);
-+	     gpe++) {
-+		if (acpi_masked_gpes & ((u64)1<<gpe)) {
-+			status = acpi_get_gpe_device(gpe, &handle);
-+			if (ACPI_SUCCESS(status)) {
-+				pr_info("Masking GPE 0x%x.\n", gpe);
-+				(void)acpi_mask_gpe(handle, gpe, TRUE);
-+			}
-+		}
-+	}
-+}
-+
- void acpi_irq_stats_init(void)
- {
- 	acpi_status status;
--- 
-1.7.10
+[...]
 
+> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
+> +				     struct fwnode_handle *source,
+>  				     u8 triggering, u8 polarity, u8 shareable,
+>  				     bool legacy)
+>  {
+>  	int irq, p, t;
+>  
+> -	if (!valid_IRQ(gsi)) {
+> -		acpi_dev_irqresource_disabled(res, gsi);
+> +	if (!source && !valid_IRQ(hwirq)) {
+
+If you make source a struct acpi_resource_source pointer it could be:
+
+if (source || !valid_IRQ(hwirq))
+
+Actually we would not even need to pass the pointer, if we detect
+an acpi_resource_source dependency we can just disable the resource
+(without even looking-up the fwnode_handle, see below), it is a design
+choice we have to make.
+
+> +		acpi_dev_irqresource_disabled(res, hwirq);
+>  		return;
+>  	}
+>  
+> @@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+>  	 * using extended IRQ descriptors we take the IRQ configuration
+>  	 * from _CRS directly.
+>  	 */
+> -	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
+> +	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
+>  		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
+>  		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+>  
+>  		if (triggering != trig || polarity != pol) {
+> -			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
+> -				   t ? "level" : "edge", p ? "low" : "high");
+> +			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
+> +				t ? "level" : "edge", p ? "low" : "high");
+>  			triggering = trig;
+>  			polarity = pol;
+>  		}
+>  	}
+>  
+>  	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+> -	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
+> +	irq = acpi_register_irq(source, hwirq, triggering, polarity);
+>  	if (irq >= 0) {
+>  		res->start = irq;
+>  		res->end = irq;
+>  	} else {
+> -		acpi_dev_irqresource_disabled(res, gsi);
+> +		acpi_dev_irqresource_disabled(res, hwirq);
+>  	}
+>  }
+>  
+> @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  {
+>  	struct acpi_resource_irq *irq;
+>  	struct acpi_resource_extended_irq *ext_irq;
+> +	struct fwnode_handle *src;
+>  
+>  	switch (ares->type) {
+>  	case ACPI_RESOURCE_TYPE_IRQ:
+> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
+> +		acpi_dev_get_irqresource(res, irq->interrupts[index], NULL,
+>  					 irq->triggering, irq->polarity,
+>  					 irq->sharable, true);
+>  		break;
+> @@ -470,7 +472,8 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>  			acpi_dev_irqresource_disabled(res, 0);
+>  			return false;
+>  		}
+> -		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+> +		src = acpi_get_irq_source_fwhandle(&ext_irq->resource_source);
+
+I think the only pending question on my side for this series is whether
+we still carry out the domain look-up here (as you are doing now), or,
+if we detect a resource_source dependency, we just disable the resource
+and leave the deferred probing mechanism to deal with it, this will
+completely decouple the current resource parsing from the deferred probe
+mechanism that you are introducing; basically this is equivalent to
+saying "if the IRQ resource has a dependency let's resolve it at
+acpi_irq_get() time, not now".
+
+I am fine either way, I just think that leaving the domain look-up
+in the middle of the IRQ resource parsing is not really clean-cut.
+
+Thanks,
+Lorenzo
+
+> +		acpi_dev_get_irqresource(res, ext_irq->interrupts[index], src,
+>  					 ext_irq->triggering, ext_irq->polarity,
+>  					 ext_irq->sharable, false);
+>  		break;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 61a3d90..154e576 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -321,6 +321,25 @@ void acpi_set_irq_model(enum acpi_irq_model_id model,
+>   */
+>  void acpi_unregister_gsi (u32 gsi);
+>  
+> +#ifdef CONFIG_ACPI_GENERIC_GSI
+> +struct fwnode_handle *
+> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source);
+> +int acpi_register_irq(struct fwnode_handle *source, u32 hwirq, int trigger,
+> +		      int polarity);
+> +void acpi_unregister_irq(struct fwnode_handle *source, u32 hwirq);
+> +#else
+> +#define acpi_get_irq_source_fwhandle(source) (NULL)
+> +static inline int acpi_register_irq(struct fwnode_handle *source, u32 hwirq,
+> +				    int trigger, int polarity)
+> +{
+> +	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+> +}
+> +static inline void acpi_unregister_irq(struct fwnode_handle *source, u32 hwirq)
+> +{
+> +	acpi_unregister_gsi(hwirq);
+> +}
+> +#endif
+> +
+>  struct pci_dev;
+>  
+>  int acpi_pci_irq_enable (struct pci_dev *dev);
+> -- 
+> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
