@@ -1,53 +1,86 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v18 03/15] clocksource/drivers/arm_arch_timer: Improve
- printk relevant code
-Date: Fri, 9 Dec 2016 16:24:54 +0800
-Message-ID: <CADyBb7uW6rsKVRRy_CJDmsDxK7qm=Trgae46NdbAKtmQd_DD8Q@mail.gmail.com>
-References: <20161208173319.6618-1-fu.wei@linaro.org> <20161208173319.6618-4-fu.wei@linaro.org>
- <1481231430.5946.34.camel@perches.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] ACPI / OSL: Fix a regression by returning
+ acpi_table_header.length instead of 0 from acpi_get_table_with_size()
+Date: Fri, 9 Dec 2016 14:44:55 +0100
+Message-ID: <CAJZ5v0jwHekD0YYLivgCf9H0zjEYrLC_NfmNOSTo7j6U92myDA@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <da13d99d5b7ea6a9435bbb82319ecc6b8d9be0c8.1481267531.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1481231430.5946.34.camel@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@lin>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wj0-f194.google.com ([209.85.210.194]:34760 "EHLO
+        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932960AbcLINo5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Dec 2016 08:44:57 -0500
+Received: by mail-wj0-f194.google.com with SMTP id xy5so2577972wjc.1
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Dec 2016 05:44:57 -0800 (PST)
+In-Reply-To: <da13d99d5b7ea6a9435bbb82319ecc6b8d9be0c8.1481267531.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>
 
-Hi Joe,
-
-On 9 December 2016 at 05:10, Joe Perches <joe@perches.com> wrote:
-> On Fri, 2016-12-09 at 01:33 +0800, fu.wei@linaro.org wrote:
->> From: Fu Wei <fu.wei@linaro.org>
->>
->> This patch defines pr_fmt(fmt) for all pr_* functions,
->> then the pr_* doesn't need to add "arch_timer:" everytime.
+On Fri, Dec 9, 2016 at 8:15 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> The following wrong commit triggers issues in acpi_get_table_with_size()
+> users:
+>     Subject: ACPICA: Tables: Back port acpi_get_table_with_size() and
+>              early_acpi_os_unmap_memory() from Linux kernel
 >
-> trivia:
+> The function is invented to be a replacement of acpi_get_table() during
+> early stage so that the early mapped pointer will not be stored in ACPICA
+> core and thus the late stage acpi_get_table() won't return a wrong pointer.
+> However the mapping size is returned just because it is required by
+> early_acpi_os_unmap_memory() to unmap the pointer during early stage.
 >
->> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> []
->> @@ -966,7 +967,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
->>
->>       ret = -EINVAL;
->>       if (!irq) {
->> -             pr_err("arch_timer: Frame missing %s irq",
->> +             pr_err("Frame missing %s irq",
->>                      arch_timer_mem_use_virtual ? "virt" : "phys");
->>               goto out;
->>       }
+> As the mapping size equals to the acpi_table_header.length
+> (see acpi_tb_init_table_descriptor() and acpi_tb_validate_table()), when
+> such a convenient result is returned, driver code will start to use it
+> instead of accessing acpi_table_header to obtain the length.
 >
-> Missing terminating newline
+> So the commit can trigger problems in such drivers as it returns 0 now. And
+> it did bring a trouble to drivers/acpi/nfit/core.c. So before cleaning up
+> the drivers, we should keep the old semantics of the API.
 >
->                 pr_err("Frame missing %s irq\n",
+> This patch fixes the wrong commit by returning the acpi_table_header.length
+> from acpi_get_table_with_size().
 
-yes, you are right , will fix it. :-)
-Thanks
+Well, the way this works isn't particularly straightforward.
 
+Wouldn't it be better to simply drop the check (if it is redundant)
+from the NFIT driver?
 
--- 
-Best regards,
+> Reported-by: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/osl.c |   12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 5bef0f65..d0b273f 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -445,8 +445,16 @@ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
+>
+>         status = acpi_get_table(signature, instance, out_table);
+>         if (ACPI_SUCCESS(status)) {
+> -               /* No longer used by early_acpi_os_unmap_memory() */
+> -               *tbl_size = 0;
+> +               /*
+> +                * "tbl_size" is no longer used by
+> +                * early_acpi_os_unmap_memory(), but is still used by the
+> +                * ACPI table drivers. So sets it to the length of the
+> +                * table when the tbl_size is requested.
+> +                * "out_table" is not sanity checked as AE_BAD_PARAMETER
+> +                * is returned if it is NULL.
+> +                */
+> +               if (tbl_size && *out_table)
+> +                       *tbl_size = (*out_table)->length;
+>         }
+>
+>         return (status);
+> --
+> 1.7.10
+>
 
-Fu Wei
-Software Engineer
-Red Hat
+Thanks,
+Rafael
