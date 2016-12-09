@@ -1,45 +1,146 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v5 2/2] clk: x86: Add Atom PMC platform clocks
-Date: Thu, 8 Dec 2016 16:25:23 -0800
-Message-ID: <20161209002523.GC5423@codeaurora.org>
-References: <1481125406-29097-1-git-send-email-irina.tirdea@intel.com>
- <1481125406-29097-3-git-send-email-irina.tirdea@intel.com>
+From: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 08/11] ACPICA: Tables: Back port
+ acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
+Date: Fri, 9 Dec 2016 01:49:45 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2B2377@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1480490191.git.lv.zheng@intel.com>
+ <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+ <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1481125406-29097-3-git-send-email-irina.tirdea@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Irina Tirdea <irina.tirdea@intel.com>
-Cc: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Wysocki,
+ Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <zetalog-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/07, Irina Tirdea wrote:
-> The BayTrail and CherryTrail platforms provide platform clocks
-> through their Power Management Controller (PMC).
-> 
-> The SoC supports up to 6 clocks (PMC_PLT_CLK[5:0]) with a
-> frequency of either 19.2 MHz (PLL) or 25 MHz (XTAL) for BayTrail
-> an a frequency of 19.2 MHz (XTAL) for CherryTrail. These clocks
-> are available for general system use, where appropriate, and each
-> have Control & Frequency register fields associated with them.
-> 
-> For example, the usage for platform clocks suggested in the datasheet
-> is the following:
->   PLT_CLK[2:0] - Camera
->   PLT_CLK[3] - Audio Codec
->   PLT_CLK[4] -
->   PLT_CLK[5] - COMMs
-> 
-> Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
-> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-> ---
->  drivers/clk/x86/Makefile                      |   1 +
->  drivers/clk/x86/clk-byt-plt.c                 | 380 ++++++++++++++++++++++++++
+Hi, Dan
 
-Is it possible to split the clk part from the platform part? I'd
-like to merge just the clk part if possible into the clk tree.
+Good to see you here!
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+> From: dan.j.williams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:dan.j.williams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Dan Williams
+> Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size() and
+> early_acpi_os_unmap_memory() from Linux kernel
+> 
+> On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+> >
+> > This patch back ports Linux acpi_get_table_with_size() and
+> > early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
+> >
+> > The 2 APIs are used by Linux as table management APIs for long time, it
+> > contains a hidden logic that during the early stage, the mapped tables
+> > should be unmapped before the early stage ends.
+> >
+> > During the early stage, tables are handled by the following sequence:
+> >  acpi_get_table_with_size();
+> >  parse the table
+> >  early_acpi_os_unmap_memory();
+> > During the late stage, tables are handled by the following sequence:
+> >  acpi_get_table();
+> >  parse the table
+> > Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
+> > late stage.
+> >
+> > The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
+> > remember the early mapped pointer in acpi_get_table() and Linux isn't able to
+> > prevent ACPICA from using the wrong early mapped pointer during the late
+> > stage as there is no API provided from ACPICA to be an inverse of
+> > acpi_get_table() to forget the early mapped pointer.
+> >
+> > But how ACPICA can work with the early/late stage requirement? Inside of
+> > ACPICA, tables are ensured to be remained in "INSTALLED" state during the
+> > early stage, and they are carefully not transitioned to "VALIDATED" state
+> > until the late stage. So the same logic is in fact implemented inside of
+> > ACPICA in a different way. The gap is only that the feature is not provided
+> > to the OSPMs in an accessible external API style.
+> >
+> > It then is possible to fix the gap by providing an inverse of
+> > acpi_get_table() from ACPICA, so that the two Linux sequences can be
+> > combined:
+> >  acpi_get_table();
+> >  parse the table
+> >  acpi_put_table();
+> > In order to work easier with the current Linux code, acpi_get_table() and
+> > acpi_put_table() is implemented in a usage counting based style:
+> >  1. When the usage count of the table is increased from 0 to 1, table is
+> >     mapped and .Pointer is set with the mapping address (VALIDATED);
+> >  2. When the usage count of the table is decreased from 1 to 0, .Pointer
+> >     is unset and the mapping address is unmapped (INVALIDATED).
+> > So that we can deploy the new APIs to Linux with minimal effort by just
+> > invoking acpi_get_table() in acpi_get_table_with_size() and invoking
+> > acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
+> >
+> > Link: https://github.com/acpica/acpica/commit/cac67909
+> > Signed-off-by: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Bob Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> This commit in -next (071b39575679 ACPICA: Tables: Back port
+> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+> kernel) causes a regression in my nfit/nvdimm test environment. The
+> nfit produced by QEMU no longer results in a nvdimm bus being created.
+
+This commit is almost a no-op, unless some code in kernel is using the length field returned by old acpi_get_table_with_size().
+
+> 
+> I have not root caused it, but I'm using the following command line
+> options to create an nfit in qemu-2.6.  Reverting the commit leads
+> compile failures.
+> 
+> qemu=$HOME/git/qemu/build/x86_64-softmmu/qemu-system-x86_64
+> mem=$HOME/mem
+> label_size=$((128*1024))
+> mem_size=$(((3*1024*1024*1024) + (64 * 1024 *1024)))
+> IMAGE=$HOME/ahci.img
+> 
+> kvm=(
+>         $qemu
+>         -enable-kvm
+>         -cpu kvm64
+>         -kernel $kernel
+>         -initrd $initrd
+>         -m 12G,slots=3,maxmem=40G
+> 
+>         -machine pc-i440fx-2.4,accel=kvm,usb=off,vmport=off,nvdimm
+>         -cpu SandyBridge
+>         -smp 2
+>         -netdev tap,id=hostnet0,ifname=tap0,script=no,downscript=no
+>         -device
+> virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:b7:a1:ad,bus=pci.0,addr=0x7
+>         -object
+> memory-backend-file,id=mem1,share,mem-path=${mem},size=$((label_size +
+> mem_size))
+>         -device nvdimm,memdev=mem1,id=nv1,label-size=${label_size}
+>         -device ahci,id=sata0,bus=pci.0,addr=0x8
+>         -drive file=$IMAGE,if=none,id=drive-sata0-0-0,format=raw
+>         -device ide-hd,bus=sata0.0,drive=drive-sata0-0-0,id=sata0-0-0
+>         -boot order=nc
+>         -no-reboot
+>         -watchdog i6300esb
+>         -rtc base=localtime
+>         -serial stdio
+>         -display none
+>         -monitor null
+> )
+
+Let me file a kernel Bugzilla bug to track this issue:
+https://bugzilla.kernel.org/show_bug.cgi?id=189891
+And see if we can quickly fix it.
+
+Could you also point me the NFIT code that I should take a look at.
+Thanks in advance.
+
+Best regards
+Lv
