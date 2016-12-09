@@ -1,222 +1,65 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.9-final
-Date: Fri, 9 Dec 2016 15:18:39 +0000
-Message-ID: <1481296717.13593.17.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:38704 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753088AbcLIPSl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Dec 2016 10:18:41 -0500
-Content-Language: en-US
-Content-ID: <A10FCB9DD11F714EABA896B26EC85ECC@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Irina Tirdea <irina.tirdea@intel.com>
+Subject: [PATCH v6 0/3] Add platform clock for BayTrail platforms
+Date: Fri,  9 Dec 2016 20:01:47 +0200
+Message-ID: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Linus, please pull from:
+These patches specifically enable the audio MCLK required by Baytrail CR
+devices. It is the remaining part of a bigger set of patches
+(already merged in Mark's tree) that enable sound for Baytrail CR devices
+(especially Asus T100TAF) [1]. They include the clock driver and enabling
+the clock in the pmc_atom code (along with moving of the non-architectural
+pmc_atom driver code into drivers/platform/x86).
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-August/111704.html
 
-...to receive several fixes to the DSM (ACPI device specific method)
-marshaling implementation.
+Changes from v5:
+ - fix build error reported by kbuild test robot
+ - split the clk driver code from x86 platform changes
 
-I consider these urgent enough to send for 4.9 consideration since they
-fix the kernel's handling of ARS (Address Range Scrub) commands.
-Especially for platforms without machine-check-recovery capabilities,
-successful execution of ARS commands enables the platform to
-potentially break out of an infinite reboot problem if a media error is
-present in the boot path. There is also a one line fix for a device-dax 
-read-only mapping regression.
+Changes from v4:
+ - move the pmc_atom driver from arch/x86/platform/atom to
+drivers/platform/x86
 
-+ACI-acpi, nfit: fix extended status translations for ACPI DSMs+ACI- and
-+ACI-device-dax: fix private mapping restriction, permit read-only+ACI- are
-true regression fixes for changes introduced this cycle. +ACI-acpi, nfit,
-libnvdimm: fix / harden ars+AF8-status output length handling+ACI- fixes the
-kernel's handling of zero-length results, this never would have worked
-in the past, but we only just recently discovered a BIOS implementation
-that emits this arguably spec non-compliant result. The remaining two
-commits are additional fall out from thinking through the implications
-of a zero / truncated length result of the ARS Status command.
+Changes from v3:
+ - replace devm_kzalloc with devm_kcalloc
+ - add x86 architecture maintainers
 
-In order to mitigate the risk that these changes introduce yet more
-regressions they are backstopped by a new unit test in
-+ACI-tools/testing/nvdimm: unit test acpi+AF8-nfit+AF8-ctl()+ACI- that mocks inputs to
-acpi+AF8-nfit+AF8-ctl().
+Changes from v2:
+ - move clk platform data structures to a separate include file
+ - store clk_hw pointer for the fixed rate clocks
 
-Please consider pulling for 4.9, it has appeared in a -next release
-with no reported issues.
+Changes from v1:
+ - register the clk device as child of pmc device
+ - pass iomem pointer from pmc driver to clk driver to avoid using
+pmc_atom_read()/write() and use readl/writel API instead
+ - use devm_clk_hw_register/clkdev_hw_create instead of
+clk_register/clkdev_create
 
-The following changes since commit 3e5de27e940d00d8d504dfb96625fb654f641509:
+Irina Tirdea (3):
+  clk: x86: Add Atom PMC platform clocks
+  arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
+  platform/x86: Enable Atom PMC platform clocks
 
-  Linux 4.9-rc8 (2016-12-04 12:50:51 -0800)
+ arch/x86/Kconfig                                   |   4 -
+ arch/x86/platform/atom/Makefile                    |   1 -
+ drivers/acpi/acpi_lpss.c                           |   2 +-
+ drivers/clk/x86/Makefile                           |   3 +
+ drivers/clk/x86/clk-byt-plt.c                      | 380 +++++++++++++++++++++
+ drivers/platform/x86/Kconfig                       |   5 +
+ drivers/platform/x86/Makefile                      |   1 +
+ .../atom => drivers/platform/x86}/pmc_atom.c       |  81 ++++-
+ include/linux/platform_data/x86/clk-byt-plt.h      |  31 ++
+ .../linux/platform_data/x86}/pmc_atom.h            |   3 +
+ 10 files changed, 500 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/clk/x86/clk-byt-plt.c
+ rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c (88%)
+ create mode 100644 include/linux/platform_data/x86/clk-byt-plt.h
+ rename {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h (98%)
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to 325896ffdf90f7cbd59fb873b7ba20d60d1ddf3c:
-
-  device-dax: fix private mapping restriction, permit read-only (2016-12-06 17:42:37 -0800)
-
-----------------------------------------------------------------
-Dan Williams (5):
-      acpi, nfit, libnvdimm: fix / harden ars+AF8-status output length handling
-      acpi, nfit: validate ars+AF8-status output buffer size
-      acpi, nfit: fix bus vs dimm confusion in xlat+AF8-status
-      tools/testing/nvdimm: unit test acpi+AF8-nfit+AF8-ctl()
-      device-dax: fix private mapping restriction, permit read-only
-
-Vishal Verma (1):
-      acpi, nfit: fix extended status translations for ACPI DSMs
-
- drivers/acpi/nfit/core.c              +AHw-  55 +-+-+-+-+----
- drivers/acpi/nfit/nfit.h              +AHw-   2 +-
- drivers/dax/dax.c                     +AHw-   2 +--
- drivers/nvdimm/bus.c                  +AHw-  25 +-+-+--
- include/linux/libnvdimm.h             +AHw-   2 +--
- tools/testing/nvdimm/Kbuild           +AHw-   1 +-
- tools/testing/nvdimm/test/iomap.c     +AHw-  23 +-+-+--
- tools/testing/nvdimm/test/nfit.c      +AHw- 236 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--
- tools/testing/nvdimm/test/nfit+AF8-test.h +AHw-   8 +--
- 9 files changed, 326 insertions(+-), 28 deletions(-)
-
-commit 9a901f5495e26e691c7d0ea7b6057a2f3e6330ed
-Author: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-Date:   Mon Dec 5 17:00:37 2016 -0700
-
-    acpi, nfit: fix extended status translations for ACPI DSMs
-    
-    ACPI DSMs can have an 'extended' status which can be non-zero to convey
-    additional information about the command. In the xlat+AF8-status routine,
-    where we translate the command statuses, we were returning an error for
-    a non-zero extended status, even if the primary status indicated success.
-    
-    Return from each command's 'case' once we have verified both its status
-    and extend status are good.
-    
-    Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-    Fixes: 11294d63ac91 (+ACI-nfit: fail DSMs that return non-zero status by default+ACI-)
-    Signed-off-by: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-    Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit efda1b5d87cbc3d8816f94a3815b413f1868e10d
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:   Tue Dec 6 09:10:12 2016 -0800
-
-    acpi, nfit, libnvdimm: fix / harden ars+AF8-status output length handling
-    
-    Given ambiguities in the ACPI 6.1 definition of the +ACI-Output (Size)+ACI-
-    field of the ARS (Address Range Scrub) Status command, a firmware
-    implementation may in practice return 0, 4, or 8 to indicate that there
-    is no output payload to process.
-    
-    The specification states +ACI-Size of Output Buffer in bytes, including this
-    field.+ACI-. However, 'Output Buffer' is also the name of the entire
-    payload, and earlier in the specification it states +ACI-Max Query ARS
-    Status Output Buffer Size: Maximum size of buffer (including the Status
-    and Extended Status fields)+ACI-.
-    
-    Without this fix if the BIOS happens to return 0 it causes memory
-    corruption as evidenced by this result from the acpi+AF8-nfit+AF8-ctl() unit
-    test.
-    
-     ars+AF8-status00000000: 00020000 00000000                    ........
-     BUG: stack guard page was hit at ffffc90001750000 (stack is ffffc9000174c000..ffffc9000174ffff)
-     kernel stack overflow (page fault): 0000 +AFsAIw-1+AF0- SMP DEBUG+AF8-PAGEALLOC
-     task: ffff8803332d2ec0 task.stack: ffffc9000174c000
-     RIP: 0010:+AFsAPA-ffffffff814cfe72+AD4AXQ-  +AFsAPA-ffffffff814cfe72+AD4AXQ- +AF8AXw-memcpy+-0x12/0x20
-     RSP: 0018:ffffc9000174f9a8  EFLAGS: 00010246
-     RAX: ffffc9000174fab8 RBX: 0000000000000000 RCX: 000000001fffff56
-     RDX: 0000000000000000 RSI: ffff8803231f5a08 RDI: ffffc90001750000
-     RBP: ffffc9000174fa88 R08: ffffc9000174fab0 R09: ffff8803231f54b8
-     R10: 0000000000000008 R11: 0000000000000001 R12: 0000000000000000
-     R13: 0000000000000000 R14: 0000000000000003 R15: ffff8803231f54a0
-     FS:  00007f3a611af640(0000) GS:ffff88033ed00000(0000) knlGS:0000000000000000
-     CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-     CR2: ffffc90001750000 CR3: 0000000325b20000 CR4: 00000000000406e0
-     Stack:
-      ffffffffa00bc60d 0000000000000008 ffffc90000000001 ffffc9000174faac
-      0000000000000292 ffffffffa00c24e4 ffffffffa00c2914 0000000000000000
-      0000000000000000 ffffffff00000003 ffff880331ae8ad0 0000000800000246
-     Call Trace:
-      +AFsAPA-ffffffffa00bc60d+AD4AXQ- ? acpi+AF8-nfit+AF8-ctl+-0x49d/0x750 +AFs-nfit+AF0-
-      +AFsAPA-ffffffffa01f4fe0+AD4AXQ- nfit+AF8-test+AF8-probe+-0x670/0xb1b +AFs-nfit+AF8-test+AF0-
-    
-    Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-    Fixes: 747ffe11b440 (+ACI-libnvdimm, tools/testing/nvdimm: fix 'ars+AF8-status' output buffer sizing+ACI-)
-    Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 82aa37cf09867c5e2c0326649d570e5b25c1189a
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:   Tue Dec 6 12:45:24 2016 -0800
-
-    acpi, nfit: validate ars+AF8-status output buffer size
-    
-    If an ARS Status command returns truncated output, do not process
-    partial records or otherwise consume non-status fields.
-    
-    Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-    Fixes: 0caeef63e6d2 (+ACI-libnvdimm: Add a poison list and export badblocks+ACI-)
-    Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit d6eb270c57fef35798525004ddf2ac5dcdadd43b
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:   Tue Dec 6 15:06:55 2016 -0800
-
-    acpi, nfit: fix bus vs dimm confusion in xlat+AF8-status
-    
-    Given dimms and bus commands share the same command number space we need
-    to be careful that we are translating status in the correct context.
-    Otherwise we can, for example, fail an ND+AF8-CMD+AF8-GET+AF8-CONFIG+AF8-SIZE command
-    because max+AF8-xfer is zero. It fails because that condition erroneously
-    correlates with the 'cleared +AD0APQ- 0' failure of ND+AF8-CMD+AF8-CLEAR+AF8-ERROR.
-    
-    Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-    Fixes: aef253382266 (+ACI-libnvdimm, nfit: centralize command status translation+ACI-)
-    Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit a7de92dac9f0dbf01deb56fe1d661d7baac097e1
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:   Mon Dec 5 13:43:25 2016 -0800
-
-    tools/testing/nvdimm: unit test acpi+AF8-nfit+AF8-ctl()
-    
-    A recent flurry of bug discoveries in the nfit driver's DSM marshalling
-    routine has highlighted the fact that we do not have unit test coverage
-    for this routine. Add a self-test of acpi+AF8-nfit+AF8-ctl() routine before
-    probing the +ACI-nfit+AF8-test.0+ACI- device. This mocks stimulus to acpi+AF8-nfit+AF8-ctl()
-    and if any of the tests fail +ACI-nfit+AF8-test.0+ACI- will be unavailable causing
-    the rest of the tests to not run / fail.
-    
-    This unit test will also be a place to land reproductions of quirky BIOS
-    behavior discovered in the field and ensure the kernel does not regress
-    against implementations it has seen in practice.
-    
-    Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 325896ffdf90f7cbd59fb873b7ba20d60d1ddf3c
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:   Tue Dec 6 17:03:35 2016 -0800
-
-    device-dax: fix private mapping restriction, permit read-only
-    
-    Hugh notes in response to commit 4cb19355ea19 +ACI-device-dax: fail all
-    private mapping attempts+ACI-:
-    
-      +ACI-I think that is more restrictive than you intended: haven't tried, but I
-      believe it rejects a PROT+AF8-READ, MAP+AF8-SHARED, O+AF8-RDONLY fd mmap, leaving no
-      way to mmap /dev/dax without write permission to it.+ACI-
-    
-    Indeed it does restrict read-only mappings, switch to checking
-    VM+AF8-MAYSHARE, not VM+AF8-SHARED.
-    
-    Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-    Cc: Dave Hansen +ADw-dave.hansen+AEA-linux.intel.com+AD4-
-    Cc: Pawel Lebioda +ADw-pawel.lebioda+AEA-intel.com+AD4-
-    Fixes: 4cb19355ea19 (+ACI-device-dax: fail all private mapping attempts+ACI-)
-    Reported-by: Hugh Dickins +ADw-hughd+AEA-google.com+AD4-
-    Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4
+-- 
+1.9.1
