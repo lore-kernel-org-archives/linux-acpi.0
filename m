@@ -1,153 +1,104 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
- and early_acpi_os_unmap_memory() from Linux kernel
-Date: Thu, 8 Dec 2016 17:57:52 -0800
-Message-ID: <CAPcyv4iEo2yEQrMNpGjhR6N5qE-YmTDzQ0ch9QMZEi4b5jN5UQ@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 08/11] ACPICA: Tables: Back port
+ acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
+Date: Fri, 9 Dec 2016 01:59:34 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1480490191.git.lv.zheng@intel.com>
  <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
  <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2B2377@SHSMSX101.ccr.corp.intel.com>
+ <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
+ <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A2B2377-0J0gbvR4kThpB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Wysocki,
- Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <zetalog-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:18109 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753113AbcLIB7j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Dec 2016 20:59:39 -0500
+In-Reply-To: <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
 
-On Thu, Dec 8, 2016 at 5:49 PM, Zheng, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Hi, Dan
->
-> Good to see you here!
->
->> From: dan.j.williams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:dan.j.williams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Dan Williams
->> Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size() and
->> early_acpi_os_unmap_memory() from Linux kernel
->>
->> On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> > ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
->> >
->> > This patch back ports Linux acpi_get_table_with_size() and
->> > early_acpi_os_unmap_memory() into ACPICA upstream to reduce divergences.
->> >
->> > The 2 APIs are used by Linux as table management APIs for long time, it
->> > contains a hidden logic that during the early stage, the mapped tables
->> > should be unmapped before the early stage ends.
->> >
->> > During the early stage, tables are handled by the following sequence:
->> >  acpi_get_table_with_size();
->> >  parse the table
->> >  early_acpi_os_unmap_memory();
->> > During the late stage, tables are handled by the following sequence:
->> >  acpi_get_table();
->> >  parse the table
->> > Linux uses acpi_gbl_permanent_mmap to distinguish the early stage and the
->> > late stage.
->> >
->> > The reasoning of introducing acpi_get_table_with_size() is: ACPICA will
->> > remember the early mapped pointer in acpi_get_table() and Linux isn't able to
->> > prevent ACPICA from using the wrong early mapped pointer during the late
->> > stage as there is no API provided from ACPICA to be an inverse of
->> > acpi_get_table() to forget the early mapped pointer.
->> >
->> > But how ACPICA can work with the early/late stage requirement? Inside of
->> > ACPICA, tables are ensured to be remained in "INSTALLED" state during the
->> > early stage, and they are carefully not transitioned to "VALIDATED" state
->> > until the late stage. So the same logic is in fact implemented inside of
->> > ACPICA in a different way. The gap is only that the feature is not provided
->> > to the OSPMs in an accessible external API style.
->> >
->> > It then is possible to fix the gap by providing an inverse of
->> > acpi_get_table() from ACPICA, so that the two Linux sequences can be
->> > combined:
->> >  acpi_get_table();
->> >  parse the table
->> >  acpi_put_table();
->> > In order to work easier with the current Linux code, acpi_get_table() and
->> > acpi_put_table() is implemented in a usage counting based style:
->> >  1. When the usage count of the table is increased from 0 to 1, table is
->> >     mapped and .Pointer is set with the mapping address (VALIDATED);
->> >  2. When the usage count of the table is decreased from 1 to 0, .Pointer
->> >     is unset and the mapping address is unmapped (INVALIDATED).
->> > So that we can deploy the new APIs to Linux with minimal effort by just
->> > invoking acpi_get_table() in acpi_get_table_with_size() and invoking
->> > acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
->> >
->> > Link: https://github.com/acpica/acpica/commit/cac67909
->> > Signed-off-by: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> > Signed-off-by: Bob Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>
->> This commit in -next (071b39575679 ACPICA: Tables: Back port
->> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
->> kernel) causes a regression in my nfit/nvdimm test environment. The
->> nfit produced by QEMU no longer results in a nvdimm bus being created.
->
-> This commit is almost a no-op, unless some code in kernel is using the length field returned by old acpi_get_table_with_size().
->
->>
->> I have not root caused it, but I'm using the following command line
->> options to create an nfit in qemu-2.6.  Reverting the commit leads
->> compile failures.
->>
->> qemu=$HOME/git/qemu/build/x86_64-softmmu/qemu-system-x86_64
->> mem=$HOME/mem
->> label_size=$((128*1024))
->> mem_size=$(((3*1024*1024*1024) + (64 * 1024 *1024)))
->> IMAGE=$HOME/ahci.img
->>
->> kvm=(
->>         $qemu
->>         -enable-kvm
->>         -cpu kvm64
->>         -kernel $kernel
->>         -initrd $initrd
->>         -m 12G,slots=3,maxmem=40G
->>
->>         -machine pc-i440fx-2.4,accel=kvm,usb=off,vmport=off,nvdimm
->>         -cpu SandyBridge
->>         -smp 2
->>         -netdev tap,id=hostnet0,ifname=tap0,script=no,downscript=no
->>         -device
->> virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:b7:a1:ad,bus=pci.0,addr=0x7
->>         -object
->> memory-backend-file,id=mem1,share,mem-path=${mem},size=$((label_size +
->> mem_size))
->>         -device nvdimm,memdev=mem1,id=nv1,label-size=${label_size}
->>         -device ahci,id=sata0,bus=pci.0,addr=0x8
->>         -drive file=$IMAGE,if=none,id=drive-sata0-0-0,format=raw
->>         -device ide-hd,bus=sata0.0,drive=drive-sata0-0-0,id=sata0-0-0
->>         -boot order=nc
->>         -no-reboot
->>         -watchdog i6300esb
->>         -rtc base=localtime
->>         -serial stdio
->>         -display none
->>         -monitor null
->> )
->
-> Let me file a kernel Bugzilla bug to track this issue:
-> https://bugzilla.kernel.org/show_bug.cgi?id=189891
-> And see if we can quickly fix it.
->
-> Could you also point me the NFIT code that I should take a look at.
-> Thanks in advance.
->
-
-Yes, the nfit code is here:
-
-drivers/acpi/nfit/core.c
-
-...and yes it does currently use the size returned from
-acpi_get_table_with_size() as a double-check against the size supplied
-in the header. See acpi_nfit_add().
+SGksIFJhZmFlbCBhbmQgRGFuDQoNCj4gRnJvbTogRGFuIFdpbGxpYW1zIFttYWlsdG86ZGFuLmou
+d2lsbGlhbXNAaW50ZWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDA4LzExXSBBQ1BJQ0E6
+IFRhYmxlczogQmFjayBwb3J0IGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpIGFuZA0KPiBlYXJs
+eV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGZyb20gTGludXgga2VybmVsDQo+IA0KPiBPbiBUaHUs
+IERlYyA4LCAyMDE2IGF0IDU6MTggQU0sIFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVs
+Lm9yZz4gd3JvdGU6DQo+ID4gT24gVGh1LCBEZWMgOCwgMjAxNiBhdCAyOjExIEFNLCBEYW4gV2ls
+bGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4gd3JvdGU6DQo+ID4+IE9uIFR1ZSwgTm92
+IDI5LCAyMDE2IGF0IDExOjIxIFBNLCBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90
+ZToNCj4gPj4+IEFDUElDQSBjb21taXQgY2FjNjc5MDk1NGQ0ZDc1MmEwODNlNjEyMjIyMGI4YTIy
+ZmViY2QwNw0KPiA+Pj4NCj4gPj4+IFRoaXMgcGF0Y2ggYmFjayBwb3J0cyBMaW51eCBhY3BpX2dl
+dF90YWJsZV93aXRoX3NpemUoKSBhbmQNCj4gPj4+IGVhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5
+KCkgaW50byBBQ1BJQ0EgdXBzdHJlYW0gdG8gcmVkdWNlIGRpdmVyZ2VuY2VzLg0KPiA+Pj4NCj4g
+Pj4+IFRoZSAyIEFQSXMgYXJlIHVzZWQgYnkgTGludXggYXMgdGFibGUgbWFuYWdlbWVudCBBUElz
+IGZvciBsb25nIHRpbWUsIGl0DQo+ID4+PiBjb250YWlucyBhIGhpZGRlbiBsb2dpYyB0aGF0IGR1
+cmluZyB0aGUgZWFybHkgc3RhZ2UsIHRoZSBtYXBwZWQgdGFibGVzDQo+ID4+PiBzaG91bGQgYmUg
+dW5tYXBwZWQgYmVmb3JlIHRoZSBlYXJseSBzdGFnZSBlbmRzLg0KPiA+Pj4NCj4gPj4+IER1cmlu
+ZyB0aGUgZWFybHkgc3RhZ2UsIHRhYmxlcyBhcmUgaGFuZGxlZCBieSB0aGUgZm9sbG93aW5nIHNl
+cXVlbmNlOg0KPiA+Pj4gIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpOw0KPiA+Pj4gIHBhcnNl
+IHRoZSB0YWJsZQ0KPiA+Pj4gIGVhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCk7DQo+ID4+PiBE
+dXJpbmcgdGhlIGxhdGUgc3RhZ2UsIHRhYmxlcyBhcmUgaGFuZGxlZCBieSB0aGUgZm9sbG93aW5n
+IHNlcXVlbmNlOg0KPiA+Pj4gIGFjcGlfZ2V0X3RhYmxlKCk7DQo+ID4+PiAgcGFyc2UgdGhlIHRh
+YmxlDQo+ID4+PiBMaW51eCB1c2VzIGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFwIHRvIGRpc3Rpbmd1
+aXNoIHRoZSBlYXJseSBzdGFnZSBhbmQgdGhlDQo+ID4+PiBsYXRlIHN0YWdlLg0KPiA+Pj4NCj4g
+Pj4+IFRoZSByZWFzb25pbmcgb2YgaW50cm9kdWNpbmcgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXpl
+KCkgaXM6IEFDUElDQSB3aWxsDQo+ID4+PiByZW1lbWJlciB0aGUgZWFybHkgbWFwcGVkIHBvaW50
+ZXIgaW4gYWNwaV9nZXRfdGFibGUoKSBhbmQgTGludXggaXNuJ3QgYWJsZSB0bw0KPiA+Pj4gcHJl
+dmVudCBBQ1BJQ0EgZnJvbSB1c2luZyB0aGUgd3JvbmcgZWFybHkgbWFwcGVkIHBvaW50ZXIgZHVy
+aW5nIHRoZSBsYXRlDQo+ID4+PiBzdGFnZSBhcyB0aGVyZSBpcyBubyBBUEkgcHJvdmlkZWQgZnJv
+bSBBQ1BJQ0EgdG8gYmUgYW4gaW52ZXJzZSBvZg0KPiA+Pj4gYWNwaV9nZXRfdGFibGUoKSB0byBm
+b3JnZXQgdGhlIGVhcmx5IG1hcHBlZCBwb2ludGVyLg0KPiA+Pj4NCj4gPj4+IEJ1dCBob3cgQUNQ
+SUNBIGNhbiB3b3JrIHdpdGggdGhlIGVhcmx5L2xhdGUgc3RhZ2UgcmVxdWlyZW1lbnQ/IEluc2lk
+ZSBvZg0KPiA+Pj4gQUNQSUNBLCB0YWJsZXMgYXJlIGVuc3VyZWQgdG8gYmUgcmVtYWluZWQgaW4g
+IklOU1RBTExFRCIgc3RhdGUgZHVyaW5nIHRoZQ0KPiA+Pj4gZWFybHkgc3RhZ2UsIGFuZCB0aGV5
+IGFyZSBjYXJlZnVsbHkgbm90IHRyYW5zaXRpb25lZCB0byAiVkFMSURBVEVEIiBzdGF0ZQ0KPiA+
+Pj4gdW50aWwgdGhlIGxhdGUgc3RhZ2UuIFNvIHRoZSBzYW1lIGxvZ2ljIGlzIGluIGZhY3QgaW1w
+bGVtZW50ZWQgaW5zaWRlIG9mDQo+ID4+PiBBQ1BJQ0EgaW4gYSBkaWZmZXJlbnQgd2F5LiBUaGUg
+Z2FwIGlzIG9ubHkgdGhhdCB0aGUgZmVhdHVyZSBpcyBub3QgcHJvdmlkZWQNCj4gPj4+IHRvIHRo
+ZSBPU1BNcyBpbiBhbiBhY2Nlc3NpYmxlIGV4dGVybmFsIEFQSSBzdHlsZS4NCj4gPj4+DQo+ID4+
+PiBJdCB0aGVuIGlzIHBvc3NpYmxlIHRvIGZpeCB0aGUgZ2FwIGJ5IHByb3ZpZGluZyBhbiBpbnZl
+cnNlIG9mDQo+ID4+PiBhY3BpX2dldF90YWJsZSgpIGZyb20gQUNQSUNBLCBzbyB0aGF0IHRoZSB0
+d28gTGludXggc2VxdWVuY2VzIGNhbiBiZQ0KPiA+Pj4gY29tYmluZWQ6DQo+ID4+PiAgYWNwaV9n
+ZXRfdGFibGUoKTsNCj4gPj4+ICBwYXJzZSB0aGUgdGFibGUNCj4gPj4+ICBhY3BpX3B1dF90YWJs
+ZSgpOw0KPiA+Pj4gSW4gb3JkZXIgdG8gd29yayBlYXNpZXIgd2l0aCB0aGUgY3VycmVudCBMaW51
+eCBjb2RlLCBhY3BpX2dldF90YWJsZSgpIGFuZA0KPiA+Pj4gYWNwaV9wdXRfdGFibGUoKSBpcyBp
+bXBsZW1lbnRlZCBpbiBhIHVzYWdlIGNvdW50aW5nIGJhc2VkIHN0eWxlOg0KPiA+Pj4gIDEuIFdo
+ZW4gdGhlIHVzYWdlIGNvdW50IG9mIHRoZSB0YWJsZSBpcyBpbmNyZWFzZWQgZnJvbSAwIHRvIDEs
+IHRhYmxlIGlzDQo+ID4+PiAgICAgbWFwcGVkIGFuZCAuUG9pbnRlciBpcyBzZXQgd2l0aCB0aGUg
+bWFwcGluZyBhZGRyZXNzIChWQUxJREFURUQpOw0KPiA+Pj4gIDIuIFdoZW4gdGhlIHVzYWdlIGNv
+dW50IG9mIHRoZSB0YWJsZSBpcyBkZWNyZWFzZWQgZnJvbSAxIHRvIDAsIC5Qb2ludGVyDQo+ID4+
+PiAgICAgaXMgdW5zZXQgYW5kIHRoZSBtYXBwaW5nIGFkZHJlc3MgaXMgdW5tYXBwZWQgKElOVkFM
+SURBVEVEKS4NCj4gPj4+IFNvIHRoYXQgd2UgY2FuIGRlcGxveSB0aGUgbmV3IEFQSXMgdG8gTGlu
+dXggd2l0aCBtaW5pbWFsIGVmZm9ydCBieSBqdXN0DQo+ID4+PiBpbnZva2luZyBhY3BpX2dldF90
+YWJsZSgpIGluIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpIGFuZCBpbnZva2luZw0KPiA+Pj4g
+YWNwaV9wdXRfdGFibGUoKSBpbiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpLiBMdiBaaGVu
+Zy4NCj4gPj4+DQo+ID4+PiBMaW5rOiBodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9j
+b21taXQvY2FjNjc5MDkNCj4gPj4+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0Bp
+bnRlbC5jb20+DQo+ID4+PiBTaWduZWQtb2ZmLWJ5OiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBp
+bnRlbC5jb20+DQo+ID4+DQo+ID4+IFRoaXMgY29tbWl0IGluIC1uZXh0ICgwNzFiMzk1NzU2Nzkg
+QUNQSUNBOiBUYWJsZXM6IEJhY2sgcG9ydA0KPiA+PiBhY3BpX2dldF90YWJsZV93aXRoX3NpemUo
+KSBhbmQgZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKSBmcm9tIExpbnV4DQo+ID4+IGtlcm5l
+bCkgY2F1c2VzIGEgcmVncmVzc2lvbiBpbiBteSBuZml0L252ZGltbSB0ZXN0IGVudmlyb25tZW50
+LiBUaGUNCj4gPj4gbmZpdCBwcm9kdWNlZCBieSBRRU1VIG5vIGxvbmdlciByZXN1bHRzIGluIGEg
+bnZkaW1tIGJ1cyBiZWluZyBjcmVhdGVkLg0KPiA+Pg0KPiA+PiBJIGhhdmUgbm90IHJvb3QgY2F1
+c2VkIGl0LCBidXQgSSdtIHVzaW5nIHRoZSBmb2xsb3dpbmcgY29tbWFuZCBsaW5lDQo+ID4+IG9w
+dGlvbnMgdG8gY3JlYXRlIGFuIG5maXQgaW4gcWVtdS0yLjYuICBSZXZlcnRpbmcgdGhlIGNvbW1p
+dCBsZWFkcw0KPiA+PiBjb21waWxlIGZhaWx1cmVzLg0KPiA+DQo+ID4gV291bGQgdGhlIGJ1aWxk
+IHByb2JsZW1zIGdvIGF3YXkgaWYgeW91IHJldmVydGVkICJBQ1BJQ0E6IFRhYmxlczoNCj4gPiBB
+bGxvdyBGQURUIHRvIGJlIGN1c3RvbWl6ZWQgd2l0aCB2aXJ0dWFsIGFkZHJlc3MiIChsaW51eC1u
+ZXh0IGNvbW1pdA0KPiA+IGNmMzM0ZDMxNzRmOSkgaW4gYWRkaXRpb24gdG8gaXQ/DQo+IA0KPiBZ
+ZXMsIHJldmVydGluZyB0aG9zZSB0d28gY29tbWl0cyBnZXRzIG1lIGJhY2sgdG8gYSBmdW5jdGlv
+bmFsIGVudmlyb25tZW50Og0KPiANCj4gUmV2ZXJ0ICJBQ1BJQ0E6IFRhYmxlczogQWxsb3cgRkFE
+VCB0byBiZSBjdXN0b21pemVkIHdpdGggdmlydHVhbCBhZGRyZXNzIg0KPiBSZXZlcnQgIkFDUElD
+QTogVGFibGVzOiBCYWNrIHBvcnQgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkgYW5kDQo+IGVh
+cmx5X2FjcGlfb3NfdW4NCg0KVG8gRGFuOg0KSXQgc2VlbXMgaW4gZHJpdmVycy9hY3BpL25maXQv
+Y29yZS5jLg0KVGhlIHJldHVybmVkIHRhYmxlIHNpemUgaXMgdXNlZCBieSB0aGUgTkZJVCBjb2Rl
+Lg0KSSB0aGluayBpdCBzaG91bGQgYmUgY2hhbmdlZCB0byB1c2UgdGFibGVfaGVhZGVyLT5sZW5n
+dGguDQoNClRvIFJhZmFlbDoNCkkgY2FuIG9mZmVyIGEgcXVpY2sgZml4IGZvciB0aGlzIGJ5IHJl
+dHVybmluZyB0YWJsZV9oZWFkZXItPmxlbmd0aCBmcm9tIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6
+ZSgpLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KTHYNCg==
