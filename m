@@ -1,132 +1,54 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 08/11] ACPICA: Tables: Back port
- acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
-Date: Fri, 9 Dec 2016 02:27:08 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886A2B3409@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1480490191.git.lv.zheng@intel.com>
- <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
- <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
- <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
- <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
- <CAPcyv4gVuay4uZu5qgDidWyj_LV9s+eRNW6CUZaELHxNtSeHtQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / OSL: Fix a regression by returning table size via acpi_get_table_with_size()
+Date: Fri, 9 Dec 2016 04:48:53 +0100
+Message-ID: <CAJZ5v0hqYRGU_Ok8ZGhv4OS=JYj7YY5hxhFnTqZSdw=cpV3-mw@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com> <b8107fa792de9cb442c342433043604080699fc6.1481249993.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6808 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932771AbcLIC1N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 8 Dec 2016 21:27:13 -0500
-In-Reply-To: <CAPcyv4gVuay4uZu5qgDidWyj_LV9s+eRNW6CUZaELHxNtSeHtQ@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33560 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752374AbcLIDsz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2016 22:48:55 -0500
+In-Reply-To: <b8107fa792de9cb442c342433043604080699fc6.1481249993.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>
 
-SGksIERhbg0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWls
-dG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBEYW4NCj4g
-V2lsbGlhbXMNCj4gU3ViamVjdDogUmU6IFtQQVRDSCAwOC8xMV0gQUNQSUNBOiBUYWJsZXM6IEJh
-Y2sgcG9ydCBhY3BpX2dldF90YWJsZV93aXRoX3NpemUoKSBhbmQNCj4gZWFybHlfYWNwaV9vc191
-bm1hcF9tZW1vcnkoKSBmcm9tIExpbnV4IGtlcm5lbA0KPiANCj4gT24gVGh1LCBEZWMgOCwgMjAx
-NiBhdCA1OjU5IFBNLCBaaGVuZywgTHYgPGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4g
-SGksIFJhZmFlbCBhbmQgRGFuDQo+ID4NCj4gPj4gRnJvbTogRGFuIFdpbGxpYW1zIFttYWlsdG86
-ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tXQ0KPiA+PiBTdWJqZWN0OiBSZTogW1BBVENIIDA4LzEx
-XSBBQ1BJQ0E6IFRhYmxlczogQmFjayBwb3J0IGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpIGFu
-ZA0KPiA+PiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGZyb20gTGludXgga2VybmVsDQo+
-ID4+DQo+ID4+IE9uIFRodSwgRGVjIDgsIDIwMTYgYXQgNToxOCBBTSwgUmFmYWVsIEouIFd5c29j
-a2kgPHJhZmFlbEBrZXJuZWwub3JnPiB3cm90ZToNCj4gPj4gPiBPbiBUaHUsIERlYyA4LCAyMDE2
-IGF0IDI6MTEgQU0sIERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPiB3cm90
-ZToNCj4gPj4gPj4gT24gVHVlLCBOb3YgMjksIDIwMTYgYXQgMTE6MjEgUE0sIEx2IFpoZW5nIDxs
-di56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+PiA+Pj4gQUNQSUNBIGNvbW1pdCBjYWM2Nzkw
-OTU0ZDRkNzUyYTA4M2U2MTIyMjIwYjhhMjJmZWJjZDA3DQo+ID4+ID4+Pg0KPiA+PiA+Pj4gVGhp
-cyBwYXRjaCBiYWNrIHBvcnRzIExpbnV4IGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpIGFuZA0K
-PiA+PiA+Pj4gZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKSBpbnRvIEFDUElDQSB1cHN0cmVh
-bSB0byByZWR1Y2UgZGl2ZXJnZW5jZXMuDQo+ID4+ID4+Pg0KPiA+PiA+Pj4gVGhlIDIgQVBJcyBh
-cmUgdXNlZCBieSBMaW51eCBhcyB0YWJsZSBtYW5hZ2VtZW50IEFQSXMgZm9yIGxvbmcgdGltZSwg
-aXQNCj4gPj4gPj4+IGNvbnRhaW5zIGEgaGlkZGVuIGxvZ2ljIHRoYXQgZHVyaW5nIHRoZSBlYXJs
-eSBzdGFnZSwgdGhlIG1hcHBlZCB0YWJsZXMNCj4gPj4gPj4+IHNob3VsZCBiZSB1bm1hcHBlZCBi
-ZWZvcmUgdGhlIGVhcmx5IHN0YWdlIGVuZHMuDQo+ID4+ID4+Pg0KPiA+PiA+Pj4gRHVyaW5nIHRo
-ZSBlYXJseSBzdGFnZSwgdGFibGVzIGFyZSBoYW5kbGVkIGJ5IHRoZSBmb2xsb3dpbmcgc2VxdWVu
-Y2U6DQo+ID4+ID4+PiAgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCk7DQo+ID4+ID4+PiAgcGFy
-c2UgdGhlIHRhYmxlDQo+ID4+ID4+PiAgZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKTsNCj4g
-Pj4gPj4+IER1cmluZyB0aGUgbGF0ZSBzdGFnZSwgdGFibGVzIGFyZSBoYW5kbGVkIGJ5IHRoZSBm
-b2xsb3dpbmcgc2VxdWVuY2U6DQo+ID4+ID4+PiAgYWNwaV9nZXRfdGFibGUoKTsNCj4gPj4gPj4+
-ICBwYXJzZSB0aGUgdGFibGUNCj4gPj4gPj4+IExpbnV4IHVzZXMgYWNwaV9nYmxfcGVybWFuZW50
-X21tYXAgdG8gZGlzdGluZ3Vpc2ggdGhlIGVhcmx5IHN0YWdlIGFuZCB0aGUNCj4gPj4gPj4+IGxh
-dGUgc3RhZ2UuDQo+ID4+ID4+Pg0KPiA+PiA+Pj4gVGhlIHJlYXNvbmluZyBvZiBpbnRyb2R1Y2lu
-ZyBhY3BpX2dldF90YWJsZV93aXRoX3NpemUoKSBpczogQUNQSUNBIHdpbGwNCj4gPj4gPj4+IHJl
-bWVtYmVyIHRoZSBlYXJseSBtYXBwZWQgcG9pbnRlciBpbiBhY3BpX2dldF90YWJsZSgpIGFuZCBM
-aW51eCBpc24ndCBhYmxlIHRvDQo+ID4+ID4+PiBwcmV2ZW50IEFDUElDQSBmcm9tIHVzaW5nIHRo
-ZSB3cm9uZyBlYXJseSBtYXBwZWQgcG9pbnRlciBkdXJpbmcgdGhlIGxhdGUNCj4gPj4gPj4+IHN0
-YWdlIGFzIHRoZXJlIGlzIG5vIEFQSSBwcm92aWRlZCBmcm9tIEFDUElDQSB0byBiZSBhbiBpbnZl
-cnNlIG9mDQo+ID4+ID4+PiBhY3BpX2dldF90YWJsZSgpIHRvIGZvcmdldCB0aGUgZWFybHkgbWFw
-cGVkIHBvaW50ZXIuDQo+ID4+ID4+Pg0KPiA+PiA+Pj4gQnV0IGhvdyBBQ1BJQ0EgY2FuIHdvcmsg
-d2l0aCB0aGUgZWFybHkvbGF0ZSBzdGFnZSByZXF1aXJlbWVudD8gSW5zaWRlIG9mDQo+ID4+ID4+
-PiBBQ1BJQ0EsIHRhYmxlcyBhcmUgZW5zdXJlZCB0byBiZSByZW1haW5lZCBpbiAiSU5TVEFMTEVE
-IiBzdGF0ZSBkdXJpbmcgdGhlDQo+ID4+ID4+PiBlYXJseSBzdGFnZSwgYW5kIHRoZXkgYXJlIGNh
-cmVmdWxseSBub3QgdHJhbnNpdGlvbmVkIHRvICJWQUxJREFURUQiIHN0YXRlDQo+ID4+ID4+PiB1
-bnRpbCB0aGUgbGF0ZSBzdGFnZS4gU28gdGhlIHNhbWUgbG9naWMgaXMgaW4gZmFjdCBpbXBsZW1l
-bnRlZCBpbnNpZGUgb2YNCj4gPj4gPj4+IEFDUElDQSBpbiBhIGRpZmZlcmVudCB3YXkuIFRoZSBn
-YXAgaXMgb25seSB0aGF0IHRoZSBmZWF0dXJlIGlzIG5vdCBwcm92aWRlZA0KPiA+PiA+Pj4gdG8g
-dGhlIE9TUE1zIGluIGFuIGFjY2Vzc2libGUgZXh0ZXJuYWwgQVBJIHN0eWxlLg0KPiA+PiA+Pj4N
-Cj4gPj4gPj4+IEl0IHRoZW4gaXMgcG9zc2libGUgdG8gZml4IHRoZSBnYXAgYnkgcHJvdmlkaW5n
-IGFuIGludmVyc2Ugb2YNCj4gPj4gPj4+IGFjcGlfZ2V0X3RhYmxlKCkgZnJvbSBBQ1BJQ0EsIHNv
-IHRoYXQgdGhlIHR3byBMaW51eCBzZXF1ZW5jZXMgY2FuIGJlDQo+ID4+ID4+PiBjb21iaW5lZDoN
-Cj4gPj4gPj4+ICBhY3BpX2dldF90YWJsZSgpOw0KPiA+PiA+Pj4gIHBhcnNlIHRoZSB0YWJsZQ0K
-PiA+PiA+Pj4gIGFjcGlfcHV0X3RhYmxlKCk7DQo+ID4+ID4+PiBJbiBvcmRlciB0byB3b3JrIGVh
-c2llciB3aXRoIHRoZSBjdXJyZW50IExpbnV4IGNvZGUsIGFjcGlfZ2V0X3RhYmxlKCkgYW5kDQo+
-ID4+ID4+PiBhY3BpX3B1dF90YWJsZSgpIGlzIGltcGxlbWVudGVkIGluIGEgdXNhZ2UgY291bnRp
-bmcgYmFzZWQgc3R5bGU6DQo+ID4+ID4+PiAgMS4gV2hlbiB0aGUgdXNhZ2UgY291bnQgb2YgdGhl
-IHRhYmxlIGlzIGluY3JlYXNlZCBmcm9tIDAgdG8gMSwgdGFibGUgaXMNCj4gPj4gPj4+ICAgICBt
-YXBwZWQgYW5kIC5Qb2ludGVyIGlzIHNldCB3aXRoIHRoZSBtYXBwaW5nIGFkZHJlc3MgKFZBTElE
-QVRFRCk7DQo+ID4+ID4+PiAgMi4gV2hlbiB0aGUgdXNhZ2UgY291bnQgb2YgdGhlIHRhYmxlIGlz
-IGRlY3JlYXNlZCBmcm9tIDEgdG8gMCwgLlBvaW50ZXINCj4gPj4gPj4+ICAgICBpcyB1bnNldCBh
-bmQgdGhlIG1hcHBpbmcgYWRkcmVzcyBpcyB1bm1hcHBlZCAoSU5WQUxJREFURUQpLg0KPiA+PiA+
-Pj4gU28gdGhhdCB3ZSBjYW4gZGVwbG95IHRoZSBuZXcgQVBJcyB0byBMaW51eCB3aXRoIG1pbmlt
-YWwgZWZmb3J0IGJ5IGp1c3QNCj4gPj4gPj4+IGludm9raW5nIGFjcGlfZ2V0X3RhYmxlKCkgaW4g
-YWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkgYW5kIGludm9raW5nDQo+ID4+ID4+PiBhY3BpX3B1
-dF90YWJsZSgpIGluIGVhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkuIEx2IFpoZW5nLg0KPiA+
-PiA+Pj4NCj4gPj4gPj4+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2Nv
-bW1pdC9jYWM2NzkwOQ0KPiA+PiA+Pj4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5n
-QGludGVsLmNvbT4NCj4gPj4gPj4+IFNpZ25lZC1vZmYtYnk6IEJvYiBNb29yZSA8cm9iZXJ0Lm1v
-b3JlQGludGVsLmNvbT4NCj4gPj4gPj4NCj4gPj4gPj4gVGhpcyBjb21taXQgaW4gLW5leHQgKDA3
-MWIzOTU3NTY3OSBBQ1BJQ0E6IFRhYmxlczogQmFjayBwb3J0DQo+ID4+ID4+IGFjcGlfZ2V0X3Rh
-YmxlX3dpdGhfc2l6ZSgpIGFuZCBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGZyb20gTGlu
-dXgNCj4gPj4gPj4ga2VybmVsKSBjYXVzZXMgYSByZWdyZXNzaW9uIGluIG15IG5maXQvbnZkaW1t
-IHRlc3QgZW52aXJvbm1lbnQuIFRoZQ0KPiA+PiA+PiBuZml0IHByb2R1Y2VkIGJ5IFFFTVUgbm8g
-bG9uZ2VyIHJlc3VsdHMgaW4gYSBudmRpbW0gYnVzIGJlaW5nIGNyZWF0ZWQuDQo+ID4+ID4+DQo+
-ID4+ID4+IEkgaGF2ZSBub3Qgcm9vdCBjYXVzZWQgaXQsIGJ1dCBJJ20gdXNpbmcgdGhlIGZvbGxv
-d2luZyBjb21tYW5kIGxpbmUNCj4gPj4gPj4gb3B0aW9ucyB0byBjcmVhdGUgYW4gbmZpdCBpbiBx
-ZW11LTIuNi4gIFJldmVydGluZyB0aGUgY29tbWl0IGxlYWRzDQo+ID4+ID4+IGNvbXBpbGUgZmFp
-bHVyZXMuDQo+ID4+ID4NCj4gPj4gPiBXb3VsZCB0aGUgYnVpbGQgcHJvYmxlbXMgZ28gYXdheSBp
-ZiB5b3UgcmV2ZXJ0ZWQgIkFDUElDQTogVGFibGVzOg0KPiA+PiA+IEFsbG93IEZBRFQgdG8gYmUg
-Y3VzdG9taXplZCB3aXRoIHZpcnR1YWwgYWRkcmVzcyIgKGxpbnV4LW5leHQgY29tbWl0DQo+ID4+
-ID4gY2YzMzRkMzE3NGY5KSBpbiBhZGRpdGlvbiB0byBpdD8NCj4gPj4NCj4gPj4gWWVzLCByZXZl
-cnRpbmcgdGhvc2UgdHdvIGNvbW1pdHMgZ2V0cyBtZSBiYWNrIHRvIGEgZnVuY3Rpb25hbCBlbnZp
-cm9ubWVudDoNCj4gPj4NCj4gPj4gUmV2ZXJ0ICJBQ1BJQ0E6IFRhYmxlczogQWxsb3cgRkFEVCB0
-byBiZSBjdXN0b21pemVkIHdpdGggdmlydHVhbCBhZGRyZXNzIg0KPiA+PiBSZXZlcnQgIkFDUElD
-QTogVGFibGVzOiBCYWNrIHBvcnQgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkgYW5kDQo+ID4+
-IGVhcmx5X2FjcGlfb3NfdW4NCj4gPg0KPiA+IFRvIERhbjoNCj4gPiBJdCBzZWVtcyBpbiBkcml2
-ZXJzL2FjcGkvbmZpdC9jb3JlLmMuDQo+ID4gVGhlIHJldHVybmVkIHRhYmxlIHNpemUgaXMgdXNl
-ZCBieSB0aGUgTkZJVCBjb2RlLg0KPiA+IEkgdGhpbmsgaXQgc2hvdWxkIGJlIGNoYW5nZWQgdG8g
-dXNlIHRhYmxlX2hlYWRlci0+bGVuZ3RoLg0KPiANCj4gRG9lcyB0aGUgYWNwaSBjb3JlIGFscmVh
-ZHkgdmFsaWRhdGUgdGhhdCB0YWJsZV9oZWFkZXItPmxlbmd0aCBpcw0KPiBjb3JyZWN0PyBpLmUu
-IGlzIGlzIHBvc3NpYmxlIHRoYXQgYSBicm9rZW4gaW1wbGVtZW50YXRpb24gY291bGQgaGF2ZQ0K
-PiB0aGUgd3JvbmcgbGVuZ3RoIGluIHRoZSBoZWFkZXI/IEkgd2FzIGFzc3VtaW5nIHRoYXQgd2Fz
-IHRoZSBwdXJwb3NlIG9mDQo+IHRoZSBfd2l0aF9zaXplKCksIGJ1dCBtYXliZSBJIHdhcyB3cm9u
-Zz8NCg0KVGhlcmUgaXMgbm8gc3VjaCBicmVha2FnZS4NClRoZSBwdXJwb3NlIGlzIG5vdCB0aGF0
-Lg0KDQpUaGUgcHVycG9zZSBvZiB0aGUgQVBJIGlzOg0KRHVyaW5nIHRoZSBMaW51eCBlYXJseSBz
-dGFnZSwgaXQgaXMgcmVxdWlyZWQgdG8gdW5tYXAgdGhlIGVhcmx5IG1hcHMgYXMgc3VjaCBwb2lu
-dGVyIGNhbm5vdCBiZSB1c2VkIGJ5IGxhdGUgc3RhZ2UuDQpXaGlsZSBBQ1BJQ0Ega2VlcHMgc3Vj
-aCBwb2ludGVyIGluIHRhYmxlX2Rlc2MgaWYgYWNwaV9nZXRfdGFibGUoKSBpcyBjYWxsZWQuDQoN
-ClNvIExpbnV4IGd1eXMgcHJvdmlkZWQgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCksIGluIHdo
-aWNoIHRhYmxlX2Rlc2Mgd2lsbCBub3QgcmVtZW1iZXIgdGhlIG1hcHBlZCBwb2ludGVyLg0KVGhl
-IHNpemUgbXVzdCBiZSByZXR1cm5lZCB0byB0aGUgY2FsbGVyIGFzIHRoZSBjYWxsZXIgbmVlZCB0
-byB1c2UgaXQgYXMgYSBwYXJhbWV0ZXIgdG8gdW5tYXAgdGhlIG1lbW9yeSBkdXJpbmcgZWFybHkg
-c3RhZ2UuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0KDQoNCg0KPiAtLQ0KPiBUbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtYWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtl
-cm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9y
-Zy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On Fri, Dec 9, 2016 at 3:21 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> The returned size is still used by the drivers.
+>
+> Reported-by: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/osl.c |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 5bef0f65..adf1ec4 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -445,8 +445,12 @@ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
+>
+>         status = acpi_get_table(signature, instance, out_table);
+>         if (ACPI_SUCCESS(status)) {
+> -               /* No longer used by early_acpi_os_unmap_memory() */
+> -               *tbl_size = 0;
+> +               /*
+> +                * No longer used by early_acpi_os_unmap_memory(), but still
+> +                * used by the ACPI table drivers.
+> +                */
+> +               if (*out_table)
+> +                       *tbl_size = (*out_table)->length;
+>         }
+>
+>         return (status);
+> --
+
+The changelog doesn't explain anything.  Please say (a) what the
+problem is and (b) how it is being addressed by your patch.
+
+Thanks,
+Rafael
