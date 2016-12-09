@@ -1,40 +1,45 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v18 03/15] clocksource/drivers/arm_arch_timer: Improve
- printk relevant code
-Date: Thu, 08 Dec 2016 13:10:30 -0800
-Message-ID: <1481231430.5946.34.camel@perches.com>
-References: <20161208173319.6618-1-fu.wei@linaro.org>
-         <20161208173319.6618-4-fu.wei@linaro.org>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v5 2/2] clk: x86: Add Atom PMC platform clocks
+Date: Thu, 8 Dec 2016 16:25:23 -0800
+Message-ID: <20161209002523.GC5423@codeaurora.org>
+References: <1481125406-29097-1-git-send-email-irina.tirdea@intel.com>
+ <1481125406-29097-3-git-send-email-irina.tirdea@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161208173319.6618-4-fu.wei@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <1481125406-29097-3-git-send-email-irina.tirdea@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
+To: Irina Tirdea <irina.tirdea@intel.com>
+Cc: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2016-12-09 at 01:33 +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
+On 12/07, Irina Tirdea wrote:
+> The BayTrail and CherryTrail platforms provide platform clocks
+> through their Power Management Controller (PMC).
 > 
-> This patch defines pr_fmt(fmt) for all pr_* functions,
-> then the pr_* doesn't need to add "arch_timer:" everytime.
+> The SoC supports up to 6 clocks (PMC_PLT_CLK[5:0]) with a
+> frequency of either 19.2 MHz (PLL) or 25 MHz (XTAL) for BayTrail
+> an a frequency of 19.2 MHz (XTAL) for CherryTrail. These clocks
+> are available for general system use, where appropriate, and each
+> have Control & Frequency register fields associated with them.
+> 
+> For example, the usage for platform clocks suggested in the datasheet
+> is the following:
+>   PLT_CLK[2:0] - Camera
+>   PLT_CLK[3] - Audio Codec
+>   PLT_CLK[4] -
+>   PLT_CLK[5] - COMMs
+> 
+> Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
+> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+> ---
+>  drivers/clk/x86/Makefile                      |   1 +
+>  drivers/clk/x86/clk-byt-plt.c                 | 380 ++++++++++++++++++++++++++
 
-trivia:
+Is it possible to split the clk part from the platform part? I'd
+like to merge just the clk part if possible into the clk tree.
 
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-[]
-> @@ -966,7 +967,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
->  
->  	ret = -EINVAL;
->  	if (!irq) {
-> -		pr_err("arch_timer: Frame missing %s irq",
-> +		pr_err("Frame missing %s irq",
->  		       arch_timer_mem_use_virtual ? "virt" : "phys");
->  		goto out;
->  	}
-
-Missing terminating newline
-
-		pr_err("Frame missing %s irq\n",
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
