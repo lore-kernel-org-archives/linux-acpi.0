@@ -1,37 +1,43 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size()
  and early_acpi_os_unmap_memory() from Linux kernel
-Date: Thu, 8 Dec 2016 18:04:30 -0800
-Message-ID: <CAPcyv4gVuay4uZu5qgDidWyj_LV9s+eRNW6CUZaELHxNtSeHtQ@mail.gmail.com>
-References: <cover.1480490191.git.lv.zheng@intel.com> <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
+Date: Fri, 9 Dec 2016 03:05:52 +0100
+Message-ID: <CAJZ5v0hymbbBQwC4MrVxbaVRdGuKiHskjsfc+VLnMr3y2p+0yA@mail.gmail.com>
+References: <cover.1480490191.git.lv.zheng@intel.com>
+ <411c4b5987a902e037bf8c969513853dc960cc8a.1480490191.git.lv.zheng@intel.com>
  <CAA9_cmeUNuvfSSVWWiUt3PLG0WDUCw6m8uK4n5Doh3u_OtRDEg@mail.gmail.com>
  <CAJZ5v0jYijDj2+UiPp41pHWdpuJvMUFoonViSvaCdBknkrbo2Q@mail.gmail.com>
- <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com> <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
+ <CAPcyv4jNyH4Aq9SptOV+iOY8ncYiL19SwEhwzkFoUecp6nLTzA@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:36338 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750729AbcLICEb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Dec 2016 21:04:31 -0500
-Received: by mail-oi0-f42.google.com with SMTP id v84so4821332oie.3
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Dec 2016 18:04:31 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A2B2398@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886A2B2398-0J0gbvR4kThpB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "Wysocki,
+ Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <zetalog-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>
 
-On Thu, Dec 8, 2016 at 5:59 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+On Fri, Dec 9, 2016 at 2:59 AM, Zheng, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 > Hi, Rafael and Dan
 >
->> From: Dan Williams [mailto:dan.j.williams@intel.com]
+>> From: Dan Williams [mailto:dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
 >> Subject: Re: [PATCH 08/11] ACPICA: Tables: Back port acpi_get_table_with_size() and
 >> early_acpi_os_unmap_memory() from Linux kernel
 >>
->> On Thu, Dec 8, 2016 at 5:18 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> > On Thu, Dec 8, 2016 at 2:11 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->> >> On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> On Thu, Dec 8, 2016 at 5:18 AM, Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> > On Thu, Dec 8, 2016 at 2:11 AM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> >> On Tue, Nov 29, 2016 at 11:21 PM, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 >> >>> ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
 >> >>>
 >> >>> This patch back ports Linux acpi_get_table_with_size() and
@@ -81,8 +87,8 @@ On Thu, Dec 8, 2016 at 5:59 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
 >> >>> acpi_put_table() in early_acpi_os_unmap_memory(). Lv Zheng.
 >> >>>
 >> >>> Link: https://github.com/acpica/acpica/commit/cac67909
->> >>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->> >>> Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> >>> Signed-off-by: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> >>> Signed-off-by: Bob Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >> >>
 >> >> This commit in -next (071b39575679 ACPICA: Tables: Back port
 >> >> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
@@ -107,8 +113,17 @@ On Thu, Dec 8, 2016 at 5:59 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
 > It seems in drivers/acpi/nfit/core.c.
 > The returned table size is used by the NFIT code.
 > I think it should be changed to use table_header->length.
+>
+> To Rafael:
+> I can offer a quick fix for this by returning table_header->length from acpi_get_table_with_size().
 
-Does the acpi core already validate that table_header->length is
-correct? i.e. is is possible that a broken implementation could have
-the wrong length in the header? I was assuming that was the purpose of
-the _with_size(), but maybe I was wrong?
+OK
+
+I've dropped the problematic ACPICA commit for now (along with the one
+that depended on it) to prevent the issue from going in.
+
+The change that you are suggesting would defeat the purpose of what
+the NFIT code does.
+
+Thanks,
+Rafael
