@@ -1,40 +1,92 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / CPPC: Fix per-CPU pointers management
-Date: Mon, 12 Dec 2016 02:00:36 +0100
-Message-ID: <CAJZ5v0iZ31AyuE2fHYLrr=2JKFO==mkjh7G0VHy8bEQjxDfOPA@mail.gmail.com>
-References: <cover.1479844244.git.tim.c.chen@linux.intel.com>
- <20161209144551.jhnbfsxdxsk4ld6s@linutronix.de> <CAJZ5v0jUCHSM90yEoygAbKVY3ySaWQk-Cp6qkd+6ESH74J2_8A@mail.gmail.com>
- <296282606.tnoJCKgU2l@aspire.rjw.lan> <20161210185106.eyj356w3ffgibaqi@linutronix.de>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2] ACPI / OSL: Fix a regression by returning
+ acpi_table_header.length instead of 0 from acpi_get_table_with_size()
+Date: Mon, 12 Dec 2016 02:44:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CDDEC6B@SHSMSX103.ccr.corp.intel.com>
+References: <cover.1480490191.git.lv.zheng@intel.com>
+ <da13d99d5b7ea6a9435bbb82319ecc6b8d9be0c8.1481267531.git.lv.zheng@intel.com>
+ <CAJZ5v0jwHekD0YYLivgCf9H0zjEYrLC_NfmNOSTo7j6U92myDA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f193.google.com ([209.85.210.193]:34505 "EHLO
-        mail-wj0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753202AbcLLBAi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Dec 2016 20:00:38 -0500
-In-Reply-To: <20161210185106.eyj356w3ffgibaqi@linutronix.de>
+Received: from mga04.intel.com ([192.55.52.120]:25726 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751617AbcLLCoG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 11 Dec 2016 21:44:06 -0500
+In-Reply-To: <CAJZ5v0jwHekD0YYLivgCf9H0zjEYrLC_NfmNOSTo7j6U92myDA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Tim Chen <tim.c.chen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, the arch/x86 maintainers <x86@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
 
-On Sat, Dec 10, 2016 at 7:51 PM, Sebastian Andrzej Siewior
-<bigeasy@linutronix.de> wrote:
-> On 2016-12-10 00:52:28 [+0100], Rafael J. Wysocki wrote:
->> Hi Thomas,
->>
->> The crash fixed by this is exposed by the ITMT (asymmetric packing) series
->> (which involves using ACPI CPPC on x86), so IMO it would be good to route it
->> through tip along with that series.
->
-> can we get this merged into the original patch please?
-
-Functionally, that patch has a little to do with the fix, so I'd
-rather not do that.
-
-> This is default y  and breaks bisecting.
-
-Instead, I would reorder the series to put the fix in front of that patch.
-
-Thanks,
-Rafael
+SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
+bC5jb21dIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BB
+VENIIHYyXSBBQ1BJIC8gT1NMOiBGaXggYSByZWdyZXNzaW9uIGJ5IHJldHVybmluZyBhY3BpX3Rh
+YmxlX2hlYWRlci5sZW5ndGggaW5zdGVhZCBvZg0KPiAwIGZyb20gYWNwaV9nZXRfdGFibGVfd2l0
+aF9zaXplKCkNCj4gDQo+IE9uIEZyaSwgRGVjIDksIDIwMTYgYXQgODoxNSBBTSwgTHYgWmhlbmcg
+PGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gVGhlIGZvbGxvd2luZyB3cm9uZyBjb21t
+aXQgdHJpZ2dlcnMgaXNzdWVzIGluIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpDQo+ID4gdXNl
+cnM6DQo+ID4gICAgIFN1YmplY3Q6IEFDUElDQTogVGFibGVzOiBCYWNrIHBvcnQgYWNwaV9nZXRf
+dGFibGVfd2l0aF9zaXplKCkgYW5kDQo+ID4gICAgICAgICAgICAgIGVhcmx5X2FjcGlfb3NfdW5t
+YXBfbWVtb3J5KCkgZnJvbSBMaW51eCBrZXJuZWwNCj4gPg0KPiA+IFRoZSBmdW5jdGlvbiBpcyBp
+bnZlbnRlZCB0byBiZSBhIHJlcGxhY2VtZW50IG9mIGFjcGlfZ2V0X3RhYmxlKCkgZHVyaW5nDQo+
+ID4gZWFybHkgc3RhZ2Ugc28gdGhhdCB0aGUgZWFybHkgbWFwcGVkIHBvaW50ZXIgd2lsbCBub3Qg
+YmUgc3RvcmVkIGluIEFDUElDQQ0KPiA+IGNvcmUgYW5kIHRodXMgdGhlIGxhdGUgc3RhZ2UgYWNw
+aV9nZXRfdGFibGUoKSB3b24ndCByZXR1cm4gYSB3cm9uZyBwb2ludGVyLg0KPiA+IEhvd2V2ZXIg
+dGhlIG1hcHBpbmcgc2l6ZSBpcyByZXR1cm5lZCBqdXN0IGJlY2F1c2UgaXQgaXMgcmVxdWlyZWQg
+YnkNCj4gPiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIHRvIHVubWFwIHRoZSBwb2ludGVy
+IGR1cmluZyBlYXJseSBzdGFnZS4NCj4gPg0KPiA+IEFzIHRoZSBtYXBwaW5nIHNpemUgZXF1YWxz
+IHRvIHRoZSBhY3BpX3RhYmxlX2hlYWRlci5sZW5ndGgNCj4gPiAoc2VlIGFjcGlfdGJfaW5pdF90
+YWJsZV9kZXNjcmlwdG9yKCkgYW5kIGFjcGlfdGJfdmFsaWRhdGVfdGFibGUoKSksIHdoZW4NCj4g
+PiBzdWNoIGEgY29udmVuaWVudCByZXN1bHQgaXMgcmV0dXJuZWQsIGRyaXZlciBjb2RlIHdpbGwg
+c3RhcnQgdG8gdXNlIGl0DQo+ID4gaW5zdGVhZCBvZiBhY2Nlc3NpbmcgYWNwaV90YWJsZV9oZWFk
+ZXIgdG8gb2J0YWluIHRoZSBsZW5ndGguDQo+ID4NCj4gPiBTbyB0aGUgY29tbWl0IGNhbiB0cmln
+Z2VyIHByb2JsZW1zIGluIHN1Y2ggZHJpdmVycyBhcyBpdCByZXR1cm5zIDAgbm93LiBBbmQNCj4g
+PiBpdCBkaWQgYnJpbmcgYSB0cm91YmxlIHRvIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYy4gU28g
+YmVmb3JlIGNsZWFuaW5nIHVwDQo+ID4gdGhlIGRyaXZlcnMsIHdlIHNob3VsZCBrZWVwIHRoZSBv
+bGQgc2VtYW50aWNzIG9mIHRoZSBBUEkuDQo+ID4NCj4gPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSB3
+cm9uZyBjb21taXQgYnkgcmV0dXJuaW5nIHRoZSBhY3BpX3RhYmxlX2hlYWRlci5sZW5ndGgNCj4g
+PiBmcm9tIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpLg0KPiANCj4gV2VsbCwgdGhlIHdheSB0
+aGlzIHdvcmtzIGlzbid0IHBhcnRpY3VsYXJseSBzdHJhaWdodGZvcndhcmQuDQoNCkkgZG9uJ3Qg
+a25vdyB3aGF0J3MgeW91ciBwcmVmZXJlbmNlIGhlcmU/DQpTaGFsbCB3ZSBkcm9wIHRoZSAyIHdy
+b25nIGNvbW1pdHMsIGFuZCBtZXJnZSBmaXhlZCBvbmVzIHRvIHJlcGxhY2UgdGhlbSBpbiBsaW51
+eC1wbS9saW51eC1uZXh0Pw0KT3IgY2FuIHdlIGp1c3QgbWVyZ2UgdGhpcyBmaXggcGF0Y2ggb24g
+dG9wIG9mIHRoZSB3cm9uZyBjb21taXRzPw0KDQo+IA0KPiBXb3VsZG4ndCBpdCBiZSBiZXR0ZXIg
+dG8gc2ltcGx5IGRyb3AgdGhlIGNoZWNrIChpZiBpdCBpcyByZWR1bmRhbnQpDQo+IGZyb20gdGhl
+IE5GSVQgZHJpdmVyPw0KDQpBdCB0aGlzIHBvaW50LCBJJ20gbm90IHN1cmUgaWYgTkZJVCBpcyB0
+aGUgb25seSBkcml2ZXIgYnJva2VuIGJ5IHRoZSB3cm9uZyBjb21taXQuDQpNeSBwbGFuIHdhczoN
+CjEuIEtlZXAgb2xkIGJlaGF2aW9yIHdvcmtpbmcgYnkgc3RpbGwgcHJvdmlkaW5nIGFjcGlfZ2V0
+X3RhYmxlX3dpdGhfc2l6ZSgpL2Vhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCk7DQoyLiBVc2Ug
+YSBzZXQgb2YgcGF0Y2hlcyB0byBjbGVhbnVwIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpL2Vh
+cmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgdXNlcnMsDQogICBTbyB0aGF0IHdlIGNhbiBjYXJl
+ZnVsbHkgZXhhbWluZSBldmVyeSBjYWxsZXIsIHNwbGl0IHN0cmFuZ2UgdXNlIGNhc2VzIGludG8g
+c2VwYXJhdGUgY29tbWl0cyB0byBhdm9pZCByZWdyZXNzaW9uczsNCjMuIFJlbW92ZSBhY3BpX2dl
+dF90YWJsZV93aXRoX3NpemUoKSBhbmQgZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKSBpZiB0
+aGVyZSBpcyBubyBkcml2ZXIgdXNpbmcgdGhlbS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMN
+Ckx2DQoNCj4gDQo+ID4gUmVwb3J0ZWQtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNA
+aW50ZWwuY29tPg0KPiA+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+
+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvb3NsLmMgfCAgIDEyICsrKysrKysrKystLQ0KPiA+ICAx
+IGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvb3NsLmMgYi9kcml2ZXJzL2FjcGkvb3NsLmMNCj4g
+PiBpbmRleCA1YmVmMGY2NS4uZDBiMjczZiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkv
+b3NsLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvb3NsLmMNCj4gPiBAQCAtNDQ1LDggKzQ0NSwx
+NiBAQCB2b2lkIF9fcmVmIGFjcGlfb3NfdW5tYXBfbWVtb3J5KHZvaWQgKnZpcnQsIGFjcGlfc2l6
+ZSBzaXplKQ0KPiA+DQo+ID4gICAgICAgICBzdGF0dXMgPSBhY3BpX2dldF90YWJsZShzaWduYXR1
+cmUsIGluc3RhbmNlLCBvdXRfdGFibGUpOw0KPiA+ICAgICAgICAgaWYgKEFDUElfU1VDQ0VTUyhz
+dGF0dXMpKSB7DQo+ID4gLSAgICAgICAgICAgICAgIC8qIE5vIGxvbmdlciB1c2VkIGJ5IGVhcmx5
+X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgKi8NCj4gPiAtICAgICAgICAgICAgICAgKnRibF9zaXpl
+ID0gMDsNCj4gPiArICAgICAgICAgICAgICAgLyoNCj4gPiArICAgICAgICAgICAgICAgICogInRi
+bF9zaXplIiBpcyBubyBsb25nZXIgdXNlZCBieQ0KPiA+ICsgICAgICAgICAgICAgICAgKiBlYXJs
+eV9hY3BpX29zX3VubWFwX21lbW9yeSgpLCBidXQgaXMgc3RpbGwgdXNlZCBieSB0aGUNCj4gPiAr
+ICAgICAgICAgICAgICAgICogQUNQSSB0YWJsZSBkcml2ZXJzLiBTbyBzZXRzIGl0IHRvIHRoZSBs
+ZW5ndGggb2YgdGhlDQo+ID4gKyAgICAgICAgICAgICAgICAqIHRhYmxlIHdoZW4gdGhlIHRibF9z
+aXplIGlzIHJlcXVlc3RlZC4NCj4gPiArICAgICAgICAgICAgICAgICogIm91dF90YWJsZSIgaXMg
+bm90IHNhbml0eSBjaGVja2VkIGFzIEFFX0JBRF9QQVJBTUVURVINCj4gPiArICAgICAgICAgICAg
+ICAgICogaXMgcmV0dXJuZWQgaWYgaXQgaXMgTlVMTC4NCj4gPiArICAgICAgICAgICAgICAgICov
+DQo+ID4gKyAgICAgICAgICAgICAgIGlmICh0Ymxfc2l6ZSAmJiAqb3V0X3RhYmxlKQ0KPiA+ICsg
+ICAgICAgICAgICAgICAgICAgICAgICp0Ymxfc2l6ZSA9ICgqb3V0X3RhYmxlKS0+bGVuZ3RoOw0K
+PiA+ICAgICAgICAgfQ0KPiA+DQo+ID4gICAgICAgICByZXR1cm4gKHN0YXR1cyk7DQo+ID4gLS0N
+Cj4gPiAxLjcuMTANCj4gPg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCg==
