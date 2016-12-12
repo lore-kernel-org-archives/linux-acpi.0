@@ -1,37 +1,45 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: [PATCH] ACPI/NUMA: Do not map pxm to node when NUMA is turned off
-Date: Mon, 12 Dec 2016 14:29:53 -0500
-Message-ID: <1481570993-13941-2-git-send-email-boris.ostrovsky@oracle.com>
-References: <1481570993-13941-1-git-send-email-boris.ostrovsky@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1481570993-13941-1-git-send-email-boris.ostrovsky@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH V3] i2c: designware: fix wrong tx/rx fifo for ACPI
+Date: Mon, 12 Dec 2016 11:35:19 -0800
+Message-ID: <1481571319.1764.32.camel@perches.com>
+References: <1481531810-31695-1-git-send-email-tnhuynh@apm.com>
+         <1481569373.7188.48.camel@linux.intel.com>
+         <20161212192113.GA1460@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtprelay0110.hostedemail.com ([216.40.44.110]:44037 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752807AbcLLTfY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Dec 2016 14:35:24 -0500
+In-Reply-To: <20161212192113.GA1460@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Tin Huynh <tnhuynh@apm.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-Otherwise we may unexpectedly reference a non-zero node via, for example,
-acpi_get_node() while other parts of the kernel assume that only node 0
-(which is what NUMA_NO_NODE is supposed to be converted to) is
-available.
+On Mon, 2016-12-12 at 21:21 +0200, Mika Westerberg wrote:
+> On Mon, Dec 12, 2016 at 09:02:53PM +0200, Andy Shevchenko wrote:
+> > > +	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+> > > +	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
+> > > +	if (!dev->tx_fifo_depth) {
+> > > +		dev->tx_fifo_depth = tx_fifo_depth;
+> > > +		dev->rx_fifo_depth = rx_fifo_depth;
+> > > +	} else if (tx_fifo_depth) {
+> > > +		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
+> > > +				tx_fifo_depth);
+> > > +		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
+> > > +				rx_fifo_depth);
+> > > +	}
+> > 
+> > So, let's clarify here:
+> > Is it possible to have an IP without parameter block enabled? I mean to
+> > read something arbitrary (or zeroes, or all-ones) from param1.
+> 
+> Yes and it is Intel IP. Haswell IIRC and it returned zeroes.
 
-Signed-off-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
----
- drivers/acpi/numa.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The "+ 1"  in the first set of tx_fifo_depth
+makes the "else if" check unnecessary.
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index ce3a7a1..edb0c79 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -70,7 +70,7 @@ int acpi_map_pxm_to_node(int pxm)
- {
- 	int node;
- 
--	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS || numa_off)
- 		return NUMA_NO_NODE;
- 
- 	node = pxm_to_node_map[pxm];
--- 
-1.8.3.1
