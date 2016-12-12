@@ -1,39 +1,37 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V3] i2c: designware: fix wrong tx/rx fifo for ACPI
-Date: Mon, 12 Dec 2016 21:21:13 +0200
-Message-ID: <20161212192113.GA1460@lahna.fi.intel.com>
-References: <1481531810-31695-1-git-send-email-tnhuynh@apm.com>
- <1481569373.7188.48.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: [PATCH] x86/acpi: Use proper macro for invalid node
+Date: Mon, 12 Dec 2016 14:29:52 -0500
+Message-ID: <1481570993-13941-1-git-send-email-boris.ostrovsky@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52522 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752657AbcLLTX2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Dec 2016 14:23:28 -0500
-Content-Disposition: inline
-In-Reply-To: <1481569373.7188.48.camel@linux.intel.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:21809 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751792AbcLLTd6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2016 14:33:58 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Tin Huynh <tnhuynh@apm.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
+To: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 
-On Mon, Dec 12, 2016 at 09:02:53PM +0200, Andy Shevchenko wrote:
-> > +	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
-> > +	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
-> > +	if (!dev->tx_fifo_depth) {
-> > +		dev->tx_fifo_depth = tx_fifo_depth;
-> > +		dev->rx_fifo_depth = rx_fifo_depth;
-> > +	} else if (tx_fifo_depth) {
-> > +		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
-> > +				tx_fifo_depth);
-> > +		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
-> > +				rx_fifo_depth);
-> > +	}
-> 
-> So, let's clarify here:
-> Is it possible to have an IP without parameter block enabled? I mean to
-> read something arbitrary (or zeroes, or all-ones) from param1.
+Use NUMA_NO_NODE instead of -1.
 
-Yes and it is Intel IP. Haswell IIRC and it returned zeroes.
+Signed-off-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+---
+ arch/x86/kernel/acpi/boot.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 931ced8..db5bcd1 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -713,7 +713,7 @@ int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ 	int nid;
+ 
+ 	nid = acpi_get_node(handle);
+-	if (nid != -1) {
++	if (nid != NUMA_NO_NODE) {
+ 		set_apicid_to_node(physid, nid);
+ 		numa_set_node(cpu, nid);
+ 	}
+-- 
+1.8.3.1
+
