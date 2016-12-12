@@ -1,92 +1,76 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] ACPI / OSL: Fix a regression by returning
- acpi_table_header.length instead of 0 from acpi_get_table_with_size()
-Date: Mon, 12 Dec 2016 02:44:01 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CDDEC6B@SHSMSX103.ccr.corp.intel.com>
-References: <cover.1480490191.git.lv.zheng@intel.com>
- <da13d99d5b7ea6a9435bbb82319ecc6b8d9be0c8.1481267531.git.lv.zheng@intel.com>
- <CAJZ5v0jwHekD0YYLivgCf9H0zjEYrLC_NfmNOSTo7j6U92myDA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:25726 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751617AbcLLCoG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 11 Dec 2016 21:44:06 -0500
-In-Reply-To: <CAJZ5v0jwHekD0YYLivgCf9H0zjEYrLC_NfmNOSTo7j6U92myDA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tin Huynh <tnhuynh@apm.com>
+Subject: [PATCH V3] i2c: designware: fix wrong tx/rx fifo for ACPI
+Date: Mon, 12 Dec 2016 15:36:50 +0700
+Message-ID: <1481531810-31695-1-git-send-email-tnhuynh@apm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>
 
-SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
-bC5jb21dIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BB
-VENIIHYyXSBBQ1BJIC8gT1NMOiBGaXggYSByZWdyZXNzaW9uIGJ5IHJldHVybmluZyBhY3BpX3Rh
-YmxlX2hlYWRlci5sZW5ndGggaW5zdGVhZCBvZg0KPiAwIGZyb20gYWNwaV9nZXRfdGFibGVfd2l0
-aF9zaXplKCkNCj4gDQo+IE9uIEZyaSwgRGVjIDksIDIwMTYgYXQgODoxNSBBTSwgTHYgWmhlbmcg
-PGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gVGhlIGZvbGxvd2luZyB3cm9uZyBjb21t
-aXQgdHJpZ2dlcnMgaXNzdWVzIGluIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpDQo+ID4gdXNl
-cnM6DQo+ID4gICAgIFN1YmplY3Q6IEFDUElDQTogVGFibGVzOiBCYWNrIHBvcnQgYWNwaV9nZXRf
-dGFibGVfd2l0aF9zaXplKCkgYW5kDQo+ID4gICAgICAgICAgICAgIGVhcmx5X2FjcGlfb3NfdW5t
-YXBfbWVtb3J5KCkgZnJvbSBMaW51eCBrZXJuZWwNCj4gPg0KPiA+IFRoZSBmdW5jdGlvbiBpcyBp
-bnZlbnRlZCB0byBiZSBhIHJlcGxhY2VtZW50IG9mIGFjcGlfZ2V0X3RhYmxlKCkgZHVyaW5nDQo+
-ID4gZWFybHkgc3RhZ2Ugc28gdGhhdCB0aGUgZWFybHkgbWFwcGVkIHBvaW50ZXIgd2lsbCBub3Qg
-YmUgc3RvcmVkIGluIEFDUElDQQ0KPiA+IGNvcmUgYW5kIHRodXMgdGhlIGxhdGUgc3RhZ2UgYWNw
-aV9nZXRfdGFibGUoKSB3b24ndCByZXR1cm4gYSB3cm9uZyBwb2ludGVyLg0KPiA+IEhvd2V2ZXIg
-dGhlIG1hcHBpbmcgc2l6ZSBpcyByZXR1cm5lZCBqdXN0IGJlY2F1c2UgaXQgaXMgcmVxdWlyZWQg
-YnkNCj4gPiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIHRvIHVubWFwIHRoZSBwb2ludGVy
-IGR1cmluZyBlYXJseSBzdGFnZS4NCj4gPg0KPiA+IEFzIHRoZSBtYXBwaW5nIHNpemUgZXF1YWxz
-IHRvIHRoZSBhY3BpX3RhYmxlX2hlYWRlci5sZW5ndGgNCj4gPiAoc2VlIGFjcGlfdGJfaW5pdF90
-YWJsZV9kZXNjcmlwdG9yKCkgYW5kIGFjcGlfdGJfdmFsaWRhdGVfdGFibGUoKSksIHdoZW4NCj4g
-PiBzdWNoIGEgY29udmVuaWVudCByZXN1bHQgaXMgcmV0dXJuZWQsIGRyaXZlciBjb2RlIHdpbGwg
-c3RhcnQgdG8gdXNlIGl0DQo+ID4gaW5zdGVhZCBvZiBhY2Nlc3NpbmcgYWNwaV90YWJsZV9oZWFk
-ZXIgdG8gb2J0YWluIHRoZSBsZW5ndGguDQo+ID4NCj4gPiBTbyB0aGUgY29tbWl0IGNhbiB0cmln
-Z2VyIHByb2JsZW1zIGluIHN1Y2ggZHJpdmVycyBhcyBpdCByZXR1cm5zIDAgbm93LiBBbmQNCj4g
-PiBpdCBkaWQgYnJpbmcgYSB0cm91YmxlIHRvIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYy4gU28g
-YmVmb3JlIGNsZWFuaW5nIHVwDQo+ID4gdGhlIGRyaXZlcnMsIHdlIHNob3VsZCBrZWVwIHRoZSBv
-bGQgc2VtYW50aWNzIG9mIHRoZSBBUEkuDQo+ID4NCj4gPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSB3
-cm9uZyBjb21taXQgYnkgcmV0dXJuaW5nIHRoZSBhY3BpX3RhYmxlX2hlYWRlci5sZW5ndGgNCj4g
-PiBmcm9tIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpLg0KPiANCj4gV2VsbCwgdGhlIHdheSB0
-aGlzIHdvcmtzIGlzbid0IHBhcnRpY3VsYXJseSBzdHJhaWdodGZvcndhcmQuDQoNCkkgZG9uJ3Qg
-a25vdyB3aGF0J3MgeW91ciBwcmVmZXJlbmNlIGhlcmU/DQpTaGFsbCB3ZSBkcm9wIHRoZSAyIHdy
-b25nIGNvbW1pdHMsIGFuZCBtZXJnZSBmaXhlZCBvbmVzIHRvIHJlcGxhY2UgdGhlbSBpbiBsaW51
-eC1wbS9saW51eC1uZXh0Pw0KT3IgY2FuIHdlIGp1c3QgbWVyZ2UgdGhpcyBmaXggcGF0Y2ggb24g
-dG9wIG9mIHRoZSB3cm9uZyBjb21taXRzPw0KDQo+IA0KPiBXb3VsZG4ndCBpdCBiZSBiZXR0ZXIg
-dG8gc2ltcGx5IGRyb3AgdGhlIGNoZWNrIChpZiBpdCBpcyByZWR1bmRhbnQpDQo+IGZyb20gdGhl
-IE5GSVQgZHJpdmVyPw0KDQpBdCB0aGlzIHBvaW50LCBJJ20gbm90IHN1cmUgaWYgTkZJVCBpcyB0
-aGUgb25seSBkcml2ZXIgYnJva2VuIGJ5IHRoZSB3cm9uZyBjb21taXQuDQpNeSBwbGFuIHdhczoN
-CjEuIEtlZXAgb2xkIGJlaGF2aW9yIHdvcmtpbmcgYnkgc3RpbGwgcHJvdmlkaW5nIGFjcGlfZ2V0
-X3RhYmxlX3dpdGhfc2l6ZSgpL2Vhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCk7DQoyLiBVc2Ug
-YSBzZXQgb2YgcGF0Y2hlcyB0byBjbGVhbnVwIGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpL2Vh
-cmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgdXNlcnMsDQogICBTbyB0aGF0IHdlIGNhbiBjYXJl
-ZnVsbHkgZXhhbWluZSBldmVyeSBjYWxsZXIsIHNwbGl0IHN0cmFuZ2UgdXNlIGNhc2VzIGludG8g
-c2VwYXJhdGUgY29tbWl0cyB0byBhdm9pZCByZWdyZXNzaW9uczsNCjMuIFJlbW92ZSBhY3BpX2dl
-dF90YWJsZV93aXRoX3NpemUoKSBhbmQgZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKSBpZiB0
-aGVyZSBpcyBubyBkcml2ZXIgdXNpbmcgdGhlbS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMN
-Ckx2DQoNCj4gDQo+ID4gUmVwb3J0ZWQtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNA
-aW50ZWwuY29tPg0KPiA+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
-bT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+
-IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvb3NsLmMgfCAgIDEyICsrKysrKysrKystLQ0KPiA+ICAx
-IGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvb3NsLmMgYi9kcml2ZXJzL2FjcGkvb3NsLmMNCj4g
-PiBpbmRleCA1YmVmMGY2NS4uZDBiMjczZiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkv
-b3NsLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvb3NsLmMNCj4gPiBAQCAtNDQ1LDggKzQ0NSwx
-NiBAQCB2b2lkIF9fcmVmIGFjcGlfb3NfdW5tYXBfbWVtb3J5KHZvaWQgKnZpcnQsIGFjcGlfc2l6
-ZSBzaXplKQ0KPiA+DQo+ID4gICAgICAgICBzdGF0dXMgPSBhY3BpX2dldF90YWJsZShzaWduYXR1
-cmUsIGluc3RhbmNlLCBvdXRfdGFibGUpOw0KPiA+ICAgICAgICAgaWYgKEFDUElfU1VDQ0VTUyhz
-dGF0dXMpKSB7DQo+ID4gLSAgICAgICAgICAgICAgIC8qIE5vIGxvbmdlciB1c2VkIGJ5IGVhcmx5
-X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgKi8NCj4gPiAtICAgICAgICAgICAgICAgKnRibF9zaXpl
-ID0gMDsNCj4gPiArICAgICAgICAgICAgICAgLyoNCj4gPiArICAgICAgICAgICAgICAgICogInRi
-bF9zaXplIiBpcyBubyBsb25nZXIgdXNlZCBieQ0KPiA+ICsgICAgICAgICAgICAgICAgKiBlYXJs
-eV9hY3BpX29zX3VubWFwX21lbW9yeSgpLCBidXQgaXMgc3RpbGwgdXNlZCBieSB0aGUNCj4gPiAr
-ICAgICAgICAgICAgICAgICogQUNQSSB0YWJsZSBkcml2ZXJzLiBTbyBzZXRzIGl0IHRvIHRoZSBs
-ZW5ndGggb2YgdGhlDQo+ID4gKyAgICAgICAgICAgICAgICAqIHRhYmxlIHdoZW4gdGhlIHRibF9z
-aXplIGlzIHJlcXVlc3RlZC4NCj4gPiArICAgICAgICAgICAgICAgICogIm91dF90YWJsZSIgaXMg
-bm90IHNhbml0eSBjaGVja2VkIGFzIEFFX0JBRF9QQVJBTUVURVINCj4gPiArICAgICAgICAgICAg
-ICAgICogaXMgcmV0dXJuZWQgaWYgaXQgaXMgTlVMTC4NCj4gPiArICAgICAgICAgICAgICAgICov
-DQo+ID4gKyAgICAgICAgICAgICAgIGlmICh0Ymxfc2l6ZSAmJiAqb3V0X3RhYmxlKQ0KPiA+ICsg
-ICAgICAgICAgICAgICAgICAgICAgICp0Ymxfc2l6ZSA9ICgqb3V0X3RhYmxlKS0+bGVuZ3RoOw0K
-PiA+ICAgICAgICAgfQ0KPiA+DQo+ID4gICAgICAgICByZXR1cm4gKHN0YXR1cyk7DQo+ID4gLS0N
-Cj4gPiAxLjcuMTANCj4gPg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCg==
+ACPI always sets txfifo and rxfifo to 32. This configuration will
+cause problem if the IP core supports a fifo size of less than 32.
+The driver should read the fifo size from the IP and select the 
+smaller one of the two.
+
+Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+
+---
+ drivers/i2c/busses/i2c-designware-platdrv.c |   26 ++++++++++++++++++++------
+ 1 files changed, 20 insertions(+), 6 deletions(-)
+
+Change from V2:
+ -Add a helper function to set fifo size.
+
+Change from V1:
+ -Revert the default 32 for fifo, read parameter from IP core
+ and pick the smaller one of the two.
+ -Correct the title to describe new approach.
+
+diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+index 0b42a12..665f491 100644
+--- a/drivers/i2c/busses/i2c-designware-platdrv.c
++++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -150,6 +150,24 @@ static int i2c_dw_plat_prepare_clk(struct dw_i2c_dev *i_dev, bool prepare)
+ 	return 0;
+ }
+ 
++static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev)
++{
++	u32 param1, tx_fifo_depth, rx_fifo_depth;
++
++	param1 = i2c_dw_read_comp_param(dev);
++	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
++	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
++	if (!dev->tx_fifo_depth) {
++		dev->tx_fifo_depth = tx_fifo_depth;
++		dev->rx_fifo_depth = rx_fifo_depth;
++	} else if (tx_fifo_depth) {
++		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
++				tx_fifo_depth);
++		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
++				rx_fifo_depth);
++	}
++}
++
+ static int dw_i2c_plat_probe(struct platform_device *pdev)
+ {
+ 	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
+@@ -246,13 +264,9 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
+ 				1000000);
+ 	}
+ 
+-	if (!dev->tx_fifo_depth) {
+-		u32 param1 = i2c_dw_read_comp_param(dev);
+-
+-		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+-		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
++	if (!dev->tx_fifo_depth)
+ 		dev->adapter.nr = pdev->id;
+-	}
++	dw_i2c_set_fifo_size(dev);
+ 
+ 	adap = &dev->adapter;
+ 	adap->owner = THIS_MODULE;
+-- 
+1.7.1
