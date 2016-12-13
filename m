@@ -1,87 +1,51 @@
-From: Tin Huynh <tnhuynh@apm.com>
-Subject: [PATCH V4] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
-Date: Tue, 13 Dec 2016 17:03:34 +0700
-Message-ID: <1481623414-19220-1-git-send-email-tnhuynh@apm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH V3] i2c: designware: fix wrong tx/rx fifo for ACPI
+Date: Tue, 13 Dec 2016 12:19:45 +0200
+Message-ID: <20161213101945.GE1460@lahna.fi.intel.com>
+References: <1481531810-31695-1-git-send-email-tnhuynh@apm.com>
+ <1481569373.7188.48.camel@linux.intel.com>
+ <20161212192113.GA1460@lahna.fi.intel.com>
+ <1481571319.1764.32.camel@perches.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:33161 "EHLO
-        mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932446AbcLMKDu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Dec 2016 05:03:50 -0500
-Received: by mail-pf0-f173.google.com with SMTP id d2so18104473pfd.0
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Dec 2016 02:03:49 -0800 (PST)
+Received: from mga06.intel.com ([134.134.136.31]:26325 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932467AbcLMKWA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Dec 2016 05:22:00 -0500
+Content-Disposition: inline
+In-Reply-To: <1481571319.1764.32.camel@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
+To: Joe Perches <joe@perches.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Tin Huynh <tnhuynh@apm.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-ACPI always sets Tx/Rx FIFO to 32. This configuration will
-cause problem if the IP core supports a FIFO size of less than 32.
-The driver should read the FIFO size from the IP and select the smaller
-one of the two.
+On Mon, Dec 12, 2016 at 11:35:19AM -0800, Joe Perches wrote:
+> On Mon, 2016-12-12 at 21:21 +0200, Mika Westerberg wrote:
+> > On Mon, Dec 12, 2016 at 09:02:53PM +0200, Andy Shevchenko wrote:
+> > > > +	tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+> > > > +	rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
+> > > > +	if (!dev->tx_fifo_depth) {
+> > > > +		dev->tx_fifo_depth = tx_fifo_depth;
+> > > > +		dev->rx_fifo_depth = rx_fifo_depth;
+> > > > +	} else if (tx_fifo_depth) {
+> > > > +		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
+> > > > +				tx_fifo_depth);
+> > > > +		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
+> > > > +				rx_fifo_depth);
+> > > > +	}
+> > > 
+> > > So, let's clarify here:
+> > > Is it possible to have an IP without parameter block enabled? I mean to
+> > > read something arbitrary (or zeroes, or all-ones) from param1.
+> > 
+> > Yes and it is Intel IP. Haswell IIRC and it returned zeroes.
+> 
+> The "+ 1"  in the first set of tx_fifo_depth
+> makes the "else if" check unnecessary.
 
-Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+Good point. I did not notice that change at all.
 
----
- drivers/i2c/busses/i2c-designware-platdrv.c |   27 ++++++++++++++++++++-------
- 1 files changed, 20 insertions(+), 7 deletions(-)
-
-Change from V3:
- -Use uppercase of FIFO instead of lowercase.
- -Fix the problem  when IP core return 0 of FIFO.
-
-Change from V2:
- -Add a helper function to set FIFO size.
-
-Change from V1:
- -Revert the default 32 for FIFO, read parameter from IP core
- and pick the smaller one of the two.
- -Correct the title to describe new approach.
-
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index 0b42a12..24032d6 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -150,6 +150,25 @@ static int i2c_dw_plat_prepare_clk(struct dw_i2c_dev *i_dev, bool prepare)
- 	return 0;
- }
- 
-+static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
-+{
-+	u32 param, tx_fifo_depth, rx_fifo_depth;
-+
-+	param = i2c_dw_read_comp_param(dev);
-+	tx_fifo_depth = ((param >> 16) & 0xff) + 1;
-+	rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
-+	if (!dev->tx_fifo_depth) {
-+		dev->tx_fifo_depth = tx_fifo_depth;
-+		dev->rx_fifo_depth = rx_fifo_depth;
-+		dev->adapter.nr = id;
-+	} else if (tx_fifo_depth > 1) {
-+		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
-+				tx_fifo_depth);
-+		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
-+				rx_fifo_depth);
-+	}
-+}
-+
- static int dw_i2c_plat_probe(struct platform_device *pdev)
- {
- 	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
-@@ -246,13 +265,7 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
- 				1000000);
- 	}
- 
--	if (!dev->tx_fifo_depth) {
--		u32 param1 = i2c_dw_read_comp_param(dev);
--
--		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
--		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
--		dev->adapter.nr = pdev->id;
--	}
-+	dw_i2c_set_fifo_size(dev, pdev->id);
- 
- 	adap = &dev->adapter;
- 	adap->owner = THIS_MODULE;
--- 
-1.7.1
-
+The designware I2C databook I have here says that 0 is reserved value
+and FIFO sizes start from 2 so the above is wrong either way.
