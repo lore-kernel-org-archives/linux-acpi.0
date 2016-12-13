@@ -1,212 +1,510 @@
 From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: Re: [PATCH V8 1/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Tue, 13 Dec 2016 10:03:30 -0500
-Message-ID: <51796560d4bc70bcca1afab3e2a5f8d1@codeaurora.org>
+Subject: Re: [PATCH V8 3/3] irqchip: qcom: Add IRQ combiner driver
+Date: Tue, 13 Dec 2016 10:23:01 -0500
+Message-ID: <78bfd90d47200347628f7dd98451122f@codeaurora.org>
 References: <1480460259-8585-1-git-send-email-agustinv@codeaurora.org>
- <1480460259-8585-2-git-send-email-agustinv@codeaurora.org>
- <20161208110552.GA17398@red-moon>
+ <1480460259-8585-4-git-send-email-agustinv@codeaurora.org>
+ <b009635d-8a10-5e22-4438-0019d79d01d3@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII;
  format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51336 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:37364 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932319AbcLMPDd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Dec 2016 10:03:33 -0500
-In-Reply-To: <20161208110552.GA17398@red-moon>
+        with ESMTP id S932277AbcLMPXE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Dec 2016 10:23:04 -0500
+In-Reply-To: <b009635d-8a10-5e22-4438-0019d79d01d3@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-Hi Lorenzo,
-
-On 2016-12-08 06:05, Lorenzo Pieralisi wrote:
+On 2016-12-07 13:16, Marc Zyngier wrote:
 > Hi Agustin,
 > 
-> please CC me for next version.
-> 
-> On Tue, Nov 29, 2016 at 05:57:37PM -0500, Agustin Vega-Frias wrote:
->> When an Extended IRQ Resource contains a valid ResourceSource
->> use it to map the IRQ on the domain associated with the ACPI
->> device referenced.
+> On 29/11/16 22:57, Agustin Vega-Frias wrote:
+>> Driver for interrupt combiners in the Top-level Control and Status
+>> Registers (TCSR) hardware block in Qualcomm Technologies chips.
 >> 
->> With this in place an irqchip driver can create its domain using
->> irq_domain_create_linear and pass the device fwnode to create
->> the domain mapping. When dependent devices are probed these
->> changes allow the ACPI core find the domain and map the IRQ.
+>> An interrupt combiner in this block combines a set of interrupts by
+>> OR'ing the individual interrupt signals into a summary interrupt
+>> signal routed to a parent interrupt controller, and provides read-
+>> only, 32-bit registers to query the status of individual interrupts.
+>> The status bit for IRQ n is bit (n % 32) within register (n / 32)
+>> of the given combiner. Thus, each combiner can be described as a set
+>> of register offsets and the number of IRQs managed.
 >> 
 >> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
 >> ---
->>  drivers/acpi/Makefile         |  2 +-
->>  drivers/acpi/{gsi.c => irq.c} | 99 
->> +++++++++++++++++++++++++++++++++++++------
-> 
-> [...]
-> 
->> -static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
->> +static void acpi_dev_get_irqresource(struct resource *res, u32 hwirq,
->> +				     struct fwnode_handle *source,
->>  				     u8 triggering, u8 polarity, u8 shareable,
->>  				     bool legacy)
->>  {
->>  	int irq, p, t;
+>>  drivers/irqchip/Kconfig             |   8 +
+>>  drivers/irqchip/Makefile            |   1 +
+>>  drivers/irqchip/qcom-irq-combiner.c | 337 
+>> ++++++++++++++++++++++++++++++++++++
+>>  3 files changed, 346 insertions(+)
+>>  create mode 100644 drivers/irqchip/qcom-irq-combiner.c
 >> 
->> -	if (!valid_IRQ(gsi)) {
->> -		acpi_dev_irqresource_disabled(res, gsi);
->> +	if (!source && !valid_IRQ(hwirq)) {
-> 
-> If you make source a struct acpi_resource_source pointer it could be:
-> 
-> if (source || !valid_IRQ(hwirq))
-> 
-> Actually we would not even need to pass the pointer, if we detect
-> an acpi_resource_source dependency we can just disable the resource
-> (without even looking-up the fwnode_handle, see below), it is a design
-> choice we have to make.
-> 
->> +		acpi_dev_irqresource_disabled(res, hwirq);
->>  		return;
->>  	}
->> 
->> @@ -402,25 +403,25 @@ static void acpi_dev_get_irqresource(struct 
->> resource *res, u32 gsi,
->>  	 * using extended IRQ descriptors we take the IRQ configuration
->>  	 * from _CRS directly.
->>  	 */
->> -	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
->> +	if (legacy && !acpi_get_override_irq(hwirq, &t, &p)) {
->>  		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
->>  		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
->> 
->>  		if (triggering != trig || polarity != pol) {
->> -			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
->> -				   t ? "level" : "edge", p ? "low" : "high");
->> +			pr_warn("ACPI: IRQ %d override to %s, %s\n", hwirq,
->> +				t ? "level" : "edge", p ? "low" : "high");
->>  			triggering = trig;
->>  			polarity = pol;
->>  		}
->>  	}
->> 
->>  	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
->> -	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
->> +	irq = acpi_register_irq(source, hwirq, triggering, polarity);
->>  	if (irq >= 0) {
->>  		res->start = irq;
->>  		res->end = irq;
->>  	} else {
->> -		acpi_dev_irqresource_disabled(res, gsi);
->> +		acpi_dev_irqresource_disabled(res, hwirq);
->>  	}
->>  }
->> 
->> @@ -448,6 +449,7 @@ bool acpi_dev_resource_interrupt(struct 
->> acpi_resource *ares, int index,
->>  {
->>  	struct acpi_resource_irq *irq;
->>  	struct acpi_resource_extended_irq *ext_irq;
->> +	struct fwnode_handle *src;
->> 
->>  	switch (ares->type) {
->>  	case ACPI_RESOURCE_TYPE_IRQ:
->> @@ -460,7 +462,7 @@ bool acpi_dev_resource_interrupt(struct 
->> acpi_resource *ares, int index,
->>  			acpi_dev_irqresource_disabled(res, 0);
->>  			return false;
->>  		}
->> -		acpi_dev_get_irqresource(res, irq->interrupts[index],
->> +		acpi_dev_get_irqresource(res, irq->interrupts[index], NULL,
->>  					 irq->triggering, irq->polarity,
->>  					 irq->sharable, true);
->>  		break;
->> @@ -470,7 +472,8 @@ bool acpi_dev_resource_interrupt(struct 
->> acpi_resource *ares, int index,
->>  			acpi_dev_irqresource_disabled(res, 0);
->>  			return false;
->>  		}
->> -		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
->> +		src = acpi_get_irq_source_fwhandle(&ext_irq->resource_source);
-> 
-> I think the only pending question on my side for this series is whether
-> we still carry out the domain look-up here (as you are doing now), or,
-> if we detect a resource_source dependency, we just disable the resource
-> and leave the deferred probing mechanism to deal with it, this will
-> completely decouple the current resource parsing from the deferred 
-> probe
-> mechanism that you are introducing; basically this is equivalent to
-> saying "if the IRQ resource has a dependency let's resolve it at
-> acpi_irq_get() time, not now".
-> 
-
-I'm also torn about this so I am going to leave most of this code as it
-was originally and just ensure we don't attempt the mapping when we have
-a resource source.
-
-I other words bus scan only maps GSIs and other IRQs are mapped via
-acpi_irq_get().
-
-Thanks,
-Agustin
-
-> I am fine either way, I just think that leaving the domain look-up
-> in the middle of the IRQ resource parsing is not really clean-cut.
-> 
-> Thanks,
-> Lorenzo
-> 
->> +		acpi_dev_get_irqresource(res, ext_irq->interrupts[index], src,
->>  					 ext_irq->triggering, ext_irq->polarity,
->>  					 ext_irq->sharable, false);
->>  		break;
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 61a3d90..154e576 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -321,6 +321,25 @@ void acpi_set_irq_model(enum acpi_irq_model_id 
->> model,
->>   */
->>  void acpi_unregister_gsi (u32 gsi);
->> 
->> +#ifdef CONFIG_ACPI_GENERIC_GSI
->> +struct fwnode_handle *
->> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source 
->> *source);
->> +int acpi_register_irq(struct fwnode_handle *source, u32 hwirq, int 
->> trigger,
->> +		      int polarity);
->> +void acpi_unregister_irq(struct fwnode_handle *source, u32 hwirq);
->> +#else
->> +#define acpi_get_irq_source_fwhandle(source) (NULL)
->> +static inline int acpi_register_irq(struct fwnode_handle *source, u32 
->> hwirq,
->> +				    int trigger, int polarity)
+>> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+>> index bc0af33..610f902 100644
+>> --- a/drivers/irqchip/Kconfig
+>> +++ b/drivers/irqchip/Kconfig
+>> @@ -279,3 +279,11 @@ config EZNPS_GIC
+>>  config STM32_EXTI
+>>  	bool
+>>  	select IRQ_DOMAIN
+>> +
+>> +config QCOM_IRQ_COMBINER
+>> +	bool "QCOM IRQ combiner support"
+>> +	depends on ARCH_QCOM
+>> +	select IRQ_DOMAIN
+>> +	help
+>> +	  Say yes here to add support for the IRQ combiner devices embedded
+>> +	  in Qualcomm Technologies chips.
+>> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
+>> index e4dbfc8..1818a0b 100644
+>> --- a/drivers/irqchip/Makefile
+>> +++ b/drivers/irqchip/Makefile
+>> @@ -74,3 +74,4 @@ obj-$(CONFIG_LS_SCFG_MSI)		+= irq-ls-scfg-msi.o
+>>  obj-$(CONFIG_EZNPS_GIC)			+= irq-eznps.o
+>>  obj-$(CONFIG_ARCH_ASPEED)		+= irq-aspeed-vic.o
+>>  obj-$(CONFIG_STM32_EXTI) 		+= irq-stm32-exti.o
+>> +obj-$(CONFIG_QCOM_IRQ_COMBINER)		+= qcom-irq-combiner.o
+>> diff --git a/drivers/irqchip/qcom-irq-combiner.c 
+>> b/drivers/irqchip/qcom-irq-combiner.c
+>> new file mode 100644
+>> index 0000000..fc25251
+>> --- /dev/null
+>> +++ b/drivers/irqchip/qcom-irq-combiner.c
+>> @@ -0,0 +1,337 @@
+>> +/* Copyright (c) 2015-2016, The Linux Foundation. All rights 
+>> reserved.
+>> + *
+>> + * This program is free software; you can redistribute it and/or 
+>> modify
+>> + * it under the terms of the GNU General Public License version 2 and
+>> + * only version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +/*
+>> + * Driver for interrupt combiners in the Top-level Control and Status
+>> + * Registers (TCSR) hardware block in Qualcomm Technologies chips.
+>> + * An interrupt combiner in this block combines a set of interrupts 
+>> by
+>> + * OR'ing the individual interrupt signals into a summary interrupt
+>> + * signal routed to a parent interrupt controller, and provides read-
+>> + * only, 32-bit registers to query the status of individual 
+>> interrupts.
+>> + * The status bit for IRQ n is bit (n % 32) within register (n / 32)
+>> + * of the given combiner. Thus, each combiner can be described as a 
+>> set
+>> + * of register offsets and the number of IRQs managed.
+>> + */
+>> +
+>> +#include <linux/acpi.h>
+>> +#include <linux/irqchip/chained_irq.h>
+>> +#include <linux/irqdomain.h>
+>> +#include <linux/platform_device.h>
+>> +
+>> +#define REG_SIZE 32
+>> +
+>> +struct combiner_reg {
+>> +	void __iomem *addr;
+>> +	unsigned long mask;
+>> +};
+>> +
+>> +struct combiner {
+>> +	struct irq_chip     irq_chip;
+>> +	struct irq_domain   *domain;
+>> +	int                 parent_irq;
+>> +	u32                 nirqs;
+>> +	u32                 nregs;
+>> +	struct combiner_reg regs[0];
+>> +};
+>> +
+>> +static inline u32 irq_register(int irq)
 >> +{
->> +	return acpi_register_gsi(NULL, hwirq, trigger, polarity);
+>> +	return irq / REG_SIZE;
 >> +}
->> +static inline void acpi_unregister_irq(struct fwnode_handle *source, 
->> u32 hwirq)
+>> +
+>> +static inline u32 irq_bit(int irq)
 >> +{
->> +	acpi_unregister_gsi(hwirq);
+>> +	return irq % REG_SIZE;
+>> +
+>> +}
+>> +
+>> +static inline int irq_nr(u32 reg, u32 bit)
+>> +{
+>> +	return reg * REG_SIZE + bit;
+>> +}
+>> +
+>> +/*
+>> + * Handler for the cascaded IRQ.
+>> + */
+>> +static void combiner_handle_irq(struct irq_desc *desc)
+>> +{
+>> +	struct combiner *combiner = irq_desc_get_handler_data(desc);
+>> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+>> +	u32 reg;
+>> +
+>> +	chained_irq_enter(chip, desc);
+>> +
+>> +	for (reg = 0; reg < combiner->nregs; reg++) {
+>> +		int virq;
+>> +		int hwirq;
+>> +		u32 bit;
+>> +		u32 status;
+>> +
+>> +		if (combiner->regs[reg].mask == 0)
+>> +			continue;
+>> +
+>> +		status = readl_relaxed(combiner->regs[reg].addr);
+>> +		status &= combiner->regs[reg].mask;
+>> +
+>> +		while (status) {
+>> +			bit = __ffs(status);
+>> +			status &= ~(1 << bit);
+>> +			hwirq = irq_nr(reg, bit);
+>> +			virq = irq_find_mapping(combiner->domain, hwirq);
+>> +			if (virq >= 0)
+>> +				generic_handle_irq(virq);
+>> +
+>> +		}
+>> +	}
+>> +
+>> +	chained_irq_exit(chip, desc);
+>> +}
+>> +
+>> +/*
+>> + * irqchip callbacks
+>> + */
+>> +
+>> +static void combiner_irq_chip_mask_irq(struct irq_data *data)
+>> +{
+>> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
+>> +	struct combiner_reg *reg = combiner->regs + 
+>> irq_register(data->hwirq);
+>> +
+>> +	clear_bit(irq_bit(data->hwirq), &reg->mask);
+>> +}
+>> +
+>> +static void combiner_irq_chip_unmask_irq(struct irq_data *data)
+>> +{
+>> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
+>> +	struct combiner_reg *reg = combiner->regs + 
+>> irq_register(data->hwirq);
+>> +
+>> +	set_bit(irq_bit(data->hwirq), &reg->mask);
+>> +}
+>> +
+>> +/*
+>> + * irq_domain_ops callbacks
+>> + */
+>> +
+>> +static int combiner_irq_map(struct irq_domain *domain, unsigned int 
+>> irq,
+>> +				   irq_hw_number_t hwirq)
+>> +{
+>> +	struct combiner *combiner = domain->host_data;
+>> +
+>> +	if (hwirq >= combiner->nirqs)
+>> +		return -EINVAL;
+>> +
+>> +	irq_set_chip_and_handler(irq, &combiner->irq_chip, 
+>> handle_level_irq);
+>> +	irq_set_chip_data(irq, combiner);
+>> +	irq_set_parent(irq, combiner->parent_irq);
+> 
+> Do you really need this irq_set_parent? This only makes sense if you're
+> resending edge interrupts, and you seem to be level only.
+
+OK, I'll take a look.
+
+> 
+>> +	irq_set_noprobe(irq);
+>> +	return 0;
+>> +}
+>> +
+>> +static void combiner_irq_unmap(struct irq_domain *domain, unsigned 
+>> int irq)
+>> +{
+>> +	irq_set_chip_and_handler(irq, NULL, NULL);
+>> +	irq_set_chip_data(irq, NULL);
+>> +	irq_set_parent(irq, -1);
+> 
+> All of this should probably be replaced with a call to
+> irq_domain_reset_irq_data().
+
+Will do.
+
+> 
+>> +}
+>> +
+>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+> 
+> Is there any case where this is not valid?
+
+What do you mean? Are you asking why is this under a preprocessor
+conditional? If so I did it to be on the safe side since translate
+in struct irq_domain_ops under that conditional.
+
+> 
+>> +static int combiner_irq_translate(struct irq_domain *d, struct 
+>> irq_fwspec *fws,
+>> +				  unsigned long *hwirq, unsigned int *type)
+>> +{
+>> +	if (is_acpi_node(fws->fwnode)) {
+>> +		if (fws->param_count != 2)
+>> +			return -EINVAL;
+>> +
+>> +		*hwirq = fws->param[0];
+>> +		*type = fws->param[1];
+> 
+> Given that you're only handling level interrupts, shouldn't you abort 
+> if
+> detecting an edge interrupt?
+
+I'll add the check.
+
+> 
+>> +		return 0;
+>> +	}
+>> +
+>> +	return -EINVAL;
 >> +}
 >> +#endif
 >> +
->>  struct pci_dev;
+>> +static const struct irq_domain_ops domain_ops = {
+>> +	.map = combiner_irq_map,
+>> +	.unmap = combiner_irq_unmap,
+>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+>> +	.translate = combiner_irq_translate
+>> +#endif
+>> +};
+>> +
+>> +/*
+>> + * Device probing
+>> + */
+>> +
+>> +#ifdef CONFIG_ACPI
+>> +
+>> +static acpi_status count_registers_cb(struct acpi_resource *ares, 
+>> void *context)
+>> +{
+>> +	int *count = context;
+>> +
+>> +	if (ares->type == ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
+>> +		++(*count);
+>> +	return AE_OK;
+>> +}
+>> +
+>> +static int count_registers(struct platform_device *pdev)
+>> +{
+>> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+>> +	acpi_status status;
+>> +	int count = 0;
+>> +
+>> +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
+>> +		return -EINVAL;
+>> +
+>> +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+>> +				     count_registers_cb, &count);
+>> +	if (ACPI_FAILURE(status))
+>> +		return -EINVAL;
+>> +	return count;
+>> +}
+>> +
+>> +struct get_registers_context {
+>> +	struct device *dev;
+>> +	struct combiner *combiner;
+>> +	int err;
+>> +};
+>> +
+>> +static acpi_status get_registers_cb(struct acpi_resource *ares, void 
+>> *context)
+>> +{
+>> +	struct get_registers_context *ctx = context;
+>> +	struct acpi_resource_generic_register *reg;
+>> +	phys_addr_t paddr;
+>> +	void __iomem *vaddr;
+>> +
+>> +	if (ares->type != ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
+>> +		return AE_OK;
+>> +
+>> +	reg = &ares->data.generic_reg;
+>> +	paddr = reg->address;
+>> +	if ((reg->space_id != ACPI_SPACE_MEM) ||
+>> +	    (reg->bit_offset != 0) ||
+>> +	    (reg->bit_width > REG_SIZE)) {
+>> +		dev_err(ctx->dev, "Bad register resource @%pa\n", &paddr);
+>> +		ctx->err = -EINVAL;
+>> +		return AE_ERROR;
+>> +	}
+>> +
+>> +	vaddr = devm_ioremap(ctx->dev, reg->address, REG_SIZE);
+>> +	if (IS_ERR(vaddr)) {
+>> +		dev_err(ctx->dev, "Can't map register @%pa\n", &paddr);
+>> +		ctx->err = PTR_ERR(vaddr);
+>> +		return AE_ERROR;
+>> +	}
+>> +
+>> +	ctx->combiner->regs[ctx->combiner->nregs].addr = vaddr;
+>> +	ctx->combiner->nirqs += reg->bit_width;
+>> +	ctx->combiner->nregs++;
+>> +	return AE_OK;
+>> +}
+>> +
+>> +static int get_registers(struct platform_device *pdev, struct 
+>> combiner *comb)
+>> +{
+>> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+>> +	acpi_status status;
+>> +	struct get_registers_context ctx;
+>> +
+>> +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
+>> +		return -EINVAL;
+>> +
+>> +	ctx.dev = &pdev->dev;
+>> +	ctx.combiner = comb;
+>> +	ctx.err = 0;
+>> +
+>> +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+>> +				     get_registers_cb, &ctx);
+>> +	if (ACPI_FAILURE(status))
+>> +		return ctx.err;
+>> +	return 0;
+>> +}
+>> +
+>> +#else /* !CONFIG_ACPI */
+>> +
+>> +static int count_registers(struct platform_device *pdev)
+>> +{
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static int get_registers(struct platform_device *pdev, struct 
+>> combiner *comb)
+>> +{
+>> +	return -EINVAL;
+>> +}
+> 
+> So this driver is obviously ACPI only. Can't you just get rid of these,
+> of the #ifdef CONFIG_ACPI, and simply make it depend on ACPI?
+
+Good point, will do.
+
+> 
+>> +
+>> +#endif
+>> +
+>> +static int __init combiner_probe(struct platform_device *pdev)
+>> +{
+>> +	struct combiner *combiner;
+>> +	size_t alloc_sz;
+>> +	u32 nregs;
+>> +	int err;
+>> +
+>> +	nregs = count_registers(pdev);
+>> +	if (nregs <= 0) {
+>> +		dev_err(&pdev->dev, "Error reading register resources\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	alloc_sz = sizeof(*combiner) + sizeof(struct combiner_reg) * nregs;
+>> +	combiner = devm_kzalloc(&pdev->dev, alloc_sz, GFP_KERNEL);
+>> +	if (!combiner)
+>> +		return -ENOMEM;
+>> +
+>> +	err = get_registers(pdev, combiner);
+>> +	if (err < 0)
+>> +		return err;
+>> +
+>> +	combiner->parent_irq = platform_get_irq(pdev, 0);
+>> +	if (combiner->parent_irq <= 0) {
+>> +		dev_err(&pdev->dev, "Error getting IRQ resource\n");
+>> +		return -EINVAL;
+> 
+> Can you ever get in a situation where it'd be more sensible to return
+> -EPROBE_DEFER? I'm thinking of a case where you'd have this irq chip
+> cascaded into another one, which is not present yet?
+
+Not in the current architecture, but I agree it would accommodate other
+use cases. I will change it to return -EPROBE_DEFER.
+
+> 
+>> +	}
+>> +
+>> +	combiner->domain = irq_domain_create_linear(
+>> +		pdev->dev.fwnode, combiner->nirqs, &domain_ops, combiner);
+> 
+> On a single line, please. Do no listen to the checkpatch police that
+> will tell you otherwise. It really hurt my eyes to see this opening
+> bracket and *nothing* after that.
+
+Will do.
+
+> 
+>> +	if (!combiner->domain)
+>> +		/* Errors printed by irq_domain_create_linear */
+>> +		return -ENODEV;
+>> +
+>> +	irq_set_chained_handler_and_data(combiner->parent_irq,
+>> +					 combiner_handle_irq, combiner);
+>> +	combiner->irq_chip.irq_mask = combiner_irq_chip_mask_irq;
+>> +	combiner->irq_chip.irq_unmask = combiner_irq_chip_unmask_irq;
+>> +	combiner->irq_chip.name = pdev->name;
+> 
+> Arghh. Please don't do that. Once you've called irq_set_chained_*, the
+> interrupt is live, and can be requested. Unlikely, but still. In
+> general, feeding uninitialized data to a function is pretty bad.
+> 
+> Also, do you really need to show pdev->name in /proc/cpuinfo? Just make
+> the irq_chip structure static, outside of combiner, and have "QCOM80B1"
+> (or something of your liking) as the name once and for all.
+
+I'll look at this.
+
+Thanks for the detailed feedback.
+
+Agustin.
+
+> 
+>> +
+>> +	dev_info(&pdev->dev, "Initialized with [p=%d,n=%d,r=%p]\n",
+>> +		 combiner->parent_irq, combiner->nirqs, combiner->regs[0].addr);
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct acpi_device_id qcom_irq_combiner_acpi_match[] = {
+>> +	{ "QCOM80B1", },
+>> +	{ }
+>> +};
+>> +
+>> +static struct platform_driver qcom_irq_combiner_probe = {
+>> +	.driver = {
+>> +		.name = "qcom-irq-combiner",
+>> +		.owner = THIS_MODULE,
+>> +		.acpi_match_table = ACPI_PTR(qcom_irq_combiner_acpi_match),
+>> +	},
+>> +	.probe = combiner_probe,
+>> +};
+>> +
+>> +static int __init register_qcom_irq_combiner(void)
+>> +{
+>> +	return platform_driver_register(&qcom_irq_combiner_probe);
+>> +}
+>> +device_initcall(register_qcom_irq_combiner);
 >> 
->>  int acpi_pci_irq_enable (struct pci_dev *dev);
->> --
->> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
->> Technologies, Inc.
->> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
->> Linux Foundation Collaborative Project.
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" 
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Thanks,
+> 
+> 	M.
+> --
+> Jazz is not dead. It just smells funny...
 
 -- 
 Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
