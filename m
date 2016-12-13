@@ -1,182 +1,100 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI updates for v4.10-rc1 (fixed)
-Date: Tue, 13 Dec 2016 02:47:03 +0100
-Message-ID: <CAJZ5v0jfjM79wnL_1CZ9VHAhDtNhgqvKvi-aBggE0mBrJBBwHg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: [PATCH v2] ACPI/NUMA: Do not map pxm to node when NUMA is turned off
+Date: Mon, 12 Dec 2016 23:18:29 -0500
+Message-ID: <1481602709-18260-1-git-send-email-boris.ostrovsky@oracle.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:35793 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752810AbcLMEXB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Dec 2016 23:23:01 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, lenb@kernel.org
+Cc: x86@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 
-Hi Linus,
+Otherwise we may unexpectedly reference a non-zero node via, for example,
+acpi_get_node() while other parts of the kernel assume that only node 0
+(which is what NUMA_NO_NODE is supposed to be converted to) is
+available.
 
-The tag name was incorrect in the one I sent previously, sorry about that.
+Signed-off-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+---
+V2:
+* Drop __initdata from x86's numa_off 
+* Make numa_off available to drivers/acpi/numa.c for arm64 and IA64 
 
-Please pull from the tag
+ arch/arm64/include/asm/numa.h | 2 ++
+ arch/arm64/mm/numa.c          | 2 +-
+ arch/ia64/include/asm/numa.h  | 2 ++
+ arch/x86/mm/numa.c            | 2 +-
+ drivers/acpi/numa.c           | 2 +-
+ 5 files changed, 7 insertions(+), 3 deletions(-)
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.10-rc1
+diff --git a/arch/arm64/include/asm/numa.h b/arch/arm64/include/asm/numa.h
+index 600887e..bf466d1 100644
+--- a/arch/arm64/include/asm/numa.h
++++ b/arch/arm64/include/asm/numa.h
+@@ -15,6 +15,8 @@
+ 
+ extern nodemask_t numa_nodes_parsed __initdata;
+ 
++extern bool numa_off;
++
+ /* Mappings between node number and cpus on that node. */
+ extern cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
+ void numa_clear_node(unsigned int cpu);
+diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+index 4b32168..b388a99 100644
+--- a/arch/arm64/mm/numa.c
++++ b/arch/arm64/mm/numa.c
+@@ -35,7 +35,7 @@
+ 
+ static int numa_distance_cnt;
+ static u8 *numa_distance;
+-static bool numa_off;
++bool numa_off;
+ 
+ static __init int numa_parse_early_param(char *opt)
+ {
+diff --git a/arch/ia64/include/asm/numa.h b/arch/ia64/include/asm/numa.h
+index 2db0a6c..ebef7f4 100644
+--- a/arch/ia64/include/asm/numa.h
++++ b/arch/ia64/include/asm/numa.h
+@@ -65,6 +65,8 @@ struct node_cpuid_s {
+ 
+ #define local_nodeid (cpu_to_node_map[smp_processor_id()])
+ 
++#define numa_off     0
++
+ extern void map_cpu_to_node(int cpu, int nid);
+ extern void unmap_cpu_from_node(int cpu, int nid);
+ extern void numa_clear_node(int cpu);
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 3f35b48..12dcad7 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -19,7 +19,7 @@
+ 
+ #include "numa_internal.h"
+ 
+-int __initdata numa_off;
++int numa_off;
+ nodemask_t numa_nodes_parsed __initdata;
+ 
+ struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index ce3a7a1..edb0c79 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -70,7 +70,7 @@ int acpi_map_pxm_to_node(int pxm)
+ {
+ 	int node;
+ 
+-	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
++	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS || numa_off)
+ 		return NUMA_NO_NODE;
+ 
+ 	node = pxm_to_node_map[pxm];
+-- 
+1.8.3.1
 
-with top-most commit 80f1b3dea9d4262817b5510547b1313681669f66
-
- Merge branch 'device-properties'
-
-on top of commit 69973b830859bc6529a7a0468ba0d80ee5117826
-
- Linux 4.9
-
-to receive ACPI updates for v4.10-rc1.
-
-The ACPICA code in the kernel gets updated as usual (included is
-upstream revision 20160930 and a few commits from the next one,
-with the rest waiting for an issue discovered in linux-next to
-be addressed) which brings in a couple of fixes and cleanups.
-
-On top of that initial support for APEI on ARM64 is added, two new
-pieces of documentation are introduced, the properties-parsing code
-is updated to follow changes in the (external) documentation it is
-based on and there are a few updates of SoC drivers, some new
-blacklist entries, plus some assorted fixes and cleanups.
-
-Specifics:
-
- - ACPICA update including upstream revision 20160930 and several
-   commits beyond it (Bob Moore, Lv Zheng).
-
- - Initial support for ACPI APEI on ARM64 (Tomasz Nowicki).
-
- - New document describing the handling of _OSI and _REV in Linux
-   (Len Brown).
-
- - New document describing the usage rules for _DSD properties
-   (Rafael Wysocki).
-
- - Update of the ACPI properties-parsing code to reflect recent
-   changes in the (external) documentation it is based on (Rafael
-   Wysocki).
-
- - Updates of the ACPI LPSS and ACPI APD SoC drivers for additional
-   hardware support (Andy Shevchenko, Nehal Shah).
-
- - New blacklist entries for _REV and video handling (Alex Hung,
-   Hans de Goede, Michael Pobega).
-
- - ACPI battery driver fix to fall back to _BIF if _BIX fails (Dave
-   Lambley).
-
- - NMI notifications handling fix for APEI (Prarit Bhargava).
-
- - Error code path fix for the ACPI CPPC library (Dan Carpenter).
-
- - Assorted cleanups (Andy Shevchenko, Longpeng Mike).
-
-Thanks!
-
----------------
-
-Alex Hung (1):
-      ACPI / blacklist: add _REV quirks for Dell Precision 5520 and 3520
-
-Andy Shevchenko (3):
-      ACPI / LPSS: enable hard LLP for DMA
-      ACPI / osl: Propagate actual error code for kstrtoul()
-      ACPI / osl: Refactor acpi_os_get_root_pointer() to drop 'else':s
-
-Bob Moore (6):
-      ACPICA: Update an info message during table load phase
-      ACPICA: Increase loop limit for AE_AML_INFINITE_LOOP exception
-      ACPICA: Disassembler: Fix for Divide() support, new support for test suite
-      ACPICA: Move acpi_gbl_max_loop_iterations to the public globals file
-      ACPICA: Update version to 20160930
-      ACPICA: Utilities: Add new decode function for parser values
-
-Dan Carpenter (1):
-      ACPI / CPPC: set an error code on probe error path
-
-Dave Lambley (1):
-      ACPI / battery: If _BIX fails, retry with _BIF
-
-Hans de Goede (3):
-      ACPI / video: Move ACPI_VIDEO_NOTIFY_* defines to acpi/video.h
-      ACPI / video: Add force_native quirk for Dell XPS 17 L702X
-      ACPI / video: Add force_native quirk for HP Pavilion dv6
-
-Len Brown (1):
-      ACPI: Document _OSI and _REV for Linux BIOS writers
-
-Longpeng Mike (1):
-      ACPI / tebles: remove redundant declare of acpi_table_parse_entries()
-
-Lv Zheng (8):
-      ACPICA: MacOSX: Fix anonymous semaphore implementation
-      ACPICA: MacOSX: Fix wrong sem_destroy definition
-      ACPICA: Namespace: Add acpi_ns_handle_to_name()
-      ACPICA: Back port of "ACPICA: Dispatcher: Tune interpreter lock
-around AcpiEvInitializeRegion()"
-      ACPICA: Events: Fix acpi_ev_initialize_region() return value
-      ACPICA: Tables: Cleanup acpi_tb_install_and_load_table()
-      ACPICA: Tables: Add acpi_tb_unload_table()
-      ACPICA: Tables: Add an error message complaining driver bugs
-
-Michael Pobega (1):
-      ACPI / blacklist: Make Dell Latitude 3350 ethernet work
-
-Nehal Shah (1):
-      ACPI / APD: Add clock frequency for future AMD I2C controller
-
-Prarit Bhargava (1):
-      ACPI / APEI: Fix NMI notification handling
-
-Rafael J. Wysocki (2):
-      ACPI / property: Hierarchical properties support update
-      ACPI / property: Document usage rules for _DSD properties
-
-Tomasz Nowicki (1):
-      ACPI / APEI / ARM64: APEI initial support for ARM64
-
----------------
-
- Documentation/acpi/DSD-properties-rules.txt        |  97 +++++++++++
- Documentation/acpi/enumeration.txt                 |   9 +
- Documentation/acpi/osi.txt                         | 187 +++++++++++++++++++++
- arch/arm64/Kconfig                                 |   1 +
- arch/arm64/include/asm/acpi.h                      |  23 ++-
- arch/x86/kernel/acpi/apei.c                        |   3 -
- drivers/acpi/acpi_apd.c                            |   7 +-
- drivers/acpi/acpi_lpss.c                           |   8 +-
- drivers/acpi/acpi_video.c                          |  11 --
- drivers/acpi/acpica/acevents.h                     |   4 +-
- drivers/acpi/acpica/acglobal.h                     |   5 +-
- drivers/acpi/acpica/aclocal.h                      |  19 ++-
- drivers/acpi/acpica/acnamesp.h                     |   3 +
- drivers/acpi/acpica/actables.h                     |   5 +-
- drivers/acpi/acpica/acutils.h                      |   2 +
- drivers/acpi/acpica/amlcode.h                      |   1 +
- drivers/acpi/acpica/dsinit.c                       |   4 +-
- drivers/acpi/acpica/dsopcode.c                     |   2 +-
- drivers/acpi/acpica/dswload2.c                     |  13 +-
- drivers/acpi/acpica/evrgnini.c                     |  59 +++----
- drivers/acpi/acpica/exconfig.c                     |  42 +----
- drivers/acpi/acpica/nsnames.c                      |  45 +++++
- drivers/acpi/acpica/nsxfname.c                     |  43 ++---
- drivers/acpi/acpica/tbdata.c                       |  81 +++++----
- drivers/acpi/acpica/tbxface.c                      |  16 ++
- drivers/acpi/acpica/tbxfload.c                     |  44 +----
- drivers/acpi/acpica/utdecode.c                     |  49 ++++++
- drivers/acpi/apei/ghes.c                           |   7 +-
- drivers/acpi/apei/hest.c                           |  13 +-
- drivers/acpi/battery.c                             |  72 +++++---
- drivers/acpi/blacklist.c                           |  28 +++
- drivers/acpi/cppc_acpi.c                           |   4 +-
- drivers/acpi/device_sysfs.c                        |   8 +-
- drivers/acpi/osl.c                                 |  19 +--
- drivers/acpi/property.c                            | 125 ++++++++++----
- drivers/acpi/video_detect.c                        |  20 +++
- include/acpi/acconfig.h                            |   2 +-
- include/acpi/acpixf.h                              |   9 +-
- include/acpi/video.h                               |  11 ++
- include/linux/acpi.h                               |   4 -
- .../acpi/os_specific/service_layers/osunixxf.c     |  13 +-
- 41 files changed, 800 insertions(+), 318 deletions(-)
