@@ -1,51 +1,87 @@
-From: Jon Masters <jcm@jonmasters.org>
-Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Tue, 13 Dec 2016 04:09:39 -0500
-Message-ID: <d7e1adbe-91a2-1a76-93b3-c880f9635e5e@jonmasters.org>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <20161129213955.15663.21173.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161129213955.15663.21173.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
+From: Tin Huynh <tnhuynh@apm.com>
+Subject: [PATCH V4] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
+Date: Tue, 13 Dec 2016 17:03:34 +0700
+Message-ID: <1481623414-19220-1-git-send-email-tnhuynh@apm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:33161 "EHLO
+        mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932446AbcLMKDu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Dec 2016 05:03:50 -0500
+Received: by mail-pf0-f173.google.com with SMTP id d2so18104473pfd.0
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Dec 2016 02:03:49 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com, Tin Huynh <tnhuynh@apm.com>
 
-On 11/29/2016 04:39 PM, Bjorn Helgaas wrote:
+ACPI always sets Tx/Rx FIFO to 32. This configuration will
+cause problem if the IP core supports a FIFO size of less than 32.
+The driver should read the FIFO size from the IP and select the smaller
+one of the two.
 
-> +New architectures should be able to use "Consumer" Extended Address Space
-> +descriptors in the PNP0A03 device for bridge registers, including ECAM,
-> +although a strict interpretation of [6] might prohibit this.  Old x86 and
-> +ia64 kernels assume all address space descriptors, including "Consumer"
-> +Extended Address Space ones, are windows, so it would not be safe to
-> +describe bridge registers this way on those architectures.
+Signed-off-by: Tin Huynh <tnhuynh@apm.com>
 
-<snip>
+---
+ drivers/i2c/busses/i2c-designware-platdrv.c |   27 ++++++++++++++++++++-------
+ 1 files changed, 20 insertions(+), 7 deletions(-)
 
-> +[6] PCI Firmware 3.0, sec 4.1.2:
+Change from V3:
+ -Use uppercase of FIFO instead of lowercase.
+ -Fix the problem  when IP core return 0 of FIFO.
 
-<snip>
+Change from V2:
+ -Add a helper function to set FIFO size.
 
-Thanks for the revised writeup, Bjorn. It's great. I'm trying to get the
-above clarified explicitly in terms of the spec, and in terms of what
-other Operating Systems would like to see as general preference.
+Change from V1:
+ -Revert the default 32 for FIFO, read parameter from IP core
+ and pick the smaller one of the two.
+ -Correct the title to describe new approach.
 
-To your point about second generation ARM (server) systems: we're actually
-on generation 3+ now and finally getting to the point where people are
-listening. A great many times over the past few years, people have had
-to be sat on until they did what was needed. Fortunately, we are going
-to finally have upstream kernels (and distros based upon them) that
-boot out of the box on compliant hardware and will be able to point
-people at the usual "upstream first" messaging we've been pushing.
+diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+index 0b42a12..24032d6 100644
+--- a/drivers/i2c/busses/i2c-designware-platdrv.c
++++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -150,6 +150,25 @@ static int i2c_dw_plat_prepare_clk(struct dw_i2c_dev *i_dev, bool prepare)
+ 	return 0;
+ }
+ 
++static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
++{
++	u32 param, tx_fifo_depth, rx_fifo_depth;
++
++	param = i2c_dw_read_comp_param(dev);
++	tx_fifo_depth = ((param >> 16) & 0xff) + 1;
++	rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
++	if (!dev->tx_fifo_depth) {
++		dev->tx_fifo_depth = tx_fifo_depth;
++		dev->rx_fifo_depth = rx_fifo_depth;
++		dev->adapter.nr = id;
++	} else if (tx_fifo_depth > 1) {
++		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
++				tx_fifo_depth);
++		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
++				rx_fifo_depth);
++	}
++}
++
+ static int dw_i2c_plat_probe(struct platform_device *pdev)
+ {
+ 	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
+@@ -246,13 +265,7 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
+ 				1000000);
+ 	}
+ 
+-	if (!dev->tx_fifo_depth) {
+-		u32 param1 = i2c_dw_read_comp_param(dev);
+-
+-		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+-		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
+-		dev->adapter.nr = pdev->id;
+-	}
++	dw_i2c_set_fifo_size(dev, pdev->id);
+ 
+ 	adap = &dev->adapter;
+ 	adap->owner = THIS_MODULE;
+-- 
+1.7.1
 
-I had originally fallen for the SoC koolaid that PCIe was not essential,
-and was convinced fairly early that this was nonsense. But it has taken
-a few years for everyone else to get onto that bandwagon. First you give
-them exactly what they know and love (a 1-2 socket Xeon class machine
-with lots of PCIe lanes), then you go and fix the design to give them
-what they actually need (which logically enumerates as PCIe but isn't) ;)
-
-Jon.
