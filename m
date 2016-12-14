@@ -1,129 +1,67 @@
-From: Tin Huynh <tnhuynh@apm.com>
-Subject: Re: [PATCH V4] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
-Date: Wed, 14 Dec 2016 10:20:04 +0700
-Message-ID: <CANQ9TuCuxsMKzfQ=14ppo-5kWnWXc=VK08ca7+dJL2xG_tkd_Q@mail.gmail.com>
-References: <1481623414-19220-1-git-send-email-tnhuynh@apm.com> <1481628337.7188.63.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3 0/4] ACPI / osl: Cleans up acpi_get_table_with_size()/early_acpi_os_unmap_memory()
+Date: Wed, 14 Dec 2016 15:04:13 +0800
+Message-ID: <cover.1481698041.git.lv.zheng@intel.com>
+References: <cover.1480490191.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f181.google.com ([209.85.210.181]:36675 "EHLO
-        mail-wj0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753016AbcLNDUH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Dec 2016 22:20:07 -0500
-Received: by mail-wj0-f181.google.com with SMTP id tk12so10129427wjb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Dec 2016 19:20:06 -0800 (PST)
-In-Reply-To: <1481628337.7188.63.camel@linux.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:46685 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753199AbcLNHEZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Dec 2016 02:04:25 -0500
+In-Reply-To: <cover.1480490191.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tue, Dec 13, 2016 at 6:25 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Tue, 2016-12-13 at 17:03 +0700, Tin Huynh wrote:
->> ACPI always sets Tx/Rx FIFO to 32. This configuration will
->> cause problem if the IP core supports a FIFO size of less than 32.
->> The driver should read the FIFO size from the IP and select the
->> smaller
->> one of the two.
->>
->> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
->>
->
-> One comment below, after addressing it
->
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->
->> ---
->>  drivers/i2c/busses/i2c-designware-platdrv.c |   27
->> ++++++++++++++++++++-------
->>  1 files changed, 20 insertions(+), 7 deletions(-)
->>
->> Change from V3:
->>  -Use uppercase of FIFO instead of lowercase.
->>  -Fix the problem  when IP core return 0 of FIFO.
->>
->> Change from V2:
->>  -Add a helper function to set FIFO size.
->>
->> Change from V1:
->>  -Revert the default 32 for FIFO, read parameter from IP core
->>  and pick the smaller one of the two.
->>  -Correct the title to describe new approach.
->>
->> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c
->> b/drivers/i2c/busses/i2c-designware-platdrv.c
->> index 0b42a12..24032d6 100644
->> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
->> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
->> @@ -150,6 +150,25 @@ static int i2c_dw_plat_prepare_clk(struct
->> dw_i2c_dev *i_dev, bool prepare)
->>       return 0;
->>  }
->>
->> +static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
->> +{
->> +     u32 param, tx_fifo_depth, rx_fifo_depth;
->> +
->>
->
->         /*
->          * Try to detect the FIFO depth if not
-> set by interface driver,
->          * the depth could be from 2 to 256 from
-> HW spec.
->          */
->
-I will add your comment to the driver.
->> +     param = i2c_dw_read_comp_param(dev);
->> +     tx_fifo_depth = ((param >> 16) & 0xff) + 1;
->> +     rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
->> +     if (!dev->tx_fifo_depth) {
->> +             dev->tx_fifo_depth = tx_fifo_depth;
->> +             dev->rx_fifo_depth = rx_fifo_depth;
->> +             dev->adapter.nr = id;
->> +     } else if (tx_fifo_depth > 1) {
->
-> This makes sense now, though I would add a comment here and use >= 2 to
-> reflect datasheet.
->
->                 /*
->                  * Choose minimum values between HW and interface
->                  * driver provided.
->                  */
->
-I will implement as your comment. However , because adding 1 to the
-value , can i use > 2  or >=3 ?
->> +             dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
->> +                             tx_fifo_depth);
->> +             dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
->> +                             rx_fifo_depth);
->> +     }
->> +}
->> +
->>  static int dw_i2c_plat_probe(struct platform_device *pdev)
->>  {
->>       struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev-
->> >dev);
->> @@ -246,13 +265,7 @@ static int dw_i2c_plat_probe(struct
->> platform_device *pdev)
->>                               1000000);
->>       }
->>
->> -     if (!dev->tx_fifo_depth) {
->> -             u32 param1 = i2c_dw_read_comp_param(dev);
->> -
->> -             dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
->> -             dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
->> -             dev->adapter.nr = pdev->id;
->> -     }
->> +     dw_i2c_set_fifo_size(dev, pdev->id);
->>
->>       adap = &dev->adapter;
->>       adap->owner = THIS_MODULE;
->
-> --
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
-Thank you and regards,
-Tin
+acpi_get_table_with_size() is invented to be a replacement of
+acpi_get_table() during the early stage so that the early mapped pointer
+will not be stored in ACPICA core (acpi_get_table() forces to do so) and
+thus the late stage acpi_get_table() won't return a wrong stored pointer.
+
+Since there is early_acpi_os_unmap_memory() required to be invoked as a
+reversal of acpi_get_table_with_size(), ACPICA can provide acpi_put_table()
+to achieve the same purpose. As long as all early stage acpi_get_table()
+calls are paired by early stage acpi_put_table() calls, mappings should be
+released before entering the late stage. And the late stage
+acpi_get_table() calls will map the table using a late stage ioremap
+mechanism.
+
+This patchset cleans up the old APIs and reduces divergences between Linux
+and ACPICA upstream.
+
+Lv Zheng (4):
+  ACPICA: Tables: Back port acpi_get_table_with_size() and
+    early_acpi_os_unmap_memory() from Linux kernel
+  ACPICA: Tables: Allow FADT to be customized with virtual address
+  ACPI / osl: Remove
+    acpi_get_table_with_size()/early_acpi_os_unmap_memory() users
+  ACPI / osl: Remove deprecated
+    acpi_get_table_with_size()/early_acpi_os_unmap_memory()
+
+ arch/arm64/include/asm/acpi.h            |    2 +-
+ arch/arm64/kernel/acpi.c                 |    7 +-
+ drivers/acpi/acpica/actables.h           |    6 ++
+ drivers/acpi/acpica/tbfadt.c             |   14 ++--
+ drivers/acpi/acpica/tbutils.c            |   85 +++++++++++++++++++
+ drivers/acpi/acpica/tbxface.c            |  130 +++++++++++++++++++-----------
+ drivers/acpi/bus.c                       |    2 +-
+ drivers/acpi/nfit/core.c                 |    3 +-
+ drivers/acpi/osl.c                       |   15 ++--
+ drivers/acpi/processor_core.c            |    8 +-
+ drivers/acpi/spcr.c                      |    8 +-
+ drivers/acpi/tables.c                    |   17 ++--
+ drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c |    3 +-
+ drivers/gpu/drm/radeon/radeon_bios.c     |    3 +-
+ drivers/iommu/amd_iommu_init.c           |   10 +--
+ drivers/iommu/dmar.c                     |    7 +-
+ drivers/mailbox/pcc.c                    |    5 +-
+ include/acpi/acpi_io.h                   |    2 +
+ include/acpi/acpixf.h                    |   17 ++--
+ include/acpi/actbl.h                     |    1 +
+ include/acpi/platform/aclinuxex.h        |    1 -
+ 21 files changed, 224 insertions(+), 122 deletions(-)
+
+-- 
+1.7.10
+
