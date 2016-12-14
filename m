@@ -1,28 +1,52 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V5] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
-Date: Wed, 14 Dec 2016 13:57:06 +0200
-Message-ID: <20161214115706.GY1460@lahna.fi.intel.com>
-References: <1481707438-32240-1-git-send-email-tnhuynh@apm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI CPPC fixes for v4.10-rc1
+Date: Wed, 14 Dec 2016 15:03:37 +0100
+Message-ID: <CAJZ5v0jphnwgtcyr5a58mMBp1N0_8pyUB7WKS5M-WB4evqgwsg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:46563 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753100AbcLNL5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Dec 2016 06:57:14 -0500
-Content-Disposition: inline
-In-Reply-To: <1481707438-32240-1-git-send-email-tnhuynh@apm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, Tim Chen <tim.c.chen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-On Wed, Dec 14, 2016 at 04:23:58PM +0700, Tin Huynh wrote:
-> ACPI always sets Tx/Rx FIFO to 32. This configuration will
-> cause problem if the IP core supports a FIFO size of less than 32.
-> The driver should read the FIFO size from the IP and select the smaller
-> one of the two.
-> 
-> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+Hi Linus,
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-urgent-4.10-rc1
+
+with top-most commit cc31e9b718dafd8a1bdc593234ddbbf4faa2511c
+
+ Merge branch 'acpi-cppc'
+
+on top of commit a67485d4bf97918225dfb5246e531643755a7ee1
+
+ Merge tag 'acpi-4.10-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive two ACPI CPPC fixes for v4.10-rc1.
+
+One of them fixes a crash in KVM encountered by Sebastian in
+linux-next and introduced by a recent intel_pstate change that
+caused the driver to use the ACPI CPPC code and uncovered a
+missing NULL pointer check in it.
+
+The other one fixes a possible use-after-free in the same code
+area.
+
+Thanks!
+
+---------------
+
+Rafael J. Wysocki (1):
+      ACPI / CPPC: Fix per-CPU pointer management in acpi_cppc_processor_probe()
+
+Sebastian Andrzej Siewior (1):
+      ACPI / CPPC: Fix crash in acpi_cppc_processor_exit()
+
+---------------
+
+ drivers/acpi/cppc_acpi.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
