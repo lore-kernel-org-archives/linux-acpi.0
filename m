@@ -1,52 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI CPPC fixes for v4.10-rc1
-Date: Wed, 14 Dec 2016 15:03:37 +0100
-Message-ID: <CAJZ5v0jphnwgtcyr5a58mMBp1N0_8pyUB7WKS5M-WB4evqgwsg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: [PATCH V9 0/3] irqchip: qcom: Add IRQ combiner driver
+Date: Wed, 14 Dec 2016 17:10:35 -0500
+Message-ID: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, Tim Chen <tim.c.chen@linux.intel.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Add support for IRQ combiners in the Top-level Control and Status
+Registers (TCSR) hardware block in Qualcomm Technologies chips.
 
-Please pull from the tag
+The first patch prevents the ACPI core from attempting to map IRQ resources
+with a valid ResourceSource as GSIs.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-urgent-4.10-rc1
+The first patch adds support for ResourceSource/IRQ domain mapping and
+fixes IRQ probe deferral by allowing platform_device IRQ resources to be
+re-initialized from the corresponding ACPI IRQ resource.
 
-with top-most commit cc31e9b718dafd8a1bdc593234ddbbf4faa2511c
+Both changes described above are conditional on the ACPI_GENERIC_GSI config.
 
- Merge branch 'acpi-cppc'
+The third patch takes advantage of the new capabilities to implement
+the driver for the IRQ combiners.
 
-on top of commit a67485d4bf97918225dfb5246e531643755a7ee1
+Tested on top of v4.9.
 
- Merge tag 'acpi-4.10-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+Changes V8 -> V9:
+* Do not attempt the mapping for non-GSI IRQs during bus scan.
+* Make some public APIs private to drivers/acpi/irq.c since they are no
+  longer used on other modules.
 
-to receive two ACPI CPPC fixes for v4.10-rc1.
+Changes V7 -> V8:
+* Reorder patches to allow all new code to be under drivers/acpi/irq.c.
+* Change acpi_irq_get implementation to be more similar to of_irq_get
+  to improve maintainability.
 
-One of them fixes a crash in KVM encountered by Sebastian in
-linux-next and introduced by a recent intel_pstate change that
-caused the driver to use the ACPI CPPC code and uncovered a
-missing NULL pointer check in it.
+Agustin Vega-Frias (3):
+  ACPI: Generic GSI: Do not attempt to map non-GSI IRQs during bus scan
+  ACPI: Add support for ResourceSource/IRQ domain mapping
+  irqchip: qcom: Add IRQ combiner driver
 
-The other one fixes a possible use-after-free in the same code
-area.
+ drivers/acpi/Makefile               |   2 +-
+ drivers/acpi/gsi.c                  |  98 -----------
+ drivers/acpi/irq.c                  | 280 +++++++++++++++++++++++++++++++
+ drivers/acpi/resource.c             |  17 +-
+ drivers/base/platform.c             |   9 +-
+ drivers/irqchip/Kconfig             |   9 +
+ drivers/irqchip/Makefile            |   1 +
+ drivers/irqchip/qcom-irq-combiner.c | 322 ++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h                |  10 ++
+ 9 files changed, 647 insertions(+), 101 deletions(-)
+ delete mode 100644 drivers/acpi/gsi.c
+ create mode 100644 drivers/acpi/irq.c
+ create mode 100644 drivers/irqchip/qcom-irq-combiner.c
 
-Thanks!
-
----------------
-
-Rafael J. Wysocki (1):
-      ACPI / CPPC: Fix per-CPU pointer management in acpi_cppc_processor_probe()
-
-Sebastian Andrzej Siewior (1):
-      ACPI / CPPC: Fix crash in acpi_cppc_processor_exit()
-
----------------
-
- drivers/acpi/cppc_acpi.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+--
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
