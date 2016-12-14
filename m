@@ -1,82 +1,129 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / CPPC: Fix per-CPU pointers management
-Date: Wed, 14 Dec 2016 03:26:22 +0100
-Message-ID: <11962789.3qxXzldTRG@aspire.rjw.lan>
-References: <cover.1479844244.git.tim.c.chen@linux.intel.com> <CAJZ5v0jUCHSM90yEoygAbKVY3ySaWQk-Cp6qkd+6ESH74J2_8A@mail.gmail.com> <296282606.tnoJCKgU2l@aspire.rjw.lan>
+From: Tin Huynh <tnhuynh@apm.com>
+Subject: Re: [PATCH V4] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
+Date: Wed, 14 Dec 2016 10:20:04 +0700
+Message-ID: <CANQ9TuCuxsMKzfQ=14ppo-5kWnWXc=VK08ca7+dJL2xG_tkd_Q@mail.gmail.com>
+References: <1481623414-19220-1-git-send-email-tnhuynh@apm.com> <1481628337.7188.63.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <296282606.tnoJCKgU2l@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tim Chen <tim.c.chen@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, the arch/x86 maintainers <x86@kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, jolsa@redhat.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wj0-f181.google.com ([209.85.210.181]:36675 "EHLO
+        mail-wj0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753016AbcLNDUH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Dec 2016 22:20:07 -0500
+Received: by mail-wj0-f181.google.com with SMTP id tk12so10129427wjb.3
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Dec 2016 19:20:06 -0800 (PST)
+In-Reply-To: <1481628337.7188.63.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches <patches@apm.com>
 
-On Saturday, December 10, 2016 12:52:28 AM Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Enabling ACPI CPPC on x86 causes a NULL pointer dereference to occur
-> (on boot on a "default" KVM setup) in acpi_cppc_processor_exit() due
-> to a missing check against NULL in there:
-> 
-> |BUG: unable to handle kernel NULL pointer dereference at           (null)
-> |IP: [<ffffffff812aab6e>] acpi_cppc_processor_exit+0x40/0x60
-> |PGD 0 [    0.577616]
-> |Oops: 0000 [#1] SMP
-> |Modules linked in:
-> |CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.9.0-rc6-00146-g17669006adf6 #51
-> |task: ffff88003f878000 task.stack: ffffc90000008000
-> |RIP: 0010:[<ffffffff812aab6e>]  [<ffffffff812aab6e>] acpi_cppc_processor_exit+0x40/0x60
-> |RSP: 0000:ffffc9000000bd48  EFLAGS: 00010296
-> |RAX: 00000000000137e0 RBX: 0000000000000000 RCX: 0000000000000001
-> |RDX: ffff88003fc00000 RSI: 0000000000000000 RDI: ffff88003fbca130
-> |RBP: ffffc9000000bd60 R08: 0000000000000514 R09: 0000000000000000
-> |R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000002
-> |R13: 0000000000000020 R14: ffffffff8167cb00 R15: 0000000000000000
-> |FS:  0000000000000000(0000) GS:ffff88003fcc0000(0000) knlGS:0000000000000000
-> |CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> |CR2: 0000000000000000 CR3: 0000000001618000 CR4: 00000000000406e0
-> |Stack:
-> | ffff88003f939848 ffff88003fbca130 0000000000000001 ffffc9000000bd80
-> | ffffffff812a4ccb ffff88003fc0cee8 0000000000000000 ffffc9000000bdb8
-> | ffffffff812dc20d ffff88003fc0cee8 ffffffff8167cb00 ffff88003fc0cf48
-> |Call Trace:
-> | [<ffffffff812a4ccb>] acpi_processor_stop+0xb2/0xc5
-> | [<ffffffff812dc20d>] driver_probe_device+0x14d/0x2f0
-> | [<ffffffff812dc41e>] __driver_attach+0x6e/0x90
-> | [<ffffffff812da234>] bus_for_each_dev+0x54/0x90
-> | [<ffffffff812dbbf9>] driver_attach+0x19/0x20
-> | [<ffffffff812db6a6>] bus_add_driver+0xe6/0x200
-> | [<ffffffff812dcb23>] driver_register+0x83/0xc0
-> | [<ffffffff816f050a>] acpi_processor_driver_init+0x20/0x94
-> | [<ffffffff81000487>] do_one_initcall+0x97/0x180
-> | [<ffffffff816ccf5c>] kernel_init_freeable+0x112/0x1a6
-> | [<ffffffff813a0fc9>] kernel_init+0x9/0xf0
-> | [<ffffffff813acf35>] ret_from_fork+0x25/0x30
-> |Code: 02 00 00 00 48 8b 14 d5 e0 c3 55 81 48 8b 1c 02 4c 8d 6b 20 eb 15 49 8b 7d 00 48 85 ff 74 05 e8 39 8c d9 ff 41 ff c4 49 83 c5 20 <44> 3b 23 72 e6 48 8d bb a0 02 00 00 e8 b1 6f f9 ff 48 89 df e8
-> |RIP  [<ffffffff812aab6e>] acpi_cppc_processor_exit+0x40/0x60
-> | RSP <ffffc9000000bd48>
-> |CR2: 0000000000000000
-> 
-> Fix that and while at it, fix a possible use-after-free scenario in
-> acpi_cppc_processor_probe() that can happen if the function returns
-> without cleaning up the per-CPU pointer set by it previously.
-> 
-> Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Original-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> Hi Thomas,
-> 
-> The crash fixed by this is exposed by the ITMT (asymmetric packing) series
-> (which involves using ACPI CPPC on x86), so IMO it would be good to route it
-> through tip along with that series.
-
-The problematic commit has gone in already, so I'll route the fix through
-the ACPI tree.
-
-Thanks,
-Rafael
-
+On Tue, Dec 13, 2016 at 6:25 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Tue, 2016-12-13 at 17:03 +0700, Tin Huynh wrote:
+>> ACPI always sets Tx/Rx FIFO to 32. This configuration will
+>> cause problem if the IP core supports a FIFO size of less than 32.
+>> The driver should read the FIFO size from the IP and select the
+>> smaller
+>> one of the two.
+>>
+>> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+>>
+>
+> One comment below, after addressing it
+>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>
+>> ---
+>>  drivers/i2c/busses/i2c-designware-platdrv.c |   27
+>> ++++++++++++++++++++-------
+>>  1 files changed, 20 insertions(+), 7 deletions(-)
+>>
+>> Change from V3:
+>>  -Use uppercase of FIFO instead of lowercase.
+>>  -Fix the problem  when IP core return 0 of FIFO.
+>>
+>> Change from V2:
+>>  -Add a helper function to set FIFO size.
+>>
+>> Change from V1:
+>>  -Revert the default 32 for FIFO, read parameter from IP core
+>>  and pick the smaller one of the two.
+>>  -Correct the title to describe new approach.
+>>
+>> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c
+>> b/drivers/i2c/busses/i2c-designware-platdrv.c
+>> index 0b42a12..24032d6 100644
+>> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
+>> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+>> @@ -150,6 +150,25 @@ static int i2c_dw_plat_prepare_clk(struct
+>> dw_i2c_dev *i_dev, bool prepare)
+>>       return 0;
+>>  }
+>>
+>> +static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
+>> +{
+>> +     u32 param, tx_fifo_depth, rx_fifo_depth;
+>> +
+>>
+>
+>         /*
+>          * Try to detect the FIFO depth if not
+> set by interface driver,
+>          * the depth could be from 2 to 256 from
+> HW spec.
+>          */
+>
+I will add your comment to the driver.
+>> +     param = i2c_dw_read_comp_param(dev);
+>> +     tx_fifo_depth = ((param >> 16) & 0xff) + 1;
+>> +     rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
+>> +     if (!dev->tx_fifo_depth) {
+>> +             dev->tx_fifo_depth = tx_fifo_depth;
+>> +             dev->rx_fifo_depth = rx_fifo_depth;
+>> +             dev->adapter.nr = id;
+>> +     } else if (tx_fifo_depth > 1) {
+>
+> This makes sense now, though I would add a comment here and use >= 2 to
+> reflect datasheet.
+>
+>                 /*
+>                  * Choose minimum values between HW and interface
+>                  * driver provided.
+>                  */
+>
+I will implement as your comment. However , because adding 1 to the
+value , can i use > 2  or >=3 ?
+>> +             dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
+>> +                             tx_fifo_depth);
+>> +             dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
+>> +                             rx_fifo_depth);
+>> +     }
+>> +}
+>> +
+>>  static int dw_i2c_plat_probe(struct platform_device *pdev)
+>>  {
+>>       struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev-
+>> >dev);
+>> @@ -246,13 +265,7 @@ static int dw_i2c_plat_probe(struct
+>> platform_device *pdev)
+>>                               1000000);
+>>       }
+>>
+>> -     if (!dev->tx_fifo_depth) {
+>> -             u32 param1 = i2c_dw_read_comp_param(dev);
+>> -
+>> -             dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
+>> -             dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
+>> -             dev->adapter.nr = pdev->id;
+>> -     }
+>> +     dw_i2c_set_fifo_size(dev, pdev->id);
+>>
+>>       adap = &dev->adapter;
+>>       adap->owner = THIS_MODULE;
+>
+> --
+> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Intel Finland Oy
+Thank you and regards,
+Tin
