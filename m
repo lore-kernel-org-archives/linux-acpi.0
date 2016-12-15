@@ -1,162 +1,222 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Fix in ACPICA tools broke cross compilation of tools/power/acpi
-Date: Thu, 15 Dec 2016 03:30:47 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CDEE05E@SHSMSX103.ccr.corp.intel.com>
-References: <CAHp75VcyRzKPGQXB736EdvyXm9m3ShnLS3Xyrjnh7iRTE5M-uw@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25E72C@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vfp3v-SUk=ot35g9VReexCgYFjr1i=fVwyq1_Xg37ub8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EA6F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886A25EBA3@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Veg7XehhF_GcwQC4XxrjJGj6gxqd-sw044vOhE+2aGGBA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A2618E2@SHSMSX101.ccr.corp.intel.com>
- <CAHp75VccqXjwXg0s-n7r5-MzhzxmYS9AKpphckn=ytZNSkdyRw@mail.gmail.com>
- <CAHp75VcA15mVwUYF75dWdSp=BZmf_KCsE+t5qBfsiXHPMdUJiw@mail.gmail.com>
- <CAHp75VdJ1Nb_qbRX9b=RfDX-8e2tOUvMcbgYx8aMr4COQN3p8Q@mail.gmail.com>
- <CAHp75Vc3aSW09AXzWs5yY=iGSFPcz9zeB1F+dA=cNZTbPUG1Lg@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A28F62C@SHSMSX101.ccr.corp.intel.com>
- <CAJZ5v0jtarN0svYwq6F6CmQJK=3MmY7CA77ywqHmVdi_3HVu8g@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886A28FB87@SHSMSX101.ccr.corp.intel.com>
- <CAHp75Vf3-RG+HR5uNYo_J-fYaYC=op6dZXCwm=4jtef-d58+pw@mail.gmail.com>
- <CAHp75Vckrq=u62-exUmkS-uFwkLTva=0WqwcJezBiLuN3M_img@mail.gmail.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH V6 03/10] efi: parse ARM processor error
+Date: Thu, 15 Dec 2016 14:08:10 +0000
+Message-ID: <5852A3CA.807@arm.com>
+References: <1481147303-7979-1-git-send-email-tbaicar@codeaurora.org>
+ <1481147303-7979-4-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62329 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756797AbcLODa4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Dec 2016 22:30:56 -0500
-In-Reply-To: <CAHp75Vckrq=u62-exUmkS-uFwkLTva=0WqwcJezBiLuN3M_img@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1481147303-7979-4-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksIEFuZHkNCg0KRm9yIHBhcmFsbGVsIGJ1aWxkLCBpdCBzaG91bGQgYmUgaGFuZGxlZCBieSB0
-aGUgcHJldmlvdXMgZml4Lg0KVGhlIG9ubHkgcHJvYmxlbSBpcyB0aGUgTyBoYW5kbGluZyBJTU8u
-DQpTZWUgbXkgcHJldmlvdXMgcmVwbHkuDQpNYXliZSBJIHNob3VsZCBzdG9wIHVzaW5nIGRlc2Nl
-bmQgaW4gdG9vbHMvcG93ZXIvYWNwaS9NYWtlZmlsZS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2Fy
-ZHMNCkx2DQoNCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFttYWlsdG86YW5keS5zaGV2Y2hlbmtv
-QGdtYWlsLmNvbV0NCj4gU3ViamVjdDogUmU6IEZpeCBpbiBBQ1BJQ0EgdG9vbHMgYnJva2UgY3Jv
-c3MgY29tcGlsYXRpb24gb2YgdG9vbHMvcG93ZXIvYWNwaQ0KPiANCj4gT24gTW9uLCBEZWMgMTIs
-IDIwMTYgYXQgMTA6NTggUE0sIEFuZHkgU2hldmNoZW5rbw0KPiA8YW5keS5zaGV2Y2hlbmtvQGdt
-YWlsLmNvbT4gd3JvdGU6DQo+ID4gT24gVGh1LCBOb3YgMTcsIDIwMTYgYXQgNToxMCBBTSwgWmhl
-bmcsIEx2IDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+Pj4NCj4gPj4+ID4gSXQgY29u
-dGFpbnMgY29ycmVjdCBoZWFkZXIgaW5jbHVzaW9uIGNsZWFudXBzLg0KPiA+Pj4NCj4gPj4+IENs
-ZWFudXBzIGFyZSBub3QgYSBnb29kIGVub3VnaCByZWFzb24gZm9yIGJyZWFraW5nIGJ1aWxkcy4N
-Cj4gPj4NCj4gPj4gSXQgZG9lc24ndCBicmVhaywgYnVpbGQgaXMgT0sgaW4gbXkgZW52aXJvbm1l
-bnQuDQo+ID4NCj4gPiBZb3Uga25vdywgYmVmb3JlIHlvdSBkaWQgdGhhdCBmaXJzdCBjbGVhbiB1
-cCBmb3IgTVNWQyBpdCB3b3JrZWQgZm9yIG1lLg0KPiA+DQo+ID4gTm93IEkgZ290IHRoZSBmb2xs
-b3dpbmcNCj4gDQo+IEkgc2VyaWFsaXplZCBtYWtlIGluIG15IGV4YW1wbGUgdG8gYmUgbWFrZSAt
-ajEgYW5kIGdvdCB0aGUgZm9sbG93aW5nDQo+IA0KPiAgREVTQ0VORCAgcG93ZXIvYWNwaQ0KPiAg
-REVTQ0VORCAgdG9vbHMvYWNwaWRiZw0KPiAgQ0MgICAgICAgdG9vbHMvYWNwaWRiZy9hY3BpZGJn
-Lm8NCj4gQXNzZW1ibGVyIG1lc3NhZ2VzOg0KPiBGYXRhbCBlcnJvcjogY2FuJ3QgY3JlYXRlIC4u
-Li9wb3dlci9hY3BpL3Rvb2xzL2FjcGlkYmcvYWNwaWRiZy5vOiBObw0KPiBzdWNoIGZpbGUgb3Ig
-ZGlyDQo+IGVjdG9yeQ0KPiAuLi8uLi9NYWtlZmlsZS5ydWxlczoyNjogcmVjaXBlIGZvciB0YXJn
-ZXQNCj4gJy4uLi9wb3dlci9hY3BpL3Rvb2xzL2FjcGlkYmcvYWNwaWRiZy5vJyBmDQo+IGFpbGVk
-DQo+IA0KPiBBcyB5b3UgbWF5IGFscmVhZHkgbm90aWNlIGZyb20gdGhlIGJlbG93IHRoZXJlIGlz
-IGEgd3JvbmcgZm9sZGVyIHVzZWQuDQo+IFRoZSBoaWVyYXJjaHkgaXMNCj4gDQo+ICUgbHMgLVIg
-dG9vbHMvcG93ZXIvDQo+IHRvb2xzL3Bvd2VyLzoNCj4gYWNwaSAgeDg2DQo+IA0KPiB0b29scy9w
-b3dlci9hY3BpOg0KPiB0b29scw0KPiANCj4gdG9vbHMvcG93ZXIvYWNwaS90b29sczoNCj4gYWNw
-aWRiZyAgYWNwaWR1bXAgIGVjDQo+IA0KPiB0b29scy9wb3dlci9hY3BpL3Rvb2xzL2FjcGlkYmc6
-DQo+IA0KPiB0b29scy9wb3dlci9hY3BpL3Rvb2xzL2FjcGlkdW1wOg0KPiANCj4gdG9vbHMvcG93
-ZXIvYWNwaS90b29scy9lYzoNCj4gDQo+IHRvb2xzL3Bvd2VyL3g4NjoNCj4gdHVyYm9zdGF0DQo+
-IA0KPiANCj4gPg0KPiA+ICBERVNDRU5EICBwb3dlci9hY3BpDQo+ID4gIERFU0NFTkQgIHRvb2xz
-L2FjcGlkYmcNCj4gPiAgREVTQ0VORCAgdG9vbHMvYWNwaWR1bXANCj4gPiAgREVTQ0VORCAgdG9v
-bHMvZWMNCj4gPiAgTUtESVIgICAgaW5jbHVkZQ0KPiA+ICBJTlNUICAgICBhY3BpZGJnDQo+ID4g
-IE1LRElSICAgIGluY2x1ZGUNCj4gPiAgSU5TVCAgICAgZWMNCj4gPiAgTUtESVIgICAgaW5jbHVk
-ZQ0KPiA+ICBDUCAgICAgICBpbmNsdWRlDQo+ID4gIENQICAgICAgIGluY2x1ZGUNCj4gPiAvdXNy
-L2Jpbi9pbnN0YWxsOiBjYW5ub3Qgc3RhdCAnLi4uL3Bvd2VyL2FjcGkvYWNwaWRiZyc6IE5vIHN1
-Y2ggZmlsZQ0KPiA+IG9yIGRpcmVjdG9yeQ0KPiA+ICBJTlNUICAgICBhY3BpZHVtcA0KPiA+IC4u
-Ly4uL01ha2VmaWxlLnJ1bGVzOjQxOiByZWNpcGUgZm9yIHRhcmdldCAnaW5zdGFsbC10b29scycg
-ZmFpbGVkDQo+ID4gbWFrZVs2XTogKioqIFtpbnN0YWxsLXRvb2xzXSBFcnJvciAxDQo+ID4gL3Vz
-ci9iaW4vaW5zdGFsbDogbWFrZVs2XTogKioqIFdhaXRpbmcgZm9yIHVuZmluaXNoZWQgam9icy4u
-Li4NCj4gPiBjYW5ub3Qgc3RhdCAnLi4uL3Bvd2VyL2FjcGkvZWMnOiBObyBzdWNoIGZpbGUgb3Ig
-ZGlyZWN0b3J5DQo+ID4gLi4vLi4vTWFrZWZpbGUucnVsZXM6NDE6IHJlY2lwZSBmb3IgdGFyZ2V0
-ICdpbnN0YWxsLXRvb2xzJyBmYWlsZWQNCj4gPiBtYWtlWzZdOiAqKiogW2luc3RhbGwtdG9vbHNd
-IEVycm9yIDENCj4gPiBtYWtlWzZdOiAqKiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4u
-Lg0KPiA+ICBJTlNUICAgICBhY3BpZHVtcC44DQo+ID4gIENQICAgICAgIGluY2x1ZGUNCj4gPiBN
-YWtlZmlsZToyMzogcmVjaXBlIGZvciB0YXJnZXQgJ2FjcGlkYmdfaW5zdGFsbCcgZmFpbGVkDQo+
-ID4gbWFrZVs1XTogKioqIFthY3BpZGJnX2luc3RhbGxdIEVycm9yIDINCj4gPiBtYWtlWzVdOiAq
-KiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLg0KPiA+IC91c3IvYmluL2luc3RhbGw6
-IGNhbm5vdCBzdGF0ICcuLi4vcG93ZXIvYWNwaS9hY3BpZHVtcCc6IE5vIHN1Y2ggZmlsZQ0KPiA+
-IG9yIGRpcmVjdG9yeQ0KPiA+IC4uLy4uL01ha2VmaWxlLnJ1bGVzOjQxOiByZWNpcGUgZm9yIHRh
-cmdldCAnaW5zdGFsbC10b29scycgZmFpbGVkDQo+ID4gbWFrZVs2XTogKioqIFtpbnN0YWxsLXRv
-b2xzXSBFcnJvciAxDQo+ID4gbWFrZVs2XTogKioqIFdhaXRpbmcgZm9yIHVuZmluaXNoZWQgam9i
-cy4uLi4NCj4gPiBNYWtlZmlsZToyMzogcmVjaXBlIGZvciB0YXJnZXQgJ2VjX2luc3RhbGwnIGZh
-aWxlZA0KPiA+IG1ha2VbNV06ICoqKiBbZWNfaW5zdGFsbF0gRXJyb3IgMg0KPiA+IE1ha2VmaWxl
-OjIzOiByZWNpcGUgZm9yIHRhcmdldCAnYWNwaWR1bXBfaW5zdGFsbCcgZmFpbGVkDQo+ID4gbWFr
-ZVs1XTogKioqIFthY3BpZHVtcF9pbnN0YWxsXSBFcnJvciAyDQo+ID4gTWFrZWZpbGU6OTU6IHJl
-Y2lwZSBmb3IgdGFyZ2V0ICdhY3BpX2luc3RhbGwnIGZhaWxlZA0KPiA+IG1ha2VbNF06ICoqKiBb
-YWNwaV9pbnN0YWxsXSBFcnJvciAyDQo+ID4NCj4gPiAuLi4vTWFrZWZpbGU6MTYxMzogcmVjaXBl
-IGZvciB0YXJnZXQgJ3Rvb2xzL2FjcGlfaW5zdGFsbCcgZmFpbGVkDQo+ID4NCj4gPj4+PiBKdXN0
-IHRvIG5vdGljZSB0aGF0IGFib3ZlIE1ha2VmaWxlIGNvbWVzIGZyb20gdGhlIHNvdXJjZSB0cmVl
-IG5vdCB0aGUgTz0gdmFyaWFudA0KPiA+IFRoZSByZXN0IG9mIC4uLiByZWxhdGVkIHRvIE89L215
-L291dHB1dC9wYXRoLg0KPiA+DQo+ID4gbWFrZVszXTogKioqIFt0b29scy9hY3BpX2luc3RhbGxd
-IEVycm9yIDINCj4gPiBNYWtlZmlsZToxNTA6IHJlY2lwZSBmb3IgdGFyZ2V0ICdzdWItbWFrZScg
-ZmFpbGVkDQo+ID4gbWFrZVsyXTogKioqIFtzdWItbWFrZV0gRXJyb3IgMg0KPiA+IE1ha2VmaWxl
-OjI0OiByZWNpcGUgZm9yIHRhcmdldCAnX19zdWItbWFrZScgZmFpbGVkDQo+ID4gbWFrZVsxXTog
-KioqIFtfX3N1Yi1tYWtlXSBFcnJvciAyDQo+ID4NCj4gPiBTbywgaXQgZG9lc24ndCBldmVuIHRy
-eSB0byBidWlsZCBhbnl0aGluZy4NCj4gPg0KPiA+PiBZZXMuIElNTywNCj4gPj4gVGhlIGFib3Zl
-IGJyZWFrYWdlIGxvb2tzIG11Y2ggbW9yZSBzdHJhbmdlIHRoYW4gdGhlIGNvbW1pdCBpdHNlbGYu
-DQo+ID4+IEl0J3MgYmV0dGVyIHRvIG1ha2UgdGhlIGJ1aWxkIHN1Y2Nlc3NmdWwgd2l0aG91dCBj
-b21tZW50aW5nIHRoaXMgbGluZSBvdXQuDQo+ID4+DQo+ID4+IFN1Y2gga2luZCBvZiByZWdyZXNz
-aW9ucyBib3RoZXJlZCBtZSBhIGxvdC4NCj4gPj4gSXQgc2VlbXMgd2UgY2FuIGVhc2lseSBmZWxs
-IGludG8gc3VjaCBvbGQgdHJhcHMuDQo+ID4+DQo+ID4+IElmIEkgY2Fubm90IGZpeCB0aGUgbmV3
-IHJlZ3Jlc3Npb24gaW4gdGltZSwgSSB3aWxsIHN1cmUgc3VnZ2VzdCB0byByZXZlcnQgYnJlYWth
-Z2UgY29tbWl0IGJlZm9yZSBhDQo+IGJldHRlciBzb2x1dGlvbiBjYW4gYmUgb2ZmZXJlZCBhZnRl
-ciBpbnZlc3RpZ2F0aW9uLg0KPiA+PiBIb3dldmVyLCBmb3IgdGhpcyBpc3N1ZToNCj4gPj4gMS4g
-VGhlcmUgaXMgYWN0dWFsbHkgbm8gc2VyaW91cyBicmVha2FnZSAob25seSB0b29sY2hhaW5zIGJ1
-aWx0IHdpdGggaW5jb21wbGlhbnQga2VybmVsIGhlYWRlcnMpDQo+ID4+IDIuIFdlIGhhdmUgZml4
-ZWQgdGhlIGlzc3VlLCBidXQgdGhlIGZpeCBuZWVkIHRvIGJlIGltcHJvdmVkLg0KPiA+PiBTbyBy
-ZXZlcnRpbmcgdGhlIGNvcnJlY3QgY29tbWl0IGlzbid0IGEgZ29vZCBpZGVhLg0KPiA+PiBSZXZl
-cnRpbmcgaXQgbWF5IHRyaWdnZXIgbW9yZSBzZXJpb3VzIGlzc3VlcyBiZWNhdXNlIG9mIHdyb25n
-IGhlYWRlciBpbmNsdXNpb24gb3JkZXJzLg0KPiA+PiBMZXQgbWUgaW1wcm92ZSBpdC4NCj4gPj4N
-Cj4gPj4+DQo+ID4+PiA+IFdlIGNhbiBzZWUgbWFueSB0b29scyBidWlsZCBicm9rZW4gZm9yIGNy
-b3NzLWNvbXBpbGVycywgYW5kIHRvb2xzL3Bvd2VyL2FjcGkgaXMgbm90IHRoZSBvbmx5IG9uZS4N
-Cj4gPj4+DQo+ID4+PiBJIGd1ZXNzIHRoZSBpc3N1ZSBpcyB0aGF0IGl0IHdhcyBub3QgYnJva2Vu
-IGJlZm9yZSBhbmQgaXQgaXMgYnJva2VuDQo+ID4+PiBhZnRlciB5b3VyIGNoYW5nZXMuICBUaGF0
-J3MgcXVpdGUgYSBiaXQgb2YgYSBkaWZmZXJlbmNlLg0KPiA+Pg0KPiA+PiBJTU8sIHRoZSBub24t
-dXBkYXRlZCB0b29sY2hhaW5zL29yIEFDUElDQSdzIHNYL3VYIGRlZmluaXRpb25zIGFyZSBhY3R1
-YWxseSBidWdneSB3aGlsZSB0aGUgY29tbWl0DQo+IGlzbid0Lg0KPiA+Pg0KPiA+Pj4NCj4gPj4+
-ID4gV2UgYXJlIGp1c3QgdG8gaW1wcm92ZSBpdC4NCj4gPj4+DQo+ID4+PiBUaGF0J3MgbmljZSwg
-YnV0IHNlZSBhYm92ZS4NCj4gPj4NCj4gPj4gWWVzLCB3ZSBoYXZlIGZpeGVkIGl0Lg0KPiA+PiBB
-bmQgWWlzaGVuZyBYaWUgaGFzIGZlZWRiYWNrIHRoYXQgdGhpcyBpc3N1ZSBoYXMgYmVlbiBmaXhl
-ZC4NCj4gPj4NCj4gPj4gSG93ZXZlciwgdGhlIHYxIGZpeCBjb250YWlucyBwcm9ibGVtOg0KPiA+
-PiBUaGVyZSBpcyBvbmUgbGluZSBkZXBlbmRlbmN5IG5vdCBjb3JyZWN0Og0KPiA+PiAgYWNwaWRi
-ZyBhY3BpZHVtcCBlYzogaW5jbHVkZS9hY3BpIEZPUkNFDQo+ID4+IEkgZmFpbGVkIHRvIGNvcnJl
-Y3QgaXQgaW4gdjIvdjM6DQo+ID4+ICAkKE9VVFBVVCkkKFRPT0wpOiAkKEtFUk5FTF9JTkNMVURF
-KSAkKHRvb2xvYmpzKSBGT1JDRQ0KPiA+PiBXaGljaCB3YXMgY3JpdGljaXplZCBieSBBbmR5LCBj
-b21wbGFpbmluZyBuZXcgYnJlYWtzIGZvciBwYXJhbGxlbCBidWlsZHMuDQo+ID4+IE5vdyBpbiB2
-NCwgaXQgaXMgY29ycmVjdGVkOg0KPiA+PiAgJChvYmpkaXIpJS5vOiAlLmMgJChLRVJORUxfSU5D
-TFVERSkNCj4gPj4NCj4gPj4gSG93ZXZlciwgaW4gdjIvdjMsIEkgY2xlYW5lZCB1cCBPVVRQVVQg
-cmVsYXRlZCBjb2RlIGFuZCBjaGFuZ2VkIGl0cyBiZWhhdmlvciBvZiBidWlsZCB3aXRoICJPPSIu
-DQo+ID4+IEluIHYyL3YzLCBidWlsZCAiTz0iIGZyb20gdG9vbHMvcG93ZXIvYWNwaSBmb2xkZXIg
-cGFzc2VzLCBidXQgYnVpbGQgZnJvbSB0b29scyBmb2xkZXIgZmFpbHMuDQo+ID4+IEluIHY0LCBi
-dWlsZCAiTz0iIGZyb20gdG9vbHMgZm9sZGVyIHBhc3NlcywgYnV0IGJ1aWxkIGZyb20gdG9vbHMv
-cG93ZXIvYWNwaSBmb2xkZXIgZmFpbHMuDQo+ID4+DQo+ID4+IFRoZXJlIGRvZXNuJ3Qgc2VlbSB0
-byBiZSBhIHNvbHV0aW9uIHRvIG1ha2UgYm90aCBjYXNlcyB3b3JraW5nLg0KPiA+PiBCZWNhdXNl
-IHRoZSAiZGVzY2VuZCIgbWFjcm8gaW4gdG9vbHMvc2NyaXB0cy9NYWtlZmlsZS5pbmNsdWRlIGNh
-bm5vdCBoYW5kbGUgYm90aCBjYXNlcy4NCj4gPj4gU3RvcHBpbmcgdXNpbmcgImRlc2NlbmQiIG1h
-Y3JvIGluIHRvb2xzL3Bvd2VyL2FjcGkvTWFrZWZpbGUgY291bGQgYmUgdGhlIG9ubHkgcG9zc2li
-bGUgZml4Li4uDQo+ID4+IFNvIHdlIG9ubHkgbmVlZCBvbmUgb2YgdGhlbSB3b3JraW5nIGFuZCBJ
-TU8gdjQgaXMgc3VpdGFibGUgZm9yIEFuZHkncyBuZWVkcy4NCj4gPj4NCj4gPj4gQXMgYSBjb25j
-bHVzaW9uLCB2NCBzaG91bGQgYmUgT0sgbm93Lg0KPiA+DQo+ID4gU2VlIGFib3ZlLg0KPiA+DQo+
-ID4gVGhpcyBpcyBob3cgbWFrZSBzdGFydGVkLiAkKEtFUk5FTF9UT09MU19UQVJHRVQpIGlzIGEg
-bGlzdCBvZiBmb2xkZXJzDQo+ID4gdW5kZXIgdG9vbHMgKGZvciBub3cganVzdCAiYWNwaSBncGlv
-IHR1cmJvc3RhdCIpLiAkKDEpIGVpdGhlcg0KPiA+ICJpbnN0YWxsIiBvciAiY2xlYW4iLg0KPiA+
-IEtFUk5FTF9TUkMgdGhlIG91dHB1dCBmb2xkZXIgb2Yga2VybmVsIGJ1aWxkIChpdCBtaWdodCBi
-ZSB0aGUgc2FtZSBhcw0KPiA+IHNvdXJjZXMsIGJ1dCBub3QgbXkgY2FzZSwgSSB1c2VkIE89KS4g
-VGhlIHJlc3QgZnJvbSB0aGUgbGlzdCBhcmUNCj4gPiBjb21waWxlZCBhbmQgaW5zdGFsbGVkIG5p
-Y2VseS4gVGhpcyAqd2FzKiB0aGUgY2FzZSBmb3IgYWNwaSB0b29scy4NCj4gPg0KPiA+ICsgICAg
-ICAgJChRKWZvciB0IGluICQoS0VSTkVMX1RPT0xTX1RBUkdFVCk7IGRvICAgICAgICAgICAgICAg
-ICBcDQo+ID4gKyAgICAgICAgICAgICAgICQoTUFLRSkgLUMgJChLRVJORUxfU1JDKSAgICAgICAg
-ICAgICAgICAgICAgICAgIFwNCj4gDQo+ICQoTUFLRSkgaXMgc29tZXRoaW5nIGxpa2UgbWFrZSAt
-alhYIGhlcmUNCj4gDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgQ1JPU1NfQ09NUElMRT0i
-JChUQVJHRVRfQ1JPU1MpIiAgICAgICAgIFwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICBE
-RVNURElSPSIkKFRBUkdFVF9ESVIpIiAgICAgICAgICAgICAgICAgXA0KPiA+ICsgICAgICAgICAg
-ICAgICAgICAgICAgIHRvb2xzLyQke3R9XyQoMSk7ICAgICAgICAgICAgICAgICAgICAgICBcDQo+
-ID4gKyAgICAgICBkb25lDQo+ID4NCj4gPiBTby4gdGhlcmUgaXMgbm8gbWFnaWMgaGVyZS4NCj4g
-Pg0KPiA+IENhbiB5b3UgYWRkIHRoaXMgc2ltcGxlIHRlc3QgdG8geW91ciB0ZXN0IGNhc2VzPw0K
-PiANCj4gDQo+IC0tDQo+IFdpdGggQmVzdCBSZWdhcmRzLA0KPiBBbmR5IFNoZXZjaGVua28NCg==
+Hi Tyler,
+
+On 07/12/16 21:48, Tyler Baicar wrote:
+> Add support for ARM Common Platform Error Record (CPER).
+> UEFI 2.6 specification adds support for ARM specific
+> processor error information to be reported as part of the
+> CPER records. This provides more detail on for processor error logs.
+
+Looks good to me, a few minor comments below.
+
+Reviewed-by: James Morse <james.morse@arm.com>
+
+
+> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+> index 8fa4e23..1ac2572 100644
+> --- a/drivers/firmware/efi/cper.c
+> +++ b/drivers/firmware/efi/cper.c
+> @@ -184,6 +199,110 @@ static void cper_print_proc_generic(const char *pfx,
+>  		printk("%s""IP: 0x%016llx\n", pfx, proc->ip);
+>  }
+>  
+> +static void cper_print_proc_arm(const char *pfx,
+> +				const struct cper_sec_proc_arm *proc)
+> +{
+> +	int i, len, max_ctx_type;
+> +	struct cper_arm_err_info *err_info;
+> +	struct cper_arm_ctx_info *ctx_info;
+> +	char newpfx[64];
+> +
+> +	printk("%ssection length: %d\n", pfx, proc->section_length);
+
+Compared to the rest of the file, this:
+>	printk("%s""section length: %d\n", pfx, proc->section_length);
+
+would be more in keeping. I guess its done this way to avoid some spurious
+warning about %ssection not being recognised by printk().
+
+
+> +	printk("%sMIDR: 0x%016llx\n", pfx, proc->midr);
+> +
+> +	len = proc->section_length - (sizeof(*proc) +
+> +		proc->err_info_num * (sizeof(*err_info)));
+> +	if (len < 0) {
+> +		printk("%ssection length is too small\n", pfx);
+
+This calculation is all based on values in the 'struct cper_sec_proc_arm', is it
+worth making more noise about how the firmware-generated record is incorrectly
+formatted? If we see this message its not the kernel's fault!
+
+
+> +		printk("%sERR_INFO_NUM is %d\n", pfx, proc->err_info_num);
+> +		return;
+> +	}
+> +
+> +	if (proc->validation_bits & CPER_ARM_VALID_MPIDR)
+> +		printk("%sMPIDR: 0x%016llx\n", pfx, proc->mpidr);
+> +	if (proc->validation_bits & CPER_ARM_VALID_AFFINITY_LEVEL)
+> +		printk("%serror affinity level: %d\n", pfx,
+> +			proc->affinity_level);
+> +	if (proc->validation_bits & CPER_ARM_VALID_RUNNING_STATE) {
+
+> +		printk("%srunning state: %d\n", pfx, proc->running_state);
+
+This field is described as a bit field in table 260, can we print it as 0x%lx in
+case additional bits are set?
+
+
+> +		printk("%sPSCI state: %d\n", pfx, proc->psci_state);
+> +	}
+> +
+> +	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
+> +
+> +	err_info = (struct cper_arm_err_info *)(proc + 1);
+> +	for (i = 0; i < proc->err_info_num; i++) {
+> +		printk("%sError info structure %d:\n", pfx, i);
+> +		printk("%sversion:%d\n", newpfx, err_info->version);
+> +		printk("%slength:%d\n", newpfx, err_info->length);
+> +		if (err_info->validation_bits &
+> +		    CPER_ARM_INFO_VALID_MULTI_ERR) {
+> +			if (err_info->multiple_error == 0)
+> +				printk("%ssingle error\n", newpfx);
+> +			else if (err_info->multiple_error == 1)
+> +				printk("%smultiple errors\n", newpfx);
+> +			else
+
+> +				printk("%smultiple errors count:%d\n",
+> +				newpfx, err_info->multiple_error);
+
+This is described as unsigned in table 261.
+
+
+> +		}
+> +		if (err_info->validation_bits & CPER_ARM_INFO_VALID_FLAGS) {
+> +			if (err_info->flags & CPER_ARM_INFO_FLAGS_FIRST)
+> +				printk("%sfirst error captured\n", newpfx);
+> +			if (err_info->flags & CPER_ARM_INFO_FLAGS_LAST)
+> +				printk("%slast error captured\n", newpfx);
+> +			if (err_info->flags & CPER_ARM_INFO_FLAGS_PROPAGATED)
+> +				printk("%spropagated error captured\n",
+> +				       newpfx);
+
+Table 261 also has an 'overflow' bit in flags. It may be worth printing a
+warning if this is set:
+> Note: Overflow bit indicates that firmware/hardware error
+> buffers had experience an overflow, and it is possible that
+> some error information has been lost.
+
+
+> +		}
+> +		printk("%serror_type: %d, %s\n", newpfx, err_info->type,
+> +			err_info->type < ARRAY_SIZE(proc_error_type_strs) ?
+> +			proc_error_type_strs[err_info->type] : "unknown");
+> +		if (err_info->validation_bits & CPER_ARM_INFO_VALID_ERR_INFO)
+> +			printk("%serror_info: 0x%016llx\n", newpfx,
+> +			       err_info->error_info);
+> +		if (err_info->validation_bits & CPER_ARM_INFO_VALID_VIRT_ADDR)
+> +			printk("%svirtual fault address: 0x%016llx\n",
+> +				newpfx, err_info->virt_fault_addr);
+> +		if (err_info->validation_bits &
+> +		    CPER_ARM_INFO_VALID_PHYSICAL_ADDR)
+> +			printk("%sphysical fault address: 0x%016llx\n",
+> +				newpfx, err_info->physical_fault_addr);
+> +		err_info += 1;
+> +	}
+> +	ctx_info = (struct cper_arm_ctx_info *)err_info;
+
+> +	max_ctx_type = (sizeof(arm_reg_ctx_strs) /
+> +			sizeof(arm_reg_ctx_strs[0]) - 1);
+
+ARRAY_SIZE() - 1?
+
+
+> +	for (i = 0; i < proc->context_info_num; i++) {
+> +		int size = sizeof(*ctx_info) + ctx_info->size;
+> +
+> +		printk("%sContext info structure %d:\n", pfx, i);
+> +		if (len < size) {
+> +			printk("%ssection length is too small\n", newpfx);
+> +			return;
+> +		}
+> +		if (ctx_info->type > max_ctx_type) {
+> +			printk("%sInvalid context type: %d\n",	newpfx,
+> +						ctx_info->type);
+> +			printk("%sMax context type: %d\n", newpfx,
+> +						max_ctx_type);
+> +			return;
+> +		}
+> +		printk("%sregister context type %d: %s\n", newpfx,
+> +			ctx_info->type, arm_reg_ctx_strs[ctx_info->type]);
+> +		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4,
+> +				(ctx_info + 1), ctx_info->size, 0);
+> +		len -= size;
+> +		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + size);
+> +	}
+> +
+> +	if (len > 0) {
+> +		printk("%sVendor specific error info has %d bytes:\n", pfx,
+> +		       len);
+
+%u - just in case it is surprisingly large!
+
+
+> +		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4, ctx_info,
+> +				len, 0);
+> +	}
+> +}
+> +
+>  static const char * const mem_err_type_strs[] = {
+>  	"unknown",
+>  	"no error",
+> @@ -458,6 +577,15 @@ static void cper_estatus_print_section(
+>  			cper_print_pcie(newpfx, pcie, gdata);
+>  		else
+>  			goto err_section_too_small;
+> +	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PROC_ARM)) {
+> +		struct cper_sec_proc_arm *arm_err;
+> +
+> +		arm_err = acpi_hest_generic_data_payload(gdata);
+> +		printk("%ssection_type: ARM processor error\n", newpfx);
+> +		if (gdata->error_data_length >= sizeof(*arm_err))
+> +			cper_print_proc_arm(newpfx, arm_err);
+> +		else
+> +			goto err_section_too_small;
+>  	} else
+>  		printk("%s""section type: unknown, %pUl\n", newpfx, sec_type);
+>  
+
+This is the only processor-specific entry in this function,
+CPER_SEC_PROC_{IA,IPF} don't appear anywhere else in the tree.
+
+Is it worth adding an (IS_ENABLED(CONFIG_ARM64) || IS_ENABLED(CONFIG_ARM)) in
+the if()? This would let the compiler remove cper_print_proc_arm(() on x86/ia64
+systems which won't ever see a record of this type.
+
+
+Thanks!
+
+James
