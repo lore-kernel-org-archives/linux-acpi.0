@@ -1,52 +1,68 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [PATCH] ACPI/CPC: Don't try to clean up uninitialized CPC data
-Date: Fri, 16 Dec 2016 17:02:28 -0500
-Message-ID: <11b1b0a4-0ea6-9738-9575-5e038adf8979@oracle.com>
-References: <1481913346-16321-1-git-send-email-boris.ostrovsky@oracle.com>
- <274267e0-d41a-83b1-b4d6-ee7af51ace49@codeaurora.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
+Date: Sat, 17 Dec 2016 00:29:41 +0200
+Message-ID: <CAHp75Vc8q_WuFURhG_z5zj9VztS-d8_RiSHQYgh-HFTjzP0MEQ@mail.gmail.com>
+References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
+ <1481306510-7471-2-git-send-email-irina.tirdea@intel.com> <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
+ <1a98dcda-a662-958e-307f-5fe3f281ed9f@linux.intel.com> <CAHp75VccDyiLhWxZYg+d0usrwhfa_hiZAJCKPXXVRod=tB803g@mail.gmail.com>
+ <20161216183607.GB44199@f23x64.localdomain> <CAHp75Ve-3WXr05uvPQDfFDzxLc09+1ZSYpsuw02ab+x0enJtQg@mail.gmail.com>
+ <20161216191951.GC44199@f23x64.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:29304 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757526AbcLPWAB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2016 17:00:01 -0500
-In-Reply-To: <274267e0-d41a-83b1-b4d6-ee7af51ace49@codeaurora.org>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:36324 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758059AbcLPW3n (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2016 17:29:43 -0500
+In-Reply-To: <20161216191951.GC44199@f23x64.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Irina Tirdea <irina.tirdea@intel.com>, linux-clk@vger.kernel.org, "x86@kernel.org" <x86@kernel.org>, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 12/16/2016 04:52 PM, Prakash, Prashanth wrote:
-> Hi Boris,
+On Fri, Dec 16, 2016 at 9:19 PM, Darren Hart <dvhart@infradead.org> wrote:
+> On Fri, Dec 16, 2016 at 08:49:13PM +0200, Andy Shevchenko wrote:
+>> On Fri, Dec 16, 2016 at 8:36 PM, Darren Hart <dvhart@infradead.org> wrote:
+>> > On Tue, Dec 13, 2016 at 02:26:21AM +0200, Andy Shevchenko wrote:
+>> >> On Tue, Dec 13, 2016 at 2:15 AM, Pierre-Louis Bossart
+
+>> > There should really be some Documentation about how to choose an include
+>> > directory :-)
+>>
+>> So true!
+
+(1)
+
+> The options are:
 >
-> On 12/16/2016 11:35 AM, Boris Ostrovsky wrote:
->> If acpi_cppc_processor_probe() had not executed successfully (for
->> example, if _CPC object was not found) then cpc_desc_ptr for that
->> processor will be invalid.
->>
->> Signed-off-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->> ---
->>  drivers/acpi/cppc_acpi.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> index d0d0504..5bba26e 100644
->> --- a/drivers/acpi/cppc_acpi.c
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -824,6 +824,8 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
->>  	void __iomem *addr;
->>  
->>  	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
->> +	if (!cpc_ptr)
->> +		return;
->>  
->>  	/* Free all the mapped sys mem areas for this CPU */
->>  	for (i = 2; i < cpc_ptr->num_entries; i++) {
-> I think a recent patch from Sebastian fixed the same issue.
-> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=bleeding-edge&id=9e9d68dad58c70f40f50adfeabd2fdaa39a743fd
+> a) include/linux/x86
+> b) include/linux/platform_data/x86
 
-Ah, excellent! Thanks.
+Correct.
 
--boris
+> In my opinion, a) looks like architecture and would be difficult to distinguish
+> from arch/x86/include. b) on the other hand clearly notes that it is for
+> platform specific information. If it was platform instead of platform_data, that
+> would be even better, but that could be a later change. But I think the
+> confusion over x86 arch in a) is worse than the more subtle (in my opinion)
+> distinction between "platform" and "platform_data".
+>
+> I would want x86 maintainer approval before adding a), while b) I'm happy to add
+> ourselves - and we already have agreement from tglx on that.
+>
+> To move forward, let's go with b).
+
+Let me say I'm not fully satisfied, though for sake of moving forward
+I agree with these arguments.
+
+> The new x86 directory clearly separates out
+> content which will make it trivial to move later if the need arises.
+
+See (1). I would really appreciate if some agreement and documentation
+will be developed.
+In that case one of us would really have one serious argument to one
+of the sides.
+
+-- 
+With Best Regards,
+Andy Shevchenko
