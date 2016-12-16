@@ -1,42 +1,39 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v6 2/3] arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
-Date: Fri, 16 Dec 2016 20:39:01 +0200
-Message-ID: <CAHp75Vc9qkaHkpvcH+24ivF=5HsuKwSbRggo7ZC_3=ckJLMzcQ@mail.gmail.com>
-References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
- <1481306510-7471-3-git-send-email-irina.tirdea@intel.com> <CAHp75VfCgTgWnNmgcY9mp9n-1e_mSci=3dGyrtDquMtTT3OoYw@mail.gmail.com>
- <20161216182045.GA44199@f23x64.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: [PATCH] ACPI/CPC: Don't try to clean up uninitialized CPC data
+Date: Fri, 16 Dec 2016 13:35:46 -0500
+Message-ID: <1481913346-16321-1-git-send-email-boris.ostrovsky@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33710 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933001AbcLPSjD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2016 13:39:03 -0500
-In-Reply-To: <20161216182045.GA44199@f23x64.localdomain>
+Received: from userp1050.oracle.com ([156.151.31.82]:17803 "EHLO
+        userp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758175AbcLPSky (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2016 13:40:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Irina Tirdea <irina.tirdea@intel.com>, linux-clk@vger.kernel.org, "x86@kernel.org" <x86@kernel.org>, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 
-On Fri, Dec 16, 2016 at 8:20 PM, Darren Hart <dvhart@infradead.org> wrote:
-> On Tue, Dec 13, 2016 at 01:43:31AM +0200, Andy Shevchenko wrote:
->> I have been told I have to send my comments here instead of our
->> internal ML. I didn't fast enough to comment that during v5. So do it
->> right now.
+If acpi_cppc_processor_probe() had not executed successfully (for
+example, if _CPC object was not found) then cpc_desc_ptr for that
+processor will be invalid.
 
->> >  {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h | 0
->>
->> No, it's not a *platform data*.
->>
->> Other that that looks good to me.
->
-> Where would you recommend instead? It needs a place to serve both acpi_lpss.c
-> and pmc_atom.c. The include/linux/platform_data/x86 location doesn't seem too
-> strange as it supports a "platform" driver in the sense that pmc_atom is a
-> platform driver.
+Signed-off-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+---
+ drivers/acpi/cppc_acpi.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-include/linux/x86 ?
-
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index d0d0504..5bba26e 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -824,6 +824,8 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ 	void __iomem *addr;
+ 
+ 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
++	if (!cpc_ptr)
++		return;
+ 
+ 	/* Free all the mapped sys mem areas for this CPU */
+ 	for (i = 2; i < cpc_ptr->num_entries; i++) {
 -- 
-With Best Regards,
-Andy Shevchenko
+1.8.3.1
+
