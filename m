@@ -1,107 +1,300 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
-Date: Fri, 16 Dec 2016 11:19:51 -0800
-Message-ID: <20161216191951.GC44199@f23x64.localdomain>
-References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
- <1481306510-7471-2-git-send-email-irina.tirdea@intel.com>
- <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
- <1a98dcda-a662-958e-307f-5fe3f281ed9f@linux.intel.com>
- <CAHp75VccDyiLhWxZYg+d0usrwhfa_hiZAJCKPXXVRod=tB803g@mail.gmail.com>
- <20161216183607.GB44199@f23x64.localdomain>
- <CAHp75Ve-3WXr05uvPQDfFDzxLc09+1ZSYpsuw02ab+x0enJtQg@mail.gmail.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] acpi: Fix format string type mistakes
+Date: Fri, 16 Dec 2016 13:51:37 -0800
+Message-ID: <20161216215137.GA96800@beast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f169.google.com ([209.85.192.169]:33620 "EHLO
+        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758813AbcLPVvk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2016 16:51:40 -0500
+Received: by mail-pf0-f169.google.com with SMTP id d2so15907475pfd.0
+        for <linux-acpi@vger.kernel.org>; Fri, 16 Dec 2016 13:51:40 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <CAHp75Ve-3WXr05uvPQDfFDzxLc09+1ZSYpsuw02ab+x0enJtQg@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Irina Tirdea <irina.tirdea@intel.com>, linux-clk@vger.kernel.org, "x86@kernel.org" <x86@kernel.org>, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>
+Cc: linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Emese Revfy <re.emese@gmail.com>, devel@acpica.org
 
-On Fri, Dec 16, 2016 at 08:49:13PM +0200, Andy Shevchenko wrote:
-> On Fri, Dec 16, 2016 at 8:36 PM, Darren Hart <dvhart@infradead.org> wrote:
-> > On Tue, Dec 13, 2016 at 02:26:21AM +0200, Andy Shevchenko wrote:
-> >> On Tue, Dec 13, 2016 at 2:15 AM, Pierre-Louis Bossart
-> >> <pierre-louis.bossart@linux.intel.com> wrote:
-> 
-> >> For clock I would suggest include/linux/clk/ with x86_ prefix.
-> >> For the rest I have no strong opinion except trying to avoid
-> >> platform_data wording in the path as much as possible.
-> >>
-> >> As an example I could recall DMA engine subsystem where we have
-> >>
-> >> include/linux/platform_data/dma-*.h
-> >>
-> >> and
-> >>
-> >> include/linux/dma/*.h
-> >>
-> >> So, this sounds more to me as
-> >>
-> >> include/linux/x86/pmc_atom.h
-> >
-> > There should really be some Documentation about how to choose an include
-> > directory :-)
-> 
-> So true!
-> 
-> > My understanding is include/linux should be more generic, rather than platform
-> > specific headers. So while platform_data may refer specifically to the platform
-> > bus drivers, it's the closest thing we have to include/platform, which would be
-> > ideal. I would prefer to stick with include/platform_data because:
-> >
-> > 1) Semantically, it's the closest thing there is
-> > 2) include/linux should be for more generic headers related to the OS or
-> >    subsystems
+From: Emese Revfy <re.emese@gmail.com>
 
-Scratch #2 from the arguments since it's include/linux/platform_data that we're
-talking about here.
+This adds the missing __printf attribute which allows compile time
+format string checking (and will be used by the coming initify gcc
+plugin). Additionally, this fixes the warnings exposed by the attribute.
 
-> > 3) It doesn't make sense to create a separate include/platform directory for a
-> >    single header.
-> > 4) We don't want to rename platform_data to platform now and change all the
-> >    drivers, but it could be changed later.
-> 
-> My understanding that part like P-Unit, PMIC, PMC, SCU, whatever we
-> have inside SoC is platform from hardware prospective, but from
-> software (driver) it doesn't use platform data since it's quite SoC
-> specific (like CPU model to differentiate). That's why something in
-> the middle between arch/x86/include/asm and
-> include/linux/platform_data.
-> 
-> I assume I would be not good in naming schemes, though platform_data
-> for file which doesn't contain platform data for platform device
-> sounds a bit confusing to me. Like someone already noticed
-> include/platform_data is already messy. This might just add another
-> level of it.
-> 
-> So, what is exactly confuses me is mixing data for *platform devices*
-> (as represented via *platform driver* -- struct platform_driver)  and
-> for SoC devices (no struct platform_driver per se).
-> Maybe I misunderstood something...
+Signed-off-by: Emese Revfy <re.emese@gmail.com>
+[kees: split scsi/acpi, merged attr and fix, new commit messages]
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ drivers/acpi/acpica/dbhistry.c |  2 +-
+ drivers/acpi/acpica/dbinput.c  | 10 ++---
+ drivers/acpi/acpica/dbstats.c  | 88 +++++++++++++++++++++---------------------
+ drivers/acpi/acpica/utdebug.c  |  2 +-
+ include/acpi/acpiosxf.h        |  3 +-
+ 5 files changed, 53 insertions(+), 52 deletions(-)
 
-You're understanding is correct. We're just applying different values to the
-respective merits of each argument.
+diff --git a/drivers/acpi/acpica/dbhistry.c b/drivers/acpi/acpica/dbhistry.c
+index 46bd65d38df9..ec9da4830f6a 100644
+--- a/drivers/acpi/acpica/dbhistry.c
++++ b/drivers/acpi/acpica/dbhistry.c
+@@ -155,7 +155,7 @@ void acpi_db_display_history(void)
+ 
+ 	for (i = 0; i < acpi_gbl_num_history; i++) {
+ 		if (acpi_gbl_history_buffer[history_index].command) {
+-			acpi_os_printf("%3ld %s\n",
++			acpi_os_printf("%3u %s\n",
+ 				       acpi_gbl_history_buffer[history_index].
+ 				       cmd_num,
+ 				       acpi_gbl_history_buffer[history_index].
+diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
+index 068214f9cc9d..43be06bdb790 100644
+--- a/drivers/acpi/acpica/dbinput.c
++++ b/drivers/acpi/acpica/dbinput.c
+@@ -608,7 +608,7 @@ static u32 acpi_db_get_line(char *input_buffer)
+ 	    (acpi_gbl_db_parsed_buf, sizeof(acpi_gbl_db_parsed_buf),
+ 	     input_buffer)) {
+ 		acpi_os_printf
+-		    ("Buffer overflow while parsing input line (max %u characters)\n",
++		    ("Buffer overflow while parsing input line (max %lu characters)\n",
+ 		     sizeof(acpi_gbl_db_parsed_buf));
+ 		return (0);
+ 	}
+@@ -864,24 +864,24 @@ acpi_db_command_dispatch(char *input_buffer,
+ 
+ 		if (param_count == 0) {
+ 			acpi_os_printf
+-			    ("Current debug level for file output is:    %8.8lX\n",
++			    ("Current debug level for file output is:    %8.8X\n",
+ 			     acpi_gbl_db_debug_level);
+ 			acpi_os_printf
+-			    ("Current debug level for console output is: %8.8lX\n",
++			    ("Current debug level for console output is: %8.8X\n",
+ 			     acpi_gbl_db_console_debug_level);
+ 		} else if (param_count == 2) {
+ 			temp = acpi_gbl_db_console_debug_level;
+ 			acpi_gbl_db_console_debug_level =
+ 			    strtoul(acpi_gbl_db_args[1], NULL, 16);
+ 			acpi_os_printf
+-			    ("Debug Level for console output was %8.8lX, now %8.8lX\n",
++			    ("Debug Level for console output was %8.8X, now %8.8X\n",
+ 			     temp, acpi_gbl_db_console_debug_level);
+ 		} else {
+ 			temp = acpi_gbl_db_debug_level;
+ 			acpi_gbl_db_debug_level =
+ 			    strtoul(acpi_gbl_db_args[1], NULL, 16);
+ 			acpi_os_printf
+-			    ("Debug Level for file output was %8.8lX, now %8.8lX\n",
++			    ("Debug Level for file output was %8.8X, now %8.8X\n",
+ 			     temp, acpi_gbl_db_debug_level);
+ 		}
+ 		break;
+diff --git a/drivers/acpi/acpica/dbstats.c b/drivers/acpi/acpica/dbstats.c
+index a414e1fa6f9d..de7023024b12 100644
+--- a/drivers/acpi/acpica/dbstats.c
++++ b/drivers/acpi/acpica/dbstats.c
+@@ -377,17 +377,17 @@ acpi_status acpi_db_display_statistics(char *type_arg)
+ 			       "ACPI_TYPE", "NODES", "OBJECTS");
+ 
+ 		for (i = 0; i < ACPI_TYPE_NS_NODE_MAX; i++) {
+-			acpi_os_printf("%16.16s % 10ld% 10ld\n",
++			acpi_os_printf("%16.16s % 10d% 10d\n",
+ 				       acpi_ut_get_type_name(i),
+ 				       acpi_gbl_node_type_count[i],
+ 				       acpi_gbl_obj_type_count[i]);
+ 		}
+ 
+-		acpi_os_printf("%16.16s % 10ld% 10ld\n", "Misc/Unknown",
++		acpi_os_printf("%16.16s % 10d% 10d\n", "Misc/Unknown",
+ 			       acpi_gbl_node_type_count_misc,
+ 			       acpi_gbl_obj_type_count_misc);
+ 
+-		acpi_os_printf("%16.16s % 10ld% 10ld\n", "TOTALS:",
++		acpi_os_printf("%16.16s % 10d% 10d\n", "TOTALS:",
+ 			       acpi_gbl_num_nodes, acpi_gbl_num_objects);
+ 		break;
+ 
+@@ -415,16 +415,16 @@ acpi_status acpi_db_display_statistics(char *type_arg)
+ 	case CMD_STAT_MISC:
+ 
+ 		acpi_os_printf("\nMiscellaneous Statistics:\n\n");
+-		acpi_os_printf("Calls to AcpiPsFind:.. ........% 7ld\n",
++		acpi_os_printf("Calls to AcpiPsFind:.. ........% 7u\n",
+ 			       acpi_gbl_ps_find_count);
+-		acpi_os_printf("Calls to AcpiNsLookup:..........% 7ld\n",
++		acpi_os_printf("Calls to AcpiNsLookup:..........% 7u\n",
+ 			       acpi_gbl_ns_lookup_count);
+ 
+ 		acpi_os_printf("\n");
+ 
+ 		acpi_os_printf("Mutex usage:\n\n");
+ 		for (i = 0; i < ACPI_NUM_MUTEX; i++) {
+-			acpi_os_printf("%-28s:     % 7ld\n",
++			acpi_os_printf("%-28s:     % 7u\n",
+ 				       acpi_ut_get_mutex_name(i),
+ 				       acpi_gbl_mutex_info[i].use_count);
+ 		}
+@@ -434,87 +434,87 @@ acpi_status acpi_db_display_statistics(char *type_arg)
+ 
+ 		acpi_os_printf("\nInternal object sizes:\n\n");
+ 
+-		acpi_os_printf("Common         %3d\n",
++		acpi_os_printf("Common         %3lu\n",
+ 			       sizeof(struct acpi_object_common));
+-		acpi_os_printf("Number         %3d\n",
++		acpi_os_printf("Number         %3lu\n",
+ 			       sizeof(struct acpi_object_integer));
+-		acpi_os_printf("String         %3d\n",
++		acpi_os_printf("String         %3lu\n",
+ 			       sizeof(struct acpi_object_string));
+-		acpi_os_printf("Buffer         %3d\n",
++		acpi_os_printf("Buffer         %3lu\n",
+ 			       sizeof(struct acpi_object_buffer));
+-		acpi_os_printf("Package        %3d\n",
++		acpi_os_printf("Package        %3lu\n",
+ 			       sizeof(struct acpi_object_package));
+-		acpi_os_printf("BufferField    %3d\n",
++		acpi_os_printf("BufferField    %3lu\n",
+ 			       sizeof(struct acpi_object_buffer_field));
+-		acpi_os_printf("Device         %3d\n",
++		acpi_os_printf("Device         %3lu\n",
+ 			       sizeof(struct acpi_object_device));
+-		acpi_os_printf("Event          %3d\n",
++		acpi_os_printf("Event          %3lu\n",
+ 			       sizeof(struct acpi_object_event));
+-		acpi_os_printf("Method         %3d\n",
++		acpi_os_printf("Method         %3lu\n",
+ 			       sizeof(struct acpi_object_method));
+-		acpi_os_printf("Mutex          %3d\n",
++		acpi_os_printf("Mutex          %3lu\n",
+ 			       sizeof(struct acpi_object_mutex));
+-		acpi_os_printf("Region         %3d\n",
++		acpi_os_printf("Region         %3lu\n",
+ 			       sizeof(struct acpi_object_region));
+-		acpi_os_printf("PowerResource  %3d\n",
++		acpi_os_printf("PowerResource  %3lu\n",
+ 			       sizeof(struct acpi_object_power_resource));
+-		acpi_os_printf("Processor      %3d\n",
++		acpi_os_printf("Processor      %3lu\n",
+ 			       sizeof(struct acpi_object_processor));
+-		acpi_os_printf("ThermalZone    %3d\n",
++		acpi_os_printf("ThermalZone    %3lu\n",
+ 			       sizeof(struct acpi_object_thermal_zone));
+-		acpi_os_printf("RegionField    %3d\n",
++		acpi_os_printf("RegionField    %3lu\n",
+ 			       sizeof(struct acpi_object_region_field));
+-		acpi_os_printf("BankField      %3d\n",
++		acpi_os_printf("BankField      %3lu\n",
+ 			       sizeof(struct acpi_object_bank_field));
+-		acpi_os_printf("IndexField     %3d\n",
++		acpi_os_printf("IndexField     %3lu\n",
+ 			       sizeof(struct acpi_object_index_field));
+-		acpi_os_printf("Reference      %3d\n",
++		acpi_os_printf("Reference      %3lu\n",
+ 			       sizeof(struct acpi_object_reference));
+-		acpi_os_printf("Notify         %3d\n",
++		acpi_os_printf("Notify         %3lu\n",
+ 			       sizeof(struct acpi_object_notify_handler));
+-		acpi_os_printf("AddressSpace   %3d\n",
++		acpi_os_printf("AddressSpace   %3lu\n",
+ 			       sizeof(struct acpi_object_addr_handler));
+-		acpi_os_printf("Extra          %3d\n",
++		acpi_os_printf("Extra          %3lu\n",
+ 			       sizeof(struct acpi_object_extra));
+-		acpi_os_printf("Data           %3d\n",
++		acpi_os_printf("Data           %3lu\n",
+ 			       sizeof(struct acpi_object_data));
+ 
+ 		acpi_os_printf("\n");
+ 
+-		acpi_os_printf("ParseObject    %3d\n",
++		acpi_os_printf("ParseObject    %3lu\n",
+ 			       sizeof(struct acpi_parse_obj_common));
+-		acpi_os_printf("ParseObjectNamed %3d\n",
++		acpi_os_printf("ParseObjectNamed %3lu\n",
+ 			       sizeof(struct acpi_parse_obj_named));
+-		acpi_os_printf("ParseObjectAsl %3d\n",
++		acpi_os_printf("ParseObjectAsl %3lu\n",
+ 			       sizeof(struct acpi_parse_obj_asl));
+-		acpi_os_printf("OperandObject  %3d\n",
++		acpi_os_printf("OperandObject  %3lu\n",
+ 			       sizeof(union acpi_operand_object));
+-		acpi_os_printf("NamespaceNode  %3d\n",
++		acpi_os_printf("NamespaceNode  %3lu\n",
+ 			       sizeof(struct acpi_namespace_node));
+-		acpi_os_printf("AcpiObject     %3d\n",
++		acpi_os_printf("AcpiObject     %3lu\n",
+ 			       sizeof(union acpi_object));
+ 
+ 		acpi_os_printf("\n");
+ 
+-		acpi_os_printf("Generic State  %3d\n",
++		acpi_os_printf("Generic State  %3lu\n",
+ 			       sizeof(union acpi_generic_state));
+-		acpi_os_printf("Common State   %3d\n",
++		acpi_os_printf("Common State   %3lu\n",
+ 			       sizeof(struct acpi_common_state));
+-		acpi_os_printf("Control State  %3d\n",
++		acpi_os_printf("Control State  %3lu\n",
+ 			       sizeof(struct acpi_control_state));
+-		acpi_os_printf("Update State   %3d\n",
++		acpi_os_printf("Update State   %3lu\n",
+ 			       sizeof(struct acpi_update_state));
+-		acpi_os_printf("Scope State    %3d\n",
++		acpi_os_printf("Scope State    %3lu\n",
+ 			       sizeof(struct acpi_scope_state));
+-		acpi_os_printf("Parse Scope    %3d\n",
++		acpi_os_printf("Parse Scope    %3lu\n",
+ 			       sizeof(struct acpi_pscope_state));
+-		acpi_os_printf("Package State  %3d\n",
++		acpi_os_printf("Package State  %3lu\n",
+ 			       sizeof(struct acpi_pkg_state));
+-		acpi_os_printf("Thread State   %3d\n",
++		acpi_os_printf("Thread State   %3lu\n",
+ 			       sizeof(struct acpi_thread_state));
+-		acpi_os_printf("Result Values  %3d\n",
++		acpi_os_printf("Result Values  %3lu\n",
+ 			       sizeof(struct acpi_result_values));
+-		acpi_os_printf("Notify Info    %3d\n",
++		acpi_os_printf("Notify Info    %3lu\n",
+ 			       sizeof(struct acpi_notify_info));
+ 		break;
+ 
+diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+index 044df9b0356e..b4cdb9c14a87 100644
+--- a/drivers/acpi/acpica/utdebug.c
++++ b/drivers/acpi/acpica/utdebug.c
+@@ -189,7 +189,7 @@ acpi_debug_print(u32 requested_debug_level,
+ 	 * Display the module name, current line number, thread ID (if requested),
+ 	 * current procedure nesting level, and the current procedure name
+ 	 */
+-	acpi_os_printf("%9s-%04ld ", module_name, line_number);
++	acpi_os_printf("%9s-%04u ", module_name, line_number);
+ 
+ #ifdef ACPI_APPLICATION
+ 	/*
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index f3414c83abb1..48b21490bbeb 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -337,11 +337,12 @@ acpi_status acpi_os_signal(u32 function, void *info);
+  * Debug print routines
+  */
+ #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_printf
++__printf(1, 2)
+ void ACPI_INTERNAL_VAR_XFACE acpi_os_printf(const char *format, ...);
+ #endif
+ 
+ #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_vprintf
+-void acpi_os_vprintf(const char *format, va_list args);
++__printf(1, 0) void acpi_os_vprintf(const char *format, va_list args);
+ #endif
+ 
+ #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_redirect_output
+-- 
+2.7.4
 
-The options are:
-
-a) include/linux/x86
-b) include/linux/platform_data/x86
-
-In my opinion, a) looks like architecture and would be difficult to distinguish
-from arch/x86/include. b) on the other hand clearly notes that it is for
-platform specific information. If it was platform instead of platform_data, that
-would be even better, but that could be a later change. But I think the
-confusion over x86 arch in a) is worse than the more subtle (in my opinion)
-distinction between "platform" and "platform_data".
-
-I would want x86 maintainer approval before adding a), while b) I'm happy to add
-ourselves - and we already have agreement from tglx on that.
-
-To move forward, let's go with b). The new x86 directory clearly separates out
-content which will make it trivial to move later if the need arises.
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
+Kees Cook
+Nexus Security
