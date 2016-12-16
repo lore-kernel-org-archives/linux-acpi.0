@@ -1,105 +1,162 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH V5] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
-Date: Thu, 15 Dec 2016 19:57:45 +0200
-Message-ID: <1481824665.9552.41.camel@linux.intel.com>
-References: <1481707438-32240-1-git-send-email-tnhuynh@apm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1481707438-32240-1-git-send-email-tnhuynh@apm.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Tin Huynh <tnhuynh@apm.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v4] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
+Date: Fri, 16 Dec 2016 12:07:57 +0800
+Message-ID: <45a8018ee545506222202d7cfc09bf1d362a27dc.1481861176.git.lv.zheng@intel.com>
+References: <cover.1463389639.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:57430 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753105AbcLPEIF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Dec 2016 23:08:05 -0500
+In-Reply-To: <cover.1463389639.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wed, 2016-12-14 at 16:23 +0700, Tin Huynh wrote:
-> ACPI always sets Tx/Rx FIFO to 32. This configuration will
-> cause problem if the IP core supports a FIFO size of less than 32.
-> The driver should read the FIFO size from the IP and select the
-> smaller
-> one of the two.
-> 
-> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
-> 
+Sometimes, the users may require a quirk to be provided from ACPI subsystem
+core to prevent a GPE from flooding.
+Normally, if a GPE cannot be dispatched, ACPICA core automatically prevents
+the GPE from firing. But there are cases the GPE is dispatched by _Lxx/_Exx
+provided via AML table, and OSPM is lacking of the knowledge to get
+_Lxx/_Exx correctly executed to handle the GPE, thus the GPE flooding may
+still occur.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The existing quirk mechanism can be enabled/disabled using the following
+commands to prevent such kind of GPE flooding during runtime:
+ # echo mask > /sys/firmware/acpi/interrupts/gpe00
+ # echo unmask > /sys/firmware/acpi/interrupts/gpe00
+To avoid GPE flooding during boot, we need a boot stage mechanism.
 
-> ---
->  drivers/i2c/busses/i2c-designware-platdrv.c |   31
-> ++++++++++++++++++++------
->  1 files changed, 24 insertions(+), 7 deletions(-)
-> 
-> Change from V4:
->  -Change else condition and add some comments to clarify new approach.
-> 
-> Change from V3:
->  -Use uppercase of FIFO instead of lowercase.
->  -Correct else condition when IP core return 0 of FIFO.
-> 
-> Change from V2:
->  -Add a helper function to set FIFO size.
-> 
-> Change from V1:
->  -Revert the default 32 for FIFO, read parameter from IP core
->  and pick the smaller one of the two.
->  -Correct the title to describe new approach.
-> 
-> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c
-> b/drivers/i2c/busses/i2c-designware-platdrv.c
-> index 0b42a12..682adc3 100644
-> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
-> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-> @@ -150,6 +150,29 @@ static int i2c_dw_plat_prepare_clk(struct
-> dw_i2c_dev *i_dev, bool prepare)
->  	return 0;
->  }
->  
-> +static void dw_i2c_set_fifo_size(struct dw_i2c_dev *dev, int id)
-> +{
-> +	u32 param, tx_fifo_depth, rx_fifo_depth;
-> +
-> +	/*
-> +	 * Try to detect the FIFO depth if not set by interface
-> driver,
-> +	 * the depth could be from 2 to 256 from HW spec.
-> +	 */
-> +	param = i2c_dw_read_comp_param(dev);
-> +	tx_fifo_depth = ((param >> 16) & 0xff) + 1;
-> +	rx_fifo_depth = ((param >> 8)  & 0xff) + 1;
-> +	if (!dev->tx_fifo_depth) {
-> +		dev->tx_fifo_depth = tx_fifo_depth;
-> +		dev->rx_fifo_depth = rx_fifo_depth;
-> +		dev->adapter.nr = id;
-> +	} else if (tx_fifo_depth >= 2) {
-> +		dev->tx_fifo_depth = min_t(u32, dev->tx_fifo_depth,
-> +				tx_fifo_depth);
-> +		dev->rx_fifo_depth = min_t(u32, dev->rx_fifo_depth,
-> +				rx_fifo_depth);
-> +	}
-> +}
-> +
->  static int dw_i2c_plat_probe(struct platform_device *pdev)
->  {
->  	struct dw_i2c_platform_data *pdata = dev_get_platdata(&pdev-
-> >dev);
-> @@ -246,13 +269,7 @@ static int dw_i2c_plat_probe(struct
-> platform_device *pdev)
->  				1000000);
->  	}
->  
-> -	if (!dev->tx_fifo_depth) {
-> -		u32 param1 = i2c_dw_read_comp_param(dev);
-> -
-> -		dev->tx_fifo_depth = ((param1 >> 16) & 0xff) + 1;
-> -		dev->rx_fifo_depth = ((param1 >> 8)  & 0xff) + 1;
-> -		dev->adapter.nr = pdev->id;
-> -	}
-> +	dw_i2c_set_fifo_size(dev, pdev->id);
->  
->  	adap = &dev->adapter;
->  	adap->owner = THIS_MODULE;
+This patch provides such a boot stage quirk mechanism to stop this kind of
+GPE flooding. This patch doesn't fix any feature gap but since the new
+feature gaps could be found in the future endlessly, and can disappear if
+the feature gaps are filled, providing a boot parameter rather than a DMI
+table should suffice.
 
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=117481
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ Documentation/admin-guide/kernel-parameters.txt |   10 ++++
+ drivers/acpi/internal.h                         |    1 +
+ drivers/acpi/scan.c                             |    1 +
+ drivers/acpi/sysfs.c                            |   56 +++++++++++++++++++++++
+ 4 files changed, 68 insertions(+)
+
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index be2d6d0..bef68c7 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -106,6 +106,16 @@
+ 			use by PCI
+ 			Format: <irq>,<irq>...
+ 
++	acpi_mask_gpe=  [HW,ACPI]
++			Due to the existence of _Lxx/_Exx, some GPEs triggered
++			by unsupported hardware/firmware features can result in
++                        GPE floodings that cannot be automatically disabled by
++                        the GPE dispatcher.
++			This facility can be used to prevent such uncontrolled
++			GPE floodings.
++			Format: <int>
++			Support masking of GPEs numbered from 0x00 to 0x7f.
++
+ 	acpi_no_auto_serialize	[HW,ACPI]
+ 			Disable auto-serialization of AML methods
+ 			AML control methods that contain the opcodes to create
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 1b41a27..0c45226 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -37,6 +37,7 @@
+ static inline void acpi_amba_init(void) {}
+ #endif
+ int acpi_sysfs_init(void);
++void acpi_gpe_apply_masked_gpes(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 3d1856f..5a2fdf1 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2044,6 +2044,7 @@ int __init acpi_scan_init(void)
+ 		}
+ 	}
+ 
++	acpi_gpe_apply_masked_gpes();
+ 	acpi_update_all_gpes();
+ 	acpi_ec_ecdt_start();
+ 
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 703c26e..cf05ae9 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -708,6 +708,62 @@ static ssize_t counter_set(struct kobject *kobj,
+ 	return result ? result : size;
+ }
+ 
++/*
++ * A Quirk Mechanism for GPE Flooding Prevention:
++ *
++ * Quirks may be needed to prevent GPE flooding on a specific GPE. The
++ * flooding typically cannot be detected and automatically prevented by
++ * ACPI_GPE_DISPATCH_NONE check because there is a _Lxx/_Exx prepared in
++ * the AML tables. This normally indicates a feature gap in Linux, thus
++ * instead of providing endless quirk tables, we provide a boot parameter
++ * for those who want this quirk. For example, if the users want to prevent
++ * the GPE flooding for GPE 00, they need to specify the following boot
++ * parameter:
++ *   acpi_mask_gpe=0x00
++ * The masking status can be modified by the following runtime controlling
++ * interface:
++ *   echo unmask > /sys/firmware/acpi/interrupts/gpe00
++ */
++
++/*
++ * Currently, the GPE flooding prevention only supports to mask the GPEs
++ * numbered from 00 to 7f.
++ */
++#define ACPI_MASKABLE_GPE_MAX	0x80
++
++static u64 __initdata acpi_masked_gpes;
++
++static int __init acpi_gpe_set_masked_gpes(char *val)
++{
++	u8 gpe;
++
++	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_MASKABLE_GPE_MAX)
++		return -EINVAL;
++	acpi_masked_gpes |= ((u64)1<<gpe);
++
++	return 1;
++}
++__setup("acpi_mask_gpe=", acpi_gpe_set_masked_gpes);
++
++void __init acpi_gpe_apply_masked_gpes(void)
++{
++	acpi_handle handle;
++	acpi_status status;
++	u8 gpe;
++
++	for (gpe = 0;
++	     gpe < min_t(u8, ACPI_MASKABLE_GPE_MAX, acpi_current_gpe_count);
++	     gpe++) {
++		if (acpi_masked_gpes & ((u64)1<<gpe)) {
++			status = acpi_get_gpe_device(gpe, &handle);
++			if (ACPI_SUCCESS(status)) {
++				pr_info("Masking GPE 0x%x.\n", gpe);
++				(void)acpi_mask_gpe(handle, gpe, TRUE);
++			}
++		}
++	}
++}
++
+ void acpi_irq_stats_init(void)
+ {
+ 	acpi_status status;
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+1.7.10
+
