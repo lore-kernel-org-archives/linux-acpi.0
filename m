@@ -1,56 +1,54 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
-Date: Fri, 16 Dec 2016 10:46:11 +0200
-Message-ID: <CAHp75Vf7Sfq3_mSb6xf0NHutq8tO1y7Rhi7opDkomu+-vQZCYw@mail.gmail.com>
-References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
- <1481306510-7471-2-git-send-email-irina.tirdea@intel.com> <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
- <20161213232524.GQ5423@codeaurora.org> <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Irina Tirdea <irina.tirdea@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, platform-driver-x86@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, linux-clk@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] ACPI: Remove misplaced acpi_dma_deconfigure() call in acpi_bind_one()
+Date: Fri, 16 Dec 2016 14:43:56 +0000
+Message-ID: <20161216144356.24628-1-lorenzo.pieralisi@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:54844 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760630AbcLPOmb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 16 Dec 2016 09:42:31 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Fri, Dec 16, 2016 at 7:15 AM, Pierre-Louis Bossart
-<pierre-louis.bossart@linux.intel.com> wrote:
-> Hi Stephen,
->
-> can you elaborate on the last comment?
+The acpi_bind_one() error return path can be hit either on physical node
+allocation failure or if the device being configured is already
+associated with an ACPI node and its ACPI companion does not match the
+one acpi_bind_one() is setting it up with. In both cases the error
+return path is executed before DMA is configured for a device therefore
+there is no need to call acpi_dma_deconfigure() on the function error
+return path.
 
-Please don't do top posting.
+Furthermore, if acpi_bind_one() does configure DMA for a device (ie it
+successfully executes acpi_dma_configure()) acpi_bind_one() always
+completes execution successfully hence there is no need to add an exit
+path to deconfigure the DMA set-up (ie by calling acpi_dma_deconfigure()).
 
->>> devm_kasprintf()
->>
->> Please no.
+Remove the misplaced acpi_dma_deconfigure() in acpi_bind_one() to
+reinstate its correct error return path behaviour.
 
-That's why I used modal verb "might" instead of "would".
+Fixes: d760a1baf20e ("ACPI: Implement acpi_dma_configure")
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+ drivers/acpi/glue.c | 1 -
+ 1 file changed, 1 deletion(-)
 
->> It's all local to this function, devm isn't helping anything.
->> Having one kfree() would be good though. And using init.name for
->> the clkdev lookup is probably wrong and should be replaced with
->> something more generic along with an associated device name.
->
-> I am not sure I understand this last comment.
-> init.name is not a constant, it's made of the "pmc_plt_clk_" string
-> concatenated with an id which directly maps to which hardware clock is
-> registered. Clients use devm_clk_get() with a "pmc_plt_clk_<n>" argument.
-
-Giving more thoughts about design and use of this I would propose to
-do the following.
-
-1. Create under clock framework something like clk-pmc-atom clock
-driver (see, for example, clk-fractional-divider, though this one
-should indeed go under x86 folder).
-2. In real provider, i.e. pmc_atom, create the necessary clock tree
-with *names*.
-
-Scheme with ID is fragile, imagine another version of PMC where
-ordering would be mixed up? It's not hypothetical since we used to
-have this already in pmc_atom for some registers and bits.
-
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index f8d6564..eb709e7 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -250,7 +250,6 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ 	return 0;
+ 
+  err:
+-	acpi_dma_deconfigure(dev);
+ 	ACPI_COMPANION_SET(dev, NULL);
+ 	put_device(dev);
+ 	put_device(&acpi_dev->dev);
 -- 
-With Best Regards,
-Andy Shevchenko
+2.10.0
+
