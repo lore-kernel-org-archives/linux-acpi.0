@@ -1,51 +1,60 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
-Date: Sat, 17 Dec 2016 15:57:27 +0200
-Message-ID: <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
-References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
- <1481306510-7471-2-git-send-email-irina.tirdea@intel.com> <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
- <20161213232524.GQ5423@codeaurora.org> <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
- <20161217013337.GW5423@codeaurora.org>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH V5] i2c: designware: fix wrong Tx/Rx FIFO for ACPI
+Date: Sat, 17 Dec 2016 19:38:38 +0100
+Message-ID: <20161217183838.GE27020@katana>
+References: <1481707438-32240-1-git-send-email-tnhuynh@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="gMR3gsNFwZpnI/Ts"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35215 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752043AbcLQN53 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Dec 2016 08:57:29 -0500
-In-Reply-To: <20161217013337.GW5423@codeaurora.org>
+Received: from www.zeus03.de ([194.117.254.33]:53894 "EHLO mail.zeus03.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751932AbcLQSik (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 17 Dec 2016 13:38:40 -0500
+Content-Disposition: inline
+In-Reply-To: <1481707438-32240-1-git-send-email-tnhuynh@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Irina Tirdea <irina.tirdea@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, platform-driver-x86@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, linux-clk@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>
+To: Tin Huynh <tnhuynh@apm.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, patches@apm.com
 
-On Sat, Dec 17, 2016 at 3:33 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> On 12/15, Pierre-Louis Bossart wrote:
 
->>Clients use devm_clk_get() with a "pmc_plt_clk_<n>"
->> argument.
->
-> This is the problem. Clients should be calling clk_get() like:
->
->         clk_get(dev, "signal name in datasheet")
->
-> where the first argument is the device and the second argument is
-> some string that is meaningful to the device, not the system as a
-> whole. The way clkdev is intended is so that the dev argument's
-> dev_name() is combined with the con_id that matches some signale
-> name in the datasheet. This way when the same IP is put into some
-> other chip, the globally unique name doesn't need to change, just
-> the device name that's registered with the lookup. Obviously this
-> breaks down quite badly when dev_name() isn't stable. Is that
-> happening here?
+--gMR3gsNFwZpnI/Ts
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-PMC Atom is a PCI device and thus each platform would have different
-dev_name(). Do you want to list all in each consumer if consumer wants
-to work on all of them or I missed something?
+On Wed, Dec 14, 2016 at 04:23:58PM +0700, Tin Huynh wrote:
+> ACPI always sets Tx/Rx FIFO to 32. This configuration will
+> cause problem if the IP core supports a FIFO size of less than 32.
+> The driver should read the FIFO size from the IP and select the smaller
+> one of the two.
+>=20
+> Signed-off-by: Tin Huynh <tnhuynh@apm.com>
+>=20
 
-So, the question is how clock getting will look like to work on
-currently both CherryTrail and BayTrail.
+Applied to for-current, thanks!
 
--- 
-With Best Regards,
-Andy Shevchenko
+
+--gMR3gsNFwZpnI/Ts
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYVYYtAAoJEBQN5MwUoCm2a5wP/0x+/TRPv5vUpE3fqz7nV1+r
+ESh5Oy9VtopkcQnqI2KNcdyVHdFH6r5xeNqsTvZ5pZtIHRPtsiwxCttT5ZmYhoT0
+tfx7d3Y6TttLA919z4wGJiV9O316BMjUt9jwa91mdtCruRwkSMO69rEkxqjN081j
+oFszVwI8f7I9oLdl3pRd4/QP5ckUzYzr2yKDRV44BXPQmeKGW30lfTbQZ9cLy3KB
+cp+++DYjnA7FciVcZGqDhC7tdFrpnJw7FPMUppO6PbSKuPoLlK2A+8XEcPkXrKJq
+OPkLUN57yOi/LMmyhw+1vgnba2K9HlAQroL/vAsdUpJ6F6QXWgYUtN+4bq0j7q9P
+YJvZPR89zbsEX+B3R2bZZzJUe1sjZpdvVtj/9+5g92+RArKPKjA5yn5RnHhqm0Oh
+LYxmh9VWOqEOG7UgLG3tKZnr7ovkW0TfhHr4Ai4cNNL/mZjCYk6/ieeZ7tVSyc/l
+6wPMu9nWFyU5U9L1u8+lXdgn1tvfRom2mfL9Rm9JXGSP22DGVxG/LwMSYXMDv/OW
+btZhpzivEISXeyCfr908ZrZf2K3y2Kq8Hlc0Fi7RiSnrAzqwOMYwNfiQtBS0A6lk
+fHTAMHpS/SSo5hW1BA2Yq3kOd/mcQslmHqR8YNpN1da7y0lNOm/4llArIX4+Dlcn
+zR9m7jbyPQKH6JefbW2U
+=SWm2
+-----END PGP SIGNATURE-----
+
+--gMR3gsNFwZpnI/Ts--
