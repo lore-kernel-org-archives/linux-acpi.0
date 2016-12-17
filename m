@@ -1,52 +1,53 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] ACPICA: use designated initializers
-Date: Fri, 16 Dec 2016 17:04:25 -0800
-Message-ID: <20161217010425.GA140581@beast>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform
+ clocks
+Date: Fri, 16 Dec 2016 17:33:37 -0800
+Message-ID: <20161217013337.GW5423@codeaurora.org>
+References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
+ <1481306510-7471-2-git-send-email-irina.tirdea@intel.com>
+ <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
+ <20161213232524.GQ5423@codeaurora.org>
+ <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:47706 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758209AbcLQBdj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Dec 2016 20:33:39 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
+In-Reply-To: <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Irina Tirdea <irina.tirdea@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, platform-driver-x86@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, linux-clk@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>
 
-Prepare to mark sensitive kernel structures for randomization by making
-sure they're using designated initializers. These were identified during
-allyesconfig builds of x86, arm, and arm64, with most initializer fixes
-extracted from grsecurity.
+On 12/15, Pierre-Louis Bossart wrote:
+> I am not sure I understand this last comment.
+> init.name is not a constant, it's made of the "pmc_plt_clk_" string
+> concatenated with an id which directly maps to which hardware clock
+> is registered.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/acpi/acpica/hwxfsleep.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+That's all fine. We need globally unique strings for clk names in
+the framework so things work.
 
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index f76e0eab32b8..25cd5c66e102 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -70,11 +70,12 @@ static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
- /* Legacy functions are optional, based upon ACPI_REDUCED_HARDWARE */
- 
- static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
--	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
--	 acpi_hw_extended_sleep},
--	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
--	 acpi_hw_extended_wake_prep},
--	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake), acpi_hw_extended_wake}
-+	{ .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
-+	  .extended_function = acpi_hw_extended_sleep },
-+	{ .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
-+	  .extended_function = acpi_hw_extended_wake_prep },
-+	{ .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake),
-+	  .extended_function = acpi_hw_extended_wake }
- };
- 
- /*
--- 
-2.7.4
+>Clients use devm_clk_get() with a "pmc_plt_clk_<n>"
+> argument.
 
+This is the problem. Clients should be calling clk_get() like:
+
+	clk_get(dev, "signal name in datasheet")
+
+where the first argument is the device and the second argument is
+some string that is meaningful to the device, not the system as a
+whole. The way clkdev is intended is so that the dev argument's
+dev_name() is combined with the con_id that matches some signale
+name in the datasheet. This way when the same IP is put into some
+other chip, the globally unique name doesn't need to change, just
+the device name that's registered with the lookup. Obviously this
+breaks down quite badly when dev_name() isn't stable. Is that
+happening here?
 
 -- 
-Kees Cook
-Nexus Security
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
