@@ -1,58 +1,61 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
-Date: Mon, 19 Dec 2016 11:04:04 +0000
-Message-ID: <20161219110404.cnk43zqenn2m7ib2@sirena.org.uk>
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform
+ clocks
+Date: Mon, 19 Dec 2016 10:11:49 -0600
+Message-ID: <7f3d03dc-24fe-ec3f-4a3b-926c28f0ac86@linux.intel.com>
 References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
  <1481306510-7471-2-git-send-email-irina.tirdea@intel.com>
  <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
- <1a98dcda-a662-958e-307f-5fe3f281ed9f@linux.intel.com>
- <CAHp75VccDyiLhWxZYg+d0usrwhfa_hiZAJCKPXXVRod=tB803g@mail.gmail.com>
- <20161216183607.GB44199@f23x64.localdomain>
+ <20161213232524.GQ5423@codeaurora.org>
+ <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
+ <20161217013337.GW5423@codeaurora.org>
+ <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="exmomhpvdqifvrc4"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46332 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753656AbcLSLFh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2016 06:05:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20161216183607.GB44199@f23x64.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>, linux-clk@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Takashi Iwai <tiwai@suse.com>, platform-driver-x86@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Irina Tirdea <irina.tirdea@intel.com>, linux-clk@vger.kernel.org, "x86@kernel.org" <x86@kernel.org>, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+On 12/17/16 7:57 AM, Andy Shevchenko wrote:
+> On Sat, Dec 17, 2016 at 3:33 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
+>> On 12/15, Pierre-Louis Bossart wrote:
+>
+>>> Clients use devm_clk_get() with a "pmc_plt_clk_<n>"
+>>> argument.
+>>
+>> This is the problem. Clients should be calling clk_get() like:
+>>
+>>         clk_get(dev, "signal name in datasheet")
+>>
+>> where the first argument is the device and the second argument is
+>> some string that is meaningful to the device, not the system as a
+>> whole. The way clkdev is intended is so that the dev argument's
+>> dev_name() is combined with the con_id that matches some signale
+>> name in the datasheet. This way when the same IP is put into some
+>> other chip, the globally unique name doesn't need to change, just
+>> the device name that's registered with the lookup. Obviously this
+>> breaks down quite badly when dev_name() isn't stable. Is that
+>> happening here?
+>
+> PMC Atom is a PCI device and thus each platform would have different
+> dev_name(). Do you want to list all in each consumer if consumer wants
+> to work on all of them or I missed something?
+>
+> So, the question is how clock getting will look like to work on
+> currently both CherryTrail and BayTrail.
 
---exmomhpvdqifvrc4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The name pmc_plt_clk_<n> follows the data sheet specification, where 
+this convention is suggested:
+   PLT_CLK[2:0] - Camera
+   PLT_CLK[3] - Audio Codec
+   PLT_CLK[4] -
+   PLT_CLK[5] - COMMs
 
-On Fri, Dec 16, 2016 at 10:36:07AM -0800, Darren Hart wrote:
-
-> My understanding is include/linux should be more generic, rather than platform
-> specific headers. So while platform_data may refer specifically to the platform
-> bus drivers, it's the closest thing we have to include/platform, which would be
-> ideal. I would prefer to stick with include/platform_data because:
-
-It's not specific to the platform bus, it's for use with the platform_data
-pointer embedded in struct device that all buses can have - it's
-extensively used for things like I2C and SPI for example.  But really it
-doesn't matter *that* much.
-
---exmomhpvdqifvrc4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlhXvqAACgkQJNaLcl1U
-h9BxzQf/c8nqU+66S2miVJyYdJbh8d9Ed+afKoeeTozs1u6KcCMaigFS1hyUKSk1
-ZKyGQy32B5iSGauGTYwbRJnz39qUg2d4Jay9XK8IEZoZLw/IiZ90CaXFkvtX2YVn
-61P9OcYJE3eq57I6i8dhLD7bR9uI9CxIXS8fRbf7RaZd1wRb/z4s6z7YMFVJYvIS
-zkzw0KrmIb+4AQfvWFuXw51xujERcnfBHnjHq1JX/yxqihmSJYg4/wi3pgNdKjEl
-4AQc+r37wMLWO1LU7XP6H7TRKagVzriXtyap9zi/YtHoewnyrKkzVjcJMduOaEmf
-OVSJefChGjkkQUUcAgaG/SVwRJH+RA==
-=CT+F
------END PGP SIGNATURE-----
-
---exmomhpvdqifvrc4--
+These clocks are not internal but are made available to external 
+components through dedicated physical pins on the package, this external 
+visibility limits the scope for confusions, variations. I have not seen 
+any skews where these clocks and pins were changed at all.
