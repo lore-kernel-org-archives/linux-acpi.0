@@ -1,61 +1,53 @@
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform
- clocks
-Date: Mon, 19 Dec 2016 10:11:49 -0600
-Message-ID: <7f3d03dc-24fe-ec3f-4a3b-926c28f0ac86@linux.intel.com>
-References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
- <1481306510-7471-2-git-send-email-irina.tirdea@intel.com>
- <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
- <20161213232524.GQ5423@codeaurora.org>
- <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
- <20161217013337.GW5423@codeaurora.org>
- <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: Fix format string type mistakes
+Date: Mon, 19 Dec 2016 21:45:44 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E547D9A@ORSMSX110.amr.corp.intel.com>
+References: <20161216215137.GA96800@beast>
+ <CAJZ5v0h-xUXNHgr5x4ZYRAvsUZDip65aYCPVPeZ3E9=djcpQnA@mail.gmail.com>
+ <CAGXu5jKc35OzaPCR-f34THEkmE4ZbPP-cW2BVFzTgPYVmT_5dw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>, linux-clk@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Takashi Iwai <tiwai@suse.com>, platform-driver-x86@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:41149 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753160AbcLSVpq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 19 Dec 2016 16:45:46 -0500
+In-Reply-To: <CAGXu5jKc35OzaPCR-f34THEkmE4ZbPP-cW2BVFzTgPYVmT_5dw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Emese Revfy <re.emese@gmail.com>, "devel@acpica.org" <devel@acpica.org>
 
-On 12/17/16 7:57 AM, Andy Shevchenko wrote:
-> On Sat, Dec 17, 2016 at 3:33 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
->> On 12/15, Pierre-Louis Bossart wrote:
->
->>> Clients use devm_clk_get() with a "pmc_plt_clk_<n>"
->>> argument.
->>
->> This is the problem. Clients should be calling clk_get() like:
->>
->>         clk_get(dev, "signal name in datasheet")
->>
->> where the first argument is the device and the second argument is
->> some string that is meaningful to the device, not the system as a
->> whole. The way clkdev is intended is so that the dev argument's
->> dev_name() is combined with the con_id that matches some signale
->> name in the datasheet. This way when the same IP is put into some
->> other chip, the globally unique name doesn't need to change, just
->> the device name that's registered with the lookup. Obviously this
->> breaks down quite badly when dev_name() isn't stable. Is that
->> happening here?
->
-> PMC Atom is a PCI device and thus each platform would have different
-> dev_name(). Do you want to list all in each consumer if consumer wants
-> to work on all of them or I missed something?
->
-> So, the question is how clock getting will look like to work on
-> currently both CherryTrail and BayTrail.
-
-The name pmc_plt_clk_<n> follows the data sheet specification, where 
-this convention is suggested:
-   PLT_CLK[2:0] - Camera
-   PLT_CLK[3] - Audio Codec
-   PLT_CLK[4] -
-   PLT_CLK[5] - COMMs
-
-These clocks are not internal but are made available to external 
-components through dedicated physical pins on the package, this external 
-visibility limits the scope for confusions, variations. I have not seen 
-any skews where these clocks and pins were changed at all.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbToga2Vlc2Nvb2tAZ29vZ2xl
+LmNvbSBbbWFpbHRvOmtlZXNjb29rQGdvb2dsZS5jb21dIE9uIEJlaGFsZiBPZiBLZWVzDQo+IENv
+b2sNCj4gU2VudDogRnJpZGF5LCBEZWNlbWJlciAxNiwgMjAxNiAzOjA0IFBNDQo+IFRvOiBSYWZh
+ZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+IENjOiBNb29yZSwgUm9iZXJ0IDxy
+b2JlcnQubW9vcmVAaW50ZWwuY29tPjsgTGludXggS2VybmVsIE1haWxpbmcgTGlzdA0KPiA8bGlu
+dXgta2VybmVsQHZnZXIua2VybmVsLm9yZz47IFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29t
+PjsgV3lzb2NraSwNCj4gUmFmYWVsIEogPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPjsgTGVu
+IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+OyBBQ1BJDQo+IERldmVsIE1hbGluZyBMaXN0IDxsaW51
+eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IEVtZXNlIFJldmZ5DQo+IDxyZS5lbWVzZUBnbWFpbC5j
+b20+OyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGFjcGk6IEZpeCBm
+b3JtYXQgc3RyaW5nIHR5cGUgbWlzdGFrZXMNCj4gDQo+IE9uIEZyaSwgRGVjIDE2LCAyMDE2IGF0
+IDI6MzYgUE0sIFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9yZz4NCj4gd3JvdGU6
+DQo+ID4gT24gRnJpLCBEZWMgMTYsIDIwMTYgYXQgMTA6NTEgUE0sIEtlZXMgQ29vayA8a2Vlc2Nv
+b2tAY2hyb21pdW0ub3JnPg0KPiB3cm90ZToNCj4gPj4gRnJvbTogRW1lc2UgUmV2ZnkgPHJlLmVt
+ZXNlQGdtYWlsLmNvbT4NCj4gPj4NCj4gPj4gVGhpcyBhZGRzIHRoZSBtaXNzaW5nIF9fcHJpbnRm
+IGF0dHJpYnV0ZSB3aGljaCBhbGxvd3MgY29tcGlsZSB0aW1lDQo+ID4+IGZvcm1hdCBzdHJpbmcg
+Y2hlY2tpbmcgKGFuZCB3aWxsIGJlIHVzZWQgYnkgdGhlIGNvbWluZyBpbml0aWZ5IGdjYw0KPiA+
+PiBwbHVnaW4pLiBBZGRpdGlvbmFsbHksIHRoaXMgZml4ZXMgdGhlIHdhcm5pbmdzIGV4cG9zZWQg
+YnkgdGhlDQo+IGF0dHJpYnV0ZS4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogRW1lc2UgUmV2
+ZnkgPHJlLmVtZXNlQGdtYWlsLmNvbT4NCj4gPj4gW2tlZXM6IHNwbGl0IHNjc2kvYWNwaSwgbWVy
+Z2VkIGF0dHIgYW5kIGZpeCwgbmV3IGNvbW1pdCBtZXNzYWdlc10NCj4gPj4gU2lnbmVkLW9mZi1i
+eTogS2VlcyBDb29rIDxrZWVzY29va0BjaHJvbWl1bS5vcmc+DQo+ID4NCj4gPiBUaGlzIG1vZGlm
+aWVzIGNvZGUgdGhhdCB3ZSBnZXQgZnJvbSBhbiBleHRlcm5hbCBwcm9qaWVjdCAoQUNQSUNBKSBh
+bmQNCj4gPiB0aGUgYnVncyBzaG91bGQgYmUgZml4ZWQgaW4gdGhlcmUgaW4gdGhlIGZpcnN0IHBs
+YWNlLg0KPiANCj4gV2hvIHNob3VsZCBnZXQgQ0NlZD8NCj4gDQo+ID4gTW9yZW92ZXIsIEknbSBu
+b3Qgc3VyZSBpZiBhZGRpbmcgX19wcmludGYgaW4gYWNwaW9zeGYuaCBpcyBhIGdvb2QNCj4gaWRl
+YS4NCj4gDQo+IFdoeSBub3Q/IFRoaXMgaXMgZ29pbmcgdG8gYmUgbmVlZGVkIGJ5IHRoZSBpbml0
+aWZ5IHBsdWdpbiB0byBkbyBjb3JyZWN0DQo+IGRldGVjdGlvbiBvZiB3aGF0J3MgYmVpbmcgcGFz
+c2VkIGFyb3VuZCB0byBmdW5jdGlvbnMuLi4NCj4gDQoNCltNb29yZSwgUm9iZXJ0XSBJdCdzIGNv
+bXBpbGVyLWRlcGVuZGVudC4NCg0KPiAtS2Vlcw0KPiANCj4gLS0NCj4gS2VlcyBDb29rDQo+IE5l
+eHVzIFNlY3VyaXR5DQo=
