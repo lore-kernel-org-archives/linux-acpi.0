@@ -1,71 +1,58 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: use designated initializers
-Date: Mon, 19 Dec 2016 06:06:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CDFF348@SHSMSX101.ccr.corp.intel.com>
-References: <20161217010425.GA140581@beast>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
+Date: Mon, 19 Dec 2016 11:04:04 +0000
+Message-ID: <20161219110404.cnk43zqenn2m7ib2@sirena.org.uk>
+References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
+ <1481306510-7471-2-git-send-email-irina.tirdea@intel.com>
+ <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
+ <1a98dcda-a662-958e-307f-5fe3f281ed9f@linux.intel.com>
+ <CAHp75VccDyiLhWxZYg+d0usrwhfa_hiZAJCKPXXVRod=tB803g@mail.gmail.com>
+ <20161216183607.GB44199@f23x64.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="exmomhpvdqifvrc4"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:46388 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750920AbcLSGGZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 19 Dec 2016 01:06:25 -0500
-In-Reply-To: <20161217010425.GA140581@beast>
-Content-Language: en-US
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46332 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753656AbcLSLFh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Dec 2016 06:05:37 -0500
+Content-Disposition: inline
+In-Reply-To: <20161216183607.GB44199@f23x64.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Darren Hart <dvhart@infradead.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Irina Tirdea <irina.tirdea@intel.com>, linux-clk@vger.kernel.org, "x86@kernel.org" <x86@kernel.org>, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
 
-> From: Kees Cook [mailto:keescook@chromium.org]
-> Subject: [PATCH] ACPICA: use designated initializers
-> 
-> Prepare to mark sensitive kernel structures for randomization by making
-> sure they're using designated initializers. These were identified during
-> allyesconfig builds of x86, arm, and arm64, with most initializer fixes
-> extracted from grsecurity.
+--exmomhpvdqifvrc4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This commit is not suitable for ACPICA upstream.
-It's not portable. Please drop.
+On Fri, Dec 16, 2016 at 10:36:07AM -0800, Darren Hart wrote:
 
-Thanks
-Lv
+> My understanding is include/linux should be more generic, rather than platform
+> specific headers. So while platform_data may refer specifically to the platform
+> bus drivers, it's the closest thing we have to include/platform, which would be
+> ideal. I would prefer to stick with include/platform_data because:
 
-> 
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
->  drivers/acpi/acpica/hwxfsleep.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-> index f76e0eab32b8..25cd5c66e102 100644
-> --- a/drivers/acpi/acpica/hwxfsleep.c
-> +++ b/drivers/acpi/acpica/hwxfsleep.c
-> @@ -70,11 +70,12 @@ static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
->  /* Legacy functions are optional, based upon ACPI_REDUCED_HARDWARE */
-> 
->  static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
-> -	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
-> -	 acpi_hw_extended_sleep},
-> -	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
-> -	 acpi_hw_extended_wake_prep},
-> -	{ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake), acpi_hw_extended_wake}
-> +	{ .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_sleep),
-> +	  .extended_function = acpi_hw_extended_sleep },
-> +	{ .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake_prep),
-> +	  .extended_function = acpi_hw_extended_wake_prep },
-> +	{ .legacy_function = ACPI_HW_OPTIONAL_FUNCTION(acpi_hw_legacy_wake),
-> +	  .extended_function = acpi_hw_extended_wake }
->  };
-> 
->  /*
-> --
-> 2.7.4
-> 
-> 
-> --
-> Kees Cook
-> Nexus Security
+It's not specific to the platform bus, it's for use with the platform_data
+pointer embedded in struct device that all buses can have - it's
+extensively used for things like I2C and SPI for example.  But really it
+doesn't matter *that* much.
+
+--exmomhpvdqifvrc4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlhXvqAACgkQJNaLcl1U
+h9BxzQf/c8nqU+66S2miVJyYdJbh8d9Ed+afKoeeTozs1u6KcCMaigFS1hyUKSk1
+ZKyGQy32B5iSGauGTYwbRJnz39qUg2d4Jay9XK8IEZoZLw/IiZ90CaXFkvtX2YVn
+61P9OcYJE3eq57I6i8dhLD7bR9uI9CxIXS8fRbf7RaZd1wRb/z4s6z7YMFVJYvIS
+zkzw0KrmIb+4AQfvWFuXw51xujERcnfBHnjHq1JX/yxqihmSJYg4/wi3pgNdKjEl
+4AQc+r37wMLWO1LU7XP6H7TRKagVzriXtyap9zi/YtHoewnyrKkzVjcJMduOaEmf
+OVSJefChGjkkQUUcAgaG/SVwRJH+RA==
+=CT+F
+-----END PGP SIGNATURE-----
+
+--exmomhpvdqifvrc4--
