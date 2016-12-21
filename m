@@ -1,167 +1,338 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v19 15/15] acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
-Date: Wed, 21 Dec 2016 14:46:03 +0800
-Message-ID: <20161221064603.11830-16-fu.wei@linaro.org>
-References: <20161221064603.11830-1-fu.wei@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpi: Fix format string type mistakes
+Date: Wed, 21 Dec 2016 07:39:11 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE14340@SHSMSX101.ccr.corp.intel.com>
+References: <20161216215137.GA96800@beast>
+ <1AE640813FDE7649BE1B193DEA596E886CDFF331@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34976 "EHLO mx1.redhat.com"
+Received: from mga01.intel.com ([192.55.52.88]:48629 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758341AbcLUGtK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Dec 2016 01:49:10 -0500
-In-Reply-To: <20161221064603.11830-1-fu.wei@linaro.org>
+        id S1756686AbcLUHjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 21 Dec 2016 02:39:16 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CDFF331@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>, Kees Cook <keescook@chromium.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Emese Revfy <re.emese@gmail.com>, "devel@acpica.org" <devel@acpica.org>
 
-From: Fu Wei <fu.wei@linaro.org>
+Hi, Kees and Emese
 
-This driver adds support for parsing SBSA Generic Watchdog timer
-in GTDT, parse all info in SBSA Generic Watchdog Structure in GTDT,
-and creating a platform device with that information.
+I just helped to back port the commit here:
+https://github.com/acpica/acpica/pull/196/commits/5e64857f
+If you can see something wrong in it, please let me know.
 
-This allows the operating system to obtain device data from the
-resource of platform device. The platform device named "sbsa-gwdt"
-can be used by the ARM SBSA Generic Watchdog driver.
+Thanks and best regards
+Lv
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
----
- drivers/acpi/arm64/gtdt.c | 93 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/watchdog/Kconfig  |  1 +
- 2 files changed, 94 insertions(+)
-
-diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
-index 91ea6cb..22d3659 100644
---- a/drivers/acpi/arm64/gtdt.c
-+++ b/drivers/acpi/arm64/gtdt.c
-@@ -14,6 +14,7 @@
- #include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/platform_device.h>
- 
- #include <clocksource/arm_arch_timer.h>
- 
-@@ -59,6 +60,13 @@ static inline bool is_timer_block(void *platform_timer)
- 	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
- }
- 
-+static inline bool is_watchdog(void *platform_timer)
-+{
-+	struct acpi_gtdt_header *gh = platform_timer;
-+
-+	return gh->type == ACPI_GTDT_TYPE_WATCHDOG;
-+}
-+
- static int __init map_gt_gsi(u32 interrupt, u32 flags)
- {
- 	int trigger, polarity;
-@@ -279,3 +287,88 @@ int __init acpi_arch_timer_mem_init(struct arch_timer_mem *data,
- 
- 	return 0;
- }
-+
-+/*
-+ * Initialize a SBSA generic Watchdog platform device info from GTDT
-+ */
-+static int __init gtdt_import_sbsa_gwdt(struct acpi_gtdt_watchdog *wd,
-+					int index)
-+{
-+	struct platform_device *pdev;
-+	int irq = map_gt_gsi(wd->timer_interrupt, wd->timer_flags);
-+	int no_irq = 1;
-+
-+	/*
-+	 * According to SBSA specification the size of refresh and control
-+	 * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 – 0xFFF).
-+	 */
-+	struct resource res[] = {
-+		DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
-+		DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
-+		DEFINE_RES_IRQ(irq),
-+	};
-+
-+	pr_debug("found a Watchdog (0x%llx/0x%llx gsi:%u flags:0x%x).\n",
-+		 wd->refresh_frame_address, wd->control_frame_address,
-+		 wd->timer_interrupt, wd->timer_flags);
-+
-+	if (!(wd->refresh_frame_address && wd->control_frame_address)) {
-+		pr_err(FW_BUG "failed to get the Watchdog base address.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!wd->timer_interrupt)
-+		pr_warn(FW_BUG "failed to get the Watchdog interrupt.\n");
-+	else if (irq <= 0)
-+		pr_warn("failed to map the Watchdog interrupt.\n");
-+	else
-+		no_irq = 0;
-+
-+	/*
-+	 * Add a platform device named "sbsa-gwdt" to match the platform driver.
-+	 * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watchdog
-+	 * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get device
-+	 * info below by matching this name.
-+	 */
-+	pdev = platform_device_register_simple("sbsa-gwdt", index, res,
-+					       ARRAY_SIZE(res) - no_irq);
-+	if (IS_ERR(pdev)) {
-+		acpi_unregister_gsi(wd->timer_interrupt);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init gtdt_sbsa_gwdt_init(void)
-+{
-+	int ret, i = 0;
-+	void *platform_timer;
-+	struct acpi_table_header *table;
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
-+		return -EINVAL;
-+
-+	ret = acpi_gtdt_init(table, NULL);
-+	if (ret)
-+		return ret;
-+
-+	for_each_platform_timer(platform_timer) {
-+		if (is_watchdog(platform_timer)) {
-+			ret = gtdt_import_sbsa_gwdt(platform_timer, i);
-+			if (ret)
-+				break;
-+			i++;
-+		}
-+	}
-+
-+	if (i)
-+		pr_info("found %d SBSA generic Watchdog(s).\n", i);
-+
-+	return ret;
-+}
-+
-+device_initcall(gtdt_sbsa_gwdt_init);
-diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index 3eb58cb..a95c62d 100644
---- a/drivers/watchdog/Kconfig
-+++ b/drivers/watchdog/Kconfig
-@@ -219,6 +219,7 @@ config ARM_SBSA_WATCHDOG
- 	tristate "ARM SBSA Generic Watchdog"
- 	depends on ARM64
- 	depends on ARM_ARCH_TIMER
-+	depends on ACPI_GTDT || !ACPI
- 	select WATCHDOG_CORE
- 	help
- 	  ARM SBSA Generic Watchdog has two stage timeouts:
--- 
-2.9.3
-
+> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng, Lv
+> Subject: Re: [Devel] [PATCH] acpi: Fix format string type mistakes
+> 
+> Hi,
+> 
+> > From: Kees Cook [mailto:keescook@chromium.org]
+> > Subject: [PATCH] acpi: Fix format string type mistakes
+> >
+> > From: Emese Revfy <re.emese@gmail.com>
+> >
+> > This adds the missing __printf attribute which allows compile time
+> > format string checking (and will be used by the coming initify gcc
+> > plugin). Additionally, this fixes the warnings exposed by the attribute.
+> >
+> > Signed-off-by: Emese Revfy <re.emese@gmail.com>
+> > [kees: split scsi/acpi, merged attr and fix, new commit messages]
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > ---
+> >  drivers/acpi/acpica/dbhistry.c |  2 +-
+> >  drivers/acpi/acpica/dbinput.c  | 10 ++---
+> >  drivers/acpi/acpica/dbstats.c  | 88 +++++++++++++++++++++---------------------
+> >  drivers/acpi/acpica/utdebug.c  |  2 +-
+> >  include/acpi/acpiosxf.h        |  3 +-
+> >  5 files changed, 53 insertions(+), 52 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/dbhistry.c b/drivers/acpi/acpica/dbhistry.c
+> > index 46bd65d38df9..ec9da4830f6a 100644
+> > --- a/drivers/acpi/acpica/dbhistry.c
+> > +++ b/drivers/acpi/acpica/dbhistry.c
+> > @@ -155,7 +155,7 @@ void acpi_db_display_history(void)
+> >
+> >  	for (i = 0; i < acpi_gbl_num_history; i++) {
+> >  		if (acpi_gbl_history_buffer[history_index].command) {
+> > -			acpi_os_printf("%3ld %s\n",
+> > +			acpi_os_printf("%3u %s\n",
+> >  				       acpi_gbl_history_buffer[history_index].
+> >  				       cmd_num,
+> >  				       acpi_gbl_history_buffer[history_index].
+> > diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
+> > index 068214f9cc9d..43be06bdb790 100644
+> > --- a/drivers/acpi/acpica/dbinput.c
+> > +++ b/drivers/acpi/acpica/dbinput.c
+> > @@ -608,7 +608,7 @@ static u32 acpi_db_get_line(char *input_buffer)
+> >  	    (acpi_gbl_db_parsed_buf, sizeof(acpi_gbl_db_parsed_buf),
+> >  	     input_buffer)) {
+> >  		acpi_os_printf
+> > -		    ("Buffer overflow while parsing input line (max %u characters)\n",
+> > +		    ("Buffer overflow while parsing input line (max %lu characters)\n",
+> >  		     sizeof(acpi_gbl_db_parsed_buf));
+> >  		return (0);
+> >  	}
+> > @@ -864,24 +864,24 @@ acpi_db_command_dispatch(char *input_buffer,
+> >
+> >  		if (param_count == 0) {
+> >  			acpi_os_printf
+> > -			    ("Current debug level for file output is:    %8.8lX\n",
+> > +			    ("Current debug level for file output is:    %8.8X\n",
+> >  			     acpi_gbl_db_debug_level);
+> >  			acpi_os_printf
+> > -			    ("Current debug level for console output is: %8.8lX\n",
+> > +			    ("Current debug level for console output is: %8.8X\n",
+> >  			     acpi_gbl_db_console_debug_level);
+> >  		} else if (param_count == 2) {
+> >  			temp = acpi_gbl_db_console_debug_level;
+> >  			acpi_gbl_db_console_debug_level =
+> >  			    strtoul(acpi_gbl_db_args[1], NULL, 16);
+> >  			acpi_os_printf
+> > -			    ("Debug Level for console output was %8.8lX, now %8.8lX\n",
+> > +			    ("Debug Level for console output was %8.8X, now %8.8X\n",
+> >  			     temp, acpi_gbl_db_console_debug_level);
+> >  		} else {
+> >  			temp = acpi_gbl_db_debug_level;
+> >  			acpi_gbl_db_debug_level =
+> >  			    strtoul(acpi_gbl_db_args[1], NULL, 16);
+> >  			acpi_os_printf
+> > -			    ("Debug Level for file output was %8.8lX, now %8.8lX\n",
+> > +			    ("Debug Level for file output was %8.8X, now %8.8X\n",
+> >  			     temp, acpi_gbl_db_debug_level);
+> >  		}
+> >  		break;
+> > diff --git a/drivers/acpi/acpica/dbstats.c b/drivers/acpi/acpica/dbstats.c
+> > index a414e1fa6f9d..de7023024b12 100644
+> > --- a/drivers/acpi/acpica/dbstats.c
+> > +++ b/drivers/acpi/acpica/dbstats.c
+> > @@ -377,17 +377,17 @@ acpi_status acpi_db_display_statistics(char *type_arg)
+> >  			       "ACPI_TYPE", "NODES", "OBJECTS");
+> >
+> >  		for (i = 0; i < ACPI_TYPE_NS_NODE_MAX; i++) {
+> > -			acpi_os_printf("%16.16s % 10ld% 10ld\n",
+> > +			acpi_os_printf("%16.16s % 10d% 10d\n",
+> >  				       acpi_ut_get_type_name(i),
+> >  				       acpi_gbl_node_type_count[i],
+> >  				       acpi_gbl_obj_type_count[i]);
+> >  		}
+> >
+> > -		acpi_os_printf("%16.16s % 10ld% 10ld\n", "Misc/Unknown",
+> > +		acpi_os_printf("%16.16s % 10d% 10d\n", "Misc/Unknown",
+> >  			       acpi_gbl_node_type_count_misc,
+> >  			       acpi_gbl_obj_type_count_misc);
+> >
+> > -		acpi_os_printf("%16.16s % 10ld% 10ld\n", "TOTALS:",
+> > +		acpi_os_printf("%16.16s % 10d% 10d\n", "TOTALS:",
+> >  			       acpi_gbl_num_nodes, acpi_gbl_num_objects);
+> >  		break;
+> >
+> > @@ -415,16 +415,16 @@ acpi_status acpi_db_display_statistics(char *type_arg)
+> >  	case CMD_STAT_MISC:
+> >
+> >  		acpi_os_printf("\nMiscellaneous Statistics:\n\n");
+> > -		acpi_os_printf("Calls to AcpiPsFind:.. ........% 7ld\n",
+> > +		acpi_os_printf("Calls to AcpiPsFind:.. ........% 7u\n",
+> >  			       acpi_gbl_ps_find_count);
+> > -		acpi_os_printf("Calls to AcpiNsLookup:..........% 7ld\n",
+> > +		acpi_os_printf("Calls to AcpiNsLookup:..........% 7u\n",
+> >  			       acpi_gbl_ns_lookup_count);
+> >
+> >  		acpi_os_printf("\n");
+> >
+> >  		acpi_os_printf("Mutex usage:\n\n");
+> >  		for (i = 0; i < ACPI_NUM_MUTEX; i++) {
+> > -			acpi_os_printf("%-28s:     % 7ld\n",
+> > +			acpi_os_printf("%-28s:     % 7u\n",
+> >  				       acpi_ut_get_mutex_name(i),
+> >  				       acpi_gbl_mutex_info[i].use_count);
+> >  		}
+> > @@ -434,87 +434,87 @@ acpi_status acpi_db_display_statistics(char *type_arg)
+> >
+> >  		acpi_os_printf("\nInternal object sizes:\n\n");
+> >
+> > -		acpi_os_printf("Common         %3d\n",
+> > +		acpi_os_printf("Common         %3lu\n",
+> >  			       sizeof(struct acpi_object_common));
+> > -		acpi_os_printf("Number         %3d\n",
+> > +		acpi_os_printf("Number         %3lu\n",
+> >  			       sizeof(struct acpi_object_integer));
+> > -		acpi_os_printf("String         %3d\n",
+> > +		acpi_os_printf("String         %3lu\n",
+> >  			       sizeof(struct acpi_object_string));
+> > -		acpi_os_printf("Buffer         %3d\n",
+> > +		acpi_os_printf("Buffer         %3lu\n",
+> >  			       sizeof(struct acpi_object_buffer));
+> > -		acpi_os_printf("Package        %3d\n",
+> > +		acpi_os_printf("Package        %3lu\n",
+> >  			       sizeof(struct acpi_object_package));
+> > -		acpi_os_printf("BufferField    %3d\n",
+> > +		acpi_os_printf("BufferField    %3lu\n",
+> >  			       sizeof(struct acpi_object_buffer_field));
+> > -		acpi_os_printf("Device         %3d\n",
+> > +		acpi_os_printf("Device         %3lu\n",
+> >  			       sizeof(struct acpi_object_device));
+> > -		acpi_os_printf("Event          %3d\n",
+> > +		acpi_os_printf("Event          %3lu\n",
+> >  			       sizeof(struct acpi_object_event));
+> > -		acpi_os_printf("Method         %3d\n",
+> > +		acpi_os_printf("Method         %3lu\n",
+> >  			       sizeof(struct acpi_object_method));
+> > -		acpi_os_printf("Mutex          %3d\n",
+> > +		acpi_os_printf("Mutex          %3lu\n",
+> >  			       sizeof(struct acpi_object_mutex));
+> > -		acpi_os_printf("Region         %3d\n",
+> > +		acpi_os_printf("Region         %3lu\n",
+> >  			       sizeof(struct acpi_object_region));
+> > -		acpi_os_printf("PowerResource  %3d\n",
+> > +		acpi_os_printf("PowerResource  %3lu\n",
+> >  			       sizeof(struct acpi_object_power_resource));
+> > -		acpi_os_printf("Processor      %3d\n",
+> > +		acpi_os_printf("Processor      %3lu\n",
+> >  			       sizeof(struct acpi_object_processor));
+> > -		acpi_os_printf("ThermalZone    %3d\n",
+> > +		acpi_os_printf("ThermalZone    %3lu\n",
+> >  			       sizeof(struct acpi_object_thermal_zone));
+> > -		acpi_os_printf("RegionField    %3d\n",
+> > +		acpi_os_printf("RegionField    %3lu\n",
+> >  			       sizeof(struct acpi_object_region_field));
+> > -		acpi_os_printf("BankField      %3d\n",
+> > +		acpi_os_printf("BankField      %3lu\n",
+> >  			       sizeof(struct acpi_object_bank_field));
+> > -		acpi_os_printf("IndexField     %3d\n",
+> > +		acpi_os_printf("IndexField     %3lu\n",
+> >  			       sizeof(struct acpi_object_index_field));
+> > -		acpi_os_printf("Reference      %3d\n",
+> > +		acpi_os_printf("Reference      %3lu\n",
+> >  			       sizeof(struct acpi_object_reference));
+> > -		acpi_os_printf("Notify         %3d\n",
+> > +		acpi_os_printf("Notify         %3lu\n",
+> >  			       sizeof(struct acpi_object_notify_handler));
+> > -		acpi_os_printf("AddressSpace   %3d\n",
+> > +		acpi_os_printf("AddressSpace   %3lu\n",
+> >  			       sizeof(struct acpi_object_addr_handler));
+> > -		acpi_os_printf("Extra          %3d\n",
+> > +		acpi_os_printf("Extra          %3lu\n",
+> >  			       sizeof(struct acpi_object_extra));
+> > -		acpi_os_printf("Data           %3d\n",
+> > +		acpi_os_printf("Data           %3lu\n",
+> >  			       sizeof(struct acpi_object_data));
+> >
+> >  		acpi_os_printf("\n");
+> >
+> > -		acpi_os_printf("ParseObject    %3d\n",
+> > +		acpi_os_printf("ParseObject    %3lu\n",
+> >  			       sizeof(struct acpi_parse_obj_common));
+> > -		acpi_os_printf("ParseObjectNamed %3d\n",
+> > +		acpi_os_printf("ParseObjectNamed %3lu\n",
+> >  			       sizeof(struct acpi_parse_obj_named));
+> > -		acpi_os_printf("ParseObjectAsl %3d\n",
+> > +		acpi_os_printf("ParseObjectAsl %3lu\n",
+> >  			       sizeof(struct acpi_parse_obj_asl));
+> > -		acpi_os_printf("OperandObject  %3d\n",
+> > +		acpi_os_printf("OperandObject  %3lu\n",
+> >  			       sizeof(union acpi_operand_object));
+> > -		acpi_os_printf("NamespaceNode  %3d\n",
+> > +		acpi_os_printf("NamespaceNode  %3lu\n",
+> >  			       sizeof(struct acpi_namespace_node));
+> > -		acpi_os_printf("AcpiObject     %3d\n",
+> > +		acpi_os_printf("AcpiObject     %3lu\n",
+> >  			       sizeof(union acpi_object));
+> >
+> >  		acpi_os_printf("\n");
+> >
+> > -		acpi_os_printf("Generic State  %3d\n",
+> > +		acpi_os_printf("Generic State  %3lu\n",
+> >  			       sizeof(union acpi_generic_state));
+> > -		acpi_os_printf("Common State   %3d\n",
+> > +		acpi_os_printf("Common State   %3lu\n",
+> >  			       sizeof(struct acpi_common_state));
+> > -		acpi_os_printf("Control State  %3d\n",
+> > +		acpi_os_printf("Control State  %3lu\n",
+> >  			       sizeof(struct acpi_control_state));
+> > -		acpi_os_printf("Update State   %3d\n",
+> > +		acpi_os_printf("Update State   %3lu\n",
+> >  			       sizeof(struct acpi_update_state));
+> > -		acpi_os_printf("Scope State    %3d\n",
+> > +		acpi_os_printf("Scope State    %3lu\n",
+> >  			       sizeof(struct acpi_scope_state));
+> > -		acpi_os_printf("Parse Scope    %3d\n",
+> > +		acpi_os_printf("Parse Scope    %3lu\n",
+> >  			       sizeof(struct acpi_pscope_state));
+> > -		acpi_os_printf("Package State  %3d\n",
+> > +		acpi_os_printf("Package State  %3lu\n",
+> >  			       sizeof(struct acpi_pkg_state));
+> > -		acpi_os_printf("Thread State   %3d\n",
+> > +		acpi_os_printf("Thread State   %3lu\n",
+> >  			       sizeof(struct acpi_thread_state));
+> > -		acpi_os_printf("Result Values  %3d\n",
+> > +		acpi_os_printf("Result Values  %3lu\n",
+> >  			       sizeof(struct acpi_result_values));
+> > -		acpi_os_printf("Notify Info    %3d\n",
+> > +		acpi_os_printf("Notify Info    %3lu\n",
+> >  			       sizeof(struct acpi_notify_info));
+> >  		break;
+> >
+> > diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+> > index 044df9b0356e..b4cdb9c14a87 100644
+> > --- a/drivers/acpi/acpica/utdebug.c
+> > +++ b/drivers/acpi/acpica/utdebug.c
+> > @@ -189,7 +189,7 @@ acpi_debug_print(u32 requested_debug_level,
+> >  	 * Display the module name, current line number, thread ID (if requested),
+> >  	 * current procedure nesting level, and the current procedure name
+> >  	 */
+> > -	acpi_os_printf("%9s-%04ld ", module_name, line_number);
+> > +	acpi_os_printf("%9s-%04u ", module_name, line_number);
+> >
+> >  #ifdef ACPI_APPLICATION
+> >  	/*
+> 
+> Please split above changes into a separate patch.
+> I'm not sure if the changes can break other compilers.
+> Please clone https://github.com/acpica/acpica, and submit a pull request there to have more ACPICA
+> reviewers.
+> 
+> > diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+> > index f3414c83abb1..48b21490bbeb 100644
+> > --- a/include/acpi/acpiosxf.h
+> > +++ b/include/acpi/acpiosxf.h
+> > @@ -337,11 +337,12 @@ acpi_status acpi_os_signal(u32 function, void *info);
+> >   * Debug print routines
+> >   */
+> >  #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_printf
+> > +__printf(1, 2)
+> >  void ACPI_INTERNAL_VAR_XFACE acpi_os_printf(const char *format, ...);
+> >  #endif
+> >
+> >  #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_vprintf
+> > -void acpi_os_vprintf(const char *format, va_list args);
+> > +__printf(1, 0) void acpi_os_vprintf(const char *format, va_list args);
+> >  #endif
+> >
+> >  #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_redirect_output
+> 
+> You can use ACPI_PRINTF_LIKE macro instead.
+> This can directly go into Linux upstream.
+> You can prepare a different pull request for ACPICA upstream or
+> I can help to back port the change.
+> 
+> Thanks
+> Lv
+> 
+> > --
+> > 2.7.4
+> >
+> >
+> > --
+> > Kees Cook
+> > Nexus Security
+> _______________________________________________
+> Devel mailing list
+> Devel@acpica.org
+> https://lists.acpica.org/mailman/listinfo/devel
