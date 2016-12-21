@@ -1,7 +1,7 @@
 From: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Subject: [PATCH v19 06/15] clocksource/drivers/arm_arch_timer: Rework counter frequency detection.
-Date: Wed, 21 Dec 2016 14:45:54 +0800
-Message-ID: <20161221064603.11830-7-fu.wei@linaro.org>
+Subject: [PATCH v19 08/15] clocksource/drivers/arm_arch_timer: move arch_timer_needs_of_probing into DT init call
+Date: Wed, 21 Dec 2016 14:45:56 +0800
+Message-ID: <20161221064603.11830-9-fu.wei@linaro.org>
 References: <20161221064603.11830-1-fu.wei@linaro.org>
 Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20161221064603.11830-1-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
@@ -12,112 +12,130 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Currently, the counter frequency detection call(arch_timer_detect_rate)
-combines all the ways to get counter frequency: device-tree property,
-system coprocessor register, MMIO timer. But in the most of use cases,
-we don't need all the ways to try:
-For example, reading device-tree property will be needed only when
-system boot with device-tree, getting frequency from MMIO timer register
-will beneeded only when we init MMIO timer.
+Because arch_timer_needs_of_probing is only for booting with device-tree,
+but arch_timer_common_init is a generic init call which shouldn't include
+the FW-specific code. It's better to put arch_timer_needs_of_probing into
+DT init function.
 
-This patch separates paths to determine frequency:
-Separate out device-tree code, keep them in device-tree init function.
-Separate out the MMIO frequency and the sysreg frequency detection call,
-and use the appropriate one for the counter.
+But for per-cpu timer, the arch_timer_common_init is called from
+arch_timer_init. For reaching the goal above, this patch disassemble
+arch_timer_init and use arch_timer_register and arch_timer_common_init
+directly, just like arch_timer_mem init code is doing.
+By this way, all the DT relevant code are only called from DT init call.
 
 Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Tested-by: Xiongfeng Wang <wangxiongfeng2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 49 +++++++++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 18 deletions(-)
+ drivers/clocksource/arm_arch_timer.c | 46 ++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index c7b4482..9a1f138 100644
+index 5f7be04..9113df8 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
-@@ -488,27 +488,31 @@ static int arch_timer_starting_cpu(unsigned int cpu)
- 	return 0;
- }
+@@ -824,9 +824,6 @@ static bool __init arch_timer_needs_of_probing(void)
  
--static void
--arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
-+static void arch_timer_detect_rate(void)
+ static int __init arch_timer_common_init(void)
  {
--	/* Who has more than one independent system counter? */
--	if (arch_timer_rate)
--		return;
-+	/*
-+	 * Try to get the timer frequency from
-+	 * cntfrq_el0(system coprocessor register).
-+	 */
-+	if (!arch_timer_rate)
-+		arch_timer_rate = arch_timer_get_cntfrq();
-+
-+	/* Check the timer frequency. */
-+	if (!arch_timer_rate)
-+		pr_warn("frequency not available\n");
-+}
- 
-+static void arch_timer_mem_detect_rate(void __iomem *cntbase)
-+{
- 	/*
--	 * Try to determine the frequency from the device tree or CNTFRQ,
--	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-+	 * Try to determine the frequency from
-+	 * CNTFRQ in memory-mapped timer.
- 	 */
--	if (!acpi_disabled ||
--	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
--		if (cntbase)
--			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
--		else
--			arch_timer_rate = arch_timer_get_cntfrq();
--	}
-+	if (!arch_timer_rate)
-+		arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
- 
- 	/* Check the timer frequency. */
--	if (arch_timer_rate == 0)
-+	if (!arch_timer_rate)
- 		pr_warn("frequency not available\n");
+-	if (acpi_disabled && arch_timer_needs_of_probing())
+-		return 0;
+-
+ 	arch_timer_banner(arch_timers_present);
+ 	arch_counter_register(arch_timers_present);
+ 	return arch_timer_arch_init();
+@@ -864,26 +861,9 @@ static enum arch_timer_ppi_nr __init arch_timer_select_ppi(void)
+ 	return ARCH_TIMER_PHYS_SECURE_PPI;
  }
  
-@@ -886,7 +890,9 @@ static int __init arch_timer_of_init(struct device_node *np)
+-static int __init arch_timer_init(void)
+-{
+-	int ret;
+-
+-	ret = arch_timer_register();
+-	if (ret)
+-		return ret;
+-
+-	ret = arch_timer_common_init();
+-	if (ret)
+-		return ret;
+-
+-	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
+-
+-	return 0;
+-}
+-
+ static int __init arch_timer_of_init(struct device_node *np)
+ {
+-	int i;
++	int i, ret;
+ 
+ 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+ 		pr_warn("multiple nodes in dt, skipping\n");
+@@ -894,6 +874,8 @@ static int __init arch_timer_of_init(struct device_node *np)
  	for (i = ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
  		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
  
--	arch_timer_detect_rate(NULL, np);
-+	if (!arch_timer_rate &&
-+	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
-+		arch_timer_detect_rate();
- 
- 	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
- 
-@@ -994,7 +1000,14 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 		goto out;
- 	}
- 
--	arch_timer_detect_rate(base, np);
-+	/*
-+	 * Try to determine the frequency from the device tree,
-+	 * if fail, get the frequency from CNTFRQ.
-+	 */
-+	if (!arch_timer_rate &&
-+	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
-+		arch_timer_mem_detect_rate(base);
++	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
 +
- 	ret = arch_timer_mem_register(base, irq);
+ 	if (!arch_timer_rate &&
+ 	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+ 		arch_timer_detect_rate();
+@@ -928,7 +910,14 @@ static int __init arch_timer_of_init(struct device_node *np)
+ 	arch_counter_suspend_stop = of_property_read_bool(np,
+ 							 "arm,no-tick-in-suspend");
+ 
+-	return arch_timer_init();
++	ret = arch_timer_register();
++	if (ret)
++		return ret;
++
++	if (arch_timer_needs_of_probing())
++		return 0;
++
++	return arch_timer_common_init();
+ }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
+ CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+@@ -1016,7 +1005,8 @@ static int __init arch_timer_mem_init(struct device_node *np)
  	if (ret)
  		goto out;
-@@ -1056,7 +1069,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 
+-	return arch_timer_common_init();
++	if (!arch_timer_needs_of_probing())
++		ret = arch_timer_common_init();
+ out:
+ 	iounmap(cntctlbase);
+ 	of_node_put(best_frame);
+@@ -1045,6 +1035,7 @@ static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
+ /* Initialize per-processor generic timer */
+ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ {
++	int ret;
+ 	struct acpi_table_gtdt *gtdt;
+ 
+ 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
+@@ -1072,6 +1063,8 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
  		gtdt->non_secure_el2_flags);
  
++	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
++
  	/* Get the frequency from CNTFRQ */
--	arch_timer_detect_rate(NULL, NULL);
-+	arch_timer_detect_rate();
+ 	arch_timer_detect_rate();
  
- 	arch_timer_uses_ppi = arch_timer_select_ppi();
- 	if (!arch_timer_ppi[arch_timer_uses_ppi]) {
+@@ -1084,8 +1077,11 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 	/* Always-on capability */
+ 	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
+ 
+-	arch_timer_init();
+-	return 0;
++	ret = arch_timer_register();
++	if (ret)
++		return ret;
++
++	return arch_timer_common_init();
+ }
+ CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
+ #endif
 -- 
 2.9.3
 
