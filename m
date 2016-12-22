@@ -1,41 +1,54 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v5 12/14] irqchip: mbigen: drop module owner
-Date: Thu, 22 Dec 2016 13:35:20 +0800
-Message-ID: <1482384922-21507-13-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v5 02/14] irqchip: gic-v3-its: keep the head file include in alphabetic order
+Date: Thu, 22 Dec 2016 13:35:10 +0800
+Message-ID: <1482384922-21507-3-git-send-email-guohanjun@huawei.com>
 References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:54940 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936471AbcLVFmo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Dec 2016 00:42:44 -0500
 In-Reply-To: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, jcm@redhat.com, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Module owner will be set by driver core, so drop it.
+The head file is strictly in alphabetic order now, so let's
+be the rule breaker. As acpi_iort.h includes acpi.h so remove
+the duplidate acpi.h inclusion as well.
 
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ma Jun <majun258@huawei.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/irqchip/irq-mbigen.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/irqchip/irq-gic-v3-its.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-index 03b79b0..c01ab41 100644
---- a/drivers/irqchip/irq-mbigen.c
-+++ b/drivers/irqchip/irq-mbigen.c
-@@ -293,7 +293,6 @@ static int mbigen_device_probe(struct platform_device *pdev)
- static struct platform_driver mbigen_platform_driver = {
- 	.driver = {
- 		.name		= "Hisilicon MBIGEN-V2",
--		.owner		= THIS_MODULE,
- 		.of_match_table	= mbigen_of_match,
- 	},
- 	.probe			= mbigen_device_probe,
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index 69b040f..f471939 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -15,14 +15,13 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include <linux/acpi.h>
++#include <linux/acpi_iort.h>
+ #include <linux/bitmap.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+ #include <linux/dma-iommu.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqdomain.h>
+-#include <linux/acpi_iort.h>
+ #include <linux/log2.h>
+ #include <linux/mm.h>
+ #include <linux/msi.h>
 -- 
 1.7.12.4
+
