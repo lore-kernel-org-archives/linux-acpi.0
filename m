@@ -1,51 +1,116 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v5 11/14] msi: platform: make platform_msi_create_device_domain() ACPI aware
-Date: Thu, 22 Dec 2016 13:35:19 +0800
-Message-ID: <1482384922-21507-12-git-send-email-guohanjun@huawei.com>
-References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v5 00/14] ACPI platform MSI support and its example mbigen
+Date: Thu, 22 Dec 2016 13:35:08 +0800
+Message-ID: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:55732 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934245AbcLVFot (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Dec 2016 00:44:49 -0500
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, jcm@redhat.com, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-With the platform msi domain created for ITS, irqchip such as
-mbi-gen connecting ITS, which needs ctreate its own irqdomain.
+v4 -> v5:
+	- Add mbigen support back with tested on with Agustin's patchset,
+	  and it's a good example of how ACPI platform MSI works
+	- rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
 
-Fortunately with the platform msi support upstreamed by Marc,
-we just need to add minor code to make it run properly.
+v3 -> v4:
+        - Drop mbi-gen patches to just submit platform msi support because
+          will rebase mbi-gen patches on top of Agustin's patchset, and discusion
+          is going there.
+        - Add a patch to support device topology such as NC(named componant, paltform device)
+          ->SMMU->ITS which suggested by Lorenzo;
+        - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
+        - rebased on top of 4.9-rc7
 
-platform_msi_create_device_domain() is almost ready for ACPI use
-except of_node_to_fwnode() is for dt only, make it ACPI aware then
-things will work in both DTS and ACPI.
+v2 -> v3:
+        - Drop RFC tag
+        - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
+        - Add 3 cleanup patches (patch 1, 2, 3)
+        - Drop arch_init call patch from last version
+        - Introduce a callback for platform device to set msi domain
+        - Introduce a new API to get paltform device's domain instead of
+          reusing the PCI one in previous version
+        - Add a patch to rework iort_node_get_id()
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Greg KH <gregkh@linuxfoundation.org>
----
- drivers/base/platform-msi.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+[1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
 
-diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
-index be6a599..035ca3b 100644
---- a/drivers/base/platform-msi.c
-+++ b/drivers/base/platform-msi.c
-@@ -345,8 +345,7 @@ struct irq_domain *
- 
- 	data->host_data = host_data;
- 	domain = irq_domain_create_hierarchy(dev->msi_domain, 0, nvec,
--					     of_node_to_fwnode(dev->of_node),
--					     ops, data);
-+					     dev->fwnode, ops, data);
- 	if (!domain)
- 		goto free_priv;
- 
+v1 -> v2:
+        - Fix the bug of if multi Interrupt() resoures in single _PRS,
+          we need to calculate all the irq numbers (I missed it in previous
+          version);
+        - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
+          SMMU patches (also Robin's SMMu patches)
+        - Add patch irqchip: mbigen: promote mbigen init.
+
+With platform msi support landed in the kernel, and the introduction
+of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
+is ready, this patch set add few patches to enable the ACPI platform
+msi support.
+
+For platform device connecting to ITS on arm platform, we have IORT
+table with the named componant node to describe the mappings of paltform
+device and ITS, so we can retrieve the dev id and find its parent
+irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
+
+The fisrt 3 patches are cleanups;
+
+Patch 4,5 are refactoring its_pmsi_prepare() for both DT and ACPI
+then retrieve the dev id from iort;
+
+Patch 6,7 to create platform msi domain to ACPI case which scanned
+the MADT table;
+
+Patch 8,9,10,11 to setup the msi domain for platform device based
+on IORT table.
+
+Patch 12,13,14 convert dt based mbigen driver to support ACPI.
+
+Teasted on Hisilicon D03/D05.
+
+Happy holidays!
+
+Thanks
+Hanjun
+
+Hanjun Guo (12):
+  ACPI: ARM64: IORT: minor cleanup for iort_match_node_callback()
+  irqchip: gic-v3-its: keep the head file include in alphabetic order
+  ACPI: ARM64: IORT: add missing comment for iort_dev_find_its_id()
+  irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+  ACPI: platform-msi: retrieve dev id from IORT
+  irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
+    for ACPI
+  irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
+    domain
+  ACPI: ARM64: IORT: rework iort_node_get_id()
+  ACPI: platform: setup MSI domain for ACPI based platform device
+  ACPI: ARM64: IORT: rework iort_node_get_id() for NC->SMMU->ITS case
+  msi: platform: make platform_msi_create_device_domain() ACPI aware
+  irqchip: mbigen: Add ACPI support
+
+Kefeng Wang (2):
+  irqchip: mbigen: drop module owner
+  irqchip: mbigen: introduce mbigen_of_create_domain()
+
+ drivers/acpi/acpi_platform.c                  |  11 ++
+ drivers/acpi/arm64/iort.c                     | 138 ++++++++++++++++++++------
+ drivers/base/platform-msi.c                   |   3 +-
+ drivers/base/platform.c                       |   3 +
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++++-----
+ drivers/irqchip/irq-gic-v3-its.c              |   3 +-
+ drivers/irqchip/irq-mbigen.c                  | 109 ++++++++++++++++----
+ include/linux/acpi_iort.h                     |  11 ++
+ include/linux/platform_device.h               |   3 +
+ 9 files changed, 309 insertions(+), 78 deletions(-)
+
 -- 
 1.7.12.4
+
