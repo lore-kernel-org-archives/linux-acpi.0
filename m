@@ -1,73 +1,71 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: Re: [PATCH] platform: Print the resource range if device failed to
- claim
-Date: Thu, 22 Dec 2016 11:32:14 +0800
-Message-ID: <20161222033214.GA8507@yu-desktop-1.sh.intel.com>
-References: <1482312295-13373-1-git-send-email-yu.c.chen@intel.com>
- <3581108.InxQuoaF8Q@aspire.rjw.lan>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH v5 01/14] ACPI: ARM64: IORT: minor cleanup for iort_match_node_callback()
+Date: Thu, 22 Dec 2016 13:35:09 +0800
+Message-ID: <1482384922-21507-2-git-send-email-guohanjun@huawei.com>
+References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:3609 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934840AbcLVDWs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 21 Dec 2016 22:22:48 -0500
-Content-Disposition: inline
-In-Reply-To: <3581108.InxQuoaF8Q@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, jcm@redhat.com, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>, Rui Zhang <rui.zhang@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-Hi,
-On Thu, Dec 22, 2016 at 02:19:22AM +0100, Rafael J. Wysocki wrote:
-> [CC Mika and linux-acpi]
-> 
-> On Wednesday, December 21, 2016 05:24:55 PM Chen Yu wrote:
-> > Sometimes we have the following error message:
-> >  platform MSFT0101:00: failed to claim resource 1
-> >  acpi MSFT0101:00: platform device creation failed: -16
-> > But there is not enough information to figure out which resource range
-> > failed to claim.
-> > 
-> > Thus print the resource range at first-place thus /proc/iomem or
-> > ioports should tell us who already claimed this resource, then
-> > the driver bug or incorrect resource assignment which is running
-> > into this conflict can be diagnosed:
-> >  platform MSFT0101:00: failed to claim resource 1: [mem 0xfed40000-0xfed40fff]
-> >  acpi MSFT0101:00: platform device creation failed: -16
-> > 
-> > Suggested-by: Len Brown <lenb@kernel.org>
-> > Reported-by: Wendy Wang <wendy.wang@intel.com>
-> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > ---
-> >  drivers/base/platform.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> > index c4af003..22a6430 100644
-> > --- a/drivers/base/platform.c
-> > +++ b/drivers/base/platform.c
-> > @@ -396,7 +396,7 @@ int platform_device_add(struct platform_device *pdev)
-> >  		}
-> >  
-> >  		if (p && insert_resource(p, r)) {
-> > -			dev_err(&pdev->dev, "failed to claim resource %d\n", i);
-> > +			dev_err(&pdev->dev, "failed to claim resource %d: %pR\n", i, r);
-> 
-> Do we still need the resource number?
-> 
-Seems we don't need the resource number anymore.
-(As platform.c was written earlier than 2005, and the support of %pR was introduced
-later in 2008.)
-> >  			ret = -EBUSY;
-> >  			goto failed;
-> >  		}
-> > 
-> 
-> Thanks,
-> Rafael
-> 
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Thanks,
-Yu
+Cleanup iort_match_node_callback() a little bit to reduce
+some lines of code, aslo fix the indentation in iort_scan_node().
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>
+---
+ drivers/acpi/arm64/iort.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index e0d2e6e..46e2d82 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -225,7 +225,7 @@ static struct acpi_iort_node *iort_scan_node(enum acpi_iort_node_type type,
+ 
+ 		if (iort_node->type == type &&
+ 		    ACPI_SUCCESS(callback(iort_node, context)))
+-				return iort_node;
++			return iort_node;
+ 
+ 		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+ 					 iort_node->length);
+@@ -253,17 +253,15 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+ 					    void *context)
+ {
+ 	struct device *dev = context;
+-	acpi_status status;
++	acpi_status status = AE_NOT_FOUND;
+ 
+ 	if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
+ 		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+ 		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
+ 		struct acpi_iort_named_component *ncomp;
+ 
+-		if (!adev) {
+-			status = AE_NOT_FOUND;
++		if (!adev)
+ 			goto out;
+-		}
+ 
+ 		status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buf);
+ 		if (ACPI_FAILURE(status)) {
+@@ -289,8 +287,6 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+ 		 */
+ 		status = pci_rc->pci_segment_number == pci_domain_nr(bus) ?
+ 							AE_OK : AE_NOT_FOUND;
+-	} else {
+-		status = AE_NOT_FOUND;
+ 	}
+ out:
+ 	return status;
+-- 
+1.7.12.4
