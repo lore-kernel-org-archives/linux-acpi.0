@@ -1,159 +1,167 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH V6 0/2] Add ACPI support for HiSilicon SoCs Host Controllers
-Date: Thu, 22 Dec 2016 20:40:12 +0800
-Message-ID: <CACVXFVN0jGq7EDjkH5a4dCWtUpeFKyL4ur2tNX0Sbj6DcUzB-g@mail.gmail.com>
-References: <1479816529-97410-1-git-send-email-liudongdong3@huawei.com>
- <CACVXFVMidDQO-hj6tivv=t2BGTbDXK5TH9ommLES67qFJpTNBg@mail.gmail.com> <0acc4062-cc05-f1b5-7e5d-a06a5f299d97@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v5 09/14] ACPI: platform: setup MSI domain for ACPI based
+ platform device
+Date: Thu, 22 Dec 2016 13:57:50 +0100
+Message-ID: <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com>
+References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com> <1482384922-21507-10-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34968 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752619AbcLVMkP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Dec 2016 07:40:15 -0500
-In-Reply-To: <0acc4062-cc05-f1b5-7e5d-a06a5f299d97@huawei.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:36724 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1762606AbcLVM5v (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Dec 2016 07:57:51 -0500
+In-Reply-To: <1482384922-21507-10-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>
-Cc: helgaas@kernel.org, Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, tn@semihalf.com, wangzhou1@hisilicon.com, Pratyush Anand Thakur <pratyush.anand@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Masters <jcm@redhat.com>, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, linuxarm@huawei.com
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Jon Masters <jcm@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi Dongdong,
-
-On Thu, Dec 22, 2016 at 8:30 PM, Dongdong Liu <liudongdong3@huawei.com> wro=
-te:
-> Hi Ming
+On Thu, Dec 22, 2016 at 6:35 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
 >
-> The latest patchset is [PATCH v11 00/15] PCI: ARM64 ECAM quirks
-> You can get them from
-> https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git (pci/ecam=
-)
+> With the platform msi domain created, we can set up the msi domain
+> for a platform device when it's probed.
+>
+> In order to do that, we need to get the domain that the platform
+> device connecting to, so the iort_get_platform_device_domain() is
+> introduced to retrieve the domain from iort.
+>
+> After the domain is retrieved, we need a proper way to set the
+> domain to paltform device, as some platform devices such as an
+> irqchip needs the msi irqdomain to be the interrupt parent domain,
+> we need to get irqdomain before platform device is probed but after
+> the platform device is allocated, so introduce a callback (pre_add_cb)
+> in pdevinfo to prepare firmware related information which is needed
+> for device probe, then set the msi domain in that callback.
+>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Greg KH <gregkh@linuxfoundation.org>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> ---
+>  drivers/acpi/acpi_platform.c    | 11 +++++++++++
+>  drivers/acpi/arm64/iort.c       | 43 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/base/platform.c         |  3 +++
+>  include/linux/acpi_iort.h       |  3 +++
+>  include/linux/platform_device.h |  3 +++
+>  5 files changed, 63 insertions(+)
+>
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index b4c1a6a..5d8d61b4 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -12,6 +12,7 @@
+>   */
+>
+>  #include <linux/acpi.h>
+> +#include <linux/acpi_iort.h>
+>  #include <linux/device.h>
+>  #include <linux/err.h>
+>  #include <linux/kernel.h>
+> @@ -48,6 +49,15 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
+>  }
+>
+>  /**
+> + * acpi_platform_pre_add_cb - callback before platform device is added, to
+> + * prepare firmware related information which is needed for device probe
+> + */
+> +static void acpi_platform_pre_add_cb(struct device *dev)
+> +{
+> +       acpi_configure_pmsi_domain(dev);
+> +}
+> +
+> +/**
+>   * acpi_create_platform_device - Create platform device for ACPI device node
+>   * @adev: ACPI device node to create a platform device for.
+>   * @properties: Optional collection of build-in properties.
+> @@ -109,6 +119,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+>         pdevinfo.num_res = count;
+>         pdevinfo.fwnode = acpi_fwnode_handle(adev);
+>         pdevinfo.properties = properties;
+> +       pdevinfo.pre_add_cb = acpi_platform_pre_add_cb;
 
-OK, thanks, looks it has been in linus tree.
+Why don't you point that directly to acpi_configure_pmsi_domain()?  It
+doesn't look like the wrapper is necessary at all.
+
+And I'm not sure why the new callback is necessary ->
+
+>
+>         if (acpi_dma_supported(adev))
+>                 pdevinfo.dma_mask = DMA_BIT_MASK(32);
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index bc68d93..6b72fcb 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+>         return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+>  }
+>
+> +/**
+> + * iort_get_platform_device_domain() - Find MSI domain related to a
+> + * platform device
+> + * @dev: the dev pointer associated with the platform device
+> + *
+> + * Returns: the MSI domain for this device, NULL otherwise
+> + */
+> +static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+> +{
+> +       struct acpi_iort_node *node, *msi_parent;
+> +       struct fwnode_handle *iort_fwnode;
+> +       struct acpi_iort_its_group *its;
+> +
+> +       /* find its associated iort node */
+> +       node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +                             iort_match_node_callback, dev);
+> +       if (!node)
+> +               return NULL;
+> +
+> +       /* then find its msi parent node */
+> +       msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
+> +       if (!msi_parent)
+> +               return NULL;
+> +
+> +       /* Move to ITS specific data */
+> +       its = (struct acpi_iort_its_group *)msi_parent->node_data;
+> +
+> +       iort_fwnode = iort_find_domain_token(its->identifiers[0]);
+> +       if (!iort_fwnode)
+> +               return NULL;
+> +
+> +       return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
+> +}
+> +
+> +void acpi_configure_pmsi_domain(struct device *dev)
+> +{
+> +       struct irq_domain *msi_domain;
+> +
+> +       msi_domain = iort_get_platform_device_domain(dev);
+> +       if (msi_domain)
+> +               dev_set_msi_domain(dev, msi_domain);
+> +}
+> +
+>  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>  {
+>         u32 *rid = data;
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index c4af003..3e68f31 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -537,6 +537,9 @@ struct platform_device *platform_device_register_full(
+>                         goto err;
+>         }
+>
+> +       if (pdevinfo->pre_add_cb)
+> +               pdevinfo->pre_add_cb(&pdev->dev);
+> +
+
+-> because it looks like this might be done in acpi_platform_notify()
+for platform devices.
+
+>         ret = platform_device_add(pdev);
+>         if (ret) {
 
 Thanks,
-Ming
-
->
-> Thanks
-> Dongdong
->
-> =E5=9C=A8 2016/12/22 16:31, Ming Lei =E5=86=99=E9=81=93:
->>
->> Hi Dongdong,
->>
->> On Tue, Nov 22, 2016 at 8:08 PM, Dongdong Liu <liudongdong3@huawei.com>
->> wrote:
->>>
->>> This patchset adds ACPI support for the HiSilicon Hip05/Hip06/Hip07 SoC
->>> PCIe controllers.
->>> The two patches respectively:
->>>         - provides the common function acpi_get_rc_resources() for ARM6=
-4
->>>           platform.
->>>         - adds the HiSilicon ACPI specific quirks.
->>>
->>> This patchset is based on branch pci/ecam-v6
->>> It can be found here:
->>>
->>> https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git(pci/eca=
-m-v6)
->>>
->>> This patchset has been tested on HiSilicon D03 board.
->>> The dmesg log, /proc/iomem, and ACPI table information can be found:
->>> https://bugzilla.kernel.org/show_bug.cgi?id=3D187961
->>>
->>> v5 -> v6:
->>> - change the config option to CONFIG_PCI_ECAM_QUIRKS.
->>> - fix some commets about acpi_get_rc_resources().
->>
->>
->> Could you post out v7 for fixing conflicts against current linus tree?
->>
->> BTW, I tried to fix the conflicts by myself, but still caues the followi=
-ng
->> build failure:
->>
->> [tom@linux-2.6-vm]$make -j4 CROSS_COMPILE=3Daarch64-linux-gnu-
->> ARCH=3Darm64 drivers/pci/host/pcie-hisi-acpi.o
->>   CHK     include/config/kernel.release
->>   CHK     include/generated/uapi/linux/version.h
->>   CHK     include/generated/utsrelease.h
->>   CHK     include/generated/timeconst.h
->>   CHK     include/generated/bounds.h
->>   CHK     include/generated/asm-offsets.h
->>   CALL    scripts/checksyscalls.sh
->>   CC      drivers/pci/host/pcie-hisi-acpi.o
->> In file included from drivers/pci/host/pcie-hisi-acpi.c:16:0:
->> drivers/pci/host/../pci.h:357:18: error: conflicting types for
->> =E2=80=98acpi_get_rc_resources=E2=80=99
->>  struct resource *acpi_get_rc_resources(const char *hid, u16 segment);
->>                   ^
->> drivers/pci/host/../pci.h:352:5: note: previous declaration of
->> =E2=80=98acpi_get_rc_resources=E2=80=99 was here
->>  int acpi_get_rc_resources(struct device *dev, const char *hid, u16
->> segment,
->>      ^
->> scripts/Makefile.build:293: recipe for target
->> 'drivers/pci/host/pcie-hisi-acpi.o' failed
->> make[1]: *** [drivers/pci/host/pcie-hisi-acpi.o] Error 1
->> Makefile:1640: recipe for target 'drivers/pci/host/pcie-hisi-acpi.o'
->> failed
->> make: *** [drivers/pci/host/pcie-hisi-acpi.o] Error 2
->>
->>
->> Thanks,
->> Ming
->>
->>>
->>> v4 -> v5:
->>> - obtain rc base addresses from PNP0C02 at the root of the ACPI
->>>   namespace (under \_SB) instead of from sub-device under the RC.
->>> - merge the rewrited get rc resources code by Tomasz.
->>> - delete unused code.
->>> - drop the PATCH V4 1/2, will rework late as a separate patch.
->>>
->>> v3 -> v4:
->>> - rebase on pci/ecam-v6.
->>> - delete the unnecessary link_up check code.
->>>
->>> v2 -> v3:
->>> - rebase against 4.9-rc1 and add Tomasz quirks V6 pathcset.
->>> - obtain rc base addresses from PNP0C02 as subdevice of PNP0A03 instead
->>> of
->>>   hardcode the addresses.
->>> - modify hisi_pcie_acpi_rd_conf/hisi_pcie_acpi_wr_conf() according to
->>>   Arnd comments.
->>>
->>> v1 -> v2:
->>> - rebase against Tomasz RFC V5 quirk mechanism
->>> - add ACPI support for the HiSilicon Hip07 SoC PCIe controllers.
->>>
->>> Dongdong Liu (2):
->>>   PCI/ACPI: Provide acpi_get_rc_resources() for ARM64 platform
->>>   PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
->>>
->>>  MAINTAINERS                       |   1 +
->>>  drivers/acpi/pci_mcfg.c           |  13 +++++
->>>  drivers/pci/host/Kconfig          |   7 +++
->>>  drivers/pci/host/Makefile         |   1 +
->>>  drivers/pci/host/pcie-hisi-acpi.c | 119
->>> ++++++++++++++++++++++++++++++++++++++
->>>  drivers/pci/pci-acpi.c            |  69 ++++++++++++++++++++++
->>>  drivers/pci/pci.h                 |   4 ++
->>>  include/linux/pci-ecam.h          |   5 ++
->>>  8 files changed, 219 insertions(+)
->>>  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
->>>
->>> --
->>> 1.9.1
->>>
->>
->>
->>
->
-
-
-
---=20
-Ming Lei
+Rafael
