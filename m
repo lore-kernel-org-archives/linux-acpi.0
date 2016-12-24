@@ -1,36 +1,210 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform clocks
-Date: Thu, 22 Dec 2016 20:42:37 +0200
-Message-ID: <CAHp75VfJU3613euahjW-s92_XEz8hK70ZgRi53Lpo+2TWqPscA@mail.gmail.com>
-References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
- <1481306510-7471-2-git-send-email-irina.tirdea@intel.com> <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
- <20161213232524.GQ5423@codeaurora.org> <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
- <20161217013337.GW5423@codeaurora.org> <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
- <7f3d03dc-24fe-ec3f-4a3b-926c28f0ac86@linux.intel.com> <20161221230557.GK5423@codeaurora.org>
- <cd6044f5-6c79-b2d6-902d-52e27c217e78@linux.intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v5 09/14] ACPI: platform: setup MSI domain for ACPI based
+ platform device
+Date: Sat, 24 Dec 2016 15:34:19 +0800
+Message-ID: <585E24FB.9050805@huawei.com>
+References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
+ <1482384922-21507-10-git-send-email-guohanjun@huawei.com>
+ <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cd6044f5-6c79-b2d6-902d-52e27c217e78@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, linux-clk@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Takashi Iwai <tiwai@suse.com>, platform-driver-x86@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, yimin@huawei.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 22, 2016 at 3:07 AM, Pierre-Louis Bossart
-<pierre-louis.bossart@linux.intel.com> wrote:
-> On 12/21/16 5:05 PM, Stephen Boyd wrote:
+Hi Rafael,
 
->>> The name pmc_plt_clk_<n> follows the data sheet specification, where
->>> this convention is suggested:
->>>   PLT_CLK[2:0] - Camera
->>>   PLT_CLK[3] - Audio Codec
->>>   PLT_CLK[4] -
->>>   PLT_CLK[5] - COMMs
+Thank you for your comments, when I was demoing your suggestion,
+I got a little bit confusions, please see my comments below.
 
-By the way, would I suggest to use same prefix as provider, i.e.
-pmc_atom_plt_clk_%d ?
+On 2016/12/22 20:57, Rafael J. Wysocki wrote:
+> On Thu, Dec 22, 2016 at 6:35 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> With the platform msi domain created, we can set up the msi domain
+>> for a platform device when it's probed.
+>>
+>> In order to do that, we need to get the domain that the platform
+>> device connecting to, so the iort_get_platform_device_domain() is
+>> introduced to retrieve the domain from iort.
+>>
+>> After the domain is retrieved, we need a proper way to set the
+>> domain to paltform device, as some platform devices such as an
+>> irqchip needs the msi irqdomain to be the interrupt parent domain,
+>> we need to get irqdomain before platform device is probed but after
+>> the platform device is allocated, so introduce a callback (pre_add_cb)
+>> in pdevinfo to prepare firmware related information which is needed
+>> for device probe, then set the msi domain in that callback.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> Cc: Greg KH <gregkh@linuxfoundation.org>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> ---
+>>  drivers/acpi/acpi_platform.c    | 11 +++++++++++
+>>  drivers/acpi/arm64/iort.c       | 43 +++++++++++++++++++++++++++++++++++++++++
+>>  drivers/base/platform.c         |  3 +++
+>>  include/linux/acpi_iort.h       |  3 +++
+>>  include/linux/platform_device.h |  3 +++
+>>  5 files changed, 63 insertions(+)
+>>
+>> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+>> index b4c1a6a..5d8d61b4 100644
+>> --- a/drivers/acpi/acpi_platform.c
+>> +++ b/drivers/acpi/acpi_platform.c
+>> @@ -12,6 +12,7 @@
+>>   */
+>>
+>>  #include <linux/acpi.h>
+>> +#include <linux/acpi_iort.h>
+>>  #include <linux/device.h>
+>>  #include <linux/err.h>
+>>  #include <linux/kernel.h>
+>> @@ -48,6 +49,15 @@ static void acpi_platform_fill_resource(struct acpi_device *adev,
+>>  }
+>>
+>>  /**
+>> + * acpi_platform_pre_add_cb - callback before platform device is added, to
+>> + * prepare firmware related information which is needed for device probe
+>> + */
+>> +static void acpi_platform_pre_add_cb(struct device *dev)
+>> +{
+>> +       acpi_configure_pmsi_domain(dev);
+>> +}
+>> +
+>> +/**
+>>   * acpi_create_platform_device - Create platform device for ACPI device node
+>>   * @adev: ACPI device node to create a platform device for.
+>>   * @properties: Optional collection of build-in properties.
+>> @@ -109,6 +119,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+>>         pdevinfo.num_res = count;
+>>         pdevinfo.fwnode = acpi_fwnode_handle(adev);
+>>         pdevinfo.properties = properties;
+>> +       pdevinfo.pre_add_cb = acpi_platform_pre_add_cb;
+> Why don't you point that directly to acpi_configure_pmsi_domain()?  It
+> doesn't look like the wrapper is necessary at all.
 
--- 
-With Best Regards,
-Andy Shevchenko
+I was thinking that we can add something more in the future
+if we need to extend the function of the callback, I can just
+use acpi_configure_pmsi_domain() here.
+
+>
+> And I'm not sure why the new callback is necessary ->
+
+I was demoing your suggestion but...
+
+>
+>>         if (acpi_dma_supported(adev))
+>>                 pdevinfo.dma_mask = DMA_BIT_MASK(32);
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index bc68d93..6b72fcb 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+>>         return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+>>  }
+>>
+>> +/**
+>> + * iort_get_platform_device_domain() - Find MSI domain related to a
+>> + * platform device
+>> + * @dev: the dev pointer associated with the platform device
+>> + *
+>> + * Returns: the MSI domain for this device, NULL otherwise
+>> + */
+>> +static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+>> +{
+>> +       struct acpi_iort_node *node, *msi_parent;
+>> +       struct fwnode_handle *iort_fwnode;
+>> +       struct acpi_iort_its_group *its;
+>> +
+>> +       /* find its associated iort node */
+>> +       node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>> +                             iort_match_node_callback, dev);
+>> +       if (!node)
+>> +               return NULL;
+>> +
+>> +       /* then find its msi parent node */
+>> +       msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
+>> +       if (!msi_parent)
+>> +               return NULL;
+>> +
+>> +       /* Move to ITS specific data */
+>> +       its = (struct acpi_iort_its_group *)msi_parent->node_data;
+>> +
+>> +       iort_fwnode = iort_find_domain_token(its->identifiers[0]);
+>> +       if (!iort_fwnode)
+>> +               return NULL;
+>> +
+>> +       return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
+>> +}
+>> +
+>> +void acpi_configure_pmsi_domain(struct device *dev)
+>> +{
+>> +       struct irq_domain *msi_domain;
+>> +
+>> +       msi_domain = iort_get_platform_device_domain(dev);
+>> +       if (msi_domain)
+>> +               dev_set_msi_domain(dev, msi_domain);
+>> +}
+>> +
+>>  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>>  {
+>>         u32 *rid = data;
+>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+>> index c4af003..3e68f31 100644
+>> --- a/drivers/base/platform.c
+>> +++ b/drivers/base/platform.c
+>> @@ -537,6 +537,9 @@ struct platform_device *platform_device_register_full(
+>>                         goto err;
+>>         }
+>>
+>> +       if (pdevinfo->pre_add_cb)
+>> +               pdevinfo->pre_add_cb(&pdev->dev);
+>> +
+> -> because it looks like this might be done in acpi_platform_notify()
+> for platform devices.
+
+It works and I just simply add the code below:
+
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index f8d6564..e0cd649 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/rwsem.h>
+ #include <linux/acpi.h>
++#include <linux/acpi_iort.h>
+ #include <linux/dma-mapping.h>
+ 
+ #include "internal.h"
+@@ -315,6 +316,8 @@ static int acpi_platform_notify(struct device *dev)
+        if (!adev)
+                goto out;
+ 
++ acpi_configure_pmsi_domain(dev);
++
+        if (type && type->setup)
+                type->setup(dev);
+        else if (adev->handler && adev->handler->bind)
+
+Do you suggesting to configure the msi domain in this way?
+or add the function in the type->setup() callback (which needs
+to introduce a new acpi bus type)?
+
+Thanks
+Hanjun
