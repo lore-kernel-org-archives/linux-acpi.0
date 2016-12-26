@@ -1,114 +1,158 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / LPSS: Work around wrong sdio _ADR 0 entry on some
- byt/cht devices
-Date: Mon, 26 Dec 2016 00:25:19 +0100
-Message-ID: <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
-References: <20161225102148.7706-1-hdegoede@redhat.com>
+Subject: Re: [PATCH v5 09/14] ACPI: platform: setup MSI domain for ACPI based
+ platform device
+Date: Mon, 26 Dec 2016 01:31:13 +0100
+Message-ID: <CAJZ5v0itKF-uo7vGxK3+-X4OwBVYPdBw-b8v-8-CTBygpKMGoQ@mail.gmail.com>
+References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
+ <1482384922-21507-10-git-send-email-guohanjun@huawei.com> <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com>
+ <585E24FB.9050805@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:36215 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753461AbcLYXZU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Dec 2016 18:25:20 -0500
-In-Reply-To: <20161225102148.7706-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <585E24FB.9050805@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "russianneuromancer @ ya . ru" <russianneuromancer@ya.ru>, linux-mmc@vger.kernel.org, Stable <stable@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-CC Mika and Andy.
+On Sat, Dec 24, 2016 at 8:34 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+> Hi Rafael,
+>
+> Thank you for your comments, when I was demoing your suggestion,
+> I got a little bit confusions, please see my comments below.
+>
 
-Plus I don't think -stable is going to take your patches directly.
+[cut]
 
-On Sun, Dec 25, 2016 at 11:21 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> The firmware on some cherrytrail devices wrongly adds _ADR 0 to their
-> entry describing the 80860F14 uid "2" sd-controller.
+>>> +
+>>> +/**
+>>>   * acpi_create_platform_device - Create platform device for ACPI device node
+>>>   * @adev: ACPI device node to create a platform device for.
+>>>   * @properties: Optional collection of build-in properties.
+>>> @@ -109,6 +119,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+>>>         pdevinfo.num_res = count;
+>>>         pdevinfo.fwnode = acpi_fwnode_handle(adev);
+>>>         pdevinfo.properties = properties;
+>>> +       pdevinfo.pre_add_cb = acpi_platform_pre_add_cb;
+>> Why don't you point that directly to acpi_configure_pmsi_domain()?  It
+>> doesn't look like the wrapper is necessary at all.
 >
-> I believe the firmware writers intended this as a sdio function address,
-> but it is in the wrong place for this, so it gets interpreted as a pci
-> address, causing the node describing the sd-controller used for the
-> sdio-wifi to get seen as a firmware_node for the pci host bridge, rather
-> then being stand-alone device.
+> I was thinking that we can add something more in the future
+> if we need to extend the function of the callback, I can just
+> use acpi_configure_pmsi_domain() here.
+
+So you can add the wrapper in the future just fine as well.  At this
+point it is just redundant.
+
+>>
+>> And I'm not sure why the new callback is necessary ->
 >
-> This commit adds a byt_sdio_setup function which detects this scenario
-> and removes the wrong firmware_node link from the pci host bridge, which
-> fixes acpi_create_platform_device returning NULL, leading to non-working
-> sdio-wifi.
+> I was demoing your suggestion but...
 >
-> BugLink: https://github.com/hadess/rtl8723bs/issues/80
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/acpi_lpss.c | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
+>>
+>>>         if (acpi_dma_supported(adev))
+>>>                 pdevinfo.dma_mask = DMA_BIT_MASK(32);
+>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>> index bc68d93..6b72fcb 100644
+>>> --- a/drivers/acpi/arm64/iort.c
+>>> +++ b/drivers/acpi/arm64/iort.c
+>>> @@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+>>>         return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+>>>  }
+>>>
+>>> +/**
+>>> + * iort_get_platform_device_domain() - Find MSI domain related to a
+>>> + * platform device
+>>> + * @dev: the dev pointer associated with the platform device
+>>> + *
+>>> + * Returns: the MSI domain for this device, NULL otherwise
+>>> + */
+>>> +static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+>>> +{
+>>> +       struct acpi_iort_node *node, *msi_parent;
+>>> +       struct fwnode_handle *iort_fwnode;
+>>> +       struct acpi_iort_its_group *its;
+>>> +
+>>> +       /* find its associated iort node */
+>>> +       node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>>> +                             iort_match_node_callback, dev);
+>>> +       if (!node)
+>>> +               return NULL;
+>>> +
+>>> +       /* then find its msi parent node */
+>>> +       msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
+>>> +       if (!msi_parent)
+>>> +               return NULL;
+>>> +
+>>> +       /* Move to ITS specific data */
+>>> +       its = (struct acpi_iort_its_group *)msi_parent->node_data;
+>>> +
+>>> +       iort_fwnode = iort_find_domain_token(its->identifiers[0]);
+>>> +       if (!iort_fwnode)
+>>> +               return NULL;
+>>> +
+>>> +       return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
+>>> +}
+>>> +
+>>> +void acpi_configure_pmsi_domain(struct device *dev)
+>>> +{
+>>> +       struct irq_domain *msi_domain;
+>>> +
+>>> +       msi_domain = iort_get_platform_device_domain(dev);
+>>> +       if (msi_domain)
+>>> +               dev_set_msi_domain(dev, msi_domain);
+>>> +}
+>>> +
+>>>  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>>>  {
+>>>         u32 *rid = data;
+>>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+>>> index c4af003..3e68f31 100644
+>>> --- a/drivers/base/platform.c
+>>> +++ b/drivers/base/platform.c
+>>> @@ -537,6 +537,9 @@ struct platform_device *platform_device_register_full(
+>>>                         goto err;
+>>>         }
+>>>
+>>> +       if (pdevinfo->pre_add_cb)
+>>> +               pdevinfo->pre_add_cb(&pdev->dev);
+>>> +
+>> -> because it looks like this might be done in acpi_platform_notify()
+>> for platform devices.
 >
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 373657f..df9cc66 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -84,6 +84,7 @@ static const struct lpss_device_desc lpss_dma_desc = {
->  };
+> It works and I just simply add the code below:
 >
->  struct lpss_private_data {
-> +       struct acpi_device *adev;
->         void __iomem *mmio_base;
->         resource_size_t mmio_size;
->         unsigned int fixed_clk_rate;
-> @@ -154,6 +155,33 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
->         writel(0, pdata->mmio_base + LPSS_I2C_ENABLE);
->  }
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index f8d6564..e0cd649 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/rwsem.h>
+>  #include <linux/acpi.h>
+> +#include <linux/acpi_iort.h>
+>  #include <linux/dma-mapping.h>
 >
-> +static void byt_sdio_setup(struct lpss_private_data *pdata)
-> +{
-> +       unsigned long long adr;
-> +       acpi_status status;
-> +       struct device *dev;
+>  #include "internal.h"
+> @@ -315,6 +316,8 @@ static int acpi_platform_notify(struct device *dev)
+>         if (!adev)
+>                 goto out;
+>
+> + acpi_configure_pmsi_domain(dev);
 > +
-> +       /*
-> +        * Some firmware has a broken _ADR 0 enter for the 80860F14:2
-> +        * device, which causes it to get seen as the firmware_node
-> +        * for the pci host bridge, rather then a stand alone device.
-> +        *
-> +        * Check if this is the case, and if it is remove the link.
-> +        */
-> +       if (strcmp(acpi_device_uid(pdata->adev), "2") != 0)
-> +               return;
-> +
-> +       status = acpi_evaluate_integer(pdata->adev->handle, "_ADR", NULL, &adr);
-> +       if (ACPI_FAILURE(status) || adr != 0)
-> +               return;
-> +
-> +       dev = acpi_get_first_physical_node(pdata->adev);
-> +       if (!dev)
-> +               return;
-> +
-> +       acpi_unbind_one(dev);
-> +}
-> +
->  static const struct lpss_device_desc lpt_dev_desc = {
->         .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
->         .prv_offset = 0x800,
-> @@ -217,6 +245,7 @@ static const struct lpss_device_desc byt_spi_dev_desc = {
+
+But that should apply to platform devices only I suppose?
+
+>         if (type && type->setup)
+>                 type->setup(dev);
+>         else if (adev->handler && adev->handler->bind)
 >
->  static const struct lpss_device_desc byt_sdio_dev_desc = {
->         .flags = LPSS_CLK,
-> +       .setup = byt_sdio_setup,
->  };
->
->  static const struct lpss_device_desc byt_i2c_dev_desc = {
-> @@ -425,6 +454,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
->                 goto err_out;
->         }
->
-> +       pdata->adev = adev;
->         pdata->dev_desc = dev_desc;
->
->         if (dev_desc->setup)
-> --
-> 2.9.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Do you suggesting to configure the msi domain in this way?
+> or add the function in the type->setup() callback (which needs
+> to introduce a new acpi bus type)?
+
+A type->setup() would be somewhat cleaner I think, but then it's more
+code.  Whichever works better I guess. :-)
+
+Thanks,
+Rafael
