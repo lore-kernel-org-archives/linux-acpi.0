@@ -1,137 +1,145 @@
-From: "majun (Euler7)" <majun258@huawei.com>
-Subject: Re: [PATCH v5 00/14] ACPI platform MSI support and its example mbigen
-Date: Mon, 26 Dec 2016 17:26:23 +0800
-Message-ID: <5860E23F.50705@huawei.com>
-References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
- <5860DB5D.40701@huawei.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI / LPSS: Work around wrong sdio _ADR 0 entry on some
+ byt/cht devices
+Date: Mon, 26 Dec 2016 11:48:19 +0100
+Message-ID: <087d2576-66f8-f3ea-e08b-95e5de9f701c@redhat.com>
+References: <20161225102148.7706-1-hdegoede@redhat.com>
+ <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:38243 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751392AbcLZJ2E (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Dec 2016 04:28:04 -0500
-In-Reply-To: <5860DB5D.40701@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "russianneuromancer @ ya . ru" <russianneuromancer@ya.ru>, linux-mmc@vger.kernel.org, Stable <stable@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: majun258@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, jcm@redhat.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi:
+Hi,
 
-在 2016/12/26 16:57, majun (Euler7) 写道:
-> Hi Hanjun:
-> 	This patch set works fine on my Hisilicon D05 board.
-> Feel free to add
+On 26-12-16 00:25, Rafael J. Wysocki wrote:
+> CC Mika and Andy.
+>
+> Plus I don't think -stable is going to take your patches directly.
 
-Based on the Patch 1/3, 2/3 of [PATCH V9 0/3] irqchip: qcom: Add IRQ combiner driver
-from Agustin Vega-Frias
+Not sure what you mean with this remark? According to:
 
-https://lwn.net/Articles/709222/
+Documentation/stable_kernel_rules.txt
 
-> 	Tested-by: Majun <majun258@huawei.com>
-> 
-> 在 2016/12/22 13:35, Hanjun Guo 写道:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> v4 -> v5:
->> 	- Add mbigen support back with tested on with Agustin's patchset,
->> 	  and it's a good example of how ACPI platform MSI works
->> 	- rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
->>
->> v3 -> v4:
->>         - Drop mbi-gen patches to just submit platform msi support because
->>           will rebase mbi-gen patches on top of Agustin's patchset, and discusion
->>           is going there.
->>         - Add a patch to support device topology such as NC(named componant, paltform device)
->>           ->SMMU->ITS which suggested by Lorenzo;
->>         - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
->>         - rebased on top of 4.9-rc7
->>
->> v2 -> v3:
->>         - Drop RFC tag
->>         - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
->>         - Add 3 cleanup patches (patch 1, 2, 3)
->>         - Drop arch_init call patch from last version
->>         - Introduce a callback for platform device to set msi domain
->>         - Introduce a new API to get paltform device's domain instead of
->>           reusing the PCI one in previous version
->>         - Add a patch to rework iort_node_get_id()
->>
->> [1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
->>
->> v1 -> v2:
->>         - Fix the bug of if multi Interrupt() resoures in single _PRS,
->>           we need to calculate all the irq numbers (I missed it in previous
->>           version);
->>         - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
->>           SMMU patches (also Robin's SMMu patches)
->>         - Add patch irqchip: mbigen: promote mbigen init.
->>
->> With platform msi support landed in the kernel, and the introduction
->> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
->> is ready, this patch set add few patches to enable the ACPI platform
->> msi support.
->>
->> For platform device connecting to ITS on arm platform, we have IORT
->> table with the named componant node to describe the mappings of paltform
->> device and ITS, so we can retrieve the dev id and find its parent
->> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
->>
->> The fisrt 3 patches are cleanups;
->>
->> Patch 4,5 are refactoring its_pmsi_prepare() for both DT and ACPI
->> then retrieve the dev id from iort;
->>
->> Patch 6,7 to create platform msi domain to ACPI case which scanned
->> the MADT table;
->>
->> Patch 8,9,10,11 to setup the msi domain for platform device based
->> on IORT table.
->>
->> Patch 12,13,14 convert dt based mbigen driver to support ACPI.
->>
->> Teasted on Hisilicon D03/D05.
->>
->> Happy holidays!
->>
->> Thanks
->> Hanjun
->>
->> Hanjun Guo (12):
->>   ACPI: ARM64: IORT: minor cleanup for iort_match_node_callback()
->>   irqchip: gic-v3-its: keep the head file include in alphabetic order
->>   ACPI: ARM64: IORT: add missing comment for iort_dev_find_its_id()
->>   irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
->>   ACPI: platform-msi: retrieve dev id from IORT
->>   irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
->>     for ACPI
->>   irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
->>     domain
->>   ACPI: ARM64: IORT: rework iort_node_get_id()
->>   ACPI: platform: setup MSI domain for ACPI based platform device
->>   ACPI: ARM64: IORT: rework iort_node_get_id() for NC->SMMU->ITS case
->>   msi: platform: make platform_msi_create_device_domain() ACPI aware
->>   irqchip: mbigen: Add ACPI support
->>
->> Kefeng Wang (2):
->>   irqchip: mbigen: drop module owner
->>   irqchip: mbigen: introduce mbigen_of_create_domain()
->>
->>  drivers/acpi/acpi_platform.c                  |  11 ++
->>  drivers/acpi/arm64/iort.c                     | 138 ++++++++++++++++++++------
->>  drivers/base/platform-msi.c                   |   3 +-
->>  drivers/base/platform.c                       |   3 +
->>  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++++-----
->>  drivers/irqchip/irq-gic-v3-its.c              |   3 +-
->>  drivers/irqchip/irq-mbigen.c                  | 109 ++++++++++++++++----
->>  include/linux/acpi_iort.h                     |  11 ++
->>  include/linux/platform_device.h               |   3 +
->>  9 files changed, 309 insertions(+), 78 deletions(-)
->>
-> 
-> 
-> .
-> 
+Option 1
+********
 
+To have the patch automatically included in the stable tree, add the tag
+
+.. code-block:: none
+
+      Cc: stable@vger.kernel.org
+
+in the sign-off area. Once the patch is merged it will be applied to
+the stable tree without anything else needing to be done by the author
+or subsystem maintainer.
+
+
+So yes, it won't get merged until it has been merged into Linus'
+tree. But AFAICT adding Cc: stable@vger.kernel.org is the right way
+to indicate that a patch is a bug-fix which should be applied to
+stable kernels once merged, which is my intention of adding the Cc.
+
+Regards,
+
+Hans
+
+
+
+>
+> On Sun, Dec 25, 2016 at 11:21 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> The firmware on some cherrytrail devices wrongly adds _ADR 0 to their
+>> entry describing the 80860F14 uid "2" sd-controller.
+>>
+>> I believe the firmware writers intended this as a sdio function address,
+>> but it is in the wrong place for this, so it gets interpreted as a pci
+>> address, causing the node describing the sd-controller used for the
+>> sdio-wifi to get seen as a firmware_node for the pci host bridge, rather
+>> then being stand-alone device.
+>>
+>> This commit adds a byt_sdio_setup function which detects this scenario
+>> and removes the wrong firmware_node link from the pci host bridge, which
+>> fixes acpi_create_platform_device returning NULL, leading to non-working
+>> sdio-wifi.
+>>
+>> BugLink: https://github.com/hadess/rtl8723bs/issues/80
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  drivers/acpi/acpi_lpss.c | 30 ++++++++++++++++++++++++++++++
+>>  1 file changed, 30 insertions(+)
+>>
+>> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+>> index 373657f..df9cc66 100644
+>> --- a/drivers/acpi/acpi_lpss.c
+>> +++ b/drivers/acpi/acpi_lpss.c
+>> @@ -84,6 +84,7 @@ static const struct lpss_device_desc lpss_dma_desc = {
+>>  };
+>>
+>>  struct lpss_private_data {
+>> +       struct acpi_device *adev;
+>>         void __iomem *mmio_base;
+>>         resource_size_t mmio_size;
+>>         unsigned int fixed_clk_rate;
+>> @@ -154,6 +155,33 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
+>>         writel(0, pdata->mmio_base + LPSS_I2C_ENABLE);
+>>  }
+>>
+>> +static void byt_sdio_setup(struct lpss_private_data *pdata)
+>> +{
+>> +       unsigned long long adr;
+>> +       acpi_status status;
+>> +       struct device *dev;
+>> +
+>> +       /*
+>> +        * Some firmware has a broken _ADR 0 enter for the 80860F14:2
+>> +        * device, which causes it to get seen as the firmware_node
+>> +        * for the pci host bridge, rather then a stand alone device.
+>> +        *
+>> +        * Check if this is the case, and if it is remove the link.
+>> +        */
+>> +       if (strcmp(acpi_device_uid(pdata->adev), "2") != 0)
+>> +               return;
+>> +
+>> +       status = acpi_evaluate_integer(pdata->adev->handle, "_ADR", NULL, &adr);
+>> +       if (ACPI_FAILURE(status) || adr != 0)
+>> +               return;
+>> +
+>> +       dev = acpi_get_first_physical_node(pdata->adev);
+>> +       if (!dev)
+>> +               return;
+>> +
+>> +       acpi_unbind_one(dev);
+>> +}
+>> +
+>>  static const struct lpss_device_desc lpt_dev_desc = {
+>>         .flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
+>>         .prv_offset = 0x800,
+>> @@ -217,6 +245,7 @@ static const struct lpss_device_desc byt_spi_dev_desc = {
+>>
+>>  static const struct lpss_device_desc byt_sdio_dev_desc = {
+>>         .flags = LPSS_CLK,
+>> +       .setup = byt_sdio_setup,
+>>  };
+>>
+>>  static const struct lpss_device_desc byt_i2c_dev_desc = {
+>> @@ -425,6 +454,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>>                 goto err_out;
+>>         }
+>>
+>> +       pdata->adev = adev;
+>>         pdata->dev_desc = dev_desc;
+>>
+>>         if (dev_desc->setup)
+>> --
+>> 2.9.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
