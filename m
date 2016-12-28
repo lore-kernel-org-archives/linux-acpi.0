@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 12/18] ACPICA: Utilities: Update debug output
-Date: Wed, 28 Dec 2016 15:29:22 +0800
-Message-ID: <896454f3b2edb5535d51b06a6e2be93484f4fc4c.1482821486.git.lv.zheng@intel.com>
+Subject: [PATCH 17/18] ACPICA: Parser: Update parse info table for some operators
+Date: Wed, 28 Dec 2016 15:29:56 +0800
+Message-ID: <030a1809765cac853bc6c680d568a4e261fd7e86.1482821486.git.lv.zheng@intel.com>
 References: <cover.1482821486.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1482821486.git.lv.zheng@intel.com>
@@ -12,56 +12,56 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 082b5b3ee31f74735e166858eeda025288604a5a
+ACPICA commit b90e39948954ff400cff1a3f8effddb67f15460b
 
-Enhancement of miscellaneous debug output.
+Operand for deref_of should not have been a term_arg, should be super_name.
+Rename NAME_OR_REF to SIMPLENAME.
 
-Link: https://github.com/acpica/acpica/commit/082b5b3e
+Link: https://github.com/acpica/acpica/commit/b90e3994
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utdecode.c | 4 ++--
- drivers/acpi/acpica/utdelete.c | 6 ++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/acopcode.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utdecode.c b/drivers/acpi/acpica/utdecode.c
-index b3d8421..c6f2ce1 100644
---- a/drivers/acpi/acpica/utdecode.c
-+++ b/drivers/acpi/acpica/utdecode.c
-@@ -238,7 +238,7 @@ const char *acpi_ut_get_object_type_name(union acpi_operand_object *obj_desc)
- 
- 	if (!obj_desc) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Null Object Descriptor\n"));
--		return_PTR("[NULL Object Descriptor]");
-+		return_STR("[NULL Object Descriptor]");
- 	}
- 
- 	/* These descriptor types share a common area */
-@@ -251,7 +251,7 @@ const char *acpi_ut_get_object_type_name(union acpi_operand_object *obj_desc)
- 				  acpi_ut_get_descriptor_name(obj_desc),
- 				  obj_desc));
- 
--		return_PTR("Invalid object");
-+		return_STR("Invalid object");
- 	}
- 
- 	return_STR(acpi_ut_get_type_name(obj_desc->common.type));
-diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-index 529d6c3..5cdd707 100644
---- a/drivers/acpi/acpica/utdelete.c
-+++ b/drivers/acpi/acpica/utdelete.c
-@@ -421,8 +421,10 @@ acpi_ut_update_ref_count(union acpi_operand_object *object, u32 action)
- 		}
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
--				  "Obj %p Type %.2X Refs %.2X [Incremented]\n",
--				  object, object->common.type, new_count));
-+				  "Obj %p Type %.2X [%s] Refs %.2X [Incremented]\n",
-+				  object, object->common.type,
-+				  acpi_ut_get_object_type_name(object),
-+				  new_count));
- 		break;
- 
- 	case REF_DECREMENT:
+diff --git a/drivers/acpi/acpica/acopcode.h b/drivers/acpi/acpica/acopcode.h
+index 84d611b..245c1da 100644
+--- a/drivers/acpi/acpica/acopcode.h
++++ b/drivers/acpi/acpica/acopcode.h
+@@ -92,7 +92,7 @@
+ #define ARGP_BYTELIST_OP                ARGP_LIST1 (ARGP_NAMESTRING)
+ #define ARGP_CONCAT_OP                  ARGP_LIST3 (ARGP_TERMARG,    ARGP_TERMARG,       ARGP_TARGET)
+ #define ARGP_CONCAT_RES_OP              ARGP_LIST3 (ARGP_TERMARG,    ARGP_TERMARG,       ARGP_TARGET)
+-#define ARGP_COND_REF_OF_OP             ARGP_LIST2 (ARGP_NAME_OR_REF,ARGP_TARGET)
++#define ARGP_COND_REF_OF_OP             ARGP_LIST2 (ARGP_SIMPLENAME, ARGP_TARGET)
+ #define ARGP_CONNECTFIELD_OP            ARGP_LIST1 (ARGP_NAMESTRING)
+ #define ARGP_CONTINUE_OP                ARG_NONE
+ #define ARGP_COPY_OP                    ARGP_LIST2 (ARGP_TERMARG,    ARGP_SIMPLENAME)
+@@ -105,7 +105,7 @@
+ #define ARGP_DATA_REGION_OP             ARGP_LIST4 (ARGP_NAME,       ARGP_TERMARG,       ARGP_TERMARG,   ARGP_TERMARG)
+ #define ARGP_DEBUG_OP                   ARG_NONE
+ #define ARGP_DECREMENT_OP               ARGP_LIST1 (ARGP_SUPERNAME)
+-#define ARGP_DEREF_OF_OP                ARGP_LIST1 (ARGP_TERMARG)
++#define ARGP_DEREF_OF_OP                ARGP_LIST1 (ARGP_SUPERNAME)
+ #define ARGP_DEVICE_OP                  ARGP_LIST3 (ARGP_PKGLENGTH,  ARGP_NAME,          ARGP_OBJLIST)
+ #define ARGP_DIVIDE_OP                  ARGP_LIST4 (ARGP_TERMARG,    ARGP_TERMARG,       ARGP_TARGET,    ARGP_TARGET)
+ #define ARGP_DWORD_OP                   ARGP_LIST1 (ARGP_DWORDDATA)
+@@ -152,14 +152,14 @@
+ #define ARGP_NAMEPATH_OP                ARGP_LIST1 (ARGP_NAMESTRING)
+ #define ARGP_NOOP_OP                    ARG_NONE
+ #define ARGP_NOTIFY_OP                  ARGP_LIST2 (ARGP_SUPERNAME,  ARGP_TERMARG)
+-#define ARGP_OBJECT_TYPE_OP             ARGP_LIST1 (ARGP_NAME_OR_REF)
++#define ARGP_OBJECT_TYPE_OP             ARGP_LIST1 (ARGP_SIMPLENAME)
+ #define ARGP_ONE_OP                     ARG_NONE
+ #define ARGP_ONES_OP                    ARG_NONE
+ #define ARGP_PACKAGE_OP                 ARGP_LIST3 (ARGP_PKGLENGTH,  ARGP_BYTEDATA,      ARGP_DATAOBJLIST)
+ #define ARGP_POWER_RES_OP               ARGP_LIST5 (ARGP_PKGLENGTH,  ARGP_NAME,          ARGP_BYTEDATA,  ARGP_WORDDATA,  ARGP_OBJLIST)
+ #define ARGP_PROCESSOR_OP               ARGP_LIST6 (ARGP_PKGLENGTH,  ARGP_NAME,          ARGP_BYTEDATA,  ARGP_DWORDDATA, ARGP_BYTEDATA,  ARGP_OBJLIST)
+ #define ARGP_QWORD_OP                   ARGP_LIST1 (ARGP_QWORDDATA)
+-#define ARGP_REF_OF_OP                  ARGP_LIST1 (ARGP_NAME_OR_REF)
++#define ARGP_REF_OF_OP                  ARGP_LIST1 (ARGP_SIMPLENAME)
+ #define ARGP_REGION_OP                  ARGP_LIST4 (ARGP_NAME,       ARGP_BYTEDATA,      ARGP_TERMARG,   ARGP_TERMARG)
+ #define ARGP_RELEASE_OP                 ARGP_LIST1 (ARGP_SUPERNAME)
+ #define ARGP_RESERVEDFIELD_OP           ARGP_LIST1 (ARGP_NAMESTRING)
 -- 
 2.7.4
