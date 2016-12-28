@@ -1,67 +1,119 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: v4.10-rc1: does not wake up from suspend-to-RAM
-Date: Wed, 28 Dec 2016 01:35:11 +0100
-Message-ID: <CAJZ5v0jkmSviO0=6NBfiTXg177MN4OeJE_z-34=8z1=0NnLnDw@mail.gmail.com>
-References: <20161227130435.GA4535@amd> <20161227203118.GA9658@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 03/18] ACPICA: Hardware: Add access_width/bit_offset support in acpi_hw_write()
+Date: Wed, 28 Dec 2016 15:28:23 +0800
+Message-ID: <eaf3db3bcaa065d385d93b0bf77f6458f0f67092.1482821486.git.lv.zheng@intel.com>
+References: <cover.1482821486.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:34421 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752298AbcL1AfM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Dec 2016 19:35:12 -0500
-In-Reply-To: <20161227203118.GA9658@amd>
+Received: from mga11.intel.com ([192.55.52.93]:57642 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750882AbcL1H3P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 28 Dec 2016 02:29:15 -0500
+In-Reply-To: <cover.1482821486.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-pm mailing list <linux-pm@lists.osdl.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-On Tue, Dec 27, 2016 at 9:31 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
->> Machine is plain Intel desktop.
->>
->> Even power light does not turn on. Fun. If I force power off by
->> holding power button down, power light stays off during the next
->> boot. Interesting. I guess EC is confused.
->>
->> Thinkpad X60 with similar kernel config works.
->
-> Acer notebook does not work, either. Same config as x60.
->
-> Handle 0x0001, DMI type 1, 27 bytes
-> System Information
->         Manufacturer: Acer
->  Product Name: Aspire 5732Z
->  Version: V3.07
->
-> pavel@half:~$ lspci
-> 00:00.0 Host bridge: Intel Corporation Mobile 4 Series Chipset Memory Controller Hub (rev 07)
-> 00:01.0 PCI bridge: Intel Corporation Mobile 4 Series Chipset PCI Express Graphics Port (rev 07)
-> 00:1a.0 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #4 (rev 03)
-> 00:1a.7 USB controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI Controller #2 (rev 03)
-> 00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio Controller (rev 03)
-> 00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express Port 1 (rev 03)
-> 00:1c.1 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express Port 2 (rev 03)
-> 00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express Port 3 (rev 03)
-> 00:1d.0 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #1 (rev 03)
-> 00:1d.1 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #2 (rev 03)
-> 00:1d.2 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #3 (rev 03)
-> 00:1d.3 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #6 (rev 03)
-> 00:1d.7 USB controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI Controller #1 (rev 03)
-> 00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 93)
-> 00:1f.0 ISA bridge: Intel Corporation ICH9M LPC Interface Controller (rev 03)
-> 00:1f.2 SATA controller: Intel Corporation 82801IBM/IEM (ICH9M/ICH9M-E) 4 port SATA Controller [AHCI mode] (rev 03)
-> 00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller (rev 03)
-> 01:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] RV710/M92 [Mobility Radeon HD 4530/4570/545v]
-> 04:00.0 Network controller: Broadcom Corporation BCM43225 802.11b/g/n (rev 01)
-> 05:00.0 Ethernet controller: Qualcomm Atheros AR8132 Fast Ethernet (rev c0)
-> pavel@half:~$
->
-> Any ideas? Does it work for you?
+ACPICA commit 1ecab20bbe69a176dfb6da7210fe77aa6b3ad680
 
-There is a fix in the current mainline on top of -rc1 that should help
-(works for me).
+This patch adds access_width/bit_offset support in acpi_hw_write().
+Lv Zheng.
 
-Thanks,
-Rafael
+Link: https://github.com/acpica/acpica/commit/1ecab20b
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/hwregs.c | 62 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 53 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index 115c223..2bc3425 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -292,6 +292,12 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ {
+ 	u64 address;
++	u8 access_width;
++	u32 bit_width;
++	u8 bit_offset;
++	u64 value64;
++	u32 value32;
++	u8 index;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_NAME(hw_write);
+@@ -303,23 +309,61 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 		return (status);
+ 	}
+ 
++	/* Convert access_width into number of bits based */
++
++	access_width = acpi_hw_get_access_bit_width(reg, 32);
++	bit_width = reg->bit_offset + reg->bit_width;
++	bit_offset = reg->bit_offset;
++
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+ 	 * not supported here because the GAS structure is insufficient
+ 	 */
+-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+-		status = acpi_os_write_memory((acpi_physical_address)
+-					      address, (u64)value,
+-					      reg->bit_width);
+-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+-
+-		status = acpi_hw_write_port((acpi_io_address)
+-					    address, value, reg->bit_width);
++	index = 0;
++	while (bit_width) {
++		/*
++		 * Use offset style bit reads because "Index * AccessWidth" is
++		 * ensured to be less than 32-bits by acpi_hw_validate_register().
++		 */
++		value32 = ACPI_GET_BITS(&value, index * access_width,
++					ACPI_MASK_BITS_ABOVE_32(access_width));
++
++		if (bit_offset >= access_width) {
++			bit_offset -= access_width;
++		} else {
++			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++				value64 = (u64)value32;
++				status =
++				    acpi_os_write_memory((acpi_physical_address)
++							 address +
++							 index *
++							 ACPI_DIV_8
++							 (access_width),
++							 value64, access_width);
++			} else {	/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
++
++				status = acpi_hw_write_port((acpi_io_address)
++							    address +
++							    index *
++							    ACPI_DIV_8
++							    (access_width),
++							    value32,
++							    access_width);
++			}
++		}
++
++		/*
++		 * Index * access_width is ensured to be less than 32-bits by
++		 * acpi_hw_validate_register().
++		 */
++		bit_width -=
++		    bit_width > access_width ? access_width : bit_width;
++		index++;
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Wrote: %8.8X width %2d   to %8.8X%8.8X (%s)\n",
+-			  value, reg->bit_width, ACPI_FORMAT_UINT64(address),
++			  value, access_width, ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
+ 	return (status);
+-- 
+2.7.4
+
