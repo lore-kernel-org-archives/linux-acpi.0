@@ -1,43 +1,101 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/18] ACPICA: MSVC: Fix MSVC6 build issues
-Date: Wed, 28 Dec 2016 15:29:03 +0800
-Message-ID: <d0478a08e7d8605faae73d4228da2412a49dd2e9.1482821486.git.lv.zheng@intel.com>
-References: <cover.1482821486.git.lv.zheng@intel.com>
+Subject: [PATCH 00/18] ACPICA 20161222 Release
+Date: Wed, 28 Dec 2016 15:28:00 +0800
+Message-ID: <cover.1482821486.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1482821486.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit fa0680030a2969e1085563da633713e1c321637c
+The 20161222 ACPICA kernel-resident subsystem updates are linuxized based
+on the linux-pm/linux-next branch.
 
-Build environment has changed because of new improvements:
-1. New files are split
-2. New inclusion order
-This patch updates MSVC project files accordingly.
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + allyes
+2. i386 + allno
+3. i386 + default + ACPI_DEBUGGER=y
+4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+5. i386 + default + ACPI_DEBUG=n + ACPI=y
+6. i386 + default + ACPI=n
+7. x86_64 + allyes
+8. x86_64 + allno
+9. x86_64 + default + ACPI_DEBUGGER=y
+10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+12.x86_64 + default + ACPI=n
+Boot tests are performed as follows:
+1. x86_64 + default + ACPI_DEBUGGER=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "Microsoft Surface Pro 3"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All "drivers/acpi" configurations
+   All "drivers/platform" drivers
+   All other drivers that link the APIs provided by ACPICA subsystem
 
-Linux is not affected by this patch.
+The divergences checking result:
+Before applying (20161117 Release):
+  467 lines
+After applying (20161222 Release):
+  369 lines
 
-Link: https://github.com/acpica/acpica/commit/fa068003
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- include/acpi/platform/acenv.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Bob Moore (8):
+  ACPICA: Macro header: Fix some typos in comments. No functional change
+  ACPICA: Utilities: Update debug output
+  ACPICA: Resources: Not a valid resource if buffer length too long
+  ACPICA: Fix for implicit result conversion for the ToXXXX functions
+  ACPICA: Parser: Allow method invocations as target operands
+  ACPICA: Fix a problem with recent extra support for control method
+    invocations
+  ACPICA: Parser: Update parse info table for some operators
+  ACPICA: Update version to 20161222
 
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index 34cce72..cf93b66 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -357,7 +357,7 @@
- #include <stdlib.h>
- #include <string.h>
- #include <ctype.h>
--#ifdef ACPI_APPLICATION
-+#if defined (ACPI_APPLICATION) || defined(ACPI_LIBRARY)
- #include <stdio.h>
- #include <fcntl.h>
- #include <errno.h>
+Colin Ian King (1):
+  ACPICA: Linux-specific header: Add support for s390x compilation.
+
+David E. Box (1):
+  ACPICA: Disassembler: Add Switch/Case disassembly support
+
+Lv Zheng (8):
+  ACPICA: Debugger: Rename debugger OSL names
+  ACPICA: Hardware: Remove bit_offset masking support
+  ACPICA: Hardware: Add access_width/bit_offset support in
+    acpi_hw_write()
+  ACPICA: Utilities: Add power of two rounding support
+  ACPICA: Hardware: Sort access bit width algorithm
+  ACPICA: Hardware: Add sleep register hooks
+  ACPICA: MSVC: Fix MSVC6 build issues
+  ACPICA: EFI: Add efihello demo application
+
+ drivers/acpi/acpica/aclocal.h                      |   7 +-
+ drivers/acpi/acpica/acmacros.h                     |  72 +++++++++-
+ drivers/acpi/acpica/acopcode.h                     |  22 +--
+ drivers/acpi/acpica/amlcode.h                      |  20 ++-
+ drivers/acpi/acpica/dbxface.c                      |   4 +-
+ drivers/acpi/acpica/exconvrt.c                     |   1 -
+ drivers/acpi/acpica/exresop.c                      |   1 -
+ drivers/acpi/acpica/hwesleep.c                     |  35 +++--
+ drivers/acpi/acpica/hwregs.c                       | 153 +++++++++++++++------
+ drivers/acpi/acpica/hwsleep.c                      |  11 +-
+ drivers/acpi/acpica/psargs.c                       |  97 +++++++++----
+ drivers/acpi/acpica/psloop.c                       |   4 +
+ drivers/acpi/acpica/psobject.c                     |  10 +-
+ drivers/acpi/acpica/pstree.c                       |  10 +-
+ drivers/acpi/acpica/utdecode.c                     |   4 +-
+ drivers/acpi/acpica/utdelete.c                     |   6 +-
+ drivers/acpi/acpica/utresrc.c                      |  17 ++-
+ drivers/acpi/osl.c                                 |  27 +++-
+ include/acpi/acexcep.h                             |   9 +-
+ include/acpi/acpiosxf.h                            |  12 +-
+ include/acpi/acpixf.h                              |   2 +-
+ include/acpi/platform/acenv.h                      |   5 +-
+ include/acpi/platform/aclinux.h                    |   7 +-
+ include/acpi/platform/aclinuxex.h                  |   4 +-
+ .../acpi/os_specific/service_layers/osunixxf.c     |  22 +++
+ 25 files changed, 405 insertions(+), 157 deletions(-)
+
 -- 
 2.7.4
