@@ -1,117 +1,135 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/18] ACPICA: Debugger: Rename debugger OSL names
-Date: Wed, 28 Dec 2016 15:28:07 +0800
-Message-ID: <1ac4dc3954b7a1a674608ef987ce78d18f9b2fb2.1482821486.git.lv.zheng@intel.com>
-References: <cover.1482821486.git.lv.zheng@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: Work around wrong sdio _ADR 0 entry on some
+ byt/cht devices
+Date: Wed, 28 Dec 2016 11:14:28 +0200
+Message-ID: <20161228091428.GY1460@lahna.fi.intel.com>
+References: <20161225102148.7706-1-hdegoede@redhat.com>
+ <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2581 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:21088 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751026AbcL1IHq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Dec 2016 03:07:46 -0500
-In-Reply-To: <cover.1482821486.git.lv.zheng@intel.com>
+        id S1751103AbcL1JOg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 28 Dec 2016 04:14:36 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "russianneuromancer @ ya . ru" <russianneuromancer@ya.ru>, linux-mmc@vger.kernel.org, Stable <stable@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-ACPICA commit e76eb8b36ace880e4d475880db1128a206e57b6f
+On Mon, Dec 26, 2016 at 12:25:19AM +0100, Rafael J. Wysocki wrote:
+> CC Mika and Andy.
+> 
+> Plus I don't think -stable is going to take your patches directly.
+> 
+> On Sun, Dec 25, 2016 at 11:21 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+> > The firmware on some cherrytrail devices wrongly adds _ADR 0 to their
+> > entry describing the 80860F14 uid "2" sd-controller.
+> >
+> > I believe the firmware writers intended this as a sdio function address,
+> > but it is in the wrong place for this, so it gets interpreted as a pci
+> > address, causing the node describing the sd-controller used for the
+> > sdio-wifi to get seen as a firmware_node for the pci host bridge, rather
+> > then being stand-alone device.
+> >
+> > This commit adds a byt_sdio_setup function which detects this scenario
+> > and removes the wrong firmware_node link from the pci host bridge, which
+> > fixes acpi_create_platform_device returning NULL, leading to non-working
+> > sdio-wifi.
+> >
+> > BugLink: https://github.com/hadess/rtl8723bs/issues/80
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > ---
+> >  drivers/acpi/acpi_lpss.c | 30 ++++++++++++++++++++++++++++++
+> >  1 file changed, 30 insertions(+)
+> >
+> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> > index 373657f..df9cc66 100644
+> > --- a/drivers/acpi/acpi_lpss.c
+> > +++ b/drivers/acpi/acpi_lpss.c
+> > @@ -84,6 +84,7 @@ static const struct lpss_device_desc lpss_dma_desc = {
+> >  };
+> >
+> >  struct lpss_private_data {
+> > +       struct acpi_device *adev;
+> >         void __iomem *mmio_base;
+> >         resource_size_t mmio_size;
+> >         unsigned int fixed_clk_rate;
+> > @@ -154,6 +155,33 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
+> >         writel(0, pdata->mmio_base + LPSS_I2C_ENABLE);
+> >  }
+> >
+> > +static void byt_sdio_setup(struct lpss_private_data *pdata)
+> > +{
+> > +       unsigned long long adr;
+> > +       acpi_status status;
+> > +       struct device *dev;
+> > +
+> > +       /*
+> > +        * Some firmware has a broken _ADR 0 enter for the 80860F14:2
+> > +        * device, which causes it to get seen as the firmware_node
+> > +        * for the pci host bridge, rather then a stand alone device.
+> > +        *
+> > +        * Check if this is the case, and if it is remove the link.
+> > +        */
+> > +       if (strcmp(acpi_device_uid(pdata->adev), "2") != 0)
+> > +               return;
+> > +
+> > +       status = acpi_evaluate_integer(pdata->adev->handle, "_ADR", NULL, &adr);
+> > +       if (ACPI_FAILURE(status) || adr != 0)
+> > +               return;
+> > +
+> > +       dev = acpi_get_first_physical_node(pdata->adev);
+> > +       if (!dev)
+> > +               return;
+> > +
+> > +       acpi_unbind_one(dev);
+> > +}
 
-This linuxized ACPICA commit is a back port result of the following
-linux commit:
-  Commit: f8d31489629c125806ce4bf587c0c5c284d6d113
-  Subject: ACPICA: Debugger: Convert some mechanisms to OSPM specific
-During the back porting, it is requested by ACPICA to use expected OSL
-names. Suggested by Bob Moore, Fixed by Lv Zheng.
+IIRC the _ADR 0 problem is not only limited to SDIO devices. I think we
+should just fix the match heuristics in acpi_find_child_device() to
+cover all other devices as well.
 
-Linux is not affected by this patch.
+Something like below might do the job.
 
-Link: https://github.com/acpica/acpica/commit/e76eb8b3
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- drivers/acpi/acpica/dbxface.c     | 4 ++--
- include/acpi/acpiosxf.h           | 8 ++++----
- include/acpi/platform/aclinux.h   | 4 ++--
- include/acpi/platform/aclinuxex.h | 4 ++--
- 4 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
-index 124db23..5b8cae1 100644
---- a/drivers/acpi/acpica/dbxface.c
-+++ b/drivers/acpi/acpica/dbxface.c
-@@ -430,7 +430,7 @@ acpi_status acpi_initialize_debugger(void)
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 5ea5dc219f56..7cfd48f55b6f 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -85,7 +85,7 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
  
- 		/* These were created with one unit, grab it */
- 
--		status = acpi_os_initialize_command_signals();
-+		status = acpi_os_initialize_debugger();
- 		if (ACPI_FAILURE(status)) {
- 			acpi_os_printf("Could not get debugger mutex\n");
- 			return_ACPI_STATUS(status);
-@@ -482,7 +482,7 @@ void acpi_terminate_debugger(void)
- 			acpi_os_sleep(100);
- 		}
- 
--		acpi_os_terminate_command_signals();
-+		acpi_os_terminate_debugger();
- 	}
- 
- 	if (acpi_gbl_db_buffer) {
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index f3414c8..42ab9b3 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -355,12 +355,12 @@ void acpi_os_redirect_output(void *destination);
- acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read);
- #endif
- 
--#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
--acpi_status acpi_os_initialize_command_signals(void);
-+#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_debugger
-+acpi_status acpi_os_initialize_debugger(void);
- #endif
- 
--#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
--void acpi_os_terminate_command_signals(void);
-+#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_debugger
-+void acpi_os_terminate_debugger(void);
- #endif
- 
- #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_command_ready
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index e861a24..af588e0 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -156,8 +156,8 @@
-  */
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_readable
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_writable
--#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
--#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
-+#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_debugger
-+#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_debugger
- 
- /*
-  * OSL interfaces used by utilities
-diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
-index 7dbb114..de7648b 100644
---- a/include/acpi/platform/aclinuxex.h
-+++ b/include/acpi/platform/aclinuxex.h
-@@ -129,12 +129,12 @@ static inline u8 acpi_os_readable(void *pointer, acpi_size length)
- 	return TRUE;
- }
- 
--static inline acpi_status acpi_os_initialize_command_signals(void)
-+static inline acpi_status acpi_os_initialize_debugger(void)
+ static int find_child_checks(struct acpi_device *adev, bool check_children)
  {
- 	return AE_OK;
+-	bool sta_present = true;
++	bool hid_present, sta_present = true;
+ 	unsigned long long sta;
+ 	acpi_status status;
+ 
+@@ -98,7 +98,22 @@ static int find_child_checks(struct acpi_device *adev, bool check_children)
+ 	if (check_children && list_empty(&adev->children))
+ 		return -ENODEV;
+ 
+-	return sta_present ? FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
++	/*
++	 * If there is a _HID or _CID present on a bus that is supposed to
++	 * be matched using _ADR, we prioritize those devices without ID
++	 * higher.
++	 *
++	 * This is because there are many BIOSes out there having ACPI
++	 * enumerated devices and the _ADR is set to 0. This will match the
++	 * root PCI bridge to the first found device with _ADR 0 which is
++	 * not always the right device.
++	 */
++	hid_present = !list_empty(&adev->pnp.ids);
++
++	if (sta_present)
++		return hid_present ? FIND_CHILD_MIN_SCORE : FIND_CHILD_MAX_SCORE;
++
++	return FIND_CHILD_MIN_SCORE;
  }
  
--static inline void acpi_os_terminate_command_signals(void)
-+static inline void acpi_os_terminate_debugger(void)
- {
- 	return;
- }
--- 
-2.7.4
+ struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
 
