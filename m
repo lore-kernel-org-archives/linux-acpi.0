@@ -1,135 +1,115 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Work around wrong sdio _ADR 0 entry on some
- byt/cht devices
-Date: Wed, 28 Dec 2016 11:14:28 +0200
-Message-ID: <20161228091428.GY1460@lahna.fi.intel.com>
-References: <20161225102148.7706-1-hdegoede@redhat.com>
- <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.10-rc1: does not wake up from suspend-to-RAM
+Date: Wed, 28 Dec 2016 10:53:11 +0100
+Message-ID: <20161228095311.GA30084@amd>
+References: <20161227130435.GA4535@amd>
+ <20161227203118.GA9658@amd>
+ <CAJZ5v0jkmSviO0=6NBfiTXg177MN4OeJE_z-34=8z1=0NnLnDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21088 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751103AbcL1JOg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 28 Dec 2016 04:14:36 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <CAJZ5v0jkmSviO0=6NBfiTXg177MN4OeJE_z-34=8z1=0NnLnDw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "russianneuromancer @ ya . ru" <russianneuromancer@ya.ru>, linux-mmc@vger.kernel.org, Stable <stable@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux-pm mailing list <linux-pm@lists.osdl.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 26, 2016 at 12:25:19AM +0100, Rafael J. Wysocki wrote:
-> CC Mika and Andy.
-> 
-> Plus I don't think -stable is going to take your patches directly.
-> 
-> On Sun, Dec 25, 2016 at 11:21 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> > The firmware on some cherrytrail devices wrongly adds _ADR 0 to their
-> > entry describing the 80860F14 uid "2" sd-controller.
-> >
-> > I believe the firmware writers intended this as a sdio function address,
-> > but it is in the wrong place for this, so it gets interpreted as a pci
-> > address, causing the node describing the sd-controller used for the
-> > sdio-wifi to get seen as a firmware_node for the pci host bridge, rather
-> > then being stand-alone device.
-> >
-> > This commit adds a byt_sdio_setup function which detects this scenario
-> > and removes the wrong firmware_node link from the pci host bridge, which
-> > fixes acpi_create_platform_device returning NULL, leading to non-working
-> > sdio-wifi.
-> >
-> > BugLink: https://github.com/hadess/rtl8723bs/issues/80
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > ---
-> >  drivers/acpi/acpi_lpss.c | 30 ++++++++++++++++++++++++++++++
-> >  1 file changed, 30 insertions(+)
-> >
-> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> > index 373657f..df9cc66 100644
-> > --- a/drivers/acpi/acpi_lpss.c
-> > +++ b/drivers/acpi/acpi_lpss.c
-> > @@ -84,6 +84,7 @@ static const struct lpss_device_desc lpss_dma_desc = {
-> >  };
-> >
-> >  struct lpss_private_data {
-> > +       struct acpi_device *adev;
-> >         void __iomem *mmio_base;
-> >         resource_size_t mmio_size;
-> >         unsigned int fixed_clk_rate;
-> > @@ -154,6 +155,33 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
-> >         writel(0, pdata->mmio_base + LPSS_I2C_ENABLE);
-> >  }
-> >
-> > +static void byt_sdio_setup(struct lpss_private_data *pdata)
-> > +{
-> > +       unsigned long long adr;
-> > +       acpi_status status;
-> > +       struct device *dev;
-> > +
-> > +       /*
-> > +        * Some firmware has a broken _ADR 0 enter for the 80860F14:2
-> > +        * device, which causes it to get seen as the firmware_node
-> > +        * for the pci host bridge, rather then a stand alone device.
-> > +        *
-> > +        * Check if this is the case, and if it is remove the link.
-> > +        */
-> > +       if (strcmp(acpi_device_uid(pdata->adev), "2") != 0)
-> > +               return;
-> > +
-> > +       status = acpi_evaluate_integer(pdata->adev->handle, "_ADR", NULL, &adr);
-> > +       if (ACPI_FAILURE(status) || adr != 0)
-> > +               return;
-> > +
-> > +       dev = acpi_get_first_physical_node(pdata->adev);
-> > +       if (!dev)
-> > +               return;
-> > +
-> > +       acpi_unbind_one(dev);
-> > +}
 
-IIRC the _ADR 0 problem is not only limited to SDIO devices. I think we
-should just fix the match heuristics in acpi_find_child_device() to
-cover all other devices as well.
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Something like below might do the job.
+On Wed 2016-12-28 01:35:11, Rafael J. Wysocki wrote:
+> On Tue, Dec 27, 2016 at 9:31 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> > Hi!
+> >
+> >> Machine is plain Intel desktop.
+> >>
+> >> Even power light does not turn on. Fun. If I force power off by
+> >> holding power button down, power light stays off during the next
+> >> boot. Interesting. I guess EC is confused.
+> >>
+> >> Thinkpad X60 with similar kernel config works.
+> >
+> > Acer notebook does not work, either. Same config as x60.
+> >
+> > Handle 0x0001, DMI type 1, 27 bytes
+> > System Information
+> >         Manufacturer: Acer
+> >  Product Name: Aspire 5732Z
+> >  Version: V3.07
+> >
+> > pavel@half:~$ lspci
+> > 00:00.0 Host bridge: Intel Corporation Mobile 4 Series Chipset Memory C=
+ontroller Hub (rev 07)
+> > 00:01.0 PCI bridge: Intel Corporation Mobile 4 Series Chipset PCI Expre=
+ss Graphics Port (rev 07)
+> > 00:1a.0 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI=
+ Controller #4 (rev 03)
+> > 00:1a.7 USB controller: Intel Corporation 82801I (ICH9 Family) USB2 EHC=
+I Controller #2 (rev 03)
+> > 00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio C=
+ontroller (rev 03)
+> > 00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express =
+Port 1 (rev 03)
+> > 00:1c.1 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express =
+Port 2 (rev 03)
+> > 00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express =
+Port 3 (rev 03)
+> > 00:1d.0 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI=
+ Controller #1 (rev 03)
+> > 00:1d.1 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI=
+ Controller #2 (rev 03)
+> > 00:1d.2 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI=
+ Controller #3 (rev 03)
+> > 00:1d.3 USB controller: Intel Corporation 82801I (ICH9 Family) USB UHCI=
+ Controller #6 (rev 03)
+> > 00:1d.7 USB controller: Intel Corporation 82801I (ICH9 Family) USB2 EHC=
+I Controller #1 (rev 03)
+> > 00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 93)
+> > 00:1f.0 ISA bridge: Intel Corporation ICH9M LPC Interface Controller (r=
+ev 03)
+> > 00:1f.2 SATA controller: Intel Corporation 82801IBM/IEM (ICH9M/ICH9M-E)=
+ 4 port SATA Controller [AHCI mode] (rev 03)
+> > 00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller =
+(rev 03)
+> > 01:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/AT=
+I] RV710/M92 [Mobility Radeon HD 4530/4570/545v]
+> > 04:00.0 Network controller: Broadcom Corporation BCM43225 802.11b/g/n (=
+rev 01)
+> > 05:00.0 Ethernet controller: Qualcomm Atheros AR8132 Fast Ethernet (rev=
+ c0)
+> > pavel@half:~$
+> >
+> > Any ideas? Does it work for you?
+>=20
+> There is a fix in the current mainline on top of -rc1 that should help
+> (works for me).
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 5ea5dc219f56..7cfd48f55b6f 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -85,7 +85,7 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
- 
- static int find_child_checks(struct acpi_device *adev, bool check_children)
- {
--	bool sta_present = true;
-+	bool hid_present, sta_present = true;
- 	unsigned long long sta;
- 	acpi_status status;
- 
-@@ -98,7 +98,22 @@ static int find_child_checks(struct acpi_device *adev, bool check_children)
- 	if (check_children && list_empty(&adev->children))
- 		return -ENODEV;
- 
--	return sta_present ? FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
-+	/*
-+	 * If there is a _HID or _CID present on a bus that is supposed to
-+	 * be matched using _ADR, we prioritize those devices without ID
-+	 * higher.
-+	 *
-+	 * This is because there are many BIOSes out there having ACPI
-+	 * enumerated devices and the _ADR is set to 0. This will match the
-+	 * root PCI bridge to the first found device with _ADR 0 which is
-+	 * not always the right device.
-+	 */
-+	hid_present = !list_empty(&adev->pnp.ids);
-+
-+	if (sta_present)
-+		return hid_present ? FIND_CHILD_MIN_SCORE : FIND_CHILD_MAX_SCORE;
-+
-+	return FIND_CHILD_MIN_SCORE;
- }
- 
- struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
+Thanks. I updated to latest mainline, and at least my test machine
+works. I'll re-test on my machine later.
 
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--sdtB3X0nJg68CQEu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhji4cACgkQMOfwapXb+vKxJQCgkOkCyv0pVgNtjmWy7wTFvd1i
+eqAAn37sVYUxaCqEMo2W/r8aQ6zKjX7E
+=vo5n
+-----END PGP SIGNATURE-----
+
+--sdtB3X0nJg68CQEu--
