@@ -1,155 +1,42 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Work around wrong sdio _ADR 0 entry on some
- byt/cht devices
-Date: Thu, 29 Dec 2016 10:41:35 +0200
-Message-ID: <20161229084135.GC1460@lahna.fi.intel.com>
-References: <20161225102148.7706-1-hdegoede@redhat.com>
- <CAJZ5v0ibDwkA2Pc+nkYXS6Mq6CKT3jAnjrfCaEiCtZye5JD75A@mail.gmail.com>
- <20161228091428.GY1460@lahna.fi.intel.com>
- <CAJZ5v0gjcaYtskSMueAz+GjHcLZv=4A8Qz_Lf6Bn7S0CLSkgPg@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH v5 09/14] ACPI: platform: setup MSI domain for ACPI based
+ platform device
+Date: Thu, 29 Dec 2016 09:44:59 -0500
+Message-ID: <9aa650ad-a32d-e942-1c6b-b069c8a2b87a@codeaurora.org>
+References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
+ <1482384922-21507-10-git-send-email-guohanjun@huawei.com>
+ <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com>
+ <585E24FB.9050805@huawei.com>
+ <CAJZ5v0itKF-uo7vGxK3+-X4OwBVYPdBw-b8v-8-CTBygpKMGoQ@mail.gmail.com>
+ <586072E9.3060609@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28292 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751167AbcL2Ilm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 29 Dec 2016 03:41:42 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gjcaYtskSMueAz+GjHcLZv=4A8Qz_Lf6Bn7S0CLSkgPg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <586072E9.3060609@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, yimin@huawei.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, huxinwei@huawei.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "russianneuromancer @ ya . ru" <russianneuromancer@ya.ru>, linux-mmc@vger.kernel.org, Stable <stable@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Wed, Dec 28, 2016 at 11:30:35PM +0100, Rafael J. Wysocki wrote:
-> On Wed, Dec 28, 2016 at 10:14 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > On Mon, Dec 26, 2016 at 12:25:19AM +0100, Rafael J. Wysocki wrote:
-> >> CC Mika and Andy.
-> >>
-> >> Plus I don't think -stable is going to take your patches directly.
-> >>
-> >> On Sun, Dec 25, 2016 at 11:21 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> >> > The firmware on some cherrytrail devices wrongly adds _ADR 0 to their
-> >> > entry describing the 80860F14 uid "2" sd-controller.
-> >> >
-> >> > I believe the firmware writers intended this as a sdio function address,
-> >> > but it is in the wrong place for this, so it gets interpreted as a pci
-> >> > address, causing the node describing the sd-controller used for the
-> >> > sdio-wifi to get seen as a firmware_node for the pci host bridge, rather
-> >> > then being stand-alone device.
-> >> >
-> >> > This commit adds a byt_sdio_setup function which detects this scenario
-> >> > and removes the wrong firmware_node link from the pci host bridge, which
-> >> > fixes acpi_create_platform_device returning NULL, leading to non-working
-> >> > sdio-wifi.
-> >> >
-> >> > BugLink: https://github.com/hadess/rtl8723bs/issues/80
-> >> > Cc: stable@vger.kernel.org
-> >> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >> > ---
-> >> >  drivers/acpi/acpi_lpss.c | 30 ++++++++++++++++++++++++++++++
-> >> >  1 file changed, 30 insertions(+)
-> >> >
-> >> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> >> > index 373657f..df9cc66 100644
-> >> > --- a/drivers/acpi/acpi_lpss.c
-> >> > +++ b/drivers/acpi/acpi_lpss.c
-> >> > @@ -84,6 +84,7 @@ static const struct lpss_device_desc lpss_dma_desc = {
-> >> >  };
-> >> >
-> >> >  struct lpss_private_data {
-> >> > +       struct acpi_device *adev;
-> >> >         void __iomem *mmio_base;
-> >> >         resource_size_t mmio_size;
-> >> >         unsigned int fixed_clk_rate;
-> >> > @@ -154,6 +155,33 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
-> >> >         writel(0, pdata->mmio_base + LPSS_I2C_ENABLE);
-> >> >  }
-> >> >
-> >> > +static void byt_sdio_setup(struct lpss_private_data *pdata)
-> >> > +{
-> >> > +       unsigned long long adr;
-> >> > +       acpi_status status;
-> >> > +       struct device *dev;
-> >> > +
-> >> > +       /*
-> >> > +        * Some firmware has a broken _ADR 0 enter for the 80860F14:2
-> >> > +        * device, which causes it to get seen as the firmware_node
-> >> > +        * for the pci host bridge, rather then a stand alone device.
-> >> > +        *
-> >> > +        * Check if this is the case, and if it is remove the link.
-> >> > +        */
-> >> > +       if (strcmp(acpi_device_uid(pdata->adev), "2") != 0)
-> >> > +               return;
-> >> > +
-> >> > +       status = acpi_evaluate_integer(pdata->adev->handle, "_ADR", NULL, &adr);
-> >> > +       if (ACPI_FAILURE(status) || adr != 0)
-> >> > +               return;
-> >> > +
-> >> > +       dev = acpi_get_first_physical_node(pdata->adev);
-> >> > +       if (!dev)
-> >> > +               return;
-> >> > +
-> >> > +       acpi_unbind_one(dev);
-> >> > +}
-> >
-> > IIRC the _ADR 0 problem is not only limited to SDIO devices. I think we
-> > should just fix the match heuristics in acpi_find_child_device() to
-> > cover all other devices as well.
-> >
-> > Something like below might do the job.
-> >
-> > diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> > index 5ea5dc219f56..7cfd48f55b6f 100644
-> > --- a/drivers/acpi/glue.c
-> > +++ b/drivers/acpi/glue.c
-> > @@ -85,7 +85,7 @@ static struct acpi_bus_type *acpi_get_bus_type(struct device *dev)
-> >
-> >  static int find_child_checks(struct acpi_device *adev, bool check_children)
-> >  {
-> > -       bool sta_present = true;
-> > +       bool hid_present, sta_present = true;
-> >         unsigned long long sta;
-> >         acpi_status status;
-> >
-> > @@ -98,7 +98,22 @@ static int find_child_checks(struct acpi_device *adev, bool check_children)
-> >         if (check_children && list_empty(&adev->children))
-> >                 return -ENODEV;
-> >
-> > -       return sta_present ? FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
-> > +       /*
-> > +        * If there is a _HID or _CID present on a bus that is supposed to
-> > +        * be matched using _ADR, we prioritize those devices without ID
-> > +        * higher.
-> > +        *
-> > +        * This is because there are many BIOSes out there having ACPI
-> > +        * enumerated devices and the _ADR is set to 0. This will match the
-> > +        * root PCI bridge to the first found device with _ADR 0 which is
-> > +        * not always the right device.
-> > +        */
-> > +       hid_present = !list_empty(&adev->pnp.ids);
-> > +
-> > +       if (sta_present)
-> > +               return hid_present ? FIND_CHILD_MIN_SCORE : FIND_CHILD_MAX_SCORE;
-> > +
-> > +       return FIND_CHILD_MIN_SCORE;
-> >  }
-> >
-> >  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
-> >
-> 
-> I'd rather only change the return statement, like this:
-> 
-> return sta_present && list_empty(&adev->pnp.ids) ?
-> FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
-> 
-> I'll send a patch tomorrow unless there's something wrong with this.
+On 12/25/2016 8:31 PM, Hanjun Guo wrote:
+>> A type->setup() would be somewhat cleaner I think, but then it's more
+>> code.  Whichever works better I guess. :-)
+> Agree, I will demo the type->setup() way and send out the patch for review,
+> also I find one minor issue for the IORT code, will update that also for next
+> version.
 
-Looks good to me, thanks.
+Can you provide details on what the minor issue is with the IORT code?
 
-> BTW, the comment is not correct too, because the host bridge has a
-> _HID.  What is matched against _ADR(0) is the first function on bus 0
-> IIRC.
-
-Yes, you are right.
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
