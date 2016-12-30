@@ -1,49 +1,104 @@
 From: Xinwei Kong <kong.kongxinwei@hisilicon.com>
-Subject: Re: [PATCH v5 08/14] ACPI: ARM64: IORT: rework iort_node_get_id()
-Date: Fri, 30 Dec 2016 17:00:34 +0800
-Message-ID: <58662232.2010001@hisilicon.com>
+Subject: Re: [PATCH v5 13/14] irqchip: mbigen: introduce
+ mbigen_of_create_domain()
+Date: Fri, 30 Dec 2016 16:59:02 +0800
+Message-ID: <586621D6.3060705@hisilicon.com>
 References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
- <1482384922-21507-9-git-send-email-guohanjun@huawei.com>
+ <1482384922-21507-14-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1482384922-21507-9-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:2068 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750830AbcL3Jqk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Dec 2016 04:46:40 -0500
+In-Reply-To: <1482384922-21507-14-git-send-email-guohanjun@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <guohanjun@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, jcm@redhat.com, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org
-List-Id: linux-acpi@vger.kernel.org
 
 On 2016/12/22 13:35, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
+> From: Kefeng Wang <wangkefeng.wang@huawei.com>
 >
-> iort_node_get_id() has two output, one is the mapped ids,
-> the other is the referenced parent node which is returned
-> from the function.
+> Introduce mbigen_of_create_domain() to consolidate OF related
+> code and prepare for ACPI later, no funtional change.
 >
-> For now we need a API just return its parent node for
-> single mapping, so just update this function slightly then
-> reuse it later.
->
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 > Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ma Jun <majun258@huawei.com>
 > ---
->   drivers/acpi/arm64/iort.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
+>   drivers/irqchip/irq-mbigen.c | 42 +++++++++++++++++++++++++++---------------
+>   1 file changed, 27 insertions(+), 15 deletions(-)
 >
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index ab7bae7..bc68d93 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -347,7 +347,8 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->   	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->   		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->   		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-> -			*id_out = map[index].output_base;
-> +			if (id_out)
-> +				*id_out = map[index].output_base;
->   			return parent;
->   		}
+> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+> index c01ab41..4e11da5 100644
+> --- a/drivers/irqchip/irq-mbigen.c
+> +++ b/drivers/irqchip/irq-mbigen.c
+> @@ -236,27 +236,15 @@ static int mbigen_irq_domain_alloc(struct irq_domain *domain,
+>   	.free		= irq_domain_free_irqs_common,
+>   };
+>   
+> -static int mbigen_device_probe(struct platform_device *pdev)
+> +static int mbigen_of_create_domain(struct platform_device *pdev,
+> +				   struct mbigen_device *mgn_chip)
+>   {
+> -	struct mbigen_device *mgn_chip;
+> +	struct device *parent;
+>   	struct platform_device *child;
+>   	struct irq_domain *domain;
+>   	struct device_node *np;
+> -	struct device *parent;
+> -	struct resource *res;
+>   	u32 num_pins;
+>   
+> -	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
+> -	if (!mgn_chip)
+> -		return -ENOMEM;
+> -
+> -	mgn_chip->pdev = pdev;
+> -
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	mgn_chip->base = devm_ioremap_resource(&pdev->dev, res);
+> -	if (IS_ERR(mgn_chip->base))
+> -		return PTR_ERR(mgn_chip->base);
+> -
+>   	for_each_child_of_node(pdev->dev.of_node, np) {
+>   		if (!of_property_read_bool(np, "interrupt-controller"))
+>   			continue;
+> @@ -280,6 +268,30 @@ static int mbigen_device_probe(struct platform_device *pdev)
+>   			return -ENOMEM;
 >   	}
+>   
+> +	return 0;
+> +}
+> +
+> +static int mbigen_device_probe(struct platform_device *pdev)
+> +{
+> +	struct mbigen_device *mgn_chip;
+> +	struct resource *res;
+> +	int err;
+> +
+> +	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
+> +	if (!mgn_chip)
+> +		return -ENOMEM;
+> +
+> +	mgn_chip->pdev = pdev;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	mgn_chip->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+> +	if (IS_ERR(mgn_chip->base))
+> +		return PTR_ERR(mgn_chip->base);
+> +
+> +	err = mbigen_of_create_domain(pdev, mgn_chip);
+> +	if (err)
+> +		return err;
+> +
+>   	platform_set_drvdata(pdev, mgn_chip);
+>   	return 0;
+>   }
 Tested-by:  Xinwei Kong <kong.kongxinwei@hisilicon.com>
+
