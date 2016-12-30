@@ -1,42 +1,78 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v5 09/14] ACPI: platform: setup MSI domain for ACPI based
- platform device
-Date: Thu, 29 Dec 2016 09:44:59 -0500
-Message-ID: <9aa650ad-a32d-e942-1c6b-b069c8a2b87a@codeaurora.org>
-References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com>
- <1482384922-21507-10-git-send-email-guohanjun@huawei.com>
- <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com>
- <585E24FB.9050805@huawei.com>
- <CAJZ5v0itKF-uo7vGxK3+-X4OwBVYPdBw-b8v-8-CTBygpKMGoQ@mail.gmail.com>
- <586072E9.3060609@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / scan: Prefer devices without _HID/_CID for _ADR matching
+Date: Fri, 30 Dec 2016 02:27:31 +0100
+Message-ID: <2022116.4lq1KAmrJA@aspire.rjw.lan>
+References: <20161225102148.7706-1-hdegoede@redhat.com> <CAJZ5v0gjcaYtskSMueAz+GjHcLZv=4A8Qz_Lf6Bn7S0CLSkgPg@mail.gmail.com> <20161229084135.GC1460@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <586072E9.3060609@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, yimin@huawei.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, huxinwei@huawei.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ma Jun <majun258@huawei.com>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64334 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751416AbcL3Bb6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 29 Dec 2016 20:31:58 -0500
+In-Reply-To: <20161229084135.GC1460@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
+Cc: Len Brown <lenb@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-mmc@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
 
-On 12/25/2016 8:31 PM, Hanjun Guo wrote:
->> A type->setup() would be somewhat cleaner I think, but then it's more
->> code.  Whichever works better I guess. :-)
-> Agree, I will demo the type->setup() way and send out the patch for review,
-> also I find one minor issue for the IORT code, will update that also for next
-> version.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Can you provide details on what the minor issue is with the IORT code?
+The way acpi_find_child_device() works currently is that, if there
+are two (or more) devices with the same _ADR value in the same
+namespace scope (which is not specifically allowed by the spec and
+the OS behavior in that case is not defined), the first one of them
+found to be present (with the help of _STA) will be returned.
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+This covers the majority of cases, but is not sufficient if some of
+the devices in question have a _HID (or _CID) returning some valid
+ACPI/PNP device IDs (which is disallowed by the spec) and the
+ASL writers' expectation appears to be that the OS will match
+devices without a valid ACPI/PNP device ID against a given bus
+address first.
+
+To cover this special case as well, modify find_child_checks()
+to prefer devices without ACPI/PNP device IDs over devices that
+have them.
+
+Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+I'm not actually sure if this is sufficient to fix the original 80860F14 uid "2"
+sd-controller problem on CherryTrail.  Hans, can you please check?
+
+If it is not sufficient, we may need to fail find_child_checks() right away
+for devices with non-empty pnp.ids lists.
+
+Thanks,
+Rafael
+
+---
+ drivers/acpi/glue.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/glue.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/glue.c
++++ linux-pm/drivers/acpi/glue.c
+@@ -98,7 +98,15 @@ static int find_child_checks(struct acpi
+ 	if (check_children && list_empty(&adev->children))
+ 		return -ENODEV;
+ 
+-	return sta_present ? FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
++	/*
++	 * If the device has a _HID (or _CID) returning a valid ACPI/PNP
++	 * device ID, it is better to make it look less attractive here, so that
++	 * the other device with the same _ADR value (that may not have a valid
++	 * device ID) can be matched going forward.  [This means a second spec
++	 * violation in a row, so whatever we do here is best effort anyway.]
++	 */
++	return sta_present && list_empty(&adev->pnp.ids) ?
++			FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
+ }
+ 
+ struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
+
