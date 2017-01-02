@@ -1,158 +1,111 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 09/14] ACPI: platform: setup MSI domain for ACPI based
- platform device
-Date: Mon, 2 Jan 2017 22:17:04 +0100
-Message-ID: <CAJZ5v0hoF_EryMTSc+C0cYAM_fNEDykF6p9KnJ2VuZtg4p9YbA@mail.gmail.com>
-References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org> <1483363905-2806-10-git-send-email-hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/18] ACPICA 20161222 Release
+Date: Mon, 02 Jan 2017 23:19:01 +0100
+Message-ID: <4861890.YlOS97DeY7@aspire.rjw.lan>
+References: <cover.1482821486.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1483363905-2806-10-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <cover.1482821486.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>
+To: Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 2, 2017 at 2:31 PM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> With the platform msi domain created, we can set up the msi domain
-> for a platform device when it's probed.
->
-> In order to do that, we need to get the domain that the platform
-> device connecting to, so the iort_get_platform_device_domain() is
-> introduced to retrieve the domain from iort.
->
-> After the domain is retrieved, we need a proper way to set the
-> domain to paltform device, as some platform devices such as an
-> irqchip needs the msi irqdomain to be the interrupt parent domain,
-> we need to get irqdomain before platform device is probed but after
-> the platform device is allocated (the time slot of setting the
-> msi domain also works for other cases). So simply call
-> acpi_configure_pmsi_domain() in acpi_platform_notify() for
-> platform devices will work.
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+On Wednesday, December 28, 2016 03:28:00 PM Lv Zheng wrote:
+> The 20161222 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
+> 
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + allyes
+> 2. i386 + allno
+> 3. i386 + default + ACPI_DEBUGGER=y
+> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
+> 6. i386 + default + ACPI=n
+> 7. x86_64 + allyes
+> 8. x86_64 + allno
+> 9. x86_64 + default + ACPI_DEBUGGER=y
+> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+> 12.x86_64 + default + ACPI=n
+> Boot tests are performed as follows:
+> 1. x86_64 + default + ACPI_DEBUGGER=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "Microsoft Surface Pro 3"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
+> 
+> The divergences checking result:
+> Before applying (20161117 Release):
+>   467 lines
+> After applying (20161222 Release):
+>   369 lines
+> 
+> Bob Moore (8):
+>   ACPICA: Macro header: Fix some typos in comments. No functional change
+>   ACPICA: Utilities: Update debug output
+>   ACPICA: Resources: Not a valid resource if buffer length too long
+>   ACPICA: Fix for implicit result conversion for the ToXXXX functions
+>   ACPICA: Parser: Allow method invocations as target operands
+>   ACPICA: Fix a problem with recent extra support for control method
+>     invocations
+>   ACPICA: Parser: Update parse info table for some operators
+>   ACPICA: Update version to 20161222
+> 
+> Colin Ian King (1):
+>   ACPICA: Linux-specific header: Add support for s390x compilation.
+> 
+> David E. Box (1):
+>   ACPICA: Disassembler: Add Switch/Case disassembly support
+> 
+> Lv Zheng (8):
+>   ACPICA: Debugger: Rename debugger OSL names
+>   ACPICA: Hardware: Remove bit_offset masking support
+>   ACPICA: Hardware: Add access_width/bit_offset support in
+>     acpi_hw_write()
+>   ACPICA: Utilities: Add power of two rounding support
+>   ACPICA: Hardware: Sort access bit width algorithm
+>   ACPICA: Hardware: Add sleep register hooks
+>   ACPICA: MSVC: Fix MSVC6 build issues
+>   ACPICA: EFI: Add efihello demo application
+> 
+>  drivers/acpi/acpica/aclocal.h                      |   7 +-
+>  drivers/acpi/acpica/acmacros.h                     |  72 +++++++++-
+>  drivers/acpi/acpica/acopcode.h                     |  22 +--
+>  drivers/acpi/acpica/amlcode.h                      |  20 ++-
+>  drivers/acpi/acpica/dbxface.c                      |   4 +-
+>  drivers/acpi/acpica/exconvrt.c                     |   1 -
+>  drivers/acpi/acpica/exresop.c                      |   1 -
+>  drivers/acpi/acpica/hwesleep.c                     |  35 +++--
+>  drivers/acpi/acpica/hwregs.c                       | 153 +++++++++++++++------
+>  drivers/acpi/acpica/hwsleep.c                      |  11 +-
+>  drivers/acpi/acpica/psargs.c                       |  97 +++++++++----
+>  drivers/acpi/acpica/psloop.c                       |   4 +
+>  drivers/acpi/acpica/psobject.c                     |  10 +-
+>  drivers/acpi/acpica/pstree.c                       |  10 +-
+>  drivers/acpi/acpica/utdecode.c                     |   4 +-
+>  drivers/acpi/acpica/utdelete.c                     |   6 +-
+>  drivers/acpi/acpica/utresrc.c                      |  17 ++-
+>  drivers/acpi/osl.c                                 |  27 +++-
+>  include/acpi/acexcep.h                             |   9 +-
+>  include/acpi/acpiosxf.h                            |  12 +-
+>  include/acpi/acpixf.h                              |   2 +-
+>  include/acpi/platform/acenv.h                      |   5 +-
+>  include/acpi/platform/aclinux.h                    |   7 +-
+>  include/acpi/platform/aclinuxex.h                  |   4 +-
+>  .../acpi/os_specific/service_layers/osunixxf.c     |  22 +++
+>  25 files changed, 405 insertions(+), 157 deletions(-)
 
-ACK for the glue.c part.
+Any chance to make patch [14/18] go to any mailing lists or actually any
+outside addresses *at* *all* without being filtered out by spam filters or
+similar?
 
-> ---
->  drivers/acpi/arm64/iort.c | 43 +++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/glue.c       |  6 ++++++
->  include/linux/acpi_iort.h |  3 +++
->  3 files changed, 52 insertions(+)
->
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index bc68d93..6b72fcb 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
->         return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
->  }
->
-> +/**
-> + * iort_get_platform_device_domain() - Find MSI domain related to a
-> + * platform device
-> + * @dev: the dev pointer associated with the platform device
-> + *
-> + * Returns: the MSI domain for this device, NULL otherwise
-> + */
-> +static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
-> +{
-> +       struct acpi_iort_node *node, *msi_parent;
-> +       struct fwnode_handle *iort_fwnode;
-> +       struct acpi_iort_its_group *its;
-> +
-> +       /* find its associated iort node */
-> +       node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +                             iort_match_node_callback, dev);
-> +       if (!node)
-> +               return NULL;
-> +
-> +       /* then find its msi parent node */
-> +       msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
-> +       if (!msi_parent)
-> +               return NULL;
-> +
-> +       /* Move to ITS specific data */
-> +       its = (struct acpi_iort_its_group *)msi_parent->node_data;
-> +
-> +       iort_fwnode = iort_find_domain_token(its->identifiers[0]);
-> +       if (!iort_fwnode)
-> +               return NULL;
-> +
-> +       return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
-> +}
-> +
-> +void acpi_configure_pmsi_domain(struct device *dev)
-> +{
-> +       struct irq_domain *msi_domain;
-> +
-> +       msi_domain = iort_get_platform_device_domain(dev);
-> +       if (msi_domain)
-> +               dev_set_msi_domain(dev, msi_domain);
-> +}
-> +
->  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
->  {
->         u32 *rid = data;
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index f8d6564..4a73f27 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -6,6 +6,8 @@
->   *
->   * This file is released under the GPLv2.
->   */
-> +
-> +#include <linux/acpi_iort.h>
->  #include <linux/export.h>
->  #include <linux/init.h>
->  #include <linux/list.h>
-> @@ -14,6 +16,7 @@
->  #include <linux/rwsem.h>
->  #include <linux/acpi.h>
->  #include <linux/dma-mapping.h>
-> +#include <linux/platform_device.h>
->
->  #include "internal.h"
->
-> @@ -315,6 +318,9 @@ static int acpi_platform_notify(struct device *dev)
->         if (!adev)
->                 goto out;
->
-> +       if (dev->bus == &platform_bus_type)
-> +               acpi_configure_pmsi_domain(dev);
-> +
->         if (type && type->setup)
->                 type->setup(dev);
->         else if (adev->handler && adev->handler->bind)
-> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> index ef99fd52..33f5ac3 100644
-> --- a/include/linux/acpi_iort.h
-> +++ b/include/linux/acpi_iort.h
-> @@ -38,6 +38,7 @@
->  /* IOMMU interface */
->  void iort_set_dma_mask(struct device *dev);
->  const struct iommu_ops *iort_iommu_configure(struct device *dev);
-> +void acpi_configure_pmsi_domain(struct device *dev);
->  #else
->  static inline void acpi_iort_init(void) { }
->  static inline bool iort_node_match(u8 type) { return false; }
-> @@ -58,6 +59,8 @@ static inline void iort_set_dma_mask(struct device *dev) { }
->  static inline
->  const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  { return NULL; }
-> +
-> +static inline void acpi_configure_pmsi_domain(struct device *dev) { }
->  #endif
->
->  #define IORT_ACPI_DECLARE(name, table_id, fn)          \
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
