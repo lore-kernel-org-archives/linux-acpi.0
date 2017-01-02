@@ -1,50 +1,115 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 09/14] ACPI: platform: setup MSI domain for ACPI based
- platform device
-Date: Mon, 02 Jan 2017 20:02:29 +0800
-Message-ID: <586A4155.3090905@linaro.org>
-References: <1482384922-21507-1-git-send-email-guohanjun@huawei.com> <1482384922-21507-10-git-send-email-guohanjun@huawei.com> <CAJZ5v0g4AoU-g4UWZFxLgQ_yfTC7KSBnZ_Ve945d+i58e=GuDQ@mail.gmail.com> <585E24FB.9050805@huawei.com> <CAJZ5v0itKF-uo7vGxK3+-X4OwBVYPdBw-b8v-8-CTBygpKMGoQ@mail.gmail.com> <586072E9.3060609@huawei.com> <58663C04.9000603@huawei.com> <CAJZ5v0h3d5ZUxJXhgz74fSDR=AKTg_Of2knaONF_e2dr6Q-PsA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v6 00/14] ACPI platform MSI support and its example mbigen
+Date: Mon,  2 Jan 2017 21:31:31 +0800
+Message-ID: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f46.google.com ([74.125.83.46]:35109 "EHLO
-        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbdABMCo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jan 2017 07:02:44 -0500
-Received: by mail-pg0-f46.google.com with SMTP id i5so138609239pgh.2
-        for <linux-acpi@vger.kernel.org>; Mon, 02 Jan 2017 04:02:44 -0800 (PST)
-In-Reply-To: <CAJZ5v0h3d5ZUxJXhgz74fSDR=AKTg_Of2knaONF_e2dr6Q-PsA@mail.gmail.com>
+Received: from mail-pg0-f41.google.com ([74.125.83.41]:35808 "EHLO
+        mail-pg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755837AbdABNcn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jan 2017 08:32:43 -0500
+Received: by mail-pg0-f41.google.com with SMTP id i5so139260933pgh.2
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Jan 2017 05:32:43 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Hanjun Guo <guohanjun@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Jon Masters <jcm@redhat.com>
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, charles.garcia-tobin@arm.com, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 01/01/2017 04:45 AM, Rafael J. Wysocki wrote:
-> On Fri, Dec 30, 2016 at 11:50 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
-[...]
->>
->> So how about just add the code as below?
->
-> Works for me.
+v5 -> v6:
+	- Call acpi_configure_pmsi_domain() for platform devices in
+	  acpi_platform_notify() as it's cleaner (suggested by Rafael)
+	- Remove the "u8 type" for iort_id_map() because it's unused
+	- Rebase on top of 4.10-rc2
+	- Collect test and review tags
 
-OK, will send out the updated patch set soon.
+v4 -> v5:
+	- Add mbigen support back with tested on with Agustin's patchset,
+	  and it's a good example of how ACPI platform MSI works
+	- rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
 
->
->> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
->> index 11e63dd..37a8dfe 100644
->> --- a/drivers/acpi/glue.c
->> +++ b/drivers/acpi/glue.c
->> @@ -316,7 +316,8 @@ static int acpi_platform_notify(struct device *dev)
->>          if (!adev)
->>                  goto out;
->>
->> + if (dev->bus == &platform_bus_type)
->> +         acpi_configure_pmsi_domain(dev);
->>
->>          if (type && type->setup)
->>                  type->setup(dev);
+v3 -> v4:
+        - Drop mbi-gen patches to just submit platform msi support because
+          will rebase mbi-gen patches on top of Agustin's patchset, and discusion
+          is going there.
+        - Add a patch to support device topology such as NC(named componant, paltform device)
+          ->SMMU->ITS which suggested by Lorenzo;
+        - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
+        - rebased on top of 4.9-rc7
 
-Thanks for your comments.
+v2 -> v3:
+        - Drop RFC tag
+        - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
+        - Add 3 cleanup patches (patch 1, 2, 3)
+        - Drop arch_init call patch from last version
+        - Introduce a callback for platform device to set msi domain
+        - Introduce a new API to get paltform device's domain instead of
+          reusing the PCI one in previous version
+        - Add a patch to rework iort_node_get_id()
 
+[1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
+
+v1 -> v2:
+        - Fix the bug of if multi Interrupt() resoures in single _PRS,
+          we need to calculate all the irq numbers (I missed it in previous
+          version);
+        - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
+          SMMU patches (also Robin's SMMu patches)
+        - Add patch irqchip: mbigen: promote mbigen init.
+
+With platform msi support landed in the kernel, and the introduction
+of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
+is ready, this patch set add few patches to enable the ACPI platform
+msi support.
+
+For platform device connecting to ITS on arm platform, we have IORT
+table with the named componant node to describe the mappings of paltform
+device and ITS, so we can retrieve the dev id and find its parent
+irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
+
+The fisrt 3 patches are cleanups;
+
+Patch 4,5 are refactoring its_pmsi_prepare() for both DT and ACPI
+then retrieve the dev id from iort;
+
+Patch 6,7 to create platform msi domain to ACPI case which scanned
+the MADT table;
+
+Patch 8,9,10,11 to setup the msi domain for platform device based
+on IORT table.
+
+Patch 12,13,14 convert DT based mbigen driver to support ACPI/DT.
+
+Thanks
 Hanjun
+
+Hanjun Guo (12):
+  ACPI: ARM64: IORT: minor cleanup for iort_match_node_callback()
+  irqchip: gic-v3-its: keep the head file include in alphabetic order
+  ACPI: ARM64: IORT: add missing comment for iort_dev_find_its_id()
+  irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+  ACPI: platform-msi: retrieve dev id from IORT
+  irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
+    for ACPI
+  irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
+    domain
+  ACPI: ARM64: IORT: rework iort_node_get_id()
+  ACPI: platform: setup MSI domain for ACPI based platform device
+  ACPI: ARM64: IORT: rework iort_node_get_id() for NC->SMMU->ITS case
+  msi: platform: make platform_msi_create_device_domain() ACPI aware
+  irqchip: mbigen: Add ACPI support
+
+Kefeng Wang (2):
+  irqchip: mbigen: drop module owner
+  irqchip: mbigen: introduce mbigen_of_create_domain()
+
+ drivers/acpi/arm64/iort.c                     | 140 ++++++++++++++++++++------
+ drivers/acpi/glue.c                           |   6 ++
+ drivers/base/platform-msi.c                   |   3 +-
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 ++++++++++++++-----
+ drivers/irqchip/irq-gic-v3-its.c              |   3 +-
+ drivers/irqchip/irq-mbigen.c                  | 109 ++++++++++++++++----
+ include/linux/acpi_iort.h                     |  11 ++
+ 7 files changed, 299 insertions(+), 79 deletions(-)
+
+-- 
+1.9.1
+
