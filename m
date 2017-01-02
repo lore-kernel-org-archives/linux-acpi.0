@@ -1,55 +1,153 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v6 11/14] msi: platform: make platform_msi_create_device_domain() ACPI aware
-Date: Mon,  2 Jan 2017 21:31:42 +0800
-Message-ID: <1483363905-2806-12-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v6 09/14] ACPI: platform: setup MSI domain for ACPI based platform device
+Date: Mon,  2 Jan 2017 21:31:40 +0800
+Message-ID: <1483363905-2806-10-git-send-email-hanjun.guo@linaro.org>
 References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f47.google.com ([74.125.83.47]:34894 "EHLO
-        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933135AbdABNeI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jan 2017 08:34:08 -0500
-Received: by mail-pg0-f47.google.com with SMTP id i5so139269372pgh.2
-        for <linux-acpi@vger.kernel.org>; Mon, 02 Jan 2017 05:34:02 -0800 (PST)
+Received: from mail-pg0-f52.google.com ([74.125.83.52]:36449 "EHLO
+        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755445AbdABNdw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jan 2017 08:33:52 -0500
+Received: by mail-pg0-f52.google.com with SMTP id f188so203999822pgc.3
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Jan 2017 05:33:52 -0800 (PST)
 In-Reply-To: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, charles.garcia-tobin@arm.com, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-With the platform msi domain created for ITS, irqchip such as
-mbi-gen connecting ITS, which needs ctreate its own irqdomain.
+With the platform msi domain created, we can set up the msi domain
+for a platform device when it's probed.
 
-Fortunately with the platform msi support upstreamed by Marc,
-we just need to add minor code to make it run properly.
+In order to do that, we need to get the domain that the platform
+device connecting to, so the iort_get_platform_device_domain() is
+introduced to retrieve the domain from iort.
 
-platform_msi_create_device_domain() is almost ready for ACPI use
-except of_node_to_fwnode() is for dt only, make it ACPI aware then
-things will work in both DTS and ACPI.
+After the domain is retrieved, we need a proper way to set the
+domain to paltform device, as some platform devices such as an
+irqchip needs the msi irqdomain to be the interrupt parent domain,
+we need to get irqdomain before platform device is probed but after
+the platform device is allocated (the time slot of setting the
+msi domain also works for other cases). So simply call
+acpi_configure_pmsi_domain() in acpi_platform_notify() for
+platform devices will work.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Majun <majun258@huawei.com>
-Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- drivers/base/platform-msi.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/acpi/arm64/iort.c | 43 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/glue.c       |  6 ++++++
+ include/linux/acpi_iort.h |  3 +++
+ 3 files changed, 52 insertions(+)
 
-diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
-index be6a599..035ca3b 100644
---- a/drivers/base/platform-msi.c
-+++ b/drivers/base/platform-msi.c
-@@ -345,8 +345,7 @@ struct irq_domain *
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index bc68d93..6b72fcb 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -527,6 +527,49 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
+ 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
+ }
  
- 	data->host_data = host_data;
- 	domain = irq_domain_create_hierarchy(dev->msi_domain, 0, nvec,
--					     of_node_to_fwnode(dev->of_node),
--					     ops, data);
-+					     dev->fwnode, ops, data);
- 	if (!domain)
- 		goto free_priv;
++/**
++ * iort_get_platform_device_domain() - Find MSI domain related to a
++ * platform device
++ * @dev: the dev pointer associated with the platform device
++ *
++ * Returns: the MSI domain for this device, NULL otherwise
++ */
++static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
++{
++	struct acpi_iort_node *node, *msi_parent;
++	struct fwnode_handle *iort_fwnode;
++	struct acpi_iort_its_group *its;
++
++	/* find its associated iort node */
++	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++			      iort_match_node_callback, dev);
++	if (!node)
++		return NULL;
++
++	/* then find its msi parent node */
++	msi_parent = iort_node_get_id(node, NULL, IORT_MSI_TYPE, 0);
++	if (!msi_parent)
++		return NULL;
++
++	/* Move to ITS specific data */
++	its = (struct acpi_iort_its_group *)msi_parent->node_data;
++
++	iort_fwnode = iort_find_domain_token(its->identifiers[0]);
++	if (!iort_fwnode)
++		return NULL;
++
++	return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
++}
++
++void acpi_configure_pmsi_domain(struct device *dev)
++{
++	struct irq_domain *msi_domain;
++
++	msi_domain = iort_get_platform_device_domain(dev);
++	if (msi_domain)
++		dev_set_msi_domain(dev, msi_domain);
++}
++
+ static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+ {
+ 	u32 *rid = data;
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index f8d6564..4a73f27 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -6,6 +6,8 @@
+  *
+  * This file is released under the GPLv2.
+  */
++
++#include <linux/acpi_iort.h>
+ #include <linux/export.h>
+ #include <linux/init.h>
+ #include <linux/list.h>
+@@ -14,6 +16,7 @@
+ #include <linux/rwsem.h>
+ #include <linux/acpi.h>
+ #include <linux/dma-mapping.h>
++#include <linux/platform_device.h>
  
+ #include "internal.h"
+ 
+@@ -315,6 +318,9 @@ static int acpi_platform_notify(struct device *dev)
+ 	if (!adev)
+ 		goto out;
+ 
++	if (dev->bus == &platform_bus_type)
++		acpi_configure_pmsi_domain(dev);
++
+ 	if (type && type->setup)
+ 		type->setup(dev);
+ 	else if (adev->handler && adev->handler->bind)
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index ef99fd52..33f5ac3 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -38,6 +38,7 @@
+ /* IOMMU interface */
+ void iort_set_dma_mask(struct device *dev);
+ const struct iommu_ops *iort_iommu_configure(struct device *dev);
++void acpi_configure_pmsi_domain(struct device *dev);
+ #else
+ static inline void acpi_iort_init(void) { }
+ static inline bool iort_node_match(u8 type) { return false; }
+@@ -58,6 +59,8 @@ static inline void iort_set_dma_mask(struct device *dev) { }
+ static inline
+ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ { return NULL; }
++
++static inline void acpi_configure_pmsi_domain(struct device *dev) { }
+ #endif
+ 
+ #define IORT_ACPI_DECLARE(name, table_id, fn)		\
 -- 
 1.9.1
 
