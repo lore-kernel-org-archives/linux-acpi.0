@@ -1,111 +1,82 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH v6 05/14] ACPI: platform-msi: retrieve dev id from IORT
-Date: Tue, 3 Jan 2017 09:43:21 +0100
-Message-ID: <13cb0c87-e1c0-c4d6-4793-a3edd20944dc@semihalf.com>
-References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
- <1483363905-2806-6-git-send-email-hanjun.guo@linaro.org>
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [RFC PATCH] ACPI/PCI: Fix bus range comparation in
+ pci_mcfg_lookup
+Date: Tue, 3 Jan 2017 17:07:10 +0800
+Message-ID: <586B69BE.7050009@hisilicon.com>
+References: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
+ <b3d00da9-cd88-cd43-370c-b10d93944024@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:33835 "EHLO
-        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934704AbdACInZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jan 2017 03:43:25 -0500
-Received: by mail-lf0-f48.google.com with SMTP id y21so281280363lfa.1
-        for <linux-acpi@vger.kernel.org>; Tue, 03 Jan 2017 00:43:24 -0800 (PST)
-In-Reply-To: <1483363905-2806-6-git-send-email-hanjun.guo@linaro.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:31369 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932210AbdACJOZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jan 2017 04:14:25 -0500
+In-Reply-To: <b3d00da9-cd88-cd43-370c-b10d93944024@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, charles.garcia-tobin@arm.com, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>
+To: Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>
+Cc: liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 02.01.2017 14:31, Hanjun Guo wrote:
-> For devices connecting to ITS, it needs dev id to identify
-> itself, and this dev id is represented in the IORT table in
-> named componant node [1] for platform devices, so in this
-> patch we will scan the IORT to retrieve device's dev id.
->
-> Introduce iort_pmsi_get_dev_id() with pointer dev passed
-> in for that purpose.
->
-> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> Tested-by: Majun <majun258@huawei.com>
-> Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> ---
->  drivers/acpi/arm64/iort.c                     | 26 ++++++++++++++++++++++++++
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +++-
->  include/linux/acpi_iort.h                     |  8 ++++++++
->  3 files changed, 37 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 174e983..ab7bae7 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -444,6 +444,32 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
->  }
->
->  /**
-> + * iort_pmsi_get_dev_id() - Get the device id for a device
-> + * @dev: The device for which the mapping is to be done.
-> + * @dev_id: The device ID found.
-> + *
-> + * Returns: 0 for successful find a dev id, errors otherwise
-> + */
-> +int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
-> +{
-> +	struct acpi_iort_node *node;
-> +
-> +	if (!iort_table)
-> +		return -ENODEV;
-> +
-> +	node = iort_find_dev_node(dev);
-> +	if (!node) {
-> +		dev_err(dev, "can't find related IORT node\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	if(!iort_node_get_id(node, dev_id, IORT_MSI_TYPE, 0))
-> +		return -ENODEV;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-Giving that you are extending this to NC->
-SMMU->ITS case in later patch, we can use existing helpers from iort.c, 
-like that:
+On 2017/1/3 14:39, Tomasz Nowicki wrote:
+> On 22.12.2016 10:07, Zhou Wang wrote:
+>> Multiple PCIe host bridges may exists in one PCIe segment. So bus range for each
+>> host bridge should be in the coverage of bus range of related PCIe segment.
+>>
+>> This patch will support this kind of scenario:
+>>
+>> MCFG:
+>>     bus range: 0x00~0xff.
+>>     segment: 0.
+>> DSDT:
+>>     host bridge 1:
+>>         bus range: 0x00~0x1f.
+>>         segment: 0.
+>>     host bridge 2:
+>>         bus range: 0x20~0x4f.
+>>         segment: 0.
+>>
+>> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+>> ---
+>>  drivers/acpi/pci_mcfg.c | 5 ++---
+>>  1 file changed, 2 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> index b5b376e..46a3e32 100644
+>> --- a/drivers/acpi/pci_mcfg.c
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -40,11 +40,10 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
+>>      struct mcfg_entry *e;
+>>
+>>      /*
+>> -     * We expect exact match, unless MCFG entry end bus covers more than
+>> -     * specified by caller.
+>> +     * We expect the range in bus_res in the coverage of MCFG bus range.
+>>       */
+>>      list_for_each_entry(e, &pci_mcfg_list, list) {
+>> -        if (e->segment == seg && e->bus_start == bus_res->start &&
+>> +        if (e->segment == seg && e->bus_start <= bus_res->start &&
+>>              e->bus_end >= bus_res->end)
+>>              return e->addr;
+>>      }
+>>
+> 
+> Looks good to me.
+> 
+> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
 
-+/**
-+ * iort_pmsi_get_dev_id() - Get the device id for a device
-+ * @dev: The device for which the mapping is to be done.
-+ * @dev_id: The device ID found.
-+ *
-+ * Returns: 0 for successful find a dev id, errors otherwise
-+ */
-+int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
-+{
-+	struct acpi_iort_node *node;
-+
-+	node = iort_find_dev_node(dev);
-+	if (!node)
-+		return -ENODEV;
-+
-+	if (!iort_node_map_rid(node, 0, dev_id, IORT_MSI_TYPE))
-+		return -ENODEV;
-+
-+	return 0;
-+}
+Hi Tomasz,
 
-Correct me if I am wrong.
+Thanks for your review.
 
-Tomasz
+Regards,
+Zhou
 
+> 
+> Thanks,
+> Tomasz
+> 
+> .
+> 
 
