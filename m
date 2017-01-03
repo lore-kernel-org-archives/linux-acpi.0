@@ -1,16 +1,13 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 01/14] ACPI: ARM64: IORT: minor cleanup for
- iort_match_node_callback()
-Date: Tue, 3 Jan 2017 14:08:39 +0000
-Message-ID: <20170103140839.GC7478@red-moon>
-References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
- <1483363905-2806-2-git-send-email-hanjun.guo@linaro.org>
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: Re: [PATCH V9 0/3] irqchip: qcom: Add IRQ combiner driver
+Date: Tue, 03 Jan 2017 10:19:22 -0500
+Message-ID: <16e3b40407e8072dd5b15bf7e65afb18@codeaurora.org>
+References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1483363905-2806-2-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,77 +17,78 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, charles.garcia-tobin@arm.com, yimin@huawei.com, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: harba@codeaurora.org, lorenzo.pieralisi@arm.com, graeme.gregory@linaro.org, jcm@redhat.com, timur@codeaurora.org, msalter@redhat.com, guohanjun@huawei.com, astone@redhat.com, mlangsdo@redhat.com, cov@codeaurora.org, agross@codeaurora.org, ahs3@redhat.com, charles.garcia-tobin@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 02, 2017 at 09:31:32PM +0800, Hanjun Guo wrote:
-> Cleanup iort_match_node_callback() a little bit to reduce
-> some lines of code, aslo fix the indentation in iort_scan_node().
+Hi,
 
-s/aslo/also
+Is there any more feedback on this beyond Lorenzo's suggestion to drop
+the conditional check on the first patch?
+How can we move forward on this series?
 
-"Also" in a commit log is a sign a patch should be split and that's what
-you should do even though I know it is tempting to merge all trivial
-changes into one single patch.
+Thanks.
 
-Make it two patches please.
-
-Thanks,
-Lorenzo
-
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Majun <majun258@huawei.com>
-> Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  drivers/acpi/arm64/iort.c | 10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
+On 2016-12-14 17:10, Agustin Vega-Frias wrote:
+> Add support for IRQ combiners in the Top-level Control and Status
+> Registers (TCSR) hardware block in Qualcomm Technologies chips.
 > 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e0d2e6e..46e2d82 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -225,7 +225,7 @@ static struct acpi_iort_node *iort_scan_node(enum acpi_iort_node_type type,
->  
->  		if (iort_node->type == type &&
->  		    ACPI_SUCCESS(callback(iort_node, context)))
-> -				return iort_node;
-> +			return iort_node;
->  
->  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
->  					 iort_node->length);
-> @@ -253,17 +253,15 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
->  					    void *context)
->  {
->  	struct device *dev = context;
-> -	acpi_status status;
-> +	acpi_status status = AE_NOT_FOUND;
->  
->  	if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
->  		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
->  		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
->  		struct acpi_iort_named_component *ncomp;
->  
-> -		if (!adev) {
-> -			status = AE_NOT_FOUND;
-> +		if (!adev)
->  			goto out;
-> -		}
->  
->  		status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buf);
->  		if (ACPI_FAILURE(status)) {
-> @@ -289,8 +287,6 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
->  		 */
->  		status = pci_rc->pci_segment_number == pci_domain_nr(bus) ?
->  							AE_OK : AE_NOT_FOUND;
-> -	} else {
-> -		status = AE_NOT_FOUND;
->  	}
->  out:
->  	return status;
-> -- 
-> 1.9.1
+> The first patch prevents the ACPI core from attempting to map IRQ 
+> resources
+> with a valid ResourceSource as GSIs.
 > 
+> The second patch adds support for ResourceSource/IRQ domain mapping and
+> fixes IRQ probe deferral by allowing platform_device IRQ resources to 
+> be
+> re-initialized from the corresponding ACPI IRQ resource.
+> 
+> Both changes described above are conditional on the ACPI_GENERIC_GSI 
+> config.
+> 
+> The third patch takes advantage of the new capabilities to implement
+> the driver for the IRQ combiners.
+> 
+> Tested on top of v4.9.
+> 
+> Changes V8 -> V9:
+> * Do not attempt the mapping for non-GSI IRQs during bus scan.
+> * Make some public APIs private to drivers/acpi/irq.c since they are no
+>   longer used on other modules.
+> 
+> Changes V7 -> V8:
+> * Reorder patches to allow all new code to be under drivers/acpi/irq.c.
+> * Change acpi_irq_get implementation to be more similar to of_irq_get
+>   to improve maintainability.
+> 
+> Agustin Vega-Frias (3):
+>   ACPI: Generic GSI: Do not attempt to map non-GSI IRQs during bus scan
+>   ACPI: Add support for ResourceSource/IRQ domain mapping
+>   irqchip: qcom: Add IRQ combiner driver
+> 
+>  drivers/acpi/Makefile               |   2 +-
+>  drivers/acpi/gsi.c                  |  98 -----------
+>  drivers/acpi/irq.c                  | 280 
+> +++++++++++++++++++++++++++++++
+>  drivers/acpi/resource.c             |  17 +-
+>  drivers/base/platform.c             |   9 +-
+>  drivers/irqchip/Kconfig             |   9 +
+>  drivers/irqchip/Makefile            |   1 +
+>  drivers/irqchip/qcom-irq-combiner.c | 322 
+> ++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h                |  10 ++
+>  9 files changed, 647 insertions(+), 101 deletions(-)
+>  delete mode 100644 drivers/acpi/gsi.c
+>  create mode 100644 drivers/acpi/irq.c
+>  create mode 100644 drivers/irqchip/qcom-irq-combiner.c
+> 
+> --
+> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm
+> Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a
+> Linux Foundation Collaborative Project.
+
+-- 
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
+Linux Foundation Collaborative Project.
