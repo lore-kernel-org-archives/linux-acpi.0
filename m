@@ -1,87 +1,96 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH] ACPI/PCI: Fix bus range comparation in
- pci_mcfg_lookup
-Date: Tue, 3 Jan 2017 12:00:21 +0000
-Message-ID: <20170103120021.GC7145@red-moon>
-References: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
+Subject: Re: [PATCH v6 01/14] ACPI: ARM64: IORT: minor cleanup for
+ iort_match_node_callback()
+Date: Tue, 3 Jan 2017 14:08:39 +0000
+Message-ID: <20170103140839.GC7478@red-moon>
+References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
+ <1483363905-2806-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Zhou Wang <wangzhou1@hisilicon.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, jorn Helgaas <bhelgaas@google.com>, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1483363905-2806-2-git-send-email-hanjun.guo@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, charles.garcia-tobin@arm.com, yimin@huawei.com, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 22, 2016 at 05:07:43PM +0800, Zhou Wang wrote:
-> Multiple PCIe host bridges may exists in one PCIe segment. So bus range for each
-> host bridge should be in the coverage of bus range of related PCIe segment.
-> 
-> This patch will support this kind of scenario:
-> 
-> MCFG:
-> 	bus range: 0x00~0xff.
-> 	segment: 0.
-> DSDT:
-> 	host bridge 1:
-> 		bus range: 0x00~0x1f.
-> 		segment: 0.
-> 	host bridge 2:
-> 		bus range: 0x20~0x4f.
-> 		segment: 0.
+On Mon, Jan 02, 2017 at 09:31:32PM +0800, Hanjun Guo wrote:
+> Cleanup iort_match_node_callback() a little bit to reduce
+> some lines of code, aslo fix the indentation in iort_scan_node().
 
-"The configuration data provided by an MCFG region (ie PCI segment and
-bus range) may span multiple host bridges.
+s/aslo/also
 
-Current code in pci_mcfg_lookup() carries out an exact match of host
-bridge bus range start value against the MCFG region(s) bus range start
-value which would cause configurations like the following:
+"Also" in a commit log is a sign a patch should be split and that's what
+you should do even though I know it is tempting to merge all trivial
+changes into one single patch.
 
-MCFG region:
-	bus range: 0x00~0xff.
-	segment: 0.
+Make it two patches please.
 
-PCI host bridges configuration (segment numbers and bus ranges):
-	host bridge 1:
-		bus range: 0x00~0x1f.
-		segment: 0.
-	host bridge 2:
-		bus range: 0x20~0x4f.
-		segment: 0.
+Thanks,
+Lorenzo
 
-to fail, in that the bus range start value for host bridge 2 does
-not match the bus range start value of the respective MCFG region.
-
-Relax the bus range check in pci_mcfg_lookup() to cater for
-PCI configurations with multiple host bridges sharing the same
-MCFG region."
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
-> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Majun <majun258@huawei.com>
+> Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
 > ---
->  drivers/acpi/pci_mcfg.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+>  drivers/acpi/arm64/iort.c | 10 +++-------
+>  1 file changed, 3 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index b5b376e..46a3e32 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -40,11 +40,10 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
->  	struct mcfg_entry *e;
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e0d2e6e..46e2d82 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -225,7 +225,7 @@ static struct acpi_iort_node *iort_scan_node(enum acpi_iort_node_type type,
 >  
->  	/*
-> -	 * We expect exact match, unless MCFG entry end bus covers more than
-> -	 * specified by caller.
-> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
->  	 */
->  	list_for_each_entry(e, &pci_mcfg_list, list) {
-> -		if (e->segment == seg && e->bus_start == bus_res->start &&
-> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
->  		    e->bus_end >= bus_res->end)
->  			return e->addr;
+>  		if (iort_node->type == type &&
+>  		    ACPI_SUCCESS(callback(iort_node, context)))
+> -				return iort_node;
+> +			return iort_node;
+>  
+>  		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+>  					 iort_node->length);
+> @@ -253,17 +253,15 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+>  					    void *context)
+>  {
+>  	struct device *dev = context;
+> -	acpi_status status;
+> +	acpi_status status = AE_NOT_FOUND;
+>  
+>  	if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
+>  		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+>  		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
+>  		struct acpi_iort_named_component *ncomp;
+>  
+> -		if (!adev) {
+> -			status = AE_NOT_FOUND;
+> +		if (!adev)
+>  			goto out;
+> -		}
+>  
+>  		status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buf);
+>  		if (ACPI_FAILURE(status)) {
+> @@ -289,8 +287,6 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
+>  		 */
+>  		status = pci_rc->pci_segment_number == pci_domain_nr(bus) ?
+>  							AE_OK : AE_NOT_FOUND;
+> -	} else {
+> -		status = AE_NOT_FOUND;
 >  	}
+>  out:
+>  	return status;
 > -- 
 > 1.9.1
 > 
