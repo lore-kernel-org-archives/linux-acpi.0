@@ -1,186 +1,64 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 10/14] ACPI: ARM64: IORT: rework iort_node_get_id()
- for NC->SMMU->ITS case
-Date: Tue, 03 Jan 2017 08:08:50 +0800
-Message-ID: <586AEB92.5020707@linaro.org>
-References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
- <1483363905-2806-11-git-send-email-hanjun.guo@linaro.org>
- <d221a280-d73a-91ad-c984-b6cd114f3a40@codeaurora.org>
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [RFC PATCH] ACPI/PCI: Fix bus range comparation in
+ pci_mcfg_lookup
+Date: Tue, 3 Jan 2017 09:28:51 +0800
+Message-ID: <586AFE53.6000602@hisilicon.com>
+References: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <d221a280-d73a-91ad-c984-b6cd114f3a40@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, charles.garcia-tobin@arm.com, Jon Masters <jcm@redhat.com>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, huxinwei@huawei.com, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>
+Cc: liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Sinan,
+On 2016/12/22 17:07, Zhou Wang wrote:
+> Multiple PCIe host bridges may exists in one PCIe segment. So bus range for each
+> host bridge should be in the coverage of bus range of related PCIe segment.
+> 
+> This patch will support this kind of scenario:
+> 
+> MCFG:
+> 	bus range: 0x00~0xff.
+> 	segment: 0.
+> DSDT:
+> 	host bridge 1:
+> 		bus range: 0x00~0x1f.
+> 		segment: 0.
+> 	host bridge 2:
+> 		bus range: 0x20~0x4f.
+> 		segment: 0.
+> 
+> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+> ---
+>  drivers/acpi/pci_mcfg.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index b5b376e..46a3e32 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -40,11 +40,10 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
+>  	struct mcfg_entry *e;
+>  
+>  	/*
+> -	 * We expect exact match, unless MCFG entry end bus covers more than
+> -	 * specified by caller.
+> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
+>  	 */
+>  	list_for_each_entry(e, &pci_mcfg_list, list) {
+> -		if (e->segment == seg && e->bus_start == bus_res->start &&
+> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
+>  		    e->bus_end >= bus_res->end)
+>  			return e->addr;
+>  	}
+> 
 
-On 01/03/2017 06:30 AM, Sinan Kaya wrote:
-> Hi Hanjun,
->
-> On 1/2/2017 8:31 AM, Hanjun Guo wrote:
->> iort_node_get_id() for now only support NC(named componant)->SMMU
->> or NC->ITS cases, we also have other device topology such NC->
->> SMMU->ITS, so rework iort_node_get_id() for those cases.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Tested-by: Majun <majun258@huawei.com>
->> Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
->> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> ---
->>   drivers/acpi/arm64/iort.c | 61 ++++++++++++++++++++++++++---------------------
->>   1 file changed, 34 insertions(+), 27 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index 6b72fcb..99f079b 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -292,22 +292,28 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
->>   	return status;
->>   }
->>
->> -static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
->> -		       u32 *rid_out)
->> +static int iort_id_single_map(struct acpi_iort_id_mapping *map, u8 type,
->> +			      u32 *rid_out)
->>   {
->>   	/* Single mapping does not care for input id */
->>   	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->>   		if (type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->>   		    type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->> -			*rid_out = map->output_base;
->> +			if (rid_out)
->> +				*rid_out = map->output_base;
->>   			return 0;
->>   		}
->>
->>   		pr_warn(FW_BUG "[map %p] SINGLE MAPPING flag not allowed for node type %d, skipping ID map\n",
->>   			map, type);
->> -		return -ENXIO;
->>   	}
->>
->> +	return -ENXIO;
->> +}
->> +
->> +static int iort_id_map(struct acpi_iort_id_mapping *map, u32 rid_in,
->> +		       u32 *rid_out)
->> +{
->>   	if (rid_in < map->input_base ||
->>   	    (rid_in >= map->input_base + map->id_count))
->>   		return -ENXIO;
->> @@ -324,33 +330,34 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->>   	struct acpi_iort_node *parent;
->>   	struct acpi_iort_id_mapping *map;
->>
->> -	if (!node->mapping_offset || !node->mapping_count ||
->> -				     index >= node->mapping_count)
->> -		return NULL;
->> -
->> -	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
->> -			   node->mapping_offset);
->> +	while (node) {
->> +		if (!node->mapping_offset || !node->mapping_count ||
->> +					     index >= node->mapping_count)
->> +			return NULL;
->>
->> -	/* Firmware bug! */
->> -	if (!map->output_reference) {
->> -		pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
->> -		       node, node->type);
->> -		return NULL;
->> -	}
->> +		map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
->> +				   node->mapping_offset);
->>
->> -	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
->> -			       map->output_reference);
->> +		/* Firmware bug! */
->> +		if (!map->output_reference) {
->> +			pr_err(FW_BUG "[node %p type %d] ID map has NULL parent reference\n",
->> +			       node, node->type);
->> +			return NULL;
->> +		}
->>
->> -	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
->> -		return NULL;
->> +		parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
->> +				      map->output_reference);
->>
->> -	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->> -		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->> -		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->> -			if (id_out)
->> -				*id_out = map[index].output_base;
->> -			return parent;
->> +		/* go upstream to find its parent */
->> +		if (!(IORT_TYPE_MASK(parent->type) & type_mask)) {
->> +			node = parent;
->> +			continue;
->>   		}
->> +
->> +		if (iort_id_single_map(&map[index], node->type, id_out))
->> +			break;
->> +
->> +		return parent;
->>   	}
->>
->>   	return NULL;
->> @@ -388,7 +395,7 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
->>
->>   		/* Do the RID translation */
->>   		for (i = 0; i < node->mapping_count; i++, map++) {
->> -			if (!iort_id_map(map, node->type, rid, &rid))
->> +			if (!iort_id_map(map, rid, &rid))
->>   				break;
->>   		}
->>
->>
->
-> I wanted to follow up on your note for NC->SMMU->ITS case as I do have this use case on the
-> Qualcomm QDF2400 server and HIDMA DMA Engine. HIDMA is capable of sending MSI interrupts
-> towards the GIC ITS.
->
-> I don't know if this patch is supposed to fix the NC->SMMU->ITS case as it suggests in the commit
-> message but it doesn't seems to be working for me. Maybe, it was a to do for you. It wasn't quite
-> clear from the commit.
+Any idea about this RFC patch?
 
-I noticed this issue too after I sent out this patch set, sorry :(
+Thanks,
+Zhou
 
->
-> I debugged the code and came up with the following patch. Feel free to incorporate/rework with
-> your existing patch.
->
-> A named node can have an output ID of 0x20 and SMMU can have an output
-> parameter of 0x80000. The device ID needs to be 0x80000+0x20 for this
-> use case.
-
-I think in your case, there are muti input IDs with multi output IDs,
-such as:
-
-                stream id                               request id
-NC (0x00~0x30) --------> SMMU (0x80000~0x80000+0x30)  ------------> ITS
-
-In my patch, I just think named component is single mapping only, and
-multi ID mappings for PCI RC, that's the wrong assumption, I will
-incorporate your patch to fix the problem in next version.
-
->
-> With the addition of this patch on top of the first 11 patches, I'm also providing my tested by here
-> for the first 11 patches.
->
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-
-Thank you very much :)
-
-Hanjun
+.
