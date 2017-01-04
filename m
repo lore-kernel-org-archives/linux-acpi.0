@@ -1,136 +1,102 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI / EC: Remove old CLEAR_ON_RESUME quirk
-Date: Wed,  4 Jan 2017 11:17:17 +0800
-Message-ID: <4b6c094e122529f6e00a320cef0871b42bbc3376.1483430200.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18375 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762672AbdADDR0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 3 Jan 2017 22:17:26 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [RFC PATCH] ACPI/PCI: Fix bus range comparation in
+ pci_mcfg_lookup
+Date: Wed, 4 Jan 2017 13:44:44 +0800
+Message-ID: <586C8BCC.7020006@hisilicon.com>
+References: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
+ <20170103120021.GC7145@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170103120021.GC7145@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, jorn Helgaas <bhelgaas@google.com>, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-IRQ polling logic has been implemented to drain the post-boot/resume EC
-events:
-1. Triggered by the following code, invoked from acpi_ec_enable_event():
-	if (!test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
-		advance_transaction(ec);
-2. Drained by the following code, invoked after acpi_ec_complete_query():
-	if (status & ACPI_EC_FLAG_SCI)
-		acpi_ec_submit_query(ec);
-This facility is safer than the old CLEAR_ON_RESUME quirk as the
-CLEAR_ON_RESUME quirk sends EC query commands unconditionally. The
-behavior is apparently not suitable for firmware that requires
-QUERY_HANDSHAKE quirk. Though the QUERY_HANDSHAKE quirk isn't used now
-because of the improvement done in the EC transaction state machine
-(ec_event_clearing=QUERY), it is the proof that we cannot send EC query
-command unconditionally.
+On 2017/1/3 20:00, Lorenzo Pieralisi wrote:
+> On Thu, Dec 22, 2016 at 05:07:43PM +0800, Zhou Wang wrote:
+>> Multiple PCIe host bridges may exists in one PCIe segment. So bus range for each
+>> host bridge should be in the coverage of bus range of related PCIe segment.
+>>
+>> This patch will support this kind of scenario:
+>>
+>> MCFG:
+>> 	bus range: 0x00~0xff.
+>> 	segment: 0.
+>> DSDT:
+>> 	host bridge 1:
+>> 		bus range: 0x00~0x1f.
+>> 		segment: 0.
+>> 	host bridge 2:
+>> 		bus range: 0x20~0x4f.
+>> 		segment: 0.
+> 
+> "The configuration data provided by an MCFG region (ie PCI segment and
+> bus range) may span multiple host bridges.
+> 
+> Current code in pci_mcfg_lookup() carries out an exact match of host
+> bridge bus range start value against the MCFG region(s) bus range start
+> value which would cause configurations like the following:
+> 
+> MCFG region:
+> 	bus range: 0x00~0xff.
+> 	segment: 0.
+> 
+> PCI host bridges configuration (segment numbers and bus ranges):
+> 	host bridge 1:
+> 		bus range: 0x00~0x1f.
+> 		segment: 0.
+> 	host bridge 2:
+> 		bus range: 0x20~0x4f.
+> 		segment: 0.
+> 
+> to fail, in that the bus range start value for host bridge 2 does
+> not match the bus range start value of the respective MCFG region.
+> 
+> Relax the bus range check in pci_mcfg_lookup() to cater for
+> PCI configurations with multiple host bridges sharing the same
+> MCFG region."
+> 
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-So it's time to delete the out-dated CLEAR_ON_RESUME quirk to let the users
-to try the newer approach.
+Hi Lorenzo,
 
-More statements can be found at Link #1.
+Thanks for your view.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=191211 [#1]
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c | 53 -----------------------------------------------------
- 1 file changed, 53 deletions(-)
+I will modify the commit message and post a new version patch.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 48e19d0..6a32cd4 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -188,7 +188,6 @@ EXPORT_SYMBOL(first_ec);
- static bool boot_ec_is_ecdt = false;
- static struct workqueue_struct *ec_query_wq;
- 
--static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
- static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when SCI_EVT set */
- static int EC_FLAGS_CORRECT_ECDT; /* Needs ECDT port address correction */
- 
-@@ -492,26 +491,6 @@ static inline void __acpi_ec_disable_event(struct acpi_ec *ec)
- 		ec_log_drv("event blocked");
- }
- 
--/*
-- * Process _Q events that might have accumulated in the EC.
-- * Run with locked ec mutex.
-- */
--static void acpi_ec_clear(struct acpi_ec *ec)
--{
--	int i, status;
--	u8 value = 0;
--
--	for (i = 0; i < ACPI_EC_CLEAR_MAX; i++) {
--		status = acpi_ec_query(ec, &value);
--		if (status || !value)
--			break;
--	}
--	if (unlikely(i == ACPI_EC_CLEAR_MAX))
--		pr_warn("Warning: Maximum of %d stale EC events cleared\n", i);
--	else
--		pr_info("%d stale EC events cleared\n", i);
--}
--
- static void acpi_ec_enable_event(struct acpi_ec *ec)
- {
- 	unsigned long flags;
-@@ -520,10 +499,6 @@ static void acpi_ec_enable_event(struct acpi_ec *ec)
- 	if (acpi_ec_started(ec))
- 		__acpi_ec_enable_event(ec);
- 	spin_unlock_irqrestore(&ec->lock, flags);
--
--	/* Drain additional events if hardware requires that */
--	if (EC_FLAGS_CLEAR_ON_RESUME)
--		acpi_ec_clear(ec);
- }
- 
- #ifdef CONFIG_PM_SLEEP
-@@ -1741,31 +1716,6 @@ static int ec_flag_query_handshake(const struct dmi_system_id *id)
- #endif
- 
- /*
-- * On some hardware it is necessary to clear events accumulated by the EC during
-- * sleep. These ECs stop reporting GPEs until they are manually polled, if too
-- * many events are accumulated. (e.g. Samsung Series 5/9 notebooks)
-- *
-- * https://bugzilla.kernel.org/show_bug.cgi?id=44161
-- *
-- * Ideally, the EC should also be instructed NOT to accumulate events during
-- * sleep (which Windows seems to do somehow), but the interface to control this
-- * behaviour is not known at this time.
-- *
-- * Models known to be affected are Samsung 530Uxx/535Uxx/540Uxx/550Pxx/900Xxx,
-- * however it is very likely that other Samsung models are affected.
-- *
-- * On systems which don't accumulate _Q events during sleep, this extra check
-- * should be harmless.
-- */
--static int ec_clear_on_resume(const struct dmi_system_id *id)
--{
--	pr_debug("Detected system needing EC poll on resume.\n");
--	EC_FLAGS_CLEAR_ON_RESUME = 1;
--	ec_event_clearing = ACPI_EC_EVT_TIMING_STATUS;
--	return 0;
--}
--
--/*
-  * Some ECDTs contain wrong register addresses.
-  * MSI MS-171F
-  * https://bugzilla.kernel.org/show_bug.cgi?id=12461
-@@ -1782,9 +1732,6 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
- 	ec_correct_ecdt, "MSI MS-171F", {
- 	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star"),
- 	DMI_MATCH(DMI_PRODUCT_NAME, "MS-171F"),}, NULL},
--	{
--	ec_clear_on_resume, "Samsung hardware", {
--	DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD.")}, NULL},
- 	{},
- };
- 
--- 
-2.7.4
+Regards,
+Zhou
 
+> 
+>> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+>> ---
+>>  drivers/acpi/pci_mcfg.c | 5 ++---
+>>  1 file changed, 2 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> index b5b376e..46a3e32 100644
+>> --- a/drivers/acpi/pci_mcfg.c
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -40,11 +40,10 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
+>>  	struct mcfg_entry *e;
+>>  
+>>  	/*
+>> -	 * We expect exact match, unless MCFG entry end bus covers more than
+>> -	 * specified by caller.
+>> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
+>>  	 */
+>>  	list_for_each_entry(e, &pci_mcfg_list, list) {
+>> -		if (e->segment == seg && e->bus_start == bus_res->start &&
+>> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
+>>  		    e->bus_end >= bus_res->end)
+>>  			return e->addr;
+>>  	}
+>> -- 
+>> 1.9.1
+>>
+> 
+> .
+> 
