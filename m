@@ -1,41 +1,117 @@
-From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: Re: [PATCH V9 0/3] irqchip: qcom: Add IRQ combiner driver
-Date: Wed, 04 Jan 2017 07:37:16 -0500
-Message-ID: <275acfeebba4212ca312dc34bd595468@codeaurora.org>
-References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
- <16e3b40407e8072dd5b15bf7e65afb18@codeaurora.org>
- <CAJZ5v0h_v-iER5Fffdoczj4CAhetGYqOfJOhdO561_kNCnsEFg@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V6 04/10] arm64: exception: handle Synchronous External
+ Abort
+Date: Wed, 4 Jan 2017 13:54:13 +0000
+Message-ID: <20170104135413.GE18193@arm.com>
+References: <1481147303-7979-1-git-send-email-tbaicar@codeaurora.org>
+ <1481147303-7979-5-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0h_v-iER5Fffdoczj4CAhetGYqOfJOhdO561_kNCnsEFg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, Hanjun Guo <guohanjun@huawei.com>, Charles
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <1481147303-7979-5-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 2017-01-03 16:56, Rafael J. Wysocki wrote:
-> On Tue, Jan 3, 2017 at 4:19 PM, Agustin Vega-Frias
-> <agustinv@codeaurora.org> wrote:
->> Hi,
->> 
->> Is there any more feedback on this beyond Lorenzo's suggestion to drop
->> the conditional check on the first patch?
->> How can we move forward on this series?
+On Wed, Dec 07, 2016 at 02:48:17PM -0700, Tyler Baicar wrote:
+> SEA exceptions are often caused by an uncorrected hardware
+> error, and are handled when data abort and instruction abort
+> exception classes have specific values for their Fault Status
+> Code.
+> When SEA occurs, before killing the process, go through
+> the handlers registered in the notification list.
+> Update fault_info[] with specific SEA faults so that the
+> new SEA handler is used.
 > 
-> Essentially, I need to convince myself that patches [1-2/3] are fine
-> which hasn't happened yet.
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Signed-off-by: Naveen Kaje <nkaje@codeaurora.org>
+> ---
+>  arch/arm64/include/asm/system_misc.h | 13 ++++++++
+>  arch/arm64/mm/fault.c                | 58 +++++++++++++++++++++++++++++-------
+>  2 files changed, 61 insertions(+), 10 deletions(-)
 > 
+> diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
+> index 57f110b..9040e1d 100644
+> --- a/arch/arm64/include/asm/system_misc.h
+> +++ b/arch/arm64/include/asm/system_misc.h
+> @@ -64,4 +64,17 @@ extern void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
+>  
+>  #endif	/* __ASSEMBLY__ */
+>  
+> +/*
+> + * The functions below are used to register and unregister callbacks
+> + * that are to be invoked when a Synchronous External Abort (SEA)
+> + * occurs. An SEA is raised by certain fault status codes that have
+> + * either data or instruction abort as the exception class, and
+> + * callbacks may be registered to parse or handle such hardware errors.
+> + *
+> + * Registered callbacks are run in an interrupt/atomic context. They
+> + * are not allowed to block or sleep.
+> + */
+> +int register_synchronous_ext_abort_notifier(struct notifier_block *nb);
+> +void unregister_synchronous_ext_abort_notifier(struct notifier_block *nb);
 
-Thanks Rafael, I'll hold on for your feedback.
+I think that we may as well use the "SEA" acronym consistently in code,
+expanding it only for strings and comments, so these can be renamed to
+{register,unregister}_sea_notifier. That said, what is the use of having a
+notifier chain here as well as in the ghes code? If the ghes code is the
+only place to register a notifier, we may as well start simple and call that
+code directly, like we call handle_mm_fault directly for data aborts.
 
-> Thanks,
-> Rafael
+>  static const struct fault_info {
+>  	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
+>  	int	sig;
+> @@ -502,22 +540,22 @@ static const struct fault_info {
+>  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 1 permission fault"	},
+>  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 2 permission fault"	},
+>  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 3 permission fault"	},
+> -	{ do_bad,		SIGBUS,  0,		"synchronous external abort"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"synchronous external abort"	},
 
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
-Linux Foundation Collaborative Project.
+Again, just stick with do_sea for the function name...
+
+>  	{ do_bad,		SIGBUS,  0,		"unknown 17"			},
+>  	{ do_bad,		SIGBUS,  0,		"unknown 18"			},
+>  	{ do_bad,		SIGBUS,  0,		"unknown 19"			},
+> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 0 SEA (trans tbl walk)"	},
+
+... but there's no need to abbreviate "translation table walk" here. Long
+strings that run over 80 chars are fine. Similarly for "SEA".
+
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 1 SEA (trans tbl walk)"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 2 SEA (trans tbl walk)"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 3 SEA (trans tbl walk)"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"synchronous parity or ECC err" },
+>  	{ do_bad,		SIGBUS,  0,		"unknown 25"			},
+>  	{ do_bad,		SIGBUS,  0,		"unknown 26"			},
+>  	{ do_bad,		SIGBUS,  0,		"unknown 27"			},
+> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
+> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 0 synch parity error"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 1 synch parity error"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 2 synch parity error"	},
+> +	{ do_synch_ext_abort,	SIGBUS,  0,		"level 3 synch parity error"	},
+
+Please keep mention of "translation table walk", since we have exception
+levels too and it's confusing just saying "level n".
+
+Will
