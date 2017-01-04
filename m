@@ -1,102 +1,65 @@
 From: Zhou Wang <wangzhou1@hisilicon.com>
-Subject: Re: [RFC PATCH] ACPI/PCI: Fix bus range comparation in
- pci_mcfg_lookup
-Date: Wed, 4 Jan 2017 13:44:44 +0800
-Message-ID: <586C8BCC.7020006@hisilicon.com>
-References: <1482397663-98715-1-git-send-email-wangzhou1@hisilicon.com>
- <20170103120021.GC7145@red-moon>
+Subject: [PATCH] ACPI/PCI: Fix bus range comparation in pci_mcfg_lookup
+Date: Wed, 4 Jan 2017 15:00:06 +0800
+Message-ID: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170103120021.GC7145@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, jorn Helgaas <bhelgaas@google.com>, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>
+Cc: liudongdong3@huawei.com, gabriele.paoloni@huawei.com, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Zhou Wang <wangzhou1@hisilicon.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2017/1/3 20:00, Lorenzo Pieralisi wrote:
-> On Thu, Dec 22, 2016 at 05:07:43PM +0800, Zhou Wang wrote:
->> Multiple PCIe host bridges may exists in one PCIe segment. So bus range for each
->> host bridge should be in the coverage of bus range of related PCIe segment.
->>
->> This patch will support this kind of scenario:
->>
->> MCFG:
->> 	bus range: 0x00~0xff.
->> 	segment: 0.
->> DSDT:
->> 	host bridge 1:
->> 		bus range: 0x00~0x1f.
->> 		segment: 0.
->> 	host bridge 2:
->> 		bus range: 0x20~0x4f.
->> 		segment: 0.
-> 
-> "The configuration data provided by an MCFG region (ie PCI segment and
-> bus range) may span multiple host bridges.
-> 
-> Current code in pci_mcfg_lookup() carries out an exact match of host
-> bridge bus range start value against the MCFG region(s) bus range start
-> value which would cause configurations like the following:
-> 
-> MCFG region:
-> 	bus range: 0x00~0xff.
-> 	segment: 0.
-> 
-> PCI host bridges configuration (segment numbers and bus ranges):
-> 	host bridge 1:
-> 		bus range: 0x00~0x1f.
-> 		segment: 0.
-> 	host bridge 2:
-> 		bus range: 0x20~0x4f.
-> 		segment: 0.
-> 
-> to fail, in that the bus range start value for host bridge 2 does
-> not match the bus range start value of the respective MCFG region.
-> 
-> Relax the bus range check in pci_mcfg_lookup() to cater for
-> PCI configurations with multiple host bridges sharing the same
-> MCFG region."
-> 
-> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+The configuration data provided by an MCFG region (ie PCI segment and
+bus range) may span multiple host bridges.
 
-Hi Lorenzo,
+Current code in pci_mcfg_lookup() carries out an exact match of host
+bridge bus range start value against the MCFG region(s) bus range start
+value which would cause configurations like the following:
 
-Thanks for your view.
+MCFG region:
+	bus range: 0x00~0xff.
+	segment: 0.
 
-I will modify the commit message and post a new version patch.
+PCI host bridges configuration (segment numbers and bus ranges):
+	host bridge 1:
+		bus range: 0x00~0x1f.
+		segment: 0.
+	host bridge 2:
+		bus range: 0x20~0x4f.
+		segment: 0.
 
-Regards,
-Zhou
+to fail, in that the bus range start value for host bridge 2 does
+not match the bus range start value of the respective MCFG region.
 
-> 
->> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
->> ---
->>  drivers/acpi/pci_mcfg.c | 5 ++---
->>  1 file changed, 2 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->> index b5b376e..46a3e32 100644
->> --- a/drivers/acpi/pci_mcfg.c
->> +++ b/drivers/acpi/pci_mcfg.c
->> @@ -40,11 +40,10 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
->>  	struct mcfg_entry *e;
->>  
->>  	/*
->> -	 * We expect exact match, unless MCFG entry end bus covers more than
->> -	 * specified by caller.
->> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
->>  	 */
->>  	list_for_each_entry(e, &pci_mcfg_list, list) {
->> -		if (e->segment == seg && e->bus_start == bus_res->start &&
->> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
->>  		    e->bus_end >= bus_res->end)
->>  			return e->addr;
->>  	}
->> -- 
->> 1.9.1
->>
-> 
-> .
-> 
+Relax the bus range check in pci_mcfg_lookup() to cater for
+PCI configurations with multiple host bridges sharing the same
+MCFG region.
+
+Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+---
+ drivers/acpi/pci_mcfg.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+index a6a4cea..2944353 100644
+--- a/drivers/acpi/pci_mcfg.c
++++ b/drivers/acpi/pci_mcfg.c
+@@ -195,11 +195,10 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
+ 		goto skip_lookup;
+ 
+ 	/*
+-	 * We expect exact match, unless MCFG entry end bus covers more than
+-	 * specified by caller.
++	 * We expect the range in bus_res in the coverage of MCFG bus range.
+ 	 */
+ 	list_for_each_entry(e, &pci_mcfg_list, list) {
+-		if (e->segment == seg && e->bus_start == bus_res->start &&
++		if (e->segment == seg && e->bus_start <= bus_res->start &&
+ 		    e->bus_end >= bus_res->end) {
+ 			root->mcfg_addr = e->addr;
+ 		}
+-- 
+1.9.1
