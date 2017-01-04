@@ -1,65 +1,51 @@
-From: Zhou Wang <wangzhou1@hisilicon.com>
-Subject: [PATCH] ACPI/PCI: Fix bus range comparation in pci_mcfg_lookup
-Date: Wed, 4 Jan 2017 15:00:06 +0800
-Message-ID: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v6 06/14] irqchip: gicv3-its: platform-msi: refactor
+ its_pmsi_init() to prepare for ACPI
+Date: Wed, 4 Jan 2017 15:02:13 +0800
+Message-ID: <601cbdf2-823d-8bde-bbd9-fcc6a1c67f2c@linaro.org>
+References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
+ <1483363905-2806-7-git-send-email-hanjun.guo@linaro.org>
+ <8cdc4bfa-18a3-b9f6-aaba-0efe1f75fb40@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>
-Cc: liudongdong3@huawei.com, gabriele.paoloni@huawei.com, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Zhou Wang <wangzhou1@hisilicon.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:36441 "EHLO
+        mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753563AbdADHC0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jan 2017 02:02:26 -0500
+Received: by mail-pf0-f171.google.com with SMTP id 189so81030099pfz.3
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Jan 2017 23:02:26 -0800 (PST)
+In-Reply-To: <8cdc4bfa-18a3-b9f6-aaba-0efe1f75fb40@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, charles.garcia-tobin@arm.com, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>
 
-The configuration data provided by an MCFG region (ie PCI segment and
-bus range) may span multiple host bridges.
+Hi Tomasz,
 
-Current code in pci_mcfg_lookup() carries out an exact match of host
-bridge bus range start value against the MCFG region(s) bus range start
-value which would cause configurations like the following:
+On 2017/1/3 15:41, Tomasz Nowicki wrote:
+> Hi,
+>
+> Can we merge patch 4 & 6 into one patch so that we keep refactoring part
+> as one piece ? I do not see a reason to keep them separate or have patch
+> 5 in between. You can refactor what needs to be refactored, add
+> necessary functions to iort.c and then support ACPI for
+> irq-gic-v3-its-platform-msi.c
 
-MCFG region:
-	bus range: 0x00~0xff.
-	segment: 0.
+There are two functions here,
+  - retrieve the dev id from IORT which was DT based only;
 
-PCI host bridges configuration (segment numbers and bus ranges):
-	host bridge 1:
-		bus range: 0x00~0x1f.
-		segment: 0.
-	host bridge 2:
-		bus range: 0x20~0x4f.
-		segment: 0.
+  - init the platform msi domain from MADT;
 
-to fail, in that the bus range start value for host bridge 2 does
-not match the bus range start value of the respective MCFG region.
+For each of them split it into two steps,
+  - refactor the code for ACPI later and it's easy for review
+    because wen can easily to figure out it has functional
+    change or not
 
-Relax the bus range check in pci_mcfg_lookup() to cater for
-PCI configurations with multiple host bridges sharing the same
-MCFG region.
+  - add ACPI functionality
 
-Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
-Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
----
- drivers/acpi/pci_mcfg.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Does it make sense?
 
-diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-index a6a4cea..2944353 100644
---- a/drivers/acpi/pci_mcfg.c
-+++ b/drivers/acpi/pci_mcfg.c
-@@ -195,11 +195,10 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
- 		goto skip_lookup;
- 
- 	/*
--	 * We expect exact match, unless MCFG entry end bus covers more than
--	 * specified by caller.
-+	 * We expect the range in bus_res in the coverage of MCFG bus range.
- 	 */
- 	list_for_each_entry(e, &pci_mcfg_list, list) {
--		if (e->segment == seg && e->bus_start == bus_res->start &&
-+		if (e->segment == seg && e->bus_start <= bus_res->start &&
- 		    e->bus_end >= bus_res->end) {
- 			root->mcfg_addr = e->addr;
- 		}
--- 
-1.9.1
+Thanks
+Hanjun
