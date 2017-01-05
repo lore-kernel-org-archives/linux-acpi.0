@@ -1,51 +1,65 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH 1/2] ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
-Date: Thu,  5 Jan 2017 11:34:30 +0530
-Message-ID: <c62a8f8b1bf699b0c7834c87096d4f144c02bf1d.1483596168.git.viresh.kumar@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f52.google.com ([74.125.83.52]:35874 "EHLO
-        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032402AbdAEGEp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2017 01:04:45 -0500
-Received: by mail-pg0-f52.google.com with SMTP id f188so236081088pgc.3
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Jan 2017 22:04:45 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH] ACPI / DMAR: Avoid passing NULL to acpi_put_table()
+Date: Wed, 4 Jan 2017 22:19:57 -0800
+Message-ID: <20170105061957.GB3742@linux.vnet.ibm.com>
+References: <3112193.PjflRgTHFW@aspire.rjw.lan>
+Reply-To: paulmck@linux.vnet.ibm.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3112193.PjflRgTHFW@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, iommu@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, linux-acpi@vger.kernel.org
 
-acpi_processor_ppc_notifier() can live without using CPUFREQ_START
-(which is gonna be removed soon). Simplify it a bit.
+On Thu, Jan 05, 2017 at 01:24:14AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Linus reported that commit 174cc7187e6f "ACPICA: Tables: Back port
+> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from
+> Linux kernel" added a new warning on his desktop system:
+> 
+>  ACPI Warning: Table ffffffff9fe6c0a0, Validation count is zero before decrement
+> 
+> which turns out to come from the acpi_put_table() in
+> detect_intel_iommu().
+> 
+> This happens if the DMAR table is not present in which case NULL is
+> passed to acpi_put_table() which doesn't check against that and
+> attempts to handle it regardless.
+> 
+> For this reason, check the pointer passed to acpi_put_table()
+> before invoking it.
+> 
+> Reported-by: Linus Torvalds <torvalds@linux-foundation.org> 
+> Fixes: 6b11d1d67713 ("ACPI / osl: Remove acpi_get_table_with_size()/early_acpi_os_unmap_memory() users")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
----
-Rebased over: https://marc.info/?l=linux-kernel&m=148359167516831&w=2
+Much better!
 
- drivers/acpi/processor_perflib.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index f0b4a981b8d3..1ceea1143a1c 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -75,14 +75,12 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
- 
--	if (event == CPUFREQ_START && ignore_ppc <= 0) {
--		ignore_ppc = 0;
--		return 0;
--	}
--
- 	if (ignore_ppc)
- 		return 0;
- 
-+	if (ignore_ppc < 0)
-+		ignore_ppc = 0;
-+
- 	if (event != CPUFREQ_ADJUST)
- 		return 0;
- 
--- 
-2.7.1.410.g6faf27b
-
+> ---
+>  drivers/iommu/dmar.c |    6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> Index: linux-pm/drivers/iommu/dmar.c
+> ===================================================================
+> --- linux-pm.orig/drivers/iommu/dmar.c
+> +++ linux-pm/drivers/iommu/dmar.c
+> @@ -903,8 +903,10 @@ int __init detect_intel_iommu(void)
+>  		x86_init.iommu.iommu_init = intel_iommu_init;
+>  #endif
+> 
+> -	acpi_put_table(dmar_tbl);
+> -	dmar_tbl = NULL;
+> +	if (dmar_tbl) {
+> +		acpi_put_table(dmar_tbl);
+> +		dmar_tbl = NULL;
+> +	}
+>  	up_write(&dmar_global_lock);
+> 
+>  	return ret ? 1 : -ENODEV;
+> 
