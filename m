@@ -1,173 +1,427 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 05/14] ACPI: platform-msi: retrieve dev id from IORT
-Date: Thu, 5 Jan 2017 15:15:30 +0000
-Message-ID: <20170105151530.GA30852@red-moon>
-References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
- <1483363905-2806-6-git-send-email-hanjun.guo@linaro.org>
- <20170104191805.GE8604@red-moon>
- <eb1a8149-7c46-39bc-f655-58ca6345f40a@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V9 3/3] irqchip: qcom: Add IRQ combiner driver
+Date: Thu, 5 Jan 2017 16:48:53 +0000
+Message-ID: <ded278ef-a0a2-811a-f362-70555f74d6fc@arm.com>
+References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
+ <1481753438-3905-4-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52832 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:54420 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1760480AbdAEPNw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 5 Jan 2017 10:13:52 -0500
-Content-Disposition: inline
-In-Reply-To: <eb1a8149-7c46-39bc-f655-58ca6345f40a@linaro.org>
+        id S1034138AbdAEQtE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 5 Jan 2017 11:49:04 -0500
+In-Reply-To: <1481753438-3905-4-git-send-email-agustinv@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, charles.garcia-tobin@arm.com, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>
+To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net
+Cc: lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-On Thu, Jan 05, 2017 at 08:45:37PM +0800, Hanjun Guo wrote:
-> Hi Lorenzo,
+Hi Agustin,
+
+On 14/12/16 22:10, Agustin Vega-Frias wrote:
+> Driver for interrupt combiners in the Top-level Control and Status
+> Registers (TCSR) hardware block in Qualcomm Technologies chips.
 > 
-> On 2017/1/5 3:18, Lorenzo Pieralisi wrote:
-> >On Mon, Jan 02, 2017 at 09:31:36PM +0800, Hanjun Guo wrote:
-> >>For devices connecting to ITS, it needs dev id to identify
-> >>itself, and this dev id is represented in the IORT table in
-> >>named componant node [1] for platform devices, so in this
-> >>patch we will scan the IORT to retrieve device's dev id.
-> >>
-> >>Introduce iort_pmsi_get_dev_id() with pointer dev passed
-> >>in for that purpose.
-> >>
-> >>[1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
-> >>
-> >>Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> >>Tested-by: Majun <majun258@huawei.com>
-> >>Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
-> >>Cc: Marc Zyngier <marc.zyngier@arm.com>
-> >>Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>Cc: Tomasz Nowicki <tn@semihalf.com>
-> >>Cc: Thomas Gleixner <tglx@linutronix.de>
-> >>---
-> >> drivers/acpi/arm64/iort.c                     | 26 ++++++++++++++++++++++++++
-> >> drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +++-
-> >> include/linux/acpi_iort.h                     |  8 ++++++++
-> >> 3 files changed, 37 insertions(+), 1 deletion(-)
-> >>
-> >>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >>index 174e983..ab7bae7 100644
-> >>--- a/drivers/acpi/arm64/iort.c
-> >>+++ b/drivers/acpi/arm64/iort.c
-> >>@@ -444,6 +444,32 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
-> >> }
-> >>
-> >> /**
-> >>+ * iort_pmsi_get_dev_id() - Get the device id for a device
-> >>+ * @dev: The device for which the mapping is to be done.
-> >>+ * @dev_id: The device ID found.
-> >>+ *
-> >>+ * Returns: 0 for successful find a dev id, errors otherwise
-> >>+ */
-> >>+int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
-> >>+{
-> >>+	struct acpi_iort_node *node;
-> >>+
-> >>+	if (!iort_table)
-> >>+		return -ENODEV;
-> >>+
-> >>+	node = iort_find_dev_node(dev);
-> >>+	if (!node) {
-> >>+		dev_err(dev, "can't find related IORT node\n");
-> >>+		return -ENODEV;
-> >>+	}
-> >>+
-> >>+	if(!iort_node_get_id(node, dev_id, IORT_MSI_TYPE, 0))
-> >
-> >I disagree with this approach. For named components we know that
-> >there are always two steps involved (second optional):
-> >
-> >(1) Retrieve the initial id (this may well provide the final mapping)
-> >(2) Map the id (optional if (1) represents the map type we need)
-> >
-> >That's the reason why I kept iort_node_get_id() and iort_node_map_rid()
-> >separated.
-> >
-> >Now, what we can do is to create an iort_node_map_id() function that is
-> >PCI agnostic (ie rename rid to id :)), whose rid_in is either a PCI RID
-> >or the outcome of a previous call to iort_node_get_id() for named
-> >components, that's in my opinion cleaner.
+> An interrupt combiner in this block combines a set of interrupts by
+> OR'ing the individual interrupt signals into a summary interrupt
+> signal routed to a parent interrupt controller, and provides read-
+> only, 32-bit registers to query the status of individual interrupts.
+> The status bit for IRQ n is bit (n % 32) within register (n / 32)
+> of the given combiner. Thus, each combiner can be described as a set
+> of register offsets and the number of IRQs managed.
 > 
-> iort_node_map_rid() was designed for that purpose, and we can use it
-> for platform device, the issue that we need to pass a req id
-> unconditionally which is not needed for platform device, Tomasz
-> proposed a similar solution to rework iort_node_map_rid(), and
-> I think it makes sense.
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> ---
+>  drivers/irqchip/Kconfig             |   9 +
+>  drivers/irqchip/Makefile            |   1 +
+>  drivers/irqchip/qcom-irq-combiner.c | 322 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 332 insertions(+)
+>  create mode 100644 drivers/irqchip/qcom-irq-combiner.c
 > 
-> >
-> >It would be even cleaner if you passed a type_mask (or write a
-> >wrapper function for that) that is:
-> >
-> >(IORT_MSI_TYPE | IORT_IOMMU_TYPE)
+> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+> index bc0af33..3e3430c 100644
+> --- a/drivers/irqchip/Kconfig
+> +++ b/drivers/irqchip/Kconfig
+> @@ -279,3 +279,12 @@ config EZNPS_GIC
+>  config STM32_EXTI
+>  	bool
+>  	select IRQ_DOMAIN
+> +
+> +config QCOM_IRQ_COMBINER
+> +	bool "QCOM IRQ combiner support"
+> +	depends on ARCH_QCOM && ACPI
+> +	select IRQ_DOMAIN
+> +	select IRQ_DOMAIN_HIERARCHY
+> +	help
+> +	  Say yes here to add support for the IRQ combiner devices embedded
+> +	  in Qualcomm Technologies chips.
+> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
+> index e4dbfc8..1818a0b 100644
+> --- a/drivers/irqchip/Makefile
+> +++ b/drivers/irqchip/Makefile
+> @@ -74,3 +74,4 @@ obj-$(CONFIG_LS_SCFG_MSI)		+= irq-ls-scfg-msi.o
+>  obj-$(CONFIG_EZNPS_GIC)			+= irq-eznps.o
+>  obj-$(CONFIG_ARCH_ASPEED)		+= irq-aspeed-vic.o
+>  obj-$(CONFIG_STM32_EXTI) 		+= irq-stm32-exti.o
+> +obj-$(CONFIG_QCOM_IRQ_COMBINER)		+= qcom-irq-combiner.o
+> diff --git a/drivers/irqchip/qcom-irq-combiner.c b/drivers/irqchip/qcom-irq-combiner.c
+> new file mode 100644
+> index 0000000..0055e08
+> --- /dev/null
+> +++ b/drivers/irqchip/qcom-irq-combiner.c
+> @@ -0,0 +1,322 @@
+> +/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +/*
+> + * Driver for interrupt combiners in the Top-level Control and Status
+> + * Registers (TCSR) hardware block in Qualcomm Technologies chips.
+> + * An interrupt combiner in this block combines a set of interrupts by
+> + * OR'ing the individual interrupt signals into a summary interrupt
+> + * signal routed to a parent interrupt controller, and provides read-
+> + * only, 32-bit registers to query the status of individual interrupts.
+> + * The status bit for IRQ n is bit (n % 32) within register (n / 32)
+> + * of the given combiner. Thus, each combiner can be described as a set
+> + * of register offsets and the number of IRQs managed.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/irqchip/chained_irq.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/platform_device.h>
+> +
+> +#define REG_SIZE 32
+> +
+> +struct combiner_reg {
+> +	void __iomem *addr;
+> +	unsigned long mask;
+> +};
+> +
+> +struct combiner {
+> +	struct irq_domain   *domain;
+> +	int                 parent_irq;
+> +	u32                 nirqs;
+> +	u32                 nregs;
+> +	struct combiner_reg regs[0];
+> +};
+> +
+> +static inline u32 irq_register(int irq)
+> +{
+> +	return irq / REG_SIZE;
+> +}
+> +
+> +static inline u32 irq_bit(int irq)
+> +{
+> +	return irq % REG_SIZE;
+> +
+> +}
+> +
+> +static inline int irq_nr(u32 reg, u32 bit)
+> +{
+> +	return reg * REG_SIZE + bit;
+> +}
+> +
+> +/*
+> + * Handler for the cascaded IRQ.
+> + */
+> +static void combiner_handle_irq(struct irq_desc *desc)
+> +{
+> +	struct combiner *combiner = irq_desc_get_handler_data(desc);
+> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+> +	u32 reg;
+> +
+> +	chained_irq_enter(chip, desc);
+> +
+> +	for (reg = 0; reg < combiner->nregs; reg++) {
+> +		int virq;
+> +		int hwirq;
+> +		u32 bit;
+> +		u32 status;
+> +
+> +		if (combiner->regs[reg].mask == 0)
+> +			continue;
+
+I'm a bit worried by this. If I understand it well, this is a pure
+software construct (controlled from combiner_irq_chip_{un,}mask_irq) and
+there is nothing that actually masks the interrupt at the HW level.
+
+So if a device asserts its interrupt line, what mechanism do we have to
+make sure that we don't end-up with the CPU pegged in interrupt context?
+
+> +
+> +		status = readl_relaxed(combiner->regs[reg].addr);
+> +		status &= combiner->regs[reg].mask;
+> +
+> +		while (status) {
+> +			bit = __ffs(status);
+> +			status &= ~(1 << bit);
+> +			hwirq = irq_nr(reg, bit);
+> +			virq = irq_find_mapping(combiner->domain, hwirq);
+> +			if (virq >= 0)
+
+Small bug: virq == 0 shouldn't happen, since this would be an indication
+that the hwirq doesn't have a mapping.
+
+> +				generic_handle_irq(virq);
+> +
+> +		}
+> +	}
+> +
+> +	chained_irq_exit(chip, desc);
+> +}
+> +
+> +/*
+> + * irqchip callbacks
+> + */
+> +
+> +static void combiner_irq_chip_mask_irq(struct irq_data *data)
+> +{
+> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
+> +	struct combiner_reg *reg = combiner->regs + irq_register(data->hwirq);
+> +
+> +	clear_bit(irq_bit(data->hwirq), &reg->mask);
+> +}
+> +
+> +static void combiner_irq_chip_unmask_irq(struct irq_data *data)
+> +{
+> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
+> +	struct combiner_reg *reg = combiner->regs + irq_register(data->hwirq);
+> +
+> +	set_bit(irq_bit(data->hwirq), &reg->mask);
+> +}
+> +
+> +static struct irq_chip irq_chip = {
+> +	.irq_mask = combiner_irq_chip_mask_irq,
+> +	.irq_unmask = combiner_irq_chip_unmask_irq,
+> +	.name = "qcom-irq-combiner"
+> +};
+> +
+> +/*
+> + * irq_domain_ops callbacks
+> + */
+> +
+> +static int combiner_irq_map(struct irq_domain *domain, unsigned int irq,
+> +				   irq_hw_number_t hwirq)
+> +{
+> +	struct combiner *combiner = domain->host_data;
+> +
+> +	if (hwirq >= combiner->nirqs)
+> +		return -EINVAL;
+
+Given that this should have come from the translate function, can we
+move the check there instead, so that we validate everything early?
+
+> +
+> +	irq_set_chip_and_handler(irq, &irq_chip, handle_level_irq);
+> +	irq_set_chip_data(irq, combiner);
+> +	irq_set_noprobe(irq);
+> +	return 0;
+> +}
+> +
+> +static void combiner_irq_unmap(struct irq_domain *domain, unsigned int irq)
+> +{
+> +	struct irq_data *data = irq_get_irq_data(irq);
+> +
+> +	if (WARN_ON(!data))
+> +		return;
+
+Can this happen?
+
+> +	irq_domain_reset_irq_data(data);
+> +}
+> +
+> +static int combiner_irq_translate(struct irq_domain *d, struct irq_fwspec *fws,
+> +				  unsigned long *hwirq, unsigned int *type)
+> +{
+> +	if (is_acpi_node(fws->fwnode)) {
+> +		if (WARN_ON((fws->param_count != 2) ||
+> +			    (fws->param[1] & IORESOURCE_IRQ_LOWEDGE) ||
+> +			    (fws->param[1] & IORESOURCE_IRQ_HIGHEDGE)))
+> +			return -EINVAL;
+> +
+> +		*hwirq = fws->param[0];
+> +		*type = fws->param[1];
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static const struct irq_domain_ops domain_ops = {
+> +	.map = combiner_irq_map,
+> +	.unmap = combiner_irq_unmap,
+> +	.translate = combiner_irq_translate
+> +};
+> +
+> +/*
+> + * Device probing
+> + */
+> +
+> +static acpi_status count_registers_cb(struct acpi_resource *ares, void *context)
+> +{
+> +	int *count = context;
+> +
+> +	if (ares->type == ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
+> +		++(*count);
+> +	return AE_OK;
+> +}
+> +
+> +static int count_registers(struct platform_device *pdev)
+> +{
+> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+> +	acpi_status status;
+> +	int count = 0;
+> +
+> +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
+> +		return -EINVAL;
+> +
+> +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+> +				     count_registers_cb, &count);
+> +	if (ACPI_FAILURE(status))
+> +		return -EINVAL;
+> +	return count;
+> +}
+> +
+> +struct get_registers_context {
+> +	struct device *dev;
+> +	struct combiner *combiner;
+> +	int err;
+> +};
+> +
+> +static acpi_status get_registers_cb(struct acpi_resource *ares, void *context)
+> +{
+> +	struct get_registers_context *ctx = context;
+> +	struct acpi_resource_generic_register *reg;
+> +	phys_addr_t paddr;
+> +	void __iomem *vaddr;
+> +
+> +	if (ares->type != ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
+> +		return AE_OK;
+> +
+> +	reg = &ares->data.generic_reg;
+> +	paddr = reg->address;
+> +	if ((reg->space_id != ACPI_SPACE_MEM) ||
+> +	    (reg->bit_offset != 0) ||
+> +	    (reg->bit_width > REG_SIZE)) {
+> +		dev_err(ctx->dev, "Bad register resource @%pa\n", &paddr);
+> +		ctx->err = -EINVAL;
+> +		return AE_ERROR;
+> +	}
+> +
+> +	vaddr = devm_ioremap(ctx->dev, reg->address, REG_SIZE);
+> +	if (IS_ERR(vaddr)) {
+> +		dev_err(ctx->dev, "Can't map register @%pa\n", &paddr);
+> +		ctx->err = PTR_ERR(vaddr);
+> +		return AE_ERROR;
+> +	}
+> +
+> +	ctx->combiner->regs[ctx->combiner->nregs].addr = vaddr;
+> +	ctx->combiner->nirqs += reg->bit_width;
+> +	ctx->combiner->nregs++;
+> +	return AE_OK;
+> +}
+> +
+> +static int get_registers(struct platform_device *pdev, struct combiner *comb)
+> +{
+> +	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
+> +	acpi_status status;
+> +	struct get_registers_context ctx;
+> +
+> +	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
+> +		return -EINVAL;
+> +
+> +	ctx.dev = &pdev->dev;
+> +	ctx.combiner = comb;
+> +	ctx.err = 0;
+> +
+> +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+> +				     get_registers_cb, &ctx);
+> +	if (ACPI_FAILURE(status))
+> +		return ctx.err;
+> +	return 0;
+> +}
+> +
+> +static int __init combiner_probe(struct platform_device *pdev)
+> +{
+> +	struct combiner *combiner;
+> +	size_t alloc_sz;
+> +	u32 nregs;
+> +	int err;
+> +
+> +	nregs = count_registers(pdev);
+> +	if (nregs <= 0) {
+> +		dev_err(&pdev->dev, "Error reading register resources\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	alloc_sz = sizeof(*combiner) + sizeof(struct combiner_reg) * nregs;
+> +	combiner = devm_kzalloc(&pdev->dev, alloc_sz, GFP_KERNEL);
+> +	if (!combiner)
+> +		return -ENOMEM;
+> +
+> +	err = get_registers(pdev, combiner);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	combiner->parent_irq = platform_get_irq(pdev, 0);
+> +	if (combiner->parent_irq <= 0) {
+> +		dev_err(&pdev->dev, "Error getting IRQ resource\n");
+> +		return -EPROBE_DEFER;
+> +	}
+> +
+> +	combiner->domain = irq_domain_create_linear(pdev->dev.fwnode, combiner->nirqs,
+> +						    &domain_ops, combiner);
+> +	if (!combiner->domain)
+> +		/* Errors printed by irq_domain_create_linear */
+> +		return -ENODEV;
+> +
+> +	irq_set_chained_handler_and_data(combiner->parent_irq,
+> +					 combiner_handle_irq, combiner);
+> +
+> +	dev_info(&pdev->dev, "Initialized with [p=%d,n=%d,r=%p]\n",
+> +		 combiner->parent_irq, combiner->nirqs, combiner->regs[0].addr);
+> +	return 0;
+> +}
+> +
+> +static const struct acpi_device_id qcom_irq_combiner_acpi_match[] = {
+> +	{ "QCOM80B1", },
+> +	{ }
+> +};
+> +
+> +static struct platform_driver qcom_irq_combiner_probe = {
+> +	.driver = {
+> +		.name = "qcom-irq-combiner",
+> +		.owner = THIS_MODULE,
+> +		.acpi_match_table = ACPI_PTR(qcom_irq_combiner_acpi_match),
+> +	},
+> +	.probe = combiner_probe,
+> +};
+> +
+> +static int __init register_qcom_irq_combiner(void)
+> +{
+> +	return platform_driver_register(&qcom_irq_combiner_probe);
+> +}
+> +device_initcall(register_qcom_irq_combiner);
 > 
-> Sorry, I got little lost here, could you explain it in detail?
 
-Yes sorry I was not clear. What I wanted to say is, for named
-components, that do not have an intrinsic id, we have to call
-iort_node_get_id() regardless of the type mask, we have to have
-a way to get the "source/initial id", so basically the type_mask
-is not important at all, it becomes important when it comes to
-understanding what type of id the value returned from
-iort_node_get_id() is.
-
-So basically, passing:
-
-#define IORT_TYPE_ANY (IORT_MSI_TYPE | IORT_IOMMU_TYPE)
-
-as type_mask to iort_node_get_id() means "retrieve any kind of
-initial id", that's what I wanted to say.
-
-In iort_iommu_configure() iort_node_get_id() is a bit different because
-we want only a type of id, ie a streamid, therefore the mask that we
-pass in is IORT_IOMMU_TYPE.
-
-> >and we just use the returned parent pointer to check if the mapping
-> >providing the initial id correspond to the type we are looking for (eg
-> >ITS) or we need to map the retrieved initial id any further, with
-> >iort_node_map_id(), to get to the final identifier.
-> >
-> >Thoughts ?
-> 
-> I think rework iort_node_map_rid() and not extend iort_node_get_id()
-> is the right direction, could you explain a bit more then I can demo
-> the code?
-
-What you can do is create a wrapper, say iort_node_map_platform_id()
-(whose signature is equivalent to iort_node_map_rid() minus rid_in)
-that carries out the two steps outlined above.
-
-To do that I suggest the following:
-
-(1) I send a patch to "fix" iort_node_get_id() (ie index issue you
-    reported)
-(2) We remove type_mask handling from iort_node_get_id()
-(3) We create iort_node_map_platform_id() that (pseudo-code, I can
-    write the patch if it is clearer):
-
-struct acpi_iort_node *iort_node_map_platform_id(u8 type_mask, int index,
-						 ...)
-{
-	u32 id, id_out;
-	struct acpi_iort_node *parent = iort_node_get_id(&id, index);
-
-	if (!parent)
-		return NULL;
-
-	/* we should probably rename iort_node_map_rid() too */
-	if (!(IORT_TYPE_MASK(parent->type) & type_mask)
-		parent = iort_node_map_rid(parent, id, &id_out, type_mask);
-
-	return parent;
-}
-
-(4) we update current iort_node_get_id() users and move them over
-    to iort_node_map_platform_id()
-
-Let me know if that's clear so that we can agree on a way forward.
+Other than the questions I have above, this now looks in a much better
+shape. Hopefully Rafael will soon come back will his conclusions on the
+first two patches, as I'd like to see this code to get some -next for a
+while.
 
 Thanks,
-Lorenzo
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
