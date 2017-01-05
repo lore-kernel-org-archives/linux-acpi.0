@@ -1,66 +1,122 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 03/14] ACPI: ARM64: IORT: add missing comment for
- iort_dev_find_its_id()
-Date: Thu, 5 Jan 2017 09:53:26 +0000
-Message-ID: <20170105095326.GA8988@red-moon>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v6 05/14] ACPI: platform-msi: retrieve dev id from IORT
+Date: Thu, 5 Jan 2017 20:45:37 +0800
+Message-ID: <eb1a8149-7c46-39bc-f655-58ca6345f40a@linaro.org>
 References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
- <1483363905-2806-4-git-send-email-hanjun.guo@linaro.org>
- <20170104143442.GA8604@red-moon>
- <4915fe90-ea61-45b5-491d-0628456abed2@linaro.org>
+ <1483363905-2806-6-git-send-email-hanjun.guo@linaro.org>
+ <20170104191805.GE8604@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4915fe90-ea61-45b5-491d-0628456abed2@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, charles.garcia-tobin@arm.com, yimin@huawei.com, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:36346 "EHLO
+        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751650AbdAEMp5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2017 07:45:57 -0500
+Received: by mail-pf0-f178.google.com with SMTP id 189so88058761pfz.3
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Jan 2017 04:45:57 -0800 (PST)
+In-Reply-To: <20170104191805.GE8604@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, charles.garcia-tobin@arm.com, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>
 
-On Thu, Jan 05, 2017 at 02:05:06PM +0800, Hanjun Guo wrote:
-> On 2017/1/4 22:34, Lorenzo Pieralisi wrote:
-> >On Mon, Jan 02, 2017 at 09:31:34PM +0800, Hanjun Guo wrote:
-> >>We are missing req_id's comment for iort_dev_find_its_id(),
-> >>add it back.
-> >
-> >"Add missing req_id parameter to the iort_dev_find_its_id() function
-> >kernel-doc comment."
-> >
-> >>Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>Tested-by: Majun <majun258@huawei.com>
-> >>Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
-> >>Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>Cc: Tomasz Nowicki <tn@semihalf.com>
-> >>---
-> >> drivers/acpi/arm64/iort.c | 1 +
-> >> 1 file changed, 1 insertion(+)
-> >>
-> >>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >>index 46e2d82..174e983 100644
-> >>--- a/drivers/acpi/arm64/iort.c
-> >>+++ b/drivers/acpi/arm64/iort.c
-> >>@@ -446,6 +446,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
-> >> /**
-> >>  * iort_dev_find_its_id() - Find the ITS identifier for a device
-> >>  * @dev: The device.
-> >>+ * @req_id: Device's Requster ID
-> >
-> >s/Requster/Requester
-> >
-> >We can send it upstream independently along with some other patches
-> >in this series but I will have a look at the whole series first.
-> 
-> Do you mean go to 4.10-rcx?
+Hi Lorenzo,
 
-Yes, technically it is a fix, not urgent at all though.
+On 2017/1/5 3:18, Lorenzo Pieralisi wrote:
+> On Mon, Jan 02, 2017 at 09:31:36PM +0800, Hanjun Guo wrote:
+>> For devices connecting to ITS, it needs dev id to identify
+>> itself, and this dev id is represented in the IORT table in
+>> named componant node [1] for platform devices, so in this
+>> patch we will scan the IORT to retrieve device's dev id.
+>>
+>> Introduce iort_pmsi_get_dev_id() with pointer dev passed
+>> in for that purpose.
+>>
+>> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+>> Tested-by: Majun <majun258@huawei.com>
+>> Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Tomasz Nowicki <tn@semihalf.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> ---
+>>  drivers/acpi/arm64/iort.c                     | 26 ++++++++++++++++++++++++++
+>>  drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +++-
+>>  include/linux/acpi_iort.h                     |  8 ++++++++
+>>  3 files changed, 37 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>> index 174e983..ab7bae7 100644
+>> --- a/drivers/acpi/arm64/iort.c
+>> +++ b/drivers/acpi/arm64/iort.c
+>> @@ -444,6 +444,32 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+>>  }
+>>
+>>  /**
+>> + * iort_pmsi_get_dev_id() - Get the device id for a device
+>> + * @dev: The device for which the mapping is to be done.
+>> + * @dev_id: The device ID found.
+>> + *
+>> + * Returns: 0 for successful find a dev id, errors otherwise
+>> + */
+>> +int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+>> +{
+>> +	struct acpi_iort_node *node;
+>> +
+>> +	if (!iort_table)
+>> +		return -ENODEV;
+>> +
+>> +	node = iort_find_dev_node(dev);
+>> +	if (!node) {
+>> +		dev_err(dev, "can't find related IORT node\n");
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	if(!iort_node_get_id(node, dev_id, IORT_MSI_TYPE, 0))
+>
+> I disagree with this approach. For named components we know that
+> there are always two steps involved (second optional):
+>
+> (1) Retrieve the initial id (this may well provide the final mapping)
+> (2) Map the id (optional if (1) represents the map type we need)
+>
+> That's the reason why I kept iort_node_get_id() and iort_node_map_rid()
+> separated.
+>
+> Now, what we can do is to create an iort_node_map_id() function that is
+> PCI agnostic (ie rename rid to id :)), whose rid_in is either a PCI RID
+> or the outcome of a previous call to iort_node_get_id() for named
+> components, that's in my opinion cleaner.
 
-Lorenzo
+iort_node_map_rid() was designed for that purpose, and we can use it
+for platform device, the issue that we need to pass a req id
+unconditionally which is not needed for platform device, Tomasz
+proposed a similar solution to rework iort_node_map_rid(), and
+I think it makes sense.
+
+>
+> It would be even cleaner if you passed a type_mask (or write a
+> wrapper function for that) that is:
+>
+> (IORT_MSI_TYPE | IORT_IOMMU_TYPE)
+
+Sorry, I got little lost here, could you explain it in detail?
+
+>
+> and we just use the returned parent pointer to check if the mapping
+> providing the initial id correspond to the type we are looking for (eg
+> ITS) or we need to map the retrieved initial id any further, with
+> iort_node_map_id(), to get to the final identifier.
+>
+> Thoughts ?
+
+I think rework iort_node_map_rid() and not extend iort_node_get_id()
+is the right direction, could you explain a bit more then I can demo
+the code?
+
+Thanks
+Hanjun
