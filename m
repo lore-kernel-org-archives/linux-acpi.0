@@ -1,76 +1,50 @@
-From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ACPI / DMAR: Avoid passing NULL to acpi_put_table()
-Date: Thu, 5 Jan 2017 19:41:53 +0200
-Message-ID: <CAHp75VcoDEL_-SpzobPm5qB3v+nJn957o9bf-0aCwvMSEH0BEw@mail.gmail.com>
-References: <3112193.PjflRgTHFW@aspire.rjw.lan>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 0/2] additional sysfs entries for CPPC
+Date: Thu, 5 Jan 2017 10:59:11 -0700
+Message-ID: <502822f6-9983-506e-df9d-34aca752382f@codeaurora.org>
+References: <1481763994-28146-1-git-send-email-pprakash@codeaurora.org>
+ <b147a3c2-5435-84b2-f3ff-6fb96e764fd5@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <3112193.PjflRgTHFW-yvgW3jdyMHm1GS7QM15AGw@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:49570 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1763129AbdAER7O (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2017 12:59:14 -0500
+In-Reply-To: <b147a3c2-5435-84b2-f3ff-6fb96e764fd5@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Thu, Jan 5, 2017 at 2:24 AM, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> Linus reported that commit 174cc7187e6f "ACPICA: Tables: Back port
-> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from
-> Linux kernel" added a new warning on his desktop system:
->
->  ACPI Warning: Table ffffffff9fe6c0a0, Validation count is zero before decrement
->
-> which turns out to come from the acpi_put_table() in
-> detect_intel_iommu().
->
-> This happens if the DMAR table is not present in which case NULL is
-> passed to acpi_put_table() which doesn't check against that and
-> attempts to handle it regardless.
->
-> For this reason, check the pointer passed to acpi_put_table()
-> before invoking it.
->
-
-Reviewed-by: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-
-> Reported-by: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-> Fixes: 6b11d1d67713 ("ACPI / osl: Remove acpi_get_table_with_size()/early_acpi_os_unmap_memory() users")
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/iommu/dmar.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
->
-> Index: linux-pm/drivers/iommu/dmar.c
-> ===================================================================
-> --- linux-pm.orig/drivers/iommu/dmar.c
-> +++ linux-pm/drivers/iommu/dmar.c
-> @@ -903,8 +903,10 @@ int __init detect_intel_iommu(void)
->                 x86_init.iommu.iommu_init = intel_iommu_init;
->  #endif
->
-> -       acpi_put_table(dmar_tbl);
-> -       dmar_tbl = NULL;
-> +       if (dmar_tbl) {
-> +               acpi_put_table(dmar_tbl);
-> +               dmar_tbl = NULL;
-> +       }
->         up_write(&dmar_global_lock);
->
->         return ret ? 1 : -ENODEV;
->
+To: ahs3@redhat.com, linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org
 
 
+On 1/3/2017 11:37 AM, Al Stone wrote:
+> On 12/14/2016 06:06 PM, Prashanth Prakash wrote:
+>> This patch-set adds few additional sysfs entries to expose the
+>> performance capabilities of each CPU. The performance capabilities
+>> include highest perf, lowest perf, nominal perf and lowest 
+>> non-linear perf. See 8.4.7.1 for ACPI 6.1 spec for details on
+>> these capabilities.
+>>
+>> cppc_cpufreq driver operates in KHz scale whereas the delivered
+>> performance computed in userspace will be in abstract CPPC scale, so
+>> exposing perf capabilities should allow userspace to figure out the
+>> conversion factor from CPPC scale to KHz.
+>>
+>> Prashanth Prakash (2):
+>>   ACPI / CPPC: read all perf caps in a single cppc read command
+>>   ACPI / CPPC: add sysfs entries for CPPC perf capabilities
+>>
+>>  drivers/acpi/cppc_acpi.c | 164 ++++++++++++++++++++++++++++++-----------------
+>>  include/acpi/cppc_acpi.h |   3 +-
+>>  2 files changed, 107 insertions(+), 60 deletions(-)
+>>
+> Nice addition, Prashanth.  I had thought about doing this, but got distracted.
+> Thanks for following through :).  I have not had a chance to test these yet, but
+> will do so as soon as I can; my initial review is pretty positive, though.
+>
+Thanks Al! I look forward for your test results.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
+Prashanth
