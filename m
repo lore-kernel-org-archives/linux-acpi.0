@@ -1,62 +1,51 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 03/14] ACPI: ARM64: IORT: add missing comment for
- iort_dev_find_its_id()
-Date: Thu, 5 Jan 2017 14:05:06 +0800
-Message-ID: <4915fe90-ea61-45b5-491d-0628456abed2@linaro.org>
-References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
- <1483363905-2806-4-git-send-email-hanjun.guo@linaro.org>
- <20170104143442.GA8604@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170104143442.GA8604@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, charles.garcia-tobin@arm.com, yimin@huawei.com, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH 1/2] ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
+Date: Thu,  5 Jan 2017 11:34:30 +0530
+Message-ID: <c62a8f8b1bf699b0c7834c87096d4f144c02bf1d.1483596168.git.viresh.kumar@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f52.google.com ([74.125.83.52]:35874 "EHLO
+        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032402AbdAEGEp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jan 2017 01:04:45 -0500
+Received: by mail-pg0-f52.google.com with SMTP id f188so236081088pgc.3
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Jan 2017 22:04:45 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, linux-acpi@vger.kernel.org
 
-On 2017/1/4 22:34, Lorenzo Pieralisi wrote:
-> On Mon, Jan 02, 2017 at 09:31:34PM +0800, Hanjun Guo wrote:
->> We are missing req_id's comment for iort_dev_find_its_id(),
->> add it back.
->
-> "Add missing req_id parameter to the iort_dev_find_its_id() function
-> kernel-doc comment."
->
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Tested-by: Majun <majun258@huawei.com>
->> Tested-by: Xinwei Kong <kong.kongxinwei@hisilicon.com>
->> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Cc: Tomasz Nowicki <tn@semihalf.com>
->> ---
->>  drivers/acpi/arm64/iort.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index 46e2d82..174e983 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -446,6 +446,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
->>  /**
->>   * iort_dev_find_its_id() - Find the ITS identifier for a device
->>   * @dev: The device.
->> + * @req_id: Device's Requster ID
->
-> s/Requster/Requester
->
-> We can send it upstream independently along with some other patches
-> in this series but I will have a look at the whole series first.
+acpi_processor_ppc_notifier() can live without using CPUFREQ_START
+(which is gonna be removed soon). Simplify it a bit.
 
-Do you mean go to 4.10-rcx?
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+Rebased over: https://marc.info/?l=linux-kernel&m=148359167516831&w=2
 
-Thanks
-Hanjun
+ drivers/acpi/processor_perflib.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index f0b4a981b8d3..1ceea1143a1c 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -75,14 +75,12 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
+-	if (event == CPUFREQ_START && ignore_ppc <= 0) {
+-		ignore_ppc = 0;
+-		return 0;
+-	}
+-
+ 	if (ignore_ppc)
+ 		return 0;
+ 
++	if (ignore_ppc < 0)
++		ignore_ppc = 0;
++
+ 	if (event != CPUFREQ_ADJUST)
+ 		return 0;
+ 
+-- 
+2.7.1.410.g6faf27b
+
