@@ -1,60 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / DMAR: Avoid passing NULL to acpi_put_table()
-Date: Thu, 05 Jan 2017 01:24:14 +0100
-Message-ID: <3112193.PjflRgTHFW@aspire.rjw.lan>
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Subject: Re: [alsa-devel] [PATCH v6 1/3] clk: x86: Add Atom PMC platform
+ clocks
+Date: Wed, 4 Jan 2017 18:54:42 -0600
+Message-ID: <564d1f26-dd11-d237-7e63-87287a062c03@linux.intel.com>
+References: <1481306510-7471-1-git-send-email-irina.tirdea@intel.com>
+ <1481306510-7471-2-git-send-email-irina.tirdea@intel.com>
+ <CAHp75Vdaw4yvTPP2JZc+ti-AVNsisRQ+WG=JxPQ1jv-r7DADQA@mail.gmail.com>
+ <20161213232524.GQ5423@codeaurora.org>
+ <32235fb3-0d54-211d-28f4-4655e4bc7812@linux.intel.com>
+ <20161217013337.GW5423@codeaurora.org>
+ <CAHp75Vdn_8_fCQzkG7CPrnDZzhC7WUpGM1cyvfNRz0u_sc7RKA@mail.gmail.com>
+ <7f3d03dc-24fe-ec3f-4a3b-926c28f0ac86@linux.intel.com>
+ <20161221230557.GK5423@codeaurora.org>
+ <cd6044f5-6c79-b2d6-902d-52e27c217e78@linux.intel.com>
+ <CAHp75VfJU3613euahjW-s92_XEz8hK70ZgRi53Lpo+2TWqPscA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47643 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933848AbdAEA21 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jan 2017 19:28:27 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VfJU3613euahjW-s92_XEz8hK70ZgRi53Lpo+2TWqPscA@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>, Len Brown <lenb@kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Michael Turquette <mturquette@baylibre.com>, "x86@kernel.org" <x86@kernel.org>, Stephen Boyd <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, platform-driver-x86@vger.kernel.org, linux-clk@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, iommu@lists.linux-foundation.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Linus reported that commit 174cc7187e6f "ACPICA: Tables: Back port
-acpi_get_table_with_size() and early_acpi_os_unmap_memory() from
-Linux kernel" added a new warning on his desktop system:
-
- ACPI Warning: Table ffffffff9fe6c0a0, Validation count is zero before decrement
-
-which turns out to come from the acpi_put_table() in
-detect_intel_iommu().
-
-This happens if the DMAR table is not present in which case NULL is
-passed to acpi_put_table() which doesn't check against that and
-attempts to handle it regardless.
-
-For this reason, check the pointer passed to acpi_put_table()
-before invoking it.
-
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org> 
-Fixes: 6b11d1d67713 ("ACPI / osl: Remove acpi_get_table_with_size()/early_acpi_os_unmap_memory() users")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/iommu/dmar.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-Index: linux-pm/drivers/iommu/dmar.c
-===================================================================
---- linux-pm.orig/drivers/iommu/dmar.c
-+++ linux-pm/drivers/iommu/dmar.c
-@@ -903,8 +903,10 @@ int __init detect_intel_iommu(void)
- 		x86_init.iommu.iommu_init = intel_iommu_init;
- #endif
- 
--	acpi_put_table(dmar_tbl);
--	dmar_tbl = NULL;
-+	if (dmar_tbl) {
-+		acpi_put_table(dmar_tbl);
-+		dmar_tbl = NULL;
-+	}
- 	up_write(&dmar_global_lock);
- 
- 	return ret ? 1 : -ENODEV;
-
+>>>> this convention is suggested:
+>>>>    PLT_CLK[2:0] - Camera
+>>>>    PLT_CLK[3] - Audio Codec
+>>>>    PLT_CLK[4] -
+>>>>    PLT_CLK[5] - COMMs
+> By the way, would I suggest to use same prefix as provider, i.e.
+> pmc_atom_plt_clk_%d ?
+I tried this suggestion and it doesn't work unfortunately. It looks like 
+the struct clk_lookup_alloc is limited to 16 chars for the connector_id.
+"pmc_a_plt_clk_" works but that's not really helping.
+The suggestion would also require a patch on the audio side since the 
+use of pmc_plt_clk_3 was already merged.
+-> no change.
