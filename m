@@ -1,53 +1,84 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / OSL: Fix rcu synchronization logic
-Date: Tue, 10 Jan 2017 00:35:03 +0100
-Message-ID: <CAJZ5v0giPxnkmxbk0ubSENSBdY2vNRku_Lm_YTVjA+xkCrSTog@mail.gmail.com>
-References: <1483955769-9579-1-git-send-email-lv.zheng@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: 174cc7187e6f ACPICA: Tables: Back port
+ acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+ kernel
+Date: Tue, 10 Jan 2017 00:40:39 +0100
+Message-ID: <20170109234039.mfefmv5dv4shxnfn@pd.tnic>
+References: <20170108010158.b62eovaxsbmhfnkb@pd.tnic>
+ <CAJZ5v0hxrz9os4ZpS=EHbdFp8rd7D+BU10bSyfBV-FE6UHQ6FA@mail.gmail.com>
+ <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
+ <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
+ <1AE640813FDE7649BE1B193DEA596E886CE27B7E@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE27BEE@SHSMSX101.ccr.corp.intel.com>
+ <20170109093329.jd7uwlcpci4icpd3@pd.tnic>
+ <20170109221831.GC3800@linux.vnet.ibm.com>
+ <20170109231501.xrhwsv46mznw3kqt@pd.tnic>
+ <20170109233204.GG3800@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:33118 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753119AbdAIXfE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 18:35:04 -0500
-In-Reply-To: <1483955769-9579-1-git-send-email-lv.zheng@intel.com>
+Received: from mail.skyhub.de ([78.46.96.112]:42517 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756210AbdAIXko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Jan 2017 18:40:44 -0500
+Content-Disposition: inline
+In-Reply-To: <20170109233204.GG3800@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@alien8.de>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, J?rg R?del <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Mon, Jan 9, 2017 at 10:56 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> The rcu synchronization logic is originally provided to protect
-> apei_read()/apei_write() as in the APEI drivers, there is NMI event source
-> requiring non spinlock based synchronization mechanism.
->
-> After that, ACPI developers think FADT registers may also require same
-> facility, so they moved the RCU stuffs to generic ACPI layer.
->
-> So now non-task-context ACPI map lookup is only protected by RCU.
->
-> This triggers problem as acpi_os_map_memory()/acpi_os_unmap_memory() can be
-> used to map/unmap tables as long as to map/unmap ACPI registers. When it is
-> used for the ACPI tables, the caller could invoke this very early. When it
-> is invoked earlier than workqueue_init() and later than
-> check_early_ioremp_leak(), invoking synchronize_rcu_expedited() can cause a
-> kernel hang.
->
-> Actually this facility is only used to protect non-task-context ACPI map
-> lookup,
+On Mon, Jan 09, 2017 at 03:32:04PM -0800, Paul E. McKenney wrote:
+> We could move rcu_scheduler_starting() later, as long as there
+> is no chance of preemption or context switch before it is invoked.
+> Would that help in this case, or are we already context switching before
+> acpi_os_map_cleanup() is invoked?  (If we are already context switching,
+> short-circuiting synchronize_rcu_expedited() would be a bug.)
 
-That doesn't sound quite right.
+Hmm, how about the below?
 
-acpi_os_read/write_memory() use RCU-protected list lookups, so it's
-not just non-task-context AFAICS.
+It would still happen before
 
-> and such mappings are only introduced by
-> acpi_os_map_generic_address(). So before it is invoked, there is no need to
-> invoke synchronize_rcu_expedited().
+        /*
+         * The boot idle thread must execute schedule()
+         * at least once to get things moving:
+         */
+        init_idle_bootup_task(current);
+        schedule_preempt_disabled();
 
-That said it may be fine to start actually synchronize RCU after
-acpi_os_map_generic_address() has been called for the first time.  I
-need a better (or more detailed) explanation why it is fine, though.
+in rest_init() and right after native_smp_prepare_cpus() which is where
+we're splatting.
 
-Thanks,
-Rafael
+Lemme run it.
+
+Even if it works, we would have to stress-test this seriously...
+
+---
+diff --git a/init/main.c b/init/main.c
+index b0c9d6facef9..9be221cc87c3 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -385,7 +385,6 @@ static noinline void __ref rest_init(void)
+ {
+ 	int pid;
+ 
+-	rcu_scheduler_starting();
+ 	/*
+ 	 * We need to spawn init first so that it obtains pid 1, however
+ 	 * the init task will end up wanting to create kthreads, which, if
+@@ -1019,6 +1018,8 @@ static noinline void __init kernel_init_freeable(void)
+ 
+ 	smp_prepare_cpus(setup_max_cpus);
+ 
++	rcu_scheduler_starting();
++
+ 	workqueue_init();
+ 
+ 	do_pre_smp_initcalls();
+
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
