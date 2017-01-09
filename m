@@ -1,208 +1,84 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V9 3/3] irqchip: qcom: Add IRQ combiner driver
-Date: Mon, 9 Jan 2017 15:25:26 +0000
-Message-ID: <a292f6c6-8b55-a2a9-c5a4-12c114816c91@arm.com>
-References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
- <1481753438-3905-4-git-send-email-agustinv@codeaurora.org>
- <ded278ef-a0a2-811a-f362-70555f74d6fc@arm.com>
- <a1d3e5706ea8c97a4712a8fb33db71ca@codeaurora.org>
+From: Tomi Sarvela <tomi.p.sarvela@intel.com>
+Subject: ILK ACPI boot-up problem on HP 8100 SFF, bisected
+Date: Mon, 09 Jan 2017 18:01:27 +0200
+Message-ID: <2435796.hnfxsDQFWV@fractal.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a1d3e5706ea8c97a4712a8fb33db71ca@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:48247 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761473AbdAIQCI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Jan 2017 11:02:08 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lv.zheng@intel.com, robert.moore@intel.com
+Cc: intel-gfx-ci@eclists.intel.com
 
-On 06/01/17 13:17, Agustin Vega-Frias wrote:
-> Hey Marc,
-> 
-> On 2017-01-05 11:48, Marc Zyngier wrote:
->> Hi Agustin,
->>
->> On 14/12/16 22:10, Agustin Vega-Frias wrote:
->>> Driver for interrupt combiners in the Top-level Control and Status
->>> Registers (TCSR) hardware block in Qualcomm Technologies chips.
->>>
->>> An interrupt combiner in this block combines a set of interrupts by
->>> OR'ing the individual interrupt signals into a summary interrupt
->>> signal routed to a parent interrupt controller, and provides read-
->>> only, 32-bit registers to query the status of individual interrupts.
->>> The status bit for IRQ n is bit (n % 32) within register (n / 32)
->>> of the given combiner. Thus, each combiner can be described as a set
->>> of register offsets and the number of IRQs managed.
->>>
->>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
->>> ---
->>>  drivers/irqchip/Kconfig             |   9 +
->>>  drivers/irqchip/Makefile            |   1 +
->>>  drivers/irqchip/qcom-irq-combiner.c | 322 
->>> ++++++++++++++++++++++++++++++++++++
->>>  3 files changed, 332 insertions(+)
->>>  create mode 100644 drivers/irqchip/qcom-irq-combiner.c
->>>
->>> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
->>> index bc0af33..3e3430c 100644
->>> --- a/drivers/irqchip/Kconfig
->>> +++ b/drivers/irqchip/Kconfig
->>> @@ -279,3 +279,12 @@ config EZNPS_GIC
->>>  config STM32_EXTI
->>>  	bool
->>>  	select IRQ_DOMAIN
->>> +
->>> +config QCOM_IRQ_COMBINER
->>> +	bool "QCOM IRQ combiner support"
->>> +	depends on ARCH_QCOM && ACPI
->>> +	select IRQ_DOMAIN
->>> +	select IRQ_DOMAIN_HIERARCHY
->>> +	help
->>> +	  Say yes here to add support for the IRQ combiner devices embedded
->>> +	  in Qualcomm Technologies chips.
->>> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
->>> index e4dbfc8..1818a0b 100644
->>> --- a/drivers/irqchip/Makefile
->>> +++ b/drivers/irqchip/Makefile
->>> @@ -74,3 +74,4 @@ obj-$(CONFIG_LS_SCFG_MSI)		+= irq-ls-scfg-msi.o
->>>  obj-$(CONFIG_EZNPS_GIC)			+= irq-eznps.o
->>>  obj-$(CONFIG_ARCH_ASPEED)		+= irq-aspeed-vic.o
->>>  obj-$(CONFIG_STM32_EXTI) 		+= irq-stm32-exti.o
->>> +obj-$(CONFIG_QCOM_IRQ_COMBINER)		+= qcom-irq-combiner.o
->>> diff --git a/drivers/irqchip/qcom-irq-combiner.c 
->>> b/drivers/irqchip/qcom-irq-combiner.c
->>> new file mode 100644
->>> index 0000000..0055e08
->>> --- /dev/null
->>> +++ b/drivers/irqchip/qcom-irq-combiner.c
->>> @@ -0,0 +1,322 @@
->>> +/* Copyright (c) 2015-2016, The Linux Foundation. All rights 
->>> reserved.
->>> + *
->>> + * This program is free software; you can redistribute it and/or 
->>> modify
->>> + * it under the terms of the GNU General Public License version 2 and
->>> + * only version 2 as published by the Free Software Foundation.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + */
->>> +
->>> +/*
->>> + * Driver for interrupt combiners in the Top-level Control and Status
->>> + * Registers (TCSR) hardware block in Qualcomm Technologies chips.
->>> + * An interrupt combiner in this block combines a set of interrupts 
->>> by
->>> + * OR'ing the individual interrupt signals into a summary interrupt
->>> + * signal routed to a parent interrupt controller, and provides read-
->>> + * only, 32-bit registers to query the status of individual 
->>> interrupts.
->>> + * The status bit for IRQ n is bit (n % 32) within register (n / 32)
->>> + * of the given combiner. Thus, each combiner can be described as a 
->>> set
->>> + * of register offsets and the number of IRQs managed.
->>> + */
->>> +
->>> +#include <linux/acpi.h>
->>> +#include <linux/irqchip/chained_irq.h>
->>> +#include <linux/irqdomain.h>
->>> +#include <linux/platform_device.h>
->>> +
->>> +#define REG_SIZE 32
->>> +
->>> +struct combiner_reg {
->>> +	void __iomem *addr;
->>> +	unsigned long mask;
->>> +};
->>> +
->>> +struct combiner {
->>> +	struct irq_domain   *domain;
->>> +	int                 parent_irq;
->>> +	u32                 nirqs;
->>> +	u32                 nregs;
->>> +	struct combiner_reg regs[0];
->>> +};
->>> +
->>> +static inline u32 irq_register(int irq)
->>> +{
->>> +	return irq / REG_SIZE;
->>> +}
->>> +
->>> +static inline u32 irq_bit(int irq)
->>> +{
->>> +	return irq % REG_SIZE;
->>> +
->>> +}
->>> +
->>> +static inline int irq_nr(u32 reg, u32 bit)
->>> +{
->>> +	return reg * REG_SIZE + bit;
->>> +}
->>> +
->>> +/*
->>> + * Handler for the cascaded IRQ.
->>> + */
->>> +static void combiner_handle_irq(struct irq_desc *desc)
->>> +{
->>> +	struct combiner *combiner = irq_desc_get_handler_data(desc);
->>> +	struct irq_chip *chip = irq_desc_get_chip(desc);
->>> +	u32 reg;
->>> +
->>> +	chained_irq_enter(chip, desc);
->>> +
->>> +	for (reg = 0; reg < combiner->nregs; reg++) {
->>> +		int virq;
->>> +		int hwirq;
->>> +		u32 bit;
->>> +		u32 status;
->>> +
->>> +		if (combiner->regs[reg].mask == 0)
->>> +			continue;
->>
->> I'm a bit worried by this. If I understand it well, this is a pure
->> software construct (controlled from combiner_irq_chip_{un,}mask_irq) 
->> and
->> there is nothing that actually masks the interrupt at the HW level.
->>
->> So if a device asserts its interrupt line, what mechanism do we have to
->> make sure that we don't end-up with the CPU pegged in interrupt 
->> context?
->>
-> 
-> Yes, unfortunately this is a dumb hardware combiner; however, the
-> real use of mask here is to optimize IRQ handling if the combiner
-> instance has its IRQ statuses across more than one register.
-> Currently all active instances only use one register, but we are
-> getting close to 32 in one case, so I wanted to accommodate a general
-> case where an instance can combine more than 32 IRQs.
-> 
-> Having said that, what I'm inclined to do is to remove the use of mask
-> on the status read form the register on the next two lines, and then let
-> irq_find_mapping fail if we are getting an unexpected IRQ, then call
-> handle_bad_irq(desc).
+Hello there,
 
-Unfortunately, having a mapping in place is not an indication that
-someone can handle the interrupt. Also, you still need to handle
-mask/unmask, and I don't see how you manage that, given that this
-interrupt combiner seems to be a glorified OR gate.
+We have couple of Iron Lake machines here, and one started hanging around Christmas in early boot on ACPI initialization. Dmesg below, full dmesgs available on request.
 
-> Do you have any other suggestions to handle the scenario? E.g., can we
-> safely disable the parent IRQ from this context if we see too many
-> spurious interrupts?
+Exact model of the machine is HP Compaq 8100 Elite Small Form Factor PC. BIOS update from 2010 to 2011 (newest) didn't change anything.
+HP Elite laptop (ILK m540) or Dell SFF PC (ILK 650) don't have this particular problem.
 
-I don't think so. There is two issues here:
-- If a device is stuck with an active interrupt, you won't be able to
-reliably detect that this is an invalid condition (the mapping trick
-above is not reliable, and generic_handle_irq doesn't return anything
-useful)
-- Even if you could detect it, what do you do? Killing the cascade
-interrupt would also kill all the other devices. Is that something
-acceptable in your setup? Can you implement mask/unmask the same way?
+I've bisected the problem to the following commit:
 
-Thanks,
+----
+commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
+Author: Lv Zheng <lv.zheng@intel.com>
+Date:   Wed Dec 14 15:04:25 2016 +0800
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+    ACPICA: Tables: Back port acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
+    
+    ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+----
+
+The affected machine is a testhost and readily available for any patches that might help pinpoint this bug.
+
+If you need any more information, you can contact me directly to this address.
+
+Best regards,
+
+Tomi Sarvela
+
+Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+
+
+
+Bad kernel hard hangs to the point:
+
+[    0.851020] ACPI: Added _OSI(Module Device)
+[    0.855257] ACPI: Added _OSI(Processor Device)
+[    0.859753] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.864509] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.888923] ACPI: Dynamic OEM Table Load:
+[    0.893050] ACPI: SSDT 0xFFFF880212313A78 0003BA (v01 COMPAQ CPU_TM2  00000001 MSFT 0100000E)
+
+Good kernel looks like this:
+
+[    0.216085] ACPI: Added _OSI(Module Device)
+[    0.216087] ACPI: Added _OSI(Processor Device)
+[    0.216088] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.216089] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.217988] ACPI: Dynamic OEM Table Load:
+[    0.217993] ACPI: SSDT 0xFFFF880211DE2400 0003BA (v01 COMPAQ CPU_TM2  00000001 MSFT 0100000E)
+[    0.218238] ACPI: Dynamic OEM Table Load:
+[    0.218241] ACPI: SSDT 0xFFFF880211DE2800 0003D8 (v01 COMPAQ CST      00000001 MSFT 0100000E)
+[    0.218693] ACPI: Interpreter enabled
+[    0.218708] ACPI: (supports S0 S3 S4 S5)
+[    0.218709] ACPI: Using IOAPIC for interrupt routing
+[    0.218726] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.221751] acpi LNXCPU:00: Invalid PBLK length [7]
+[    0.221758] acpi LNXCPU:01: Invalid PBLK length [7]
+[    0.221763] acpi LNXCPU:02: Invalid PBLK length [7]
+[    0.221768] acpi LNXCPU:03: Invalid PBLK length [7]
+[    0.221898] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.221903] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+[    0.221906] ACPI BIOS Error (bug): \_SB_.PCI0._OSC: Excess arguments - ASL declared 5, ACPI requires 4 (20150930/nsarguments-189)
+[    0.221938] ACPI Error: [CAPD] Namespace lookup failure, AE_ALREADY_EXISTS (20150930/dsfield-211)
+[    0.221942] ACPI Error: Method parse/execution failed [\_SB.PCI0._OSC] (Node ffff8802130b1668), AE_ALREADY_EXISTS (20150930/psparse-542)
+[    0.221948] acpi PNP0A08:00: _OSC failed (AE_ALREADY_EXISTS); disabling ASPM
+[    0.222162] PCI host bridge to bus 0000:00
+
+
