@@ -1,80 +1,166 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: ACPI Error: Method parse/execution failed on HP ZBook 17 G3
-Date: Mon, 9 Jan 2017 11:55:43 +0100
-Message-ID: <20170109105543.2lnj5ram6u5nbtyz@lenoch>
+From: okaya@codeaurora.org
+Subject: Re: [PATCH] ACPI/IORT: Fix iort_node_get_id() mapping entries
+ indexing
+Date: Mon, 09 Jan 2017 06:20:57 -0500
+Message-ID: <5188b273a0d8fcb035cfbb1e64ffeefb@codeaurora.org>
+References: <20170105182921.8167-1-lorenzo.pieralisi@arm.com>
+ <f089f31e-cc9e-291d-091e-00a10ba78cca@codeaurora.org>
+ <8d046cbd-d650-41c0-f0a5-96c2ffecd299@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([148.251.95.138]:41720 "EHLO
-        cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753932AbdAIKzs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 05:55:48 -0500
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23991532AbdAIKzpv30Fw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 11:55:45 +0100
-Content-Disposition: inline
+Received: from smtp.codeaurora.org ([198.145.29.96]:49216 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965577AbdAILVC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 06:21:02 -0500
+In-Reply-To: <8d046cbd-d650-41c0-f0a5-96c2ffecd299@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Nate Watterson <nwatters@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi there,
+On 2017-01-09 01:34, Hanjun Guo wrote:
+> Hi Sinan,
+> 
+> On 2017/1/8 5:09, Sinan Kaya wrote:
+>> On 1/5/2017 1:29 PM, Lorenzo Pieralisi wrote:
+>>> Commit 618f535a6062 ("ACPI/IORT: Add single mapping function")
+>>> introduced a function (iort_node_get_id()) to retrieve ids for IORT
+>>> named components.
+>>> 
+>>> iort_node_get_id() takes an index as input to refer to a specific
+>>> mapping entry in the mapping array to retrieve the id at a specific
+>>> index provided the index is below the total mapping count; currently 
+>>> the
+>>> index is used to retrieve the mapping value from the correct entry 
+>>> but
+>>> not to dereference the correct entry while retrieving the mapping
+>>> output_reference (ie IORT parent pointer), which consequently always
+>>> resolves to the output_reference of the first entry in the mapping
+>>> array.
+>>> 
+>>> Update the map array entry pointer computation in iort_node_get_id() 
+>>> to
+>>> take into account the index value, fixing the issue.
+>>> 
+>>> Fixes: 618f535a6062 ("ACPI/IORT: Add single mapping function")
+>>> Reported-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+>>> Cc: Sinan Kaya <okaya@codeaurora.org>
+>>> Cc: Tomasz Nowicki <tn@semihalf.com>
+>>> Cc: Nate Watterson <nwatters@codeaurora.org>
+>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>> ---
+>>>  drivers/acpi/arm64/iort.c | 6 +++---
+>>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>> 
+>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>> index e0d2e6e..ba156c5 100644
+>>> --- a/drivers/acpi/arm64/iort.c
+>>> +++ b/drivers/acpi/arm64/iort.c
+>>> @@ -333,7 +333,7 @@ struct acpi_iort_node *iort_node_get_id(struct 
+>>> acpi_iort_node *node,
+>>>  		return NULL;
+>>> 
+>>>  	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
+>>> -			   node->mapping_offset);
+>>> +			   node->mapping_offset + index * sizeof(*map));
+>> 
+>> What does this give us that the previous code didn't do?
+> 
+> Fir example, if you have multi mappings ids under platform device:
+> 
+> |-------------|
+> |  SMMU  2    |<-------
+> |-------------|       |
+>                       |
+>                       |
+> |-------------|       |
+> |  SMMU 1     |<----  |
+> |-------------|    |  |
+>                    |  |
+>                    |  |
+> |-------------|    |  |
+> |  platform   |    |  |
+> |  device     |    |  |
+> |-------------|    |  |
+> | stream id   |    |  |
+> | 1           |    |  |
+> | parent------|----|  |
+> |-------------|       |
+> |  stream id  |       |
+> |  2          |       |
+> |  parent-----|-------|
+> |-------------|
+> 
+> For now, we just use the first entry in the mapping entry to get
+> the parent, and always point to the same parent, as above, we will
+> always map to SMMU 1 even if you connect to different SMMUs. (Although
+> we may don't have such device topology yet)
 
-I'm getting various ACPI Errors with 4.10-rc3 on HP ZBook 17 G3:
+I see. This wasn't obvious from the commit message. Thanks for taking 
+time to explain it.
 
-efi: EFI v2.40 by HP
-efi:  ACPI=0x3defe000  ACPI 2.0=0x3defe014  SMBIOS=0x3d8db000  MPS=0x3d975000  ESRT=0x3d06b660 
-SMBIOS 2.7 present.
-DMI: HP HP ZBook 17 G3/80D6, BIOS N81 Ver. 01.11 09/07/2016
-e820: update [mem 0x00000000-0x00000fff] usable ==> reserved
-e820: remove [mem 0x000a0000-0x000fffff] usable
-e820: last_pfn = 0x2be000 max_arch_pfn = 0x400000000
-MTRR default type: write-back
-MTRR fixed ranges enabled:
-  00000-9FFFF write-back
-  A0000-BFFFF uncachable
-  C0000-FFFFF write-protect
-MTRR variable ranges enabled:
-  0 base 0080000000 mask 7F80000000 uncachable
-  1 base 0040000000 mask 7FC0000000 uncachable
-  2 disabled
-  3 disabled
-  4 disabled
-  5 disabled
-  6 disabled
-  7 disabled
-  8 disabled
-  9 disabled
-x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WC  UC- WT  
-e820: last_pfn = 0x3df00 max_arch_pfn = 0x400000000
-efi: requested map not found.
-esrt: ESRT header is not in the memory map.
+I think the commit message needs to include some of your description.
 
-And here goes error messages filtered (I can send full bootlog when needed):
+> 
+> 
+>> 
+>> You are using map as a pointer and returning the offset of the first 
+>> map entry above
+>> and then accessing the map at the indexed offset with map[index]
+>> 
+>> The new code is using map as a plain pointer, calculating the pointer 
+>> location with ACPI_ADD_PTR
+>> instead and then collecting the output parameter with 
+>> map->output_base.
+>> 
+>>> 
+>>>  	/* Firmware bug! */
+>>>  	if (!map->output_reference) {
+>>> @@ -348,10 +348,10 @@ struct acpi_iort_node *iort_node_get_id(struct 
+>>> acpi_iort_node *node,
+>>>  	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
+>>>  		return NULL;
+>>> 
+>>> -	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>>> +	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>>>  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+>>>  		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+>>> -			*id_out = map[index].output_base;
+>>> +			*id_out = map->output_base;
+>> 
+>> You are claiming that the existing code is collecting the output 
+>> parameter from the first mapping.
+>> I don't see this happening above.
+>> 
+>> What am I missing?
+> 
+> It's not about the output id but it's about the parent returned
+> by this function, it always return the first entry's parent in the
+> mapping entry.
 
-ACPI Error: Field [CAP1] at 96 exceeds Buffer [NULL] size 64 (bits) (20160930/dsopcode-236)
-ACPI Error: Method parse/execution failed [\_SB._OSC] (Node ffff989c350dea28), AE_AML_BUFFER_LIMIT (20160930/psparse-543)
-nouveau 0000:01:00.0: bus: MMIO read of 00000000 FAULT at 001228 [ IBUS ]
-tpm tpm0: A TPM error (7) occurred attempting to read a pcr value
-ACPI Error: Needed [Buffer/String/Package], found [Integer] ffff989c33f0bea0 (20160930/exresop-594)
-ACPI Exception: AE_AML_OPERAND_TYPE, While resolving operands for [OpcodeName unavailable] (20160930/dswexec-461)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WVPO] (Node ffff989c350ab618), AE_AML_OPERAND_TYPE (20160930/psparse-543)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WMPV] (Node ffff989c350ab190), AE_AML_OPERAND_TYPE (20160930/psparse-543)
-ACPI Error: Needed [Buffer/String/Package], found [Integer] ffff989c33f0bb40 (20160930/exresop-594)
-ACPI Exception: AE_AML_OPERAND_TYPE, While resolving operands for [OpcodeName unavailable] (20160930/dswexec-461)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WVPO] (Node ffff989c350ab618), AE_AML_OPERAND_TYPE (20160930/psparse-543)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WMPV] (Node ffff989c350ab190), AE_AML_OPERAND_TYPE (20160930/psparse-543)
-ACPI Error: Needed [Buffer/String/Package], found [Integer] ffff989c33f0b288 (20160930/exresop-594)
-ACPI Exception: AE_AML_OPERAND_TYPE, While resolving operands for [OpcodeName unavailable] (20160930/dswexec-461)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WVPO] (Node ffff989c350ab618), AE_AML_OPERAND_TYPE (20160930/psparse-543)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WMPV] (Node ffff989c350ab190), AE_AML_OPERAND_TYPE (20160930/psparse-543)
-ACPI Error: Attempt to CreateField of length zero (20160930/dsopcode-168)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WVPI] (Node ffff989c350abac8), AE_AML_OPERAND_VALUE (20160930/psparse-543)
-ACPI Error: Method parse/execution failed [\_SB.WMIV.WMPV] (Node ffff989c350ab190), AE_AML_OPERAND_VALUE (20160930/psparse-543)
+Ok, I was judt looking at the patch. I didn't realize ww are changing 
+the return value.
 
-I would appreciate if anyone could point me the right direction where to
-start debugging as I lived happily without any ACPI knowledge till these
-days...
+This could have been mentioned.
 
-Thank you,
-	ladis
+
+> 
+>> 
+>>>  			return parent;
+>>>  		}
+>>>  	}
+>>> 
+>> 
+>> If we are just doing a housekeeping, this is fine. I couldn't see an 
+>> actual bug getting fixed.
+> 
+> Although we may don't have such use cases for now, but I think we
+> need to prepare for it, it worth a bugfix I think :)
+> 
+> Thanks
+> Hanjun
