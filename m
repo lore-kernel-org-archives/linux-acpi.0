@@ -1,87 +1,75 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 174cc7187e6f ACPICA: Tables: Back port
- acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
-Date: Mon, 9 Jan 2017 02:36:33 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE27BEE@SHSMSX101.ccr.corp.intel.com>
-References: <20170107204227.bwdb5yzrjpiggkmo@pd.tnic>
- <4034dde8-ffc1-18e2-f40c-00cf37471793@intel.com>
- <20170108000702.wrov5ajeou2y3tuy@pd.tnic>
- <CAJZ5v0jtGo207YmBGDw55uCV+3sp-QX2Gx7cup-4e8ESjnHhrQ@mail.gmail.com>
- <20170108003730.hlcqkhdxtah65z66@pd.tnic>
- <CAJZ5v0jgdctHEEOaAUBNZZPb=ni_DLdkJtmiDkvVP4WQUYr3rA@mail.gmail.com>
- <20170108010158.b62eovaxsbmhfnkb@pd.tnic>
- <CAJZ5v0hxrz9os4ZpS=EHbdFp8rd7D+BU10bSyfBV-FE6UHQ6FA@mail.gmail.com>
- <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
- <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
- <1AE640813FDE7649BE1B193DEA596E886CE27B7E@SHSMSX101.ccr.corp.intel.com>
+From: Zhou Wang <wangzhou1@hisilicon.com>
+Subject: Re: [PATCH] ACPI/PCI: Fix bus range comparation in pci_mcfg_lookup
+Date: Mon, 9 Jan 2017 11:39:44 +0800
+Message-ID: <58730600.3080802@hisilicon.com>
+References: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:40805 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757384AbdAICgi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 8 Jan 2017 21:36:38 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE27B7E@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>
+Cc: liudongdong3@huawei.com, gabriele.paoloni@huawei.com, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, J?rg R?del <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFpoZW5nLA0KPiBM
-dg0KPiBTdWJqZWN0OiBSRTogMTc0Y2M3MTg3ZTZmIEFDUElDQTogVGFibGVzOiBCYWNrIHBvcnQg
-YWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkgYW5kDQo+IGVhcmx5X2FjcGlfb3NfdW5tYXBfbWVt
-b3J5KCkgZnJvbSBMaW51eCBrZXJuZWwNCj4gDQo+IEhpLA0KPiANCj4gPiBGcm9tOiBsaW51eC1h
-Y3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktb3duZXJAdmdlci5r
-ZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YNCj4gQm9yaXNsYXYNCj4gPiBQZXRrb3YNCj4gPiBTdWJq
-ZWN0OiBSZTogMTc0Y2M3MTg3ZTZmIEFDUElDQTogVGFibGVzOiBCYWNrIHBvcnQgYWNwaV9nZXRf
-dGFibGVfd2l0aF9zaXplKCkgYW5kDQo+ID4gZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKSBm
-cm9tIExpbnV4IGtlcm5lbA0KPiA+DQo+ID4gT24gU3VuLCBKYW4gMDgsIDIwMTcgYXQgMDM6MjA6
-MjBBTSArMDEwMCwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+ID4gPiAgZHJpdmVycy9pb21t
-dS9hbWRfaW9tbXVfaW5pdC5jIHwgICAgMiArLQ0KPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxIGlu
-c2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPiA+ID4NCj4gPiA+IEluZGV4OiBsaW51eC1wbS9k
-cml2ZXJzL2lvbW11L2FtZF9pb21tdV9pbml0LmMNCj4gPiA+ID09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPiA+IC0t
-LSBsaW51eC1wbS5vcmlnL2RyaXZlcnMvaW9tbXUvYW1kX2lvbW11X2luaXQuYw0KPiA+ID4gKysr
-IGxpbnV4LXBtL2RyaXZlcnMvaW9tbXUvYW1kX2lvbW11X2luaXQuYw0KPiA+ID4gQEAgLTIyMzAs
-NyArMjIzMCw3IEBAIHN0YXRpYyBpbnQgX19pbml0IGVhcmx5X2FtZF9pb21tdV9pbml0KHYNCj4g
-PiA+ICAJICovDQo+ID4gPiAgCXJldCA9IGNoZWNrX2l2cnNfY2hlY2tzdW0oaXZyc19iYXNlKTsN
-Cj4gPiA+ICAJaWYgKHJldCkNCj4gPiA+IC0JCXJldHVybiByZXQ7DQo+ID4gPiArCQlnb3RvIG91
-dDsNCj4gPiA+DQo+ID4gPiAgCWFtZF9pb21tdV90YXJnZXRfaXZoZF90eXBlID0gZ2V0X2hpZ2hl
-c3Rfc3VwcG9ydGVkX2l2aGRfdHlwZShpdnJzX2Jhc2UpOw0KPiA+ID4gIAlEVU1QX3ByaW50aygi
-VXNpbmcgSVZIRCB0eXBlICUjeFxuIiwgYW1kX2lvbW11X3RhcmdldF9pdmhkX3R5cGUpOw0KPiA+
-DQo+ID4gR29vZCBjYXRjaCwgdGhpcyBvbmUgbmVlZHMgdG8gYmUgYXBwbGllZCByZWdhcmRsZXNz
-Lg0KPiA+DQo+ID4gSG93ZXZlciwgaXQgZG9lc24ndCBmaXggbXkgaXNzdWUgdGhvdWdoLg0KPiA+
-DQo+ID4gQnV0IEkgdGhpbmsgSSBoYXZlIGl0IC0gSSB3ZW50IGFuZCBhcHBsaWVkIHRoZSB3ZWxs
-LXByb3ZlbiBkZWJ1Z2dpbmcNCj4gPiB0ZWNobmlxdWUgb2Ygc3ByaW5rbGluZyBwcmludGtzIGFy
-b3VuZC4gSGVyZSdzIHdoYXQgSSdtIHNlZWluZzoNCj4gPg0KPiA+IGVhcmx5X2FtZF9pb21tdV9p
-bml0KCkNCj4gPiB8LT4gYWNwaV9wdXRfdGFibGUoaXZyc19iYXNlKTsNCj4gPiB8LT4gYWNwaV90
-Yl9wdXRfdGFibGUodGFibGVfZGVzYyk7DQo+ID4gfC0+IGFjcGlfdGJfaW52YWxpZGF0ZV90YWJs
-ZSh0YWJsZV9kZXNjKTsNCj4gPiB8LT4gYWNwaV90Yl9yZWxlYXNlX3RhYmxlKC4uLikNCj4gPiB8
-LT4gYWNwaV9vc191bm1hcF9tZW1vcnkNCj4gPiB8LT4gYWNwaV9vc191bm1hcF9pb21lbQ0KPiA+
-IHwtPiBhY3BpX29zX21hcF9jbGVhbnVwDQo+ID4gfC0+IHN5bmNocm9uaXplX3JjdV9leHBlZGl0
-ZWQJPC0tIHRoZSBrZXJuZWwvcmN1L3RyZWVfZXhwLmggdmVyc2lvbiB3aXRoIENPTkZJR19QUkVF
-TVBUX1JDVT15DQo+ID4NCj4gPiBOb3cgdGhhdCBmdW5jdGlvbiBnb2VzIGFuZCBzZW5kcyBJUElz
-LCBpLmUuLCBzY2hlZHVsZV93b3JrKCkNCj4gPiBidXQgdGhpcyBpcyB0b28gZWFybHkgLSB3ZSBo
-YXZlbid0IGV2ZW4gZG9uZSB3b3JrcXVldWVfaW5pdCgpLg0KPiA+IEFjdHVhbGx5LCBmcm9tIGxv
-b2tpbmcgYXQgdGhlIGNhbGxzdGFjaywgd2UgZG8NCj4gPiBrZXJuZWxfaW5pdF9mcmVlYWJsZS0+
-bmF0aXZlX3NtcF9wcmVwYXJlX2NwdXMoKSBhbmQgd29ya3F1ZXVlX2luaXQoKQ0KPiA+IGNvbWVz
-IG5leHQuDQo+ID4NCj4gPiBBbmQgdGhpcyBtYWtlcyBzZW5zZSBiZWNhdXNlIHRoZSBzcGxhdCBy
-SVAgcG9pbnRzIHRvIF9fcXVldWVfd29yaygpIGJ1dA0KPiA+IHdlIGhhdmVuJ3QgZG9uZSB0aGF0
-IHlldC4NCj4gPg0KPiA+IFNvIHRoYXQgYWNwaV9wdXRfdGFibGUoKSBpcyBoYXBwZW5pbmcgdG9v
-IGVhcmx5LiBMb29rcyBsaWtlIEFNRCBJT01NVQ0KPiA+IHNob3VsZCBub3QgcHV0IHRoZSB0YWJs
-ZSBidXQgV1RIIGRvIEkga25vdz8hDQo+ID4NCj4gPiBJbiBhbnkgY2FzZSwgY29tbWVudGluZyBv
-dXQ6DQo+ID4NCj4gPiAgICAgICAgIGFjcGlfcHV0X3RhYmxlKGl2cnNfYmFzZSk7DQo+ID4gICAg
-ICAgICBpdnJzX2Jhc2UgPSBOVUxMOw0KPiA+DQo+ID4gYW5kIHRoZSBlbmQgb2YgZWFybHlfYW1k
-X2lvbW11X2luaXQoKSBtYWtlcyB0aGUgYm94IGJvb3QgYWdhaW4uDQo+IA0KPiBTbyBwbGVhc2Ug
-aGVscCB0byBjb21tZW50IG91dCB0aGVzZSAyIGxpbmVzICh3aXRoIGRlc2NyaXB0aW9ucyBhbmQg
-ZG8gbm90IGRlbGV0ZSB0aGVtKS4NCj4gVW50aWwgYWNwaV9vc191bm1hcF9tZW1vcnkoKSBpcyBh
-YmxlIHRvIGhhbmRsZSBzdWNoIGFuIGVhcmx5IGNhc2UuDQoNCklNTywgc3luY2hyb25pemVfcmN1
-X2V4cGVkaXRlZCgpIHNob3VsZCBiZSBpbXByb3ZlZDoNCklmIHJjdV9pbml0KCkgaXNuJ3QgY2Fs
-bGVkIG9yIHRoZXJlIGlzIG5vdGhpbmcgdG8gc3luY2hyb25pemUsIHNjaGVkdWxlX3dvcmsoKSBz
-aG91bGRuJ3QgYmUgaW52b2tlZC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4g
-DQo+IFRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQo+IEx2DQo+IA0KPiA+DQo+ID4gLS0NCj4gPiBS
-ZWdhcmRzL0dydXNzLA0KPiA+ICAgICBCb3Jpcy4NCj4gPg0KPiA+IEdvb2QgbWFpbGluZyBwcmFj
-dGljZXMgZm9yIDQwMDogYXZvaWQgdG9wLXBvc3RpbmcgYW5kIHRyaW0gdGhlIHJlcGx5Lg0K
+On 2017/1/4 15:00, Zhou Wang wrote:
+> The configuration data provided by an MCFG region (ie PCI segment and
+> bus range) may span multiple host bridges.
+> 
+> Current code in pci_mcfg_lookup() carries out an exact match of host
+> bridge bus range start value against the MCFG region(s) bus range start
+> value which would cause configurations like the following:
+> 
+> MCFG region:
+> 	bus range: 0x00~0xff.
+> 	segment: 0.
+> 
+> PCI host bridges configuration (segment numbers and bus ranges):
+> 	host bridge 1:
+> 		bus range: 0x00~0x1f.
+> 		segment: 0.
+> 	host bridge 2:
+> 		bus range: 0x20~0x4f.
+> 		segment: 0.
+> 
+> to fail, in that the bus range start value for host bridge 2 does
+> not match the bus range start value of the respective MCFG region.
+> 
+> Relax the bus range check in pci_mcfg_lookup() to cater for
+> PCI configurations with multiple host bridges sharing the same
+> MCFG region.
+> 
+> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>  drivers/acpi/pci_mcfg.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index a6a4cea..2944353 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -195,11 +195,10 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
+>  		goto skip_lookup;
+>  
+>  	/*
+> -	 * We expect exact match, unless MCFG entry end bus covers more than
+> -	 * specified by caller.
+> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
+>  	 */
+>  	list_for_each_entry(e, &pci_mcfg_list, list) {
+> -		if (e->segment == seg && e->bus_start == bus_res->start &&
+> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
+>  		    e->bus_end >= bus_res->end) {
+>  			root->mcfg_addr = e->addr;
+>  		}
+> 
+
+Hi Rafael,
+
+Could you please look into this patch if you have time?
+
+Thanks,
+Zhou
