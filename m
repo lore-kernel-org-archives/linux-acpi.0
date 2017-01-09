@@ -1,115 +1,76 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: 174cc7187e6f ACPICA: Tables: Back port
- acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
- kernel
-Date: Mon, 9 Jan 2017 10:33:29 +0100
-Message-ID: <20170109093329.jd7uwlcpci4icpd3@pd.tnic>
-References: <20170108000702.wrov5ajeou2y3tuy@pd.tnic>
- <CAJZ5v0jtGo207YmBGDw55uCV+3sp-QX2Gx7cup-4e8ESjnHhrQ@mail.gmail.com>
- <20170108003730.hlcqkhdxtah65z66@pd.tnic>
- <CAJZ5v0jgdctHEEOaAUBNZZPb=ni_DLdkJtmiDkvVP4WQUYr3rA@mail.gmail.com>
- <20170108010158.b62eovaxsbmhfnkb@pd.tnic>
- <CAJZ5v0hxrz9os4ZpS=EHbdFp8rd7D+BU10bSyfBV-FE6UHQ6FA@mail.gmail.com>
- <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
- <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
- <1AE640813FDE7649BE1B193DEA596E886CE27B7E@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CE27BEE@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPI / OSL: Fix rcu synchronization logic
+Date: Mon,  9 Jan 2017 17:56:09 +0800
+Message-ID: <1483955769-9579-1-git-send-email-lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:60929 "EHLO mail.skyhub.de"
+Received: from mga04.intel.com ([192.55.52.120]:10849 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934235AbdAIJdx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 9 Jan 2017 04:33:53 -0500
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE27BEE@SHSMSX101.ccr.corp.intel.com>
+        id S934800AbdAIJ40 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Jan 2017 04:56:26 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, J?rg R?del <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Borislav Petkov <bp@alien8.de>
 
-+ Paul for comment.
+The rcu synchronization logic is originally provided to protect
+apei_read()/apei_write() as in the APEI drivers, there is NMI event source
+requiring non spinlock based synchronization mechanism.
 
-Leaving in the rest for him.
+After that, ACPI developers think FADT registers may also require same
+facility, so they moved the RCU stuffs to generic ACPI layer.
 
-On Mon, Jan 09, 2017 at 02:36:33AM +0000, Zheng, Lv wrote:
-> Hi,
-> 
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng,
-> > Lv
-> > Subject: RE: 174cc7187e6f ACPICA: Tables: Back port acpi_get_table_with_size() and
-> > early_acpi_os_unmap_memory() from Linux kernel
-> > 
-> > Hi,
-> > 
-> > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of
-> > Borislav
-> > > Petkov
-> > > Subject: Re: 174cc7187e6f ACPICA: Tables: Back port acpi_get_table_with_size() and
-> > > early_acpi_os_unmap_memory() from Linux kernel
-> > >
-> > > On Sun, Jan 08, 2017 at 03:20:20AM +0100, Rafael J. Wysocki wrote:
-> > > >  drivers/iommu/amd_iommu_init.c |    2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > >
-> > > > Index: linux-pm/drivers/iommu/amd_iommu_init.c
-> > > > ===================================================================
-> > > > --- linux-pm.orig/drivers/iommu/amd_iommu_init.c
-> > > > +++ linux-pm/drivers/iommu/amd_iommu_init.c
-> > > > @@ -2230,7 +2230,7 @@ static int __init early_amd_iommu_init(v
-> > > >  	 */
-> > > >  	ret = check_ivrs_checksum(ivrs_base);
-> > > >  	if (ret)
-> > > > -		return ret;
-> > > > +		goto out;
-> > > >
-> > > >  	amd_iommu_target_ivhd_type = get_highest_supported_ivhd_type(ivrs_base);
-> > > >  	DUMP_printk("Using IVHD type %#x\n", amd_iommu_target_ivhd_type);
-> > >
-> > > Good catch, this one needs to be applied regardless.
-> > >
-> > > However, it doesn't fix my issue though.
-> > >
-> > > But I think I have it - I went and applied the well-proven debugging
-> > > technique of sprinkling printks around. Here's what I'm seeing:
-> > >
-> > > early_amd_iommu_init()
-> > > |-> acpi_put_table(ivrs_base);
-> > > |-> acpi_tb_put_table(table_desc);
-> > > |-> acpi_tb_invalidate_table(table_desc);
-> > > |-> acpi_tb_release_table(...)
-> > > |-> acpi_os_unmap_memory
-> > > |-> acpi_os_unmap_iomem
-> > > |-> acpi_os_map_cleanup
-> > > |-> synchronize_rcu_expedited	<-- the kernel/rcu/tree_exp.h version with CONFIG_PREEMPT_RCU=y
-> > >
-> > > Now that function goes and sends IPIs, i.e., schedule_work()
-> > > but this is too early - we haven't even done workqueue_init().
-> > > Actually, from looking at the callstack, we do
-> > > kernel_init_freeable->native_smp_prepare_cpus() and workqueue_init()
-> > > comes next.
-> > >
-> > > And this makes sense because the splat rIP points to __queue_work() but
-> > > we haven't done that yet.
-> > >
-> > > So that acpi_put_table() is happening too early. Looks like AMD IOMMU
-> > > should not put the table but WTH do I know?!
-> > >
-> > > In any case, commenting out:
-> > >
-> > >         acpi_put_table(ivrs_base);
-> > >         ivrs_base = NULL;
-> > >
-> > > and the end of early_amd_iommu_init() makes the box boot again.
-> > 
-> > So please help to comment out these 2 lines (with descriptions and do not delete them).
-> > Until acpi_os_unmap_memory() is able to handle such an early case.
-> 
-> IMO, synchronize_rcu_expedited() should be improved:
-> If rcu_init() isn't called or there is nothing to synchronize, schedule_work() shouldn't be invoked.
+So now non-task-context ACPI map lookup is only protected by RCU.
 
+This triggers problem as acpi_os_map_memory()/acpi_os_unmap_memory() can be
+used to map/unmap tables as long as to map/unmap ACPI registers. When it is
+used for the ACPI tables, the caller could invoke this very early. When it
+is invoked earlier than workqueue_init() and later than
+check_early_ioremp_leak(), invoking synchronize_rcu_expedited() can cause a
+kernel hang.
+
+Actually this facility is only used to protect non-task-context ACPI map
+lookup, and such mappings are only introduced by
+acpi_os_map_generic_address(). So before it is invoked, there is no need to
+invoke synchronize_rcu_expedited().
+
+Suggested-by: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+---
+ drivers/acpi/osl.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index a404ff4..3d93633 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -77,6 +77,7 @@ static int (*__acpi_os_prepare_extended_sleep)(u8 sleep_state, u32 val_a,
+ static bool acpi_os_initialized;
+ unsigned int acpi_sci_irq = INVALID_ACPI_IRQ;
+ bool acpi_permanent_mmap = false;
++bool acpi_synchronize_rcu = false;
+ 
+ /*
+  * This list of permanent mappings is for memory that may be accessed from
+@@ -378,7 +379,8 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+ static void acpi_os_map_cleanup(struct acpi_ioremap *map)
+ {
+ 	if (!map->refcount) {
+-		synchronize_rcu_expedited();
++		if (acpi_synchronize_rcu)
++			synchronize_rcu_expedited();
+ 		acpi_unmap(map->phys, map->virt);
+ 		kfree(map);
+ 	}
+@@ -444,6 +446,7 @@ int acpi_os_map_generic_address(struct acpi_generic_address *gas)
+ 	if (!virt)
+ 		return -EIO;
+ 
++	acpi_synchronize_rcu = true;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(acpi_os_map_generic_address);
 -- 
-Regards/Gruss,
-    Boris.
+1.7.10
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
