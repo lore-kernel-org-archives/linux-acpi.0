@@ -1,149 +1,79 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH] ACPI/IORT: Fix iort_node_get_id() mapping entries
  indexing
-Date: Mon, 9 Jan 2017 14:48:51 +0800
-Message-ID: <7a03a869-ac31-72aa-337a-c962edc99381@linaro.org>
+Date: Mon, 9 Jan 2017 16:01:09 +0800
+Message-ID: <ca7a81e0-e1ba-9205-d443-534b9520bac2@linaro.org>
 References: <20170105182921.8167-1-lorenzo.pieralisi@arm.com>
- <f089f31e-cc9e-291d-091e-00a10ba78cca@codeaurora.org>
- <8d046cbd-d650-41c0-f0a5-96c2ffecd299@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f177.google.com ([209.85.192.177]:35506 "EHLO
-        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757975AbdAIGs4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 01:48:56 -0500
-Received: by mail-pf0-f177.google.com with SMTP id f144so18909843pfa.2
-        for <linux-acpi@vger.kernel.org>; Sun, 08 Jan 2017 22:48:56 -0800 (PST)
-In-Reply-To: <8d046cbd-d650-41c0-f0a5-96c2ffecd299@linaro.org>
+Received: from mail-pg0-f48.google.com ([74.125.83.48]:35465 "EHLO
+        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751521AbdAIIBS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 03:01:18 -0500
+Received: by mail-pg0-f48.google.com with SMTP id 194so12100634pgd.2
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Jan 2017 00:01:18 -0800 (PST)
+In-Reply-To: <20170105182921.8167-1-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Nate Watterson <nwatters@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, Nate Watterson <nwatters@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 2017/1/9 14:34, Hanjun Guo wrote:
-> Hi Sinan,
+On 2017/1/6 2:29, Lorenzo Pieralisi wrote:
+> Commit 618f535a6062 ("ACPI/IORT: Add single mapping function")
+> introduced a function (iort_node_get_id()) to retrieve ids for IORT
+> named components.
 >
-> On 2017/1/8 5:09, Sinan Kaya wrote:
->> On 1/5/2017 1:29 PM, Lorenzo Pieralisi wrote:
->>> Commit 618f535a6062 ("ACPI/IORT: Add single mapping function")
->>> introduced a function (iort_node_get_id()) to retrieve ids for IORT
->>> named components.
->>>
->>> iort_node_get_id() takes an index as input to refer to a specific
->>> mapping entry in the mapping array to retrieve the id at a specific
->>> index provided the index is below the total mapping count; currently the
->>> index is used to retrieve the mapping value from the correct entry but
->>> not to dereference the correct entry while retrieving the mapping
->>> output_reference (ie IORT parent pointer), which consequently always
->>> resolves to the output_reference of the first entry in the mapping
->>> array.
->>>
->>> Update the map array entry pointer computation in iort_node_get_id() to
->>> take into account the index value, fixing the issue.
->>>
->>> Fixes: 618f535a6062 ("ACPI/IORT: Add single mapping function")
->>> Reported-by: Hanjun Guo <hanjun.guo@linaro.org>
->>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>> Cc: Hanjun Guo <hanjun.guo@linaro.org>
->>> Cc: Sinan Kaya <okaya@codeaurora.org>
->>> Cc: Tomasz Nowicki <tn@semihalf.com>
->>> Cc: Nate Watterson <nwatters@codeaurora.org>
->>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>> ---
->>>  drivers/acpi/arm64/iort.c | 6 +++---
->>>  1 file changed, 3 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->>> index e0d2e6e..ba156c5 100644
->>> --- a/drivers/acpi/arm64/iort.c
->>> +++ b/drivers/acpi/arm64/iort.c
->>> @@ -333,7 +333,7 @@ struct acpi_iort_node *iort_node_get_id(struct
->>> acpi_iort_node *node,
->>>          return NULL;
->>>
->>>      map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
->>> -               node->mapping_offset);
->>> +               node->mapping_offset + index * sizeof(*map));
->>
->> What does this give us that the previous code didn't do?
+> iort_node_get_id() takes an index as input to refer to a specific
+> mapping entry in the mapping array to retrieve the id at a specific
+> index provided the index is below the total mapping count; currently the
+> index is used to retrieve the mapping value from the correct entry but
+> not to dereference the correct entry while retrieving the mapping
+> output_reference (ie IORT parent pointer), which consequently always
+> resolves to the output_reference of the first entry in the mapping
+> array.
 >
-> Fir example, if you have multi mappings ids under platform device:
+> Update the map array entry pointer computation in iort_node_get_id() to
+> take into account the index value, fixing the issue.
 >
-> |-------------|
-> |  SMMU  2    |<-------
-> |-------------|       |
->                       |
->                       |
-> |-------------|       |
-> |  SMMU 1     |<----  |
-> |-------------|    |  |
->                    |  |
->                    |  |
-> |-------------|    |  |
-> |  platform   |    |  |
-> |  device     |    |  |
-> |-------------|    |  |
-> | stream id   |    |  |
-> | 1           |    |  |
-> | parent------|----|  |
-> |-------------|       |
-> |  stream id  |       |
-> |  2          |       |
-> |  parent-----|-------|
-> |-------------|
+> Fixes: 618f535a6062 ("ACPI/IORT: Add single mapping function")
+> Reported-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sinan Kaya <okaya@codeaurora.org>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Nate Watterson <nwatters@codeaurora.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+>  drivers/acpi/arm64/iort.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> For now, we just use the first entry in the mapping entry to get
-> the parent, and always point to the same parent, as above, we will
-> always map to SMMU 1 even if you connect to different SMMUs. (Although
-> we may don't have such device topology yet)
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e0d2e6e..ba156c5 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -333,7 +333,7 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>  		return NULL;
 >
+>  	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
+> -			   node->mapping_offset);
+> +			   node->mapping_offset + index * sizeof(*map));
 >
->>
->> You are using map as a pointer and returning the offset of the first
->> map entry above
->> and then accessing the map at the indexed offset with map[index]
->>
->> The new code is using map as a plain pointer, calculating the pointer
->> location with ACPI_ADD_PTR
->> instead and then collecting the output parameter with map->output_base.
->>
->>>
->>>      /* Firmware bug! */
->>>      if (!map->output_reference) {
->>> @@ -348,10 +348,10 @@ struct acpi_iort_node *iort_node_get_id(struct
->>> acpi_iort_node *node,
->>>      if (!(IORT_TYPE_MASK(parent->type) & type_mask))
->>>          return NULL;
->>>
->>> -    if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->>> +    if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->>>          if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->>>              node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->>> -            *id_out = map[index].output_base;
->>> +            *id_out = map->output_base;
->>
->> You are claiming that the existing code is collecting the output
->> parameter from the first mapping.
->> I don't see this happening above.
->>
->> What am I missing?
+>  	/* Firmware bug! */
+>  	if (!map->output_reference) {
+> @@ -348,10 +348,10 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+>  	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
+>  		return NULL;
 >
-> It's not about the output id but it's about the parent returned
-> by this function, it always return the first entry's parent in the
-> mapping entry.
+> -	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+> +	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+>  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+>  		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+> -			*id_out = map[index].output_base;
+> +			*id_out = map->output_base;
+>  			return parent;
+>  		}
+>  	}
 
-And as Lorenzo said in the commit message:
-"always resolves to the output_reference of the first entry in the
-mapping array."
-
-Then always judge the same entry for:
-
-if (!map->output_reference)
-	pr_err();
-
-...
-
-Thanks
-Hanjun
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
