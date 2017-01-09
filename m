@@ -1,9 +1,8 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: 174cc7187e6f ACPICA: Tables: Back port
- acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
- kernel
-Date: Sun, 8 Jan 2017 14:03:56 +0100
-Message-ID: <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 174cc7187e6f ACPICA: Tables: Back port
+ acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
+Date: Mon, 9 Jan 2017 01:58:38 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE27B7E@SHSMSX101.ccr.corp.intel.com>
 References: <20170107204227.bwdb5yzrjpiggkmo@pd.tnic>
  <4034dde8-ffc1-18e2-f40c-00cf37471793@intel.com>
  <20170108000702.wrov5ajeou2y3tuy@pd.tnic>
@@ -13,76 +12,69 @@ References: <20170107204227.bwdb5yzrjpiggkmo@pd.tnic>
  <20170108010158.b62eovaxsbmhfnkb@pd.tnic>
  <CAJZ5v0hxrz9os4ZpS=EHbdFp8rd7D+BU10bSyfBV-FE6UHQ6FA@mail.gmail.com>
  <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
+ <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:55984 "EHLO mail.skyhub.de"
+Received: from mga07.intel.com ([134.134.136.100]:23504 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754096AbdAHNEB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 8 Jan 2017 08:04:01 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
+        id S1753158AbdAIB6x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 8 Jan 2017 20:58:53 -0500
+In-Reply-To: <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, =?utf-8?B?SsO2cmcgUsO2ZGVs?= <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, J?rg R?del <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Sun, Jan 08, 2017 at 03:20:20AM +0100, Rafael J. Wysocki wrote:
->  drivers/iommu/amd_iommu_init.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/iommu/amd_iommu_init.c
-> ===================================================================
-> --- linux-pm.orig/drivers/iommu/amd_iommu_init.c
-> +++ linux-pm/drivers/iommu/amd_iommu_init.c
-> @@ -2230,7 +2230,7 @@ static int __init early_amd_iommu_init(v
->  	 */
->  	ret = check_ivrs_checksum(ivrs_base);
->  	if (ret)
-> -		return ret;
-> +		goto out;
->  
->  	amd_iommu_target_ivhd_type = get_highest_supported_ivhd_type(ivrs_base);
->  	DUMP_printk("Using IVHD type %#x\n", amd_iommu_target_ivhd_type);
-
-Good catch, this one needs to be applied regardless.
-
-However, it doesn't fix my issue though.
-
-But I think I have it - I went and applied the well-proven debugging
-technique of sprinkling printks around. Here's what I'm seeing:
-
-early_amd_iommu_init()
-|-> acpi_put_table(ivrs_base);
-|-> acpi_tb_put_table(table_desc);
-|-> acpi_tb_invalidate_table(table_desc);
-|-> acpi_tb_release_table(...)
-|-> acpi_os_unmap_memory
-|-> acpi_os_unmap_iomem
-|-> acpi_os_map_cleanup
-|-> synchronize_rcu_expedited	<-- the kernel/rcu/tree_exp.h version with CONFIG_PREEMPT_RCU=y
-
-Now that function goes and sends IPIs, i.e., schedule_work()
-but this is too early - we haven't even done workqueue_init().
-Actually, from looking at the callstack, we do
-kernel_init_freeable->native_smp_prepare_cpus() and workqueue_init()
-comes next.
-
-And this makes sense because the splat rIP points to __queue_work() but
-we haven't done that yet.
-
-So that acpi_put_table() is happening too early. Looks like AMD IOMMU
-should not put the table but WTH do I know?!
-
-In any case, commenting out:
-
-        acpi_put_table(ivrs_base);
-        ivrs_base = NULL;
-
-and the end of early_amd_iommu_init() makes the box boot again.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJvcmlzbGF2DQo+
+IFBldGtvdg0KPiBTdWJqZWN0OiBSZTogMTc0Y2M3MTg3ZTZmIEFDUElDQTogVGFibGVzOiBCYWNr
+IHBvcnQgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkgYW5kDQo+IGVhcmx5X2FjcGlfb3NfdW5t
+YXBfbWVtb3J5KCkgZnJvbSBMaW51eCBrZXJuZWwNCj4gDQo+IE9uIFN1biwgSmFuIDA4LCAyMDE3
+IGF0IDAzOjIwOjIwQU0gKzAxMDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+ICBkcml2
+ZXJzL2lvbW11L2FtZF9pb21tdV9pbml0LmMgfCAgICAyICstDQo+ID4gIDEgZmlsZSBjaGFuZ2Vk
+LCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPiA+DQo+ID4gSW5kZXg6IGxpbnV4LXBt
+L2RyaXZlcnMvaW9tbXUvYW1kX2lvbW11X2luaXQuYw0KPiA+ID09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPiAtLS0g
+bGludXgtcG0ub3JpZy9kcml2ZXJzL2lvbW11L2FtZF9pb21tdV9pbml0LmMNCj4gPiArKysgbGlu
+dXgtcG0vZHJpdmVycy9pb21tdS9hbWRfaW9tbXVfaW5pdC5jDQo+ID4gQEAgLTIyMzAsNyArMjIz
+MCw3IEBAIHN0YXRpYyBpbnQgX19pbml0IGVhcmx5X2FtZF9pb21tdV9pbml0KHYNCj4gPiAgCSAq
+Lw0KPiA+ICAJcmV0ID0gY2hlY2tfaXZyc19jaGVja3N1bShpdnJzX2Jhc2UpOw0KPiA+ICAJaWYg
+KHJldCkNCj4gPiAtCQlyZXR1cm4gcmV0Ow0KPiA+ICsJCWdvdG8gb3V0Ow0KPiA+DQo+ID4gIAlh
+bWRfaW9tbXVfdGFyZ2V0X2l2aGRfdHlwZSA9IGdldF9oaWdoZXN0X3N1cHBvcnRlZF9pdmhkX3R5
+cGUoaXZyc19iYXNlKTsNCj4gPiAgCURVTVBfcHJpbnRrKCJVc2luZyBJVkhEIHR5cGUgJSN4XG4i
+LCBhbWRfaW9tbXVfdGFyZ2V0X2l2aGRfdHlwZSk7DQo+IA0KPiBHb29kIGNhdGNoLCB0aGlzIG9u
+ZSBuZWVkcyB0byBiZSBhcHBsaWVkIHJlZ2FyZGxlc3MuDQo+IA0KPiBIb3dldmVyLCBpdCBkb2Vz
+bid0IGZpeCBteSBpc3N1ZSB0aG91Z2guDQo+IA0KPiBCdXQgSSB0aGluayBJIGhhdmUgaXQgLSBJ
+IHdlbnQgYW5kIGFwcGxpZWQgdGhlIHdlbGwtcHJvdmVuIGRlYnVnZ2luZw0KPiB0ZWNobmlxdWUg
+b2Ygc3ByaW5rbGluZyBwcmludGtzIGFyb3VuZC4gSGVyZSdzIHdoYXQgSSdtIHNlZWluZzoNCj4g
+DQo+IGVhcmx5X2FtZF9pb21tdV9pbml0KCkNCj4gfC0+IGFjcGlfcHV0X3RhYmxlKGl2cnNfYmFz
+ZSk7DQo+IHwtPiBhY3BpX3RiX3B1dF90YWJsZSh0YWJsZV9kZXNjKTsNCj4gfC0+IGFjcGlfdGJf
+aW52YWxpZGF0ZV90YWJsZSh0YWJsZV9kZXNjKTsNCj4gfC0+IGFjcGlfdGJfcmVsZWFzZV90YWJs
+ZSguLi4pDQo+IHwtPiBhY3BpX29zX3VubWFwX21lbW9yeQ0KPiB8LT4gYWNwaV9vc191bm1hcF9p
+b21lbQ0KPiB8LT4gYWNwaV9vc19tYXBfY2xlYW51cA0KPiB8LT4gc3luY2hyb25pemVfcmN1X2V4
+cGVkaXRlZAk8LS0gdGhlIGtlcm5lbC9yY3UvdHJlZV9leHAuaCB2ZXJzaW9uIHdpdGggQ09ORklH
+X1BSRUVNUFRfUkNVPXkNCj4gDQo+IE5vdyB0aGF0IGZ1bmN0aW9uIGdvZXMgYW5kIHNlbmRzIElQ
+SXMsIGkuZS4sIHNjaGVkdWxlX3dvcmsoKQ0KPiBidXQgdGhpcyBpcyB0b28gZWFybHkgLSB3ZSBo
+YXZlbid0IGV2ZW4gZG9uZSB3b3JrcXVldWVfaW5pdCgpLg0KPiBBY3R1YWxseSwgZnJvbSBsb29r
+aW5nIGF0IHRoZSBjYWxsc3RhY2ssIHdlIGRvDQo+IGtlcm5lbF9pbml0X2ZyZWVhYmxlLT5uYXRp
+dmVfc21wX3ByZXBhcmVfY3B1cygpIGFuZCB3b3JrcXVldWVfaW5pdCgpDQo+IGNvbWVzIG5leHQu
+DQo+IA0KPiBBbmQgdGhpcyBtYWtlcyBzZW5zZSBiZWNhdXNlIHRoZSBzcGxhdCBySVAgcG9pbnRz
+IHRvIF9fcXVldWVfd29yaygpIGJ1dA0KPiB3ZSBoYXZlbid0IGRvbmUgdGhhdCB5ZXQuDQo+IA0K
+PiBTbyB0aGF0IGFjcGlfcHV0X3RhYmxlKCkgaXMgaGFwcGVuaW5nIHRvbyBlYXJseS4gTG9va3Mg
+bGlrZSBBTUQgSU9NTVUNCj4gc2hvdWxkIG5vdCBwdXQgdGhlIHRhYmxlIGJ1dCBXVEggZG8gSSBr
+bm93PyENCj4gDQo+IEluIGFueSBjYXNlLCBjb21tZW50aW5nIG91dDoNCj4gDQo+ICAgICAgICAg
+YWNwaV9wdXRfdGFibGUoaXZyc19iYXNlKTsNCj4gICAgICAgICBpdnJzX2Jhc2UgPSBOVUxMOw0K
+PiANCj4gYW5kIHRoZSBlbmQgb2YgZWFybHlfYW1kX2lvbW11X2luaXQoKSBtYWtlcyB0aGUgYm94
+IGJvb3QgYWdhaW4uDQoNClNvIHBsZWFzZSBoZWxwIHRvIGNvbW1lbnQgb3V0IHRoZXNlIDIgbGlu
+ZXMgKHdpdGggZGVzY3JpcHRpb25zIGFuZCBkbyBub3QgZGVsZXRlIHRoZW0pLg0KVW50aWwgYWNw
+aV9vc191bm1hcF9tZW1vcnkoKSBpcyBhYmxlIHRvIGhhbmRsZSBzdWNoIGFuIGVhcmx5IGNhc2Uu
+DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0KDQo+IA0KPiAtLQ0KPiBSZWdhcmRzL0dy
+dXNzLA0KPiAgICAgQm9yaXMuDQo+IA0KPiBHb29kIG1haWxpbmcgcHJhY3RpY2VzIGZvciA0MDA6
+IGF2b2lkIHRvcC1wb3N0aW5nIGFuZCB0cmltIHRoZSByZXBseS4NCj4gLS0NCj4gVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFj
+cGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
+b3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFq
+b3Jkb21vLWluZm8uaHRtbA0K
