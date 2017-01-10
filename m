@@ -1,114 +1,78 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v12 7/7] arm: pmu: Add PMU definitions for cores not initially online
-Date: Tue, 10 Jan 2017 11:17:52 -0600
-Message-ID: <1484068672-15852-8-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v12 1/7] arm64: Rename the common MADT parse routine
+Date: Tue, 10 Jan 2017 11:17:46 -0600
+Message-ID: <1484068672-15852-2-git-send-email-jeremy.linton@arm.com>
 References: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59260 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:59214 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S940656AbdAJRR5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 10 Jan 2017 12:17:57 -0500
+        id S940673AbdAJRR7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Jan 2017 12:17:59 -0500
 In-Reply-To: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-ACPI CPUs aren't associated with a PMU until they have been put
-online. This means that we potentially have to update a PMU
-definition the first time a CPU is hot added to the machine.
+The MADT parser in smp.c is now being used to parse
+out NUMA, PMU and ACPI parking protocol information as
+well as the GIC information for which it was originally
+created. Rename it to avoid a misleading name.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/perf/arm_pmu.c       | 34 ++++++++++++++++++++++++++++++++--
- include/linux/perf/arm_pmu.h |  4 ++++
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/smp.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 77ec1ae..cf5122f 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -711,6 +711,26 @@ static int cpu_pmu_request_irq(struct arm_pmu *cpu_pmu, irq_handler_t handler)
- 	return 0;
- }
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index cb87234..8ea244c 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -517,13 +517,14 @@ static unsigned int cpu_count = 1;
  
-+static void arm_perf_associate_new_cpu(struct arm_pmu *lpmu, unsigned int cpu)
-+{
-+	struct platform_device *pdev = lpmu->plat_device;
-+	struct resource *res;
-+	struct pmu_hw_events *events;
-+	int num_res;
-+
-+	for (num_res = 0; num_res < pdev->num_resources; num_res++) {
-+		if (!pdev->resource[num_res].flags)
-+			break;
-+	}
-+	res = &pdev->resource[num_res];
-+	arm_pmu_acpi_retrieve_irq(res, cpu);
-+	events = per_cpu_ptr(lpmu->hw_events, cpu);
-+	cpumask_set_cpu(cpu, &lpmu->supported_cpus);
-+	if (lpmu->irq_affinity)
-+		lpmu->irq_affinity[num_res] = cpu;
-+	events->percpu_pmu = lpmu;
-+}
-+
+ #ifdef CONFIG_ACPI
  /*
-  * PMU hardware loses all context when a CPU goes offline.
-  * When a CPU is hotplugged back in, since some hardware registers are
-@@ -721,10 +741,18 @@ static int arm_perf_starting_cpu(unsigned int cpu, struct hlist_node *node)
+- * acpi_map_gic_cpu_interface - parse processor MADT entry
++ * acpi_verify_and_map_madt - parse processor MADT entry
+  *
+  * Carry out sanity checks on MADT processor entry and initialize
+- * cpu_logical_map on success
++ * cpu_logical_map, the ACPI parking protocol, NUMA mapping
++ * and the PMU interrupts on success
+  */
+ static void __init
+-acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
++acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
  {
- 	struct arm_pmu *pmu = hlist_entry_safe(node, struct arm_pmu, node);
+ 	u64 hwid = processor->arm_mpidr;
  
--	if (!cpumask_test_cpu(cpu, &pmu->supported_cpus))
--		return 0;
-+	if (!cpumask_test_cpu(cpu, &pmu->supported_cpus)) {
-+		unsigned int cpuid = read_specific_cpuid(cpu);
-+
-+		if (acpi_disabled)
-+			return 0;
-+		if (cpuid != pmu->id)
-+			return 0;
-+		arm_perf_associate_new_cpu(pmu, cpu);
-+	}
- 	if (pmu->reset)
- 		pmu->reset(pmu);
-+
- 	return 0;
+@@ -577,7 +578,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
  }
  
-@@ -905,6 +933,8 @@ static int probe_plat_pmu(struct arm_pmu *pmu,
- 	struct platform_device *pdev = pmu->plat_device;
- 	int irq = platform_get_irq(pdev, 0);
+ static int __init
+-acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
++acpi_parse_madt_common(struct acpi_subtable_header *header,
+ 			     const unsigned long end)
+ {
+ 	struct acpi_madt_generic_interrupt *processor;
+@@ -588,7 +589,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
  
-+	pmu->id = pmuid;
-+
- 	if (irq >= 0 && !irq_is_percpu(irq)) {
- 		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
- 					    GFP_KERNEL);
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index 42b5edb..f652cd1 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -112,6 +112,7 @@ struct arm_pmu {
- 	struct mutex	reserve_mutex;
- 	u64		max_period;
- 	bool		secure_access; /* 32-bit ARM only */
-+	unsigned int	id;
- #define ARMV8_PMUV3_MAX_COMMON_EVENTS 0x40
- 	DECLARE_BITMAP(pmceid_bitmap, ARMV8_PMUV3_MAX_COMMON_EVENTS);
- 	struct platform_device	*plat_device;
-@@ -168,8 +169,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- #ifdef CONFIG_ARM_PMU_ACPI
- struct acpi_madt_generic_interrupt;
- void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
-+int arm_pmu_acpi_retrieve_irq(struct resource *pdev, int cpu);
- #else
- #define arm_pmu_parse_acpi(a, b) do { } while (0)
-+#define arm_pmu_acpi_retrieve_irq(pdev, cpu) \
-+	do { } while (0)
- #endif /* CONFIG_ARM_PMU_ACPI */
+ 	acpi_table_print_madt_entry(header);
  
- #endif /* __ARM_PMU_H__ */
+-	acpi_map_gic_cpu_interface(processor);
++	acpi_verify_and_map_madt(processor);
+ 
+ 	return 0;
+ }
+@@ -672,7 +673,7 @@ void __init smp_init_cpus(void)
+ 		 * we need for SMP init
+ 		 */
+ 		acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+-				      acpi_parse_gic_cpu_interface, 0);
++				      acpi_parse_madt_common, 0);
+ 
+ 	if (cpu_count > nr_cpu_ids)
+ 		pr_warn("Number of cores (%d) exceeds configured maximum of %d - clipping\n",
 -- 
 2.5.5
 
