@@ -1,89 +1,65 @@
-From: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
-Subject: Re: [PATCH 08/14] wmi: Probe data objects for read and write
- capabilities
-Date: Tue, 10 Jan 2017 06:56:06 +0100
-Message-ID: <20170110055606.GA1535@kmp-mobile.hq.kempniu.pl>
-References: <cover.1448931782.git.luto@kernel.org>
- <6027f0563e82e3ca5265c6b29777636a9b8dc244.1448931782.git.luto@kernel.org>
- <20160116131111.GB7816@eudyptula.hq.kempniu.pl>
- <CALCETrUAyseBY-PvU2szRr9BcBXu-whEbNrKNN6x=yAjJuXVYQ@mail.gmail.com>
+From: Tomi Sarvela <tomi.p.sarvela@intel.com>
+Subject: Re: ILK ACPI boot-up problem on HP 8100 SFF, bisected
+Date: Tue, 10 Jan 2017 10:46:50 +0200
+Message-ID: <2128778.0qv3ye0GE3@fractal.fi.intel.com>
+References: <2435796.hnfxsDQFWV@fractal.fi.intel.com> <CAJZ5v0hgZ575POz0hSmOJ+-0UKzk5j-zrhmaV9EF_QehFmFysw@mail.gmail.com> <CAJZ5v0gep_8_-Zdir93tav_gXjvhP0Of_EVaKBUrpu1+xRNqzg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:36203 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750879AbdAJF4L (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jan 2017 00:56:11 -0500
-Received: by mail-lf0-f67.google.com with SMTP id j75so13663481lfe.3
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Jan 2017 21:56:10 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <CALCETrUAyseBY-PvU2szRr9BcBXu-whEbNrKNN6x=yAjJuXVYQ@mail.gmail.com>
+Received: from mga06.intel.com ([134.134.136.31]:9854 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751215AbdAJIra (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Jan 2017 03:47:30 -0500
+In-Reply-To: <CAJZ5v0gep_8_-Zdir93tav_gXjvhP0Of_EVaKBUrpu1+xRNqzg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Andy Lutomirski <luto@kernel.org>, Darren Hart <dvhart@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lv <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Paul McKenney <paulmck@linux.vnet.ibm.com>
 
-> On Sat, Jan 16, 2016 at 5:11 AM, Michał Kępień <kernel@kempniu.pl> wrote:
-> >> My laptop has one RW data object, one RO data object, and one
-> >> totally inaccessible data object.  Check for the existence of the
-> >> accessor methods and report in sysfs.
-> >>
-> >> The docs also permit WQxx getters for single-instance objects to
-> >> take no parameters.  Probe for that as well to avoid ACPICA warnings
-> >> about mismatched signatures.
-> >>
-> >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> >> ---
-> >>  drivers/platform/x86/wmi.c | 94 ++++++++++++++++++++++++++++++++++++++++++++--
-> >>  include/linux/wmi.h        |  6 +++
-> >>  2 files changed, 96 insertions(+), 4 deletions(-)
-> >>
-> >> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-> >> index 5571ae7354a1..49be61207c4a 100644
-> >> --- a/drivers/platform/x86/wmi.c
-> >> +++ b/drivers/platform/x86/wmi.c
-> >> @@ -66,6 +66,8 @@ struct wmi_block {
-> >>       struct acpi_device *acpi_device;
-> >>       wmi_notify_handler handler;
-> >>       void *handler_data;
-> >> +
-> >> +     bool read_takes_no_args;        /* only defined if readable */
-> >>  };
-> >>
-> >>
-> >> @@ -216,6 +218,25 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
-> >>       return false;
-> >>  }
-> >>
-> >> +static int get_subobj_info(acpi_handle handle, const char *pathname,
-> >> +                        struct acpi_device_info *info)
-> >> +{
-> >> +     acpi_handle subobj_handle;
-> >> +     acpi_status status;
-> >> +
-> >> +     status = acpi_get_handle(handle, (char *)pathname, &subobj_handle);
-> >> +     if (status == AE_NOT_FOUND)
-> >> +             return -ENOENT;
-> >> +     else if (ACPI_FAILURE(status))
-> >> +             return -EIO;
-> >> +
-> >> +     status = acpi_get_object_info(subobj_handle, &info);
-> >
-> > acpi_get_object_info() allocates the returned buffer itself.  The latter
-> > should then subsequently be freed by the caller.  One solution is to
-> > change get_subobj_info() so that it takes a struct acpi_device_info **
-> > as an argument, which should then be passed to acpi_get_object_info().
-> > See also below.
+On Monday, 9 January 2017 23:28:32 EET Rafael J. Wysocki wrote:
+> On Mon, Jan 9, 2017 at 11:07 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Mon, Jan 9, 2017 at 5:01 PM, Tomi Sarvela <tomi.p.sarvela@intel.com> wrote:
+> >> We have couple of Iron Lake machines here, and one started
+> >> hanging around Christmas in early boot on ACPI initialization.
+> >> Dmesg below, full dmesgs available on request.
+> >> 
+> >> Exact model of the machine is HP Compaq 8100 Elite Small Form
+> >> Factor PC. BIOS update from 2010 to 2011 (newest) didn't change
+> >> anything. HP Elite laptop (ILK m540) or Dell SFF PC (ILK 650)
+> >> don't have this particular problem.
+> >> 
+> >> I've bisected the problem to the following commit:
+> >> 
+> >> ----
+> >> commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
+> >> Author: Lv Zheng <lv.zheng@intel.com>
+> >> Date:   Wed Dec 14 15:04:25 2016 +0800
+> >> 
+> >>     ACPICA: Tables: Back port acpi_get_table_with_size() and
+> >>     early_acpi_os_unmap_memory() from Linux kernel
+> >>     
+> >>     ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+> >> 
+> >> ----
+> > Thanks for the report!
+> > 
+> > Does this patch make any difference:
+> > https://patchwork.kernel.org/patch/9504277/ ?
 > 
-> I have an updated version of this patch in my queue.  I'll try to send
-> it early next week.
+> Please also check this alternative patch from Paul:
+> 
+> https://patchwork.kernel.org/patch/9506033/
 
-Hi Andy,
+I've tested both patches on top of latest kernel head (separate tries, to make it clear).
 
-Are you planning any further work on this patch series (originally
-posted in December 2015)?  It seems to be a valuable cleanup.
+Neither patch does any difference. In both cases kernel still hangs to the same spot in boot, and 5sec powerbutton or AC reboot is needed.
 
--- 
 Best regards,
-Michał Kępień
+
+Tomi Sarvela
+
+
+
+
+
