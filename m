@@ -1,9 +1,8 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: 174cc7187e6f ACPICA: Tables: Back port
- acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
- kernel
-Date: Mon, 9 Jan 2017 16:21:02 -0800
-Message-ID: <20170110002102.GI3800@linux.vnet.ibm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 174cc7187e6f ACPICA: Tables: Back port
+ acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux kernel
+Date: Tue, 10 Jan 2017 00:44:58 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE2857A@SHSMSX101.ccr.corp.intel.com>
 References: <CAJZ5v0hxrz9os4ZpS=EHbdFp8rd7D+BU10bSyfBV-FE6UHQ6FA@mail.gmail.com>
  <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
  <20170108130355.vxhjmj6dlkqw6hyq@pd.tnic>
@@ -13,103 +12,88 @@ References: <CAJZ5v0hxrz9os4ZpS=EHbdFp8rd7D+BU10bSyfBV-FE6UHQ6FA@mail.gmail.com>
  <20170109221831.GC3800@linux.vnet.ibm.com>
  <20170109231501.xrhwsv46mznw3kqt@pd.tnic>
  <20170109233204.GG3800@linux.vnet.ibm.com>
- <CAJZ5v0hnperiMk7tz7G6hqwuo4XTkzCjR-N2KC43QuVQoV6AgA@mail.gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+ <20170109234039.mfefmv5dv4shxnfn@pd.tnic>
+ <20170109235211.yetponvbexvalkir@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+        boundary="_002_1AE640813FDE7649BE1B193DEA596E886CE2857ASHSMSX101ccrcor_"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:34005 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756739AbdAJAVJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jan 2017 19:21:09 -0500
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.17/8.16.0.17) with SMTP id v0A0IWxe079185
-        for <linux-acpi@vger.kernel.org>; Mon, 9 Jan 2017 19:21:09 -0500
-Received: from e36.co.us.ibm.com (e36.co.us.ibm.com [32.97.110.154])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 27vcm4v5wr-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Jan 2017 19:21:08 -0500
-Received: from localhost
-        by e36.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-        Mon, 9 Jan 2017 17:21:07 -0700
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hnperiMk7tz7G6hqwuo4XTkzCjR-N2KC43QuVQoV6AgA@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:47907 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751892AbdAJApF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 9 Jan 2017 19:45:05 -0500
+In-Reply-To: <20170109235211.yetponvbexvalkir@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, J?rg R?del <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, J?rg R?del <joro@8bytes.org>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tue, Jan 10, 2017 at 12:42:47AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Jan 10, 2017 at 12:32 AM, Paul E. McKenney
-> <paulmck@linux.vnet.ibm.com> wrote:
-> > On Tue, Jan 10, 2017 at 12:15:01AM +0100, Borislav Petkov wrote:
-> >> On Mon, Jan 09, 2017 at 02:18:31PM -0800, Paul E. McKenney wrote:
-> >> > @@ -690,6 +690,8 @@ void synchronize_rcu_expedited(void)
-> >> >  {
-> >> >     struct rcu_state *rsp = rcu_state_p;
-> >> >
-> >> > +   if (!rcu_scheduler_active)
-> >> > +           return;
-> >> >     _synchronize_rcu_expedited(rsp, sync_rcu_exp_handler);
-> >> >  }
-> >> >  EXPORT_SYMBOL_GPL(synchronize_rcu_expedited);
-> >>
-> >> That doesn't work and it is because of those damn what goes before what
-> >> boot sequence issues :-\
-> >>
-> >> We have:
-> >>
-> >> rest_init()
-> >> |-> rcu_scheduler_starting()  ---> that sets rcu_scheduler_active = 1;
-> >> |-> kernel_thread(kernel_init, NULL, CLONE_FS);
-> >> |-> kernel_init()
-> >> |-> kernel_init_freeable()
-> >> |-> native_smp_prepare_cpus(setup_max_cpus)
-> >> |-> default_setup_apic_routing
-> >> |-> enable_IR_x2apic
-> >> |-> irq_remapping_prepare
-> >> |-> amd_iommu_prepare
-> >> |-> iommu_go_to_state
-> >> |-> acpi_put_table(ivrs_base);
-> >> |-> acpi_tb_put_table(table_desc);
-> >> |-> acpi_tb_invalidate_table(table_desc);
-> >> |-> acpi_tb_release_table(...)
-> >> |-> acpi_os_unmap_memory
-> >> |-> acpi_os_unmap_iomem
-> >> |-> acpi_os_map_cleanup
-> >> |-> synchronize_rcu_expedited()
-> >>
-> >> Now here we have rcu_scheduler_active already set so the test doesn't
-> >> hit and we hang.
-> >>
-> >> So we must do it differently.
-> >
-> > Yeah, there is a window just as the scheduler is starting where things don't
-> > work.
-> >
-> > We could move rcu_scheduler_starting() later, as long as there
-> > is no chance of preemption or context switch before it is invoked.
-> > Would that help in this case, or are we already context switching before
-> > acpi_os_map_cleanup() is invoked?
-> 
-> In the particular AMD IOMMU case it doesn't look like we are, but we
-> do in other cases.
-> 
-> > (If we are already context switching,
-> > short-circuiting synchronize_rcu_expedited() would be a bug.)
-> 
-> It may be easier to make the caller avoid RCU synchronization
-> altogether if that's not necessary and the caller should actually be
-> able to figure out when that's the case.
-> 
-> The patch from Lv at https://patchwork.kernel.org/patch/9504277/ goes
-> in the right direction IMO, but I'm not yet convinced that this is the
-> right one.
+--_002_1AE640813FDE7649BE1B193DEA596E886CE2857ASHSMSX101ccrcor_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
->From the RCU end, I could force expedited grace periods to translate to
-normal grace periods during that window of time, and then make sure that
-RCU's grace-period kthreads are spawned beforehand.  Looking into this...
+SGksDQoNCkNhbiB0aGUgYXR0YWNoZWQgcGF0Y2ggbWFrZXMgc29tZXRoaW5nIGRpZmZlcmVudD8N
+Cg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQoNCj4gRnJvbTogQm9yaXNsYXYgUGV0a292
+IFttYWlsdG86YnBAYWxpZW44LmRlXQ0KPiBTdWJqZWN0OiBSZTogMTc0Y2M3MTg3ZTZmIEFDUElD
+QTogVGFibGVzOiBCYWNrIHBvcnQgYWNwaV9nZXRfdGFibGVfd2l0aF9zaXplKCkgYW5kDQo+IGVh
+cmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgZnJvbSBMaW51eCBrZXJuZWwNCj4gDQo+IE9uIFR1
+ZSwgSmFuIDEwLCAyMDE3IGF0IDEyOjQwOjM5QU0gKzAxMDAsIEJvcmlzbGF2IFBldGtvdiB3cm90
+ZToNCj4gPiBMZW1tZSBydW4gaXQuDQo+IA0KPiBXZWxsLCBpdCBib290cyBidXQgSSBnZXQ6DQo+
+IA0KPiBbICAgIDAuMjkxNDQ3XSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0N
+Cj4gWyAgICAwLjI5MTcwMl0gV0FSTklORzogQ1BVOiAwIFBJRDogMSBhdCBrZXJuZWwvcmN1L3Ry
+ZWUuYzozOTkzIHJjdV9zY2hlZHVsZXJfc3RhcnRpbmcrMHg1Yy8weDcwDQo+IFsgICAgMC4yOTIx
+MDddIE1vZHVsZXMgbGlua2VkIGluOg0KPiBbICAgIDAuMjkyMjc3XSBDUFU6IDAgUElEOiAxIENv
+bW06IHN3YXBwZXIvMCBOb3QgdGFpbnRlZCA0LjEwLjAtcmMzKyAjMjENCj4gWyAgICAwLjI5MjU0
+MF0gSGFyZHdhcmUgbmFtZTogSFAgSFAgRWxpdGVCb29rIDc0NSBHMy84MDdFLCBCSU9TIE43MyBW
+ZXIuIDAxLjA4IDAxLzI4LzIwMTYNCj4gWyAgICAwLjI5Mjg5M10gQ2FsbCBUcmFjZToNCj4gWyAg
+ICAwLjI5MzA3Ml0gID8gZHVtcF9zdGFjaysweDQ2LzB4NjMNCj4gWyAgICAwLjI5MzI4NV0gID8g
+X193YXJuKzB4ZWMvMHgxMTANCj4gWyAgICAwLjI5MzQ4N10gID8gcmN1X3NjaGVkdWxlcl9zdGFy
+dGluZysweDVjLzB4NzANCj4gWyAgICAwLjI5MzczNV0gID8ga2VybmVsX2luaXRfZnJlZWFibGUr
+MHg1OC8weDE5YQ0KPiBbICAgIDAuMjkzOTc2XSAgPyByZXN0X2luaXQrMHg4MC8weDgwDQo+IFsg
+ICAgMC4yOTQxNTNdICA/IGtlcm5lbF9pbml0KzB4YS8weDEwMA0KPiBbICAgIDAuMjk0MzM0XSAg
+PyByZXRfZnJvbV9mb3JrKzB4MjIvMHgzMA0KPiBbICAgIDAuMjk0NTI1XSAtLS1bIGVuZCB0cmFj
+ZSA0YzBmZTAwOWVkNGRjNzQwIF0tLS0NCj4gDQo+IFRCSCwgSSBsaWtlIFJhZmFlbCdzIHN1Z2dl
+c3Rpb24gaW4gdGhlIG90aGVyIG1haWwgdG8gc3RpY2sgd2l0aCBmaXhpbmcNCj4gdGhpcyBpbiBB
+Q1BJLCBlc3BlY2lhbGx5IHRoaXMgaXMgYW4gQUNQSSBwcm9ibGVtLCBub3QgUkNVLiBXZWxsLA0K
+PiBtb3JlIG9yIGxlc3M6IFJDVSBjb3VsZCBiZSB0YXVnaHQgdG8gKm5vdCogZG8gc2NoZWR1bGVf
+d29yaygpIGlmDQo+IHdvcmtxdWV1ZV9pbml0KCkgaGFzbid0IGhhcHBlbmVkIHlldCBidXQgdGhh
+dCdzIGEgdGFuZ2VudGlhbC4NCj4gDQo+IFNvLCBJJ20gZ29pbmcgdG8gYmVkLiBXaGVuIEkgd2Fr
+ZSB1cCwgSSB3YW50IHRvIHNlZSB3b3JraW5nIGZpeGVzIQ0KPiANCj4gOi0pKSkNCj4gDQo+IFRo
+YW5rcyBkdWRlcyENCj4gDQo+IC0tDQo+IFJlZ2FyZHMvR3J1c3MsDQo+ICAgICBCb3Jpcy4NCj4g
+DQo+IEdvb2QgbWFpbGluZyBwcmFjdGljZXMgZm9yIDQwMDogYXZvaWQgdG9wLXBvc3RpbmcgYW5k
+IHRyaW0gdGhlIHJlcGx5Lg0K
 
-							Thanx, Paul
+--_002_1AE640813FDE7649BE1B193DEA596E886CE2857ASHSMSX101ccrcor_
+Content-Type: application/octet-stream; name="lv-rcu1.patch"
+Content-Description: lv-rcu1.patch
+Content-Disposition: attachment; filename="lv-rcu1.patch"; size=1259;
+	creation-date="Mon, 09 Jan 2017 06:18:33 GMT";
+	modification-date="Mon, 09 Jan 2017 06:18:32 GMT"
+Content-Transfer-Encoding: base64
 
+SW5kZXg6IGxpbnV4LWFjcGljYS9rZXJuZWwvcmN1L3RyZWVfZXhwLmgKPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0g
+bGludXgtYWNwaWNhLm9yaWcva2VybmVsL3JjdS90cmVlX2V4cC5oCisrKyBsaW51eC1hY3BpY2Ev
+a2VybmVsL3JjdS90cmVlX2V4cC5oCkBAIC0yOTcsMTYgKzI5NywyMiBAQCBmYXN0cGF0aDoKIAly
+ZXR1cm4gZmFsc2U7CiB9CiAKLS8qIEludm9rZWQgb24gZWFjaCBvbmxpbmUgbm9uLWlkbGUgQ1BV
+IGZvciBleHBlZGl0ZWQgcXVpZXNjZW50IHN0YXRlLiAqLwotc3RhdGljIHZvaWQgc3luY19zY2hl
+ZF9leHBfaGFuZGxlcih2b2lkICpkYXRhKQorc3RhdGljIGJvb2wgc3luY19zY2hlZF9leHBfaXNf
+cmVxdWlyZWQoc3RydWN0IHJjdV9zdGF0ZSAqcnNwKQogewogCXN0cnVjdCByY3VfZGF0YSAqcmRw
+OwogCXN0cnVjdCByY3Vfbm9kZSAqcm5wOwotCXN0cnVjdCByY3Vfc3RhdGUgKnJzcCA9IGRhdGE7
+CiAKIAlyZHAgPSB0aGlzX2NwdV9wdHIocnNwLT5yZGEpOwogCXJucCA9IHJkcC0+bXlub2RlOwot
+CWlmICghKFJFQURfT05DRShybnAtPmV4cG1hc2spICYgcmRwLT5ncnBtYXNrKSB8fAorCXJldHVy
+biAhIShSRUFEX09OQ0Uocm5wLT5leHBtYXNrKSAmIHJkcC0+Z3JwbWFzayk7Cit9CisKKy8qIElu
+dm9rZWQgb24gZWFjaCBvbmxpbmUgbm9uLWlkbGUgQ1BVIGZvciBleHBlZGl0ZWQgcXVpZXNjZW50
+IHN0YXRlLiAqLworc3RhdGljIHZvaWQgc3luY19zY2hlZF9leHBfaGFuZGxlcih2b2lkICpkYXRh
+KQoreworCXN0cnVjdCByY3Vfc3RhdGUgKnJzcCA9IGRhdGE7CisKKwlpZiAoIXN5bmNfc2NoZWRf
+ZXhwX2lzX3JlcXVpZXJkKHJzcCkgfHwKIAkgICAgX190aGlzX2NwdV9yZWFkKHJjdV9zY2hlZF9k
+YXRhLmNwdV9ub19xcy5iLmV4cCkpCiAJCXJldHVybjsKIAlpZiAocmN1X2lzX2NwdV9ycnVwdF9m
+cm9tX2lkbGUoKSkgewpAQCAtNjEwLDYgKzYxNiw4IEBAIHZvaWQgc3luY2hyb25pemVfc2NoZWRf
+ZXhwZWRpdGVkKHZvaWQpCiAJLyogSWYgb25seSBvbmUgQ1BVLCB0aGlzIGlzIGF1dG9tYXRpY2Fs
+bHkgYSBncmFjZSBwZXJpb2QuICovCiAJaWYgKHJjdV9ibG9ja2luZ19pc19ncCgpKQogCQlyZXR1
+cm47CisJaWYgKCFzeW5jX3NjaGVkX2V4cF9pc19yZXF1aXJlZChyc3ApKQorCQlyZXR1cm47CiAK
+IAlfc3luY2hyb25pemVfcmN1X2V4cGVkaXRlZChyc3AsIHN5bmNfc2NoZWRfZXhwX2hhbmRsZXIp
+OwogfQo=
+
+--_002_1AE640813FDE7649BE1B193DEA596E886CE2857ASHSMSX101ccrcor_--
