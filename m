@@ -1,134 +1,316 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v2] ACPI/IORT: Fix iort_node_get_id() mapping entries
- indexing
-Date: Tue, 10 Jan 2017 10:53:19 -0500
-Message-ID: <99a9af52-6b9b-7633-6bff-a40039d55cc4@codeaurora.org>
-References: <20170110120020.17867-1-lorenzo.pieralisi@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v12 6/7] arm64: pmu: Detect and enable multiple PMUs in an ACPI system
+Date: Tue, 10 Jan 2017 11:17:51 -0600
+Message-ID: <1484068672-15852-7-git-send-email-jeremy.linton@arm.com>
+References: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58474 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932567AbdAJPxV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jan 2017 10:53:21 -0500
-In-Reply-To: <20170110120020.17867-1-lorenzo.pieralisi@arm.com>
+Received: from foss.arm.com ([217.140.101.70]:59230 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1760037AbdAJRR5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Jan 2017 12:17:57 -0500
+In-Reply-To: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Nate Watterson <nwatters@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-On 1/10/2017 7:00 AM, Lorenzo Pieralisi wrote:
-> Commit 618f535a6062 ("ACPI/IORT: Add single mapping function")
-> introduced a function (iort_node_get_id()) to retrieve ids for IORT
-> named components.
-> 
-> The iort_node_get_id() takes an index as input to refer to a specific
-> mapping entry in the named component IORT node mapping array.
-> 
-> For a mapping entry at a given index, iort_node_get_id() should return
-> the id value (through the id_out function parameter) and the IORT node
-> output_reference (through function return value) the given mapping entry
-> refers to.
-> 
-> Technically output_reference values may differ for different map
-> entries, (see diagram below - mapped id values may refer to different eg
-> IORT SMMU nodes; the kernel may not be able to handle different
-> output_reference values for a given named component but the IORT kernel
-> layer should still report the IORT mappings as reported by firmware) but
-> current code in iort_node_get_id() fails to use the index function
-> parameter to return the correct output_reference value (ie it always
-> returns the output_reference value of the first entry in the mapping
-> array whilst using the index correctly to retrieve the id value from the
-> respective entry).
-> 
-> 	|----------------------|
-> 	|     named component  |
-> 	|----------------------|
-> 	|      map entry[0]    |
-> 	|----------------------|
-> 	|       id value       |
-> 	| output_reference----------------> eg SMMU 1
-> 	|----------------------|
-> 	|      map entry[1]    |
-> 	|----------------------|
-> 	|       id value       |
-> 	| output_reference----------------> eg SMMU 2
-> 	|----------------------|
-> 		    .
-> 		    .
-> 		    .
-> 	|----------------------|
-> 	|      map entry[N]    |
-> 	|----------------------|
-> 	|       id value       |
-> 	| output_reference----------------> eg SMMU 1
-> 	|----------------------|
-> 
-> Consequently the iort_node_get_id() function always returns the IORT
-> node pointed at by the output_reference value of the first named
-> component mapping array entry, irrespective of the index parameter,
-> which is a bug.
-> 
-> Update the map array entry pointer computation in iort_node_get_id() to
-> take into account the index value, fixing the issue.
-> 
-> Fixes: 618f535a6062 ("ACPI/IORT: Add single mapping function")
-> Reported-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Nate Watterson <nwatters@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
-> v1 -> v2:
-> 	- Updated/improved commit log
-> 	- Added review tags
-> 
->  drivers/acpi/arm64/iort.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e0d2e6e..ba156c5 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -333,7 +333,7 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->  		return NULL;
->  
->  	map = ACPI_ADD_PTR(struct acpi_iort_id_mapping, node,
-> -			   node->mapping_offset);
-> +			   node->mapping_offset + index * sizeof(*map));
->  
->  	/* Firmware bug! */
->  	if (!map->output_reference) {
-> @@ -348,10 +348,10 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->  	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
->  		return NULL;
->  
-> -	if (map[index].flags & ACPI_IORT_ID_SINGLE_MAPPING) {
-> +	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->  		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->  		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
-> -			*id_out = map[index].output_base;
-> +			*id_out = map->output_base;
->  			return parent;
->  		}
->  	}
-> 
+Its possible that an ACPI system has multiple CPU types in it
+with differing PMU counters. Iterate the CPU's and make a determination
+about how many of each type exist in the system. Then take and create
+a PMU platform device for each type, and assign it the interrupts parsed
+from the MADT. Creating a platform device is necessary because the PMUs
+are not described as devices in the DSDT table.
 
-Tested on Qualcomm QDF2400 server with Hanjun's first 11 patches + my patch 
-for (NC->SMMU->ITS) using HIDMA DMA Engine driver and MSI interrupts. 
+This code is loosely based on earlier work by Mark Salter.
 
-No impacts to the existing functionality. Note that I do not have a topology
-as described in this commit. I'm just stating that my existing functionality
-is not impacted by this change.
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ drivers/perf/arm_pmu.c      |   8 +-
+ drivers/perf/arm_pmu_acpi.c | 231 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 238 insertions(+), 1 deletion(-)
 
-Tested-by: Sinan Kaya <okaya@codeaurora.org>
-
-
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 85566f6..77ec1ae 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -1068,7 +1068,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 		if (!ret)
+ 			ret = init_fn(pmu);
+ 	} else if (probe_table) {
+-		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
++		if (acpi_disabled) {
++			/* use the current cpu. */
++			ret = probe_plat_pmu(pmu, probe_table,
++					     read_cpuid_id());
++		} else {
++			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
++		}
+ 	}
+ 
+ 	if (ret) {
+diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+index 2008001..e4e107c 100644
+--- a/drivers/perf/arm_pmu_acpi.c
++++ b/drivers/perf/arm_pmu_acpi.c
+@@ -2,13 +2,17 @@
+  * ARM ACPI PMU support
+  *
+  * Copyright (C) 2015 Red Hat Inc.
++ * Copyright (C) 2016 ARM Ltd.
+  * Author: Mark Salter <msalter@redhat.com>
++ *	   Jeremy Linton <jeremy.linton@arm.com>
+  *
+  * This work is licensed under the terms of the GNU GPL, version 2.  See
+  * the COPYING file in the top-level directory.
+  *
+  */
+ 
++#define pr_fmt(fmt) "ACPI-PMU: " fmt
++
+ #include <asm/cpu.h>
+ #include <linux/acpi.h>
+ #include <linux/irq.h>
+@@ -20,9 +24,16 @@
+ struct pmu_irq {
+ 	int  gsi;
+ 	int  trigger;
++	int  irq;
+ 	bool used;
+ };
+ 
++struct pmu_types {
++	struct list_head list;
++	int		 cpu_type;
++	int		 cpu_count;
++};
++
+ static struct pmu_irq pmu_irqs[NR_CPUS];
+ 
+ /*
+@@ -38,3 +49,223 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+ 	else
+ 		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
+ }
++
++static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
++{
++	int i;
++	struct pmu_types *pmu, *safe_temp;
++
++	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
++		list_del(&pmu->list);
++		kfree(pmu);
++	}
++
++	for_each_possible_cpu(i)
++		if (pmu_irqs[i].irq > 0)
++			acpi_unregister_gsi(pmu_irqs[i].gsi);
++}
++
++/*
++ * Count number and type of CPU cores in the system. Returns the number
++ * of "unused" MADT entries we could not associate with a PMU. This can
++ * be the result of CPU's not being online,  or errors in the MADT.
++ * Under normal circumstances this will be 0.
++ */
++static int __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
++{
++	int i;
++	int unused_madt_entries = 0;
++
++	for_each_possible_cpu(i) {
++		u32 reg_midr = read_specific_cpuid(i);
++		struct pmu_types *pmu;
++
++		/*
++		 * Ignore GSI registration failure for now, as
++		 * some of the MADT entries may not be used.
++		 */
++		pmu_irqs[i].irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
++						    pmu_irqs[i].trigger,
++						    ACPI_ACTIVE_HIGH);
++		/* likely not online */
++		if (reg_midr == 0) {
++			unused_madt_entries++;
++			continue;
++		}
++
++		list_for_each_entry(pmu, pmus, list) {
++			if (pmu->cpu_type == reg_midr) {
++				pmu->cpu_count++;
++				break;
++			}
++		}
++
++		/* we didn't find the CPU type, add an entry to identify it */
++		if (&pmu->list == pmus) {
++			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
++			if (!pmu) {
++				pr_err("Unable to allocate pmu_types\n");
++				arm_pmu_acpi_handle_alloc_failure(pmus);
++				break;
++			}
++			pmu->cpu_type = reg_midr;
++			pmu->cpu_count++;
++			list_add_tail(&pmu->list, pmus);
++		}
++	}
++
++	return unused_madt_entries;
++}
++
++static int __init arm_pmu_acpi_register_device(int count, struct resource *res,
++					       int cpu_id)
++{
++	struct platform_device *pdev;
++	int err = -ENOMEM;
++
++	pdev = platform_device_alloc(ARMV8_PMU_PDEV_NAME, cpu_id);
++	if (pdev) {
++		err = platform_device_add_resources(pdev, res, count);
++		if (!err)
++			err = platform_device_add(pdev);
++		if (err) {
++			pr_warn("Unable to register PMU device\n");
++			platform_device_put(pdev);
++		}
++	} else {
++	    pr_warn("Unable to allocate platform device\n");
++	}
++
++	return err;
++}
++
++static void __init arm_pmu_acpi_unregister_pmu_gsi(int cpu_id)
++{
++	int i;
++
++	for_each_possible_cpu(i) {
++
++		if (read_specific_cpuid(i) == cpu_id) {
++			pmu_irqs[i].used = false;
++			if (pmu_irqs[i].irq > 0)
++				acpi_unregister_gsi(pmu_irqs[i].gsi);
++			pmu_irqs[i].gsi = -ENODEV;
++		}
++	}
++}
++
++/*
++ * Registers the group of PMU interfaces which correspond to the 'cpu_id'.
++ * This group utilizes 'count' resources in the 'res'.
++ */
++static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
++					    int cpu_id)
++{
++	int err;
++
++	err = arm_pmu_acpi_register_device(count, res, cpu_id);
++
++	/* unmark and unregister GSIs for this PMU */
++	if (err)
++		arm_pmu_acpi_unregister_pmu_gsi(cpu_id);
++
++	return err;
++}
++
++int arm_pmu_acpi_retrieve_irq(struct resource *res, int cpu)
++{
++	int irq = -ENODEV;
++
++	if (pmu_irqs[cpu].used) {
++		pr_info("CPU %d's interrupt is already used\n", cpu);
++	} else {
++		pmu_irqs[cpu].used = true;
++		res->start = pmu_irqs[cpu].irq;
++		res->end = pmu_irqs[cpu].irq;
++		res->flags = IORESOURCE_IRQ;
++		if (pmu_irqs[cpu].trigger == ACPI_EDGE_SENSITIVE)
++			res->flags |= IORESOURCE_IRQ_HIGHEDGE;
++		else
++			res->flags |= IORESOURCE_IRQ_HIGHLEVEL;
++	}
++	return irq;
++}
++
++/*
++ * For the given cpu/pmu type, walk all known GSIs, register them, and add
++ * them to the resource structure. Return the number of GSI's contained
++ * in the res structure, and the id of the last CPU/PMU we added.
++ */
++static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
++				       struct resource *res)
++{
++	int i, count;
++
++	/* lets group all the PMU's from similar CPU's together */
++	count = 0;
++	for_each_possible_cpu(i) {
++		u32 reg_midr = read_specific_cpuid(i);
++
++		if (pmus->cpu_type == reg_midr) {
++			if ((pmu_irqs[i].gsi == 0) && (reg_midr != 0))
++				continue;
++
++			/* likely not online */
++			if (!reg_midr)
++				continue;
++
++			arm_pmu_acpi_retrieve_irq(&res[count], i);
++			count++;
++		}
++	}
++	return count;
++}
++
++static int __init pmu_acpi_register(struct pmu_types *pmu)
++{
++	int count;
++	int err = -ENOMEM;
++	struct resource	*res;
++
++	res = kcalloc(pmu->cpu_count, sizeof(struct resource), GFP_KERNEL);
++
++	/* for a given PMU type, collect all the GSIs. */
++	if (res) {
++		count = arm_pmu_acpi_gsi_res(pmu, res);
++		/* register this set of interrupts with a new PMU device */
++		err = arm_pmu_acpi_register_pmu(pmu->cpu_count, res,
++						pmu->cpu_type);
++		if (!err)
++			pr_info("Register %d devices for %X\n", count,
++				pmu->cpu_type);
++		kfree(res);
++	} else {
++		pr_warn("PMU unable to allocate interrupt resource\n");
++		arm_pmu_acpi_unregister_pmu_gsi(pmu->cpu_type);
++	}
++	return err;
++}
++
++static int __init pmu_acpi_init(void)
++{
++	struct pmu_types *pmu, *safe_temp;
++	bool unused_madt_entries;
++	LIST_HEAD(pmus);
++
++	if (acpi_disabled)
++		return 0;
++
++	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
++
++	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
++		pmu->cpu_count += unused_madt_entries;
++		pmu_acpi_register(pmu);
++
++		list_del(&pmu->list);
++		kfree(pmu);
++	}
++
++	return 0;
++}
++
++arch_initcall(pmu_acpi_init);
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+2.5.5
+
