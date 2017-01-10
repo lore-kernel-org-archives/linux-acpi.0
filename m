@@ -1,89 +1,129 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH 08/14] wmi: Probe data objects for read and write capabilities
-Date: Tue, 10 Jan 2017 02:05:03 -0800
-Message-ID: <CALCETrU0PVUK7dUzNfv3BbPPrrGWhm+akBAunfks-JkOxqzJSg@mail.gmail.com>
-References: <cover.1448931782.git.luto@kernel.org> <6027f0563e82e3ca5265c6b29777636a9b8dc244.1448931782.git.luto@kernel.org>
- <20160116131111.GB7816@eudyptula.hq.kempniu.pl> <CALCETrUAyseBY-PvU2szRr9BcBXu-whEbNrKNN6x=yAjJuXVYQ@mail.gmail.com>
- <20170110055606.GA1535@kmp-mobile.hq.kempniu.pl>
+From: Tomi Sarvela <tomi.p.sarvela@intel.com>
+Subject: Re: ILK ACPI boot-up problem on HP 8100 SFF, bisected
+Date: Tue, 10 Jan 2017 12:07:36 +0200
+Message-ID: <1961608.33YkWy0F8T@fractal.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20170110055606.GA1535@kmp-mobile.hq.kempniu.pl>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?UTF-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
-Cc: Andy Lutomirski <luto@kernel.org>, Darren Hart <dvhart@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:42453 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934378AbdAJKIP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 10 Jan 2017 05:08:15 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Jan 9, 2017 at 9:56 PM, Micha=C5=82 K=C4=99pie=C5=84 <kernel@kempni=
-u.pl> wrote:
->> On Sat, Jan 16, 2016 at 5:11 AM, Micha=C5=82 K=C4=99pie=C5=84 <kernel@ke=
-mpniu.pl> wrote:
->> >> My laptop has one RW data object, one RO data object, and one
->> >> totally inaccessible data object.  Check for the existence of the
->> >> accessor methods and report in sysfs.
->> >>
->> >> The docs also permit WQxx getters for single-instance objects to
->> >> take no parameters.  Probe for that as well to avoid ACPICA warnings
->> >> about mismatched signatures.
->> >>
->> >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
->> >> ---
->> >>  drivers/platform/x86/wmi.c | 94 ++++++++++++++++++++++++++++++++++++=
-++++++++--
->> >>  include/linux/wmi.h        |  6 +++
->> >>  2 files changed, 96 insertions(+), 4 deletions(-)
->> >>
->> >> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
->> >> index 5571ae7354a1..49be61207c4a 100644
->> >> --- a/drivers/platform/x86/wmi.c
->> >> +++ b/drivers/platform/x86/wmi.c
->> >> @@ -66,6 +66,8 @@ struct wmi_block {
->> >>       struct acpi_device *acpi_device;
->> >>       wmi_notify_handler handler;
->> >>       void *handler_data;
->> >> +
->> >> +     bool read_takes_no_args;        /* only defined if readable */
->> >>  };
->> >>
->> >>
->> >> @@ -216,6 +218,25 @@ static bool find_guid(const char *guid_string, s=
-truct wmi_block **out)
->> >>       return false;
->> >>  }
->> >>
->> >> +static int get_subobj_info(acpi_handle handle, const char *pathname,
->> >> +                        struct acpi_device_info *info)
->> >> +{
->> >> +     acpi_handle subobj_handle;
->> >> +     acpi_status status;
->> >> +
->> >> +     status =3D acpi_get_handle(handle, (char *)pathname, &subobj_ha=
-ndle);
->> >> +     if (status =3D=3D AE_NOT_FOUND)
->> >> +             return -ENOENT;
->> >> +     else if (ACPI_FAILURE(status))
->> >> +             return -EIO;
->> >> +
->> >> +     status =3D acpi_get_object_info(subobj_handle, &info);
->> >
->> > acpi_get_object_info() allocates the returned buffer itself.  The latt=
-er
->> > should then subsequently be freed by the caller.  One solution is to
->> > change get_subobj_info() so that it takes a struct acpi_device_info **
->> > as an argument, which should then be passed to acpi_get_object_info().
->> > See also below.
->>
->> I have an updated version of this patch in my queue.  I'll try to send
->> it early next week.
->
-> Hi Andy,
->
-> Are you planning any further work on this patch series (originally
-> posted in December 2015)?  It seems to be a valuable cleanup.
+On Tuesday, 10 January 2017 10:46:50 EET Tomi Sarvela wrote:
+> On Monday, 9 January 2017 23:28:32 EET Rafael J. Wysocki wrote:
+> > On Mon, Jan 9, 2017 at 11:07 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > > On Mon, Jan 9, 2017 at 5:01 PM, Tomi Sarvela <tomi.p.sarvela@intel.com> wrote:
+> > >> We have couple of Iron Lake machines here, and one started
+> > >> hanging around Christmas in early boot on ACPI initialization.
+> > >> Dmesg below, full dmesgs available on request.
+> > >> 
+> > >> Exact model of the machine is HP Compaq 8100 Elite Small Form
+> > >> Factor PC. BIOS update from 2010 to 2011 (newest) didn't change
+> > >> anything. HP Elite laptop (ILK m540) or Dell SFF PC (ILK 650)
+> > >> don't have this particular problem.
+> > >> 
+> > >> I've bisected the problem to the following commit:
+> > >> 
+> > >> ----
+> > >> commit 174cc7187e6f088942c8e74daa7baff7b44b33c9
+> > >> Author: Lv Zheng <lv.zheng@intel.com>
+> > >> Date:   Wed Dec 14 15:04:25 2016 +0800
+> > >> 
+> > >>     ACPICA: Tables: Back port acpi_get_table_with_size() and
+> > >>     early_acpi_os_unmap_memory() from Linux kernel
+> > >>     
+> > >>     ACPICA commit cac6790954d4d752a083e6122220b8a22febcd07
+> > >> 
+> > >> ----
+> > > 
+> > > Thanks for the report!
+> > > 
+> > > Does this patch make any difference:
+> > > https://patchwork.kernel.org/patch/9504277/ ?
+> > 
+> > Please also check this alternative patch from Paul:
+> > 
+> > https://patchwork.kernel.org/patch/9506033/
+> 
+> I've tested both patches on top of latest kernel head (separate
+> tries, to make it clear).
+> 
+> Neither patch does any difference. In both cases kernel still hangs
+> to the same spot in boot, and 5sec powerbutton or AC reboot is
+> needed.
 
-I have a tree in which the patches are sitting and I've kept them
-rebased, but I haven't had a chance to go through all the review
-comments and send them out.  Want to do it?
+This might help: there is dump after a while. I've been too hasty to reboot the machine to see this before.
 
---Andy
+Best regards,
+
+Tomi Sarvela
+
+[    0.854462] ACPI: Added _OSI(Module Device)
+[    0.858701] ACPI: Added _OSI(Processor Device)
+[    0.863197] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.867952] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.893684] ACPI: Dynamic OEM Table Load:
+[    0.897758] ACPI: SSDT 0xFFFF8802122EBA78 0003BA (v01 COMPAQ CPU_TM2  00000001 MSFT 0100000E)
+[  247.066214] INFO: task swapper/0:1 blocked for more than 120 seconds.
+[  247.072707]       Not tainted 4.10.0-rc2-gfxbench+ #1
+[  247.077809] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[  247.085731] swapper/0       D    0     1      0 0x00000000
+[  247.091271] Call Trace:
+[  247.093774]  ? __schedule+0x2c9/0xa60
+[  247.097489]  schedule+0x3b/0x90
+[  247.100685]  schedule_timeout+0x25b/0x4c0
+[  247.104750]  ? debug_smp_processor_id+0x17/0x20
+[  247.109334]  ? set_track+0x88/0x120
+[  247.112878]  ? trace_hardirqs_on_caller+0x122/0x1b0
+[  247.117808]  __down_timeout+0x81/0xd0
+[  247.121523]  down_timeout+0x47/0x50
+[  247.125065]  acpi_os_wait_semaphore+0x47/0x62
+[  247.129475]  acpi_ut_acquire_mutex+0x43/0x81
+[  247.133798]  acpi_get_table+0x2d/0x84
+[  247.137513]  acpi_table_attr_init+0xcd/0x100
+[  247.141834]  ? acpi_sysfs_table_handler+0x3e/0xb8
+[  247.146590]  acpi_sysfs_table_handler+0x5d/0xb8
+[  247.151174]  acpi_bus_table_handler+0x23/0x2a
+[  247.155583]  acpi_tb_install_standard_table+0xe0/0x213
+[  247.160773]  ? down_timeout+0x32/0x50
+[  247.164489]  acpi_tb_install_and_load_table+0x3a/0x82
+[  247.169592]  acpi_ex_load_op+0x194/0x201
+[  247.173568]  ? acpi_ex_resolve_operands+0x207/0x4dc
+[  247.178497]  acpi_ex_opcode_1A_1T_0R+0x25/0x46
+[  247.182993]  acpi_ds_exec_end_op+0xc8/0x3df
+[  247.187229]  acpi_ps_parse_loop+0x50e/0x560
+[  247.191465]  acpi_ps_parse_aml+0x93/0x276
+[  247.195526]  acpi_ps_execute_method+0x146/0x181
+[  247.200108]  acpi_ns_evaluate+0x1bb/0x247
+[  247.204170]  acpi_evaluate_object+0x178/0x274
+[  247.208581]  ? acpi_processor_set_pdc+0x88/0x17b
+[  247.213249]  acpi_processor_set_pdc+0x154/0x17b
+[  247.217833]  early_init_pdc+0x9a/0xa3
+[  247.221548]  ? up+0x2d/0x50
+[  247.224395]  acpi_ns_walk_namespace+0xdc/0x18e
+[  247.228891]  ? set_no_mwait+0x23/0x23
+[  247.232606]  ? set_no_mwait+0x23/0x23
+[  247.236321]  acpi_walk_namespace+0x97/0xcb
+[  247.240471]  ? acpi_sleep_proc_init+0x28/0x28
+[  247.244880]  ? rest_init+0x130/0x130
+[  247.248507]  acpi_early_processor_set_pdc+0x30/0x4a
+[  247.253436]  acpi_init+0x19f/0x315
+[  247.256891]  do_one_initcall+0x3f/0x170
+[  247.260781]  kernel_init_freeable+0x11d/0x1a3
+[  247.265191]  ? rest_init+0x130/0x130
+[  247.268822]  kernel_init+0x9/0x100
+[  247.272276]  ret_from_fork+0x27/0x40
+[  247.275904] 
+[  247.275904] Showing all locks held in the system:
+[  247.282179] 2 locks held by khungtaskd/34:
+[  247.286326]  #0:  (rcu_read_lock){......}, at: [<ffffffff811332cc>] watchdog+0x9c/0x600
+[  247.294423]  #1:  (tasklist_lock){.+.+..}, at: [<ffffffff810dae1d>] debug_show_all_locks+0x3d/0x1a0
+[  247.303562] 
+[  247.305105] =============================================
+[  247.305105] 
+
