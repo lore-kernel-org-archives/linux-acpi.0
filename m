@@ -1,40 +1,25 @@
-From: minyard@acm.org
-Subject: [PATCH 2/2] acpi:ipmi: Make IPMI user handler const
-Date: Tue, 10 Jan 2017 07:40:13 -0600
-Message-ID: <1484055613-31286-3-git-send-email-minyard@acm.org>
-References: <1484055613-31286-1-git-send-email-minyard@acm.org>
+From: =?iso-8859-1?Q?J=F6rg_R=F6del?= <joro@8bytes.org>
+Subject: Re: 174cc7187e6f ACPICA: Tables: Back port
+ acpi_get_table_with_size() and early_acpi_os_unmap_memory() from Linux
+ kernel
+Date: Tue, 10 Jan 2017 14:58:12 +0100
+Message-ID: <20170110135812.GA1318@8bytes.org>
+References: <20170107204227.bwdb5yzrjpiggkmo@pd.tnic>
+ <CAJZ5v0idFBHG=OKRiBqvsYPgUrWQsqjTKYXfKxfdG023qsCbkw@mail.gmail.com>
+ <20170109105226.GR17255@8bytes.org>
+ <1607437.S0DYC9F2YO@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1484055613-31286-1-git-send-email-minyard@acm.org>
+Content-Disposition: inline
+In-Reply-To: <1607437.S0DYC9F2YO@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, openipmi-developer@lists.sourceforge.net
-Cc: Corey Minyard <cminyard@mvista.com>, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Lv Zheng <lv.zheng@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, lkml <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Corey Minyard <cminyard@mvista.com>
+On Mon, Jan 09, 2017 at 11:41:15PM +0100, Rafael J. Wysocki wrote:
+> 
+> Please find appended.
 
-ipmi_create_user() now takes the user handlers as const, make
-it const in the ACPI IPMI code.
-
-Cc: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
----
- drivers/acpi/acpi_ipmi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index f77956c..747c2ba 100644
---- a/drivers/acpi/acpi_ipmi.c
-+++ b/drivers/acpi/acpi_ipmi.c
-@@ -56,7 +56,7 @@ struct acpi_ipmi_device {
- struct ipmi_driver_data {
- 	struct list_head ipmi_devices;
- 	struct ipmi_smi_watcher bmc_events;
--	struct ipmi_user_hndl ipmi_hndlrs;
-+	const struct ipmi_user_hndl ipmi_hndlrs;
- 	struct mutex ipmi_lock;
- 
- 	/*
--- 
-2.7.4
+Applied, thanks.
