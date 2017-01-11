@@ -1,18 +1,19 @@
-From: Matthias Brugger <matthias.bgg@gmail.com>
+From: Matthias Brugger <mbrugger@suse.com>
 Subject: Re: [PATCH v6 02/14] irqchip: gic-v3-its: keep the head file include
  in alphabetic order
-Date: Wed, 11 Jan 2017 11:20:26 +0100
-Message-ID: <1d9e6611-410c-daf4-87ab-ea71d3efb8a7@gmail.com>
+Date: Wed, 11 Jan 2017 11:20:41 +0100
+Message-ID: <ef759a3a-bbdb-2586-24a8-6ad650b07d41@suse.com>
 References: <1483363905-2806-1-git-send-email-hanjun.guo@linaro.org>
  <1483363905-2806-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wj0-f193.google.com ([209.85.210.193]:36801 "EHLO
-        mail-wj0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759631AbdAKKUb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jan 2017 05:20:31 -0500
+Received: from smtp.nue.novell.com ([195.135.221.5]:54218 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1762516AbdAKKVK (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Wed, 11 Jan 2017 05:21:10 -0500
 In-Reply-To: <1483363905-2806-3-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
