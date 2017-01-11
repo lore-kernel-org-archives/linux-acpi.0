@@ -1,60 +1,103 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: acpiphp_ibm: add __ro_after_init to
- ibm_apci_table_attr
-Date: Wed, 11 Jan 2017 15:00:18 -0600
-Message-ID: <20170111210018.GJ14532@bhelgaas-glaptop.roam.corp.google.com>
-References: <1482766595-12679-1-git-send-email-bhumirks@gmail.com>
+Subject: Re: [PATCH] ACPI/PCI: Fix bus range comparation in pci_mcfg_lookup
+Date: Wed, 11 Jan 2017 15:37:27 -0600
+Message-ID: <20170111213727.GO14532@bhelgaas-glaptop.roam.corp.google.com>
+References: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:34212 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755170AbdAKVhc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Jan 2017 16:37:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1482766595-12679-1-git-send-email-bhumirks@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, keescook@chromium.org
+In-Reply-To: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhou Wang <wangzhou1@hisilicon.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Dec 26, 2016 at 09:06:35PM +0530, Bhumika Goyal wrote:
-> The object ibm_apci_table_attr of type bin_attribute structure is not
-> modified after getting initialized by ibm_acpiphp_init. Apart from
-> getting referenced in init it is also passed as an argument to the functions
-> sysfs_{remove/create}_bin_file but both the arguments are of type const 
-> struct bin_attribute *. Therefore add __ro_after_init to its declaration.
+On Wed, Jan 04, 2017 at 03:00:06PM +0800, Zhou Wang wrote:
+> The configuration data provided by an MCFG region (ie PCI segment and
+> bus range) may span multiple host bridges.
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> Current code in pci_mcfg_lookup() carries out an exact match of host
+> bridge bus range start value against the MCFG region(s) bus range start
+> value which would cause configurations like the following:
+> 
+> MCFG region:
+> 	bus range: 0x00~0xff.
+> 	segment: 0.
+> 
+> PCI host bridges configuration (segment numbers and bus ranges):
+> 	host bridge 1:
+> 		bus range: 0x00~0x1f.
+> 		segment: 0.
+> 	host bridge 2:
+> 		bus range: 0x20~0x4f.
+> 		segment: 0.
+> 
+> to fail, in that the bus range start value for host bridge 2 does
+> not match the bus range start value of the respective MCFG region.
+> 
+> Relax the bus range check in pci_mcfg_lookup() to cater for
+> PCI configurations with multiple host bridges sharing the same
+> MCFG region.
+> 
+> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-Applied to pci/hotplug for v4.11 with Kees' Reviewed-by and the following
-changelog:
+Applied to pci/enumeration for v4.11 with the following changelog:
 
-    PCI: acpiphp_ibm: Make ibm_apci_table_attr __ro_after_init
+    PCI/ACPI: Fix bus range comparison in pci_mcfg_lookup()
     
-    ibm_apci_table_attr is not modified after being initialized by
-    ibm_acpiphp_init().  It is passed as an argument to the functions
-    sysfs_{remove/create}_bin_file(), but both the arguments are const.
-    Add __ro_after_init to its declaration.
+    The configuration data provided by an MCFG entry, i.e., PCI segment and bus
+    range, may span multiple host bridges.
+    
+    pci_mcfg_lookup() previously required an exact match of the host bridge
+    starting bus and the MCFG starting bus, which made the following
+    configuration fail:
+    
+      MCFG region:
+        segment: 0
+        bus range: 0x00-0xff
+    
+      host bridge
+        segment: 0
+        bus range: 0x20-0x4f
+    
+    Relax the bus range check in pci_mcfg_lookup() so we can use any MCFG entry
+    that contains the required bus range, as we do in pci_mmconfig_lookup().
     
     [bhelgaas: changelog]
-    Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+    Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-    Reviewed-by: Kees Cook <keescook@chromium.org>
+    Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
+    Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
 > ---
->  drivers/pci/hotplug/acpiphp_ibm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/pci_mcfg.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-> index f6221d7..188cdfa 100644
-> --- a/drivers/pci/hotplug/acpiphp_ibm.c
-> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
-> @@ -107,7 +107,7 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index a6a4cea..2944353 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -195,11 +195,10 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
+>  		goto skip_lookup;
 >  
->  static acpi_handle ibm_acpi_handle;
->  static struct notification ibm_note;
-> -static struct bin_attribute ibm_apci_table_attr = {
-> +static struct bin_attribute ibm_apci_table_attr __ro_after_init = {
->  	    .attr = {
->  		    .name = "apci_table",
->  		    .mode = S_IRUGO,
+>  	/*
+> -	 * We expect exact match, unless MCFG entry end bus covers more than
+> -	 * specified by caller.
+> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
+>  	 */
+>  	list_for_each_entry(e, &pci_mcfg_list, list) {
+> -		if (e->segment == seg && e->bus_start == bus_res->start &&
+> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
+>  		    e->bus_end >= bus_res->end) {
+>  			root->mcfg_addr = e->addr;
+>  		}
 > -- 
 > 1.9.1
 > 
