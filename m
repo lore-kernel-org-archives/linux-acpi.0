@@ -1,48 +1,79 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v7 02/15] ACPI: IORT: add missing comment for
- iort_dev_find_its_id()
-Date: Wed, 11 Jan 2017 23:06:26 +0800
-Message-ID: <1484147199-4267-3-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v7 05/15] irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+Date: Wed, 11 Jan 2017 23:06:29 +0800
+Message-ID: <1484147199-4267-6-git-send-email-hanjun.guo@linaro.org>
 References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Matthias Brugger <mbrugger@suse.com>, Jon Masters <jcm@redhat.com>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Matthias Brugger <mbrugger@suse.com>, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Add missing req_id parameter to the iort_dev_find_its_id() function
-kernel-doc comment.
+Adding ACPI support for platform MSI, we need to retrieve the
+dev id in ACPI way instead of device tree, we already have
+a well formed function its_pmsi_prepare() to get the dev id
+but it's OF dependent, so collect OF related code and put them
+into a single function to make its_pmsi_prepare() more friendly
+to ACPI later.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Reviewed-by: Matthias Brugger <mbrugger@suse.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/arm64/iort.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index ce3084b..15f32bf 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -450,6 +450,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
- /**
-  * iort_dev_find_its_id() - Find the ITS identifier for a device
-  * @dev: The device.
-+ * @req_id: Device's requester ID
-  * @idx: Index of the ITS identifier list.
-  * @its_id: ITS identifier.
-  *
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 470b4aa..3c94278 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -24,15 +24,11 @@
+ 	.name			= "ITS-pMSI",
+ };
+ 
+-static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+-			    int nvec, msi_alloc_info_t *info)
++static int of_pmsi_get_dev_id(struct irq_domain *domain, struct device *dev,
++				  u32 *dev_id)
+ {
+-	struct msi_domain_info *msi_info;
+-	u32 dev_id;
+ 	int ret, index = 0;
+ 
+-	msi_info = msi_get_domain_info(domain->parent);
+-
+ 	/* Suck the DeviceID out of the msi-parent property */
+ 	do {
+ 		struct of_phandle_args args;
+@@ -43,11 +39,24 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+ 		if (args.np == irq_domain_get_of_node(domain)) {
+ 			if (WARN_ON(args.args_count != 1))
+ 				return -EINVAL;
+-			dev_id = args.args[0];
++			*dev_id = args.args[0];
+ 			break;
+ 		}
+ 	} while (!ret);
+ 
++	return ret;
++}
++
++static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
++			    int nvec, msi_alloc_info_t *info)
++{
++	struct msi_domain_info *msi_info;
++	u32 dev_id;
++	int ret;
++
++	msi_info = msi_get_domain_info(domain->parent);
++
++	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
 1.9.1
