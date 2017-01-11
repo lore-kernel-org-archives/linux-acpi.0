@@ -1,166 +1,46 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v7 11/15] ACPI: platform: setup MSI domain for ACPI based
- platform device
-Date: Wed, 11 Jan 2017 23:06:35 +0800
-Message-ID: <1484147199-4267-12-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v7 13/15] irqchip: mbigen: drop module owner
+Date: Wed, 11 Jan 2017 23:06:37 +0800
+Message-ID: <1484147199-4267-14-git-send-email-hanjun.guo@linaro.org>
 References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f46.google.com ([74.125.83.46]:34199 "EHLO
+        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759225AbdAKPJL (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jan 2017 10:09:11 -0500
+Received: by mail-pg0-f46.google.com with SMTP id 14so37627387pgg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Jan 2017 07:09:11 -0800 (PST)
 In-Reply-To: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Matthias Brugger <mbrugger@suse.com>, Jon Masters <jcm@redhat.com>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Matthias Brugger <mbrugger@suse.com>, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-With the platform msi domain created, we can set up the msi domain
-for a platform device when it's probed.
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
 
-In order to do that, we need to get the domain that the platform
-device connecting to, so the iort_get_platform_device_domain() is
-introduced to retrieve the domain from iort.
+Module owner will be set by driver core, so drop it.
 
-After the domain is retrieved, we need a proper way to set the
-domain to paltform device, as some platform devices such as an
-irqchip needs the msi irqdomain to be the interrupt parent domain,
-we need to get irqdomain before platform device is probed but after
-the platform device is allocated (the time slot of setting the
-msi domain also works for other cases). So simply call
-acpi_configure_pmsi_domain() in acpi_platform_notify() for
-platform devices will work.
-
-Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net> [for glue.c]
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Reviewed-by: Ma Jun <majun258@huawei.com>
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/arm64/iort.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/glue.c       |  6 ++++++
- include/linux/acpi_iort.h |  3 +++
- 3 files changed, 59 insertions(+)
+ drivers/irqchip/irq-mbigen.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index a6c8d2d..f5a32d0 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -551,6 +551,56 @@ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id)
- 	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
- }
- 
-+/**
-+ * iort_get_platform_device_domain() - Find MSI domain related to a
-+ * platform device
-+ * @dev: the dev pointer associated with the platform device
-+ *
-+ * Returns: the MSI domain for this device, NULL otherwise
-+ */
-+static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
-+{
-+	struct acpi_iort_node *node, *msi_parent;
-+	struct fwnode_handle *iort_fwnode;
-+	struct acpi_iort_its_group *its;
-+	int i;
-+
-+	/* find its associated iort node */
-+	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-+			      iort_match_node_callback, dev);
-+	if (!node)
-+		return NULL;
-+
-+	/* then find its msi parent node */
-+	for (i = 0; i < node->mapping_count; i++) {
-+		msi_parent = iort_node_map_platform_id(node, NULL,
-+						       IORT_MSI_TYPE, i);
-+		if (msi_parent)
-+			break;
-+	}
-+
-+	if (!msi_parent)
-+		return NULL;
-+
-+	/* Move to ITS specific data */
-+	its = (struct acpi_iort_its_group *)msi_parent->node_data;
-+
-+	iort_fwnode = iort_find_domain_token(its->identifiers[0]);
-+	if (!iort_fwnode)
-+		return NULL;
-+
-+	return irq_find_matching_fwnode(iort_fwnode, DOMAIN_BUS_PLATFORM_MSI);
-+}
-+
-+void acpi_configure_pmsi_domain(struct device *dev)
-+{
-+	struct irq_domain *msi_domain;
-+
-+	msi_domain = iort_get_platform_device_domain(dev);
-+	if (msi_domain)
-+		dev_set_msi_domain(dev, msi_domain);
-+}
-+
- static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
- {
- 	u32 *rid = data;
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index fb19e1c..ec31b43 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -6,6 +6,8 @@
-  *
-  * This file is released under the GPLv2.
-  */
-+
-+#include <linux/acpi_iort.h>
- #include <linux/export.h>
- #include <linux/init.h>
- #include <linux/list.h>
-@@ -14,6 +16,7 @@
- #include <linux/rwsem.h>
- #include <linux/acpi.h>
- #include <linux/dma-mapping.h>
-+#include <linux/platform_device.h>
- 
- #include "internal.h"
- 
-@@ -322,6 +325,9 @@ static int acpi_platform_notify(struct device *dev)
- 	if (!adev)
- 		goto out;
- 
-+	if (dev->bus == &platform_bus_type)
-+		acpi_configure_pmsi_domain(dev);
-+
- 	if (type && type->setup)
- 		type->setup(dev);
- 	else if (adev->handler && adev->handler->bind)
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index ef99fd52..33f5ac3 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -38,6 +38,7 @@
- /* IOMMU interface */
- void iort_set_dma_mask(struct device *dev);
- const struct iommu_ops *iort_iommu_configure(struct device *dev);
-+void acpi_configure_pmsi_domain(struct device *dev);
- #else
- static inline void acpi_iort_init(void) { }
- static inline bool iort_node_match(u8 type) { return false; }
-@@ -58,6 +59,8 @@ static inline void iort_set_dma_mask(struct device *dev) { }
- static inline
- const struct iommu_ops *iort_iommu_configure(struct device *dev)
- { return NULL; }
-+
-+static inline void acpi_configure_pmsi_domain(struct device *dev) { }
- #endif
- 
- #define IORT_ACPI_DECLARE(name, table_id, fn)		\
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index 03b79b0..c01ab41 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -293,7 +293,6 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ static struct platform_driver mbigen_platform_driver = {
+ 	.driver = {
+ 		.name		= "Hisilicon MBIGEN-V2",
+-		.owner		= THIS_MODULE,
+ 		.of_match_table	= mbigen_of_match,
+ 	},
+ 	.probe			= mbigen_device_probe,
 -- 
 1.9.1
+
