@@ -1,111 +1,106 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v7 08/15] ACPI: IORT: rename iort_node_map_rid() to make it generic
-Date: Wed, 11 Jan 2017 23:06:32 +0800
-Message-ID: <1484147199-4267-9-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v7 10/15] ACPI: IORT: move over to iort_node_map_platform_id()
+Date: Wed, 11 Jan 2017 23:06:34 +0800
+Message-ID: <1484147199-4267-11-git-send-email-hanjun.guo@linaro.org>
 References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f48.google.com ([74.125.83.48]:34162 "EHLO
+        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1764690AbdAKPIu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jan 2017 10:08:50 -0500
+Received: by mail-pg0-f48.google.com with SMTP id 14so37625285pgg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Jan 2017 07:08:49 -0800 (PST)
 In-Reply-To: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Matthias Brugger <mbrugger@suse.com>, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-iort_node_map_rid() was designed for both PCI and platform
-device, but the rid means requester id is for ITS mappings,
-rename iort_node_map_rid() to iort_node_map_id() and update
-its argument names to make it more generic.
+iort_node_map_platform_id() includes the function of
+iort_node_get_id(), so update current iort_node_get_id()
+users and move them over to iort_node_map_platform_id().
+
+type handing in iort_node_get_id() is duplicate with
+iort_node_map_platform_id(), so clean up a little
+bit to make the code simpler.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/acpi/arm64/iort.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/acpi/arm64/iort.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 208eac9..069a690 100644
+index 95fd20b..a6c8d2d 100644
 --- a/drivers/acpi/arm64/iort.c
 +++ b/drivers/acpi/arm64/iort.c
-@@ -355,11 +355,11 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 	return NULL;
- }
+@@ -30,7 +30,6 @@
+ #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
+ #define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
+ 				(1 << ACPI_IORT_NODE_SMMU_V3))
+-#define IORT_TYPE_ANY		(IORT_MSI_TYPE | IORT_IOMMU_TYPE)
  
--static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
--						u32 rid_in, u32 *rid_out,
--						u8 type_mask)
-+static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-+					       u32 id_in, u32 *id_out,
-+					       u8 type_mask)
+ struct iort_its_msi_chip {
+ 	struct list_head	list;
+@@ -319,8 +318,7 @@ static int iort_id_map(struct acpi_iort_id_mapping *map, u8 type, u32 rid_in,
+ 
+ static
+ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+-					u32 *id_out, u8 type_mask,
+-					int index)
++					u32 *id_out, int index)
  {
--	u32 rid = rid_in;
-+	u32 id = id_in;
+ 	struct acpi_iort_node *parent;
+ 	struct acpi_iort_id_mapping *map;
+@@ -342,9 +340,6 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ 	parent = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+ 			       map->output_reference);
  
- 	/* Parse the ID mapping tree to find specified node type */
- 	while (node) {
-@@ -367,8 +367,8 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 		int i;
+-	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
+-		return NULL;
+-
+ 	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
+ 		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
+ 		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+@@ -416,7 +411,7 @@ struct acpi_iort_node *iort_node_map_platform_id(struct acpi_iort_node *node,
+ 	u32 id;
  
- 		if (IORT_TYPE_MASK(node->type) & type_mask) {
--			if (rid_out)
--				*rid_out = rid;
-+			if (id_out)
-+				*id_out = id;
- 			return node;
- 		}
+ 	/* step 1: retrieve the initial dev id */
+-	parent = iort_node_get_id(node, &id, IORT_TYPE_ANY, index);
++	parent = iort_node_get_id(node, &id, index);
+ 	if (!parent)
+ 		return NULL;
  
-@@ -385,9 +385,9 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 			goto fail_map;
- 		}
- 
--		/* Do the RID translation */
-+		/* Do the ID translation */
- 		for (i = 0; i < node->mapping_count; i++, map++) {
--			if (!iort_id_map(map, node->type, rid, &rid))
-+			if (!iort_id_map(map, node->type, id, &id))
- 				break;
- 		}
- 
-@@ -399,9 +399,9 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 	}
- 
- fail_map:
--	/* Map input RID to output RID unchanged on mapping failure*/
--	if (rid_out)
--		*rid_out = rid_in;
-+	/* Map input ID to output ID unchanged on mapping failure */
-+	if (id_out)
-+		*id_out = id_in;
- 
- 	return NULL;
- }
-@@ -439,7 +439,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
- 	if (!node)
- 		return req_id;
- 
--	iort_node_map_rid(node, req_id, &dev_id, IORT_MSI_TYPE);
-+	iort_node_map_id(node, req_id, &dev_id, IORT_MSI_TYPE);
- 	return dev_id;
- }
- 
-@@ -462,7 +462,7 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
- 	if (!node)
- 		return -ENXIO;
- 
--	node = iort_node_map_rid(node, req_id, NULL, IORT_MSI_TYPE);
-+	node = iort_node_map_id(node, req_id, NULL, IORT_MSI_TYPE);
- 	if (!node)
- 		return -ENXIO;
- 
-@@ -591,8 +591,8 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+@@ -424,7 +419,7 @@ struct acpi_iort_node *iort_node_map_platform_id(struct acpi_iort_node *node,
+ 	 * optional step 2: map the initial dev id if its parent is not
+ 	 * the target type we wanted, map it again for the use cases such
+ 	 * as NC (named component) -> SMMU -> ITS. If the type is matched,
+-	 * return the parent pointer directly.
++	 * return the initial dev id and its parent pointer directly.
+ 	 */
+ 	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
+ 		parent = iort_node_map_id(parent, id, id_out, type_mask);
+@@ -660,14 +655,15 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
  		if (!node)
  			return NULL;
  
--		parent = iort_node_map_rid(node, rid, &streamid,
--					   IORT_IOMMU_TYPE);
-+		parent = iort_node_map_id(node, rid, &streamid,
-+					  IORT_IOMMU_TYPE);
+-		parent = iort_node_get_id(node, &streamid,
+-					  IORT_IOMMU_TYPE, i++);
++		parent = iort_node_map_platform_id(node, &streamid,
++						   IORT_IOMMU_TYPE, i++);
  
- 		ops = iort_iommu_xlate(dev, parent, streamid);
+ 		while (parent) {
+ 			ops = iort_iommu_xlate(dev, parent, streamid);
+ 
+-			parent = iort_node_get_id(node, &streamid,
+-						  IORT_IOMMU_TYPE, i++);
++			parent = iort_node_map_platform_id(node, &streamid,
++							   IORT_IOMMU_TYPE,
++							   i++);
+ 		}
+ 	}
  
 -- 
 1.9.1
+
