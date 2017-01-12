@@ -1,84 +1,95 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] ACPI / OSL: Fix rcu synchronization logic
-Date: Thu, 12 Jan 2017 03:38:17 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE2AAA4@SHSMSX101.ccr.corp.intel.com>
-References: <4034dde8-ffc1-18e2-f40c-00cf37471793@intel.com>
- <f9f4f5b204e866a346ee335c9d1dfb39ef3a1405.1484127670.git.lv.zheng@intel.com>
- <CAJZ5v0i-Hyxq1hYQ3DA3T2NUo_DaaqGvZ1Trvou-WvXO=OJLdA@mail.gmail.com>
+From: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
+Subject: Re: [PATCH 08/14] wmi: Probe data objects for read and write
+ capabilities
+Date: Thu, 12 Jan 2017 06:01:59 +0100
+Message-ID: <20170112050159.GA4072@kmp-mobile.hq.kempniu.pl>
+References: <cover.1448931782.git.luto@kernel.org>
+ <6027f0563e82e3ca5265c6b29777636a9b8dc244.1448931782.git.luto@kernel.org>
+ <20160116131111.GB7816@eudyptula.hq.kempniu.pl>
+ <CALCETrUAyseBY-PvU2szRr9BcBXu-whEbNrKNN6x=yAjJuXVYQ@mail.gmail.com>
+ <20170110055606.GA1535@kmp-mobile.hq.kempniu.pl>
+ <CALCETrU0PVUK7dUzNfv3BbPPrrGWhm+akBAunfks-JkOxqzJSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:5938 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750924AbdALDjK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 11 Jan 2017 22:39:10 -0500
-In-Reply-To: <CAJZ5v0i-Hyxq1hYQ3DA3T2NUo_DaaqGvZ1Trvou-WvXO=OJLdA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALCETrU0PVUK7dUzNfv3BbPPrrGWhm+akBAunfks-JkOxqzJSg@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Andy Lutomirski <luto@kernel.org>, Darren Hart <dvhart@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Borislav Petkov <bp@alien8.de>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
-a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDog
-UmU6IFtQQVRDSCB2Ml0gQUNQSSAvIE9TTDogRml4IHJjdSBzeW5jaHJvbml6YXRpb24gbG9naWMN
-Cj4gDQo+IE9uIFdlZCwgSmFuIDExLCAyMDE3IGF0IDEwOjU0IEFNLCBMdiBaaGVuZyA8bHYuemhl
-bmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBUaGUgcmN1IHN5bmNocm9uaXphdGlvbiBsb2dpYyBp
-cyBvcmlnaW5hbGx5IHByb3ZpZGVkIHRvIHByb3RlY3QNCj4gPiBhcGVpX3JlYWQoKS9hcGVpX3dy
-aXRlKCkgYXMgaW4gdGhlIEFQRUkgZHJpdmVycywgdGhlcmUgaXMgTk1JIGV2ZW50IHNvdXJjZQ0K
-PiA+IHJlcXVpcmluZyBub24gc3BpbmxvY2sgYmFzZWQgc3luY2hyb25pemF0aW9uIG1lY2hhbmlz
-bS4gQWZ0ZXIgdGhhdCwgQUNQSQ0KPiA+IGRldmVsb3BlcnMgdGhpbmsgRkFEVCByZWdpc3RlcnMg
-bWF5IGFsc28gcmVxdWlyZSBzYW1lIGZhY2lsaXR5LCBzbyB0aGV5DQo+ID4gbW92ZWQgdGhlIFJD
-VSBzdHVmZnMgdG8gZ2VuZXJpYyBBQ1BJIGxheWVyLiBTbyBub3cgaW50ZXJydXB0IChpcnEsIG5t
-aSkNCj4gPiBjb250ZXh0IEFDUEkgbWFwIGxvb2t1cCBpcyBvbmx5IHByb3RlY3RlZCBieSBSQ1Uu
-DQo+ID4NCj4gPiBUaGlzIHRyaWdnZXJzIGEga2VybmVsIGhhbmcgd2hlbiBBQ1BJQ0EgQVBJIHN0
-YXJ0cyB0byB1bm1hcCB1bnVzZWQgdGFibGVzDQo+ID4gKHNlZSBMaW5rICMxIGZvciBkZXRhaWxz
-KS4gVGhlIGNhdXNlIG9mIHRoZSBoYW5nIGlzDQo+ID4gZHJpdmVycy9pb21tdS9hbWRfaW9tbXVf
-aW5pdC5jIGNhbGxpbmcgYWNwaV9wdXRfdGFibGUoKSB0b28gZWFybHkgYW5kIHRoZW4NCj4gPiBs
-YW5kIGluIFJDVSB3aGljaCBpcyB1bmluaXRpYWxpemVkIHlldDoNCj4gPiAgIGVhcmx5X2FtZF9p
-b21tdV9pbml0KCkNCj4gPiAgICAgYWNwaV9wdXRfdGFibGUoaXZyc19iYXNlKQ0KPiA+ICAgICAg
-IGFjcGlfb3NfdW5tYXBfbWVtb3J5KCkNCj4gPiAgICAgICAgIHN5bmNocm9uaXplX3JjdV9leHBl
-ZGl0ZWQoKQ0KPiA+IE5vdyB0aGF0IGZ1bmN0aW9uIGdvZXMgYW5kIHNlbmRzIElQSXMsIGkuZS4s
-IHNjaGVkdWxlX3dvcmsoKSBidXQgdGhpcyBpcw0KPiA+IHRvbyBlYXJseSAtIHdvcmtxdWV1ZV9p
-bml0KCkgaGFzbid0IGJlZW4gaW52b2tlZC4gQWN0dWFsbHksIGZyb20gbG9va2luZw0KPiA+IGF0
-IHRoZSBjYWxsc3RhY2ssIHdlIGRvIGtlcm5lbF9pbml0X2ZyZWVhYmxlKCktPm5hdGl2ZV9zbXBf
-cHJlcGFyZV9jcHVzKCkNCj4gPiBhbmQgd29ya3F1ZXVlX2luaXQoKSBjb21lcyBuZXh0Lg0KPiA+
-DQo+ID4gQWN0dWFsbHkgdGhpcyBmYWNpbGl0eSBpcyBvbmx5IHVzZWQgdG8gcHJvdGVjdCBpbnRl
-cnJ1cHQgY29udGV4dCBBQ1BJIG1hcA0KPiA+IGxvb2t1cCwgYW5kIHN1Y2ggbWFwcGluZ3MgYXJl
-IG9ubHkgaW50cm9kdWNlZCBieQ0KPiA+IGFjcGlfb3NfbWFwX2dlbmVyaWNfYWRkcmVzcygpLiBT
-byBiZWZvcmUgaXQgaXMgaW52b2tlZCwgdGhlcmUgaXMgbm8gbmVlZCB0bw0KPiA+IHVzZSBSQ1Us
-IG11dGV4IHNob3VsZCBiZSB1c2VkIGluc3RlYWQgb2YuDQo+IA0KPiBXaHkgc2hvdWxkIHRoZSBt
-dXRleCBiZSB1c2VkIHRoZW4/DQo+IA0KPiBUaGVyZSdzIG5vdGhpbmcgd3Jvbmcgd2l0aCB1c2lu
-ZyBSQ1UgaW4gYWxsIGNhc2VzIGV4Y2VwdCB3aGVuIHRoYXQNCj4gaGFwcGVucyBlYXJseSBvbiBi
-b290IHdoZW4gdGhpbmdzIGRvbid0IHdvcmsgYXMgZXhwZWN0ZWQsIGJ1dCBhdCB0aGF0DQo+IHRp
-bWUgdGhlcmUncyBubyBuZWVkIHRvIGRvIHRoZSBzeW5jaHJvbml6YXRpb24gKmF0KiAqYWxsKiBh
-cyB0aGUgbGlzdA0KPiBwcm90ZWN0ZWQgYnkgUkNVIGlzIG5vdCBldmVuIHdhbGtlZC4NCg0KSWYg
-dGhlIGlzc3VlIGNhbiBiZSBmaXhlZCBpbiBhIHBvaW50IHRoYXQgaXMgbGF0ZXIgdGhhbiB0aGUN
-CmVhcmx5X2FtZF9pb21tdV9pbml0KCkgYW5kIGVhcmxpZXIgdGhhbiBhbGwgYWNwaV9vc19yZWFk
-L3dyaXRlX21lbW9yeSgpLiBUaGF0J3MNCmdyZWF0IGFzIGl0IG1lYW5zIHRoZSBpc3N1ZSBjYW4g
-YmUgZml4ZWQgaW4gdGhlIHNpbXBsZXN0IHdheS4NCg0KSWYgbm90IChtZWFucyB0aGVyZSBpcyBh
-bHdheXMgYSBjaGFuY2UgYWNwaV9vc19yZWFkL3dyaXRlX21lbW9yeSgpIGNhbiBoYXBwZW4NCmJl
-Zm9yZSBlYXJseV9hbWRfaW9tbXVfaW5pdCgpIG9yIG90aGVyIGluaXRjYWxscyB3aGljaCBpbnZv
-a2UNCmFjcGlfcHV0X3RhYmxlKCkpLCB3ZSB0aGVuIG5lZWQgdGhpcyB3b3JrYXJvdW5kLg0KDQpJ
-ZiBhbGwgYWNwaV9vc19yZWFkL3dyaXRlX21lbW9yeSgpIGFyZSBpbnZva2VkIGZyb20gdGhlIHRh
-c2sgY29udGV4dCwgdGhlbiB3ZQ0KY2FuIGp1c3QgdXNlIHRoZSBtdXRleF9sb2NrKCkgaW5zdGVh
-ZCBvZiByY3VfcmVhZF9sb2NrKCkgZHVyaW5nIHRoaXMgc3RhZ2UuIEFzDQphbGwgYWNwaSBpb3Jl
-bWFwcyBhcmUgYWNjZXNzZWQgaW4gdGhlIHRhc2sgY29udGV4dC4NCg0KU28gd2l0aCB0aGUgbXV0
-ZXggbWVjaGFuaXNtIHdvcmtpbmcgZHVyaW5nIHRoaXMgc3RhZ2UsIHRoZSBXQVJOX09OX09OQ0Uo
-KQ0KeW91J3ZlIGludHJvZHVjZWQgaW50byBhY3BpX29zX3JlYWQvd3JpdGVfbWVtb3J5KCkgYWN0
-dWFsbHkgY2FuIGJlIGNvbnZlcnRlZA0KaW50byBXQVJOX09OX09OQ0UoIWVhcmx5X2Vub3VnaCAm
-JiBpbl9pbnRlcnJ1cHQoKSkuIEFuZCB0aGUgZWFybHlfZW5vdWdoIGZsYWcNCmNhbiBiZSBkZXRl
-cm1pbmVkIGJ5IHRoZSBmaXJzdCBhY3BpX29zX21hcF9nZW5lcmljX2FkZHJlc3MoKSBjYWxsLg0K
-DQpUaGUgYml0IG1vcmUgY29tcGxpY2F0ZWQgd29ya2Fyb3VuZCBpcyB0aGVuIGdlbmVyYXRlZCBh
-ZnRlciB3cmFwcGluZyB0aGUNCnJjdV9yZWFkX2xvY2soKS9tdXRleF9sb2NrKCkgdXNpbmcgYWNw
-aV9sb2NrX2lvcmVtYXAoKSBhbmQgbW92aW5nIHRoZQ0KV0FSTl9PTl9PTkNFKCkgaW50byBpdC4N
-Cg0KV2hpY2ggSU1PIGNhbiBoYW5kbGUgbW9yZSBjYXNlcyB0aGFuIHRoZSBzaW1wbGVzdCBmaXgu
-IEFuZCBjYW4gbWFrZSB1cyBpbW11bmUNCnRvIHRoZSBmdXR1cmUgc2ltaWxhciBpc3N1ZXMgYXM6
-DQoxLiBUaGUgQUNQSSBzdWJzeXN0ZW0gbm93IGNhbiBjb250cm9sIHRoZSBvcmRlciBpdHNlbGYg
-YnkgZW5zdXJpbmcgYWxsDQogICBhY3BpX29zX21hcF9nZW5lcmljX2FkZHJlc3MoKSBjYWxsZXJz
-IGFyZSBsYXRlIGVub3VnaCwgd2UnbGwgbm90IGJlIG1lc3NlZA0KICAgdXAgYnkgdGhlIGV4dGVy
-bmFsIGluaXRjYWxsIG9yZGVycy4NCjIuIFNvbWUgQUNQSSBpbml0aWFsaXphdGlvbiBzdGVwcyAo
-Zm9yIGV4YW1wbGUsIG5hbWVzcGFjZSBpbml0aWFsaXphdGlvbikgY2FuDQogICBiZSBjaGFuZ2Vk
-IHdpdGhvdXQgdGhlIHdvcnJ5IHRvIHRyaWdnZXIgc2ltaWxhciByZWdyZXNzaW9ucy4NCg0KVGhh
-bmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQo=
+> On Mon, Jan 9, 2017 at 9:56 PM, Michał Kępień <kernel@kempniu.pl> wrote:
+> >> On Sat, Jan 16, 2016 at 5:11 AM, Michał Kępień <kernel@kempniu.pl> wrote:
+> >> >> My laptop has one RW data object, one RO data object, and one
+> >> >> totally inaccessible data object.  Check for the existence of the
+> >> >> accessor methods and report in sysfs.
+> >> >>
+> >> >> The docs also permit WQxx getters for single-instance objects to
+> >> >> take no parameters.  Probe for that as well to avoid ACPICA warnings
+> >> >> about mismatched signatures.
+> >> >>
+> >> >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
+> >> >> ---
+> >> >>  drivers/platform/x86/wmi.c | 94 ++++++++++++++++++++++++++++++++++++++++++++--
+> >> >>  include/linux/wmi.h        |  6 +++
+> >> >>  2 files changed, 96 insertions(+), 4 deletions(-)
+> >> >>
+> >> >> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+> >> >> index 5571ae7354a1..49be61207c4a 100644
+> >> >> --- a/drivers/platform/x86/wmi.c
+> >> >> +++ b/drivers/platform/x86/wmi.c
+> >> >> @@ -66,6 +66,8 @@ struct wmi_block {
+> >> >>       struct acpi_device *acpi_device;
+> >> >>       wmi_notify_handler handler;
+> >> >>       void *handler_data;
+> >> >> +
+> >> >> +     bool read_takes_no_args;        /* only defined if readable */
+> >> >>  };
+> >> >>
+> >> >>
+> >> >> @@ -216,6 +218,25 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
+> >> >>       return false;
+> >> >>  }
+> >> >>
+> >> >> +static int get_subobj_info(acpi_handle handle, const char *pathname,
+> >> >> +                        struct acpi_device_info *info)
+> >> >> +{
+> >> >> +     acpi_handle subobj_handle;
+> >> >> +     acpi_status status;
+> >> >> +
+> >> >> +     status = acpi_get_handle(handle, (char *)pathname, &subobj_handle);
+> >> >> +     if (status == AE_NOT_FOUND)
+> >> >> +             return -ENOENT;
+> >> >> +     else if (ACPI_FAILURE(status))
+> >> >> +             return -EIO;
+> >> >> +
+> >> >> +     status = acpi_get_object_info(subobj_handle, &info);
+> >> >
+> >> > acpi_get_object_info() allocates the returned buffer itself.  The latter
+> >> > should then subsequently be freed by the caller.  One solution is to
+> >> > change get_subobj_info() so that it takes a struct acpi_device_info **
+> >> > as an argument, which should then be passed to acpi_get_object_info().
+> >> > See also below.
+> >>
+> >> I have an updated version of this patch in my queue.  I'll try to send
+> >> it early next week.
+> >
+> > Hi Andy,
+> >
+> > Are you planning any further work on this patch series (originally
+> > posted in December 2015)?  It seems to be a valuable cleanup.
+> 
+> I have a tree in which the patches are sitting and I've kept them
+> rebased, but I haven't had a chance to go through all the review
+> comments and send them out.  Want to do it?
+
+If you want me to take the rebased patches, fix the issues I can find
+and resubmit as v2 with your name in From: then sure, I can give it a
+shot once I find the time (might not be soon, though, but I guess there
+is no rush).  If you had something else on your mind, please elaborate.
+
+-- 
+Best regards,
+Michał Kępień
