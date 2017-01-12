@@ -1,116 +1,84 @@
-From: Zhou Wang <wangzhou1@hisilicon.com>
-Subject: Re: [PATCH] ACPI/PCI: Fix bus range comparation in pci_mcfg_lookup
-Date: Thu, 12 Jan 2017 08:21:00 +0800
-Message-ID: <5876CBEC.9070406@hisilicon.com>
-References: <1483513206-113046-1-git-send-email-wangzhou1@hisilicon.com>
- <20170111213727.GO14532@bhelgaas-glaptop.roam.corp.google.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2] ACPI / OSL: Fix rcu synchronization logic
+Date: Thu, 12 Jan 2017 03:38:17 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE2AAA4@SHSMSX101.ccr.corp.intel.com>
+References: <4034dde8-ffc1-18e2-f40c-00cf37471793@intel.com>
+ <f9f4f5b204e866a346ee335c9d1dfb39ef3a1405.1484127670.git.lv.zheng@intel.com>
+ <CAJZ5v0i-Hyxq1hYQ3DA3T2NUo_DaaqGvZ1Trvou-WvXO=OJLdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170111213727.GO14532@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jorn Helgaas <bhelgaas@google.com>, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:5938 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750924AbdALDjK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 11 Jan 2017 22:39:10 -0500
+In-Reply-To: <CAJZ5v0i-Hyxq1hYQ3DA3T2NUo_DaaqGvZ1Trvou-WvXO=OJLdA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>, Borislav Petkov <bp@alien8.de>
 
-On 2017/1/12 5:37, Bjorn Helgaas wrote:
-> On Wed, Jan 04, 2017 at 03:00:06PM +0800, Zhou Wang wrote:
->> The configuration data provided by an MCFG region (ie PCI segment and
->> bus range) may span multiple host bridges.
->>
->> Current code in pci_mcfg_lookup() carries out an exact match of host
->> bridge bus range start value against the MCFG region(s) bus range start
->> value which would cause configurations like the following:
->>
->> MCFG region:
->> 	bus range: 0x00~0xff.
->> 	segment: 0.
->>
->> PCI host bridges configuration (segment numbers and bus ranges):
->> 	host bridge 1:
->> 		bus range: 0x00~0x1f.
->> 		segment: 0.
->> 	host bridge 2:
->> 		bus range: 0x20~0x4f.
->> 		segment: 0.
->>
->> to fail, in that the bus range start value for host bridge 2 does
->> not match the bus range start value of the respective MCFG region.
->>
->> Relax the bus range check in pci_mcfg_lookup() to cater for
->> PCI configurations with multiple host bridges sharing the same
->> MCFG region.
->>
->> Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
->> Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
->> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> 
-> Applied to pci/enumeration for v4.11 with the following changelog:
-> 
->     PCI/ACPI: Fix bus range comparison in pci_mcfg_lookup()
->     
->     The configuration data provided by an MCFG entry, i.e., PCI segment and bus
->     range, may span multiple host bridges.
->     
->     pci_mcfg_lookup() previously required an exact match of the host bridge
->     starting bus and the MCFG starting bus, which made the following
->     configuration fail:
->     
->       MCFG region:
->         segment: 0
->         bus range: 0x00-0xff
->     
->       host bridge
->         segment: 0
->         bus range: 0x20-0x4f
->     
->     Relax the bus range check in pci_mcfg_lookup() so we can use any MCFG entry
->     that contains the required bus range, as we do in pci_mmconfig_lookup().
->     
->     [bhelgaas: changelog]
->     Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
->     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->     Reviewed-by: Tomasz Nowicki <tn@semihalf.com>
->     Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->
-
-Hi Bjorn,
-
-Many thanks for modifying the commit message and merging this patch!
-
-Best regards,
-Zhou
-
->> ---
->>  drivers/acpi/pci_mcfg.c | 5 ++---
->>  1 file changed, 2 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->> index a6a4cea..2944353 100644
->> --- a/drivers/acpi/pci_mcfg.c
->> +++ b/drivers/acpi/pci_mcfg.c
->> @@ -195,11 +195,10 @@ int pci_mcfg_lookup(struct acpi_pci_root *root, struct resource *cfgres,
->>  		goto skip_lookup;
->>  
->>  	/*
->> -	 * We expect exact match, unless MCFG entry end bus covers more than
->> -	 * specified by caller.
->> +	 * We expect the range in bus_res in the coverage of MCFG bus range.
->>  	 */
->>  	list_for_each_entry(e, &pci_mcfg_list, list) {
->> -		if (e->segment == seg && e->bus_start == bus_res->start &&
->> +		if (e->segment == seg && e->bus_start <= bus_res->start &&
->>  		    e->bus_end >= bus_res->end) {
->>  			root->mcfg_addr = e->addr;
->>  		}
->> -- 
->> 1.9.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> .
-> 
+SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
+a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDog
+UmU6IFtQQVRDSCB2Ml0gQUNQSSAvIE9TTDogRml4IHJjdSBzeW5jaHJvbml6YXRpb24gbG9naWMN
+Cj4gDQo+IE9uIFdlZCwgSmFuIDExLCAyMDE3IGF0IDEwOjU0IEFNLCBMdiBaaGVuZyA8bHYuemhl
+bmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBUaGUgcmN1IHN5bmNocm9uaXphdGlvbiBsb2dpYyBp
+cyBvcmlnaW5hbGx5IHByb3ZpZGVkIHRvIHByb3RlY3QNCj4gPiBhcGVpX3JlYWQoKS9hcGVpX3dy
+aXRlKCkgYXMgaW4gdGhlIEFQRUkgZHJpdmVycywgdGhlcmUgaXMgTk1JIGV2ZW50IHNvdXJjZQ0K
+PiA+IHJlcXVpcmluZyBub24gc3BpbmxvY2sgYmFzZWQgc3luY2hyb25pemF0aW9uIG1lY2hhbmlz
+bS4gQWZ0ZXIgdGhhdCwgQUNQSQ0KPiA+IGRldmVsb3BlcnMgdGhpbmsgRkFEVCByZWdpc3RlcnMg
+bWF5IGFsc28gcmVxdWlyZSBzYW1lIGZhY2lsaXR5LCBzbyB0aGV5DQo+ID4gbW92ZWQgdGhlIFJD
+VSBzdHVmZnMgdG8gZ2VuZXJpYyBBQ1BJIGxheWVyLiBTbyBub3cgaW50ZXJydXB0IChpcnEsIG5t
+aSkNCj4gPiBjb250ZXh0IEFDUEkgbWFwIGxvb2t1cCBpcyBvbmx5IHByb3RlY3RlZCBieSBSQ1Uu
+DQo+ID4NCj4gPiBUaGlzIHRyaWdnZXJzIGEga2VybmVsIGhhbmcgd2hlbiBBQ1BJQ0EgQVBJIHN0
+YXJ0cyB0byB1bm1hcCB1bnVzZWQgdGFibGVzDQo+ID4gKHNlZSBMaW5rICMxIGZvciBkZXRhaWxz
+KS4gVGhlIGNhdXNlIG9mIHRoZSBoYW5nIGlzDQo+ID4gZHJpdmVycy9pb21tdS9hbWRfaW9tbXVf
+aW5pdC5jIGNhbGxpbmcgYWNwaV9wdXRfdGFibGUoKSB0b28gZWFybHkgYW5kIHRoZW4NCj4gPiBs
+YW5kIGluIFJDVSB3aGljaCBpcyB1bmluaXRpYWxpemVkIHlldDoNCj4gPiAgIGVhcmx5X2FtZF9p
+b21tdV9pbml0KCkNCj4gPiAgICAgYWNwaV9wdXRfdGFibGUoaXZyc19iYXNlKQ0KPiA+ICAgICAg
+IGFjcGlfb3NfdW5tYXBfbWVtb3J5KCkNCj4gPiAgICAgICAgIHN5bmNocm9uaXplX3JjdV9leHBl
+ZGl0ZWQoKQ0KPiA+IE5vdyB0aGF0IGZ1bmN0aW9uIGdvZXMgYW5kIHNlbmRzIElQSXMsIGkuZS4s
+IHNjaGVkdWxlX3dvcmsoKSBidXQgdGhpcyBpcw0KPiA+IHRvbyBlYXJseSAtIHdvcmtxdWV1ZV9p
+bml0KCkgaGFzbid0IGJlZW4gaW52b2tlZC4gQWN0dWFsbHksIGZyb20gbG9va2luZw0KPiA+IGF0
+IHRoZSBjYWxsc3RhY2ssIHdlIGRvIGtlcm5lbF9pbml0X2ZyZWVhYmxlKCktPm5hdGl2ZV9zbXBf
+cHJlcGFyZV9jcHVzKCkNCj4gPiBhbmQgd29ya3F1ZXVlX2luaXQoKSBjb21lcyBuZXh0Lg0KPiA+
+DQo+ID4gQWN0dWFsbHkgdGhpcyBmYWNpbGl0eSBpcyBvbmx5IHVzZWQgdG8gcHJvdGVjdCBpbnRl
+cnJ1cHQgY29udGV4dCBBQ1BJIG1hcA0KPiA+IGxvb2t1cCwgYW5kIHN1Y2ggbWFwcGluZ3MgYXJl
+IG9ubHkgaW50cm9kdWNlZCBieQ0KPiA+IGFjcGlfb3NfbWFwX2dlbmVyaWNfYWRkcmVzcygpLiBT
+byBiZWZvcmUgaXQgaXMgaW52b2tlZCwgdGhlcmUgaXMgbm8gbmVlZCB0bw0KPiA+IHVzZSBSQ1Us
+IG11dGV4IHNob3VsZCBiZSB1c2VkIGluc3RlYWQgb2YuDQo+IA0KPiBXaHkgc2hvdWxkIHRoZSBt
+dXRleCBiZSB1c2VkIHRoZW4/DQo+IA0KPiBUaGVyZSdzIG5vdGhpbmcgd3Jvbmcgd2l0aCB1c2lu
+ZyBSQ1UgaW4gYWxsIGNhc2VzIGV4Y2VwdCB3aGVuIHRoYXQNCj4gaGFwcGVucyBlYXJseSBvbiBi
+b290IHdoZW4gdGhpbmdzIGRvbid0IHdvcmsgYXMgZXhwZWN0ZWQsIGJ1dCBhdCB0aGF0DQo+IHRp
+bWUgdGhlcmUncyBubyBuZWVkIHRvIGRvIHRoZSBzeW5jaHJvbml6YXRpb24gKmF0KiAqYWxsKiBh
+cyB0aGUgbGlzdA0KPiBwcm90ZWN0ZWQgYnkgUkNVIGlzIG5vdCBldmVuIHdhbGtlZC4NCg0KSWYg
+dGhlIGlzc3VlIGNhbiBiZSBmaXhlZCBpbiBhIHBvaW50IHRoYXQgaXMgbGF0ZXIgdGhhbiB0aGUN
+CmVhcmx5X2FtZF9pb21tdV9pbml0KCkgYW5kIGVhcmxpZXIgdGhhbiBhbGwgYWNwaV9vc19yZWFk
+L3dyaXRlX21lbW9yeSgpLiBUaGF0J3MNCmdyZWF0IGFzIGl0IG1lYW5zIHRoZSBpc3N1ZSBjYW4g
+YmUgZml4ZWQgaW4gdGhlIHNpbXBsZXN0IHdheS4NCg0KSWYgbm90IChtZWFucyB0aGVyZSBpcyBh
+bHdheXMgYSBjaGFuY2UgYWNwaV9vc19yZWFkL3dyaXRlX21lbW9yeSgpIGNhbiBoYXBwZW4NCmJl
+Zm9yZSBlYXJseV9hbWRfaW9tbXVfaW5pdCgpIG9yIG90aGVyIGluaXRjYWxscyB3aGljaCBpbnZv
+a2UNCmFjcGlfcHV0X3RhYmxlKCkpLCB3ZSB0aGVuIG5lZWQgdGhpcyB3b3JrYXJvdW5kLg0KDQpJ
+ZiBhbGwgYWNwaV9vc19yZWFkL3dyaXRlX21lbW9yeSgpIGFyZSBpbnZva2VkIGZyb20gdGhlIHRh
+c2sgY29udGV4dCwgdGhlbiB3ZQ0KY2FuIGp1c3QgdXNlIHRoZSBtdXRleF9sb2NrKCkgaW5zdGVh
+ZCBvZiByY3VfcmVhZF9sb2NrKCkgZHVyaW5nIHRoaXMgc3RhZ2UuIEFzDQphbGwgYWNwaSBpb3Jl
+bWFwcyBhcmUgYWNjZXNzZWQgaW4gdGhlIHRhc2sgY29udGV4dC4NCg0KU28gd2l0aCB0aGUgbXV0
+ZXggbWVjaGFuaXNtIHdvcmtpbmcgZHVyaW5nIHRoaXMgc3RhZ2UsIHRoZSBXQVJOX09OX09OQ0Uo
+KQ0KeW91J3ZlIGludHJvZHVjZWQgaW50byBhY3BpX29zX3JlYWQvd3JpdGVfbWVtb3J5KCkgYWN0
+dWFsbHkgY2FuIGJlIGNvbnZlcnRlZA0KaW50byBXQVJOX09OX09OQ0UoIWVhcmx5X2Vub3VnaCAm
+JiBpbl9pbnRlcnJ1cHQoKSkuIEFuZCB0aGUgZWFybHlfZW5vdWdoIGZsYWcNCmNhbiBiZSBkZXRl
+cm1pbmVkIGJ5IHRoZSBmaXJzdCBhY3BpX29zX21hcF9nZW5lcmljX2FkZHJlc3MoKSBjYWxsLg0K
+DQpUaGUgYml0IG1vcmUgY29tcGxpY2F0ZWQgd29ya2Fyb3VuZCBpcyB0aGVuIGdlbmVyYXRlZCBh
+ZnRlciB3cmFwcGluZyB0aGUNCnJjdV9yZWFkX2xvY2soKS9tdXRleF9sb2NrKCkgdXNpbmcgYWNw
+aV9sb2NrX2lvcmVtYXAoKSBhbmQgbW92aW5nIHRoZQ0KV0FSTl9PTl9PTkNFKCkgaW50byBpdC4N
+Cg0KV2hpY2ggSU1PIGNhbiBoYW5kbGUgbW9yZSBjYXNlcyB0aGFuIHRoZSBzaW1wbGVzdCBmaXgu
+IEFuZCBjYW4gbWFrZSB1cyBpbW11bmUNCnRvIHRoZSBmdXR1cmUgc2ltaWxhciBpc3N1ZXMgYXM6
+DQoxLiBUaGUgQUNQSSBzdWJzeXN0ZW0gbm93IGNhbiBjb250cm9sIHRoZSBvcmRlciBpdHNlbGYg
+YnkgZW5zdXJpbmcgYWxsDQogICBhY3BpX29zX21hcF9nZW5lcmljX2FkZHJlc3MoKSBjYWxsZXJz
+IGFyZSBsYXRlIGVub3VnaCwgd2UnbGwgbm90IGJlIG1lc3NlZA0KICAgdXAgYnkgdGhlIGV4dGVy
+bmFsIGluaXRjYWxsIG9yZGVycy4NCjIuIFNvbWUgQUNQSSBpbml0aWFsaXphdGlvbiBzdGVwcyAo
+Zm9yIGV4YW1wbGUsIG5hbWVzcGFjZSBpbml0aWFsaXphdGlvbikgY2FuDQogICBiZSBjaGFuZ2Vk
+IHdpdGhvdXQgdGhlIHdvcnJ5IHRvIHRyaWdnZXIgc2ltaWxhciByZWdyZXNzaW9ucy4NCg0KVGhh
+bmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2DQo=
