@@ -1,13 +1,15 @@
-From: Wei Xu <xuwei5@hisilicon.com>
-Subject: Re: [PATCH v7 00/15] ACPI platform MSI support and its example mbigen
-Date: Fri, 13 Jan 2017 14:11:58 +0000
-Message-ID: <5878E02E.5080602@hisilicon.com>
-References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v18 00/15] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Fri, 13 Jan 2017 19:29:21 +0000
+Message-ID: <20170113192920.GF2472@leverpostej>
+References: <20161208173319.6618-1-fu.wei@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <20161208173319.6618-1-fu.wei@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,56 +19,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Matthias Brugger <mbrugger@suse.com>, yimin@huawei.com, Jon Masters <jcm@redhat.com>, linuxarm@huawei.com, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Agustin Vega-Frias <agustinv@codeaurora.org>
+To: fu.wei@linaro.org
+Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, rruigrok@codeaurora.org, wim@iguana.be, wei@redhat.com, lorenzo.pieralisi@arm.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, daniel.lezcano@linaro.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, lenb@kernel.org, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, marc.zyngier@arm.com, jcm@redhat.com, cov@codeaurora.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, sudeep.holla@arm.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hanjun,
+Hi,
 
-On 2017/1/11 15:06, Hanjun Guo wrote:
-> With platform msi support landed in the kernel, and the introduction
-> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
-> is ready, this patch set add few patches to enable the ACPI platform
-> msi support.
+On Fri, Dec 09, 2016 at 01:33:04AM +0800, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 > 
-> For platform device connecting to ITS on arm platform, we have IORT
-> table with the named componant node to describe the mappings of paltform
-> device and ITS, so we can retrieve the dev id and find its parent
-> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
+> This patchset:
+>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>         1. Move some enums and marcos to header file;
+>         2. Add a new enum for spi type;
+>         3. Improve printk relevant code;
+>         4. Rename some enums and defines;
+>         5. Rework PPI determination;
+>         6. Rework counter frequency detection;
+>         7. Refactor arch_timer_needs_probing, move it into DT init call
+>         8. Introduce some new structs and refactor the MMIO timer init code
+>         for reusing some common code.
 > 
-> v6 -> v7: 
-> 	- Introduce iort_node_map_platform_id() to retrieve the
-> 	  dev id for both NC (named component) -> ITS/SMMU and
-> 	  NC -> SMMU -> ITS cases, suggested by Lorenzo;
+>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>     memory-mapped timer and SBSA Generic Watchdog timer.
+>     This driver can help to simplify all the relevant timer drivers,
+>     and separate all the ACPI GTDT knowledge from them.
 > 
-> 	- Reorder the patches and rewrite some commit message;
+>     (3)Simplify ACPI code for arm_arch_timer
 > 
-> 	- Remove the test tags because it has major changes
-> 	  to retrieve the dev id, Sinan, Majun, Xinwei, could
-> 	  you please test them again on your platform?
+>     (4)Add GTDT support for ARM memory-mapped timer.
 > 
-> 	- rebased on top of 4.10-rc3 and Lorenzo's patch
->           https://patchwork.kernel.org/patch/9507041/
-> 
-> 	- Tested against Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
->           Add IRQ combiner driver"
+> This patchset has been tested on the following platforms with ACPI enabled:
+>     (1)ARM Foundation v8 model
 
-I tested this patch set on the Hisilicon D05 board with these patches:
+Once v4.10-rc4 comes out this weekend, could you please rebase and
+repost this?
 
-  [1] Agustin's V9 IRQ combiner driver patch set
-      https://patchwork.kernel.org/patch/9474751/
+Marc and I will be happy to take a look then.
 
-  [2] Lorenzo's v2 iort_node_get_id fix patch
-      https://patchwork.kernel.org/patch/9507041/
-
-The branch is at https://github.com/hisilicon/linux-hisi/tree/topic-acpi-mbigen.
-
-The integrated XGE, SAS and PCIe controller works fine.
-So with this patch set:
-
-Tested-by: Wei Xu <xuwei5@hisilicon.com>
-
-Thanks!
-
-Best Regards,
-Wei
+Thanks,
+Mark.
