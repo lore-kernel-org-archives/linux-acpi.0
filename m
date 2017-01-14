@@ -1,31 +1,23 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v7 3/5] arch/x86/platform/atom: Move pmc_atom to
- drivers/platform/x86
-Date: Wed, 18 Jan 2017 10:28:09 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1701181027490.3464@nanos>
-References: <1484690270-28425-1-git-send-email-pierre-louis.bossart@linux.intel.com> <1484690270-28425-4-git-send-email-pierre-louis.bossart@linux.intel.com>
+From: tester@aldems.lv
+Subject: =?utf-8?q?Gesch=C3=A4ftsvorschlag?=
+Date: Sun, 15 Jan 2017 04:54:13 +0530
+Message-ID: <148443650110212576@mail>
+Reply-To: arnoldkristoferson101@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1484690270-28425-4-git-send-email-pierre-louis.bossart@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.aldems.lv ([93.177.192.35]:38946 "EHLO aldems.lv"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752693AbdARKPn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 18 Jan 2017 05:15:43 -0500
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <tester@aldems.lv>
 
-On Tue, 17 Jan 2017, Pierre-Louis Bossart wrote:
+Lieber Freund.
 
-> From: Irina Tirdea <irina.tirdea@intel.com>
-> 
-> The pmc_atom driver does not contain any architecture specific
-> code. It only enables the SoC Power Management Controller driver
-> for BayTrail and CherryTrail platforms.
-> 
-> Move the pmc_atom driver from arch/x86/platform/atom to
-> drivers/platform/x86. Also clean-up and reorder include files by
-> alphabetical order in pmc_atom.h
-> 
-> Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
-> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Erlauben Sie mir, auf diese Weise auf Sie zuzugehen. Ich bin Dr. Arnold Kristofferson, ein US-Auftragnehmer, der mit Nichtkämpfer US Marine in Ba'qubah, Irak arbeitet. Ich habe die Summe von 10,6 Millionen Dollar, die ich aus einem Rohöl-Deal gemacht habe, und ich möchte, dass Sie mir helfen, es zu erhalten. Da ich hier auf offizieller Kapazität arbeite, kann ich diesen Fonds nicht bei mir behalten und dies ist mein einziger Grund für die Kontaktaufnahme mit Ihnen. Wenn Sie interessiert sind und Sie diesen Fonds in Ihrer Kapazität erhalten können, melden Sie sich bitte bei mir, damit ich Ihnen weitere Details geben kann, wie Sie dieses Geld für mich erhalten können. Bitte erreichen Sie mich per E-Mail: arnoldkristoferson101@gmail.com
+Mit freundlichen Grüßen.
 
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
