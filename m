@@ -1,74 +1,131 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: save NVS memory for Lenovo G50-45
-Date: Mon, 16 Jan 2017 10:55:45 +0800
-Message-ID: <1484535345-5126-1-git-send-email-rui.zhang@intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH v7 00/15] ACPI platform MSI support and its example mbigen
+Date: Mon, 16 Jan 2017 00:12:22 -0500
+Message-ID: <9b8cb726-8659-1a47-a5a5-15ed9c131064@codeaurora.org>
+References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:61485 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751603AbdAPCzx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 15 Jan 2017 21:55:53 -0500
+Received: from smtp.codeaurora.org ([198.145.29.96]:37236 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750826AbdAPFM1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jan 2017 00:12:27 -0500
+In-Reply-To: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Matthias Brugger <mbrugger@suse.com>, Xinwei Kong <kong.kongxinwei@hisilicon.com>
 
-In commit 821d6f0359b0 ("ACPI / sleep: Do not save NVS for new machines to
-accelerate S3"), to optimize S3 suspend/resume speed, code is introduced
-to ignore NVS memory saving during S3 for all the platforms later than
-2012.
+Hi Hanjun,
 
-But, Lenovo G50-45, a platform released in 2015, still needs NVS memory
-saving during S3. A quirk is introduced for this platform.
+On 1/11/2017 10:06 AM, Hanjun Guo wrote:
+> With platform msi support landed in the kernel, and the introduction
+> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
+> is ready, this patch set add few patches to enable the ACPI platform
+> msi support.
+> 
+> For platform device connecting to ITS on arm platform, we have IORT
+> table with the named componant node to describe the mappings of paltform
+> device and ITS, so we can retrieve the dev id and find its parent
+> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
+> 
+> v6 -> v7: 
+> 	- Introduce iort_node_map_platform_id() to retrieve the
+> 	  dev id for both NC (named component) -> ITS/SMMU and
+> 	  NC -> SMMU -> ITS cases, suggested by Lorenzo;
+> 
+> 	- Reorder the patches and rewrite some commit message;
+> 
+> 	- Remove the test tags because it has major changes
+> 	  to retrieve the dev id, Sinan, Majun, Xinwei, could
+> 	  you please test them again on your platform?
+> 
+> 	- rebased on top of 4.10-rc3 and Lorenzo's patch
+>           https://patchwork.kernel.org/patch/9507041/
+> 
+> 	- Tested against Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
+>           Add IRQ combiner driver"
+> 
+> v5 -> v6:
+>         - Call acpi_configure_pmsi_domain() for platform devices in
+>           acpi_platform_notify() as it's cleaner (suggested by Rafael)
+>         - Remove the "u8 type" for iort_id_map() because it's unused
+>         - Rebase on top of 4.10-rc2
+>         - Collect test and review tags
+> 
+> v4 -> v5:
+>         - Add mbigen support back with tested on with Agustin's patchset,
+>           and it's a good example of how ACPI platform MSI works
+>         - rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
+> 
+> v3 -> v4:
+>         - Drop mbi-gen patches to just submit platform msi support because
+>           will rebase mbi-gen patches on top of Agustin's patchset, and discusion
+>           is going there.
+>         - Add a patch to support device topology such as NC(named componant, paltform device)
+>           ->SMMU->ITS which suggested by Lorenzo;
+>         - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
+>         - rebased on top of 4.9-rc7
+> 
+> v2 -> v3:
+>         - Drop RFC tag
+>         - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
+>         - Add 3 cleanup patches (patch 1, 2, 3)
+>         - Drop arch_init call patch from last version
+>         - Introduce a callback for platform device to set msi domain
+>         - Introduce a new API to get paltform device's domain instead of
+>           reusing the PCI one in previous version
+>         - Add a patch to rework iort_node_get_id()
+> 
+> [1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
+> 
+> v1 -> v2:
+>         - Fix the bug of if multi Interrupt() resoures in single _PRS,
+>           we need to calculate all the irq numbers (I missed it in previous
+>           version);
+>         - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
+>           SMMU patches (also Robin's SMMu patches)
+>         - Add patch irqchip: mbigen: promote mbigen init.
+> 
+> 
+> Hanjun Guo (13):
+>   ACPI: IORT: fix the indentation in iort_scan_node()
+>   ACPI: IORT: add missing comment for iort_dev_find_its_id()
+>   ACPI: IORT: minor cleanup for iort_match_node_callback()
+>   irqchip: gic-v3-its: keep the head file include in alphabetic order
+>   irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+>   irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
+>     for ACPI
+>   irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
+>     domain
+>   ACPI: IORT: rename iort_node_map_rid() to make it generic
+>   ACPI: platform-msi: retrieve dev id from IORT
+>   ACPI: IORT: move over to iort_node_map_platform_id()
+>   ACPI: platform: setup MSI domain for ACPI based platform device
+>   msi: platform: make platform_msi_create_device_domain() ACPI aware
+>   irqchip: mbigen: Add ACPI support
+> 
+> Kefeng Wang (2):
+>   irqchip: mbigen: drop module owner
+>   irqchip: mbigen: introduce mbigen_of_create_domain()
+> 
+>  drivers/acpi/arm64/iort.c                     | 161 +++++++++++++++++++++-----
+>  drivers/acpi/glue.c                           |   6 +
+>  drivers/base/platform-msi.c                   |   3 +-
+>  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++----
+>  drivers/irqchip/irq-gic-v3-its.c              |   3 +-
+>  drivers/irqchip/irq-mbigen.c                  | 109 ++++++++++++++---
+>  include/linux/acpi_iort.h                     |  11 ++
+>  7 files changed, 322 insertions(+), 77 deletions(-)
+> 
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=189431
-Tested-by: Przemek <soprwa@gmail.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/sleep.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+I tested the v7 series along with Lorenzo's patch using HIDMA and MSI interrupts.
+Everything checked out OK.
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 9b6cebe227a0..0804e63863b6 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -130,6 +130,17 @@ void __init acpi_nvs_nosave_s3(void)
- 	nvs_nosave_s3 = true;
- }
- 
-+void __init acpi_nvs_save_s3(void)
-+{
-+	nvs_nosave_s3 = false;
-+}
-+
-+static int __init init_nvs_save_s3(const struct dmi_system_id *d)
-+{
-+	acpi_nvs_save_s3();
-+	return 0;
-+}
-+
- /*
-  * ACPI 1.0 wants us to execute _PTS before suspending devices, so we allow the
-  * user to request that behavior by using the 'acpi_old_suspend_ordering'
-@@ -324,6 +335,19 @@ static struct dmi_system_id acpisleep_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
- 		},
- 	},
-+	/*
-+	 * https://bugzilla.kernel.org/show_bug.cgi?id=189431
-+	 * Lenovo G50-45 is a platform later than 2012, but needs nvs memory
-+	 * saving during S3.
-+	 */
-+	{
-+	.callback = init_nvs_save_s3,
-+	.ident = "Lenovo G50-45",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "80E3"),
-+		},
-+	},
- 	{},
- };
- 
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
+
 -- 
-2.7.4
-
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
