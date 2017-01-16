@@ -1,110 +1,71 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v19 06/15] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Mon, 16 Jan 2017 17:50:26 +0000
-Message-ID: <20170116175025.GJ5908@leverpostej>
-References: <20161221064603.11830-1-fu.wei@linaro.org>
- <20161221064603.11830-7-fu.wei@linaro.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v12 6/7] arm64: pmu: Detect and enable multiple PMUs in
+ an ACPI system
+Date: Mon, 16 Jan 2017 18:28:38 +0000
+Message-ID: <20170116182838.GA1843@red-moon>
+References: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
+ <1484068672-15852-7-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59828 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:60468 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750877AbdAPRv3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Jan 2017 12:51:29 -0500
+        id S1750788AbdAPS0v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Jan 2017 13:26:51 -0500
 Content-Disposition: inline
-In-Reply-To: <20161221064603.11830-7-fu.wei@linaro.org>
+In-Reply-To: <1484068672-15852-7-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-On Wed, Dec 21, 2016 at 02:45:54PM +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
-> 
-> Currently, the counter frequency detection call(arch_timer_detect_rate)
-> combines all the ways to get counter frequency: device-tree property,
-> system coprocessor register, MMIO timer. But in the most of use cases,
-> we don't need all the ways to try:
-> For example, reading device-tree property will be needed only when
-> system boot with device-tree, getting frequency from MMIO timer register
-> will beneeded only when we init MMIO timer.
-> 
-> This patch separates paths to determine frequency:
-> Separate out device-tree code, keep them in device-tree init function.
+On Tue, Jan 10, 2017 at 11:17:51AM -0600, Jeremy Linton wrote:
 
-Splitting these out makes sense to me.
+[...]
 
-> Separate out the MMIO frequency and the sysreg frequency detection call,
-> and use the appropriate one for the counter.
-
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-> ---
->  drivers/clocksource/arm_arch_timer.c | 49 +++++++++++++++++++++++-------------
->  1 file changed, 31 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index c7b4482..9a1f138 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -488,27 +488,31 @@ static int arch_timer_starting_cpu(unsigned int cpu)
->  	return 0;
->  }
->  
-> -static void
-> -arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
-> +static void arch_timer_detect_rate(void)
->  {
-> -	/* Who has more than one independent system counter? */
-> -	if (arch_timer_rate)
-> -		return;
-> +	/*
-> +	 * Try to get the timer frequency from
-> +	 * cntfrq_el0(system coprocessor register).
-> +	 */
-> +	if (!arch_timer_rate)
-> +		arch_timer_rate = arch_timer_get_cntfrq();
-> +
-> +	/* Check the timer frequency. */
-> +	if (!arch_timer_rate)
-> +		pr_warn("frequency not available\n");
-> +}
->  
-> +static void arch_timer_mem_detect_rate(void __iomem *cntbase)
+> +static int __init pmu_acpi_init(void)
 > +{
->  	/*
-> -	 * Try to determine the frequency from the device tree or CNTFRQ,
-> -	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-> +	 * Try to determine the frequency from
-> +	 * CNTFRQ in memory-mapped timer.
->  	 */
-> -	if (!acpi_disabled ||
-> -	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-> -		if (cntbase)
-> -			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
-> -		else
-> -			arch_timer_rate = arch_timer_get_cntfrq();
-> -	}
-> +	if (!arch_timer_rate)
-> +		arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
->  
->  	/* Check the timer frequency. */
-> -	if (arch_timer_rate == 0)
-> +	if (!arch_timer_rate)
->  		pr_warn("frequency not available\n");
->  }
+> +	struct pmu_types *pmu, *safe_temp;
+> +	bool unused_madt_entries;
+> +	LIST_HEAD(pmus);
+> +
+> +	if (acpi_disabled)
+> +		return 0;
+> +
+> +	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
 
-There's a subtle change in behaviour here. Previously for ACPI we'd only
-ever use the sysreg CNTFRQ value for arch_timer_rate, whereas now we
-might use the MMIO timer rate. Maybe that's not a big deal, but I will
-need to think.
+IIUC (and that's an if) unused_madt_entries is a "buffer" that you add
+to all platform devices you manage to create through midr matching to
+make sure there are enough resource entries when/if a cpu of the
+respective type is onlined.
 
-Generally, the logic to determine the rate is fairly gnarly regardless.
+If that's the case unused_madt_entries can't be a bool.
 
-It would be nice if we could split the MMIO and sysreg rates entirely,
-and kill the implicit relationship between the two, or at least make one
-canonical and warn if the two differ.
+Second question I have is what happens if cpus that aren't online
+have an midr that differs from all the entries parsed at init time
+(ie those you created a platform device for), that's certainly
+a pesky corner case though.
 
 Thanks,
-Mark.
+Lorenzo
+
+> +
+> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
+> +		pmu->cpu_count += unused_madt_entries;
+> +		pmu_acpi_register(pmu);
+> +
+> +		list_del(&pmu->list);
+> +		kfree(pmu);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +arch_initcall(pmu_acpi_init);
+> -- 
+> 2.5.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
