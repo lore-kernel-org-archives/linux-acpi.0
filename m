@@ -1,71 +1,85 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v12 6/7] arm64: pmu: Detect and enable multiple PMUs in
- an ACPI system
-Date: Mon, 16 Jan 2017 18:28:38 +0000
-Message-ID: <20170116182838.GA1843@red-moon>
-References: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
- <1484068672-15852-7-git-send-email-jeremy.linton@arm.com>
+From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v19 10/15] clocksource/drivers/arm_arch_timer: Refactor
+ the timer init code to prepare for GTDT
+Date: Mon, 16 Jan 2017 18:30:32 +0000
+Message-ID: <20170116183032.GL5908@leverpostej>
+References: <20161221064603.11830-1-fu.wei@linaro.org>
+ <20161221064603.11830-11-fu.wei@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60468 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750788AbdAPS0v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Jan 2017 13:26:51 -0500
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1484068672-15852-7-git-send-email-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20161221064603.11830-11-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-On Tue, Jan 10, 2017 at 11:17:51AM -0600, Jeremy Linton wrote:
+On Wed, Dec 21, 2016 at 02:45:58PM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> 
+> The patch refactor original memory-mapped timer init code:
+>     (1) Refactor "arch_timer_mem_init", make it become a common code for
+>         memory-mapped timer init.
+>     (2) Add a new function "arch_timer_mem_of_init" for DT init.
+
+As a general note, please write proper commit messages, describing what
+the problem is, and why we are making the changes. These bullet points
+don't add anything to what can be derived from a glance at the code.
+
+For this patch, you can use:
+
+  clocksource: arm_arch_timer: refactor MMIO timer probing
+
+  Currently the code to probe MMIO architected timers mixes DT parsing
+  with actual poking of hardware. This makes the code harder than
+  necessary to understand, and makes it difficult to add support for
+  probing via ACPI.
+
+  This patch factors all the DT-specific logic out of
+  arch_timer_mem_init(), into a new function, arch_timer_mem_of_init().
+  The former pokes the hardware and determines the suitablility of
+  frames based on a datastructure populated by the latter.
+
+  This cleanly separates the two and will make it possible to add
+  probing using the ACPI GTDT in subsequent patches.
 
 [...]
 
-> +static int __init pmu_acpi_init(void)
-> +{
-> +	struct pmu_types *pmu, *safe_temp;
-> +	bool unused_madt_entries;
-> +	LIST_HEAD(pmus);
+> +	for_each_available_child_of_node(np, frame_node) {
+> +		int n;
+> +		struct arch_timer_mem_frame *frame = &timer_mem->frame[i];
 > +
-> +	if (acpi_disabled)
-> +		return 0;
+> +		if (of_property_read_u32(frame_node, "frame-number", &n)) {
+> +			pr_err("Missing frame-number\n");
+> +			of_node_put(frame_node);
+> +			goto out;
+> +		}
+> +		frame->frame_nr = n;
 > +
-> +	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
+> +		if (of_address_to_resource(frame_node, 0, &res)) {
+> +			of_node_put(frame_node);
+> +			goto out;
+> +		}
+> +		frame->cntbase = res.start;
+> +		frame->size = resource_size(&res);
+> +
+> +		frame->virt_irq = irq_of_parse_and_map(frame_node,
+> +						       ARCH_TIMER_VIRT_SPI);
+> +		frame->phys_irq = irq_of_parse_and_map(frame_node,
+> +						       ARCH_TIMER_PHYS_SPI);
+>  
+> -	if (!arch_timer_needs_of_probing())
+> +		if (++i >= ARCH_TIMER_MEM_MAX_FRAMES)
+> +			break;
+> +	}
 
-IIUC (and that's an if) unused_madt_entries is a "buffer" that you add
-to all platform devices you manage to create through midr matching to
-make sure there are enough resource entries when/if a cpu of the
-respective type is onlined.
-
-If that's the case unused_madt_entries can't be a bool.
-
-Second question I have is what happens if cpus that aren't online
-have an midr that differs from all the entries parsed at init time
-(ie those you created a platform device for), that's certainly
-a pesky corner case though.
+It would be good if we could warn upon seeing more than
+ARCH_TIMER_MEM_MAX_FRAMES children, since that's obviously an error.
 
 Thanks,
-Lorenzo
-
-> +
-> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
-> +		pmu->cpu_count += unused_madt_entries;
-> +		pmu_acpi_register(pmu);
-> +
-> +		list_del(&pmu->list);
-> +		kfree(pmu);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +arch_initcall(pmu_acpi_init);
-> -- 
-> 2.5.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
