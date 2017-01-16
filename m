@@ -1,183 +1,73 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v7 09/15] ACPI: platform-msi: retrieve dev id from IORT
-Date: Mon, 16 Jan 2017 11:25:56 +0000
-Message-ID: <20170116112556.GA23703@red-moon>
+Subject: Re: [PATCH v7 15/15] irqchip: mbigen: Add ACPI support
+Date: Mon, 16 Jan 2017 11:38:04 +0000
+Message-ID: <20170116113804.GB23703@red-moon>
 References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
- <1484147199-4267-10-git-send-email-hanjun.guo@linaro.org>
- <20170113121144.GE20837@red-moon>
- <5879A8F3.7030303@huawei.com>
+ <1484147199-4267-16-git-send-email-hanjun.guo@linaro.org>
+ <20170113102104.GB20837@red-moon>
+ <58799376.6040302@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:50794 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750817AbdAPLgQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 16 Jan 2017 06:36:16 -0500
 Content-Disposition: inline
-In-Reply-To: <5879A8F3.7030303@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Matthias Brugger <mbrugger@suse.com>, Xinwei Kong <kong.kongxinwei@hisilicon.com>
+In-Reply-To: <58799376.6040302@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Matthias Brugger <mbrugger@suse.com>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 
-On Sat, Jan 14, 2017 at 12:28:35PM +0800, Hanjun Guo wrote:
+On Sat, Jan 14, 2017 at 10:56:54AM +0800, Hanjun Guo wrote:
 > Hi Lorenzo,
 > 
-> On 2017/1/13 20:11, Lorenzo Pieralisi wrote:
-> > On Wed, Jan 11, 2017 at 11:06:33PM +0800, Hanjun Guo wrote:
-> >> For devices connecting to ITS, it needs dev id to identify itself, and
-> >> this dev id is represented in the IORT table in named component node
-> >> [1] for platform devices, so in this patch we will scan the IORT to
-> >> retrieve device's dev id.
+> On 2017/1/13 18:21, Lorenzo Pieralisi wrote:
+> > On Wed, Jan 11, 2017 at 11:06:39PM +0800, Hanjun Guo wrote:
+> >> With the preparation of platform msi support and interrupt producer
+> >> in DSDT, we can add mbigen ACPI support now.
 > >>
-> >> For named components we know that there are always two steps
-> >> involved (second optional):
+> >> We are using _PRS methd to indicate number of irq pins instead
+> >> of num_pins in DT to avoid _DSD usage in this case.
 > >>
-> >> (1) Retrieve the initial id (this may well provide the final mapping)
-> >> (2) Map the id (optional if (1) represents the map type we need), this
-> >>     is needed for use cases such as NC (named component) -> SMMU -> ITS
-> >>     mappings.
+> >> For mbi-gen,
+> >>     Device(MBI0) {
+> >>           Name(_HID, "HISI0152")
+> >>           Name(_UID, Zero)
+> >>           Name(_CRS, ResourceTemplate() {
+> >>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+> >>           })
 > >>
-> >> we have API iort_node_get_id() for step (1) above and
-> >> iort_node_map_rid() for step (2), so create a wrapper
-> >> iort_node_map_platform_id() to retrieve the dev id.
-> >>
-> >> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
-> > This patch should be split and IORT changes should be squashed with
-> > patch 10.
+> >>           Name (_PRS, ResourceTemplate() {
+> >> 		  Interrupt(ResourceProducer,...) {12,14,....}
+> > I still do not understand why you are using _PRS for this, I think
+> > the MBIgen configuration is static and if it is so the Interrupt
+> > resource should be part of the _CRS unless there is something I am
+> > missing here.
 > 
-> If split the changes for IORT and its platform msi, API introduced in IORT will
-> not be used in a single patch, seems violate the suggestion of "new introduced API
-> needs to be used in the same patch", did I miss something?
+> Sorry for not clear in the commit message. MBIgen is an interrupt producer
+> which produces irq resource to devices connecting to it, and MBIgen itself
+> don't consume wired interrupts.
 
-Yes, I would introduce iort_node_map_platform_id() and in the same
-patch update current iort_node_get_id() users (ie iort_iommu_configure())
-to it. No functional change intended.
+That's why you mark it as ResourceProducer, but that's not a reason to
+put it in the _PRS instead of _CRS.
 
-Then in subsequent patches you can retrieve the ITS device id for
-platform devices through it.
+IIUC _PRS is there to provide a way to define the possible resource
+settings of a _configurable_ device (ie programmable) so that the actual
+resource value you would programme with a call to its _SRS is sane (ie
+the OS has a way, through the _PRS, to detect what possible resource
+settings are available for the device).
 
-Code is in your series, you just have to reshuffle it slightly.
+I think Rafael has more insights into how the _PRS is used on x86
+systems so I would ask his point of view here before merrily merging
+this code.
 
-> >> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >> Suggested-by: Tomasz Nowicki <tn@semihalf.com>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> >> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >> Cc: Sinan Kaya <okaya@codeaurora.org>
-> >> Cc: Tomasz Nowicki <tn@semihalf.com>
-> >> Cc: Thomas Gleixner <tglx@linutronix.de>
-> >> ---
-> >>  drivers/acpi/arm64/iort.c                     | 56 +++++++++++++++++++++++++++
-> >>  drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +-
-> >>  include/linux/acpi_iort.h                     |  8 ++++
-> >>  3 files changed, 67 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >> index 069a690..95fd20b 100644
-> >> --- a/drivers/acpi/arm64/iort.c
-> >> +++ b/drivers/acpi/arm64/iort.c
-> >> @@ -30,6 +30,7 @@
-> >>  #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
-> >>  #define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
-> >>  				(1 << ACPI_IORT_NODE_SMMU_V3))
-> >> +#define IORT_TYPE_ANY		(IORT_MSI_TYPE | IORT_IOMMU_TYPE)
-> >>  
-> >>  struct iort_its_msi_chip {
-> >>  	struct list_head	list;
-> >> @@ -406,6 +407,34 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-> >>  	return NULL;
-> >>  }
-> >>  
-> >> +static
-> >> +struct acpi_iort_node *iort_node_map_platform_id(struct acpi_iort_node *node,
-> >> +						 u32 *id_out, u8 type_mask,
-> >> +						 int index)
-> >> +{
-> >> +	struct acpi_iort_node *parent;
-> >> +	u32 id;
-> >> +
-> >> +	/* step 1: retrieve the initial dev id */
-> >> +	parent = iort_node_get_id(node, &id, IORT_TYPE_ANY, index);
-> >> +	if (!parent)
-> >> +		return NULL;
-> >> +
-> >> +	/*
-> >> +	 * optional step 2: map the initial dev id if its parent is not
-> >> +	 * the target type we wanted, map it again for the use cases such
-> >> +	 * as NC (named component) -> SMMU -> ITS. If the type is matched,
-> >> +	 * return the parent pointer directly.
-> >> +	 */
-> >> +	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
-> >> +		parent = iort_node_map_id(parent, id, id_out, type_mask);
-> >> +	else
-> >> +		if (id_out)
-> > Remove this pointer check.
-> 
-> This was added because of NULL pointer reference, I passed NULL for id_out because I
-> only want to get its parent node, I think we have four options:
-> 
->  - Introduce a new API to get the parent only from the scratch, but it will duplicate the code
->     a lot;
-> 
->  - Don't check the id_out in iort_node_map_platform_id(), and introduce a wrapper and pass the
->    dummy id for iort_node_map_platform_id() :
-> static
-> struct acpi_iort_node *iort_node_get_platform_parent{struct device *dev, u8 type_mask}
-> {
->         struct acpi_iort_node *node, *parent = NULL;
->         int i;
->         u32 dummy_id;
-> 
->         node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
->                               iort_match_node_callback, dev);
-> 
->         if (!node)
->                 return NULL;
-> 
->         for (i = 0; i < node->mapping_count; i++) {
->                 /* we just want to get the parent node */
->                 parent = iort_node_map_platform_id(node, &dummy_id,
->                                                    IORT_MSI_TYPE, i);
->                 if (parent)
->                         break;
->         }
-> 
->         return parent;
-> }
-> 
->  - Similar solution as above but don't introduce wrapper, just use dummy_id if
->    iort_node_map_platform_id() is called;
-> 
-> - Use the solution I proposed in this patch.
-> 
-> Please share you suggestion on this :)
+> Also devices connecting MBIgen may not consume all the interrupts produced
+> by MBIgen, for example, MBIgen may produce 128 interrupts but only half of
+> them are currently used, so _PRS here means "provide interrupt resources
+> may consumed by devices connecting to it".
 
-I see. I would like to change the IORT mapping API functions to always pass
-in an argument:
+See above.
 
-struct iort_idmap {
-	struct acpi_iort_node *parent;
-	u32 id;
-};
-
-and return an int, because current functions (eg iort_node_map_rid())
-return a parent IORT node but also the mapped id as a value-result
-and that's not easy to follow (also Sinan raised this point which I
-think it is fair).
-
-I think we'd better postpone this change to next cycle, so you can
-leave the pointer check:
-
-if (id_out)
-
-I will clean this up later, basically what we would end up doing to just
-retrieve the parent pointer would be the IORT equivalent of what we have
-in DT:
-
-of_parse_phandle()
-  -> __of_parse_phandle_with_args() #we call it with cell_count == 0
-
-
-at the end of the day it is just to make code easier to follow, since it
-is functions internal to IORT compilation unit it is ok for now to leave
-it as-is.
-
-Thanks,
 Lorenzo
