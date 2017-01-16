@@ -1,210 +1,183 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v19 00/15] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Mon, 16 Jan 2017 14:26:54 +0800
-Message-ID: <CADyBb7vbTLWKgmGe7jH=4OJx7sZ4Ck4iR-spvnHUrStF5XGxKw@mail.gmail.com>
-References: <20161221064603.11830-1-fu.wei@linaro.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7 09/15] ACPI: platform-msi: retrieve dev id from IORT
+Date: Mon, 16 Jan 2017 11:25:56 +0000
+Message-ID: <20170116112556.GA23703@red-moon>
+References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
+ <1484147199-4267-10-git-send-email-hanjun.guo@linaro.org>
+ <20170113121144.GE20837@red-moon>
+ <5879A8F3.7030303@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20161221064603.11830-1-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei Huang <wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Leo Duran <leo.duran-5C7GfCeVMHo@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, linux-watchdog@vger.k
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5879A8F3.7030303@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Matthias Brugger <mbrugger@suse.com>, Xinwei Kong <kong.kongxinwei@hisilicon.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark,
+On Sat, Jan 14, 2017 at 12:28:35PM +0800, Hanjun Guo wrote:
+> Hi Lorenzo,
+> 
+> On 2017/1/13 20:11, Lorenzo Pieralisi wrote:
+> > On Wed, Jan 11, 2017 at 11:06:33PM +0800, Hanjun Guo wrote:
+> >> For devices connecting to ITS, it needs dev id to identify itself, and
+> >> this dev id is represented in the IORT table in named component node
+> >> [1] for platform devices, so in this patch we will scan the IORT to
+> >> retrieve device's dev id.
+> >>
+> >> For named components we know that there are always two steps
+> >> involved (second optional):
+> >>
+> >> (1) Retrieve the initial id (this may well provide the final mapping)
+> >> (2) Map the id (optional if (1) represents the map type we need), this
+> >>     is needed for use cases such as NC (named component) -> SMMU -> ITS
+> >>     mappings.
+> >>
+> >> we have API iort_node_get_id() for step (1) above and
+> >> iort_node_map_rid() for step (2), so create a wrapper
+> >> iort_node_map_platform_id() to retrieve the dev id.
+> >>
+> >> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
+> > This patch should be split and IORT changes should be squashed with
+> > patch 10.
+> 
+> If split the changes for IORT and its platform msi, API introduced in IORT will
+> not be used in a single patch, seems violate the suggestion of "new introduced API
+> needs to be used in the same patch", did I miss something?
 
-This v19 (I have mentioned it in my previous email) is the latest
-patchset which can be applied on v4.10-rc4 directly.
+Yes, I would introduce iort_node_map_platform_id() and in the same
+patch update current iort_node_get_id() users (ie iort_iommu_configure())
+to it. No functional change intended.
 
-please review this patchset, thanks! :-)
+Then in subsequent patches you can retrieve the ITS device id for
+platform devices through it.
 
-On 21 December 2016 at 14:45,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->
-> This patchset:
->     (1)Preparation for adding GTDT support in arm_arch_timer:
->         1. Move some enums and marcos to header file;
->         2. Add a new enum for spi type;
->         3. Improve printk relevant code;
->         4. Rename some enums and defines;
->         5. Rework PPI determination;
->         6. Rework counter frequency detection;
->         7. Refactor arch_timer_needs_probing, move it into DT init call
->         8. Introduce some new structs and refactor the MMIO timer init code
->         for reusing some common code.
->
->     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
->     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->     memory-mapped timer and SBSA Generic Watchdog timer.
->     This driver can help to simplify all the relevant timer drivers,
->     and separate all the ACPI GTDT knowledge from them.
->
->     (3)Simplify ACPI code for arm_arch_timer
->
->     (4)Add GTDT support for ARM memory-mapped timer.
->
-> This patchset has been tested on the following platforms with ACPI enabled:
->     (1)ARM Foundation v8 model
->
-> Changelog:
-> v19: https://lkml.org/lkml/2016/12/21/
->      Fix a '\n' missing in a error message in arch_timer_mem_init.
->      Add "request_mem_region" for ioremapping cntbase, according to
->      f947ee1 clocksource/drivers/arm_arch_timer: Map frame with of_io_request_and_map()
->      Rebase to 4.9.0-gfb779ff
->
-> v18: https://lkml.org/lkml/2016/12/8/446
->      Fix 8/15 patch problem of "int ret;" in arch_timer_acpi_init.
->      Rebase to 4.9.0-rc8-g9269898
->
-> v17: https://lkml.org/lkml/2016/11/25/140
->      Take out some cleanups from 4/15.
->      Merge 5/15 and 6/15, improve PPI determination code,
->      improve commit message.
->      Rework counter frequency detection.
->      Move arch_timer_needs_of_probing into DT init call.
->      Move Platform Timer scan loop back to timer init call to avoid allocating
->      and free memory.
->      Improve all the exported functions' comment.
->
-> v16: https://lkml.org/lkml/2016/11/16/268
->      Fix patchset problem about static enum ppi_nr of 01/13 in v15.
->      Refactor arch_timer_detect_rate.
->      Refactor arch_timer_needs_probing.
->
-> v15: https://lkml.org/lkml/2016/11/15/366
->      Re-order patches
->      Add arm_arch_timer refactoring patches to prepare for GTDT:
->          1. rename some  enums and defines, and some cleanups
->          2. separate out arch_timer_uses_ppi init code and fix a potential bug
->          3. Improve some new structs, refactor the timer init code.
->      Since the some structs have been changed, GTDT parser for memory-mapped
->      timer and SBSA Generic Watchdog timer have been update.
->
-> v14: https://lkml.org/lkml/2016/9/28/573
->      Separate memory-mapped timer GTDT support into two patches
->          1. Refactor the timer init code to prepare for GTDT
->          2. Add GTDT support for memory-mapped timer
->
-> v13: http://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1231717.html
->      Improve arm_arch_timer code for memory-mapped
->      timer GTDT support, refactor original memory-mapped timer
->      dt support for reusing some common code.
->
-> v12: https://lkml.org/lkml/2016/9/13/250
->      Rebase to latest Linux 4.8-rc6
->      Delete the confusing "skipping" in the error message.
->
-> V11: https://lkml.org/lkml/2016/9/6/354
->      Rebase to latest Linux 4.8-rc5
->      Delete typedef (suggested by checkpatch.pl)
->
-> V10: https://lkml.org/lkml/2016/7/26/215
->      Drop the "readq" patch.
->      Rebase to latest Linux 4.7.
->
-> V9: https://lkml.org/lkml/2016/7/25/345
->     Improve pr_err message in acpi gtdt driver.
->     Update Commit message for 7/9
->     shorten the irq mapping function name
->     Improve GTDT driver for memory-mapped timer
->
-> v8: https://lkml.org/lkml/2016/7/19/660
->     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
->     and also improve printk message.
->     Simplify is_timer_block and is_watchdog.
->     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
->     Delete __init in include/linux/acpi.h for GTDT API
->     Make ARM64 select GTDT.
->     Delete "#include <linux/module.h>" from acpi_gtdt.c
->     Simplify GT block parse code.
->
-> v7: https://lkml.org/lkml/2016/7/13/769
->     Move the GTDT driver to drivers/acpi/arm64
->     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
->     Merge 3 patches of GTDT parser driver.
->     Fix the for_each_platform_timer bug.
->
-> v6: https://lkml.org/lkml/2016/6/29/580
->     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
->     and SBSA Generic Watchdog timer
->     Improve driver by suggestions and example code from Daniel Lezcano
->
-> v5: https://lkml.org/lkml/2016/5/24/356
->     Sorting out all patches, simplify the API of GTDT driver:
->     GTDT driver just fills the data struct for arm_arch_timer driver.
->
-> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
->     Delete the kvm relevant patches
->     Separate two patches for sorting out the code for arm_arch_timer.
->     Improve irq info export code to allow missing irq info in GTDT table.
->
-> v3: https://lkml.org/lkml/2016/2/1/658
->     Improve GTDT driver code:
->       (1)improve pr_* by defining pr_fmt(fmt)
->       (2)simplify gtdt_sbsa_gwdt_init
->       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
->       to get GTDT table.
->     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
->     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
->
-> v2: https://lkml.org/lkml/2015/12/2/10
->     Rebase to latest kernel version(4.4-rc3).
->     Fix the bug about the config problem,
->     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
->
-> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
->
-> Fu Wei (15):
->   clocksource/drivers/arm_arch_timer: Move enums and defines to header
->     file
->   clocksource/drivers/arm_arch_timer: Add a new enum for spi type
->   clocksource/drivers/arm_arch_timer: Improve printk relevant code
->   clocksource/drivers/arm_arch_timer: rename some enums and defines.
->   clocksource/drivers/arm_arch_timer: rework PPI determination
->   clocksource/drivers/arm_arch_timer: Rework counter frequency
->     detection.
->   clocksource/drivers/arm_arch_timer: Refactor arch_timer_needs_probing
->   clocksource/drivers/arm_arch_timer: move arch_timer_needs_of_probing
->     into DT init call
->   clocksource/drivers/arm_arch_timer: Introduce some new structs to
->     prepare for GTDT
->   clocksource/drivers/arm_arch_timer: Refactor the timer init code to
->     prepare for GTDT
->   acpi/arm64: Add GTDT table parse driver
->   clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
->   acpi/arm64: Add memory-mapped timer support in GTDT driver
->   clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
->     timer
->   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
->
->  arch/arm64/Kconfig                   |   1 +
->  drivers/acpi/arm64/Kconfig           |   3 +
->  drivers/acpi/arm64/Makefile          |   1 +
->  drivers/acpi/arm64/gtdt.c            | 374 +++++++++++++++++++++++++++
->  drivers/clocksource/arm_arch_timer.c | 483 ++++++++++++++++++++---------------
->  drivers/watchdog/Kconfig             |   1 +
->  include/clocksource/arm_arch_timer.h |  45 +++-
->  include/linux/acpi.h                 |   7 +
->  virt/kvm/arm/hyp/timer-sr.c          |   6 +-
->  9 files changed, 712 insertions(+), 209 deletions(-)
->  create mode 100644 drivers/acpi/arm64/gtdt.c
->
-> --
-> 2.9.3
->
+Code is in your series, you just have to reshuffle it slightly.
+
+> >> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >> Suggested-by: Tomasz Nowicki <tn@semihalf.com>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> >> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >> Cc: Sinan Kaya <okaya@codeaurora.org>
+> >> Cc: Tomasz Nowicki <tn@semihalf.com>
+> >> Cc: Thomas Gleixner <tglx@linutronix.de>
+> >> ---
+> >>  drivers/acpi/arm64/iort.c                     | 56 +++++++++++++++++++++++++++
+> >>  drivers/irqchip/irq-gic-v3-its-platform-msi.c |  4 +-
+> >>  include/linux/acpi_iort.h                     |  8 ++++
+> >>  3 files changed, 67 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >> index 069a690..95fd20b 100644
+> >> --- a/drivers/acpi/arm64/iort.c
+> >> +++ b/drivers/acpi/arm64/iort.c
+> >> @@ -30,6 +30,7 @@
+> >>  #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
+> >>  #define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
+> >>  				(1 << ACPI_IORT_NODE_SMMU_V3))
+> >> +#define IORT_TYPE_ANY		(IORT_MSI_TYPE | IORT_IOMMU_TYPE)
+> >>  
+> >>  struct iort_its_msi_chip {
+> >>  	struct list_head	list;
+> >> @@ -406,6 +407,34 @@ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+> >>  	return NULL;
+> >>  }
+> >>  
+> >> +static
+> >> +struct acpi_iort_node *iort_node_map_platform_id(struct acpi_iort_node *node,
+> >> +						 u32 *id_out, u8 type_mask,
+> >> +						 int index)
+> >> +{
+> >> +	struct acpi_iort_node *parent;
+> >> +	u32 id;
+> >> +
+> >> +	/* step 1: retrieve the initial dev id */
+> >> +	parent = iort_node_get_id(node, &id, IORT_TYPE_ANY, index);
+> >> +	if (!parent)
+> >> +		return NULL;
+> >> +
+> >> +	/*
+> >> +	 * optional step 2: map the initial dev id if its parent is not
+> >> +	 * the target type we wanted, map it again for the use cases such
+> >> +	 * as NC (named component) -> SMMU -> ITS. If the type is matched,
+> >> +	 * return the parent pointer directly.
+> >> +	 */
+> >> +	if (!(IORT_TYPE_MASK(parent->type) & type_mask))
+> >> +		parent = iort_node_map_id(parent, id, id_out, type_mask);
+> >> +	else
+> >> +		if (id_out)
+> > Remove this pointer check.
+> 
+> This was added because of NULL pointer reference, I passed NULL for id_out because I
+> only want to get its parent node, I think we have four options:
+> 
+>  - Introduce a new API to get the parent only from the scratch, but it will duplicate the code
+>     a lot;
+> 
+>  - Don't check the id_out in iort_node_map_platform_id(), and introduce a wrapper and pass the
+>    dummy id for iort_node_map_platform_id() :
+> static
+> struct acpi_iort_node *iort_node_get_platform_parent{struct device *dev, u8 type_mask}
+> {
+>         struct acpi_iort_node *node, *parent = NULL;
+>         int i;
+>         u32 dummy_id;
+> 
+>         node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>                               iort_match_node_callback, dev);
+> 
+>         if (!node)
+>                 return NULL;
+> 
+>         for (i = 0; i < node->mapping_count; i++) {
+>                 /* we just want to get the parent node */
+>                 parent = iort_node_map_platform_id(node, &dummy_id,
+>                                                    IORT_MSI_TYPE, i);
+>                 if (parent)
+>                         break;
+>         }
+> 
+>         return parent;
+> }
+> 
+>  - Similar solution as above but don't introduce wrapper, just use dummy_id if
+>    iort_node_map_platform_id() is called;
+> 
+> - Use the solution I proposed in this patch.
+> 
+> Please share you suggestion on this :)
+
+I see. I would like to change the IORT mapping API functions to always pass
+in an argument:
+
+struct iort_idmap {
+	struct acpi_iort_node *parent;
+	u32 id;
+};
+
+and return an int, because current functions (eg iort_node_map_rid())
+return a parent IORT node but also the mapped id as a value-result
+and that's not easy to follow (also Sinan raised this point which I
+think it is fair).
+
+I think we'd better postpone this change to next cycle, so you can
+leave the pointer check:
+
+if (id_out)
+
+I will clean this up later, basically what we would end up doing to just
+retrieve the parent pointer would be the IORT equivalent of what we have
+in DT:
+
+of_parse_phandle()
+  -> __of_parse_phandle_with_args() #we call it with cell_count == 0
 
 
+at the end of the day it is just to make code easier to follow, since it
+is functions internal to IORT compilation unit it is ok for now to leave
+it as-is.
 
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Lorenzo
