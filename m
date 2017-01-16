@@ -1,51 +1,83 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V9 0/3] irqchip: qcom: Add IRQ combiner driver
-Date: Mon, 16 Jan 2017 14:14:35 +0000
-Message-ID: <8587b5ab-59b1-feb7-09d9-7ade6d433a4c@arm.com>
-References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
- <16e3b40407e8072dd5b15bf7e65afb18@codeaurora.org>
- <CAJZ5v0h_v-iER5Fffdoczj4CAhetGYqOfJOhdO561_kNCnsEFg@mail.gmail.com>
- <266105963441d1cdddeaf40c4b78c239@codeaurora.org>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v7 15/15] irqchip: mbigen: Add ACPI support
+Date: Mon, 16 Jan 2017 22:23:16 +0800
+Message-ID: <587CD754.1050808@huawei.com>
+References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
+ <1484147199-4267-16-git-send-email-hanjun.guo@linaro.org>
+ <20170113102104.GB20837@red-moon> <58799376.6040302@huawei.com>
+ <20170116113804.GB23703@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54734 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751166AbdAPOOl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 16 Jan 2017 09:14:41 -0500
-In-Reply-To: <266105963441d1cdddeaf40c4b78c239@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170116113804.GB23703@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Matthias Brugger <mbrugger@suse.com>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, Hanjun Guo <guohanjun@huawei.com>, Charles Garcia Tobin <charles.garcia-tobin@arm.com>r
 
-On 16/01/17 14:07, Agustin Vega-Frias wrote:
-> Hi Rafael,
-> 
-> On 2017-01-03 16:56, Rafael J. Wysocki wrote:
->> On Tue, Jan 3, 2017 at 4:19 PM, Agustin Vega-Frias
->> <agustinv@codeaurora.org> wrote:
->>> Hi,
->>>
->>> Is there any more feedback on this beyond Lorenzo's suggestion to drop
->>> the conditional check on the first patch?
->>> How can we move forward on this series?
+Hi Lorenzo,
+
+On 2017/1/16 19:38, Lorenzo Pieralisi wrote:
+> On Sat, Jan 14, 2017 at 10:56:54AM +0800, Hanjun Guo wrote:
+>> Hi Lorenzo,
 >>
->> Essentially, I need to convince myself that patches [1-2/3] are fine
->> which hasn't happened yet.
-> 
-> Pinging again. Do you have any questions that might help with your
-> review? I have some minor changes I have to make to the driver itself
-> (patch 3) and I'd like to submit any changes you might want along with
-> those.
+>> On 2017/1/13 18:21, Lorenzo Pieralisi wrote:
+>>> On Wed, Jan 11, 2017 at 11:06:39PM +0800, Hanjun Guo wrote:
+>>>> With the preparation of platform msi support and interrupt producer
+>>>> in DSDT, we can add mbigen ACPI support now.
+>>>>
+>>>> We are using _PRS methd to indicate number of irq pins instead
+>>>> of num_pins in DT to avoid _DSD usage in this case.
+>>>>
+>>>> For mbi-gen,
+>>>>     Device(MBI0) {
+>>>>           Name(_HID, "HISI0152")
+>>>>           Name(_UID, Zero)
+>>>>           Name(_CRS, ResourceTemplate() {
+>>>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+>>>>           })
+>>>>
+>>>>           Name (_PRS, ResourceTemplate() {
+>>>> 		  Interrupt(ResourceProducer,...) {12,14,....}
+>>> I still do not understand why you are using _PRS for this, I think
+>>> the MBIgen configuration is static and if it is so the Interrupt
+>>> resource should be part of the _CRS unless there is something I am
+>>> missing here.
+>> Sorry for not clear in the commit message. MBIgen is an interrupt producer
+>> which produces irq resource to devices connecting to it, and MBIgen itself
+>> don't consume wired interrupts.
+> That's why you mark it as ResourceProducer, but that's not a reason to
+> put it in the _PRS instead of _CRS.
 
-I'd like to add that these two initial patches are now a prerequisite
-for Hanjun's series, so it'd be good to have an idea of where we're
-going on that front.
+If using _CRS for the interrupt resource, the irq number represented will be mapped
+(i.e acpi_register_gsi()), then will conflict with the irq number of devices consuming
+it (mbigen is producing the interrupts), but I agree with you that let's ask Rafael's
+point of view.
 
-Thanks,
+>
+> IIUC _PRS is there to provide a way to define the possible resource
+> settings of a _configurable_ device (ie programmable) so that the actual
+> resource value you would programme with a call to its _SRS is sane (ie
+> the OS has a way, through the _PRS, to detect what possible resource
+> settings are available for the device).
+>
+> I think Rafael has more insights into how the _PRS is used on x86
+> systems so I would ask his point of view here before merrily merging
+> this code.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+OK, Rafael is traveling now, hope he will have time to take a look.
+
+How about updating this patch set then sending a new version for review
+with this patch unchanged? if Rafael have comments on this one, I will
+send a single updated one for this patch (if no other changes).
+
+>
+>> Also devices connecting MBIgen may not consume all the interrupts produced
+>> by MBIgen, for example, MBIgen may produce 128 interrupts but only half of
+>> them are currently used, so _PRS here means "provide interrupt resources
+>> may consumed by devices connecting to it".
+> See above.
+
+Thanks
+Hanjun
