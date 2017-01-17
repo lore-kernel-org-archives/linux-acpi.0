@@ -1,11 +1,14 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v13 0/7] Enable PMUs in ACPI systems
-Date: Tue, 17 Jan 2017 14:50:03 -0600
-Message-ID: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v13 5/7] arm64: pmu: Detect multiple generic PMUs and append
+ counter
+Date: Tue, 17 Jan 2017 14:50:08 -0600
+Message-ID: <1484686210-7211-6-git-send-email-jeremy.linton@arm.com>
+References: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,90 +22,82 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com, bamvor.zhangjian@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch expands and reworks the patches published by Mark Salter
-in order to clean up a few of the previous review comments, as well as
-add support for newer CPUs and big/little configurations.
+In heterogeneous CPU systems its likely that there are multiple
+PMU types. If a system is using the generic armv8_pmuv3 rather
+than a PMU with a hard-coded set of events then we want to uniquely
+identify each PMU in /sys. We do this by appending an "_x" to the
+pmu name. This then creates PMUs like, "armv8_pmuv3" and
+"armv8_pmuv3_1", "armv8_pmuv3_2" for a system with 3 PMU types.
 
-v13:
-- Correct int/bool conversion bug in pmu_acpi_init()
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ arch/arm64/kernel/perf_event.c |  2 +-
+ drivers/perf/arm_pmu.c         | 20 ++++++++++++++++++++
+ include/linux/perf/arm_pmu.h   |  1 +
+ 3 files changed, 22 insertions(+), 1 deletion(-)
 
-v12:
-- Rebase to 4.10
-- Removed lock in the hotplug path.
-
-v11:
-- Add is_smp() check to read_specific_cpuid() for arch/arm. Update
-  c_show() and various routines in arm_pmu_acpi() to use the macro.
-- Moved the duplicate "generic" pmu detection code into its own
-  patch and hoist it into arm_pmu_device_probe() so it works
-  for DT based systems as well.
-
-v10:
-- Rebase to 4.9
-- Rework the arm_perf_start_cpu changes to support the 4.9 hotplug
-  changes.
-- Remove the call to acpi_register_gsi() from the cpu online code path.
-  Instead the GSI's are registered during the initcall. This changes
-  the error handling a bit because we now try to clean up the
-  previously registered GSIs in a couple important places. This
-  was also a result of the rebase.
-- Dropped the MIDR partnumber usage, its no longer necessary to
-  differentiate by only the partnum, so this helps to clarify the code
-  a bit. 
-- Shuffle some code around and rename a few variables.
-- Added a few comments to hopefully clarify some questions people have
-  previously had about unused MADT entries, skipping processing cores
-  with MIDR=0, etc.
-
-v9:
-- Add/cleanup an additional hotplug patch I've had sitting around. This
-  patch brings the ACPI PMU mostly on par with the DT functionality with
-  respect to having CPUs offline during boot. This should help clarify
-  some of the code structuring.
-- Cleanup the list of PMU types early if we fail to allocate memory for an
-  additional pmu type.
-
-v8:
-- Rebase to 4.8rc4
-- Assorted minor comment/hunk placement/etc tweaks per Punit Agrawal
-
-v7:
-- Rebase to 4.8rc3
-- Remove cpu affinity sysfs entry. While providing a CPU mask for
-  ARMv8 PMU's is really helpful in big/little environments, reworking
-  the PMU code to support the cpumask attribute for !arm64 PMUs is out
-  of the scope of this patch set.
-- Fix CPU miscount problem where an alloc failure followed by successfully
-  allocating the structure can result in under counting the CPUs associated
-  with the PMU. This bug was created in v6 with the conversion to a linked
-  list.
--  Remove initial platform device creation code by Mark Salter, and re-squash
-   multiple platform device creation code together with helper routines.
-   Other minor tweakage.
-
-Jeremy Linton (6):
-  arm64: Rename the common MADT parse routine
-  arm: arm64: Add routine to determine cpuid of other cpus
-  arm: arm64: pmu: Assign platform PMU CPU affinity
-  arm64: pmu: Detect multiple generic PMUs and append counter
-  arm64: pmu: Detect and enable multiple PMUs in an ACPI system
-  arm: pmu: Add PMU definitions for cores not initially online
-
-Mark Salter (1):
-  arm64: pmu: Cache PMU interrupt numbers from MADT parse
-
- arch/arm/include/asm/cputype.h   |   4 +
- arch/arm/kernel/setup.c          |   2 +-
- arch/arm64/include/asm/cputype.h |   3 +
- arch/arm64/kernel/perf_event.c   |   2 +-
- arch/arm64/kernel/smp.c          |  18 ++-
- drivers/perf/Kconfig             |   4 +
- drivers/perf/Makefile            |   1 +
- drivers/perf/arm_pmu.c           | 103 +++++++++++++--
- drivers/perf/arm_pmu_acpi.c      | 271 +++++++++++++++++++++++++++++++++++++++
- include/linux/perf/arm_pmu.h     |  12 ++
- 10 files changed, 400 insertions(+), 20 deletions(-)
- create mode 100644 drivers/perf/arm_pmu_acpi.c
-
+diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
+index 57ae9d9..0fbd7ef 100644
+--- a/arch/arm64/kernel/perf_event.c
++++ b/arch/arm64/kernel/perf_event.c
+@@ -1002,7 +1002,7 @@ static void armv8_pmu_init(struct arm_pmu *cpu_pmu)
+ static int armv8_pmuv3_init(struct arm_pmu *cpu_pmu)
+ {
+ 	armv8_pmu_init(cpu_pmu);
+-	cpu_pmu->name			= "armv8_pmuv3";
++	cpu_pmu->name			= ARMV8_PMUV3_DESCRIPTION;
+ 	cpu_pmu->map_event		= armv8_pmuv3_map_event;
+ 	cpu_pmu->attr_groups[ARMPMU_ATTR_GROUP_EVENTS] =
+ 		&armv8_pmuv3_events_attr_group;
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 37e241f..85566f6 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -1035,6 +1035,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 			 const struct of_device_id *of_table,
+ 			 const struct pmu_probe_info *probe_table)
+ {
++	static int duplicate_pmus;
+ 	const struct of_device_id *of_id;
+ 	const int (*init_fn)(struct arm_pmu *);
+ 	struct device_node *node = pdev->dev.of_node;
+@@ -1075,6 +1076,25 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 		goto out_free;
+ 	}
+ 
++	/*
++	 * if this pmu declaration is a generic pmu and we have
++	 * previously found a generic pmu on this platform
++	 * then append a PMU number to the pmu name. This avoids
++	 * changing the names of PMUs that are specific to a class
++	 * of CPUs. The assumption is that if we match a specific PMU
++	 * then it's unique, and another PMU in the system will match
++	 * a different entry rather than needing the _number to
++	 * assure its unique.
++	 */
++	if (!strcmp(pmu->name, ARMV8_PMUV3_DESCRIPTION)) {
++		if (duplicate_pmus) {
++			pmu->name = kasprintf(GFP_KERNEL, "%s_%d",
++					      pmu->name, duplicate_pmus);
++			if (!pmu->name)
++				goto out_free;
++		}
++		duplicate_pmus++;
++	}
+ 
+ 	ret = cpu_pmu_init(pmu);
+ 	if (ret)
+diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
+index df1ba55..42b5edb 100644
+--- a/include/linux/perf/arm_pmu.h
++++ b/include/linux/perf/arm_pmu.h
+@@ -161,6 +161,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 			 const struct pmu_probe_info *probe_table);
+ 
+ #define ARMV8_PMU_PDEV_NAME "armv8-pmu"
++#define ARMV8_PMUV3_DESCRIPTION "armv8_pmuv3"
+ 
+ #endif /* CONFIG_ARM_PMU */
+ 
 -- 
 2.5.5
