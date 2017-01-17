@@ -1,91 +1,133 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V7 04/10] arm64: exception: handle Synchronous External
- Abort
-Date: Tue, 17 Jan 2017 10:31:21 +0000
-Message-ID: <587DF279.1010402@arm.com>
-References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
- <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v19 10/15] clocksource/drivers/arm_arch_timer: Refactor
+ the timer init code to prepare for GTDT
+Date: Tue, 17 Jan 2017 18:39:18 +0800
+Message-ID: <CADyBb7sa4Lfk+JestQj6FUd460JRM3GiSijGopHrQr5mHj8efA@mail.gmail.com>
+References: <20161221064603.11830-1-fu.wei@linaro.org> <20161221064603.11830-11-fu.wei@linaro.org>
+ <20170116183032.GL5908@leverpostej> <CADyBb7tFaSshUmZsJbNO2tnbqAKEii39NQVfcx5CqDiDsK5OJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CADyBb7tFaSshUmZsJbNO2tnbqAKEii39NQVfcx5CqDiDsK5OJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tyler,
+Hi Mark,
 
-On 12/01/17 18:15, Tyler Baicar wrote:
-> SEA exceptions are often caused by an uncorrected hardware
-> error, and are handled when data abort and instruction abort
-> exception classes have specific values for their Fault Status
-> Code.
-> When SEA occurs, before killing the process, go through
-> the handlers registered in the notification list.
-> Update fault_info[] with specific SEA faults so that the
-> new SEA handler is used.
+On 17 January 2017 at 18:30, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+> Hi Mark,
+>
+> On 17 January 2017 at 02:30, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
+>> On Wed, Dec 21, 2016 at 02:45:58PM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+>>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>>
+>>> The patch refactor original memory-mapped timer init code:
+>>>     (1) Refactor "arch_timer_mem_init", make it become a common code for
+>>>         memory-mapped timer init.
+>>>     (2) Add a new function "arch_timer_mem_of_init" for DT init.
+>>
+>> As a general note, please write proper commit messages, describing what
+>> the problem is, and why we are making the changes. These bullet points
+>> don't add anything to what can be derived from a glance at the code.
+>>
+>> For this patch, you can use:
+>>
+>>   clocksource: arm_arch_timer: refactor MMIO timer probing
+>>
+>>   Currently the code to probe MMIO architected timers mixes DT parsing
+>>   with actual poking of hardware. This makes the code harder than
+>>   necessary to understand, and makes it difficult to add support for
+>>   probing via ACPI.
+>>
+>>   This patch factors all the DT-specific logic out of
+>>   arch_timer_mem_init(), into a new function, arch_timer_mem_of_init().
+>>   The former pokes the hardware and determines the suitablility of
+>>   frames based on a datastructure populated by the latter.
+>>
+>>   This cleanly separates the two and will make it possible to add
+>>   probing using the ACPI GTDT in subsequent patches.
+>
+> Great thanks for this upstream tip.
+> I have used your example commit message instead.
+> It will be in v20.
+>
+>>
+>> [...]
+>>
+>>> +     for_each_available_child_of_node(np, frame_node) {
+>>> +             int n;
+>>> +             struct arch_timer_mem_frame *frame = &timer_mem->frame[i];
+>>> +
+>>> +             if (of_property_read_u32(frame_node, "frame-number", &n)) {
+>>> +                     pr_err("Missing frame-number\n");
+>>> +                     of_node_put(frame_node);
+>>> +                     goto out;
+>>> +             }
+>>> +             frame->frame_nr = n;
+>>> +
+>>> +             if (of_address_to_resource(frame_node, 0, &res)) {
+>>> +                     of_node_put(frame_node);
+>>> +                     goto out;
+>>> +             }
+>>> +             frame->cntbase = res.start;
+>>> +             frame->size = resource_size(&res);
+>>> +
+>>> +             frame->virt_irq = irq_of_parse_and_map(frame_node,
+>>> +                                                    ARCH_TIMER_VIRT_SPI);
+>>> +             frame->phys_irq = irq_of_parse_and_map(frame_node,
+>>> +                                                    ARCH_TIMER_PHYS_SPI);
+>>>
+>>> -     if (!arch_timer_needs_of_probing())
+>>> +             if (++i >= ARCH_TIMER_MEM_MAX_FRAMES)
+>>> +                     break;
+>>> +     }
+>>
+>> It would be good if we could warn upon seeing more than
+>> ARCH_TIMER_MEM_MAX_FRAMES children, since that's obviously an error.
+>
+> OK, NP, will use
+>
+> if (i >= ARCH_TIMER_MEM_MAX_FRAMES) {
+>         pr_err(FW_BUG "too many frames, ARMv8 spec only allows 8.\n");
 
-> @@ -480,6 +496,28 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
->  	return 1;
->  }
->  
-> +/*
-> + * This abort handler deals with Synchronous External Abort.
-> + * It calls notifiers, and then returns "fault".
-> + */
-> +static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
-> +{
-> +	struct siginfo info;
-> +
-> +	atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
-> +
-> +	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
-> +		 fault_name(esr), esr, addr);
-> +
-> +	info.si_signo = SIGBUS;
-> +	info.si_errno = 0;
-> +	info.si_code  = 0;
+Sorry,  this should be "ARM spec only allows 8.\n"
 
-Half of the other do_*() functions in this file read the signo and code from the
-fault_info table.
+Not only ARMv8, but also ARMv7
 
 
-> +	info.si_addr  = (void __user *)addr;
-
-addr here was read from FAR_EL1, but for some of the classes of exception you
-have listed below this register isn't updated with the faulting address.
-
-The ARM-ARM version 'k' in D1.10.5 "Summary of registers on faults taken to an
-Exception level that is using Aarch64" has:
-> The architecture permits that the FAR_ELx is UNKNOWN for Synchronous External
-> Aborts other than Synchronous External Aborts on Translation Table Walks. In
-> this case, the ISS.FnV bit returned in ESR_ELx  indicates whether FAR_ELx is
-> valid.
-
-This is a problem if we get 'synchronous external abort' or 'synchronous parity
-error' while a user space process was running.
-
-
-> +	arm64_notify_die("", regs, &info, esr);
-> +
-> +	return 0;
-> +}
-> +
->  static const struct fault_info {
->  	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
->  	int	sig;
+>         goto out;
+> }
+>
+> at the beginning of this loop.
+>
+> Here will be replaced by  i++;
+>
+> Great thanks for your suggestion!
+>
+>>
+>> Thanks,
+>> Mark.
+>
+>
+>
+> --
+> Best regards,
+>
+> Fu Wei
+> Software Engineer
+> Red Hat
 
 
-Thanks,
 
-James
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
