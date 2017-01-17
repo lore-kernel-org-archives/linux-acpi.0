@@ -1,102 +1,104 @@
-From: Matthias Brugger <mbrugger@suse.com>
-Subject: Re: [PATCH v7 07/15] irqchip: gicv3-its: platform-msi: scan MADT to
- create platform msi domain
-Date: Tue, 17 Jan 2017 10:25:14 +0100
-Message-ID: <575e0341-2a2c-4498-8b01-550ad7732390@suse.com>
-References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
- <1484147199-4267-8-git-send-email-hanjun.guo@linaro.org>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH V7 04/10] arm64: exception: handle Synchronous External
+ Abort
+Date: Tue, 17 Jan 2017 10:23:50 +0000
+Message-ID: <587DF0B6.4060000@arm.com>
+References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
+ <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
+ <20170116115309.GE1510@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1484147199-4267-8-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Jon Masters <jcm@redhat.com>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <20170116115309.GE1510@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Will Deacon <will.deacon@arm.com>, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Tyler,
+
+On 16/01/17 11:53, Will Deacon wrote:
+> On Thu, Jan 12, 2017 at 11:15:18AM -0700, Tyler Baicar wrote:
+>> SEA exceptions are often caused by an uncorrected hardware
+>> error, and are handled when data abort and instruction abort
+>> exception classes have specific values for their Fault Status
+>> Code.
+>> When SEA occurs, before killing the process, go through
+>> the handlers registered in the notification list.
+>> Update fault_info[] with specific SEA faults so that the
+>> new SEA handler is used.
+
+>> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+>> index 05d2bd7..81039c7 100644
+>> --- a/arch/arm64/mm/fault.c
+>> +++ b/arch/arm64/mm/fault.c
+>> @@ -480,6 +496,28 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>>  	return 1;
+>>  }
+>>  
+>> +/*
+>> + * This abort handler deals with Synchronous External Abort.
+>> + * It calls notifiers, and then returns "fault".
+>> + */
+>> +static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>> +{
+>> +	struct siginfo info;
+>> +
+>> +	atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
+>> +
+>> +	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
+>> +		 fault_name(esr), esr, addr);
+>> +
+>> +	info.si_signo = SIGBUS;
+>> +	info.si_errno = 0;
+>> +	info.si_code  = 0;
+>> +	info.si_addr  = (void __user *)addr;
+>> +	arm64_notify_die("", regs, &info, esr);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>  static const struct fault_info {
+>>  	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
+>>  	int	sig;
+>> @@ -502,22 +540,22 @@ static const struct fault_info {
+>>  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 1 permission fault"	},
+>>  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 2 permission fault"	},
+>>  	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 3 permission fault"	},
+>> -	{ do_bad,		SIGBUS,  0,		"synchronous external abort"	},
+>> +	{ do_sea,		SIGBUS,  0,		"synchronous external abort"	},
+>>  	{ do_bad,		SIGBUS,  0,		"unknown 17"			},
+>>  	{ do_bad,		SIGBUS,  0,		"unknown 18"			},
+>>  	{ do_bad,		SIGBUS,  0,		"unknown 19"			},
+>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error"	},
+>> +	{ do_sea,		SIGBUS,  0,		"level 0 SEA (translation table walk)"	},
+>> +	{ do_sea,		SIGBUS,  0,		"level 1 SEA (translation table walk)"	},
+>> +	{ do_sea,		SIGBUS,  0,		"level 2 SEA (translation table walk)"	},
+>> +	{ do_sea,		SIGBUS,  0,		"level 3 SEA (translation table walk)"	},
+> 
+> Perhaps I wasn't clear enough in my previous review, but please expand the
+> acronym for strings and comments.
 
 
-On 11/01/17 16:06, Hanjun Guo wrote:
-> With the introduction of its_pmsi_init_one(), we can add some code
-> on top for ACPI support of platform MSI.
->
-> We are scanning the MADT table to get the ITS entry(ies), then use
-> the information to create the platform msi domain for devices connect
-> to it, just like the PCI MSI for ITS did.
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> ---
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 36 +++++++++++++++++++++++++++
->  1 file changed, 36 insertions(+)
->
+The 'SEA' in this user-string doesn't add anything. Now that these use do_sea()
+instead of do_bad(), when they are printed won't it be:
+> Synchronous External Abort: level 3 SEA (translation table walk) (...) at ....
 
-Reviewed-by: Matthias Brugger <mbrugger@suse.com>
 
-> diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-> index 3d9efd1..ebe933e 100644
-> --- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-> +++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-> @@ -103,6 +103,41 @@ static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
->  	return 0;
->  }
->
-> +#ifdef CONFIG_ACPI
-> +static int __init
-> +its_pmsi_parse_madt(struct acpi_subtable_header *header,
-> +			const unsigned long end)
-> +{
-> +	struct acpi_madt_generic_translator *its_entry;
-> +	struct fwnode_handle *domain_handle;
-> +	const char *node_name;
-> +	int err = -ENXIO;
-> +
-> +	its_entry = (struct acpi_madt_generic_translator *)header;
-> +	node_name = kasprintf(GFP_KERNEL, "ITS@0x%lx",
-> +			      (long)its_entry->base_address);
-> +	domain_handle = iort_find_domain_token(its_entry->translation_id);
-> +	if (!domain_handle) {
-> +		pr_err("%s: Unable to locate ITS domain handle\n", node_name);
-> +		goto out;
-> +	}
-> +
-> +	err = its_pmsi_init_one(domain_handle, node_name);
-> +
-> +out:
-> +	kfree(node_name);
-> +	return err;
-> +}
-> +
-> +static void __init its_pmsi_acpi_init(void)
-> +{
-> +	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-> +			      its_pmsi_parse_madt, 0);
-> +}
-> +#else
-> +static inline void its_pmsi_acpi_init(void) { }
-> +#endif
-> +
->  static void __init its_pmsi_of_init(void)
->  {
->  	struct device_node *np;
-> @@ -119,6 +154,7 @@ static void __init its_pmsi_of_init(void)
->  static int __init its_pmsi_init(void)
->  {
->  	its_pmsi_of_init();
-> +	its_pmsi_acpi_init();
->  	return 0;
->  }
->  early_initcall(its_pmsi_init);
->
+
+Thanks,
+
+James
