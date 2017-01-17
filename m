@@ -1,15 +1,15 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v19 00/15] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Tue, 17 Jan 2017 17:14:31 +0800
-Message-ID: <CADyBb7ukKotnhcY=uOsrqhVr_M9UbLU_UdKcKnTcBWfxF5VAyQ@mail.gmail.com>
-References: <20161221064603.11830-1-fu.wei@linaro.org>
- <20170116170010.GH5908@leverpostej>
+From: Matthias Brugger <mbrugger@suse.com>
+Subject: Re: [PATCH v7 07/15] irqchip: gicv3-its: platform-msi: scan MADT to
+ create platform msi domain
+Date: Tue, 17 Jan 2017 10:25:14 +0100
+Message-ID: <575e0341-2a2c-4498-8b01-550ad7732390@suse.com>
+References: <1484147199-4267-1-git-send-email-hanjun.guo@linaro.org>
+ <1484147199-4267-8-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170116170010.GH5908@leverpostej>
+In-Reply-To: <1484147199-4267-8-git-send-email-hanjun.guo@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,64 +19,84 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Jon Masters <jcm@redhat.com>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Xinwei Kong <kong.kongxinwei@hisilicon.com>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark,
-
-On 17 January 2017 at 01:00, Mark Rutland <mark.rutland@arm.com> wrote:
-> Hi,
->
-> On Wed, Dec 21, 2016 at 02:45:48PM +0800, fu.wei@linaro.org wrote:
->> From: Fu Wei <fu.wei@linaro.org>
->>
->> This patchset:
->>     (1)Preparation for adding GTDT support in arm_arch_timer:
->>         1. Move some enums and marcos to header file;
->>         2. Add a new enum for spi type;
->>         3. Improve printk relevant code;
->>         4. Rename some enums and defines;
->
-> Can we please rework these first few patches into a series:
->
-> 1. Clean up printk() usage
-> 2. Rename the type macros
-> 3. Rename the PPI enum & enum values
-> 4. Move the type macro and PPI enum into a header
-> 5. Add new enum for SPIs
->
-> Please leave CNTHCL_* as they originally were. It's not part of the
-> interface of the driver, and leaving them as they are will save us an
-> interdependency with KVM.
->
-> I'm happy to queue that immediately, as it's purely structural and
-> shouldn't have a functional impact anywhere. That will also shrink the
-> series a bit, and we can rebase the following patches atop of that.
-
-Thanks for your suggestion, I have finished this improvement.
-It will be in v20.
-
-https://git.linaro.org/people/fu.wei/linux.git/log/?h=topic-gtdt-wakeup-timer_upstream_v20_devel
-
->
->>         5. Rework PPI determination;
->>         6. Rework counter frequency detection;
->>         7. Refactor arch_timer_needs_probing, move it into DT init call
->>         8. Introduce some new structs and refactor the MMIO timer init code
->>         for reusing some common code.
->
-> I'll review these in separate replies.
->
-> Thanks,
-> Mark.
 
 
+On 11/01/17 16:06, Hanjun Guo wrote:
+> With the introduction of its_pmsi_init_one(), we can add some code
+> on top for ACPI support of platform MSI.
+>
+> We are scanning the MADT table to get the ITS entry(ies), then use
+> the information to create the platform msi domain for devices connect
+> to it, just like the PCI MSI for ITS did.
+>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Sinan Kaya <okaya@codeaurora.org>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> ---
+>  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 36 +++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+>
 
--- 
-Best regards,
+Reviewed-by: Matthias Brugger <mbrugger@suse.com>
 
-Fu Wei
-Software Engineer
-Red Hat
+> diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+> index 3d9efd1..ebe933e 100644
+> --- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+> +++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+> @@ -103,6 +103,41 @@ static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
+>  	return 0;
+>  }
+>
+> +#ifdef CONFIG_ACPI
+> +static int __init
+> +its_pmsi_parse_madt(struct acpi_subtable_header *header,
+> +			const unsigned long end)
+> +{
+> +	struct acpi_madt_generic_translator *its_entry;
+> +	struct fwnode_handle *domain_handle;
+> +	const char *node_name;
+> +	int err = -ENXIO;
+> +
+> +	its_entry = (struct acpi_madt_generic_translator *)header;
+> +	node_name = kasprintf(GFP_KERNEL, "ITS@0x%lx",
+> +			      (long)its_entry->base_address);
+> +	domain_handle = iort_find_domain_token(its_entry->translation_id);
+> +	if (!domain_handle) {
+> +		pr_err("%s: Unable to locate ITS domain handle\n", node_name);
+> +		goto out;
+> +	}
+> +
+> +	err = its_pmsi_init_one(domain_handle, node_name);
+> +
+> +out:
+> +	kfree(node_name);
+> +	return err;
+> +}
+> +
+> +static void __init its_pmsi_acpi_init(void)
+> +{
+> +	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+> +			      its_pmsi_parse_madt, 0);
+> +}
+> +#else
+> +static inline void its_pmsi_acpi_init(void) { }
+> +#endif
+> +
+>  static void __init its_pmsi_of_init(void)
+>  {
+>  	struct device_node *np;
+> @@ -119,6 +154,7 @@ static void __init its_pmsi_of_init(void)
+>  static int __init its_pmsi_init(void)
+>  {
+>  	its_pmsi_of_init();
+> +	its_pmsi_acpi_init();
+>  	return 0;
+>  }
+>  early_initcall(its_pmsi_init);
+>
