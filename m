@@ -1,117 +1,91 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v19 10/15] clocksource/drivers/arm_arch_timer: Refactor
- the timer init code to prepare for GTDT
-Date: Tue, 17 Jan 2017 18:30:04 +0800
-Message-ID: <CADyBb7tFaSshUmZsJbNO2tnbqAKEii39NQVfcx5CqDiDsK5OJA@mail.gmail.com>
-References: <20161221064603.11830-1-fu.wei@linaro.org> <20161221064603.11830-11-fu.wei@linaro.org>
- <20170116183032.GL5908@leverpostej>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH V7 04/10] arm64: exception: handle Synchronous External
+ Abort
+Date: Tue, 17 Jan 2017 10:31:21 +0000
+Message-ID: <587DF279.1010402@arm.com>
+References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
+ <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f47.google.com ([209.85.214.47]:38414 "EHLO
-        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751115AbdAQKaF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2017 05:30:05 -0500
-Received: by mail-it0-f47.google.com with SMTP id c7so39234420itd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2017 02:30:05 -0800 (PST)
-In-Reply-To: <20170116183032.GL5908@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-Hi Mark,
+Hi Tyler,
 
-On 17 January 2017 at 02:30, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Dec 21, 2016 at 02:45:58PM +0800, fu.wei@linaro.org wrote:
->> From: Fu Wei <fu.wei@linaro.org>
->>
->> The patch refactor original memory-mapped timer init code:
->>     (1) Refactor "arch_timer_mem_init", make it become a common code for
->>         memory-mapped timer init.
->>     (2) Add a new function "arch_timer_mem_of_init" for DT init.
->
-> As a general note, please write proper commit messages, describing what
-> the problem is, and why we are making the changes. These bullet points
-> don't add anything to what can be derived from a glance at the code.
->
-> For this patch, you can use:
->
->   clocksource: arm_arch_timer: refactor MMIO timer probing
->
->   Currently the code to probe MMIO architected timers mixes DT parsing
->   with actual poking of hardware. This makes the code harder than
->   necessary to understand, and makes it difficult to add support for
->   probing via ACPI.
->
->   This patch factors all the DT-specific logic out of
->   arch_timer_mem_init(), into a new function, arch_timer_mem_of_init().
->   The former pokes the hardware and determines the suitablility of
->   frames based on a datastructure populated by the latter.
->
->   This cleanly separates the two and will make it possible to add
->   probing using the ACPI GTDT in subsequent patches.
+On 12/01/17 18:15, Tyler Baicar wrote:
+> SEA exceptions are often caused by an uncorrected hardware
+> error, and are handled when data abort and instruction abort
+> exception classes have specific values for their Fault Status
+> Code.
+> When SEA occurs, before killing the process, go through
+> the handlers registered in the notification list.
+> Update fault_info[] with specific SEA faults so that the
+> new SEA handler is used.
 
-Great thanks for this upstream tip.
-I have used your example commit message instead.
-It will be in v20.
+> @@ -480,6 +496,28 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>  	return 1;
+>  }
+>  
+> +/*
+> + * This abort handler deals with Synchronous External Abort.
+> + * It calls notifiers, and then returns "fault".
+> + */
+> +static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+> +{
+> +	struct siginfo info;
+> +
+> +	atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
+> +
+> +	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
+> +		 fault_name(esr), esr, addr);
+> +
+> +	info.si_signo = SIGBUS;
+> +	info.si_errno = 0;
+> +	info.si_code  = 0;
 
->
-> [...]
->
->> +     for_each_available_child_of_node(np, frame_node) {
->> +             int n;
->> +             struct arch_timer_mem_frame *frame = &timer_mem->frame[i];
->> +
->> +             if (of_property_read_u32(frame_node, "frame-number", &n)) {
->> +                     pr_err("Missing frame-number\n");
->> +                     of_node_put(frame_node);
->> +                     goto out;
->> +             }
->> +             frame->frame_nr = n;
->> +
->> +             if (of_address_to_resource(frame_node, 0, &res)) {
->> +                     of_node_put(frame_node);
->> +                     goto out;
->> +             }
->> +             frame->cntbase = res.start;
->> +             frame->size = resource_size(&res);
->> +
->> +             frame->virt_irq = irq_of_parse_and_map(frame_node,
->> +                                                    ARCH_TIMER_VIRT_SPI);
->> +             frame->phys_irq = irq_of_parse_and_map(frame_node,
->> +                                                    ARCH_TIMER_PHYS_SPI);
->>
->> -     if (!arch_timer_needs_of_probing())
->> +             if (++i >= ARCH_TIMER_MEM_MAX_FRAMES)
->> +                     break;
->> +     }
->
-> It would be good if we could warn upon seeing more than
-> ARCH_TIMER_MEM_MAX_FRAMES children, since that's obviously an error.
-
-OK, NP, will use
-
-if (i >= ARCH_TIMER_MEM_MAX_FRAMES) {
-        pr_err(FW_BUG "too many frames, ARMv8 spec only allows 8.\n");
-        goto out;
-}
-
-at the beginning of this loop.
-
-Here will be replaced by  i++;
-
-Great thanks for your suggestion!
-
->
-> Thanks,
-> Mark.
+Half of the other do_*() functions in this file read the signo and code from the
+fault_info table.
 
 
+> +	info.si_addr  = (void __user *)addr;
 
--- 
-Best regards,
+addr here was read from FAR_EL1, but for some of the classes of exception you
+have listed below this register isn't updated with the faulting address.
 
-Fu Wei
-Software Engineer
-Red Hat
+The ARM-ARM version 'k' in D1.10.5 "Summary of registers on faults taken to an
+Exception level that is using Aarch64" has:
+> The architecture permits that the FAR_ELx is UNKNOWN for Synchronous External
+> Aborts other than Synchronous External Aborts on Translation Table Walks. In
+> this case, the ISS.FnV bit returned in ESR_ELx  indicates whether FAR_ELx is
+> valid.
+
+This is a problem if we get 'synchronous external abort' or 'synchronous parity
+error' while a user space process was running.
+
+
+> +	arm64_notify_die("", regs, &info, esr);
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct fault_info {
+>  	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
+>  	int	sig;
+
+
+Thanks,
+
+James
