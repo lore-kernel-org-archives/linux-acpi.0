@@ -1,66 +1,120 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v12 6/7] arm64: pmu: Detect and enable multiple PMUs in an
- ACPI system
-Date: Tue, 17 Jan 2017 13:57:06 -0600
-Message-ID: <7cac6043-b3d6-d10b-c471-9d39c7e34305@arm.com>
-References: <1484068672-15852-1-git-send-email-jeremy.linton@arm.com>
- <1484068672-15852-7-git-send-email-jeremy.linton@arm.com>
- <20170116182838.GA1843@red-moon>
+Subject: [PATCH v13 4/7] arm: arm64: pmu: Assign platform PMU CPU affinity
+Date: Tue, 17 Jan 2017 14:50:07 -0600
+Message-ID: <1484686210-7211-5-git-send-email-jeremy.linton@arm.com>
+References: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34182 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750888AbdAQT5J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 17 Jan 2017 14:57:09 -0500
-In-Reply-To: <20170116182838.GA1843@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com, bamvor.zhangjian@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk
 
-On 01/16/2017 12:28 PM, Lorenzo Pieralisi wrote:
-> On Tue, Jan 10, 2017 at 11:17:51AM -0600, Jeremy Linton wrote:
->
-> [...]
->
->> +static int __init pmu_acpi_init(void)
->> +{
->> +	struct pmu_types *pmu, *safe_temp;
->> +	bool unused_madt_entries;
->> +	LIST_HEAD(pmus);
->> +
->> +	if (acpi_disabled)
->> +		return 0;
->> +
->> +	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
->
-> IIUC (and that's an if) unused_madt_entries is a "buffer" that you add
-> to all platform devices you manage to create through midr matching to
-> make sure there are enough resource entries when/if a cpu of the
-> respective type is onlined.
->
-> If that's the case unused_madt_entries can't be a bool.
+On systems with multiple PMU types the PMU to CPU affinity
+needs to be detected and set. The CPU to interrupt affinity
+should also be set.
 
-Some where along in the patch churn, it transformed from a bool 
-indicating there were extras to the count which triggered allocation at 
-max cpu counts to just adding in the difference. So yes, its a bug if 
-there is more than 1 offline CPU. I will resubmit it.
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ drivers/perf/arm_pmu.c | 43 +++++++++++++++++++++++++++++++++----------
+ 1 file changed, 33 insertions(+), 10 deletions(-)
 
-
->
-> Second question I have is what happens if cpus that aren't online
-> have an midr that differs from all the entries parsed at init time
-> (ie those you created a platform device for), that's certainly
-> a pesky corner case though.
-
-Yes, right now if you have an entire class of cores offline at boot and 
-they are later brought online, they won't get PMU entries because that 
-requires creating another platform device, and the posted code can't 
-handle that. I was ignoring it for this patch set because it fails 
-gracefully and I didn't want to add even more churn.
-
-
-
-
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 6d93358..37e241f 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -11,6 +11,7 @@
+  */
+ #define pr_fmt(fmt) "hw perfevents: " fmt
+ 
++#include <linux/acpi.h>
+ #include <linux/bitmap.h>
+ #include <linux/cpumask.h>
+ #include <linux/cpu_pm.h>
+@@ -24,6 +25,7 @@
+ #include <linux/irq.h>
+ #include <linux/irqdesc.h>
+ 
++#include <asm/cpu.h>
+ #include <asm/cputype.h>
+ #include <asm/irq_regs.h>
+ 
+@@ -889,25 +891,47 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
+ }
+ 
+ /*
+- * CPU PMU identification and probing.
++ * CPU PMU identification and probing. Its possible to have
++ * multiple CPU types in an ARM machine. Assure that we are
++ * picking the right PMU types based on the CPU in question
+  */
+-static int probe_current_pmu(struct arm_pmu *pmu,
+-			     const struct pmu_probe_info *info)
++static int probe_plat_pmu(struct arm_pmu *pmu,
++			     const struct pmu_probe_info *info,
++			     unsigned int pmuid)
+ {
+-	int cpu = get_cpu();
+-	unsigned int cpuid = read_cpuid_id();
+ 	int ret = -ENODEV;
++	int cpu;
++	int aff_ctr = 0;
++	struct platform_device *pdev = pmu->plat_device;
++	int irq = platform_get_irq(pdev, 0);
+ 
+-	pr_info("probing PMU on CPU %d\n", cpu);
++	if (irq >= 0 && !irq_is_percpu(irq)) {
++		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
++					    GFP_KERNEL);
++		if (!pmu->irq_affinity)
++			return -ENOMEM;
++	}
++
++	for_each_possible_cpu(cpu) {
++		unsigned int cpuid = read_specific_cpuid(cpu);
++
++		if (cpuid == pmuid) {
++			cpumask_set_cpu(cpu, &pmu->supported_cpus);
++			if (pmu->irq_affinity) {
++				pmu->irq_affinity[aff_ctr] = cpu;
++				aff_ctr++;
++			}
++		}
++	}
+ 
++	/* find the type of PMU given the CPU */
+ 	for (; info->init != NULL; info++) {
+-		if ((cpuid & info->mask) != info->cpuid)
++		if ((pmuid & info->mask) != info->cpuid)
+ 			continue;
+ 		ret = info->init(pmu);
+ 		break;
+ 	}
+ 
+-	put_cpu();
+ 	return ret;
+ }
+ 
+@@ -1043,8 +1067,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 		if (!ret)
+ 			ret = init_fn(pmu);
+ 	} else if (probe_table) {
+-		cpumask_setall(&pmu->supported_cpus);
+-		ret = probe_current_pmu(pmu, probe_table);
++		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
+ 	}
+ 
+ 	if (ret) {
+-- 
+2.5.5
