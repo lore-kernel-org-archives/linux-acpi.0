@@ -1,316 +1,133 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v13 6/7] arm64: pmu: Detect and enable multiple PMUs in an ACPI system
-Date: Tue, 17 Jan 2017 14:50:09 -0600
-Message-ID: <1484686210-7211-7-git-send-email-jeremy.linton@arm.com>
-References: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35520 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750924AbdAQUxU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 17 Jan 2017 15:53:20 -0500
-In-Reply-To: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Subject: [PATCH v7 3/5] arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
+Date: Tue, 17 Jan 2017 15:57:48 -0600
+Message-ID: <1484690270-28425-4-git-send-email-pierre-louis.bossart@linux.intel.com>
+References: <1484690270-28425-1-git-send-email-pierre-louis.bossart@linux.intel.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1484690270-28425-1-git-send-email-pierre-louis.bossart@linux.intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk, lorenzo.pieralisi@arm.com, bamvor.zhangjian@linaro.org
 
-Its possible that an ACPI system has multiple CPU types in it
-with differing PMU counters. Iterate the CPU's and make a determination
-about how many of each type exist in the system. Then take and create
-a PMU platform device for each type, and assign it the interrupts parsed
-from the MADT. Creating a platform device is necessary because the PMUs
-are not described as devices in the DSDT table.
+From: Irina Tirdea <irina.tirdea@intel.com>
 
-This code is loosely based on earlier work by Mark Salter.
+The pmc_atom driver does not contain any architecture specific
+code. It only enables the SoC Power Management Controller driver
+for BayTrail and CherryTrail platforms.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Move the pmc_atom driver from arch/x86/platform/atom to
+drivers/platform/x86. Also clean-up and reorder include files by
+alphabetical order in pmc_atom.h
+
+Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
+Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 ---
- drivers/perf/arm_pmu.c      |   8 +-
- drivers/perf/arm_pmu_acpi.c | 231 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 238 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig                                                 | 4 ----
+ arch/x86/platform/atom/Makefile                                  | 1 -
+ drivers/acpi/acpi_lpss.c                                         | 2 +-
+ drivers/platform/x86/Kconfig                                     | 4 ++++
+ drivers/platform/x86/Makefile                                    | 1 +
+ {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c      | 9 ++++-----
+ .../include/asm => include/linux/platform_data/x86}/pmc_atom.h   | 0
+ 7 files changed, 10 insertions(+), 11 deletions(-)
+ rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c (99%)
+ rename {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h (100%)
 
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 85566f6..77ec1ae 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -1068,7 +1068,13 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		if (!ret)
- 			ret = init_fn(pmu);
- 	} else if (probe_table) {
--		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
-+		if (acpi_disabled) {
-+			/* use the current cpu. */
-+			ret = probe_plat_pmu(pmu, probe_table,
-+					     read_cpuid_id());
-+		} else {
-+			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
-+		}
- 	}
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index e487493..7b4f178 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -2789,10 +2789,6 @@ config X86_DMA_REMAP
+ 	bool
+ 	depends on STA2X11
  
- 	if (ret) {
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index 2008001..6e0488f 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -2,13 +2,17 @@
-  * ARM ACPI PMU support
-  *
-  * Copyright (C) 2015 Red Hat Inc.
-+ * Copyright (C) 2016 ARM Ltd.
-  * Author: Mark Salter <msalter@redhat.com>
-+ *	   Jeremy Linton <jeremy.linton@arm.com>
-  *
-  * This work is licensed under the terms of the GNU GPL, version 2.  See
-  * the COPYING file in the top-level directory.
-  *
-  */
+-config PMC_ATOM
+-	def_bool y
+-        depends on PCI
+-
+ source "net/Kconfig"
  
-+#define pr_fmt(fmt) "ACPI-PMU: " fmt
-+
- #include <asm/cpu.h>
- #include <linux/acpi.h>
- #include <linux/irq.h>
-@@ -20,9 +24,16 @@
- struct pmu_irq {
- 	int  gsi;
- 	int  trigger;
-+	int  irq;
- 	bool used;
- };
+ source "drivers/Kconfig"
+diff --git a/arch/x86/platform/atom/Makefile b/arch/x86/platform/atom/Makefile
+index 40983f5..57be88f 100644
+--- a/arch/x86/platform/atom/Makefile
++++ b/arch/x86/platform/atom/Makefile
+@@ -1,2 +1 @@
+-obj-$(CONFIG_PMC_ATOM)		+= pmc_atom.o
+ obj-$(CONFIG_PUNIT_ATOM_DEBUG)	+= punit_atom_debug.o
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 8ea836c..90d112a 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -18,6 +18,7 @@
+ #include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/clk-lpss.h>
++#include <linux/platform_data/x86/pmc_atom.h>
+ #include <linux/pm_domain.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/delay.h>
+@@ -31,7 +32,6 @@ ACPI_MODULE_NAME("acpi_lpss");
+ #include <asm/cpu_device_id.h>
+ #include <asm/intel-family.h>
+ #include <asm/iosf_mbi.h>
+-#include <asm/pmc_atom.h>
  
-+struct pmu_types {
-+	struct list_head list;
-+	int		 cpu_type;
-+	int		 cpu_count;
-+};
-+
- static struct pmu_irq pmu_irqs[NR_CPUS];
+ #define LPSS_ADDR(desc) ((unsigned long)&desc)
  
- /*
-@@ -38,3 +49,223 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
- 	else
- 		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
- }
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 59aa8e3..8b1988a 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -1077,3 +1077,7 @@ config MLX_CPLD_PLATFORM
+ 	  cables and fans on the wide range Mellanox IB and Ethernet systems.
+ 
+ endif # X86_PLATFORM_DEVICES
 +
-+static void __init arm_pmu_acpi_handle_alloc_failure(struct list_head *pmus)
-+{
-+	int i;
-+	struct pmu_types *pmu, *safe_temp;
-+
-+	list_for_each_entry_safe(pmu, safe_temp, pmus, list) {
-+		list_del(&pmu->list);
-+		kfree(pmu);
-+	}
-+
-+	for_each_possible_cpu(i)
-+		if (pmu_irqs[i].irq > 0)
-+			acpi_unregister_gsi(pmu_irqs[i].gsi);
-+}
-+
-+/*
-+ * Count number and type of CPU cores in the system. Returns the number
-+ * of "unused" MADT entries we could not associate with a PMU. This can
-+ * be the result of CPU's not being online,  or errors in the MADT.
-+ * Under normal circumstances this will be 0.
-+ */
-+static int __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
-+{
-+	int i;
-+	int unused_madt_entries = 0;
-+
-+	for_each_possible_cpu(i) {
-+		u32 reg_midr = read_specific_cpuid(i);
-+		struct pmu_types *pmu;
-+
-+		/*
-+		 * Ignore GSI registration failure for now, as
-+		 * some of the MADT entries may not be used.
-+		 */
-+		pmu_irqs[i].irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
-+						    pmu_irqs[i].trigger,
-+						    ACPI_ACTIVE_HIGH);
-+		/* likely not online */
-+		if (reg_midr == 0) {
-+			unused_madt_entries++;
-+			continue;
-+		}
-+
-+		list_for_each_entry(pmu, pmus, list) {
-+			if (pmu->cpu_type == reg_midr) {
-+				pmu->cpu_count++;
-+				break;
-+			}
-+		}
-+
-+		/* we didn't find the CPU type, add an entry to identify it */
-+		if (&pmu->list == pmus) {
-+			pmu = kzalloc(sizeof(struct pmu_types), GFP_KERNEL);
-+			if (!pmu) {
-+				pr_err("Unable to allocate pmu_types\n");
-+				arm_pmu_acpi_handle_alloc_failure(pmus);
-+				break;
-+			}
-+			pmu->cpu_type = reg_midr;
-+			pmu->cpu_count++;
-+			list_add_tail(&pmu->list, pmus);
-+		}
-+	}
-+
-+	return unused_madt_entries;
-+}
-+
-+static int __init arm_pmu_acpi_register_device(int count, struct resource *res,
-+					       int cpu_id)
-+{
-+	struct platform_device *pdev;
-+	int err = -ENOMEM;
-+
-+	pdev = platform_device_alloc(ARMV8_PMU_PDEV_NAME, cpu_id);
-+	if (pdev) {
-+		err = platform_device_add_resources(pdev, res, count);
-+		if (!err)
-+			err = platform_device_add(pdev);
-+		if (err) {
-+			pr_warn("Unable to register PMU device\n");
-+			platform_device_put(pdev);
-+		}
-+	} else {
-+	    pr_warn("Unable to allocate platform device\n");
-+	}
-+
-+	return err;
-+}
-+
-+static void __init arm_pmu_acpi_unregister_pmu_gsi(int cpu_id)
-+{
-+	int i;
-+
-+	for_each_possible_cpu(i) {
-+
-+		if (read_specific_cpuid(i) == cpu_id) {
-+			pmu_irqs[i].used = false;
-+			if (pmu_irqs[i].irq > 0)
-+				acpi_unregister_gsi(pmu_irqs[i].gsi);
-+			pmu_irqs[i].gsi = -ENODEV;
-+		}
-+	}
-+}
-+
-+/*
-+ * Registers the group of PMU interfaces which correspond to the 'cpu_id'.
-+ * This group utilizes 'count' resources in the 'res'.
-+ */
-+static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
-+					    int cpu_id)
-+{
-+	int err;
-+
-+	err = arm_pmu_acpi_register_device(count, res, cpu_id);
-+
-+	/* unmark and unregister GSIs for this PMU */
-+	if (err)
-+		arm_pmu_acpi_unregister_pmu_gsi(cpu_id);
-+
-+	return err;
-+}
-+
-+int arm_pmu_acpi_retrieve_irq(struct resource *res, int cpu)
-+{
-+	int irq = -ENODEV;
-+
-+	if (pmu_irqs[cpu].used) {
-+		pr_info("CPU %d's interrupt is already used\n", cpu);
-+	} else {
-+		pmu_irqs[cpu].used = true;
-+		res->start = pmu_irqs[cpu].irq;
-+		res->end = pmu_irqs[cpu].irq;
-+		res->flags = IORESOURCE_IRQ;
-+		if (pmu_irqs[cpu].trigger == ACPI_EDGE_SENSITIVE)
-+			res->flags |= IORESOURCE_IRQ_HIGHEDGE;
-+		else
-+			res->flags |= IORESOURCE_IRQ_HIGHLEVEL;
-+	}
-+	return irq;
-+}
-+
-+/*
-+ * For the given cpu/pmu type, walk all known GSIs, register them, and add
-+ * them to the resource structure. Return the number of GSI's contained
-+ * in the res structure, and the id of the last CPU/PMU we added.
-+ */
-+static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
-+				       struct resource *res)
-+{
-+	int i, count;
-+
-+	/* lets group all the PMU's from similar CPU's together */
-+	count = 0;
-+	for_each_possible_cpu(i) {
-+		u32 reg_midr = read_specific_cpuid(i);
-+
-+		if (pmus->cpu_type == reg_midr) {
-+			if ((pmu_irqs[i].gsi == 0) && (reg_midr != 0))
-+				continue;
-+
-+			/* likely not online */
-+			if (!reg_midr)
-+				continue;
-+
-+			arm_pmu_acpi_retrieve_irq(&res[count], i);
-+			count++;
-+		}
-+	}
-+	return count;
-+}
-+
-+static int __init pmu_acpi_register(struct pmu_types *pmu)
-+{
-+	int count;
-+	int err = -ENOMEM;
-+	struct resource	*res;
-+
-+	res = kcalloc(pmu->cpu_count, sizeof(struct resource), GFP_KERNEL);
-+
-+	/* for a given PMU type, collect all the GSIs. */
-+	if (res) {
-+		count = arm_pmu_acpi_gsi_res(pmu, res);
-+		/* register this set of interrupts with a new PMU device */
-+		err = arm_pmu_acpi_register_pmu(pmu->cpu_count, res,
-+						pmu->cpu_type);
-+		if (!err)
-+			pr_info("Register %d devices for %X\n", count,
-+				pmu->cpu_type);
-+		kfree(res);
-+	} else {
-+		pr_warn("PMU unable to allocate interrupt resource\n");
-+		arm_pmu_acpi_unregister_pmu_gsi(pmu->cpu_type);
-+	}
-+	return err;
-+}
-+
-+static int __init pmu_acpi_init(void)
-+{
-+	struct pmu_types *pmu, *safe_temp;
-+	int unused_madt_entries;
-+	LIST_HEAD(pmus);
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	unused_madt_entries = arm_pmu_acpi_determine_cpu_types(&pmus);
-+
-+	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
-+		pmu->cpu_count += unused_madt_entries;
-+		pmu_acpi_register(pmu);
-+
-+		list_del(&pmu->list);
-+		kfree(pmu);
-+	}
-+
-+	return 0;
-+}
-+
-+arch_initcall(pmu_acpi_init);
++config PMC_ATOM
++       def_bool y
++       depends on PCI
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index d4111f0..49ee7ef 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -74,5 +74,6 @@ obj-$(CONFIG_INTEL_TELEMETRY)	+= intel_telemetry_core.o \
+ 				   intel_telemetry_pltdrv.o \
+ 				   intel_telemetry_debugfs.o
+ obj-$(CONFIG_INTEL_PMC_CORE)    += intel_pmc_core.o
++obj-$(CONFIG_PMC_ATOM)		+= pmc_atom.o
+ obj-$(CONFIG_MLX_PLATFORM)	+= mlx-platform.o
+ obj-$(CONFIG_MLX_CPLD_PLATFORM)	+= mlxcpld-hotplug.o
+diff --git a/arch/x86/platform/atom/pmc_atom.c b/drivers/platform/x86/pmc_atom.c
+similarity index 99%
+rename from arch/x86/platform/atom/pmc_atom.c
+rename to drivers/platform/x86/pmc_atom.c
+index 964ff4f..e1dfb1b 100644
+--- a/arch/x86/platform/atom/pmc_atom.c
++++ b/drivers/platform/x86/pmc_atom.c
+@@ -15,14 +15,13 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/debugfs.h>
++#include <linux/device.h>
+ #include <linux/init.h>
++#include <linux/io.h>
++#include <linux/platform_data/x86/pmc_atom.h>
+ #include <linux/pci.h>
+-#include <linux/device.h>
+-#include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+-#include <linux/io.h>
+-
+-#include <asm/pmc_atom.h>
+ 
+ struct pmc_bit_map {
+ 	const char *name;
+diff --git a/arch/x86/include/asm/pmc_atom.h b/include/linux/platform_data/x86/pmc_atom.h
+similarity index 100%
+rename from arch/x86/include/asm/pmc_atom.h
+rename to include/linux/platform_data/x86/pmc_atom.h
 -- 
-2.5.5
-
+2.7.4
