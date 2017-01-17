@@ -1,91 +1,132 @@
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Subject: [PATCH v7 0/5] Add platform clock for BayTrail platforms
-Date: Tue, 17 Jan 2017 15:57:45 -0600
-Message-ID: <1484690270-28425-1-git-send-email-pierre-louis.bossart@linux.intel.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v19 05/15] clocksource/drivers/arm_arch_timer: rework PPI determination
+Date: Wed, 18 Jan 2017 07:49:43 +0800
+Message-ID: <CADyBb7sP42WqpJ5xiD9Yujn3ZjDBH_3-Te5-xF_adVDTo5fQqw@mail.gmail.com>
+References: <20161221064603.11830-1-fu.wei@linaro.org> <20161221064603.11830-6-fu.wei@linaro.org>
+ <20170116172927.GI5908@leverpostej>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f46.google.com ([209.85.214.46]:35913 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751561AbdAQXtp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2017 18:49:45 -0500
+Received: by mail-it0-f46.google.com with SMTP id c7so106977717itd.1
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2017 15:49:45 -0800 (PST)
+In-Reply-To: <20170116172927.GI5908@leverpostej>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-These patches specifically enable the audio MCLK required by Baytrail
-CR devices. It is the remaining part of a bigger set of patches
-(already merged in Mark Brown's tree) that enable sound for Baytrail CR
-devices (especially Asus T100TAF) [1]. They include the clock driver
-and clock enabling in the pmc_atom code (along with moving of the
-non-architectural pmc_atom driver code into drivers/platform/x86 as
-suggested by Thomas Gleixner [2]). This move includes a new header in
-include/linux/platform_data/x86/. While there is an agreement that the
-definitions for PMC clocks are not really platform data this location
-is seen as a good-enough compromise with an agreement between Darren
-Hart and Andy Shevchenko [3]
+Hi Mark,
 
-[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-August/111704.html
-[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-October/113936.html
-[3] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-December/115892.html
+On 17 January 2017 at 01:29, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Wed, Dec 21, 2016 at 02:45:53PM +0800, fu.wei@linaro.org wrote:
+> [...]
+>
+>> -     if (is_hyp_mode_available() || !arch_timer_ppi[ARCH_TIMER_VIRT_PPI]) {
+>> -             bool has_ppi;
+>> +     if (is_hyp_mode_available() && is_kernel_in_hyp_mode())
+>> +             return ARCH_TIMER_HYP_PPI;
+>>
+>> -             if (is_kernel_in_hyp_mode()) {
+>> -                     arch_timer_uses_ppi = ARCH_TIMER_HYP_PPI;
+>> -                     has_ppi = !!arch_timer_ppi[ARCH_TIMER_HYP_PPI];
+>> -             } else {
+>> -                     arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
+>> -                     has_ppi = (!!arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI] ||
+>> -                                !!arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
+>> -             }
+>> +     if (arch_timer_ppi[ARCH_TIMER_VIRT_PPI])
+>> +             return ARCH_TIMER_VIRT_PPI;
+>>
+>> -             if (!has_ppi) {
+>> -                     pr_warn("No interrupt available, giving up\n");
+>> -                     return -EINVAL;
+>> -             }
+>> -     }
+>> +     if (IS_ENABLED(CONFIG_ARM64))
+>> +             return ARCH_TIMER_PHYS_NONSECURE_PPI;
+>> +
+>> +     return ARCH_TIMER_PHYS_SECURE_PPI;
+>
+> For a 32-bit platform booted at hyp (with a virt PPI available), the new
+> logic will select ARCH_TIMER_VIRT_PPI. I beleive that will break KVM.
+>
+> I think the logic should be:
+>
+>         if (is_kernel_in_hyp_mode())
+>                 return ARCH_TIMER_HYP_PPI;
+>
+>         if (!is_hyp_mode_available() &&
+>             arch_timer_ppi[ARCH_TIMER_VIRT_PPI])
+>                 return ARCH_TIMER_VIRT_PPI;
+>
+>         if (IS_ENABLED(CONFIG_ARM64))
+>                 return ARCH_TIMER_PHYS_NONSECURE_PPI;
+>
+>         return ARCH_TIMER_PHYS_SECURE_PPI;
+>
+> Please use that instead (keeping the comment you retained).
 
-Changes from v6:
- - Addressed comments from Stephen Boyd, Andy Shevchenko and Vinod Koul
- - Renamed clk-byt-plt to clk-pmc-atom
- - Rebase to 4.10-rc3 (broonie/for-next)
- - Added helper functions to make error handling more compact
- - Removed module-related code since it's not possible/supported
- - Removed useless tests on remove
- - PMC_CLK_OFFSET move to clk-pcm-atom (more logical)
- - Split typo correction and makefile fix in separate patches
- - small fixes (spaces, defaults in switches, alphabetical order, use of
-clk_writel/readl and no test on write, simpler error handling, use of
-while(i--), unsigned loop variables, kernel doc fields, format-patch -M
- -C -D, use of PLATFORM_DEVID_NONE)
+Great thanks for pointing it out, that is bug.
+also got this bug report from Huawei engineer.
 
-Changes from v5:
- - fix build error reported by kbuild test robot
- - split the clk driver code from x86 platform changes
+I have fixed it using your example code, thanks!
 
-Changes from v4:
- - move the pmc_atom driver from arch/x86/platform/atom to
-drivers/platform/x86
 
-Changes from v3:
- - replace devm_kzalloc with devm_kcalloc
- - add x86 architecture maintainers
+>
+>> +static int __init arch_timer_init(void)
+>> +{
+>> +     int ret;
+>>
+>>       ret = arch_timer_register();
+>>       if (ret)
+>> @@ -904,6 +906,13 @@ static int __init arch_timer_of_init(struct device_node *np)
+>>       if (IS_ENABLED(CONFIG_ARM) &&
+>>           of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+>>               arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
+>> +     else
+>> +             arch_timer_uses_ppi = arch_timer_select_ppi();
+>> +
+>> +     if (!arch_timer_ppi[arch_timer_uses_ppi]) {
+>> +             pr_err("No interrupt available, giving up\n");
+>> +             return -EINVAL;
+>> +     }
+>>
+>>       /* On some systems, the counter stops ticking when in suspend. */
+>>       arch_counter_suspend_stop = of_property_read_bool(np,
+>> @@ -1049,6 +1058,12 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+>>       /* Get the frequency from CNTFRQ */
+>>       arch_timer_detect_rate(NULL, NULL);
+>>
+>> +     arch_timer_uses_ppi = arch_timer_select_ppi();
+>> +     if (!arch_timer_ppi[arch_timer_uses_ppi]) {
+>> +             pr_err("No interrupt available, giving up\n");
+>> +             return -EINVAL;
+>> +     }
+>
+> I see that we have to duplicate this so we can special-case the
+> DT-specific behaviour, so that's fine by me.
 
-Changes from v2:
- - move clk platform data structures to a separate include file
- - store clk_hw pointer for the fixed rate clocks
+Yes, that is the reason of the duplication :-)
 
-Changes from v1:
- - register the clk device as child of pmc device
- - pass iomem pointer from pmc driver to clk driver to avoid using
-pmc_atom_read()/write() and use readl/writel API instead
- - use devm_clk_hw_register/clkdev_hw_create instead of
-clk_register/clkdev_create
+>
+> If you can fix the arch_timer_select_ppi() logic as above, this should
+> be fine.
 
-Irina Tirdea (3):
-  clk: x86: Add Atom PMC platform clocks
-  arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
-  platform/x86: Enable Atom PMC platform clocks
+Done, thanks :-)
 
-Pierre-Louis Bossart (2):
-  clk: Make x86/ conditional on CONFIG_COMMON_CLK
-  platform/x86: fix typo in comment
+>
+> Thanks,
+> Mark.
 
- arch/x86/Kconfig                                   |   4 -
- arch/x86/platform/atom/Makefile                    |   1 -
- drivers/acpi/acpi_lpss.c                           |   2 +-
- drivers/clk/Makefile                               |   2 +
- drivers/clk/x86/Makefile                           |   1 +
- drivers/clk/x86/clk-pmc-atom.c                     | 373 +++++++++++++++++++++
- drivers/platform/x86/Kconfig                       |   5 +
- drivers/platform/x86/Makefile                      |   1 +
- .../atom => drivers/platform/x86}/pmc_atom.c       |  88 ++++-
- include/linux/platform_data/x86/clk-pmc-atom.h     |  44 +++
- .../linux/platform_data/x86}/pmc_atom.h            |   2 +-
- 11 files changed, 508 insertions(+), 15 deletions(-)
- create mode 100644 drivers/clk/x86/clk-pmc-atom.c
- rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c (87%)
- create mode 100644 include/linux/platform_data/x86/clk-pmc-atom.h
- rename {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h (98%)
+
 
 -- 
-2.7.4
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
