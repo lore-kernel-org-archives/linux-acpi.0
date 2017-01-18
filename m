@@ -1,101 +1,38 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V9 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Wed, 18 Jan 2017 09:40:35 +0800
-Message-ID: <587EC793.2000801@huawei.com>
-References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
- <1481753438-3905-3-git-send-email-agustinv@codeaurora.org>
- <587E1275.7030007@huawei.com>
- <cc305557e91d2de4ae53daf1f5e8fe5a@codeaurora.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [patch] ACPI/IORT: fix an error code
+Date: Wed, 18 Jan 2017 10:09:50 +0800
+Message-ID: <a128a6c8-0be3-5fb8-914e-0554141f4d53@linaro.org>
+References: <20170117121910.GA29263@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cc305557e91d2de4ae53daf1f5e8fe5a@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, charles.garcia-tobin@arm.com
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170117121910.GA29263@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2017/1/17 23:07, Agustin Vega-Frias wrote:
-> Hi Hanjun,
+On 2017/1/17 21:36, Dan Carpenter wrote:
+> We accidentally return success if platform_device_alloc() fails.
 >
-> On 2017-01-17 07:47, Hanjun Guo wrote:
->> On 2016/12/15 6:10, Agustin Vega-Frias wrote:
->>> ACPI extended IRQ resources may contain a ResourceSource to specify
->>> an alternate interrupt controller. Introduce acpi_irq_get and use it
->>> to implement ResourceSource/IRQ domain mapping.
->>>
->>> The new API is similar to of_irq_get and allows re-initialization
->>> of a platform resource from the ACPI extended IRQ resource, and
->>> provides proper behavior for probe deferral when the domain is not
->>> yet present when called.
->>>
->>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
->>> ---
->>>  drivers/acpi/Makefile         |   2 +-
->>>  drivers/acpi/{gsi.c => irq.c} | 182 ++++++++++++++++++++++++++++++++++++++++++
->>>  drivers/base/platform.c       |   9 ++-
->>>  include/linux/acpi.h          |  10 +++
->>>  4 files changed, 201 insertions(+), 2 deletions(-)
->>>  rename drivers/acpi/{gsi.c => irq.c} (32%)
->>>
->> [...]
->>> +/**
->>> + * acpi_irq_parse_one_cb - Handle the given resource
->>> + * @ares: resource to handle
->>> + * @context: context for the walk, contains the lookup index and references
->>> + *           to the flags and fwspec where the result is returned
->>> + *
->>> + * This is called by acpi_walk_resources passing each resource returned by
->>> + * the _CRS method. We only inspect IRQ resources. Since IRQ resources
->>> + * might contain multiple interrupts we check if the index is within this
->>> + * one's interrupt array, otherwise we subtract the current resource IRQ
->>> + * count from the lookup index to prepare for the next resource.
->>> + * Once a match is found we call acpi_irq_parse_one_match to populate
->>> + * the result and end the walk by returning AE_CTRL_TERMINATE.
->>> + *
->>> + * Return AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
->>> + * IRQ resource was found.
->>> + */
->>> +static acpi_status acpi_irq_parse_one_cb(struct acpi_resource *ares,
->>> +                     void *context)
->>> +{
->>> +    struct acpi_irq_parse_one_ctx *ctx = context;
->>> +    struct acpi_resource_irq *irq;
->>> +    struct acpi_resource_extended_irq *eirq;
->>> +    struct fwnode_handle *fwnode;
->>> +
->>> +    switch (ares->type) {
->>> +    case ACPI_RESOURCE_TYPE_IRQ:
->>> +        irq = &ares->data.irq;
->>> +        if (ctx->index >= irq->interrupt_count) {
->>> +            ctx->index -= irq->interrupt_count;
->>> +            return AE_OK;
->>> +        }
->>> +        fwnode = acpi_gsi_domain_id;
->>> +        acpi_irq_parse_one_match(fwnode, irq->interrupts[ctx->index],
->>> +                     irq->triggering, irq->polarity,
->>> +                     irq->sharable, ctx);
->>> +        return AE_CTRL_TERMINATE;
->>> +    case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
->>> +        eirq = &ares->data.extended_irq;
->>
->> If it's an interrupt producer, I think we don't need to map the interrupts in
->> any irqdomain, and return AE_CTRL_TERMINATE here.
->>
->>         case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
->>                 eirq = &ares->data.extended_irq;
->> +         if (eirq->producer_consumer == ACPI_PRODUCER)
->> +                 return AE_CTRL_TERMINATE;
->>                 if (ctx->index >= eirq->interrupt_count) {
+> Fixes: 846f0e9e74a0 ("ACPI/IORT: Add support for ARM SMMU platform devices creation")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 >
-> Agreed. I'll add the check. However, we need to return AE_OK, not
-> AE_CTRL_TERMINATE, since that terminates the walk and there might
-> be other resources to check after this one.
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e0d2e6e..655407a 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -828,7 +828,7 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>
+>  	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
+>  	if (!pdev)
+> -		return PTR_ERR(pdev);
+> +		return -ENOMEM;
+>
+>  	count = ops->iommu_count_resources(node);
 
-Yes, thanks for the correction, there might be other Interrupt()
-resources under _CRS which needs to be scanned.
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
 Hanjun
