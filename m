@@ -1,12 +1,12 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v20 14/17] clocksource/drivers/arm_arch_timer: Simplify ACPI
- support code.
-Date: Wed, 18 Jan 2017 21:25:38 +0800
-Message-ID: <20170118132541.8989-15-fu.wei@linaro.org>
+Subject: [PATCH v20 15/17] acpi/arm64: Add memory-mapped timer support in GTDT
+ driver
+Date: Wed, 18 Jan 2017 21:25:39 +0800
+Message-ID: <20170118132541.8989-16-fu.wei@linaro.org>
 References: <20170118132541.8989-1-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20170118132541.8989-1-fu.wei@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -22,104 +22,100 @@ To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutron
 Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, Fu Wei <fu.wei@linaro.org>, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Fu Wei <fu.wei@linaro.org>
-
-The patch update arm_arch_timer driver to use the function
-provided by the new GTDT driver of ACPI.
-By this way, arm_arch_timer.c can be simplified, and separate
-all the ACPI GTDT knowledge from this timer driver.
-
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
----
- drivers/clocksource/arm_arch_timer.c | 46 ++++++++++--------------------------
- 1 file changed, 13 insertions(+), 33 deletions(-)
-
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 6e8a20c..79dc004 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -1076,59 +1076,36 @@ static int __init arch_timer_mem_of_init(struct device_node *np)
- CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
- 		       arch_timer_mem_of_init);
- 
--#ifdef CONFIG_ACPI
--static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
--{
--	int trigger, polarity;
--
--	if (!interrupt)
--		return 0;
--
--	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
--			: ACPI_LEVEL_SENSITIVE;
--
--	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
--			: ACPI_ACTIVE_HIGH;
--
--	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
--}
--
-+#ifdef CONFIG_ACPI_GTDT
- /* Initialize per-processor generic timer */
- static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- {
- 	int ret;
--	struct acpi_table_gtdt *gtdt;
- 
- 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
- 		pr_warn("already initialized, skipping\n");
- 		return -EINVAL;
- 	}
- 
--	gtdt = container_of(table, struct acpi_table_gtdt, header);
--
- 	arch_timers_present |= ARCH_TIMER_TYPE_CP15;
- 
--	arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI] =
--		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
--		gtdt->secure_el1_flags);
-+	ret = acpi_gtdt_init(table, NULL);
-+	if (ret) {
-+		pr_err("Failed to init GTDT table.\n");
-+		return ret;
-+	}
- 
- 	arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI] =
--		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
--		gtdt->non_secure_el1_flags);
-+		acpi_gtdt_map_ppi(ARCH_TIMER_PHYS_NONSECURE_PPI);
- 
- 	arch_timer_ppi[ARCH_TIMER_VIRT_PPI] =
--		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
--		gtdt->virtual_timer_flags);
-+		acpi_gtdt_map_ppi(ARCH_TIMER_VIRT_PPI);
- 
- 	arch_timer_ppi[ARCH_TIMER_HYP_PPI] =
--		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
--		gtdt->non_secure_el2_flags);
-+		acpi_gtdt_map_ppi(ARCH_TIMER_HYP_PPI);
- 
- 	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
- 
--	/* Get the frequency from the sysreg CNTFRQ */
--	arch_timer_detect_rate();
--
- 	arch_timer_uses_ppi = arch_timer_select_ppi();
- 	if (!arch_timer_ppi[arch_timer_uses_ppi]) {
- 		pr_err("No interrupt available, giving up\n");
-@@ -1136,7 +1113,10 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	}
- 
- 	/* Always-on capability */
--	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-+	arch_timer_c3stop = acpi_gtdt_c3stop(arch_timer_uses_ppi);
-+
-+	/* Get the frequency from the sysreg CNTFRQ */
-+	arch_timer_detect_rate();
- 
- 	ret = arch_timer_register();
- 	if (ret)
--- 
-2.9.3
+RnJvbTogRnUgV2VpIDxmdS53ZWlAbGluYXJvLm9yZz4KCk9uIHBsYXRmb3JtcyBib290aW5nIHdp
+dGggQUNQSSwgYXJjaGl0ZWN0ZWQgbWVtb3J5LW1hcHBlZCB0aW1lcnMnCmNvbmZpZ3VyYXRpb24g
+ZGF0YSBpcyBwcm92aWRlZCBieSBmaXJtd2FyZSB0aHJvdWdoIHRoZSBBQ1BJIEdURFQKc3RhdGlj
+IHRhYmxlLgoKVGhlIGNsb2Nrc291cmNlIGFyY2hpdGVjdGVkIHRpbWVyIGtlcm5lbCBkcml2ZXIg
+cmVxdWlyZXMgYSBmaXJtd2FyZQppbnRlcmZhY2UgdG8gY29sbGVjdCB0aW1lciBjb25maWd1cmF0
+aW9uIGFuZCBjb25maWd1cmUgaXRzIGRyaXZlci4KdGhpcyBpbmZyYXN0cnVjdHVyZSBpcyBwcmVz
+ZW50IGZvciBkZXZpY2UgdHJlZSBzeXN0ZW1zLCBidXQgaXQgaXMKbWlzc2luZyBvbiBzeXN0ZW1z
+IGJvb3Rpbmcgd2l0aCBBQ1BJLgoKSW1wbGVtZW50IHRoZSBrZXJuZWwgaW5mcmFzdHJ1Y3R1cmUg
+cmVxdWlyZWQgdG8gcGFyc2UgdGhlIHN0YXRpYwpBQ1BJIEdURFQgdGFibGUgc28gdGhhdCB0aGUg
+YXJjaGl0ZWN0ZWQgdGltZXIgY2xvY2tzb3VyY2UgZHJpdmVyIGNhbgptYWtlIHVzZSBvZiBpdCBv
+biBzeXN0ZW1zIGJvb3Rpbmcgd2l0aCBBQ1BJLCB0aGVyZWZvcmUgZW5hYmxpbmcKdGhlIGNvcnJl
+c3BvbmRpbmcgdGltZXJzIGNvbmZpZ3VyYXRpb24uCgpTaWduZWQtb2ZmLWJ5OiBGdSBXZWkgPGZ1
+LndlaUBsaW5hcm8ub3JnPgpTaWduZWQtb2ZmLWJ5OiBIYW5qdW4gR3VvIDxoYW5qdW4uZ3VvQGxp
+bmFyby5vcmc+Ci0tLQogZHJpdmVycy9hY3BpL2FybTY0L2d0ZHQuYyB8IDEyNCArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiBpbmNsdWRlL2xpbnV4L2FjcGku
+aCAgICAgIHwgICAxICsKIDIgZmlsZXMgY2hhbmdlZCwgMTI1IGluc2VydGlvbnMoKykKCmRpZmYg
+LS1naXQgYS9kcml2ZXJzL2FjcGkvYXJtNjQvZ3RkdC5jIGIvZHJpdmVycy9hY3BpL2FybTY0L2d0
+ZHQuYwppbmRleCBkOTNhNzkwLi45MWVhNmNiIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYXJt
+NjQvZ3RkdC5jCisrKyBiL2RyaXZlcnMvYWNwaS9hcm02NC9ndGR0LmMKQEAgLTM3LDYgKzM3LDI4
+IEBAIHN0cnVjdCBhY3BpX2d0ZHRfZGVzY3JpcHRvciB7CiAKIHN0YXRpYyBzdHJ1Y3QgYWNwaV9n
+dGR0X2Rlc2NyaXB0b3IgYWNwaV9ndGR0X2Rlc2MgX19pbml0ZGF0YTsKIAorc3RhdGljIGlubGlu
+ZSB2b2lkICpuZXh0X3BsYXRmb3JtX3RpbWVyKHZvaWQgKnBsYXRmb3JtX3RpbWVyKQoreworCXN0
+cnVjdCBhY3BpX2d0ZHRfaGVhZGVyICpnaCA9IHBsYXRmb3JtX3RpbWVyOworCisJcGxhdGZvcm1f
+dGltZXIgKz0gZ2gtPmxlbmd0aDsKKwlpZiAocGxhdGZvcm1fdGltZXIgPCBhY3BpX2d0ZHRfZGVz
+Yy5ndGR0X2VuZCkKKwkJcmV0dXJuIHBsYXRmb3JtX3RpbWVyOworCisJcmV0dXJuIE5VTEw7Cit9
+CisKKyNkZWZpbmUgZm9yX2VhY2hfcGxhdGZvcm1fdGltZXIoX2cpCQkJCVwKKwlmb3IgKF9nID0g
+YWNwaV9ndGR0X2Rlc2MucGxhdGZvcm1fdGltZXI7IF9nOwlcCisJICAgICBfZyA9IG5leHRfcGxh
+dGZvcm1fdGltZXIoX2cpKQorCitzdGF0aWMgaW5saW5lIGJvb2wgaXNfdGltZXJfYmxvY2sodm9p
+ZCAqcGxhdGZvcm1fdGltZXIpCit7CisJc3RydWN0IGFjcGlfZ3RkdF9oZWFkZXIgKmdoID0gcGxh
+dGZvcm1fdGltZXI7CisKKwlyZXR1cm4gZ2gtPnR5cGUgPT0gQUNQSV9HVERUX1RZUEVfVElNRVJf
+QkxPQ0s7Cit9CisKIHN0YXRpYyBpbnQgX19pbml0IG1hcF9ndF9nc2kodTMyIGludGVycnVwdCwg
+dTMyIGZsYWdzKQogewogCWludCB0cmlnZ2VyLCBwb2xhcml0eTsKQEAgLTE1NSwzICsxNzcsMTA1
+IEBAIGludCBfX2luaXQgYWNwaV9ndGR0X2luaXQoc3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICp0
+YWJsZSwKIAogCXJldHVybiByZXQ7CiB9CisKK3N0YXRpYyBpbnQgX19pbml0IGd0ZHRfcGFyc2Vf
+dGltZXJfYmxvY2soc3RydWN0IGFjcGlfZ3RkdF90aW1lcl9ibG9jayAqYmxvY2ssCisJCQkJCSBz
+dHJ1Y3QgYXJjaF90aW1lcl9tZW0gKmRhdGEpCit7CisJaW50IGk7CisJc3RydWN0IGFjcGlfZ3Rk
+dF90aW1lcl9lbnRyeSAqZnJhbWU7CisKKwlpZiAoIWJsb2NrLT50aW1lcl9jb3VudCkgeworCQlw
+cl9lcnIoRldfQlVHICJHVCBibG9jayBwcmVzZW50LCBidXQgZnJhbWUgY291bnQgaXMgemVyby4i
+KTsKKwkJcmV0dXJuIC1FTk9ERVY7CisJfQorCisJaWYgKGJsb2NrLT50aW1lcl9jb3VudCA+IEFS
+Q0hfVElNRVJfTUVNX01BWF9GUkFNRVMpIHsKKwkJcHJfZXJyKEZXX0JVRyAiR1QgYmxvY2sgbGlz
+dHMgJWQgZnJhbWVzLCBBQ1BJIHNwZWMgb25seSBhbGxvd3MgOFxuIiwKKwkJICAgICAgIGJsb2Nr
+LT50aW1lcl9jb3VudCk7CisJCXJldHVybiAtRUlOVkFMOworCX0KKworCWRhdGEtPmNudGN0bGJh
+c2UgPSAocGh5c19hZGRyX3QpYmxvY2stPmJsb2NrX2FkZHJlc3M7CisJLyoKKwkgKiBBY2NvcmRp
+bmcgdG8gIlRhYmxlICogQ05UQ1RMQmFzZSBtZW1vcnkgbWFwIiBvZgorCSAqIDxBUk0gQXJjaGl0
+ZWN0dXJlIFJlZmVyZW5jZSBNYW51YWw+IGZvciBBUk12OCwKKwkgKiBUaGUgc2l6ZSBvZiB0aGUg
+Q05UQ1RMQmFzZSBmcmFtZSBpcyA0S0IoT2Zmc2V0IDB4MDAwIOKAkyAweEZGQykuCisJICovCisJ
+ZGF0YS0+c2l6ZSA9IFNaXzRLOworCWRhdGEtPm51bV9mcmFtZXMgPSBibG9jay0+dGltZXJfY291
+bnQ7CisKKwlmcmFtZSA9ICh2b2lkICopYmxvY2sgKyBibG9jay0+dGltZXJfb2Zmc2V0OworCWlm
+IChmcmFtZSArIGJsb2NrLT50aW1lcl9jb3VudCAhPSAodm9pZCAqKWJsb2NrICsgYmxvY2stPmhl
+YWRlci5sZW5ndGgpCisJCXJldHVybiAtRUlOVkFMOworCisJLyoKKwkgKiBHZXQgdGhlIEdUIHRp
+bWVyIEZyYW1lIGRhdGEgZm9yIGV2ZXJ5IEdUIEJsb2NrIFRpbWVyCisJICovCisJZm9yIChpID0g
+MDsgaSA8IGJsb2NrLT50aW1lcl9jb3VudDsgaSsrLCBmcmFtZSsrKSB7CisJCWlmICghZnJhbWUt
+PmJhc2VfYWRkcmVzcyB8fCAhZnJhbWUtPnRpbWVyX2ludGVycnVwdCkKKwkJCXJldHVybiAtRUlO
+VkFMOworCisJCWRhdGEtPmZyYW1lW2ldLnBoeXNfaXJxID0gbWFwX2d0X2dzaShmcmFtZS0+dGlt
+ZXJfaW50ZXJydXB0LAorCQkJCQkJICAgICBmcmFtZS0+dGltZXJfZmxhZ3MpOworCQlpZiAoZGF0
+YS0+ZnJhbWVbaV0ucGh5c19pcnEgPD0gMCkgeworCQkJcHJfd2FybigiZmFpbGVkIHRvIG1hcCBw
+aHlzaWNhbCB0aW1lciBpcnEgaW4gZnJhbWUgJWQuXG4iLAorCQkJCWkpOworCQkJcmV0dXJuIC1F
+SU5WQUw7CisJCX0KKworCQlkYXRhLT5mcmFtZVtpXS52aXJ0X2lycSA9CisJCQltYXBfZ3RfZ3Np
+KGZyYW1lLT52aXJ0dWFsX3RpbWVyX2ludGVycnVwdCwKKwkJCQkgICBmcmFtZS0+dmlydHVhbF90
+aW1lcl9mbGFncyk7CisJCWlmIChkYXRhLT5mcmFtZVtpXS52aXJ0X2lycSA8PSAwKSB7CisJCQlw
+cl93YXJuKCJmYWlsZWQgdG8gbWFwIHZpcnR1YWwgdGltZXIgaXJxIGluIGZyYW1lICVkLlxuIiwK
+KwkJCQlpKTsKKwkJCWFjcGlfdW5yZWdpc3Rlcl9nc2koZnJhbWUtPnRpbWVyX2ludGVycnVwdCk7
+CisJCQlyZXR1cm4gLUVJTlZBTDsKKwkJfQorCisJCWRhdGEtPmZyYW1lW2ldLmZyYW1lX25yID0g
+ZnJhbWUtPmZyYW1lX251bWJlcjsKKwkJZGF0YS0+ZnJhbWVbaV0uY250YmFzZSA9IGZyYW1lLT5i
+YXNlX2FkZHJlc3M7CisJCS8qCisJCSAqIEFjY29yZGluZyB0byAiVGFibGUgKiBDTlRCYXNlTiBt
+ZW1vcnkgbWFwIiBvZgorCQkgKiA8QVJNIEFyY2hpdGVjdHVyZSBSZWZlcmVuY2UgTWFudWFsPiBm
+b3IgQVJNdjgsCisJCSAqIFRoZSBzaXplIG9mIHRoZSBDTlRCYXNlTiBmcmFtZSBpcyA0S0IoT2Zm
+c2V0IDB4MDAwIOKAkyAweEZGQykuCisJCSAqLworCQlkYXRhLT5mcmFtZVtpXS5zaXplID0gU1pf
+NEs7CisJfQorCisJcmV0dXJuIDA7Cit9CisKKy8qKgorICogYWNwaV9hcmNoX3RpbWVyX21lbV9p
+bml0KCkgLSBHZXQgdGhlIGluZm8gb2YgYWxsIEdUIGJsb2NrcyBpbiBHVERUIHRhYmxlLgorICog
+QGRhdGE6CXRoZSBwb2ludGVyIHRvIHRoZSBhcnJheSBvZiBzdHJ1Y3QgYXJjaF90aW1lcl9tZW0g
+Zm9yIHJldHVybmluZworICoJCXRoZSByZXN1bHQgb2YgcGFyc2luZy4gVGhlIGVsZW1lbnQgbnVt
+YmVyIG9mIHRoaXMgYXJyYXkgc2hvdWxkCisgKgkJYmUgcGxhdGZvcm1fdGltZXJfY291bnQodGhl
+IHRvdGFsIG51bWJlciBvZiBwbGF0Zm9ybSB0aW1lcnMpLgorICogQGNvdW50OglUaGUgcG9pbnRl
+ciBvZiBpbnQgdmFyaWF0ZSBmb3IgcmV0dXJuaW5nIHRoZSBudW1iZXIgb2YgR1QKKyAqCQlibG9j
+a3Mgd2UgaGF2ZSBwYXJzZWQuCisgKgorICogUmV0dXJuOiAwIGlmIHN1Y2Nlc3MsIC1FSU5WQUwv
+LUVOT0RFViBpZiBlcnJvci4KKyAqLworaW50IF9faW5pdCBhY3BpX2FyY2hfdGltZXJfbWVtX2lu
+aXQoc3RydWN0IGFyY2hfdGltZXJfbWVtICpkYXRhLAorCQkJCSAgICBpbnQgKnRpbWVyX2NvdW50
+KQoreworCWludCByZXQ7CisJdm9pZCAqcGxhdGZvcm1fdGltZXI7CisKKwkqdGltZXJfY291bnQg
+PSAwOworCWZvcl9lYWNoX3BsYXRmb3JtX3RpbWVyKHBsYXRmb3JtX3RpbWVyKSB7CisJCWlmIChp
+c190aW1lcl9ibG9jayhwbGF0Zm9ybV90aW1lcikpIHsKKwkJCXJldCA9IGd0ZHRfcGFyc2VfdGlt
+ZXJfYmxvY2socGxhdGZvcm1fdGltZXIsIGRhdGEpOworCQkJaWYgKHJldCkKKwkJCQlyZXR1cm4g
+cmV0OworCQkJZGF0YSsrOworCQkJKCp0aW1lcl9jb3VudCkrKzsKKwkJfQorCX0KKworCWlmICgq
+dGltZXJfY291bnQpCisJCXByX2luZm8oImZvdW5kICVkIG1lbW9yeS1tYXBwZWQgdGltZXIgYmxv
+Y2socykuXG4iLAorCQkJKnRpbWVyX2NvdW50KTsKKworCXJldHVybiAwOworfQpkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9saW51eC9hY3BpLmggYi9pbmNsdWRlL2xpbnV4L2FjcGkuaAppbmRleCBkMGIy
+NzFlLi41MWU4NWI5IDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2FjcGkuaAorKysgYi9pbmNs
+dWRlL2xpbnV4L2FjcGkuaApAQCAtNjAxLDYgKzYwMSw3IEBAIGludCBhY3BpX3JlY29uZmlnX25v
+dGlmaWVyX3VucmVnaXN0ZXIoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpuYik7CiBpbnQgYWNwaV9n
+dGR0X2luaXQoc3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICp0YWJsZSwgaW50ICpwbGF0Zm9ybV90
+aW1lcl9jb3VudCk7CiBpbnQgYWNwaV9ndGR0X21hcF9wcGkoaW50IHR5cGUpOwogYm9vbCBhY3Bp
+X2d0ZHRfYzNzdG9wKGludCB0eXBlKTsKK2ludCBhY3BpX2FyY2hfdGltZXJfbWVtX2luaXQoc3Ry
+dWN0IGFyY2hfdGltZXJfbWVtICpkYXRhLCBpbnQgKnRpbWVyX2NvdW50KTsKICNlbmRpZgogCiAj
+ZWxzZQkvKiAhQ09ORklHX0FDUEkgKi8KLS0gCjIuOS4zCgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
+bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
+YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
