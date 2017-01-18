@@ -1,515 +1,106 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V10 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Tue, 31 Jan 2017 23:10:53 +0100
-Message-ID: <CAJZ5v0gfW-qn0Onj95EJmU94rp-+osZCqk+JBs96cJuGz1PUTA@mail.gmail.com>
-References: <1484757988-23739-1-git-send-email-agustinv@codeaurora.org>
- <1484757988-23739-3-git-send-email-agustinv@codeaurora.org>
+From: Tomi Sarvela <tomi.p.sarvela@intel.com>
+Subject: Re: ILK ACPI boot-up problem on HP 8100 SFF, bisected
+Date: Wed, 18 Jan 2017 15:25:49 +0200
+Message-ID: <1771449.3Vm8lxD6tb@fractal.fi.intel.com>
+References: <1961608.33YkWy0F8T@fractal.fi.intel.com> <1596185.GhUtjqxSKW@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1484757988-23739-3-git-send-email-agustinv@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: harba@codeaurora.org, Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jason Cooper <jason@lakedaemon.net>, Graeme Gregory <graeme.gregory@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, astone@redhat.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Langsdorf <mlangsdo@redhat.com>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Charles Garcia Tobin <charles.garcia-tobin@arm.com>, Al Stone <ahs3@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:6904 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751842AbdARN00 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 18 Jan 2017 08:26:26 -0500
+In-Reply-To: <1596185.GhUtjqxSKW@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Jan 18, 2017 at 5:46 PM, Agustin Vega-Frias
-<agustinv@codeaurora.org> wrote:
-> ACPI extended IRQ resources may contain a ResourceSource to specify
-> an alternate interrupt controller. Introduce acpi_irq_get and use it
-> to implement ResourceSource/IRQ domain mapping.
->
-> The new API is similar to of_irq_get and allows re-initialization
-> of a platform resource from the ACPI extended IRQ resource, and
-> provides proper behavior for probe deferral when the domain is not
-> yet present when called.
->
-> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
-> ---
->  drivers/acpi/Makefile   |   2 +-
->  drivers/acpi/gsi.c      |  98 -----------------
->  drivers/acpi/irq.c      | 282 ++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/base/platform.c |   9 +-
->  include/linux/acpi.h    |  10 ++
->  5 files changed, 301 insertions(+), 100 deletions(-)
->  delete mode 100644 drivers/acpi/gsi.c
->  create mode 100644 drivers/acpi/irq.c
->
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 9ed0878..a391bbc 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -55,7 +55,7 @@ acpi-$(CONFIG_DEBUG_FS)               += debugfs.o
->  acpi-$(CONFIG_ACPI_NUMA)       += numa.o
->  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->  acpi-y                         += acpi_lpat.o
-> -acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
-> +acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
->  acpi-$(CONFIG_ACPI_WATCHDOG)   += acpi_watchdog.o
->
->  # These are (potentially) separate modules
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> deleted file mode 100644
-> index ee9e0f2..0000000
-> --- a/drivers/acpi/gsi.c
-> +++ /dev/null
-> @@ -1,98 +0,0 @@
-> -/*
-> - * ACPI GSI IRQ layer
-> - *
-> - * Copyright (C) 2015 ARM Ltd.
-> - * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - */
-> -#include <linux/acpi.h>
-> -#include <linux/irq.h>
-> -#include <linux/irqdomain.h>
-> -#include <linux/of.h>
-> -
-> -enum acpi_irq_model_id acpi_irq_model;
-> -
-> -static struct fwnode_handle *acpi_gsi_domain_id;
-> -
-> -/**
-> - * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
-> - * @gsi: GSI IRQ number to map
-> - * @irq: pointer where linux IRQ number is stored
-> - *
-> - * irq location updated with irq value [>0 on success, 0 on failure]
-> - *
-> - * Returns: linux IRQ number on success (>0)
-> - *          -EINVAL on failure
-> - */
-> -int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> -{
-> -       struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-> -                                                       DOMAIN_BUS_ANY);
-> -
-> -       *irq = irq_find_mapping(d, gsi);
-> -       /*
-> -        * *irq == 0 means no mapping, that should
-> -        * be reported as a failure
-> -        */
-> -       return (*irq > 0) ? *irq : -EINVAL;
-> -}
-> -EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-> -
-> -/**
-> - * acpi_register_gsi() - Map a GSI to a linux IRQ number
-> - * @dev: device for which IRQ has to be mapped
-> - * @gsi: GSI IRQ number
-> - * @trigger: trigger type of the GSI number to be mapped
-> - * @polarity: polarity of the GSI to be mapped
-> - *
-> - * Returns: a valid linux IRQ number on success
-> - *          -EINVAL on failure
-> - */
-> -int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
-> -                     int polarity)
-> -{
-> -       struct irq_fwspec fwspec;
-> -
-> -       if (WARN_ON(!acpi_gsi_domain_id)) {
-> -               pr_warn("GSI: No registered irqchip, giving up\n");
-> -               return -EINVAL;
-> -       }
-> -
-> -       fwspec.fwnode = acpi_gsi_domain_id;
-> -       fwspec.param[0] = gsi;
-> -       fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
-> -       fwspec.param_count = 2;
-> -
-> -       return irq_create_fwspec_mapping(&fwspec);
-> -}
-> -EXPORT_SYMBOL_GPL(acpi_register_gsi);
-> -
-> -/**
-> - * acpi_unregister_gsi() - Free a GSI<->linux IRQ number mapping
-> - * @gsi: GSI IRQ number
-> - */
-> -void acpi_unregister_gsi(u32 gsi)
-> -{
-> -       struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-> -                                                       DOMAIN_BUS_ANY);
-> -       int irq = irq_find_mapping(d, gsi);
-> -
-> -       irq_dispose_mapping(irq);
-> -}
-> -EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-> -
-> -/**
-> - * acpi_set_irq_model - Setup the GSI irqdomain information
-> - * @model: the value assigned to acpi_irq_model
-> - * @fwnode: the irq_domain identifier for mapping and looking up
-> - *          GSI interrupts
-> - */
-> -void __init acpi_set_irq_model(enum acpi_irq_model_id model,
-> -                              struct fwnode_handle *fwnode)
-> -{
-> -       acpi_irq_model = model;
-> -       acpi_gsi_domain_id = fwnode;
-> -}
-> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-> new file mode 100644
-> index 0000000..cadc4cdd
-> --- /dev/null
-> +++ b/drivers/acpi/irq.c
-> @@ -0,0 +1,282 @@
-> +/*
-> + * ACPI GSI IRQ layer
-> + *
-> + * Copyright (C) 2015 ARM Ltd.
-> + * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#include <linux/acpi.h>
-> +#include <linux/irq.h>
-> +#include <linux/irqdomain.h>
-> +#include <linux/of.h>
-> +
-> +enum acpi_irq_model_id acpi_irq_model;
-> +
-> +static struct fwnode_handle *acpi_gsi_domain_id;
-> +
-> +/**
-> + * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
-> + * @gsi: GSI IRQ number to map
-> + * @irq: pointer where linux IRQ number is stored
-> + *
-> + * irq location updated with irq value [>0 on success, 0 on failure]
-> + *
-> + * Returns: linux IRQ number on success (>0)
-> + *          -EINVAL on failure
-> + */
-> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> +{
-> +       struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-> +                                                       DOMAIN_BUS_ANY);
-> +
-> +       *irq = irq_find_mapping(d, gsi);
-> +       /*
-> +        * *irq == 0 means no mapping, that should
-> +        * be reported as a failure
-> +        */
-> +       return (*irq > 0) ? *irq : -EINVAL;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-> +
-> +/**
-> + * acpi_register_gsi() - Map a GSI to a linux IRQ number
-> + * @dev: device for which IRQ has to be mapped
-> + * @gsi: GSI IRQ number
-> + * @trigger: trigger type of the GSI number to be mapped
-> + * @polarity: polarity of the GSI to be mapped
-> + *
-> + * Returns: a valid linux IRQ number on success
-> + *          -EINVAL on failure
-> + */
-> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
-> +                     int polarity)
-> +{
-> +       struct irq_fwspec fwspec;
-> +
-> +       if (WARN_ON(!acpi_gsi_domain_id)) {
-> +               pr_warn("GSI: No registered irqchip, giving up\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       fwspec.fwnode = acpi_gsi_domain_id;
-> +       fwspec.param[0] = gsi;
-> +       fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
-> +       fwspec.param_count = 2;
-> +
-> +       return irq_create_fwspec_mapping(&fwspec);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
-> +
-> +/**
-> + * acpi_unregister_gsi() - Free a GSI<->linux IRQ number mapping
-> + * @gsi: GSI IRQ number
-> + */
-> +void acpi_unregister_gsi(u32 gsi)
-> +{
-> +       struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-> +                                                       DOMAIN_BUS_ANY);
-> +       int irq = irq_find_mapping(d, gsi);
-> +
-> +       irq_dispose_mapping(irq);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-> +
-> +/**
-> + * acpi_get_irq_source_fwhandle() - Retrieve the fwhandle of the given
-> + *                                  acpi_resource_source which is used
-> + *                                  as an IRQ domain id
-> + * @source: acpi_resource_source to use for the lookup
-> + *
-> + * Returns: The appropriate IRQ fwhandle domain id
-> + *          NULL on failure
-> + */
-> +static struct fwnode_handle *
-> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
-> +{
-> +       struct fwnode_handle *result;
-> +       struct acpi_device *device;
-> +       acpi_handle handle;
-> +       acpi_status status;
-> +
-> +       if (!source->string_length)
-> +               return acpi_gsi_domain_id;
-> +
-> +       status = acpi_get_handle(NULL, source->string_ptr, &handle);
-> +       if (ACPI_FAILURE(status)) {
-> +               pr_warn("Could not find handle for %s\n", source->string_ptr);
-> +               return NULL;
-> +       }
-> +
-> +       device = acpi_bus_get_acpi_device(handle);
-> +       if (!device) {
-> +               pr_warn("Could not get device for %s\n", source->string_ptr);
-> +               return NULL;
-> +       }
-> +
-> +       result = &device->fwnode;
-> +       acpi_bus_put_acpi_device(device);
-> +
-> +       return result;
-> +}
-> +
-> +/**
-> + * Context for the resource walk used to lookup IRQ resources.
-> + */
-> +struct acpi_irq_parse_one_ctx {
-> +       int rc;
-> +       unsigned int index;
-> +       unsigned long *res_flags;
-> +       struct irq_fwspec *fwspec;
-> +};
-> +
-> +/**
-> + * acpi_irq_parse_one_match - Handle a matching IRQ resource
-> + */
-> +static inline void acpi_irq_parse_one_match(struct fwnode_handle *fwnode,
-> +                                           u32 hwirq, u8 triggering,
-> +                                           u8 polarity, u8 shareable,
-> +                                           struct acpi_irq_parse_one_ctx *ctx)
-> +{
-> +       ctx->rc = 0;
-> +       *ctx->res_flags = acpi_dev_irq_flags(triggering, polarity, shareable);
-> +       ctx->fwspec->fwnode = fwnode;
-> +       ctx->fwspec->param[0] = hwirq;
-> +       ctx->fwspec->param[1] = acpi_dev_get_irq_type(triggering, polarity);
-> +       ctx->fwspec->param_count = 2;
-> +}
-> +
-> +/**
-> + * acpi_irq_parse_one_cb - Handle the given resource
-> + * @ares: resource to handle
-> + * @context: context for the walk, contains the lookup index and references
-> + *           to the flags and fwspec where the result is returned
-> + *
-> + * This is called by acpi_walk_resources passing each resource returned by
-> + * the _CRS method. We only inspect IRQ resources. Since IRQ resources
-> + * might contain multiple interrupts we check if the index is within this
-> + * one's interrupt array, otherwise we subtract the current resource IRQ
-> + * count from the lookup index to prepare for the next resource.
-> + * Once a match is found we call acpi_irq_parse_one_match to populate
-> + * the result and end the walk by returning AE_CTRL_TERMINATE.
-> + *
-> + * Return AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
-> + * IRQ resource was found.
-> + */
-> +static acpi_status acpi_irq_parse_one_cb(struct acpi_resource *ares,
-> +                                        void *context)
-> +{
-> +       struct acpi_irq_parse_one_ctx *ctx = context;
-> +       struct acpi_resource_irq *irq;
-> +       struct acpi_resource_extended_irq *eirq;
-> +       struct fwnode_handle *fwnode;
-> +
-> +       switch (ares->type) {
-> +       case ACPI_RESOURCE_TYPE_IRQ:
-> +               irq = &ares->data.irq;
-> +               if (ctx->index >= irq->interrupt_count) {
-> +                       ctx->index -= irq->interrupt_count;
-> +                       return AE_OK;
-> +               }
-> +               fwnode = acpi_gsi_domain_id;
-> +               acpi_irq_parse_one_match(fwnode, irq->interrupts[ctx->index],
-> +                                        irq->triggering, irq->polarity,
-> +                                        irq->sharable, ctx);
-> +               return AE_CTRL_TERMINATE;
-> +       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> +               eirq = &ares->data.extended_irq;
-> +               if (eirq->producer_consumer == ACPI_PRODUCER)
-> +                       return AE_OK;
-> +               if (ctx->index >= eirq->interrupt_count) {
-> +                       ctx->index -= eirq->interrupt_count;
-> +                       return AE_OK;
-> +               }
-> +               fwnode = acpi_get_irq_source_fwhandle(&eirq->resource_source);
-> +               acpi_irq_parse_one_match(fwnode, eirq->interrupts[ctx->index],
-> +                                        eirq->triggering, eirq->polarity,
-> +                                        eirq->sharable, ctx);
-> +               return AE_CTRL_TERMINATE;
-> +       }
-> +
-> +       return AE_OK;
-> +}
-> +
-> +/**
-> + * acpi_irq_parse_one - Resolve an interrupt for a device
-> + * @handle: the device whose interrupt is to be resolved
-> + * @index: index of the interrupt to resolve
-> + * @fwspec: structure irq_fwspec filled by this function
-> + * @flags: resource flags filled by this function
-> + *
-> + * This function resolves an interrupt for a device by walking its CRS resources
-> + * to find the appropriate ACPI IRQ resource and populating the given structure
-> + * which can be used to retrieve a Linux IRQ number.
-> + *
-> + * Returns the result stored in ctx.rc by the callback, or -EINVAL if the given
-> + * index is out of range.
-> + */
-> +static int acpi_irq_parse_one(acpi_handle handle, unsigned int index,
-> +                             struct irq_fwspec *fwspec, unsigned long *flags)
-> +{
-> +       struct acpi_irq_parse_one_ctx ctx = { -EINVAL, index, flags, fwspec };
-> +       acpi_status status;
-> +
-> +       status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-> +                                    acpi_irq_parse_one_cb, &ctx);
-> +       if (ACPI_FAILURE(status))
-> +               return -EINVAL;
-> +       return ctx.rc;
-> +}
-> +
-> +/**
-> + * acpi_irq_get - Look for the ACPI IRQ resource with the given index and
-> + *                use it to initialize the given Linux IRQ resource.
-> + * @handle ACPI device handle
-> + * @index  ACPI IRQ resource index to lookup
-> + * @res    Linux IRQ resource to initialize
-> + *
-> + * Return: 0 on success
-> + *         -EINVAL if an error occurs
-> + *         -EPROBE_DEFER if the IRQ lookup/conversion failed
-> + */
-> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
-> +{
-> +       int rc;
-> +       struct irq_fwspec fwspec;
-> +       struct irq_domain *domain;
-> +       unsigned long flags;
-> +
-> +       rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
-> +       if (rc)
-> +               return rc;
-> +
-> +       domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
-> +       if (!domain)
-> +               return -EPROBE_DEFER;
-> +
-> +       rc = irq_create_fwspec_mapping(&fwspec);
-> +       if (rc <= 0)
-> +               return -EINVAL;
-> +
-> +       res->start = rc;
-> +       res->end = rc;
-> +       res->flags = flags;
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_irq_get);
-> +
-> +/**
-> + * acpi_set_irq_model - Setup the GSI irqdomain information
-> + * @model: the value assigned to acpi_irq_model
-> + * @fwnode: the irq_domain identifier for mapping and looking up
-> + *          GSI interrupts
-> + */
-> +void __init acpi_set_irq_model(enum acpi_irq_model_id model,
-> +                              struct fwnode_handle *fwnode)
-> +{
-> +       acpi_irq_model = model;
-> +       acpi_gsi_domain_id = fwnode;
-> +}
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index c4af003..61423d2 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
->         }
->
->         r = platform_get_resource(dev, IORESOURCE_IRQ, num);
-> +       if (r && r->flags & IORESOURCE_DISABLED && ACPI_COMPANION(&dev->dev)) {
-> +               int ret;
-> +
-> +               ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
-> +               if (ret)
-> +                       return ret;
-> +       }
+On Wednesday, 11 January 2017 04:09:29 EET Rafael J. Wysocki wrote:
+> On Tuesday, January 10, 2017 12:07:36 PM Tomi Sarvela wrote:
+> > 
+> > This might help: there is dump after a while. I've been too hasty
+> > to reboot the machine to see this before.
+> Thanks!
 
-The code above is a bit convoluted.  It would be better to write it as
-something like
+Has there been any progress or interest towards tracking down this particular problem?
 
-if (r && r->flags & IORESOURCE_DISABLED) {
-        struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+Tested with  4.10-rc3. Boot hangs to the same point, dmesg INFO bursts like below come with ~120sec intervals.
 
-        if (adev) {
-                int ret = acpi_irq_get(adev->handle, num, r);
+Best regards,
 
-                if (ret)
-                        return ret;
-        }
-}
+Tomi Sarvela
 
-> +
->         /*
->          * The resources may pass trigger flags to the irqs that need
->          * to be set up. It so happens that the trigger flags for
-> @@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
->                 memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
->         }
->  }
-> -
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 5b36974..03a94cd 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1153,4 +1153,14 @@ static inline void acpi_table_upgrade(void) { }
->  static inline int parse_spcr(bool earlycon) { return 0; }
->  #endif
->
-> +#ifdef CONFIG_ACPI_GENERIC_GSI
-> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
-> +#else
-> +static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
-> +                              struct resource *res)
-> +{
-> +       return -EINVAL;
-> +}
-> +#endif
-> +
->  #endif /*_LINUX_ACPI_H*/
+> > [    0.854462] ACPI: Added _OSI(Module Device)
+> > [    0.858701] ACPI: Added _OSI(Processor Device)
+> > [    0.863197] ACPI: Added _OSI(3.0 _SCP Extensions)
+> > [    0.867952] ACPI: Added _OSI(Processor Aggregator Device)
+> > [    0.893684] ACPI: Dynamic OEM Table Load:
+> > [    0.897758] ACPI: SSDT 0xFFFF8802122EBA78 0003BA (v01 COMPAQ
+> > CPU_TM2  00000001 MSFT 0100000E) [  247.066214] INFO: task
+> > swapper/0:1 blocked for more than 120 seconds. [  247.072707]    
+> >   Not tainted 4.10.0-rc2-gfxbench+ #1
+> > [  247.077809] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+> > disables this message. [  247.085731] swapper/0       D    0    
+> > 1      0 0x00000000 [  247.091271] Call Trace:
+> > [  247.093774]  ? __schedule+0x2c9/0xa60
+> > [  247.097489]  schedule+0x3b/0x90
+> > [  247.100685]  schedule_timeout+0x25b/0x4c0
+> > [  247.104750]  ? debug_smp_processor_id+0x17/0x20
+> > [  247.109334]  ? set_track+0x88/0x120
+> > [  247.112878]  ? trace_hardirqs_on_caller+0x122/0x1b0
+> > [  247.117808]  __down_timeout+0x81/0xd0
+> > [  247.121523]  down_timeout+0x47/0x50
+> > [  247.125065]  acpi_os_wait_semaphore+0x47/0x62
+> > [  247.129475]  acpi_ut_acquire_mutex+0x43/0x81
+> > [  247.133798]  acpi_get_table+0x2d/0x84
+> > [  247.137513]  acpi_table_attr_init+0xcd/0x100
+> > [  247.141834]  ? acpi_sysfs_table_handler+0x3e/0xb8
+> > [  247.146590]  acpi_sysfs_table_handler+0x5d/0xb8
+> > [  247.151174]  acpi_bus_table_handler+0x23/0x2a
+> > [  247.155583]  acpi_tb_install_standard_table+0xe0/0x213
+> > [  247.160773]  ? down_timeout+0x32/0x50
+> > [  247.164489]  acpi_tb_install_and_load_table+0x3a/0x82
+> > [  247.169592]  acpi_ex_load_op+0x194/0x201
+> > [  247.173568]  ? acpi_ex_resolve_operands+0x207/0x4dc
+> > [  247.178497]  acpi_ex_opcode_1A_1T_0R+0x25/0x46
+> > [  247.182993]  acpi_ds_exec_end_op+0xc8/0x3df
+> > [  247.187229]  acpi_ps_parse_loop+0x50e/0x560
+> > [  247.191465]  acpi_ps_parse_aml+0x93/0x276
+> > [  247.195526]  acpi_ps_execute_method+0x146/0x181
+> > [  247.200108]  acpi_ns_evaluate+0x1bb/0x247
+> > [  247.204170]  acpi_evaluate_object+0x178/0x274
+> > [  247.208581]  ? acpi_processor_set_pdc+0x88/0x17b
+> > [  247.213249]  acpi_processor_set_pdc+0x154/0x17b
+> > [  247.217833]  early_init_pdc+0x9a/0xa3
+> > [  247.221548]  ? up+0x2d/0x50
+> > [  247.224395]  acpi_ns_walk_namespace+0xdc/0x18e
+> > [  247.228891]  ? set_no_mwait+0x23/0x23
+> > [  247.232606]  ? set_no_mwait+0x23/0x23
+> > [  247.236321]  acpi_walk_namespace+0x97/0xcb
+> > [  247.240471]  ? acpi_sleep_proc_init+0x28/0x28
+> > [  247.244880]  ? rest_init+0x130/0x130
+> > [  247.248507]  acpi_early_processor_set_pdc+0x30/0x4a
+> > [  247.253436]  acpi_init+0x19f/0x315
+> > [  247.256891]  do_one_initcall+0x3f/0x170
+> > [  247.260781]  kernel_init_freeable+0x11d/0x1a3
+> > [  247.265191]  ? rest_init+0x130/0x130
+> > [  247.268822]  kernel_init+0x9/0x100
+> > [  247.272276]  ret_from_fork+0x27/0x40
+> > [  247.275904]
+> > [  247.275904] Showing all locks held in the system:
+> > [  247.282179] 2 locks held by khungtaskd/34:
+> > [  247.286326]  #0:  (rcu_read_lock){......}, at:
+> > [<ffffffff811332cc>] watchdog+0x9c/0x600 [  247.294423]  #1: 
+> > (tasklist_lock){.+.+..}, at: [<ffffffff810dae1d>]
+> > debug_show_all_locks+0x3d/0x1a0 [  247.303562]
+> > [  247.305105] =============================================
+> > [  247.305105]
+> 
+> Lv, can you have a look at this, please?
+> 
+> Thanks,
+> Rafael
 
-The rest looks reasonable to me.
 
-Thanks,
-Rafael
