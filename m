@@ -1,103 +1,186 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v8 14/15] irqchip: mbigen: introduce mbigen_of_create_domain()
-Date: Wed, 18 Jan 2017 20:55:04 +0800
-Message-ID: <1484744105-53140-15-git-send-email-guohanjun@huawei.com>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: fu.wei@linaro.org
+Subject: [PATCH v20 01/17] clocksource/drivers/arm_arch_timer: Improve printk relevant code
+Date: Wed, 18 Jan 2017 21:25:25 +0800
+Message-ID: <20170118132541.8989-2-fu.wei@linaro.org>
+References: <20170118132541.8989-1-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:42433 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751167AbdARNQr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jan 2017 08:16:47 -0500
-In-Reply-To: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58854 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751894AbdARN0Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 18 Jan 2017 08:26:16 -0500
+In-Reply-To: <20170118132541.8989-1-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
+From: Fu Wei <fu.wei@linaro.org>
 
-Introduce mbigen_of_create_domain() to consolidate OF related
-code and prepare for ACPI later, no funtional change.
+This patch defines pr_fmt(fmt) for all pr_* functions,
+then the pr_* doesn't need to add "arch_timer:" everytime.
 
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Reviewed-by: Ma Jun <majun258@huawei.com>
-Tested-by: Ming Lei <ming.lei@canonical.com>
-Tested-by: Wei Xu <xuwei5@hisilicon.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+According to the suggestion from checkpatch.pl:
+(1) delete some Blank Spaces in arch_timer_banner;
+(2) delete a redundant Tab in a bland line of arch_timer_init(void)
+
+No functional change.
+
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
 ---
- drivers/irqchip/irq-mbigen.c | 42 +++++++++++++++++++++++++++---------------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+ drivers/clocksource/arm_arch_timer.c | 49 ++++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-index c01ab41..4e11da5 100644
---- a/drivers/irqchip/irq-mbigen.c
-+++ b/drivers/irqchip/irq-mbigen.c
-@@ -236,27 +236,15 @@ static int mbigen_irq_domain_alloc(struct irq_domain *domain,
- 	.free		= irq_domain_free_irqs_common,
- };
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 4c8c3fb..923bd5c 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -32,6 +32,9 @@
  
--static int mbigen_device_probe(struct platform_device *pdev)
-+static int mbigen_of_create_domain(struct platform_device *pdev,
-+				   struct mbigen_device *mgn_chip)
+ #include <clocksource/arm_arch_timer.h>
+ 
++#undef pr_fmt
++#define pr_fmt(fmt) "arch_timer: " fmt
++
+ #define CNTTIDR		0x08
+ #define CNTTIDR_VIRT(n)	(BIT(1) << ((n) * 4))
+ 
+@@ -516,22 +519,22 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+ 
+ 	/* Check the timer frequency. */
+ 	if (arch_timer_rate == 0)
+-		pr_warn("Architected timer frequency not available\n");
++		pr_warn("frequency not available\n");
+ }
+ 
+ static void arch_timer_banner(unsigned type)
  {
--	struct mbigen_device *mgn_chip;
-+	struct device *parent;
- 	struct platform_device *child;
- 	struct irq_domain *domain;
- 	struct device_node *np;
--	struct device *parent;
--	struct resource *res;
- 	u32 num_pins;
+-	pr_info("Architected %s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
+-		     type & ARCH_CP15_TIMER ? "cp15" : "",
+-		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
+-		     type & ARCH_MEM_TIMER ? "mmio" : "",
+-		     (unsigned long)arch_timer_rate / 1000000,
+-		     (unsigned long)(arch_timer_rate / 10000) % 100,
+-		     type & ARCH_CP15_TIMER ?
+-		     (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
++	pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
++		type & ARCH_CP15_TIMER ? "cp15" : "",
++		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
++		type & ARCH_MEM_TIMER ? "mmio" : "",
++		(unsigned long)arch_timer_rate / 1000000,
++		(unsigned long)(arch_timer_rate / 10000) % 100,
++		type & ARCH_CP15_TIMER ?
++			(arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+ 			"",
+-		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
+-		     type & ARCH_MEM_TIMER ?
++		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
++		type & ARCH_MEM_TIMER ?
+ 			arch_timer_mem_use_virtual ? "virt" : "phys" :
+ 			"");
+ }
+@@ -632,8 +635,7 @@ static void __init arch_counter_register(unsigned type)
  
--	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
--	if (!mgn_chip)
--		return -ENOMEM;
--
--	mgn_chip->pdev = pdev;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	mgn_chip->base = devm_ioremap_resource(&pdev->dev, res);
--	if (IS_ERR(mgn_chip->base))
--		return PTR_ERR(mgn_chip->base);
--
- 	for_each_child_of_node(pdev->dev.of_node, np) {
- 		if (!of_property_read_bool(np, "interrupt-controller"))
- 			continue;
-@@ -280,6 +268,30 @@ static int mbigen_device_probe(struct platform_device *pdev)
- 			return -ENOMEM;
+ static void arch_timer_stop(struct clock_event_device *clk)
+ {
+-	pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
+-		 clk->irq, smp_processor_id());
++	pr_debug("disable IRQ%d cpu #%d\n", clk->irq, smp_processor_id());
+ 
+ 	disable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi]);
+ 	if (arch_timer_has_nonsecure_ppi())
+@@ -726,8 +728,7 @@ static int __init arch_timer_register(void)
  	}
  
-+	return 0;
-+}
+ 	if (err) {
+-		pr_err("arch_timer: can't register interrupt %d (%d)\n",
+-		       ppi, err);
++		pr_err("can't register interrupt %d (%d)\n", ppi, err);
+ 		goto out_free;
+ 	}
+ 
+@@ -780,7 +781,7 @@ static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
+ 
+ 	ret = request_irq(irq, func, IRQF_TIMER, "arch_mem_timer", &t->evt);
+ 	if (ret) {
+-		pr_err("arch_timer: Failed to request mem timer irq\n");
++		pr_err("Failed to request mem timer irq\n");
+ 		kfree(t);
+ 	}
+ 
+@@ -858,7 +859,7 @@ static int __init arch_timer_init(void)
+ 		}
+ 
+ 		if (!has_ppi) {
+-			pr_warn("arch_timer: No interrupt available, giving up\n");
++			pr_warn("No interrupt available, giving up\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -872,7 +873,7 @@ static int __init arch_timer_init(void)
+ 		return ret;
+ 
+ 	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[VIRT_PPI];
+-	
 +
-+static int mbigen_device_probe(struct platform_device *pdev)
-+{
-+	struct mbigen_device *mgn_chip;
-+	struct resource *res;
-+	int err;
-+
-+	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
-+	if (!mgn_chip)
-+		return -ENOMEM;
-+
-+	mgn_chip->pdev = pdev;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	mgn_chip->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-+	if (IS_ERR(mgn_chip->base))
-+		return PTR_ERR(mgn_chip->base);
-+
-+	err = mbigen_of_create_domain(pdev, mgn_chip);
-+	if (err)
-+		return err;
-+
- 	platform_set_drvdata(pdev, mgn_chip);
  	return 0;
  }
+ 
+@@ -881,7 +882,7 @@ static int __init arch_timer_of_init(struct device_node *np)
+ 	int i;
+ 
+ 	if (arch_timers_present & ARCH_CP15_TIMER) {
+-		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
++		pr_warn("multiple nodes in dt, skipping\n");
+ 		return 0;
+ 	}
+ 
+@@ -929,7 +930,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
+ 	arch_timers_present |= ARCH_MEM_TIMER;
+ 	cntctlbase = of_iomap(np, 0);
+ 	if (!cntctlbase) {
+-		pr_err("arch_timer: Can't find CNTCTLBase\n");
++		pr_err("Can't find CNTCTLBase\n");
+ 		return -ENXIO;
+ 	}
+ 
+@@ -944,7 +945,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
+ 		u32 cntacr;
+ 
+ 		if (of_property_read_u32(frame, "frame-number", &n)) {
+-			pr_err("arch_timer: Missing frame-number\n");
++			pr_err("Missing frame-number\n");
+ 			of_node_put(frame);
+ 			goto out;
+ 		}
+@@ -974,7 +975,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
+ 	base = arch_counter_base = of_io_request_and_map(best_frame, 0,
+ 							 "arch_mem_timer");
+ 	if (IS_ERR(base)) {
+-		pr_err("arch_timer: Can't map frame's registers\n");
++		pr_err("Can't map frame's registers\n");
+ 		goto out;
+ 	}
+ 
+@@ -985,7 +986,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
+ 
+ 	ret = -EINVAL;
+ 	if (!irq) {
+-		pr_err("arch_timer: Frame missing %s irq",
++		pr_err("Frame missing %s irq.\n",
+ 		       arch_timer_mem_use_virtual ? "virt" : "phys");
+ 		goto out;
+ 	}
+@@ -1027,7 +1028,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 	struct acpi_table_gtdt *gtdt;
+ 
+ 	if (arch_timers_present & ARCH_CP15_TIMER) {
+-		pr_warn("arch_timer: already initialized, skipping\n");
++		pr_warn("already initialized, skipping\n");
+ 		return -EINVAL;
+ 	}
+ 
 -- 
-1.7.12.4
+2.9.3
 
