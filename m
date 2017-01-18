@@ -1,248 +1,112 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH V10 2/3] ACPI: Add support for ResourceSource/IRQ domain mapping
-Date: Wed, 18 Jan 2017 21:45:56 +0200
-Message-ID: <CAHp75Vem=mCOGVoOpCJFYHcO17mJ9gexsQxa0Pjf4Lbt3hibRA@mail.gmail.com>
-References: <1484766276-9668-1-git-send-email-agustinv@codeaurora.org>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V7 04/10] arm64: exception: handle Synchronous External
+ Abort
+Date: Wed, 18 Jan 2017 15:52:03 -0700
+Message-ID: <9185f5f2-7bc4-5727-af3a-920dd22578dc@codeaurora.org>
+References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
+ <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
+ <20170116115309.GE1510@arm.com> <587DF0B6.4060000@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1484766276-9668-1-git-send-email-agustinv@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, msalter@redhat.com, mlangsdo@redhat.com, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, guohanjun@huawei.com, charles.garcia-tobin@arm.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <587DF0B6.4060000@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: mark.rutland@arm.com, linux-efi@vger.kernel.org, kvm@vger.kernel.org, rkrcmar@redhat.com, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Will Deacon <will.deacon@arm.com>, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, tn@semihalf.com, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, Suzuki.Poulose@arm.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.orgb
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 9:04 PM, Agustin Vega-Frias
-<agustinv@codeaurora.org> wrote:
-> ACPI extended IRQ resources may contain a ResourceSource to specify
-> an alternate interrupt controller. Introduce acpi_irq_get and use it
-> to implement ResourceSource/IRQ domain mapping.
+On 1/17/2017 3:23 AM, James Morse wrote:
+> Hi Tyler,
 >
-> The new API is similar to of_irq_get and allows re-initialization
-> of a platform resource from the ACPI extended IRQ resource, and
-> provides proper behavior for probe deferral when the domain is not
-> yet present when called.
-
-Thanks, looks better now.
-
->  /**
-> + * acpi_get_irq_source_fwhandle() - Retrieve the fwhandle of the given
-> + *                                  acpi_resource_source which is used
-> + *                                  as an IRQ domain id
-
-Please, make short description here and put long one below
-
-> + * @source: acpi_resource_source to use for the lookup
-> + *
-
-* Description:
-* ...
-*
-
-> + * Returns: The appropriate IRQ fwhandle domain id
-> + *          NULL on failure
-
-* Return:
-* blablabla
-
-> + */
-> +static struct fwnode_handle *
-> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
-> +{
-> +       struct fwnode_handle *result;
-> +       struct acpi_device *device;
-> +       acpi_handle handle;
-> +       acpi_status status;
-> +
-> +       if (!source->string_length)
-> +               return acpi_gsi_domain_id;
-> +
-> +       status = acpi_get_handle(NULL, source->string_ptr, &handle);
-> +       if (ACPI_FAILURE(status)) {
-
-> +               pr_warn("Could not find handle for %s\n", source->string_ptr);
-> +               return NULL;
-> +       }
-> +
-> +       device = acpi_bus_get_acpi_device(handle);
-> +       if (!device) {
-> +               pr_warn("Could not get device for %s\n", source->string_ptr);
-
-I'm not sure both messages have a value.
-
-> +               return NULL;
-> +       }
-
-> +/**
-
-You mark as kernel doc, but in fact it's just a comment.
-
-> + * Context for the resource walk used to lookup IRQ resources.
-> + */
-> +struct acpi_irq_parse_one_ctx {
-> +       int rc;
-> +       unsigned int index;
-> +       unsigned long *res_flags;
-> +       struct irq_fwspec *fwspec;
-> +};
-> +
-> +/**
-> + * acpi_irq_parse_one_match - Handle a matching IRQ resource
-
-This looks better, but lacks of parameter descriptions.
-
-> + */
-
-> +/**
-> + * acpi_irq_parse_one_cb - Handle the given resource
-> + * @ares: resource to handle
-
-> + * @context: context for the walk, contains the lookup index and references
-> + *           to the flags and fwspec where the result is returned
-
-Make it shorter, ideally into one line
-
-> + *
-
-* Description:
-
-> + * This is called by acpi_walk_resources passing each resource returned by
-> + * the _CRS method. We only inspect IRQ resources. Since IRQ resources
-> + * might contain multiple interrupts we check if the index is within this
-> + * one's interrupt array, otherwise we subtract the current resource IRQ
-> + * count from the lookup index to prepare for the next resource.
-> + * Once a match is found we call acpi_irq_parse_one_match to populate
-> + * the result and end the walk by returning AE_CTRL_TERMINATE.
-> + *
-> + * Return AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
-
-* Return:
-* blablabla
-
-> + * IRQ resource was found.
-> + */
-
-> +/**
-> + * acpi_irq_parse_one - Resolve an interrupt for a device
-> + * @handle: the device whose interrupt is to be resolved
-> + * @index: index of the interrupt to resolve
-> + * @fwspec: structure irq_fwspec filled by this function
-> + * @flags: resource flags filled by this function
-> + *
-> + * This function resolves an interrupt for a device by walking its CRS resources
-> + * to find the appropriate ACPI IRQ resource and populating the given structure
-> + * which can be used to retrieve a Linux IRQ number.
-> + *
-> + * Returns the result stored in ctx.rc by the callback, or -EINVAL if the given
-> + * index is out of range.
-
-Ditto for Description and Return.
-
-> + */
-> +static int acpi_irq_parse_one(acpi_handle handle, unsigned int index,
-> +                             struct irq_fwspec *fwspec, unsigned long *flags)
-> +{
-> +       struct acpi_irq_parse_one_ctx ctx = { -EINVAL, index, flags, fwspec };
-> +       acpi_status status;
-> +
-> +       status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-> +                                    acpi_irq_parse_one_cb, &ctx);
-
-> +       if (ACPI_FAILURE(status))
-> +               return -EINVAL;
-
-Shouldn't you have the same in rc? Would be redundant.
-
-> +       return ctx.rc;
-> +}
-> +
-> +/**
-> + * acpi_irq_get - Look for the ACPI IRQ resource with the given index and
-> + *                use it to initialize the given Linux IRQ resource.
-> + * @handle ACPI device handle
-> + * @index  ACPI IRQ resource index to lookup
-> + * @res    Linux IRQ resource to initialize
-
-Ah, you missed colons after field names:
-* @field1:
-
-> + *
-> + * Return:
-
-Next line:  0 on success
-
-> + *         -EINVAL if an error occurs
-> + *         -EPROBE_DEFER if the IRQ lookup/conversion failed
-> + */
-> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
-> +{
-
-> +       int rc;
-
-Put this last in the definition block.
-
-> +       struct irq_fwspec fwspec;
-> +       struct irq_domain *domain;
-> +       unsigned long flags;
-> +
-> +       rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
-> +       if (rc)
-> +               return rc;
-> +
-> +       domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
-> +       if (!domain)
-> +               return -EPROBE_DEFER;
-
-Hmm... Could it be other issues here?
-
-> +
-> +       rc = irq_create_fwspec_mapping(&fwspec);
-> +       if (rc <= 0)
-> +               return -EINVAL;
-> +
-
-> +       res->start = rc;
-> +       res->end = rc;
-> +       res->flags = flags;
-
-Perhaps struct resource *r should be a parameter to acpi_irq_parse_one().
-
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_irq_get);
-> +
-> +/**
->   * acpi_set_irq_model - Setup the GSI irqdomain information
->   * @model: the value assigned to acpi_irq_model
->   * @fwnode: the irq_domain identifier for mapping and looking up
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index c4af003..61423d2 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
->         }
+> On 16/01/17 11:53, Will Deacon wrote:
+>> On Thu, Jan 12, 2017 at 11:15:18AM -0700, Tyler Baicar wrote:
+>>> SEA exceptions are often caused by an uncorrected hardware
+>>> error, and are handled when data abort and instruction abort
+>>> exception classes have specific values for their Fault Status
+>>> Code.
+>>> When SEA occurs, before killing the process, go through
+>>> the handlers registered in the notification list.
+>>> Update fault_info[] with specific SEA faults so that the
+>>> new SEA handler is used.
+>>> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+>>> index 05d2bd7..81039c7 100644
+>>> --- a/arch/arm64/mm/fault.c
+>>> +++ b/arch/arm64/mm/fault.c
+>>> @@ -480,6 +496,28 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>>>   	return 1;
+>>>   }
+>>>   
+>>> +/*
+>>> + * This abort handler deals with Synchronous External Abort.
+>>> + * It calls notifiers, and then returns "fault".
+>>> + */
+>>> +static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>>> +{
+>>> +	struct siginfo info;
+>>> +
+>>> +	atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
+>>> +
+>>> +	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
+>>> +		 fault_name(esr), esr, addr);
+>>> +
+>>> +	info.si_signo = SIGBUS;
+>>> +	info.si_errno = 0;
+>>> +	info.si_code  = 0;
+>>> +	info.si_addr  = (void __user *)addr;
+>>> +	arm64_notify_die("", regs, &info, esr);
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>>   static const struct fault_info {
+>>>   	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
+>>>   	int	sig;
+>>> @@ -502,22 +540,22 @@ static const struct fault_info {
+>>>   	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 1 permission fault"	},
+>>>   	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 2 permission fault"	},
+>>>   	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 3 permission fault"	},
+>>> -	{ do_bad,		SIGBUS,  0,		"synchronous external abort"	},
+>>> +	{ do_sea,		SIGBUS,  0,		"synchronous external abort"	},
+>>>   	{ do_bad,		SIGBUS,  0,		"unknown 17"			},
+>>>   	{ do_bad,		SIGBUS,  0,		"unknown 18"			},
+>>>   	{ do_bad,		SIGBUS,  0,		"unknown 19"			},
+>>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>>> -	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
+>>> -	{ do_bad,		SIGBUS,  0,		"synchronous parity error"	},
+>>> +	{ do_sea,		SIGBUS,  0,		"level 0 SEA (translation table walk)"	},
+>>> +	{ do_sea,		SIGBUS,  0,		"level 1 SEA (translation table walk)"	},
+>>> +	{ do_sea,		SIGBUS,  0,		"level 2 SEA (translation table walk)"	},
+>>> +	{ do_sea,		SIGBUS,  0,		"level 3 SEA (translation table walk)"	},
+>> Perhaps I wasn't clear enough in my previous review, but please expand the
+>> acronym for strings and comments.
 >
->         r = platform_get_resource(dev, IORESOURCE_IRQ, num);
-> +       if (r && r->flags & IORESOURCE_DISABLED && ACPI_COMPANION(&dev->dev)) {
+> The 'SEA' in this user-string doesn't add anything. Now that these use do_sea()
+> instead of do_bad(), when they are printed won't it be:
+>> Synchronous External Abort: level 3 SEA (translation table walk) (...) at ....
 
-has_acpi_companion() ?
+Good point, yes they will:
 
-> +               int ret;
-> +
-> +               ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
-> +               if (ret)
-> +                       return ret;
-> +       }
++	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
++		 fault_name(esr), esr, addr);
 
-> @@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
->                 memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
->         }
->  }
-> -
+I can just remove SEA here then.
 
-It doesn't belong here.
+Thanks,
+Tyler
+
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
