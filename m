@@ -1,63 +1,285 @@
 From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: Re: [PATCH V10 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Wed, 18 Jan 2017 14:02:53 -0500
-Message-ID: <5bf630b0ab0b818db6e4e63a41020a55@codeaurora.org>
-References: <1484757988-23739-1-git-send-email-agustinv@codeaurora.org>
- <1484757988-23739-3-git-send-email-agustinv@codeaurora.org>
- <CAHp75VcLL9zvRXGCy2ynjhYFUgbYwJvLpCiUxjtsKmXjVFHmKA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAHp75VcLL9zvRXGCy2ynjhYFUgbYwJvLpCiUxjtsKmXjVFHmKA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: harba@codeaurora.org, guohanjun@huawei.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jason Cooper <jason@lakedaemon.net>, Graeme Gregory <graeme.gregory@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, msalter@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, astone@redhat.com, linux-acpi@vger.kernel.org, mlangsdo@redhat.com, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, charles.garcia-tobin@arm.com, Al Stone <ahs3@redhat.com>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH V10 2/3] ACPI: Add support for ResourceSource/IRQ domain mapping
+Date: Wed, 18 Jan 2017 14:04:36 -0500
+Message-ID: <1484766276-9668-1-git-send-email-agustinv@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andy,
+ACPI extended IRQ resources may contain a ResourceSource to specify
+an alternate interrupt controller. Introduce acpi_irq_get and use it
+to implement ResourceSource/IRQ domain mapping.
 
-On 2017-01-18 13:00, Andy Shevchenko wrote:
-> On Wed, Jan 18, 2017 at 6:46 PM, Agustin Vega-Frias
-> <agustinv@codeaurora.org> wrote:
->> ACPI extended IRQ resources may contain a ResourceSource to specify
->> an alternate interrupt controller. Introduce acpi_irq_get and use it
->> to implement ResourceSource/IRQ domain mapping.
->> 
->> The new API is similar to of_irq_get and allows re-initialization
->> of a platform resource from the ACPI extended IRQ resource, and
->> provides proper behavior for probe deferral when the domain is not
->> yet present when called.
->> 
-> 
-> Care to use -M -C when prepare this patch?
-> 
+The new API is similar to of_irq_get and allows re-initialization
+of a platform resource from the ACPI extended IRQ resource, and
+provides proper behavior for probe deferral when the domain is not
+yet present when called.
 
-I did use it, but the similarity index was below the default threshold.
-I'll send in a new version of this patch with this fixed.
+Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+---
+ drivers/acpi/Makefile         |   2 +-
+ drivers/acpi/{gsi.c => irq.c} | 184 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/base/platform.c       |   9 ++-
+ include/linux/acpi.h          |  10 +++
+ 4 files changed, 203 insertions(+), 2 deletions(-)
+ rename drivers/acpi/{gsi.c => irq.c} (32%)
 
-Thanks,
-Agustin
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 9ed0878..a391bbc 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -55,7 +55,7 @@ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ acpi-y				+= acpi_lpat.o
+-acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
++acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+ acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
 
->>  drivers/acpi/gsi.c      |  98 -----------------
->>  drivers/acpi/irq.c      | 282 
->> ++++++++++++++++++++++++++++++++++++++++++++++++
-> 
-> --
-> With Best Regards,
-> Andy Shevchenko
+ # These are (potentially) separate modules
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/irq.c
+similarity index 32%
+rename from drivers/acpi/gsi.c
+rename to drivers/acpi/irq.c
+index ee9e0f2..cadc4cdd 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/irq.c
+@@ -85,6 +85,190 @@ void acpi_unregister_gsi(u32 gsi)
+ EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
 
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
-Linux Foundation Collaborative Project.
+ /**
++ * acpi_get_irq_source_fwhandle() - Retrieve the fwhandle of the given
++ *                                  acpi_resource_source which is used
++ *                                  as an IRQ domain id
++ * @source: acpi_resource_source to use for the lookup
++ *
++ * Returns: The appropriate IRQ fwhandle domain id
++ *          NULL on failure
++ */
++static struct fwnode_handle *
++acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
++{
++	struct fwnode_handle *result;
++	struct acpi_device *device;
++	acpi_handle handle;
++	acpi_status status;
++
++	if (!source->string_length)
++		return acpi_gsi_domain_id;
++
++	status = acpi_get_handle(NULL, source->string_ptr, &handle);
++	if (ACPI_FAILURE(status)) {
++		pr_warn("Could not find handle for %s\n", source->string_ptr);
++		return NULL;
++	}
++
++	device = acpi_bus_get_acpi_device(handle);
++	if (!device) {
++		pr_warn("Could not get device for %s\n", source->string_ptr);
++		return NULL;
++	}
++
++	result = &device->fwnode;
++	acpi_bus_put_acpi_device(device);
++
++	return result;
++}
++
++/**
++ * Context for the resource walk used to lookup IRQ resources.
++ */
++struct acpi_irq_parse_one_ctx {
++	int rc;
++	unsigned int index;
++	unsigned long *res_flags;
++	struct irq_fwspec *fwspec;
++};
++
++/**
++ * acpi_irq_parse_one_match - Handle a matching IRQ resource
++ */
++static inline void acpi_irq_parse_one_match(struct fwnode_handle *fwnode,
++					    u32 hwirq, u8 triggering,
++					    u8 polarity, u8 shareable,
++					    struct acpi_irq_parse_one_ctx *ctx)
++{
++	ctx->rc = 0;
++	*ctx->res_flags = acpi_dev_irq_flags(triggering, polarity, shareable);
++	ctx->fwspec->fwnode = fwnode;
++	ctx->fwspec->param[0] = hwirq;
++	ctx->fwspec->param[1] = acpi_dev_get_irq_type(triggering, polarity);
++	ctx->fwspec->param_count = 2;
++}
++
++/**
++ * acpi_irq_parse_one_cb - Handle the given resource
++ * @ares: resource to handle
++ * @context: context for the walk, contains the lookup index and references
++ *           to the flags and fwspec where the result is returned
++ *
++ * This is called by acpi_walk_resources passing each resource returned by
++ * the _CRS method. We only inspect IRQ resources. Since IRQ resources
++ * might contain multiple interrupts we check if the index is within this
++ * one's interrupt array, otherwise we subtract the current resource IRQ
++ * count from the lookup index to prepare for the next resource.
++ * Once a match is found we call acpi_irq_parse_one_match to populate
++ * the result and end the walk by returning AE_CTRL_TERMINATE.
++ *
++ * Return AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
++ * IRQ resource was found.
++ */
++static acpi_status acpi_irq_parse_one_cb(struct acpi_resource *ares,
++					 void *context)
++{
++	struct acpi_irq_parse_one_ctx *ctx = context;
++	struct acpi_resource_irq *irq;
++	struct acpi_resource_extended_irq *eirq;
++	struct fwnode_handle *fwnode;
++
++	switch (ares->type) {
++	case ACPI_RESOURCE_TYPE_IRQ:
++		irq = &ares->data.irq;
++		if (ctx->index >= irq->interrupt_count) {
++			ctx->index -= irq->interrupt_count;
++			return AE_OK;
++		}
++		fwnode = acpi_gsi_domain_id;
++		acpi_irq_parse_one_match(fwnode, irq->interrupts[ctx->index],
++					 irq->triggering, irq->polarity,
++					 irq->sharable, ctx);
++		return AE_CTRL_TERMINATE;
++	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
++		eirq = &ares->data.extended_irq;
++		if (eirq->producer_consumer == ACPI_PRODUCER)
++			return AE_OK;
++		if (ctx->index >= eirq->interrupt_count) {
++			ctx->index -= eirq->interrupt_count;
++			return AE_OK;
++		}
++		fwnode = acpi_get_irq_source_fwhandle(&eirq->resource_source);
++		acpi_irq_parse_one_match(fwnode, eirq->interrupts[ctx->index],
++					 eirq->triggering, eirq->polarity,
++					 eirq->sharable, ctx);
++		return AE_CTRL_TERMINATE;
++	}
++
++	return AE_OK;
++}
++
++/**
++ * acpi_irq_parse_one - Resolve an interrupt for a device
++ * @handle: the device whose interrupt is to be resolved
++ * @index: index of the interrupt to resolve
++ * @fwspec: structure irq_fwspec filled by this function
++ * @flags: resource flags filled by this function
++ *
++ * This function resolves an interrupt for a device by walking its CRS resources
++ * to find the appropriate ACPI IRQ resource and populating the given structure
++ * which can be used to retrieve a Linux IRQ number.
++ *
++ * Returns the result stored in ctx.rc by the callback, or -EINVAL if the given
++ * index is out of range.
++ */
++static int acpi_irq_parse_one(acpi_handle handle, unsigned int index,
++			      struct irq_fwspec *fwspec, unsigned long *flags)
++{
++	struct acpi_irq_parse_one_ctx ctx = { -EINVAL, index, flags, fwspec };
++	acpi_status status;
++
++	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
++				     acpi_irq_parse_one_cb, &ctx);
++	if (ACPI_FAILURE(status))
++		return -EINVAL;
++	return ctx.rc;
++}
++
++/**
++ * acpi_irq_get - Look for the ACPI IRQ resource with the given index and
++ *                use it to initialize the given Linux IRQ resource.
++ * @handle ACPI device handle
++ * @index  ACPI IRQ resource index to lookup
++ * @res    Linux IRQ resource to initialize
++ *
++ * Return: 0 on success
++ *         -EINVAL if an error occurs
++ *         -EPROBE_DEFER if the IRQ lookup/conversion failed
++ */
++int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
++{
++	int rc;
++	struct irq_fwspec fwspec;
++	struct irq_domain *domain;
++	unsigned long flags;
++
++	rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
++	if (rc)
++		return rc;
++
++	domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
++	if (!domain)
++		return -EPROBE_DEFER;
++
++	rc = irq_create_fwspec_mapping(&fwspec);
++	if (rc <= 0)
++		return -EINVAL;
++
++	res->start = rc;
++	res->end = rc;
++	res->flags = flags;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_irq_get);
++
++/**
+  * acpi_set_irq_model - Setup the GSI irqdomain information
+  * @model: the value assigned to acpi_irq_model
+  * @fwnode: the irq_domain identifier for mapping and looking up
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index c4af003..61423d2 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+ 	}
+
+ 	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
++	if (r && r->flags & IORESOURCE_DISABLED && ACPI_COMPANION(&dev->dev)) {
++		int ret;
++
++		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
++		if (ret)
++			return ret;
++	}
++
+ 	/*
+ 	 * The resources may pass trigger flags to the irqs that need
+ 	 * to be set up. It so happens that the trigger flags for
+@@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
+ 		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
+ 	}
+ }
+-
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 5b36974..03a94cd 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1153,4 +1153,14 @@ static inline void acpi_table_upgrade(void) { }
+ static inline int parse_spcr(bool earlycon) { return 0; }
+ #endif
+
++#ifdef CONFIG_ACPI_GENERIC_GSI
++int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
++#else
++static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
++			       struct resource *res)
++{
++	return -EINVAL;
++}
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
+--
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
