@@ -1,101 +1,109 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v20 17/17] acpi/arm64: Add SBSA Generic Watchdog support in
- GTDT driver
-Date: Wed, 18 Jan 2017 21:25:41 +0800
-Message-ID: <20170118132541.8989-18-fu.wei@linaro.org>
+Subject: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework counter frequency detection.
+Date: Wed, 18 Jan 2017 21:25:32 +0800
+Message-ID: <20170118132541.8989-9-fu.wei@linaro.org>
 References: <20170118132541.8989-1-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170118132541.8989-1-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, Fu Wei <fu.wei@linaro.org>, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-RnJvbTogRnUgV2VpIDxmdS53ZWlAbGluYXJvLm9yZz4KClRoaXMgZHJpdmVyIGFkZHMgc3VwcG9y
-dCBmb3IgcGFyc2luZyBTQlNBIEdlbmVyaWMgV2F0Y2hkb2cgdGltZXIKaW4gR1REVCwgcGFyc2Ug
-YWxsIGluZm8gaW4gU0JTQSBHZW5lcmljIFdhdGNoZG9nIFN0cnVjdHVyZSBpbiBHVERULAphbmQg
-Y3JlYXRpbmcgYSBwbGF0Zm9ybSBkZXZpY2Ugd2l0aCB0aGF0IGluZm9ybWF0aW9uLgoKVGhpcyBh
-bGxvd3MgdGhlIG9wZXJhdGluZyBzeXN0ZW0gdG8gb2J0YWluIGRldmljZSBkYXRhIGZyb20gdGhl
-CnJlc291cmNlIG9mIHBsYXRmb3JtIGRldmljZS4gVGhlIHBsYXRmb3JtIGRldmljZSBuYW1lZCAi
-c2JzYS1nd2R0IgpjYW4gYmUgdXNlZCBieSB0aGUgQVJNIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyBk
-cml2ZXIuCgpTaWduZWQtb2ZmLWJ5OiBGdSBXZWkgPGZ1LndlaUBsaW5hcm8ub3JnPgpTaWduZWQt
-b2ZmLWJ5OiBIYW5qdW4gR3VvIDxoYW5qdW4uZ3VvQGxpbmFyby5vcmc+ClRlc3RlZC1ieTogWGlv
-bmdmZW5nIFdhbmcgPHdhbmd4aW9uZ2ZlbmcyQGh1YXdlaS5jb20+Ci0tLQogZHJpdmVycy9hY3Bp
-L2FybTY0L2d0ZHQuYyB8IDkzICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrCiBkcml2ZXJzL3dhdGNoZG9nL0tjb25maWcgIHwgIDEgKwogMiBmaWxlcyBjaGFu
-Z2VkLCA5NCBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FybTY0L2d0
-ZHQuYyBiL2RyaXZlcnMvYWNwaS9hcm02NC9ndGR0LmMKaW5kZXggOTFlYTZjYi4uMjJkMzY1OSAx
-MDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2FybTY0L2d0ZHQuYworKysgYi9kcml2ZXJzL2FjcGkv
-YXJtNjQvZ3RkdC5jCkBAIC0xNCw2ICsxNCw3IEBACiAjaW5jbHVkZSA8bGludXgvYWNwaS5oPgog
-I2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KICNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KKyNpbmNs
-dWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KIAogI2luY2x1ZGUgPGNsb2Nrc291cmNlL2Fy
-bV9hcmNoX3RpbWVyLmg+CiAKQEAgLTU5LDYgKzYwLDEzIEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBp
-c190aW1lcl9ibG9jayh2b2lkICpwbGF0Zm9ybV90aW1lcikKIAlyZXR1cm4gZ2gtPnR5cGUgPT0g
-QUNQSV9HVERUX1RZUEVfVElNRVJfQkxPQ0s7CiB9CiAKK3N0YXRpYyBpbmxpbmUgYm9vbCBpc193
-YXRjaGRvZyh2b2lkICpwbGF0Zm9ybV90aW1lcikKK3sKKwlzdHJ1Y3QgYWNwaV9ndGR0X2hlYWRl
-ciAqZ2ggPSBwbGF0Zm9ybV90aW1lcjsKKworCXJldHVybiBnaC0+dHlwZSA9PSBBQ1BJX0dURFRf
-VFlQRV9XQVRDSERPRzsKK30KKwogc3RhdGljIGludCBfX2luaXQgbWFwX2d0X2dzaSh1MzIgaW50
-ZXJydXB0LCB1MzIgZmxhZ3MpCiB7CiAJaW50IHRyaWdnZXIsIHBvbGFyaXR5OwpAQCAtMjc5LDMg
-KzI4Nyw4OCBAQCBpbnQgX19pbml0IGFjcGlfYXJjaF90aW1lcl9tZW1faW5pdChzdHJ1Y3QgYXJj
-aF90aW1lcl9tZW0gKmRhdGEsCiAKIAlyZXR1cm4gMDsKIH0KKworLyoKKyAqIEluaXRpYWxpemUg
-YSBTQlNBIGdlbmVyaWMgV2F0Y2hkb2cgcGxhdGZvcm0gZGV2aWNlIGluZm8gZnJvbSBHVERUCisg
-Ki8KK3N0YXRpYyBpbnQgX19pbml0IGd0ZHRfaW1wb3J0X3Nic2FfZ3dkdChzdHJ1Y3QgYWNwaV9n
-dGR0X3dhdGNoZG9nICp3ZCwKKwkJCQkJaW50IGluZGV4KQoreworCXN0cnVjdCBwbGF0Zm9ybV9k
-ZXZpY2UgKnBkZXY7CisJaW50IGlycSA9IG1hcF9ndF9nc2kod2QtPnRpbWVyX2ludGVycnVwdCwg
-d2QtPnRpbWVyX2ZsYWdzKTsKKwlpbnQgbm9faXJxID0gMTsKKworCS8qCisJICogQWNjb3JkaW5n
-IHRvIFNCU0Egc3BlY2lmaWNhdGlvbiB0aGUgc2l6ZSBvZiByZWZyZXNoIGFuZCBjb250cm9sCisJ
-ICogZnJhbWVzIG9mIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyBpcyBTWl80SyhPZmZzZXQgMHgwMDAg
-4oCTIDB4RkZGKS4KKwkgKi8KKwlzdHJ1Y3QgcmVzb3VyY2UgcmVzW10gPSB7CisJCURFRklORV9S
-RVNfTUVNKHdkLT5jb250cm9sX2ZyYW1lX2FkZHJlc3MsIFNaXzRLKSwKKwkJREVGSU5FX1JFU19N
-RU0od2QtPnJlZnJlc2hfZnJhbWVfYWRkcmVzcywgU1pfNEspLAorCQlERUZJTkVfUkVTX0lSUShp
-cnEpLAorCX07CisKKwlwcl9kZWJ1ZygiZm91bmQgYSBXYXRjaGRvZyAoMHglbGx4LzB4JWxseCBn
-c2k6JXUgZmxhZ3M6MHgleCkuXG4iLAorCQkgd2QtPnJlZnJlc2hfZnJhbWVfYWRkcmVzcywgd2Qt
-PmNvbnRyb2xfZnJhbWVfYWRkcmVzcywKKwkJIHdkLT50aW1lcl9pbnRlcnJ1cHQsIHdkLT50aW1l
-cl9mbGFncyk7CisKKwlpZiAoISh3ZC0+cmVmcmVzaF9mcmFtZV9hZGRyZXNzICYmIHdkLT5jb250
-cm9sX2ZyYW1lX2FkZHJlc3MpKSB7CisJCXByX2VycihGV19CVUcgImZhaWxlZCB0byBnZXQgdGhl
-IFdhdGNoZG9nIGJhc2UgYWRkcmVzcy5cbiIpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlp
-ZiAoIXdkLT50aW1lcl9pbnRlcnJ1cHQpCisJCXByX3dhcm4oRldfQlVHICJmYWlsZWQgdG8gZ2V0
-IHRoZSBXYXRjaGRvZyBpbnRlcnJ1cHQuXG4iKTsKKwllbHNlIGlmIChpcnEgPD0gMCkKKwkJcHJf
-d2FybigiZmFpbGVkIHRvIG1hcCB0aGUgV2F0Y2hkb2cgaW50ZXJydXB0LlxuIik7CisJZWxzZQor
-CQlub19pcnEgPSAwOworCisJLyoKKwkgKiBBZGQgYSBwbGF0Zm9ybSBkZXZpY2UgbmFtZWQgInNi
-c2EtZ3dkdCIgdG8gbWF0Y2ggdGhlIHBsYXRmb3JtIGRyaXZlci4KKwkgKiAic2JzYS1nd2R0Ijog
-U0JTQShTZXJ2ZXIgQmFzZSBTeXN0ZW0gQXJjaGl0ZWN0dXJlKSBHZW5lcmljIFdhdGNoZG9nCisJ
-ICogVGhlIHBsYXRmb3JtIGRyaXZlciAobGlrZSBkcml2ZXJzL3dhdGNoZG9nL3Nic2FfZ3dkdC5j
-KWNhbiBnZXQgZGV2aWNlCisJICogaW5mbyBiZWxvdyBieSBtYXRjaGluZyB0aGlzIG5hbWUuCisJ
-ICovCisJcGRldiA9IHBsYXRmb3JtX2RldmljZV9yZWdpc3Rlcl9zaW1wbGUoInNic2EtZ3dkdCIs
-IGluZGV4LCByZXMsCisJCQkJCSAgICAgICBBUlJBWV9TSVpFKHJlcykgLSBub19pcnEpOworCWlm
-IChJU19FUlIocGRldikpIHsKKwkJYWNwaV91bnJlZ2lzdGVyX2dzaSh3ZC0+dGltZXJfaW50ZXJy
-dXB0KTsKKwkJcmV0dXJuIFBUUl9FUlIocGRldik7CisJfQorCisJcmV0dXJuIDA7Cit9CisKK3N0
-YXRpYyBpbnQgX19pbml0IGd0ZHRfc2JzYV9nd2R0X2luaXQodm9pZCkKK3sKKwlpbnQgcmV0LCBp
-ID0gMDsKKwl2b2lkICpwbGF0Zm9ybV90aW1lcjsKKwlzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIg
-KnRhYmxlOworCisJaWYgKGFjcGlfZGlzYWJsZWQpCisJCXJldHVybiAwOworCisJaWYgKEFDUElf
-RkFJTFVSRShhY3BpX2dldF90YWJsZShBQ1BJX1NJR19HVERULCAwLCAmdGFibGUpKSkKKwkJcmV0
-dXJuIC1FSU5WQUw7CisKKwlyZXQgPSBhY3BpX2d0ZHRfaW5pdCh0YWJsZSwgTlVMTCk7CisJaWYg
-KHJldCkKKwkJcmV0dXJuIHJldDsKKworCWZvcl9lYWNoX3BsYXRmb3JtX3RpbWVyKHBsYXRmb3Jt
-X3RpbWVyKSB7CisJCWlmIChpc193YXRjaGRvZyhwbGF0Zm9ybV90aW1lcikpIHsKKwkJCXJldCA9
-IGd0ZHRfaW1wb3J0X3Nic2FfZ3dkdChwbGF0Zm9ybV90aW1lciwgaSk7CisJCQlpZiAocmV0KQor
-CQkJCWJyZWFrOworCQkJaSsrOworCQl9CisJfQorCisJaWYgKGkpCisJCXByX2luZm8oImZvdW5k
-ICVkIFNCU0EgZ2VuZXJpYyBXYXRjaGRvZyhzKS5cbiIsIGkpOworCisJcmV0dXJuIHJldDsKK30K
-KworZGV2aWNlX2luaXRjYWxsKGd0ZHRfc2JzYV9nd2R0X2luaXQpOwpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy93YXRjaGRvZy9LY29uZmlnIGIvZHJpdmVycy93YXRjaGRvZy9LY29uZmlnCmluZGV4IGFj
-YjAwYjUuLmM4OTlkZjEgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZworKysg
-Yi9kcml2ZXJzL3dhdGNoZG9nL0tjb25maWcKQEAgLTIxOSw2ICsyMTksNyBAQCBjb25maWcgQVJN
-X1NCU0FfV0FUQ0hET0cKIAl0cmlzdGF0ZSAiQVJNIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyIKIAlk
-ZXBlbmRzIG9uIEFSTTY0CiAJZGVwZW5kcyBvbiBBUk1fQVJDSF9USU1FUgorCWRlcGVuZHMgb24g
-QUNQSV9HVERUIHx8ICFBQ1BJCiAJc2VsZWN0IFdBVENIRE9HX0NPUkUKIAloZWxwCiAJICBBUk0g
-U0JTQSBHZW5lcmljIFdhdGNoZG9nIGhhcyB0d28gc3RhZ2UgdGltZW91dHM6Ci0tIAoyLjkuMwoK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFy
-bS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1r
-ZXJuZWwK
+From: Fu Wei <fu.wei@linaro.org>
+
+The counter frequency detection call(arch_timer_detect_rate) combines two
+ways to get counter frequency: system coprocessor register and MMIO timer.
+But in a specific timer init code, we only need one way to try:
+getting frequency from MMIO timer register will be needed only when we
+init MMIO timer; getting frequency from system coprocessor register will
+be needed only when we init arch timer.
+
+This patch separates paths to determine frequency:
+Separate out the MMIO frequency and the sysreg frequency detection call,
+and use the appropriate one for the counter.
+
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+---
+ drivers/clocksource/arm_arch_timer.c | 40 ++++++++++++++++++++++--------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 6484f84..9482481 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -488,23 +488,33 @@ static int arch_timer_starting_cpu(unsigned int cpu)
+ 	return 0;
+ }
+ 
+-static void arch_timer_detect_rate(void __iomem *cntbase)
++static void __arch_timer_determine_rate(u32 rate)
+ {
+-	/* Who has more than one independent system counter? */
+-	if (arch_timer_rate)
+-		return;
++	/* Check the timer frequency. */
++	if (!arch_timer_rate) {
++		if (rate)
++			arch_timer_rate = rate;
++		else
++			pr_warn("frequency not available\n");
++	} else if (rate && arch_timer_rate != rate) {
++		pr_warn("got different frequency, keep original.\n");
++	}
++}
+ 
++static void arch_timer_detect_rate(void)
++{
+ 	/*
+-	 * Try to determine the frequency from the MMIO timer or the sysreg.
++	 * Try to get the timer frequency from the sysreg CNTFRQ.
+ 	 */
+-	if (cntbase)
+-		arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
+-	else
+-		arch_timer_rate = arch_timer_get_cntfrq();
++	__arch_timer_determine_rate(arch_timer_get_cntfrq());
++}
+ 
+-	/* Check the timer frequency. */
+-	if (arch_timer_rate == 0)
+-		pr_warn("frequency not available\n");
++static void arch_timer_mem_detect_rate(void __iomem *cntbase)
++{
++	/*
++	 * Try to get the timer frequency from the CNTFRQ reg of MMIO timer.
++	 */
++	__arch_timer_determine_rate(readl_relaxed(cntbase + CNTFRQ));
+ }
+ 
+ static void arch_timer_banner(unsigned type)
+@@ -887,7 +897,7 @@ static int __init arch_timer_of_init(struct device_node *np)
+ 	 */
+ 	if (!arch_timer_rate &&
+ 	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+-		arch_timer_detect_rate(NULL);
++		arch_timer_detect_rate();
+ 
+ 	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+ 
+@@ -1001,7 +1011,7 @@ static int __init arch_timer_mem_init(struct device_node *np)
+ 	 */
+ 	if (!arch_timer_rate &&
+ 	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+-		arch_timer_detect_rate(base);
++		arch_timer_mem_detect_rate(base);
+ 
+ 	ret = arch_timer_mem_register(base, irq);
+ 	if (ret)
+@@ -1064,7 +1074,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ 		gtdt->non_secure_el2_flags);
+ 
+ 	/* Get the frequency from the sysreg CNTFRQ */
+-	arch_timer_detect_rate(NULL);
++	arch_timer_detect_rate();
+ 
+ 	arch_timer_uses_ppi = arch_timer_select_ppi();
+ 	if (!arch_timer_ppi[arch_timer_uses_ppi]) {
+-- 
+2.9.3
