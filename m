@@ -1,124 +1,179 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v8 08/15] ACPI: IORT: rename iort_node_map_rid() to make it generic
-Date: Wed, 18 Jan 2017 20:54:58 +0800
-Message-ID: <1484744105-53140-9-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v8 15/15] irqchip: mbigen: Add ACPI support
+Date: Wed, 18 Jan 2017 20:55:05 +0800
+Message-ID: <1484744105-53140-16-git-send-email-guohanjun@huawei.com>
 References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Matthias Brugger <mbrugger@suse.com>, Ming Lei <tom.leiming@gmail.com>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, Wei Xu <xuwei5@hisilicon.com>, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-iort_node_map_rid() was designed to take an input id (that is not
-necessarily a PCI requester id) and map it to an output id (eg an SMMU
-streamid or an ITS deviceid) according to the mappings provided by an
-IORT node mapping entries. This means that the iort_node_map_rid() input
-id is not always a PCI requester id as its name, parameters and local
-variables suggest, which is misleading.
+With the preparation of platform msi support and interrupt producer
+in DSDT, we can add mbigen ACPI support now.
 
-Apply the s/rid/id substitution to the iort_node_map_rid() mapping
-function and its users to make sure its intended usage is clearer.
+We are using Interrupt resource type in _CRS methd to indicate number
+of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
 
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+For mbigen,
+    Device(MBI0) {
+          Name(_HID, "HISI0152")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+		  Interrupt(ResourceProducer,...) {12,14,....}
+          })
+    }
+
+For devices,
+   Device(COM0) {
+          Name(_HID, "ACPIIDxx")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+          })
+    }
+
+With the help of platform msi and interrupt producer, then devices
+will get the virq from mbigen's irqdomain.
+
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Ming Lei <ming.lei@canonical.com>
-Tested-by: Wei Xu <xuwei5@hisilicon.com>
-Tested-by: Sinan Kaya <okaya@codeaurora.org>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Ma Jun <majun258@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/arm64/iort.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 67 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 208eac9..069a690 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -355,11 +355,11 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 	return NULL;
- }
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index 4e11da5..64f8561 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -16,6 +16,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
  
--static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
--						u32 rid_in, u32 *rid_out,
--						u8 type_mask)
-+static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-+					       u32 id_in, u32 *id_out,
-+					       u8 type_mask)
++#include <linux/acpi.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqchip.h>
+ #include <linux/module.h>
+@@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
+ 				    unsigned long *hwirq,
+ 				    unsigned int *type)
  {
--	u32 rid = rid_in;
-+	u32 id = id_in;
+-	if (is_of_node(fwspec->fwnode)) {
++	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
+ 		if (fwspec->param_count != 2)
+ 			return -EINVAL;
  
- 	/* Parse the ID mapping tree to find specified node type */
- 	while (node) {
-@@ -367,8 +367,8 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 		int i;
- 
- 		if (IORT_TYPE_MASK(node->type) & type_mask) {
--			if (rid_out)
--				*rid_out = rid;
-+			if (id_out)
-+				*id_out = id;
- 			return node;
- 		}
- 
-@@ -385,9 +385,9 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 			goto fail_map;
- 		}
- 
--		/* Do the RID translation */
-+		/* Do the ID translation */
- 		for (i = 0; i < node->mapping_count; i++, map++) {
--			if (!iort_id_map(map, node->type, rid, &rid))
-+			if (!iort_id_map(map, node->type, id, &id))
- 				break;
- 		}
- 
-@@ -399,9 +399,9 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 	}
- 
- fail_map:
--	/* Map input RID to output RID unchanged on mapping failure*/
--	if (rid_out)
--		*rid_out = rid_in;
-+	/* Map input ID to output ID unchanged on mapping failure */
-+	if (id_out)
-+		*id_out = id_in;
- 
- 	return NULL;
- }
-@@ -439,7 +439,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
- 	if (!node)
- 		return req_id;
- 
--	iort_node_map_rid(node, req_id, &dev_id, IORT_MSI_TYPE);
-+	iort_node_map_id(node, req_id, &dev_id, IORT_MSI_TYPE);
- 	return dev_id;
+@@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
+ 	return 0;
  }
  
-@@ -462,7 +462,7 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
- 	if (!node)
- 		return -ENXIO;
++#ifdef CONFIG_ACPI
++static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
++					     void *context)
++{
++	struct acpi_resource_extended_irq *ext_irq;
++	u32 *num_irqs = context;
++
++	switch (ares->type) {
++	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
++		ext_irq = &ares->data.extended_irq;
++		*num_irqs += ext_irq->interrupt_count;
++		break;
++	default:
++		break;
++	}
++
++	return AE_OK;
++}
++
++static int mbigen_acpi_create_domain(struct platform_device *pdev,
++				     struct mbigen_device *mgn_chip)
++{
++	struct irq_domain *domain;
++	u32 num_msis = 0;
++	acpi_status status;
++
++	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
++				     mbigen_acpi_process_resource, &num_msis);
++        if (ACPI_FAILURE(status) || num_msis == 0)
++		return -EINVAL;
++
++	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
++						   mbigen_write_msg,
++						   &mbigen_domain_ops,
++						   mgn_chip);
++	if (!domain)
++		return -ENOMEM;
++
++	return 0;
++}
++#else
++static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
++					    struct mbigen_device *mgn_chip)
++{
++	return -ENODEV;
++}
++#endif
++
+ static int mbigen_device_probe(struct platform_device *pdev)
+ {
+ 	struct mbigen_device *mgn_chip;
+@@ -288,9 +337,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ 	if (IS_ERR(mgn_chip->base))
+ 		return PTR_ERR(mgn_chip->base);
  
--	node = iort_node_map_rid(node, req_id, NULL, IORT_MSI_TYPE);
-+	node = iort_node_map_id(node, req_id, NULL, IORT_MSI_TYPE);
- 	if (!node)
- 		return -ENXIO;
+-	err = mbigen_of_create_domain(pdev, mgn_chip);
+-	if (err)
++	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
++		err = mbigen_of_create_domain(pdev, mgn_chip);
++	else if (ACPI_COMPANION(&pdev->dev))
++		err = mbigen_acpi_create_domain(pdev, mgn_chip);
++	else
++		err = -EINVAL;
++
++	if (err) {
++		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
+ 		return err;
++	}
  
-@@ -591,8 +591,8 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- 		if (!node)
- 			return NULL;
+ 	platform_set_drvdata(pdev, mgn_chip);
+ 	return 0;
+@@ -302,10 +359,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ };
+ MODULE_DEVICE_TABLE(of, mbigen_of_match);
  
--		parent = iort_node_map_rid(node, rid, &streamid,
--					   IORT_IOMMU_TYPE);
-+		parent = iort_node_map_id(node, rid, &streamid,
-+					  IORT_IOMMU_TYPE);
- 
- 		ops = iort_iommu_xlate(dev, parent, streamid);
- 
++static const struct acpi_device_id mbigen_acpi_match[] = {
++        { "HISI0152", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
++
+ static struct platform_driver mbigen_platform_driver = {
+ 	.driver = {
+ 		.name		= "Hisilicon MBIGEN-V2",
+ 		.of_match_table	= mbigen_of_match,
++		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
+ 	},
+ 	.probe			= mbigen_device_probe,
+ };
 -- 
 1.7.12.4
