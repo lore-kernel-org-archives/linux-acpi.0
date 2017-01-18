@@ -1,53 +1,31 @@
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
-Subject: logical cpu number is discontinuity
-Date: Wed, 18 Jan 2017 14:55:56 +0900
-Message-ID: <587F036C.7050200@jp.fujitsu.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v7 3/5] arch/x86/platform/atom: Move pmc_atom to
+ drivers/platform/x86
+Date: Wed, 18 Jan 2017 10:28:09 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1701181027490.3464@nanos>
+References: <1484690270-28425-1-git-send-email-pierre-louis.bossart@linux.intel.com> <1484690270-28425-4-git-send-email-pierre-louis.bossart@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgwkm03.jp.fujitsu.com ([202.219.69.170]:54579 "EHLO
-        mgwkm03.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751553AbdARGI6 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jan 2017 01:08:58 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1484690270-28425-4-git-send-email-pierre-louis.bossart@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: guz.fnst@cn.fujitsu.com
 
-Hi,
+On Tue, 17 Jan 2017, Pierre-Louis Bossart wrote:
 
-On v4.9 and v4.10 kernel, when I booted my box which has two nodes and
-each nodes have 48 logical cpus (Hyper Threading is enabled),
-the logical cpu number is discontinuity as follows.
+> From: Irina Tirdea <irina.tirdea@intel.com>
+> 
+> The pmc_atom driver does not contain any architecture specific
+> code. It only enables the SoC Power Management Controller driver
+> for BayTrail and CherryTrail platforms.
+> 
+> Move the pmc_atom driver from arch/x86/platform/atom to
+> drivers/platform/x86. Also clean-up and reorder include files by
+> alphabetical order in pmc_atom.h
+> 
+> Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
+> Signed-off-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 
-node 0:  0-23, 256-279
-node 1: 24-47, 280-303
-
-So the following shell script fail to run.
----
-#!/bin/bash
-
-for ((cpu = 0; cpu < `nproc`; cpu++))
-do
-	taskset -c $cpu ./do_work
-done
----
-
-I think the logical cpu number should be continuity like as v4.8 and earlier
-because user applications may expect the number is continuity.
-
-I believe this behavior was introduced by the patch series beginning with
-the following commit.
-
-f7c2883 x86/acpi: Enable acpi to register all possible cpus at boot time
-
-Do anyone have ideas for fix this behavior...?
-
-FYI.
-v4.8 kernel, the logical cpu number is continuity as follows.
-
-node 0:  0-23, 48-71
-node 1: 24-47, 72-95
-
-- Masayoshi Mizuma
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
