@@ -1,132 +1,101 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v19 05/15] clocksource/drivers/arm_arch_timer: rework PPI determination
-Date: Wed, 18 Jan 2017 07:49:43 +0800
-Message-ID: <CADyBb7sP42WqpJ5xiD9Yujn3ZjDBH_3-Te5-xF_adVDTo5fQqw@mail.gmail.com>
-References: <20161221064603.11830-1-fu.wei@linaro.org> <20161221064603.11830-6-fu.wei@linaro.org>
- <20170116172927.GI5908@leverpostej>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH V9 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Wed, 18 Jan 2017 09:40:35 +0800
+Message-ID: <587EC793.2000801@huawei.com>
+References: <1481753438-3905-1-git-send-email-agustinv@codeaurora.org>
+ <1481753438-3905-3-git-send-email-agustinv@codeaurora.org>
+ <587E1275.7030007@huawei.com>
+ <cc305557e91d2de4ae53daf1f5e8fe5a@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f46.google.com ([209.85.214.46]:35913 "EHLO
-        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751561AbdAQXtp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jan 2017 18:49:45 -0500
-Received: by mail-it0-f46.google.com with SMTP id c7so106977717itd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jan 2017 15:49:45 -0800 (PST)
-In-Reply-To: <20170116172927.GI5908@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cc305557e91d2de4ae53daf1f5e8fe5a@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, charles.garcia-tobin@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-Hi Mark,
-
-On 17 January 2017 at 01:29, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Dec 21, 2016 at 02:45:53PM +0800, fu.wei@linaro.org wrote:
-> [...]
+On 2017/1/17 23:07, Agustin Vega-Frias wrote:
+> Hi Hanjun,
 >
->> -     if (is_hyp_mode_available() || !arch_timer_ppi[ARCH_TIMER_VIRT_PPI]) {
->> -             bool has_ppi;
->> +     if (is_hyp_mode_available() && is_kernel_in_hyp_mode())
->> +             return ARCH_TIMER_HYP_PPI;
+> On 2017-01-17 07:47, Hanjun Guo wrote:
+>> On 2016/12/15 6:10, Agustin Vega-Frias wrote:
+>>> ACPI extended IRQ resources may contain a ResourceSource to specify
+>>> an alternate interrupt controller. Introduce acpi_irq_get and use it
+>>> to implement ResourceSource/IRQ domain mapping.
+>>>
+>>> The new API is similar to of_irq_get and allows re-initialization
+>>> of a platform resource from the ACPI extended IRQ resource, and
+>>> provides proper behavior for probe deferral when the domain is not
+>>> yet present when called.
+>>>
+>>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+>>> ---
+>>>  drivers/acpi/Makefile         |   2 +-
+>>>  drivers/acpi/{gsi.c => irq.c} | 182 ++++++++++++++++++++++++++++++++++++++++++
+>>>  drivers/base/platform.c       |   9 ++-
+>>>  include/linux/acpi.h          |  10 +++
+>>>  4 files changed, 201 insertions(+), 2 deletions(-)
+>>>  rename drivers/acpi/{gsi.c => irq.c} (32%)
+>>>
+>> [...]
+>>> +/**
+>>> + * acpi_irq_parse_one_cb - Handle the given resource
+>>> + * @ares: resource to handle
+>>> + * @context: context for the walk, contains the lookup index and references
+>>> + *           to the flags and fwspec where the result is returned
+>>> + *
+>>> + * This is called by acpi_walk_resources passing each resource returned by
+>>> + * the _CRS method. We only inspect IRQ resources. Since IRQ resources
+>>> + * might contain multiple interrupts we check if the index is within this
+>>> + * one's interrupt array, otherwise we subtract the current resource IRQ
+>>> + * count from the lookup index to prepare for the next resource.
+>>> + * Once a match is found we call acpi_irq_parse_one_match to populate
+>>> + * the result and end the walk by returning AE_CTRL_TERMINATE.
+>>> + *
+>>> + * Return AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
+>>> + * IRQ resource was found.
+>>> + */
+>>> +static acpi_status acpi_irq_parse_one_cb(struct acpi_resource *ares,
+>>> +                     void *context)
+>>> +{
+>>> +    struct acpi_irq_parse_one_ctx *ctx = context;
+>>> +    struct acpi_resource_irq *irq;
+>>> +    struct acpi_resource_extended_irq *eirq;
+>>> +    struct fwnode_handle *fwnode;
+>>> +
+>>> +    switch (ares->type) {
+>>> +    case ACPI_RESOURCE_TYPE_IRQ:
+>>> +        irq = &ares->data.irq;
+>>> +        if (ctx->index >= irq->interrupt_count) {
+>>> +            ctx->index -= irq->interrupt_count;
+>>> +            return AE_OK;
+>>> +        }
+>>> +        fwnode = acpi_gsi_domain_id;
+>>> +        acpi_irq_parse_one_match(fwnode, irq->interrupts[ctx->index],
+>>> +                     irq->triggering, irq->polarity,
+>>> +                     irq->sharable, ctx);
+>>> +        return AE_CTRL_TERMINATE;
+>>> +    case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+>>> +        eirq = &ares->data.extended_irq;
 >>
->> -             if (is_kernel_in_hyp_mode()) {
->> -                     arch_timer_uses_ppi = ARCH_TIMER_HYP_PPI;
->> -                     has_ppi = !!arch_timer_ppi[ARCH_TIMER_HYP_PPI];
->> -             } else {
->> -                     arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
->> -                     has_ppi = (!!arch_timer_ppi[ARCH_TIMER_PHYS_SECURE_PPI] ||
->> -                                !!arch_timer_ppi[ARCH_TIMER_PHYS_NONSECURE_PPI]);
->> -             }
->> +     if (arch_timer_ppi[ARCH_TIMER_VIRT_PPI])
->> +             return ARCH_TIMER_VIRT_PPI;
+>> If it's an interrupt producer, I think we don't need to map the interrupts in
+>> any irqdomain, and return AE_CTRL_TERMINATE here.
 >>
->> -             if (!has_ppi) {
->> -                     pr_warn("No interrupt available, giving up\n");
->> -                     return -EINVAL;
->> -             }
->> -     }
->> +     if (IS_ENABLED(CONFIG_ARM64))
->> +             return ARCH_TIMER_PHYS_NONSECURE_PPI;
->> +
->> +     return ARCH_TIMER_PHYS_SECURE_PPI;
+>>         case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+>>                 eirq = &ares->data.extended_irq;
+>> +         if (eirq->producer_consumer == ACPI_PRODUCER)
+>> +                 return AE_CTRL_TERMINATE;
+>>                 if (ctx->index >= eirq->interrupt_count) {
 >
-> For a 32-bit platform booted at hyp (with a virt PPI available), the new
-> logic will select ARCH_TIMER_VIRT_PPI. I beleive that will break KVM.
->
-> I think the logic should be:
->
->         if (is_kernel_in_hyp_mode())
->                 return ARCH_TIMER_HYP_PPI;
->
->         if (!is_hyp_mode_available() &&
->             arch_timer_ppi[ARCH_TIMER_VIRT_PPI])
->                 return ARCH_TIMER_VIRT_PPI;
->
->         if (IS_ENABLED(CONFIG_ARM64))
->                 return ARCH_TIMER_PHYS_NONSECURE_PPI;
->
->         return ARCH_TIMER_PHYS_SECURE_PPI;
->
-> Please use that instead (keeping the comment you retained).
+> Agreed. I'll add the check. However, we need to return AE_OK, not
+> AE_CTRL_TERMINATE, since that terminates the walk and there might
+> be other resources to check after this one.
 
-Great thanks for pointing it out, that is bug.
-also got this bug report from Huawei engineer.
+Yes, thanks for the correction, there might be other Interrupt()
+resources under _CRS which needs to be scanned.
 
-I have fixed it using your example code, thanks!
-
-
->
->> +static int __init arch_timer_init(void)
->> +{
->> +     int ret;
->>
->>       ret = arch_timer_register();
->>       if (ret)
->> @@ -904,6 +906,13 @@ static int __init arch_timer_of_init(struct device_node *np)
->>       if (IS_ENABLED(CONFIG_ARM) &&
->>           of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
->>               arch_timer_uses_ppi = ARCH_TIMER_PHYS_SECURE_PPI;
->> +     else
->> +             arch_timer_uses_ppi = arch_timer_select_ppi();
->> +
->> +     if (!arch_timer_ppi[arch_timer_uses_ppi]) {
->> +             pr_err("No interrupt available, giving up\n");
->> +             return -EINVAL;
->> +     }
->>
->>       /* On some systems, the counter stops ticking when in suspend. */
->>       arch_counter_suspend_stop = of_property_read_bool(np,
->> @@ -1049,6 +1058,12 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
->>       /* Get the frequency from CNTFRQ */
->>       arch_timer_detect_rate(NULL, NULL);
->>
->> +     arch_timer_uses_ppi = arch_timer_select_ppi();
->> +     if (!arch_timer_ppi[arch_timer_uses_ppi]) {
->> +             pr_err("No interrupt available, giving up\n");
->> +             return -EINVAL;
->> +     }
->
-> I see that we have to duplicate this so we can special-case the
-> DT-specific behaviour, so that's fine by me.
-
-Yes, that is the reason of the duplication :-)
-
->
-> If you can fix the arch_timer_select_ppi() logic as above, this should
-> be fine.
-
-Done, thanks :-)
-
->
-> Thanks,
-> Mark.
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+Thanks
+Hanjun
