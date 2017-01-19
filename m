@@ -1,75 +1,102 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v20 00/17] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 19 Jan 2017 17:20:07 +0800
-Message-ID: <bddc52ed-d1c9-c3c9-cb79-2c15d97450cc@linaro.org>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
+From: Tomi Sarvela <tomi.p.sarvela@intel.com>
+Subject: Re: [PATCH] ACPICA: Tables: Remove a hidden logic related to acpi_tb_install_standard_table()
+Date: Thu, 19 Jan 2017 11:38:08 +0200
+Message-ID: <4185897.PWYXmptgmv@fractal.fi.intel.com>
+References: <20170112015256.GB19308@yexl-desktop> <49ac3d4571a728ae5348a6b2e93da3d45f76cd38.1484810262.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170118132541.8989-1-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com
-Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:26052 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750996AbdASJip (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 19 Jan 2017 04:38:45 -0500
+In-Reply-To: <49ac3d4571a728ae5348a6b2e93da3d45f76cd38.1484810262.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Ye Xiaolong <xiaolong.ye@intel.com>
 
-Hi Fuwei,
+On Thursday, 19 January 2017 15:21:34 EET Lv Zheng wrote:
+> There is a hidden logic for acpi_tb_install_standard_table() as it
+> can be invoked from boot stage and during runtime.
+> 1. When it is invoked from the OS boot stage, ACPICA mutex may not
+> be available, and thus no
+> acpi_ut_acquire_mutex()/acpi_ut_release_mutex() are invoked in
+> these code paths:
+>    acpi_initialize_tables
+>      acpi_tb_parse_root_table
+>        acpi_tb_install_standard_table (4 invocations)
+>    acpi_install_table
+>        acpi_tb_install_standard_table
+> 2. When it is invoked during the runtime, ACPICA mutex is correctly
+> used: acpi_ex_load_op
+>      acpi_tb_install_and_load_table
+>        acpi_tb_install_standard_table
+>    acpi_load_table
+>      acpi_tb_install_and_load_table
+>        acpi_tb_install_standard_table
+> So the mutex is now used in acpi_tb_install_and_load_table(), while
+> it actually should be in acpi_tb_install_standard_table().
+> 
+> This introduces another problem in acpi_tb_install_standard_table()
+> where acpi_gbl_table_handler is invoked from and the lock contexts
+> are thus not consistent for the table handlers. This triggers a
+> regression when acpi_get_table()/acpi_put_table() start to hold
+> table mutex during runtime.
+> 
+> The regression is noticed by LKP as new errors reported by ACPICA
+> mutex debugging facility.
+> [    2.043693] ACPI Error: Mutex [ACPI_MTX_Tables] already acquired
+> by this thread [497483776] (20160930/utmutex-254) [    2.054084]
+> ACPI Error: Mutex [0x2] is not acquired, cannot release
+> (20160930/utmutex-326)
+> 
+> And it triggers a dead lock:
+> [  247.066214] INFO: task swapper/0:1 blocked for more than 120
+> seconds. ...
+> [  247.091271] Call Trace:
+> ...
+> [  247.121523]  down_timeout+0x47/0x50
+> [  247.125065]  acpi_os_wait_semaphore+0x47/0x62
+> [  247.129475]  acpi_ut_acquire_mutex+0x43/0x81
+> [  247.133798]  acpi_get_table+0x2d/0x84
+> [  247.137513]  acpi_table_attr_init+0xcd/0x100
+> [  247.146590]  acpi_sysfs_table_handler+0x5d/0xb8
+> [  247.151174]  acpi_bus_table_handler+0x23/0x2a
+> [  247.155583]  acpi_tb_install_standard_table+0xe0/0x213
+> [  247.164489]  acpi_tb_install_and_load_table+0x3a/0x82
+> [  247.169592]  acpi_ex_load_op+0x194/0x201
+> ...
+> [  247.200108]  acpi_ns_evaluate+0x1bb/0x247
+> [  247.204170]  acpi_evaluate_object+0x178/0x274
+> [  247.213249]  acpi_processor_set_pdc+0x154/0x17b
+> ...
+> The table mutex is held in acpi_tb_install_and_load_table() and is
+> re-visited by acpi_get_table().
+> 
+> Noticing that the early mutex requirement actually belongs to the
+> OSL layer and has already been handled in Linux
+> acpi_os_wait_semaphore()/acpi_os_signal_semaphore(). This patch then
+> can fix the regression by removing this hidden logic from ACPICA
+> core and leaving it to OSPMs. A documentation update should also be
+> required.
+> 
+> Fixes: 174cc7187e6f ('ACPICA: Tables: Back port
+> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from
+> Linux kernel') Reported-by: Tomi Sarvela <tomi.p.sarvela@intel.com>
+> Reported-by: Ye Xiaolong <xiaolong.ye@intel.com>
+> Cc: Tomi Sarvela <tomi.p.sarvela@intel.com>
+> Cc: Ye Xiaolong <xiaolong.ye@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
 
-On 2017/1/18 21:25, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
->
-> This patchset:
->     (1)Preparation for adding GTDT support in arm_arch_timer:
->         1. Clean up printk() usage
->         2. Rename the type macros
->         3. Rename the PPI enum & enum values
->         4. Move the type macro and PPI enum into the header file
->         5. Add new enum for SPIs
->         6. Rework PPI determination;
->         7. Rework counter frequency detection;
->         8. Refactor arch_timer_needs_probing, move it into DT init call
->         9. Introduce some new structs and refactor the MMIO timer init code
->         for reusing some common code.
->
->     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
->     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->     memory-mapped timer and SBSA Generic Watchdog timer.
->     This driver can help to simplify all the relevant timer drivers,
->     and separate all the ACPI GTDT knowledge from them.
->
->     (3)Simplify ACPI code for arm_arch_timer
->
->     (4)Add GTDT support for ARM memory-mapped timer.
->
-> This patchset has been tested on the following platforms with ACPI enabled:
->     (1)ARM Foundation v8 model
->
-> Changelog:
-> v20: https://lkml.org/lkml/2017/1/18/
->      Reorder the first 4 patches and split the 4th patches.
->      Leave CNTHCTL_* as they originally were.
->      Fix the bug in arch_timer_select_ppi.
->      Split "Rework counter frequency detection" patch.
->      Rework the arch_timer_detect_rate function.
->      Improve the commit message of "Refactor MMIO timer probing".
->      Rebase to 4.10.0-rc4
+This patch helps ILK-650 testhost survive past the boot ACPI setup.
 
-Other than some minor comments I raised, the patch set
-looks fine to me, and I tested this patch set on D03,
-the percpu arch timer works fine as before.
+Tested-by: Tomi Sarvela <tomi.p.sarvela@intel.com>
 
-With the comments fixed,
-Reviewed-by: Hanjun Guo <hanjun.gu@linaro.org>
-Tested-by: Hanjun Guo <hanjun.gu@linaro.org>
+Best regards,
 
-Thanks
-Hanjun
+Tomi Sarvela
+
+
