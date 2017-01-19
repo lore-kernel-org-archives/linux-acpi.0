@@ -1,70 +1,68 @@
-From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Thu, 19 Jan 2017 16:02:28 +0800
-Message-ID: <cafa8c7a-9c7c-51ba-5566-0cfe1fe6f764@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v20 11/17] clocksource/drivers/arm_arch_timer: Introduce
+ some new structs to prepare for GTDT
+Date: Thu, 19 Jan 2017 16:28:30 +0800
+Message-ID: <a47f2474-fb29-9217-3de1-6e2a6a36f21f@linaro.org>
 References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-9-fu.wei@linaro.org>
+ <20170118132541.8989-12-fu.wei@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118132541.8989-9-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170118132541.8989-12-fu.wei@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Fuwei,
-
-One comments below.
-
-On 2017/1/18 21:25, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On 2017/1/18 21:25, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 >
-> The counter frequency detection call(arch_timer_detect_rate) combines two
-> ways to get counter frequency: system coprocessor register and MMIO timer.
-> But in a specific timer init code, we only need one way to try:
-> getting frequency from MMIO timer register will be needed only when we
-> init MMIO timer; getting frequency from system coprocessor register will
-> be needed only when we init arch timer.
+> The patch introduce two new structs: arch_timer_mem, arch_timer_mem_frame.
+> And also introduce a new define: ARCH_TIMER_MEM_MAX_FRAMES
 >
-> This patch separates paths to determine frequency:
-> Separate out the MMIO frequency and the sysreg frequency detection call,
-> and use the appropriate one for the counter.
+> These will be used for refactoring the memory-mapped timer init code to
+> prepare for GTDT
 >
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
 > ---
->  drivers/clocksource/arm_arch_timer.c | 40 ++++++++++++++++++++++--------------
->  1 file changed, 25 insertions(+), 15 deletions(-)
+>  include/clocksource/arm_arch_timer.h | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 >
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index 6484f84..9482481 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -488,23 +488,33 @@ static int arch_timer_starting_cpu(unsigned int cpu)
->  	return 0;
->  }
+> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+> index 4a98c06..b7dd185 100644
+> --- a/include/clocksource/arm_arch_timer.h
+> +++ b/include/clocksource/arm_arch_timer.h
+> @@ -57,6 +57,8 @@ enum arch_timer_spi_nr {
+>  #define ARCH_TIMER_MEM_PHYS_ACCESS	2
+>  #define ARCH_TIMER_MEM_VIRT_ACCESS	3
 >
-> -static void arch_timer_detect_rate(void __iomem *cntbase)
-> +static void __arch_timer_determine_rate(u32 rate)
->  {
-> -	/* Who has more than one independent system counter? */
-> -	if (arch_timer_rate)
-> -		return;
-> +	/* Check the timer frequency. */
-> +	if (!arch_timer_rate) {
-> +		if (rate)
-> +			arch_timer_rate = rate;
-> +		else
-> +			pr_warn("frequency not available\n");
-> +	} else if (rate && arch_timer_rate != rate) {
-                         ^
-Typo? I think it's "&" here.
+> +#define ARCH_TIMER_MEM_MAX_FRAMES	8
+> +
+>  #define ARCH_TIMER_USR_PCT_ACCESS_EN	(1 << 0) /* physical counter */
+>  #define ARCH_TIMER_USR_VCT_ACCESS_EN	(1 << 1) /* virtual counter */
+>  #define ARCH_TIMER_VIRT_EVT_EN		(1 << 2)
+> @@ -72,6 +74,21 @@ struct arch_timer_kvm_info {
+>  	int virtual_irq;
+>  };
+>
+> +struct arch_timer_mem_frame {
+> +	int frame_nr;
+> +	phys_addr_t cntbase;
+> +	size_t size;
+> +	int phys_irq;
+> +	int virt_irq;
+> +};
+> +
+> +struct arch_timer_mem {
+> +	phys_addr_t cntctlbase;
+> +	size_t size;
+> +	int num_frames;
+> +	struct arch_timer_mem_frame frame[ARCH_TIMER_MEM_MAX_FRAMES];
+> +};
+
+Since struct is introduced but not used in this patch, how about
+squash it with patch 12/17?
 
 Thanks
 Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
