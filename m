@@ -1,104 +1,75 @@
-From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v20 16/17] clocksource/drivers/arm_arch_timer: Add GTDT
- support for memory-mapped timer
-Date: Thu, 19 Jan 2017 17:16:33 +0800
-Message-ID: <ed4efe25-1b40-66e2-ae3f-77a4e32715b6@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v20 00/17] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 19 Jan 2017 17:20:07 +0800
+Message-ID: <bddc52ed-d1c9-c3c9-cb79-2c15d97450cc@linaro.org>
 References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-17-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118132541.8989-17-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170118132541.8989-1-fu.wei@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com
+Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, wei@redhat.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2017/1/18 21:25, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->
-> The patch add memory-mapped timer register support by using the
-> information provided by the new GTDT driver of ACPI.
->
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/clocksource/arm_arch_timer.c | 35 ++++++++++++++++++++++++++++++++---
->  1 file changed, 32 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index 79dc004..7ca2da7 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -1077,10 +1077,36 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
->  		       arch_timer_mem_of_init);
->
->  #ifdef CONFIG_ACPI_GTDT
-> -/* Initialize per-processor generic timer */
-> +static int __init arch_timer_mem_acpi_init(int platform_timer_count)
-> +{
-> +	struct arch_timer_mem *timer_mem;
-> +	int timer_count, i, ret;
-> +
+Hi Fuwei,
 
-if (!platform_timer_count)
-	return 0;
+On 2017/1/18 21:25, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+>
+> This patchset:
+>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>         1. Clean up printk() usage
+>         2. Rename the type macros
+>         3. Rename the PPI enum & enum values
+>         4. Move the type macro and PPI enum into the header file
+>         5. Add new enum for SPIs
+>         6. Rework PPI determination;
+>         7. Rework counter frequency detection;
+>         8. Refactor arch_timer_needs_probing, move it into DT init call
+>         9. Introduce some new structs and refactor the MMIO timer init code
+>         for reusing some common code.
+>
+>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>     memory-mapped timer and SBSA Generic Watchdog timer.
+>     This driver can help to simplify all the relevant timer drivers,
+>     and separate all the ACPI GTDT knowledge from them.
+>
+>     (3)Simplify ACPI code for arm_arch_timer
+>
+>     (4)Add GTDT support for ARM memory-mapped timer.
+>
+> This patchset has been tested on the following platforms with ACPI enabled:
+>     (1)ARM Foundation v8 model
+>
+> Changelog:
+> v20: https://lkml.org/lkml/2017/1/18/
+>      Reorder the first 4 patches and split the 4th patches.
+>      Leave CNTHCTL_* as they originally were.
+>      Fix the bug in arch_timer_select_ppi.
+>      Split "Rework counter frequency detection" patch.
+>      Rework the arch_timer_detect_rate function.
+>      Improve the commit message of "Refactor MMIO timer probing".
+>      Rebase to 4.10.0-rc4
 
-Did I miss something?
+Other than some minor comments I raised, the patch set
+looks fine to me, and I tested this patch set on D03,
+the percpu arch timer works fine as before.
+
+With the comments fixed,
+Reviewed-by: Hanjun Guo <hanjun.gu@linaro.org>
+Tested-by: Hanjun Guo <hanjun.gu@linaro.org>
 
 Thanks
 Hanjun
-
-> +	timer_mem = kcalloc(platform_timer_count, sizeof(*timer_mem),
-> +			    GFP_KERNEL);
-> +	if (!timer_mem)
-> +		return -ENOMEM;
-> +
-> +	ret = acpi_arch_timer_mem_init(timer_mem, &timer_count);
-> +	if (ret || !timer_count)
-> +		goto error;
-> +
-> +	for (i = 0; i < timer_count; i++) {
-> +		ret = arch_timer_mem_init(timer_mem);
-> +		if (!ret)
-> +			break;
-> +		timer_mem++;
-> +	}
-> +
-> +error:
-> +	kfree(timer_mem);
-> +	return ret;
-> +}
-> +
-> +/* Initialize per-processor generic timer and memory-mapped timer(if present) */
->  static int __init arch_timer_acpi_init(struct acpi_table_header *table)
->  {
-> -	int ret;
-> +	int ret, platform_timer_count;
->
->  	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
->  		pr_warn("already initialized, skipping\n");
-> @@ -1089,7 +1115,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
->
->  	arch_timers_present |= ARCH_TIMER_TYPE_CP15;
->
-> -	ret = acpi_gtdt_init(table, NULL);
-> +	ret = acpi_gtdt_init(table, &platform_timer_count);
->  	if (ret) {
->  		pr_err("Failed to init GTDT table.\n");
->  		return ret;
-> @@ -1122,6 +1148,9 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
->  	if (ret)
->  		return ret;
->
-> +	if (arch_timer_mem_acpi_init(platform_timer_count))
-> +		pr_err("Failed to initialize memory-mapped timer.\n");
-> +
->  	return arch_timer_common_init();
->  }
->  CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
