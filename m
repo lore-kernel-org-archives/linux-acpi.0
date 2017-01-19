@@ -1,96 +1,234 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v20 11/17] clocksource/drivers/arm_arch_timer: Introduce
- some new structs to prepare for GTDT
-Date: Thu, 19 Jan 2017 17:47:14 +0800
-Message-ID: <CADyBb7uhwU_ACGQRvw8zPg-VCdxyO2L1MEoeZWS1zYdveLK6PA@mail.gmail.com>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-12-fu.wei@linaro.org>
- <a47f2474-fb29-9217-3de1-6e2a6a36f21f@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V10 3/3] irqchip: qcom: Add IRQ combiner driver
+Date: Thu, 19 Jan 2017 10:02:00 +0000
+Message-ID: <e1bc419d-345c-4500-0a46-b730ed9ecc18@arm.com>
+References: <1484757988-23739-1-git-send-email-agustinv@codeaurora.org>
+ <1484757988-23739-4-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <a47f2474-fb29-9217-3de1-6e2a6a36f21f@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:45640 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751360AbdASKCF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 19 Jan 2017 05:02:05 -0500
+In-Reply-To: <1484757988-23739-4-git-send-email-agustinv@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net
+Cc: lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-Hi Hanjun,
+Hi Agustin,
 
-On 19 January 2017 at 16:28, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> On 2017/1/18 21:25, fu.wei@linaro.org wrote:
->>
->> From: Fu Wei <fu.wei@linaro.org>
->>
->> The patch introduce two new structs: arch_timer_mem, arch_timer_mem_frame.
->> And also introduce a new define: ARCH_TIMER_MEM_MAX_FRAMES
->>
->> These will be used for refactoring the memory-mapped timer init code to
->> prepare for GTDT
->>
->> Signed-off-by: Fu Wei <fu.wei@linaro.org>
->> ---
->>  include/clocksource/arm_arch_timer.h | 17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->> diff --git a/include/clocksource/arm_arch_timer.h
->> b/include/clocksource/arm_arch_timer.h
->> index 4a98c06..b7dd185 100644
->> --- a/include/clocksource/arm_arch_timer.h
->> +++ b/include/clocksource/arm_arch_timer.h
->> @@ -57,6 +57,8 @@ enum arch_timer_spi_nr {
->>  #define ARCH_TIMER_MEM_PHYS_ACCESS     2
->>  #define ARCH_TIMER_MEM_VIRT_ACCESS     3
->>
->> +#define ARCH_TIMER_MEM_MAX_FRAMES      8
->> +
->>  #define ARCH_TIMER_USR_PCT_ACCESS_EN   (1 << 0) /* physical counter */
->>  #define ARCH_TIMER_USR_VCT_ACCESS_EN   (1 << 1) /* virtual counter */
->>  #define ARCH_TIMER_VIRT_EVT_EN         (1 << 2)
->> @@ -72,6 +74,21 @@ struct arch_timer_kvm_info {
->>         int virtual_irq;
->>  };
->>
->> +struct arch_timer_mem_frame {
->> +       int frame_nr;
->> +       phys_addr_t cntbase;
->> +       size_t size;
->> +       int phys_irq;
->> +       int virt_irq;
->> +};
->> +
->> +struct arch_timer_mem {
->> +       phys_addr_t cntctlbase;
->> +       size_t size;
->> +       int num_frames;
->> +       struct arch_timer_mem_frame frame[ARCH_TIMER_MEM_MAX_FRAMES];
->> +};
->
->
-> Since struct is introduced but not used in this patch, how about
-> squash it with patch 12/17?
+On 18/01/17 16:46, Agustin Vega-Frias wrote:
+> Driver for interrupt combiners in the Top-level Control and Status
+> Registers (TCSR) hardware block in Qualcomm Technologies chips.
+> 
+> An interrupt combiner in this block combines a set of interrupts by
+> OR'ing the individual interrupt signals into a summary interrupt
+> signal routed to a parent interrupt controller, and provides read-
+> only, 32-bit registers to query the status of individual interrupts.
+> The status bit for IRQ n is bit (n % 32) within register (n / 32)
+> of the given combiner. Thus, each combiner can be described as a set
+> of register offsets and the number of IRQs managed.
+> 
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> ---
+>  drivers/irqchip/Kconfig             |   9 +
+>  drivers/irqchip/Makefile            |   1 +
+>  drivers/irqchip/qcom-irq-combiner.c | 319 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 329 insertions(+)
+>  create mode 100644 drivers/irqchip/qcom-irq-combiner.c
+> 
+> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
+> index ae96731..125528f 100644
+> --- a/drivers/irqchip/Kconfig
+> +++ b/drivers/irqchip/Kconfig
+> @@ -283,3 +283,12 @@ config EZNPS_GIC
+>  config STM32_EXTI
+>  	bool
+>  	select IRQ_DOMAIN
+> +
+> +config QCOM_IRQ_COMBINER
+> +	bool "QCOM IRQ combiner support"
+> +	depends on ARCH_QCOM && ACPI
+> +	select IRQ_DOMAIN
+> +	select IRQ_DOMAIN_HIERARCHY
+> +	help
+> +	  Say yes here to add support for the IRQ combiner devices embedded
+> +	  in Qualcomm Technologies chips.
+> diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
+> index 0e55d94..5a531863 100644
+> --- a/drivers/irqchip/Makefile
+> +++ b/drivers/irqchip/Makefile
+> @@ -75,3 +75,4 @@ obj-$(CONFIG_LS_SCFG_MSI)		+= irq-ls-scfg-msi.o
+>  obj-$(CONFIG_EZNPS_GIC)			+= irq-eznps.o
+>  obj-$(CONFIG_ARCH_ASPEED)		+= irq-aspeed-vic.o
+>  obj-$(CONFIG_STM32_EXTI) 		+= irq-stm32-exti.o
+> +obj-$(CONFIG_QCOM_IRQ_COMBINER)		+= qcom-irq-combiner.o
+> diff --git a/drivers/irqchip/qcom-irq-combiner.c b/drivers/irqchip/qcom-irq-combiner.c
+> new file mode 100644
+> index 0000000..b7f0631
+> --- /dev/null
+> +++ b/drivers/irqchip/qcom-irq-combiner.c
+> @@ -0,0 +1,319 @@
+> +/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +/*
+> + * Driver for interrupt combiners in the Top-level Control and Status
+> + * Registers (TCSR) hardware block in Qualcomm Technologies chips.
+> + * An interrupt combiner in this block combines a set of interrupts by
+> + * OR'ing the individual interrupt signals into a summary interrupt
+> + * signal routed to a parent interrupt controller, and provides read-
+> + * only, 32-bit registers to query the status of individual interrupts.
+> + * The status bit for IRQ n is bit (n % 32) within register (n / 32)
+> + * of the given combiner. Thus, each combiner can be described as a set
+> + * of register offsets and the number of IRQs managed.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/irqchip/chained_irq.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/platform_device.h>
+> +
+> +#define REG_SIZE 32
+> +
+> +struct combiner_reg {
+> +	void __iomem *addr;
+> +	unsigned long mask;
+> +};
+> +
+> +struct combiner {
+> +	struct irq_domain   *domain;
+> +	int                 parent_irq;
+> +	u32                 nirqs;
+> +	u32                 nregs;
+> +	struct combiner_reg regs[0];
+> +};
+> +
+> +static inline u32 irq_register(int irq)
+> +{
+> +	return irq / REG_SIZE;
+> +}
+> +
+> +static inline u32 irq_bit(int irq)
+> +{
+> +	return irq % REG_SIZE;
+> +
+> +}
+> +
+> +static inline int irq_nr(u32 reg, u32 bit)
+> +{
+> +	return reg * REG_SIZE + bit;
+> +}
+> +
+> +/*
+> + * Handler for the cascaded IRQ.
+> + */
+> +static void combiner_handle_irq(struct irq_desc *desc)
+> +{
+> +	struct combiner *combiner = irq_desc_get_handler_data(desc);
+> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+> +	u32 reg;
+> +
+> +	chained_irq_enter(chip, desc);
+> +
+> +	for (reg = 0; reg < combiner->nregs; reg++) {
+> +		int virq;
+> +		int hwirq;
+> +		u32 bit;
+> +		u32 status;
+> +
+> +		if (combiner->regs[reg].mask == 0) {
+> +			WARN_ON(readl_relaxed(combiner->regs[reg].addr) != 0);
 
-In the previous patchset, I have been suggested that I should split it out.
+Since we've now established that you couldn't really mask interrupts at 
+all, screaming like this is just going to make the matter worse. Please 
+drop this, or at the very least ratelimit it. Also, this is really 
+tortuous since your 'mask' is actually an 'enable' (you only accept an 
+interrupt if the bit is set).
 
->
-> Thanks
-> Hanjun
+But let's look at what you're testing here: If no interrupt is enabled, 
+scream if something is pending. I really wonder what you get by doing 
+so -- pending and masked interrupts are extremely common, and because 
+you cannot handle them doesn't mean you should kill the machine (which 
+your WARN_ON is guaranteed to do). Also, this should be consolidated 
+with the code below...
 
+> +			continue;
+> +		}
+> +
+> +		status = readl_relaxed(combiner->regs[reg].addr);
+> +		WARN_ON((status & ~combiner->regs[reg].mask) != 0);
+> +		status &= combiner->regs[reg].mask;
 
+Same thing: protesting against masked+pending interrupts is futile. If 
+they happen, your CPU is wedged anyway. I'd suggest that you drop the 0 
+test case (which doesn't save anything anyway):
 
+		#define pr_fmt(fmt)     "QCOM80B1:" fmt
+
+		bit = readl_relaxed(combiner->regs[reg].addr);
+		status = bit & combiner->regs[reg].mask;
+		if (!status)
+			pr_warn_ratelimited("screaming interrupt (%08x %08x), CPU%d wedged\n", 
+					    bit, combiner->regs[reg].mask, smp_processor_id());
+
+and that's it, as the rest of the code already takes care of the status==0
+case. Optionally, you could disable the parent interrupt and kill all the
+other devices connected to the same combiner, since that's your only
+alternative to loosing a CPU.
+
+> +
+> +		while (status) {
+> +			bit = __ffs(status);
+> +			status &= ~(1 << bit);
+> +			hwirq = irq_nr(reg, bit);
+> +			virq = irq_find_mapping(combiner->domain, hwirq);
+> +			if (virq > 0)
+> +				generic_handle_irq(virq);
+> +
+> +		}
+> +	}
+> +
+> +	chained_irq_exit(chip, desc);
+> +}
+> +
+> +/*
+> + * irqchip callbacks
+> + */
+> +
+> +static void combiner_irq_chip_mask_irq(struct irq_data *data)
+> +{
+> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
+> +	struct combiner_reg *reg = combiner->regs + irq_register(data->hwirq);
+> +
+> +	clear_bit(irq_bit(data->hwirq), &reg->mask);
+> +}
+> +
+> +static void combiner_irq_chip_unmask_irq(struct irq_data *data)
+> +{
+> +	struct combiner *combiner = irq_data_get_irq_chip_data(data);
+> +	struct combiner_reg *reg = combiner->regs + irq_register(data->hwirq);
+> +
+> +	set_bit(irq_bit(data->hwirq), &reg->mask);
+> +}
+
+I'd still advocate for 'mask' to be renamed 'enabled', or to have the
+bits flipped the other way around. Your call.
+
+Thanks,
+
+	M.
 -- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+Jazz is not dead. It just smells funny...
