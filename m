@@ -1,136 +1,72 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V10 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Thu, 19 Jan 2017 12:36:08 +0000
-Message-ID: <20170119123608.GA3431@red-moon>
-References: <1484766276-9668-1-git-send-email-agustinv@codeaurora.org>
- <CAHp75Vem=mCOGVoOpCJFYHcO17mJ9gexsQxa0Pjf4Lbt3hibRA@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
+ counter frequency detection.
+Date: Thu, 19 Jan 2017 20:41:14 +0800
+Message-ID: <74160889-5eb0-ceb2-2727-61e9d538cf2f@linaro.org>
+References: <20170118132541.8989-1-fu.wei@linaro.org>
+ <20170118132541.8989-9-fu.wei@linaro.org>
+ <cafa8c7a-9c7c-51ba-5566-0cfe1fe6f764@linaro.org>
+ <CADyBb7uGVu6Po4hCD45WOrQvWYwZgtSbE5z9rbRa7gZ1P5-4tg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49170 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752348AbdASMec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 19 Jan 2017 07:34:32 -0500
-Content-Disposition: inline
-In-Reply-To: <CAHp75Vem=mCOGVoOpCJFYHcO17mJ9gexsQxa0Pjf4Lbt3hibRA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CADyBb7uGVu6Po4hCD45WOrQvWYwZgtSbE5z9rbRa7gZ1P5-4tg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Agustin Vega-Frias <agustinv@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, msalter@redhat.com, mlangsdo@redhat.com, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 
-On Wed, Jan 18, 2017 at 09:45:56PM +0200, Andy Shevchenko wrote:
-
-[...]
-
-> > +/**
-> > + * acpi_irq_get - Look for the ACPI IRQ resource with the given index and
-> > + *                use it to initialize the given Linux IRQ resource.
-> > + * @handle ACPI device handle
-> > + * @index  ACPI IRQ resource index to lookup
-> > + * @res    Linux IRQ resource to initialize
-> 
-> Ah, you missed colons after field names:
-> * @field1:
-> 
-> > + *
-> > + * Return:
-> 
-> Next line:  0 on success
-> 
-> > + *         -EINVAL if an error occurs
-> > + *         -EPROBE_DEFER if the IRQ lookup/conversion failed
-> > + */
-> > +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
-> > +{
-> 
-> > +       int rc;
-> 
-> Put this last in the definition block.
-> 
-> > +       struct irq_fwspec fwspec;
-> > +       struct irq_domain *domain;
-> > +       unsigned long flags;
-> > +
-> > +       rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
-> > +       if (rc)
-> > +               return rc;
-> > +
-> > +       domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
-> > +       if (!domain)
-> > +               return -EPROBE_DEFER;
-> 
-> Hmm... Could it be other issues here?
-
-That's a good point. Here probing should be deferred only if we know a
-driver capable of handling fwspec.fwnode will have a chance to be
-probed/initialized eventually right (which basically means it is
-compiled in the kernel and we hope it will probed successfully) ? I am
-not sure there is an easy way to detect that in ACPI at the moment, I
-suspect it is time we added a linker section (or augment the existing
-one used for irqchip early MADT parsing - IRQCHIP_ACPI_DECLARE) for this
-purpose I do not see any other option (apart from leaving devices in the
-deferred probe list if a driver for the irqchip represented by
-fwspec.fwnode is not present in the kernel, which is a bit sloppy, or
-resorting to checking Kconfig entries to detect compile time enabled
-irqchip drivers).
-
-> > +
-> > +       rc = irq_create_fwspec_mapping(&fwspec);
-> > +       if (rc <= 0)
-> > +               return -EINVAL;
-> > +
-> 
-> > +       res->start = rc;
-> > +       res->end = rc;
-> > +       res->flags = flags;
-> 
-> Perhaps struct resource *r should be a parameter to acpi_irq_parse_one().
-
-Yeah but then you would end up with flags initialized in
-acpi_irq_parse_one() and the other resource params (ie start, end) here,
-I do not think it is nicer.
-
-Thanks,
-Lorenzo
-
-> 
-> > +
-> > +       return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(acpi_irq_get);
-> > +
-> > +/**
-> >   * acpi_set_irq_model - Setup the GSI irqdomain information
-> >   * @model: the value assigned to acpi_irq_model
-> >   * @fwnode: the irq_domain identifier for mapping and looking up
-> > diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> > index c4af003..61423d2 100644
-> > --- a/drivers/base/platform.c
-> > +++ b/drivers/base/platform.c
-> > @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
-> >         }
-> >
-> >         r = platform_get_resource(dev, IORESOURCE_IRQ, num);
-> > +       if (r && r->flags & IORESOURCE_DISABLED && ACPI_COMPANION(&dev->dev)) {
-> 
-> has_acpi_companion() ?
-> 
-> > +               int ret;
-> > +
-> > +               ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
-> > +               if (ret)
-> > +                       return ret;
-> > +       }
-> 
-> > @@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
-> >                 memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
-> >         }
-> >  }
-> > -
-> 
-> It doesn't belong here.
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
+T24gMjAxNy8xLzE5IDE3OjQ0LCBGdSBXZWkgd3JvdGU6Cj4gSGkgSGFuanVuLAo+Cj4gT24gMTkg
+SmFudWFyeSAyMDE3IGF0IDE2OjAyLCBIYW5qdW4gR3VvIDxoYW5qdW4uZ3VvQGxpbmFyby5vcmc+
+IHdyb3RlOgo+PiBIaSBGdXdlaSwKPj4KPj4gT25lIGNvbW1lbnRzIGJlbG93Lgo+Pgo+Pgo+PiBP
+biAyMDE3LzEvMTggMjE6MjUsIGZ1LndlaUBsaW5hcm8ub3JnIHdyb3RlOgo+Pj4KPj4+IEZyb206
+IEZ1IFdlaSA8ZnUud2VpQGxpbmFyby5vcmc+Cj4+Pgo+Pj4gVGhlIGNvdW50ZXIgZnJlcXVlbmN5
+IGRldGVjdGlvbiBjYWxsKGFyY2hfdGltZXJfZGV0ZWN0X3JhdGUpIGNvbWJpbmVzIHR3bwo+Pj4g
+d2F5cyB0byBnZXQgY291bnRlciBmcmVxdWVuY3k6IHN5c3RlbSBjb3Byb2Nlc3NvciByZWdpc3Rl
+ciBhbmQgTU1JTyB0aW1lci4KPj4+IEJ1dCBpbiBhIHNwZWNpZmljIHRpbWVyIGluaXQgY29kZSwg
+d2Ugb25seSBuZWVkIG9uZSB3YXkgdG8gdHJ5Ogo+Pj4gZ2V0dGluZyBmcmVxdWVuY3kgZnJvbSBN
+TUlPIHRpbWVyIHJlZ2lzdGVyIHdpbGwgYmUgbmVlZGVkIG9ubHkgd2hlbiB3ZQo+Pj4gaW5pdCBN
+TUlPIHRpbWVyOyBnZXR0aW5nIGZyZXF1ZW5jeSBmcm9tIHN5c3RlbSBjb3Byb2Nlc3NvciByZWdp
+c3RlciB3aWxsCj4+PiBiZSBuZWVkZWQgb25seSB3aGVuIHdlIGluaXQgYXJjaCB0aW1lci4KPj4+
+Cj4+PiBUaGlzIHBhdGNoIHNlcGFyYXRlcyBwYXRocyB0byBkZXRlcm1pbmUgZnJlcXVlbmN5Ogo+
+Pj4gU2VwYXJhdGUgb3V0IHRoZSBNTUlPIGZyZXF1ZW5jeSBhbmQgdGhlIHN5c3JlZyBmcmVxdWVu
+Y3kgZGV0ZWN0aW9uIGNhbGwsCj4+PiBhbmQgdXNlIHRoZSBhcHByb3ByaWF0ZSBvbmUgZm9yIHRo
+ZSBjb3VudGVyLgo+Pj4KPj4+IFNpZ25lZC1vZmYtYnk6IEZ1IFdlaSA8ZnUud2VpQGxpbmFyby5v
+cmc+Cj4+PiAtLS0KPj4+ICBkcml2ZXJzL2Nsb2Nrc291cmNlL2FybV9hcmNoX3RpbWVyLmMgfCA0
+MAo+Pj4gKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tCj4+PiAgMSBmaWxlIGNo
+YW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDE1IGRlbGV0aW9ucygtKQo+Pj4KPj4+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL2Nsb2Nrc291cmNlL2FybV9hcmNoX3RpbWVyLmMKPj4+IGIvZHJpdmVycy9j
+bG9ja3NvdXJjZS9hcm1fYXJjaF90aW1lci5jCj4+PiBpbmRleCA2NDg0Zjg0Li45NDgyNDgxIDEw
+MDY0NAo+Pj4gLS0tIGEvZHJpdmVycy9jbG9ja3NvdXJjZS9hcm1fYXJjaF90aW1lci5jCj4+PiAr
+KysgYi9kcml2ZXJzL2Nsb2Nrc291cmNlL2FybV9hcmNoX3RpbWVyLmMKPj4+IEBAIC00ODgsMjMg
+KzQ4OCwzMyBAQCBzdGF0aWMgaW50IGFyY2hfdGltZXJfc3RhcnRpbmdfY3B1KHVuc2lnbmVkIGlu
+dCBjcHUpCj4+PiAgICAgICAgIHJldHVybiAwOwo+Pj4gIH0KPj4+Cj4+PiAtc3RhdGljIHZvaWQg
+YXJjaF90aW1lcl9kZXRlY3RfcmF0ZSh2b2lkIF9faW9tZW0gKmNudGJhc2UpCj4+PiArc3RhdGlj
+IHZvaWQgX19hcmNoX3RpbWVyX2RldGVybWluZV9yYXRlKHUzMiByYXRlKQo+Pj4gIHsKPj4+IC0g
+ICAgICAgLyogV2hvIGhhcyBtb3JlIHRoYW4gb25lIGluZGVwZW5kZW50IHN5c3RlbSBjb3VudGVy
+PyAqLwo+Pj4gLSAgICAgICBpZiAoYXJjaF90aW1lcl9yYXRlKQo+Pj4gLSAgICAgICAgICAgICAg
+IHJldHVybjsKPj4+ICsgICAgICAgLyogQ2hlY2sgdGhlIHRpbWVyIGZyZXF1ZW5jeS4gKi8KPj4+
+ICsgICAgICAgaWYgKCFhcmNoX3RpbWVyX3JhdGUpIHsKPj4+ICsgICAgICAgICAgICAgICBpZiAo
+cmF0ZSkKPj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGFyY2hfdGltZXJfcmF0ZSA9IHJhdGU7
+Cj4+PiArICAgICAgICAgICAgICAgZWxzZQo+Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgcHJf
+d2FybigiZnJlcXVlbmN5IG5vdCBhdmFpbGFibGVcbiIpOwo+Pj4gKyAgICAgICB9IGVsc2UgaWYg
+KHJhdGUgJiYgYXJjaF90aW1lcl9yYXRlICE9IHJhdGUpIHsKPj4KPj4gICAgICAgICAgICAgICAg
+ICAgICAgICAgXgo+PiBUeXBvPyBJIHRoaW5rIGl0J3MgIiYiIGhlcmUuCj4KPiBOb3QgYSB0eXBv
+LCBJdCdzIGRlZmluaXRlbHkgYSDigJwmJuKAnSAgOi0pCj4KPiBIZXJlIGFyY2hfdGltZXJfcmF0
+ZSBpcyBub3QgemVyby4KPgo+IElmIHJhdGUgaXMgbm90IHplcm8odGhhdCBtZWFucyB3ZSBnb3Qg
+YSB2YWxpZCByYXRlKSwgYW5kCj4gYXJjaF90aW1lcl9yYXRlICE9IHJhdGUgLAo+IHdlIHdpbGwg
+cHJpbnQgd2FybmluZyBtZXNzYWdlLgoKQWgsIG1pc3JlYWRpbmcgdGhlIGNvZGUsIHRoYW5rcyBm
+b3IgY2xhcmlmeSA6KQoKSGFuanVuCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2Vy
+bmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
