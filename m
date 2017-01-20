@@ -1,106 +1,62 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: Tables: Remove a hidden logic related to acpi_tb_install_standard_table()
-Date: Fri, 20 Jan 2017 04:04:16 +0100
-Message-ID: <CAJZ5v0imfRdvSiHvaK6-dZk+Gn8OZstGPDxp5Hta1MH9WttcdA@mail.gmail.com>
-References: <20170112015256.GB19308@yexl-desktop> <49ac3d4571a728ae5348a6b2e93da3d45f76cd38.1484810262.git.lv.zheng@intel.com>
- <4185897.PWYXmptgmv@fractal.fi.intel.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH] acpi: lpss: call pwm_add_table() for bsw pwm device
+Date: Fri, 20 Jan 2017 07:48:19 +0100
+Message-ID: <20170120064819.GC4894@ulmo.ba.sec>
+References: <20170119175338.3543-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:34574 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdATDER (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2017 22:04:17 -0500
-Received: by mail-oi0-f68.google.com with SMTP id w144so4649399oiw.1
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Jan 2017 19:04:17 -0800 (PST)
-In-Reply-To: <4185897.PWYXmptgmv@fractal.fi.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33136 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751320AbdATGzH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jan 2017 01:55:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20170119175338.3543-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomi Sarvela <tomi.p.sarvela@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ye Xiaolong <xiaolong.ye@intel.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pwm@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 10:38 AM, Tomi Sarvela <tomi.p.sarvela@intel.com> wrote:
-> On Thursday, 19 January 2017 15:21:34 EET Lv Zheng wrote:
->> There is a hidden logic for acpi_tb_install_standard_table() as it
->> can be invoked from boot stage and during runtime.
->> 1. When it is invoked from the OS boot stage, ACPICA mutex may not
->> be available, and thus no
->> acpi_ut_acquire_mutex()/acpi_ut_release_mutex() are invoked in
->> these code paths:
->>    acpi_initialize_tables
->>      acpi_tb_parse_root_table
->>        acpi_tb_install_standard_table (4 invocations)
->>    acpi_install_table
->>        acpi_tb_install_standard_table
->> 2. When it is invoked during the runtime, ACPICA mutex is correctly
->> used: acpi_ex_load_op
->>      acpi_tb_install_and_load_table
->>        acpi_tb_install_standard_table
->>    acpi_load_table
->>      acpi_tb_install_and_load_table
->>        acpi_tb_install_standard_table
->> So the mutex is now used in acpi_tb_install_and_load_table(), while
->> it actually should be in acpi_tb_install_standard_table().
->>
->> This introduces another problem in acpi_tb_install_standard_table()
->> where acpi_gbl_table_handler is invoked from and the lock contexts
->> are thus not consistent for the table handlers. This triggers a
->> regression when acpi_get_table()/acpi_put_table() start to hold
->> table mutex during runtime.
->>
->> The regression is noticed by LKP as new errors reported by ACPICA
->> mutex debugging facility.
->> [    2.043693] ACPI Error: Mutex [ACPI_MTX_Tables] already acquired
->> by this thread [497483776] (20160930/utmutex-254) [    2.054084]
->> ACPI Error: Mutex [0x2] is not acquired, cannot release
->> (20160930/utmutex-326)
->>
->> And it triggers a dead lock:
->> [  247.066214] INFO: task swapper/0:1 blocked for more than 120
->> seconds. ...
->> [  247.091271] Call Trace:
->> ...
->> [  247.121523]  down_timeout+0x47/0x50
->> [  247.125065]  acpi_os_wait_semaphore+0x47/0x62
->> [  247.129475]  acpi_ut_acquire_mutex+0x43/0x81
->> [  247.133798]  acpi_get_table+0x2d/0x84
->> [  247.137513]  acpi_table_attr_init+0xcd/0x100
->> [  247.146590]  acpi_sysfs_table_handler+0x5d/0xb8
->> [  247.151174]  acpi_bus_table_handler+0x23/0x2a
->> [  247.155583]  acpi_tb_install_standard_table+0xe0/0x213
->> [  247.164489]  acpi_tb_install_and_load_table+0x3a/0x82
->> [  247.169592]  acpi_ex_load_op+0x194/0x201
->> ...
->> [  247.200108]  acpi_ns_evaluate+0x1bb/0x247
->> [  247.204170]  acpi_evaluate_object+0x178/0x274
->> [  247.213249]  acpi_processor_set_pdc+0x154/0x17b
->> ...
->> The table mutex is held in acpi_tb_install_and_load_table() and is
->> re-visited by acpi_get_table().
->>
->> Noticing that the early mutex requirement actually belongs to the
->> OSL layer and has already been handled in Linux
->> acpi_os_wait_semaphore()/acpi_os_signal_semaphore(). This patch then
->> can fix the regression by removing this hidden logic from ACPICA
->> core and leaving it to OSPMs. A documentation update should also be
->> required.
->>
->> Fixes: 174cc7187e6f ('ACPICA: Tables: Back port
->> acpi_get_table_with_size() and early_acpi_os_unmap_memory() from
->> Linux kernel') Reported-by: Tomi Sarvela <tomi.p.sarvela@intel.com>
->> Reported-by: Ye Xiaolong <xiaolong.ye@intel.com>
->> Cc: Tomi Sarvela <tomi.p.sarvela@intel.com>
->> Cc: Ye Xiaolong <xiaolong.ye@intel.com>
->> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->> ---
->
-> This patch helps ILK-650 testhost survive past the boot ACPI setup.
->
-> Tested-by: Tomi Sarvela <tomi.p.sarvela@intel.com>
 
-OK
+--iFRdW5/EC4oqxDHL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm queuing this up as a fix for 4.10.
+On Thu, Jan 19, 2017 at 06:53:38PM +0100, Hans de Goede wrote:
+> On x86 we do not have devicetree to link the pwm controller and
+> the display controller together. So someone needs to call
+> pwm_add_table() to create the link, so that the i915 driver's
+> pwm_get(dev, "pwm_backlight") call returns the lpss' pwm0.
+>=20
+> The pwm subsystem does not want to have pwm_add_table() calls
+> directly in pwm drivers (this leads to probe ordering issues),
+> so lets do it here since the acpi-lpss code is always builtin.
 
-Thanks,
-Rafael
+Nit: "pwm" -> "PWM" in the above. Other than that this looks like a much
+more suitable location for pwm_add_table(), so:
+
+Acked-by: Thierry Reding <thierry.reding@gmail.com>
+
+--iFRdW5/EC4oqxDHL
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAliBsrMACgkQ3SOs138+
+s6EIcQ/8DCN3xgUa6SndPuVTiFgf64gWbxrUdJSNjDDgrqhIrldAHgxnFfM424uJ
+CvURi2YePoHxtcR3MRWO7i08DjHXU0N1GPUrZMaWDYhRFGE4/dn5pL13ZcurZh/w
+JnRd2jsYUUNIUHptB2XIAi1S8Ab7uXO3HGYQuxYoV0midKjsfixJQAwUFshsLzoR
+qbKVsUNUADn+z6GTNBCw9YcSE2zpPj/W5lypEwTS4at7ohlsrQtvV966yk3gsW2I
+PP4pQ2wqCZG15/so0/9aHfIrsi02c4PxGfkL7GWkk7XE+E4TzK3WOlTX7uV0sXrk
+bzw1tIhBvbge662SfBqtzSgozcn0FERZgHlozM8KPsCPYe17gNkRKOcrX9GLSIWZ
+vqDXkdh0OSBNefdlHDG5JSP64Bw90dRnXkJpZ8btW6H8uyWP1Zo1r5lr5WT4mbX1
+eBGaGApyx+lTbjNemPcbjbwS1T8pmpc7boWDdPI8ve+0fZaO90clphUHBPu0Hs+7
+l8tLs72DPA0jcJ57oI9d7/oI0igpMm22qSQpOtzfzjFiNGJ8fiVb7/mZkAB+Yv34
+qM/AEVMtkvee79NrnyfsOOEh7FllXwPIj2/Q//aMtcBvsu/AdOJ/uA8g0Vv80Gl9
+MxVCFbRH9zLVkurvSmbsxYjrpyUzqMw/hibQfeOQdIvdvOjjZ8g=
+=nYYY
+-----END PGP SIGNATURE-----
+
+--iFRdW5/EC4oqxDHL--
