@@ -1,79 +1,176 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v13 1/7] arm64: Rename the common MADT parse routine
-Date: Fri, 20 Jan 2017 11:12:51 -0600
-Message-ID: <e28bac36-23a5-ad01-3258-6ffdd6a774cf@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v13 3/7] arm64: pmu: Cache PMU interrupt numbers from
+ MADT parse
+Date: Fri, 20 Jan 2017 17:37:34 +0000
+Message-ID: <20170120173733.GB14295@red-moon>
 References: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
- <1484686210-7211-2-git-send-email-jeremy.linton@arm.com>
- <20170120162236.GA14295@red-moon>
+ <1484686210-7211-4-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58530 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751988AbdATRMx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 20 Jan 2017 12:12:53 -0500
-In-Reply-To: <20170120162236.GA14295@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1484686210-7211-4-git-send-email-jeremy.linton@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com, bamvor.zhangjian@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk, bamvor.zhangjian@linaro.org
 
-Hi,
+On Tue, Jan 17, 2017 at 02:50:06PM -0600, Jeremy Linton wrote:
+> From: Mark Salter <msalter@redhat.com>
+> 
+> In the case of ACPI, the PMU IRQ information is contained in the
+> MADT table. Also, since the PMU does not exist as a device in the
+> ACPI DSDT table, it is necessary to create a platform device so
+> that the appropriate driver probing is triggered. Since the platform
+> device creation needs to happen after the CPU's have been started, and
+> the MADT parsing needs to happen before, we save off the interrupt
+> numbers discovered during the parsing.
+> 
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  arch/arm64/kernel/smp.c      |  5 +++++
+>  drivers/perf/Kconfig         |  4 ++++
+>  drivers/perf/Makefile        |  1 +
+>  drivers/perf/arm_pmu_acpi.c  | 40 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/perf/arm_pmu.h |  7 +++++++
+>  5 files changed, 57 insertions(+)
+>  create mode 100644 drivers/perf/arm_pmu_acpi.c
+> 
+> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+> index 8ea244c..cbaab44 100644
+> --- a/arch/arm64/kernel/smp.c
+> +++ b/arch/arm64/kernel/smp.c
+> @@ -37,6 +37,7 @@
+>  #include <linux/completion.h>
+>  #include <linux/of.h>
+>  #include <linux/irq_work.h>
+> +#include <linux/perf/arm_pmu.h>
+>  
+>  #include <asm/alternative.h>
+>  #include <asm/atomic.h>
+> @@ -552,6 +553,7 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+>  		}
+>  		bootcpu_valid = true;
+>  		early_map_cpu_to_node(0, acpi_numa_get_nid(0, hwid));
+> +		arm_pmu_parse_acpi(0, processor);
+>  		return;
+>  	}
+>  
+> @@ -572,6 +574,9 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+>  	 */
+>  	acpi_set_mailbox_entry(cpu_count, processor);
+>  
+> +	/* get PMU irq info */
+> +	arm_pmu_parse_acpi(cpu_count, processor);
+> +
+>  	early_map_cpu_to_node(cpu_count, acpi_numa_get_nid(cpu_count, hwid));
+>  
+>  	cpu_count++;
+> diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+> index 4d5c5f9..697df05 100644
+> --- a/drivers/perf/Kconfig
+> +++ b/drivers/perf/Kconfig
+> @@ -19,4 +19,8 @@ config XGENE_PMU
+>          help
+>            Say y if you want to use APM X-Gene SoC performance monitors.
+>  
+> +config ARM_PMU_ACPI
+> +	def_bool y
+> +	depends on ARM_PMU && ACPI
+> +
+>  endmenu
+> diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+> index b116e98..d1d7762 100644
+> --- a/drivers/perf/Makefile
+> +++ b/drivers/perf/Makefile
+> @@ -1,2 +1,3 @@
+>  obj-$(CONFIG_ARM_PMU) += arm_pmu.o
+>  obj-$(CONFIG_XGENE_PMU) += xgene_pmu.o
+> +obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
+> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+> new file mode 100644
+> index 0000000..2008001
+> --- /dev/null
+> +++ b/drivers/perf/arm_pmu_acpi.c
+> @@ -0,0 +1,40 @@
+> +/*
+> + * ARM ACPI PMU support
+> + *
+> + * Copyright (C) 2015 Red Hat Inc.
+> + * Author: Mark Salter <msalter@redhat.com>
+> + *
+> + * This work is licensed under the terms of the GNU GPL, version 2.  See
+> + * the COPYING file in the top-level directory.
+> + *
+> + */
+> +
+> +#include <asm/cpu.h>
+> +#include <linux/acpi.h>
+> +#include <linux/irq.h>
+> +#include <linux/irqdesc.h>
+> +#include <linux/list.h>
+> +#include <linux/perf/arm_pmu.h>
+> +#include <linux/platform_device.h>
 
-On 01/20/2017 10:22 AM, Lorenzo Pieralisi wrote:
-> On Tue, Jan 17, 2017 at 02:50:04PM -0600, Jeremy Linton wrote:
->> The MADT parser in smp.c is now being used to parse
->> out NUMA, PMU and ACPI parking protocol information as
->
-> Nit: It is not used to parse PMU yet at this stage so
-> either you remove PMU from the list or you move this patch
-> to the end of the series.
+Nit: You should trim this include list, it is hardly needed in this patch
+stand-alone.
 
-(per comments below)
-I think the best plan is to drop it in the next spin of the series, 
-although as Will has shown that he is skillful at cherry picking patches 
-out of this series, so maybe that won't be necessary? Of course 3/7 
-probably won't apply cleanly without this one.
+> +struct pmu_irq {
+> +	int  gsi;
+> +	int  trigger;
+> +	bool used;
+> +};
+> +
+> +static struct pmu_irq pmu_irqs[NR_CPUS];
+> +
+> +/*
+> + * Called from acpi_verify_and_map_madt()'s MADT parsing during boot.
 
->
->> well as the GIC information for which it was originally
->> created. Rename it to avoid a misleading name.
->
-> It is funny smp.c never mapped _any_ GIC information :) (even
-> though it parses the MADT GIC CPU interface entries).
+You will have to update the function name according to what we end up doing
+in patch 1.
 
-<OT chuckle> Ha, map is pretty generic outside of LK and more accurately 
-reflects the "mapping" from one structure/element to another, more so 
-than parse (of which I'm a prime offender, particularly in the previous 
-comment). </OT chuckle>
+> + * This routine saves off the GSI's and their trigger state for use when we are
+> + * ready to build the PMU platform device.
+> + */
+> +void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+> +{
+> +	pmu_irqs[cpu].gsi = gic->performance_interrupt;
+> +	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
+> +		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
+> +	else
+> +		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
+> +}
+> diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
+> index 8462da2..df1ba55 100644
+> --- a/include/linux/perf/arm_pmu.h
+> +++ b/include/linux/perf/arm_pmu.h
+> @@ -164,4 +164,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+>  
+>  #endif /* CONFIG_ARM_PMU */
+>  
+> +#ifdef CONFIG_ARM_PMU_ACPI
+> +struct acpi_madt_generic_interrupt;
+> +void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
 
+Adding __init tag here too would not hurt.
 
-(trimming)
->>  static void __init
->> -acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
->> +acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
->
-> acpi_map_madt_cpu_entry()
->
-> or just drop this patch to avoid useless bikeshedding, your choice.
->
->>  {
->>  	u64 hwid = processor->arm_mpidr;
->>
->> @@ -577,7 +578,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
->>  }
->>
->>  static int __init
->> -acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
->> +acpi_parse_madt_common(struct acpi_subtable_header *header,
->>  			     const unsigned long end)
->
-> acpi_madt_parse_cpus()
->
-> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->
->>  {
->>  	struct acpi_madt_generic_interrupt *processor;
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-(trimming)
+> +#else
+> +#define arm_pmu_parse_acpi(a, b) do { } while (0)
+> +#endif /* CONFIG_ARM_PMU_ACPI */
+> +
+>  #endif /* __ARM_PMU_H__ */
+> -- 
+> 2.5.5
+> 
