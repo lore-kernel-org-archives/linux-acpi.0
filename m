@@ -1,101 +1,79 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
 Subject: Re: [PATCH v13 1/7] arm64: Rename the common MADT parse routine
-Date: Fri, 20 Jan 2017 16:22:36 +0000
-Message-ID: <20170120162236.GA14295@red-moon>
+Date: Fri, 20 Jan 2017 11:12:51 -0600
+Message-ID: <e28bac36-23a5-ad01-3258-6ffdd6a774cf@arm.com>
 References: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
  <1484686210-7211-2-git-send-email-jeremy.linton@arm.com>
+ <20170120162236.GA14295@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56790 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:58530 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752689AbdATQUw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 20 Jan 2017 11:20:52 -0500
-Content-Disposition: inline
-In-Reply-To: <1484686210-7211-2-git-send-email-jeremy.linton@arm.com>
+        id S1751988AbdATRMx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 20 Jan 2017 12:12:53 -0500
+In-Reply-To: <20170120162236.GA14295@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk, bamvor.zhangjian@linaro.org
 
-On Tue, Jan 17, 2017 at 02:50:04PM -0600, Jeremy Linton wrote:
-> The MADT parser in smp.c is now being used to parse
-> out NUMA, PMU and ACPI parking protocol information as
+Hi,
 
-Nit: It is not used to parse PMU yet at this stage so
-either you remove PMU from the list or you move this patch
-to the end of the series.
+On 01/20/2017 10:22 AM, Lorenzo Pieralisi wrote:
+> On Tue, Jan 17, 2017 at 02:50:04PM -0600, Jeremy Linton wrote:
+>> The MADT parser in smp.c is now being used to parse
+>> out NUMA, PMU and ACPI parking protocol information as
+>
+> Nit: It is not used to parse PMU yet at this stage so
+> either you remove PMU from the list or you move this patch
+> to the end of the series.
 
-> well as the GIC information for which it was originally
-> created. Rename it to avoid a misleading name.
+(per comments below)
+I think the best plan is to drop it in the next spin of the series, 
+although as Will has shown that he is skillful at cherry picking patches 
+out of this series, so maybe that won't be necessary? Of course 3/7 
+probably won't apply cleanly without this one.
 
-It is funny smp.c never mapped _any_ GIC information :) (even
-though it parses the MADT GIC CPU interface entries).
+>
+>> well as the GIC information for which it was originally
+>> created. Rename it to avoid a misleading name.
+>
+> It is funny smp.c never mapped _any_ GIC information :) (even
+> though it parses the MADT GIC CPU interface entries).
 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  arch/arm64/kernel/smp.c | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index cb87234..8ea244c 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -517,13 +517,14 @@ static unsigned int cpu_count = 1;
->  
->  #ifdef CONFIG_ACPI
->  /*
-> - * acpi_map_gic_cpu_interface - parse processor MADT entry
-> + * acpi_verify_and_map_madt - parse processor MADT entry
->   *
->   * Carry out sanity checks on MADT processor entry and initialize
-> - * cpu_logical_map on success
-> + * cpu_logical_map, the ACPI parking protocol, NUMA mapping
-> + * and the PMU interrupts on success
->   */
->  static void __init
-> -acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
-> +acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+<OT chuckle> Ha, map is pretty generic outside of LK and more accurately 
+reflects the "mapping" from one structure/element to another, more so 
+than parse (of which I'm a prime offender, particularly in the previous 
+comment). </OT chuckle>
 
-acpi_map_madt_cpu_entry()
 
-or just drop this patch to avoid useless bikeshedding, your choice.
+(trimming)
+>>  static void __init
+>> -acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+>> +acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
+>
+> acpi_map_madt_cpu_entry()
+>
+> or just drop this patch to avoid useless bikeshedding, your choice.
+>
+>>  {
+>>  	u64 hwid = processor->arm_mpidr;
+>>
+>> @@ -577,7 +578,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+>>  }
+>>
+>>  static int __init
+>> -acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+>> +acpi_parse_madt_common(struct acpi_subtable_header *header,
+>>  			     const unsigned long end)
+>
+> acpi_madt_parse_cpus()
+>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>
+>>  {
+>>  	struct acpi_madt_generic_interrupt *processor;
 
->  {
->  	u64 hwid = processor->arm_mpidr;
->  
-> @@ -577,7 +578,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
->  }
->  
->  static int __init
-> -acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
-> +acpi_parse_madt_common(struct acpi_subtable_header *header,
->  			     const unsigned long end)
-
-acpi_madt_parse_cpus()
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
->  {
->  	struct acpi_madt_generic_interrupt *processor;
-> @@ -588,7 +589,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
->  
->  	acpi_table_print_madt_entry(header);
->  
-> -	acpi_map_gic_cpu_interface(processor);
-> +	acpi_verify_and_map_madt(processor);
->  
->  	return 0;
->  }
-> @@ -672,7 +673,7 @@ void __init smp_init_cpus(void)
->  		 * we need for SMP init
->  		 */
->  		acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-> -				      acpi_parse_gic_cpu_interface, 0);
-> +				      acpi_parse_madt_common, 0);
->  
->  	if (cpu_count > nr_cpu_ids)
->  		pr_warn("Number of cores (%d) exceeds configured maximum of %d - clipping\n",
-> -- 
-> 2.5.5
-> 
+(trimming)
