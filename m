@@ -1,176 +1,136 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v13 3/7] arm64: pmu: Cache PMU interrupt numbers from
- MADT parse
-Date: Fri, 20 Jan 2017 17:37:34 +0000
-Message-ID: <20170120173733.GB14295@red-moon>
-References: <1484686210-7211-1-git-send-email-jeremy.linton@arm.com>
- <1484686210-7211-4-git-send-email-jeremy.linton@arm.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V7 04/10] arm64: exception: handle Synchronous External
+ Abort
+Date: Fri, 20 Jan 2017 13:35:11 -0700
+Message-ID: <a2b1bcad-8d07-4d9d-a9ff-8a56814a8285@codeaurora.org>
+References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
+ <1484244924-24786-5-git-send-email-tbaicar@codeaurora.org>
+ <587DF279.1010402@arm.com>
+ <e8c0151e-2087-d49c-42fc-906755aca052@codeaurora.org>
+ <5880FD8A.2000405@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1484686210-7211-4-git-send-email-jeremy.linton@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: mark.rutland@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com, bamvor.zhangjian@linaro.org, linux-arm-kernel@lists.infradead.org
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <5880FD8A.2000405@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 02:50:06PM -0600, Jeremy Linton wrote:
-> From: Mark Salter <msalter@redhat.com>
-> 
-> In the case of ACPI, the PMU IRQ information is contained in the
-> MADT table. Also, since the PMU does not exist as a device in the
-> ACPI DSDT table, it is necessary to create a platform device so
-> that the appropriate driver probing is triggered. Since the platform
-> device creation needs to happen after the CPU's have been started, and
-> the MADT parsing needs to happen before, we save off the interrupt
-> numbers discovered during the parsing.
-> 
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  arch/arm64/kernel/smp.c      |  5 +++++
->  drivers/perf/Kconfig         |  4 ++++
->  drivers/perf/Makefile        |  1 +
->  drivers/perf/arm_pmu_acpi.c  | 40 ++++++++++++++++++++++++++++++++++++++++
->  include/linux/perf/arm_pmu.h |  7 +++++++
->  5 files changed, 57 insertions(+)
->  create mode 100644 drivers/perf/arm_pmu_acpi.c
-> 
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index 8ea244c..cbaab44 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -37,6 +37,7 @@
->  #include <linux/completion.h>
->  #include <linux/of.h>
->  #include <linux/irq_work.h>
-> +#include <linux/perf/arm_pmu.h>
->  
->  #include <asm/alternative.h>
->  #include <asm/atomic.h>
-> @@ -552,6 +553,7 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
->  		}
->  		bootcpu_valid = true;
->  		early_map_cpu_to_node(0, acpi_numa_get_nid(0, hwid));
-> +		arm_pmu_parse_acpi(0, processor);
->  		return;
->  	}
->  
-> @@ -572,6 +574,9 @@ acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
->  	 */
->  	acpi_set_mailbox_entry(cpu_count, processor);
->  
-> +	/* get PMU irq info */
-> +	arm_pmu_parse_acpi(cpu_count, processor);
-> +
->  	early_map_cpu_to_node(cpu_count, acpi_numa_get_nid(cpu_count, hwid));
->  
->  	cpu_count++;
-> diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-> index 4d5c5f9..697df05 100644
-> --- a/drivers/perf/Kconfig
-> +++ b/drivers/perf/Kconfig
-> @@ -19,4 +19,8 @@ config XGENE_PMU
->          help
->            Say y if you want to use APM X-Gene SoC performance monitors.
->  
-> +config ARM_PMU_ACPI
-> +	def_bool y
-> +	depends on ARM_PMU && ACPI
-> +
->  endmenu
-> diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
-> index b116e98..d1d7762 100644
-> --- a/drivers/perf/Makefile
-> +++ b/drivers/perf/Makefile
-> @@ -1,2 +1,3 @@
->  obj-$(CONFIG_ARM_PMU) += arm_pmu.o
->  obj-$(CONFIG_XGENE_PMU) += xgene_pmu.o
-> +obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> new file mode 100644
-> index 0000000..2008001
-> --- /dev/null
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -0,0 +1,40 @@
-> +/*
-> + * ARM ACPI PMU support
-> + *
-> + * Copyright (C) 2015 Red Hat Inc.
-> + * Author: Mark Salter <msalter@redhat.com>
-> + *
-> + * This work is licensed under the terms of the GNU GPL, version 2.  See
-> + * the COPYING file in the top-level directory.
-> + *
-> + */
-> +
-> +#include <asm/cpu.h>
-> +#include <linux/acpi.h>
-> +#include <linux/irq.h>
-> +#include <linux/irqdesc.h>
-> +#include <linux/list.h>
-> +#include <linux/perf/arm_pmu.h>
-> +#include <linux/platform_device.h>
+On 1/19/2017 10:55 AM, James Morse wrote:
+> Hi Tyler,
+>
+> On 18/01/17 23:26, Baicar, Tyler wrote:
+>> On 1/17/2017 3:31 AM, James Morse wrote:
+>>> On 12/01/17 18:15, Tyler Baicar wrote:
+>>>> SEA exceptions are often caused by an uncorrected hardware
+>>>> error, and are handled when data abort and instruction abort
+>>>> exception classes have specific values for their Fault Status
+>>>> Code.
+>>>> When SEA occurs, before killing the process, go through
+>>>> the handlers registered in the notification list.
+>>>> Update fault_info[] with specific SEA faults so that the
+>>>> new SEA handler is used.
+>>>> @@ -480,6 +496,28 @@ static int do_bad(unsigned long addr, unsigned int esr,
+>>>> struct pt_regs *regs)
+>>>>        return 1;
+>>>>    }
+>>>>    +/*
+>>>> + * This abort handler deals with Synchronous External Abort.
+>>>> + * It calls notifiers, and then returns "fault".
+>>>> + */
+>>>> +static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>>>> +{
+>>>> +    struct siginfo info;
+>>>> +
+>>>> +    atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
+>>>> +
+>>>> +    pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
+>>>> +         fault_name(esr), esr, addr);
+>>>> +
+>>>> +    info.si_signo = SIGBUS;
+>>>> +    info.si_errno = 0;
+>>>> +    info.si_code  = 0;
+>>> Half of the other do_*() functions in this file read the signo and code from the
+>>> fault_info table.
+>>>
+>>>
+>>>> +    info.si_addr  = (void __user *)addr;
+>>> addr here was read from FAR_EL1, but for some of the classes of exception you
+>>> have listed below this register isn't updated with the faulting address.
+>>>
+>>> The ARM-ARM version 'k' in D1.10.5 "Summary of registers on faults taken to an
+>>> Exception level that is using Aarch64" has:
+>>>> The architecture permits that the FAR_ELx is UNKNOWN for Synchronous External
+>>>> Aborts other than Synchronous External Aborts on Translation Table Walks. In
+>>>> this case, the ISS.FnV bit returned in ESR_ELx  indicates whether FAR_ELx is
+>>>> valid.
+>>> This is a problem if we get 'synchronous external abort' or 'synchronous parity
+>>> error' while a user space process was running.
+>> It looks like this would just cause an incorrect address to be printed in the
+>> above pr_err.
+>> Unless I'm missing something, I don't see arm64_notify_die or anything that gets
+>> called from
+>> there using the info.si_addr variable.
+> I may be misreading something here...
+>
+> This patch has:
+>> 	info.si_addr  = (void __user *)addr;
+>> 	arm64_notify_die("", regs, &info, esr);
+>  From arch/arm64/kernel/traps.c:arm64_notify_die():
+>> 	if (user_mode(regs)) {
+>> 		current->thread.fault_address = 0;
+>> 		current->thread.fault_code = err;
+>> 		force_sig_info(info->si_signo, info, current);
+>> 	}
+> So if the SEA interrupted userspace, we put maybe-unknown addr into
+> force_sig_info() to deliver a signal to user space. User-space then gets a copy
+> of the info struct containing the maybe-unknown addr.
+>
+> I think this is an existing bug, but if we are separating the synchronous
+> external aborts from the generic do_bad handler, we should probably check the
+> FnV bit. (I think we should still print it out)
+>
+>
+>> What do you suggest I do here? The firmware should be reporting the physical and
+>> virtual
+>> address information if it is available in the HEST entry that the kernel will
+>> parse.
+> Its not just firmware that may trigger this, other SoCs may use it for parity or
+> ECC errors, and they may not always have a valid address in FAR_EL1.
+>
+> I think we should check the FnV bit in the esr variable and set info.si_addr to
+> 0 if the addr we have isn't valid:
+> 'For some implementations, the value of si_addr may be inaccurate.' [0]
+>
+>
+> Thanks,
+>
+> James
+>
+>
+> [0] http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
+Hello James,
 
-Nit: You should trim this include list, it is hardly needed in this patch
-stand-alone.
+Okay, that makes sense, we don't want userspace to be notified with an 
+incorrect address.
+I will add the check to verify it's valid. Which bit in the ESR is the 
+FnV bit? I'm not finding
+the bit breakdown of the ISS that shows it.
 
-> +struct pmu_irq {
-> +	int  gsi;
-> +	int  trigger;
-> +	bool used;
-> +};
-> +
-> +static struct pmu_irq pmu_irqs[NR_CPUS];
-> +
-> +/*
-> + * Called from acpi_verify_and_map_madt()'s MADT parsing during boot.
+Thanks,
+Tyler
 
-You will have to update the function name according to what we end up doing
-in patch 1.
-
-> + * This routine saves off the GSI's and their trigger state for use when we are
-> + * ready to build the PMU platform device.
-> + */
-> +void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
-> +{
-> +	pmu_irqs[cpu].gsi = gic->performance_interrupt;
-> +	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
-> +		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
-> +	else
-> +		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
-> +}
-> diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-> index 8462da2..df1ba55 100644
-> --- a/include/linux/perf/arm_pmu.h
-> +++ b/include/linux/perf/arm_pmu.h
-> @@ -164,4 +164,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
->  
->  #endif /* CONFIG_ARM_PMU */
->  
-> +#ifdef CONFIG_ARM_PMU_ACPI
-> +struct acpi_madt_generic_interrupt;
-> +void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
-
-Adding __init tag here too would not hurt.
-
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
-> +#else
-> +#define arm_pmu_parse_acpi(a, b) do { } while (0)
-> +#endif /* CONFIG_ARM_PMU_ACPI */
-> +
->  #endif /* __ARM_PMU_H__ */
-> -- 
-> 2.5.5
-> 
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
