@@ -1,370 +1,223 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V11 2/3] ACPI: Add support for ResourceSource/IRQ domain
- mapping
-Date: Fri, 20 Jan 2017 12:21:17 +0000
-Message-ID: <20170120122117.GA11727@red-moon>
-References: <1484879660-1960-1-git-send-email-agustinv@codeaurora.org>
- <1484879660-1960-3-git-send-email-agustinv@codeaurora.org>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3 (possibly
+ badly bisected)
+Date: Fri, 20 Jan 2017 16:52:32 +0100
+Message-ID: <1484927552.21721.17.camel@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1484879660-1960-3-git-send-email-agustinv@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, andy.shevchenko@gmail.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
+Content-Type: multipart/mixed; boundary="=-to9fKU7NSMxaQ3/EFfZt"
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 09:34:19PM -0500, Agustin Vega-Frias wrote:
-> ACPI extended IRQ resources may contain a ResourceSource to specify
-> an alternate interrupt controller. Introduce acpi_irq_get and use it
-> to implement ResourceSource/IRQ domain mapping.
-> 
-> The new API is similar to of_irq_get and allows re-initialization
-> of a platform resource from the ACPI extended IRQ resource, and
-> provides proper behavior for probe deferral when the domain is not
-> yet present when called.
-> 
-> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
-> ---
->  drivers/acpi/Makefile             |   2 +-
->  drivers/acpi/{gsi.c => irq.c}     | 221 ++++++++++++++++++++++++++++++++++++++
->  drivers/base/platform.c           |   8 ++
->  include/asm-generic/vmlinux.lds.h |   1 +
->  include/linux/acpi.h              |  15 +++
->  5 files changed, 246 insertions(+), 1 deletion(-)
->  rename drivers/acpi/{gsi.c => irq.c} (28%)
-> 
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 9ed0878..a391bbc 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -55,7 +55,7 @@ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
->  acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
->  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->  acpi-y				+= acpi_lpat.o
-> -acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
-> +acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
->  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
->  
->  # These are (potentially) separate modules
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/irq.c
-> similarity index 28%
-> rename from drivers/acpi/gsi.c
-> rename to drivers/acpi/irq.c
-> index ee9e0f2..db4ee4c 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/irq.c
-> @@ -85,6 +85,227 @@ void acpi_unregister_gsi(u32 gsi)
->  EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
->  
->  /**
-> + * acpi_get_irq_source_fwhandle() - Retrieve fwhandle from IRQ resource source.
-> + * @source: acpi_resource_source to use for the lookup.
-> + *
-> + * Description:
-> + * Retrieve the fwhandle of the device referenced by the given IRQ resource
-> + * source. In addition to it being a valid ACPI device, its _HID must be
-> + * listed on the probe table of ACPI DSDT irqchips. The check is used to
-> + * determine if a driver for the referenced device is available and decide
-> + * if we should try deferred probing if the device has not been probed yet.
-> + * Drivers must use the __dsdt_irqchip attribute when declaring the table
-> + * of acpi_device_ids for the device, e.g.:
-> + *
-> + * static const struct acpi_device_id my_device_ids[] __dsdt_irqchip = {
-> + *         { "ABCD0123", },
-> + *         { }
-> + * };
-> + *
 
-Ok, thanks for doing that. In my opinion it should be done by reusing
-the ACPI_DECLARE_PROBE_ENTRY mechanism by simply adding a flag to detect
-whether the entry refers to a static table or AML and a corresponding
-acpi_device_id for the matching.
+--=-to9fKU7NSMxaQ3/EFfZt
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-This driver matching mechanism though is just an optimization, the IRQ
-deferral mechanism you are putting in place is much more important, so
-for now let's focus on getting code in v10 (plus all cosmetic "fixes"
-introduced in this patch minus the linker section) agreed upon and
-upstream, adding this linker section later is not a big deal IMO, it
-must not slow you down.
+Hey,
 
-So, no need for reposting anything let's focus on the IRQ probe deferral
-core functionality and get it merged.
+TLDR:
+# first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7] Merge
+back earlier ACPI PM material for v4.3.
 
-Thanks,
-Lorenzo
+hid-sensor-hub devices only start sending events through the IIO
+trigger after a suspend/resume cycle.
 
-> + * Return:
-> + * The referenced device fwhandle or NULL on failure
-> + */
-> +static struct fwnode_handle *
-> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
-> +{
-> +	struct fwnode_handle *result = NULL;
-> +	struct acpi_device *device;
-> +	struct acpi_hardware_id *hwid;
-> +	struct acpi_device_id *devid;
-> +	acpi_handle handle;
-> +	acpi_status status;
-> +
-> +	if (!source->string_length)
-> +		return acpi_gsi_domain_id;
-> +
-> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
-> +	if (WARN_ON(ACPI_FAILURE(status)))
-> +		return NULL;
-> +
-> +	device = acpi_bus_get_acpi_device(handle);
-> +	if (WARN_ON(!device))
-> +		return NULL;
-> +
-> +	list_for_each_entry(hwid, &device->pnp.ids, list) {
-> +		for (devid = &__dsdt_irqchip_acpi_probe_table;
-> +		     devid < &__dsdt_irqchip_acpi_probe_table_end; devid++) {
-> +			if (devid->id && !strcmp(devid->id, hwid->id)) {
-> +				result = &device->fwnode;
-> +				break;
-> +			}
-> +		}
-> +	}
-> +
-> +	acpi_bus_put_acpi_device(device);
-> +
-> +	return result;
-> +}
-> +
-> +/*
-> + * Context for the resource walk used to lookup IRQ resources.
-> + * Contains a return code, the lookup index, and references to the flags
-> + * and fwspec where the result is returned.
-> + */
-> +struct acpi_irq_parse_one_ctx {
-> +	int rc;
-> +	unsigned int index;
-> +	unsigned long *res_flags;
-> +	struct irq_fwspec *fwspec;
-> +};
-> +
-> +/**
-> + * acpi_irq_parse_one_match - Handle a matching IRQ resource.
-> + * @fwnode: matching fwnode
-> + * @hwirq: hardware IRQ number
-> + * @triggering: triggering attributes of hwirq
-> + * @polarity: polarity attributes of hwirq
-> + * @polarity: polarity attributes of hwirq
-> + * @shareable: shareable attributes of hwirq
-> + * @ctx: acpi_irq_parse_one_ctx updated by this function
-> + *
-> + * Description:
-> + * Handle a matching IRQ resource by populating the given ctx with
-> + * the information passed.
-> + */
-> +static inline void acpi_irq_parse_one_match(struct fwnode_handle *fwnode,
-> +					    u32 hwirq, u8 triggering,
-> +					    u8 polarity, u8 shareable,
-> +					    struct acpi_irq_parse_one_ctx *ctx)
-> +{
-> +	if (!fwnode)
-> +		return;
-> +	ctx->rc = 0;
-> +	*ctx->res_flags = acpi_dev_irq_flags(triggering, polarity, shareable);
-> +	ctx->fwspec->fwnode = fwnode;
-> +	ctx->fwspec->param[0] = hwirq;
-> +	ctx->fwspec->param[1] = acpi_dev_get_irq_type(triggering, polarity);
-> +	ctx->fwspec->param_count = 2;
-> +}
-> +
-> +/**
-> + * acpi_irq_parse_one_cb - Handle the given resource.
-> + * @ares: resource to handle
-> + * @context: context for the walk
-> + *
-> + * Description:
-> + * This is called by acpi_walk_resources passing each resource returned by
-> + * the _CRS method. We only inspect IRQ resources. Since IRQ resources
-> + * might contain multiple interrupts we check if the index is within this
-> + * one's interrupt array, otherwise we subtract the current resource IRQ
-> + * count from the lookup index to prepare for the next resource.
-> + * Once a match is found we call acpi_irq_parse_one_match to populate
-> + * the result and end the walk by returning AE_CTRL_TERMINATE.
-> + *
-> + * Return:
-> + * AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
-> + * IRQ resource was found.
-> + */
-> +static acpi_status acpi_irq_parse_one_cb(struct acpi_resource *ares,
-> +					 void *context)
-> +{
-> +	struct acpi_irq_parse_one_ctx *ctx = context;
-> +	struct acpi_resource_irq *irq;
-> +	struct acpi_resource_extended_irq *eirq;
-> +	struct fwnode_handle *fwnode;
-> +
-> +	switch (ares->type) {
-> +	case ACPI_RESOURCE_TYPE_IRQ:
-> +		irq = &ares->data.irq;
-> +		if (ctx->index >= irq->interrupt_count) {
-> +			ctx->index -= irq->interrupt_count;
-> +			return AE_OK;
-> +		}
-> +		fwnode = acpi_gsi_domain_id;
-> +		acpi_irq_parse_one_match(fwnode, irq->interrupts[ctx->index],
-> +					 irq->triggering, irq->polarity,
-> +					 irq->sharable, ctx);
-> +		return AE_CTRL_TERMINATE;
-> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> +		eirq = &ares->data.extended_irq;
-> +		if (eirq->producer_consumer == ACPI_PRODUCER)
-> +			return AE_OK;
-> +		if (ctx->index >= eirq->interrupt_count) {
-> +			ctx->index -= eirq->interrupt_count;
-> +			return AE_OK;
-> +		}
-> +		fwnode = acpi_get_irq_source_fwhandle(&eirq->resource_source);
-> +		acpi_irq_parse_one_match(fwnode, eirq->interrupts[ctx->index],
-> +					 eirq->triggering, eirq->polarity,
-> +					 eirq->sharable, ctx);
-> +		return AE_CTRL_TERMINATE;
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +/**
-> + * acpi_irq_parse_one - Resolve an interrupt for a device
-> + * @handle: the device whose interrupt is to be resolved
-> + * @index: index of the interrupt to resolve
-> + * @fwspec: structure irq_fwspec filled by this function
-> + * @flags: resource flags filled by this function
-> + *
-> + * Description:
-> + * Resolves an interrupt for a device by walking its CRS resources to find
-> + * the appropriate ACPI IRQ resource and populating the given struct irq_fwspec
-> + * and flags.
-> + *
-> + * Return:
-> + * The result stored in ctx.rc by the callback, or the default -EINVAL value
-> + * if an error occurs.
-> + */
-> +static int acpi_irq_parse_one(acpi_handle handle, unsigned int index,
-> +			      struct irq_fwspec *fwspec, unsigned long *flags)
-> +{
-> +	struct acpi_irq_parse_one_ctx ctx = { -EINVAL, index, flags, fwspec };
-> +
-> +	acpi_walk_resources(handle, METHOD_NAME__CRS, acpi_irq_parse_one_cb, &ctx);
-> +	return ctx.rc;
-> +}
-> +
-> +/**
-> + * acpi_irq_get - Lookup an ACPI IRQ resource and use it to initialize resource.
-> + * @handle: ACPI device handle
-> + * @index:  ACPI IRQ resource index to lookup
-> + * @res:    Linux IRQ resource to initialize
-> + *
-> + * Description:
-> + * Look for the ACPI IRQ resource with the given index and use it to initialize
-> + * the given Linux IRQ resource.
-> + *
-> + * Return:
-> + * 0 on success
-> + * -EINVAL if an error occurs
-> + * -EPROBE_DEFER if the IRQ lookup/conversion failed
-> + */
-> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
-> +{
-> +	struct irq_fwspec fwspec;
-> +	struct irq_domain *domain;
-> +	unsigned long flags;
-> +	int rc;
-> +
-> +	rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
-> +	if (rc)
-> +		return rc;
-> +
-> +	domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
-> +	if (!domain)
-> +		return -EPROBE_DEFER;
-> +
-> +	rc = irq_create_fwspec_mapping(&fwspec);
-> +	if (rc <= 0)
-> +		return -EINVAL;
-> +
-> +	res->start = rc;
-> +	res->end = rc;
-> +	res->flags = flags;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_irq_get);
-> +
-> +/**
->   * acpi_set_irq_model - Setup the GSI irqdomain information
->   * @model: the value assigned to acpi_irq_model
->   * @fwnode: the irq_domain identifier for mapping and looking up
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index c4af003..040d474 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
->  	}
->  
->  	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
-> +	if (r && r->flags & IORESOURCE_DISABLED && has_acpi_companion(&dev->dev)) {
-> +		int ret;
-> +
-> +		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->  	/*
->  	 * The resources may pass trigger flags to the irqs that need
->  	 * to be set up. It so happens that the trigger flags for
-> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-> index 0968d13..0763c8a 100644
-> --- a/include/asm-generic/vmlinux.lds.h
-> +++ b/include/asm-generic/vmlinux.lds.h
-> @@ -567,6 +567,7 @@
->  	ACPI_PROBE_TABLE(irqchip)					\
->  	ACPI_PROBE_TABLE(clksrc)					\
->  	ACPI_PROBE_TABLE(iort)						\
-> +	ACPI_PROBE_TABLE(dsdt_irqchip)					\
->  	EARLYCON_TABLE()
->  
->  #define INIT_TEXT							\
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 5b36974..15fac1a 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1056,6 +1056,11 @@ struct acpi_probe_entry {
->  					  (&ACPI_PROBE_TABLE_END(t) -	\
->  					   &ACPI_PROBE_TABLE(t)));	\
->  	})
-> +
-> +#define __dsdt_irqchip __section(__dsdt_irqchip_acpi_probe_table)
-> +extern struct acpi_device_id __dsdt_irqchip_acpi_probe_table;
-> +extern struct acpi_device_id __dsdt_irqchip_acpi_probe_table_end;
-> +
->  #else
->  static inline int acpi_dev_get_property(struct acpi_device *adev,
->  					const char *name, acpi_object_type type,
-> @@ -1153,4 +1158,14 @@ static inline void acpi_table_upgrade(void) { }
->  static inline int parse_spcr(bool earlycon) { return 0; }
->  #endif
->  
-> +#ifdef CONFIG_ACPI_GENERIC_GSI
-> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
-> +#else
-> +static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
-> +			       struct resource *res)
-> +{
-> +	return -EINVAL;
-> +}
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
-> -- 
-> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
-> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
-> 
+Other IIO drivers don't seem to exhibit those problems.
+
+The long version:
+
+As some of you know, I maintain iio-sensor-proxy[1], which tries to
+read sensor values for a number of sensor types (accelerometer, ambient
+light, compass) for a number of drivers (IIO, input, hwmon).
+
+I've had a lot of bug reports some time after creating the project[2],
+with HID sensor hub devices, which are the most common type of compound
+sensor device types in laptops and more expensive tablets.
+
+The problem seems to be that IIO devices don't send any events about
+new data, even though there is new data available. A suspend/resume
+cycle corrects this. (Some people have also had some luck making sure
+the iio-sensor-proxy didn't try to poke at the device this early after
+the kernel loaded the driver, I cannot easily test this).
+
+The problem wasn't there when I started the project (July 2014) and has
+appeared since. I finally got access to a type of device which I can
+use to replicate the problem. I used the ColorHugALS[3] as a test
+device (which uses hid-sensor-hub and is a USB device).
+
+Testing:
+
+Tested on a Lenovo X1 Carbon from 2014 (the one with the horrible touch
+function keys).
+
+1) Apply the attached patch to iio-sensor-proxy, compile and install it
+in place of the OS-provided one. Running "monitor-sensor" will just
+wait for ALS events for 10 seconds, and can be used for "git bisect
+run".
+2) I used Fedora kernels to pin down which "dot-o" version of the
+kernel first showed the problem. The problems started occurring between
+4.2 and 4.3. I also verified this with "linus" kernel trees to make
+sure a Fedora patch didn't cause the problem.
+3) The kernel configuration is Fedora's "4.2.0-1" kernel config, with
+"make localmodconfig" run on it, to cut down on compile time
+4) For every commit that bisect told me to inspect, I compiled a new
+kernel with "make rpm", installed it, warm rebooted, and ran "monitor-
+sensor".
+
+I ran the bisection 3 times, and always ended up on a merge commit.
+I've attached the bisect logs for 2 of those runs.
+
+I'd happily provide iio-sensor-proxy patches if someone only has access
+to a hid-sensor-hub accelerometer.
+
+Cheers
+
+[1]: https://github.com/hadess/iio-sensor-proxy
+[2]: https://github.com/hadess/iio-sensor-proxy/issues?utf8=%E2%9C%93&q=is:issue%20label:"driver%20bug"%20
+[3]: http://www.hughski.com/colorhugals.html
+--=-to9fKU7NSMxaQ3/EFfZt
+Content-Disposition: attachment; filename="0001-Test-ALS-for-events-coming-in.patch"
+Content-Type: text/x-patch; name="0001-Test-ALS-for-events-coming-in.patch";
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+RnJvbSBmYjU5NWFiNDNmMWUyNGEyZjY1Mjk4ZjhlOWY3Y2Q0OWEyZDdkZDI5IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBCYXN0aWVuIE5vY2VyYSA8aGFkZXNzQGhhZGVzcy5uZXQ+CkRh
+dGU6IFRodSwgMTkgSmFuIDIwMTcgMjI6MjA6MjUgKzAxMDAKU3ViamVjdDogW1BBVENIXSBUZXN0
+IEFMUyBmb3IgZXZlbnRzIGNvbWluZyBpbgoKLS0tCiBzcmMvbW9uaXRvci1zZW5zb3IuYyB8IDE5
+ICsrKysrKysrKysrKysrKysrKy0KIDEgZmlsZSBjaGFuZ2VkLCAxOCBpbnNlcnRpb25zKCspLCAx
+IGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvc3JjL21vbml0b3Itc2Vuc29yLmMgYi9zcmMvbW9u
+aXRvci1zZW5zb3IuYwppbmRleCA4ZDFlOTk3Li43MzBlZDRkIDEwMDY0NAotLS0gYS9zcmMvbW9u
+aXRvci1zZW5zb3IuYworKysgYi9zcmMvbW9uaXRvci1zZW5zb3IuYwpAQCAtMTIsNiArMTIsOCBA
+QAogc3RhdGljIEdNYWluTG9vcCAqbG9vcDsKIHN0YXRpYyBndWludCB3YXRjaF9pZDsKIHN0YXRp
+YyBHREJ1c1Byb3h5ICppaW9fcHJveHksICppaW9fcHJveHlfY29tcGFzczsKK3N0YXRpYyBpbnQg
+cmV0dmFsID0gMTsKK3N0YXRpYyBkb3VibGUgbGFzdF9hbHMgPSAwLjA7CiAKIHN0YXRpYyB2b2lk
+CiBwcm9wZXJ0aWVzX2NoYW5nZWQgKEdEQnVzUHJveHkgKnByb3h5LApAQCAtNDksNiArNTEsNyBA
+QCBwcm9wZXJ0aWVzX2NoYW5nZWQgKEdEQnVzUHJveHkgKnByb3h5LAogCQlHVmFyaWFudCAqdW5p
+dDsKIAogCQl2ID0gZ19kYnVzX3Byb3h5X2dldF9jYWNoZWRfcHJvcGVydHkgKGlpb19wcm94eSwg
+IkxpZ2h0TGV2ZWwiKTsKKwkJbGFzdF9hbHMgPSBnX3ZhcmlhbnRfZ2V0X2RvdWJsZSAodik7CiAJ
+CXVuaXQgPSBnX2RidXNfcHJveHlfZ2V0X2NhY2hlZF9wcm9wZXJ0eSAoaWlvX3Byb3h5LCAiTGln
+aHRMZXZlbFVuaXQiKTsKIAkJZ19wcmludCAoIiAgICBMaWdodCBjaGFuZ2VkOiAlbGYgKCVzKVxu
+IiwgZ192YXJpYW50X2dldF9kb3VibGUgKHYpLCBnX3ZhcmlhbnRfZ2V0X3N0cmluZyAodW5pdCwg
+TlVMTCkpOwogCQlnX3ZhcmlhbnRfdW5yZWYgKHYpOwpAQCAtMTk0LDYgKzE5NywxOSBAQCB2YW5p
+c2hlZF9jYiAoR0RCdXNDb25uZWN0aW9uICpjb25uZWN0aW9uLAogCX0KIH0KIAorc3RhdGljIGdi
+b29sZWFuCitjaGVja19hbHMgKGdwb2ludGVyIGRhdGEpCit7CisJaWYgKGxhc3RfYWxzID09IDAu
+MCkKKwkJcmV0dmFsID0gMTsKKwllbHNlCisJCXJldHZhbCA9IDA7CisJZ19tYWluX2xvb3BfcXVp
+dCAobG9vcCk7CisJZ19tZXNzYWdlICgiJXMiLCByZXR2YWwgPT0gMSA/ICJGQUlMRUQiIDogIlNV
+Q0NFU1MiKTsKKworCXJldHVybiBUUlVFOworfQorCiBpbnQgbWFpbiAoaW50IGFyZ2MsIGNoYXIg
+Kiphcmd2KQogewogCXdhdGNoX2lkID0gZ19idXNfd2F0Y2hfbmFtZSAoR19CVVNfVFlQRV9TWVNU
+RU0sCkBAIC0yMDUsNyArMjIxLDggQEAgaW50IG1haW4gKGludCBhcmdjLCBjaGFyICoqYXJndikK
+IAogCWdfcHJpbnQgKCIgICAgV2FpdGluZyBmb3IgaWlvLXNlbnNvci1wcm94eSB0byBhcHBlYXJc
+biIpOwogCWxvb3AgPSBnX21haW5fbG9vcF9uZXcgKE5VTEwsIFRSVUUpOworCWdfdGltZW91dF9h
+ZGRfc2Vjb25kcyAoMTAsIGNoZWNrX2FscywgTlVMTCk7CiAJZ19tYWluX2xvb3BfcnVuIChsb29w
+KTsKIAotCXJldHVybiAwOworCXJldHVybiByZXR2YWw7CiB9Ci0tIAoyLjkuMwoK
+
+
+--=-to9fKU7NSMxaQ3/EFfZt
+Content-Disposition: attachment; filename="git-bisect-log.txt"
+Content-Type: text/plain; name="git-bisect-log.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Z2l0IGJpc2VjdCBzdGFydAojIGJhZDogWzdlODRiMzAzNTU5MmI1ODg3MmY0NzZjZGVmZjYxZDRi
+YmNiYjM0NTJdIE1lcmdlIHRhZyAnbW1jLXY0LjEwLXJjMycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5v
+cmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3VsZmgvbW1jCmdpdCBiaXNlY3QgYmFkIDdlODRi
+MzAzNTU5MmI1ODg3MmY0NzZjZGVmZjYxZDRiYmNiYjM0NTIKIyBnb29kOiBbMTg2MGUzNzk4NzVk
+ZmU3MjcxYzY0OTA1OGFlZGRmZmU1YWZkOWQwZF0gTGludXggMy4xNQpnaXQgYmlzZWN0IGdvb2Qg
+MTg2MGUzNzk4NzVkZmU3MjcxYzY0OTA1OGFlZGRmZmU1YWZkOWQwZAojIGdvb2Q6IFsxOTU4M2Nh
+NTg0ZDZmNTc0Mzg0ZTE3ZmU3NjEzZGZhZWFkY2RjNGE2XSBMaW51eCAzLjE2CmdpdCBiaXNlY3Qg
+Z29vZCAxOTU4M2NhNTg0ZDZmNTc0Mzg0ZTE3ZmU3NjEzZGZhZWFkY2RjNGE2CiMgZ29vZDogW2Jm
+ZTAxYTViYTI0OTBmMjk5ZTFkMmQ1NTA4Y2JiYmFkZDg5N2JiZTldIExpbnV4IDMuMTcKZ2l0IGJp
+c2VjdCBnb29kIGJmZTAxYTViYTI0OTBmMjk5ZTFkMmQ1NTA4Y2JiYmFkZDg5N2JiZTkKIyBnb29k
+OiBbYjI3NzZiZjcxNDliZGRkMWY0MTYxZjE0Zjc5NTIwZjE3ZmMxZDcxZF0gTGludXggMy4xOApn
+aXQgYmlzZWN0IGdvb2QgYjI3NzZiZjcxNDliZGRkMWY0MTYxZjE0Zjc5NTIwZjE3ZmMxZDcxZAoj
+IGdvb2Q6IFtiZmE3NmQ0OTU3NjU5OWE0YjlmOWI3YTcxZjIzZDczZDZkY2ZmNzM1XSBMaW51eCAz
+LjE5CmdpdCBiaXNlY3QgZ29vZCBiZmE3NmQ0OTU3NjU5OWE0YjlmOWI3YTcxZjIzZDczZDZkY2Zm
+NzM1CiMgZ29vZDogWzM5YTg4MDQ0NTVmYjIzZjA5MTU3MzQxZDNiYTdkYjZkN2FlNmVlNzZdIExp
+bnV4IDQuMApnaXQgYmlzZWN0IGdvb2QgMzlhODgwNDQ1NWZiMjNmMDkxNTczNDFkM2JhN2RiNmQ3
+YWU2ZWU3NgojIGdvb2Q6IFtiOTUzYzBkMjM0YmM3MmU4NDg5ZDNiZjUxYTI3NmM1YzRlYzg1MzQ1
+XSBMaW51eCA0LjEKZ2l0IGJpc2VjdCBnb29kIGI5NTNjMGQyMzRiYzcyZTg0ODlkM2JmNTFhMjc2
+YzVjNGVjODUzNDUKIyBnb29kOiBbNjQyOTFmN2RiNWJkODE1MGE3NGFkMjAzNmYxMDM3ZTZhMDQy
+OGRmMl0gTGludXggNC4yCmdpdCBiaXNlY3QgZ29vZCA2NDI5MWY3ZGI1YmQ4MTUwYTc0YWQyMDM2
+ZjEwMzdlNmEwNDI4ZGYyCiMgYmFkOiBbNmExM2ZlYjljODI4MDNlMmI4MTVlY2E3MmZhN2E5ZjU1
+NjFkNzg2MV0gTGludXggNC4zCmdpdCBiaXNlY3QgYmFkIDZhMTNmZWI5YzgyODAzZTJiODE1ZWNh
+NzJmYTdhOWY1NTYxZDc4NjEKIyBiYWQ6IFs4MDcyNDlkM2FkYTFmZjI4YTQ3YzQwNTRjYTRlZGQ0
+Nzk0MjFiNjcxXSBNZXJnZSBicmFuY2ggJ3Vwc3RyZWFtJyBvZiBnaXQ6Ly9naXQubGludXgtbWlw
+cy5vcmcvcHViL3NjbS9yYWxmL3Vwc3RyZWFtLWxpbnVzCmdpdCBiaXNlY3QgYmFkIDgwNzI0OWQz
+YWRhMWZmMjhhNDdjNDA1NGNhNGVkZDQ3OTQyMWI2NzEKIyBnb29kOiBbMTAyMTc4MTA4ZTIyNDZj
+YjRiMzI5ZDNmYjc4NzJjZDNkNzEyMDIwNV0gTWVyZ2UgdGFnICdhcm1zb2MtZHJpdmVycycgb2Yg
+Z2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2FybS9hcm0tc29j
+CmdpdCBiaXNlY3QgZ29vZCAxMDIxNzgxMDhlMjI0NmNiNGIzMjlkM2ZiNzg3MmNkM2Q3MTIwMjA1
+CiMgZ29vZDogWzYyZGE5ODY1NmI2MmE1Y2E1N2YyMjI2MzcwNTE3NWFmOGRlZDVhYTFdIG5ldGZp
+bHRlcjogbmZfY29ubnRyYWNrOiBtYWtlIG5mX2N0X3pvbmVfZGZsdCBidWlsdC1pbgpnaXQgYmlz
+ZWN0IGdvb2QgNjJkYTk4NjU2YjYyYTVjYTU3ZjIyMjYzNzA1MTc1YWY4ZGVkNWFhMQojIGdvb2Q6
+IFtmMWEzYzBiOTMzZTdmZjg1NjIyM2Q2ZmNkNzQ1NmQ0MDNlNTRlNGU1XSBNZXJnZSB0YWcgJ2Rl
+dmljZXRyZWUtZm9yLTQuMycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9r
+ZXJuZWwvZ2l0L3JvYmgvbGludXgKZ2l0IGJpc2VjdCBnb29kIGYxYTNjMGI5MzNlN2ZmODU2MjIz
+ZDZmY2Q3NDU2ZDQwM2U1NGU0ZTUKIyBiYWQ6IFs5Y2JmMjJiMzdhZTA1OTJkZWE4MDljYjhkNDI0
+OTkwNzc0YzIxNzg2XSBNZXJnZSB0YWcgJ2RsbS00LjMnIG9mIGdpdDovL2dpdC5rZXJuZWwub3Jn
+L3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90ZWlnbGFuZC9saW51eC1kbG0KZ2l0IGJpc2VjdCBi
+YWQgOWNiZjIyYjM3YWUwNTkyZGVhODA5Y2I4ZDQyNDk5MDc3NGMyMTc4NgojIGJhZDogWzhiZGM2
+OWI3NjQwMTNhOWI1ZWJlZWY3ZGY4ZjMxNGYxMDY2YzVkNzldIE1lcmdlIGJyYW5jaCAnZm9yLTQu
+Mycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3RqL2Nn
+cm91cApnaXQgYmlzZWN0IGJhZCA4YmRjNjliNzY0MDEzYTliNWViZWVmN2RmOGYzMTRmMTA2NmM1
+ZDc5CiMgYmFkOiBbNDk4MDEyNTExYTA2MDU3NWE1NjU1MWQyOGExMGJiMzkyYWEzNjFiNV0gTWVy
+Z2UgYnJhbmNoICdkZXZpY2UtcHJvcGVydGllcycKZ2l0IGJpc2VjdCBiYWQgNDk4MDEyNTExYTA2
+MDU3NWE1NjU1MWQyOGExMGJiMzkyYWEzNjFiNQojIGdvb2Q6IFtjOTFjNWIyNzZiYzFlNjBjMGQ2
+NWZmNjllMjliNmVkYzU5NDg0MzBkXSBNZXJnZSBicmFuY2ggJ2FjcGljYScKZ2l0IGJpc2VjdCBn
+b29kIGM5MWM1YjI3NmJjMWU2MGMwZDY1ZmY2OWUyOWI2ZWRjNTk0ODQzMGQKIyBnb29kOiBbNzM5
+OTBmYzgxMGJmODRjNTMzOGQ5NTk2ZjhhZjhkNzBmZTkwYWM3Ml0gTWVyZ2UgYnJhbmNoZXMgJ2Fj
+cGktc2NhbicsICdhY3BpLXByb2Nlc3NvcicgYW5kICdhY3BpLWFzc29ydGVkJwpnaXQgYmlzZWN0
+IGdvb2QgNzM5OTBmYzgxMGJmODRjNTMzOGQ5NTk2ZjhhZjhkNzBmZTkwYWM3MgojIGJhZDogWzUw
+YmEyMjQ3OWMzMjRjMGQ5ZGM4MTM0ZDUxOWRjYmE5MmQ4M2E4YTddIE1lcmdlIGJhY2sgZWFybGll
+ciBBQ1BJIFBNIG1hdGVyaWFsIGZvciB2NC4zLgpnaXQgYmlzZWN0IGJhZCA1MGJhMjI0NzljMzI0
+YzBkOWRjODEzNGQ1MTlkY2JhOTJkODNhOGE3CiMgZ29vZDogW2I5YThhMjcxYzM4ZmNiMTY2NGZk
+NjAzNGZiOTMyNmNjOWEwZGVjOTRdIG1mZDogbWFrZSBtZmRfcmVtb3ZlX2RldmljZXMoKSBpdGVy
+YXRlIGluIHJldmVyc2Ugb3JkZXIKZ2l0IGJpc2VjdCBnb29kIGI5YThhMjcxYzM4ZmNiMTY2NGZk
+NjAzNGZiOTMyNmNjOWEwZGVjOTQKIyBnb29kOiBbNGI0NWVmZTg1MjYzNTlhMTFjYTYwYTI5OWJl
+ZjNhZWJmNDEzZmQ3N10gbWZkOiBBZGQgc3VwcG9ydCBmb3IgSW50ZWwgU3VucmlzZXBvaW50IExQ
+U1MgZGV2aWNlcwpnaXQgYmlzZWN0IGdvb2QgNGI0NWVmZTg1MjYzNTlhMTFjYTYwYTI5OWJlZjNh
+ZWJmNDEzZmQ3NwojIGdvb2Q6IFs1YWYzMTBhOGVlNzBkZDZhNTg4YzhlZTFkNDQ4N2EyMzBhN2I3
+YjY1XSBNZXJnZSB0YWcgJ2liLW1mZC1iYXNlLWFjcGktZG1hLXY0LjMnIG9mIGdpdDovL2dpdC5r
+ZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9sZWUvbWZkIGludG8gYWNwaS1wbQpn
+aXQgYmlzZWN0IGdvb2QgNWFmMzEwYThlZTcwZGQ2YTU4OGM4ZWUxZDQ0ODdhMjMwYTdiN2I2NQoj
+IGdvb2Q6IFszNDMxZTQ5MGI1MDM1NmI1NjA4NDMwNWEyZTkzYjNhOTgwODAyYjIyXSBNZXJnZSBi
+cmFuY2ggJ2FjcGktc2NhbicgaW50byBhY3BpLXBtCmdpdCBiaXNlY3QgZ29vZCAzNDMxZTQ5MGI1
+MDM1NmI1NjA4NDMwNWEyZTkzYjNhOTgwODAyYjIyCiMgZmlyc3QgYmFkIGNvbW1pdDogWzUwYmEy
+MjQ3OWMzMjRjMGQ5ZGM4MTM0ZDUxOWRjYmE5MmQ4M2E4YTddIE1lcmdlIGJhY2sgZWFybGllciBB
+Q1BJIFBNIG1hdGVyaWFsIGZvciB2NC4zLgo=
+
+
+--=-to9fKU7NSMxaQ3/EFfZt
+Content-Disposition: attachment; filename="git-bisect-log-2.txt"
+Content-Type: text/plain; name="git-bisect-log-2.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Z2l0IGJpc2VjdCBzdGFydAojIGJhZDogWzUwYmEyMjQ3OWMzMjRjMGQ5ZGM4MTM0ZDUxOWRjYmE5
+MmQ4M2E4YTddIE1lcmdlIGJhY2sgZWFybGllciBBQ1BJIFBNIG1hdGVyaWFsIGZvciB2NC4zLgpn
+aXQgYmlzZWN0IGJhZCA1MGJhMjI0NzljMzI0YzBkOWRjODEzNGQ1MTlkY2JhOTJkODNhOGE3CiMg
+Z29vZDogWzY0MjkxZjdkYjViZDgxNTBhNzRhZDIwMzZmMTAzN2U2YTA0MjhkZjJdIExpbnV4IDQu
+MgpnaXQgYmlzZWN0IGdvb2QgNjQyOTFmN2RiNWJkODE1MGE3NGFkMjAzNmYxMDM3ZTZhMDQyOGRm
+MgojIGdvb2Q6IFs3MWI2NTQ0NWYwZWQwNGMyYWZlMzY2MGY4Mjk3NzlmZGRiMjg5MGMxXSBBQ1BJ
+IC8gUE06IFVzZSB0YXJnZXRfc3RhdGUgdG8gc2V0IHRoZSBkZXZpY2UgcG93ZXIgc3RhdGUKZ2l0
+IGJpc2VjdCBnb29kIDcxYjY1NDQ1ZjBlZDA0YzJhZmUzNjYwZjgyOTc3OWZkZGIyODkwYzEKIyBn
+b29kOiBbNGI0NWVmZTg1MjYzNTlhMTFjYTYwYTI5OWJlZjNhZWJmNDEzZmQ3N10gbWZkOiBBZGQg
+c3VwcG9ydCBmb3IgSW50ZWwgU3VucmlzZXBvaW50IExQU1MgZGV2aWNlcwpnaXQgYmlzZWN0IGdv
+b2QgNGI0NWVmZTg1MjYzNTlhMTFjYTYwYTI5OWJlZjNhZWJmNDEzZmQ3NwojIGdvb2Q6IFsxZGNj
+M2QzMzYyYjBjOTdlNDgyOTBmNzc4NmJlODViNGNlYzJhMTQ3XSBBQ1BJIC8gYnVzOiBNb3ZlIEFD
+UEkgYnVzIHR5cGUgcmVnaXN0cmF0aW9uCmdpdCBiaXNlY3QgZ29vZCAxZGNjM2QzMzYyYjBjOTdl
+NDgyOTBmNzc4NmJlODViNGNlYzJhMTQ3CiMgZ29vZDogWzVhZjMxMGE4ZWU3MGRkNmE1ODhjOGVl
+MWQ0NDg3YTIzMGE3YjdiNjVdIE1lcmdlIHRhZyAnaWItbWZkLWJhc2UtYWNwaS1kbWEtdjQuMycg
+b2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2xlZS9tZmQg
+aW50byBhY3BpLXBtCmdpdCBiaXNlY3QgZ29vZCA1YWYzMTBhOGVlNzBkZDZhNTg4YzhlZTFkNDQ4
+N2EyMzBhN2I3YjY1CiMgZ29vZDogWzM0MzFlNDkwYjUwMzU2YjU2MDg0MzA1YTJlOTNiM2E5ODA4
+MDJiMjJdIE1lcmdlIGJyYW5jaCAnYWNwaS1zY2FuJyBpbnRvIGFjcGktcG0KZ2l0IGJpc2VjdCBn
+b29kIDM0MzFlNDkwYjUwMzU2YjU2MDg0MzA1YTJlOTNiM2E5ODA4MDJiMjIKIyBmaXJzdCBiYWQg
+Y29tbWl0OiBbNTBiYTIyNDc5YzMyNGMwZDlkYzgxMzRkNTE5ZGNiYTkyZDgzYThhN10gTWVyZ2Ug
+YmFjayBlYXJsaWVyIEFDUEkgUE0gbWF0ZXJpYWwgZm9yIHY0LjMuCg==
+
+
+--=-to9fKU7NSMxaQ3/EFfZt--
+
