@@ -1,116 +1,121 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V7 05/10] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Fri, 20 Jan 2017 13:58:58 -0700
-Message-ID: <8b9d254a-5450-d841-baf7-5819a88043e4@codeaurora.org>
-References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
- <1484244924-24786-6-git-send-email-tbaicar@codeaurora.org>
- <587F80A7.10008@arm.com>
- <3de443d7-2c68-f179-daae-bc8f851470b7@codeaurora.org>
- <5880FDFC.7060304@arm.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v7 2/5] clk: x86: Add Atom PMC platform clocks
+Date: Fri, 20 Jan 2017 15:58:56 -0800
+Message-ID: <20170120235856.GF20800@codeaurora.org>
+References: <1484690270-28425-1-git-send-email-pierre-louis.bossart@linux.intel.com>
+ <1484690270-28425-3-git-send-email-pierre-louis.bossart@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <5880FDFC.7060304@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1484690270-28425-3-git-send-email-pierre-louis.bossart@linux.intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/19/2017 10:57 AM, James Morse wrote:
-> Hi Tyler,
->
-> On 18/01/17 23:51, Baicar, Tyler wrote:
->> On 1/18/2017 7:50 AM, James Morse wrote:
->>> On 12/01/17 18:15, Tyler Baicar wrote:
->>>> ARM APEI extension proposal added SEA (Synchrounous External
->>>> Abort) notification type for ARMv8.
->>>> Add a new GHES error source handling function for SEA. If an error
->>>> source's notification type is SEA, then this function can be registered
->>>> into the SEA exception handler. That way GHES will parse and report
->>>> SEA exceptions when they occur.
->>>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->>>> index 2acbc60..87efe26 100644
->>>> --- a/drivers/acpi/apei/ghes.c
->>>> +++ b/drivers/acpi/apei/ghes.c
->>>> @@ -767,6 +772,62 @@ static struct notifier_block ghes_notifier_sci = {
->>>>        .notifier_call = ghes_notify_sci,
->>>>    };
->>>>    +#ifdef CONFIG_HAVE_ACPI_APEI_SEA
->>>> +static LIST_HEAD(ghes_sea);
->>>> +
->>>> +static int ghes_notify_sea(struct notifier_block *this,
->>>> +                  unsigned long event, void *data)
->>>> +{
->>>> +    struct ghes *ghes;
->>>> +    int ret = NOTIFY_DONE;
->>>> +
->>>> +    nmi_enter();
->>> Can we move this into the arch code? Its because we got here from a
->>> synchronous-exception that makes this nmi-like, I think it only makes sense for
->>> it be called from under /arch/.
->> So move the nmi_enter/exit calls into do_sea of the previous patch? I can do
->> that in the next patchset.
->>> Where did the rcu_read_lock() go? I can see its missing from ghes_notify_nmi()
->>> too, but I don't know enough about RCU to know if that's safe!
->>>
->>> The second paragraph in the comment above rcu_read_lock() describes it as
->>> preventing call_rcu() during a read-side critical section that was running
->>> concurrently. Doesn't this mean we can race with ghes_sea_remove() on another
->>> CPU because we wait for the wrong grace period?
->>>
->>> The same comment talks about how these read-side critical sections can nest, so
->>> I think its quite safe to make these 'lock' calls here.
->> Sorry, I thought we wanted nmi_enter/exit instead of the rcu_read_lock/unlock. I
->> guess the rcu locks
->> will not cause the deadlock scenario you described in the previous patchset if
->> we have the
->> nmi_enter/exit wrapped around the rcu critical section.
-> Ah, not instead of, (well, not initially!).
-> The nmi_enter()/nmi_exit() thing was to fix the APEI interrupting APEI problem.
-> This is only a problem for notification types which can interrupt
-> interrupts-masked code, of which SEA is one. (and x86's NMI is the other).
->
-> I think I've found the answer to why the rcu_read_lock() isn't needed.
-> synchronize_sched() has:
->> * This means that all preempt_disable code sequences, including NMI and
->> * non-threaded hardware-interrupt handlers, in progress on entry will
->> * have completed before this primitive returns.
-> synchronize_rcu() has the same innards, so I'm convinced this its safe not to
-> have those calls in here. Could we have a comment along the lines of:
->> synchronize_rcu() will wait for nmi_exit(), so no need to rcu_read_lock().
-Okay, I'll add the comment in the next patchset.
-> (The more I learn about RCU the scarier it becomes!)
->
->
-> There are two other things that need changing to make the in_nmi() code path
-> work on arm64.
-> Always reserve the virtual-address-space forcing GHES_IOREMAP_PAGES to be 2
-> regardless of CONFIG_HAVE_ACPI_APEI_NMI. This is almost revert of
-> 594c7255dce7a13cac50cf2470cc56e2c3b0494e (but that did a few other things too).
-Looks simple enough, should I force it to 2 in all cases, or add a check 
-for CONFIG_HAVE_ACPI_APEI_SEA
-similar to the check for CONFIG_HAVE_ACPI_APEI_NMI?
-> We also need to fix ghes_ioremap_pfn_nmi() to use arch_apei_get_mem_attribute()
-> and not assume PAGE_KERNEL.
-So just change the call to ioremap_page_range to:
+On 01/17, Pierre-Louis Bossart wrote:
+> diff --git a/drivers/clk/x86/clk-pmc-atom.c b/drivers/clk/x86/clk-pmc-atom.c
+> new file mode 100644
+> index 0000000..312d4e9
+> --- /dev/null
+> +++ b/drivers/clk/x86/clk-pmc-atom.c
+[...]
+> +
+> +static void plt_clk_reg_update(struct clk_plt *clk, u32 mask, u32 val)
+> +{
+> +	u32 tmp;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&clk->lock, flags);
+> +
+> +	tmp = clk_readl(clk->reg);
 
-ioremap_page_range(vaddr, vaddr + PAGE_SIZE, pfn << PAGE_SHIFT, 
-arch_apei_get_mem_attribute());
+Do you need to use clk_readl? I'd prefer we deleted that
+function/macro because it's just confusing. Please don't use it
+unless you need it for some reason.
 
-Thanks,
-Tyler
+> +	tmp = (tmp & ~mask) | (val & mask);
+> +	clk_writel(tmp, clk->reg);
+> +
+> +	spin_unlock_irqrestore(&clk->lock, flags);
+> +}
+> +
+[..]
+> +
+> +static void plt_clk_unregister_parents(struct clk_plt_data *data)
+> +{
+> +	plt_clk_unregister_fixed_rate_loop(data, data->nparents);
+> +}
+> +
+> +
+
+Nitpick: Single newline please
+
+> +static int plt_clk_probe(struct platform_device *pdev)
+> +{
+> +	const struct pmc_clk_data *pmc_data;
+> +	const char **parent_names;
+> +	struct clk_plt_data *data;
+> +	unsigned int i;
+> +	int err;
+> +
+> +	pmc_data = dev_get_platdata(&pdev->dev);
+> +	if (!pmc_data || !pmc_data->clks)
+> +		return -EINVAL;
+> +
+> +	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+> +	if (!data)
+> +		return -ENOMEM;
+> +
+> +	parent_names = plt_clk_register_parents(pdev, data, pmc_data->clks);
+> +	if (IS_ERR(parent_names))
+> +		return PTR_ERR(parent_names);
+> +
+> +	for (i = 0; i < PMC_CLK_NUM; i++) {
+> +		data->clks[i] = plt_clk_register(pdev, i, pmc_data->base,
+> +						 parent_names, data->nparents);
+> +		if (IS_ERR(data->clks[i])) {
+> +			err = PTR_ERR(data->clks[i]);
+> +			goto err_unreg_clk_plt;
+> +		}
+> +	}
+> +
+> +	plt_clk_free_parent_names_loop(parent_names, data->nparents);
+> +
+> +	platform_set_drvdata(pdev, data);
+> +	return 0;
+> +
+> +err_unreg_clk_plt:
+> +	plt_clk_unregister_loop(data, i);
+> +	plt_clk_unregister_parents(data);
+> +	plt_clk_free_parent_names_loop(parent_names, data->nparents);
+> +	return err;
+> +}
+> +
+> +static int plt_clk_remove(struct platform_device *pdev)
+> +{
+> +	struct clk_plt_data *data;
+> +
+> +	data = platform_get_drvdata(pdev);
+> +
+> +	plt_clk_unregister_loop(data, PMC_CLK_NUM);
+> +	plt_clk_unregister_parents(data);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver plt_clk_driver = {
+> +	.driver = {
+> +		.name = PLT_CLK_DRIVER_NAME,
+
+Nitpick: Just put the string here
+
+> +	},
+> +	.probe = plt_clk_probe,
+> +	.remove = plt_clk_remove,
+> +};
+> +builtin_platform_driver(plt_clk_driver);
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
