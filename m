@@ -1,126 +1,370 @@
-From: DonMartio <donmartio@larkos.de>
-Subject: Only one core of four since kernel 4.9
-Date: Fri, 20 Jan 2017 07:33:53 +0100
-Message-ID: <df38fa50-ccb3-0377-f71c-50ac08cfc749@larkos.de>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V11 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Fri, 20 Jan 2017 12:21:17 +0000
+Message-ID: <20170120122117.GA11727@red-moon>
+References: <1484879660-1960-1-git-send-email-agustinv@codeaurora.org>
+ <1484879660-1960-3-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from larkos.de ([188.68.52.65]:59289 "EHLO mylarkos.supersrv.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751324AbdATHUK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 20 Jan 2017 02:20:10 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1484879660-1960-3-git-send-email-agustinv@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com, andy.shevchenko@gmail.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-Hi,
+On Thu, Jan 19, 2017 at 09:34:19PM -0500, Agustin Vega-Frias wrote:
+> ACPI extended IRQ resources may contain a ResourceSource to specify
+> an alternate interrupt controller. Introduce acpi_irq_get and use it
+> to implement ResourceSource/IRQ domain mapping.
+> 
+> The new API is similar to of_irq_get and allows re-initialization
+> of a platform resource from the ACPI extended IRQ resource, and
+> provides proper behavior for probe deferral when the domain is not
+> yet present when called.
+> 
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+> ---
+>  drivers/acpi/Makefile             |   2 +-
+>  drivers/acpi/{gsi.c => irq.c}     | 221 ++++++++++++++++++++++++++++++++++++++
+>  drivers/base/platform.c           |   8 ++
+>  include/asm-generic/vmlinux.lds.h |   1 +
+>  include/linux/acpi.h              |  15 +++
+>  5 files changed, 246 insertions(+), 1 deletion(-)
+>  rename drivers/acpi/{gsi.c => irq.c} (28%)
+> 
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 9ed0878..a391bbc 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,7 +55,7 @@ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+>  acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+>  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  acpi-y				+= acpi_lpat.o
+> -acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+> +acpi-$(CONFIG_ACPI_GENERIC_GSI) += irq.o
+>  acpi-$(CONFIG_ACPI_WATCHDOG)	+= acpi_watchdog.o
+>  
+>  # These are (potentially) separate modules
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/irq.c
+> similarity index 28%
+> rename from drivers/acpi/gsi.c
+> rename to drivers/acpi/irq.c
+> index ee9e0f2..db4ee4c 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/irq.c
+> @@ -85,6 +85,227 @@ void acpi_unregister_gsi(u32 gsi)
+>  EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+>  
+>  /**
+> + * acpi_get_irq_source_fwhandle() - Retrieve fwhandle from IRQ resource source.
+> + * @source: acpi_resource_source to use for the lookup.
+> + *
+> + * Description:
+> + * Retrieve the fwhandle of the device referenced by the given IRQ resource
+> + * source. In addition to it being a valid ACPI device, its _HID must be
+> + * listed on the probe table of ACPI DSDT irqchips. The check is used to
+> + * determine if a driver for the referenced device is available and decide
+> + * if we should try deferred probing if the device has not been probed yet.
+> + * Drivers must use the __dsdt_irqchip attribute when declaring the table
+> + * of acpi_device_ids for the device, e.g.:
+> + *
+> + * static const struct acpi_device_id my_device_ids[] __dsdt_irqchip = {
+> + *         { "ABCD0123", },
+> + *         { }
+> + * };
+> + *
 
-since kernel 4.9 only one core is recognized of my AMD FX(tm)-4100 
-Quad-Core Processor.
-I discussed this here 
-<https://forums.gentoo.org/viewtopic-t-1056638-start-25-postdays-0-postorder-asc-highlight-.html> 
-first and tried a lot of thinks without any luck.
+Ok, thanks for doing that. In my opinion it should be done by reusing
+the ACPI_DECLARE_PROBE_ENTRY mechanism by simply adding a flag to detect
+whether the entry refers to a static table or AML and a corresponding
+acpi_device_id for the matching.
 
-One tip of another user was to do a bisect first and then file a 
-possible bug.
-I did that with kernel 4.8.17 (which works) and 4.9 and came finally to 
-the following commit:
+This driver matching mechanism though is just an optimization, the IRQ
+deferral mechanism you are putting in place is much more important, so
+for now let's focus on getting code in v10 (plus all cosmetic "fixes"
+introduced in this patch minus the linker section) agreed upon and
+upstream, adding this linker section later is not a big deal IMO, it
+must not slow you down.
 
-[8f54969dc8d6704632b42cbb5e47730cd75cc713] x86/acpi: Introduce persistent storage for cpuid <-> apicid mapping
-8f54969dc8d6704632b42cbb5e47730cd75cc713 is the first bad commit
-commit 8f54969dc8d6704632b42cbb5e47730cd75cc713
-Author: Gu Zheng<guz.fnst@cn.fujitsu.com>
-Date:   Thu Aug 25 16:35:16 2016 +0800
+So, no need for reposting anything let's focus on the IRQ probe deferral
+core functionality and get it merged.
 
-     x86/acpi: Introduce persistent storage for cpuid <-> apicid mapping
+Thanks,
+Lorenzo
 
-     The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
-     when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
-     wq_numa_possible_cpumask will not cause any problem.
-     It contains 4 steps:
-     1. Enable apic registeration flow to handle both enabled and disabled cpus.
-     2. Introduce a new array storing all possible cpuid <-> apicid mapping.
-     3. Enable _MAT and MADT relative apis to return non-present or disabled cpus' apicid.
-     4. Establish all possible cpuid <-> nodeid mapping.
-
-     This patch finishes step 2.
-
-     In this patch, we introduce a new static array named cpuid_to_apicid[],
-     which is large enough to store info for all possible cpus.
-
-     And then, we modify the cpuid calculation. In generic_processor_info(),
-     it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
-     mapping changes with node hotplug.
-
-     After this patch, we find the next unused cpuid, map it to an apicid,
-     and store the mapping in cpuid_to_apicid[], so that cpuid <-> apicid
-     mapping will be persistent.
-
-     And finally we will use this array to make cpuid <-> nodeid persistent.
-
-     cpuid <-> apicid mapping is established at local apic registeration time.
-     But non-present or disabled cpus are ignored.
-
-     In this patch, we establish all possible cpuid <-> apicid mapping when
-     registering local apic.
-
-     Signed-off-by: Gu Zheng<guz.fnst@cn.fujitsu.com>
-     Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
-     Signed-off-by: Zhu Guihua<zhugh.fnst@cn.fujitsu.com>
-     Signed-off-by: Dou Liyang<douly.fnst@cn.fujitsu.com>
-     Acked-by: Ingo Molnar<mingo@kernel.org>
-     Cc:mika.j.penttila@gmail.com
-     Cc:len.brown@intel.com
-     Cc:rafael@kernel.org
-     Cc:rjw@rjwysocki.net
-     Cc:yasu.isimatu@gmail.com
-     Cc:linux-mm@kvack.org
-     Cc:linux-acpi@vger.kernel.org
-     Cc:isimatu.yasuaki@jp.fujitsu.com
-     Cc:gongzhaogang@inspur.com
-     Cc:tj@kernel.org
-     Cc:izumi.taku@jp.fujitsu.com
-     Cc:cl@linux.com
-     Cc:chen.tang@easystack.cn
-     Cc:akpm@linux-foundation.org
-     Cc:kamezawa.hiroyu@jp.fujitsu.com
-     Cc:lenb@kernel.org
-     Link:http://lkml.kernel.org/r/1472114120-3281-4-git-send-email-douly.fnst@cn.fujitsu.com
-     Signed-off-by: Thomas Gleixner<tglx@linutronix.de>
-
-Is my cpuid missing in the mapping mentioned above?
-
-~ # lscpu
-Architecture:          x86_64
-CPU op-mode(s):        32-bit, 64-bit
-Byte Order:            Little Endian
-CPU(s):                4
-On-line CPU(s) list:   0-3
-Thread(s) per core:    2
-Core(s) per socket:    2
-Socket(s):             1
-Vendor ID:             AuthenticAMD
-CPU family:            21
-Model:                 1
-Model name:            AMD FX(tm)-4100 Quad-Core Processor
-Stepping:              2
-CPU MHz:               3600.000
-CPU max MHz:           3600,0000
-CPU min MHz:           1400,0000
-BogoMIPS:              7183.66
-Virtualization:        AMD-V
-L1d cache:             16K
-L1i cache:             64K
-L2 cache:              2048K
-L3 cache:              8192K
-Flags:                 fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc extd_apicid aperfmperf eagerfpu pni pclmulqdq monitor ssse3 cx16 sse4_1 sse4_2 popcnt aes xsave avx lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs xop skinit wdt lwp fma4 nodeid_msr topoext perfctr_core perfctr_nb cpb hw_pstate vmmcall arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold
-
-
-Or do i miss some new kernel config option?
-Do you need more information?
-
-Thanks in advance
-Martin
-
+> + * Return:
+> + * The referenced device fwhandle or NULL on failure
+> + */
+> +static struct fwnode_handle *
+> +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
+> +{
+> +	struct fwnode_handle *result = NULL;
+> +	struct acpi_device *device;
+> +	struct acpi_hardware_id *hwid;
+> +	struct acpi_device_id *devid;
+> +	acpi_handle handle;
+> +	acpi_status status;
+> +
+> +	if (!source->string_length)
+> +		return acpi_gsi_domain_id;
+> +
+> +	status = acpi_get_handle(NULL, source->string_ptr, &handle);
+> +	if (WARN_ON(ACPI_FAILURE(status)))
+> +		return NULL;
+> +
+> +	device = acpi_bus_get_acpi_device(handle);
+> +	if (WARN_ON(!device))
+> +		return NULL;
+> +
+> +	list_for_each_entry(hwid, &device->pnp.ids, list) {
+> +		for (devid = &__dsdt_irqchip_acpi_probe_table;
+> +		     devid < &__dsdt_irqchip_acpi_probe_table_end; devid++) {
+> +			if (devid->id && !strcmp(devid->id, hwid->id)) {
+> +				result = &device->fwnode;
+> +				break;
+> +			}
+> +		}
+> +	}
+> +
+> +	acpi_bus_put_acpi_device(device);
+> +
+> +	return result;
+> +}
+> +
+> +/*
+> + * Context for the resource walk used to lookup IRQ resources.
+> + * Contains a return code, the lookup index, and references to the flags
+> + * and fwspec where the result is returned.
+> + */
+> +struct acpi_irq_parse_one_ctx {
+> +	int rc;
+> +	unsigned int index;
+> +	unsigned long *res_flags;
+> +	struct irq_fwspec *fwspec;
+> +};
+> +
+> +/**
+> + * acpi_irq_parse_one_match - Handle a matching IRQ resource.
+> + * @fwnode: matching fwnode
+> + * @hwirq: hardware IRQ number
+> + * @triggering: triggering attributes of hwirq
+> + * @polarity: polarity attributes of hwirq
+> + * @polarity: polarity attributes of hwirq
+> + * @shareable: shareable attributes of hwirq
+> + * @ctx: acpi_irq_parse_one_ctx updated by this function
+> + *
+> + * Description:
+> + * Handle a matching IRQ resource by populating the given ctx with
+> + * the information passed.
+> + */
+> +static inline void acpi_irq_parse_one_match(struct fwnode_handle *fwnode,
+> +					    u32 hwirq, u8 triggering,
+> +					    u8 polarity, u8 shareable,
+> +					    struct acpi_irq_parse_one_ctx *ctx)
+> +{
+> +	if (!fwnode)
+> +		return;
+> +	ctx->rc = 0;
+> +	*ctx->res_flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+> +	ctx->fwspec->fwnode = fwnode;
+> +	ctx->fwspec->param[0] = hwirq;
+> +	ctx->fwspec->param[1] = acpi_dev_get_irq_type(triggering, polarity);
+> +	ctx->fwspec->param_count = 2;
+> +}
+> +
+> +/**
+> + * acpi_irq_parse_one_cb - Handle the given resource.
+> + * @ares: resource to handle
+> + * @context: context for the walk
+> + *
+> + * Description:
+> + * This is called by acpi_walk_resources passing each resource returned by
+> + * the _CRS method. We only inspect IRQ resources. Since IRQ resources
+> + * might contain multiple interrupts we check if the index is within this
+> + * one's interrupt array, otherwise we subtract the current resource IRQ
+> + * count from the lookup index to prepare for the next resource.
+> + * Once a match is found we call acpi_irq_parse_one_match to populate
+> + * the result and end the walk by returning AE_CTRL_TERMINATE.
+> + *
+> + * Return:
+> + * AE_OK if the walk should continue, AE_CTRL_TERMINATE if a matching
+> + * IRQ resource was found.
+> + */
+> +static acpi_status acpi_irq_parse_one_cb(struct acpi_resource *ares,
+> +					 void *context)
+> +{
+> +	struct acpi_irq_parse_one_ctx *ctx = context;
+> +	struct acpi_resource_irq *irq;
+> +	struct acpi_resource_extended_irq *eirq;
+> +	struct fwnode_handle *fwnode;
+> +
+> +	switch (ares->type) {
+> +	case ACPI_RESOURCE_TYPE_IRQ:
+> +		irq = &ares->data.irq;
+> +		if (ctx->index >= irq->interrupt_count) {
+> +			ctx->index -= irq->interrupt_count;
+> +			return AE_OK;
+> +		}
+> +		fwnode = acpi_gsi_domain_id;
+> +		acpi_irq_parse_one_match(fwnode, irq->interrupts[ctx->index],
+> +					 irq->triggering, irq->polarity,
+> +					 irq->sharable, ctx);
+> +		return AE_CTRL_TERMINATE;
+> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> +		eirq = &ares->data.extended_irq;
+> +		if (eirq->producer_consumer == ACPI_PRODUCER)
+> +			return AE_OK;
+> +		if (ctx->index >= eirq->interrupt_count) {
+> +			ctx->index -= eirq->interrupt_count;
+> +			return AE_OK;
+> +		}
+> +		fwnode = acpi_get_irq_source_fwhandle(&eirq->resource_source);
+> +		acpi_irq_parse_one_match(fwnode, eirq->interrupts[ctx->index],
+> +					 eirq->triggering, eirq->polarity,
+> +					 eirq->sharable, ctx);
+> +		return AE_CTRL_TERMINATE;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +/**
+> + * acpi_irq_parse_one - Resolve an interrupt for a device
+> + * @handle: the device whose interrupt is to be resolved
+> + * @index: index of the interrupt to resolve
+> + * @fwspec: structure irq_fwspec filled by this function
+> + * @flags: resource flags filled by this function
+> + *
+> + * Description:
+> + * Resolves an interrupt for a device by walking its CRS resources to find
+> + * the appropriate ACPI IRQ resource and populating the given struct irq_fwspec
+> + * and flags.
+> + *
+> + * Return:
+> + * The result stored in ctx.rc by the callback, or the default -EINVAL value
+> + * if an error occurs.
+> + */
+> +static int acpi_irq_parse_one(acpi_handle handle, unsigned int index,
+> +			      struct irq_fwspec *fwspec, unsigned long *flags)
+> +{
+> +	struct acpi_irq_parse_one_ctx ctx = { -EINVAL, index, flags, fwspec };
+> +
+> +	acpi_walk_resources(handle, METHOD_NAME__CRS, acpi_irq_parse_one_cb, &ctx);
+> +	return ctx.rc;
+> +}
+> +
+> +/**
+> + * acpi_irq_get - Lookup an ACPI IRQ resource and use it to initialize resource.
+> + * @handle: ACPI device handle
+> + * @index:  ACPI IRQ resource index to lookup
+> + * @res:    Linux IRQ resource to initialize
+> + *
+> + * Description:
+> + * Look for the ACPI IRQ resource with the given index and use it to initialize
+> + * the given Linux IRQ resource.
+> + *
+> + * Return:
+> + * 0 on success
+> + * -EINVAL if an error occurs
+> + * -EPROBE_DEFER if the IRQ lookup/conversion failed
+> + */
+> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
+> +{
+> +	struct irq_fwspec fwspec;
+> +	struct irq_domain *domain;
+> +	unsigned long flags;
+> +	int rc;
+> +
+> +	rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
+> +	if (rc)
+> +		return rc;
+> +
+> +	domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
+> +	if (!domain)
+> +		return -EPROBE_DEFER;
+> +
+> +	rc = irq_create_fwspec_mapping(&fwspec);
+> +	if (rc <= 0)
+> +		return -EINVAL;
+> +
+> +	res->start = rc;
+> +	res->end = rc;
+> +	res->flags = flags;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_irq_get);
+> +
+> +/**
+>   * acpi_set_irq_model - Setup the GSI irqdomain information
+>   * @model: the value assigned to acpi_irq_model
+>   * @fwnode: the irq_domain identifier for mapping and looking up
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index c4af003..040d474 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+>  	}
+>  
+>  	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+> +	if (r && r->flags & IORESOURCE_DISABLED && has_acpi_companion(&dev->dev)) {
+> +		int ret;
+> +
+> +		ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	/*
+>  	 * The resources may pass trigger flags to the irqs that need
+>  	 * to be set up. It so happens that the trigger flags for
+> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+> index 0968d13..0763c8a 100644
+> --- a/include/asm-generic/vmlinux.lds.h
+> +++ b/include/asm-generic/vmlinux.lds.h
+> @@ -567,6 +567,7 @@
+>  	ACPI_PROBE_TABLE(irqchip)					\
+>  	ACPI_PROBE_TABLE(clksrc)					\
+>  	ACPI_PROBE_TABLE(iort)						\
+> +	ACPI_PROBE_TABLE(dsdt_irqchip)					\
+>  	EARLYCON_TABLE()
+>  
+>  #define INIT_TEXT							\
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 5b36974..15fac1a 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1056,6 +1056,11 @@ struct acpi_probe_entry {
+>  					  (&ACPI_PROBE_TABLE_END(t) -	\
+>  					   &ACPI_PROBE_TABLE(t)));	\
+>  	})
+> +
+> +#define __dsdt_irqchip __section(__dsdt_irqchip_acpi_probe_table)
+> +extern struct acpi_device_id __dsdt_irqchip_acpi_probe_table;
+> +extern struct acpi_device_id __dsdt_irqchip_acpi_probe_table_end;
+> +
+>  #else
+>  static inline int acpi_dev_get_property(struct acpi_device *adev,
+>  					const char *name, acpi_object_type type,
+> @@ -1153,4 +1158,14 @@ static inline void acpi_table_upgrade(void) { }
+>  static inline int parse_spcr(bool earlycon) { return 0; }
+>  #endif
+>  
+> +#ifdef CONFIG_ACPI_GENERIC_GSI
+> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
+> +#else
+> +static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
+> +			       struct resource *res)
+> +{
+> +	return -EINVAL;
+> +}
+> +#endif
+> +
+>  #endif	/*_LINUX_ACPI_H*/
+> -- 
+> Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+> Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> 
