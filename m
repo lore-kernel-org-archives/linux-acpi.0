@@ -1,44 +1,35 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v20 00/17] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Mon, 23 Jan 2017 18:54:19 +0000
-Message-ID: <20170123185418.GA961@leverpostej>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52428 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750705AbdAWSz1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 23 Jan 2017 13:55:27 -0500
-Content-Disposition: inline
-In-Reply-To: <20170118132541.8989-1-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] ACPI/IORT: Fix error handling
+Date: Mon, 23 Jan 2017 21:50:08 +0100
+Message-ID: <20170123205008.10065-1-christophe.jaillet@wanadoo.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-Hi,
+If 'platform_device_alloc()' returns NULL, the current code returns
+0, which means success. Return -ENOMEM instead.
 
-On Wed, Jan 18, 2017 at 09:25:24PM +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
-> 
-> This patchset:
->     (1)Preparation for adding GTDT support in arm_arch_timer:
->         1. Clean up printk() usage
->         2. Rename the type macros
->         3. Rename the PPI enum & enum values
->         4. Move the type macro and PPI enum into the header file
->         5. Add new enum for SPIs
->         6. Rework PPI determination;
+Fixes: 846f0e9e74a0 ("ACPI/IORT: Add support for ARM SMMU platform devices creation")
 
-I've taken these few patches onto a preliminary/unstable branch [1].
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I haven't had the time to take a look at the rest of the series yet. I
-intend to go over that tomorrow, picking what I can, and leaving
-feedback for anything that will need rework.
-
-Thanks,
-Mark.
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git arch-timer/updates
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index e0d2e6e6e40c..655407ad112e 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -828,7 +828,7 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+ 
+ 	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
+ 	if (!pdev)
+-		return PTR_ERR(pdev);
++		return -ENOMEM;
+ 
+ 	count = ops->iommu_count_resources(node);
+ 
+-- 
+2.9.3
