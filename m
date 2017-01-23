@@ -1,114 +1,114 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v14 3/6] arm: arm64: pmu: Assign platform PMU CPU affinity
-Date: Mon, 23 Jan 2017 16:32:42 -0600
-Message-ID: <1485210765-9422-4-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v14 6/6] arm: pmu: Add PMU definitions for cores not initially online
+Date: Mon, 23 Jan 2017 16:32:45 -0600
+Message-ID: <1485210765-9422-7-git-send-email-jeremy.linton@arm.com>
 References: <1485210765-9422-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55958 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:56002 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751448AbdAWWdg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 23 Jan 2017 17:33:36 -0500
+        id S1751694AbdAWWdh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 23 Jan 2017 17:33:37 -0500
 In-Reply-To: <1485210765-9422-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk, lorenzo.pieralisi@arm.com, bamvor.zhangjian@linaro.org
 
-On systems with multiple PMU types the PMU to CPU affinity
-needs to be detected and set. The CPU to interrupt affinity
-should also be set.
+ACPI CPUs aren't associated with a PMU until they have been put
+online. This means that we potentially have to update a PMU
+definition the first time a CPU is hot added to the machine.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/perf/arm_pmu.c | 43 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 33 insertions(+), 10 deletions(-)
+ drivers/perf/arm_pmu.c       | 34 ++++++++++++++++++++++++++++++++--
+ include/linux/perf/arm_pmu.h |  4 ++++
+ 2 files changed, 36 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 6d93358..37e241f 100644
+index 77ec1ae..cf5122f 100644
 --- a/drivers/perf/arm_pmu.c
 +++ b/drivers/perf/arm_pmu.c
-@@ -11,6 +11,7 @@
-  */
- #define pr_fmt(fmt) "hw perfevents: " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpumask.h>
- #include <linux/cpu_pm.h>
-@@ -24,6 +25,7 @@
- #include <linux/irq.h>
- #include <linux/irqdesc.h>
- 
-+#include <asm/cpu.h>
- #include <asm/cputype.h>
- #include <asm/irq_regs.h>
- 
-@@ -889,25 +891,47 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
+@@ -711,6 +711,26 @@ static int cpu_pmu_request_irq(struct arm_pmu *cpu_pmu, irq_handler_t handler)
+ 	return 0;
  }
  
- /*
-- * CPU PMU identification and probing.
-+ * CPU PMU identification and probing. Its possible to have
-+ * multiple CPU types in an ARM machine. Assure that we are
-+ * picking the right PMU types based on the CPU in question
-  */
--static int probe_current_pmu(struct arm_pmu *pmu,
--			     const struct pmu_probe_info *info)
-+static int probe_plat_pmu(struct arm_pmu *pmu,
-+			     const struct pmu_probe_info *info,
-+			     unsigned int pmuid)
- {
--	int cpu = get_cpu();
--	unsigned int cpuid = read_cpuid_id();
- 	int ret = -ENODEV;
-+	int cpu;
-+	int aff_ctr = 0;
-+	struct platform_device *pdev = pmu->plat_device;
-+	int irq = platform_get_irq(pdev, 0);
- 
--	pr_info("probing PMU on CPU %d\n", cpu);
-+	if (irq >= 0 && !irq_is_percpu(irq)) {
-+		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
-+					    GFP_KERNEL);
-+		if (!pmu->irq_affinity)
-+			return -ENOMEM;
-+	}
++static void arm_perf_associate_new_cpu(struct arm_pmu *lpmu, unsigned int cpu)
++{
++	struct platform_device *pdev = lpmu->plat_device;
++	struct resource *res;
++	struct pmu_hw_events *events;
++	int num_res;
 +
-+	for_each_possible_cpu(cpu) {
++	for (num_res = 0; num_res < pdev->num_resources; num_res++) {
++		if (!pdev->resource[num_res].flags)
++			break;
++	}
++	res = &pdev->resource[num_res];
++	arm_pmu_acpi_retrieve_irq(res, cpu);
++	events = per_cpu_ptr(lpmu->hw_events, cpu);
++	cpumask_set_cpu(cpu, &lpmu->supported_cpus);
++	if (lpmu->irq_affinity)
++		lpmu->irq_affinity[num_res] = cpu;
++	events->percpu_pmu = lpmu;
++}
++
+ /*
+  * PMU hardware loses all context when a CPU goes offline.
+  * When a CPU is hotplugged back in, since some hardware registers are
+@@ -721,10 +741,18 @@ static int arm_perf_starting_cpu(unsigned int cpu, struct hlist_node *node)
+ {
+ 	struct arm_pmu *pmu = hlist_entry_safe(node, struct arm_pmu, node);
+ 
+-	if (!cpumask_test_cpu(cpu, &pmu->supported_cpus))
+-		return 0;
++	if (!cpumask_test_cpu(cpu, &pmu->supported_cpus)) {
 +		unsigned int cpuid = read_specific_cpuid(cpu);
 +
-+		if (cpuid == pmuid) {
-+			cpumask_set_cpu(cpu, &pmu->supported_cpus);
-+			if (pmu->irq_affinity) {
-+				pmu->irq_affinity[aff_ctr] = cpu;
-+				aff_ctr++;
-+			}
-+		}
++		if (acpi_disabled)
++			return 0;
++		if (cpuid != pmu->id)
++			return 0;
++		arm_perf_associate_new_cpu(pmu, cpu);
 +	}
- 
-+	/* find the type of PMU given the CPU */
- 	for (; info->init != NULL; info++) {
--		if ((cpuid & info->mask) != info->cpuid)
-+		if ((pmuid & info->mask) != info->cpuid)
- 			continue;
- 		ret = info->init(pmu);
- 		break;
- 	}
- 
--	put_cpu();
- 	return ret;
+ 	if (pmu->reset)
+ 		pmu->reset(pmu);
++
+ 	return 0;
  }
  
-@@ -1043,8 +1067,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
- 		if (!ret)
- 			ret = init_fn(pmu);
- 	} else if (probe_table) {
--		cpumask_setall(&pmu->supported_cpus);
--		ret = probe_current_pmu(pmu, probe_table);
-+		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
- 	}
+@@ -905,6 +933,8 @@ static int probe_plat_pmu(struct arm_pmu *pmu,
+ 	struct platform_device *pdev = pmu->plat_device;
+ 	int irq = platform_get_irq(pdev, 0);
  
- 	if (ret) {
++	pmu->id = pmuid;
++
+ 	if (irq >= 0 && !irq_is_percpu(irq)) {
+ 		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
+ 					    GFP_KERNEL);
+diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
+index 42b5edb..f652cd1 100644
+--- a/include/linux/perf/arm_pmu.h
++++ b/include/linux/perf/arm_pmu.h
+@@ -112,6 +112,7 @@ struct arm_pmu {
+ 	struct mutex	reserve_mutex;
+ 	u64		max_period;
+ 	bool		secure_access; /* 32-bit ARM only */
++	unsigned int	id;
+ #define ARMV8_PMUV3_MAX_COMMON_EVENTS 0x40
+ 	DECLARE_BITMAP(pmceid_bitmap, ARMV8_PMUV3_MAX_COMMON_EVENTS);
+ 	struct platform_device	*plat_device;
+@@ -168,8 +169,11 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ #ifdef CONFIG_ARM_PMU_ACPI
+ struct acpi_madt_generic_interrupt;
+ void arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic);
++int arm_pmu_acpi_retrieve_irq(struct resource *pdev, int cpu);
+ #else
+ #define arm_pmu_parse_acpi(a, b) do { } while (0)
++#define arm_pmu_acpi_retrieve_irq(pdev, cpu) \
++	do { } while (0)
+ #endif /* CONFIG_ARM_PMU_ACPI */
+ 
+ #endif /* __ARM_PMU_H__ */
 -- 
 2.7.4
 
