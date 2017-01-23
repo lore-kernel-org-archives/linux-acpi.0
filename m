@@ -1,102 +1,101 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 0/3] Init device ids from ACPI of_compatible
-Date: Mon, 23 Jan 2017 19:13:11 +0200
-Message-ID: <CAHp75VdtbtGmcrPn2R-082b8Ohffke00oBzT0=W0vzBpaSV6iw@mail.gmail.com>
-References: <cover.1468409668.git.leonard.crestez@intel.com> <1485187737-22414-1-git-send-email-dan@emutex.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485187737-22414-1-git-send-email-dan@emutex.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan O'Donovan <dan@emutex.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Subject: [PATCH v8 0/5] Add platform clock for BayTrail platforms
+Date: Mon, 23 Jan 2017 12:07:40 -0600
+Message-ID: <1485194865-10400-1-git-send-email-pierre-louis.bossart@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:18252 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750705AbdAWSIB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 23 Jan 2017 13:08:01 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 
-On Mon, Jan 23, 2017 at 6:08 PM, Dan O'Donovan <dan@emutex.com> wrote:
-> (Re-submitting this patch set originally created by Leonard Crestez,
-> possibly abandoned by Leonard due to a change in employment)
->
-> When using devicetree, stuff like i2c_client.name or spi_device.modalias
-> is initialized to the first DT compatible id with the vendor prefix
-> stripped. Since some drivers rely on this in order to differentiate between
-> hardware variants try to replicate it when using ACPI with DT ids.
->
-> This also makes it so that the i2c_device_id parameter passed to probe is
-> non-NULL when matching with ACPI and DT ids.
->
-> Tested using ACPI overlays but there is no actual dependency. This series
-> just extends the PRP0001 feature to be more useful for I2C/SPI.
->
-> The patches only touches the ACPI-specific parts of the i2c and spi core.
+These patches specifically enable the audio MCLK required by Baytrail
+CR devices. It is the remaining part of a bigger set of patches
+(already merged in Mark Brown's tree) that enable sound for Baytrail CR
+devices (especially Asus T100TAF) [1]. They include the clock driver
+and clock enabling in the pmc_atom code (along with moving of the
+non-architectural pmc_atom driver code into drivers/platform/x86 as
+suggested by Thomas Gleixner [2]). This move includes a new header in
+include/linux/platform_data/x86/. While there is an agreement that the
+definitions for PMC clocks are not really platform data this location
+is seen as a good-enough compromise with an agreement between Darren
+Hart and Andy Shevchenko [3]
 
-The series looks good. Few nitpicks in the comments of corresponding
-patches though.
-FWIW:
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-August/111704.html
+[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-October/113936.html
+[3] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-December/115892.html
 
->
-> Here is an example .dsl for an SPI accelerometer connected to minnowboard max:
->
-> Device (ACCL)
-> {
->     Name (_ADR, Zero)
->     Name (_HID, "PRP0001")
->     Name (_UID, One)
->
->     Method (_CRS, 0, Serialized)
->     {
->         Name (RBUF, ResourceTemplate ()
->         {
->             SPISerialBus(1, PolarityLow, FourWireMode, 16,
->                     ControllerInitiated, 1000000, ClockPolarityLow,
->                     ClockPhaseFirst, "\\_SB.SPI1",)
->             GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
->                      "\\_SB.GPO2", 0x00, ResourceConsumer, , )
->             { // Pin list
->                     1
->             }
->         })
->         Return (RBUF)
->     }
->     Name (_DSD, Package ()
->     {
->         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->         Package ()
->         {
->             Package () {"compatible", "st,lis3dh"},
->         }
->     })
-> }
->
-> Link to v2: https://lkml.org/lkml/2016/7/13/392
-> Changes:
->  * Use appropriate subject prefix for each subsystem (Mark Brown)
->  * Use ACPI info as before if getting OF info fails (Mark Brown)
->  * Minor cosmetic/readability improvements (Rafael J. Wysocki)
->
-> Link to v1: https://www.spinics.net/lists/linux-acpi/msg66469.html
-> Changes:
->  * Rebase on after acpi overlays got it.
->  * Change acpi_of_modalias outlen param to size_t
->  * Use {} after else
->
-> Crestez Dan Leonard (3):
->   ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
->   i2c: acpi: Initialize info.type from of_compatible
->   spi: acpi: Initialize modalias from of_compatible
->
->  drivers/acpi/bus.c      | 35 +++++++++++++++++++++++++++++++++++
->  drivers/i2c/i2c-core.c  |  8 +++++++-
->  drivers/spi/spi.c       | 10 +++++++++-
->  include/acpi/acpi_bus.h |  1 +
->  4 files changed, 52 insertions(+), 2 deletions(-)
->
-> --
-> 2.7.4
->
+Changes from v7:
+ - Replaced clk-readl/writel by regular readl/writel
+ - Fixed two nitpick comments (newline and driver name string)
+ - Fixed [5:0] to [0..5] in comment (missed in v6)
 
+Changes from v6:
+ - Addressed comments from Stephen Boyd, Andy Shevchenko and Vinod Koul
+ - Renamed clk-byt-plt to clk-pmc-atom
+ - Rebase to 4.10-rc3 (broonie/for-next)
+ - Added helper functions to make error handling more compact
+ - Removed module-related code since it's not possible/supported
+ - Removed useless tests on remove
+ - PMC_CLK_OFFSET move to clk-pcm-atom (more logical)
+ - Split typo correction and makefile fix in separate patches
+ - small fixes (spaces, defaults in switches, alphabetical order, use of
+clk_writel/readl and no test on write, simpler error handling, use of
+while(i--), unsigned loop variables, kernel doc fields, format-patch -M
+ -C -D, use of PLATFORM_DEVID_NONE)
 
+Changes from v5:
+ - fix build error reported by kbuild test robot
+ - split the clk driver code from x86 platform changes
+
+Changes from v4:
+ - move the pmc_atom driver from arch/x86/platform/atom to
+drivers/platform/x86
+
+Changes from v3:
+ - replace devm_kzalloc with devm_kcalloc
+ - add x86 architecture maintainers
+
+Changes from v2:
+ - move clk platform data structures to a separate include file
+ - store clk_hw pointer for the fixed rate clocks
+
+Changes from v1:
+ - register the clk device as child of pmc device
+ - pass iomem pointer from pmc driver to clk driver to avoid using
+pmc_atom_read()/write() and use readl/writel API instead
+ - use devm_clk_hw_register/clkdev_hw_create instead of
+clk_register/clkdev_create
+
+Irina Tirdea (3):
+  clk: x86: Add Atom PMC platform clocks
+  arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
+  platform/x86: Enable Atom PMC platform clocks
+
+Pierre-Louis Bossart (2):
+  clk: Make x86/ conditional on CONFIG_COMMON_CLK
+  platform/x86: fix typo in comment
+
+ arch/x86/Kconfig                                   |   4 -
+ arch/x86/platform/atom/Makefile                    |   1 -
+ drivers/acpi/acpi_lpss.c                           |   2 +-
+ drivers/clk/Makefile                               |   2 +
+ drivers/clk/x86/Makefile                           |   1 +
+ drivers/clk/x86/clk-pmc-atom.c                     | 371 +++++++++++++++++++++
+ drivers/platform/x86/Kconfig                       |   5 +
+ drivers/platform/x86/Makefile                      |   1 +
+ .../atom => drivers/platform/x86}/pmc_atom.c       |  88 ++++-
+ include/linux/platform_data/x86/clk-pmc-atom.h     |  44 +++
+ .../linux/platform_data/x86}/pmc_atom.h            |   2 +-
+ 11 files changed, 506 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/clk/x86/clk-pmc-atom.c
+ rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c (87%)
+ create mode 100644 include/linux/platform_data/x86/clk-pmc-atom.h
+ rename {arch/x86/include/asm => include/linux/platform_data/x86}/pmc_atom.h (98%)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.7.4
+
