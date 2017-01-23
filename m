@@ -1,119 +1,129 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v8 0/5] Add platform clock for BayTrail platforms
-Date: Mon, 23 Jan 2017 23:47:21 +0200
-Message-ID: <1485208041.2133.293.camel@linux.intel.com>
-References: <1485194865-10400-1-git-send-email-pierre-louis.bossart@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485194865-10400-1-git-send-email-pierre-louis.bossart@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: alsa-devel@alsa-project.org, Irina Tirdea <irina.tirdea@intel.com>, Michael Turquette <mturquette@baylibre.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Mark Brown <broonie@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Vinod Koul <vinod.koul@intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v14 0/6] Enable PMUs in ACPI systems
+Date: Mon, 23 Jan 2017 16:32:39 -0600
+Message-ID: <1485210765-9422-1-git-send-email-jeremy.linton@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:55922 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751338AbdAWWdg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 23 Jan 2017 17:33:36 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk, lorenzo.pieralisi@arm.com, bamvor.zhangjian@linaro.org
 
-On Mon, 2017-01-23 at 12:07 -0600, Pierre-Louis Bossart wrote:
-> These patches specifically enable the audio MCLK required by Baytrail
-> CR devices. It is the remaining part of a bigger set of patches
-> (already merged in Mark Brown's tree) that enable sound for Baytrail
-> CR
-> devices (especially Asus T100TAF) [1]. They include the clock driver
-> and clock enabling in the pmc_atom code (along with moving of the
-> non-architectural pmc_atom driver code into drivers/platform/x86 as
-> suggested by Thomas Gleixner [2]). This move includes a new header in
-> include/linux/platform_data/x86/. While there is an agreement that the
-> definitions for PMC clocks are not really platform data this location
-> is seen as a good-enough compromise with an agreement between Darren
-> Hart and Andy Shevchenko [3]
-> 
+This patch expands and reworks the patches published by Mark Salter
+in order to clean up a few of the previous review comments, as well as
+add support for newer CPUs and big/little configurations.
 
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+v14:
+- drop rename patch requested for v6
+- Shuffle couple include lines from one patch to a later
+  patch.
 
-> [1] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-
-> August/111704.html
-> [2] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-October/
-> 113936.html
-> [3] http://mailman.alsa-project.org/pipermail/alsa-devel/2016-December
-> /115892.html
-> 
-> Changes from v7:
->  - Replaced clk-readl/writel by regular readl/writel
->  - Fixed two nitpick comments (newline and driver name string)
->  - Fixed [5:0] to [0..5] in comment (missed in v6)
-> 
-> Changes from v6:
->  - Addressed comments from Stephen Boyd, Andy Shevchenko and Vinod
-> Koul
->  - Renamed clk-byt-plt to clk-pmc-atom
->  - Rebase to 4.10-rc3 (broonie/for-next)
->  - Added helper functions to make error handling more compact
->  - Removed module-related code since it's not possible/supported
->  - Removed useless tests on remove
->  - PMC_CLK_OFFSET move to clk-pcm-atom (more logical)
->  - Split typo correction and makefile fix in separate patches
->  - small fixes (spaces, defaults in switches, alphabetical order, use
-> of
-> clk_writel/readl and no test on write, simpler error handling, use of
-> while(i--), unsigned loop variables, kernel doc fields, format-patch
-> -M
->  -C -D, use of PLATFORM_DEVID_NONE)
-> 
+v13:
+- Correct int/bool conversion bug in pmu_acpi_init()
+  created during v10 code shuffle
+
+v12:
+- Rebase to 4.10
+- Removed lock in the hotplug path.
+
+v11:
+- Add is_smp() check to read_specific_cpuid() for arch/arm. Update
+  c_show() and various routines in arm_pmu_acpi() to use the macro.
+- Moved the duplicate "generic" pmu detection code into its own
+  patch and hoist it into arm_pmu_device_probe() so it works
+  for DT based systems as well.
+
+v10:
+- Rebase to 4.9
+- Rework the arm_perf_start_cpu changes to support the 4.9 hotplug
+  changes.
+- Remove the call to acpi_register_gsi() from the cpu online code path.
+  Instead the GSI's are registered during the initcall. This changes
+  the error handling a bit because we now try to clean up the
+  previously registered GSIs in a couple important places. This
+  was also a result of the rebase.
+- Dropped the MIDR partnumber usage, its no longer necessary to
+  differentiate by only the partnum, so this helps to clarify the code
+  a bit. 
+- Shuffle some code around and rename a few variables.
+- Added a few comments to hopefully clarify some questions people have
+  previously had about unused MADT entries, skipping processing cores
+  with MIDR=0, etc.
+
+v9:
+- Add/cleanup an additional hotplug patch I've had sitting around. This
+  patch brings the ACPI PMU mostly on par with the DT functionality with
+  respect to having CPUs offline during boot. This should help clarify
+  some of the code structuring.
+- Cleanup the list of PMU types early if we fail to allocate memory for an
+  additional pmu type.
+
+v8:
+- Rebase to 4.8rc4
+- Assorted minor comment/hunk placement/etc tweaks per Punit Agrawal
+
+v7:
+- Rebase to 4.8rc3
+- Remove cpu affinity sysfs entry. While providing a CPU mask for
+  ARMv8 PMU's is really helpful in big/little environments, reworking
+  the PMU code to support the cpumask attribute for !arm64 PMUs is out
+  of the scope of this patch set.
+- Fix CPU miscount problem where an alloc failure followed by successfully
+  allocating the structure can result in under counting the CPUs associated
+  with the PMU. This bug was created in v6 with the conversion to a linked
+  list.
+- Remove initial platform device creation code by Mark Salter, and re-squash
+  multiple platform device creation code together with helper routines.
+  Other minor tweakage.
+
+v6:
+- Added cpu affinity sysfs entry
+- Converted pmu_types array, to linked list
+- Restrict use of the armv8_pmu_probe_table to ACPI systems
+- Rename MADT parsing routines in smp.c
+- Convert sysfs PMU name to use index rather than partnum
+- Remove pr_devel statements
+- Other Minor cleanups
+- Add Partial Ack-by Will Deacon
+
+v5:
+- Remove list of CPU types for ACPI systems. We now match a generic
+  event list, and use the PMCIED[01] to select events which exist on
+  the given PMU. This avoids the need to update the kernel every time
+  a new CPU is released.
+- Update the maintainers list to include the new file.
+
+v4:
+- Correct build issues with ARM (!ARM64) kernels.
+- Add ThunderX to list of PMU types.
 
 
-> Changes from v5:
->  - fix build error reported by kbuild test robot
->  - split the clk driver code from x86 platform changes
-> 
-> Changes from v4:
->  - move the pmc_atom driver from arch/x86/platform/atom to
-> drivers/platform/x86
-> 
-> Changes from v3:
->  - replace devm_kzalloc with devm_kcalloc
->  - add x86 architecture maintainers
-> 
-> Changes from v2:
->  - move clk platform data structures to a separate include file
->  - store clk_hw pointer for the fixed rate clocks
-> 
-> Changes from v1:
->  - register the clk device as child of pmc device
->  - pass iomem pointer from pmc driver to clk driver to avoid using
-> pmc_atom_read()/write() and use readl/writel API instead
->  - use devm_clk_hw_register/clkdev_hw_create instead of
-> clk_register/clkdev_create
-> 
-> Irina Tirdea (3):
->   clk: x86: Add Atom PMC platform clocks
->   arch/x86/platform/atom: Move pmc_atom to drivers/platform/x86
->   platform/x86: Enable Atom PMC platform clocks
-> 
-> Pierre-Louis Bossart (2):
->   clk: Make x86/ conditional on CONFIG_COMMON_CLK
->   platform/x86: fix typo in comment
-> 
->  arch/x86/Kconfig                                   |   4 -
->  arch/x86/platform/atom/Makefile                    |   1 -
->  drivers/acpi/acpi_lpss.c                           |   2 +-
->  drivers/clk/Makefile                               |   2 +
->  drivers/clk/x86/Makefile                           |   1 +
->  drivers/clk/x86/clk-pmc-atom.c                     | 371
-> +++++++++++++++++++++
->  drivers/platform/x86/Kconfig                       |   5 +
->  drivers/platform/x86/Makefile                      |   1 +
->  .../atom => drivers/platform/x86}/pmc_atom.c       |  88 ++++-
->  include/linux/platform_data/x86/clk-pmc-atom.h     |  44 +++
->  .../linux/platform_data/x86}/pmc_atom.h            |   2 +-
->  11 files changed, 506 insertions(+), 15 deletions(-)
->  create mode 100644 drivers/clk/x86/clk-pmc-atom.c
->  rename {arch/x86/platform/atom => drivers/platform/x86}/pmc_atom.c
-> (87%)
->  create mode 100644 include/linux/platform_data/x86/clk-pmc-atom.h
->  rename {arch/x86/include/asm =>
-> include/linux/platform_data/x86}/pmc_atom.h (98%)
-> 
+Jeremy Linton (5):
+  arm: arm64: Add routine to determine cpuid of other cpus
+  arm: arm64: pmu: Assign platform PMU CPU affinity
+  arm64: pmu: Detect multiple generic PMUs and append counter
+  arm64: pmu: Detect and enable multiple PMUs in an ACPI system
+  arm: pmu: Add PMU definitions for cores not initially online
+
+Mark Salter (1):
+  arm64: pmu: Cache PMU interrupt numbers from MADT parse
+
+ arch/arm/include/asm/cputype.h   |   4 +
+ arch/arm/kernel/setup.c          |   2 +-
+ arch/arm64/include/asm/cputype.h |   3 +
+ arch/arm64/kernel/perf_event.c   |   2 +-
+ arch/arm64/kernel/smp.c          |   5 +
+ drivers/perf/Kconfig             |   4 +
+ drivers/perf/Makefile            |   1 +
+ drivers/perf/arm_pmu.c           | 103 +++++++++++++--
+ drivers/perf/arm_pmu_acpi.c      | 271 +++++++++++++++++++++++++++++++++++++++
+ include/linux/perf/arm_pmu.h     |  12 ++
+ 10 files changed, 393 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/perf/arm_pmu_acpi.c
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.7.4
+
