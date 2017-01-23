@@ -1,78 +1,96 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v14 1/6] arm: arm64: Add routine to determine cpuid of other
- cpus
-Date: Mon, 23 Jan 2017 16:32:40 -0600
-Message-ID: <1485210765-9422-2-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v14 4/6] arm64: pmu: Detect multiple generic PMUs and append counter
+Date: Mon, 23 Jan 2017 16:32:43 -0600
+Message-ID: <1485210765-9422-5-git-send-email-jeremy.linton@arm.com>
 References: <1485210765-9422-1-git-send-email-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:55978 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751545AbdAWWdg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 23 Jan 2017 17:33:36 -0500
 In-Reply-To: <1485210765-9422-1-git-send-email-jeremy.linton@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, steve.capper@arm.com, mlangsdorf@redhat.com, punit.agrawal@arm.com, will.deacon@arm.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, msalter@redhat.com, bamvor.zhangjian@linaro.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, punit.agrawal@arm.com, steve.capper@arm.com, msalter@redhat.com, mlangsdorf@redhat.com, linux@armlinux.org.uk, lorenzo.pieralisi@arm.com, bamvor.zhangjian@linaro.org
 
-It is helpful if we can read the cpuid/midr of other CPUs
-in the system independent of arm/arm64.
+In heterogeneous CPU systems its likely that there are multiple
+PMU types. If a system is using the generic armv8_pmuv3 rather
+than a PMU with a hard-coded set of events then we want to uniquely
+identify each PMU in /sys. We do this by appending an "_x" to the
+pmu name. This then creates PMUs like, "armv8_pmuv3" and
+"armv8_pmuv3_1", "armv8_pmuv3_2" for a system with 3 PMU types.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm/include/asm/cputype.h   | 4 ++++
- arch/arm/kernel/setup.c          | 2 +-
- arch/arm64/include/asm/cputype.h | 3 +++
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ arch/arm64/kernel/perf_event.c |  2 +-
+ drivers/perf/arm_pmu.c         | 20 ++++++++++++++++++++
+ include/linux/perf/arm_pmu.h   |  1 +
+ 3 files changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
-index b62eaeb..a3b6c8b 100644
---- a/arch/arm/include/asm/cputype.h
-+++ b/arch/arm/include/asm/cputype.h
-@@ -238,6 +238,10 @@ static inline unsigned int __attribute_const__ read_cpuid_mpidr(void)
- #define cpu_is_sa1100() (read_cpuid_part() == ARM_CPU_PART_SA1100)
- #define cpu_is_sa1110() (read_cpuid_part() == ARM_CPU_PART_SA1110)
- 
-+#define read_specific_cpuid(cpu_num) (is_smp() ? \
-+				      per_cpu_ptr(&cpu_data, cpu_num)->cpuid \
-+				      : read_cpuid_id())
-+
- /*
-  * Intel's XScale3 core supports some v6 features (supersections, L2)
-  * but advertises itself as v5 as it does not support the v6 ISA.  For
-diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-index 34e3f3c..d443c97 100644
---- a/arch/arm/kernel/setup.c
-+++ b/arch/arm/kernel/setup.c
-@@ -1217,7 +1217,7 @@ static int c_show(struct seq_file *m, void *v)
- 		 * "processor".  Give glibc what it expects.
- 		 */
- 		seq_printf(m, "processor\t: %d\n", i);
--		cpuid = is_smp() ? per_cpu(cpu_data, i).cpuid : read_cpuid_id();
-+		cpuid = read_specific_cpuid(i);
- 		seq_printf(m, "model name\t: %s rev %d (%s)\n",
- 			   cpu_name, cpuid & 15, elf_platform);
- 
-diff --git a/arch/arm64/include/asm/cputype.h b/arch/arm64/include/asm/cputype.h
-index 26a68dd..a6d26e1 100644
---- a/arch/arm64/include/asm/cputype.h
-+++ b/arch/arm64/include/asm/cputype.h
-@@ -124,6 +124,9 @@ static inline u32 __attribute_const__ read_cpuid_cachetype(void)
+diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
+index 57ae9d9..0fbd7ef 100644
+--- a/arch/arm64/kernel/perf_event.c
++++ b/arch/arm64/kernel/perf_event.c
+@@ -1002,7 +1002,7 @@ static void armv8_pmu_init(struct arm_pmu *cpu_pmu)
+ static int armv8_pmuv3_init(struct arm_pmu *cpu_pmu)
  {
- 	return read_cpuid(CTR_EL0);
- }
-+
-+#define read_specific_cpuid(cpu_num) per_cpu_ptr(&cpu_data, cpu_num)->reg_midr
-+
- #endif /* __ASSEMBLY__ */
+ 	armv8_pmu_init(cpu_pmu);
+-	cpu_pmu->name			= "armv8_pmuv3";
++	cpu_pmu->name			= ARMV8_PMUV3_DESCRIPTION;
+ 	cpu_pmu->map_event		= armv8_pmuv3_map_event;
+ 	cpu_pmu->attr_groups[ARMPMU_ATTR_GROUP_EVENTS] =
+ 		&armv8_pmuv3_events_attr_group;
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 37e241f..85566f6 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -1035,6 +1035,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 			 const struct of_device_id *of_table,
+ 			 const struct pmu_probe_info *probe_table)
+ {
++	static int duplicate_pmus;
+ 	const struct of_device_id *of_id;
+ 	const int (*init_fn)(struct arm_pmu *);
+ 	struct device_node *node = pdev->dev.of_node;
+@@ -1075,6 +1076,25 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 		goto out_free;
+ 	}
  
- #endif
++	/*
++	 * if this pmu declaration is a generic pmu and we have
++	 * previously found a generic pmu on this platform
++	 * then append a PMU number to the pmu name. This avoids
++	 * changing the names of PMUs that are specific to a class
++	 * of CPUs. The assumption is that if we match a specific PMU
++	 * then it's unique, and another PMU in the system will match
++	 * a different entry rather than needing the _number to
++	 * assure its unique.
++	 */
++	if (!strcmp(pmu->name, ARMV8_PMUV3_DESCRIPTION)) {
++		if (duplicate_pmus) {
++			pmu->name = kasprintf(GFP_KERNEL, "%s_%d",
++					      pmu->name, duplicate_pmus);
++			if (!pmu->name)
++				goto out_free;
++		}
++		duplicate_pmus++;
++	}
+ 
+ 	ret = cpu_pmu_init(pmu);
+ 	if (ret)
+diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
+index df1ba55..42b5edb 100644
+--- a/include/linux/perf/arm_pmu.h
++++ b/include/linux/perf/arm_pmu.h
+@@ -161,6 +161,7 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+ 			 const struct pmu_probe_info *probe_table);
+ 
+ #define ARMV8_PMU_PDEV_NAME "armv8-pmu"
++#define ARMV8_PMUV3_DESCRIPTION "armv8_pmuv3"
+ 
+ #endif /* CONFIG_ARM_PMU */
+ 
 -- 
 2.7.4
+
