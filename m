@@ -1,187 +1,110 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with
- deferred probing or error
-Date: Tue, 24 Jan 2017 12:37:12 +0000
-Message-ID: <20170124123711.GA11996@red-moon>
-References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
- <1485188293-20263-9-git-send-email-sricharan@codeaurora.org>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH 2/2] arch_timer: acpi: add hisi timer erratum data
+Date: Tue, 24 Jan 2017 12:35:50 +0000
+Message-ID: <b73c3271-ac56-8df8-074d-9c4c283c3a41@huawei.com>
+References: <1485254391-51551-1-git-send-email-guohanjun@huawei.com>
+ <1485254391-51551-3-git-send-email-guohanjun@huawei.com>
+ <20170124105717.GB6277@leverpostej>
+ <a2ac2a70-09fb-5cec-c090-b8ebde90e24f@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1485188293-20263-9-git-send-email-sricharan@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>
-Cc: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Sinan Kaya <okaya@codeaurora.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <a2ac2a70-09fb-5cec-c090-b8ebde90e24f@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <guohanjun@huawei.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Will Deacon <will.deacon@arm.com>, linuxarm@huawei.com, Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ding Tianhong <dingtianhong@huawei.com>, Fu Wei <fu.wei@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[+hanjun, tomasz, sinan]
+On 24/01/2017 11:32, Marc Zyngier wrote:
+> On 24/01/17 10:57, Mark Rutland wrote:
+>> On Tue, Jan 24, 2017 at 06:39:51PM +0800, Hanjun Guo wrote:
+>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>
+>>> Add hisilicon timer specific erratum fixes.
+>>>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>  drivers/clocksource/arm_arch_timer.c | 22 ++++++++++++++++++++++
+>>>  1 file changed, 22 insertions(+)
+>>>
+>>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+>>> index 80d6f76..3e62a09 100644
+>>> --- a/drivers/clocksource/arm_arch_timer.c
+>>> +++ b/drivers/clocksource/arm_arch_timer.c
+>>> @@ -1156,10 +1156,32 @@ struct gtdt_arch_timer_fixup {
+>>>  	void *context;
+>>>  };
+>>>
+>>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
+>>> +static void __init hisi_erratum_workaroud_enable(void *context)
+>>> +{
+>>> +	int i;
+>>> +
+>>> +	for (i = 0; i < ARRAY_SIZE(ool_workarounds); i++) {
+>>> +		if (!strcmp(context, ool_workarounds[i].id)) {
+>>> +			timer_unstable_counter_workaround = &ool_workarounds[i];
+>>> +			static_branch_enable(&arch_timer_read_ool_enabled);
+>>> +			pr_info("arch_timer: Enabling workaround for %s\n",
+>>> +				timer_unstable_counter_workaround->id);
+>>> +			break;
+>>> +		}
+>>> +	}
+>>> +}
+>>> +#endif
+>>> +
+>>>  /* note: this needs to be updated according to the doc of OEM ID
+>>>   * and TABLE ID for different board.
+>>>   */
+>>>  static struct gtdt_arch_timer_fixup arch_timer_quirks[] __initdata = {
+>>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
+>>> +	{"HISI  ", "HIP05   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>>> +	{"HISI  ", "HIP06   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>>> +	{"HISI  ", "HIP07   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>>> +#endif
+>>>  };
+>>
+>> NAK. This duplicates logic unnecessarily (for enabling the workaround),
+>> and (ab)uses the id, which was intended to be specific to DT (since it
+>> is a DT property name).
+>
+> Agreed, that's properly revolting.
+>
+>> We should split the matching from the particular workaround (and
+>> enabling thereof), so that we can go straight from ACPI match to
+>> workaround (without having to use the DT id in this manner), and don't
+>> have to duplicate the logic to enable the workaround.
+>>
+>> I believe Marc is looking at some rework in this area which may enable
+>> this, so please wait for that to appear.
+>
+> Yeah, I'm implementing a semi-flexible way to add new quirk types, and
+> the last thing I want to see is two (or more) tables describing the same
+> thing.
+>
 
-It is quite a key patchset, I would be glad if they can test on their
-respective platforms with IORT.
+FYI, We have a similar requirement to enable a quirk on the GICv3 ITS 
+driver. For that driver the current quirk framework relies on matching 
+the IIDR, which is not properly populated for our hardware. So will this 
+framework cover this/many/all drivers?
 
-On Mon, Jan 23, 2017 at 09:48:10PM +0530, Sricharan R wrote:
-> This is an equivalent to the DT's handling of the iommu master's probe
-> with deferred probing when the corrsponding iommu is not probed yet.
-> The lack of a registered IOMMU can be caused by the lack of a driver for
-> the IOMMU, the IOMMU device probe not having been performed yet, having
-> been deferred, or having failed.
-> 
-> The first case occurs when the firmware describes the bus master and
-> IOMMU topology correctly but no device driver exists for the IOMMU yet
-> or the device driver has not been compiled in. Return NULL, the caller
-> will configure the device without an IOMMU.
-> 
-> The second and third cases are handled by deferring the probe of the bus
-> master device which will eventually get reprobed after the IOMMU.
-> 
-> The last case is currently handled by deferring the probe of the bus
-> master device as well. A mechanism to either configure the bus master
-> device without an IOMMU or to fail the bus master device probe depending
-> on whether the IOMMU is optional or mandatory would be a good
-> enhancement.
-> 
-> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
-> ---
->  drivers/acpi/arm64/iort.c  | 25 ++++++++++++++++++++++++-
->  drivers/acpi/scan.c        |  7 +++++--
->  drivers/base/dma-mapping.c |  2 +-
->  include/acpi/acpi_bus.h    |  2 +-
->  include/linux/acpi.h       |  7 +++++--
->  5 files changed, 36 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index bf0ed09..d01bae8 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -550,8 +550,17 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
->  			return NULL;
->  
->  		ops = iommu_get_instance(iort_fwnode);
-> +		/*
-> +		 * If the ops look-up fails, this means that either
-> +		 * the SMMU drivers have not been probed yet or that
-> +		 * the SMMU drivers are not built in the kernel;
-> +		 * Depending on whether the SMMU drivers are built-in
-> +		 * in the kernel or not, defer the IOMMU configuration
-> +		 * or just abort it.
-> +		 */
->  		if (!ops)
-> -			return NULL;
-> +			return iort_iommu_driver_enabled(node->type) ?
-> +			       ERR_PTR(-EPROBE_DEFER) : NULL;
->  
->  		ret = arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
->  	}
-> @@ -625,12 +634,26 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->  
->  		while (parent) {
->  			ops = iort_iommu_xlate(dev, parent, streamid);
-> +			if (IS_ERR_OR_NULL(ops))
-> +				return ops;
->  
->  			parent = iort_node_get_id(node, &streamid,
->  						  IORT_IOMMU_TYPE, i++);
->  		}
->  	}
->  
-> +	/*
-> +	 * If we have reason to believe the IOMMU driver missed the initial
-> +	 * add_device callback for dev, replay it to get things in order.
-> +	 */
-> +	if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
-> +	    dev->bus && !dev->iommu_group) {
-> +		int err = ops->add_device(dev);
-> +
-> +		if (err)
-> +			ops = ERR_PTR(err);
-> +	}
+Shameer has prepared the patchset for this quirk - should it send it? It 
+will be rejected for the same reason as this one, but at least it is 
+more reference for this framework wishlist.
 
-I think there is nothing ACPI specific in this add_device() replay
-path, so there is room for further DT/ACPI consolidation here.
+Cheers,
+John
 
-Without any further ado:
 
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
-> +
->  	return ops;
->  }
->  
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 1926918..823b005 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1373,20 +1373,23 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->   * @dev: The pointer to the device
->   * @attr: device dma attributes
->   */
-> -void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
-> +int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
->  {
->  	const struct iommu_ops *iommu;
->  
->  	iort_set_dma_mask(dev);
->  
->  	iommu = iort_iommu_configure(dev);
-> -
-> +	if (IS_ERR(iommu))
-> +		return PTR_ERR(iommu);
->  	/*
->  	 * Assume dma valid range starts at 0 and covers the whole
->  	 * coherent_dma_mask.
->  	 */
->  	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
->  			   attr == DEV_DMA_COHERENT);
-> +
-> +	return 0;
->  }
->  EXPORT_SYMBOL_GPL(acpi_dma_configure);
->  
-> diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
-> index 82bd45c..755a2b5 100644
-> --- a/drivers/base/dma-mapping.c
-> +++ b/drivers/base/dma-mapping.c
-> @@ -368,7 +368,7 @@ int dma_configure(struct device *dev)
->  	} else if (has_acpi_companion(dma_dev)) {
->  		attr = acpi_get_dma_attr(to_acpi_device_node(dma_dev->fwnode));
->  		if (attr != DEV_DMA_NOT_SUPPORTED)
-> -			acpi_dma_configure(dev, attr);
-> +			ret = acpi_dma_configure(dev, attr);
->  	}
->  
->  	if (bridge)
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 4242c31..9aa762fe 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -573,7 +573,7 @@ struct acpi_pci_root {
->  
->  bool acpi_dma_supported(struct acpi_device *adev);
->  enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
-> -void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
-> +int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
->  void acpi_dma_deconfigure(struct device *dev);
->  
->  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 5b36974..8b958b6 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -764,8 +764,11 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  	return DEV_DMA_NOT_SUPPORTED;
->  }
->  
-> -static inline void acpi_dma_configure(struct device *dev,
-> -				      enum dev_dma_attr attr) { }
-> +static inline int acpi_dma_configure(struct device *dev,
-> +				     enum dev_dma_attr attr)
-> +{
-> +	return 0;
-> +}
->  
->  static inline void acpi_dma_deconfigure(struct device *dev) { }
->  
-> -- 
-> QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-> 
+> Thanks,
+>
+> 	M.
+>
