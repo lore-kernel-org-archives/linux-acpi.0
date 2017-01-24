@@ -1,68 +1,44 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V7 05/10] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Tue, 24 Jan 2017 11:43:38 -0700
-Message-ID: <1a9c6783-4d9f-5b50-1d7e-b4d65742661b@codeaurora.org>
-References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org>
- <1484244924-24786-6-git-send-email-tbaicar@codeaurora.org>
- <587F80A7.10008@arm.com>
- <3de443d7-2c68-f179-daae-bc8f851470b7@codeaurora.org>
- <5880FDFC.7060304@arm.com>
- <8b9d254a-5450-d841-baf7-5819a88043e4@codeaurora.org>
- <58879514.1020501@arm.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Tue, 24 Jan 2017 20:23:14 +0100
+Message-ID: <20170124192314.gw6njffcgwyfm2gp@sig21.net>
+References: <20160921091635.tjnc2gvj75jixycv@sig21.net>
+ <20160923081904.GM1218@lahna.fi.intel.com>
+ <20161005124648.4fkl55q2i4qnug2x@sig21.net>
+ <20161005130511.GM1765@lahna.fi.intel.com>
+ <20161204185219.j45aabkpvptadmcx@sig21.net>
+ <20161205110608.GF1459@lahna.fi.intel.com>
+ <20170124094112.ssmpe6vl4iijsjh6@sig21.net>
+ <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
+ <20170124135250.d72silj6jlxh7zqk@sig21.net>
+ <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <58879514.1020501@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sig21.net ([80.244.240.74]:40805 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750776AbdAXTXV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 24 Jan 2017 14:23:21 -0500
+Content-Disposition: inline
+In-Reply-To: <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
 
-On 1/24/2017 10:55 AM, James Morse wrote:
-> Hi Tyler,
->
-> On 20/01/17 20:58, Baicar, Tyler wrote:
->> On 1/19/2017 10:57 AM, James Morse wrote:
->>> On 18/01/17 23:51, Baicar, Tyler wrote:
->>>> On 1/18/2017 7:50 AM, James Morse wrote:
->>>>> On 12/01/17 18:15, Tyler Baicar wrote:
->>>>>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->>> There are two other things that need changing to make the in_nmi() code path
->>> work on arm64.
->>> Always reserve the virtual-address-space forcing GHES_IOREMAP_PAGES to be 2
->>> regardless of CONFIG_HAVE_ACPI_APEI_NMI. This is almost revert of
->>> 594c7255dce7a13cac50cf2470cc56e2c3b0494e (but that did a few other things too).
->> Looks simple enough, should I force it to 2 in all cases, or add a check for
->> CONFIG_HAVE_ACPI_APEI_SEA
->> similar to the check for CONFIG_HAVE_ACPI_APEI_NMI?
-> Its just address space not actual memory it is reserving right? I think just
-> reserve two pages all the time to save eye-sore #ifdefs!
->
-Okay, will do!
->>> We also need to fix ghes_ioremap_pfn_nmi() to use arch_apei_get_mem_attribute()
->>> and not assume PAGE_KERNEL.
->> So just change the call to ioremap_page_range to:
->>
->> ioremap_page_range(vaddr, vaddr + PAGE_SIZE, pfn << PAGE_SHIFT,
->> arch_apei_get_mem_attribute());
-> (you need to give arch_apei_get_mem_attribute() the address...) copying whatever
-> ghes_ioremap_pfn_irq() does a few lines down is probably best.
-Sounds good, I'll make the changes in my next patchset.
+On Tue, Jan 24, 2017 at 04:28:29PM +0200, Andy Shevchenko wrote:
+> They probably release just almost all One Big Ugly patch from official
+> BSP, which by some reason, includes all Intel MID SoCs, Baytrail.
+> I think I know how Dollar Cove related code ended up there. But that
+> all stuff is a total mess.
+
+I agree.  Probably it was a mistake to bring up this code here.
+Let me try to go back two steps:  Could you please let me
+know if there is any progress in mainlining the TI Dollar Cove PMIC
+and related drivers?  Is there a schedule?
+After waiting for four months I'm actually getting impatient
+because by now the Cherryview based hardware seems to go out
+of production and I fear the mainlining might never happen.
 
 Thanks,
-Tyler
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Johannes
