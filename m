@@ -1,62 +1,187 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Cherryview wake up events
-Date: Tue, 24 Jan 2017 13:14:16 +0200
-Message-ID: <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
-References: <20160920104014.GO1811@lahna.fi.intel.com> <20160920155943.zrj7wwgg7ugqyv6i@sig21.net>
- <20160920211153.y7ntwwik2l6ppoqz@sig21.net> <20160921090614.GY1811@lahna.fi.intel.com>
- <20160921091635.tjnc2gvj75jixycv@sig21.net> <20160923081904.GM1218@lahna.fi.intel.com>
- <20161005124648.4fkl55q2i4qnug2x@sig21.net> <20161005130511.GM1765@lahna.fi.intel.com>
- <20161204185219.j45aabkpvptadmcx@sig21.net> <20161205110608.GF1459@lahna.fi.intel.com>
- <20170124094112.ssmpe6vl4iijsjh6@sig21.net>
+From: "Sricharan" <sricharan@codeaurora.org>
+Subject: RE: [PATCH V7 00/11] IOMMU probe deferral support
+Date: Tue, 24 Jan 2017 16:45:20 +0530
+Message-ID: <00fa01d27633$2b468fe0$81d3afa0$@codeaurora.org>
+References: <CGME20170123161926epcas2p1cf464a2978d89d0c1fdd2f7cc6d38317@epcas2p1.samsung.com> <1485188293-20263-1-git-send-email-sricharan@codeaurora.org> <440d69c3-8be9-7729-ff11-10657cc864f0@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170124094112.ssmpe6vl4iijsjh6@sig21.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <440d69c3-8be9-7729-ff11-10657cc864f0@samsung.com>
+Content-Language: en-us
+Sender: linux-pci-owner@vger.kernel.org
+To: 'Marek Szyprowski' <m.szyprowski@samsung.com>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 11:41 AM, Johannes Stezenbach <js@sig21.net> wrote:
-> Hi,
->
-> On Mon, Dec 05, 2016 at 01:06:08PM +0200, Mika Westerberg wrote:
->> On Sun, Dec 04, 2016 at 07:52:19PM +0100, Johannes Stezenbach wrote:
->> > On Wed, Oct 05, 2016 at 04:05:11PM +0300, Mika Westerberg wrote:
->> > > On Wed, Oct 05, 2016 at 02:46:48PM +0200, Johannes Stezenbach wrote:
->> > > > On Fri, Sep 23, 2016 at 11:19:04AM +0300, Mika Westerberg wrote:
->> > > > > David (CC'd) is working on getting the Dollar Cove PMIC driver
->> > > > > upstreamed to the mainline kernel.
->> > > >
->> > > > May I ask when to expect a patch?  I'm ready if you
->> > > > have something to test, even if it's not in
->> > > > shape for mainline yet.
->> > >
->> > > It typically takes quite some time to get all the legal stuff done
->> > > before the code can be published. And if people are busy with other
->> > > things it takes even more time.
->> > >
->> > > So please be patient, it will happen sooner or later ;-)
->> >
->> > I don't want to nag, but just so it doesn't drop off
->> > the TODO list due to "lack of interest":  What's the
->> > status?  Will Santa bring the the TI Dollar Cove PMIC driver?
+Hi Marek,
+
+>On 2017-01-23 17:18, Sricharan R wrote:
+>> This series calls the dma ops configuration for the devices
+>> at a generic place so that it works for all busses.
+>> The dma_configure_ops for a device is now called during
+>> the device_attach callback just before the probe of the
+>> bus/driver is called. Similarly dma_deconfigure is called during
+>> device/driver_detach path.
 >>
->> David, do you have any estimate?
+>> pci_bus_add_devices    (platform/amba)(_device_create/driver_register)
+>>         |                         |
+>> pci_bus_add_device     (device_add/driver_register)
+>>         |                         |
+>> device_attach           device_initial_probe
+>>         |                         |
+>> __device_attach_driver    __device_attach_driver
+>>         |
+>> driver_probe_device
+>>         |
+>> really_probe
+>>         |
+>> dma_configure
+>>
+>> Similarly on the device/driver_unregister path __device_release_driver is
+>> called which inturn calls dma_deconfigure.
+>>
+>> Took the reworked patches [2] from Robin's branch and
+>> rebased on top of Lorenzo's ACPI IORT ARM support series [3].
+>>
+>> * Tested with platform and pci devices for probe deferral
+>>    and reprobe on arm64 based platform.
+>> * Need help for testing with ACPI.
 >
+>Once again:
 >
-> Meanwhile I found out the TI PMIC and power button drivers
-> has been published as part of the Asus ZenFone Zoom (ZX551ML)
-> Android kernel code drop (based on linux-3.10.x):
+>Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 >
-> https://www.asus.com/support/Download/39/1/0/26/BXbNqJplzZiLmk6G/32/
+>Works fine on Exynos machines (both, ARM and ARM64 based). This patchset is
+>urgently needed as more and more stuff depends on it and cannot be easily
+>workarounded without nasty hacks (for example pending runtime PM changes
+>for clocks and power domains integration for Exynos 5433).
 >
-> Please let me know if there is anything I could do
-> to help get it mainlined soon.
 
-AFAIK ASuS Zenfone 2 (Intel based) series uses Intel Moorefield. It
-has ShadyCove PMIC.
+Ok, Thanks for the testing once again.
 
--- 
-With Best Regards,
-Andy Shevchenko
+>Is there a chance to have it merged to v4.11?
+>
+
+Ya, hoping that this time it would get through.
+
+Regards,
+ Sricharan
+
+>> Previous post of this series [6].
+>>
+>>   [V7]
+>>       * Updated the subject and commit log for patch #6 as per
+>>         comments from Lorenzo. No functional changes.
+>>
+>>   [V6]
+>>       * Fixed a bug in dma_configure function pointed out by
+>>         Robin.
+>>       * Reordered the patches as per comments from Robin and
+>>         Lorenzo.
+>>       * Added Tags.
+>>
+>>   [V5]
+>>       * Reworked the pci configuration code hanging outside and
+>>         pushed it to dma_configure as in PATCH#5,6,7.
+>>         Also added a couple of patches that Lorenzo provided for
+>>         correcting the Probe deferring mechanism in case of
+>>         ACPI devices from here [5].
+>>
+>>   [V4]
+>>       * Took the reworked patches [2] from Robin's branch and
+>>         rebased on top of Lorenzo's ACPI IORT ARM support series [3].
+>>
+>>       * Added the patches for moving the dma ops configuration of
+>>         acpi based devices to probe time as well.
+>>   [V3]
+>>       * Removed the patch to split dma_masks/dma_ops configuration
+>>         separately based on review comments that both masks and ops are
+>>         required only during the device probe time.
+>>
+>>       * Reworked the series based on Generic DT bindings series.
+>>
+>>       * Added call to iommu's remove_device in the cleanup path for arm and
+>>         arm64.
+>>
+>>       * Removed the notifier trick in arm64 to handle early device
+>>         registration.
+>>
+>>       * Added reset of dma_ops in cleanup path for arm based on comments.
+>>
+>>       * Fixed the pci_iommu_configure path and tested with PCI device as
+>>         well.
+>>
+>>       * Fixed a bug to return the correct iommu_ops from patch 7 [4] in
+>>         last post.
+>>
+>>       * Fixed few other cosmetic comments.
+>>
+>>   [V2]
+>>       * Updated the Initial post to call dma_configure/deconfigure from
+>>         generic code
+>>
+>>       * Added iommu add_device callback from of_iommu_configure path
+>>
+>>   [V1]
+>>       * Initial post from Laurent Pinchart [1]
+>>
+>> [1] http://lists.linuxfoundation.org/pipermail/iommu/2015-May/013016.html
+>> [2] http://www.linux-arm.org/git?p=linux-rm.git;a=shortlog;h=refs/heads/iommu/defer
+>> [3] https://lkml.org/lkml/2016/11/21/141
+>> [4] https://www.mail-archive.com/iommu@lists.linux-foundation.org/msg13940.html
+>> [5] git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git iommu/probe-deferral
+>> [6] https://www.spinics.net/lists/arm-kernel/msg556546.html
+>>
+>> Laurent Pinchart (3):
+>>    of: dma: Move range size workaround to of_dma_get_range()
+>>    of: dma: Make of_dma_deconfigure() public
+>>    iommu: of: Handle IOMMU lookup failure with deferred probing or error
+>>
+>> Lorenzo Pieralisi (2):
+>>    ACPI/IORT: Add function to check SMMUs drivers presence
+>>    ACPI/IORT: Remove linker section for IORT entries probing
+>>
+>> Robin Murphy (3):
+>>    iommu/of: Refactor of_iommu_configure() for error handling
+>>    iommu/of: Prepare for deferred IOMMU configuration
+>>    iommu/arm-smmu: Clean up early-probing workarounds
+>>
+>> Sricharan R (3):
+>>    of/acpi: Configure dma operations at probe time for platform/amba/pci bus devices
+>>    drivers: acpi: Handle IOMMU lookup failure with deferred probing or
+>>      error
+>>    arm64: dma-mapping: Remove the notifier trick to handle early setting
+>>      of dma_ops
+>>
+>>   arch/arm64/mm/dma-mapping.c       | 132 ++++----------------------------------
+>>   drivers/acpi/arm64/iort.c         |  40 +++++++++++-
+>>   drivers/acpi/glue.c               |   5 --
+>>   drivers/acpi/scan.c               |   7 +-
+>>   drivers/base/dd.c                 |   9 +++
+>>   drivers/base/dma-mapping.c        |  41 ++++++++++++
+>>   drivers/iommu/arm-smmu-v3.c       |  46 +------------
+>>   drivers/iommu/arm-smmu.c          |  58 +++--------------
+>>   drivers/iommu/of_iommu.c          | 114 +++++++++++++++++++++++---------
+>>   drivers/of/address.c              |  20 +++++-
+>>   drivers/of/device.c               |  36 ++++++-----
+>>   drivers/of/platform.c             |  10 +--
+>>   drivers/pci/probe.c               |  28 --------
+>>   include/acpi/acpi_bus.h           |   2 +-
+>>   include/asm-generic/vmlinux.lds.h |   1 -
+>>   include/linux/acpi.h              |   7 +-
+>>   include/linux/acpi_iort.h         |   3 -
+>>   include/linux/dma-mapping.h       |   3 +
+>>   include/linux/of_device.h         |  10 ++-
+>>   19 files changed, 252 insertions(+), 320 deletions(-)
+>>
+>
+>Best regards
+>--
+>Marek Szyprowski, PhD
+>Samsung R&D Institute Poland
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
