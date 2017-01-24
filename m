@@ -1,187 +1,91 @@
-From: "Sricharan" <sricharan@codeaurora.org>
-Subject: RE: [PATCH V7 00/11] IOMMU probe deferral support
-Date: Tue, 24 Jan 2017 16:45:20 +0530
-Message-ID: <00fa01d27633$2b468fe0$81d3afa0$@codeaurora.org>
-References: <CGME20170123161926epcas2p1cf464a2978d89d0c1fdd2f7cc6d38317@epcas2p1.samsung.com> <1485188293-20263-1-git-send-email-sricharan@codeaurora.org> <440d69c3-8be9-7729-ff11-10657cc864f0@samsung.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 2/2] arch_timer: acpi: add hisi timer erratum data
+Date: Tue, 24 Jan 2017 11:32:16 +0000
+Message-ID: <a2ac2a70-09fb-5cec-c090-b8ebde90e24f@arm.com>
+References: <1485254391-51551-1-git-send-email-guohanjun@huawei.com>
+ <1485254391-51551-3-git-send-email-guohanjun@huawei.com>
+ <20170124105717.GB6277@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <440d69c3-8be9-7729-ff11-10657cc864f0@samsung.com>
-Content-Language: en-us
-Sender: linux-pci-owner@vger.kernel.org
-To: 'Marek Szyprowski' <m.szyprowski@samsung.com>, robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:39580 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750763AbdAXLcV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 24 Jan 2017 06:32:21 -0500
+In-Reply-To: <20170124105717.GB6277@leverpostej>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <guohanjun@huawei.com>
+Cc: Will Deacon <will.deacon@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Fu Wei <fu.wei@linaro.org>, Ding Tianhong <dingtianhong@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi Marek,
+On 24/01/17 10:57, Mark Rutland wrote:
+> On Tue, Jan 24, 2017 at 06:39:51PM +0800, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> Add hisilicon timer specific erratum fixes.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  drivers/clocksource/arm_arch_timer.c | 22 ++++++++++++++++++++++
+>>  1 file changed, 22 insertions(+)
+>>
+>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+>> index 80d6f76..3e62a09 100644
+>> --- a/drivers/clocksource/arm_arch_timer.c
+>> +++ b/drivers/clocksource/arm_arch_timer.c
+>> @@ -1156,10 +1156,32 @@ struct gtdt_arch_timer_fixup {
+>>  	void *context;
+>>  };
+>>  
+>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
+>> +static void __init hisi_erratum_workaroud_enable(void *context)
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0; i < ARRAY_SIZE(ool_workarounds); i++) {
+>> +		if (!strcmp(context, ool_workarounds[i].id)) {
+>> +			timer_unstable_counter_workaround = &ool_workarounds[i];
+>> +			static_branch_enable(&arch_timer_read_ool_enabled);
+>> +			pr_info("arch_timer: Enabling workaround for %s\n",
+>> +				timer_unstable_counter_workaround->id);
+>> +			break;
+>> +		}
+>> +	}
+>> +}
+>> +#endif
+>> +
+>>  /* note: this needs to be updated according to the doc of OEM ID
+>>   * and TABLE ID for different board.
+>>   */
+>>  static struct gtdt_arch_timer_fixup arch_timer_quirks[] __initdata = {
+>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
+>> +	{"HISI  ", "HIP05   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>> +	{"HISI  ", "HIP06   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>> +	{"HISI  ", "HIP07   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>> +#endif
+>>  };
+> 
+> NAK. This duplicates logic unnecessarily (for enabling the workaround),
+> and (ab)uses the id, which was intended to be specific to DT (since it
+> is a DT property name).
 
->On 2017-01-23 17:18, Sricharan R wrote:
->> This series calls the dma ops configuration for the devices
->> at a generic place so that it works for all busses.
->> The dma_configure_ops for a device is now called during
->> the device_attach callback just before the probe of the
->> bus/driver is called. Similarly dma_deconfigure is called during
->> device/driver_detach path.
->>
->> pci_bus_add_devices    (platform/amba)(_device_create/driver_register)
->>         |                         |
->> pci_bus_add_device     (device_add/driver_register)
->>         |                         |
->> device_attach           device_initial_probe
->>         |                         |
->> __device_attach_driver    __device_attach_driver
->>         |
->> driver_probe_device
->>         |
->> really_probe
->>         |
->> dma_configure
->>
->> Similarly on the device/driver_unregister path __device_release_driver is
->> called which inturn calls dma_deconfigure.
->>
->> Took the reworked patches [2] from Robin's branch and
->> rebased on top of Lorenzo's ACPI IORT ARM support series [3].
->>
->> * Tested with platform and pci devices for probe deferral
->>    and reprobe on arm64 based platform.
->> * Need help for testing with ACPI.
->
->Once again:
->
->Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
->
->Works fine on Exynos machines (both, ARM and ARM64 based). This patchset is
->urgently needed as more and more stuff depends on it and cannot be easily
->workarounded without nasty hacks (for example pending runtime PM changes
->for clocks and power domains integration for Exynos 5433).
->
+Agreed, that's properly revolting.
 
-Ok, Thanks for the testing once again.
+> We should split the matching from the particular workaround (and
+> enabling thereof), so that we can go straight from ACPI match to
+> workaround (without having to use the DT id in this manner), and don't
+> have to duplicate the logic to enable the workaround.
+> 
+> I believe Marc is looking at some rework in this area which may enable
+> this, so please wait for that to appear.
 
->Is there a chance to have it merged to v4.11?
->
+Yeah, I'm implementing a semi-flexible way to add new quirk types, and
+the last thing I want to see is two (or more) tables describing the same
+thing.
 
-Ya, hoping that this time it would get through.
+Thanks,
 
-Regards,
- Sricharan
-
->> Previous post of this series [6].
->>
->>   [V7]
->>       * Updated the subject and commit log for patch #6 as per
->>         comments from Lorenzo. No functional changes.
->>
->>   [V6]
->>       * Fixed a bug in dma_configure function pointed out by
->>         Robin.
->>       * Reordered the patches as per comments from Robin and
->>         Lorenzo.
->>       * Added Tags.
->>
->>   [V5]
->>       * Reworked the pci configuration code hanging outside and
->>         pushed it to dma_configure as in PATCH#5,6,7.
->>         Also added a couple of patches that Lorenzo provided for
->>         correcting the Probe deferring mechanism in case of
->>         ACPI devices from here [5].
->>
->>   [V4]
->>       * Took the reworked patches [2] from Robin's branch and
->>         rebased on top of Lorenzo's ACPI IORT ARM support series [3].
->>
->>       * Added the patches for moving the dma ops configuration of
->>         acpi based devices to probe time as well.
->>   [V3]
->>       * Removed the patch to split dma_masks/dma_ops configuration
->>         separately based on review comments that both masks and ops are
->>         required only during the device probe time.
->>
->>       * Reworked the series based on Generic DT bindings series.
->>
->>       * Added call to iommu's remove_device in the cleanup path for arm and
->>         arm64.
->>
->>       * Removed the notifier trick in arm64 to handle early device
->>         registration.
->>
->>       * Added reset of dma_ops in cleanup path for arm based on comments.
->>
->>       * Fixed the pci_iommu_configure path and tested with PCI device as
->>         well.
->>
->>       * Fixed a bug to return the correct iommu_ops from patch 7 [4] in
->>         last post.
->>
->>       * Fixed few other cosmetic comments.
->>
->>   [V2]
->>       * Updated the Initial post to call dma_configure/deconfigure from
->>         generic code
->>
->>       * Added iommu add_device callback from of_iommu_configure path
->>
->>   [V1]
->>       * Initial post from Laurent Pinchart [1]
->>
->> [1] http://lists.linuxfoundation.org/pipermail/iommu/2015-May/013016.html
->> [2] http://www.linux-arm.org/git?p=linux-rm.git;a=shortlog;h=refs/heads/iommu/defer
->> [3] https://lkml.org/lkml/2016/11/21/141
->> [4] https://www.mail-archive.com/iommu@lists.linux-foundation.org/msg13940.html
->> [5] git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git iommu/probe-deferral
->> [6] https://www.spinics.net/lists/arm-kernel/msg556546.html
->>
->> Laurent Pinchart (3):
->>    of: dma: Move range size workaround to of_dma_get_range()
->>    of: dma: Make of_dma_deconfigure() public
->>    iommu: of: Handle IOMMU lookup failure with deferred probing or error
->>
->> Lorenzo Pieralisi (2):
->>    ACPI/IORT: Add function to check SMMUs drivers presence
->>    ACPI/IORT: Remove linker section for IORT entries probing
->>
->> Robin Murphy (3):
->>    iommu/of: Refactor of_iommu_configure() for error handling
->>    iommu/of: Prepare for deferred IOMMU configuration
->>    iommu/arm-smmu: Clean up early-probing workarounds
->>
->> Sricharan R (3):
->>    of/acpi: Configure dma operations at probe time for platform/amba/pci bus devices
->>    drivers: acpi: Handle IOMMU lookup failure with deferred probing or
->>      error
->>    arm64: dma-mapping: Remove the notifier trick to handle early setting
->>      of dma_ops
->>
->>   arch/arm64/mm/dma-mapping.c       | 132 ++++----------------------------------
->>   drivers/acpi/arm64/iort.c         |  40 +++++++++++-
->>   drivers/acpi/glue.c               |   5 --
->>   drivers/acpi/scan.c               |   7 +-
->>   drivers/base/dd.c                 |   9 +++
->>   drivers/base/dma-mapping.c        |  41 ++++++++++++
->>   drivers/iommu/arm-smmu-v3.c       |  46 +------------
->>   drivers/iommu/arm-smmu.c          |  58 +++--------------
->>   drivers/iommu/of_iommu.c          | 114 +++++++++++++++++++++++---------
->>   drivers/of/address.c              |  20 +++++-
->>   drivers/of/device.c               |  36 ++++++-----
->>   drivers/of/platform.c             |  10 +--
->>   drivers/pci/probe.c               |  28 --------
->>   include/acpi/acpi_bus.h           |   2 +-
->>   include/asm-generic/vmlinux.lds.h |   1 -
->>   include/linux/acpi.h              |   7 +-
->>   include/linux/acpi_iort.h         |   3 -
->>   include/linux/dma-mapping.h       |   3 +
->>   include/linux/of_device.h         |  10 ++-
->>   19 files changed, 252 insertions(+), 320 deletions(-)
->>
->
->Best regards
->--
->Marek Szyprowski, PhD
->Samsung R&D Institute Poland
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	M.
+-- 
+Jazz is not dead. It just smells funny...
