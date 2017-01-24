@@ -1,86 +1,54 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Tue, 24 Jan 2017 17:24:00 +0000
-Message-ID: <20170124172400.GG7572@leverpostej>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-9-fu.wei@linaro.org>
+From: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V7 05/10] acpi: apei: handle SEA notification type for
+ ARMv8
+Date: Tue, 24 Jan 2017 17:55:32 +0000
+Message-ID: <58879514.1020501@arm.com>
+References: <1484244924-24786-1-git-send-email-tbaicar@codeaurora.org> <1484244924-24786-6-git-send-email-tbaicar@codeaurora.org> <587F80A7.10008@arm.com> <3de443d7-2c68-f179-daae-bc8f851470b7@codeaurora.org> <5880FDFC.7060304@arm.com> <8b9d254a-5450-d841-baf7-5819a88043e4@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47742 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750859AbdAXRZG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 24 Jan 2017 12:25:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20170118132541.8989-9-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8b9d254a-5450-d841-baf7-5819a88043e4-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Suzuki.Po
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
+Hi Tyler,
+
+On 20/01/17 20:58, Baicar, Tyler wrote:
+> On 1/19/2017 10:57 AM, James Morse wrote:
+>> On 18/01/17 23:51, Baicar, Tyler wrote:
+>>> On 1/18/2017 7:50 AM, James Morse wrote:
+>>>> On 12/01/17 18:15, Tyler Baicar wrote:
+>>>>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+
+>> There are two other things that need changing to make the in_nmi() code path
+>> work on arm64.
+>> Always reserve the virtual-address-space forcing GHES_IOREMAP_PAGES to be 2
+>> regardless of CONFIG_HAVE_ACPI_APEI_NMI. This is almost revert of
+>> 594c7255dce7a13cac50cf2470cc56e2c3b0494e (but that did a few other things too).
+
+> Looks simple enough, should I force it to 2 in all cases, or add a check for
+> CONFIG_HAVE_ACPI_APEI_SEA
+> similar to the check for CONFIG_HAVE_ACPI_APEI_NMI?
+
+Its just address space not actual memory it is reserving right? I think just
+reserve two pages all the time to save eye-sore #ifdefs!
+
+
+>> We also need to fix ghes_ioremap_pfn_nmi() to use arch_apei_get_mem_attribute()
+>> and not assume PAGE_KERNEL.
+
+> So just change the call to ioremap_page_range to:
 > 
-> The counter frequency detection call(arch_timer_detect_rate) combines two
-> ways to get counter frequency: system coprocessor register and MMIO timer.
-> But in a specific timer init code, we only need one way to try:
-> getting frequency from MMIO timer register will be needed only when we
-> init MMIO timer; getting frequency from system coprocessor register will
-> be needed only when we init arch timer.
+> ioremap_page_range(vaddr, vaddr + PAGE_SIZE, pfn << PAGE_SHIFT,
+> arch_apei_get_mem_attribute());
 
-When I mentioned this splitting before, I had mean that we'd completely
-separate the two, with separate mmio_rate and sysreg_rate variables.
+(you need to give arch_apei_get_mem_attribute() the address...) copying whatever
+ghes_ioremap_pfn_irq() does a few lines down is probably best.
 
-The probing logic relying on this is complicated and fragile, and I
-think these patches are complicating that further (though I appreciate
-that's far from the intent).
-
-I believe we need to split the MMIO and sysreg timer code apart
-entirely. I've had a look at that today, though it's been fairly painful
-so far. It appears some platforms may inadvertently be relying on the
-order and manner in which the rates are probed, which is a major
-headache.
-
-I will try to attack that some more tomorrow.
-
-> This patch separates paths to determine frequency:
-> Separate out the MMIO frequency and the sysreg frequency detection call,
-> and use the appropriate one for the counter.
-> 
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> ---
->  drivers/clocksource/arm_arch_timer.c | 40 ++++++++++++++++++++++--------------
->  1 file changed, 25 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index 6484f84..9482481 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -488,23 +488,33 @@ static int arch_timer_starting_cpu(unsigned int cpu)
->  	return 0;
->  }
->  
-> -static void arch_timer_detect_rate(void __iomem *cntbase)
-> +static void __arch_timer_determine_rate(u32 rate)
->  {
-> -	/* Who has more than one independent system counter? */
-> -	if (arch_timer_rate)
-> -		return;
-> +	/* Check the timer frequency. */
-> +	if (!arch_timer_rate) {
-> +		if (rate)
-> +			arch_timer_rate = rate;
-> +		else
-> +			pr_warn("frequency not available\n");
-> +	} else if (rate && arch_timer_rate != rate) {
-> +		pr_warn("got different frequency, keep original.\n");
-> +	}
-> +}
-
-This function should be killed off entirely. We need to be able to fail
-the probe if we cannot determine the rate, and that means we need error
-handling in the ACPI and DT cases anyway.
 
 Thanks,
-Mark.
+
+James
