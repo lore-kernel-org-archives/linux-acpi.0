@@ -1,51 +1,103 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Cherryview wake up events
-Date: Tue, 24 Jan 2017 16:28:29 +0200
-Message-ID: <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
-References: <20160920211153.y7ntwwik2l6ppoqz@sig21.net> <20160921090614.GY1811@lahna.fi.intel.com>
- <20160921091635.tjnc2gvj75jixycv@sig21.net> <20160923081904.GM1218@lahna.fi.intel.com>
- <20161005124648.4fkl55q2i4qnug2x@sig21.net> <20161005130511.GM1765@lahna.fi.intel.com>
- <20161204185219.j45aabkpvptadmcx@sig21.net> <20161205110608.GF1459@lahna.fi.intel.com>
- <20170124094112.ssmpe6vl4iijsjh6@sig21.net> <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
- <20170124135250.d72silj6jlxh7zqk@sig21.net>
+From: Jarkko Nikula <jarkko.nikula@intel.com>
+Subject: Re: [PATCH v3 0/3] Init device ids from ACPI of_compatible
+Date: Tue, 24 Jan 2017 17:11:44 +0200
+Message-ID: <6ff3138c-ac16-d310-28b7-cee0b0e5f11c@intel.com>
+References: <cover.1468409668.git.leonard.crestez@intel.com>
+ <1485187737-22414-1-git-send-email-dan@emutex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:35160 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750996AbdAXO2a (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jan 2017 09:28:30 -0500
-In-Reply-To: <20170124135250.d72silj6jlxh7zqk@sig21.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1485187737-22414-1-git-send-email-dan@emutex.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan O'Donovan <dan@emutex.com>, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
 
-On Tue, Jan 24, 2017 at 3:52 PM, Johannes Stezenbach <js@sig21.net> wrote:
-> On Tue, Jan 24, 2017 at 01:14:16PM +0200, Andy Shevchenko wrote:
->> On Tue, Jan 24, 2017 at 11:41 AM, Johannes Stezenbach <js@sig21.net> wrote:
->> > Meanwhile I found out the TI PMIC and power button drivers
->> > has been published as part of the Asus ZenFone Zoom (ZX551ML)
->> > Android kernel code drop (based on linux-3.10.x):
->> >
->> > https://www.asus.com/support/Download/39/1/0/26/BXbNqJplzZiLmk6G/32/
->> >
->> > Please let me know if there is anything I could do
->> > to help get it mainlined soon.
->>
->> AFAIK ASuS Zenfone 2 (Intel based) series uses Intel Moorefield. It
->> has ShadyCove PMIC.
+On 01/23/2017 06:08 PM, Dan O'Donovan wrote:
+> (Re-submitting this patch set originally created by Leonard Crestez,
+> possibly abandoned by Leonard due to a change in employment)
 >
-> So Asus released more than they needed.  I confirmed their
-> source drop contains the TI Dollar Cove driver (dollar_cove_ti.c).
+> When using devicetree, stuff like i2c_client.name or spi_device.modalias
+> is initialized to the first DT compatible id with the vendor prefix
+> stripped. Since some drivers rely on this in order to differentiate between
+> hardware variants try to replicate it when using ACPI with DT ids.
+>
+> This also makes it so that the i2c_device_id parameter passed to probe is
+> non-NULL when matching with ACPI and DT ids.
+>
+> Tested using ACPI overlays but there is no actual dependency. This series
+> just extends the PRP0001 feature to be more useful for I2C/SPI.
+>
+> The patches only touches the ACPI-specific parts of the i2c and spi core.
+>
+> Here is an example .dsl for an SPI accelerometer connected to minnowboard max:
+>
+> Device (ACCL)
+> {
+>     Name (_ADR, Zero)
+>     Name (_HID, "PRP0001")
+>     Name (_UID, One)
+>
+>     Method (_CRS, 0, Serialized)
+>     {
+> 	Name (RBUF, ResourceTemplate ()
+> 	{
+> 	    SPISerialBus(1, PolarityLow, FourWireMode, 16,
+> 		    ControllerInitiated, 1000000, ClockPolarityLow,
+> 		    ClockPhaseFirst, "\\_SB.SPI1",)
+> 	    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
+> 		     "\\_SB.GPO2", 0x00, ResourceConsumer, , )
+> 	    { // Pin list
+> 		    1
+> 	    }
+> 	})
+> 	Return (RBUF)
+>     }
+>     Name (_DSD, Package ()
+>     {
+> 	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> 	Package ()
+> 	{
+> 	    Package () {"compatible", "st,lis3dh"},
+> 	}
+>     })
+> }
+>
+> Link to v2: https://lkml.org/lkml/2016/7/13/392
+> Changes:
+>  * Use appropriate subject prefix for each subsystem (Mark Brown)
+>  * Use ACPI info as before if getting OF info fails (Mark Brown)
+>  * Minor cosmetic/readability improvements (Rafael J. Wysocki)
+>
+> Link to v1: https://www.spinics.net/lists/linux-acpi/msg66469.html
+> Changes:
+>  * Rebase on after acpi overlays got it.
+>  * Change acpi_of_modalias outlen param to size_t
+>  * Use {} after else
+>
+> Crestez Dan Leonard (3):
+>   ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
+>   i2c: acpi: Initialize info.type from of_compatible
+>   spi: acpi: Initialize modalias from of_compatible
+>
+>  drivers/acpi/bus.c      | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/i2c/i2c-core.c  |  8 +++++++-
+>  drivers/spi/spi.c       | 10 +++++++++-
+>  include/acpi/acpi_bus.h |  1 +
+>  4 files changed, 52 insertions(+), 2 deletions(-)
+>
+After addressing comments from Andy
 
-They probably release just almost all One Big Ugly patch from official
-BSP, which by some reason, includes all Intel MID SoCs, Baytrail.
-I think I know how Dollar Cove related code ended up there. But that
-all stuff is a total mess.
+Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---------------------------------------------------------------------
+Intel Finland Oy
+Registered Address: PL 281, 00181 Helsinki 
+Business Identity Code: 0357606 - 4 
+Domiciled in Helsinki 
 
-> Anyway, let me know if I can help to get it into mainline soon.
-
--- 
-With Best Regards,
-Andy Shevchenko
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
