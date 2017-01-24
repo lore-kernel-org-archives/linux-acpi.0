@@ -1,47 +1,57 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPI/IORT: Fix error handling
-Date: Tue, 24 Jan 2017 09:26:37 +0800
-Message-ID: <09887257-491f-8f9c-58bb-ae6a361f856f@linaro.org>
-References: <20170123205008.10065-1-christophe.jaillet@wanadoo.fr>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v20 00/17] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Tue, 24 Jan 2017 13:11:17 +0800
+Message-ID: <CADyBb7tT2vWDUrzHV-+W8u8YUWwRTHziU9_ueZK0qkn=YZxHqw@mail.gmail.com>
+References: <20170118132541.8989-1-fu.wei@linaro.org> <20170123185418.GA961@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170123205008.10065-1-christophe.jaillet@wanadoo.fr>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170123185418.GA961@leverpostej>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Christophe,
+Hi Mark
 
-On 2017/1/24 4:50, Christophe JAILLET wrote:
-> If 'platform_device_alloc()' returns NULL, the current code returns
-> 0, which means success. Return -ENOMEM instead.
+On 24 January 2017 at 02:54, Mark Rutland <mark.rutland@arm.com> wrote:
+> Hi,
 >
-> Fixes: 846f0e9e74a0 ("ACPI/IORT: Add support for ARM SMMU platform devices creation")
+> On Wed, Jan 18, 2017 at 09:25:24PM +0800, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
+>>
+>> This patchset:
+>>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>>         1. Clean up printk() usage
+>>         2. Rename the type macros
+>>         3. Rename the PPI enum & enum values
+>>         4. Move the type macro and PPI enum into the header file
+>>         5. Add new enum for SPIs
+>>         6. Rework PPI determination;
 >
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> ---
->  drivers/acpi/arm64/iort.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e0d2e6e6e40c..655407ad112e 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -828,7 +828,7 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
->
->  	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
->  	if (!pdev)
-> -		return PTR_ERR(pdev);
-> +		return -ENOMEM;
->
->  	count = ops->iommu_count_resources(node);
+> I've taken these few patches onto a preliminary/unstable branch [1].
 
-Thanks for the fix, but Dan beats you to this fix [1] :)
+Many thanks for the good news!
 
-[1]: http://www.spinics.net/lists/linux-acpi/msg71383.html
+>
+> I haven't had the time to take a look at the rest of the series yet. I
+> intend to go over that tomorrow, picking what I can, and leaving
+> feedback for anything that will need rework.
 
-Thanks
-Hanjun
+Thanks, I will wait for your feedback, and improve this patchset ASAP.
+
+>
+> Thanks,
+> Mark.
+>
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git arch-timer/updates
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
