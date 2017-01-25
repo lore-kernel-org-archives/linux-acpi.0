@@ -1,25 +1,24 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH 2/7] ACPI / property: have acpi_get_next_subnode take
- fwnode_handle
-Date: Wed, 25 Jan 2017 19:00:27 +0800
-Message-ID: <201701251838.DerIgqFL%fengguang.wu@intel.com>
-References: <20170125000641.25520-3-furquan@chromium.org>
+Subject: Re: [PATCH 6/7] drivers/gpio: Add and export gpiod_lookup[_index]
+Date: Wed, 25 Jan 2017 19:18:36 +0800
+Message-ID: <201701251926.c7kGmtaR%fengguang.wu@intel.com>
+References: <20170125000641.25520-7-furquan@chromium.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="liOOAslEiF7prFVr"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170125000641.25520-3-furquan@chromium.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20170125000641.25520-7-furquan@chromium.org>
+Sender: linux-gpio-owner@vger.kernel.org
 To: Furquan Shaikh <furquan@chromium.org>
 Cc: kbuild-all@01.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.
 List-Id: linux-acpi@vger.kernel.org
 
 
---liOOAslEiF7prFVr
+--ikeVEW9yuYc//A+q
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hi Dmitry,
+Hi Furquan,
 
 [auto build test ERROR on regulator/for-next]
 [also build test ERROR on v4.10-rc5 next-20170125]
@@ -35,50 +34,41 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   In file included from drivers/acpi/property.c:16:0:
-   drivers/acpi/property.c: In function 'acpi_get_next_subnode':
->> drivers/acpi/property.c:840:27: error: 'dev' undeclared (first use in this function)
-        adev = ACPI_COMPANION(dev);
-                              ^
-   include/linux/acpi.h:54:51: note: in definition of macro 'ACPI_COMPANION'
-    #define ACPI_COMPANION(dev)  to_acpi_device_node((dev)->fwnode)
-                                                      ^~~
-   drivers/acpi/property.c:840:27: note: each undeclared identifier is reported only once for each function it appears in
-        adev = ACPI_COMPANION(dev);
-                              ^
-   include/linux/acpi.h:54:51: note: in definition of macro 'ACPI_COMPANION'
-    #define ACPI_COMPANION(dev)  to_acpi_device_node((dev)->fwnode)
-                                                      ^~~
+   drivers/gpio/gpiolib.c: In function 'gpiod_lookup_index':
+>> drivers/gpio/gpiolib.c:3221:44: error: 'flags' undeclared (first use in this function)
+       desc = acpi_find_gpio(dev, con_id, idx, flags, &lookupflags);
+                                               ^~~~~
+   drivers/gpio/gpiolib.c:3221:44: note: each undeclared identifier is reported only once for each function it appears in
 
-vim +/dev +840 drivers/acpi/property.c
+vim +/flags +3221 drivers/gpio/gpiolib.c
 
-504a3374 Rafael J. Wysocki 2015-08-27  834  
-504a3374 Rafael J. Wysocki 2015-08-27  835  		if (child) {
-504a3374 Rafael J. Wysocki 2015-08-27  836  			adev = to_acpi_device_node(child);
-504a3374 Rafael J. Wysocki 2015-08-27  837  			next = adev->node.next;
-504a3374 Rafael J. Wysocki 2015-08-27  838  			if (next == head) {
-504a3374 Rafael J. Wysocki 2015-08-27  839  				child = NULL;
-bf4703fd Irina Tirdea      2016-03-13 @840  				adev = ACPI_COMPANION(dev);
-504a3374 Rafael J. Wysocki 2015-08-27  841  				goto nondev;
-504a3374 Rafael J. Wysocki 2015-08-27  842  			}
-504a3374 Rafael J. Wysocki 2015-08-27  843  			adev = list_entry(next, struct acpi_device, node);
+bae48da23 Alexandre Courbot 2013-10-17  3215  		/* Using device tree? */
+4d8440b93 Rafael J. Wysocki 2015-03-10  3216  		if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+bae48da23 Alexandre Courbot 2013-10-17  3217  			dev_dbg(dev, "using device tree for GPIO lookup\n");
+39b2bbe3d Alexandre Courbot 2014-07-25  3218  			desc = of_find_gpio(dev, con_id, idx, &lookupflags);
+4d8440b93 Rafael J. Wysocki 2015-03-10  3219  		} else if (ACPI_COMPANION(dev)) {
+81f59e9d1 Mika Westerberg   2013-10-10  3220  			dev_dbg(dev, "using ACPI for GPIO lookup\n");
+25487533f Dmitry Torokhov   2016-03-24 @3221  			desc = acpi_find_gpio(dev, con_id, idx, flags, &lookupflags);
+35c5d7fdc Alexandre Courbot 2013-11-23  3222  		}
+4d8440b93 Rafael J. Wysocki 2015-03-10  3223  	}
+35c5d7fdc Alexandre Courbot 2013-11-23  3224  
 
-:::::: The code at line 840 was first introduced by commit
-:::::: bf4703fdd166fffd5b2e4c42d2ebbf708b94748e ACPI / property: fix data node parsing in acpi_get_next_subnode()
+:::::: The code at line 3221 was first introduced by commit
+:::::: 25487533ff311014b0cc39ed7fd721c114e1b11f gpio / ACPI: ignore GpioInt() GPIOs when requesting GPIO_OUT_*
 
-:::::: TO: Irina Tirdea <irina.tirdea@intel.com>
-:::::: CC: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+:::::: TO: Dmitry Torokhov <dtor@chromium.org>
+:::::: CC: Linus Walleij <linus.walleij@linaro.org>
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---liOOAslEiF7prFVr
+--ikeVEW9yuYc//A+q
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICE2BiFgAAy5jb25maWcAjFxLc+S2rt7nV3Qld3HOIhm/5nHqlhdsimoxLYkakmq7vVE5
+H4sICKmHiFgAAy5jb25maWcAjFxLc+S2rt7nV3Qld3HOIhm/5nHqlhdsimoxLYkakmq7vVE5
 dk/iiseeY7fz+PcXIKUWSUGdm0XGAkASIkHgA0j1D9/9sGBv++evt/uHu9vHx78Xv+6edi+3
 +9394svD4+5/F5la1MouRCbtTyBcPjy9/fXu4fzTh8XFT//56WSx3r087R4X/Pnpy8Ovb9Dy
 4fnpux9Akqs6l6vuw8VS2sXD6+Lpeb943e2/6+nXnz5052eXfwfP44OsjdUtt1LVXSa4yoQe
@@ -632,4 +622,4 @@ iQEqNnVK5z9uadALiJqoFr0Kvtp9ciz1Xeeb9WNM7DnCdlhydLrLk9xQEXUoGkaXHhTUeAE1
 MqBRedvlbWghaREbmRbhRxSaV2noWZb4InBj+IacOjn23LjCwWGxti56FF7SNPJyZ0DKIQp5
 IT0T/g8U2xQH2MsBAA==
 
---liOOAslEiF7prFVr--
+--ikeVEW9yuYc//A+q--
