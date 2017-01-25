@@ -1,98 +1,60 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Wed, 25 Jan 2017 10:38:01 -0500
-Message-ID: <e62c6f73-16e0-2764-126f-b8ed6adc3489@codeaurora.org>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-9-fu.wei@linaro.org> <20170124172400.GG7572@leverpostej>
- <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
+From: Furquan Shaikh <furquan@chromium.org>
+Subject: Re: [PATCH 0/7] Implement generic regulator constraints parsing for
+ ACPI and OF
+Date: Wed, 25 Jan 2017 08:56:42 -0800
+Message-ID: <CAEGmHFG1d24k3+qT_aoqRmPFzciAbNObCnzY1d8pQWjEW+3HxA@mail.gmail.com>
+References: <20170125000641.25520-1-furquan@chromium.org> <20170125124911.dxveow7bo3zw5jcc@sirena.org.uk>
+ <CAJZ5v0hHSadH1KLOGg029VU2qrY900ak0=NnH5HPBKZ=FpB7HQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:32774 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750980AbdAYPiQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jan 2017 10:38:16 -0500
-In-Reply-To: <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0hHSadH1KLOGg029VU2qrY900ak0=NnH5HPBKZ=FpB7HQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei Huang <wei@redhat.com>, Arnd Bergmann <arnd@a>
 
-Hi Fu,
+On Wed, Jan 25, 2017 at 4:55 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Wed, Jan 25, 2017 at 1:49 PM, Mark Brown <broonie@kernel.org> wrote:
+> > On Tue, Jan 24, 2017 at 04:06:34PM -0800, Furquan Shaikh wrote:
+> >
+> >> Since regulator properties remain the same across OF and ACPI
+> >> regulators, this series of patches provides common routine for
+> >> obtaining regulation constraints from device tree and ACPI nodes. In
+> >
+> > As Lorenzo explained this is really not a good idea, ACPI has a power
+> > management model which is just being ignored here.  If you're producing
+> > systems using ACPI you really need to use ACPI in a joined up fashion
+> > rather than just blindly importing all DT bindings into ACPI.  While
+> > there are many areas where ACPI just doesn't do anything and as a result
+> > it does make sense to reuse existing DT bindings there are also plenty
+> > of areas where work has been done on the ACPI side.  Regulators and
+> > power management are definitely one of those areas.
+>
+> This is exactly right. :-)
+>
+> Thanks,
+> Rafael
 
-On 01/25/2017 01:46 AM, Fu Wei wrote:
-> Hi Mark,
-> 
-> On 25 January 2017 at 01:24, Mark Rutland <mark.rutland@arm.com> wrote:
->> On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
->>> From: Fu Wei <fu.wei@linaro.org>
->>>
->>> The counter frequency detection call(arch_timer_detect_rate) combines two
->>> ways to get counter frequency: system coprocessor register and MMIO timer.
->>> But in a specific timer init code, we only need one way to try:
->>> getting frequency from MMIO timer register will be needed only when we
->>> init MMIO timer; getting frequency from system coprocessor register will
->>> be needed only when we init arch timer.
->>
->> When I mentioned this splitting before, I had mean that we'd completely
->> separate the two, with separate mmio_rate and sysreg_rate variables.
-> 
-> sorry for misunderstanding.
-> 
-> Are you saying :
-> 
-> diff --git a/drivers/clocksource/arm_arch_timer.c
-> b/drivers/clocksource/arm_arch_timer.c
-> index 663a57a..eec92f6 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -65,7 +65,8 @@ struct arch_timer {
-> 
->  #define to_arch_timer(e) container_of(e, struct arch_timer, evt)
-> 
-> -static u32 arch_timer_rate;
-> +static u32 arch_timer_sysreg_rate ;
-> +static u32 arch_timer_mmio_rate;
->  static int arch_timer_ppi[ARCH_TIMER_MAX_TIMER_PPI];
-> 
->  static struct clock_event_device __percpu *arch_timer_evt;
-> 
-> 
-> But what have I learned From ARMv8 ARM is
-> AArch64 System register CNTFRQ_EL0 is provided so that software can
-> discover the frequency of the system counter.
-> CNTFRQ(in CNTCTLBase and CNTBaseN) is provided so that software can
-> discover the frequency of the system counter.
-> The bit assignments of the registers are identical in the System
-> register interface and in the memory-mapped system level interface.
-> So I think they both contain the same value : the frequency of the
-> system counter, just in different view, and can be accessed in
-> different ways.
-> 
-> So do we really need to separate mmio_rate and sysreg_rate variables?
-> 
-> And for CNTFRQ(in CNTCTLBase and CNTBaseN) , we can NOT access it in
-> Linux kernel (EL1),
-> Because ARMv8 ARM says:
-> In a system that implements both Secure and Non-secure states, this
-> register is only accessible by Secure accesses.
-> That means we still need to get the frequency of the system counter
-> from CNTFRQ_EL0 in MMIO timer code.
-> This have been proved when I tested this driver on foundation model, I
-> got "0" when I access CNTFRQ from Linux kernel (Non-secure EL1)
+I understand that ACPI provides its own bindings to allow firmware to
+control power management and thus regulators have been a part of the
+firmware control. However, there are use cases where the kernel driver
+wishes to control the regulator to manage power to the device
+irrespective of the way regulator is passed in (ACPI/OF).
 
-That sounds like a firmware problem. Firmware in EL3 is supposed to write
-the value into CNTFRQ. If you're not currently using any firmware, I'd
-recommend the bootwrapper on models/simulators/emulators.
+That is the reason why the recent change to add ACPI support to fixed
+regulators was done
+(https://github.com/torvalds/linux/blob/master/drivers/regulator/fixed.c#L100).
+It needs regulators for USB driver. Similarly, other drivers like ELAN
+touchscreen that plan to control power to the device in a generic way
+irrespective of OF/ACPI need to control regulators in kernel itself.
+The above change for adding ACPI support to fixed regulators is
+currently parsing only limited parameters and also does not work the
+same way for ACPI and OF, though it ends to introduce the regulators
+in a way similar to OF.
 
-http://git.kernel.org/cgit/linux/kernel/git/mark/boot-wrapper-aarch64.git/tree/arch/aarch64/boot.S#n48
-
-Cheers,
-Cov
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc. Qualcomm Technologies, Inc. is a member of the Code
-Aurora Forum, a Linux Foundation Collaborative Project.
+We need to support existing drivers and use cases for power management
+in both OF and ACPI environments (keeping in mind that suspend to idle
+bypasses parts of firmware) without needing to change all the drivers.
+How can we achieve this?
