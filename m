@@ -1,95 +1,65 @@
-From: Furquan Shaikh <furquan@chromium.org>
-Subject: [PATCH 2/7] ACPI / property: have acpi_get_next_subnode take fwnode_handle
-Date: Tue, 24 Jan 2017 16:06:36 -0800
-Message-ID: <20170125000641.25520-3-furquan@chromium.org>
-References: <20170125000641.25520-1-furquan@chromium.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:34156 "EHLO
-        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751071AbdAYAGz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jan 2017 19:06:55 -0500
-Received: by mail-pf0-f172.google.com with SMTP id e4so53281951pfg.1
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Jan 2017 16:06:55 -0800 (PST)
-In-Reply-To: <20170125000641.25520-1-furquan@chromium.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V7 00/11] IOMMU probe deferral support
+Date: Wed, 25 Jan 2017 12:33:18 +0800
+Message-ID: <dc2a024b-2378-3a67-f098-8f2b42982766@linaro.org>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1485188293-20263-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Dmitry Torokhov <dtor@chromium.org>, Furquan Shaikh <furquan@>
 
-From: Dmitry Torokhov <dtor@chromium.org>
+On 2017/1/24 0:18, Sricharan R wrote:
+> This series calls the dma ops configuration for the devices
+> at a generic place so that it works for all busses.
+> The dma_configure_ops for a device is now called during
+> the device_attach callback just before the probe of the
+> bus/driver is called. Similarly dma_deconfigure is called during
+> device/driver_detach path.
+>
+> pci_bus_add_devices    (platform/amba)(_device_create/driver_register)
+>        |                         |
+> pci_bus_add_device     (device_add/driver_register)
+>        |                         |
+> device_attach           device_initial_probe
+>        |                         |
+> __device_attach_driver    __device_attach_driver
+>        |
+> driver_probe_device
+>        |
+> really_probe
+>        |
+> dma_configure
+>
+> Similarly on the device/driver_unregister path __device_release_driver is
+> called which inturn calls dma_deconfigure.
+>
+> Took the reworked patches [2] from Robin's branch and
+> rebased on top of Lorenzo's ACPI IORT ARM support series [3].
+>
+> * Tested with platform and pci devices for probe deferral
+>   and reprobe on arm64 based platform.
+> * Need help for testing with ACPI.
 
-In preparation to introducing fwnode_for_each_chil() iterator we need
-acpi_get_next_subnode take fwnode_handle argument instead of dev.
+Cherry picked this patch set with no conflict with my platform
+msi patches, and test it on Hisilicon D03 (ARM64 platform with
+SMMUv3) with ACPI, it boots ok as before and the native NIC and
+SAS (platform devices) are working properly.
 
-Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
-Signed-off-by: Furquan Shaikh <furquan@chromium.org>
----
- drivers/acpi/property.c | 8 +++++---
- drivers/base/property.c | 2 +-
- include/linux/acpi.h    | 5 +++--
- 3 files changed, 9 insertions(+), 6 deletions(-)
+for ACPI and the core code changes:
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 3afddcd834ef..b87e822e3a51 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -866,15 +866,17 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
- 
- /**
-  * acpi_get_next_subnode - Return the next child node handle for a device.
-- * @dev: Device to find the next child node for.
-+ * @node: node to find the next child node for. Must be ACPI device node,
-+ *	not data node.
-  * @child: Handle to one of the device's child nodes or a null handle.
-  */
--struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
-+struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *node,
- 					    struct fwnode_handle *child)
- {
--	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	struct acpi_device *adev;
- 	struct list_head *head, *next;
- 
-+	adev = to_acpi_device_node(node);
- 	if (!adev)
- 		return NULL;
- 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 43a36d68c3fd..f2f8220534c4 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -881,7 +881,7 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
- 		if (node)
- 			return &node->fwnode;
- 	} else if (IS_ENABLED(CONFIG_ACPI)) {
--		return acpi_get_next_subnode(dev, child);
-+		return acpi_get_next_subnode(dev->fwnode, child);
- 	}
- 	return NULL;
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 5b36974ed60a..0331a9dbe4f2 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -999,7 +999,7 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode, const char *propname,
- int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
- 		       enum dev_prop_type proptype, void *val, size_t nval);
- 
--struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
-+struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *node,
- 					    struct fwnode_handle *subnode);
- 
- struct acpi_probe_entry;
-@@ -1117,7 +1117,8 @@ static inline int acpi_dev_prop_read(struct acpi_device *adev,
- 	return -ENXIO;
- }
- 
--static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
-+static inline struct fwnode_handle *acpi_get_next_subnode(
-+						struct fwnode_handle *node,
- 						struct fwnode_handle *subnode)
- {
- 	return NULL;
--- 
-2.11.0.483.g087da7b7c-goog
+Tested-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
+Thanks
+Hanjun
