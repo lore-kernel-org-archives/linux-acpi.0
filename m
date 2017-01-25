@@ -1,56 +1,180 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Wed, 25 Jan 2017 17:36:11 +0000
-Message-ID: <20170125173516.GA25470@leverpostej>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-9-fu.wei@linaro.org>
- <20170124172400.GG7572@leverpostej>
- <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
- <e62c6f73-16e0-2764-126f-b8ed6adc3489@codeaurora.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V7 01/11] iommu/of: Refactor of_iommu_configure() for
+ error handling
+Date: Wed, 25 Jan 2017 19:13:20 +0100
+Message-ID: <b350f6d3-dd33-10c4-94ae-a3a7ba5e938a@semihalf.com>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+ <1485188293-20263-2-git-send-email-sricharan@codeaurora.org>
+ <4388779a-0e83-fadc-83f4-98c46c88d42e@semihalf.com>
+ <c7bad124-d9f2-0ddf-168f-0b1950d3e1ed@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <e62c6f73-16e0-2764-126f-b8ed6adc3489@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Fu Wei <fu.wei@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>Wei Huang <we>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <c7bad124-d9f2-0ddf-168f-0b1950d3e1ed@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, Sricharan R <sricharan@codeaurora.org>, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 25, 2017 at 10:38:01AM -0500, Christopher Covington wrote:
-> On 01/25/2017 01:46 AM, Fu Wei wrote:
-> > On 25 January 2017 at 01:24, Mark Rutland <mark.rutland@arm.com> wrote:
-> >> On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
-> >>> From: Fu Wei <fu.wei@linaro.org>
+Hi Robin,
 
-> > And for CNTFRQ(in CNTCTLBase and CNTBaseN) , we can NOT access it in
-> > Linux kernel (EL1),
-> > Because ARMv8 ARM says:
-> > In a system that implements both Secure and Non-secure states, this
-> > register is only accessible by Secure accesses.
-> > That means we still need to get the frequency of the system counter
-> > from CNTFRQ_EL0 in MMIO timer code.
-> > This have been proved when I tested this driver on foundation model, I
-> > got "0" when I access CNTFRQ from Linux kernel (Non-secure EL1)
-> 
-> That sounds like a firmware problem. Firmware in EL3 is supposed to write
-> the value into CNTFRQ.
+On 25.01.2017 18:35, Robin Murphy wrote:
+> Hi Tomasz,
+>
+> On 25/01/17 17:17, Tomasz Nowicki wrote:
+>> Hi Sricharan,
+>>
+>> On 23.01.2017 17:18, Sricharan R wrote:
+>>> From: Robin Murphy <robin.murphy@arm.com>
+>>>
+>>> In preparation for some upcoming cleverness, rework the control flow in
+>>> of_iommu_configure() to minimise duplication and improve the propogation
+>>> of errors. It's also as good a time as any to switch over from the
+>>> now-just-a-compatibility-wrapper of_iommu_get_ops() to using the generic
+>>> IOMMU instance interface directly.
+>>>
+>>> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+>>> ---
+>>>  drivers/iommu/of_iommu.c | 83
+>>> +++++++++++++++++++++++++++++++-----------------
+>>>  1 file changed, 53 insertions(+), 30 deletions(-)
+>>>
+>>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+>>> index 0f57ddc..ee49081 100644
+>>> --- a/drivers/iommu/of_iommu.c
+>>> +++ b/drivers/iommu/of_iommu.c
+>>> @@ -96,6 +96,28 @@ int of_get_dma_window(struct device_node *dn, const
+>>> char *prefix, int index,
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(of_get_dma_window);
+>>>
+>>> +static const struct iommu_ops
+>>> +*of_iommu_xlate(struct device *dev, struct of_phandle_args *iommu_spec)
+>>> +{
+>>> +    const struct iommu_ops *ops;
+>>> +    struct fwnode_handle *fwnode = &iommu_spec->np->fwnode;
+>>> +    int err;
+>>> +
+>>> +    ops = iommu_get_instance(fwnode);
+>>> +    if (!ops || !ops->of_xlate)
+>>> +        return NULL;
+>>> +
+>>> +    err = iommu_fwspec_init(dev, &iommu_spec->np->fwnode, ops);
+>>> +    if (err)
+>>> +        return ERR_PTR(err);
+>>> +
+>>> +    err = ops->of_xlate(dev, iommu_spec);
+>>> +    if (err)
+>>> +        return ERR_PTR(err);
+>>> +
+>>> +    return ops;
+>>> +}
+>>> +
+>>>  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>>>  {
+>>>      struct of_phandle_args *iommu_spec = data;
+>>> @@ -105,10 +127,11 @@ static int __get_pci_rid(struct pci_dev *pdev,
+>>> u16 alias, void *data)
+>>>  }
+>>>
+>>>  static const struct iommu_ops
+>>> -*of_pci_iommu_configure(struct pci_dev *pdev, struct device_node
+>>> *bridge_np)
+>>> +*of_pci_iommu_init(struct pci_dev *pdev, struct device_node *bridge_np)
+>>>  {
+>>>      const struct iommu_ops *ops;
+>>>      struct of_phandle_args iommu_spec;
+>>> +    int err;
+>>>
+>>>      /*
+>>>       * Start by tracing the RID alias down the PCI topology as
+>>> @@ -123,56 +146,56 @@ static int __get_pci_rid(struct pci_dev *pdev,
+>>> u16 alias, void *data)
+>>>       * bus into the system beyond, and which IOMMU it ends up at.
+>>>       */
+>>>      iommu_spec.np = NULL;
+>>> -    if (of_pci_map_rid(bridge_np, iommu_spec.args[0], "iommu-map",
+>>> -               "iommu-map-mask", &iommu_spec.np, iommu_spec.args))
+>>> -        return NULL;
+>>> +    err = of_pci_map_rid(bridge_np, iommu_spec.args[0], "iommu-map",
+>>> +                 "iommu-map-mask", &iommu_spec.np,
+>>> +                 iommu_spec.args);
+>>> +    if (err)
+>>> +        return ERR_PTR(err);
+>>>
+>>> -    ops = of_iommu_get_ops(iommu_spec.np);
+>>> -    if (!ops || !ops->of_xlate ||
+>>> -        iommu_fwspec_init(&pdev->dev, &iommu_spec.np->fwnode, ops) ||
+>>> -        ops->of_xlate(&pdev->dev, &iommu_spec))
+>>> -        ops = NULL;
+>>> +    ops = of_iommu_xlate(&pdev->dev, &iommu_spec);
+>>>
+>>>      of_node_put(iommu_spec.np);
+>>>      return ops;
+>>>  }
+>>>
+>>> -const struct iommu_ops *of_iommu_configure(struct device *dev,
+>>> -                       struct device_node *master_np)
+>>> +static const struct iommu_ops
+>>> +*of_platform_iommu_init(struct device *dev, struct device_node *np)
+>>>  {
+>>>      struct of_phandle_args iommu_spec;
+>>> -    struct device_node *np;
+>>>      const struct iommu_ops *ops = NULL;
+>>>      int idx = 0;
+>>>
+>>> -    if (dev_is_pci(dev))
+>>> -        return of_pci_iommu_configure(to_pci_dev(dev), master_np);
+>>> -
+>>>      /*
+>>>       * We don't currently walk up the tree looking for a parent IOMMU.
+>>>       * See the `Notes:' section of
+>>>       * Documentation/devicetree/bindings/iommu/iommu.txt
+>>>       */
+>>> -    while (!of_parse_phandle_with_args(master_np, "iommus",
+>>> -                       "#iommu-cells", idx,
+>>> -                       &iommu_spec)) {
+>>> -        np = iommu_spec.np;
+>>> -        ops = of_iommu_get_ops(np);
+>>> -
+>>> -        if (!ops || !ops->of_xlate ||
+>>> -            iommu_fwspec_init(dev, &np->fwnode, ops) ||
+>>> -            ops->of_xlate(dev, &iommu_spec))
+>>> -            goto err_put_node;
+>>> -
+>>> -        of_node_put(np);
+>>> +    while (!of_parse_phandle_with_args(np, "iommus", "#iommu-cells",
+>>> +                       idx, &iommu_spec)) {
+>>> +        ops = of_iommu_xlate(dev, &iommu_spec);
+>>> +        of_node_put(iommu_spec.np);
+>>>          idx++;
+>>> +        if (IS_ERR_OR_NULL(ops))
+>>> +            break;
+>>>      }
+>>>
+>>>      return ops;
+>>> +}
+>>> +
+>>> +const struct iommu_ops *of_iommu_configure(struct device *dev,
+>>> +                       struct device_node *master_np)
+>>> +{
+>>> +    const struct iommu_ops *ops;
+>>> +
+>>> +    if (!master_np)
+>>> +        return NULL;
+>>> +
+>>> +    if (dev_is_pci(dev))
+>>> +        ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
+>> I gave the whole patch set a try on ThunderX. really_probe() is failing
+>> on dma_configure()->of_pci_iommu_init() for each PCI device.
+> When you say "failing", do you mean cleanly, or with a crash? I've
+> managed to hit __of_match_node() dereferencing NULL from
+> of_iommu_xlate() in a horribly complicated chain of events, which I'm
+> trying to figure out now, and I wonder if the two might be related.
+>
 
-Definitely. FW *should* program the CNTFRQ_EL0 CPU registers and any
-MMIO CNTFRQ registers.
-
-> If you're not currently using any firmware, I'd
-> recommend the bootwrapper on models/simulators/emulators.
-> 
-> http://git.kernel.org/cgit/linux/kernel/git/mark/boot-wrapper-aarch64.git/tree/arch/aarch64/boot.S#n48
-
-Unfortunately, the boot-wrapper only programs the CNTFRQ_EL0 CPU system
-registers, and does not program any MMIO CNTFRQ registers.
-
-IIRC the models it was originally written for didn't have any (and we
-had no DT binding until far later...). Luckily the model DTs do not
-expose any MMIO timer addresses to the kernel currently.
+Cleanly, of_pci_iommu_init()->of_pci_map_rid() can't find "iommu-map" 
+property for my case. Probably not related to your crash.
 
 Thanks,
-Mark.
+Tomasz
