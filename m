@@ -1,80 +1,168 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Thu, 26 Jan 2017 13:55:53 +0800
-Message-ID: <CADyBb7sL0-CW=xiHyCEv7vxGz0cjfCGSkt6-XvAOC6ZGuY3_CQ@mail.gmail.com>
-References: <20170118132541.8989-1-fu.wei@linaro.org> <20170118132541.8989-9-fu.wei@linaro.org>
- <20170124172400.GG7572@leverpostej> <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
- <e62c6f73-16e0-2764-126f-b8ed6adc3489@codeaurora.org> <20170125173516.GA25470@leverpostej>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V11 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Thu, 26 Jan 2017 10:15:21 +0000
+Message-ID: <20170126101521.GA10324@red-moon>
+References: <1484879660-1960-1-git-send-email-agustinv@codeaurora.org>
+ <1484879660-1960-3-git-send-email-agustinv@codeaurora.org>
+ <CAHp75VeYxfuMuaZCMk+MYdxLTs7cCa6j6M7Ot3XnwMmeHP7kBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170125173516.GA25470@leverpostej>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeYxfuMuaZCMk+MYdxLTs7cCa6j6M7Ot3XnwMmeHP7kBA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Agustin Vega-Frias <agustinv@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, msalter@redhat.com, mlangsdo@redhat.com, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, guohanjun@huawei.com, Charles Garcia-Tobin <charles.garc>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark, Christopher,
+On Thu, Jan 26, 2017 at 03:01:18AM +0200, Andy Shevchenko wrote:
+> On Fri, Jan 20, 2017 at 4:34 AM, Agustin Vega-Frias
+> <agustinv@codeaurora.org> wrote:
+> > ACPI extended IRQ resources may contain a ResourceSource to specify
+> > an alternate interrupt controller. Introduce acpi_irq_get and use it
+> > to implement ResourceSource/IRQ domain mapping.
+> >
+> > The new API is similar to of_irq_get and allows re-initialization
+> > of a platform resource from the ACPI extended IRQ resource, and
+> > provides proper behavior for probe deferral when the domain is not
+> > yet present when called.
+> 
+> > +static struct fwnode_handle *
+> > +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
+> > +{
+> > +       struct fwnode_handle *result = NULL;
+> > +       struct acpi_device *device;
+> > +       struct acpi_hardware_id *hwid;
+> > +       struct acpi_device_id *devid;
+> > +       acpi_handle handle;
+> > +       acpi_status status;
+> > +
+> > +       if (!source->string_length)
+> > +               return acpi_gsi_domain_id;
+> > +
+> > +       status = acpi_get_handle(NULL, source->string_ptr, &handle);
+> > +       if (WARN_ON(ACPI_FAILURE(status)))
+> > +               return NULL;
+> > +
+> > +       device = acpi_bus_get_acpi_device(handle);
+> > +       if (WARN_ON(!device))
+> > +               return NULL;
+> > +
+> 
+> > +       list_for_each_entry(hwid, &device->pnp.ids, list) {
+> 
+> > +               for (devid = &__dsdt_irqchip_acpi_probe_table;
+> > +                    devid < &__dsdt_irqchip_acpi_probe_table_end; devid++) {
+> > +                       if (devid->id && !strcmp(devid->id, hwid->id)) {
+> > +                               result = &device->fwnode;
+> > +                               break;
+> > +                       }
+> > +               }
+> 
+> Looks like a candidate for linker table API. (I recommend to Cc Luis
+> for this part)
 
-On 26 January 2017 at 01:36, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Wed, Jan 25, 2017 at 10:38:01AM -0500, Christopher Covington wrote:
->> On 01/25/2017 01:46 AM, Fu Wei wrote:
->> > On 25 January 2017 at 01:24, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
->> >> On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> >>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->
->> > And for CNTFRQ(in CNTCTLBase and CNTBaseN) , we can NOT access it in
->> > Linux kernel (EL1),
->> > Because ARMv8 ARM says:
->> > In a system that implements both Secure and Non-secure states, this
->> > register is only accessible by Secure accesses.
->> > That means we still need to get the frequency of the system counter
->> > from CNTFRQ_EL0 in MMIO timer code.
->> > This have been proved when I tested this driver on foundation model, I
->> > got "0" when I access CNTFRQ from Linux kernel (Non-secure EL1)
->>
->> That sounds like a firmware problem. Firmware in EL3 is supposed to write
->> the value into CNTFRQ.
->
-> Definitely. FW *should* program the CNTFRQ_EL0 CPU registers and any
-> MMIO CNTFRQ registers.
+This linker table entry scheme is just an optimization and should
+not gate the series.
 
-Many thanks for the explanation. This might be the problem. Maybe we
-can check the UEFI :-)
+> > +       }
+> 
+> > +/**
+> > + * acpi_irq_parse_one_match - Handle a matching IRQ resource.
+> > + * @fwnode: matching fwnode
+> > + * @hwirq: hardware IRQ number
+> > + * @triggering: triggering attributes of hwirq
+> > + * @polarity: polarity attributes of hwirq
+> > + * @polarity: polarity attributes of hwirq
+> > + * @shareable: shareable attributes of hwirq
+> > + * @ctx: acpi_irq_parse_one_ctx updated by this function
+> > + *
+> > + * Description:
+> > + * Handle a matching IRQ resource by populating the given ctx with
+> > + * the information passed.
+> > + */
+> > +static inline void acpi_irq_parse_one_match(struct fwnode_handle *fwnode,
+> > +                                           u32 hwirq, u8 triggering,
+> > +                                           u8 polarity, u8 shareable,
+> > +                                           struct acpi_irq_parse_one_ctx *ctx)
+> > +{
+> 
+> > +       if (!fwnode)
+> > +               return;
+> 
+> > +       ctx->rc = 0;
+> 
+> Perhaps ctx->rc = fwnode ? 0 : -EINVAL; ?
+> 
+> > +       *ctx->res_flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+> > +       ctx->fwspec->fwnode = fwnode;
+> > +       ctx->fwspec->param[0] = hwirq;
+> > +       ctx->fwspec->param[1] = acpi_dev_get_irq_type(triggering, polarity);
+> > +       ctx->fwspec->param_count = 2;
+> > +}
+> 
+> > +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
+> > +{
+> > +       struct irq_fwspec fwspec;
+> > +       struct irq_domain *domain;
+> > +       unsigned long flags;
+> > +       int rc;
+> > +
+> > +       rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
+> > +       if (rc)
+> > +               return rc;
+> > +
+> > +       domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
+> > +       if (!domain)
+> > +               return -EPROBE_DEFER;
+> > +
+> > +       rc = irq_create_fwspec_mapping(&fwspec);
+> > +       if (rc <= 0)
+> 
+> Is rc = 0 an error?
 
->
->> If you're not currently using any firmware, I'd
->> recommend the bootwrapper on models/simulators/emulators.
->>
->> http://git.kernel.org/cgit/linux/kernel/git/mark/boot-wrapper-aarch64.git/tree/arch/aarch64/boot.S#n48
->
-> Unfortunately, the boot-wrapper only programs the CNTFRQ_EL0 CPU system
-> registers, and does not program any MMIO CNTFRQ registers.
->
-> IIRC the models it was originally written for didn't have any (and we
-> had no DT binding until far later...). Luckily the model DTs do not
-> expose any MMIO timer addresses to the kernel currently.
+Yes.
 
-But according to another document(ARMv8-A Foundation Platform User
-Guide  ARM DUI0677K), Table 3-2 ARMv8-A Foundation Platform memory
-map,
-we may have two frames in the Generic timer block, right?
+> > +               return -EINVAL;
+> > +
+> > +       res->start = rc;
+> > +       res->end = rc;
+> > +       res->flags = flags;
+> > +
+> > +       return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(acpi_irq_get);
+> 
+> > --- a/drivers/base/platform.c
+> > +++ b/drivers/base/platform.c
+> > @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+> 
+> >         r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+> > +       if (r && r->flags & IORESOURCE_DISABLED && has_acpi_companion(&dev->dev)) {
+> > +               int ret;
+> > +
+> > +               ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+> > +               if (ret)
+> > +                       return ret;
+> > +       }
+> 
+> > +#ifdef CONFIG_ACPI_GENERIC_GSI
+> 
+> #if IS_ENABLED()
+> 
+> > +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
+> > +#else
+> > +static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
+> > +                              struct resource *res)
+> 
+> Perhaps
+> 
+> static inline
+> int ...
 
+It is late -rc5 and notwithstanding cosmetics changes, can we make
+progress with this patch series or not please ?
 
->
-> Thanks,
-> Mark.
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Lorenzo
