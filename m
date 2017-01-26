@@ -1,42 +1,49 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Cherryview wake up events
-Date: Fri, 27 Jan 2017 00:56:53 +0200
-Message-ID: <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
-References: <20160921091635.tjnc2gvj75jixycv@sig21.net> <20160923081904.GM1218@lahna.fi.intel.com>
- <20161005124648.4fkl55q2i4qnug2x@sig21.net> <20161005130511.GM1765@lahna.fi.intel.com>
- <20161204185219.j45aabkpvptadmcx@sig21.net> <20161205110608.GF1459@lahna.fi.intel.com>
- <20170124094112.ssmpe6vl4iijsjh6@sig21.net> <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
- <20170124135250.d72silj6jlxh7zqk@sig21.net> <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
- <20170124192314.gw6njffcgwyfm2gp@sig21.net>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
+ (possibly badly bisected)
+Date: Fri, 27 Jan 2017 00:07:27 +0100
+Message-ID: <CAJZ5v0hYwyV+j+38rdqo81x0p5jWyLzHijYFY5RmnODzRUK0qg@mail.gmail.com>
+References: <1484927552.21721.17.camel@hadess.net> <1485443735.5845.30.camel@hadess.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170124192314.gw6njffcgwyfm2gp@sig21.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:35860 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752130AbdAZXIG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 18:08:06 -0500
+In-Reply-To: <1485443735.5845.30.camel@hadess.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bastien Nocera <hadess@hadess.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 
-On Tue, Jan 24, 2017 at 9:23 PM, Johannes Stezenbach <js@sig21.net> wrote:
-> On Tue, Jan 24, 2017 at 04:28:29PM +0200, Andy Shevchenko wrote:
->> They probably release just almost all One Big Ugly patch from official
->> BSP, which by some reason, includes all Intel MID SoCs, Baytrail.
->> I think I know how Dollar Cove related code ended up there. But that
->> all stuff is a total mess.
+On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@hadess.net> wrote:
+> On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
+>> Hey,
+>>
+>> TLDR:
+>> # first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7] Merge
+>> back earlier ACPI PM material for v4.3.
+>>
+>> hid-sensor-hub devices only start sending events through the IIO
+>> trigger after a suspend/resume cycle.
+>>
+>> Other IIO drivers don't seem to exhibit those problems.
+>
+> I had another go, trying to break into the merge commit, and it's
+> slightly more precise, but still doesn't make any sense to me.
+>
+> # first bad commit: [3431e490b50356b56084305a2e93b3a980802b22] Merge
+> branch 'acpi-scan' into acpi-pm
+>
+> Any ideas? I'm running out of them...
 
-I'm reading your long thread about the issue.
+The parents of this merge are 5af310a8ee70 and 1dcc3d3362b0.
 
-> but excluded CONFIG_MFD_AXP20X based on \_SB.PIC0.I2C7.PMI1._STA returning 0 in acpidbg,
-> but \_SB.PIC0.I2C7.PMI1._STA returns 0xf
+Can you please check if the problem is present in any of them alone?
 
-Did you mean PMI2 in the second sentence?
-Had you tried to add ID to axp20x-i2c.c ?
+If not, it is theoretically possible that the merge itself had
+introduced it (as this is not a trivial merge).
 
-> Repeating essential info to avoid any confusion, the PMIC is
-
-In code you found there are two DCove drivers :-) One with "ti" suffix.
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
+Rafael
