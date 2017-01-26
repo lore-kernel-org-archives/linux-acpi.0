@@ -1,268 +1,105 @@
-From: "hch@lst.de" <hch@lst.de>
-Subject: Re: [PATCH 1/2] qla2xxx: Fix a recently introduced memory leak
-Date: Thu, 26 Jan 2017 15:36:14 +0100
-Message-ID: <20170126143614.GA19849@lst.de>
-References: <20170123163446.9227-1-bart.vanassche@sandisk.com> <20170123163446.9227-2-bart.vanassche@sandisk.com> <1485359225.3093.3.camel@sandisk.com>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
+ (possibly badly bisected)
+Date: Thu, 26 Jan 2017 16:15:35 +0100
+Message-ID: <1485443735.5845.30.camel@hadess.net>
+References: <1484927552.21721.17.camel@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1485359225.3093.3.camel@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Cc: linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-Mzm210Gmsr/oWQIWSGW2"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:33785 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752650AbdAZPPk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 10:15:40 -0500
+In-Reply-To: <1484927552.21721.17.camel@hadess.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 
-On Wed, Jan 25, 2017 at 03:47:20PM +0000, Bart Van Assche wrote:
-> =============================================================================
-> BUG kmalloc-16 (Not tainted): Redzone overwritten
-> -----------------------------------------------------------------------------
-> 
-> Disabling lock debugging due to kernel taint
-> INFO: 0xffff880030bacc78-0xffff880030bacc7f. First byte 0xf instead of 0xcc
-> INFO: Allocated in irq_create_affinity_masks+0x5f/0x260 age=0 cpu=3 pid=812
-> 	___slab_alloc.constprop.79+0x482/0x4f0
-> 	__slab_alloc.isra.75.constprop.78+0x55/0xa0
-> 	__kmalloc+0x27c/0x310
-> 	irq_create_affinity_masks+0x5f/0x260
 
-This is the normal affinity mask allocation.
+--=-Mzm210Gmsr/oWQIWSGW2
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-> 	__pci_enable_msix+0x314/0x4c0
-> 	pci_alloc_irq_vectors_affinity+0xb7/0x140
-> 	qla2x00_request_irqs+0xa6/0x6d0 [qla2xxx]
-> 	qla2x00_probe_one+0xc2e/0x25f0 [qla2xxx]
-> 	pci_device_probe+0x8a/0xf0
-> 	driver_probe_device+0x1f5/0x450
-> 	__driver_attach+0xe3/0xf0
-> 	bus_for_each_dev+0x66/0xa0
-> 	driver_attach+0x1e/0x20
-> 	bus_add_driver+0x200/0x270
-> 	driver_register+0x60/0xe0
-> 	__pci_register_driver+0x5d/0x60
-> INFO: Freed in acpi_ns_get_node_unlocked+0x90/0xa4 age=0 cpu=3 pid=812
-> 	__slab_free+0x176/0x310
-> 	kfree+0x25e/0x2d0
-> 	acpi_ns_get_node_unlocked+0x90/0xa4
-> 	acpi_ns_get_node+0x3d/0x52
-> 	acpi_get_handle+0x82/0x96
+On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
+> Hey,
+> 
+> TLDR:
+> # first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7] Merge
+> back earlier ACPI PM material for v4.3.
+> 
+> hid-sensor-hub devices only start sending events through the IIO
+> trigger after a suspend/resume cycle.
+> 
+> Other IIO drivers don't seem to exhibit those problems.
 
-This on the other hand I don't understand acpi_ns_get_node_unlocked
-only frees the object it allocated in the ACPI code using
-acpi_ns_internalize_name.  I can't really see any relation to the
-affinity mask allocation.
+I had another go, trying to break into the merge commit, and it's
+slightly more precise, but still doesn't make any sense to me.
 
-> 	acpi_pci_irq_find_prt_entry+0x26e/0x2ae
-> 	acpi_pci_irq_lookup+0x28/0x135
-> 	acpi_pci_irq_enable+0x60/0x1f8
-> 	pcibios_enable_device+0x2d/0x30
-> 	do_pci_enable_device+0x64/0xf0
-> 	pci_enable_device_flags+0xc5/0x110
-> 	pci_enable_device_mem+0x13/0x20
-> 	qla2x00_probe_one+0x14b/0x25f0 [qla2xxx]
-> 	pci_device_probe+0x8a/0xf0
-> 	driver_probe_device+0x1f5/0x450
-> 	__driver_attach+0xe3/0xf0
-> INFO: Slab 0xffffea0000c2eb00 objects=23 used=21 fp=0xffff880030bacdc8 flags=0x4000000000008101
-> INFO: Object 0xffff880030bacc68 @offset=3176 fp=0xffff880030bacf28
-> 
-> Redzone ffff880030bacc60: cc cc cc cc cc cc cc cc                          ........
-> Object ffff880030bacc68: ff 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00  ................
-> Redzone ffff880030bacc78: 0f 00 00 00 00 00 00 00                          ........
-> Padding ffff880030bacdb8: 5a 5a 5a 5a 5a 5a 5a 5a                          ZZZZZZZZ
-> CPU: 3 PID: 812 Comm: modprobe Tainted: G    B           4.10.0-rc5-dbg+ #9
-> Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-> Call Trace:
->  dump_stack+0x85/0xc2
->  print_trailer+0x162/0x260
->  check_bytes_and_report+0xc5/0x110
->  check_object+0x1da/0x2a0
->  free_debug_processing+0x161/0x3d0
->  ? debug_lockdep_rcu_enabled+0x1d/0x20
->  ? __pci_enable_msix+0x41c/0x4c0
->  __slab_free+0x176/0x310
->  ? __pci_enable_msix+0x41c/0x4c0
->  ? call_rcu+0x17/0x20
->  ? kfree+0xe7/0x2d0
->  ? __pci_enable_msix+0x41c/0x4c0
->  ? __pci_enable_msix+0x41c/0x4c0
->  kfree+0x25e/0x2d0
->  __pci_enable_msix+0x41c/0x4c0
->  pci_alloc_irq_vectors_affinity+0xb7/0x140
->  qla2x00_request_irqs+0xa6/0x6d0 [qla2xxx]
->  qla2x00_probe_one+0xc2e/0x25f0 [qla2xxx]
->  ? __pm_runtime_resume+0x40/0x80
->  ? trace_hardirqs_on_caller+0x128/0x1b0
->  ? trace_hardirqs_on+0xd/0x10
->  ? _raw_spin_unlock_irqrestore+0x4a/0x80
->  pci_device_probe+0x8a/0xf0
->  driver_probe_device+0x1f5/0x450
->  __driver_attach+0xe3/0xf0
->  ? driver_probe_device+0x450/0x450
->  bus_for_each_dev+0x66/0xa0
->  driver_attach+0x1e/0x20
->  bus_add_driver+0x200/0x270
->  ? 0xffffffffa04eb000
->  driver_register+0x60/0xe0
->  ? 0xffffffffa04eb000
->  __pci_register_driver+0x5d/0x60
->  qla2x00_module_init+0x1c9/0x217 [qla2xxx]
->  do_one_initcall+0x44/0x180
->  ? rcu_read_lock_sched_held+0x72/0x80
->  ? kmem_cache_alloc_trace+0x25b/0x2c0
->  ? do_init_module+0x27/0x1f9
->  do_init_module+0x5f/0x1f9
->  load_module+0x2582/0x2a00
->  ? __symbol_put+0x70/0x70
->  ? kernel_read_file+0x10a/0x1a0
->  ? kernel_read_file_from_fd+0x49/0x80
->  SYSC_finit_module+0xbc/0xf0
->  SyS_finit_module+0xe/0x10
->  entry_SYSCALL_64_fastpath+0x23/0xc6
-> RIP: 0033:0x7f05711388e9
-> RSP: 002b:00007fff51d4a0f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
-> RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f05711388e9
-> RDX: 0000000000000000 RSI: 000055c17ab4f720 RDI: 0000000000000004
-> RBP: 00007fff51d49100 R08: 0000000000000000 R09: 0000000000000019
-> R10: 0000000000000004 R11: 0000000000000246 R12: 000055c17ab4f570
-> R13: 00007fff51d490e0 R14: 0000000000000005 R15: 0000000000040000
-> FIX kmalloc-16: Restoring 0xffff880030bacc78-0xffff880030bacc7f=0xcc
-> 
-> FIX kmalloc-16: Object at 0xffff880030bacc68 not freed
-> scsi host2: qla2xxx
-> qla2xxx [0000:00:09.0]-00fb:2: QLogic QLE2460 - QLogic 4GB FC Single-Port PCI-E HBA for IBM System x.
-> qla2xxx [0000:00:09.0]-00fc:2: ISP2432: PCIe (2.5GT/s x4) @ 0000:00:09.0 hdma- host#=2 fw=8.03.00 (9496).
-> qla2xxx [0000:00:0a.0]-001d: : Found an ISP2432 irq 10 iobase 0xffffc900000ad000.
-> =============================================================================
-> BUG kmalloc-16 (Tainted: G    B          ): Redzone overwritten
-> -----------------------------------------------------------------------------
-> 
-> INFO: 0xffff88006ff18dd8-0xffff88006ff18ddf. First byte 0xf instead of 0xcc
-> INFO: Allocated in irq_create_affinity_masks+0x5f/0x260 age=0 cpu=2 pid=812
-> 	___slab_alloc.constprop.79+0x482/0x4f0
-> 	__slab_alloc.isra.75.constprop.78+0x55/0xa0
-> 	__kmalloc+0x27c/0x310
-> 	irq_create_affinity_masks+0x5f/0x260
-> 	__pci_enable_msix+0x314/0x4c0
-> 	pci_alloc_irq_vectors_affinity+0xb7/0x140
-> 	qla2x00_request_irqs+0xa6/0x6d0 [qla2xxx]
-> 	qla2x00_probe_one+0xc2e/0x25f0 [qla2xxx]
-> 	pci_device_probe+0x8a/0xf0
-> 	driver_probe_device+0x1f5/0x450
-> 	__driver_attach+0xe3/0xf0
-> 	bus_for_each_dev+0x66/0xa0
-> 	driver_attach+0x1e/0x20
-> 	bus_add_driver+0x200/0x270
-> 	driver_register+0x60/0xe0
-> 	__pci_register_driver+0x5d/0x60
-> INFO: Freed in acpi_ns_get_node_unlocked+0x90/0xa4 age=1 cpu=2 pid=812
-> 	__slab_free+0x176/0x310
-> 	kfree+0x25e/0x2d0
-> 	acpi_ns_get_node_unlocked+0x90/0xa4
-> 	acpi_ns_get_node+0x3d/0x52
-> 	acpi_get_handle+0x82/0x96
-> 	acpi_pci_irq_find_prt_entry+0x26e/0x2ae
-> 	acpi_pci_irq_lookup+0x28/0x135
-> 	acpi_pci_irq_enable+0x60/0x1f8
-> 	pcibios_enable_device+0x2d/0x30
-> 	do_pci_enable_device+0x64/0xf0
-> 	pci_enable_device_flags+0xc5/0x110
-> 	pci_enable_device_mem+0x13/0x20
-> 	qla2x00_probe_one+0x14b/0x25f0 [qla2xxx]
-> 	pci_device_probe+0x8a/0xf0
-> 	driver_probe_device+0x1f5/0x450
-> 	__driver_attach+0xe3/0xf0
-> INFO: Slab 0xffffea0001bfc600 objects=23 used=22 fp=0xffff88006ff18f28 flags=0x4000000000008101
-> INFO: Object 0xffff88006ff18dc8 @offset=3528 fp=0xffff88006ff18f28
-> 
-> Redzone ffff88006ff18dc0: cc cc cc cc cc cc cc cc                          ........
-> Object ffff88006ff18dc8: ff 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00  ................
-> Redzone ffff88006ff18dd8: 0f 00 00 00 00 00 00 00                          ........
-> Padding ffff88006ff18f18: 5a 5a 5a 5a 5a 5a 5a 5a                          ZZZZZZZZ
-> CPU: 2 PID: 812 Comm: modprobe Tainted: G    B           4.10.0-rc5-dbg+ #9
-> Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-> Call Trace:
->  dump_stack+0x85/0xc2
->  print_trailer+0x162/0x260
->  check_bytes_and_report+0xc5/0x110
->  check_object+0x1da/0x2a0
->  free_debug_processing+0x161/0x3d0
->  ? __pci_enable_msix+0x41c/0x4c0
->  __slab_free+0x176/0x310
->  ? __pci_enable_msix+0x41c/0x4c0
->  ? call_rcu+0x17/0x20
->  ? put_object+0x2d/0x50
->  ? __delete_object+0x3d/0x70
->  ? __pci_enable_msix+0x41c/0x4c0
->  kfree+0x25e/0x2d0
->  __pci_enable_msix+0x41c/0x4c0
->  pci_alloc_irq_vectors_affinity+0xb7/0x140
->  qla2x00_request_irqs+0xa6/0x6d0 [qla2xxx]
->  qla2x00_probe_one+0xc2e/0x25f0 [qla2xxx]
->  ? __pm_runtime_resume+0x40/0x80
->  ? trace_hardirqs_on+0xd/0x10
->  ? _raw_spin_unlock_irqrestore+0x4a/0x80
->  pci_device_probe+0x8a/0xf0
->  driver_probe_device+0x1f5/0x450
->  __driver_attach+0xe3/0xf0
->  ? driver_probe_device+0x450/0x450
->  bus_for_each_dev+0x66/0xa0
->  driver_attach+0x1e/0x20
->  bus_add_driver+0x200/0x270
->  ? 0xffffffffa04eb000
->  driver_register+0x60/0xe0
->  ? 0xffffffffa04eb000
->  __pci_register_driver+0x5d/0x60
->  qla2x00_module_init+0x1c9/0x217 [qla2xxx]
->  do_one_initcall+0x44/0x180
->  ? rcu_read_lock_sched_held+0x72/0x80
->  ? kmem_cache_alloc_trace+0x25b/0x2c0
->  ? do_init_module+0x27/0x1f9
->  do_init_module+0x5f/0x1f9
->  load_module+0x2582/0x2a00
->  ? __symbol_put+0x70/0x70
->  ? kernel_read_file+0x10a/0x1a0
->  ? kernel_read_file_from_fd+0x49/0x80
->  SYSC_finit_module+0xbc/0xf0
->  SyS_finit_module+0xe/0x10
->  entry_SYSCALL_64_fastpath+0x23/0xc6
-> RIP: 0033:0x7f05711388e9
-> RSP: 002b:00007fff51d4a0f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
-> RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f05711388e9
-> RDX: 0000000000000000 RSI: 000055c17ab4f720 RDI: 0000000000000004
-> RBP: 00007fff51d49100 R08: 0000000000000000 R09: 0000000000000019
-> R10: 0000000000000004 R11: 0000000000000246 R12: 000055c17ab4f570
-> R13: 00007fff51d490e0 R14: 0000000000000005 R15: 0000000000040000
-> FIX kmalloc-16: Restoring 0xffff88006ff18dd8-0xffff88006ff18ddf=0xcc
-> 
-> FIX kmalloc-16: Object at 0xffff88006ff18dc8 not freed
-> scsi host3: qla2xxx
-> qla2xxx [0000:00:09.0]-500a:2: LOOP UP detected (4 Gbps).
-> qla2xxx [0000:00:0a.0]-500a:3: LOOP UP detected (4 Gbps).
-> 
-> 
-> (gdb) list *(__pci_enable_msix+0x314)
-> 0xffffffff8131aa74 is in __pci_enable_msix (drivers/pci/msi.c:702).
-> 697             struct msi_desc *entry;
-> 698             int ret, i;
-> 699
-> 700             if (affd) {
-> 701                     masks = irq_create_affinity_masks(nvec, affd);
-> 702                     if (!masks)
-> 703                             pr_err("Unable to allocate affinity masks, ignoring\n");
-> 704             }
-> 705
-> 706             for (i = 0, curmsk = masks; i < nvec; i++) {
-> (gdb) list *(__pci_enable_msix+0x41c)
-> 0xffffffff8131ab7c is in __pci_enable_msix (drivers/pci/msi.c:783).
-> 778
-> 779             ret = msix_setup_entries(dev, base, entries, nvec, affd);
-> 780             if (ret)
-> 781                     return ret;
-> 782
-> 783             ret = pci_msi_setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSIX);
-> 784             if (ret)
-> 785                     goto out_avail;
-> 786
-> 787             /* Check if all MSI entries honor device restrictions */
-> (gdb) quit---end quoted text---
+# first bad commit: [3431e490b50356b56084305a2e93b3a980802b22] Merge
+branch 'acpi-scan' into acpi-pm
+
+Any ideas? I'm running out of them...
+--=-Mzm210Gmsr/oWQIWSGW2
+Content-Disposition: attachment; filename="git-bisect-log.txt"
+Content-Type: text/plain; name="git-bisect-log.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Z2l0IGJpc2VjdCBzdGFydAojIGdvb2Q6IFsyNWU1ZWFmMTk5NjJiZDQ4Nzg4MzcxZTRmNTE2YmRk
+ODljZTI0OGJjXSBBTFNBOiBzcGFyYzogQWRkIG1pc3Npbmcga2ZyZWUgaW4gZXJyb3IgcGF0aApn
+aXQgYmlzZWN0IGdvb2QgMjVlNWVhZjE5OTYyYmQ0ODc4ODM3MWU0ZjUxNmJkZDg5Y2UyNDhiYwoj
+IGJhZDogWzM0MzFlNDkwYjUwMzU2YjU2MDg0MzA1YTJlOTNiM2E5ODA4MDJiMjJdIE1lcmdlIGJy
+YW5jaCAnYWNwaS1zY2FuJyBpbnRvIGFjcGktcG0KZ2l0IGJpc2VjdCBiYWQgMzQzMWU0OTBiNTAz
+NTZiNTYwODQzMDVhMmU5M2IzYTk4MDgwMmIyMgojIGdvb2Q6IFswNzU1ZTc0YjhmMDRkMTdjZWEw
+OWZhMzQyYTc4ODAyNWIyYjUwZTJlXSBBTFNBOiBGaXggdW5pbmludGlhbGl6ZWQgZXJyb3IgcmV0
+dXJuCmdpdCBiaXNlY3QgZ29vZCAwNzU1ZTc0YjhmMDRkMTdjZWEwOWZhMzQyYTc4ODAyNWIyYjUw
+ZTJlCiMgZ29vZDogWzViNGNhNDQ0Nzc1NzAxOWYxMWE2MDFiMDAwOTUzNGVmODRiZWQ4MDFdIE1l
+cmdlIHRhZyAnbWVkaWEvdjQuMi0xJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xp
+bnV4L2tlcm5lbC9naXQvbWNoZWhhYi9saW51eC1tZWRpYQpnaXQgYmlzZWN0IGdvb2QgNWI0Y2E0
+NDQ3NzU3MDE5ZjExYTYwMWIwMDA5NTM0ZWY4NGJlZDgwMQojIGdvb2Q6IFsyMzkwOGRiNDEzZWNj
+ZDc3MDg0YjA5YzliMGE0NDUxZGZiMDUyNGMwXSBNZXJnZSB0YWcgJ3N0YWdpbmctNC4yLXJjMScg
+b2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2dyZWdraC9z
+dGFnaW5nCmdpdCBiaXNlY3QgZ29vZCAyMzkwOGRiNDEzZWNjZDc3MDg0YjA5YzliMGE0NDUxZGZi
+MDUyNGMwCiMgZ29vZDogWzEzZDQ1Zjc5YTJhZjg0ZGU5MDgzMzEwZGI1OGIzMDlhNjEwNjUyMDhd
+IE1lcmdlIGJyYW5jaCAnZm9yLW5leHQnIG9mIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20v
+bGludXgva2VybmVsL2dpdC9jb29sb25leS9saW51eC1sZWRzCmdpdCBiaXNlY3QgZ29vZCAxM2Q0
+NWY3OWEyYWY4NGRlOTA4MzMxMGRiNThiMzA5YTYxMDY1MjA4CiMgZ29vZDogWzkxY2NhMGYwZmZh
+M2U0ODVhZDlkNWI0NDc0NGYyMzMxOGM4Zjk5YWJdIE1lcmdlIGJyYW5jaCAnY29yZS11cmdlbnQt
+Zm9yLWxpbnVzJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9n
+aXQvdGlwL3RpcApnaXQgYmlzZWN0IGdvb2QgOTFjY2EwZjBmZmEzZTQ4NWFkOWQ1YjQ0NzQ0ZjIz
+MzE4YzhmOTlhYgojIGdvb2Q6IFs4NGUzZTlkMDRkNWI1MzY4YTFjMjZmNzQ0YTk4YzQ5MjA1MmQw
+NTIzXSBNZXJnZSB0YWcgJ2FybXNvYy1maXhlcycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
+L3NjbS9saW51eC9rZXJuZWwvZ2l0L2FybS9hcm0tc29jCmdpdCBiaXNlY3QgZ29vZCA4NGUzZTlk
+MDRkNWI1MzY4YTFjMjZmNzQ0YTk4YzQ5MjA1MmQwNTIzCiMgZ29vZDogW2Q4YjJiYTdjNTkyODE3
+M2ZlMWMxMmJkMjU0NWY1ZWQ4NWQxYzNjN2FdIElCL2NvcmU6IERlc3Ryb3kgb2NyZG1hX2Rldl9p
+ZCBJRFIgb24gbW9kdWxlIGV4aXQKZ2l0IGJpc2VjdCBnb29kIGQ4YjJiYTdjNTkyODE3M2ZlMWMx
+MmJkMjU0NWY1ZWQ4NWQxYzNjN2EKIyBnb29kOiBbOWM2OTQ4MWVkMGI0ZTZlNTI1ZTZkOGQ0ZDNk
+ODNiNjEyMzk3ZTY3ZF0gTWVyZ2UgYnJhbmNoICdmb3ItbGludXMnIG9mIGdpdDovL2dpdC5rZXJu
+ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9zMzkwL2xpbnV4CmdpdCBiaXNlY3QgZ29v
+ZCA5YzY5NDgxZWQwYjRlNmU1MjVlNmQ4ZDRkM2Q4M2I2MTIzOTdlNjdkCiMgZ29vZDogWzc2MWFi
+NzY2NGIzMGVkOTA3ZjU1ZGE3ZjY5NjZkNDUzN2YzNmQ5ZmZdIE1lcmdlIGJyYW5jaCAnZm9yLWxp
+bnVzJyBvZiBnaXQ6Ly9naXQua2VybmVsLmRrL2xpbnV4LWJsb2NrCmdpdCBiaXNlY3QgZ29vZCA3
+NjFhYjc2NjRiMzBlZDkwN2Y1NWRhN2Y2OTY2ZDQ1MzdmMzZkOWZmCiMgZ29vZDogWzNlODdlZTA2
+ZDBkNmI3NTk0NzFhNDg3Y2ViOGE0OGVjYzVkZWUxZjhdIE1lcmdlIHRhZyAncGxhdGZvcm0tZHJp
+dmVycy14ODYtdjQuMi0zJyBvZiBnaXQ6Ly9naXQuaW5mcmFkZWFkLm9yZy91c2Vycy9kdmhhcnQv
+bGludXgtcGxhdGZvcm0tZHJpdmVycy14ODYKZ2l0IGJpc2VjdCBnb29kIDNlODdlZTA2ZDBkNmI3
+NTk0NzFhNDg3Y2ViOGE0OGVjYzVkZWUxZjgKIyBnb29kOiBbNWFmMzEwYThlZTcwZGQ2YTU4OGM4
+ZWUxZDQ0ODdhMjMwYTdiN2I2NV0gTWVyZ2UgdGFnICdpYi1tZmQtYmFzZS1hY3BpLWRtYS12NC4z
+JyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbGVlL21m
+ZCBpbnRvIGFjcGktcG0KZ2l0IGJpc2VjdCBnb29kIDVhZjMxMGE4ZWU3MGRkNmE1ODhjOGVlMWQ0
+NDg3YTIzMGE3YjdiNjUKIyBnb29kOiBbMTdmZmM4YjA4M2FjMjk5ZmY3OTg0MTlkMTg4N2I3Y2Rj
+ZDRhZTRkMl0gTWVyZ2UgYnJhbmNoZXMgJ3BtLWNwdWlkbGUnLCAncG0tY3B1ZnJlcScgYW5kICdh
+Y3BpLXJlc291cmNlcycKZ2l0IGJpc2VjdCBnb29kIDE3ZmZjOGIwODNhYzI5OWZmNzk4NDE5ZDE4
+ODdiN2NkY2Q0YWU0ZDIKIyBnb29kOiBbNjhjNmIxNDhkYWE2ZTQ1YTg1YjMxZWY2MGVkOWM5YmZk
+NTU2ZmZmMF0gQUNQSSAvIHNjYW46IE1vdmUgZGV2aWNlIG1hdGNoaW5nIGNvZGUgdG8gYnVzLmMK
+Z2l0IGJpc2VjdCBnb29kIDY4YzZiMTQ4ZGFhNmU0NWE4NWIzMWVmNjBlZDljOWJmZDU1NmZmZjAK
+IyBnb29kOiBbMWRjYzNkMzM2MmIwYzk3ZTQ4MjkwZjc3ODZiZTg1YjRjZWMyYTE0N10gQUNQSSAv
+IGJ1czogTW92ZSBBQ1BJIGJ1cyB0eXBlIHJlZ2lzdHJhdGlvbgpnaXQgYmlzZWN0IGdvb2QgMWRj
+YzNkMzM2MmIwYzk3ZTQ4MjkwZjc3ODZiZTg1YjRjZWMyYTE0NwojIGZpcnN0IGJhZCBjb21taXQ6
+IFszNDMxZTQ5MGI1MDM1NmI1NjA4NDMwNWEyZTkzYjNhOTgwODAyYjIyXSBNZXJnZSBicmFuY2gg
+J2FjcGktc2NhbicgaW50byBhY3BpLXBtCg==
+
+
+--=-Mzm210Gmsr/oWQIWSGW2--
+
