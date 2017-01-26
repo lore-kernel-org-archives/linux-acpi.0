@@ -1,120 +1,42 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 6/7] drivers/gpio: Add and export gpiod_lookup[_index]
-Date: Thu, 26 Jan 2017 16:24:21 +0100
-Message-ID: <CACRpkdadyUt+bJZ92dZZqFfVrnTgnstoZ7Bx7B7PhK3kL6kZRw@mail.gmail.com>
-References: <20170125000641.25520-1-furquan@chromium.org> <20170125000641.25520-7-furquan@chromium.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: Cherryview wake up events
+Date: Fri, 27 Jan 2017 00:56:53 +0200
+Message-ID: <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
+References: <20160921091635.tjnc2gvj75jixycv@sig21.net> <20160923081904.GM1218@lahna.fi.intel.com>
+ <20161005124648.4fkl55q2i4qnug2x@sig21.net> <20161005130511.GM1765@lahna.fi.intel.com>
+ <20161204185219.j45aabkpvptadmcx@sig21.net> <20161205110608.GF1459@lahna.fi.intel.com>
+ <20170124094112.ssmpe6vl4iijsjh6@sig21.net> <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
+ <20170124135250.d72silj6jlxh7zqk@sig21.net> <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
+ <20170124192314.gw6njffcgwyfm2gp@sig21.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f54.google.com ([209.85.214.54]:35450 "EHLO
-        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753180AbdAZPYX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 10:24:23 -0500
-Received: by mail-it0-f54.google.com with SMTP id 203so131443896ith.0
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2017 07:24:22 -0800 (PST)
-In-Reply-To: <20170125000641.25520-7-furquan@chromium.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170124192314.gw6njffcgwyfm2gp@sig21.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johannes Stezenbach <js@sig21.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Furquan Shaikh <furquan@chromium.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-On Wed, Jan 25, 2017 at 1:06 AM, Furquan Shaikh <furquan@chromium.org> wrote:
+On Tue, Jan 24, 2017 at 9:23 PM, Johannes Stezenbach <js@sig21.net> wrote:
+> On Tue, Jan 24, 2017 at 04:28:29PM +0200, Andy Shevchenko wrote:
+>> They probably release just almost all One Big Ugly patch from official
+>> BSP, which by some reason, includes all Intel MID SoCs, Baytrail.
+>> I think I know how Dollar Cove related code ended up there. But that
+>> all stuff is a total mess.
 
-> Sometimes (as the case with fixed regulator) we only want to look up,
-> but not necessarily reserve right away, GPIO. gpiod_lookup() and
-> gpiod_lookup_by_index() allow us doing just that.
->
-> Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
-> Signed-off-by: Furquan Shaikh <furquan@chromium.org>
+I'm reading your long thread about the issue.
 
-Overall if this solves the GPIO regulator mess, I'd be happy
-to apply it.
+> but excluded CONFIG_MFD_AXP20X based on \_SB.PIC0.I2C7.PMI1._STA returning 0 in acpidbg,
+> but \_SB.PIC0.I2C7.PMI1._STA returns 0xf
 
-But overall it is a bit scary with looking up something struct gpiod *
-that does not at all have the same semantics as a gpiod *
-you get from gpiod_get().
+Did you mean PMI2 in the second sentence?
+Had you tried to add ID to axp20x-i2c.c ?
 
-We need to make sure that a gpiod looked up this way does not
-work and tick and cannot perform operations as one obtained
-with a proper gpiod_get().
+> Repeating essential info to avoid any confusion, the PMIC is
 
->  /**
-> + * gpiod_lookup - look up a GPIO for a given GPIO function
-> + * @dev:       GPIO consumer, can be NULL for system-global GPIOs
-> + * @con_id:    function within the GPIO consumer
-> + *
-> + * Return the GPIO descriptor corresponding to the function con_id of device
-> + * dev, -ENOENT if no GPIO has been assigned to the requested function, or
-> + * another IS_ERR() code.
-> + */
-> +struct gpio_desc *__must_check gpiod_lookup(struct device *dev,
-> +                                           const char *con_id)
-> +{
-> +       return gpiod_lookup_index(dev, con_id, 0);
-> +}
-> +EXPORT_SYMBOL_GPL(gpiod_lookup);
+In code you found there are two DCove drivers :-) One with "ti" suffix.
 
-Make this a static inline in the <linux/gpio/consumer.h> header instead.
-Saves a lot of trouble.
 
->  /**
-> - * gpiod_get_index - obtain a GPIO from a multi-index GPIO function
-> + * gpiod_lookup_index - look up a GPIO from a multi-index GPIO function
->   * @dev:       GPIO consumer, can be NULL for system-global GPIOs
->   * @con_id:    function within the GPIO consumer
->   * @idx:       index of the GPIO to obtain in the consumer
-> - * @flags:     optional GPIO initialization flags
-> - *
-> - * This variant of gpiod_get() allows to access GPIOs other than the first
-> - * defined one for functions that define several GPIOs.
->   *
-> - * Return a valid GPIO descriptor, -ENOENT if no GPIO has been assigned to the
-> - * requested function and/or index, or another IS_ERR() code if an error
-> - * occurred while trying to acquire the GPIO.
-> + * Return a valid GPIO descriptor, or -ENOENT if no GPIO has been assigned to
-> + * the requested function and/or index, or another IS_ERR() code.
->   */
-
-What a mess in the patch. Not your fault but format-patch created this
-mess.0
-
-> -struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
-> -                                              const char *con_id,
-> -                                              unsigned int idx,
-> -                                              enum gpiod_flags flags)
-> +struct gpio_desc *__must_check gpiod_lookup_index(struct device *dev,
-> +                                                 const char *con_id,
-> +                                                 unsigned int idx)
->  {
->         struct gpio_desc *desc = NULL;
-> -       int status;
->         enum gpio_lookup_flags lookupflags = 0;
->
->         dev_dbg(dev, "GPIO lookup for consumer %s\n", con_id);
-> @@ -3285,16 +3294,50 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
->                 desc = gpiod_find(dev, con_id, idx, &lookupflags);
->         }
->
-> -       if (IS_ERR(desc)) {
-> +       if (IS_ERR(desc))
->                 dev_dbg(dev, "lookup for GPIO %s failed\n", con_id);
-> +
-> +       /*
-> +        * Configure static flags based on lookup data (such as
-> +        * "active low", "open drain", etc.)
-> +        */
-> +       gpiod_configure_flags(desc, con_id, lookupflags, 0);
-
-So what about setting some special flag from
-gpiolib.h like
-set_bit(FLAG_ONLY_LOOKUP, &desc->flags);
-here numbing all
-operations on the returned gpiod, by a check in
-VALIDATE_DESC() and VALIDATE_DESC_VOID()
-so that no real operations fall through?
-
-Then that flag will just be forcibly cleared by
-gpiod_get[_index]() later.
-
-Yours,
-Linus Walleij
+-- 
+With Best Regards,
+Andy Shevchenko
