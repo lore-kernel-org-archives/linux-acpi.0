@@ -1,109 +1,179 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/7] Implement generic regulator constraints parsing for ACPI and OF
-Date: Thu, 26 Jan 2017 11:35:55 +0100
-Message-ID: <3026976.Qjk9AeF3Vr@aspire.rjw.lan>
-References: <20170125124911.dxveow7bo3zw5jcc@sirena.org.uk> <8e10714e-1795-d5df-630e-8303bf36abfd@redhat.com> <20170126003342.GF36291@dtor-ws>
+Subject: Re: [PATCH V11 2/3] ACPI: Add support for ResourceSource/IRQ domain mapping
+Date: Thu, 26 Jan 2017 11:43:43 +0100
+Message-ID: <6275442.KC3JtHKUN3@aspire.rjw.lan>
+References: <1484879660-1960-1-git-send-email-agustinv@codeaurora.org> <CAHp75VeYxfuMuaZCMk+MYdxLTs7cCa6j6M7Ot3XnwMmeHP7kBA@mail.gmail.com> <20170126101521.GA10324@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59484 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752936AbdAZKkd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 26 Jan 2017 05:40:33 -0500
-In-Reply-To: <20170126003342.GF36291@dtor-ws>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170126101521.GA10324@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, msalter@redhat.com, mlangsdo@redhat.com, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, guohanjun@huawei.com, Charles Garcia-Tobin <charles.>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Al Stone <ahs3@redhat.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Furquan Shaikh <furquan@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, ACPI
 
-On Wednesday, January 25, 2017 04:33:42 PM Dmitry Torokhov wrote:
-> On Wed, Jan 25, 2017 at 05:15:52PM -0700, Al Stone wrote:
-> > On 01/25/2017 04:27 PM, Dmitry Torokhov wrote:
-> > > On Wed, Jan 25, 2017 at 02:44:10PM -0700, Al Stone wrote:
-> > >>
-> > >> But, to the point of some of the other discussion on the thread, this ACPI sort
-> > >> of power management is a very, very different model than DT so that intertwining
-> > >> the two models is highly unlikely to work, IMHO.
-> > > 
-> > > And yet this is something that is sorely needed. If you look, for
-> > > example, at drivers in drivers/input/*, then all non-SOC-specific
-> > > devices can easily find their way onto both ACPI-based and DT-based
-> > > systems (not mentioning legacy-style boards). Having two distinct power
-> > > schemes implemented in drivers will lead to many problems.
+On Thursday, January 26, 2017 10:15:21 AM Lorenzo Pieralisi wrote:
+> On Thu, Jan 26, 2017 at 03:01:18AM +0200, Andy Shevchenko wrote:
+> > On Fri, Jan 20, 2017 at 4:34 AM, Agustin Vega-Frias
+> > <agustinv@codeaurora.org> wrote:
+> > > ACPI extended IRQ resources may contain a ResourceSource to specify
+> > > an alternate interrupt controller. Introduce acpi_irq_get and use it
+> > > to implement ResourceSource/IRQ domain mapping.
+> > >
+> > > The new API is similar to of_irq_get and allows re-initialization
+> > > of a platform resource from the ACPI extended IRQ resource, and
+> > > provides proper behavior for probe deferral when the domain is not
+> > > yet present when called.
 > > 
-> > I really can't speak to those sorts of systems; where I deal with ACPI
-> > is on enterprise-class server systems which seldom have a graphics card,
-> > much less input devices other than a keyboard. 
-> 
-> Yeah, so basically no power management except for CPU states ;)
-> 
-> > And in general, those
-> > systems are required to use only ACPI.  If a vendor wants their device to
-> > work on such a system, they need to provide a driver that works with ACPI.
-> > It may also work with DT, but in this environment it doesn't matter.
+> > > +static struct fwnode_handle *
+> > > +acpi_get_irq_source_fwhandle(const struct acpi_resource_source *source)
+> > > +{
+> > > +       struct fwnode_handle *result = NULL;
+> > > +       struct acpi_device *device;
+> > > +       struct acpi_hardware_id *hwid;
+> > > +       struct acpi_device_id *devid;
+> > > +       acpi_handle handle;
+> > > +       acpi_status status;
+> > > +
+> > > +       if (!source->string_length)
+> > > +               return acpi_gsi_domain_id;
+> > > +
+> > > +       status = acpi_get_handle(NULL, source->string_ptr, &handle);
+> > > +       if (WARN_ON(ACPI_FAILURE(status)))
+> > > +               return NULL;
+> > > +
+> > > +       device = acpi_bus_get_acpi_device(handle);
+> > > +       if (WARN_ON(!device))
+> > > +               return NULL;
+> > > +
 > > 
-> > Whether or not there are two power schemes is a moot point.  We have DT
-> > and we have ACPI, and they have very different schemes for power management,
-> > so we're already there.  And so far, my experience has been that as long as
-> > the ACPI and DT parts of the driver are kept disjoint when the models diverge,
-> > and share code when they are semantically absolutely identical, things work
-> > pretty well.
-> 
-> As someone who's actually shipping both ACPI and DT-based devices
-> reusing the same peripherals I can assure you that it is really PITA to
-> have different PM behavior in a single driver and if we can converge on
-> something sane that would be great.
-
-Agreed.
-
-However, the problem is that PM in ACPI and in the DT-based code is done at
-different levels.
-
-ACPI uses the power resource abstraction and D-states to be able to combine
-HW control over regulators (think things like MWAIT on Intel CPUs or generally
-C-state management done via register wrtites on the CPU) with something that
-can be exposed to software.
-
-On the other hand, doing PM at the regulator level pretty much requires that
-regulators be only maniplulated directly by software.
-
-The common abstraction can sort of be provided through PM domains, which in the
-ACPI case basically map to ACPI power resources and in the OF case genpd is used,
-but that doesn't work if drivers expect to be able to control regulators directly
-(which BTW isn't an good idea overall IMO, because that may need to be done
-differently on different platforms even without ACPI AFAICS).
-
+> > > +       list_for_each_entry(hwid, &device->pnp.ids, list) {
 > > 
-> > > Having unified way of describing hardware is how _DSD came about, right?
-> > > Nobody wanted to write and maintain and test two separate ways of
-> > > describing properties when one was already implemented and working.
-
-So technically, _DSD itself is just a simplified _DSM.  It provides a simplified
-interface for what has been possible all the time already anyway.
-
-On top of that, there are _DSD properties, which are defined by the special
-UUIDs that we support, and here the idea was to be able to provide information
-in a way that resembles DT to be able to avoid artificial code branching in
-drivers among other things.
-
-> > I can't speak for those that proposed _DSD to be part of the ACPI spec,
-> > but no, it was not meant as a unified way of describing hardware, as far
-> > as I can remember from the ASWG discussions I was part of.  The intent,
-> > as I recall it, was to provide some of the same flexibility to ASL that
-> > was available in DT.  At the time, power managment was even discussed as
-> > one of the areas where the DT model and the ACPI model clashed.
+> > > +               for (devid = &__dsdt_irqchip_acpi_probe_table;
+> > > +                    devid < &__dsdt_irqchip_acpi_probe_table_end; devid++) {
+> > > +                       if (devid->id && !strcmp(devid->id, hwid->id)) {
+> > > +                               result = &device->fwnode;
+> > > +                               break;
+> > > +                       }
+> > > +               }
+> > 
+> > Looks like a candidate for linker table API. (I recommend to Cc Luis
+> > for this part)
 > 
-> That's not what I remember from discussions at Plumbers/KS... Binding
-> compatibility, even if for simplest properties, was one of the points.
+> This linker table entry scheme is just an optimization and should
+> not gate the series.
+> 
+> > > +       }
+> > 
+> > > +/**
+> > > + * acpi_irq_parse_one_match - Handle a matching IRQ resource.
+> > > + * @fwnode: matching fwnode
+> > > + * @hwirq: hardware IRQ number
+> > > + * @triggering: triggering attributes of hwirq
+> > > + * @polarity: polarity attributes of hwirq
+> > > + * @polarity: polarity attributes of hwirq
+> > > + * @shareable: shareable attributes of hwirq
+> > > + * @ctx: acpi_irq_parse_one_ctx updated by this function
+> > > + *
+> > > + * Description:
+> > > + * Handle a matching IRQ resource by populating the given ctx with
+> > > + * the information passed.
+> > > + */
+> > > +static inline void acpi_irq_parse_one_match(struct fwnode_handle *fwnode,
+> > > +                                           u32 hwirq, u8 triggering,
+> > > +                                           u8 polarity, u8 shareable,
+> > > +                                           struct acpi_irq_parse_one_ctx *ctx)
+> > > +{
+> > 
+> > > +       if (!fwnode)
+> > > +               return;
+> > 
+> > > +       ctx->rc = 0;
+> > 
+> > Perhaps ctx->rc = fwnode ? 0 : -EINVAL; ?
+> > 
+> > > +       *ctx->res_flags = acpi_dev_irq_flags(triggering, polarity, shareable);
+> > > +       ctx->fwspec->fwnode = fwnode;
+> > > +       ctx->fwspec->param[0] = hwirq;
+> > > +       ctx->fwspec->param[1] = acpi_dev_get_irq_type(triggering, polarity);
+> > > +       ctx->fwspec->param_count = 2;
+> > > +}
+> > 
+> > > +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res)
+> > > +{
+> > > +       struct irq_fwspec fwspec;
+> > > +       struct irq_domain *domain;
+> > > +       unsigned long flags;
+> > > +       int rc;
+> > > +
+> > > +       rc = acpi_irq_parse_one(handle, index, &fwspec, &flags);
+> > > +       if (rc)
+> > > +               return rc;
+> > > +
+> > > +       domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
+> > > +       if (!domain)
+> > > +               return -EPROBE_DEFER;
+> > > +
+> > > +       rc = irq_create_fwspec_mapping(&fwspec);
+> > > +       if (rc <= 0)
+> > 
+> > Is rc = 0 an error?
+> 
+> Yes.
+> 
+> > > +               return -EINVAL;
+> > > +
+> > > +       res->start = rc;
+> > > +       res->end = rc;
+> > > +       res->flags = flags;
+> > > +
+> > > +       return 0;
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(acpi_irq_get);
+> > 
+> > > --- a/drivers/base/platform.c
+> > > +++ b/drivers/base/platform.c
+> > > @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
+> > 
+> > >         r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+> > > +       if (r && r->flags & IORESOURCE_DISABLED && has_acpi_companion(&dev->dev)) {
+> > > +               int ret;
+> > > +
+> > > +               ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+> > > +               if (ret)
+> > > +                       return ret;
+> > > +       }
+> > 
+> > > +#ifdef CONFIG_ACPI_GENERIC_GSI
+> > 
+> > #if IS_ENABLED()
+> > 
+> > > +int acpi_irq_get(acpi_handle handle, unsigned int index, struct resource *res);
+> > > +#else
+> > > +static inline int acpi_irq_get(acpi_handle handle, unsigned int index,
+> > > +                              struct resource *res)
+> > 
+> > Perhaps
+> > 
+> > static inline
+> > int ...
+> 
+> It is late -rc5 and notwithstanding cosmetics changes, can we make
+> progress with this patch series or not please ?
 
-The idea was that in the cases in which ACPI didn't provide any specific
-frameworks for the given use cases, that would simply help to handle things
-in a unified fashion.
+Yes, we can.
 
-Power management is not one of those cases, though.
+I've just returned from travels and have not had the time to look at things in
+detail yet.
+
+I sent a notice about my travel in advance specifically so people didn't expect
+me to respond while I was traveling, but obviously everybody simply ignored it
+and went ahead with their lives.  And then I get messages like this which
+doesn't make me happy at all.
+
+I will start processing things shortly, but there is a backlog I need to work
+through and this one may not be the first item in it.
 
 Thanks,
 Rafael
-
