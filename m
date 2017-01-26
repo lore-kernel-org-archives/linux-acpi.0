@@ -1,664 +1,196 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: [PATCH V3 1/4] efi/x86: move efi bgrt init code to early init
- code
-Date: Thu, 26 Jan 2017 11:39:12 +0800
-Message-ID: <20170126033902.GA4804@dhcp-128-65.nay.redhat.com>
-References: <20170116024554.461236678@redhat.com>
- <20170116025026.435634158@redhat.com>
- <CAKv+Gu-pLxSceJnYTb-to93S5OeVc6bNyGbZ_R6SPg11vJd-0w@mail.gmail.com>
- <20170118134836.GA30798@dhcp-128-65.nay.redhat.com>
- <CAKv+Gu8o4O+zyZPYpUyi7uDfpi7Zjc+Fa_himqLLfaRT__aKzQ@mail.gmail.com>
- <CACi5LpO6SbVv9Ld++sECN=KSMdrXEoJNfVh2+dsVj5Jndyou6A@mail.gmail.com>
- <CAKv+Gu9ok7QPu88UoNa-DhTFCG+TetsjTd7yMptjZJtuayNpNQ@mail.gmail.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
+ counter frequency detection.
+Date: Thu, 26 Jan 2017 13:49:03 +0800
+Message-ID: <CADyBb7syNx+HJ6t5JKPMnLqvq-98kPi1knuXU=SSe6_Uz6Gg1A@mail.gmail.com>
+References: <20170118132541.8989-1-fu.wei@linaro.org> <20170118132541.8989-9-fu.wei@linaro.org>
+ <20170124172400.GG7572@leverpostej> <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
+ <20170125172505.GB29027@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50564 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752682AbdAZDjX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 25 Jan 2017 22:39:23 -0500
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu9ok7QPu88UoNa-DhTFCG+TetsjTd7yMptjZJtuayNpNQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170125172505.GB29027@leverpostej>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: Bhupesh Sharma <bhsharma@redhat.com>, Matt Fleming <matt@codeblueprint.co.uk>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Nicolai Stange <nicstange@gmail.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "hpa@zytor.com" <hpa@zytor.com>, Dan Williams <dan.j.williams@intel.com>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila@nextfour.com>
 
-On 01/19/17 at 12:48pm, Ard Biesheuvel wrote:
-> On 18 January 2017 at 19:24, Bhupesh Sharma <bhsharma@redhat.com> wrote:
-> > On Wed, Jan 18, 2017 at 7:30 PM, Ard Biesheuvel
-> > <ard.biesheuvel@linaro.org> wrote:
-> >> On 18 January 2017 at 13:48, Dave Young <dyoung@redhat.com> wrote:
-> >>> Before invoking the arch specific handler, efi_mem_reserve() reserves
-> >>> the given memory region through memblock.
-> >>>
-> >>> efi_bgrt_init will call efi_mem_reserve after mm_init(), at that time
-> >>> memblock is dead and it should not be used any more.
-> >>>
-> >>> efi bgrt code depend on acpi intialization to get the bgrt acpi table,
-> >>> moving bgrt parsing to acpi early boot code can make sure efi_mem_reserve
-> >>> in efi bgrt code still use memblock safely.
-> >>>
-> >>> Signed-off-by: Dave Young <dyoung@redhat.com>
-> >>
-> >> This patch looks fine to me know
-> >>
-> >> Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> >>
-> >> but before applying it, I'd like
-> >>
-> >> - Bhupesh to confirm that this patch is a move in the right direction
-> >> with regard to enabling BGRT on arm64/ACPI,
-> >
-> > I gave the changes from Dave a try on top of the following combination:
-> > 4.10-rc3 + efi/next patches not available in 4.10-rc3 + Nicolai's patches
-> >
-> > and was able to get the BGRT table working properly with OVMF on a
-> > QEMU-x86_64 machine. So you can add my tested-by for this patch
-> > series.
-> >
-> > I think this is the right direction for the ARM64 BGRT handling
-> > patches as well and I will post a RFC in two phases as suggested by
-> > Ard, once Dave's patches are accepted (in efi/next?).
-> >
-> 
-> Thanks!
-> 
-> >
-> >> - an ack from the ACPI maintainers (cc'ed)
-> >>
-> 
-> Rafael, Len? Any objections?
+Hi Mark,
+
+On 26 January 2017 at 01:25, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Wed, Jan 25, 2017 at 02:46:12PM +0800, Fu Wei wrote:
+>> Hi Mark,
+>
+> Hi,
+>
+>> On 25 January 2017 at 01:24, Mark Rutland <mark.rutland@arm.com> wrote:
+>> > On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
+>> >> From: Fu Wei <fu.wei@linaro.org>
+>> >>
+>> >> The counter frequency detection call(arch_timer_detect_rate) combines two
+>> >> ways to get counter frequency: system coprocessor register and MMIO timer.
+>> >> But in a specific timer init code, we only need one way to try:
+>> >> getting frequency from MMIO timer register will be needed only when we
+>> >> init MMIO timer; getting frequency from system coprocessor register will
+>> >> be needed only when we init arch timer.
+>> >
+>> > When I mentioned this splitting before, I had mean that we'd completely
+>> > separate the two, with separate mmio_rate and sysreg_rate variables.
+>>
+>> sorry for misunderstanding.
+>>
+>> Are you saying :
+>>
+>> diff --git a/drivers/clocksource/arm_arch_timer.c
+>> b/drivers/clocksource/arm_arch_timer.c
+>> index 663a57a..eec92f6 100644
+>> --- a/drivers/clocksource/arm_arch_timer.c
+>> +++ b/drivers/clocksource/arm_arch_timer.c
+>> @@ -65,7 +65,8 @@ struct arch_timer {
+>>
+>>  #define to_arch_timer(e) container_of(e, struct arch_timer, evt)
+>>
+>> -static u32 arch_timer_rate;
+>> +static u32 arch_timer_sysreg_rate ;
+>> +static u32 arch_timer_mmio_rate;
+>>  static int arch_timer_ppi[ARCH_TIMER_MAX_TIMER_PPI];
+>>
+>>  static struct clock_event_device __percpu *arch_timer_evt;
+>>
+>>
+>> But what have I learned From ARMv8 ARM is
+>> AArch64 System register CNTFRQ_EL0 is provided so that software can
+>> discover the frequency of the system counter.
+>> CNTFRQ(in CNTCTLBase and CNTBaseN) is provided so that software can
+>> discover the frequency of the system counter.
+>> The bit assignments of the registers are identical in the System
+>> register interface and in the memory-mapped system level interface.
+>
+> This means that the bits in the registers have the same meaning.
+>
+> However, they are separate registers, and must be written separately. A
+> write to one does not propagate to the other, and they are not
+> guaranteed to contain the same value.
+
+Ah, Sorry for misunderstanding this, and thanks for correcting it,
+I thought they point to the same register.
+
+>
+>> So I think they both contain the same value : the frequency of the
+>> system counter, just in different view, and can be accessed in
+>> different ways.
+>
+> Certainly, in theory, these *should* contain the same value.
+>
+> Unfortunately, in practice, on several systems, they do not. It is very
+> easy to forget to initialise one of these registers correctly, and it's
+> possible for some software to work (masking the issue), while other
+> software will fail very quickly. I very much suspect we will see the
+> same class of issue on ACPI systems.
+
+Ah, thanks , that makes sense to me :-)
+
+So can I say:
+In normal case, CNTFRQ_EL0, CNTCTLBase.CNTFRQ and CNTBaseN.CNTFRQ
+should be set to the same value.
+But in some special case, some CNTFRQ maybe set to a different number
+for some reason(maybe on purpose).
+
+>
+> Consider a system where the sysreg CNTFRQ was correct, but the MMIO
+> CNTFRQ contains an erroneous non-zero value.
+>
+> If we get the frequency out of CNTFRQ_EL0 first, and assign this to
+> arch_timer_rate, we won't bother to look at the MMIO registers (which
+> could contain erroneous values). If we read an erroneous CNTBaseN.CNTFRQ
+> value first, and assign this to arch_timer_rate, we won't look at
+> CNTFRQ_EL0.
+>
+> This is *very* fragile w.r.t. probe order. I don't like the fragility of
+> setting a common arch_timer_rate depending on which gets probed first,
+> as this masks a bug, which will adversely affect us later.
+>
+> This is already a problem for DT systems, and I do not want this problem
+> to spread to ACPI systems.
+>
+> For ACPI, the approach I'd personally like to take is to keep the two
+> rates separate. Probe the sysreg timer first and subsequently probe the
+> MMIO timers. If the MMIO CNTFRQ (of all frames) does not match the
+> sysreg CNTFRQ, we log a warning and give up probing the MMIO timers.
+
+OK, I think I got your point, will do this way. Thanks :-)
+
+>
+> For legacy reasons, DT is going to be more complicated, but I believe we
+> can apply that approach to ACPI.
+>
+>> So do we really need to separate mmio_rate and sysreg_rate variables?
+>>
+>> And for CNTFRQ(in CNTCTLBase and CNTBaseN) , we can NOT access it in
+>> Linux kernel (EL1),
+>> Because ARMv8 ARM says:
+>> In a system that implements both Secure and Non-secure states, this
+>> register is only accessible by Secure accesses.
+>
+> CNTCTLBase.CNTFRQ can only be accessed in secure states. That is clear
+> from Table I1-3 in ARM DDI 0487A.k_iss10775). I agree that we cannot
+> access this.
+
+yes , got it.
+And we don't do it in the driver, we try to access  CNTBaseN.CNTFRQ
+(in a frame) instead.
+
+>
+> For CNT{,EL0}BaseN.CNTFRQ, I am very concerned by the wording in the
+> current ARMv8 ARM ARM. This does not match my understanding, nor does it
+> match the description in the ARMv7 ARM. I believe this may be a
+> documentation error, and I'm chasing that up internally.
+>
+> Either the currently logic in the driver which attempts to read
+> CNT{,EL0}BaseN.CNTFRQ is flawed, or the description in the ARM ARM is
+> erroneous.
+
+Yes, those description did confuse me. :-(
+
+But according to another document(ARMv8-A Foundation Platform User
+Guide  ARM DUI0677K),
+Table 3-2 ARMv8-A Foundation Platform memory map (continued)
+
+AP_REFCLK CNTBase0, Generic Timer 64KB   S
+AP_REFCLK CNTBase1, Generic Timer 64KB   S/NS
+
+Dose it means the timer frame 0 can be accessed in SECURE status  only,
+and the timer frame 1 can be accessed in both status?
+
+And because Linux kernel is running on Non-secure EL1, so should we
+skip "SECURE" timer in Linux?
+
+>
+>> That means we still need to get the frequency of the system counter
+>> from CNTFRQ_EL0 in MMIO timer code.
+>> This have been proved when I tested this driver on foundation model, I
+>> got "0" when I access CNTFRQ from Linux kernel (Non-secure EL1)
+>
+> As mentioned in I3.5.7, the CNTBase{,EL0}N.CNTFRQ values are UNKNOWN out
+> of reset, and require configuration by FW.
+>
+>> So I guess the logic of the original code is
+>>  static u32 arch_timer_rate keeps the frequency of the system counter,
+>>  no matter where the value comes from.
+>> Because  they should be the same value. if we have got the frequency
+>> of the system counter(arch_timer_rate != 0), then we don't need to get
+>> it again, even in anther way.
+>
+> Unfortunately, in practice this is not the case. :(
+>
+> Thanks,
+> Mark.
 
 
-Ping..
 
-> 
-> If not, I will go ahead and queue this for v4.11
+-- 
+Best regards,
 
-Ard, thanks, just ignore the last one 4/4 if you think it is risky or
-unnecessary. 
-
-> 
-> 
-> >>> --->>> v1->v2: efi_bgrt_init: check table length first before copying bgrt table
-> >>>         error checking in drivers/acpi/bgrt.c
-> >>> v2->v3: drop #ifdef added before; efi-bgrt.h build warning fix
-> >>>         since only changed this patch, so I just only resend this one.
-> >>>  arch/x86/kernel/acpi/boot.c      |    9 +++++
-> >>>  arch/x86/platform/efi/efi-bgrt.c |   59 ++++++++++++++++-----------------------
-> >>>  arch/x86/platform/efi/efi.c      |    5 ---
-> >>>  drivers/acpi/bgrt.c              |   28 +++++++++++++-----
-> >>>  include/linux/efi-bgrt.h         |   11 +++----
-> >>>  init/main.c                      |    1
-> >>>  6 files changed, 59 insertions(+), 54 deletions(-)
-> >>>
-> >>> --- linux-x86.orig/arch/x86/kernel/acpi/boot.c
-> >>> +++ linux-x86/arch/x86/kernel/acpi/boot.c
-> >>> @@ -35,6 +35,7 @@
-> >>>  #include <linux/bootmem.h>
-> >>>  #include <linux/ioport.h>
-> >>>  #include <linux/pci.h>
-> >>> +#include <linux/efi-bgrt.h>
-> >>>
-> >>>  #include <asm/irqdomain.h>
-> >>>  #include <asm/pci_x86.h>
-> >>> @@ -1557,6 +1558,12 @@ int __init early_acpi_boot_init(void)
-> >>>         return 0;
-> >>>  }
-> >>>
-> >>> +static int __init acpi_parse_bgrt(struct acpi_table_header *table)
-> >>> +{
-> >>> +       efi_bgrt_init(table);
-> >>> +       return 0;
-> >>> +}
-> >>> +
-> >>>  int __init acpi_boot_init(void)
-> >>>  {
-> >>>         /* those are executed after early-quirks are executed */
-> >>> @@ -1581,6 +1588,8 @@ int __init acpi_boot_init(void)
-> >>>         acpi_process_madt();
-> >>>
-> >>>         acpi_table_parse(ACPI_SIG_HPET, acpi_parse_hpet);
-> >>> +       if (IS_ENABLED(CONFIG_ACPI_BGRT))
-> >>> +               acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
-> >>>
-> >>>         if (!acpi_noirq)
-> >>>                 x86_init.pci.init = pci_acpi_init;
-> >>> --- linux-x86.orig/arch/x86/platform/efi/efi-bgrt.c
-> >>> +++ linux-x86/arch/x86/platform/efi/efi-bgrt.c
-> >>> @@ -19,8 +19,7 @@
-> >>>  #include <linux/efi.h>
-> >>>  #include <linux/efi-bgrt.h>
-> >>>
-> >>> -struct acpi_table_bgrt *bgrt_tab;
-> >>> -void *__initdata bgrt_image;
-> >>> +struct acpi_table_bgrt bgrt_tab;
-> >>>  size_t __initdata bgrt_image_size;
-> >>>
-> >>>  struct bmp_header {
-> >>> @@ -28,66 +27,58 @@ struct bmp_header {
-> >>>         u32 size;
-> >>>  } __packed;
-> >>>
-> >>> -void __init efi_bgrt_init(void)
-> >>> +void __init efi_bgrt_init(struct acpi_table_header *table)
-> >>>  {
-> >>> -       acpi_status status;
-> >>>         void *image;
-> >>>         struct bmp_header bmp_header;
-> >>> +       struct acpi_table_bgrt *bgrt = &bgrt_tab;
-> >>>
-> >>>         if (acpi_disabled)
-> >>>                 return;
-> >>>
-> >>> -       status = acpi_get_table("BGRT", 0,
-> >>> -                               (struct acpi_table_header **)&bgrt_tab);
-> >>> -       if (ACPI_FAILURE(status))
-> >>> -               return;
-> >>> -
-> >>> -       if (bgrt_tab->header.length < sizeof(*bgrt_tab)) {
-> >>> +       if (table->length < sizeof(bgrt_tab)) {
-> >>>                 pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
-> >>> -                      bgrt_tab->header.length, sizeof(*bgrt_tab));
-> >>> +                      table->length, sizeof(bgrt_tab));
-> >>>                 return;
-> >>>         }
-> >>> -       if (bgrt_tab->version != 1) {
-> >>> +       *bgrt = *(struct acpi_table_bgrt *)table;
-> >>> +       if (bgrt->version != 1) {
-> >>>                 pr_notice("Ignoring BGRT: invalid version %u (expected 1)\n",
-> >>> -                      bgrt_tab->version);
-> >>> -               return;
-> >>> +                      bgrt->version);
-> >>> +               goto out;
-> >>>         }
-> >>> -       if (bgrt_tab->status & 0xfe) {
-> >>> +       if (bgrt->status & 0xfe) {
-> >>>                 pr_notice("Ignoring BGRT: reserved status bits are non-zero %u\n",
-> >>> -                      bgrt_tab->status);
-> >>> -               return;
-> >>> +                      bgrt->status);
-> >>> +               goto out;
-> >>>         }
-> >>> -       if (bgrt_tab->image_type != 0) {
-> >>> +       if (bgrt->image_type != 0) {
-> >>>                 pr_notice("Ignoring BGRT: invalid image type %u (expected 0)\n",
-> >>> -                      bgrt_tab->image_type);
-> >>> -               return;
-> >>> +                      bgrt->image_type);
-> >>> +               goto out;
-> >>>         }
-> >>> -       if (!bgrt_tab->image_address) {
-> >>> +       if (!bgrt->image_address) {
-> >>>                 pr_notice("Ignoring BGRT: null image address\n");
-> >>> -               return;
-> >>> +               goto out;
-> >>>         }
-> >>>
-> >>> -       image = memremap(bgrt_tab->image_address, sizeof(bmp_header), MEMREMAP_WB);
-> >>> +       image = early_memremap(bgrt->image_address, sizeof(bmp_header));
-> >>>         if (!image) {
-> >>>                 pr_notice("Ignoring BGRT: failed to map image header memory\n");
-> >>> -               return;
-> >>> +               goto out;
-> >>>         }
-> >>>
-> >>>         memcpy(&bmp_header, image, sizeof(bmp_header));
-> >>> -       memunmap(image);
-> >>> +       early_memunmap(image, sizeof(bmp_header));
-> >>>         if (bmp_header.id != 0x4d42) {
-> >>>                 pr_notice("Ignoring BGRT: Incorrect BMP magic number 0x%x (expected 0x4d42)\n",
-> >>>                         bmp_header.id);
-> >>> -               return;
-> >>> +               goto out;
-> >>>         }
-> >>>         bgrt_image_size = bmp_header.size;
-> >>> +       efi_mem_reserve(bgrt->image_address, bgrt_image_size);
-> >>>
-> >>> -       bgrt_image = memremap(bgrt_tab->image_address, bmp_header.size, MEMREMAP_WB);
-> >>> -       if (!bgrt_image) {
-> >>> -               pr_notice("Ignoring BGRT: failed to map image memory\n");
-> >>> -               bgrt_image = NULL;
-> >>> -               return;
-> >>> -       }
-> >>> -
-> >>> -       efi_mem_reserve(bgrt_tab->image_address, bgrt_image_size);
-> >>> +       return;
-> >>> +out:
-> >>> +       memset(bgrt, 0, sizeof(bgrt_tab));
-> >>>  }
-> >>> --- linux-x86.orig/drivers/acpi/bgrt.c
-> >>> +++ linux-x86/drivers/acpi/bgrt.c
-> >>> @@ -15,40 +15,41 @@
-> >>>  #include <linux/sysfs.h>
-> >>>  #include <linux/efi-bgrt.h>
-> >>>
-> >>> +static void *bgrt_image;
-> >>>  static struct kobject *bgrt_kobj;
-> >>>
-> >>>  static ssize_t show_version(struct device *dev,
-> >>>                             struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->version);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.version);
-> >>>  }
-> >>>  static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
-> >>>
-> >>>  static ssize_t show_status(struct device *dev,
-> >>>                            struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->status);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.status);
-> >>>  }
-> >>>  static DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
-> >>>
-> >>>  static ssize_t show_type(struct device *dev,
-> >>>                          struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_type);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_type);
-> >>>  }
-> >>>  static DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
-> >>>
-> >>>  static ssize_t show_xoffset(struct device *dev,
-> >>>                             struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_offset_x);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_offset_x);
-> >>>  }
-> >>>  static DEVICE_ATTR(xoffset, S_IRUGO, show_xoffset, NULL);
-> >>>
-> >>>  static ssize_t show_yoffset(struct device *dev,
-> >>>                             struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_offset_y);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_offset_y);
-> >>>  }
-> >>>  static DEVICE_ATTR(yoffset, S_IRUGO, show_yoffset, NULL);
-> >>>
-> >>> @@ -84,15 +85,24 @@ static int __init bgrt_init(void)
-> >>>  {
-> >>>         int ret;
-> >>>
-> >>> -       if (!bgrt_image)
-> >>> +       if (!bgrt_tab.image_address)
-> >>>                 return -ENODEV;
-> >>>
-> >>> +       bgrt_image = memremap(bgrt_tab.image_address, bgrt_image_size,
-> >>> +                             MEMREMAP_WB);
-> >>> +       if (!bgrt_image) {
-> >>> +               pr_notice("Ignoring BGRT: failed to map image memory\n");
-> >>> +               return -ENOMEM;
-> >>> +       }
-> >>> +
-> >>>         bin_attr_image.private = bgrt_image;
-> >>>         bin_attr_image.size = bgrt_image_size;
-> >>>
-> >>>         bgrt_kobj = kobject_create_and_add("bgrt", acpi_kobj);
-> >>> -       if (!bgrt_kobj)
-> >>> -               return -EINVAL;
-> >>> +       if (!bgrt_kobj) {
-> >>> +               ret = -EINVAL;
-> >>> +               goto out_memmap;
-> >>> +       }
-> >>>
-> >>>         ret = sysfs_create_group(bgrt_kobj, &bgrt_attribute_group);
-> >>>         if (ret)
-> >>> @@ -102,6 +112,8 @@ static int __init bgrt_init(void)
-> >>>
-> >>>  out_kobject:
-> >>>         kobject_put(bgrt_kobj);
-> >>> +out_memmap:
-> >>> +       memunmap(bgrt_image);
-> >>>         return ret;
-> >>>  }
-> >>>  device_initcall(bgrt_init);
-> >>> --- linux-x86.orig/include/linux/efi-bgrt.h
-> >>> +++ linux-x86/include/linux/efi-bgrt.h
-> >>> @@ -1,20 +1,19 @@
-> >>>  #ifndef _LINUX_EFI_BGRT_H
-> >>>  #define _LINUX_EFI_BGRT_H
-> >>>
-> >>> -#ifdef CONFIG_ACPI_BGRT
-> >>> -
-> >>>  #include <linux/acpi.h>
-> >>>
-> >>> -void efi_bgrt_init(void);
-> >>> +#ifdef CONFIG_ACPI_BGRT
-> >>> +
-> >>> +void efi_bgrt_init(struct acpi_table_header *table);
-> >>>
-> >>>  /* The BGRT data itself; only valid if bgrt_image != NULL. */
-> >>> -extern void *bgrt_image;
-> >>>  extern size_t bgrt_image_size;
-> >>> -extern struct acpi_table_bgrt *bgrt_tab;
-> >>> +extern struct acpi_table_bgrt bgrt_tab;
-> >>>
-> >>>  #else /* !CONFIG_ACPI_BGRT */
-> >>>
-> >>> -static inline void efi_bgrt_init(void) {}
-> >>> +static inline void efi_bgrt_init(struct acpi_table_header *table) {}
-> >>>
-> >>>  #endif /* !CONFIG_ACPI_BGRT */
-> >>>
-> >>> --- linux-x86.orig/arch/x86/platform/efi/efi.c
-> >>> +++ linux-x86/arch/x86/platform/efi/efi.c
-> >>> @@ -542,11 +542,6 @@ void __init efi_init(void)
-> >>>                 efi_print_memmap();
-> >>>  }
-> >>>
-> >>> -void __init efi_late_init(void)
-> >>> -{
-> >>> -       efi_bgrt_init();
-> >>> -}
-> >>> -
-> >>>  void __init efi_set_executable(efi_memory_desc_t *md, bool executable)
-> >>>  {
-> >>>         u64 addr, npages;
-> >>> --- linux-x86.orig/init/main.c
-> >>> +++ linux-x86/init/main.c
-> >>> @@ -663,7 +663,6 @@ asmlinkage __visible void __init start_k
-> >>>         sfi_init_late();
-> >>>
-> >>>         if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-> >>> -               efi_late_init();
-> >>>                 efi_free_boot_services();
-> >>>         }
-> >>>
-> 
-> >> - an ack from the ACPI maintainers (cc'ed)
-> >>
-> >> Thanks,
-> >> Ard.
-> >>
-> >>
-> >>> ---
-> >>> v1->v2: efi_bgrt_init: check table length first before copying bgrt table
-> >>>         error checking in drivers/acpi/bgrt.c
-> >>> v2->v3: drop #ifdef added before; efi-bgrt.h build warning fix
-> >>>         since only changed this patch, so I just only resend this one.
-> >>>  arch/x86/kernel/acpi/boot.c      |    9 +++++
-> >>>  arch/x86/platform/efi/efi-bgrt.c |   59 ++++++++++++++++-----------------------
-> >>>  arch/x86/platform/efi/efi.c      |    5 ---
-> >>>  drivers/acpi/bgrt.c              |   28 +++++++++++++-----
-> >>>  include/linux/efi-bgrt.h         |   11 +++----
-> >>>  init/main.c                      |    1
-> >>>  6 files changed, 59 insertions(+), 54 deletions(-)
-> >>>
-> >>> --- linux-x86.orig/arch/x86/kernel/acpi/boot.c
-> >>> +++ linux-x86/arch/x86/kernel/acpi/boot.c
-> >>> @@ -35,6 +35,7 @@
-> >>>  #include <linux/bootmem.h>
-> >>>  #include <linux/ioport.h>
-> >>>  #include <linux/pci.h>
-> >>> +#include <linux/efi-bgrt.h>
-> >>>
-> >>>  #include <asm/irqdomain.h>
-> >>>  #include <asm/pci_x86.h>
-> >>> @@ -1557,6 +1558,12 @@ int __init early_acpi_boot_init(void)
-> >>>         return 0;
-> >>>  }
-> >>>
-> >>> +static int __init acpi_parse_bgrt(struct acpi_table_header *table)
-> >>> +{
-> >>> +       efi_bgrt_init(table);
-> >>> +       return 0;
-> >>> +}
-> >>> +
-> >>>  int __init acpi_boot_init(void)
-> >>>  {
-> >>>         /* those are executed after early-quirks are executed */
-> >>> @@ -1581,6 +1588,8 @@ int __init acpi_boot_init(void)
-> >>>         acpi_process_madt();
-> >>>
-> >>>         acpi_table_parse(ACPI_SIG_HPET, acpi_parse_hpet);
-> >>> +       if (IS_ENABLED(CONFIG_ACPI_BGRT))
-> >>> +               acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
-> >>>
-> >>>         if (!acpi_noirq)
-> >>>                 x86_init.pci.init = pci_acpi_init;
-> >>> --- linux-x86.orig/arch/x86/platform/efi/efi-bgrt.c
-> >>> +++ linux-x86/arch/x86/platform/efi/efi-bgrt.c
-> >>> @@ -19,8 +19,7 @@
-> >>>  #include <linux/efi.h>
-> >>>  #include <linux/efi-bgrt.h>
-> >>>
-> >>> -struct acpi_table_bgrt *bgrt_tab;
-> >>> -void *__initdata bgrt_image;
-> >>> +struct acpi_table_bgrt bgrt_tab;
-> >>>  size_t __initdata bgrt_image_size;
-> >>>
-> >>>  struct bmp_header {
-> >>> @@ -28,66 +27,58 @@ struct bmp_header {
-> >>>         u32 size;
-> >>>  } __packed;
-> >>>
-> >>> -void __init efi_bgrt_init(void)
-> >>> +void __init efi_bgrt_init(struct acpi_table_header *table)
-> >>>  {
-> >>> -       acpi_status status;
-> >>>         void *image;
-> >>>         struct bmp_header bmp_header;
-> >>> +       struct acpi_table_bgrt *bgrt = &bgrt_tab;
-> >>>
-> >>>         if (acpi_disabled)
-> >>>                 return;
-> >>>
-> >>> -       status = acpi_get_table("BGRT", 0,
-> >>> -                               (struct acpi_table_header **)&bgrt_tab);
-> >>> -       if (ACPI_FAILURE(status))
-> >>> -               return;
-> >>> -
-> >>> -       if (bgrt_tab->header.length < sizeof(*bgrt_tab)) {
-> >>> +       if (table->length < sizeof(bgrt_tab)) {
-> >>>                 pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
-> >>> -                      bgrt_tab->header.length, sizeof(*bgrt_tab));
-> >>> +                      table->length, sizeof(bgrt_tab));
-> >>>                 return;
-> >>>         }
-> >>> -       if (bgrt_tab->version != 1) {
-> >>> +       *bgrt = *(struct acpi_table_bgrt *)table;
-> >>> +       if (bgrt->version != 1) {
-> >>>                 pr_notice("Ignoring BGRT: invalid version %u (expected 1)\n",
-> >>> -                      bgrt_tab->version);
-> >>> -               return;
-> >>> +                      bgrt->version);
-> >>> +               goto out;
-> >>>         }
-> >>> -       if (bgrt_tab->status & 0xfe) {
-> >>> +       if (bgrt->status & 0xfe) {
-> >>>                 pr_notice("Ignoring BGRT: reserved status bits are non-zero %u\n",
-> >>> -                      bgrt_tab->status);
-> >>> -               return;
-> >>> +                      bgrt->status);
-> >>> +               goto out;
-> >>>         }
-> >>> -       if (bgrt_tab->image_type != 0) {
-> >>> +       if (bgrt->image_type != 0) {
-> >>>                 pr_notice("Ignoring BGRT: invalid image type %u (expected 0)\n",
-> >>> -                      bgrt_tab->image_type);
-> >>> -               return;
-> >>> +                      bgrt->image_type);
-> >>> +               goto out;
-> >>>         }
-> >>> -       if (!bgrt_tab->image_address) {
-> >>> +       if (!bgrt->image_address) {
-> >>>                 pr_notice("Ignoring BGRT: null image address\n");
-> >>> -               return;
-> >>> +               goto out;
-> >>>         }
-> >>>
-> >>> -       image = memremap(bgrt_tab->image_address, sizeof(bmp_header), MEMREMAP_WB);
-> >>> +       image = early_memremap(bgrt->image_address, sizeof(bmp_header));
-> >>>         if (!image) {
-> >>>                 pr_notice("Ignoring BGRT: failed to map image header memory\n");
-> >>> -               return;
-> >>> +               goto out;
-> >>>         }
-> >>>
-> >>>         memcpy(&bmp_header, image, sizeof(bmp_header));
-> >>> -       memunmap(image);
-> >>> +       early_memunmap(image, sizeof(bmp_header));
-> >>>         if (bmp_header.id != 0x4d42) {
-> >>>                 pr_notice("Ignoring BGRT: Incorrect BMP magic number 0x%x (expected 0x4d42)\n",
-> >>>                         bmp_header.id);
-> >>> -               return;
-> >>> +               goto out;
-> >>>         }
-> >>>         bgrt_image_size = bmp_header.size;
-> >>> +       efi_mem_reserve(bgrt->image_address, bgrt_image_size);
-> >>>
-> >>> -       bgrt_image = memremap(bgrt_tab->image_address, bmp_header.size, MEMREMAP_WB);
-> >>> -       if (!bgrt_image) {
-> >>> -               pr_notice("Ignoring BGRT: failed to map image memory\n");
-> >>> -               bgrt_image = NULL;
-> >>> -               return;
-> >>> -       }
-> >>> -
-> >>> -       efi_mem_reserve(bgrt_tab->image_address, bgrt_image_size);
-> >>> +       return;
-> >>> +out:
-> >>> +       memset(bgrt, 0, sizeof(bgrt_tab));
-> >>>  }
-> >>> --- linux-x86.orig/drivers/acpi/bgrt.c
-> >>> +++ linux-x86/drivers/acpi/bgrt.c
-> >>> @@ -15,40 +15,41 @@
-> >>>  #include <linux/sysfs.h>
-> >>>  #include <linux/efi-bgrt.h>
-> >>>
-> >>> +static void *bgrt_image;
-> >>>  static struct kobject *bgrt_kobj;
-> >>>
-> >>>  static ssize_t show_version(struct device *dev,
-> >>>                             struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->version);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.version);
-> >>>  }
-> >>>  static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
-> >>>
-> >>>  static ssize_t show_status(struct device *dev,
-> >>>                            struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->status);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.status);
-> >>>  }
-> >>>  static DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
-> >>>
-> >>>  static ssize_t show_type(struct device *dev,
-> >>>                          struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_type);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_type);
-> >>>  }
-> >>>  static DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
-> >>>
-> >>>  static ssize_t show_xoffset(struct device *dev,
-> >>>                             struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_offset_x);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_offset_x);
-> >>>  }
-> >>>  static DEVICE_ATTR(xoffset, S_IRUGO, show_xoffset, NULL);
-> >>>
-> >>>  static ssize_t show_yoffset(struct device *dev,
-> >>>                             struct device_attribute *attr, char *buf)
-> >>>  {
-> >>> -       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_offset_y);
-> >>> +       return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_offset_y);
-> >>>  }
-> >>>  static DEVICE_ATTR(yoffset, S_IRUGO, show_yoffset, NULL);
-> >>>
-> >>> @@ -84,15 +85,24 @@ static int __init bgrt_init(void)
-> >>>  {
-> >>>         int ret;
-> >>>
-> >>> -       if (!bgrt_image)
-> >>> +       if (!bgrt_tab.image_address)
-> >>>                 return -ENODEV;
-> >>>
-> >>> +       bgrt_image = memremap(bgrt_tab.image_address, bgrt_image_size,
-> >>> +                             MEMREMAP_WB);
-> >>> +       if (!bgrt_image) {
-> >>> +               pr_notice("Ignoring BGRT: failed to map image memory\n");
-> >>> +               return -ENOMEM;
-> >>> +       }
-> >>> +
-> >>>         bin_attr_image.private = bgrt_image;
-> >>>         bin_attr_image.size = bgrt_image_size;
-> >>>
-> >>>         bgrt_kobj = kobject_create_and_add("bgrt", acpi_kobj);
-> >>> -       if (!bgrt_kobj)
-> >>> -               return -EINVAL;
-> >>> +       if (!bgrt_kobj) {
-> >>> +               ret = -EINVAL;
-> >>> +               goto out_memmap;
-> >>> +       }
-> >>>
-> >>>         ret = sysfs_create_group(bgrt_kobj, &bgrt_attribute_group);
-> >>>         if (ret)
-> >>> @@ -102,6 +112,8 @@ static int __init bgrt_init(void)
-> >>>
-> >>>  out_kobject:
-> >>>         kobject_put(bgrt_kobj);
-> >>> +out_memmap:
-> >>> +       memunmap(bgrt_image);
-> >>>         return ret;
-> >>>  }
-> >>>  device_initcall(bgrt_init);
-> >>> --- linux-x86.orig/include/linux/efi-bgrt.h
-> >>> +++ linux-x86/include/linux/efi-bgrt.h
-> >>> @@ -1,20 +1,19 @@
-> >>>  #ifndef _LINUX_EFI_BGRT_H
-> >>>  #define _LINUX_EFI_BGRT_H
-> >>>
-> >>> -#ifdef CONFIG_ACPI_BGRT
-> >>> -
-> >>>  #include <linux/acpi.h>
-> >>>
-> >>> -void efi_bgrt_init(void);
-> >>> +#ifdef CONFIG_ACPI_BGRT
-> >>> +
-> >>> +void efi_bgrt_init(struct acpi_table_header *table);
-> >>>
-> >>>  /* The BGRT data itself; only valid if bgrt_image != NULL. */
-> >>> -extern void *bgrt_image;
-> >>>  extern size_t bgrt_image_size;
-> >>> -extern struct acpi_table_bgrt *bgrt_tab;
-> >>> +extern struct acpi_table_bgrt bgrt_tab;
-> >>>
-> >>>  #else /* !CONFIG_ACPI_BGRT */
-> >>>
-> >>> -static inline void efi_bgrt_init(void) {}
-> >>> +static inline void efi_bgrt_init(struct acpi_table_header *table) {}
-> >>>
-> >>>  #endif /* !CONFIG_ACPI_BGRT */
-> >>>
-> >>> --- linux-x86.orig/arch/x86/platform/efi/efi.c
-> >>> +++ linux-x86/arch/x86/platform/efi/efi.c
-> >>> @@ -542,11 +542,6 @@ void __init efi_init(void)
-> >>>                 efi_print_memmap();
-> >>>  }
-> >>>
-> >>> -void __init efi_late_init(void)
-> >>> -{
-> >>> -       efi_bgrt_init();
-> >>> -}
-> >>> -
-> >>>  void __init efi_set_executable(efi_memory_desc_t *md, bool executable)
-> >>>  {
-> >>>         u64 addr, npages;
-> >>> --- linux-x86.orig/init/main.c
-> >>> +++ linux-x86/init/main.c
-> >>> @@ -663,7 +663,6 @@ asmlinkage __visible void __init start_k
-> >>>         sfi_init_late();
-> >>>
-> >>>         if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-> >>> -               efi_late_init();
-> >>>                 efi_free_boot_services();
-> >>>         }
-> >>>
-
-Thanks
-Dave
+Fu Wei
+Software Engineer
+Red Hat
