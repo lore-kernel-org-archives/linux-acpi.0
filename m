@@ -1,105 +1,120 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
- (possibly badly bisected)
-Date: Thu, 26 Jan 2017 16:15:35 +0100
-Message-ID: <1485443735.5845.30.camel@hadess.net>
-References: <1484927552.21721.17.camel@hadess.net>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 6/7] drivers/gpio: Add and export gpiod_lookup[_index]
+Date: Thu, 26 Jan 2017 16:24:21 +0100
+Message-ID: <CACRpkdadyUt+bJZ92dZZqFfVrnTgnstoZ7Bx7B7PhK3kL6kZRw@mail.gmail.com>
+References: <20170125000641.25520-1-furquan@chromium.org> <20170125000641.25520-7-furquan@chromium.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Mzm210Gmsr/oWQIWSGW2"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:33785 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752650AbdAZPPk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 10:15:40 -0500
-In-Reply-To: <1484927552.21721.17.camel@hadess.net>
+Received: from mail-it0-f54.google.com ([209.85.214.54]:35450 "EHLO
+        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753180AbdAZPYX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 10:24:23 -0500
+Received: by mail-it0-f54.google.com with SMTP id 203so131443896ith.0
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2017 07:24:22 -0800 (PST)
+In-Reply-To: <20170125000641.25520-7-furquan@chromium.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
+To: Furquan Shaikh <furquan@chromium.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 
+On Wed, Jan 25, 2017 at 1:06 AM, Furquan Shaikh <furquan@chromium.org> wrote:
 
---=-Mzm210Gmsr/oWQIWSGW2
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+> Sometimes (as the case with fixed regulator) we only want to look up,
+> but not necessarily reserve right away, GPIO. gpiod_lookup() and
+> gpiod_lookup_by_index() allow us doing just that.
+>
+> Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
+> Signed-off-by: Furquan Shaikh <furquan@chromium.org>
 
-On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
-> Hey,
-> 
-> TLDR:
-> # first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7] Merge
-> back earlier ACPI PM material for v4.3.
-> 
-> hid-sensor-hub devices only start sending events through the IIO
-> trigger after a suspend/resume cycle.
-> 
-> Other IIO drivers don't seem to exhibit those problems.
+Overall if this solves the GPIO regulator mess, I'd be happy
+to apply it.
 
-I had another go, trying to break into the merge commit, and it's
-slightly more precise, but still doesn't make any sense to me.
+But overall it is a bit scary with looking up something struct gpiod *
+that does not at all have the same semantics as a gpiod *
+you get from gpiod_get().
 
-# first bad commit: [3431e490b50356b56084305a2e93b3a980802b22] Merge
-branch 'acpi-scan' into acpi-pm
+We need to make sure that a gpiod looked up this way does not
+work and tick and cannot perform operations as one obtained
+with a proper gpiod_get().
 
-Any ideas? I'm running out of them...
---=-Mzm210Gmsr/oWQIWSGW2
-Content-Disposition: attachment; filename="git-bisect-log.txt"
-Content-Type: text/plain; name="git-bisect-log.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
+>  /**
+> + * gpiod_lookup - look up a GPIO for a given GPIO function
+> + * @dev:       GPIO consumer, can be NULL for system-global GPIOs
+> + * @con_id:    function within the GPIO consumer
+> + *
+> + * Return the GPIO descriptor corresponding to the function con_id of device
+> + * dev, -ENOENT if no GPIO has been assigned to the requested function, or
+> + * another IS_ERR() code.
+> + */
+> +struct gpio_desc *__must_check gpiod_lookup(struct device *dev,
+> +                                           const char *con_id)
+> +{
+> +       return gpiod_lookup_index(dev, con_id, 0);
+> +}
+> +EXPORT_SYMBOL_GPL(gpiod_lookup);
 
-Z2l0IGJpc2VjdCBzdGFydAojIGdvb2Q6IFsyNWU1ZWFmMTk5NjJiZDQ4Nzg4MzcxZTRmNTE2YmRk
-ODljZTI0OGJjXSBBTFNBOiBzcGFyYzogQWRkIG1pc3Npbmcga2ZyZWUgaW4gZXJyb3IgcGF0aApn
-aXQgYmlzZWN0IGdvb2QgMjVlNWVhZjE5OTYyYmQ0ODc4ODM3MWU0ZjUxNmJkZDg5Y2UyNDhiYwoj
-IGJhZDogWzM0MzFlNDkwYjUwMzU2YjU2MDg0MzA1YTJlOTNiM2E5ODA4MDJiMjJdIE1lcmdlIGJy
-YW5jaCAnYWNwaS1zY2FuJyBpbnRvIGFjcGktcG0KZ2l0IGJpc2VjdCBiYWQgMzQzMWU0OTBiNTAz
-NTZiNTYwODQzMDVhMmU5M2IzYTk4MDgwMmIyMgojIGdvb2Q6IFswNzU1ZTc0YjhmMDRkMTdjZWEw
-OWZhMzQyYTc4ODAyNWIyYjUwZTJlXSBBTFNBOiBGaXggdW5pbmludGlhbGl6ZWQgZXJyb3IgcmV0
-dXJuCmdpdCBiaXNlY3QgZ29vZCAwNzU1ZTc0YjhmMDRkMTdjZWEwOWZhMzQyYTc4ODAyNWIyYjUw
-ZTJlCiMgZ29vZDogWzViNGNhNDQ0Nzc1NzAxOWYxMWE2MDFiMDAwOTUzNGVmODRiZWQ4MDFdIE1l
-cmdlIHRhZyAnbWVkaWEvdjQuMi0xJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xp
-bnV4L2tlcm5lbC9naXQvbWNoZWhhYi9saW51eC1tZWRpYQpnaXQgYmlzZWN0IGdvb2QgNWI0Y2E0
-NDQ3NzU3MDE5ZjExYTYwMWIwMDA5NTM0ZWY4NGJlZDgwMQojIGdvb2Q6IFsyMzkwOGRiNDEzZWNj
-ZDc3MDg0YjA5YzliMGE0NDUxZGZiMDUyNGMwXSBNZXJnZSB0YWcgJ3N0YWdpbmctNC4yLXJjMScg
-b2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2dyZWdraC9z
-dGFnaW5nCmdpdCBiaXNlY3QgZ29vZCAyMzkwOGRiNDEzZWNjZDc3MDg0YjA5YzliMGE0NDUxZGZi
-MDUyNGMwCiMgZ29vZDogWzEzZDQ1Zjc5YTJhZjg0ZGU5MDgzMzEwZGI1OGIzMDlhNjEwNjUyMDhd
-IE1lcmdlIGJyYW5jaCAnZm9yLW5leHQnIG9mIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20v
-bGludXgva2VybmVsL2dpdC9jb29sb25leS9saW51eC1sZWRzCmdpdCBiaXNlY3QgZ29vZCAxM2Q0
-NWY3OWEyYWY4NGRlOTA4MzMxMGRiNThiMzA5YTYxMDY1MjA4CiMgZ29vZDogWzkxY2NhMGYwZmZh
-M2U0ODVhZDlkNWI0NDc0NGYyMzMxOGM4Zjk5YWJdIE1lcmdlIGJyYW5jaCAnY29yZS11cmdlbnQt
-Zm9yLWxpbnVzJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9n
-aXQvdGlwL3RpcApnaXQgYmlzZWN0IGdvb2QgOTFjY2EwZjBmZmEzZTQ4NWFkOWQ1YjQ0NzQ0ZjIz
-MzE4YzhmOTlhYgojIGdvb2Q6IFs4NGUzZTlkMDRkNWI1MzY4YTFjMjZmNzQ0YTk4YzQ5MjA1MmQw
-NTIzXSBNZXJnZSB0YWcgJ2FybXNvYy1maXhlcycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
-L3NjbS9saW51eC9rZXJuZWwvZ2l0L2FybS9hcm0tc29jCmdpdCBiaXNlY3QgZ29vZCA4NGUzZTlk
-MDRkNWI1MzY4YTFjMjZmNzQ0YTk4YzQ5MjA1MmQwNTIzCiMgZ29vZDogW2Q4YjJiYTdjNTkyODE3
-M2ZlMWMxMmJkMjU0NWY1ZWQ4NWQxYzNjN2FdIElCL2NvcmU6IERlc3Ryb3kgb2NyZG1hX2Rldl9p
-ZCBJRFIgb24gbW9kdWxlIGV4aXQKZ2l0IGJpc2VjdCBnb29kIGQ4YjJiYTdjNTkyODE3M2ZlMWMx
-MmJkMjU0NWY1ZWQ4NWQxYzNjN2EKIyBnb29kOiBbOWM2OTQ4MWVkMGI0ZTZlNTI1ZTZkOGQ0ZDNk
-ODNiNjEyMzk3ZTY3ZF0gTWVyZ2UgYnJhbmNoICdmb3ItbGludXMnIG9mIGdpdDovL2dpdC5rZXJu
-ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9zMzkwL2xpbnV4CmdpdCBiaXNlY3QgZ29v
-ZCA5YzY5NDgxZWQwYjRlNmU1MjVlNmQ4ZDRkM2Q4M2I2MTIzOTdlNjdkCiMgZ29vZDogWzc2MWFi
-NzY2NGIzMGVkOTA3ZjU1ZGE3ZjY5NjZkNDUzN2YzNmQ5ZmZdIE1lcmdlIGJyYW5jaCAnZm9yLWxp
-bnVzJyBvZiBnaXQ6Ly9naXQua2VybmVsLmRrL2xpbnV4LWJsb2NrCmdpdCBiaXNlY3QgZ29vZCA3
-NjFhYjc2NjRiMzBlZDkwN2Y1NWRhN2Y2OTY2ZDQ1MzdmMzZkOWZmCiMgZ29vZDogWzNlODdlZTA2
-ZDBkNmI3NTk0NzFhNDg3Y2ViOGE0OGVjYzVkZWUxZjhdIE1lcmdlIHRhZyAncGxhdGZvcm0tZHJp
-dmVycy14ODYtdjQuMi0zJyBvZiBnaXQ6Ly9naXQuaW5mcmFkZWFkLm9yZy91c2Vycy9kdmhhcnQv
-bGludXgtcGxhdGZvcm0tZHJpdmVycy14ODYKZ2l0IGJpc2VjdCBnb29kIDNlODdlZTA2ZDBkNmI3
-NTk0NzFhNDg3Y2ViOGE0OGVjYzVkZWUxZjgKIyBnb29kOiBbNWFmMzEwYThlZTcwZGQ2YTU4OGM4
-ZWUxZDQ0ODdhMjMwYTdiN2I2NV0gTWVyZ2UgdGFnICdpYi1tZmQtYmFzZS1hY3BpLWRtYS12NC4z
-JyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbGVlL21m
-ZCBpbnRvIGFjcGktcG0KZ2l0IGJpc2VjdCBnb29kIDVhZjMxMGE4ZWU3MGRkNmE1ODhjOGVlMWQ0
-NDg3YTIzMGE3YjdiNjUKIyBnb29kOiBbMTdmZmM4YjA4M2FjMjk5ZmY3OTg0MTlkMTg4N2I3Y2Rj
-ZDRhZTRkMl0gTWVyZ2UgYnJhbmNoZXMgJ3BtLWNwdWlkbGUnLCAncG0tY3B1ZnJlcScgYW5kICdh
-Y3BpLXJlc291cmNlcycKZ2l0IGJpc2VjdCBnb29kIDE3ZmZjOGIwODNhYzI5OWZmNzk4NDE5ZDE4
-ODdiN2NkY2Q0YWU0ZDIKIyBnb29kOiBbNjhjNmIxNDhkYWE2ZTQ1YTg1YjMxZWY2MGVkOWM5YmZk
-NTU2ZmZmMF0gQUNQSSAvIHNjYW46IE1vdmUgZGV2aWNlIG1hdGNoaW5nIGNvZGUgdG8gYnVzLmMK
-Z2l0IGJpc2VjdCBnb29kIDY4YzZiMTQ4ZGFhNmU0NWE4NWIzMWVmNjBlZDljOWJmZDU1NmZmZjAK
-IyBnb29kOiBbMWRjYzNkMzM2MmIwYzk3ZTQ4MjkwZjc3ODZiZTg1YjRjZWMyYTE0N10gQUNQSSAv
-IGJ1czogTW92ZSBBQ1BJIGJ1cyB0eXBlIHJlZ2lzdHJhdGlvbgpnaXQgYmlzZWN0IGdvb2QgMWRj
-YzNkMzM2MmIwYzk3ZTQ4MjkwZjc3ODZiZTg1YjRjZWMyYTE0NwojIGZpcnN0IGJhZCBjb21taXQ6
-IFszNDMxZTQ5MGI1MDM1NmI1NjA4NDMwNWEyZTkzYjNhOTgwODAyYjIyXSBNZXJnZSBicmFuY2gg
-J2FjcGktc2NhbicgaW50byBhY3BpLXBtCg==
+Make this a static inline in the <linux/gpio/consumer.h> header instead.
+Saves a lot of trouble.
 
+>  /**
+> - * gpiod_get_index - obtain a GPIO from a multi-index GPIO function
+> + * gpiod_lookup_index - look up a GPIO from a multi-index GPIO function
+>   * @dev:       GPIO consumer, can be NULL for system-global GPIOs
+>   * @con_id:    function within the GPIO consumer
+>   * @idx:       index of the GPIO to obtain in the consumer
+> - * @flags:     optional GPIO initialization flags
+> - *
+> - * This variant of gpiod_get() allows to access GPIOs other than the first
+> - * defined one for functions that define several GPIOs.
+>   *
+> - * Return a valid GPIO descriptor, -ENOENT if no GPIO has been assigned to the
+> - * requested function and/or index, or another IS_ERR() code if an error
+> - * occurred while trying to acquire the GPIO.
+> + * Return a valid GPIO descriptor, or -ENOENT if no GPIO has been assigned to
+> + * the requested function and/or index, or another IS_ERR() code.
+>   */
 
---=-Mzm210Gmsr/oWQIWSGW2--
+What a mess in the patch. Not your fault but format-patch created this
+mess.0
 
+> -struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
+> -                                              const char *con_id,
+> -                                              unsigned int idx,
+> -                                              enum gpiod_flags flags)
+> +struct gpio_desc *__must_check gpiod_lookup_index(struct device *dev,
+> +                                                 const char *con_id,
+> +                                                 unsigned int idx)
+>  {
+>         struct gpio_desc *desc = NULL;
+> -       int status;
+>         enum gpio_lookup_flags lookupflags = 0;
+>
+>         dev_dbg(dev, "GPIO lookup for consumer %s\n", con_id);
+> @@ -3285,16 +3294,50 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
+>                 desc = gpiod_find(dev, con_id, idx, &lookupflags);
+>         }
+>
+> -       if (IS_ERR(desc)) {
+> +       if (IS_ERR(desc))
+>                 dev_dbg(dev, "lookup for GPIO %s failed\n", con_id);
+> +
+> +       /*
+> +        * Configure static flags based on lookup data (such as
+> +        * "active low", "open drain", etc.)
+> +        */
+> +       gpiod_configure_flags(desc, con_id, lookupflags, 0);
+
+So what about setting some special flag from
+gpiolib.h like
+set_bit(FLAG_ONLY_LOOKUP, &desc->flags);
+here numbing all
+operations on the returned gpiod, by a check in
+VALIDATE_DESC() and VALIDATE_DESC_VOID()
+so that no real operations fall through?
+
+Then that flag will just be forcibly cleared by
+gpiod_get[_index]() later.
+
+Yours,
+Linus Walleij
