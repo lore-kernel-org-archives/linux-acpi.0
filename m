@@ -1,54 +1,91 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Cherryview wake up events
-Date: Fri, 27 Jan 2017 15:21:22 +0200
-Message-ID: <CAHp75Ve6pwaDM3ookO9e_4c1R_U9_X3aF43XGtD5Z2+6G6f6zA@mail.gmail.com>
-References: <20161005124648.4fkl55q2i4qnug2x@sig21.net> <20161005130511.GM1765@lahna.fi.intel.com>
- <20161204185219.j45aabkpvptadmcx@sig21.net> <20161205110608.GF1459@lahna.fi.intel.com>
- <20170124094112.ssmpe6vl4iijsjh6@sig21.net> <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
- <20170124135250.d72silj6jlxh7zqk@sig21.net> <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
- <20170124192314.gw6njffcgwyfm2gp@sig21.net> <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
- <20170127113845.zt5jwjzumafclvzc@sig21.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Dan O'Donovan <dan@emutex.com>
+Subject: [PATCH v4 1/3] ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
+Date: Fri, 27 Jan 2017 13:30:13 +0000
+Message-ID: <1485523815-9629-2-git-send-email-dan@emutex.com>
+References: <1485187737-22414-1-git-send-email-dan@emutex.com>
+ <1485523815-9629-1-git-send-email-dan@emutex.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170127113845.zt5jwjzumafclvzc@sig21.net>
+In-Reply-To: <1485523815-9629-1-git-send-email-dan@emutex.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
+To: linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>, Crestez Dan Leonard <leonard.crestez@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 27, 2017 at 1:38 PM, Johannes Stezenbach <js@sig21.net> wrote:
-> On Fri, Jan 27, 2017 at 12:56:53AM +0200, Andy Shevchenko wrote:
+From: Crestez Dan Leonard <leonard.crestez@intel.com>
 
-> And the same info is also in sysfs:
->
-> # cat /sys/devices/LNXSYSTM\:00/LNXSYBUS\:00/PNP0A08\:00/808622C1\:06/INT33F4\:00/status
-> 0
-> # cat /sys/devices/LNXSYSTM\:00/LNXSYBUS\:00/PNP0A08\:00/808622C1\:06/INT33F5\:00/status
-> 15
->
-> The DSDT is still at https://linuxtv.org/~js/e200ha/
->
->> Had you tried to add ID to axp20x-i2c.c ?
->
-> Nope, since I have no idea if the axp and TI hardware is similar.
+When using devicetree stuff like i2c_client.name or spi_device.modalias
+is initialized to the first DT compatible id with the vendor prefix
+stripped. Since some drivers rely on this try to replicate it when using
+ACPI with DT ids.
 
-I think you would give a try.
+Signed-off-by: Crestez Dan Leonard <leonard.crestez@intel.com>
+Signed-off-by: Dan O'Donovan <dan@emutex.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---
+ drivers/acpi/bus.c      | 35 +++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  1 +
+ 2 files changed, 36 insertions(+)
 
-> There might be more issues, currently the machine hangs often
-> during bootup at random points.  I built i915 as a module and
-> blacklisted it for autoloading so I can read the last message
-> on the console.  All I can say is that it is more likely to
-> hang when the loglevel is high, i.e. it almost never succeeds
-> with "debug" on kernel command line.  Sometimes there are
-> timeout errors from I2C:
-> [    4.307189] i2c_designware 808622C1:06: controller timed out
-> [    5.331709] i2c_designware 808622C1:06: controller timed out
->
-> Once it has booted it is running stable.
-
-This is known: http://www.spinics.net/lists/intel-gfx/msg117738.html
-
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 95855cb..8b9657f 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -677,6 +677,41 @@ static bool acpi_of_match_device(struct acpi_device *adev,
+ 	return false;
+ }
+ 
++/**
++ * acpi_of_modalias - Like of_modalias_node for ACPI with DT ids
++ * @adev:	ACPI device object to match.
++ * @outstr:	Pointer to buffer for result
++ * @outlen:	Length of outstr value
++ *
++ * This is a counterpart of of_modalias_node() for struct acpi_device
++ * objects. If there is a compatible string for @adev, copy it to the
++ * @outstr location with the vendor prefix stripped.
++ *
++ * Returns 0 on success or negative errno on failure.
++ */
++int acpi_of_modalias(struct acpi_device *adev, char *outstr, size_t outlen)
++{
++	const union acpi_object *of_compatible;
++	const union acpi_object *obj;
++	const char *str, *chr;
++
++	of_compatible = adev->data.of_compatible;
++	if (!of_compatible)
++		return -ENODEV;
++
++	if (of_compatible->type == ACPI_TYPE_PACKAGE)
++		obj = of_compatible->package.elements;
++	else /* Must be ACPI_TYPE_STRING. */
++		obj = of_compatible;
++
++	str = obj->string.pointer;
++	chr = strchr(str, ',');
++	strlcpy(outstr, chr ? chr + 1 : str, outlen);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_of_modalias);
++
+ static bool __acpi_match_device_cls(const struct acpi_device_id *id,
+ 				    struct acpi_hardware_id *hwid)
+ {
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 4242c31..351b4a4 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -522,6 +522,7 @@ void acpi_bus_trim(struct acpi_device *start);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
++int acpi_of_modalias(struct acpi_device *adev, char *outstr, size_t outlen);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.7.4
