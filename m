@@ -1,46 +1,76 @@
-From: Dan O'Donovan <dan@emutex.com>
-Subject: Re: [PATCH v3 3/3] spi: acpi: Initialize modalias from of_compatible
-Date: Fri, 27 Jan 2017 10:35:32 +0000
-Message-ID: <1114c19b-5398-799e-8302-ff87adf9d8a3@emutex.com>
-References: <cover.1468409668.git.leonard.crestez@intel.com>
- <1485187737-22414-1-git-send-email-dan@emutex.com>
- <1485187737-22414-4-git-send-email-dan@emutex.com>
- <CAHp75Vf0NaEFnxWPt9NAa5-jWMM091Y+Tg8D=Du0uECDVoWW4Q@mail.gmail.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Fri, 27 Jan 2017 12:38:45 +0100
+Message-ID: <20170127113845.zt5jwjzumafclvzc@sig21.net>
+References: <20161005124648.4fkl55q2i4qnug2x@sig21.net>
+ <20161005130511.GM1765@lahna.fi.intel.com>
+ <20161204185219.j45aabkpvptadmcx@sig21.net>
+ <20161205110608.GF1459@lahna.fi.intel.com>
+ <20170124094112.ssmpe6vl4iijsjh6@sig21.net>
+ <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
+ <20170124135250.d72silj6jlxh7zqk@sig21.net>
+ <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
+ <20170124192314.gw6njffcgwyfm2gp@sig21.net>
+ <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vf0NaEFnxWPt9NAa5-jWMM091Y+Tg8D=Du0uECDVoWW4Q@mail.gmail.com>
-Sender: linux-i2c-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Crestez Dan Leonard <leonard.crestez@intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 01/23/2017 05:11 PM, Andy Shevchenko wrote:
-> On Mon, Jan 23, 2017 at 6:08 PM, Dan O'Donovan <dan@emutex.com> wrote:
->> From: Crestez Dan Leonard <leonard.crestez@intel.com>
->>
->> When using devicetree spi_device.modalias is set to the compatible
->> string with the vendor prefix removed. For SPI devices described via
->> ACPI the spi_device.modalias string is initialized by acpi_device_hid.
->> When using ACPI and DT ids this string ends up something like "PRP0001".
->>
->> Change acpi_register_spi_device to use the of_compatible property if
->> present. This makes it easier to instantiate spi drivers through ACPI
->> with DT ids.
->> +       /*
->> +        * Populate modalias from compatible property if available,
->> +        * otherwise use native ACPI information
->> +        */
->> +       if ((!adev->data.of_compatible) ||
->> +           acpi_of_modalias(adev, spi->modalias, sizeof(spi->modalias)))
-> Same comment as in patch 2.
-Thanks for the feedback, Andy.  The check on of_compatible is redundant,
-because its repeated in acpi_of_modalias(), so I'll remove it here (and
-in patch 2) to reduce this to one line.  v4 on the way.
->> +               strlcpy(spi->modalias, acpi_device_hid(adev),
->> +                       sizeof(spi->modalias));
-> Could this be one line?
-I couldn't see a way to reduce this to one line without exceeding 80
-chars or adding another line somewhere else, so I'll leave this one as
-it is if that's ok.
+On Fri, Jan 27, 2017 at 12:56:53AM +0200, Andy Shevchenko wrote:
+> 
+> I'm reading your long thread about the issue.
+
+Thanks for taking the time!
+
+> > but excluded CONFIG_MFD_AXP20X based on \_SB.PIC0.I2C7.PMI1._STA returning 0 in acpidbg,
+> > but \_SB.PIC0.I2C7.PMI1._STA returns 0xf
+> 
+> Did you mean PMI2 in the second sentence?
+
+Yes, sorry for copy & paste mistake.  I just repated to confirm:
+In acpidbg:
+
+- execute \_SB.PCI0.I2C7.PMI1._STA
+Evaluating \_SB.PCI0.I2C7.PMI1._STA
+Evaluation of \_SB.PCI0.I2C7.PMI1._STA returned object ffffa14a67420000, external buffer length 18
+ [Integer] = 0000000000000000
+
+- execute \_SB.PCI0.I2C7.PMI2._STA
+Evaluating \_SB.PCI0.I2C7.PMI2._STA
+Evaluation of \_SB.PCI0.I2C7.PMI2._STA returned object ffffa14a67420000, external buffer length 18
+ [Integer] = 000000000000000F
+
+And the same info is also in sysfs:
+
+# cat /sys/devices/LNXSYSTM\:00/LNXSYBUS\:00/PNP0A08\:00/808622C1\:06/INT33F4\:00/status
+0
+# cat /sys/devices/LNXSYSTM\:00/LNXSYBUS\:00/PNP0A08\:00/808622C1\:06/INT33F5\:00/status
+15
+
+The DSDT is still at https://linuxtv.org/~js/e200ha/
+
+> Had you tried to add ID to axp20x-i2c.c ?
+
+Nope, since I have no idea if the axp and TI hardware is similar.
+
+There might be more issues, currently the machine hangs often
+during bootup at random points.  I built i915 as a module and
+blacklisted it for autoloading so I can read the last message
+on the console.  All I can say is that it is more likely to
+hang when the loglevel is high, i.e. it almost never succeeds
+with "debug" on kernel command line.  Sometimes there are
+timeout errors from I2C:
+[    4.307189] i2c_designware 808622C1:06: controller timed out
+[    5.331709] i2c_designware 808622C1:06: controller timed out
+
+Once it has booted it is running stable.
+
+
+Thanks,
+Johannes
