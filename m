@@ -1,74 +1,64 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 00/15] ACPI graph support
-Date: Fri, 27 Jan 2017 18:02:55 +0200
-Message-ID: <1485532990-8431-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 07/15] device property: Add fwnode_handle_get()
+Date: Fri, 27 Jan 2017 18:03:02 +0200
+Message-ID: <1485532990-8431-8-git-send-email-sakari.ailus@linux.intel.com>
+References: <1485532990-8431-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:3158 "EHLO mga02.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:52624 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754725AbdA0QIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S932232AbdA0QIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 27 Jan 2017 11:08:11 -0500
+In-Reply-To: <1485532990-8431-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Hello everyone, 
+fwnode_handle_get() is used to obtain a reference to a fwnode_handle
+container. In this case this is OF specific struct device_node.
 
-I posted a previous RFC labelled set of ACPI graph support a while ago:
+This complements fwnode_handle_put() which is already implemented.
 
-<URL:http://www.spinics.net/lists/linux-acpi/msg69547.html>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/base/property.c  | 11 +++++++++++
+ include/linux/property.h |  1 +
+ 2 files changed, 12 insertions(+)
 
-Since then, the matter of how the properties should be used as in ACPI
-_DSD was discussed in Ksummit and LPC, and a document detailing the rules
-was written [1].
-
-This set contains patches written by Mika Westerberg and by myself. The
-patchset brings support for graphs to ACPI. The functionality achieved by
-these patches is very similar to what the Device tree provides: the port
-and the endpoint concept are being employed. The patches make use of the
-_DSD property and data extensions to achieve this. The fwnode interface is
-extended by graph functionality; this way graph information originating
-from both OF and ACPI may be accessed using the same interface, without
-being aware of the underlying firmware interface.
-
-The last patch of the set contains ASL documentation including an example.
-
-The entire set may also be found here (on mediatree.git master, but it
-also applies cleanly on linux-next):
-
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph>
-
-The resulting fwnode graph interface has been tested using V4L2 async with
-fwnode matching and smiapp and omap3isp drivers, with appropriate changes 
-to make use of the fwnode interface in drivers.
-
-The V4L2 patches can be found here. The fwnode graph interface is used by
-the newly added V4L2 fwnode framework which replaces the V4L2 OF
-framework, with equivalent functionality.
-
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
-
-
-changes since RFC v1:
-
-- Rebased the set --- there were a few conflicts.
-
-- Fixed a bug in ACPI graph parsing. (Thanks to Mika!)
-
-- Remove one layer (the "ports" node) of the _DSD hierarchical data
-  structure. Change the documentation accordingly. Instead, rely on the
-  presence of "port" and "endpoint" properties to identify port and
-  endpoint nodes.
-
-- Add a reference the DSD property rule document [1].
-
-
-Feedback is welcome.
-
-
-[1] Documentation/acpi/DSD-properties-rules.txt
-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index cf602c3..51c0881 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -976,6 +976,17 @@ struct fwnode_handle *device_get_named_child_node(struct device *dev,
+ EXPORT_SYMBOL_GPL(device_get_named_child_node);
+ 
+ /**
++ * fwnode_handle_get - Obtain a reference to a device node
++ * @fwnode: Pointer to the device node to obtain the reference to.
++ */
++void fwnode_handle_get(struct fwnode_handle *fwnode)
++{
++	if (is_of_node(fwnode))
++		of_node_get(to_of_node(fwnode));
++}
++EXPORT_SYMBOL_GPL(fwnode_handle_get);
++
++/**
+  * fwnode_handle_put - Drop reference to a device node
+  * @fwnode: Pointer to the device node to drop the reference to.
+  *
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 86c47ad..b4b1545 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -90,6 +90,7 @@ struct fwnode_handle *fwnode_get_named_child_node(struct fwnode_handle *fwnode,
+ struct fwnode_handle *device_get_named_child_node(struct device *dev,
+ 						  const char *childname);
+ 
++void fwnode_handle_get(struct fwnode_handle *fwnode);
+ void fwnode_handle_put(struct fwnode_handle *fwnode);
+ 
+ unsigned int device_get_child_node_count(struct device *dev);
 -- 
-Kind regards,
-Sakari
+2.7.4
 
