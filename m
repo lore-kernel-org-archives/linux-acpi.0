@@ -1,204 +1,224 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 15/15] ACPI / DSD: Document references, ports and endpoints
-Date: Fri, 27 Jan 2017 18:03:10 +0200
-Message-ID: <1485532990-8431-16-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH 05/15] ACPI / property: Add support for remote endpoints
+Date: Fri, 27 Jan 2017 18:03:00 +0200
+Message-ID: <1485532990-8431-6-git-send-email-sakari.ailus@linux.intel.com>
 References: <1485532990-8431-1-git-send-email-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:45097 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754892AbdA0QL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 27 Jan 2017 11:11:27 -0500
-In-Reply-To: <1485532990-8431-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1485532990-8431-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Document the use of references into the hierarchical data extension
-structure, as well as the use of port and endpoint concepts that are very
-similar to those in Devicetree.
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+DT has had concept of remote endpoints for some time already. It makes
+possible to reference another firmware node through a property called
+remote-endpoint. This is already used by some subsystems like v4l2 for
+parsing hardware properties related to camera.
+
+This patch adds ACPI support for remote endpoints utilizing _DSD
+hierarchical data extensions.
+
+Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- Documentation/acpi/dsd/graph.txt | 166 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 166 insertions(+)
- create mode 100644 Documentation/acpi/dsd/graph.txt
+ drivers/acpi/property.c | 139 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h    |  23 ++++++++
+ 2 files changed, 162 insertions(+)
 
-diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/acpi/dsd/graph.txt
-new file mode 100644
-index 0000000..928cc07
---- /dev/null
-+++ b/Documentation/acpi/dsd/graph.txt
-@@ -0,0 +1,166 @@
-+Graphs
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 09424ef..39e2033 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -968,3 +968,142 @@ struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode)
+ 
+ 	return NULL;
+ }
 +
++/**
++ * acpi_graph_get_next_endpoint - Get next endpoint ACPI firmware node
++ * @fwnode: Pointer to the parent firmware node
++ * @prev: Previous endpoint node or %NULL to get the first
++ *
++ * Looks up next endpoint ACPI firmware node below a given @fwnode. Returns
++ * %NULL if there is no next endpoint, ERR_PTR() in case of error. In case
++ * of success the next endpoint is returned.
++ */
++struct fwnode_handle *acpi_graph_get_next_endpoint(struct fwnode_handle *fwnode,
++						   struct fwnode_handle *prev)
++{
++	struct fwnode_handle *port = NULL;
++	struct fwnode_handle *endpoint;
 +
-+_DSD
-+----
-+
-+_DSD (Device Specific Data) [7] is a predefined ACPI device
-+configuration object that can be used to convey information on
-+hardware features which are not specifically covered by the ACPI
-+specification [1][6]. There are two _DSD extensions that are relevant
-+for graphs: property [4] and hierarchical data extensions [5]. The
-+property extension provides generic key-value pairs whereas the
-+hierarchical data extension supports nodes with references to other
-+nodes, forming a tree. The nodes in the tree may contain properties as
-+defined by the property extension. The two extensions together provide
-+a tree-like structure with zero or more properties (key-value pairs)
-+in each node of the tree.
-+
-+The data structure may be accessed at runtime by using the device_*
-+and fwnode_* functions defined in include/linux/fwnode.h .
-+
-+Fwnode represents a generic firmware node object. It is independent on
-+the firmware type. In ACPI, fwnodes are _DSD hierarchical data
-+extensions objects. A device's _DSD object is represented by an
-+fwnode.
-+
-+The data structure may be referenced to elsewhere in the ACPI tables
-+by using a hard reference to the device itself and an index to the
-+hierarchical data extension array on each depth.
-+
-+
-+Ports and endpoints
-+-------------------
-+
-+The port and endpoint concepts are very similar to those in Devicetree
-+[3]. The port represent represent interface in a device, and an
-+endpoint represents a connection to that interface.
-+
-+All port nodes are located under the device's "_DSD" node in
-+hierarchical data extension tree. The first package list entry of the
-+hierarchical data extension related to each port node must begin with
-+"port" string and must be followed by the number of the port.
-+
-+Further on, endpoints are located under the individual port nodes. The
-+first hierarchical data extension package list entry of the endpoint
-+nodes must begin with "endpoint" and must be followed by the number
-+of the endpoint.
-+
-+Each port node contains a property extension key "port", the value of
-+which is the number of the port node. Similarly, each endpoint node
-+must contain "endpoint" property which is the number of the endpoint
-+node.
-+
-+The endpoint reference uses property extension with "remote-endpoint"
-+property name followed by a reference in the same package. Such
-+references consist of the name of the device, index of the port node
-+and finally the index of the endpoint node. These indices are indeed
-+indices to the referred port and endpoint arrays, not the numbers of
-+the ports or the endpoints that are related to numbering of actual
-+hardware interfaces in the respective hardware. Individual references
-+thus appear as:
-+
-+    Package() { device, port_node_index, endpoint_node_index }
-+
-+The references to endpoints must be always done both ways, to the
-+remote endpoint and back from the referred remote endpoint node.
-+
-+A simple example of this is show below:
-+
-+    Scope (\_SB.PCI0.I2C2)
-+    {
-+	Device (CAM0)
-+	{
-+	    Name (_DSD, Package () {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "compatible", Package () { "nokia,smia" } },
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "port0", "PRT0" },
-+		}
-+	    })
-+	    Name (PRT0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "port", 0 },
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "endpoint0", "EP0" },
-+		}
-+	    })
-+	    Name (EP0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "endpoint", 0 },
-+		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, 0, 0 } },
-+		}
-+	    })
++	if (!prev) {
++		do {
++			port = fwnode_get_next_child_node(fwnode, port);
++			/* Ports must have port property */
++			if (fwnode_property_present(port, "port"))
++				break;
++		} while (port);
++	} else {
++		port = fwnode_get_parent(prev);
 +	}
-+    }
 +
-+    Scope (\_SB.PCI0)
-+    {
-+	Device (ISP)
-+	{
-+	    Name (_DSD, Package () {
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "port4", "PRT4" },
-+		}
-+	    })
++	if (!port)
++		return NULL;
 +
-+	    Name (PRT4, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "port", 4 }, /* CSI-2 port number */
-+		},
-+		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
-+		Package () {
-+		    Package () { "endpoint0", "EP0" },
-+		}
-+	    })
-+
-+	    Name (EP0, Package() {
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package () {
-+		    Package () { "endpoint", 0 },
-+		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, 0, 0 } },
-+		}
-+	    })
++	endpoint = fwnode_get_next_child_node(port, prev);
++	while (!endpoint) {
++		port = fwnode_get_next_child_node(fwnode, port);
++		if (!port)
++			break;
++		if (fwnode_property_present(port, "port"))
++			endpoint = fwnode_get_next_child_node(port, NULL);
 +	}
-+    }
 +
-+Here, the port 0 of the "CAM0" device is connected to the port 4 of
-+the "ISP" device. Note that the port index in the reference is still
-+0, as it refers to an entry in the table and not the port node number
-+itself.
++	if (endpoint) {
++		/* Endpoints must have "endpoint" property */
++		if (!fwnode_property_present(endpoint, "endpoint"))
++			return ERR_PTR(-EPROTO);
++	}
 +
++	return endpoint;
++}
 +
-+References
-+----------
++/**
++ * acpi_graph_get_child_at - Return a data extension child at given index
++ * @fwnode: parent node
++ * @at: index of the child node in the data extension package
++ *
++ * Find the child node at index of a data extension. Returns the child
++ * node on success, NULL otherwise.
++ */
++static struct fwnode_handle *acpi_graph_get_child_at(
++	struct fwnode_handle *fwnode, unsigned int at)
++{
++	struct fwnode_handle *child;
++	unsigned int i = 0;
 +
-+[1] _DSD (Device Specific Data) Implementation Guide.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm>,
-+    referenced 2016-10-03.
++	fwnode_for_each_child_node(fwnode, child) {
++		if (i++ < at)
++			continue;
 +
-+[2] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
++		return child;
++	}
 +
-+[3] Documentation/devicetree/bindings/graph.txt
++	return NULL;
++}
 +
-+[4] Device Properties UUID For _DSD.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
-+    referenced 2016-10-04.
++/**
++ * acpi_graph_get_remote_enpoint - Parses and returns remote end of an endpoint
++ * @fwnode: Endpoint firmware node pointing to a remote device
++ * @parent: Firmware node of remote port parent is filled here if not %NULL
++ * @port: Firmware node of remote port is filled here if not %NULL
++ * @endpoint: Firmware node of remote endpoint is filled here if not %NULL
++ *
++ * Function parses remote end of ACPI firmware remote endpoint and fills in
++ * fields requested by the caller. Returns %0 in case of success and
++ * negative errno otherwise.
++ */
++int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
++				   struct fwnode_handle **parent,
++				   struct fwnode_handle **port,
++				   struct fwnode_handle **endpoint)
++{
++	unsigned int port_idx, endpoint_idx;
++	struct acpi_reference_args args;
++	int ret;
 +
-+[5] Hierarchical Data Extension UUID For _DSD.
-+    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
-+    referenced 2016-10-04.
++	memset(&args, 0, sizeof(args));
++	ret = acpi_node_get_property_reference(fwnode, "remote-endpoint", 0,
++					       &args);
++	if (ret)
++		return ret;
 +
-+[6] Advanced Configuration and Power Interface Specification.
-+    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
-+    referenced 2016-10-04.
++	/*
++	 * Always require two arguments with the reference: port and
++	 * endpoint indices.
++	 */
++	if (args.nargs != 2)
++		return -EPROTO;
 +
-+[7] _DSD Device Properties Usage Rules.
-+    Documentation/acpi/DSD-properties-rules.txt
++	fwnode = acpi_fwnode_handle(args.adev);
++	port_idx = args.args[0];
++	endpoint_idx = args.args[1];
++
++	if (parent)
++		*parent = fwnode;
++
++	if (!port && !endpoint)
++		return 0;
++
++	fwnode = acpi_graph_get_child_at(fwnode, port_idx);
++	if (!fwnode)
++		return -EPROTO;
++
++	if (!fwnode_property_present(fwnode, "port"))
++		return -EPROTO;
++
++	if (port)
++		*port = fwnode;
++
++	if (!endpoint)
++		return 0;
++
++	fwnode = acpi_graph_get_child_at(fwnode, endpoint_idx);
++	if (!fwnode)
++		return -EPROTO;
++
++	if (!fwnode_property_present(fwnode, "endpoint"))
++		return -EPROTO;
++
++	*endpoint = fwnode;
++
++	return 0;
++}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index f6f8655..05ff957 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1003,6 +1003,13 @@ struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+ 					    struct fwnode_handle *child);
+ struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode);
+ 
++struct fwnode_handle *acpi_graph_get_next_endpoint(struct fwnode_handle *fwnode,
++						   struct fwnode_handle *prev);
++int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
++				   struct fwnode_handle **remote,
++				   struct fwnode_handle **port,
++				   struct fwnode_handle **endpoint);
++
+ struct acpi_probe_entry;
+ typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
+ 						 struct acpi_probe_entry *);
+@@ -1130,6 +1137,22 @@ acpi_node_get_parent(struct fwnode_handle *fwnode)
+ 	return NULL;
+ }
+ 
++static inline struct fwnode_handle *
++acpi_graph_get_next_endpoint(struct fwnode_handle *fwnode,
++			     struct fwnode_handle *prev)
++{
++	return ERR_PTR(-ENXIO);
++}
++
++static inline int
++acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
++			       struct fwnode_handle **remote,
++			       struct fwnode_handle **port,
++			       struct fwnode_handle **endpoint)
++{
++	return -ENXIO;
++}
++
+ #define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn) \
+ 	static const void * __acpi_table_##name[]			\
+ 		__attribute__((unused))					\
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
