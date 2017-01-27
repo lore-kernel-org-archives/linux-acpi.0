@@ -1,33 +1,74 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 3/3] spi: acpi: Initialize modalias from of_compatible
-Date: Fri, 27 Jan 2017 15:43:27 +0200
-Message-ID: <CAHp75VeLy-oTUjgQNATt+gXhCVh-ATDswetLZpE3_7Z-wrF0qw@mail.gmail.com>
-References: <cover.1468409668.git.leonard.crestez@intel.com>
- <1485187737-22414-1-git-send-email-dan@emutex.com> <1485187737-22414-4-git-send-email-dan@emutex.com>
- <CAHp75Vf0NaEFnxWPt9NAa5-jWMM091Y+Tg8D=Du0uECDVoWW4Q@mail.gmail.com> <1114c19b-5398-799e-8302-ff87adf9d8a3@emutex.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1114c19b-5398-799e-8302-ff87adf9d8a3@emutex.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan O'Donovan <dan@emutex.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Crestez Dan Leonard <leonard.crestez@intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 00/15] ACPI graph support
+Date: Fri, 27 Jan 2017 18:02:55 +0200
+Message-ID: <1485532990-8431-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:3158 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754725AbdA0QIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 27 Jan 2017 11:08:11 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Fri, Jan 27, 2017 at 12:35 PM, Dan O'Donovan <dan@emutex.com> wrote:
-> On 01/23/2017 05:11 PM, Andy Shevchenko wrote:
->> On Mon, Jan 23, 2017 at 6:08 PM, Dan O'Donovan <dan@emutex.com> wrote:
+Hello everyone, 
 
->>> +               strlcpy(spi->modalias, acpi_device_hid(adev),
->>> +                       sizeof(spi->modalias));
->> Could this be one line?
-> I couldn't see a way to reduce this to one line without exceeding 80
-> chars or adding another line somewhere else, so I'll leave this one as
-> it is if that's ok.
+I posted a previous RFC labelled set of ACPI graph support a while ago:
 
-80 characters per line is not carved in stone. How many do you have
-over? 3 like "s);"?
+<URL:http://www.spinics.net/lists/linux-acpi/msg69547.html>
+
+Since then, the matter of how the properties should be used as in ACPI
+_DSD was discussed in Ksummit and LPC, and a document detailing the rules
+was written [1].
+
+This set contains patches written by Mika Westerberg and by myself. The
+patchset brings support for graphs to ACPI. The functionality achieved by
+these patches is very similar to what the Device tree provides: the port
+and the endpoint concept are being employed. The patches make use of the
+_DSD property and data extensions to achieve this. The fwnode interface is
+extended by graph functionality; this way graph information originating
+from both OF and ACPI may be accessed using the same interface, without
+being aware of the underlying firmware interface.
+
+The last patch of the set contains ASL documentation including an example.
+
+The entire set may also be found here (on mediatree.git master, but it
+also applies cleanly on linux-next):
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph>
+
+The resulting fwnode graph interface has been tested using V4L2 async with
+fwnode matching and smiapp and omap3isp drivers, with appropriate changes 
+to make use of the fwnode interface in drivers.
+
+The V4L2 patches can be found here. The fwnode graph interface is used by
+the newly added V4L2 fwnode framework which replaces the V4L2 OF
+framework, with equivalent functionality.
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+
+
+changes since RFC v1:
+
+- Rebased the set --- there were a few conflicts.
+
+- Fixed a bug in ACPI graph parsing. (Thanks to Mika!)
+
+- Remove one layer (the "ports" node) of the _DSD hierarchical data
+  structure. Change the documentation accordingly. Instead, rely on the
+  presence of "port" and "endpoint" properties to identify port and
+  endpoint nodes.
+
+- Add a reference the DSD property rule document [1].
+
+
+Feedback is welcome.
+
+
+[1] Documentation/acpi/DSD-properties-rules.txt
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Kind regards,
+Sakari
+
