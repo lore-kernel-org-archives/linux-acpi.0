@@ -1,49 +1,67 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
- (possibly badly bisected)
-Date: Fri, 27 Jan 2017 00:07:27 +0100
-Message-ID: <CAJZ5v0hYwyV+j+38rdqo81x0p5jWyLzHijYFY5RmnODzRUK0qg@mail.gmail.com>
-References: <1484927552.21721.17.camel@hadess.net> <1485443735.5845.30.camel@hadess.net>
+Subject: [GIT PULL] Power management fixes for v4.10-rc6
+Date: Fri, 27 Jan 2017 01:02:04 +0100
+Message-ID: <CAJZ5v0gJyNezgWcVetJb70HWM5wvuyZcDz_ghiD+hp=yw_9gzQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:35860 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752130AbdAZXIG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 18:08:06 -0500
-In-Reply-To: <1485443735.5845.30.camel@hadess.net>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:35800 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752379AbdA0ACG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2017 19:02:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@hadess.net> wrote:
-> On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
->> Hey,
->>
->> TLDR:
->> # first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7] Merge
->> back earlier ACPI PM material for v4.3.
->>
->> hid-sensor-hub devices only start sending events through the IIO
->> trigger after a suspend/resume cycle.
->>
->> Other IIO drivers don't seem to exhibit those problems.
->
-> I had another go, trying to break into the merge commit, and it's
-> slightly more precise, but still doesn't make any sense to me.
->
-> # first bad commit: [3431e490b50356b56084305a2e93b3a980802b22] Merge
-> branch 'acpi-scan' into acpi-pm
->
-> Any ideas? I'm running out of them...
+Hi Linus,
 
-The parents of this merge are 5af310a8ee70 and 1dcc3d3362b0.
+Please pull from the tag
 
-Can you please check if the problem is present in any of them alone?
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-4.10-rc6
 
-If not, it is theoretically possible that the merge itself had
-introduced it (as this is not a trivial merge).
+with top-most commit ff7e593c9cf3ccceaab7ac600cbd52cb9ff4c57a
 
-Thanks,
-Rafael
+ Merge branches 'pm-sleep' and 'pm-cpufreq'
+
+on top of commit 7a308bb3016f57e5be11a677d15b821536419d36
+
+ Linux 4.10-rc5
+
+to receive power management fixes for v4.10-rc6.
+
+These fix two regressions introduced recently, one by reverting the
+problematic commit and one by fixing up the behavior in an overlooked
+case.
+
+Specifics:
+
+ - Revert the recent change that caused suspend-to-idle to be used
+   as the default suspend method on systems where it is indicated to
+   be efficient by the ACPI tables, as that turned out to be premature
+   and introduced suspend regressions on some systems with missing
+   power management support in device drivers (Rafael Wysocki).
+
+ - Fix up the intel_pstate driver to take changes of the global
+   limits via sysfs correctly when the performance policy is used
+   which has been broken by a recent change in it (Srinivas Pandruvada).
+
+Thanks!
+
+---------------
+
+Rafael J. Wysocki (1):
+      Revert "PM / sleep / ACPI: Use the ACPI_FADT_LOW_POWER_S0 flag"
+
+Srinivas Pandruvada (1):
+      cpufreq: intel_pstate: Fix sysfs limits enforcement for performance policy
+
+---------------
+
+ Documentation/power/states.txt |  4 +---
+ drivers/acpi/sleep.c           |  8 --------
+ drivers/cpufreq/intel_pstate.c | 14 +++++++++++++-
+ include/linux/suspend.h        |  2 --
+ kernel/power/suspend.c         |  4 ++--
+ 5 files changed, 16 insertions(+), 16 deletions(-)
