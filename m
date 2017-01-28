@@ -1,56 +1,71 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V7 00/11] IOMMU probe deferral support
-Date: Sat, 28 Jan 2017 15:10:29 -0600
-Message-ID: <20170128211029.GI20550@bhelgaas-glaptop.roam.corp.google.com>
-References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v4 2/3] i2c: acpi: Initialize info.type from of_compatible
+Date: Sat, 28 Jan 2017 22:38:51 +0100
+Message-ID: <20170128213851.7s5nloo2spumtevx@ninjato>
+References: <1485187737-22414-1-git-send-email-dan@emutex.com>
+ <1485523815-9629-1-git-send-email-dan@emutex.com>
+ <1485523815-9629-3-git-send-email-dan@emutex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="jy77lo326ymla2fk"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:60316 "EHLO pokefinder.org"
+        rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S1752145AbdA1VjE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 28 Jan 2017 16:39:04 -0500
 Content-Disposition: inline
-In-Reply-To: <1485188293-20263-1-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1485523815-9629-3-git-send-email-dan@emutex.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan O'Donovan <dan@emutex.com>
+Cc: linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Crestez Dan Leonard <leonard.crestez@intel.com>
 
-On Mon, Jan 23, 2017 at 09:48:02PM +0530, Sricharan R wrote:
-> This series calls the dma ops configuration for the devices
-> at a generic place so that it works for all busses.
-> The dma_configure_ops for a device is now called during
-> the device_attach callback just before the probe of the
-> bus/driver is called. Similarly dma_deconfigure is called during
-> device/driver_detach path.
-> ...
 
->  arch/arm64/mm/dma-mapping.c       | 132 ++++----------------------------------
->  drivers/acpi/arm64/iort.c         |  40 +++++++++++-
->  drivers/acpi/glue.c               |   5 --
->  drivers/acpi/scan.c               |   7 +-
->  drivers/base/dd.c                 |   9 +++
->  drivers/base/dma-mapping.c        |  41 ++++++++++++
->  drivers/iommu/arm-smmu-v3.c       |  46 +------------
->  drivers/iommu/arm-smmu.c          |  58 +++--------------
->  drivers/iommu/of_iommu.c          | 114 +++++++++++++++++++++++---------
->  drivers/of/address.c              |  20 +++++-
->  drivers/of/device.c               |  36 ++++++-----
->  drivers/of/platform.c             |  10 +--
->  drivers/pci/probe.c               |  28 --------
->  include/acpi/acpi_bus.h           |   2 +-
->  include/asm-generic/vmlinux.lds.h |   1 -
->  include/linux/acpi.h              |   7 +-
->  include/linux/acpi_iort.h         |   3 -
->  include/linux/dma-mapping.h       |   3 +
->  include/linux/of_device.h         |  10 ++-
->  19 files changed, 252 insertions(+), 320 deletions(-)
+--jy77lo326ymla2fk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm assuming this will go via some other tree, maybe the IOMMU tree?
-I acked the PCI parts, so let me know if you need anything more from me.
+On Fri, Jan 27, 2017 at 01:30:14PM +0000, Dan O'Donovan wrote:
+> From: Crestez Dan Leonard <leonard.crestez@intel.com>
+>=20
+> When using devicetree i2c_board_info.type is set to the compatible
+> string with the vendor prefix removed. For I2C devices described via
+> ACPI the i2c_board_info.type string is set to the ACPI device name. When
+> using ACPI and DT ids this string ends up something like "PRP0001:00".
+>=20
+> If the of_compatible property is present try to use that instead. This
+> makes it easier to instantiate i2c drivers through ACPI with DT ids.
+>=20
+> Signed-off-by: Crestez Dan Leonard <leonard.crestez@intel.com>
+> Signed-off-by: Dan O'Donovan <dan@emutex.com>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+
+I assume this shall go in as one series via ACPI tree, so:
+
+Acked-by: Wolfram Sang <wsa@the-dreams.de>
+
+
+--jy77lo326ymla2fk
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAliND2oACgkQFA3kzBSg
+KbaOWxAApIsIFBJMYCsAfi2Odnkj/L6176Hr3NZt/hIYYqav4CrkkRewiOkJUY7I
+5F6l5YbwRDMhJvLOUODwz5+/Qzcb67KpS7uyDtcbJryXs84Bh4qLcPRcPI2698pZ
+S6EbukNPg4pzSXdLum8XAMHgRHG9h1aFo/DuV+QDLzZvKSiMSl8NhIM2itk1x5Lp
+Tw0wmjBx3xlKXQa0QlhEaMtng3KHlaRg1V1LxdhPvnynwXA8Gk8zw5rf0aa8ybPj
+BRMKWrYi8VKc80iL9PRAWWthPLJy77+F27iqaA2HlGRUCdzJURJs9Qmytg1Kz/XP
+VziDpmWxrvnzbqMnB+Y5warF4misEuoM3RAJLD0vgNqClXfTCNRCyto5P5VHLy7Q
+5OX0BsJfM4oMJa3ICe7NAzb0ZlQW+O5nVEFoC6HWMOqZcdrZhcnJ5knjYu61OkoM
+MVy7fsgG5etsK+PF99pp3lXrpsBcKYpf3q5+ChxXod3NOboU5+ZiGnkMrFoRfCWB
+aSm3M2AQBTA+1HKtWrpsFowiP9teFuaaVtH5uiSP7lXpvLom11cM6Y2mXL9ewNxq
+RWM5zp6o5ZdPvj/8MF7w9dAYZGbZQLMo2iaUUtvlXXzMGuzjasWB7MRpyZkk2gUR
+ihIyzzPXpsbr/a8o9x9u5f9t3pwXVbu8kT3dawu7omnCq9DHt4s=
+=K5NF
+-----END PGP SIGNATURE-----
+
+--jy77lo326ymla2fk--
