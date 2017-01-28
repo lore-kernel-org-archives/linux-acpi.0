@@ -1,27 +1,70 @@
-From: THANDI ROBERT <wbhjj4@gmail.com>
-Subject: INFO
-Date: Sat, 28 Jan 2017 10:49:18 +0000 (UTC)
-Message-ID: <80572716.2482789.1485600558519__26071.8083977283$1485600839$gmane$org@mail.yahoo.com>
-References: <659270383.4746851.1483360645412.ref@mail.yahoo.com> <659270383.4746851.1483360645412@mail.yahoo.com> <1003131976.5988499.1483537794931@mail.yahoo.com> <1762286146.356740.1483616008069@mail.yahoo.com> <1950630163.442027.1483632177236@mail.yahoo.com> <76483592.152144.1483796238666@mail.yahoo.com> <1952812141.506727.1483885174216@mail.yahoo.com> <394528675.568529.1483898347006@mail.yahoo.com> <2135733970.879093.1483955249116@mail.yahoo.com> <784636555.296262.1483969595585@mail.yahoo.com> <586758922.983177.1484136839131@mail.yahoo.com> <362135030.1677959.1484219272450@mail.yahoo.com> <1086953108.2435845.1484306919241@mail.yahoo.com> <122066569.2520434.1484321206179@mail.yahoo.com> <888634338.3550120.1484527571847@mail.yahoo.com> <1335166253.358557.1484822855312@mail.yahoo.com> <16
- 75971445.444735.1484836279511@mail.yahoo.com> <692317692.308367.1484914776964@mail.yahoo.com> <1689410180.877166.1485000526218@mail.yahoo.com> <1685424708.1699166.1485168636648@mail.yahoo.com> <408905714.1726753.1485178404937@mail.yahoo.com>
-Reply-To: THANDI ROBERT <robert.thandi@yandex.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/2] ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
+Date: Sat, 28 Jan 2017 12:32:56 +0100
+Message-ID: <1547465.PvRbYVlVrB@aspire.rjw.lan>
+References: <c62a8f8b1bf699b0c7834c87096d4f144c02bf1d.1483596168.git.viresh.kumar@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm49-vm0.bullet.mail.ne1.yahoo.com ([98.138.121.128]:44467 "EHLO
-        nm49-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751171AbdA1Kxo (ORCPT
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49936 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750891AbdA1LiF (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 28 Jan 2017 05:53:44 -0500
-In-Reply-To: <408905714.1726753.1485178404937@mail.yahoo.com>
+        Sat, 28 Jan 2017 06:38:05 -0500
+In-Reply-To: <c62a8f8b1bf699b0c7834c87096d4f144c02bf1d.1483596168.git.viresh.kumar@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Len Brown <lenb@kernel.org>, linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, linux-acpi@vger.kernel.org
 
+On Thursday, January 05, 2017 11:34:30 AM Viresh Kumar wrote:
+> acpi_processor_ppc_notifier() can live without using CPUFREQ_START
+> (which is gonna be removed soon).
 
+That should be "acpi_processor_ppc_notifier() can live without using CPUFREQ_START ...,
+because X".
 
-Hello my name is Ms. Thandi Robert, from Ivory Coast. My parents were brutally mulled by the former president Laurent Gbagbo because of political crisis as the only survival of my family. I got your email while searching for a reliable personality in my private study on the internet. I am in need of your help and stand as my guardian in the management of my family inherited sum of $22.5M USD.  Please get back to me with your private telephone number with sincerity. 
+X is obviously missing.
 
+> Simplify it a bit.
+> 
+> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+> ---
+> Rebased over: https://marc.info/?l=linux-kernel&m=148359167516831&w=2
+> 
+>  drivers/acpi/processor_perflib.c | 8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> index f0b4a981b8d3..1ceea1143a1c 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -75,14 +75,12 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+>  	struct acpi_processor *pr;
+>  	unsigned int ppc = 0;
+>  
+> -	if (event == CPUFREQ_START && ignore_ppc <= 0) {
+> -		ignore_ppc = 0;
+> -		return 0;
+> -	}
+> -
+>  	if (ignore_ppc)
+>  		return 0;
+>  
+> +	if (ignore_ppc < 0)
+> +		ignore_ppc = 0;
+> +
 
-Sincerely Yours, 
-Ms. Thandi Robert 
+And the above looks like dead code to me (we have returned already if ignore_ppc
+is negative), so in particular ignore_ppc is never going to become 0 when it was
+negative initially.
+
+>  	if (event != CPUFREQ_ADJUST)
+>  		return 0;
+>  
+> 
+
+Thanks,
+Rafael
+
