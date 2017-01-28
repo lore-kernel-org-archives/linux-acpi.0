@@ -1,70 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
-Date: Sat, 28 Jan 2017 12:32:56 +0100
-Message-ID: <1547465.PvRbYVlVrB@aspire.rjw.lan>
-References: <c62a8f8b1bf699b0c7834c87096d4f144c02bf1d.1483596168.git.viresh.kumar@linaro.org>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V7 07/11] iommu: of: Handle IOMMU lookup failure with
+	deferred probing or error
+Date: Sat, 28 Jan 2017 15:03:59 -0600
+Message-ID: <20170128210359.GE20550@bhelgaas-glaptop.roam.corp.google.com>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+	<1485188293-20263-8-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49936 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750891AbdA1LiF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 28 Jan 2017 06:38:05 -0500
-In-Reply-To: <c62a8f8b1bf699b0c7834c87096d4f144c02bf1d.1483596168.git.viresh.kumar@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1485188293-20263-8-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Len Brown <lenb@kernel.org>, linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, linux-acpi@vger.kernel.org
 
-On Thursday, January 05, 2017 11:34:30 AM Viresh Kumar wrote:
-> acpi_processor_ppc_notifier() can live without using CPUFREQ_START
-> (which is gonna be removed soon).
-
-That should be "acpi_processor_ppc_notifier() can live without using CPUFREQ_START ...,
-because X".
-
-X is obviously missing.
-
-> Simplify it a bit.
+On Mon, Jan 23, 2017 at 09:48:09PM +0530, Sricharan R wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 > 
-> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-> ---
-> Rebased over: https://marc.info/?l=linux-kernel&m=148359167516831&w=2
+> Failures to look up an IOMMU when parsing the DT iommus property need to
+> be handled separately from the .of_xlate() failures to support deferred
+> probing.
 > 
->  drivers/acpi/processor_perflib.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
+> The lack of a registered IOMMU can be caused by the lack of a driver for
+> the IOMMU, the IOMMU device probe not having been performed yet, having
+> been deferred, or having failed.
 > 
-> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> index f0b4a981b8d3..1ceea1143a1c 100644
-> --- a/drivers/acpi/processor_perflib.c
-> +++ b/drivers/acpi/processor_perflib.c
-> @@ -75,14 +75,12 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
->  	struct acpi_processor *pr;
->  	unsigned int ppc = 0;
+> The first case occurs when the device tree describes the bus master and
+> IOMMU topology correctly but no device driver exists for the IOMMU yet
+> or the device driver has not been compiled in. Return NULL, the caller
+> will configure the device without an IOMMU.
+> 
+> The second and third cases are handled by deferring the probe of the bus
+> master device which will eventually get reprobed after the IOMMU.
+> 
+> The last case is currently handled by deferring the probe of the bus
+> master device as well. A mechanism to either configure the bus master
+> device without an IOMMU or to fail the bus master device probe depending
+> on whether the IOMMU is optional or mandatory would be a good
+> enhancement.
+> 
+> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> ...
+
+> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> index 349bd1d..9529d6c 100644
+> --- a/drivers/iommu/of_iommu.c
+> +++ b/drivers/iommu/of_iommu.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/of.h>
+>  #include <linux/of_iommu.h>
+>  #include <linux/of_pci.h>
+> +#include <linux/pci.h>
+
+Why do we need this?
+
+>  #include <linux/slab.h>
 >  
-> -	if (event == CPUFREQ_START && ignore_ppc <= 0) {
-> -		ignore_ppc = 0;
-> -		return 0;
-> -	}
-> -
->  	if (ignore_ppc)
->  		return 0;
+>  static const struct of_device_id __iommu_of_table_sentinel
+> @@ -223,7 +224,7 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
+>  			ops = ERR_PTR(err);
+>  	}
 >  
-> +	if (ignore_ppc < 0)
-> +		ignore_ppc = 0;
-> +
-
-And the above looks like dead code to me (we have returned already if ignore_ppc
-is negative), so in particular ignore_ppc is never going to become 0 when it was
-negative initially.
-
->  	if (event != CPUFREQ_ADJUST)
->  		return 0;
+> -	return IS_ERR(ops) ? NULL : ops;
+> +	return ops;
+>  }
 >  
-> 
-
-Thanks,
-Rafael
-
+>  static int __init of_iommu_init(void)
+> @@ -234,7 +235,7 @@ static int __init of_iommu_init(void)
+>  	for_each_matching_node_and_match(np, matches, &match) {
+>  		const of_iommu_init_fn init_fn = match->data;
+>  
+> -		if (init_fn(np))
+> +		if (init_fn && init_fn(np))
+>  			pr_err("Failed to initialise IOMMU %s\n",
+>  				of_node_full_name(np));
+>  	}
