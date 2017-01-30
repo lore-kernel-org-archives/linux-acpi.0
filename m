@@ -1,63 +1,78 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V2 1/2] ACPI: processor_perflib: Simplify code and stop
- using CPUFREQ_START
-Date: Mon, 30 Jan 2017 08:49:06 +0100
-Message-ID: <CAJZ5v0iqWsbHCF1a=O9TKOLf95BQtnuX042LfYhZuUOa8vuPMg@mail.gmail.com>
-References: <1547465.PvRbYVlVrB@aspire.rjw.lan> <e608c76ea40e4f0d50bfe821174dfebef924e35b.1485750547.git.viresh.kumar@linaro.org>
- <CAJZ5v0i2SW9+T-RbegaoFu0xuN473BZ25iQdwU=gPrOvRW60EQ@mail.gmail.com>
+From: "Sricharan" <sricharan@codeaurora.org>
+Subject: RE: [PATCH V7 07/11] iommu: of: Handle IOMMU lookup failure with deferred probing or error
+Date: Mon, 30 Jan 2017 13:31:52 +0530
+Message-ID: <005001d27acf$21c47db0$654d7910$@codeaurora.org>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org> <1485188293-20263-8-git-send-email-sricharan@codeaurora.org> <20170128210359.GE20550@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0i2SW9+T-RbegaoFu0xuN473BZ25iQdwU=gPrOvRW60EQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:55910 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752128AbdA3ICB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2017 03:02:01 -0500
+In-Reply-To: <20170128210359.GE20550@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-us
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: 'Bjorn Helgaas' <helgaas@kernel.org>
+Cc: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jan 30, 2017 at 8:07 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Mon, Jan 30, 2017 at 5:29 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
->> acpi_processor_ppc_notifier() can live without using CPUFREQ_START
->> (which is gonna be removed soon), as it is only used while setting
->> ignore_ppc to 0. This can be done with the help of "ignore_ppc < 0"
->> check alone. The notifier function anyway ignores all events except
->> CPUFREQ_ADJUST and dropping CPUFREQ_START wouldn't harm at all.
->>
->> Once CPUFREQ_START event is removed from the cpufreq core,
->> acpi_processor_ppc_notifier() will get called only for CPUFREQ_NOTIFY or
->> CPUFREQ_ADJUST event. Drop the return statement from the first if block
->> to make sure we don't ignore any such events.
->>
->> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
->>
->> ---
->> V1->V2:
->> - Improved changelog
->> - Don't move the first if block to a later point, as it becomes useless
->>   then.
->> ---
->>  drivers/acpi/processor_perflib.c | 4 +---
->>  1 file changed, 1 insertion(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
->> index f0b4a981b8d3..18b72eec3507 100644
->> --- a/drivers/acpi/processor_perflib.c
->> +++ b/drivers/acpi/processor_perflib.c
->> @@ -75,10 +75,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
->>         struct acpi_processor *pr;
->>         unsigned int ppc = 0;
->>
->> -       if (event == CPUFREQ_START && ignore_ppc <= 0) {
->> +       if (ignore_ppc < 0)
->>                 ignore_ppc = 0;
->> -               return 0;
->> -       }
+Hi Bjorn,
+
+>-----Original Message-----
+>From: Bjorn Helgaas [mailto:helgaas@kernel.org]
+>Sent: Sunday, January 29, 2017 2:34 AM
+>To: Sricharan R <sricharan@codeaurora.org>
+>Cc: robin.murphy@arm.com; will.deacon@arm.com; joro@8bytes.org; lorenzo.pieralisi@arm.com; iommu@lists.linux-foundation.org;
+>linux-arm-kernel@lists.infradead.org; linux-arm-msm@vger.kernel.org; m.szyprowski@samsung.com; bhelgaas@google.com; linux-
+>pci@vger.kernel.org; linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH V7 07/11] iommu: of: Handle IOMMU lookup failure with deferred probing or error
 >
-> Don't we want to return from here if ignore_ppc is 0?
+>On Mon, Jan 23, 2017 at 09:48:09PM +0530, Sricharan R wrote:
+>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>>
+>> Failures to look up an IOMMU when parsing the DT iommus property need to
+>> be handled separately from the .of_xlate() failures to support deferred
+>> probing.
+>>
+>> The lack of a registered IOMMU can be caused by the lack of a driver for
+>> the IOMMU, the IOMMU device probe not having been performed yet, having
+>> been deferred, or having failed.
+>>
+>> The first case occurs when the device tree describes the bus master and
+>> IOMMU topology correctly but no device driver exists for the IOMMU yet
+>> or the device driver has not been compiled in. Return NULL, the caller
+>> will configure the device without an IOMMU.
+>>
+>> The second and third cases are handled by deferring the probe of the bus
+>> master device which will eventually get reprobed after the IOMMU.
+>>
+>> The last case is currently handled by deferring the probe of the bus
+>> master device as well. A mechanism to either configure the bus master
+>> device without an IOMMU or to fail the bus master device probe depending
+>> on whether the IOMMU is optional or mandatory would be a good
+>> enhancement.
+>>
+>> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas@ideasonboard.com>
+>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>> ...
+>
+>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+>> index 349bd1d..9529d6c 100644
+>> --- a/drivers/iommu/of_iommu.c
+>> +++ b/drivers/iommu/of_iommu.c
+>> @@ -23,6 +23,7 @@
+>>  #include <linux/of.h>
+>>  #include <linux/of_iommu.h>
+>>  #include <linux/of_pci.h>
+>> +#include <linux/pci.h>
+>
+>Why do we need this?
 
-I actually wanted to say "was negative" here, not sure why I said the
-above in the end.
+Right, will remove it.
 
-Anyway, the patch looks correct now.
+Regards,
+ Sricharan
 
-Thanks,
-Rafael
