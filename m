@@ -1,65 +1,53 @@
-From: "Sricharan" <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: RE: [PATCH V7 00/11] IOMMU probe deferral support
-Date: Mon, 30 Jan 2017 14:50:35 +0530
-Message-ID: <005801d27ada$2127ee90$6377cbb0$@codeaurora.org>
-References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
-	<20170128211029.GI20550@bhelgaas-glaptop.roam.corp.google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 3/3] acpi: lpss: call pwm_add_table() for
+ bsw PWM device
+Date: Mon, 30 Jan 2017 11:33:10 +0200
+Message-ID: <20170130093310.GI17297@lahna.fi.intel.com>
+References: <20170122161409.21601-1-hdegoede@redhat.com>
+ <20170122161409.21601-4-hdegoede@redhat.com>
+ <20170130081839.GN3585@ulmo.ba.sec>
+ <CAJZ5v0hS08PX88+bXcnCz_V5f_VZ1L49iXnu9rHwDGO2uM7Q0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170128211029.GI20550-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-Content-Language: en-us
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: 'Bjorn Helgaas' <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hS08PX88+bXcnCz_V5f_VZ1L49iXnu9rHwDGO2uM7Q0A@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux PWM List <linux-pwm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Thierry Reding <thierry.reding@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
-
->On Mon, Jan 23, 2017 at 09:48:02PM +0530, Sricharan R wrote:
->> This series calls the dma ops configuration for the devices
->> at a generic place so that it works for all busses.
->> The dma_configure_ops for a device is now called during
->> the device_attach callback just before the probe of the
->> bus/driver is called. Similarly dma_deconfigure is called during
->> device/driver_detach path.
->> ...
->
->>  arch/arm64/mm/dma-mapping.c       | 132 ++++----------------------------------
->>  drivers/acpi/arm64/iort.c         |  40 +++++++++++-
->>  drivers/acpi/glue.c               |   5 --
->>  drivers/acpi/scan.c               |   7 +-
->>  drivers/base/dd.c                 |   9 +++
->>  drivers/base/dma-mapping.c        |  41 ++++++++++++
->>  drivers/iommu/arm-smmu-v3.c       |  46 +------------
->>  drivers/iommu/arm-smmu.c          |  58 +++--------------
->>  drivers/iommu/of_iommu.c          | 114 +++++++++++++++++++++++---------
->>  drivers/of/address.c              |  20 +++++-
->>  drivers/of/device.c               |  36 ++++++-----
->>  drivers/of/platform.c             |  10 +--
->>  drivers/pci/probe.c               |  28 --------
->>  include/acpi/acpi_bus.h           |   2 +-
->>  include/asm-generic/vmlinux.lds.h |   1 -
->>  include/linux/acpi.h              |   7 +-
->>  include/linux/acpi_iort.h         |   3 -
->>  include/linux/dma-mapping.h       |   3 +
->>  include/linux/of_device.h         |  10 ++-
->>  19 files changed, 252 insertions(+), 320 deletions(-)
->
->I'm assuming this will go via some other tree, maybe the IOMMU tree?
->I acked the PCI parts, so let me know if you need anything more from me.
-
-Thanks for the review/acks.
-Ya, via the IOMMU tree looks correct.
-
-Regards,
- Sricharan
+T24gTW9uLCBKYW4gMzAsIDIwMTcgYXQgMDk6Mjg6MDlBTSArMDEwMCwgUmFmYWVsIEouIFd5c29j
+a2kgd3JvdGU6Cj4gT24gTW9uLCBKYW4gMzAsIDIwMTcgYXQgOToxOCBBTSwgVGhpZXJyeSBSZWRp
+bmcKPiA8dGhpZXJyeS5yZWRpbmdAZ21haWwuY29tPiB3cm90ZToKPiA+IE9uIFN1biwgSmFuIDIy
+LCAyMDE3IGF0IDA1OjE0OjA5UE0gKzAxMDAsIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4gPj4gT24g
+eDg2IHdlIGRvIG5vdCBoYXZlIGRldmljZXRyZWUgdG8gbGluayB0aGUgUFdNIGNvbnRyb2xsZXIg
+YW5kCj4gPj4gdGhlIGRpc3BsYXkgY29udHJvbGxlciB0b2dldGhlci4gU28gc29tZW9uZSBuZWVk
+cyB0byBjYWxsCj4gPj4gcHdtX2FkZF90YWJsZSgpIHRvIGNyZWF0ZSB0aGUgbGluaywgc28gdGhh
+dCB0aGUgaTkxNSBkcml2ZXIncwo+ID4+IHB3bV9nZXQoZGV2LCAicHdtX2JhY2tsaWdodCIpIGNh
+bGwgcmV0dXJucyB0aGUgbHBzcycgcHdtMC4KPiA+Pgo+ID4+IFRoZSBQV00gc3Vic3lzdGVtIGRv
+ZXMgbm90IHdhbnQgdG8gaGF2ZSBwd21fYWRkX3RhYmxlKCkgY2FsbHMKPiA+PiBkaXJlY3RseSBp
+biBQV00gZHJpdmVycyAodGhpcyBsZWFkcyB0byBwcm9iZSBvcmRlcmluZyBpc3N1ZXMpLAo+ID4+
+IHNvIGxldHMgZG8gaXQgaGVyZSBzaW5jZSB0aGUgYWNwaS1scHNzIGNvZGUgaXMgYWx3YXlzIGJ1
+aWx0aW4uCj4gPj4KPiA+PiBTaWduZWQtb2ZmLWJ5OiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUBy
+ZWRoYXQuY29tPgo+ID4+IEFja2VkLWJ5OiBUaGllcnJ5IFJlZGluZyA8dGhpZXJyeS5yZWRpbmdA
+Z21haWwuY29tPgo+ID4+IC0tLQo+ID4+IENoYW5nZXMgaW4gdjI6Cj4gPj4gLVNldCBuZXcgcHdt
+X2xvb2t1cCBtb2R1bGVfbmFtZSBmaWVsZCBpbiB0aGUgdGFibGUKPiA+PiAtLS0KPiA+PiAgZHJp
+dmVycy9hY3BpL2FjcGlfbHBzcy5jIHwgMTMgKysrKysrKysrKysrKwo+ID4+ICAxIGZpbGUgY2hh
+bmdlZCwgMTMgaW5zZXJ0aW9ucygrKQo+ID4KPiA+IFJhZmFlbCwgZG8geW91IG1pbmQgaWYgSSB0
+YWtlIHRoaXMgdGhyb3VnaCB0aGUgUFdNIHRyZWUgdG8gcmVzb2x2ZSB0aGUKPiA+IGJ1aWxkLXRp
+bWUgZGVwZW5kZW5jeT8KPiAKPiBObywgSSBkb24ndCwgcGxlYXNlIGdvIGFoZWFkLCB1bmxlc3Mg
+TWlrYS9BbmR5IHNlZSBhbnkgcHJvYmxlbXMgaW4gaXQuCgpObyBwcm9ibGVtcyBmcm9tIG15IHNp
+ZGUgLSBsb29rcyBnb29kLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRl
+bC1nZngK
