@@ -1,108 +1,81 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with
-	deferred probing or error
-Date: Mon, 30 Jan 2017 16:51:24 +0000
-Message-ID: <20170130165124.GA11712@red-moon>
-References: <1485188293-20263-9-git-send-email-sricharan@codeaurora.org>
-	<20170124123711.GA11996@red-moon>
-	<f2370671-ece8-fbee-de19-350dd625088f@codeaurora.org>
-	<93e79759-d614-9b36-d5ab-63e8eb725009@arm.com>
-	<14751205-f034-7f0d-442a-854c3909425c@codeaurora.org>
-	<5ba9f366d6e25397cdef8ad95b49e199@codeaurora.org>
-	<175a3798-b824-ef1a-e112-9f6f472973ae@codeaurora.org>
-	<20170130143851.GJ16461@arm.com>
-	<b2e50c17de156341deab9fb8e91a8dec@codeaurora.org>
-	<1e048aff-0d77-b9f2-ebf8-2ba315b90ca7@codeaurora.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
+ counter frequency detection.
+Date: Mon, 30 Jan 2017 17:49:59 +0000
+Message-ID: <20170130174958.GA3496@leverpostej>
+References: <20170118132541.8989-1-fu.wei@linaro.org>
+ <20170118132541.8989-9-fu.wei@linaro.org>
+ <20170124172400.GG7572@leverpostej>
+ <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
+ <20170125172505.GB29027@leverpostej>
+ <CADyBb7syNx+HJ6t5JKPMnLqvq-98kPi1knuXU=SSe6_Uz6Gg1A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1e048aff-0d77-b9f2-ebf8-2ba315b90ca7-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CADyBb7syNx+HJ6t5JKPMnLqvq-98kPi1knuXU=SSe6_Uz6Gg1A@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 30, 2017 at 10:46:39AM -0500, Sinan Kaya wrote:
-> On 1/30/2017 9:54 AM, Nate Watterson wrote:
-> > On 2017-01-30 09:38, Will Deacon wrote:
-> >> On Mon, Jan 30, 2017 at 09:33:50AM -0500, Sinan Kaya wrote:
-> >>> On 1/30/2017 9:23 AM, Nate Watterson wrote:
-> >>> > On 2017-01-30 08:59, Sinan Kaya wrote:
-> >>> >> On 1/30/2017 7:22 AM, Robin Murphy wrote:
-> >>> >>> On 29/01/17 17:53, Sinan Kaya wrote:
-> >>> >>>> On 1/24/2017 7:37 AM, Lorenzo Pieralisi wrote:
-> >>> >>>>> [+hanjun, tomasz, sinan]
-> >>> >>>>>
-> >>> >>>>> It is quite a key patchset, I would be glad if they can test on their
-> >>> >>>>> respective platforms with IORT.
-> >>> >>>>>
-> >>> >>>>
-> >>> >>>> Tested on top of 4.10-rc5.
-> >>> >>>>
-> >>> >>>> 1.    Platform Hidma device passed dmatest
-> >>> >>>> 2.    Seeing some USB stalls on a platform USB device.
-> >>> >>>> 3.    PCIe NVME drive probed and worked fine with MSI interrupts after boot.
-> >>> >>>> 4.     NVMe driver didn't probe following a hotplug insertion and received an
-> >>> >>>> SMMU error event during the insertion.
-> >>> >>>
-> >>> >>> What was the SMMU error - a translation/permission fault (implying the
-> >>> >>> wrong DMA ops) or a bad STE fault (implying we totally failed to tell
-> >>> >>> the SMMU about the device at all)?
-> >>> >>>
-> >>> >>
-> >>> >> root@ubuntu:/sys/bus/pci/slots/4# echo 0 > power
-> >>> >>
-> >>> >> [__204.698522]_iommu:_Removing_device_0003:01:00.0_from_group_0
-> >>> >> [  204.708704] pciehp 0003:00:00.0:pcie004: Slot(4): Link Down
-> >>> >> [  204.708723] pciehp 0003:00:00.0:pcie004: Slot(4): Link Down event
-> >>> >> ignored; already powering off
-> >>> >>
-> >>> >> root@ubuntu:/sys/bus/pci/slots/4#
-> >>> >>
-> >>> >> [__254.820440]_iommu:_Adding_device_0003:01:00.0_to_group_8
-> >>> >> [  254.820599] nvme nvme0: pci function 0003:01:00.0
-> >>> >> [  254.820621] nvme 0003:01:00.0: enabling device (0000 -> 0002)
-> >>> >> [  261.948558] arm-smmu-v3 arm-smmu-v3.0.auto: event 0x0a received:
-> >>> >> [  261.948561] arm-smmu-v3 arm-smmu-v3.0.auto:  0x000001000000000a
-> >>> >> [  261.948563] arm-smmu-v3 arm-smmu-v3.0.auto:  0x0000000000000000
-> >>> >> [  261.948564] arm-smmu-v3 arm-smmu-v3.0.auto:  0x0000000000000000
-> >>> >> [  261.948566] arm-smmu-v3 arm-smmu-v3.0.auto:  0x0000000000000000
-> >>>
-> >>> > Looks like C_BAD_CD. Can you please try with:
-> >>> > iommu/arm-smmu-v3: Clear prior settings when updating STEs
-> >>>
-> >>> This resolved the issue. Can we pull Nate's patch to 4.10 so that I don't see
-> >>> this issue again.
-> >>
-> >> I already sent the pull request to Joerg for 4.11. Do you see this problem
-> >> without Sricharan's patches (i.e. vanilla mainline)? If so, we'll need to
-> >> send the patch to stable after -rc1.
-> > Using vanilla mainline, I see it most commonly when directly assigning
-> > a device to a guest machine. I think I've also seen it after removing then
-> > re-adding a PCI device. Basically anytime an STE's CTX pointer is changed
-> > from a non-NULL value and STE[CFG] indicates translation will be performed.
-> > 
+On Thu, Jan 26, 2017 at 01:49:03PM +0800, Fu Wei wrote:
+> On 26 January 2017 at 01:25, Mark Rutland <mark.rutland@arm.com> wrote:
+> > On Wed, Jan 25, 2017 at 02:46:12PM +0800, Fu Wei wrote:
+> >> On 25 January 2017 at 01:24, Mark Rutland <mark.rutland@arm.com> wrote:
+> >> > On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
+> >> >> From: Fu Wei <fu.wei@linaro.org>
+
+> > For CNT{,EL0}BaseN.CNTFRQ, I am very concerned by the wording in the
+> > current ARMv8 ARM ARM. This does not match my understanding, nor does it
+> > match the description in the ARMv7 ARM. I believe this may be a
+> > documentation error, and I'm chasing that up internally.
+> >
+> > Either the currently logic in the driver which attempts to read
+> > CNT{,EL0}BaseN.CNTFRQ is flawed, or the description in the ARM ARM is
+> > erroneous.
 > 
-> I was not able to reproduce the issue with Vanilla kernel. I only
-> tested hotplug.
+> Yes, those description did confuse me. :-(
+> 
+> But according to another document(ARMv8-A Foundation Platform User
+> Guide  ARM DUI0677K),
+> Table 3-2 ARMv8-A Foundation Platform memory map (continued)
+> 
+> AP_REFCLK CNTBase0, Generic Timer 64KB   S
+> AP_REFCLK CNTBase1, Generic Timer 64KB   S/NS
+> 
+> Dose it means the timer frame 0 can be accessed in SECURE status  only,
+> and the timer frame 1 can be accessed in both status?
 
-I would like to get the complete code path leading to this issue, it is
-not clear to me why the probe deferral code triggers it and why we are
-not able to trigger it with vanilla mainline, we must understand that first
-before applying any fix to this series.
+That does appear to be what it says.
 
-I do not have a platform to reproduce this issue I will send you a patch
-to trace what's going on here please help us debug it.
+I assume in this case CNTCTLBase.CNTSAR<0> is RES0.
+
+> And because Linux kernel is running on Non-secure EL1, so should we
+> skip "SECURE" timer in Linux?
+
+I guess you mean by checking the GTx Common flags, to see if the timer
+is secure? Yes, we must skip those.
+
+Looking further at this, the ACPI spec is sorely lacking any statement
+as to the configuration of CNTCTLBase.{CNTSAR,CNTTIDR,CNTACR}, so it's
+not clear if we can access anything in a frame, even if it is listed as
+being a non-secure timer.
+
+I think we need a stronger statement here. Otherwise, we will encounter
+problems. Linux currently assumes that CNTCTLBase.CNTACR<N> is
+writeable, given a non-secure frame N. This is only the case if
+CNTCTLBase.CNTSAR.NS<N> == 1.
 
 Thanks,
-Lorenzo
+Mark.
