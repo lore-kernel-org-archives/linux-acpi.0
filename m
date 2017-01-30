@@ -1,57 +1,59 @@
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with
-	deferred probing or error
-Date: Sun, 29 Jan 2017 12:53:57 -0500
-Message-ID: <f2370671-ece8-fbee-de19-350dd625088f@codeaurora.org>
-References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
-	<1485188293-20263-9-git-send-email-sricharan@codeaurora.org>
-	<20170124123711.GA11996@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170124123711.GA11996@red-moon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH V2 1/2] ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
+Date: Mon, 30 Jan 2017 09:59:57 +0530
+Message-ID: <e608c76ea40e4f0d50bfe821174dfebef924e35b.1485750547.git.viresh.kumar@linaro.org>
+References: <1547465.PvRbYVlVrB@aspire.rjw.lan>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:32841 "EHLO
+        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751496AbdA3EaP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jan 2017 23:30:15 -0500
+Received: by mail-pf0-f172.google.com with SMTP id y143so87273358pfb.0
+        for <linux-acpi@vger.kernel.org>; Sun, 29 Jan 2017 20:30:13 -0800 (PST)
+In-Reply-To: <1547465.PvRbYVlVrB@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, linux-acpi@vger.kernel.org
 
-On 1/24/2017 7:37 AM, Lorenzo Pieralisi wrote:
-> [+hanjun, tomasz, sinan]
-> 
-> It is quite a key patchset, I would be glad if they can test on their
-> respective platforms with IORT.
-> 
+acpi_processor_ppc_notifier() can live without using CPUFREQ_START
+(which is gonna be removed soon), as it is only used while setting
+ignore_ppc to 0. This can be done with the help of "ignore_ppc < 0"
+check alone. The notifier function anyway ignores all events except
+CPUFREQ_ADJUST and dropping CPUFREQ_START wouldn't harm at all.
 
-Tested on top of 4.10-rc5.
+Once CPUFREQ_START event is removed from the cpufreq core,
+acpi_processor_ppc_notifier() will get called only for CPUFREQ_NOTIFY or
+CPUFREQ_ADJUST event. Drop the return statement from the first if block
+to make sure we don't ignore any such events.
 
-1.	Platform Hidma device passed dmatest
-2.	Seeing some USB stalls on a platform USB device.
-3.	PCIe NVME drive probed and worked fine with MSI interrupts after boot.
-4. 	NVMe driver didn't probe following a hotplug insertion and received an
-SMMU error event during the insertion.
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-/sys/bus/pci/slots/4 #
-/sys/bus/pci/slots/4 # dmesg | grep nvme
-[   14.041357] nvme nvme0: pci function 0003:01:00.0
-[  198.399521] nvme nvme0: pci function 0003:01:00.0
-[__198.416232]_nvme_0003:01:00.0:_enabling_device_(0000_->_0002)
-[  264.402216] nvme nvme0: I/O 228 QID 0 timeout, disable controller
-[  264.402313] nvme nvme0: Identify Controller failed (-4)
-[  264.421270] nvme nvme0: Removing after probe failure status: -5
-/sys/bus/pci/slots/4 #
+---
+V1->V2:
+- Improved changelog
+- Don't move the first if block to a later point, as it becomes useless
+  then.
+---
+ drivers/acpi/processor_perflib.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-
-
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index f0b4a981b8d3..18b72eec3507 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -75,10 +75,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
+-	if (event == CPUFREQ_START && ignore_ppc <= 0) {
++	if (ignore_ppc < 0)
+ 		ignore_ppc = 0;
+-		return 0;
+-	}
+ 
+ 	if (ignore_ppc)
+ 		return 0;
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+2.7.1.410.g6faf27b
+
