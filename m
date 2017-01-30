@@ -1,119 +1,64 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with
- deferred probing or error
-Date: Mon, 30 Jan 2017 15:03:06 -0500
-Message-ID: <f401e27e-d619-0eec-2401-50d8e2fc2f0f@codeaurora.org>
-References: <1485188293-20263-9-git-send-email-sricharan@codeaurora.org>
- <20170124123711.GA11996@red-moon>
- <f2370671-ece8-fbee-de19-350dd625088f@codeaurora.org>
- <93e79759-d614-9b36-d5ab-63e8eb725009@arm.com>
- <14751205-f034-7f0d-442a-854c3909425c@codeaurora.org>
- <5ba9f366d6e25397cdef8ad95b49e199@codeaurora.org>
- <175a3798-b824-ef1a-e112-9f6f472973ae@codeaurora.org>
- <20170130143851.GJ16461@arm.com>
- <b2e50c17de156341deab9fb8e91a8dec@codeaurora.org>
- <1e048aff-0d77-b9f2-ebf8-2ba315b90ca7@codeaurora.org>
- <20170130165124.GA11712@red-moon>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Mon, 30 Jan 2017 21:57:45 +0100
+Message-ID: <20170130205745.wwavipta5hbz5zfz@sig21.net>
+References: <20161205110608.GF1459@lahna.fi.intel.com>
+ <20170124094112.ssmpe6vl4iijsjh6@sig21.net>
+ <CAHp75Vfc0g5znBm72Jx-C+p-9+3j69ecJBaVvm+Onf+sqf=7HA@mail.gmail.com>
+ <20170124135250.d72silj6jlxh7zqk@sig21.net>
+ <CAHp75VfUgwZkA7FVhdCY2CRFbtE55Q01MBbpmXVeMvLNEQLV2w@mail.gmail.com>
+ <20170124192314.gw6njffcgwyfm2gp@sig21.net>
+ <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
+ <20170127113845.zt5jwjzumafclvzc@sig21.net>
+ <CAHp75Ve6pwaDM3ookO9e_4c1R_U9_X3aF43XGtD5Z2+6G6f6zA@mail.gmail.com>
+ <20170127133058.pxuovuuqpnffx3py@sig21.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:49820 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751033AbdA3UDK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2017 15:03:10 -0500
-In-Reply-To: <20170130165124.GA11712@red-moon>
+Received: from mail.sig21.net ([80.244.240.74]:51376 "EHLO mail.sig21.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754473AbdA3U6B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 30 Jan 2017 15:58:01 -0500
+Content-Disposition: inline
+In-Reply-To: <20170127133058.pxuovuuqpnffx3py@sig21.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Nate Watterson <nwatters@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Sricharan R <sricharan@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, bhelgaas@google.com, Tomasz Nowicki <tn@semihalf.com>, linux-arm-kernel@lists.infradead.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
 
-On 1/30/2017 11:51 AM, Lorenzo Pieralisi wrote:
-> On Mon, Jan 30, 2017 at 10:46:39AM -0500, Sinan Kaya wrote:
->> On 1/30/2017 9:54 AM, Nate Watterson wrote:
->>> On 2017-01-30 09:38, Will Deacon wrote:
->>>> On Mon, Jan 30, 2017 at 09:33:50AM -0500, Sinan Kaya wrote:
->>>>> On 1/30/2017 9:23 AM, Nate Watterson wrote:
->>>>>> On 2017-01-30 08:59, Sinan Kaya wrote:
->>>>>>> On 1/30/2017 7:22 AM, Robin Murphy wrote:
->>>>>>>> On 29/01/17 17:53, Sinan Kaya wrote:
->>>>>>>>> On 1/24/2017 7:37 AM, Lorenzo Pieralisi wrote:
->>>>>>>>>> [+hanjun, tomasz, sinan]
->>>>>>>>>>
->>>>>>>>>> It is quite a key patchset, I would be glad if they can test on their
->>>>>>>>>> respective platforms with IORT.
->>>>>>>>>>
->>>>>>>>>
->>>>>>>>> Tested on top of 4.10-rc5.
->>>>>>>>>
->>>>>>>>> 1.    Platform Hidma device passed dmatest
->>>>>>>>> 2.    Seeing some USB stalls on a platform USB device.
->>>>>>>>> 3.    PCIe NVME drive probed and worked fine with MSI interrupts after boot.
->>>>>>>>> 4.     NVMe driver didn't probe following a hotplug insertion and received an
->>>>>>>>> SMMU error event during the insertion.
->>>>>>>>
->>>>>>>> What was the SMMU error - a translation/permission fault (implying the
->>>>>>>> wrong DMA ops) or a bad STE fault (implying we totally failed to tell
->>>>>>>> the SMMU about the device at all)?
->>>>>>>>
->>>>>>>
->>>>>>> root@ubuntu:/sys/bus/pci/slots/4# echo 0 > power
->>>>>>>
->>>>>>> [__204.698522]_iommu:_Removing_device_0003:01:00.0_from_group_0
->>>>>>> [  204.708704] pciehp 0003:00:00.0:pcie004: Slot(4): Link Down
->>>>>>> [  204.708723] pciehp 0003:00:00.0:pcie004: Slot(4): Link Down event
->>>>>>> ignored; already powering off
->>>>>>>
->>>>>>> root@ubuntu:/sys/bus/pci/slots/4#
->>>>>>>
->>>>>>> [__254.820440]_iommu:_Adding_device_0003:01:00.0_to_group_8
->>>>>>> [  254.820599] nvme nvme0: pci function 0003:01:00.0
->>>>>>> [  254.820621] nvme 0003:01:00.0: enabling device (0000 -> 0002)
->>>>>>> [  261.948558] arm-smmu-v3 arm-smmu-v3.0.auto: event 0x0a received:
->>>>>>> [  261.948561] arm-smmu-v3 arm-smmu-v3.0.auto:  0x000001000000000a
->>>>>>> [  261.948563] arm-smmu-v3 arm-smmu-v3.0.auto:  0x0000000000000000
->>>>>>> [  261.948564] arm-smmu-v3 arm-smmu-v3.0.auto:  0x0000000000000000
->>>>>>> [  261.948566] arm-smmu-v3 arm-smmu-v3.0.auto:  0x0000000000000000
->>>>>
->>>>>> Looks like C_BAD_CD. Can you please try with:
->>>>>> iommu/arm-smmu-v3: Clear prior settings when updating STEs
->>>>>
->>>>> This resolved the issue. Can we pull Nate's patch to 4.10 so that I don't see
->>>>> this issue again.
->>>>
->>>> I already sent the pull request to Joerg for 4.11. Do you see this problem
->>>> without Sricharan's patches (i.e. vanilla mainline)? If so, we'll need to
->>>> send the patch to stable after -rc1.
->>> Using vanilla mainline, I see it most commonly when directly assigning
->>> a device to a guest machine. I think I've also seen it after removing then
->>> re-adding a PCI device. Basically anytime an STE's CTX pointer is changed
->>> from a non-NULL value and STE[CFG] indicates translation will be performed.
->>>
->>
->> I was not able to reproduce the issue with Vanilla kernel. I only
->> tested hotplug.
+On Fri, Jan 27, 2017 at 02:30:58PM +0100, Johannes Stezenbach wrote:
+> On Fri, Jan 27, 2017 at 03:21:22PM +0200, Andy Shevchenko wrote:
+> > On Fri, Jan 27, 2017 at 1:38 PM, Johannes Stezenbach <js@sig21.net> wrote:
+> > > On Fri, Jan 27, 2017 at 12:56:53AM +0200, Andy Shevchenko wrote:
+> > 
+> > >> Had you tried to add ID to axp20x-i2c.c ?
+> > >
+> > > Nope, since I have no idea if the axp and TI hardware is similar.
+> > 
+> > I think you would give a try.
 > 
-> I would like to get the complete code path leading to this issue, it is
-> not clear to me why the probe deferral code triggers it and why we are
-> not able to trigger it with vanilla mainline, we must understand that first
-> before applying any fix to this series.
-> 
-> I do not have a platform to reproduce this issue I will send you a patch
-> to trace what's going on here please help us debug it.
+> I'll check it.
 
-Sure, send it to both Nate and me.
+I checked the reference source code, my impression is the
+TI Dollar Cove and and AXP288 are completely different hardware.
 
-> 
-> Thanks,
-> Lorenzo
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> > > [    5.331709] i2c_designware 808622C1:06: controller timed out
+> > >
+> > This is known: http://www.spinics.net/lists/intel-gfx/msg117738.html
+
+Interestingly via this link I found Intel also published
+the TI DCove source in a patch series against an unspecified kernel:
+https://github.com/01org/ProductionKernelQuilts
+specifically
+https://github.com/01org/ProductionKernelQuilts/blob/master/uefi/cht-m1stable/patches/mfd-intel_soc_pmic-add-TI-variant-of-dollar-cove.patch
+https://github.com/01org/ProductionKernelQuilts/blob/master/uefi/cht-m1stable/patches/PWRBTN-add-driver-for-TI-PMIC.patch
+and some more (the series is quite messy).
+
+For the Asus E200HA I'm not sure if the charger and coulomb
+counter drivers are needed since charging just works and
+the battery status is reported via ACPI.  It seems these
+drivers are only for tablets without ACPI support, right?
 
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks,
+Johannes
