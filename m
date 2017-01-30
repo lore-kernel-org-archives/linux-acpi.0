@@ -1,62 +1,51 @@
-From: walter harms <wharms@bfs.de>
-Subject: Re: [PATCH] acpi: nfit: use %u format string specifier for unsigned
- ints
-Date: Mon, 30 Jan 2017 12:58:55 +0100
-Message-ID: <588F2A7F.8020501@bfs.de>
-References: <20170130112502.24426-1-colin.king@canonical.com>
-Reply-To: wharms@bfs.de
+From: "Sricharan" <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: RE: [PATCH V7 07/11] iommu: of: Handle IOMMU lookup failure with
+	deferred probing or error
+Date: Mon, 30 Jan 2017 17:30:58 +0530
+Message-ID: <008f01d27af0$88e897d0$9ab9c770$@codeaurora.org>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+	<1485188293-20263-8-git-send-email-sricharan@codeaurora.org>
+	<34a703f0-3b37-88f0-46fa-b56ab6717a42@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170130112502.24426-1-colin.king@canonical.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, joeyli.kernel@gmail.com, Toshi Kani <toshi.kani@hpe.com>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <34a703f0-3b37-88f0-46fa-b56ab6717a42-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Language: en-us
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: 'Sinan Kaya' <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
+>-----Original Message-----
+>From: linux-arm-kernel [mailto:linux-arm-kernel-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org] On Behalf Of Sinan Kaya
+>Sent: Sunday, January 29, 2017 10:06 PM
+>To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>; robin.murphy-5wv7dgnIgG8@public.gmane.org; will.deacon-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org;
+>lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-arm-
+>msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org; linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH V7 07/11] iommu: of: Handle IOMMU lookup failure with deferred probing or error
+>
+>On 1/23/2017 11:18 AM, Sricharan R wrote:
+>> @@ -107,7 +107,7 @@ void of_dma_configure(struct device *dev, struct device_node *np)
+>>  	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+>>  	if (ret < 0) {
+>>  		dma_addr = offset = 0;
+>> -		size = dev->coherent_dma_mask + 1;
+>> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>>  	} else {
+>
+>what's happening here?
 
-Am 30.01.2017 12:25, schrieb Colin King:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> scrub_mode and scrub_count are both unsigned ints, however, the %d
-> format string specifier is being used instead of %u. Trivial fix,
-> use %u.
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/acpi/nfit/core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 2f82b8e..093b768 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -906,7 +906,7 @@ static ssize_t hw_error_scrub_show(struct device *dev,
->  	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
->  	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
->  
-> -	return sprintf(buf, "%d\n", acpi_desc->scrub_mode);
-> +	return sprintf(buf, "%u\n", acpi_desc->scrub_mode);
->  }
->  
->  /*
-> @@ -967,7 +967,7 @@ static ssize_t scrub_show(struct device *dev,
->  	if (nd_desc) {
->  		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
->  
-> -		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
-> +		rc = sprintf(buf, "%u%s", acpi_desc->scrub_count,
->  				(work_busy(&acpi_desc->work)) ? "+\n" : "\n");
->  	}
->  	device_unlock(dev);
+Sorry, not relevant. Will remove this. Has come in because of some rebase mistake.
 
-looks ok,
-would it be an option to move the "\n" into the format string ?
-this is much more common (see sprintf() above).
-
-re,
- wh
-
-
+Regards,
+ Sricharan
