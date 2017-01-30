@@ -1,50 +1,65 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V7 06/11] of/acpi: Configure dma operations at probe time
- for platform/amba/pci bus devices
-Date: Mon, 30 Jan 2017 08:09:18 +0100
-Message-ID: <CAJZ5v0jv-q_EeNhJ4F11yPS85aeD7YFQMcpH+fctTFL12Mk4XQ@mail.gmail.com>
-References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org> <1485188293-20263-7-git-send-email-sricharan@codeaurora.org>
+Subject: Re: [PATCH V2 1/2] ACPI: processor_perflib: Simplify code and stop
+ using CPUFREQ_START
+Date: Mon, 30 Jan 2017 08:07:01 +0100
+Message-ID: <CAJZ5v0i2SW9+T-RbegaoFu0xuN473BZ25iQdwU=gPrOvRW60EQ@mail.gmail.com>
+References: <1547465.PvRbYVlVrB@aspire.rjw.lan> <e608c76ea40e4f0d50bfe821174dfebef924e35b.1485750547.git.viresh.kumar@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:34534 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752187AbdA3HJU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2017 02:09:20 -0500
-In-Reply-To: <1485188293-20263-7-git-send-email-sricharan@codeaurora.org>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34342 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752337AbdA3HPB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2017 02:15:01 -0500
+In-Reply-To: <e608c76ea40e4f0d50bfe821174dfebef924e35b.1485750547.git.viresh.kumar@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sricharan R <sricharan@codeaurora.org>
-Cc: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-arm-msm@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Jan 23, 2017 at 5:18 PM, Sricharan R <sricharan@codeaurora.org> wrote:
-> Configuring DMA ops at probe time will allow deferring device probe when
-> the IOMMU isn't available yet. The dma_configure for the device is
-> now called from the generic device_attach callback just before the
-> bus/driver probe is called. This way, configuring the DMA ops for the
-> device would be called at the same place for all bus_types, hence the
-> deferred probing mechanism should work for all buses as well.
+On Mon, Jan 30, 2017 at 5:29 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> acpi_processor_ppc_notifier() can live without using CPUFREQ_START
+> (which is gonna be removed soon), as it is only used while setting
+> ignore_ppc to 0. This can be done with the help of "ignore_ppc < 0"
+> check alone. The notifier function anyway ignores all events except
+> CPUFREQ_ADJUST and dropping CPUFREQ_START wouldn't harm at all.
 >
-> pci_bus_add_devices    (platform/amba)(_device_create/driver_register)
->        |                         |
-> pci_bus_add_device     (device_add/driver_register)
->        |                         |
-> device_attach           device_initial_probe
->        |                         |
-> __device_attach_driver    __device_attach_driver
->        |
-> driver_probe_device
->        |
-> really_probe
->        |
-> dma_configure
+> Once CPUFREQ_START event is removed from the cpufreq core,
+> acpi_processor_ppc_notifier() will get called only for CPUFREQ_NOTIFY or
+> CPUFREQ_ADJUST event. Drop the return statement from the first if block
+> to make sure we don't ignore any such events.
 >
-> Similarly on the device/driver_unregister path __device_release_driver is
-> called which inturn calls dma_deconfigure.
+> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 >
-> This patch changes the dma ops configuration to probe time for
-> both OF and ACPI based platform/amba/pci bus devices.
+> ---
+> V1->V2:
+> - Improved changelog
+> - Don't move the first if block to a later point, as it becomes useless
+>   then.
+> ---
+>  drivers/acpi/processor_perflib.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 >
-> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> index f0b4a981b8d3..18b72eec3507 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -75,10 +75,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+>         struct acpi_processor *pr;
+>         unsigned int ppc = 0;
+>
+> -       if (event == CPUFREQ_START && ignore_ppc <= 0) {
+> +       if (ignore_ppc < 0)
+>                 ignore_ppc = 0;
+> -               return 0;
+> -       }
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Don't we want to return from here if ignore_ppc is 0?
+
+>
+>         if (ignore_ppc)
+>                 return 0;
+> --
+
+Thanks,
+Rafael
