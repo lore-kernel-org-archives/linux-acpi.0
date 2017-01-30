@@ -1,81 +1,115 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Mon, 30 Jan 2017 17:49:59 +0000
-Message-ID: <20170130174958.GA3496@leverpostej>
-References: <20170118132541.8989-1-fu.wei@linaro.org>
- <20170118132541.8989-9-fu.wei@linaro.org>
- <20170124172400.GG7572@leverpostej>
- <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
- <20170125172505.GB29027@leverpostej>
- <CADyBb7syNx+HJ6t5JKPMnLqvq-98kPi1knuXU=SSe6_Uz6Gg1A@mail.gmail.com>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V7 01/11] iommu/of: Refactor of_iommu_configure() for
+	error handling
+Date: Mon, 30 Jan 2017 18:42:31 +0000
+Message-ID: <8387d057-15bd-500c-134e-0e731ff837d6@arm.com>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+	<1485188293-20263-2-git-send-email-sricharan@codeaurora.org>
+	<4388779a-0e83-fadc-83f4-98c46c88d42e@semihalf.com>
+	<c7bad124-d9f2-0ddf-168f-0b1950d3e1ed@arm.com>
+	<009901d278c7$34fee230$9efca690$@codeaurora.org>
+	<d27f04da-7d34-9640-1639-790d0732ed93@arm.com>
+	<003601d27ac6$84866840$8d9338c0$@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CADyBb7syNx+HJ6t5JKPMnLqvq-98kPi1knuXU=SSe6_Uz6Gg1A@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <003601d27ac6$84866840$8d9338c0$@codeaurora.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, 'Tomasz Nowicki' <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 26, 2017 at 01:49:03PM +0800, Fu Wei wrote:
-> On 26 January 2017 at 01:25, Mark Rutland <mark.rutland@arm.com> wrote:
-> > On Wed, Jan 25, 2017 at 02:46:12PM +0800, Fu Wei wrote:
-> >> On 25 January 2017 at 01:24, Mark Rutland <mark.rutland@arm.com> wrote:
-> >> > On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
-> >> >> From: Fu Wei <fu.wei@linaro.org>
-
-> > For CNT{,EL0}BaseN.CNTFRQ, I am very concerned by the wording in the
-> > current ARMv8 ARM ARM. This does not match my understanding, nor does it
-> > match the description in the ARMv7 ARM. I believe this may be a
-> > documentation error, and I'm chasing that up internally.
-> >
-> > Either the currently logic in the driver which attempts to read
-> > CNT{,EL0}BaseN.CNTFRQ is flawed, or the description in the ARM ARM is
-> > erroneous.
+On 30/01/17 07:00, Sricharan wrote:
+> Hi Robin,
 > 
-> Yes, those description did confuse me. :-(
+>>> [..]
+>>>
+>>>>>> +const struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>>>> +                       struct device_node *master_np)
+>>>>>> +{
+>>>>>> +    const struct iommu_ops *ops;
+>>>>>> +
+>>>>>> +    if (!master_np)
+>>>>>> +        return NULL;
+>>>>>> +
+>>>>>> +    if (dev_is_pci(dev))
+>>>>>> +        ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
+>>>>>
+>>>>> I gave the whole patch set a try on ThunderX. really_probe() is failing
+>>>>> on dma_configure()->of_pci_iommu_init() for each PCI device.
+>>>>
+>>>> When you say "failing", do you mean cleanly, or with a crash? I've
+>>>> managed to hit __of_match_node() dereferencing NULL from
+>>>> of_iommu_xlate() in a horribly complicated chain of events, which I'm
+>>>> trying to figure out now, and I wonder if the two might be related.
+>>>
+>>> Sorry that there is crash still. __of_match_node seems to checking
+>>> for NULL arguments , feels like some invalid pointer was passed in.
+>>> Is there any particular sequence to try for this ?
+>>
+>> Ah, I did figure it out - it wasn't actually a NULL dereference, but an
+>> unmapped address. Turns out __iommu_of_table is in initdata, so any
+>> driver probing after init, connected to an unprobed IOMMU (in this case
+>> disabled in DT), trips over trying to match the now-freed table. I'm
+>> working on the fix - technically the bug's in my patch (#2) anyway ;)
+>>
 > 
-> But according to another document(ARMv8-A Foundation Platform User
-> Guide  ARM DUI0677K),
-> Table 3-2 ARMv8-A Foundation Platform memory map (continued)
-> 
-> AP_REFCLK CNTBase0, Generic Timer 64KB   S
-> AP_REFCLK CNTBase1, Generic Timer 64KB   S/NS
-> 
-> Dose it means the timer frame 0 can be accessed in SECURE status  only,
-> and the timer frame 1 can be accessed in both status?
+> Ok, thanks for bringing this out. There is also an issue that
+> Sinan has mentioned while testing the ACPI hotplug path, probably
+> its related to the above, not sure. I will try to check more on that
+> in the meanwhile. Then, taking your fix and fixing the hotplug case
+> i will do one more repost.
 
-That does appear to be what it says.
+OK, I've finally settled on the below fixup for patch #2 - I have some
+follow-on ideas for eventually getting of the magic table altogether,
+but they can wait until we've got the baseline functionality sorted.
+Updated full patch here:
 
-I assume in this case CNTCTLBase.CNTSAR<0> is RES0.
+http://www.linux-arm.org/git?p=linux-rm.git;a=commitdiff;h=5616af885f7c5c24f7239d5c689583b2b583c407
 
-> And because Linux kernel is running on Non-secure EL1, so should we
-> skip "SECURE" timer in Linux?
+Robin.
 
-I guess you mean by checking the GTx Common flags, to see if the timer
-is secure? Yes, we must skip those.
+-----8<-----
 
-Looking further at this, the ACPI spec is sorely lacking any statement
-as to the configuration of CNTCTLBase.{CNTSAR,CNTTIDR,CNTACR}, so it's
-not clear if we can access anything in a frame, even if it is listed as
-being a non-secure timer.
+diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+index 349bd1d01612..1f92d98237d5 100644
+--- a/drivers/iommu/of_iommu.c
++++ b/drivers/iommu/of_iommu.c
+@@ -96,6 +96,19 @@ int of_get_dma_window(struct device_node *dn, const
+char *prefix, int index,
+ }
+ EXPORT_SYMBOL_GPL(of_get_dma_window);
 
-I think we need a stronger statement here. Otherwise, we will encounter
-problems. Linux currently assumes that CNTCTLBase.CNTACR<N> is
-writeable, given a non-secure frame N. This is only the case if
-CNTCTLBase.CNTSAR.NS<N> == 1.
++static bool of_iommu_driver_present(struct device_node *np)
++{
++	/*
++	 * If the IOMMU still isn't ready by the time we reach init, assume
++	 * it never will be. We don't want to defer indefinitely, nor attempt
++	 * to dereference __iommu_of_table after it's been freed.
++	 */
++	if (system_state > SYSTEM_BOOTING)
++		return false;
++
++	return of_match_node(&__iommu_of_table, np);
++}
++
+ static const struct iommu_ops
+ *of_iommu_xlate(struct device *dev, struct of_phandle_args *iommu_spec)
+ {
+@@ -105,7 +118,7 @@ static const struct iommu_ops
 
-Thanks,
-Mark.
+ 	ops = iommu_get_instance(fwnode);
+ 	if ((ops && !ops->of_xlate) ||
+-	    (!ops && !of_match_node(&__iommu_of_table, iommu_spec->np)))
++	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
+ 		return NULL;
+
+ 	err = iommu_fwspec_init(dev, &iommu_spec->np->fwnode, ops);
