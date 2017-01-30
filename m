@@ -1,48 +1,65 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 3/3] acpi: lpss: call pwm_add_table() for
-	bsw PWM device
-Date: Mon, 30 Jan 2017 09:28:09 +0100
-Message-ID: <CAJZ5v0hS08PX88+bXcnCz_V5f_VZ1L49iXnu9rHwDGO2uM7Q0A@mail.gmail.com>
-References: <20170122161409.21601-1-hdegoede@redhat.com>
- <20170122161409.21601-4-hdegoede@redhat.com>
- <20170130081839.GN3585@ulmo.ba.sec>
+From: "Sricharan" <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: RE: [PATCH V7 00/11] IOMMU probe deferral support
+Date: Mon, 30 Jan 2017 14:50:35 +0530
+Message-ID: <005801d27ada$2127ee90$6377cbb0$@codeaurora.org>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+	<20170128211029.GI20550@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20170130081839.GN3585@ulmo.ba.sec>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Linux PWM List <linux-pwm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170128211029.GI20550-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
+Content-Language: en-us
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: 'Bjorn Helgaas' <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBKYW4gMzAsIDIwMTcgYXQgOToxOCBBTSwgVGhpZXJyeSBSZWRpbmcKPHRoaWVycnku
-cmVkaW5nQGdtYWlsLmNvbT4gd3JvdGU6Cj4gT24gU3VuLCBKYW4gMjIsIDIwMTcgYXQgMDU6MTQ6
-MDlQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3cm90ZToKPj4gT24geDg2IHdlIGRvIG5vdCBoYXZl
-IGRldmljZXRyZWUgdG8gbGluayB0aGUgUFdNIGNvbnRyb2xsZXIgYW5kCj4+IHRoZSBkaXNwbGF5
-IGNvbnRyb2xsZXIgdG9nZXRoZXIuIFNvIHNvbWVvbmUgbmVlZHMgdG8gY2FsbAo+PiBwd21fYWRk
-X3RhYmxlKCkgdG8gY3JlYXRlIHRoZSBsaW5rLCBzbyB0aGF0IHRoZSBpOTE1IGRyaXZlcidzCj4+
-IHB3bV9nZXQoZGV2LCAicHdtX2JhY2tsaWdodCIpIGNhbGwgcmV0dXJucyB0aGUgbHBzcycgcHdt
-MC4KPj4KPj4gVGhlIFBXTSBzdWJzeXN0ZW0gZG9lcyBub3Qgd2FudCB0byBoYXZlIHB3bV9hZGRf
-dGFibGUoKSBjYWxscwo+PiBkaXJlY3RseSBpbiBQV00gZHJpdmVycyAodGhpcyBsZWFkcyB0byBw
-cm9iZSBvcmRlcmluZyBpc3N1ZXMpLAo+PiBzbyBsZXRzIGRvIGl0IGhlcmUgc2luY2UgdGhlIGFj
-cGktbHBzcyBjb2RlIGlzIGFsd2F5cyBidWlsdGluLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBIYW5z
-IGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgo+PiBBY2tlZC1ieTogVGhpZXJyeSBSZWRp
-bmcgPHRoaWVycnkucmVkaW5nQGdtYWlsLmNvbT4KPj4gLS0tCj4+IENoYW5nZXMgaW4gdjI6Cj4+
-IC1TZXQgbmV3IHB3bV9sb29rdXAgbW9kdWxlX25hbWUgZmllbGQgaW4gdGhlIHRhYmxlCj4+IC0t
-LQo+PiAgZHJpdmVycy9hY3BpL2FjcGlfbHBzcy5jIHwgMTMgKysrKysrKysrKysrKwo+PiAgMSBm
-aWxlIGNoYW5nZWQsIDEzIGluc2VydGlvbnMoKykKPgo+IFJhZmFlbCwgZG8geW91IG1pbmQgaWYg
-SSB0YWtlIHRoaXMgdGhyb3VnaCB0aGUgUFdNIHRyZWUgdG8gcmVzb2x2ZSB0aGUKPiBidWlsZC10
-aW1lIGRlcGVuZGVuY3k/CgpObywgSSBkb24ndCwgcGxlYXNlIGdvIGFoZWFkLCB1bmxlc3MgTWlr
-YS9BbmR5IHNlZSBhbnkgcHJvYmxlbXMgaW4gaXQuCgpUaGFua3MsClJhZmFlbApfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBs
-aXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+Hi Bjorn,
+
+>On Mon, Jan 23, 2017 at 09:48:02PM +0530, Sricharan R wrote:
+>> This series calls the dma ops configuration for the devices
+>> at a generic place so that it works for all busses.
+>> The dma_configure_ops for a device is now called during
+>> the device_attach callback just before the probe of the
+>> bus/driver is called. Similarly dma_deconfigure is called during
+>> device/driver_detach path.
+>> ...
+>
+>>  arch/arm64/mm/dma-mapping.c       | 132 ++++----------------------------------
+>>  drivers/acpi/arm64/iort.c         |  40 +++++++++++-
+>>  drivers/acpi/glue.c               |   5 --
+>>  drivers/acpi/scan.c               |   7 +-
+>>  drivers/base/dd.c                 |   9 +++
+>>  drivers/base/dma-mapping.c        |  41 ++++++++++++
+>>  drivers/iommu/arm-smmu-v3.c       |  46 +------------
+>>  drivers/iommu/arm-smmu.c          |  58 +++--------------
+>>  drivers/iommu/of_iommu.c          | 114 +++++++++++++++++++++++---------
+>>  drivers/of/address.c              |  20 +++++-
+>>  drivers/of/device.c               |  36 ++++++-----
+>>  drivers/of/platform.c             |  10 +--
+>>  drivers/pci/probe.c               |  28 --------
+>>  include/acpi/acpi_bus.h           |   2 +-
+>>  include/asm-generic/vmlinux.lds.h |   1 -
+>>  include/linux/acpi.h              |   7 +-
+>>  include/linux/acpi_iort.h         |   3 -
+>>  include/linux/dma-mapping.h       |   3 +
+>>  include/linux/of_device.h         |  10 ++-
+>>  19 files changed, 252 insertions(+), 320 deletions(-)
+>
+>I'm assuming this will go via some other tree, maybe the IOMMU tree?
+>I acked the PCI parts, so let me know if you need anything more from me.
+
+Thanks for the review/acks.
+Ya, via the IOMMU tree looks correct.
+
+Regards,
+ Sricharan
