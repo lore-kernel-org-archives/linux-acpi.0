@@ -1,59 +1,63 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH V2 1/2] ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
-Date: Mon, 30 Jan 2017 09:59:57 +0530
-Message-ID: <e608c76ea40e4f0d50bfe821174dfebef924e35b.1485750547.git.viresh.kumar@linaro.org>
-References: <1547465.PvRbYVlVrB@aspire.rjw.lan>
+From: "Sricharan" <sricharan@codeaurora.org>
+Subject: RE: [PATCH V7 01/11] iommu/of: Refactor of_iommu_configure() for error handling
+Date: Mon, 30 Jan 2017 12:30:11 +0530
+Message-ID: <003601d27ac6$84866840$8d9338c0$@codeaurora.org>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org> <1485188293-20263-2-git-send-email-sricharan@codeaurora.org> <4388779a-0e83-fadc-83f4-98c46c88d42e@semihalf.com> <c7bad124-d9f2-0ddf-168f-0b1950d3e1ed@arm.com> <009901d278c7$34fee230$9efca690$@codeaurora.org> <d27f04da-7d34-9640-1639-790d0732ed93@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:32841 "EHLO
-        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbdA3EaP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jan 2017 23:30:15 -0500
-Received: by mail-pf0-f172.google.com with SMTP id y143so87273358pfb.0
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Jan 2017 20:30:13 -0800 (PST)
-In-Reply-To: <1547465.PvRbYVlVrB@aspire.rjw.lan>
+Received: from smtp.codeaurora.org ([198.145.29.96]:42674 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752019AbdA3HAW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2017 02:00:22 -0500
+In-Reply-To: <d27f04da-7d34-9640-1639-790d0732ed93@arm.com>
+Content-Language: en-us
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, linux-acpi@vger.kernel.org
+To: 'Robin Murphy' <robin.murphy@arm.com>, 'Tomasz Nowicki' <tn@semihalf.com>, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-acpi_processor_ppc_notifier() can live without using CPUFREQ_START
-(which is gonna be removed soon), as it is only used while setting
-ignore_ppc to 0. This can be done with the help of "ignore_ppc < 0"
-check alone. The notifier function anyway ignores all events except
-CPUFREQ_ADJUST and dropping CPUFREQ_START wouldn't harm at all.
+Hi Robin,
 
-Once CPUFREQ_START event is removed from the cpufreq core,
-acpi_processor_ppc_notifier() will get called only for CPUFREQ_NOTIFY or
-CPUFREQ_ADJUST event. Drop the return statement from the first if block
-to make sure we don't ignore any such events.
+>> [..]
+>>
+>>>>> +const struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>>> +                       struct device_node *master_np)
+>>>>> +{
+>>>>> +    const struct iommu_ops *ops;
+>>>>> +
+>>>>> +    if (!master_np)
+>>>>> +        return NULL;
+>>>>> +
+>>>>> +    if (dev_is_pci(dev))
+>>>>> +        ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
+>>>>
+>>>> I gave the whole patch set a try on ThunderX. really_probe() is failing
+>>>> on dma_configure()->of_pci_iommu_init() for each PCI device.
+>>>
+>>> When you say "failing", do you mean cleanly, or with a crash? I've
+>>> managed to hit __of_match_node() dereferencing NULL from
+>>> of_iommu_xlate() in a horribly complicated chain of events, which I'm
+>>> trying to figure out now, and I wonder if the two might be related.
+>>
+>> Sorry that there is crash still. __of_match_node seems to checking
+>> for NULL arguments , feels like some invalid pointer was passed in.
+>> Is there any particular sequence to try for this ?
+>
+>Ah, I did figure it out - it wasn't actually a NULL dereference, but an
+>unmapped address. Turns out __iommu_of_table is in initdata, so any
+>driver probing after init, connected to an unprobed IOMMU (in this case
+>disabled in DT), trips over trying to match the now-freed table. I'm
+>working on the fix - technically the bug's in my patch (#2) anyway ;)
+>
 
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Ok, thanks for bringing this out. There is also an issue that
+Sinan has mentioned while testing the ACPI hotplug path, probably
+its related to the above, not sure. I will try to check more on that
+in the meanwhile. Then, taking your fix and fixing the hotplug case
+i will do one more repost.
 
----
-V1->V2:
-- Improved changelog
-- Don't move the first if block to a later point, as it becomes useless
-  then.
----
- drivers/acpi/processor_perflib.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index f0b4a981b8d3..18b72eec3507 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -75,10 +75,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
- 
--	if (event == CPUFREQ_START && ignore_ppc <= 0) {
-+	if (ignore_ppc < 0)
- 		ignore_ppc = 0;
--		return 0;
--	}
- 
- 	if (ignore_ppc)
- 		return 0;
--- 
-2.7.1.410.g6faf27b
+Regards,
+ Sricharan
 
