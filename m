@@ -1,52 +1,62 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][V2] acpi: nfit: use %u format string specifier for unsigned ints
-Date: Mon, 30 Jan 2017 12:08:08 +0000
-Message-ID: <20170130120808.27691-1-colin.king@canonical.com>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with
+	deferred probing or error
+Date: Mon, 30 Jan 2017 12:22:11 +0000
+Message-ID: <93e79759-d614-9b36-d5ab-63e8eb725009@arm.com>
+References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
+	<1485188293-20263-9-git-send-email-sricharan@codeaurora.org>
+	<20170124123711.GA11996@red-moon>
+	<f2370671-ece8-fbee-de19-350dd625088f@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, joeyli.kernel@gmail.com, Toshi Kani <toshi.kani@hpe.com>, linux-acpi@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <f2370671-ece8-fbee-de19-350dd625088f-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On 29/01/17 17:53, Sinan Kaya wrote:
+> On 1/24/2017 7:37 AM, Lorenzo Pieralisi wrote:
+>> [+hanjun, tomasz, sinan]
+>>
+>> It is quite a key patchset, I would be glad if they can test on their
+>> respective platforms with IORT.
+>>
+> 
+> Tested on top of 4.10-rc5.
+> 
+> 1.	Platform Hidma device passed dmatest
+> 2.	Seeing some USB stalls on a platform USB device.
+> 3.	PCIe NVME drive probed and worked fine with MSI interrupts after boot.
+> 4. 	NVMe driver didn't probe following a hotplug insertion and received an
+> SMMU error event during the insertion.
 
-scrub_mode and scrub_count are both unsigned ints, however, the %d
-format string specifier is being used instead of %u. Trivial fix,
-use %u.  Also move the \n into the format string rather in both
-literal strings.
+What was the SMMU error - a translation/permission fault (implying the
+wrong DMA ops) or a bad STE fault (implying we totally failed to tell
+the SMMU about the device at all)?
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/acpi/nfit/core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Robin.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 2f82b8e..5193b03 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -906,7 +906,7 @@ static ssize_t hw_error_scrub_show(struct device *dev,
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--	return sprintf(buf, "%d\n", acpi_desc->scrub_mode);
-+	return sprintf(buf, "%u\n", acpi_desc->scrub_mode);
- }
- 
- /*
-@@ -967,8 +967,8 @@ static ssize_t scrub_show(struct device *dev,
- 	if (nd_desc) {
- 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
--				(work_busy(&acpi_desc->work)) ? "+\n" : "\n");
-+		rc = sprintf(buf, "%u%s\n", acpi_desc->scrub_count,
-+				(work_busy(&acpi_desc->work)) ? "+" : "");
- 	}
- 	device_unlock(dev);
- 	return rc;
--- 
-2.10.2
-
+> 
+> /sys/bus/pci/slots/4 #
+> /sys/bus/pci/slots/4 # dmesg | grep nvme
+> [   14.041357] nvme nvme0: pci function 0003:01:00.0
+> [  198.399521] nvme nvme0: pci function 0003:01:00.0
+> [__198.416232]_nvme_0003:01:00.0:_enabling_device_(0000_->_0002)
+> [  264.402216] nvme nvme0: I/O 228 QID 0 timeout, disable controller
+> [  264.402313] nvme nvme0: Identify Controller failed (-4)
+> [  264.421270] nvme nvme0: Removing after probe failure status: -5
+> /sys/bus/pci/slots/4 #
+> 
+> 
+> 
