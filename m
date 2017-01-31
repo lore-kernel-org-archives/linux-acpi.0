@@ -1,113 +1,327 @@
-From: "Sricharan" <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: RE: [PATCH V7 01/11] iommu/of: Refactor of_iommu_configure() for
-	error handling
-Date: Tue, 31 Jan 2017 18:41:44 +0530
-Message-ID: <006001d27bc3$96156770$c2403650$@codeaurora.org>
-References: <1485188293-20263-1-git-send-email-sricharan@codeaurora.org>
-	<1485188293-20263-2-git-send-email-sricharan@codeaurora.org>
-	<4388779a-0e83-fadc-83f4-98c46c88d42e@semihalf.com>
-	<c7bad124-d9f2-0ddf-168f-0b1950d3e1ed@arm.com>
-	<009901d278c7$34fee230$9efca690$@codeaurora.org>
-	<d27f04da-7d34-9640-1639-790d0732ed93@arm.com>
-	<003601d27ac6$84866840$8d9338c0$@codeaurora.org>
-	<8387d057-15bd-500c-134e-0e731ff837d6@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <8387d057-15bd-500c-134e-0e731ff837d6-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-us
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: 'Robin Murphy' <robin.murphy-5wv7dgnIgG8@public.gmane.org>, 'Tomasz Nowicki' <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: [PATCH 08/10] efi/x86: Move EFI BGRT init code to early init code
+Date: Tue, 31 Jan 2017 13:21:40 +0000
+Message-ID: <1485868902-20401-9-git-send-email-ard.biesheuvel@linaro.org>
+References: <1485868902-20401-1-git-send-email-ard.biesheuvel@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1485868902-20401-1-git-send-email-ard.biesheuvel@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H . Peter Anvin" <hpa@zytor.com>
+Cc: Dave Young <dyoung@redhat.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Robin,
+From: Dave Young <dyoung@redhat.com>
 
->>>>>> I gave the whole patch set a try on ThunderX. really_probe() is failing
->>>>>> on dma_configure()->of_pci_iommu_init() for each PCI device.
->>>>>
->>>>> When you say "failing", do you mean cleanly, or with a crash? I've
->>>>> managed to hit __of_match_node() dereferencing NULL from
->>>>> of_iommu_xlate() in a horribly complicated chain of events, which I'm
->>>>> trying to figure out now, and I wonder if the two might be related.
->>>>
->>>> Sorry that there is crash still. __of_match_node seems to checking
->>>> for NULL arguments , feels like some invalid pointer was passed in.
->>>> Is there any particular sequence to try for this ?
->>>
->>> Ah, I did figure it out - it wasn't actually a NULL dereference, but an
->>> unmapped address. Turns out __iommu_of_table is in initdata, so any
->>> driver probing after init, connected to an unprobed IOMMU (in this case
->>> disabled in DT), trips over trying to match the now-freed table. I'm
->>> working on the fix - technically the bug's in my patch (#2) anyway ;)
->>>
->>
->> Ok, thanks for bringing this out. There is also an issue that
->> Sinan has mentioned while testing the ACPI hotplug path, probably
->> its related to the above, not sure. I will try to check more on that
->> in the meanwhile. Then, taking your fix and fixing the hotplug case
->> i will do one more repost.
->
->OK, I've finally settled on the below fixup for patch #2 - I have some
->follow-on ideas for eventually getting of the magic table altogether,
->but they can wait until we've got the baseline functionality sorted.
->Updated full patch here:
->
->http://www.linux-arm.org/git?p=linux-rm.git;a=commitdiff;h=5616af885f7c5c24f7239d5c689583b2b583c407
+Before invoking the arch specific handler, efi_mem_reserve() reserves
+the given memory region through memblock.
 
-Thanks, will use this. Yes, the magic iommu_of_table makes little
-use with probe deferral in place, except that we are using it at the
-moment. And the other hotplug issue is not related this though.
+efi_bgrt_init() will call efi_mem_reserve() after mm_init(), at which
+time memblock is dead and should not be used anymore.
 
-Regards,
- Sricharan
+The EFI BGRT code depends on ACPI initialization to get the BGRT ACPI
+table, so move parsing of the BGRT table to ACPI early boot code to
+ensure that efi_mem_reserve() in EFI BGRT code still use memblock safely.
 
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Tested-by: Bhupesh Sharma <bhsharma@redhat.com>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ arch/x86/kernel/acpi/boot.c      |  9 ++++++
+ arch/x86/platform/efi/efi-bgrt.c | 59 +++++++++++++++++-----------------------
+ arch/x86/platform/efi/efi.c      |  5 ----
+ drivers/acpi/bgrt.c              | 28 +++++++++++++------
+ include/linux/efi-bgrt.h         | 11 ++++----
+ init/main.c                      |  1 -
+ 6 files changed, 59 insertions(+), 54 deletions(-)
 
->-----8<-----
->
->diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
->index 349bd1d01612..1f92d98237d5 100644
->--- a/drivers/iommu/of_iommu.c
->+++ b/drivers/iommu/of_iommu.c
->@@ -96,6 +96,19 @@ int of_get_dma_window(struct device_node *dn, const
->char *prefix, int index,
-> }
-> EXPORT_SYMBOL_GPL(of_get_dma_window);
->
->+static bool of_iommu_driver_present(struct device_node *np)
->+{
->+	/*
->+	 * If the IOMMU still isn't ready by the time we reach init, assume
->+	 * it never will be. We don't want to defer indefinitely, nor attempt
->+	 * to dereference __iommu_of_table after it's been freed.
->+	 */
->+	if (system_state > SYSTEM_BOOTING)
->+		return false;
->+
->+	return of_match_node(&__iommu_of_table, np);
->+}
->+
-> static const struct iommu_ops
-> *of_iommu_xlate(struct device *dev, struct of_phandle_args *iommu_spec)
-> {
->@@ -105,7 +118,7 @@ static const struct iommu_ops
->
-> 	ops = iommu_get_instance(fwnode);
-> 	if ((ops && !ops->of_xlate) ||
->-	    (!ops && !of_match_node(&__iommu_of_table, iommu_spec->np)))
->+	    (!ops && !of_iommu_driver_present(iommu_spec->np)))
-> 		return NULL;
->
-> 	err = iommu_fwspec_init(dev, &iommu_spec->np->fwnode, ops);
->--
->To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
->the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 64422f850e95..7ff007ed899d 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -35,6 +35,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
++#include <linux/efi-bgrt.h>
+ 
+ #include <asm/irqdomain.h>
+ #include <asm/pci_x86.h>
+@@ -1557,6 +1558,12 @@ int __init early_acpi_boot_init(void)
+ 	return 0;
+ }
+ 
++static int __init acpi_parse_bgrt(struct acpi_table_header *table)
++{
++	efi_bgrt_init(table);
++	return 0;
++}
++
+ int __init acpi_boot_init(void)
+ {
+ 	/* those are executed after early-quirks are executed */
+@@ -1581,6 +1588,8 @@ int __init acpi_boot_init(void)
+ 	acpi_process_madt();
+ 
+ 	acpi_table_parse(ACPI_SIG_HPET, acpi_parse_hpet);
++	if (IS_ENABLED(CONFIG_ACPI_BGRT))
++		acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+ 
+ 	if (!acpi_noirq)
+ 		x86_init.pci.init = pci_acpi_init;
+diff --git a/arch/x86/platform/efi/efi-bgrt.c b/arch/x86/platform/efi/efi-bgrt.c
+index 6aad870e8962..04ca8764f0c0 100644
+--- a/arch/x86/platform/efi/efi-bgrt.c
++++ b/arch/x86/platform/efi/efi-bgrt.c
+@@ -19,8 +19,7 @@
+ #include <linux/efi.h>
+ #include <linux/efi-bgrt.h>
+ 
+-struct acpi_table_bgrt *bgrt_tab;
+-void *__initdata bgrt_image;
++struct acpi_table_bgrt bgrt_tab;
+ size_t __initdata bgrt_image_size;
+ 
+ struct bmp_header {
+@@ -28,66 +27,58 @@ struct bmp_header {
+ 	u32 size;
+ } __packed;
+ 
+-void __init efi_bgrt_init(void)
++void __init efi_bgrt_init(struct acpi_table_header *table)
+ {
+-	acpi_status status;
+ 	void *image;
+ 	struct bmp_header bmp_header;
++	struct acpi_table_bgrt *bgrt = &bgrt_tab;
+ 
+ 	if (acpi_disabled)
+ 		return;
+ 
+-	status = acpi_get_table("BGRT", 0,
+-	                        (struct acpi_table_header **)&bgrt_tab);
+-	if (ACPI_FAILURE(status))
+-		return;
+-
+-	if (bgrt_tab->header.length < sizeof(*bgrt_tab)) {
++	if (table->length < sizeof(bgrt_tab)) {
+ 		pr_notice("Ignoring BGRT: invalid length %u (expected %zu)\n",
+-		       bgrt_tab->header.length, sizeof(*bgrt_tab));
++		       table->length, sizeof(bgrt_tab));
+ 		return;
+ 	}
+-	if (bgrt_tab->version != 1) {
++	*bgrt = *(struct acpi_table_bgrt *)table;
++	if (bgrt->version != 1) {
+ 		pr_notice("Ignoring BGRT: invalid version %u (expected 1)\n",
+-		       bgrt_tab->version);
+-		return;
++		       bgrt->version);
++		goto out;
+ 	}
+-	if (bgrt_tab->status & 0xfe) {
++	if (bgrt->status & 0xfe) {
+ 		pr_notice("Ignoring BGRT: reserved status bits are non-zero %u\n",
+-		       bgrt_tab->status);
+-		return;
++		       bgrt->status);
++		goto out;
+ 	}
+-	if (bgrt_tab->image_type != 0) {
++	if (bgrt->image_type != 0) {
+ 		pr_notice("Ignoring BGRT: invalid image type %u (expected 0)\n",
+-		       bgrt_tab->image_type);
+-		return;
++		       bgrt->image_type);
++		goto out;
+ 	}
+-	if (!bgrt_tab->image_address) {
++	if (!bgrt->image_address) {
+ 		pr_notice("Ignoring BGRT: null image address\n");
+-		return;
++		goto out;
+ 	}
+ 
+-	image = memremap(bgrt_tab->image_address, sizeof(bmp_header), MEMREMAP_WB);
++	image = early_memremap(bgrt->image_address, sizeof(bmp_header));
+ 	if (!image) {
+ 		pr_notice("Ignoring BGRT: failed to map image header memory\n");
+-		return;
++		goto out;
+ 	}
+ 
+ 	memcpy(&bmp_header, image, sizeof(bmp_header));
+-	memunmap(image);
++	early_memunmap(image, sizeof(bmp_header));
+ 	if (bmp_header.id != 0x4d42) {
+ 		pr_notice("Ignoring BGRT: Incorrect BMP magic number 0x%x (expected 0x4d42)\n",
+ 			bmp_header.id);
+-		return;
++		goto out;
+ 	}
+ 	bgrt_image_size = bmp_header.size;
++	efi_mem_reserve(bgrt->image_address, bgrt_image_size);
+ 
+-	bgrt_image = memremap(bgrt_tab->image_address, bmp_header.size, MEMREMAP_WB);
+-	if (!bgrt_image) {
+-		pr_notice("Ignoring BGRT: failed to map image memory\n");
+-		bgrt_image = NULL;
+-		return;
+-	}
+-
+-	efi_mem_reserve(bgrt_tab->image_address, bgrt_image_size);
++	return;
++out:
++	memset(bgrt, 0, sizeof(bgrt_tab));
+ }
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index 274dfc481849..0d4becfc5145 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -542,11 +542,6 @@ void __init efi_init(void)
+ 		efi_print_memmap();
+ }
+ 
+-void __init efi_late_init(void)
+-{
+-	efi_bgrt_init();
+-}
+-
+ void __init efi_set_executable(efi_memory_desc_t *md, bool executable)
+ {
+ 	u64 addr, npages;
+diff --git a/drivers/acpi/bgrt.c b/drivers/acpi/bgrt.c
+index 75f128e766a9..ca28aa572aa9 100644
+--- a/drivers/acpi/bgrt.c
++++ b/drivers/acpi/bgrt.c
+@@ -15,40 +15,41 @@
+ #include <linux/sysfs.h>
+ #include <linux/efi-bgrt.h>
+ 
++static void *bgrt_image;
+ static struct kobject *bgrt_kobj;
+ 
+ static ssize_t show_version(struct device *dev,
+ 			    struct device_attribute *attr, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->version);
++	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.version);
+ }
+ static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
+ 
+ static ssize_t show_status(struct device *dev,
+ 			   struct device_attribute *attr, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->status);
++	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.status);
+ }
+ static DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
+ 
+ static ssize_t show_type(struct device *dev,
+ 			 struct device_attribute *attr, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_type);
++	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_type);
+ }
+ static DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
+ 
+ static ssize_t show_xoffset(struct device *dev,
+ 			    struct device_attribute *attr, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_offset_x);
++	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_offset_x);
+ }
+ static DEVICE_ATTR(xoffset, S_IRUGO, show_xoffset, NULL);
+ 
+ static ssize_t show_yoffset(struct device *dev,
+ 			    struct device_attribute *attr, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab->image_offset_y);
++	return snprintf(buf, PAGE_SIZE, "%d\n", bgrt_tab.image_offset_y);
+ }
+ static DEVICE_ATTR(yoffset, S_IRUGO, show_yoffset, NULL);
+ 
+@@ -84,15 +85,24 @@ static int __init bgrt_init(void)
+ {
+ 	int ret;
+ 
+-	if (!bgrt_image)
++	if (!bgrt_tab.image_address)
+ 		return -ENODEV;
+ 
++	bgrt_image = memremap(bgrt_tab.image_address, bgrt_image_size,
++			      MEMREMAP_WB);
++	if (!bgrt_image) {
++		pr_notice("Ignoring BGRT: failed to map image memory\n");
++		return -ENOMEM;
++	}
++
+ 	bin_attr_image.private = bgrt_image;
+ 	bin_attr_image.size = bgrt_image_size;
+ 
+ 	bgrt_kobj = kobject_create_and_add("bgrt", acpi_kobj);
+-	if (!bgrt_kobj)
+-		return -EINVAL;
++	if (!bgrt_kobj) {
++		ret = -EINVAL;
++		goto out_memmap;
++	}
+ 
+ 	ret = sysfs_create_group(bgrt_kobj, &bgrt_attribute_group);
+ 	if (ret)
+@@ -102,6 +112,8 @@ static int __init bgrt_init(void)
+ 
+ out_kobject:
+ 	kobject_put(bgrt_kobj);
++out_memmap:
++	memunmap(bgrt_image);
+ 	return ret;
+ }
+ device_initcall(bgrt_init);
+diff --git a/include/linux/efi-bgrt.h b/include/linux/efi-bgrt.h
+index 051b21fedf68..2fd3993c370b 100644
+--- a/include/linux/efi-bgrt.h
++++ b/include/linux/efi-bgrt.h
+@@ -1,20 +1,19 @@
+ #ifndef _LINUX_EFI_BGRT_H
+ #define _LINUX_EFI_BGRT_H
+ 
+-#ifdef CONFIG_ACPI_BGRT
+-
+ #include <linux/acpi.h>
+ 
+-void efi_bgrt_init(void);
++#ifdef CONFIG_ACPI_BGRT
++
++void efi_bgrt_init(struct acpi_table_header *table);
+ 
+ /* The BGRT data itself; only valid if bgrt_image != NULL. */
+-extern void *bgrt_image;
+ extern size_t bgrt_image_size;
+-extern struct acpi_table_bgrt *bgrt_tab;
++extern struct acpi_table_bgrt bgrt_tab;
+ 
+ #else /* !CONFIG_ACPI_BGRT */
+ 
+-static inline void efi_bgrt_init(void) {}
++static inline void efi_bgrt_init(struct acpi_table_header *table) {}
+ 
+ #endif /* !CONFIG_ACPI_BGRT */
+ 
+diff --git a/init/main.c b/init/main.c
+index b0c9d6facef9..9648d707eea5 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -663,7 +663,6 @@ asmlinkage __visible void __init start_kernel(void)
+ 	sfi_init_late();
+ 
+ 	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
+-		efi_late_init();
+ 		efi_free_boot_services();
+ 	}
+ 
+-- 
+2.7.4
