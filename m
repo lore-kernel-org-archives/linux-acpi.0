@@ -1,45 +1,77 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] spi: acpi: Initialize modalias from of_compatible
-Date: Tue, 31 Jan 2017 22:18:30 +0100
-Message-ID: <CAJZ5v0iaD9WtGubF5G9NpXNNKWWhn-CNvawWpT37qkguzXi_HA@mail.gmail.com>
-References: <cover.1468409668.git.leonard.crestez@intel.com>
- <1485187737-22414-1-git-send-email-dan@emutex.com> <1485187737-22414-4-git-send-email-dan@emutex.com>
- <CAJZ5v0hAoOQN+d4iBSgSkkYHBOy-Pt9HLrKG4SjcQUB6Ya1bgA@mail.gmail.com> <20170131201736.cmiyq2obzrhgdsck@sirena.org.uk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V11 1/3] ACPI: Generic GSI: Do not attempt to map non-GSI
+ IRQs during bus scan
+Date: Tue, 31 Jan 2017 23:00:54 +0100
+Message-ID: <CAJZ5v0iGWo8hEPYWEibc7YukdjqZSr9Xzf1+t_wa2Jw3Yht8WQ@mail.gmail.com>
+References: <1484879660-1960-1-git-send-email-agustinv@codeaurora.org> <1484879660-1960-2-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170131201736.cmiyq2obzrhgdsck-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan O'Donovan <dan-M3NBUjLqch7QT0dZR+AlfA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jarkko Nikula <jarkko.nikula-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Crestez Dan Leonard <leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1484879660-1960-2-git-send-email-agustinv@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 31, 2017 at 9:17 PM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Mon, Jan 30, 2017 at 10:41:33AM +0100, Rafael J. Wysocki wrote:
->> On Mon, Jan 23, 2017 at 5:08 PM, Dan O'Donovan <dan-M3NBUjLqch7QT0dZR+AlfA@public.gmane.org> wrote:
+On Fri, Jan 20, 2017 at 3:34 AM, Agustin Vega-Frias
+<agustinv@codeaurora.org> wrote:
+> ACPI extended IRQ resources may contain a Resource Source field to specify
+> an alternate interrupt controller, attempting to map them as GSIs is
+> incorrect, so just disable the platform resource.
 >
->> Mark, any objections here?
+> Since this field is currently ignored, we make this change conditional
+> on CONFIG_ACPI_GENERIC_GSI to keep the current behavior on x86 platforms,
+> in case some existing ACPI tables are using this incorrectly.
 >
-> I've not looked yet, please allow a reasonable time for review
+> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
 
-Sure, no problem at all.
+This one is fine by me, so feel free to add my ACK to it.
 
-> (there still seemed to be ongoing discussion at the ACPI level).
+Or if you want me to apply it, please let me know.
 
-Honestly, I'm not sure what you mean.
-
-The first patch in the series (which is the ACPI level here) does not
-seem to be controversial at all and the i2c one has been acked
-already.
-
-> I continue to be concerned about the amount of duplication and special casing that the
-> various firmware paths seem to entail.
-
-Well, this particular change is relatively straightforward and one can
-argue that it fixes a bug.  It does address a problem for sure.
+> ---
+>  drivers/acpi/resource.c | 18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index cb57962..69cd430 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -43,6 +43,19 @@ static inline bool acpi_iospace_resource_valid(struct resource *res)
+>  acpi_iospace_resource_valid(struct resource *res) { return true; }
+>  #endif
+>
+> +#ifdef CONFIG_ACPI_GENERIC_GSI
+> +static inline bool is_gsi(struct acpi_resource_extended_irq *ext_irq)
+> +{
+> +       return ext_irq->resource_source.string_length == 0 &&
+> +              ext_irq->producer_consumer == ACPI_CONSUMER;
+> +}
+> +#else
+> +static inline bool is_gsi(struct acpi_resource_extended_irq *ext_irq)
+> +{
+> +       return true;
+> +}
+> +#endif
+> +
+>  static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
+>  {
+>         u64 reslen = end - start + 1;
+> @@ -470,9 +483,12 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+>                         acpi_dev_irqresource_disabled(res, 0);
+>                         return false;
+>                 }
+> -               acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+> +               if (is_gsi(ext_irq))
+> +                       acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+>                                          ext_irq->triggering, ext_irq->polarity,
+>                                          ext_irq->sharable, false);
+> +               else
+> +                       acpi_dev_irqresource_disabled(res, 0);
+>                 break;
+>         default:
+>                 res->flags = 0;
+> --
 
 Thanks,
 Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
