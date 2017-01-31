@@ -1,122 +1,54 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v20 08/17] clocksource/drivers/arm_arch_timer: Rework
- counter frequency detection.
-Date: Wed, 1 Feb 2017 03:07:53 +0800
-Message-ID: <CADyBb7t+nx3aZ+7otmJ-c0YE3SeM8xC7_5VksYejMvC9f8Orug@mail.gmail.com>
-References: <20170118132541.8989-1-fu.wei@linaro.org> <20170118132541.8989-9-fu.wei@linaro.org>
- <20170124172400.GG7572@leverpostej> <CADyBb7sU6DVMk6px0963r8by--U-3k_XjESd88zZMkj7xbywgA@mail.gmail.com>
- <20170125172505.GB29027@leverpostej> <CADyBb7syNx+HJ6t5JKPMnLqvq-98kPi1knuXU=SSe6_Uz6Gg1A@mail.gmail.com>
- <20170130174958.GA3496@leverpostej> <CADyBb7uqomC10mR4oMcUKrvYCbrOfLB6q1T6feMfiYA4cMnduA@mail.gmail.com>
- <20170131184908.GA2798@leverpostej>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 3/3] spi: acpi: Initialize modalias from of_compatible
+Date: Tue, 31 Jan 2017 20:17:36 +0000
+Message-ID: <20170131201736.cmiyq2obzrhgdsck@sirena.org.uk>
+References: <cover.1468409668.git.leonard.crestez@intel.com>
+ <1485187737-22414-1-git-send-email-dan@emutex.com>
+ <1485187737-22414-4-git-send-email-dan@emutex.com>
+ <CAJZ5v0hAoOQN+d4iBSgSkkYHBOy-Pt9HLrKG4SjcQUB6Ya1bgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="uqhxt2ivtecyaxbk"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f48.google.com ([209.85.214.48]:36464 "EHLO
-        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752085AbdAaTHy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 14:07:54 -0500
-Received: by mail-it0-f48.google.com with SMTP id c7so1044835itd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Jan 2017 11:07:54 -0800 (PST)
-In-Reply-To: <20170131184908.GA2798@leverpostej>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46290 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750881AbdAaURz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 15:17:55 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hAoOQN+d4iBSgSkkYHBOy-Pt9HLrKG4SjcQUB6Ya1bgA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
-
-Hi Mark,
-
-On 1 February 2017 at 02:49, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Feb 01, 2017 at 02:43:02AM +0800, Fu Wei wrote:
->> On 31 January 2017 at 01:49, Mark Rutland <mark.rutland@arm.com> wrote:
->> > On Thu, Jan 26, 2017 at 01:49:03PM +0800, Fu Wei wrote:
->> >> On 26 January 2017 at 01:25, Mark Rutland <mark.rutland@arm.com> wrote:
->> >> > On Wed, Jan 25, 2017 at 02:46:12PM +0800, Fu Wei wrote:
->> >> >> On 25 January 2017 at 01:24, Mark Rutland <mark.rutland@arm.com> wrote:
->> >> >> > On Wed, Jan 18, 2017 at 09:25:32PM +0800, fu.wei@linaro.org wrote:
->> >> >> >> From: Fu Wei <fu.wei@linaro.org>
->> >
->> >> But according to another document(ARMv8-A Foundation Platform User
->> >> Guide  ARM DUI0677K),
->> >> Table 3-2 ARMv8-A Foundation Platform memory map (continued)
->> >>
->> >> AP_REFCLK CNTBase0, Generic Timer 64KB   S
->> >> AP_REFCLK CNTBase1, Generic Timer 64KB   S/NS
->> >>
->> >> Dose it means the timer frame 0 can be accessed in SECURE status  only,
->> >> and the timer frame 1 can be accessed in both status?
->> >
->> > That does appear to be what it says.
->> >
->> > I assume in this case CNTCTLBase.CNTSAR<0> is RES0.
->> >
->> >> And because Linux kernel is running on Non-secure EL1, so should we
->> >> skip "SECURE" timer in Linux?
->> >
->> > I guess you mean by checking the GTx Common flags, to see if the timer
->> > is secure? Yes, we must skip those.
->>
->> Yes, exactly.
->>
->> I think we can check the  GTx Common flags, if the timer is set as
->> SECURE, this driver should just skip this timer.
->
-> I completely agree that we must skip these.
->
->> > Looking further at this, the ACPI spec is sorely lacking any statement
->> > as to the configuration of CNTCTLBase.{CNTSAR,CNTTIDR,CNTACR}, so it's
->> > not clear if we can access anything in a frame, even if it is listed as
->> > being a non-secure timer.
->> >
->> > I think we need a stronger statement here. Otherwise, we will encounter
->> > problems. Linux currently assumes that CNTCTLBase.CNTACR<N> is
->> > writeable, given a non-secure frame N. This is only the case if
->> > CNTCTLBase.CNTSAR.NS<N> == 1.
->>
->> the original driver has checked these registers, but the problem is:
->> What if the timer frame is designed to be a secure timer, all the
->> register in this frame is only can be accessed in secure status, just
->> like foundation model?
->> Note: for foundation model, Please check Table 3-1 Access permissions
->> of 3.1 ARMv8-A Foundation Platform memory map in ARMv8-A Foundation
->> Platform User Guide
->>
->> So I think we should check the GTDT first, if it's not a secure timer,
->> then we can go on checking CNTSAR. :-)
->
-> I've clearly confused matters here. I completely agree that we must skip
-> timers the GTDT descrbies as secure.
-
-Yes, got it :-)
-
->
-> My complaint here is that the spec does not explicitly state that
-> CNTCTLBase.CNTSAR.NS<N> must be set for timers *not* marked as secure
-> (though I believe that is the intent). That is a spec issue, not a code
-> issue.
-
-agree :-)
-
->
-> We unfortunately can't check CNTNSAR, as it is secure-only. :(
-
-yes, the spec says:
-In a system that implements both Secure and Non-secure states, this
-register is only accessible by Secure accesses.
-
-So I think the firmware(from vendor) can decide which timer frame
-should be marked as secure according to the GTDT, then kernel just get
-this info from GTDT instead of checking CNTNSAR.
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Dan O'Donovan <dan@emutex.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-spi <linux-spi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Crestez Dan Leonard <leonard.crestez@intel.com>
 
 
->
-> Thanks,
-> Mark.
+--uqhxt2ivtecyaxbk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Mon, Jan 30, 2017 at 10:41:33AM +0100, Rafael J. Wysocki wrote:
+> On Mon, Jan 23, 2017 at 5:08 PM, Dan O'Donovan <dan@emutex.com> wrote:
 
+> Mark, any objections here?
 
--- 
-Best regards,
+I've not looked yet, please allow a reasonable time for review (there
+still seemed to be ongoing discussion at the ACPI level).  I continue to
+be concerned about the amount of duplication and special casing that the
+various firmware paths seem to entail.
 
-Fu Wei
-Software Engineer
-Red Hat
+--uqhxt2ivtecyaxbk
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliQ8N8ACgkQJNaLcl1U
+h9Ae4gf+ODDmrMgXV0WdYVGzvVZy6F5RxZfi+DMinN1EPlWkN15P8SdpTtTK0ybg
+QNOhnn5VEF716LK+AIGnhiAehYCd9MX9nd5NxqbrI2eZpYYHBK6P1eUxtyzJp1Et
+QmcgCz/T63d0I9s2gSPIKnsQxwjRA2db6uiU8xy2DLAMZUcEJZgtOZxPoDvViZ/B
+/1/uNP/lfaOUEWO759N36dNYSROzX0JW3k66aB/xzGzGSU7Pd/tiuF+pnrjjoalV
+n+jYNzdzrfiTH6ZYDqzt4SSG1xu6f3cIYSx8r3ZYYmZBhMrRmVHP5x9c4Ya7WXHQ
+4YfuKff++dPCUBiVvcCGaMPFEzL2bA==
+=mvD9
+-----END PGP SIGNATURE-----
+
+--uqhxt2ivtecyaxbk--
