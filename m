@@ -1,83 +1,64 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [GIT PULL 00/10] EFI updates for v4.11
-Date: Tue, 31 Jan 2017 13:21:32 +0000
-Message-ID: <1485868902-20401-1-git-send-email-ard.biesheuvel@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36077 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752029AbdAaN0A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 08:26:00 -0500
-Received: by mail-wm0-f50.google.com with SMTP id c85so260973909wmi.1
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Jan 2017 05:25:47 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Bastien Nocera <hadess-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>
+Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
+ (possibly badly bisected)
+Date: Tue, 31 Jan 2017 14:37:43 +0100
+Message-ID: <1485869863.5845.54.camel@hadess.net>
+References: <1484927552.21721.17.camel@hadess.net>
+         <1485443735.5845.30.camel@hadess.net>
+         <CAJZ5v0hYwyV+j+38rdqo81x0p5jWyLzHijYFY5RmnODzRUK0qg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZ5v0hYwyV+j+38rdqo81x0p5jWyLzHijYFY5RmnODzRUK0qg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Richard Hughes <richard-DRAXeJJ+PL1BDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H . Peter Anvin" <hpa@zytor.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Borislav Petkov <bp@alien8.de>, Colin Ian King <colin.king@canonical.com>, Dave Young <dyoung@redhat.com>, Fenghua Yu <fenghua.yu@intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>, Matt Fleming <matt@codeblueprint.co.uk>, Nicolai Stange <nicstange@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ravi Shankar <ravi.v.shankar@intel.com>, Ricardo Neri <ricardo.neri@intel.com>, Sai Praneeth Prakhya <sai.praneeth.prakhya@intel.com>
 
-The following changes since commit 49def1853334396f948dcb4cedb9347abb318df5:
+Hey Rafael,
 
-  Linux 4.10-rc4 (2017-01-15 16:21:59 -0800)
+On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
+> On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>
+> wrote:
+> > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
+> > > Hey,
+> > > 
+> > > TLDR:
+> > > # first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
+> > > Merge
+> > > back earlier ACPI PM material for v4.3.
+> > > 
+> > > hid-sensor-hub devices only start sending events through the IIO
+> > > trigger after a suspend/resume cycle.
+> > > 
+> > > Other IIO drivers don't seem to exhibit those problems.
+> > 
+> > I had another go, trying to break into the merge commit, and it's
+> > slightly more precise, but still doesn't make any sense to me.
+> > 
+> > # first bad commit: [3431e490b50356b56084305a2e93b3a980802b22]
+> > Merge
+> > branch 'acpi-scan' into acpi-pm
+> > 
+> > Any ideas? I'm running out of them...
+> 
+> The parents of this merge are 5af310a8ee70 and 1dcc3d3362b0.
+> 
+> Can you please check if the problem is present in any of them alone?
 
-are available in the git repository at:
+Both of those were already in the git bisect output:
+# good: [5af310a8ee70dd6a588c8ee1d4487a230a7b7b65] Merge tag 'ib-mfd-base-acpi-dma-v4.3' of git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd into acpi-pm
+git bisect good 5af310a8ee70dd6a588c8ee1d4487a230a7b7b65
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/efi/efi.git tags/efi-next
+# good: [1dcc3d3362b0c97e48290f7786be85b4cec2a147] ACPI / bus: Move ACPI bus type registration
+git bisect good 1dcc3d3362b0c97e48290f7786be85b4cec2a147
 
-for you to fetch changes up to 39d6b56c4c2a41cf4d11c720c05c1396b74920a0:
+Or did I do this wrong?
 
-  efi: libstub: Preserve .debug sections after absolute relocation check (2017-01-31 13:11:19 +0000)
+> If not, it is theoretically possible that the merge itself had
+> introduced it (as this is not a trivial merge).
 
-NOTE: the BGRT patch touches drivers/acpi, but lacks an ack from the ACPI
-      maintainers. They have been cc'ed on the patch (and on this pull
-      request).
+Yeah, I tried diving into the merge, but never managed to do so.
 
-----------------------------------------------------------------
-* Wire up the UEFI memory attributes table for x86. This eliminates any
-  runtime memory regions that are both writable and executable on recent
-  firmware versions. (Sai Praneeth)
-
-* Move the BGRT init code to an earlier stage so that we can still use
-  efi_mem_reserve() (Dave Young)
-
-* Preserve debug symbols in the ARM/arm64 UEFI stub (Ard)
-
-* Some deduplication work and various other cleanups
-
-----------------------------------------------------------------
-Ard Biesheuvel (2):
-      efi: Use typed function pointers for runtime services table
-      efi: libstub: Preserve .debug sections after absolute relocation check
-
-Colin Ian King (1):
-      efi/esrt: Fix spelling mistake "doen't"
-
-Dave Young (2):
-      efi/x86: Move EFI BGRT init code to early init code
-      efi/x86: Add debug code to print cooked memmap
-
-Lukas Wunner (2):
-      efi: Deduplicate efi_file_size() / _read() / _close()
-      x86/efi: Deduplicate efi_char16_printk()
-
-Sai Praneeth (3):
-      efi: Make EFI_MEMORY_ATTRIBUTES_TABLE initialization common across all architectures
-      efi: Introduce EFI_MEM_ATTR bit and set it from memory attributes table
-      x86/efi: Add support for EFI_MEMORY_ATTRIBUTES_TABLE
-
- arch/x86/boot/compressed/eboot.c               | 174 +------------------------
- arch/x86/kernel/acpi/boot.c                    |   9 ++
- arch/x86/platform/efi/efi-bgrt.c               |  59 ++++-----
- arch/x86/platform/efi/efi.c                    |  10 +-
- arch/x86/platform/efi/efi_64.c                 |  64 +++++++--
- drivers/acpi/bgrt.c                            |  28 ++--
- drivers/firmware/efi/arm-init.c                |   1 -
- drivers/firmware/efi/efi.c                     |   2 +
- drivers/firmware/efi/esrt.c                    |   2 +-
- drivers/firmware/efi/libstub/Makefile          |  24 ++--
- drivers/firmware/efi/libstub/arm-stub.c        |  69 ----------
- drivers/firmware/efi/libstub/efi-stub-helper.c |  63 +++++++++
- drivers/firmware/efi/libstub/efistub.h         |   8 --
- drivers/firmware/efi/memattr.c                 |   6 +-
- include/linux/efi-bgrt.h                       |  11 +-
- include/linux/efi.h                            |  45 +++----
- init/main.c                                    |   1 -
- 17 files changed, 230 insertions(+), 346 deletions(-)
+Cheers
