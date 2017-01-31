@@ -1,54 +1,87 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 3/3] spi: acpi: Initialize modalias from of_compatible
-Date: Tue, 31 Jan 2017 20:17:36 +0000
-Message-ID: <20170131201736.cmiyq2obzrhgdsck@sirena.org.uk>
-References: <cover.1468409668.git.leonard.crestez@intel.com>
- <1485187737-22414-1-git-send-email-dan@emutex.com>
- <1485187737-22414-4-git-send-email-dan@emutex.com>
- <CAJZ5v0hAoOQN+d4iBSgSkkYHBOy-Pt9HLrKG4SjcQUB6Ya1bgA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uqhxt2ivtecyaxbk"
+From: Nate Watterson <nwatters@codeaurora.org>
+Subject: [PATCH 1/2] ACPI/IORT: add iort_get_memory_address_limit function
+Date: Tue, 31 Jan 2017 15:16:00 -0500
+Message-ID: <1485893763-20671-1-git-send-email-nwatters@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46290 "EHLO
-        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750881AbdAaURz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 15:17:55 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hAoOQN+d4iBSgSkkYHBOy-Pt9HLrKG4SjcQUB6Ya1bgA@mail.gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:55400 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751117AbdAaUVZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 15:21:25 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Dan O'Donovan <dan@emutex.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-spi <linux-spi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Crestez Dan Leonard <leonard.crestez@intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Will Deacon <will.deacon@arm.com>, Nate Watterson <nwatters@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The memory_address_limit field present in IORT named component nodes
+describes the effective number of address bits that a device can use
+when accessing memory. Because this information has value when creating
+or validating device dma_masks, the aforementioned accessor function is
+introduced.
 
---uqhxt2ivtecyaxbk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Nate Watterson <nwatters@codeaurora.org>
+---
+ drivers/acpi/arm64/iort.c | 25 +++++++++++++++++++++++++
+ include/linux/acpi_iort.h |  3 +++
+ 2 files changed, 28 insertions(+)
 
-On Mon, Jan 30, 2017 at 10:41:33AM +0100, Rafael J. Wysocki wrote:
-> On Mon, Jan 23, 2017 at 5:08 PM, Dan O'Donovan <dan@emutex.com> wrote:
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index e0d2e6e..cd5d5f4 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -569,6 +569,31 @@ void iort_set_dma_mask(struct device *dev)
+ }
+ 
+ /**
++ * iort_get_memory_address_limit - If a named component node exists in the IORT
++ *                                 for a device, get the number of address bits
++ *                                 that the device can effectively use when
++ *                                 accessing memory.
++ *
++ * @dev: The device
++ *
++ * Returns: ENOENT when no corresponding named component node found for dev
++ *          Named component memory_address_limit field otherwise
++ */
++int iort_get_memory_address_limit(struct device *dev)
++{
++	struct acpi_iort_node *node;
++	struct acpi_iort_named_component *ncomp;
++
++	node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
++			      iort_match_node_callback, dev);
++	if (!node)
++		return -ENOENT;
++
++	ncomp = (struct acpi_iort_named_component *)node->node_data;
++	return ncomp->memory_address_limit;
++}
++
++/**
+  * iort_iommu_configure - Set-up IOMMU configuration for a device.
+  *
+  * @dev: device to configure
+diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+index 77e0809..677b9c4 100644
+--- a/include/linux/acpi_iort.h
++++ b/include/linux/acpi_iort.h
+@@ -36,6 +36,7 @@
+ struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+ /* IOMMU interface */
+ void iort_set_dma_mask(struct device *dev);
++int iort_get_memory_address_limit(struct device *dev);
+ const struct iommu_ops *iort_iommu_configure(struct device *dev);
+ #else
+ static inline void acpi_iort_init(void) { }
+@@ -47,6 +48,8 @@ static inline struct irq_domain *iort_get_device_domain(struct device *dev,
+ { return NULL; }
+ /* IOMMU interface */
+ static inline void iort_set_dma_mask(struct device *dev) { }
++static inline int iort_get_memory_address_limit(struct device *dev)
++{ return -ENOENT; }
+ static inline
+ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+ { return NULL; }
+-- 
+Qualcomm Datacenter Technologies, Inc. on behalf of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux
+Foundation Collaborative Project.
 
-> Mark, any objections here?
-
-I've not looked yet, please allow a reasonable time for review (there
-still seemed to be ongoing discussion at the ACPI level).  I continue to
-be concerned about the amount of duplication and special casing that the
-various firmware paths seem to entail.
-
---uqhxt2ivtecyaxbk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliQ8N8ACgkQJNaLcl1U
-h9Ae4gf+ODDmrMgXV0WdYVGzvVZy6F5RxZfi+DMinN1EPlWkN15P8SdpTtTK0ybg
-QNOhnn5VEF716LK+AIGnhiAehYCd9MX9nd5NxqbrI2eZpYYHBK6P1eUxtyzJp1Et
-QmcgCz/T63d0I9s2gSPIKnsQxwjRA2db6uiU8xy2DLAMZUcEJZgtOZxPoDvViZ/B
-/1/uNP/lfaOUEWO759N36dNYSROzX0JW3k66aB/xzGzGSU7Pd/tiuF+pnrjjoalV
-n+jYNzdzrfiTH6ZYDqzt4SSG1xu6f3cIYSx8r3ZYYmZBhMrRmVHP5x9c4Ya7WXHQ
-4YfuKff++dPCUBiVvcCGaMPFEzL2bA==
-=mvD9
------END PGP SIGNATURE-----
-
---uqhxt2ivtecyaxbk--
