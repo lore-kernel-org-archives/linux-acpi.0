@@ -1,103 +1,143 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 4/4] i2c: allow specify device properties in
- i2c_board_info
-Date: Wed, 1 Feb 2017 17:24:18 +0200
-Message-ID: <20170201152418.GQ17297@lahna.fi.intel.com>
-References: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
- <20170201021130.20586-5-dmitry.torokhov@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:37628 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751050AbdBAP0e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Feb 2017 10:26:34 -0500
-Content-Disposition: inline
-In-Reply-To: <20170201021130.20586-5-dmitry.torokhov@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] initity: try to improve __nocapture annotations
+Date: Wed,  1 Feb 2017 17:11:51 +0100
+Message-ID: <20170201161311.2050831-1-arnd@arndb.de>
+Return-path: <linux-arch-owner@vger.kernel.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: pageexec@freemail.hu, Emese Revfy <re.emese@gmail.com>, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, yamada.masahiro@socionext.com, minipli@ld-linux.so, linux@armlinux.org.uk, akpm@linux-foundation.org, jlayton@poochiereds.net, Arnd Bergmann <arnd@arndb.de>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arch@vger.kernel.org, kasan-dev@googlegroups.com, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Tue, Jan 31, 2017 at 06:11:30PM -0800, Dmitry Torokhov wrote:
-> With many drivers converting to using generic device properties, it is
-> useful to provide array of device properties when instantiating new i2c
-> client via i2c_board_info and have them automatically added to the device
-> in question.
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  drivers/i2c/i2c-core.c | 16 +++++++++++++++-
->  include/linux/i2c.h    |  3 +++
->  2 files changed, 18 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index f009549f86a5..3897e78e5e9a 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -1335,15 +1335,29 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
->  	client->dev.fwnode = info->fwnode;
->  
->  	i2c_dev_set_name(adap, client);
-> +
-> +	if (info->properties) {
-> +		status = device_add_properties(&client->dev, info->properties);
+There are some additional declarations that got missed in the original patch,
+and some annotated functions that use the pointer is a correct but nonobvious
+way:
 
-I don't remember anymore how it was but is the driver core supposed to
-free this automatically when the device is removed or should we deal
-this in the i2c-core instead?
+mm/kasan/kasan.c: In function 'memmove':
+mm/kasan/kasan.c:346:7: error: 'memmove' captures its 2 ('src') parameter, please remove it from the nocapture attribute. [-Werror]
+ void *memmove(void *dest, const void *src, size_t len)
+       ^~~~~~~
+mm/kasan/kasan.c: In function 'memcpy':
+mm/kasan/kasan.c:355:7: error: 'memcpy' captures its 2 ('src') parameter, please remove it from the nocapture attribute. [-Werror]
+ void *memcpy(void *dest, const void *src, size_t len)
+       ^~~~~~
+drivers/acpi/acpica/utdebug.c: In function 'acpi_debug_print':
+drivers/acpi/acpica/utdebug.c:158:1: error: 'acpi_debug_print' captures its 3 ('function_name') parameter, please remove it from the nocapture attribute. [-Werror]
 
-> +		if (status) {
-> +			dev_err(&adap->dev,
-> +				"Failed to add properties to client %s: %d\n",
-> +				client->name, status);
-> +			goto out_err;
-> +		}
-> +	}
-> +
->  	status = device_register(&client->dev);
->  	if (status)
-> -		goto out_err;
-> +		goto out_free_props;
->  
->  	dev_dbg(&adap->dev, "client [%s] registered with bus id %s\n",
->  		client->name, dev_name(&client->dev));
->  
->  	return client;
->  
-> +out_free_props:
-> +	if (info->properties)
-> +		device_remove_properties(&client->dev);
->  out_err:
->  	dev_err(&adap->dev,
->  		"Failed to register i2c client %s at 0x%02x (%d)\n",
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 4aa7d244b38a..ec8f866a5656 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -51,6 +51,7 @@ enum i2c_slave_event;
->  typedef int (*i2c_slave_cb_t)(struct i2c_client *, enum i2c_slave_event, u8 *);
->  
->  struct module;
-> +struct property_entry;
->  
->  #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
->  /*
-> @@ -310,6 +311,7 @@ static inline int i2c_slave_event(struct i2c_client *client,
->   * @archdata: copied into i2c_client.dev.archdata
->   * @of_node: pointer to OpenFirmware device node
->   * @fwnode: device node supplied by the platform firmware
-> + * @properties: additional device properties for the device
->   * @irq: stored in i2c_client.irq
->   *
->   * I2C doesn't actually support hardware probing, although controllers and
-> @@ -331,6 +333,7 @@ struct i2c_board_info {
->  	struct dev_archdata	*archdata;
->  	struct device_node *of_node;
->  	struct fwnode_handle *fwnode;
-> +	const struct property_entry *properties;
->  	int		irq;
->  };
->  
-> -- 
-> 2.11.0.483.g087da7b7c-goog
+lib/string.c:893:7: error: 'memchr_inv' captures its 1 ('start') parameter, please remove it from the nocapture attribute. [-Werror]
+ void *memchr_inv(const void *start, int c, size_t bytes)
+lib/string.c: In function 'strnstr':
+lib/string.c:832:7: error: 'strnstr' captures its 1 ('s1') parameter, please remove it from the nocapture attribute. [-Werror]
+ char *strnstr(const char *s1, const char *s2, size_t len)
+       ^~~~~~~
+lib/string.c:832:7: error: 'strnstr' captures its 2 ('s2') parameter, please remove it from the nocapture attribute. [-Werror]
+
+I'm not sure if these are all appropriate fixes, please have a careful look
+
+Fixes: c2bc07665495 ("initify: Mark functions with the __nocapture attribute")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/acpi/acpica/utdebug.c        | 2 +-
+ include/acpi/acpixf.h                | 2 +-
+ include/asm-generic/asm-prototypes.h | 8 ++++----
+ include/linux/string.h               | 2 +-
+ lib/string.c                         | 2 +-
+ mm/kasan/kasan.c                     | 4 ++--
+ 6 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+index 044df9b0356e..de3c9cb305a2 100644
+--- a/drivers/acpi/acpica/utdebug.c
++++ b/drivers/acpi/acpica/utdebug.c
+@@ -154,7 +154,7 @@ static const char *acpi_ut_trim_function_name(const char *function_name)
+  *
+  ******************************************************************************/
+ 
+-void ACPI_INTERNAL_VAR_XFACE
++void __unverified_nocapture(3) ACPI_INTERNAL_VAR_XFACE
+ acpi_debug_print(u32 requested_debug_level,
+ 		 u32 line_number,
+ 		 const char *function_name,
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 9f4637e9dd92..9644cec5b082 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -946,7 +946,7 @@ ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6) __nocapture(3)
+ 						const char *module_name,
+ 						u32 component_id,
+ 						const char *format, ...))
+-ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
++ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6) __nocapture(3)
+ 				void ACPI_INTERNAL_VAR_XFACE
+ 				acpi_debug_print_raw(u32 requested_debug_level,
+ 						     u32 line_number,
+diff --git a/include/asm-generic/asm-prototypes.h b/include/asm-generic/asm-prototypes.h
+index 939869c772b1..ffc0dd7e8ed2 100644
+--- a/include/asm-generic/asm-prototypes.h
++++ b/include/asm-generic/asm-prototypes.h
+@@ -2,12 +2,12 @@
+ #undef __memset
+ extern void *__memset(void *, int, __kernel_size_t);
+ #undef __memcpy
+-extern void *__memcpy(void *, const void *, __kernel_size_t);
++extern void *__memcpy(void *, const void *, __kernel_size_t) __nocapture(2);
+ #undef __memmove
+-extern void *__memmove(void *, const void *, __kernel_size_t);
++extern void *__memmove(void *, const void *, __kernel_size_t) __nocapture(2);
+ #undef memset
+ extern void *memset(void *, int, __kernel_size_t);
+ #undef memcpy
+-extern void *memcpy(void *, const void *, __kernel_size_t);
++extern void *memcpy(void *, const void *, __kernel_size_t) __nocapture(2);
+ #undef memmove
+-extern void *memmove(void *, const void *, __kernel_size_t);
++extern void *memmove(void *, const void *, __kernel_size_t) __nocapture(2);
+diff --git a/include/linux/string.h b/include/linux/string.h
+index 8b3b97e7b2b0..0ee877593464 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -76,7 +76,7 @@ static inline __must_check char *strstrip(char *str)
+ extern char * strstr(const char *, const char *) __nocapture(-1, 2);
+ #endif
+ #ifndef __HAVE_ARCH_STRNSTR
+-extern char * strnstr(const char *, const char *, size_t) __nocapture(-1, 2);
++extern char * strnstr(const char *, const char *, size_t);
+ #endif
+ #ifndef __HAVE_ARCH_STRLEN
+ extern __kernel_size_t strlen(const char *) __nocapture(1);
+diff --git a/lib/string.c b/lib/string.c
+index ed83562a53ae..01151a1a0b61 100644
+--- a/lib/string.c
++++ b/lib/string.c
+@@ -870,7 +870,7 @@ void *memchr(const void *s, int c, size_t n)
+ EXPORT_SYMBOL(memchr);
+ #endif
+ 
+-static void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
++static __always_inline void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
+ {
+ 	while (bytes) {
+ 		if (*start != value)
+diff --git a/mm/kasan/kasan.c b/mm/kasan/kasan.c
+index 5f6e09c88d25..ebc02ee1118e 100644
+--- a/mm/kasan/kasan.c
++++ b/mm/kasan/kasan.c
+@@ -343,7 +343,7 @@ void *memset(void *addr, int c, size_t len)
+ }
+ 
+ #undef memmove
+-void *memmove(void *dest, const void *src, size_t len)
++__unverified_nocapture(2) void *memmove(void *dest, const void *src, size_t len)
+ {
+ 	check_memory_region((unsigned long)src, len, false, _RET_IP_);
+ 	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
+@@ -352,7 +352,7 @@ void *memmove(void *dest, const void *src, size_t len)
+ }
+ 
+ #undef memcpy
+-void *memcpy(void *dest, const void *src, size_t len)
++__unverified_nocapture(2) void *memcpy(void *dest, const void *src, size_t len)
+ {
+ 	check_memory_region((unsigned long)src, len, false, _RET_IP_);
+ 	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
+-- 
+2.9.0
