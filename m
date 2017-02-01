@@ -1,85 +1,76 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] initity: try to improve __nocapture annotations
-Date: Wed, 1 Feb 2017 14:44:48 -0800
-Message-ID: <CAGXu5jKsENwq2nb0sw4R80yqPZ6HK_4QCFeGv1=H-Lgbsuhzbg@mail.gmail.com>
-References: <20170201161311.2050831-1-arnd@arndb.de> <CAJZ5v0ioJO1HU6yRpuX70hVQB-P9Sx1SkyRiH+hL0mw0_qX3MQ@mail.gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 0/4] Export APIs to copy device properties & more
+Date: Wed, 1 Feb 2017 14:56:09 -0800
+Message-ID: <20170201225609.GG40720@dtor-ws>
+References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAJZ5v0ioJO1HU6yRpuX70hVQB-P9Sx1SkyRiH+hL0mw0_qX3MQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, PaX Team <pageexec@freemail.hu>, Emese Revfy <re.emese@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, minipli@ld-linux.so, Russell King - ARM Linux <linux@armlinux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@poochiereds.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, linux-arch <linux-arch@vger.kernel.org>, kasan-dev <kasan-dev@googlegroups.com>, Linux Memory Management List <linux-mm@kvack.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35946 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751068AbdBAW4M (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 17:56:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Wed, Feb 1, 2017 at 1:05 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Feb 1, 2017 at 5:11 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> There are some additional declarations that got missed in the original patch,
->> and some annotated functions that use the pointer is a correct but nonobvious
->> way:
->>
->> mm/kasan/kasan.c: In function 'memmove':
->> mm/kasan/kasan.c:346:7: error: 'memmove' captures its 2 ('src') parameter, please remove it from the nocapture attribute. [-Werror]
->>  void *memmove(void *dest, const void *src, size_t len)
->>        ^~~~~~~
->> mm/kasan/kasan.c: In function 'memcpy':
->> mm/kasan/kasan.c:355:7: error: 'memcpy' captures its 2 ('src') parameter, please remove it from the nocapture attribute. [-Werror]
->>  void *memcpy(void *dest, const void *src, size_t len)
->>        ^~~~~~
->> drivers/acpi/acpica/utdebug.c: In function 'acpi_debug_print':
->> drivers/acpi/acpica/utdebug.c:158:1: error: 'acpi_debug_print' captures its 3 ('function_name') parameter, please remove it from the nocapture attribute. [-Werror]
->>
->> lib/string.c:893:7: error: 'memchr_inv' captures its 1 ('start') parameter, please remove it from the nocapture attribute. [-Werror]
->>  void *memchr_inv(const void *start, int c, size_t bytes)
->> lib/string.c: In function 'strnstr':
->> lib/string.c:832:7: error: 'strnstr' captures its 1 ('s1') parameter, please remove it from the nocapture attribute. [-Werror]
->>  char *strnstr(const char *s1, const char *s2, size_t len)
->>        ^~~~~~~
->> lib/string.c:832:7: error: 'strnstr' captures its 2 ('s2') parameter, please remove it from the nocapture attribute. [-Werror]
->>
->> I'm not sure if these are all appropriate fixes, please have a careful look
->>
->> Fixes: c2bc07665495 ("initify: Mark functions with the __nocapture attribute")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  drivers/acpi/acpica/utdebug.c        | 2 +-
->>  include/acpi/acpixf.h                | 2 +-
->>  include/asm-generic/asm-prototypes.h | 8 ++++----
->>  include/linux/string.h               | 2 +-
->>  lib/string.c                         | 2 +-
->>  mm/kasan/kasan.c                     | 4 ++--
->>  6 files changed, 10 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
->> index 044df9b0356e..de3c9cb305a2 100644
->> --- a/drivers/acpi/acpica/utdebug.c
->> +++ b/drivers/acpi/acpica/utdebug.c
->> @@ -154,7 +154,7 @@ static const char *acpi_ut_trim_function_name(const char *function_name)
->>   *
->>   ******************************************************************************/
->>
->> -void ACPI_INTERNAL_VAR_XFACE
->> +void __unverified_nocapture(3) ACPI_INTERNAL_VAR_XFACE
->
-> Generally speaking, there is a problem with adding annotations like
-> this to ACPICA code.
->
-> We get that code from an external project (upstream ACPICA) and the
-> more Linux-specific stuff is there in it, the more difficult to
-> maintain it becomes.
+On Wed, Feb 01, 2017 at 09:31:21AM -0800, Dmitry Torokhov wrote:
+> Hi,
+> 
+> Here is the refreshed series exporting APIs to copy statically declared
+> device properties. The reason is that we want to augment ACPI-based devices
+> with properties, and drivers usually have a largish DMI table for multiple
+> models, so it is desirable to mark everything as __initdata/__initconst,
+> and then copy only the entry matching the device we are running on and
+> discard the rest.
+> 
+> The last patch is not really about device property APIs, but rather
+> allowing users to attach properties to i2c_board_info, and have them
+> attached to instantiated device(s). The reason it is included is because it
+> depends on device_add_properties() taking const pointer, which is patch #2.
+> 
+> If it seems useful I hope Rafael and Wolfram would figure a way to merge it
+> :).
 
-We need to find a way to solve this. Why can't take take our changes?
-Or better yet, why can't we keep a delta from them if they won't take
-them?
+By the way, if this series is accepted, it would be very helpful to have
+it in a stable branch off 4.10-rcX as I have more patches to
+platform/chrome and Atmel touchscreen driver depending on it.
 
--Kees
+> 
+> v3:
+> - fix memory leak in property_copy_string_array() pointed out by Mika
+>   Westerberg
+> 
+> v2:
+> - addressed Andy's comments
+> - added property_entries_free()
+> - added patch to allow constify values of property arrays
+> - added i2c patch allowing to attach property to devices via board info
+> 
+> v1:
+> - initial posting
+> 
+> 
+> Dmitry Torokhov (4):
+>   device property: export code duplicating array of property entries
+>   device property: allow to constify properties
+>   driver property: constify property arrays values
+>   i2c: allow specify device properties in i2c_board_info
+> 
+>  drivers/base/property.c  | 222 ++++++++++++++++++++++++++++++-----------------
+>  drivers/i2c/i2c-core.c   |  16 +++-
+>  include/linux/i2c.h      |   3 +
+>  include/linux/property.h |  19 ++--
+>  4 files changed, 171 insertions(+), 89 deletions(-)
+> 
+> Thanks.
+> 
+> -- 
+> Dmitry
+> 
 
 -- 
-Kees Cook
-Pixel Security
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Dmitry
