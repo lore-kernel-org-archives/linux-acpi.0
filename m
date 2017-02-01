@@ -1,155 +1,165 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH v2 3/4] driver property: constify property arrays values
-Date: Tue, 31 Jan 2017 18:11:29 -0800
-Message-ID: <20170201021130.20586-4-dmitry.torokhov@gmail.com>
+Subject: [PATCH v2 2/4] device property: allow to constify properties
+Date: Tue, 31 Jan 2017 18:11:28 -0800
+Message-ID: <20170201021130.20586-3-dmitry.torokhov@gmail.com>
 References: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34169 "EHLO
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36319 "EHLO
         mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751146AbdBACLl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 21:11:41 -0500
+        with ESMTP id S1751014AbdBACLf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 21:11:35 -0500
 In-Reply-To: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-Data that is fed into property arrays should not be modified, so let's mark
-relevant pointers as const. This will allow us making source arrays as
-const/__initconst.
+There is no reason why statically defined properties should be modifiable,
+so let's make device_add_properties() and the rest of pset_*() functions to
+take const pointers to properties.
 
-Also fix memory leaks on errors in property_entry_copy().
+This will allow us to mark properties as const/__initconst at definition
+sites.
 
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/base/property.c  | 65 +++++++++++++++++++++++++++++++++---------------
- include/linux/property.h | 12 ++++-----
- 2 files changed, 51 insertions(+), 26 deletions(-)
+ drivers/base/property.c  | 35 ++++++++++++++++++-----------------
+ include/linux/property.h |  2 +-
+ 2 files changed, 19 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index edc09854520b..fd91e0891665 100644
+index 934845fc72e5..edc09854520b 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -682,44 +682,65 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+@@ -21,7 +21,7 @@
  
-+static int property_copy_string_array(struct property_entry *dst,
-+				      const struct property_entry *src)
-+{
-+	char **d;
-+	size_t nval = src->length / sizeof(*d);
-+	size_t i;
-+
-+	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
-+	if (!d)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < nval; i++) {
-+		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
-+		if (!d[i] && src->pointer.str[i]) {
-+			while (--i >= 0)
-+				kfree(d[i]);
-+			return -ENOMEM;
-+		}
-+	}
-+
-+	dst->pointer.str = (void *)d;
-+	return 0;
-+}
-+
- static int property_entry_copy(struct property_entry *dst,
- 			       const struct property_entry *src)
+ struct property_set {
+ 	struct fwnode_handle fwnode;
+-	struct property_entry *properties;
++	const struct property_entry *properties;
+ };
+ 
+ static inline bool is_pset_node(struct fwnode_handle *fwnode)
+@@ -35,10 +35,10 @@ static inline struct property_set *to_pset_node(struct fwnode_handle *fwnode)
+ 		container_of(fwnode, struct property_set, fwnode) : NULL;
+ }
+ 
+-static struct property_entry *pset_prop_get(struct property_set *pset,
+-					    const char *name)
++static const struct property_entry *pset_prop_get(struct property_set *pset,
++						  const char *name)
  {
--	const char **d, **s;
--	size_t i, nval;
-+	int error;
+-	struct property_entry *prop;
++	const struct property_entry *prop;
  
- 	dst->name = kstrdup(src->name, GFP_KERNEL);
- 	if (!dst->name)
- 		return -ENOMEM;
- 
- 	if (src->is_array) {
--		if (!src->length)
--			return -ENODATA;
-+		if (!src->length) {
-+			error = -ENODATA;
-+			goto out_free_name;
-+		}
- 
- 		if (src->is_string) {
--			nval = src->length / sizeof(const char *);
--			dst->pointer.str = kcalloc(nval, sizeof(const char *),
--						   GFP_KERNEL);
--			if (!dst->pointer.str)
--				return -ENOMEM;
--
--			d = dst->pointer.str;
--			s = src->pointer.str;
--			for (i = 0; i < nval; i++) {
--				d[i] = kstrdup(s[i], GFP_KERNEL);
--				if (!d[i] && s[i])
--					return -ENOMEM;
-+			error = property_copy_string_array(dst, src);
-+			if (error) {
-+				error = -ENOMEM;
-+				goto out_free_name;
- 			}
- 		} else {
- 			dst->pointer.raw_data = kmemdup(src->pointer.raw_data,
- 							src->length, GFP_KERNEL);
--			if (!dst->pointer.raw_data)
--				return -ENOMEM;
-+			if (!dst->pointer.raw_data) {
-+				error = -ENOMEM;
-+				goto out_free_name;
-+			}
- 		}
- 	} else if (src->is_string) {
- 		dst->value.str = kstrdup(src->value.str, GFP_KERNEL);
--		if (!dst->value.str && src->value.str)
--			return -ENOMEM;
-+		if (!dst->value.str && src->value.str) {
-+			error = -ENOMEM;
-+			goto out_free_name;
-+		}
- 	} else {
- 		dst->value.raw_data = src->value.raw_data;
- 	}
-@@ -729,6 +750,10 @@ static int property_entry_copy(struct property_entry *dst,
- 	dst->is_string = src->is_string;
- 
- 	return 0;
-+
-+out_free_name:
-+	kfree(dst->name);
-+	return error;
+ 	if (!pset || !pset->properties)
+ 		return NULL;
+@@ -50,11 +50,11 @@ static struct property_entry *pset_prop_get(struct property_set *pset,
+ 	return NULL;
  }
  
- /**
+-static void *pset_prop_find(struct property_set *pset, const char *propname,
+-			    size_t length)
++static const void *pset_prop_find(struct property_set *pset,
++				  const char *propname, size_t length)
+ {
+-	struct property_entry *prop;
+-	void *pointer;
++	const struct property_entry *prop;
++	const void *pointer;
+ 
+ 	prop = pset_prop_get(pset, propname);
+ 	if (!prop)
+@@ -74,7 +74,7 @@ static int pset_prop_read_u8_array(struct property_set *pset,
+ 				   const char *propname,
+ 				   u8 *values, size_t nval)
+ {
+-	void *pointer;
++	const void *pointer;
+ 	size_t length = nval * sizeof(*values);
+ 
+ 	pointer = pset_prop_find(pset, propname, length);
+@@ -89,7 +89,7 @@ static int pset_prop_read_u16_array(struct property_set *pset,
+ 				    const char *propname,
+ 				    u16 *values, size_t nval)
+ {
+-	void *pointer;
++	const void *pointer;
+ 	size_t length = nval * sizeof(*values);
+ 
+ 	pointer = pset_prop_find(pset, propname, length);
+@@ -104,7 +104,7 @@ static int pset_prop_read_u32_array(struct property_set *pset,
+ 				    const char *propname,
+ 				    u32 *values, size_t nval)
+ {
+-	void *pointer;
++	const void *pointer;
+ 	size_t length = nval * sizeof(*values);
+ 
+ 	pointer = pset_prop_find(pset, propname, length);
+@@ -119,7 +119,7 @@ static int pset_prop_read_u64_array(struct property_set *pset,
+ 				    const char *propname,
+ 				    u64 *values, size_t nval)
+ {
+-	void *pointer;
++	const void *pointer;
+ 	size_t length = nval * sizeof(*values);
+ 
+ 	pointer = pset_prop_find(pset, propname, length);
+@@ -133,7 +133,7 @@ static int pset_prop_read_u64_array(struct property_set *pset,
+ static int pset_prop_count_elems_of_size(struct property_set *pset,
+ 					 const char *propname, size_t length)
+ {
+-	struct property_entry *prop;
++	const struct property_entry *prop;
+ 
+ 	prop = pset_prop_get(pset, propname);
+ 	if (!prop)
+@@ -146,7 +146,7 @@ static int pset_prop_read_string_array(struct property_set *pset,
+ 				       const char *propname,
+ 				       const char **strings, size_t nval)
+ {
+-	void *pointer;
++	const void *pointer;
+ 	size_t length = nval * sizeof(*strings);
+ 
+ 	pointer = pset_prop_find(pset, propname, length);
+@@ -160,8 +160,8 @@ static int pset_prop_read_string_array(struct property_set *pset,
+ static int pset_prop_read_string(struct property_set *pset,
+ 				 const char *propname, const char **strings)
+ {
+-	struct property_entry *prop;
+-	const char **pointer;
++	const struct property_entry *prop;
++	const char * const *pointer;
+ 
+ 	prop = pset_prop_get(pset, propname);
+ 	if (!prop)
+@@ -880,7 +880,8 @@ EXPORT_SYMBOL_GPL(device_remove_properties);
+  * @dev as its secondary firmware node. The function takes a copy of
+  * @properties.
+  */
+-int device_add_properties(struct device *dev, struct property_entry *properties)
++int device_add_properties(struct device *dev,
++			  const struct property_entry *properties)
+ {
+ 	struct property_set *p, pset;
+ 
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 5746e9927016..64e3a9c6d95f 100644
+index 48f154ae7e99..5746e9927016 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -160,12 +160,12 @@ struct property_entry {
- 	bool is_string;
- 	union {
- 		union {
--			void *raw_data;
--			u8 *u8_data;
--			u16 *u16_data;
--			u32 *u32_data;
--			u64 *u64_data;
--			const char **str;
-+			const void *raw_data;
-+			const u8 *u8_data;
-+			const u16 *u16_data;
-+			const u32 *u32_data;
-+			const u64 *u64_data;
-+			const char * const *str;
- 		} pointer;
- 		union {
- 			unsigned long long raw_data;
+@@ -247,7 +247,7 @@ property_entries_dup(const struct property_entry *properties);
+ void property_entries_free(const struct property_entry *properties);
+ 
+ int device_add_properties(struct device *dev,
+-			  struct property_entry *properties);
++			  const struct property_entry *properties);
+ void device_remove_properties(struct device *dev);
+ 
+ bool device_dma_supported(struct device *dev);
 -- 
 2.11.0.483.g087da7b7c-goog
 
