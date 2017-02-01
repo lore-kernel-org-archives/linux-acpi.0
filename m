@@ -1,7 +1,7 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH v3 3/4] driver property: constify property arrays values
-Date: Wed,  1 Feb 2017 09:31:24 -0800
-Message-ID: <20170201173125.40354-4-dmitry.torokhov@gmail.com>
+Subject: [PATCH v3 1/4] device property: export code duplicating array of property entries
+Date: Wed,  1 Feb 2017 09:31:22 -0800
+Message-ID: <20170201173125.40354-2-dmitry.torokhov@gmail.com>
 References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
@@ -10,142 +10,207 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Data that is fed into property arrays should not be modified, so let's mark
-relevant pointers as const. This will allow us making source arrays as
-const/__initconst.
+When augmenting ACPI-enumerated devices with additional property data based
+on DMI info, a module has often several potential property sets, with only
+one being active on a given box. In order to save memory it should be
+possible to mark everything and __initdata or __initconst, execute DMI
+match early, and duplicate relevant properties. Then kernel will discard
+the rest of them.
 
-Also fix memory leaks on errors in property_entry_copy().
-
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/base/property.c  | 66 +++++++++++++++++++++++++++++++++---------------
- include/linux/property.h | 12 ++++-----
- 2 files changed, 52 insertions(+), 26 deletions(-)
+ drivers/base/property.c  | 137 +++++++++++++++++++++++++++++------------------
+ include/linux/property.h |   5 ++
+ 2 files changed, 90 insertions(+), 52 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index edc09854520b..8cfbc94cafb1 100644
+index 43a36d68c3fd..934845fc72e5 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -682,44 +682,66 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+@@ -682,41 +682,8 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
  }
  EXPORT_SYMBOL_GPL(fwnode_property_match_string);
  
-+static int property_copy_string_array(struct property_entry *dst,
-+				      const struct property_entry *src)
-+{
-+	char **d;
-+	size_t nval = src->length / sizeof(*d);
-+	size_t i;
-+
-+	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
-+	if (!d)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < nval; i++) {
-+		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
-+		if (!d[i] && src->pointer.str[i]) {
-+			while (--i >= 0)
-+				kfree(d[i]);
-+			kfree(d);
-+			return -ENOMEM;
-+		}
-+	}
-+
-+	dst->pointer.str = (void *)d;
-+	return 0;
-+}
-+
- static int property_entry_copy(struct property_entry *dst,
- 			       const struct property_entry *src)
- {
--	const char **d, **s;
+-/**
+- * pset_free_set - releases memory allocated for copied property set
+- * @pset: Property set to release
+- *
+- * Function takes previously copied property set and releases all the
+- * memory allocated to it.
+- */
+-static void pset_free_set(struct property_set *pset)
+-{
+-	const struct property_entry *prop;
 -	size_t i, nval;
-+	int error;
- 
- 	dst->name = kstrdup(src->name, GFP_KERNEL);
- 	if (!dst->name)
- 		return -ENOMEM;
- 
- 	if (src->is_array) {
--		if (!src->length)
--			return -ENODATA;
-+		if (!src->length) {
-+			error = -ENODATA;
-+			goto out_free_name;
-+		}
- 
- 		if (src->is_string) {
--			nval = src->length / sizeof(const char *);
--			dst->pointer.str = kcalloc(nval, sizeof(const char *),
--						   GFP_KERNEL);
--			if (!dst->pointer.str)
--				return -ENOMEM;
 -
--			d = dst->pointer.str;
--			s = src->pointer.str;
--			for (i = 0; i < nval; i++) {
--				d[i] = kstrdup(s[i], GFP_KERNEL);
--				if (!d[i] && s[i])
--					return -ENOMEM;
-+			error = property_copy_string_array(dst, src);
-+			if (error) {
-+				error = -ENOMEM;
-+				goto out_free_name;
- 			}
- 		} else {
- 			dst->pointer.raw_data = kmemdup(src->pointer.raw_data,
- 							src->length, GFP_KERNEL);
--			if (!dst->pointer.raw_data)
--				return -ENOMEM;
-+			if (!dst->pointer.raw_data) {
-+				error = -ENOMEM;
-+				goto out_free_name;
-+			}
- 		}
- 	} else if (src->is_string) {
- 		dst->value.str = kstrdup(src->value.str, GFP_KERNEL);
--		if (!dst->value.str && src->value.str)
--			return -ENOMEM;
-+		if (!dst->value.str && src->value.str) {
-+			error = -ENOMEM;
-+			goto out_free_name;
-+		}
- 	} else {
- 		dst->value.raw_data = src->value.raw_data;
- 	}
-@@ -729,6 +751,10 @@ static int property_entry_copy(struct property_entry *dst,
- 	dst->is_string = src->is_string;
- 
- 	return 0;
-+
-+out_free_name:
-+	kfree(dst->name);
-+	return error;
+-	if (!pset)
+-		return;
+-
+-	for (prop = pset->properties; prop->name; prop++) {
+-		if (prop->is_array) {
+-			if (prop->is_string && prop->pointer.str) {
+-				nval = prop->length / sizeof(const char *);
+-				for (i = 0; i < nval; i++)
+-					kfree(prop->pointer.str[i]);
+-			}
+-			kfree(prop->pointer.raw_data);
+-		} else if (prop->is_string) {
+-			kfree(prop->value.str);
+-		}
+-		kfree(prop->name);
+-	}
+-
+-	kfree(pset->properties);
+-	kfree(pset);
+-}
+-
+-static int pset_copy_entry(struct property_entry *dst,
+-			   const struct property_entry *src)
++static int property_entry_copy(struct property_entry *dst,
++			       const struct property_entry *src)
+ {
+ 	const char **d, **s;
+ 	size_t i, nval;
+@@ -765,6 +732,84 @@ static int pset_copy_entry(struct property_entry *dst,
  }
  
  /**
++ * property_entries_dup - duplicate array of properties
++ * @properties: array of properties to copy
++ *
++ * This function creates a deep copy of the given NULL-terminated array
++ * of property entries.
++ */
++struct property_entry *
++property_entries_dup(const struct property_entry *properties)
++{
++	struct property_entry *p;
++	int i, n = 0;
++
++	while (properties[n].name)
++		n++;
++
++	p = kcalloc(n + 1, sizeof(*p), GFP_KERNEL);
++	if (!p)
++		return ERR_PTR(-ENOMEM);
++
++	for (i = 0; i < n; i++) {
++		int ret = property_entry_copy(&p[i], &properties[i]);
++		if (ret) {
++			kfree(p);
++			return ERR_PTR(ret);
++		}
++	}
++
++	return p;
++}
++EXPORT_SYMBOL_GPL(property_entries_dup);
++
++/**
++ * property_entries_free - free previously allocated array of properties
++ * @properties: array of properties to destroy
++ *
++ * This function frees given NULL-terminated array of property entries,
++ * along with their data.
++ */
++void property_entries_free(const struct property_entry *properties)
++{
++	const struct property_entry *p;
++	size_t i, nval;
++
++	for (p = properties; p->name; p++) {
++		if (p->is_array) {
++			if (p->is_string && p->pointer.str) {
++				nval = p->length / sizeof(const char *);
++				for (i = 0; i < nval; i++)
++					kfree(p->pointer.str[i]);
++			}
++			kfree(p->pointer.raw_data);
++		} else if (p->is_string) {
++			kfree(p->value.str);
++		}
++		kfree(p->name);
++	}
++
++	kfree(properties);
++}
++EXPORT_SYMBOL_GPL(property_entries_free);
++
++/**
++ * pset_free_set - releases memory allocated for copied property set
++ * @pset: Property set to release
++ *
++ * Function takes previously copied property set and releases all the
++ * memory allocated to it.
++ */
++static void pset_free_set(struct property_set *pset)
++{
++	if (!pset)
++		return;
++
++	property_entries_free(pset->properties);
++	kfree(pset);
++}
++
++/**
+  * pset_copy_set - copies property set
+  * @pset: Property set to copy
+  *
+@@ -776,32 +821,20 @@ static int pset_copy_entry(struct property_entry *dst,
+  */
+ static struct property_set *pset_copy_set(const struct property_set *pset)
+ {
+-	const struct property_entry *entry;
++	struct property_entry *properties;
+ 	struct property_set *p;
+-	size_t i, n = 0;
+ 
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (!p)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	while (pset->properties[n].name)
+-		n++;
+-
+-	p->properties = kcalloc(n + 1, sizeof(*entry), GFP_KERNEL);
+-	if (!p->properties) {
++	properties = property_entries_dup(pset->properties);
++	if (IS_ERR(properties)) {
+ 		kfree(p);
+-		return ERR_PTR(-ENOMEM);
+-	}
+-
+-	for (i = 0; i < n; i++) {
+-		int ret = pset_copy_entry(&p->properties[i],
+-					  &pset->properties[i]);
+-		if (ret) {
+-			pset_free_set(p);
+-			return ERR_PTR(ret);
+-		}
++		return ERR_CAST(properties);
+ 	}
+ 
++	p->properties = properties;
+ 	return p;
+ }
+ 
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 5746e9927016..64e3a9c6d95f 100644
+index 856e50b2140c..48f154ae7e99 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -160,12 +160,12 @@ struct property_entry {
- 	bool is_string;
- 	union {
- 		union {
--			void *raw_data;
--			u8 *u8_data;
--			u16 *u16_data;
--			u32 *u32_data;
--			u64 *u64_data;
--			const char **str;
-+			const void *raw_data;
-+			const u8 *u8_data;
-+			const u16 *u16_data;
-+			const u32 *u32_data;
-+			const u64 *u64_data;
-+			const char * const *str;
- 		} pointer;
- 		union {
- 			unsigned long long raw_data;
+@@ -241,6 +241,11 @@ struct property_entry {
+ 	.name = _name_,				\
+ }
+ 
++struct property_entry *
++property_entries_dup(const struct property_entry *properties);
++
++void property_entries_free(const struct property_entry *properties);
++
+ int device_add_properties(struct device *dev,
+ 			  struct property_entry *properties);
+ void device_remove_properties(struct device *dev);
 -- 
 2.11.0.483.g087da7b7c-goog
