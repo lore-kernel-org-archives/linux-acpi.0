@@ -1,216 +1,57 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH v3 1/4] device property: export code duplicating array of property entries
-Date: Wed,  1 Feb 2017 09:31:22 -0800
-Message-ID: <20170201173125.40354-2-dmitry.torokhov@gmail.com>
-References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 3/3] spi: acpi: Initialize modalias from of_compatible
+Date: Wed, 1 Feb 2017 18:34:40 +0000
+Message-ID: <20170201183440.yxbei7dg776q4fjj@sirena.org.uk>
+References: <1485187737-22414-1-git-send-email-dan@emutex.com>
+ <1485523815-9629-1-git-send-email-dan@emutex.com>
+ <1485523815-9629-4-git-send-email-dan@emutex.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="onlwx7gykur6ajlf"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52386 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752965AbdBASfD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 13:35:03 -0500
+Content-Disposition: inline
+In-Reply-To: <1485523815-9629-4-git-send-email-dan@emutex.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan O'Donovan <dan@emutex.com>
+Cc: linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Crestez Dan Leonard <leonard.crestez@intel.com>
 
-When augmenting ACPI-enumerated devices with additional property data based
-on DMI info, a module has often several potential property sets, with only
-one being active on a given box. In order to save memory it should be
-possible to mark everything and __initdata or __initconst, execute DMI
-match early, and duplicate relevant properties. Then kernel will discard
-the rest of them.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- drivers/base/property.c  | 137 +++++++++++++++++++++++++++++------------------
- include/linux/property.h |   5 ++
- 2 files changed, 90 insertions(+), 52 deletions(-)
+--onlwx7gykur6ajlf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 43a36d68c3fd..934845fc72e5 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -682,41 +682,8 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_property_match_string);
- 
--/**
-- * pset_free_set - releases memory allocated for copied property set
-- * @pset: Property set to release
-- *
-- * Function takes previously copied property set and releases all the
-- * memory allocated to it.
-- */
--static void pset_free_set(struct property_set *pset)
--{
--	const struct property_entry *prop;
--	size_t i, nval;
--
--	if (!pset)
--		return;
--
--	for (prop = pset->properties; prop->name; prop++) {
--		if (prop->is_array) {
--			if (prop->is_string && prop->pointer.str) {
--				nval = prop->length / sizeof(const char *);
--				for (i = 0; i < nval; i++)
--					kfree(prop->pointer.str[i]);
--			}
--			kfree(prop->pointer.raw_data);
--		} else if (prop->is_string) {
--			kfree(prop->value.str);
--		}
--		kfree(prop->name);
--	}
--
--	kfree(pset->properties);
--	kfree(pset);
--}
--
--static int pset_copy_entry(struct property_entry *dst,
--			   const struct property_entry *src)
-+static int property_entry_copy(struct property_entry *dst,
-+			       const struct property_entry *src)
- {
- 	const char **d, **s;
- 	size_t i, nval;
-@@ -765,6 +732,84 @@ static int pset_copy_entry(struct property_entry *dst,
- }
- 
- /**
-+ * property_entries_dup - duplicate array of properties
-+ * @properties: array of properties to copy
-+ *
-+ * This function creates a deep copy of the given NULL-terminated array
-+ * of property entries.
-+ */
-+struct property_entry *
-+property_entries_dup(const struct property_entry *properties)
-+{
-+	struct property_entry *p;
-+	int i, n = 0;
-+
-+	while (properties[n].name)
-+		n++;
-+
-+	p = kcalloc(n + 1, sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return ERR_PTR(-ENOMEM);
-+
-+	for (i = 0; i < n; i++) {
-+		int ret = property_entry_copy(&p[i], &properties[i]);
-+		if (ret) {
-+			kfree(p);
-+			return ERR_PTR(ret);
-+		}
-+	}
-+
-+	return p;
-+}
-+EXPORT_SYMBOL_GPL(property_entries_dup);
-+
-+/**
-+ * property_entries_free - free previously allocated array of properties
-+ * @properties: array of properties to destroy
-+ *
-+ * This function frees given NULL-terminated array of property entries,
-+ * along with their data.
-+ */
-+void property_entries_free(const struct property_entry *properties)
-+{
-+	const struct property_entry *p;
-+	size_t i, nval;
-+
-+	for (p = properties; p->name; p++) {
-+		if (p->is_array) {
-+			if (p->is_string && p->pointer.str) {
-+				nval = p->length / sizeof(const char *);
-+				for (i = 0; i < nval; i++)
-+					kfree(p->pointer.str[i]);
-+			}
-+			kfree(p->pointer.raw_data);
-+		} else if (p->is_string) {
-+			kfree(p->value.str);
-+		}
-+		kfree(p->name);
-+	}
-+
-+	kfree(properties);
-+}
-+EXPORT_SYMBOL_GPL(property_entries_free);
-+
-+/**
-+ * pset_free_set - releases memory allocated for copied property set
-+ * @pset: Property set to release
-+ *
-+ * Function takes previously copied property set and releases all the
-+ * memory allocated to it.
-+ */
-+static void pset_free_set(struct property_set *pset)
-+{
-+	if (!pset)
-+		return;
-+
-+	property_entries_free(pset->properties);
-+	kfree(pset);
-+}
-+
-+/**
-  * pset_copy_set - copies property set
-  * @pset: Property set to copy
-  *
-@@ -776,32 +821,20 @@ static int pset_copy_entry(struct property_entry *dst,
-  */
- static struct property_set *pset_copy_set(const struct property_set *pset)
- {
--	const struct property_entry *entry;
-+	struct property_entry *properties;
- 	struct property_set *p;
--	size_t i, n = 0;
- 
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
- 	if (!p)
- 		return ERR_PTR(-ENOMEM);
- 
--	while (pset->properties[n].name)
--		n++;
--
--	p->properties = kcalloc(n + 1, sizeof(*entry), GFP_KERNEL);
--	if (!p->properties) {
-+	properties = property_entries_dup(pset->properties);
-+	if (IS_ERR(properties)) {
- 		kfree(p);
--		return ERR_PTR(-ENOMEM);
--	}
--
--	for (i = 0; i < n; i++) {
--		int ret = pset_copy_entry(&p->properties[i],
--					  &pset->properties[i]);
--		if (ret) {
--			pset_free_set(p);
--			return ERR_PTR(ret);
--		}
-+		return ERR_CAST(properties);
- 	}
- 
-+	p->properties = properties;
- 	return p;
- }
- 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 856e50b2140c..48f154ae7e99 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -241,6 +241,11 @@ struct property_entry {
- 	.name = _name_,				\
- }
- 
-+struct property_entry *
-+property_entries_dup(const struct property_entry *properties);
-+
-+void property_entries_free(const struct property_entry *properties);
-+
- int device_add_properties(struct device *dev,
- 			  struct property_entry *properties);
- void device_remove_properties(struct device *dev);
--- 
-2.11.0.483.g087da7b7c-goog
+On Fri, Jan 27, 2017 at 01:30:15PM +0000, Dan O'Donovan wrote:
+
+> +	if (acpi_of_modalias(adev, spi->modalias, sizeof(spi->modalias)))
+> +		strlcpy(spi->modalias, acpi_device_hid(adev),
+> +			sizeof(spi->modalias));
+
+I can't help but think that this would be simpler to use if the
+interface were something like acpi_set_modalias() and it did the
+fallback to the ACPI HID internally.  It'd both avoid a small amount of
+code duplication and make the code read a bit more naturally - I have to
+think to realise that this means "if there isn't an OF name use the
+HID" since it looks like a boolean function.  Then again just putting a
+!= 0 in the test would have the same effect probably.
+
+--onlwx7gykur6ajlf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliSKkAACgkQJNaLcl1U
+h9BB8Af7BkCoJqVav9Kk0RKD3YFWAvPXbXdaX/CBVhxMcKNVkBsKU5Zr66DxeyGJ
+XCxf3qmqcXFBfkM25Mm/cLmlX+RhgtaO+/weMhVNOIEJM9aB+uYyaOfLlsgQgEzQ
+WESzHaguYVC3nJB+meT1uvNKq07U87XJvLfjHJGFmxGhpYo5rS4ZOIryxembrqRi
++H+z1SL4D70CPBSXwwUBg7KfmvuiA4arp/2uJiB/5g86hk4vsWL5eRDh8PROWldy
+K1pKZhVWW7Z5AJh/L9pUq7Lbi2JVXQcBXhRglvGQb9UoHsSBXRXq2mmwAXQYAyUg
+IlOzr3Idc9u46zXRExDmcKYQ10Y5lg==
+=M8oa
+-----END PGP SIGNATURE-----
+
+--onlwx7gykur6ajlf--
