@@ -1,44 +1,75 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: Add information about describing PCI in ACPI
-Date: Wed, 1 Feb 2017 10:50:13 -0600
-Message-ID: <20170201165013.GB13183@bhelgaas-glaptop.roam.corp.google.com>
-References: <20161129212816.15663.28100.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <20161129213955.15663.21173.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <d7e1adbe-91a2-1a76-93b3-c880f9635e5e@jonmasters.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v2 3/4] driver property: constify property arrays values
+Date: Wed, 1 Feb 2017 09:09:24 -0800
+Message-ID: <20170201170924.GA40045@dtor-ws>
+References: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
+ <20170201021130.20586-4-dmitry.torokhov@gmail.com>
+ <20170201144233.GN17297@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:47206 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751011AbdBAQuU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Feb 2017 11:50:20 -0500
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35461 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752800AbdBARJ2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 12:09:28 -0500
 Content-Disposition: inline
-In-Reply-To: <d7e1adbe-91a2-1a76-93b3-c880f9635e5e@jonmasters.org>
+In-Reply-To: <20170201144233.GN17297@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@jonmasters.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Duc Dang <dhdang@apm.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Tue, Dec 13, 2016 at 04:09:39AM -0500, Jon Masters wrote:
-> On 11/29/2016 04:39 PM, Bjorn Helgaas wrote:
+On Wed, Feb 01, 2017 at 04:42:33PM +0200, Mika Westerberg wrote:
+> On Tue, Jan 31, 2017 at 06:11:29PM -0800, Dmitry Torokhov wrote:
+> > Data that is fed into property arrays should not be modified, so let's mark
+> > relevant pointers as const. This will allow us making source arrays as
+> > const/__initconst.
+> > 
+> > Also fix memory leaks on errors in property_entry_copy().
+> > 
+> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > ---
+> >  drivers/base/property.c  | 65 +++++++++++++++++++++++++++++++++---------------
+> >  include/linux/property.h | 12 ++++-----
+> >  2 files changed, 51 insertions(+), 26 deletions(-)
+> > 
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > index edc09854520b..fd91e0891665 100644
+> > --- a/drivers/base/property.c
+> > +++ b/drivers/base/property.c
+> > @@ -682,44 +682,65 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+> >  }
+> >  EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+> >  
+> > +static int property_copy_string_array(struct property_entry *dst,
+> > +				      const struct property_entry *src)
+> > +{
+> > +	char **d;
+> > +	size_t nval = src->length / sizeof(*d);
+> > +	size_t i;
+> > +
+> > +	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
+> > +	if (!d)
+> > +		return -ENOMEM;
+> > +
+> > +	for (i = 0; i < nval; i++) {
+> > +		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
+> > +		if (!d[i] && src->pointer.str[i]) {
+> > +			while (--i >= 0)
+> > +				kfree(d[i]);
 > 
-> > +New architectures should be able to use "Consumer" Extended Address Space
-> > +descriptors in the PNP0A03 device for bridge registers, including ECAM,
-> > +although a strict interpretation of [6] might prohibit this.  Old x86 and
-> > +ia64 kernels assume all address space descriptors, including "Consumer"
-> > +Extended Address Space ones, are windows, so it would not be safe to
-> > +describe bridge registers this way on those architectures.
-> 
-> <snip>
-> 
-> > +[6] PCI Firmware 3.0, sec 4.1.2:
-> 
-> <snip>
-> 
-> Thanks for the revised writeup, Bjorn. It's great. I'm trying to get the
-> above clarified explicitly in terms of the spec, and in terms of what
-> other Operating Systems would like to see as general preference.
+> Should we free d as well here?
 
-Any feedback on this?  I'd like to post a revised version soon for v4.11.
+Yep.
 
-Bjorn
+> 
+> > +			return -ENOMEM;
+> > +		}
+> > +	}
+> > +
+> > +	dst->pointer.str = (void *)d;
+> > +	return 0;
+> > +}
+
+-- 
+Dmitry
