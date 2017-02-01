@@ -1,75 +1,58 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2 3/4] driver property: constify property arrays values
-Date: Wed, 1 Feb 2017 09:09:24 -0800
-Message-ID: <20170201170924.GA40045@dtor-ws>
+Subject: Re: [PATCH v2 4/4] i2c: allow specify device properties in
+ i2c_board_info
+Date: Wed, 1 Feb 2017 09:10:39 -0800
+Message-ID: <20170201171039.GB40045@dtor-ws>
 References: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
- <20170201021130.20586-4-dmitry.torokhov@gmail.com>
- <20170201144233.GN17297@lahna.fi.intel.com>
+ <20170201021130.20586-5-dmitry.torokhov@gmail.com>
+ <20170201152418.GQ17297@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35461 "EHLO
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34289 "EHLO
         mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752800AbdBARJ2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 12:09:28 -0500
+        with ESMTP id S1752958AbdBARKm (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 12:10:42 -0500
 Content-Disposition: inline
-In-Reply-To: <20170201144233.GN17297@lahna.fi.intel.com>
+In-Reply-To: <20170201152418.GQ17297@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Wed, Feb 01, 2017 at 04:42:33PM +0200, Mika Westerberg wrote:
-> On Tue, Jan 31, 2017 at 06:11:29PM -0800, Dmitry Torokhov wrote:
-> > Data that is fed into property arrays should not be modified, so let's mark
-> > relevant pointers as const. This will allow us making source arrays as
-> > const/__initconst.
-> > 
-> > Also fix memory leaks on errors in property_entry_copy().
+On Wed, Feb 01, 2017 at 05:24:18PM +0200, Mika Westerberg wrote:
+> On Tue, Jan 31, 2017 at 06:11:30PM -0800, Dmitry Torokhov wrote:
+> > With many drivers converting to using generic device properties, it is
+> > useful to provide array of device properties when instantiating new i2c
+> > client via i2c_board_info and have them automatically added to the device
+> > in question.
 > > 
 > > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 > > ---
-> >  drivers/base/property.c  | 65 +++++++++++++++++++++++++++++++++---------------
-> >  include/linux/property.h | 12 ++++-----
-> >  2 files changed, 51 insertions(+), 26 deletions(-)
+> >  drivers/i2c/i2c-core.c | 16 +++++++++++++++-
+> >  include/linux/i2c.h    |  3 +++
+> >  2 files changed, 18 insertions(+), 1 deletion(-)
 > > 
-> > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > index edc09854520b..fd91e0891665 100644
-> > --- a/drivers/base/property.c
-> > +++ b/drivers/base/property.c
-> > @@ -682,44 +682,65 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
-> >  }
-> >  EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> > index f009549f86a5..3897e78e5e9a 100644
+> > --- a/drivers/i2c/i2c-core.c
+> > +++ b/drivers/i2c/i2c-core.c
+> > @@ -1335,15 +1335,29 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
+> >  	client->dev.fwnode = info->fwnode;
 > >  
-> > +static int property_copy_string_array(struct property_entry *dst,
-> > +				      const struct property_entry *src)
-> > +{
-> > +	char **d;
-> > +	size_t nval = src->length / sizeof(*d);
-> > +	size_t i;
+> >  	i2c_dev_set_name(adap, client);
 > > +
-> > +	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
-> > +	if (!d)
-> > +		return -ENOMEM;
-> > +
-> > +	for (i = 0; i < nval; i++) {
-> > +		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
-> > +		if (!d[i] && src->pointer.str[i]) {
-> > +			while (--i >= 0)
-> > +				kfree(d[i]);
+> > +	if (info->properties) {
+> > +		status = device_add_properties(&client->dev, info->properties);
 > 
-> Should we free d as well here?
-
-Yep.
-
+> I don't remember anymore how it was but is the driver core supposed to
+> free this automatically when the device is removed or should we deal
+> this in the i2c-core instead?
 > 
-> > +			return -ENOMEM;
-> > +		}
-> > +	}
-> > +
-> > +	dst->pointer.str = (void *)d;
-> > +	return 0;
-> > +}
+
+It is done as part of device_del().
+
+Thanks.
 
 -- 
 Dmitry
