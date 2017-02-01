@@ -1,93 +1,155 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH v2 4/4] i2c: allow specify device properties in i2c_board_info
-Date: Tue, 31 Jan 2017 18:11:30 -0800
-Message-ID: <20170201021130.20586-5-dmitry.torokhov@gmail.com>
+Subject: [PATCH v2 3/4] driver property: constify property arrays values
+Date: Tue, 31 Jan 2017 18:11:29 -0800
+Message-ID: <20170201021130.20586-4-dmitry.torokhov@gmail.com>
 References: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36330 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751146AbdBACLh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 21:11:37 -0500
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34169 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751146AbdBACLl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jan 2017 21:11:41 -0500
 In-Reply-To: <20170201021130.20586-1-dmitry.torokhov@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-With many drivers converting to using generic device properties, it is
-useful to provide array of device properties when instantiating new i2c
-client via i2c_board_info and have them automatically added to the device
-in question.
+Data that is fed into property arrays should not be modified, so let's mark
+relevant pointers as const. This will allow us making source arrays as
+const/__initconst.
+
+Also fix memory leaks on errors in property_entry_copy().
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/i2c/i2c-core.c | 16 +++++++++++++++-
- include/linux/i2c.h    |  3 +++
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ drivers/base/property.c  | 65 +++++++++++++++++++++++++++++++++---------------
+ include/linux/property.h | 12 ++++-----
+ 2 files changed, 51 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index f009549f86a5..3897e78e5e9a 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -1335,15 +1335,29 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
- 	client->dev.fwnode = info->fwnode;
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index edc09854520b..fd91e0891665 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -682,44 +682,65 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_match_string);
  
- 	i2c_dev_set_name(adap, client);
++static int property_copy_string_array(struct property_entry *dst,
++				      const struct property_entry *src)
++{
++	char **d;
++	size_t nval = src->length / sizeof(*d);
++	size_t i;
 +
-+	if (info->properties) {
-+		status = device_add_properties(&client->dev, info->properties);
-+		if (status) {
-+			dev_err(&adap->dev,
-+				"Failed to add properties to client %s: %d\n",
-+				client->name, status);
-+			goto out_err;
++	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
++	if (!d)
++		return -ENOMEM;
++
++	for (i = 0; i < nval; i++) {
++		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
++		if (!d[i] && src->pointer.str[i]) {
++			while (--i >= 0)
++				kfree(d[i]);
++			return -ENOMEM;
 +		}
 +	}
 +
- 	status = device_register(&client->dev);
- 	if (status)
--		goto out_err;
-+		goto out_free_props;
++	dst->pointer.str = (void *)d;
++	return 0;
++}
++
+ static int property_entry_copy(struct property_entry *dst,
+ 			       const struct property_entry *src)
+ {
+-	const char **d, **s;
+-	size_t i, nval;
++	int error;
  
- 	dev_dbg(&adap->dev, "client [%s] registered with bus id %s\n",
- 		client->name, dev_name(&client->dev));
+ 	dst->name = kstrdup(src->name, GFP_KERNEL);
+ 	if (!dst->name)
+ 		return -ENOMEM;
  
- 	return client;
+ 	if (src->is_array) {
+-		if (!src->length)
+-			return -ENODATA;
++		if (!src->length) {
++			error = -ENODATA;
++			goto out_free_name;
++		}
  
-+out_free_props:
-+	if (info->properties)
-+		device_remove_properties(&client->dev);
- out_err:
- 	dev_err(&adap->dev,
- 		"Failed to register i2c client %s at 0x%02x (%d)\n",
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 4aa7d244b38a..ec8f866a5656 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -51,6 +51,7 @@ enum i2c_slave_event;
- typedef int (*i2c_slave_cb_t)(struct i2c_client *, enum i2c_slave_event, u8 *);
+ 		if (src->is_string) {
+-			nval = src->length / sizeof(const char *);
+-			dst->pointer.str = kcalloc(nval, sizeof(const char *),
+-						   GFP_KERNEL);
+-			if (!dst->pointer.str)
+-				return -ENOMEM;
+-
+-			d = dst->pointer.str;
+-			s = src->pointer.str;
+-			for (i = 0; i < nval; i++) {
+-				d[i] = kstrdup(s[i], GFP_KERNEL);
+-				if (!d[i] && s[i])
+-					return -ENOMEM;
++			error = property_copy_string_array(dst, src);
++			if (error) {
++				error = -ENOMEM;
++				goto out_free_name;
+ 			}
+ 		} else {
+ 			dst->pointer.raw_data = kmemdup(src->pointer.raw_data,
+ 							src->length, GFP_KERNEL);
+-			if (!dst->pointer.raw_data)
+-				return -ENOMEM;
++			if (!dst->pointer.raw_data) {
++				error = -ENOMEM;
++				goto out_free_name;
++			}
+ 		}
+ 	} else if (src->is_string) {
+ 		dst->value.str = kstrdup(src->value.str, GFP_KERNEL);
+-		if (!dst->value.str && src->value.str)
+-			return -ENOMEM;
++		if (!dst->value.str && src->value.str) {
++			error = -ENOMEM;
++			goto out_free_name;
++		}
+ 	} else {
+ 		dst->value.raw_data = src->value.raw_data;
+ 	}
+@@ -729,6 +750,10 @@ static int property_entry_copy(struct property_entry *dst,
+ 	dst->is_string = src->is_string;
  
- struct module;
-+struct property_entry;
+ 	return 0;
++
++out_free_name:
++	kfree(dst->name);
++	return error;
+ }
  
- #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- /*
-@@ -310,6 +311,7 @@ static inline int i2c_slave_event(struct i2c_client *client,
-  * @archdata: copied into i2c_client.dev.archdata
-  * @of_node: pointer to OpenFirmware device node
-  * @fwnode: device node supplied by the platform firmware
-+ * @properties: additional device properties for the device
-  * @irq: stored in i2c_client.irq
-  *
-  * I2C doesn't actually support hardware probing, although controllers and
-@@ -331,6 +333,7 @@ struct i2c_board_info {
- 	struct dev_archdata	*archdata;
- 	struct device_node *of_node;
- 	struct fwnode_handle *fwnode;
-+	const struct property_entry *properties;
- 	int		irq;
- };
- 
+ /**
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 5746e9927016..64e3a9c6d95f 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -160,12 +160,12 @@ struct property_entry {
+ 	bool is_string;
+ 	union {
+ 		union {
+-			void *raw_data;
+-			u8 *u8_data;
+-			u16 *u16_data;
+-			u32 *u32_data;
+-			u64 *u64_data;
+-			const char **str;
++			const void *raw_data;
++			const u8 *u8_data;
++			const u16 *u16_data;
++			const u32 *u32_data;
++			const u64 *u64_data;
++			const char * const *str;
+ 		} pointer;
+ 		union {
+ 			unsigned long long raw_data;
 -- 
 2.11.0.483.g087da7b7c-goog
 
