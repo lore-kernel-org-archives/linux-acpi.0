@@ -1,97 +1,72 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] initity: try to improve __nocapture annotations
-Date: Thu, 2 Feb 2017 00:38:16 +0100
-Message-ID: <CAJZ5v0gy8UfcERZ1BOL2YTRDtKLPswJT0exH6J6UEQxDoQ9RHw@mail.gmail.com>
-References: <20170201161311.2050831-1-arnd@arndb.de> <CAJZ5v0ioJO1HU6yRpuX70hVQB-P9Sx1SkyRiH+hL0mw0_qX3MQ@mail.gmail.com>
- <CAGXu5jKsENwq2nb0sw4R80yqPZ6HK_4QCFeGv1=H-Lgbsuhzbg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3 (possibly badly bisected)
+Date: Thu, 02 Feb 2017 00:38:04 +0100
+Message-ID: <4663686.yGs8knaWTY@aspire.rjw.lan>
+References: <1484927552.21721.17.camel@hadess.net> <CAJZ5v0hYwyV+j+38rdqo81x0p5jWyLzHijYFY5RmnODzRUK0qg@mail.gmail.com> <1485869863.5845.54.camel@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAGXu5jKsENwq2nb0sw4R80yqPZ6HK_4QCFeGv1=H-Lgbsuhzbg@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Kees Cook <keescook@chromium.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, PaX Team <pageexec@freemail.hu>, Emese Revfy <re.emese@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, minipli@ld-linux.so, Russell King - ARM Linux <linux@armlinux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@poochiereds.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, linux-arch <linux-arch@vger.kernel.org>, kasan-dev <kasan-dev@googlegroups.com>, Linux Memory Management List <linux-mm@kvack.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41933 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750726AbdBAXmq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 18:42:46 -0500
+In-Reply-To: <1485869863.5845.54.camel@hadess.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bastien Nocera <hadess@hadess.net>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 
-On Wed, Feb 1, 2017 at 11:44 PM, Kees Cook <keescook@chromium.org> wrote:
-> On Wed, Feb 1, 2017 at 1:05 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Wed, Feb 1, 2017 at 5:11 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->>> There are some additional declarations that got missed in the original patch,
->>> and some annotated functions that use the pointer is a correct but nonobvious
->>> way:
->>>
->>> mm/kasan/kasan.c: In function 'memmove':
->>> mm/kasan/kasan.c:346:7: error: 'memmove' captures its 2 ('src') parameter, please remove it from the nocapture attribute. [-Werror]
->>>  void *memmove(void *dest, const void *src, size_t len)
->>>        ^~~~~~~
->>> mm/kasan/kasan.c: In function 'memcpy':
->>> mm/kasan/kasan.c:355:7: error: 'memcpy' captures its 2 ('src') parameter, please remove it from the nocapture attribute. [-Werror]
->>>  void *memcpy(void *dest, const void *src, size_t len)
->>>        ^~~~~~
->>> drivers/acpi/acpica/utdebug.c: In function 'acpi_debug_print':
->>> drivers/acpi/acpica/utdebug.c:158:1: error: 'acpi_debug_print' captures its 3 ('function_name') parameter, please remove it from the nocapture attribute. [-Werror]
->>>
->>> lib/string.c:893:7: error: 'memchr_inv' captures its 1 ('start') parameter, please remove it from the nocapture attribute. [-Werror]
->>>  void *memchr_inv(const void *start, int c, size_t bytes)
->>> lib/string.c: In function 'strnstr':
->>> lib/string.c:832:7: error: 'strnstr' captures its 1 ('s1') parameter, please remove it from the nocapture attribute. [-Werror]
->>>  char *strnstr(const char *s1, const char *s2, size_t len)
->>>        ^~~~~~~
->>> lib/string.c:832:7: error: 'strnstr' captures its 2 ('s2') parameter, please remove it from the nocapture attribute. [-Werror]
->>>
->>> I'm not sure if these are all appropriate fixes, please have a careful look
->>>
->>> Fixes: c2bc07665495 ("initify: Mark functions with the __nocapture attribute")
->>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->>> ---
->>>  drivers/acpi/acpica/utdebug.c        | 2 +-
->>>  include/acpi/acpixf.h                | 2 +-
->>>  include/asm-generic/asm-prototypes.h | 8 ++++----
->>>  include/linux/string.h               | 2 +-
->>>  lib/string.c                         | 2 +-
->>>  mm/kasan/kasan.c                     | 4 ++--
->>>  6 files changed, 10 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
->>> index 044df9b0356e..de3c9cb305a2 100644
->>> --- a/drivers/acpi/acpica/utdebug.c
->>> +++ b/drivers/acpi/acpica/utdebug.c
->>> @@ -154,7 +154,7 @@ static const char *acpi_ut_trim_function_name(const char *function_name)
->>>   *
->>>   ******************************************************************************/
->>>
->>> -void ACPI_INTERNAL_VAR_XFACE
->>> +void __unverified_nocapture(3) ACPI_INTERNAL_VAR_XFACE
->>
->> Generally speaking, there is a problem with adding annotations like
->> this to ACPICA code.
->>
->> We get that code from an external project (upstream ACPICA) and the
->> more Linux-specific stuff is there in it, the more difficult to
->> maintain it becomes.
->
-> We need to find a way to solve this. Why can't take take our changes?
++ Srinivas
 
-Basically because it has to be possible to build their code using
-other compilers and build environments (some of them sort of exotic).
+On Tuesday, January 31, 2017 02:37:43 PM Bastien Nocera wrote:
+> Hey Rafael,
+> 
+> On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
+> > On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@hadess.net>
+> > wrote:
+> > > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
+> > > > Hey,
+> > > > 
+> > > > TLDR:
+> > > > # first bad commit: [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
+> > > > Merge
+> > > > back earlier ACPI PM material for v4.3.
+> > > > 
+> > > > hid-sensor-hub devices only start sending events through the IIO
+> > > > trigger after a suspend/resume cycle.
+> > > > 
+> > > > Other IIO drivers don't seem to exhibit those problems.
+> > > 
+> > > I had another go, trying to break into the merge commit, and it's
+> > > slightly more precise, but still doesn't make any sense to me.
+> > > 
+> > > # first bad commit: [3431e490b50356b56084305a2e93b3a980802b22]
+> > > Merge
+> > > branch 'acpi-scan' into acpi-pm
+> > > 
+> > > Any ideas? I'm running out of them...
+> > 
+> > The parents of this merge are 5af310a8ee70 and 1dcc3d3362b0.
+> > 
+> > Can you please check if the problem is present in any of them alone?
+> 
+> Both of those were already in the git bisect output:
+> # good: [5af310a8ee70dd6a588c8ee1d4487a230a7b7b65] Merge tag 'ib-mfd-base-acpi-dma-v4.3' of git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd into acpi-pm
+> git bisect good 5af310a8ee70dd6a588c8ee1d4487a230a7b7b65
+> 
+> # good: [1dcc3d3362b0c97e48290f7786be85b4cec2a147] ACPI / bus: Move ACPI bus type registration
+> git bisect good 1dcc3d3362b0c97e48290f7786be85b4cec2a147
+> 
+> Or did I do this wrong?
+> 
+> > If not, it is theoretically possible that the merge itself had
+> > introduced it (as this is not a trivial merge).
+> 
+> Yeah, I tried diving into the merge, but never managed to do so.
 
-> Or better yet, why can't we keep a delta from them if they won't take them?
-
-The coding style of the original code is different from the kernel one
-and the process used to keep track of the differences is non-trivial.
-The more differences there are, the more difficult it becomes to
-generate patches to backport upstream changes to the kernel code base
-and the more likely it is to introduce bugs in the process which sort
-of would defeat the purpose of the whole hardening exercise.
-
-Let me reverse the question, then: Why is it necessary to annotate the
-ACPICA code this way instead of just leaving it alone?
+Srinivas, does it sound like anything familiar to you?
 
 Thanks,
 Rafael
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
