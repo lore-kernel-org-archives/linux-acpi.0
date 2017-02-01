@@ -1,62 +1,88 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH v3 0/4] Export APIs to copy device properties & more
-Date: Wed,  1 Feb 2017 09:31:21 -0800
-Message-ID: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33986 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753032AbdBARb2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 12:31:28 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 4/4] i2c: allow specify device properties in i2c_board_info
+Date: Wed,  1 Feb 2017 09:31:25 -0800
+Message-ID: <20170201173125.40354-5-dmitry.torokhov@gmail.com>
+References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+With many drivers converting to using generic device properties, it is
+useful to provide array of device properties when instantiating new i2c
+client via i2c_board_info and have them automatically added to the device
+in question.
 
-Here is the refreshed series exporting APIs to copy statically declared
-device properties. The reason is that we want to augment ACPI-based devices
-with properties, and drivers usually have a largish DMI table for multiple
-models, so it is desirable to mark everything as __initdata/__initconst,
-and then copy only the entry matching the device we are running on and
-discard the rest.
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/i2c/i2c-core.c | 16 +++++++++++++++-
+ include/linux/i2c.h    |  3 +++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-The last patch is not really about device property APIs, but rather
-allowing users to attach properties to i2c_board_info, and have them
-attached to instantiated device(s). The reason it is included is because it
-depends on device_add_properties() taking const pointer, which is patch #2.
-
-If it seems useful I hope Rafael and Wolfram would figure a way to merge it
-:).
-
-v3:
-- fix memory leak in property_copy_string_array() pointed out by Mika
-  Westerberg
-
-v2:
-- addressed Andy's comments
-- added property_entries_free()
-- added patch to allow constify values of property arrays
-- added i2c patch allowing to attach property to devices via board info
-
-v1:
-- initial posting
-
-
-Dmitry Torokhov (4):
-  device property: export code duplicating array of property entries
-  device property: allow to constify properties
-  driver property: constify property arrays values
-  i2c: allow specify device properties in i2c_board_info
-
- drivers/base/property.c  | 222 ++++++++++++++++++++++++++++++-----------------
- drivers/i2c/i2c-core.c   |  16 +++-
- include/linux/i2c.h      |   3 +
- include/linux/property.h |  19 ++--
- 4 files changed, 171 insertions(+), 89 deletions(-)
-
-Thanks.
-
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index f009549f86a5..3897e78e5e9a 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -1335,15 +1335,29 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
+ 	client->dev.fwnode = info->fwnode;
+ 
+ 	i2c_dev_set_name(adap, client);
++
++	if (info->properties) {
++		status = device_add_properties(&client->dev, info->properties);
++		if (status) {
++			dev_err(&adap->dev,
++				"Failed to add properties to client %s: %d\n",
++				client->name, status);
++			goto out_err;
++		}
++	}
++
+ 	status = device_register(&client->dev);
+ 	if (status)
+-		goto out_err;
++		goto out_free_props;
+ 
+ 	dev_dbg(&adap->dev, "client [%s] registered with bus id %s\n",
+ 		client->name, dev_name(&client->dev));
+ 
+ 	return client;
+ 
++out_free_props:
++	if (info->properties)
++		device_remove_properties(&client->dev);
+ out_err:
+ 	dev_err(&adap->dev,
+ 		"Failed to register i2c client %s at 0x%02x (%d)\n",
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 4aa7d244b38a..ec8f866a5656 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -51,6 +51,7 @@ enum i2c_slave_event;
+ typedef int (*i2c_slave_cb_t)(struct i2c_client *, enum i2c_slave_event, u8 *);
+ 
+ struct module;
++struct property_entry;
+ 
+ #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
+ /*
+@@ -310,6 +311,7 @@ static inline int i2c_slave_event(struct i2c_client *client,
+  * @archdata: copied into i2c_client.dev.archdata
+  * @of_node: pointer to OpenFirmware device node
+  * @fwnode: device node supplied by the platform firmware
++ * @properties: additional device properties for the device
+  * @irq: stored in i2c_client.irq
+  *
+  * I2C doesn't actually support hardware probing, although controllers and
+@@ -331,6 +333,7 @@ struct i2c_board_info {
+ 	struct dev_archdata	*archdata;
+ 	struct device_node *of_node;
+ 	struct fwnode_handle *fwnode;
++	const struct property_entry *properties;
+ 	int		irq;
+ };
+ 
 -- 
-Dmitry
-
+2.11.0.483.g087da7b7c-goog
