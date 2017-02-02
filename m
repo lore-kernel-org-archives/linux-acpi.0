@@ -1,73 +1,81 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: Cherryview wake up events
-Date: Thu, 2 Feb 2017 17:58:26 +0200
-Message-ID: <20170202155826.GF2053@lahna.fi.intel.com>
-References: <20170202095200.d5clhprl7rpgrf72@sig21.net>
- <20170202103122.GH2053@lahna.fi.intel.com>
- <20170202111222.aoiwinw37jrquhbh@sig21.net>
- <20170202113508.GM2053@lahna.fi.intel.com>
- <20170202121639.GO2053@lahna.fi.intel.com>
- <20170202135257.q2djuvnhlsu2qv2v@sig21.net>
- <20170202142618.GX2053@lahna.fi.intel.com>
- <20170202143145.xnjnicrxf5uapuwl@sig21.net>
- <20170202150212.GA2053@lahna.fi.intel.com>
- <20170202154243.wxrdcy6yqohcwvw3@sig21.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 02/16] device property: Add fwnode_get_parent()
+Date: Thu,  2 Feb 2017 18:22:12 +0200
+Message-ID: <1486052546-19257-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:24080 "EHLO mga14.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:10121 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751036AbdBBP6a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Feb 2017 10:58:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20170202154243.wxrdcy6yqohcwvw3@sig21.net>
+        id S1750777AbdBBQXv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 2 Feb 2017 11:23:51 -0500
+In-Reply-To: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>, ramakrishna.pallala@intel.com
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Thu, Feb 02, 2017 at 04:42:43PM +0100, Johannes Stezenbach wrote:
-> On Thu, Feb 02, 2017 at 05:02:12PM +0200, Mika Westerberg wrote:
-> > OK, I guess it is easier if I just order one of those machines here and
-> > figure out how to get the PMIC driver working.
-> 
-> Oh, I assumed the bottleneck is developer time, not lack of hardware...
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Well, both actually ;)
+Now that ACPI has support for returning parent firmware node for both types
+of nodes we can expose this to others as well. This adds a new function
+fwnode_get_parent() that can be used for DT and ACPI nodes to retrieve the
+parent firmware node.
 
-> > Is the model Asus E200HA? Something like this (sorry the information is
-> > in Finnish but the machine should look the same):
-> > 
-> > https://www.karkkainen.com/verkkokauppa/asus-e200ha-fd0005ts-11-6--hd-kannettava-tietokone
-> 
-> Looks right, mine is E200HA-FD0004TS but I think that just means dark blue color.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/base/property.c  | 25 +++++++++++++++++++++++++
+ include/linux/property.h |  2 ++
+ 2 files changed, 27 insertions(+)
 
-OK, we have one other Cherrytrail machine here which may have the same
-PMIC. We'll check that first and if it does not have the same, I'll
-order the above machine.
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 43a36d6..384998a 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -867,6 +867,31 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
+ EXPORT_SYMBOL_GPL(device_add_properties);
+ 
+ /**
++ * fwnode_get_parent - Return parent firwmare node
++ * @fwnode: Firmware whose parent is retrieved
++ *
++ * Return parent firmware node of the given node if possible or %NULL if no
++ * parent was available.
++ */
++struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *parent = NULL;
++
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_get_parent(to_of_node(fwnode));
++		if (node)
++			parent = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		parent = acpi_node_get_parent(fwnode);
++	}
++
++	return parent;
++}
++EXPORT_SYMBOL_GPL(fwnode_get_parent);
++
++/**
+  * device_get_next_child_node - Return the next child node handle for a device
+  * @dev: Device to find the next child node for.
+  * @child: Handle to one of the device's child nodes or a null handle.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 856e50b..85060bf 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -70,6 +70,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *string);
+ 
++struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++
+ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 						 struct fwnode_handle *child);
+ 
+-- 
+2.7.4
 
-> > Also can you remind me what exactly is not working so we can prioritize?
-> 
-> There are reports hibernate isn't working, presumably because
-> the storage is 32MB eMMC.  I've never tried.  It doesn't
-> support ACPI S3 (suspend-to-RAM).  So currently one has
-> to boot+shutdown everytime (or keep it running).
-> 
-> 1. There seems to be no way to wake it up after "echo freeze >/sys/power/state".
->    That is the reason for wanting the power button to wake it up.
->    Whether the PB creates an input event is secondary.
->    (the LID also doesn't wake it up, but it creates an input event)
-> 2. I've no idea what would be the power consumption in freeze state,
->    so I guess support for the S0ix states is needed
-> 3. It randomly hangs at boot, often with a message related to i2c timeout.
->    I tried Hans de Goede's patches but it didn't work for me
->    (question is if the semphore address is the same for
->    AXP288 and TI DCove; the DSDT has the _SEM method so the
->    semphore is needed).
-> 
-> Everything else is secondary.  E.g. there is an ADC driver used for thermal
-> used by the opregion driver, I didn't port it and just implemented
-> like for AXP288 by simple register reads (which might not work for TI).
-> We could fix this later.
-
-OK, thanks.
