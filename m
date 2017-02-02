@@ -1,61 +1,104 @@
-From: Johannes Stezenbach <js@sig21.net>
-Subject: Re: Cherryview wake up events
-Date: Thu, 2 Feb 2017 12:12:22 +0100
-Message-ID: <20170202111222.aoiwinw37jrquhbh@sig21.net>
-References: <20170124192314.gw6njffcgwyfm2gp@sig21.net>
- <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
- <20170127113845.zt5jwjzumafclvzc@sig21.net>
- <CAHp75Ve6pwaDM3ookO9e_4c1R_U9_X3aF43XGtD5Z2+6G6f6zA@mail.gmail.com>
- <20170127133058.pxuovuuqpnffx3py@sig21.net>
- <20170130205745.wwavipta5hbz5zfz@sig21.net>
- <CAHp75Vfdk2u2wQa9ZR1vGCAPYL4rnSF78pJR98t+J0+Sn9LuqA@mail.gmail.com>
- <20170131143740.lgn2svjskjulsucf@sig21.net>
- <20170202095200.d5clhprl7rpgrf72@sig21.net>
- <20170202103122.GH2053@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 3/4] driver property: constify property arrays values
+Date: Thu, 02 Feb 2017 12:24:25 +0100
+Message-ID: <1605853.brEpCT4tOG@aspire.rjw.lan>
+References: <20170201173125.40354-1-dmitry.torokhov@gmail.com> <20170201173125.40354-4-dmitry.torokhov@gmail.com> <1485991803.22276.14.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:33201 "EHLO mail.sig21.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751027AbdBBLM2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Feb 2017 06:12:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20170202103122.GH2053@lahna.fi.intel.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:64728 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751245AbdBBL3I (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 06:29:08 -0500
+In-Reply-To: <1485991803.22276.14.camel@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
+To: Joe Perches <joe@perches.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Thu, Feb 02, 2017 at 12:31:22PM +0200, Mika Westerberg wrote:
-> On Thu, Feb 02, 2017 at 10:52:00AM +0100, Johannes Stezenbach wrote:
-> >                 OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0100)
-> >                 Field (GPOP, ByteAcc, NoLock, Preserve)
-> >                 {
-> >                     Connection (
-> >                         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionOutputOnly,
-> >                             "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
-> >                             )
-> >                             {   // Pin list
-> >                                 0x0020
-> >                             }
-> >                     ), 
-> >                     GMP0,   1, 
-> >                     ...
-> >                     (repeat for many more pins)
-> > 
-> > I guess it means it uses chv_gpio pins and can't work
-> > if the GPIO opregion is not registered?
+On Wednesday, February 01, 2017 03:30:03 PM Joe Perches wrote:
+> On Wed, 2017-02-01 at 09:31 -0800, Dmitry Torokhov wrote:
+> > Data that is fed into property arrays should not be modified, so let's mark
+> > relevant pointers as const. This will allow us making source arrays as
+> > const/__initconst.
 > 
-> That is using GPIO pins of the PMI2 device - the PMIC GPIO driver, I
-> suppose.
+> trivia:
 > 
-> So in addition to the PMIC MFD driver, you need to have a GPIO driver
-> for Dollar Cove (I guess the quilt patch series included that as well?).
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> []
+> > @@ -682,44 +682,66 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+> >  }
+> >  EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+> >  
+> > +static int property_copy_string_array(struct property_entry *dst,
+> > +				      const struct property_entry *src)
+> > +{
+> > +	char **d;
+> > +	size_t nval = src->length / sizeof(*d);
+> > +	size_t i;
+> > +
+> > +	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
+> > +	if (!d)
+> > +		return -ENOMEM;
+> > +
+> > +	for (i = 0; i < nval; i++) {
+> > +		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
+> > +		if (!d[i] && src->pointer.str[i]) {
+> > +			while (--i >= 0)
+> > +				kfree(d[i]);
+> > +			kfree(d);
+> > +			return -ENOMEM;
+> > +		}
+> > +	}
+> > +
+> > +	dst->pointer.str = (void *)d;
+> > +	return 0;
+> > +}
+> > +
+> >  static int property_entry_copy(struct property_entry *dst,
+> >  			       const struct property_entry *src)
+> >  {
+> > -	const char **d, **s;
+> > -	size_t i, nval;
+> > +	int error;
+> >  
+> >  	dst->name = kstrdup(src->name, GFP_KERNEL);
+> >  	if (!dst->name)
+> >  		return -ENOMEM;
+> >  
+> >  	if (src->is_array) {
+> > -		if (!src->length)
+> > -			return -ENODATA;
+> > +		if (!src->length) {
+> > +			error = -ENODATA;
+> > +			goto out_free_name;
+> > +		}
+> >  
+> >  		if (src->is_string) {
+> > -			nval = src->length / sizeof(const char *);
+> > -			dst->pointer.str = kcalloc(nval, sizeof(const char *),
+> > -						   GFP_KERNEL);
+> > -			if (!dst->pointer.str)
+> > -				return -ENOMEM;
+> > -
+> > -			d = dst->pointer.str;
+> > -			s = src->pointer.str;
+> > -			for (i = 0; i < nval; i++) {
+> > -				d[i] = kstrdup(s[i], GFP_KERNEL);
+> > -				if (!d[i] && s[i])
+> > -					return -ENOMEM;
+> > +			error = property_copy_string_array(dst, src);
+> > +			if (error) {
+> > +				error = -ENOMEM;
+> 
+> An unnecessary set as the return from the above
+> property_copy_string_array is either 0 or -ENOMEM
 
-Nope, I see it for AX288 but didn't find it for TI DCove.  And in
-current Linus' tree axp288_cells[] doesn't include gpio so
-I concluded it's not needed... what am I missing?
+Even if it is not -ENOMEM, it still can be propagated to the caller.
 
+I can fix this up unless Dmitry wants to send an updated patch.
 
 Thanks,
-Johannes
+Rafael
+
