@@ -1,125 +1,77 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] initity: try to improve __nocapture annotations
-Date: Thu, 2 Feb 2017 12:59:09 +0100
-Message-ID: <CAK8P3a2Qmc0H5sE2w106We1P=OpQ_CRQ-A8b+2rZR7Zb5C40fw@mail.gmail.com>
-References: <20170201161311.2050831-1-arnd@arndb.de> <CAGXu5jLc8z0Q-etB-=9rBnt-mNPKEL3t5rDooSwTyACPX2NW0g@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: Cherryview wake up events
+Date: Thu, 2 Feb 2017 14:16:39 +0200
+Message-ID: <20170202121639.GO2053@lahna.fi.intel.com>
+References: <20170127113845.zt5jwjzumafclvzc@sig21.net>
+ <CAHp75Ve6pwaDM3ookO9e_4c1R_U9_X3aF43XGtD5Z2+6G6f6zA@mail.gmail.com>
+ <20170127133058.pxuovuuqpnffx3py@sig21.net>
+ <20170130205745.wwavipta5hbz5zfz@sig21.net>
+ <CAHp75Vfdk2u2wQa9ZR1vGCAPYL4rnSF78pJR98t+J0+Sn9LuqA@mail.gmail.com>
+ <20170131143740.lgn2svjskjulsucf@sig21.net>
+ <20170202095200.d5clhprl7rpgrf72@sig21.net>
+ <20170202103122.GH2053@lahna.fi.intel.com>
+ <20170202111222.aoiwinw37jrquhbh@sig21.net>
+ <20170202113508.GM2053@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAGXu5jLc8z0Q-etB-=9rBnt-mNPKEL3t5rDooSwTyACPX2NW0g@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Kees Cook <keescook@chromium.org>
-Cc: PaX Team <pageexec@freemail.hu>, Emese Revfy <re.emese@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, minipli@ld-linux.so, Russell King <linux@armlinux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@poochiereds.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, linux-arch <linux-arch@vger.kernel.org>, kasan-dev <kasan-dev@googlegroups.com>, Linux-MM <linux-mm@kvack.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:4968 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751272AbdBBMQo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 2 Feb 2017 07:16:44 -0500
+Content-Disposition: inline
+In-Reply-To: <20170202113508.GM2053@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Johannes Stezenbach <js@sig21.net>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>, ramakrishna.pallala@intel.com
 
-On Thu, Feb 2, 2017 at 1:39 AM, Kees Cook <keescook@chromium.org> wrote:
-> On Wed, Feb 1, 2017 at 8:11 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+On Thu, Feb 02, 2017 at 01:35:08PM +0200, Mika Westerberg wrote:
+> On Thu, Feb 02, 2017 at 12:12:22PM +0100, Johannes Stezenbach wrote:
+> > On Thu, Feb 02, 2017 at 12:31:22PM +0200, Mika Westerberg wrote:
+> > > On Thu, Feb 02, 2017 at 10:52:00AM +0100, Johannes Stezenbach wrote:
+> > > >                 OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0100)
+> > > >                 Field (GPOP, ByteAcc, NoLock, Preserve)
+> > > >                 {
+> > > >                     Connection (
+> > > >                         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionOutputOnly,
+> > > >                             "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
+> > > >                             )
+> > > >                             {   // Pin list
+> > > >                                 0x0020
+> > > >                             }
+> > > >                     ), 
+> > > >                     GMP0,   1, 
+> > > >                     ...
+> > > >                     (repeat for many more pins)
+> > > > 
+> > > > I guess it means it uses chv_gpio pins and can't work
+> > > > if the GPIO opregion is not registered?
+> > > 
+> > > That is using GPIO pins of the PMI2 device - the PMIC GPIO driver, I
+> > > suppose.
+> > > 
+> > > So in addition to the PMIC MFD driver, you need to have a GPIO driver
+> > > for Dollar Cove (I guess the quilt patch series included that as well?).
+> > 
+> > Nope, I see it for AX288 but didn't find it for TI DCove.  And in
+> > current Linus' tree axp288_cells[] doesn't include gpio so
+> > I concluded it's not needed... what am I missing?
+> 
+> So reading your DSDT there is that GPIO button array device \_SB.TBAD
+> which has one GpioInt() referencing \_SB.PCI0.I2C7.PMI2. I suppose that
+> is the power button GPIO.
+> 
+> In order to use that there needs to be a GPIO driver exposing those
+> GPIOs to other drivers. So it is definitely needed.
 
->> -void ACPI_INTERNAL_VAR_XFACE
->> +void __unverified_nocapture(3) ACPI_INTERNAL_VAR_XFACE
->>  acpi_debug_print(u32 requested_debug_level,
->>                  u32 line_number,
->>                  const char *function_name,
->
-> This might be better by marking acpi_ut_trim_function_name() as
-> __nocapture. I'll give it a try...
+Actually, looking again the patches you found:
 
-I tried that without success: the problem is actually the later acpi_os_printf()
-that takes the result from acpi_ut_trim_function_name().
+https://github.com/01org/ProductionKernelQuilts/blob/master/uefi/cht-m1stable/patches/mfd-intel_soc_pmic-add-TI-variant-of-dollar-cove.patch
+https://github.com/01org/ProductionKernelQuilts/blob/master/uefi/cht-m1stable/patches/PWRBTN-add-driver-for-TI-PMIC.patch
 
->> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
->> index 9f4637e9dd92..9644cec5b082 100644
->> --- a/include/acpi/acpixf.h
->> +++ b/include/acpi/acpixf.h
->> @@ -946,7 +946,7 @@ ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6) __nocapture(3)
->>                                                 const char *module_name,
->>                                                 u32 component_id,
->>                                                 const char *format, ...))
->> -ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
->> +ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6) __nocapture(3)
->>                                 void ACPI_INTERNAL_VAR_XFACE
->>                                 acpi_debug_print_raw(u32 requested_debug_level,
->>                                                      u32 line_number,
->
-> I wonder why the plugin needs this at all: function_name (the third
-> arg) isn't even used in the function.
+Did you try to them both? The latter seems to handle the power button
+by talking directly with the PMIC (instead of using a GPIO).
 
-This one wasn't needed, I should probably have left it out. It just seemed
-right for consistency to do the same for acpi_debug_print_raw() and
-acpi_debug_print().
-
->> diff --git a/include/linux/string.h b/include/linux/string.h
->> index 8b3b97e7b2b0..0ee877593464 100644
->> --- a/include/linux/string.h
->> +++ b/include/linux/string.h
->> @@ -76,7 +76,7 @@ static inline __must_check char *strstrip(char *str)
->>  extern char * strstr(const char *, const char *) __nocapture(-1, 2);
->>  #endif
->>  #ifndef __HAVE_ARCH_STRNSTR
->> -extern char * strnstr(const char *, const char *, size_t) __nocapture(-1, 2);
->> +extern char * strnstr(const char *, const char *, size_t);
->
-> That doesn't seem right: strnstr doesn't capture...
-
-Right, so better __unverified_nocapture() then?
-
->>  #endif
->>  #ifndef __HAVE_ARCH_STRLEN
->>  extern __kernel_size_t strlen(const char *) __nocapture(1);
->> diff --git a/lib/string.c b/lib/string.c
->> index ed83562a53ae..01151a1a0b61 100644
->> --- a/lib/string.c
->> +++ b/lib/string.c
->> @@ -870,7 +870,7 @@ void *memchr(const void *s, int c, size_t n)
->>  EXPORT_SYMBOL(memchr);
->>  #endif
->>
->> -static void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
->> +static __always_inline void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
->
-> Is this from another fix? Seems unrelated?
-
-This fixed a warning about memchr_inv() for me: when check_bytes8()
-is inlined, the compiler can see that the argument is not captured, but
-if gcc decides against inlining, it warns.
-
->> diff --git a/mm/kasan/kasan.c b/mm/kasan/kasan.c
->> index 5f6e09c88d25..ebc02ee1118e 100644
->> --- a/mm/kasan/kasan.c
->> +++ b/mm/kasan/kasan.c
->> @@ -343,7 +343,7 @@ void *memset(void *addr, int c, size_t len)
->>  }
->>
->>  #undef memmove
->> -void *memmove(void *dest, const void *src, size_t len)
->> +__unverified_nocapture(2) void *memmove(void *dest, const void *src, size_t len)
->>  {
->>         check_memory_region((unsigned long)src, len, false, _RET_IP_);
->>         check_memory_region((unsigned long)dest, len, true, _RET_IP_);
->> @@ -352,7 +352,7 @@ void *memmove(void *dest, const void *src, size_t len)
->>  }
->>
->>  #undef memcpy
->> -void *memcpy(void *dest, const void *src, size_t len)
->> +__unverified_nocapture(2) void *memcpy(void *dest, const void *src, size_t len)
->>  {
->>         check_memory_region((unsigned long)src, len, false, _RET_IP_);
->>         check_memory_region((unsigned long)dest, len, true, _RET_IP_);
->> --
->> 2.9.0
->>
->
-> Thanks for the patch! I'll try to reproduce the warnings and get some
-> fixes built if Emese or PaX Team don't beat me to it. :)
-
-I later got more warnings for some of the string functions, but we can
-deal with them
-separately.
-
-    Arnd
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Let's include the original author (Ramakrishna) as well if we could get
+some information from him.
