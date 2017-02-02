@@ -1,68 +1,74 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
- (possibly badly bisected)
-Date: Wed, 01 Feb 2017 15:57:52 -0800
-Message-ID: <1485993472.18380.73.camel@linux.intel.com>
-References: <1484927552.21721.17.camel@hadess.net>
-         <CAJZ5v0hYwyV+j+38rdqo81x0p5jWyLzHijYFY5RmnODzRUK0qg@mail.gmail.com>
-         <1485869863.5845.54.camel@hadess.net> <4663686.yGs8knaWTY@aspire.rjw.lan>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH] initity: try to improve __nocapture annotations
+Date: Wed, 1 Feb 2017 16:33:42 -0800
+Message-ID: <CAGXu5j+gNAb8R2yq1ieGENMaVknjykgrLi-+hfNs-482OpYfHA@mail.gmail.com>
+References: <20170201161311.2050831-1-arnd@arndb.de> <CAJZ5v0ioJO1HU6yRpuX70hVQB-P9Sx1SkyRiH+hL0mw0_qX3MQ@mail.gmail.com>
+ <CAGXu5jKsENwq2nb0sw4R80yqPZ6HK_4QCFeGv1=H-Lgbsuhzbg@mail.gmail.com> <CAJZ5v0gy8UfcERZ1BOL2YTRDtKLPswJT0exH6J6UEQxDoQ9RHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51120 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750777AbdBAX5x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Feb 2017 18:57:53 -0500
-In-Reply-To: <4663686.yGs8knaWTY@aspire.rjw.lan>
+Received: from mail-io0-f170.google.com ([209.85.223.170]:35159 "EHLO
+        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751173AbdBBAdo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2017 19:33:44 -0500
+Received: by mail-io0-f170.google.com with SMTP id j18so170257201ioe.2
+        for <linux-acpi@vger.kernel.org>; Wed, 01 Feb 2017 16:33:44 -0800 (PST)
+In-Reply-To: <CAJZ5v0gy8UfcERZ1BOL2YTRDtKLPswJT0exH6J6UEQxDoQ9RHw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bastien Nocera <hadess@hadess.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, PaX Team <pageexec@freemail.hu>, Emese Revfy <re.emese@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, minipli@ld-linux.so, Russell King - ARM Linux <linux@armlinux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@poochiereds.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, linux-arch <linux-arch@vger.kernel.org>, kasan-dev <kasan-dev@googlegroups.com>, Linux Memory Management List <linux-mm@kvack.org>
 
-On Thu, 2017-02-02 at 00:38 +0100, Rafael J. Wysocki wrote:
-> + Srinivas
-> 
-> On Tuesday, January 31, 2017 02:37:43 PM Bastien Nocera wrote:
-> > 
-> > Hey Rafael,
-> > 
-> > On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
-> > > 
-> > > On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@hadess.ne
-> > > t>
-> > > wrote:
-> > > > 
-> > > > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
-> > > > > 
-> > > > > Hey,
-> > > > > 
-> > > > > TLDR:
-> > > > > # first bad commit:
-> > > > > [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
-> > > > > Merge
-> > > > > back earlier ACPI PM material for v4.3.
-> > > > > 
-> > > > > hid-sensor-hub devices only start sending events through the
-> > > > > IIO
-> > > > > trigger after a suspend/resume cycle.
+On Wed, Feb 1, 2017 at 3:38 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Feb 1, 2017 at 11:44 PM, Kees Cook <keescook@chromium.org> wrote:
+>> On Wed, Feb 1, 2017 at 1:05 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>> On Wed, Feb 1, 2017 at 5:11 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>>>> diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+>>>> index 044df9b0356e..de3c9cb305a2 100644
+>>>> --- a/drivers/acpi/acpica/utdebug.c
+>>>> +++ b/drivers/acpi/acpica/utdebug.c
+>>>> @@ -154,7 +154,7 @@ static const char *acpi_ut_trim_function_name(const char *function_name)
+>>>>   *
+>>>>   ******************************************************************************/
+>>>>
+>>>> -void ACPI_INTERNAL_VAR_XFACE
+>>>> +void __unverified_nocapture(3) ACPI_INTERNAL_VAR_XFACE
+>>>
+>>> Generally speaking, there is a problem with adding annotations like
+>>> this to ACPICA code.
+>>>
+>>> We get that code from an external project (upstream ACPICA) and the
+>>> more Linux-specific stuff is there in it, the more difficult to
+>>> maintain it becomes.
+>>
+>> We need to find a way to solve this. Why can't take take our changes?
+>
+> Basically because it has to be possible to build their code using
+> other compilers and build environments (some of them sort of exotic).
 
+Surely those environments can support macros to make this all work sanely?
 
-> Srinivas, does it sound like anything familiar to you?
+>> Or better yet, why can't we keep a delta from them if they won't take them?
+>
+> The coding style of the original code is different from the kernel one
+> and the process used to keep track of the differences is non-trivial.
+> The more differences there are, the more difficult it becomes to
+> generate patches to backport upstream changes to the kernel code base
+> and the more likely it is to introduce bugs in the process which sort
+> of would defeat the purpose of the whole hardening exercise.
+>
+> Let me reverse the question, then: Why is it necessary to annotate the
+> ACPICA code this way instead of just leaving it alone?
 
-I guess this is related to
-https://github.com/hadess/iio-sensor-proxy/issues/82
+With the GCC plugins there are going to be more and more automatic
+analysis of the kernel code base, and it'll require global changes to
+the kernel to mark things one way or another, opt in or out of things,
+etc. We need to be able to treat the kernel code as a single code
+base, since that's how the plugins see it. Without this, we're
+restricting the value those plugins bring.
 
-There is some race between user space and iio. So the driver powerup
-never gets called back to power a hub during system boot. So the
-workaround was to add to systemd unit file for iio-sensor-proxy 
-[Unit]
-After=multi-user.target
+-Kees
 
-Something changed timings in the kernel, which triggered this issue.
-I never got chance to root cause this.
-
-Thanks,
-Srinivas
-
-
+-- 
+Kees Cook
+Pixel Security
