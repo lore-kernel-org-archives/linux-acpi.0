@@ -1,65 +1,90 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: Cherryview wake up events
-Date: Thu, 2 Feb 2017 13:35:08 +0200
-Message-ID: <20170202113508.GM2053@lahna.fi.intel.com>
-References: <CAHp75VdHHvy2djYSTStPPcKUJFHLSAH_z7VzWW_12Qia3n2XyQ@mail.gmail.com>
- <20170127113845.zt5jwjzumafclvzc@sig21.net>
- <CAHp75Ve6pwaDM3ookO9e_4c1R_U9_X3aF43XGtD5Z2+6G6f6zA@mail.gmail.com>
- <20170127133058.pxuovuuqpnffx3py@sig21.net>
- <20170130205745.wwavipta5hbz5zfz@sig21.net>
- <CAHp75Vfdk2u2wQa9ZR1vGCAPYL4rnSF78pJR98t+J0+Sn9LuqA@mail.gmail.com>
- <20170131143740.lgn2svjskjulsucf@sig21.net>
- <20170202095200.d5clhprl7rpgrf72@sig21.net>
- <20170202103122.GH2053@lahna.fi.intel.com>
- <20170202111222.aoiwinw37jrquhbh@sig21.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3 (possibly badly bisected)
+Date: Thu, 02 Feb 2017 12:33:42 +0100
+Message-ID: <2492725.VHRXfnWZmy@aspire.rjw.lan>
+References: <1484927552.21721.17.camel@hadess.net> <1485993472.18380.73.camel@linux.intel.com> <1486031705.16399.1.camel@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52593 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751057AbdBBLfN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Feb 2017 06:35:13 -0500
-Content-Disposition: inline
-In-Reply-To: <20170202111222.aoiwinw37jrquhbh@sig21.net>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61530 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751019AbdBBLiY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 06:38:24 -0500
+In-Reply-To: <1486031705.16399.1.camel@hadess.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>
+To: Bastien Nocera <hadess@hadess.net>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 
-On Thu, Feb 02, 2017 at 12:12:22PM +0100, Johannes Stezenbach wrote:
-> On Thu, Feb 02, 2017 at 12:31:22PM +0200, Mika Westerberg wrote:
-> > On Thu, Feb 02, 2017 at 10:52:00AM +0100, Johannes Stezenbach wrote:
-> > >                 OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0100)
-> > >                 Field (GPOP, ByteAcc, NoLock, Preserve)
-> > >                 {
-> > >                     Connection (
-> > >                         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionOutputOnly,
-> > >                             "\\_SB.PCI0.I2C7.PMI2", 0x00, ResourceConsumer, ,
-> > >                             )
-> > >                             {   // Pin list
-> > >                                 0x0020
-> > >                             }
-> > >                     ), 
-> > >                     GMP0,   1, 
-> > >                     ...
-> > >                     (repeat for many more pins)
+On Thursday, February 02, 2017 11:35:05 AM Bastien Nocera wrote:
+> On Wed, 2017-02-01 at 15:57 -0800, Srinivas Pandruvada wrote:
+> > On Thu, 2017-02-02 at 00:38 +0100, Rafael J. Wysocki wrote:
+> > > + Srinivas
 > > > 
-> > > I guess it means it uses chv_gpio pins and can't work
-> > > if the GPIO opregion is not registered?
+> > > On Tuesday, January 31, 2017 02:37:43 PM Bastien Nocera wrote:
+> > > > 
+> > > > Hey Rafael,
+> > > > 
+> > > > On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
+> > > > > 
+> > > > > On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@hadess.
+> > > > > ne
+> > > > > t>
+> > > > > wrote:
+> > > > > > 
+> > > > > > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
+> > > > > > > 
+> > > > > > > Hey,
+> > > > > > > 
+> > > > > > > TLDR:
+> > > > > > > # first bad commit:
+> > > > > > > [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
+> > > > > > > Merge
+> > > > > > > back earlier ACPI PM material for v4.3.
+> > > > > > > 
+> > > > > > > hid-sensor-hub devices only start sending events through
+> > > > > > > the
+> > > > > > > IIO
+> > > > > > > trigger after a suspend/resume cycle.
 > > 
-> > That is using GPIO pins of the PMI2 device - the PMIC GPIO driver, I
-> > suppose.
 > > 
-> > So in addition to the PMIC MFD driver, you need to have a GPIO driver
-> > for Dollar Cove (I guess the quilt patch series included that as well?).
+> > > Srinivas, does it sound like anything familiar to you?
+> > 
+> > I guess this is related to
+> > https://github.com/hadess/iio-sensor-proxy/issues/82
+> > 
+> > There is some race between user space and iio. So the driver powerup
+> > never gets called back to power a hub during system boot. So the
+> > workaround was to add to systemd unit file for iio-sensor-proxy 
+> > [Unit]
+> > After=multi-user.target
+> > 
+> > Something changed timings in the kernel, which triggered this issue.
 > 
-> Nope, I see it for AX288 but didn't find it for TI DCove.  And in
-> current Linus' tree axp288_cells[] doesn't include gpio so
-> I concluded it's not needed... what am I missing?
+> I don't think it's simply "timings", or at least it's a big enough
+> window of opportunity that I can reproduce the bug 100% of the time
+> when not adding timeouts to iio-sensor-proxy's timeout.
+> 
+> Putting the machine on suspend and resuming it also fixes the problem
+> (for a machine I've been testing that can be suspended, it's not an
+> option for all of them).
+> 
+> > I never got chance to root cause this.
+> 
+> Well, at least the root cause is limited to a single commit, shame it's
+> a merge one.
 
-So reading your DSDT there is that GPIO button array device \_SB.TBAD
-which has one GpioInt() referencing \_SB.PCI0.I2C7.PMI2. I suppose that
-is the power button GPIO.
+In fact this is a merge that doesn't change any code by itself (I thought it
+did, but that was not correct), so if that had been more than timings, you'd
+have seen breakage on at least one of the merged branches.
 
-In order to use that there needs to be a GPIO driver exposing those
-GPIOs to other drivers. So it is definitely needed.
+Moreover, it merges the commits under 3431e490b503 back on top of material
+that went into 4.2, so if you only see the problem in 4.3 and later, this has to
+be the 3431e490b503 branch.
+
+Can you double check 3431e490b503 alone, please?
+
+Thanks,
+Rafael
+
