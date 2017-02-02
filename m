@@ -1,342 +1,131 @@
 From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: Re: [PATCH V11 3/3] irqchip: qcom: Add IRQ combiner driver
-Date: Thu, 02 Feb 2017 17:20:28 -0500
-Message-ID: <c66ebf31f65bbb469f25e5a825c6f20f@codeaurora.org>
-References: <1484879660-1960-1-git-send-email-agustinv@codeaurora.org>
- <1484879660-1960-4-git-send-email-agustinv@codeaurora.org>
- <CAHp75Vc9XSZZ2eyu=2reqNS22Op6a9g6W--1Zf3z_LZmXDeRtQ@mail.gmail.com>
+Subject: Re: [PATCH V10 2/3] ACPI: Add support for ResourceSource/IRQ domain
+ mapping
+Date: Thu, 02 Feb 2017 17:38:49 -0500
+Message-ID: <a0cc7d21838cf922c8c7cca1bd2b4b49@codeaurora.org>
+References: <1484757988-23739-1-git-send-email-agustinv@codeaurora.org>
+ <1484757988-23739-3-git-send-email-agustinv@codeaurora.org>
+ <CAJZ5v0gfW-qn0Onj95EJmU94rp-+osZCqk+JBs96cJuGz1PUTA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII;
  format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:55842 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:35724 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751622AbdBBWUs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 17:20:48 -0500
-In-Reply-To: <CAHp75Vc9XSZZ2eyu=2reqNS22Op6a9g6W--1Zf3z_LZmXDeRtQ@mail.gmail.com>
+        with ESMTP id S1751520AbdBBWiv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 17:38:51 -0500
+In-Reply-To: <CAJZ5v0gfW-qn0Onj95EJmU94rp-+osZCqk+JBs96cJuGz1PUTA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, msalter@redhat.com, mlangsdo@redhat.com, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, guohanjun@huawei.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Andy Gross <agross@codeaurora.org>, harba@codeaurora.org, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Al Stone <ahs3@redhat.com>, astone@redhat.com, Graeme Gregory <graeme.gregory@linaro.org>, Hanjun Guo <guohanjun@huawei.com>, Charles
 
-Hi Andy,
+Hi Rafael,
 
-On 2017-01-25 19:44, Andy Shevchenko wrote:
-> On Fri, Jan 20, 2017 at 4:34 AM, Agustin Vega-Frias
+On 2017-01-31 17:10, Rafael J. Wysocki wrote:
+> On Wed, Jan 18, 2017 at 5:46 PM, Agustin Vega-Frias
 > <agustinv@codeaurora.org> wrote:
->> Driver for interrupt combiners in the Top-level Control and Status
->> Registers (TCSR) hardware block in Qualcomm Technologies chips.
+>> ACPI extended IRQ resources may contain a ResourceSource to specify
+>> an alternate interrupt controller. Introduce acpi_irq_get and use it
+>> to implement ResourceSource/IRQ domain mapping.
 >> 
->> An interrupt combiner in this block combines a set of interrupts by
->> OR'ing the individual interrupt signals into a summary interrupt
->> signal routed to a parent interrupt controller, and provides read-
->> only, 32-bit registers to query the status of individual interrupts.
->> The status bit for IRQ n is bit (n % 32) within register (n / 32)
->> of the given combiner. Thus, each combiner can be described as a set
->> of register offsets and the number of IRQs managed.
-> 
->> +static inline u32 irq_register(int irq)
->> +{
->> +       return irq / REG_SIZE;
->> +}
+>> The new API is similar to of_irq_get and allows re-initialization
+>> of a platform resource from the ACPI extended IRQ resource, and
+>> provides proper behavior for probe deferral when the domain is not
+>> yet present when called.
+>> 
+>> Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+>> ---
+> [...]
+>> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+>> index c4af003..61423d2 100644
+>> --- a/drivers/base/platform.c
+>> +++ b/drivers/base/platform.c
+>> @@ -102,6 +102,14 @@ int platform_get_irq(struct platform_device *dev, 
+>> unsigned int num)
+>>         }
+>> 
+>>         r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+>> +       if (r && r->flags & IORESOURCE_DISABLED && 
+>> ACPI_COMPANION(&dev->dev)) {
+>> +               int ret;
 >> +
->> +static inline u32 irq_bit(int irq)
->> +{
->> +       return irq % REG_SIZE;
->> +
->> +}
-> 
-> Besides extra line I do not see a benefit of those helpers. On first
-> glance they even increase characters to type.
-> 
-
-Will remove these.
-
->> +static inline int irq_nr(u32 reg, u32 bit)
->> +{
->> +       return reg * REG_SIZE + bit;
->> +}
-> 
-> This one might make sense.
-> 
->> +static void combiner_handle_irq(struct irq_desc *desc)
->> +{
->> +       struct combiner *combiner = irq_desc_get_handler_data(desc);
->> +       struct irq_chip *chip = irq_desc_get_chip(desc);
->> +       u32 reg;
->> +
->> +       chained_irq_enter(chip, desc);
->> +
->> +       for (reg = 0; reg < combiner->nregs; reg++) {
->> +               int virq;
->> +               int hwirq;
->> +               u32 bit;
->> +               u32 status;
->> +
->> +               bit = readl_relaxed(combiner->regs[reg].addr);
->> +               status = bit & combiner->regs[reg].enabled;
->> +               if (!status)
->> +                       pr_warn_ratelimited("Unexpected IRQ on CPU%d: 
->> (%08x %08lx %p)\n",
->> +                                           smp_processor_id(), bit,
->> +                                           
->> combiner->regs[reg].enabled,
->> +                                           combiner->regs[reg].addr);
->> +
-> 
->> +               while (status) {
->> +                       bit = __ffs(status);
->> +                       status &= ~(1 << bit);
-> 
-> Interesting way of for_each_set_bit() ?
-> 
-
-I'm leaving this as-is since in arm64 using __ffs can be optimized
-better by using the bic instruction.
-
->> +                       hwirq = irq_nr(reg, bit);
->> +                       virq = irq_find_mapping(combiner->domain, 
->> hwirq);
->> +                       if (virq > 0)
->> +                               generic_handle_irq(virq);
->> +
->> +               }
->> +       }
->> +
->> +       chained_irq_exit(chip, desc);
->> +}
->> +
-> 
->> +/*
->> + * irqchip callbacks
->> + */
-> 
-> Useless.
-> 
-
-Will remove
-
->> +/*
->> + * irq_domain_ops callbacks
->> + */
-> 
-> Ditto.
-> 
-
-Will remove
-
->> +/*
->> + * Device probing
->> + */
-> 
-> Ditto.
-> 
-
-Will remove
-
->> +static acpi_status count_registers_cb(struct acpi_resource *ares, 
->> void *context)
->> +{
->> +       int *count = context;
-> 
-> I would consider to define a struct. It would be easy to extend if 
-> needed and...
-> 
-
-The intent here is always to get the count so I don't see value
-in adding the struct.
-
->> +
->> +       if (ares->type == ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
->> +               ++(*count);
-> 
-> ...allows not to use such of constructions. (I think above is
-> equivalent to ++*count).
-> 
-
-IMHO having the parentheses makes the code clearer.
-
->> +       return AE_OK;
-> 
->> +}
->> +
->> +static int count_registers(struct platform_device *pdev)
->> +{
->> +       struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
-> 
-> You don't use adev, so, ACPI_HANDLE() ?
-> 
-
-Will change
-
->> +       acpi_status status;
->> +       int count = 0;
->> +
->> +       if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
->> +               return -EINVAL;
->> +
->> +       status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
->> +                                    count_registers_cb, &count);
->> +       if (ACPI_FAILURE(status))
->> +               return -EINVAL;
->> +       return count;
->> +}
-> 
-> Oh, since you are using this just as a helper to get count first, why
-> not to combine this in one callback?
-> What's the benefit of separation?
-> 
-
-This is because we do an allocation based on the count first.
-
->> +
->> +struct get_registers_context {
->> +       struct device *dev;
->> +       struct combiner *combiner;
->> +       int err;
->> +};
->> +
->> +static acpi_status get_registers_cb(struct acpi_resource *ares, void 
->> *context)
->> +{
->> +       struct get_registers_context *ctx = context;
->> +       struct acpi_resource_generic_register *reg;
->> +       phys_addr_t paddr;
->> +       void __iomem *vaddr;
->> +
->> +       if (ares->type != ACPI_RESOURCE_TYPE_GENERIC_REGISTER)
->> +               return AE_OK;
->> +
->> +       reg = &ares->data.generic_reg;
->> +       paddr = reg->address;
->> +       if ((reg->space_id != ACPI_SPACE_MEM) ||
->> +           (reg->bit_offset != 0) ||
->> +           (reg->bit_width > REG_SIZE)) {
->> +               dev_err(ctx->dev, "Bad register resource @%pa\n", 
->> &paddr);
->> +               ctx->err = -EINVAL;
->> +               return AE_ERROR;
->> +       }
->> +
->> +       vaddr = devm_ioremap(ctx->dev, reg->address, REG_SIZE);
->> +       if (IS_ERR(vaddr)) {
->> +               dev_err(ctx->dev, "Can't map register @%pa\n", 
->> &paddr);
->> +               ctx->err = PTR_ERR(vaddr);
->> +               return AE_ERROR;
+>> +               ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+>> +               if (ret)
+>> +                       return ret;
 >> +       }
 > 
-> This all sounds to me like an OperationalRegion. But I'm not sure it's
-> suitable here.
-> Do you have ACPI table carved in stone?
+> The code above is a bit convoluted.  It would be better to write it as
+> something like
+> 
+> if (r && r->flags & IORESOURCE_DISABLED) {
+>         struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> 
+>         if (adev) {
+>                 int ret = acpi_irq_get(adev->handle, num, r);
+> 
+>                 if (ret)
+>                         return ret;
+>         }
+> }
 > 
 
-I decided to go with registers because in some cases these might be non-
-contiguous.
+I changed this to:
 
->> +
->> +       ctx->combiner->regs[ctx->combiner->nregs].addr = vaddr;
->> +       ctx->combiner->nirqs += reg->bit_width;
->> +       ctx->combiner->nregs++;
->> +       return AE_OK;
->> +}
->> +
->> +static int get_registers(struct platform_device *pdev, struct 
->> combiner *comb)
->> +{
->> +       struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
->> +       acpi_status status;
->> +       struct get_registers_context ctx;
->> +
->> +       if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
->> +               return -EINVAL;
->> +
->> +       ctx.dev = &pdev->dev;
->> +       ctx.combiner = comb;
->> +       ctx.err = 0;
->> +
->> +       status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
->> +                                    get_registers_cb, &ctx);
->> +       if (ACPI_FAILURE(status))
->> +               return ctx.err;
->> +       return 0;
->> +}
->> +
->> +static int __init combiner_probe(struct platform_device *pdev)
->> +{
->> +       struct combiner *combiner;
->> +       size_t alloc_sz;
->> +       u32 nregs;
->> +       int err;
->> +
->> +       nregs = count_registers(pdev);
->> +       if (nregs <= 0) {
->> +               dev_err(&pdev->dev, "Error reading register 
->> resources\n");
->> +               return -EINVAL;
->> +       }
->> +
->> +       alloc_sz = sizeof(*combiner) + sizeof(struct combiner_reg) * 
->> nregs;
->> +       combiner = devm_kzalloc(&pdev->dev, alloc_sz, GFP_KERNEL);
->> +       if (!combiner)
->> +               return -ENOMEM;
->> +
->> +       err = get_registers(pdev, combiner);
->> +       if (err < 0)
->> +               return err;
->> +
->> +       combiner->parent_irq = platform_get_irq(pdev, 0);
->> +       if (combiner->parent_irq <= 0) {
->> +               dev_err(&pdev->dev, "Error getting IRQ resource\n");
->> +               return -EPROBE_DEFER;
->> +       }
->> +
->> +       combiner->domain = irq_domain_create_linear(pdev->dev.fwnode, 
->> combiner->nirqs,
->> +                                                   &domain_ops, 
->> combiner);
->> +       if (!combiner->domain)
->> +               /* Errors printed by irq_domain_create_linear */
->> +               return -ENODEV;
->> +
->> +       irq_set_chained_handler_and_data(combiner->parent_irq,
->> +                                        combiner_handle_irq, 
->> combiner);
->> +
->> +       dev_info(&pdev->dev, "Initialized with [p=%d,n=%d,r=%p]\n",
->> +                combiner->parent_irq, combiner->nirqs, 
->> combiner->regs[0].addr);
->> +       return 0;
->> +}
->> +
->> +static const struct acpi_device_id qcom_irq_combiner_ids[] 
->> __dsdt_irqchip = {
->> +       { "QCOM80B1", },
->> +       { }
->> +};
->> +
->> +static struct platform_driver qcom_irq_combiner_probe = {
->> +       .driver = {
->> +               .name = "qcom-irq-combiner",
-> 
->> +               .owner = THIS_MODULE,
-> 
-> Do you still need this?
-> 
+     r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+     if (has_acpi_companion(&dev->dev)) {
+         if (r && r->flags & IORESOURCE_DISABLED) {
+             int ret;
 
-Will remove
+             ret = acpi_irq_get(ACPI_HANDLE(&dev->dev), num, r);
+             if (ret)
+                 return ret;
+         }
+     }
 
-Thanks,
+To avoid errors when CONFIG_ACPI is disabled.
+
+Thanks for the ACKs. V12 coming soon.
+
 Agustin
 
->> +               .acpi_match_table = ACPI_PTR(qcom_irq_combiner_ids),
->> +       },
+>> +
+>>         /*
+>>          * The resources may pass trigger flags to the irqs that need
+>>          * to be set up. It so happens that the trigger flags for
+>> @@ -1450,4 +1458,3 @@ void __init early_platform_cleanup(void)
+>>                 memset(&pd->dev.devres_head, 0, 
+>> sizeof(pd->dev.devres_head));
+>>         }
+>>  }
+>> -
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 5b36974..03a94cd 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -1153,4 +1153,14 @@ static inline void acpi_table_upgrade(void) { }
+>>  static inline int parse_spcr(bool earlycon) { return 0; }
+>>  #endif
+>> 
+>> +#ifdef CONFIG_ACPI_GENERIC_GSI
+>> +int acpi_irq_get(acpi_handle handle, unsigned int index, struct 
+>> resource *res);
+>> +#else
+>> +static inline int acpi_irq_get(acpi_handle handle, unsigned int 
+>> index,
+>> +                              struct resource *res)
+>> +{
+>> +       return -EINVAL;
+>> +}
+>> +#endif
+>> +
+>>  #endif /*_LINUX_ACPI_H*/
 > 
-> --
-> With Best Regards,
-> Andy Shevchenko
+> The rest looks reasonable to me.
+> 
+> Thanks,
+> Rafael
 
 -- 
 Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm 
