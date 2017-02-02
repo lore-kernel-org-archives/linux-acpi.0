@@ -1,73 +1,110 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 3/4] device property: constify property arrays values
-Date: Fri, 3 Feb 2017 00:16:29 +0100
-Message-ID: <CAJZ5v0jB_8LXPR7Uj0j5gyTo+Bdk9Sud+9jreA4VT9+QsB5ieA@mail.gmail.com>
-References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
- <20170201173125.40354-4-dmitry.torokhov@gmail.com> <1485991803.22276.14.camel@perches.com>
- <1605853.brEpCT4tOG@aspire.rjw.lan> <20170202163918.GA21924@dtor-ws>
- <1486054110.2133.366.camel@linux.intel.com> <C3BEC996-015E-4536-AE2F-DB0819631789@gmail.com>
- <1486057978.2133.369.camel@linux.intel.com> <20170202183831.GA32759@dtor-ws>
+Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
+ (possibly badly bisected)
+Date: Fri, 3 Feb 2017 00:21:20 +0100
+Message-ID: <CAJZ5v0i9+MgQ2-dx5bvZ7DRgGsKYCCEj-rJvJ01wCfCAjzk4SQ@mail.gmail.com>
+References: <1484927552.21721.17.camel@hadess.net> <1485993472.18380.73.camel@linux.intel.com>
+ <1486031705.16399.1.camel@hadess.net> <2492725.VHRXfnWZmy@aspire.rjw.lan> <1486039342.2316.1.camel@hadess.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:36054 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751595AbdBBXQb (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 18:16:31 -0500
-In-Reply-To: <20170202183831.GA32759@dtor-ws>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1486039342.2316.1.camel@hadess.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Bastien Nocera <hadess@hadess.net>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Joe Perches <joe@perches.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Thu, Feb 2, 2017 at 7:38 PM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Thu, Feb 02, 2017 at 07:52:58PM +0200, Andy Shevchenko wrote:
->> On Thu, 2017-02-02 at 09:07 -0800, Dmitry Torokhov wrote:
->> > On February 2, 2017 8:48:30 AM PST, Andy Shevchenko <andriy.shevchenko
->> > @linux.intel.com> wrote:
->> > > On Thu, 2017-02-02 at 08:39 -0800, Dmitry Torokhov wrote:
->> > > > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+On Thu, Feb 2, 2017 at 1:42 PM, Bastien Nocera <hadess@hadess.net> wrote:
+> On Thu, 2017-02-02 at 12:33 +0100, Rafael J. Wysocki wrote:
+>> On Thursday, February 02, 2017 11:35:05 AM Bastien Nocera wrote:
+>> > On Wed, 2017-02-01 at 15:57 -0800, Srinivas Pandruvada wrote:
+>> > > On Thu, 2017-02-02 at 00:38 +0100, Rafael J. Wysocki wrote:
+>> > > > + Srinivas
 >> > > >
->> > > > Data that is fed into property arrays should not be modified, so
+>> > > > On Tuesday, January 31, 2017 02:37:43 PM Bastien Nocera wrote:
+>> > > > >
+>> > > > > Hey Rafael,
+>> > > > >
+>> > > > > On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
+>> > > > > >
+>> > > > > > On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@had
+>> > > > > > ess.
+>> > > > > > ne
+>> > > > > > t>
+>> > > > > > wrote:
+>> > > > > > >
+>> > > > > > > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
+>> > > > > > > >
+>> > > > > > > > Hey,
+>> > > > > > > >
+>> > > > > > > > TLDR:
+>> > > > > > > > # first bad commit:
+>> > > > > > > > [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
+>> > > > > > > > Merge
+>> > > > > > > > back earlier ACPI PM material for v4.3.
+>> > > > > > > >
+>> > > > > > > > hid-sensor-hub devices only start sending events
+>> > > > > > > > through
+>> > > > > > > > the
+>> > > > > > > > IIO
+>> > > > > > > > trigger after a suspend/resume cycle.
 >> > >
->> > > let's
->> > > > mark
->> > > > relevant pointers as const. This will allow us making source
->> > > > arrays
 >> > >
->> > > as
->> > > > const/__initconst.
->> > > >
->> > > > Also fix memory leaks on errors in property_entry_copy().
+>> > > > Srinivas, does it sound like anything familiar to you?
 >> > >
->> > > While the code looks okay, I'm not sure what memory leaks you are
->> > > referring to. The idea as far as I remember was to run *free()
->> > > function
->> > > if *copy() fails.
+>> > > I guess this is related to
+>> > > https://github.com/hadess/iio-sensor-proxy/issues/82
+>> > >
+>> > > There is some race between user space and iio. So the driver
+>> > > powerup
+>> > > never gets called back to power a hub during system boot. So the
+>> > > workaround was to add to systemd unit file for iio-sensor-proxy
+>> > > [Unit]
+>> > > After=multi-user.target
+>> > >
+>> > > Something changed timings in the kernel, which triggered this
+>> > > issue.
 >> >
->> > That could have been OK for internal function, but will not work for
->> > public API, as it goes against normal pattern.
-
-But it is an internal function, isn't it?
-
-Also its only caller does the right thing AFAICS.
-
->> > You will be old and grey and still correcting patches that would be
->> > getting it wrong :)
+>> > I don't think it's simply "timings", or at least it's a big enough
+>> > window of opportunity that I can reproduce the bug 100% of the time
+>> > when not adding timeouts to iio-sensor-proxy's timeout.
+>> >
+>> > Putting the machine on suspend and resuming it also fixes the
+>> > problem
+>> > (for a machine I've been testing that can be suspended, it's not an
+>> > option for all of them).
+>> >
+>> > > I never got chance to root cause this.
+>> >
+>> > Well, at least the root cause is limited to a single commit, shame
+>> > it's
+>> > a merge one.
 >>
->> Yes, which sounds not exactly as "we have memory leaks and here we are
->> fixing them". So, my comment regarding to phrasing of the commit
->> message. Someone might mistakenly think that it needs to be ported as
->> earlier as this had been introduced.
+>> In fact this is a merge that doesn't change any code by itself (I
+>> thought it
+>> did, but that was not correct), so if that had been more than
+>> timings, you'd
+>> have seen breakage on at least one of the merged branches.
+>>
+>> Moreover, it merges the commits under 3431e490b503 back on top of
+>> material
+>> that went into 4.2, so if you only see the problem in 4.3 and later,
+>> this has to
+>> be the 3431e490b503 branch.
+>>
+>> Can you double check 3431e490b503 alone, please?
 >
-> OK, I'll leave it up to Rafael to massage the commit message as he sees
-> fit.
+> I don't understand what you're asking of me. I'm not a git master, and
+> I've never had to deal with merge commits.
+>
+> Did you want me to run "git reset --hard 3431e490b503" and test the
+> resulting kernel? I'm pretty sure that's equivalent what my 3 runs of
+> bisection have done, and it failed.
 
-To be precise, there are no memory leaks and this is just adding an
-unnecessary label along with some code around it, equally unnecessary.
+I must have misunderstood you, sorry.
 
-Are you planning on making property_entry_copy() non-static?
+This means that the error is present in 3431e490b503, though, so
+something on this branch had introduced it, most likely.
 
 Thanks,
 Rafael
