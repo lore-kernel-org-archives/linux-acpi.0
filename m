@@ -1,64 +1,71 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v4 3/4] device property: constify property arrays values
-Date: Thu, 2 Feb 2017 10:38:31 -0800
-Message-ID: <20170202183831.GA32759@dtor-ws>
-References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
- <20170201173125.40354-4-dmitry.torokhov@gmail.com>
- <1485991803.22276.14.camel@perches.com>
- <1605853.brEpCT4tOG@aspire.rjw.lan>
- <20170202163918.GA21924@dtor-ws>
- <1486054110.2133.366.camel@linux.intel.com>
- <C3BEC996-015E-4536-AE2F-DB0819631789@gmail.com>
- <1486057978.2133.369.camel@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] acpi, nfit: fix acpi_nfit_flush_probe() crash
+Date: Thu, 02 Feb 2017 10:53:02 -0800
+Message-ID: <148606158246.11883.8248896172906265924.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1486057978.2133.369.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Joe Perches <joe@perches.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:11803 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751120AbdBBS5I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 2 Feb 2017 13:57:08 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Feb 02, 2017 at 07:52:58PM +0200, Andy Shevchenko wrote:
-> On Thu, 2017-02-02 at 09:07 -0800, Dmitry Torokhov wrote:
-> > On February 2, 2017 8:48:30 AM PST, Andy Shevchenko <andriy.shevchenko
-> > @linux.intel.com> wrote:
-> > > On Thu, 2017-02-02 at 08:39 -0800, Dmitry Torokhov wrote:
-> > > > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > > > 
-> > > > Data that is fed into property arrays should not be modified, so
-> > > 
-> > > let's
-> > > > mark
-> > > > relevant pointers as const. This will allow us making source
-> > > > arrays
-> > > 
-> > > as
-> > > > const/__initconst.
-> > > > 
-> > > > Also fix memory leaks on errors in property_entry_copy().
-> > > 
-> > > While the code looks okay, I'm not sure what memory leaks you are
-> > > referring to. The idea as far as I remember was to run *free()
-> > > function
-> > > if *copy() fails.
-> > 
-> > That could have been OK for internal function, but will not work for
-> > public API, as it goes against normal pattern.
-> > 
-> > You will be old and grey and still correcting patches that would be
-> > getting it wrong :)
-> 
-> Yes, which sounds not exactly as "we have memory leaks and here we are
-> fixing them". So, my comment regarding to phrasing of the commit
-> message. Someone might mistakenly think that it needs to be ported as
-> earlier as this had been introduced.
+We queue an on-stack work item to 'nfit_wq' and wait for it to complete
+as part of a 'flush_probe' request. However, if the user cancels the
+wait we need to make sure the item is flushed from the queue otherwise
+we are leaving an out-of-scope stack address on the work list.
 
-OK, I'll leave it up to Rafael to massage the commit message as he sees
-fit.
+ BUG: unable to handle kernel paging request at ffffbcb3c72f7cd0
+ IP: [<ffffffffa9413a7b>] __list_add+0x1b/0xb0
+ [..]
+ RIP: 0010:[<ffffffffa9413a7b>]  [<ffffffffa9413a7b>] __list_add+0x1b/0xb0
+ RSP: 0018:ffffbcb3c7ba7c00  EFLAGS: 00010046
+ [..]
+ Call Trace:
+  [<ffffffffa90bb11a>] insert_work+0x3a/0xc0
+  [<ffffffffa927fdda>] ? seq_open+0x5a/0xa0
+  [<ffffffffa90bb30a>] __queue_work+0x16a/0x460
+  [<ffffffffa90bbb08>] queue_work_on+0x38/0x40
+  [<ffffffffc0cf2685>] acpi_nfit_flush_probe+0x95/0xc0 [nfit]
+  [<ffffffffc0cf25d0>] ? nfit_visible+0x40/0x40 [nfit]
+  [<ffffffffa9571495>] wait_probe_show+0x25/0x60
+  [<ffffffffa9546b30>] dev_attr_show+0x20/0x50
 
-Thanks.
+Fixes: 7ae0fa439faf ("nfit, libnvdimm: async region scrub workqueue")
+Cc: <stable@vger.kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
--- 
-Dmitry
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 2f82b8eba360..7361d00818e2 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2704,6 +2704,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct acpi_nfit_flush_work flush;
++	int rc;
+ 
+ 	/* bounce the device lock to flush acpi_nfit_add / acpi_nfit_notify */
+ 	device_lock(dev);
+@@ -2716,7 +2717,10 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ 	INIT_WORK_ONSTACK(&flush.work, flush_probe);
+ 	COMPLETION_INITIALIZER_ONSTACK(flush.cmp);
+ 	queue_work(nfit_wq, &flush.work);
+-	return wait_for_completion_interruptible(&flush.cmp);
++
++	rc = wait_for_completion_interruptible(&flush.cmp);
++	cancel_work_sync(&flush.work);
++	return rc;
+ }
+ 
+ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+
