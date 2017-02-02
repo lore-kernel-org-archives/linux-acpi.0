@@ -1,114 +1,125 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 1/3] ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
-Date: Thu, 02 Feb 2017 12:41:26 +0100
-Message-ID: <2538517.VnXrn8zi1x@aspire.rjw.lan>
-References: <1485187737-22414-1-git-send-email-dan@emutex.com> <1485523815-9629-1-git-send-email-dan@emutex.com> <1485523815-9629-2-git-send-email-dan@emutex.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] initity: try to improve __nocapture annotations
+Date: Thu, 2 Feb 2017 12:59:09 +0100
+Message-ID: <CAK8P3a2Qmc0H5sE2w106We1P=OpQ_CRQ-A8b+2rZR7Zb5C40fw@mail.gmail.com>
+References: <20170201161311.2050831-1-arnd@arndb.de> <CAGXu5jLc8z0Q-etB-=9rBnt-mNPKEL3t5rDooSwTyACPX2NW0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1485523815-9629-2-git-send-email-dan@emutex.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Dan O'Donovan <dan@emutex.com>
-Cc: linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAGXu5jLc8z0Q-etB-=9rBnt-mNPKEL3t5rDooSwTyACPX2NW0g@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Kees Cook <keescook@chromium.org>
+Cc: PaX Team <pageexec@freemail.hu>, Emese Revfy <re.emese@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Josh Triplett <josh@joshtriplett.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, minipli@ld-linux.so, Russell King <linux@armlinux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@poochiereds.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, linux-arch <linux-arch@vger.kernel.org>, kasan-dev <kasan-dev@googlegroups.com>, Linux-MM <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, January 27, 2017 01:30:13 PM Dan O'Donovan wrote:
-> From: Crestez Dan Leonard <leonard.crestez@intel.com>
-> 
-> When using devicetree stuff like i2c_client.name or spi_device.modalias
-> is initialized to the first DT compatible id with the vendor prefix
-> stripped. Since some drivers rely on this try to replicate it when using
-> ACPI with DT ids.
-> 
-> Signed-off-by: Crestez Dan Leonard <leonard.crestez@intel.com>
-> Signed-off-by: Dan O'Donovan <dan@emutex.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+On Thu, Feb 2, 2017 at 1:39 AM, Kees Cook <keescook@chromium.org> wrote:
+> On Wed, Feb 1, 2017 at 8:11 AM, Arnd Bergmann <arnd@arndb.de> wrote:
 
-First off, the original author of the patch doesn't seem to be reachable under
-the Intel address any more, so his S-o-b is meaningless and it shouldn't be
-there.  In such cases you can send the patch as From: you and give a credit
-to the original author in the changelog.
+>> -void ACPI_INTERNAL_VAR_XFACE
+>> +void __unverified_nocapture(3) ACPI_INTERNAL_VAR_XFACE
+>>  acpi_debug_print(u32 requested_debug_level,
+>>                  u32 line_number,
+>>                  const char *function_name,
+>
+> This might be better by marking acpi_ut_trim_function_name() as
+> __nocapture. I'll give it a try...
 
-Second, as Mark said ->
+I tried that without success: the problem is actually the later acpi_os_printf()
+that takes the result from acpi_ut_trim_function_name().
 
-> ---
->  drivers/acpi/bus.c      | 35 +++++++++++++++++++++++++++++++++++
->  include/acpi/acpi_bus.h |  1 +
->  2 files changed, 36 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 95855cb..8b9657f 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -677,6 +677,41 @@ static bool acpi_of_match_device(struct acpi_device *adev,
->  	return false;
->  }
->  
-> +/**
-> + * acpi_of_modalias - Like of_modalias_node for ACPI with DT ids
-> + * @adev:	ACPI device object to match.
-> + * @outstr:	Pointer to buffer for result
-> + * @outlen:	Length of outstr value
-> + *
-> + * This is a counterpart of of_modalias_node() for struct acpi_device
-> + * objects. If there is a compatible string for @adev, copy it to the
-> + * @outstr location with the vendor prefix stripped.
-> + *
-> + * Returns 0 on success or negative errno on failure.
-> + */
-> +int acpi_of_modalias(struct acpi_device *adev, char *outstr, size_t outlen)
+>> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+>> index 9f4637e9dd92..9644cec5b082 100644
+>> --- a/include/acpi/acpixf.h
+>> +++ b/include/acpi/acpixf.h
+>> @@ -946,7 +946,7 @@ ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6) __nocapture(3)
+>>                                                 const char *module_name,
+>>                                                 u32 component_id,
+>>                                                 const char *format, ...))
+>> -ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
+>> +ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6) __nocapture(3)
+>>                                 void ACPI_INTERNAL_VAR_XFACE
+>>                                 acpi_debug_print_raw(u32 requested_debug_level,
+>>                                                      u32 line_number,
+>
+> I wonder why the plugin needs this at all: function_name (the third
+> arg) isn't even used in the function.
 
--> this could be a bool function and you could provide something like
-acpi_set_modalias() doing the entire
+This one wasn't needed, I should probably have left it out. It just seemed
+right for consistency to do the same for acpi_debug_print_raw() and
+acpi_debug_print().
 
-if (!acpi_of_modalias(adev, outstr, outlen))
-               strlcpy(outstr, dev_name(&adev->dev), outlen);
+>> diff --git a/include/linux/string.h b/include/linux/string.h
+>> index 8b3b97e7b2b0..0ee877593464 100644
+>> --- a/include/linux/string.h
+>> +++ b/include/linux/string.h
+>> @@ -76,7 +76,7 @@ static inline __must_check char *strstrip(char *str)
+>>  extern char * strstr(const char *, const char *) __nocapture(-1, 2);
+>>  #endif
+>>  #ifndef __HAVE_ARCH_STRNSTR
+>> -extern char * strnstr(const char *, const char *, size_t) __nocapture(-1, 2);
+>> +extern char * strnstr(const char *, const char *, size_t);
+>
+> That doesn't seem right: strnstr doesn't capture...
 
-thing, so that its users don't have to duplicate this conditional.
+Right, so better __unverified_nocapture() then?
 
-And then acpi_of_modalias() could be static and the only thing to export
-would be acpi_set_modalias().
+>>  #endif
+>>  #ifndef __HAVE_ARCH_STRLEN
+>>  extern __kernel_size_t strlen(const char *) __nocapture(1);
+>> diff --git a/lib/string.c b/lib/string.c
+>> index ed83562a53ae..01151a1a0b61 100644
+>> --- a/lib/string.c
+>> +++ b/lib/string.c
+>> @@ -870,7 +870,7 @@ void *memchr(const void *s, int c, size_t n)
+>>  EXPORT_SYMBOL(memchr);
+>>  #endif
+>>
+>> -static void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
+>> +static __always_inline void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
+>
+> Is this from another fix? Seems unrelated?
 
-> +{
-> +	const union acpi_object *of_compatible;
-> +	const union acpi_object *obj;
-> +	const char *str, *chr;
-> +
-> +	of_compatible = adev->data.of_compatible;
-> +	if (!of_compatible)
-> +		return -ENODEV;
-> +
-> +	if (of_compatible->type == ACPI_TYPE_PACKAGE)
-> +		obj = of_compatible->package.elements;
-> +	else /* Must be ACPI_TYPE_STRING. */
-> +		obj = of_compatible;
-> +
-> +	str = obj->string.pointer;
-> +	chr = strchr(str, ',');
-> +	strlcpy(outstr, chr ? chr + 1 : str, outlen);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_of_modalias);
-> +
->  static bool __acpi_match_device_cls(const struct acpi_device_id *id,
->  				    struct acpi_hardware_id *hwid)
->  {
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 4242c31..351b4a4 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -522,6 +522,7 @@ void acpi_bus_trim(struct acpi_device *start);
->  acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
->  int acpi_match_device_ids(struct acpi_device *device,
->  			  const struct acpi_device_id *ids);
-> +int acpi_of_modalias(struct acpi_device *adev, char *outstr, size_t outlen);
->  int acpi_create_dir(struct acpi_device *);
->  void acpi_remove_dir(struct acpi_device *);
+This fixed a warning about memchr_inv() for me: when check_bytes8()
+is inlined, the compiler can see that the argument is not captured, but
+if gcc decides against inlining, it warns.
 
-Thanks,
-Rafael
+>> diff --git a/mm/kasan/kasan.c b/mm/kasan/kasan.c
+>> index 5f6e09c88d25..ebc02ee1118e 100644
+>> --- a/mm/kasan/kasan.c
+>> +++ b/mm/kasan/kasan.c
+>> @@ -343,7 +343,7 @@ void *memset(void *addr, int c, size_t len)
+>>  }
+>>
+>>  #undef memmove
+>> -void *memmove(void *dest, const void *src, size_t len)
+>> +__unverified_nocapture(2) void *memmove(void *dest, const void *src, size_t len)
+>>  {
+>>         check_memory_region((unsigned long)src, len, false, _RET_IP_);
+>>         check_memory_region((unsigned long)dest, len, true, _RET_IP_);
+>> @@ -352,7 +352,7 @@ void *memmove(void *dest, const void *src, size_t len)
+>>  }
+>>
+>>  #undef memcpy
+>> -void *memcpy(void *dest, const void *src, size_t len)
+>> +__unverified_nocapture(2) void *memcpy(void *dest, const void *src, size_t len)
+>>  {
+>>         check_memory_region((unsigned long)src, len, false, _RET_IP_);
+>>         check_memory_region((unsigned long)dest, len, true, _RET_IP_);
+>> --
+>> 2.9.0
+>>
+>
+> Thanks for the patch! I'll try to reproduce the warnings and get some
+> fixes built if Emese or PaX Team don't beat me to it. :)
+
+I later got more warnings for some of the string functions, but we can
+deal with them
+separately.
+
+    Arnd
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
