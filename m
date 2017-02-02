@@ -1,90 +1,114 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3 (possibly badly bisected)
-Date: Thu, 02 Feb 2017 12:33:42 +0100
-Message-ID: <2492725.VHRXfnWZmy@aspire.rjw.lan>
-References: <1484927552.21721.17.camel@hadess.net> <1485993472.18380.73.camel@linux.intel.com> <1486031705.16399.1.camel@hadess.net>
+Subject: Re: [PATCH v4 1/3] ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
+Date: Thu, 02 Feb 2017 12:41:26 +0100
+Message-ID: <2538517.VnXrn8zi1x@aspire.rjw.lan>
+References: <1485187737-22414-1-git-send-email-dan@emutex.com> <1485523815-9629-1-git-send-email-dan@emutex.com> <1485523815-9629-2-git-send-email-dan@emutex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61530 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751019AbdBBLiY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 06:38:24 -0500
-In-Reply-To: <1486031705.16399.1.camel@hadess.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1485523815-9629-2-git-send-email-dan@emutex.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Dan O'Donovan <dan@emutex.com>
+Cc: linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
 
-On Thursday, February 02, 2017 11:35:05 AM Bastien Nocera wrote:
-> On Wed, 2017-02-01 at 15:57 -0800, Srinivas Pandruvada wrote:
-> > On Thu, 2017-02-02 at 00:38 +0100, Rafael J. Wysocki wrote:
-> > > + Srinivas
-> > > 
-> > > On Tuesday, January 31, 2017 02:37:43 PM Bastien Nocera wrote:
-> > > > 
-> > > > Hey Rafael,
-> > > > 
-> > > > On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
-> > > > > 
-> > > > > On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@hadess.
-> > > > > ne
-> > > > > t>
-> > > > > wrote:
-> > > > > > 
-> > > > > > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
-> > > > > > > 
-> > > > > > > Hey,
-> > > > > > > 
-> > > > > > > TLDR:
-> > > > > > > # first bad commit:
-> > > > > > > [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
-> > > > > > > Merge
-> > > > > > > back earlier ACPI PM material for v4.3.
-> > > > > > > 
-> > > > > > > hid-sensor-hub devices only start sending events through
-> > > > > > > the
-> > > > > > > IIO
-> > > > > > > trigger after a suspend/resume cycle.
-> > 
-> > 
-> > > Srinivas, does it sound like anything familiar to you?
-> > 
-> > I guess this is related to
-> > https://github.com/hadess/iio-sensor-proxy/issues/82
-> > 
-> > There is some race between user space and iio. So the driver powerup
-> > never gets called back to power a hub during system boot. So the
-> > workaround was to add to systemd unit file for iio-sensor-proxy 
-> > [Unit]
-> > After=multi-user.target
-> > 
-> > Something changed timings in the kernel, which triggered this issue.
+On Friday, January 27, 2017 01:30:13 PM Dan O'Donovan wrote:
+> From: Crestez Dan Leonard <leonard.crestez@intel.com>
 > 
-> I don't think it's simply "timings", or at least it's a big enough
-> window of opportunity that I can reproduce the bug 100% of the time
-> when not adding timeouts to iio-sensor-proxy's timeout.
+> When using devicetree stuff like i2c_client.name or spi_device.modalias
+> is initialized to the first DT compatible id with the vendor prefix
+> stripped. Since some drivers rely on this try to replicate it when using
+> ACPI with DT ids.
 > 
-> Putting the machine on suspend and resuming it also fixes the problem
-> (for a machine I've been testing that can be suspended, it's not an
-> option for all of them).
-> 
-> > I never got chance to root cause this.
-> 
-> Well, at least the root cause is limited to a single commit, shame it's
-> a merge one.
+> Signed-off-by: Crestez Dan Leonard <leonard.crestez@intel.com>
+> Signed-off-by: Dan O'Donovan <dan@emutex.com>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-In fact this is a merge that doesn't change any code by itself (I thought it
-did, but that was not correct), so if that had been more than timings, you'd
-have seen breakage on at least one of the merged branches.
+First off, the original author of the patch doesn't seem to be reachable under
+the Intel address any more, so his S-o-b is meaningless and it shouldn't be
+there.  In such cases you can send the patch as From: you and give a credit
+to the original author in the changelog.
 
-Moreover, it merges the commits under 3431e490b503 back on top of material
-that went into 4.2, so if you only see the problem in 4.3 and later, this has to
-be the 3431e490b503 branch.
+Second, as Mark said ->
 
-Can you double check 3431e490b503 alone, please?
+> ---
+>  drivers/acpi/bus.c      | 35 +++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h |  1 +
+>  2 files changed, 36 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 95855cb..8b9657f 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -677,6 +677,41 @@ static bool acpi_of_match_device(struct acpi_device *adev,
+>  	return false;
+>  }
+>  
+> +/**
+> + * acpi_of_modalias - Like of_modalias_node for ACPI with DT ids
+> + * @adev:	ACPI device object to match.
+> + * @outstr:	Pointer to buffer for result
+> + * @outlen:	Length of outstr value
+> + *
+> + * This is a counterpart of of_modalias_node() for struct acpi_device
+> + * objects. If there is a compatible string for @adev, copy it to the
+> + * @outstr location with the vendor prefix stripped.
+> + *
+> + * Returns 0 on success or negative errno on failure.
+> + */
+> +int acpi_of_modalias(struct acpi_device *adev, char *outstr, size_t outlen)
+
+-> this could be a bool function and you could provide something like
+acpi_set_modalias() doing the entire
+
+if (!acpi_of_modalias(adev, outstr, outlen))
+               strlcpy(outstr, dev_name(&adev->dev), outlen);
+
+thing, so that its users don't have to duplicate this conditional.
+
+And then acpi_of_modalias() could be static and the only thing to export
+would be acpi_set_modalias().
+
+> +{
+> +	const union acpi_object *of_compatible;
+> +	const union acpi_object *obj;
+> +	const char *str, *chr;
+> +
+> +	of_compatible = adev->data.of_compatible;
+> +	if (!of_compatible)
+> +		return -ENODEV;
+> +
+> +	if (of_compatible->type == ACPI_TYPE_PACKAGE)
+> +		obj = of_compatible->package.elements;
+> +	else /* Must be ACPI_TYPE_STRING. */
+> +		obj = of_compatible;
+> +
+> +	str = obj->string.pointer;
+> +	chr = strchr(str, ',');
+> +	strlcpy(outstr, chr ? chr + 1 : str, outlen);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_of_modalias);
+> +
+>  static bool __acpi_match_device_cls(const struct acpi_device_id *id,
+>  				    struct acpi_hardware_id *hwid)
+>  {
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 4242c31..351b4a4 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -522,6 +522,7 @@ void acpi_bus_trim(struct acpi_device *start);
+>  acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+>  int acpi_match_device_ids(struct acpi_device *device,
+>  			  const struct acpi_device_id *ids);
+> +int acpi_of_modalias(struct acpi_device *adev, char *outstr, size_t outlen);
+>  int acpi_create_dir(struct acpi_device *);
+>  void acpi_remove_dir(struct acpi_device *);
 
 Thanks,
 Rafael
-
