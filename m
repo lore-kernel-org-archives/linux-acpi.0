@@ -1,110 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Why hid-sensor-hub's IIO doesn't work properly in >= 4.3
- (possibly badly bisected)
-Date: Fri, 3 Feb 2017 00:21:20 +0100
-Message-ID: <CAJZ5v0i9+MgQ2-dx5bvZ7DRgGsKYCCEj-rJvJ01wCfCAjzk4SQ@mail.gmail.com>
-References: <1484927552.21721.17.camel@hadess.net> <1485993472.18380.73.camel@linux.intel.com>
- <1486031705.16399.1.camel@hadess.net> <2492725.VHRXfnWZmy@aspire.rjw.lan> <1486039342.2316.1.camel@hadess.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1486039342.2316.1.camel@hadess.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Richard Hughes <richard@hughsie.com>
+From: Agustin Vega-Frias <agustinv@codeaurora.org>
+Subject: [PATCH V12 0/3] irqchip: qcom: Add IRQ combiner driver
+Date: Thu,  2 Feb 2017 18:23:56 -0500
+Message-ID: <1486077839-25547-1-git-send-email-agustinv@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48118 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751595AbdBBXYN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 18:24:13 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
+Cc: andy.shevchenko@gmail.com, lorenzo.pieralisi@arm.com, timur@codeaurora.org, cov@codeaurora.org, agross@codeaurora.org, harba@codeaurora.org, jcm@redhat.com, msalter@redhat.com, mlangsdo@redhat.com, ahs3@redhat.com, astone@redhat.com, graeme.gregory@linaro.org, guohanjun@huawei.com, charles.garcia-tobin@arm.com, Agustin Vega-Frias <agustinv@codeaurora.org>
 
-On Thu, Feb 2, 2017 at 1:42 PM, Bastien Nocera <hadess@hadess.net> wrote:
-> On Thu, 2017-02-02 at 12:33 +0100, Rafael J. Wysocki wrote:
->> On Thursday, February 02, 2017 11:35:05 AM Bastien Nocera wrote:
->> > On Wed, 2017-02-01 at 15:57 -0800, Srinivas Pandruvada wrote:
->> > > On Thu, 2017-02-02 at 00:38 +0100, Rafael J. Wysocki wrote:
->> > > > + Srinivas
->> > > >
->> > > > On Tuesday, January 31, 2017 02:37:43 PM Bastien Nocera wrote:
->> > > > >
->> > > > > Hey Rafael,
->> > > > >
->> > > > > On Fri, 2017-01-27 at 00:07 +0100, Rafael J. Wysocki wrote:
->> > > > > >
->> > > > > > On Thu, Jan 26, 2017 at 4:15 PM, Bastien Nocera <hadess@had
->> > > > > > ess.
->> > > > > > ne
->> > > > > > t>
->> > > > > > wrote:
->> > > > > > >
->> > > > > > > On Fri, 2017-01-20 at 16:52 +0100, Bastien Nocera wrote:
->> > > > > > > >
->> > > > > > > > Hey,
->> > > > > > > >
->> > > > > > > > TLDR:
->> > > > > > > > # first bad commit:
->> > > > > > > > [50ba22479c324c0d9dc8134d519dcba92d83a8a7]
->> > > > > > > > Merge
->> > > > > > > > back earlier ACPI PM material for v4.3.
->> > > > > > > >
->> > > > > > > > hid-sensor-hub devices only start sending events
->> > > > > > > > through
->> > > > > > > > the
->> > > > > > > > IIO
->> > > > > > > > trigger after a suspend/resume cycle.
->> > >
->> > >
->> > > > Srinivas, does it sound like anything familiar to you?
->> > >
->> > > I guess this is related to
->> > > https://github.com/hadess/iio-sensor-proxy/issues/82
->> > >
->> > > There is some race between user space and iio. So the driver
->> > > powerup
->> > > never gets called back to power a hub during system boot. So the
->> > > workaround was to add to systemd unit file for iio-sensor-proxy
->> > > [Unit]
->> > > After=multi-user.target
->> > >
->> > > Something changed timings in the kernel, which triggered this
->> > > issue.
->> >
->> > I don't think it's simply "timings", or at least it's a big enough
->> > window of opportunity that I can reproduce the bug 100% of the time
->> > when not adding timeouts to iio-sensor-proxy's timeout.
->> >
->> > Putting the machine on suspend and resuming it also fixes the
->> > problem
->> > (for a machine I've been testing that can be suspended, it's not an
->> > option for all of them).
->> >
->> > > I never got chance to root cause this.
->> >
->> > Well, at least the root cause is limited to a single commit, shame
->> > it's
->> > a merge one.
->>
->> In fact this is a merge that doesn't change any code by itself (I
->> thought it
->> did, but that was not correct), so if that had been more than
->> timings, you'd
->> have seen breakage on at least one of the merged branches.
->>
->> Moreover, it merges the commits under 3431e490b503 back on top of
->> material
->> that went into 4.2, so if you only see the problem in 4.3 and later,
->> this has to
->> be the 3431e490b503 branch.
->>
->> Can you double check 3431e490b503 alone, please?
->
-> I don't understand what you're asking of me. I'm not a git master, and
-> I've never had to deal with merge commits.
->
-> Did you want me to run "git reset --hard 3431e490b503" and test the
-> resulting kernel? I'm pretty sure that's equivalent what my 3 runs of
-> bisection have done, and it failed.
+Add support for IRQ combiners in the Top-level Control and Status
+Registers (TCSR) hardware block in Qualcomm Technologies chips.
 
-I must have misunderstood you, sorry.
+The first patch prevents the ACPI core from attempting to map IRQ resources
+with a valid ResourceSource as GSIs.
 
-This means that the error is present in 3431e490b503, though, so
-something on this branch had introduced it, most likely.
+The second patch adds support for ResourceSource/IRQ domain mapping and
+fixes IRQ probe deferral by allowing platform_device IRQ resources to be
+re-initialized from the corresponding ACPI IRQ resource.
 
-Thanks,
-Rafael
+Both changes described above are conditional on the ACPI_GENERIC_GSI config.
+
+The third patch takes advantage of the new capabilities to implement
+the driver for the IRQ combiners.
+
+Tested on top of v4.10-rc6.
+
+Changes V11 -> V12:
+* Remove probe table, add that optimization later.
+* Fix some minor style issues.
+
+Changes V10 -> V11:
+* Add probe table and use it to implement driver presence detection.
+* Fix kernel doc formatting in drivers/acpi/irq.c and some minor style issues.
+* Minor bug fixes in the driver.
+
+Changes V9 -> V10:
+* Add checks for the producer_consumer field to not use produced IRQ
+  resources as consumed.
+* Minor bug fixes in the driver.
+
+Changes V8 -> V9:
+* Do not attempt the mapping for non-GSI IRQs during bus scan.
+* Make some public APIs private to drivers/acpi/irq.c since they are no
+  longer used on other modules.
+
+Agustin Vega-Frias (3):
+  ACPI: Generic GSI: Do not attempt to map non-GSI IRQs during bus scan
+  ACPI: Add support for ResourceSource/IRQ domain mapping
+  irqchip: qcom: Add IRQ combiner driver
+
+ drivers/acpi/Makefile               |   2 +-
+ drivers/acpi/{gsi.c => irq.c}       | 199 ++++++++++++++++++++++++
+ drivers/acpi/resource.c             |  18 ++-
+ drivers/base/platform.c             |  10 ++
+ drivers/irqchip/Kconfig             |   9 ++
+ drivers/irqchip/Makefile            |   1 +
+ drivers/irqchip/qcom-irq-combiner.c | 296 ++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h                |  10 ++
+ 8 files changed, 543 insertions(+), 2 deletions(-)
+ rename drivers/acpi/{gsi.c => irq.c} (31%)
+ create mode 100644 drivers/irqchip/qcom-irq-combiner.c
+
+--
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
