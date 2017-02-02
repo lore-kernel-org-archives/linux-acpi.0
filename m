@@ -1,81 +1,89 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 02/16] device property: Add fwnode_get_parent()
-Date: Thu,  2 Feb 2017 18:22:12 +0200
-Message-ID: <1486052546-19257-3-git-send-email-sakari.ailus@linux.intel.com>
-References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 00/16] ACPI graph support
+Date: Thu,  2 Feb 2017 18:22:10 +0200
+Message-ID: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:10121 "EHLO mga04.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:26803 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750777AbdBBQXv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1751045AbdBBQXv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Thu, 2 Feb 2017 11:23:51 -0500
-In-Reply-To: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hello everyone, 
 
-Now that ACPI has support for returning parent firmware node for both types
-of nodes we can expose this to others as well. This adds a new function
-fwnode_get_parent() that can be used for DT and ACPI nodes to retrieve the
-parent firmware node.
+I posted a previous RFC labelled set of ACPI graph support a while ago: 
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/base/property.c  | 25 +++++++++++++++++++++++++
- include/linux/property.h |  2 ++
- 2 files changed, 27 insertions(+)
+<URL:http://www.spinics.net/lists/linux-acpi/msg69547.html> 
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 43a36d6..384998a 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -867,6 +867,31 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
- EXPORT_SYMBOL_GPL(device_add_properties);
- 
- /**
-+ * fwnode_get_parent - Return parent firwmare node
-+ * @fwnode: Firmware whose parent is retrieved
-+ *
-+ * Return parent firmware node of the given node if possible or %NULL if no
-+ * parent was available.
-+ */
-+struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *parent = NULL;
-+
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node;
-+
-+		node = of_get_parent(to_of_node(fwnode));
-+		if (node)
-+			parent = &node->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		parent = acpi_node_get_parent(fwnode);
-+	}
-+
-+	return parent;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_parent);
-+
-+/**
-  * device_get_next_child_node - Return the next child node handle for a device
-  * @dev: Device to find the next child node for.
-  * @child: Handle to one of the device's child nodes or a null handle.
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 856e50b..85060bf 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -70,6 +70,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
- int fwnode_property_match_string(struct fwnode_handle *fwnode,
- 				 const char *propname, const char *string);
- 
-+struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
-+
- struct fwnode_handle *device_get_next_child_node(struct device *dev,
- 						 struct fwnode_handle *child);
- 
+Since then, the matter of how the properties should be used as in ACPI
+_DSD was discussed in Ksummit and LPC, and a document detailing the rules 
+was written [1].
+
+I've additionally posted v1 which can be found here:
+
+<URL:http://www.spinics.net/lists/linux-acpi/msg71661.html>
+
+This set contains patches written by Mika Westerberg and by myself. The 
+patchset brings support for graphs to ACPI. The functionality achieved by 
+these patches is very similar to what the Device tree provides: the port
+and the endpoint concept are being employed. The patches make use of the
+_DSD property and data extensions to achieve this. The fwnode interface is
+extended by graph functionality; this way graph information originating 
+from both OF and ACPI may be accessed using the same interface, without 
+being aware of the underlying firmware interface. 
+
+The last patch of the set contains ASL documentation including an example.
+
+The entire set may also be found here (on mediatree.git master, but it
+also applies cleanly on linux-next):
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph> 
+
+The resulting fwnode graph interface has been tested using V4L2 async with
+fwnode matching and smiapp and omap3isp drivers, with appropriate changes 
+to make use of the fwnode interface in drivers. 
+
+The V4L2 patches can be found here. The fwnode graph interface is used by 
+the newly added V4L2 fwnode framework which replaces the V4L2 OF
+framework, with equivalent functionality. 
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-acpi>
+
+changes since v1:
+
+- Fix a few checkpatch.pl warnings in Mika's patches (too long lines),
+
+- remove the "endpoint" property specifying the endpoint id. The endpoint
+  id is a software concept and the index in the endpoint array can be used
+  instead if needed. The changes are in patches "device property: Add
+  support for fwnode endpoints" and "ACPI / DSD: Document references,
+  ports and endpoints" and
+
+- add patch "irqchip/gic: Add missing forward declaration for    
+  struct device" (patch 9) to fix compilation warning on arm64 caused
+  by "of: No need to include linux/property.h, linux/fwnode.h is
+  sufficient" (now patch 10)
+
+changes since RFC v1:
+
+- Rebased the set --- there were a few conflicts. 
+
+- Fixed a bug in ACPI graph parsing. (Thanks to Mika!)
+
+- Remove one layer (the "ports" node) of the _DSD hierarchical data 
+  structure. Change the documentation accordingly. Instead, rely on the 
+  presence of "port" and "endpoint" properties to identify port and 
+  endpoint nodes. 
+
+- Add a reference the DSD property rule document [1]. 
+
+
+Feedback is welcome.
+
 -- 
-2.7.4
+Kind regards,
+Sakari
 
