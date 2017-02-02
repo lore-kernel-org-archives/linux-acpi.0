@@ -1,281 +1,164 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v2 11/16] of: No need to include linux/property.h, linux/fwnode.h is sufficient
-Date: Thu,  2 Feb 2017 18:22:21 +0200
-Message-ID: <1486052546-19257-12-git-send-email-sakari.ailus@linux.intel.com>
-References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1486052546-19257-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH v4 3/4] device property: constify property arrays values
+Date: Thu, 2 Feb 2017 08:39:18 -0800
+Message-ID: <20170202163918.GA21924@dtor-ws>
+References: <20170201173125.40354-1-dmitry.torokhov@gmail.com>
+ <20170201173125.40354-4-dmitry.torokhov@gmail.com>
+ <1485991803.22276.14.camel@perches.com>
+ <1605853.brEpCT4tOG@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35285 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750879AbdBBQjW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 11:39:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1605853.brEpCT4tOG@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Joe Perches <joe@perches.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-of.h requires a definition of struct fwnode_handle, and for that it
-includes linux/property.h. struct fwnode_handle, however, is defined in
-linux/fwnode.h. Include linux/fwnode.h directly.
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-A number of users were however depending on linux/property.h, thus fix
-them by including that header directly as well.
+Data that is fed into property arrays should not be modified, so let's mark
+relevant pointers as const. This will allow us making source arrays as
+const/__initconst.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Also fix memory leaks on errors in property_entry_copy().
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- drivers/base/core.c                       | 1 +
- drivers/input/keyboard/gpio_keys.c        | 1 +
- drivers/input/misc/drv260x.c              | 1 +
- drivers/input/misc/gpio_decoder.c         | 1 +
- drivers/input/touchscreen/ad7879.c        | 1 +
- drivers/input/touchscreen/edt-ft5x06.c    | 1 +
- drivers/net/ethernet/faraday/ftgmac100.c  | 1 +
- drivers/net/ethernet/smsc/smc91x.c        | 1 +
- drivers/phy/phy-tusb1210.c                | 1 +
- drivers/power/supply/bq24735-charger.c    | 1 +
- drivers/usb/common/common.c               | 1 +
- drivers/usb/dwc2/params.c                 | 1 +
- drivers/usb/dwc2/pci.c                    | 3 ++-
- drivers/usb/dwc3/host.c                   | 1 +
- include/linux/of.h                        | 2 +-
- sound/soc/codecs/rt5514.c                 | 1 +
- sound/soc/codecs/ts3a227e.c               | 1 +
- sound/soc/mediatek/mt8173/mt8173-rt5650.c | 1 +
- sound/soc/rockchip/rk3399_gru_sound.c     | 1 +
- 19 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index bd87807..ad5a4f7 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -24,6 +24,7 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/sysfs.h>
-diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index 582462d..a560fad 100644
---- a/drivers/input/keyboard/gpio_keys.c
-+++ b/drivers/input/keyboard/gpio_keys.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/sysctl.h>
- #include <linux/proc_fs.h>
-+#include <linux/property.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/input.h>
-diff --git a/drivers/input/misc/drv260x.c b/drivers/input/misc/drv260x.c
-index 0a2b865..1642219 100644
---- a/drivers/input/misc/drv260x.c
-+++ b/drivers/input/misc/drv260x.c
-@@ -22,6 +22,7 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/property.h>
- #include <linux/regulator/consumer.h>
- 
- #include <dt-bindings/input/ti-drv260x.h>
-diff --git a/drivers/input/misc/gpio_decoder.c b/drivers/input/misc/gpio_decoder.c
-index ca7e0ba..a498848 100644
---- a/drivers/input/misc/gpio_decoder.c
-+++ b/drivers/input/misc/gpio_decoder.c
-@@ -22,6 +22,7 @@
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- 
- struct gpio_decoder {
- 	struct input_polled_dev *poll_dev;
-diff --git a/drivers/input/touchscreen/ad7879.c b/drivers/input/touchscreen/ad7879.c
-index e16a446..38ad365 100644
---- a/drivers/input/touchscreen/ad7879.c
-+++ b/drivers/input/touchscreen/ad7879.c
-@@ -34,6 +34,7 @@
- #include <linux/input/touchscreen.h>
- #include <linux/platform_data/ad7879.h>
- #include <linux/module.h>
-+#include <linux/property.h>
- #include "ad7879.h"
- 
- #define AD7879_REG_ZEROS		0
-diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
-index 28466e3..1978f8b 100644
---- a/drivers/input/touchscreen/edt-ft5x06.c
-+++ b/drivers/input/touchscreen/edt-ft5x06.c
-@@ -39,6 +39,7 @@
- #include <linux/input/mt.h>
- #include <linux/input/touchscreen.h>
- #include <linux/of_device.h>
-+#include <linux/property.h>
- 
- #define WORK_REGISTER_THRESHOLD		0x00
- #define WORK_REGISTER_REPORT_RATE	0x08
-diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
-index 2625872..69f2693 100644
---- a/drivers/net/ethernet/faraday/ftgmac100.c
-+++ b/drivers/net/ethernet/faraday/ftgmac100.c
-@@ -30,6 +30,7 @@
- #include <linux/netdevice.h>
- #include <linux/phy.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- #include <net/ip.h>
- #include <net/ncsi.h>
- 
-diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
-index 65077c7..5352a08 100644
---- a/drivers/net/ethernet/smsc/smc91x.c
-+++ b/drivers/net/ethernet/smsc/smc91x.c
-@@ -75,6 +75,7 @@ static const char version[] =
- #include <linux/ioport.h>
- #include <linux/crc32.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- #include <linux/spinlock.h>
- #include <linux/ethtool.h>
- #include <linux/mii.h>
-diff --git a/drivers/phy/phy-tusb1210.c b/drivers/phy/phy-tusb1210.c
-index 4f6d5e7..f7dd21aa 100644
---- a/drivers/phy/phy-tusb1210.c
-+++ b/drivers/phy/phy-tusb1210.c
-@@ -12,6 +12,7 @@
- #include <linux/module.h>
- #include <linux/ulpi/driver.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/property.h>
- 
- #include "ulpi_phy.h"
- 
-diff --git a/drivers/power/supply/bq24735-charger.c b/drivers/power/supply/bq24735-charger.c
-index eb7783b..038f806 100644
---- a/drivers/power/supply/bq24735-charger.c
-+++ b/drivers/power/supply/bq24735-charger.c
-@@ -27,6 +27,7 @@
- #include <linux/of.h>
- #include <linux/gpio/consumer.h>
- #include <linux/power_supply.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- 
- #include <linux/power/bq24735-charger.h>
-diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
-index 5ef8da6..534a498 100644
---- a/drivers/usb/common/common.c
-+++ b/drivers/usb/common/common.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/property.h>
- #include <linux/usb/ch9.h>
- #include <linux/usb/of.h>
- #include <linux/usb/otg.h>
-diff --git a/drivers/usb/dwc2/params.c b/drivers/usb/dwc2/params.c
-index a786256..7e6da29 100644
---- a/drivers/usb/dwc2/params.c
-+++ b/drivers/usb/dwc2/params.c
-@@ -35,6 +35,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of_device.h>
-+#include <linux/property.h>
- 
- #include "core.h"
- 
-diff --git a/drivers/usb/dwc2/pci.c b/drivers/usb/dwc2/pci.c
-index a23329e..abf6140 100644
---- a/drivers/usb/dwc2/pci.c
-+++ b/drivers/usb/dwc2/pci.c
-@@ -44,8 +44,9 @@
- #include <linux/spinlock.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
--#include <linux/slab.h>
- #include <linux/pci.h>
-+#include <linux/property.h>
-+#include <linux/slab.h>
- #include <linux/usb.h>
- 
- #include <linux/usb/hcd.h>
-diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-index 487f0ff..562cbde 100644
---- a/drivers/usb/dwc3/host.c
-+++ b/drivers/usb/dwc3/host.c
-@@ -16,6 +16,7 @@
-  */
- 
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- 
- #include "core.h"
- 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 55eee5d..16b2054 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -23,7 +23,7 @@
- #include <linux/spinlock.h>
- #include <linux/topology.h>
- #include <linux/notifier.h>
--#include <linux/property.h>
-+#include <linux/fwnode.h>
- #include <linux/list.h>
- 
- #include <asm/byteorder.h>
-diff --git a/sound/soc/codecs/rt5514.c b/sound/soc/codecs/rt5514.c
-index b281a46..0749219 100644
---- a/sound/soc/codecs/rt5514.c
-+++ b/sound/soc/codecs/rt5514.c
-@@ -15,6 +15,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/pm.h>
-+#include <linux/property.h>
- #include <linux/regmap.h>
- #include <linux/i2c.h>
- #include <linux/platform_device.h>
-diff --git a/sound/soc/codecs/ts3a227e.c b/sound/soc/codecs/ts3a227e.c
-index 4356843..e80b28b 100644
---- a/sound/soc/codecs/ts3a227e.c
-+++ b/sound/soc/codecs/ts3a227e.c
-@@ -14,6 +14,7 @@
- #include <linux/input.h>
- #include <linux/module.h>
- #include <linux/of_gpio.h>
-+#include <linux/property.h>
- #include <linux/regmap.h>
- 
- #include <sound/core.h>
-diff --git a/sound/soc/mediatek/mt8173/mt8173-rt5650.c b/sound/soc/mediatek/mt8173/mt8173-rt5650.c
-index ba65f41..433ae4f 100644
---- a/sound/soc/mediatek/mt8173/mt8173-rt5650.c
-+++ b/sound/soc/mediatek/mt8173/mt8173-rt5650.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
-+#include <linux/property.h>
- #include <sound/soc.h>
- #include <sound/jack.h>
- #include "../../codecs/rt5645.h"
-diff --git a/sound/soc/rockchip/rk3399_gru_sound.c b/sound/soc/rockchip/rk3399_gru_sound.c
-index 3475c61..9134b46 100644
---- a/sound/soc/rockchip/rk3399_gru_sound.c
-+++ b/sound/soc/rockchip/rk3399_gru_sound.c
-@@ -22,6 +22,7 @@
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
- #include <linux/delay.h>
-+#include <linux/property.h>
- #include <linux/spi/spi.h>
- #include <linux/input.h>
- #include <sound/core.h>
--- 
-2.7.4
+Not sending the rest of the series as to not clutter mailing lists too
+much...
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/base/property.c  |   66 +++++++++++++++++++++++++++++++---------------
+ include/linux/property.h |   12 ++++----
+ 2 files changed, 51 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index edc09854520b..09fb9757e086 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -682,44 +682,64 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_match_string);
+ 
++static int property_copy_string_array(struct property_entry *dst,
++				      const struct property_entry *src)
++{
++	char **d;
++	size_t nval = src->length / sizeof(*d);
++	size_t i;
++
++	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
++	if (!d)
++		return -ENOMEM;
++
++	for (i = 0; i < nval; i++) {
++		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
++		if (!d[i] && src->pointer.str[i]) {
++			while (--i >= 0)
++				kfree(d[i]);
++			kfree(d);
++			return -ENOMEM;
++		}
++	}
++
++	dst->pointer.str = (void *)d;
++	return 0;
++}
++
+ static int property_entry_copy(struct property_entry *dst,
+ 			       const struct property_entry *src)
+ {
+-	const char **d, **s;
+-	size_t i, nval;
++	int error;
+ 
+ 	dst->name = kstrdup(src->name, GFP_KERNEL);
+ 	if (!dst->name)
+ 		return -ENOMEM;
+ 
+ 	if (src->is_array) {
+-		if (!src->length)
+-			return -ENODATA;
++		if (!src->length) {
++			error = -ENODATA;
++			goto out_free_name;
++		}
+ 
+ 		if (src->is_string) {
+-			nval = src->length / sizeof(const char *);
+-			dst->pointer.str = kcalloc(nval, sizeof(const char *),
+-						   GFP_KERNEL);
+-			if (!dst->pointer.str)
+-				return -ENOMEM;
+-
+-			d = dst->pointer.str;
+-			s = src->pointer.str;
+-			for (i = 0; i < nval; i++) {
+-				d[i] = kstrdup(s[i], GFP_KERNEL);
+-				if (!d[i] && s[i])
+-					return -ENOMEM;
+-			}
++			error = property_copy_string_array(dst, src);
++			if (error)
++				goto out_free_name;
+ 		} else {
+ 			dst->pointer.raw_data = kmemdup(src->pointer.raw_data,
+ 							src->length, GFP_KERNEL);
+-			if (!dst->pointer.raw_data)
+-				return -ENOMEM;
++			if (!dst->pointer.raw_data) {
++				error = -ENOMEM;
++				goto out_free_name;
++			}
+ 		}
+ 	} else if (src->is_string) {
+ 		dst->value.str = kstrdup(src->value.str, GFP_KERNEL);
+-		if (!dst->value.str && src->value.str)
+-			return -ENOMEM;
++		if (!dst->value.str && src->value.str) {
++			error = -ENOMEM;
++			goto out_free_name;
++		}
+ 	} else {
+ 		dst->value.raw_data = src->value.raw_data;
+ 	}
+@@ -729,6 +749,10 @@ static int property_entry_copy(struct property_entry *dst,
+ 	dst->is_string = src->is_string;
+ 
+ 	return 0;
++
++out_free_name:
++	kfree(dst->name);
++	return error;
+ }
+ 
+ /**
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 5746e9927016..64e3a9c6d95f 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -160,12 +160,12 @@ struct property_entry {
+ 	bool is_string;
+ 	union {
+ 		union {
+-			void *raw_data;
+-			u8 *u8_data;
+-			u16 *u16_data;
+-			u32 *u32_data;
+-			u64 *u64_data;
+-			const char **str;
++			const void *raw_data;
++			const u8 *u8_data;
++			const u16 *u16_data;
++			const u32 *u32_data;
++			const u64 *u64_data;
++			const char * const *str;
+ 		} pointer;
+ 		union {
+ 			unsigned long long raw_data;
