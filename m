@@ -1,73 +1,50 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v5 1/4] device property: allow to constify properties
-Date: Fri, 3 Feb 2017 07:09:07 -0800
-Message-ID: <20170203150907.GA3868@dtor-ws>
-References: <20170203014128.317-1-dmitry.torokhov@gmail.com>
- <20170203014128.317-2-dmitry.torokhov@gmail.com>
- <1486122021.2133.371.camel@linux.intel.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
+Date: Fri, 3 Feb 2017 15:11:41 +0000
+Message-ID: <fd106be9-836d-8d91-e57c-183ca56b4a49@arm.com>
+References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
+ <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36087 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750997AbdBCPJL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 10:09:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1486122021.2133.371.camel@linux.intel.com>
+Received: from foss.arm.com ([217.140.101.70]:51640 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750877AbdBCPLq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Feb 2017 10:11:46 -0500
+In-Reply-To: <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
+To: Sinan Kaya <okaya@codeaurora.org>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Fri, Feb 03, 2017 at 01:40:21PM +0200, Andy Shevchenko wrote:
-> On Thu, 2017-02-02 at 17:41 -0800, Dmitry Torokhov wrote:
-> > There is no reason why statically defined properties should be
-> > modifiable,
-> > so let's make device_add_properties() and the rest of pset_*()
-> > functions to
-> > take const pointers to properties.
-> > 
-> > This will allow us to mark properties as const/__initconst at
-> > definition
-> > sites.
-> > 
+On 03/02/17 14:50, Sinan Kaya wrote:
+> On 1/18/2017 7:54 AM, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> With platform msi support landed in the kernel, and the introduction
+>> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
+>> is ready, this patch set add few patches to enable the ACPI platform
+>> msi support.
+>>
+>> For platform device connecting to ITS on arm platform, we have IORT
+>> table with the named componant node to describe the mappings of paltform
+>> device and ITS, so we can retrieve the dev id and find its parent
+>> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
+>>
 > 
-> Looks good to me.
+> I understand that there is a consensus on IORT/SMMUv3 specific pieces
+> of this series while there is some ongoing work on the MBIgen part in
+> due to dependency on Agustin's patch vs. ACPI definitions.
 > 
-> FWIW:
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> Though, nitpicks below.
->  
-> >  static struct property_set *pset_copy_set(const struct property_set
-> > *pset)
-> >  {
-> > -	const struct property_entry *entry;
-> > +	struct property_entry *props;
-> 
-> Can we leave the name?
->  
-> > -	p->properties = kcalloc(n + 1, sizeof(*entry), GFP_KERNEL);
-> > 
-> > +	p->properties = props = kcalloc(n + 1, sizeof(*props),
-> > GFP_KERNEL);
-> >  	if (!p->properties) {
-> >  		kfree(p);
-> >  		return ERR_PTR(-ENOMEM);
-> >  	}
-> >  
-> >  	for (i = 0; i < n; i++) {
-> 
-> > -		int ret = pset_copy_entry(&p->properties[i],
-> > +		int ret = pset_copy_entry(&props[i],
-> >  					  &pset->properties[i]);
-> 
-> Do we need these changes?
+> Can we merge the IORT/SMMUv3 specific pieces to 4.11 so that the base
+> implementation comes in place?
 
-Didn't want to wrap the line, the name is restored later anyway.
+Sorry, but I may be missing something. Which IORT/SMMUv3 patches are we
+talking about? Do you have a pointer to a series?
 
-Thanks.
+Thanks,
 
+	M.
 -- 
-Dmitry
+Jazz is not dead. It just smells funny...
