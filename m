@@ -1,101 +1,122 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2] ACPI/IORT: Fix iort_node_get_id() mapping entries
- indexing
-Date: Fri, 03 Feb 2017 10:20:29 +0800
-Message-ID: <5893E8ED.1010107@linaro.org>
-References: <20170110120020.17867-1-lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v8 15/15] irqchip: mbigen: Add ACPI support
+Date: Fri, 03 Feb 2017 10:27:59 +0800
+Message-ID: <5893EAAF.6000204@linaro.org>
+References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com> <1484744105-53140-16-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:34768 "EHLO
-        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751839AbdBCCUe (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 21:20:34 -0500
-Received: by mail-pf0-f179.google.com with SMTP id e4so1864745pfg.1
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Feb 2017 18:20:34 -0800 (PST)
-In-Reply-To: <20170110120020.17867-1-lorenzo.pieralisi@arm.com>
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:35160 "EHLO
+        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751653AbdBCC2J (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 21:28:09 -0500
+Received: by mail-pf0-f172.google.com with SMTP id f144so1910359pfa.2
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Feb 2017 18:28:09 -0800 (PST)
+In-Reply-To: <1484744105-53140-16-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, Nate Watterson <nwatters@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Hanjun Guo <guohanjun@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Matthias Brugger <mbrugger@suse.com>, Ming Lei <tom.leiming@gmail.com>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, Wei Xu <xuwei5@hisilicon.com>, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 
-On 01/10/2017 08:00 PM, Lorenzo Pieralisi wrote:
-> Commit 618f535a6062 ("ACPI/IORT: Add single mapping function")
-> introduced a function (iort_node_get_id()) to retrieve ids for IORT
-> named components.
+On 01/18/2017 08:55 PM, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
 >
-> The iort_node_get_id() takes an index as input to refer to a specific
-> mapping entry in the named component IORT node mapping array.
+> With the preparation of platform msi support and interrupt producer
+> in DSDT, we can add mbigen ACPI support now.
 >
-> For a mapping entry at a given index, iort_node_get_id() should return
-> the id value (through the id_out function parameter) and the IORT node
-> output_reference (through function return value) the given mapping entry
-> refers to.
+> We are using Interrupt resource type in _CRS methd to indicate number
+> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
 >
-> Technically output_reference values may differ for different map
-> entries, (see diagram below - mapped id values may refer to different eg
-> IORT SMMU nodes; the kernel may not be able to handle different
-> output_reference values for a given named component but the IORT kernel
-> layer should still report the IORT mappings as reported by firmware) but
-> current code in iort_node_get_id() fails to use the index function
-> parameter to return the correct output_reference value (ie it always
-> returns the output_reference value of the first entry in the mapping
-> array whilst using the index correctly to retrieve the id value from the
-> respective entry).
+> For mbigen,
+>      Device(MBI0) {
+>            Name(_HID, "HISI0152")
+>            Name(_UID, Zero)
+>            Name(_CRS, ResourceTemplate() {
+>                    Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+> 		  Interrupt(ResourceProducer,...) {12,14,....}
+>            })
+>      }
 >
-> 	|----------------------|
-> 	|     named component  |
-> 	|----------------------|
-> 	|      map entry[0]    |
-> 	|----------------------|
-> 	|       id value       |
-> 	| output_reference----------------> eg SMMU 1
-> 	|----------------------|
-> 	|      map entry[1]    |
-> 	|----------------------|
-> 	|       id value       |
-> 	| output_reference----------------> eg SMMU 2
-> 	|----------------------|
-> 		    .
-> 		    .
-> 		    .
-> 	|----------------------|
-> 	|      map entry[N]    |
-> 	|----------------------|
-> 	|       id value       |
-> 	| output_reference----------------> eg SMMU 1
-> 	|----------------------|
+> For devices,
+>     Device(COM0) {
+>            Name(_HID, "ACPIIDxx")
+>            Name(_UID, Zero)
+>            Name(_CRS, ResourceTemplate() {
+>                   Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+>            })
+>      }
 >
-> Consequently the iort_node_get_id() function always returns the IORT
-> node pointed at by the output_reference value of the first named
-> component mapping array entry, irrespective of the index parameter,
-> which is a bug.
+> With the help of platform msi and interrupt producer, then devices
+> will get the virq from mbigen's irqdomain.
 >
-> Update the map array entry pointer computation in iort_node_get_id() to
-> take into account the index value, fixing the issue.
->
-> Fixes: 618f535a6062 ("ACPI/IORT: Add single mapping function")
-> Reported-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Nate Watterson <nwatters@codeaurora.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Ma Jun <majun258@huawei.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
 > ---
-> v1 -> v2:
-> 	- Updated/improved commit log
-> 	- Added review tags
+>   drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
+>   1 file changed, 67 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+> index 4e11da5..64f8561 100644
+> --- a/drivers/irqchip/irq-mbigen.c
+> +++ b/drivers/irqchip/irq-mbigen.c
+> @@ -16,6 +16,7 @@
+>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>    */
+>
+> +#include <linux/acpi.h>
+>   #include <linux/interrupt.h>
+>   #include <linux/irqchip.h>
+>   #include <linux/module.h>
+> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
+>   				    unsigned long *hwirq,
+>   				    unsigned int *type)
+>   {
+> -	if (is_of_node(fwspec->fwnode)) {
+> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
+>   		if (fwspec->param_count != 2)
+>   			return -EINVAL;
+>
+> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
+>   	return 0;
+>   }
+>
+> +#ifdef CONFIG_ACPI
+> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
+> +					     void *context)
+> +{
+> +	struct acpi_resource_extended_irq *ext_irq;
+> +	u32 *num_irqs = context;
+> +
+> +	switch (ares->type) {
+> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> +		ext_irq = &ares->data.extended_irq;
+> +		*num_irqs += ext_irq->interrupt_count;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
+> +				     struct mbigen_device *mgn_chip)
+> +{
+> +	struct irq_domain *domain;
+> +	u32 num_msis = 0;
+> +	acpi_status status;
+> +
+> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
+> +				     mbigen_acpi_process_resource, &num_msis);
+> +        if (ACPI_FAILURE(status) || num_msis == 0)
 
-Forgot to mention that I tested this patch on Hisilicon
-D03,
-
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-BTW, Lorenzo, Rafael, since it's a bugfix, can this be merged into
-4.10-rc7?
+There are some trailing white spaces in this patch, I will send a
+updated one if no more comments.
 
 Thanks
 Hanjun
