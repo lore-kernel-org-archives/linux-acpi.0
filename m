@@ -1,80 +1,70 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v4 3/4] device property: constify property arrays values
-Date: Thu, 2 Feb 2017 17:06:07 -0800
-Message-ID: <20170203010607.GB12651@dtor-ws>
-References: <1485991803.22276.14.camel@perches.com>
- <1605853.brEpCT4tOG@aspire.rjw.lan>
- <20170202163918.GA21924@dtor-ws>
- <1486054110.2133.366.camel@linux.intel.com>
- <C3BEC996-015E-4536-AE2F-DB0819631789@gmail.com>
- <1486057978.2133.369.camel@linux.intel.com>
- <20170202183831.GA32759@dtor-ws>
- <CAJZ5v0jB_8LXPR7Uj0j5gyTo+Bdk9Sud+9jreA4VT9+QsB5ieA@mail.gmail.com>
- <20170203001648.GA12651@dtor-ws>
- <CAJZ5v0jzqfSniR8gzM6yO8Gx2-Av4ia0PYAGodmXqVsoNFvbZg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v5 0/4] Export APIs to copy device properties & more
+Date: Thu,  2 Feb 2017 17:41:24 -0800
+Message-ID: <20170203014128.317-1-dmitry.torokhov@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34612 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751500AbdBCBGL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 20:06:11 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jzqfSniR8gzM6yO8Gx2-Av4ia0PYAGodmXqVsoNFvbZg@mail.gmail.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35423 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751653AbdBCBlb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 20:41:31 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Joe Perches <joe@perches.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Fri, Feb 03, 2017 at 01:37:25AM +0100, Rafael J. Wysocki wrote:
-> On Fri, Feb 3, 2017 at 1:16 AM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> > On Fri, Feb 03, 2017 at 12:16:29AM +0100, Rafael J. Wysocki wrote:
-> >> On Thu, Feb 2, 2017 at 7:38 PM, Dmitry Torokhov
-> >> <dmitry.torokhov@gmail.com> wrote:
-> >> > On Thu, Feb 02, 2017 at 07:52:58PM +0200, Andy Shevchenko wrote:
-> >> >> On Thu, 2017-02-02 at 09:07 -0800, Dmitry Torokhov wrote:
-> >> >> > On February 2, 2017 8:48:30 AM PST, Andy Shevchenko <andriy.shevchenko
-> >> >> > @linux.intel.com> wrote:
-> >> >> > > On Thu, 2017-02-02 at 08:39 -0800, Dmitry Torokhov wrote:
-> >> >> > > > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> >> >> > > >
-> >> >> > > > Data that is fed into property arrays should not be modified, so
-> >> >> > >
-> >> >> > > let's
-> >> >> > > > mark
-> >> >> > > > relevant pointers as const. This will allow us making source
-> >> >> > > > arrays
-> >> >> > >
-> >> >> > > as
-> >> >> > > > const/__initconst.
-> >> >> > > >
-> >> >> > > > Also fix memory leaks on errors in property_entry_copy().
-> >> >> > >
-> >> >> > > While the code looks okay, I'm not sure what memory leaks you are
-> >> >> > > referring to. The idea as far as I remember was to run *free()
-> >> >> > > function
-> >> >> > > if *copy() fails.
-> >> >> >
-> >> >> > That could have been OK for internal function, but will not work for
-> >> >> > public API, as it goes against normal pattern.
-> >>
-> >> But it is an internal function, isn't it?
-> >>
-> >> Also its only caller does the right thing AFAICS.
-> >
-> > No, actually property_entries_dup() does not do the right thing anymore
-> > :(.
-> 
-> Well, it looks like this is because of patch [1/4], so IMO the changes
-> to clean up on errors in property_entry_copy() should be made in that
-> patch as well.
-> 
-> Right now we seem to have potential memory leaks introduced in patch
-> [1/4] and then fixed up in patch [3/4] in the same series which
-> doesn't feel quite right to be honest.
+Hi,
 
-Totally agree, I'm reshuffling and will repost the series in a few.
+Here is the refreshed series exporting APIs to copy statically declared
+device properties. The reason is that we want to augment ACPI-based devices
+with properties, and drivers usually have a largish DMI table for multiple
+models, so it is desirable to mark everything as __initdata/__initconst,
+and then copy only the entry matching the device we are running on and
+discard the rest.
+
+The last patch is not really about device property APIs, but rather
+allowing users to attach properties to i2c_board_info, and have them
+attached to instantiated device(s). The reason it is included is because it
+depends on device_add_properties() taking const pointer, which is patch #1.
+
+If it seems useful I hope Rafael and Wolfram would figure a way to merge it
+:) and ideally give me a stable branch as I have more patches to
+platform/chrome and Atmel touchscreen driver depending on them.
+
+v5:
+- reshuffle order of patches so that "constness" ones are first
+- factor out property_entry_free_data() and make sure we call it for
+  properties already successfully copied when property_entry_copy_data()
+  in property_entries_dup() fails
+- dropped old Acks as patches changed enough
+
+v4:
+- do not clobber retrun value of property_copy_string_array() with -ENOMEM
+
+v3:
+- fix memory leak in property_copy_string_array() pointed out by Mika
+  Westerberg
+
+v2:
+- addressed Andy's comments
+- added property_entries_free()
+- added patch to allow constify values of property arrays
+- added i2c patch allowing to attach property to devices via board info
+
+v1:
+- initial posting
+
+Dmitry Torokhov (4):
+  device property: allow to constify properties
+  device property: constify property arrays values
+  device property: export code duplicating array of property entries
+  i2c: allow specify device properties in i2c_board_info
+
+ drivers/base/property.c  | 229 ++++++++++++++++++++++++++++++-----------------
+ drivers/i2c/i2c-core.c   |  16 +++-
+ include/linux/i2c.h      |   3 +
+ include/linux/property.h |  19 ++--
+ 4 files changed, 177 insertions(+), 90 deletions(-)
 
 -- 
 Dmitry
+
