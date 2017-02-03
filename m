@@ -1,52 +1,113 @@
-From: "Sricharan" <sricharan@codeaurora.org>
-Subject: RE: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with deferred probing or error
-Date: Fri, 3 Feb 2017 09:07:07 +0530
-Message-ID: <013f01d27dce$cf8f5da0$6eae18e0$@codeaurora.org>
-References: <f2370671-ece8-fbee-de19-350dd625088f@codeaurora.org> <93e79759-d614-9b36-d5ab-63e8eb725009@arm.com> <14751205-f034-7f0d-442a-854c3909425c@codeaurora.org> <5ba9f366d6e25397cdef8ad95b49e199@codeaurora.org> <175a3798-b824-ef1a-e112-9f6f472973ae@codeaurora.org> <20170130143851.GJ16461@arm.com> <b2e50c17de156341deab9fb8e91a8dec@codeaurora.org> <1e048aff-0d77-b9f2-ebf8-2ba315b90ca7@codeaurora.org> <20170130165124.GA11712@red-moon> <f401e27e-d619-0eec-2401-50d8e2fc2f0f@codeaurora.org> <20170201185230.GA1922@red-moon> <3f4aa4c1e660c7e62256de9ca64fc822@codeaurora.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2] ACPI/IORT: Fix iort_node_get_id() mapping entries
+ indexing
+Date: Fri, 3 Feb 2017 08:57:31 +0000
+Message-ID: <20170203085731.GA30745@red-moon>
+References: <20170110120020.17867-1-lorenzo.pieralisi@arm.com>
+ <5893E8ED.1010107@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:52208 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751881AbdBCDhQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 22:37:16 -0500
-In-Reply-To: <3f4aa4c1e660c7e62256de9ca64fc822@codeaurora.org>
-Content-Language: en-us
+Received: from foss.arm.com ([217.140.101.70]:44848 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752217AbdBCIza (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Feb 2017 03:55:30 -0500
+Content-Disposition: inline
+In-Reply-To: <5893E8ED.1010107@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Nate Watterson' <nwatters@codeaurora.org>, 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-msm@vger.kernel.org, 'Will Deacon' <will.deacon@arm.com>, 'Sinan Kaya' <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, bhelgaas@google.com, 'Robin Murphy' <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org, 'Tomasz Nowicki' <tn@semihalf.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, Nate Watterson <nwatters@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi,
+On Fri, Feb 03, 2017 at 10:20:29AM +0800, Hanjun Guo wrote:
+> On 01/10/2017 08:00 PM, Lorenzo Pieralisi wrote:
+> >Commit 618f535a6062 ("ACPI/IORT: Add single mapping function")
+> >introduced a function (iort_node_get_id()) to retrieve ids for IORT
+> >named components.
+> >
+> >The iort_node_get_id() takes an index as input to refer to a specific
+> >mapping entry in the named component IORT node mapping array.
+> >
+> >For a mapping entry at a given index, iort_node_get_id() should return
+> >the id value (through the id_out function parameter) and the IORT node
+> >output_reference (through function return value) the given mapping entry
+> >refers to.
+> >
+> >Technically output_reference values may differ for different map
+> >entries, (see diagram below - mapped id values may refer to different eg
+> >IORT SMMU nodes; the kernel may not be able to handle different
+> >output_reference values for a given named component but the IORT kernel
+> >layer should still report the IORT mappings as reported by firmware) but
+> >current code in iort_node_get_id() fails to use the index function
+> >parameter to return the correct output_reference value (ie it always
+> >returns the output_reference value of the first entry in the mapping
+> >array whilst using the index correctly to retrieve the id value from the
+> >respective entry).
+> >
+> >	|----------------------|
+> >	|     named component  |
+> >	|----------------------|
+> >	|      map entry[0]    |
+> >	|----------------------|
+> >	|       id value       |
+> >	| output_reference----------------> eg SMMU 1
+> >	|----------------------|
+> >	|      map entry[1]    |
+> >	|----------------------|
+> >	|       id value       |
+> >	| output_reference----------------> eg SMMU 2
+> >	|----------------------|
+> >		    .
+> >		    .
+> >		    .
+> >	|----------------------|
+> >	|      map entry[N]    |
+> >	|----------------------|
+> >	|       id value       |
+> >	| output_reference----------------> eg SMMU 1
+> >	|----------------------|
+> >
+> >Consequently the iort_node_get_id() function always returns the IORT
+> >node pointed at by the output_reference value of the first named
+> >component mapping array entry, irrespective of the index parameter,
+> >which is a bug.
+> >
+> >Update the map array entry pointer computation in iort_node_get_id() to
+> >take into account the index value, fixing the issue.
+> >
+> >Fixes: 618f535a6062 ("ACPI/IORT: Add single mapping function")
+> >Reported-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> >Cc: Sinan Kaya <okaya@codeaurora.org>
+> >Cc: Tomasz Nowicki <tn@semihalf.com>
+> >Cc: Nate Watterson <nwatters@codeaurora.org>
+> >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >---
+> >v1 -> v2:
+> >	- Updated/improved commit log
+> >	- Added review tags
+> 
+> Forgot to mention that I tested this patch on Hisilicon
+> D03,
+> 
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> 
+> BTW, Lorenzo, Rafael, since it's a bugfix, can this be merged into
+> 4.10-rc7?
 
->On 2017-02-01 13:52, Lorenzo Pieralisi wrote:
->>
->> I debugged the issue and Nate's fix is correct, the fact that you
->> can't it hit it with mainline is just a matter of timing because it has
->> to do with the CTX pointer value (we OR it with the existing value), so
->> it may work or not depending on how the cdptr memory allocation
->> pattern turns out to be (which explains why Nate and I can hit it with
->> simple PCI device remove/add execution too).
->>
->> So it is neither an ACPI nor an IOMMU probe deferral issue per-se,
->> fix is already queued, so it is all good.
->>
->> What about USB stalls ?
->Our fault. The USB controller was getting 48-bit IOVAs, but the
->bus it sits on only supports 44-bits so the controller's DMA
->transactions ended up targeting addresses that were never mapped.
->
->It started working once I applied the iort/dma-mapping patches I
->sent out earlier this week that use the iort memory_address_limit
->field to check if a dma_mask is sane.
->
->Sorry for the false alarm.
+Yes, I thought Rafael picked it up already (I can't see it in
+patchwork any longer).
 
-Ok, thanks for closing on it. I will just post V8 with all acks picked up and
-Robin's fix , right away.
+This one from Dan:
 
-Regards,
- Sricharan
+https://patchwork.kernel.org/patch/9521003/
 
+should get in -rc7 too, we should have both fixes in before v4.10
+is released.
+
+Rafael can you send them both for -rc7 please ?
+
+Thanks,
+Lorenzo
