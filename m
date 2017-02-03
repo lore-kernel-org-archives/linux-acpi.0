@@ -1,109 +1,34 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v5 4/4] i2c: allow specify device properties in
- i2c_board_info
-Date: Fri, 03 Feb 2017 13:46:06 +0200
-Message-ID: <1486122366.2133.376.camel@linux.intel.com>
-References: <20170203014128.317-1-dmitry.torokhov@gmail.com>
-         <20170203014128.317-5-dmitry.torokhov@gmail.com>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: Cherryview wake up events
+Date: Fri, 3 Feb 2017 14:16:03 +0100
+Message-ID: <20170203131603.m6y2ziy2gkwdrv6k@sig21.net>
+References: <20170202113508.GM2053@lahna.fi.intel.com>
+ <20170202121639.GO2053@lahna.fi.intel.com>
+ <20170202135257.q2djuvnhlsu2qv2v@sig21.net>
+ <20170202142618.GX2053@lahna.fi.intel.com>
+ <20170202143145.xnjnicrxf5uapuwl@sig21.net>
+ <20170202150212.GA2053@lahna.fi.intel.com>
+ <20170202154243.wxrdcy6yqohcwvw3@sig21.net>
+ <20170202155826.GF2053@lahna.fi.intel.com>
+ <20170202173233.3gk6ko2tnjbhj73y@sig21.net>
+ <20170203100000.GK2053@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170203014128.317-5-dmitry.torokhov@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170203100000.GK2053@lahna.fi.intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>, ramakrishna.pallala@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2017-02-02 at 17:41 -0800, Dmitry Torokhov wrote:
-> With many drivers converting to using generic device properties, it is
-> useful to provide array of device properties when instantiating new
-> i2c
-> client via i2c_board_info and have them automatically added to the
-> device
-> in question.
+On Fri, Feb 03, 2017 at 12:00:00PM +0200, Mika Westerberg wrote:
+> Just for book keeping purposes, can you file a kernel.org bugzilla bug
+> about this and add all the necessary information, and your patches
+> there? You can assign the bug directly to me.
 
-FWIW:
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+I filed it but cannot assign it, added you to CC.
+https://bugzilla.kernel.org/show_bug.cgi?id=193891
 
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  drivers/i2c/i2c-core.c | 16 +++++++++++++++-
->  include/linux/i2c.h    |  3 +++
->  2 files changed, 18 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index f009549f86a5..3897e78e5e9a 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -1335,15 +1335,29 @@ i2c_new_device(struct i2c_adapter *adap,
-> struct i2c_board_info const *info)
->  	client->dev.fwnode = info->fwnode;
->  
->  	i2c_dev_set_name(adap, client);
-> +
-> +	if (info->properties) {
-> +		status = device_add_properties(&client->dev, info-
-> >properties);
-> +		if (status) {
-> +			dev_err(&adap->dev,
-> +				"Failed to add properties to client
-> %s: %d\n",
-> +				client->name, status);
-> +			goto out_err;
-> +		}
-> +	}
-> +
->  	status = device_register(&client->dev);
->  	if (status)
-> -		goto out_err;
-> +		goto out_free_props;
->  
->  	dev_dbg(&adap->dev, "client [%s] registered with bus id
-> %s\n",
->  		client->name, dev_name(&client->dev));
->  
->  	return client;
->  
-> +out_free_props:
-> +	if (info->properties)
-> +		device_remove_properties(&client->dev);
->  out_err:
->  	dev_err(&adap->dev,
->  		"Failed to register i2c client %s at 0x%02x (%d)\n",
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 4aa7d244b38a..ec8f866a5656 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -51,6 +51,7 @@ enum i2c_slave_event;
->  typedef int (*i2c_slave_cb_t)(struct i2c_client *, enum
-> i2c_slave_event, u8 *);
->  
->  struct module;
-> +struct property_entry;
->  
->  #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
->  /*
-> @@ -310,6 +311,7 @@ static inline int i2c_slave_event(struct
-> i2c_client *client,
->   * @archdata: copied into i2c_client.dev.archdata
->   * @of_node: pointer to OpenFirmware device node
->   * @fwnode: device node supplied by the platform firmware
-> + * @properties: additional device properties for the device
->   * @irq: stored in i2c_client.irq
->   *
->   * I2C doesn't actually support hardware probing, although
-> controllers and
-> @@ -331,6 +333,7 @@ struct i2c_board_info {
->  	struct dev_archdata	*archdata;
->  	struct device_node *of_node;
->  	struct fwnode_handle *fwnode;
-> +	const struct property_entry *properties;
->  	int		irq;
->  };
->  
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks,
+Johannes
