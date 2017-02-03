@@ -1,50 +1,87 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
-Date: Fri, 3 Feb 2017 15:11:41 +0000
-Message-ID: <fd106be9-836d-8d91-e57c-183ca56b4a49@arm.com>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
- <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v5 2/4] device property: constify property arrays values
+Date: Fri, 3 Feb 2017 07:12:21 -0800
+Message-ID: <20170203151221.GB3868@dtor-ws>
+References: <20170203014128.317-1-dmitry.torokhov@gmail.com>
+ <20170203014128.317-3-dmitry.torokhov@gmail.com>
+ <1486122183.2133.373.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51640 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750877AbdBCPLq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 3 Feb 2017 10:11:46 -0500
-In-Reply-To: <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33661 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751074AbdBCPMZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 10:12:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1486122183.2133.373.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On 03/02/17 14:50, Sinan Kaya wrote:
-> On 1/18/2017 7:54 AM, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> With platform msi support landed in the kernel, and the introduction
->> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
->> is ready, this patch set add few patches to enable the ACPI platform
->> msi support.
->>
->> For platform device connecting to ITS on arm platform, we have IORT
->> table with the named componant node to describe the mappings of paltform
->> device and ITS, so we can retrieve the dev id and find its parent
->> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
->>
+On Fri, Feb 03, 2017 at 01:43:03PM +0200, Andy Shevchenko wrote:
+> On Thu, 2017-02-02 at 17:41 -0800, Dmitry Torokhov wrote:
+> > Data that is fed into property arrays should not be modified, so let's
+> > mark
+> > relevant pointers as const. This will allow us making source arrays as
+> > const/__initconst.
+> > 
 > 
-> I understand that there is a consensus on IORT/SMMUv3 specific pieces
-> of this series while there is some ongoing work on the MBIgen part in
-> due to dependency on Agustin's patch vs. ACPI definitions.
+> > @@ -718,7 +718,8 @@ static void pset_free_set(struct property_set
+> > *pset)
+> >  static int pset_copy_entry(struct property_entry *dst,
+> >  			   const struct property_entry *src)
+> >  {
+> > -	const char **d, **s;
+> > +	const char * const *s;
+> > +	char **d;
 > 
-> Can we merge the IORT/SMMUv3 specific pieces to 4.11 so that the base
-> implementation comes in place?
+> You removed const here
 
-Sorry, but I may be missing something. Which IORT/SMMUv3 patches are we
-talking about? Do you have a pointer to a series?
+Yes I did. It is hard to assign value to a constant otherwise.
 
-Thanks,
+> 
+> >  	size_t i, nval;
+> >  
+> >  	dst->name = kstrdup(src->name, GFP_KERNEL);
+> > @@ -731,12 +732,11 @@ static int pset_copy_entry(struct property_entry
+> > *dst,
+> >  
+> >  		if (src->is_string) {
+> >  			nval = src->length / sizeof(const char *);
+> > -			dst->pointer.str = kcalloc(nval, sizeof(const
+> > char *),
+> > -						   GFP_KERNEL);
+> > -			if (!dst->pointer.str)
+> > +			d = kcalloc(nval, sizeof(const char *),
+> > GFP_KERNEL);
+> 
+> But left it here. Do we need to remove const?
 
-	M.
+I do not know why we had it in the first place: the size is the samei
+between constant and variable of the same type.
+
+Ideally we'd use sizeof(*d), I can do it after this batch is accepted.
+
+> 
+> > +			if (!d)
+> >  				return -ENOMEM;
+> >  
+> > -			d = dst->pointer.str;
+> > +			dst->pointer.raw_data = d;
+> >  			s = src->pointer.str;
+> 
+> So, overall, do we need these changes at all? Nothing in commit message
+> sheds a light on it.
+
+The compiler insists in them though.
+
+> 
+> >  			for (i = 0; i < nval; i++) {
+> >  				d[i] = kstrdup(s[i], GFP_KERNEL);
+
+Thanks.
+
 -- 
-Jazz is not dead. It just smells funny...
+Dmitry
