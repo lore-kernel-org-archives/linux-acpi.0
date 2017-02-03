@@ -1,355 +1,333 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V8 05/10] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Fri, 03 Feb 2017 16:00:55 +0000
-Message-ID: <5894A937.5010603@arm.com>
-References: <1485969413-23577-1-git-send-email-tbaicar@codeaurora.org>
- <1485969413-23577-6-git-send-email-tbaicar@codeaurora.org>
+From: "Sricharan" <sricharan@codeaurora.org>
+Subject: RE: [PATCH V8 08/11] drivers: acpi: Handle IOMMU lookup failure with deferred probing or error
+Date: Fri, 3 Feb 2017 21:45:47 +0530
+Message-ID: <017301d27e38$cc361350$64a239f0$@codeaurora.org>
+References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org> <1486136933-20328-9-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1485969413-23577-6-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:54470 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750995AbdBCQQH (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 11:16:07 -0500
+In-Reply-To: <1486136933-20328-9-git-send-email-sricharan@codeaurora.org>
+Content-Language: en-us
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org
 
-Hi Tyler,
+Hi Lorenzo, Robin,
 
-On 01/02/17 17:16, Tyler Baicar wrote:
-> ARM APEI extension proposal added SEA (Synchronous External Abort)
-> notification type for ARMv8.
-> Add a new GHES error source handling function for SEA. If an error
-> source's notification type is SEA, then this function can be registered
-> into the SEA exception handler. That way GHES will parse and report
-> SEA exceptions when they occur.
+>-----Original Message-----
+>From: linux-arm-kernel [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Sricharan R
+>Sent: Friday, February 03, 2017 9:19 PM
+>To: robin.murphy@arm.com; will.deacon@arm.com; joro@8bytes.org; lorenzo.pieralisi@arm.com; iommu@lists.linux-foundation.org;
+>linux-arm-kernel@lists.infradead.org; linux-arm-msm@vger.kernel.org; m.szyprowski@samsung.com; bhelgaas@google.com; linux-
+>pci@vger.kernel.org; linux-acpi@vger.kernel.org; tn@semihalf.com; hanjun.guo@linaro.org; okaya@codeaurora.org
+>Cc: sricharan@codeaurora.org
+>Subject: [PATCH V8 08/11] drivers: acpi: Handle IOMMU lookup failure with deferred probing or error
+>
+>This is an equivalent to the DT's handling of the iommu master's probe
+>with deferred probing when the corrsponding iommu is not probed yet.
+>The lack of a registered IOMMU can be caused by the lack of a driver for
+>the IOMMU, the IOMMU device probe not having been performed yet, having
+>been deferred, or having failed.
+>
+>The first case occurs when the firmware describes the bus master and
+>IOMMU topology correctly but no device driver exists for the IOMMU yet
+>or the device driver has not been compiled in. Return NULL, the caller
+>will configure the device without an IOMMU.
+>
+>The second and third cases are handled by deferring the probe of the bus
+>master device which will eventually get reprobed after the IOMMU.
+>
+>The last case is currently handled by deferring the probe of the bus
+>master device as well. A mechanism to either configure the bus master
+>device without an IOMMU or to fail the bus master device probe depending
+>on whether the IOMMU is optional or mandatory would be a good
+>enhancement.
+>
+>Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+>Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>---
+> drivers/acpi/arm64/iort.c  | 25 ++++++++++++++++++++++++-
+> drivers/acpi/scan.c        |  7 +++++--
+> drivers/base/dma-mapping.c |  2 +-
+> include/acpi/acpi_bus.h    |  2 +-
+> include/linux/acpi.h       |  7 +++++--
+> 5 files changed, 36 insertions(+), 7 deletions(-)
+>
+>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>index bf0ed09..d01bae8 100644
+>--- a/drivers/acpi/arm64/iort.c
+>+++ b/drivers/acpi/arm64/iort.c
+>@@ -550,8 +550,17 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
+> 			return NULL;
+>
+> 		ops = iommu_get_instance(iort_fwnode);
+>+		/*
+>+		 * If the ops look-up fails, this means that either
+>+		 * the SMMU drivers have not been probed yet or that
+>+		 * the SMMU drivers are not built in the kernel;
+>+		 * Depending on whether the SMMU drivers are built-in
+>+		 * in the kernel or not, defer the IOMMU configuration
+>+		 * or just abort it.
+>+		 */
+> 		if (!ops)
+>-			return NULL;
+>+			return iort_iommu_driver_enabled(node->type) ?
+>+			       ERR_PTR(-EPROBE_DEFER) : NULL;
+>
+> 		ret = arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
+> 	}
+>@@ -625,12 +634,26 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+>
+> 		while (parent) {
+> 			ops = iort_iommu_xlate(dev, parent, streamid);
+>+			if (IS_ERR_OR_NULL(ops))
+>+				return ops;
+>
+> 			parent = iort_node_get_id(node, &streamid,
+> 						  IORT_IOMMU_TYPE, i++);
+> 		}
+> 	}
+>
+>+	/*
+>+	 * If we have reason to believe the IOMMU driver missed the initial
+>+	 * add_device callback for dev, replay it to get things in order.
+>+	 */
+>+	if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
+>+	    dev->bus && !dev->iommu_group) {
+>+		int err = ops->add_device(dev);
+>+
+>+		if (err)
+>+			ops = ERR_PTR(err);
+>+	}
+>+
 
-It's worth adding details of the other things this patch changes, just to alert
-busy reviewers, something like:
-An SEA can interrupt code that had interrupts masked and is treated as an NMI.
-To aid this the page of address space for mapping APEI buffers while in_nmi() is
-always reserved, and ghes_ioremap_pfn_nmi() is changed to use the helper methods
-to find the prot_t to map with in the same way as ghes_ioremap_pfn_irq().
+On the last post we discussed that the above replay hunk can be made
+common. In trying to do that, i ended up with a patch like below. But not
+sure if that should be a part of this series though. I tested with OF devices
+and would have to be tested with ACPI devices once. Nothing changes
+functionally because of this ideally. Should be split in two patches though.
 
+Regards,
+ Sricharan
 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 1117421..f92778d 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -53,6 +53,8 @@ config ARM64
->  	select HANDLE_DOMAIN_IRQ
->  	select HARDIRQS_SW_RESEND
->  	select HAVE_ACPI_APEI if (ACPI && EFI)
-> +	select HAVE_ACPI_APEI_SEA if (ACPI && EFI)
+>From aafbf2c97375a086327504f2367eaf9197c719b1 Mon Sep 17 00:00:00 2001
+From: Sricharan R <sricharan@codeaurora.org>
+Date: Fri, 3 Feb 2017 15:24:47 +0530
+Subject: [PATCH] drivers: iommu: Add iommu_add_device api
 
-> +	select HAVE_NMI if HAVE_ACPI_APEI_SEA
+The code to call IOMMU driver's add_device is same
+for both OF and ACPI cases. So add an api which can
+be shared across both the places.
 
-Nit: This section of the file is largely in alphabetical order, can we try to
-keep it that way?!
+Also, now with probe-deferral the iommu master devices gets
+added to the respective iommus during probe time instead
+of device creation time. The xlate callbacks of iommu
+drivers are also called only at probe time. As a result
+the add_iommu_group which gets called when the iommu is
+registered to add all devices created before the iommu
+becomes dummy. Similar the BUS_NOTIFY_ADD_DEVICE notification
+also is not needed. So just cleanup those code.
 
+Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+---
+ drivers/acpi/arm64/iort.c | 12 +-------
+ drivers/iommu/iommu.c     | 70 ++++++++++++-----------------------------------
+ drivers/iommu/of_iommu.c  | 11 +-------
+ include/linux/iommu.h     |  8 ++++++
+ 4 files changed, 27 insertions(+), 74 deletions(-)
 
->  	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
->  	select HAVE_ARCH_AUDITSYSCALL
->  	select HAVE_ARCH_BITREVERSE
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index 9ae7e65..5a5a096 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -30,6 +30,7 @@
->  #include <linux/highmem.h>
->  #include <linux/perf_event.h>
->  #include <linux/preempt.h>
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index ac45623..ab2a554 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -642,17 +642,7 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
+                }
+        }
 
-> +#include <linux/hardirq.h>
+-       /*
+-        * If we have reason to believe the IOMMU driver missed the initial
+-        * add_device callback for dev, replay it to get things in order.
+-        */
+-       if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
+-           dev->bus && !dev->iommu_group) {
+-               int err = ops->add_device(dev);
+-
+-               if (err)
+-                       ops = ERR_PTR(err);
+-       }
++       ops = iommu_add_device(dev, ops);
 
-This header is already included by this file further up.
+        return ops;
+ }
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index b752c3d..750552d 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -1015,41 +1015,6 @@ struct iommu_domain *iommu_group_default_domain(struct iommu_group *group)
+        return group->default_domain;
+ }
 
+-static int add_iommu_group(struct device *dev, void *data)
+-{
+-       struct iommu_callback_data *cb = data;
+-       const struct iommu_ops *ops = cb->ops;
+-       int ret;
+-
+-       if (!ops->add_device)
+-               return 0;
+-
+-       WARN_ON(dev->iommu_group);
+-
+-       ret = ops->add_device(dev);
+-
+-       /*
+-        * We ignore -ENODEV errors for now, as they just mean that the
+-        * device is not translated by an IOMMU. We still care about
+-        * other errors and fail to initialize when they happen.
+-        */
+-       if (ret == -ENODEV)
+-               ret = 0;
+-
+-       return ret;
+-}
+-
+-static int remove_iommu_group(struct device *dev, void *data)
+-{
+-       struct iommu_callback_data *cb = data;
+-       const struct iommu_ops *ops = cb->ops;
+-
+-       if (ops->remove_device && dev->iommu_group)
+-               ops->remove_device(dev);
+-
+-       return 0;
+-}
+-
+ static int iommu_bus_notifier(struct notifier_block *nb,
+                              unsigned long action, void *data)
+ {
+@@ -1059,13 +1024,10 @@ static int iommu_bus_notifier(struct notifier_block *nb,
+        unsigned long group_action = 0;
 
->  
->  #include <asm/bug.h>
->  #include <asm/cpufeature.h>
-> @@ -41,6 +42,8 @@
->  #include <asm/pgtable.h>
->  #include <asm/tlbflush.h>
->  
-> +#include <acpi/ghes.h>
-> +
->  static const char *fault_name(unsigned int esr);
->  
->  #ifdef CONFIG_KPROBES
-> @@ -500,6 +503,14 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
->  	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
->  		 fault_name(esr), esr, addr);
->  
+        /*
+-        * ADD/DEL call into iommu driver ops if provided, which may
++        * DEL call into iommu driver ops if provided, which may
+         * result in ADD/DEL notifiers to group->notifier
+         */
+-       if (action == BUS_NOTIFY_ADD_DEVICE) {
+-               if (ops->add_device)
+-                       return ops->add_device(dev);
+-       } else if (action == BUS_NOTIFY_REMOVED_DEVICE) {
++       if (action == BUS_NOTIFY_REMOVED_DEVICE) {
+                if (ops->remove_device && dev->iommu_group) {
+                        ops->remove_device(dev);
+                        return 0;
+@@ -1107,9 +1069,6 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
+ {
+        int err;
+        struct notifier_block *nb;
+-       struct iommu_callback_data cb = {
+-               .ops = ops,
+-       };
 
-> +	/*
-> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
-> +	 * rcu_read_lock().
-> +	 */
+        nb = kzalloc(sizeof(struct notifier_block), GFP_KERNEL);
+        if (!nb)
+@@ -1121,18 +1080,8 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
+        if (err)
+                goto out_free;
 
-This comment should go against the use of RCU in ghes_notify_sea(), but there
-should be something here to explain the surprise use of nmi. Something like:
-Synchronous aborts may interrupt code which had interrupts masked. Before
-calling out into the wider kernel tell the interested subsystems.
+-       err = bus_for_each_dev(bus, NULL, &cb, add_iommu_group);
+-       if (err)
+-               goto out_err;
+-
+-
+        return 0;
 
+-out_err:
+-       /* Clean up */
+-       bus_for_each_dev(bus, NULL, &cb, remove_iommu_group);
+-       bus_unregister_notifier(bus, nb);
+-
+ out_free:
+        kfree(nb);
 
-This should be wrapped in:
-if (IS_ENABLED(HAVE_ACPI_APEI_SEA)) {
+@@ -1253,6 +1202,21 @@ static int __iommu_attach_device(struct iommu_domain *domain,
+        return ret;
+ }
 
-> +	nmi_enter();
-> +	ghes_notify_sea();
-> +	nmi_exit();
++const struct iommu_ops *iommu_add_device(struct device *dev,
++                                        const struct iommu_ops *ops)
++{
++       if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
++           dev->bus && !dev->iommu_group) {
++               int err = ops->add_device(dev);
++
++               if (err)
++                       ops = ERR_PTR(err);
++       }
++
++       return ops;
++}
++EXPORT_SYMBOL_GPL(iommu_add_device);
++
+ int iommu_attach_device(struct iommu_domain *domain, struct device *dev)
+ {
+        struct iommu_group *group;
+diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+index 2d04663..4b49dc2 100644
+--- a/drivers/iommu/of_iommu.c
++++ b/drivers/iommu/of_iommu.c
+@@ -224,17 +224,8 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
+                ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
+        else
+                ops = of_platform_iommu_init(dev, master_np);
+-       /*
+-        * If we have reason to believe the IOMMU driver missed the initial
+-        * add_device callback for dev, replay it to get things in order.
+-        */
+-       if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
+-           dev->bus && !dev->iommu_group) {
+-               int err = ops->add_device(dev);
 
-}
+-               if (err)
+-                       ops = ERR_PTR(err);
+-       }
++       ops = iommu_add_device(dev, ops);
 
-To avoid breaking systems that don't have SEA configured.
+        return ops;
+ }
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index add30c3..1d54a91 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -232,6 +232,8 @@ struct iommu_ops {
+ extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus);
+ extern struct iommu_group *iommu_group_get_by_id(int id);
+ extern void iommu_domain_free(struct iommu_domain *domain);
++extern const struct iommu_ops *iommu_add_device(struct device *dev,
++                                               const struct iommu_ops *ops);
+ extern int iommu_attach_device(struct iommu_domain *domain,
+                               struct device *dev);
+ extern void iommu_detach_device(struct iommu_domain *domain,
+@@ -405,6 +407,12 @@ static inline void iommu_domain_free(struct iommu_domain *domain)
+ {
+ }
 
++static inline const struct iommu_ops *iommu_add_device(struct device *dev,
++                                             const struct iommu_ops *ops)
++{
++       return NULL;
++}
++
+ static inline int iommu_attach_device(struct iommu_domain *domain,
+                                      struct device *dev)
+ {
+--
+1.8.2.1
 
-> +
->  	info.si_signo = SIGBUS;
->  	info.si_errno = 0;
->  	info.si_code  = 0;
-> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-> index b0140c8..3786ff1 100644
-> --- a/drivers/acpi/apei/Kconfig
-> +++ b/drivers/acpi/apei/Kconfig
-> @@ -4,6 +4,20 @@ config HAVE_ACPI_APEI
->  config HAVE_ACPI_APEI_NMI
->  	bool
->  
-> +config HAVE_ACPI_APEI_SEA
-> +	bool "APEI Synchronous External Abort logging/recovering support"
-> +	depends on ARM64
-
-depends on CONFIG_ACPI_APEI_GHES
-?
-
-(I think this is what the kbuild robot has managed to miss out!)
-
-
-> +	help
-> +	  This option should be enabled if the system supports
-> +	  firmware first handling of SEA (Synchronous External Abort).
-> +	  SEA happens with certain faults of data abort or instruction
-> +	  abort synchronous exceptions on ARMv8 systems. If a system
-> +	  supports firmware first handling of SEA, the platform analyzes
-> +	  and handles hardware error notifications with SEA, and it may then
-
-Nit: notifications from SEA,
-
-
-> +	  form a HW error record for the OS to parse and handle. This
-> +	  option allows the OS to look for such HW error record, and
-
-Nit: 'HW'->hardware. This is spelled out for the other seven uses in the file.
-
-
-> +	  take appropriate action.
-> +
->  config ACPI_APEI
->  	bool "ACPI Platform Error Interface (APEI)"
->  	select MISC_FILESYSTEMS
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index b25e7cf..8756172 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -114,11 +114,7 @@
->   * Two virtual pages are used, one for IRQ/PROCESS context, the other for
->   * NMI context (optionally).
->   */
-> -#ifdef CONFIG_HAVE_ACPI_APEI_NMI
->  #define GHES_IOREMAP_PAGES           2
-> -#else
-> -#define GHES_IOREMAP_PAGES           1
-> -#endif
->  #define GHES_IOREMAP_IRQ_PAGE(base)	(base)
->  #define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
->  
-> @@ -156,11 +152,14 @@ static void ghes_ioremap_exit(void)
->  
->  static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
->  {
-> -	unsigned long vaddr;
-> +	unsigned long vaddr, paddr;
-> +	pgprot_t prot;
->  
->  	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
-> -	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
-> -			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-> +
-
-> +	paddr = pfn << PAGE_SHIFT;
-
-Physical addresses might not always fit in 'unsigned long'. phys_addr_t exists
-to hide this nasty detail!
-
->From arch/x86/Kconfig:
-> config ARCH_PHYS_ADDR_T_64BIT
-> 	def_bool y
-> 	depends on X86_64 || X86_PAE
-
-32bit x86 kernels configured with PAE define phys_addr_t to be u64.
-
-
-> +	prot = arch_apei_get_mem_attribute(paddr);
-> +	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
->  
->  	return (void __iomem *)vaddr;
->  }
-> @@ -767,6 +766,48 @@ static int ghes_notify_sci(struct notifier_block *this,
->  	.notifier_call = ghes_notify_sci,
->  };
->  
-> +#ifdef CONFIG_HAVE_ACPI_APEI_SEA
-> +static LIST_HEAD(ghes_sea);
-> +
-> +void ghes_notify_sea(void)
-> +{
-> +	struct ghes *ghes;
-> +
-
-	/*
-	 * synchronize_rcu() will wait for nmi_exit(), so no need to
-	 * rcu_read_lock().
-	 */
-
-> +	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
-> +		ghes_proc(ghes);
-> +	}
-> +}
-> +
-> +static int ghes_sea_add(struct ghes *ghes)
-> +{
-> +	mutex_lock(&ghes_list_mutex);
-> +	list_add_rcu(&ghes->list, &ghes_sea);
-> +	mutex_unlock(&ghes_list_mutex);
-
-> +	return 0;
-
-This function returns 0 or -ENOTSUPP, depending on CONFIG_HAVE_ACPI_APEI_SEA,
-but ...
-
-
-> +}
-> +
-> +static void ghes_sea_remove(struct ghes *ghes)
-> +{
-> +	mutex_lock(&ghes_list_mutex);
-> +	list_del_rcu(&ghes->list);
-> +	mutex_unlock(&ghes_list_mutex);
-> +	synchronize_rcu();
-> +}
-> +#else /* CONFIG_HAVE_ACPI_APEI_SEA */
-> +static inline int ghes_sea_add(struct ghes *ghes)
-> +{
-> +	pr_err(GHES_PFX "ID: %d, trying to add SEA notification which is not supported\n",
-> +	       ghes->generic->header.source_id);
-> +	return -ENOTSUPP;
-> +}
-> +
-> +static inline void ghes_sea_remove(struct ghes *ghes)
-> +{
-> +	pr_err(GHES_PFX "ID: %d, trying to remove SEA notification which is not supported\n",
-> +	       ghes->generic->header.source_id);
-> +}
-> +#endif /* CONFIG_HAVE_ACPI_APEI_SEA */
-> +
->  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
->  /*
->   * printk is not safe in NMI context.  So in NMI handler, we allocate
-> @@ -1012,6 +1053,14 @@ static int ghes_probe(struct platform_device *ghes_dev)
->  	case ACPI_HEST_NOTIFY_EXTERNAL:
->  	case ACPI_HEST_NOTIFY_SCI:
->  		break;
-> +	case ACPI_HEST_NOTIFY_SEA:
-> +		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_SEA)) {
-> +			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEA is not supported\n",
-> +				generic->header.source_id);
-> +			rc = -ENOTSUPP;
-> +			goto err;
-
-... here we jump out of ghes_probe() if NOTIFY_SEA is used but the kernel wasn't
-built with CONFIG_HAVE_ACPI_APEI_SEA....
-
-
-> +		}
-> +		break;
->  	case ACPI_HEST_NOTIFY_NMI:
->  		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
->  			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
-> @@ -1023,6 +1072,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
->  		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
->  			   generic->header.source_id);
->  		goto err;
-> +	case ACPI_HEST_NOTIFY_GPIO:
-> +	case ACPI_HEST_NOTIFY_SEI:
-> +	case ACPI_HEST_NOTIFY_GSIV:
-> +		pr_warn(GHES_PFX "Generic hardware error source: %d notified via notification type %u is not supported\n",
-> +			generic->header.source_id, generic->header.source_id);
-> +		rc = -ENOTSUPP;
-> +		goto err;
->  	default:
->  		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
->  			   generic->notify.type, generic->header.source_id);
-> @@ -1077,6 +1133,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
->  		list_add_rcu(&ghes->list, &ghes_sci);
->  		mutex_unlock(&ghes_list_mutex);
->  		break;
-> +	case ACPI_HEST_NOTIFY_SEA:
-> +		rc = ghes_sea_add(ghes);
-
-... so this error handling will never be needed.
-ghes_nmi_add() returns void.
-
-I guess the not-configured versions of the symbols need to exist for older
-compilers that can't work out that this can never be called.
-
-
-> +		if (rc)
-> +			goto err_edac_unreg;
-> +		break;
->  	case ACPI_HEST_NOTIFY_NMI:
->  		ghes_nmi_add(ghes);
->  		break;
-> @@ -1119,6 +1180,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
->  			unregister_acpi_hed_notifier(&ghes_notifier_sci);
->  		mutex_unlock(&ghes_list_mutex);
->  		break;
-> +	case ACPI_HEST_NOTIFY_SEA:
-> +		ghes_sea_remove(ghes);
-> +		break;
->  	case ACPI_HEST_NOTIFY_NMI:
->  		ghes_nmi_remove(ghes);
->  		break;
-
-> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-> index 6ae318b..adf5455 100644
-> --- a/include/acpi/ghes.h
-> +++ b/include/acpi/ghes.h
-> @@ -95,3 +95,5 @@ static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data
->  		(void *)(((struct acpi_hest_generic_data_v300 *)(gdata)) + 1) :
->  		gdata + 1;
->  }
-> +
-> +void ghes_notify_sea(void);
-> 
-
-This header file ought to have an include guard, could you add one?
-
-I think the kbuild-robot has managed to configure SEA on, but GHES off so ghes.c
-isn't included in the kernel. I will dig some more into this on Monday.
-
-
-
-Thanks,
-
-James
