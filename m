@@ -1,82 +1,49 @@
-From: Sricharan R <sricharan@codeaurora.org>
-Subject: [PATCH V8 11/11] ACPI/IORT: Remove linker section for IORT entries probing
-Date: Fri,  3 Feb 2017 21:18:53 +0530
-Message-ID: <1486136933-20328-12-git-send-email-sricharan@codeaurora.org>
-References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
+Date: Fri, 3 Feb 2017 10:57:44 -0500
+Message-ID: <6eb61900-640d-fd7f-7e7f-9deced1ec71e@codeaurora.org>
+References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
+ <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
+ <fd106be9-836d-8d91-e57c-183ca56b4a49@arm.com>
+ <45d4de34-cfd2-06af-93c2-e721bd80ab43@codeaurora.org>
+ <8687cb39-bffe-8f4a-76aa-a4d4ed61d30e@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:34956 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:41406 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751618AbdBCPvM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 10:51:12 -0500
-In-Reply-To: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
+        with ESMTP id S1750968AbdBCP5v (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 10:57:51 -0500
+In-Reply-To: <8687cb39-bffe-8f4a-76aa-a4d4ed61d30e@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robin.murphy@arm.com, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org
-Cc: sricharan@codeaurora.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+On 2/3/2017 10:49 AM, Marc Zyngier wrote:
+>> Patches 13-15 are specific for MBIGEN. 00-12 are for the base functionality.
+> Is that to support SMMUv3's own MSI generation? It would be helpful if
+> you explained why you want this code to be merged beforehand,
+> potentially without any in-tree user.
 
-The IORT linker section introduced by commit 34ceea275f62
-("ACPI/IORT: Introduce linker section for IORT entries probing")
-was needed to make sure SMMU drivers are registered (and therefore
-probed) in the kernel before devices using the SMMU have a chance
-to probe in turn.
+Sure, I'm more interested in supporting MSI on my HIDMA code rather than
+MSI on SMMUv3.
 
-Through the introduction of deferred IOMMU configuration the linker
-section based IORT probing infrastructure is not needed any longer, in
-that device/SMMU probe dependencies are managed through the probe
-deferral mechanism, making the IORT linker section infrastructure
-unused, so that it can be removed.
+HIDMA MSI patches were merged November 2016.
 
-Remove the unused IORT linker section probing infrastructure
-from the kernel to complete the ACPI IORT IOMMU configure probe
-deferral mechanism implementation.
+https://github.com/torvalds/linux/commits/master/drivers/dma/qcom/hidma.c
 
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Sricharan R <sricharan@codeaurora.org>
----
- drivers/acpi/arm64/iort.c         | 2 --
- include/asm-generic/vmlinux.lds.h | 1 -
- include/linux/acpi_iort.h         | 3 ---
- 3 files changed, 6 deletions(-)
+Commits on Nov 3, 2016
+ @vinodkoul
+dmaengine: qcom_hidma: add MSI support for interrupts  …
+Sinan Kaya committed with vinodkoul on Oct 21, 2016
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index d01bae8..ac45623 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -992,6 +992,4 @@ void __init acpi_iort_init(void)
- 	}
- 
- 	iort_init_platform_devices();
--
--	acpi_probe_device_table(iort);
- }
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 4e09b28..93ea70a 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -567,7 +567,6 @@
- 	IRQCHIP_OF_MATCH_TABLE()					\
- 	ACPI_PROBE_TABLE(irqchip)					\
- 	ACPI_PROBE_TABLE(clksrc)					\
--	ACPI_PROBE_TABLE(iort)						\
- 	EARLYCON_TABLE()
- 
- #define INIT_TEXT							\
-diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-index 77e0809..f167e1d04 100644
---- a/include/linux/acpi_iort.h
-+++ b/include/linux/acpi_iort.h
-@@ -52,7 +52,4 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- { return NULL; }
- #endif
- 
--#define IORT_ACPI_DECLARE(name, table_id, fn)		\
--	ACPI_DECLARE_PROBE_ENTRY(iort, name, table_id, 0, NULL, 0, fn)
--
- #endif /* __ACPI_IORT_H__ */
+I tested the first 12 patches of this series against HIDMA and provided
+my tested-by.
+
+
 -- 
-QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
