@@ -1,66 +1,70 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v5 1/4] device property: allow to constify properties
-Date: Fri, 03 Feb 2017 13:40:21 +0200
-Message-ID: <1486122021.2133.371.camel@linux.intel.com>
+Subject: Re: [PATCH v5 2/4] device property: constify property arrays values
+Date: Fri, 03 Feb 2017 13:43:03 +0200
+Message-ID: <1486122183.2133.373.camel@linux.intel.com>
 References: <20170203014128.317-1-dmitry.torokhov@gmail.com>
-         <20170203014128.317-2-dmitry.torokhov@gmail.com>
+         <20170203014128.317-3-dmitry.torokhov@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:31610 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:13285 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751878AbdBCLk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 3 Feb 2017 06:40:26 -0500
-In-Reply-To: <20170203014128.317-2-dmitry.torokhov@gmail.com>
+        id S1751878AbdBCLnH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Feb 2017 06:43:07 -0500
+In-Reply-To: <20170203014128.317-3-dmitry.torokhov@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
 On Thu, 2017-02-02 at 17:41 -0800, Dmitry Torokhov wrote:
-> There is no reason why statically defined properties should be
-> modifiable,
-> so let's make device_add_properties() and the rest of pset_*()
-> functions to
-> take const pointers to properties.
-> 
-> This will allow us to mark properties as const/__initconst at
-> definition
-> sites.
+> Data that is fed into property arrays should not be modified, so let's
+> mark
+> relevant pointers as const. This will allow us making source arrays as
+> const/__initconst.
 > 
 
-Looks good to me.
-
-FWIW:
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-Though, nitpicks below.
- 
->  static struct property_set *pset_copy_set(const struct property_set
+> @@ -718,7 +718,8 @@ static void pset_free_set(struct property_set
 > *pset)
+>  static int pset_copy_entry(struct property_entry *dst,
+>  			   const struct property_entry *src)
 >  {
-> -	const struct property_entry *entry;
-> +	struct property_entry *props;
+> -	const char **d, **s;
+> +	const char * const *s;
+> +	char **d;
 
-Can we leave the name?
- 
-> -	p->properties = kcalloc(n + 1, sizeof(*entry), GFP_KERNEL);
-> 
-> +	p->properties = props = kcalloc(n + 1, sizeof(*props),
-> GFP_KERNEL);
->  	if (!p->properties) {
->  		kfree(p);
->  		return ERR_PTR(-ENOMEM);
->  	}
+You removed const here
+
+>  	size_t i, nval;
 >  
->  	for (i = 0; i < n; i++) {
+>  	dst->name = kstrdup(src->name, GFP_KERNEL);
+> @@ -731,12 +732,11 @@ static int pset_copy_entry(struct property_entry
+> *dst,
+>  
+>  		if (src->is_string) {
+>  			nval = src->length / sizeof(const char *);
+> -			dst->pointer.str = kcalloc(nval, sizeof(const
+> char *),
+> -						   GFP_KERNEL);
+> -			if (!dst->pointer.str)
+> +			d = kcalloc(nval, sizeof(const char *),
+> GFP_KERNEL);
 
-> -		int ret = pset_copy_entry(&p->properties[i],
-> +		int ret = pset_copy_entry(&props[i],
->  					  &pset->properties[i]);
+But left it here. Do we need to remove const?
 
-Do we need these changes?
+> +			if (!d)
+>  				return -ENOMEM;
+>  
+> -			d = dst->pointer.str;
+> +			dst->pointer.raw_data = d;
+>  			s = src->pointer.str;
+
+So, overall, do we need these changes at all? Nothing in commit message
+sheds a light on it.
+
+>  			for (i = 0; i < nval; i++) {
+>  				d[i] = kstrdup(s[i], GFP_KERNEL);
 
 -- 
 Andy Shevchenko <andriy.shevchenko@linux.intel.com>
