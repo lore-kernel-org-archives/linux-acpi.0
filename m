@@ -1,54 +1,67 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V12 0/3] irqchip: qcom: Add IRQ combiner driver
-Date: Fri, 3 Feb 2017 18:31:48 +0800
-Message-ID: <58945C14.2090009@huawei.com>
-References: <1486077839-25547-1-git-send-email-agustinv@codeaurora.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v5 1/4] device property: allow to constify properties
+Date: Fri, 03 Feb 2017 13:40:21 +0200
+Message-ID: <1486122021.2133.371.camel@linux.intel.com>
+References: <20170203014128.317-1-dmitry.torokhov@gmail.com>
+         <20170203014128.317-2-dmitry.torokhov@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1486077839-25547-1-git-send-email-agustinv@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com
-Cc: harba@codeaurora.org, lorenzo.pieralisi@arm.com, graeme.gregory@linaro.org, jcm@redhat.com, timur@codeaurora.org, msalter@redhat.com, astone@redhat.com, andy.shevchenko@gmail.com, mlangsdo@redhat.com, cov@codeaurora.org, agross@codeaurora.org, ahs3@redhat.com, charles.garcia-tobin@arm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:31610 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751878AbdBCLk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Feb 2017 06:40:26 -0500
+In-Reply-To: <20170203014128.317-2-dmitry.torokhov@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On 2017/2/3 7:23, Agustin Vega-Frias wrote:
-> Add support for IRQ combiners in the Top-level Control and Status
-> Registers (TCSR) hardware block in Qualcomm Technologies chips.
->
-> The first patch prevents the ACPI core from attempting to map IRQ resources
-> with a valid ResourceSource as GSIs.
->
-> The second patch adds support for ResourceSource/IRQ domain mapping and
-> fixes IRQ probe deferral by allowing platform_device IRQ resources to be
-> re-initialized from the corresponding ACPI IRQ resource.
->
-> Both changes described above are conditional on the ACPI_GENERIC_GSI config.
->
-> The third patch takes advantage of the new capabilities to implement
-> the driver for the IRQ combiners.
->
-> Tested on top of v4.10-rc6.
->
-> Changes V11 -> V12:
-> * Remove probe table, add that optimization later.
-> * Fix some minor style issues.
+On Thu, 2017-02-02 at 17:41 -0800, Dmitry Torokhov wrote:
+> There is no reason why statically defined properties should be
+> modifiable,
+> so let's make device_add_properties() and the rest of pset_*()
+> functions to
+> take const pointers to properties.
+> 
+> This will allow us to mark properties as const/__initconst at
+> definition
+> sites.
+> 
 
-For patch [1-2/3], I tested on x86 and IA64 machine, didn't see
-regressions in dmesg, and tested them on Hisilicon D03 (ARM64 with
-mbigen irqchip which needs this mechanism) , it works fine.
+Looks good to me.
 
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+FWIW:
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Thanks
-Hanjun
+Though, nitpicks below.
+ 
+>  static struct property_set *pset_copy_set(const struct property_set
+> *pset)
+>  {
+> -	const struct property_entry *entry;
+> +	struct property_entry *props;
+
+Can we leave the name?
+ 
+> -	p->properties = kcalloc(n + 1, sizeof(*entry), GFP_KERNEL);
+> 
+> +	p->properties = props = kcalloc(n + 1, sizeof(*props),
+> GFP_KERNEL);
+>  	if (!p->properties) {
+>  		kfree(p);
+>  		return ERR_PTR(-ENOMEM);
+>  	}
+>  
+>  	for (i = 0; i < n; i++) {
+
+> -		int ret = pset_copy_entry(&p->properties[i],
+> +		int ret = pset_copy_entry(&props[i],
+>  					  &pset->properties[i]);
+
+Do we need these changes?
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
