@@ -1,344 +1,161 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH V8 08/11] drivers: acpi: Handle IOMMU lookup failure with
- deferred probing or error
-Date: Fri, 3 Feb 2017 17:39:18 +0000
-Message-ID: <3d32202c-4127-e808-414b-6067178f150d@arm.com>
-References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
- <1486136933-20328-9-git-send-email-sricharan@codeaurora.org>
- <017301d27e38$cc361350$64a239f0$@codeaurora.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
+Date: Fri, 3 Feb 2017 18:36:26 +0000
+Message-ID: <20170203183626.GB17899@red-moon>
+References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <017301d27e38$cc361350$64a239f0$@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sricharan <sricharan@codeaurora.org>, will.deacon@arm.com, joro@8bytes.org, lorenzo.pieralisi@arm.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, m.szyprowski@samsung.com, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, tn@semihalf.com, hanjun.guo@linaro.org, okaya@codeaurora.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:57446 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751568AbdBCSe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Feb 2017 13:34:26 -0500
+Content-Disposition: inline
+In-Reply-To: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>, Sinan Kaya <okaya@codeaurora.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 03/02/17 16:15, Sricharan wrote:
-> Hi Lorenzo, Robin,
-> 
->> -----Original Message-----
->> From: linux-arm-kernel [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Sricharan R
->> Sent: Friday, February 03, 2017 9:19 PM
->> To: robin.murphy@arm.com; will.deacon@arm.com; joro@8bytes.org; lorenzo.pieralisi@arm.com; iommu@lists.linux-foundation.org;
->> linux-arm-kernel@lists.infradead.org; linux-arm-msm@vger.kernel.org; m.szyprowski@samsung.com; bhelgaas@google.com; linux-
->> pci@vger.kernel.org; linux-acpi@vger.kernel.org; tn@semihalf.com; hanjun.guo@linaro.org; okaya@codeaurora.org
->> Cc: sricharan@codeaurora.org
->> Subject: [PATCH V8 08/11] drivers: acpi: Handle IOMMU lookup failure with deferred probing or error
->>
->> This is an equivalent to the DT's handling of the iommu master's probe
->> with deferred probing when the corrsponding iommu is not probed yet.
->> The lack of a registered IOMMU can be caused by the lack of a driver for
->> the IOMMU, the IOMMU device probe not having been performed yet, having
->> been deferred, or having failed.
->>
->> The first case occurs when the firmware describes the bus master and
->> IOMMU topology correctly but no device driver exists for the IOMMU yet
->> or the device driver has not been compiled in. Return NULL, the caller
->> will configure the device without an IOMMU.
->>
->> The second and third cases are handled by deferring the probe of the bus
->> master device which will eventually get reprobed after the IOMMU.
->>
->> The last case is currently handled by deferring the probe of the bus
->> master device as well. A mechanism to either configure the bus master
->> device without an IOMMU or to fail the bus master device probe depending
->> on whether the IOMMU is optional or mandatory would be a good
->> enhancement.
->>
->> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
->> ---
->> drivers/acpi/arm64/iort.c  | 25 ++++++++++++++++++++++++-
->> drivers/acpi/scan.c        |  7 +++++--
->> drivers/base/dma-mapping.c |  2 +-
->> include/acpi/acpi_bus.h    |  2 +-
->> include/linux/acpi.h       |  7 +++++--
->> 5 files changed, 36 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index bf0ed09..d01bae8 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -550,8 +550,17 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
->> 			return NULL;
->>
->> 		ops = iommu_get_instance(iort_fwnode);
->> +		/*
->> +		 * If the ops look-up fails, this means that either
->> +		 * the SMMU drivers have not been probed yet or that
->> +		 * the SMMU drivers are not built in the kernel;
->> +		 * Depending on whether the SMMU drivers are built-in
->> +		 * in the kernel or not, defer the IOMMU configuration
->> +		 * or just abort it.
->> +		 */
->> 		if (!ops)
->> -			return NULL;
->> +			return iort_iommu_driver_enabled(node->type) ?
->> +			       ERR_PTR(-EPROBE_DEFER) : NULL;
->>
->> 		ret = arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
->> 	}
->> @@ -625,12 +634,26 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->>
->> 		while (parent) {
->> 			ops = iort_iommu_xlate(dev, parent, streamid);
->> +			if (IS_ERR_OR_NULL(ops))
->> +				return ops;
->>
->> 			parent = iort_node_get_id(node, &streamid,
->> 						  IORT_IOMMU_TYPE, i++);
->> 		}
->> 	}
->>
->> +	/*
->> +	 * If we have reason to believe the IOMMU driver missed the initial
->> +	 * add_device callback for dev, replay it to get things in order.
->> +	 */
->> +	if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
->> +	    dev->bus && !dev->iommu_group) {
->> +		int err = ops->add_device(dev);
->> +
->> +		if (err)
->> +			ops = ERR_PTR(err);
->> +	}
->> +
-> 
-> On the last post we discussed that the above replay hunk can be made
-> common. In trying to do that, i ended up with a patch like below. But not
-> sure if that should be a part of this series though. I tested with OF devices
-> and would have to be tested with ACPI devices once. Nothing changes
-> functionally because of this ideally. Should be split in two patches though.
-> 
-> Regards,
->  Sricharan
-> 
-> From aafbf2c97375a086327504f2367eaf9197c719b1 Mon Sep 17 00:00:00 2001
-> From: Sricharan R <sricharan@codeaurora.org>
-> Date: Fri, 3 Feb 2017 15:24:47 +0530
-> Subject: [PATCH] drivers: iommu: Add iommu_add_device api
-> 
-> The code to call IOMMU driver's add_device is same
-> for both OF and ACPI cases. So add an api which can
-> be shared across both the places.
-> 
-> Also, now with probe-deferral the iommu master devices gets
-> added to the respective iommus during probe time instead
-> of device creation time. The xlate callbacks of iommu
-> drivers are also called only at probe time. As a result
-> the add_iommu_group which gets called when the iommu is
-> registered to add all devices created before the iommu
-> becomes dummy. Similar the BUS_NOTIFY_ADD_DEVICE notification
-> also is not needed. So just cleanup those code.
-> 
-> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
-> ---
->  drivers/acpi/arm64/iort.c | 12 +-------
->  drivers/iommu/iommu.c     | 70 ++++++++++++-----------------------------------
->  drivers/iommu/of_iommu.c  | 11 +-------
->  include/linux/iommu.h     |  8 ++++++
->  4 files changed, 27 insertions(+), 74 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index ac45623..ab2a554 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -642,17 +642,7 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
->                 }
->         }
-> 
-> -       /*
-> -        * If we have reason to believe the IOMMU driver missed the initial
-> -        * add_device callback for dev, replay it to get things in order.
-> -        */
-> -       if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
-> -           dev->bus && !dev->iommu_group) {
-> -               int err = ops->add_device(dev);
-> -
-> -               if (err)
-> -                       ops = ERR_PTR(err);
-> -       }
-> +       ops = iommu_add_device(dev, ops);
-> 
->         return ops;
->  }
-> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-> index b752c3d..750552d 100644
-> --- a/drivers/iommu/iommu.c
-> +++ b/drivers/iommu/iommu.c
-> @@ -1015,41 +1015,6 @@ struct iommu_domain *iommu_group_default_domain(struct iommu_group *group)
->         return group->default_domain;
->  }
-> 
-> -static int add_iommu_group(struct device *dev, void *data)
-> -{
-> -       struct iommu_callback_data *cb = data;
-> -       const struct iommu_ops *ops = cb->ops;
-> -       int ret;
-> -
-> -       if (!ops->add_device)
-> -               return 0;
-> -
-> -       WARN_ON(dev->iommu_group);
-> -
-> -       ret = ops->add_device(dev);
-> -
-> -       /*
-> -        * We ignore -ENODEV errors for now, as they just mean that the
-> -        * device is not translated by an IOMMU. We still care about
-> -        * other errors and fail to initialize when they happen.
-> -        */
-> -       if (ret == -ENODEV)
-> -               ret = 0;
-> -
-> -       return ret;
-> -}
-> -
-> -static int remove_iommu_group(struct device *dev, void *data)
-> -{
-> -       struct iommu_callback_data *cb = data;
-> -       const struct iommu_ops *ops = cb->ops;
-> -
-> -       if (ops->remove_device && dev->iommu_group)
-> -               ops->remove_device(dev);
-> -
-> -       return 0;
-> -}
-> -
->  static int iommu_bus_notifier(struct notifier_block *nb,
->                               unsigned long action, void *data)
->  {
-> @@ -1059,13 +1024,10 @@ static int iommu_bus_notifier(struct notifier_block *nb,
->         unsigned long group_action = 0;
-> 
->         /*
-> -        * ADD/DEL call into iommu driver ops if provided, which may
-> +        * DEL call into iommu driver ops if provided, which may
->          * result in ADD/DEL notifiers to group->notifier
->          */
-> -       if (action == BUS_NOTIFY_ADD_DEVICE) {
-> -               if (ops->add_device)
-> -                       return ops->add_device(dev);
+Hanjun, Sinan,
 
-I'm pretty sure this completely breaks x86 and anyone else...
+On Wed, Jan 18, 2017 at 08:54:50PM +0800, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
+> 
+> With platform msi support landed in the kernel, and the introduction
+> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
+> is ready, this patch set add few patches to enable the ACPI platform
+> msi support.
+> 
+> For platform device connecting to ITS on arm platform, we have IORT
+> table with the named componant node to describe the mappings of paltform
+> device and ITS, so we can retrieve the dev id and find its parent
+> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
 
-Anyway, I'd be inclined to leave this alone for now - it's essentially
-just a workaround to mesh the per-instance probing behaviour with the
-per-bus ops model, so it's bound to be a bit ugly. Moving the IOMMU core
-code over to a per-instance model will inevitably subsume the underlying
-problem, and I think a bit of duplication is probably the lesser of two
-evils in the meantime. On which note, I need to have a good look at
-Joerg's shiny new series :)
+Depending on how things go, I prepared a branch with the first 12
+patches (I basically updated some logs and added some cosmetics changes)
+for testing (Hanjun please have a look in details since I may have misread
+some logs), whether or not I will send a pull request for it we shall see
+next week.
 
-Robin.
+Here:
 
-> -       } else if (action == BUS_NOTIFY_REMOVED_DEVICE) {
-> +       if (action == BUS_NOTIFY_REMOVED_DEVICE) {
->                 if (ops->remove_device && dev->iommu_group) {
->                         ops->remove_device(dev);
->                         return 0;
-> @@ -1107,9 +1069,6 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
->  {
->         int err;
->         struct notifier_block *nb;
-> -       struct iommu_callback_data cb = {
-> -               .ops = ops,
-> -       };
+git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/platform-msi
+
+Thanks,
+Lorenzo
+
+> v7 -> v8:
+> 	- Using _CRS instead of _PRS for Interrupt resources for mbigen
 > 
->         nb = kzalloc(sizeof(struct notifier_block), GFP_KERNEL);
->         if (!nb)
-> @@ -1121,18 +1080,8 @@ static int iommu_bus_init(struct bus_type *bus, const struct iommu_ops *ops)
->         if (err)
->                 goto out_free;
+> 	- reshuffle the patch slightly to introduce iort_node_map_platform_id()
+> 	  first and then retrieve the dev id for platform MSI, no functional
+> 	  change
 > 
-> -       err = bus_for_each_dev(bus, NULL, &cb, add_iommu_group);
-> -       if (err)
-> -               goto out_err;
-> -
-> -
->         return 0;
+> 	- Fix the compile error with patch "irqchip: gicv3-its: platform-msi:
+> 	  scan MADT to create platform msi domain", which forgot to add 
+> 	  <include/acpi_iort.h> (added in later patches in last version).
 > 
-> -out_err:
-> -       /* Clean up */
-> -       bus_for_each_dev(bus, NULL, &cb, remove_iommu_group);
-> -       bus_unregister_notifier(bus, nb);
-> -
->  out_free:
->         kfree(nb);
+> 	- renew some commit message which suggested by Lorenzo
 > 
-> @@ -1253,6 +1202,21 @@ static int __iommu_attach_device(struct iommu_domain *domain,
->         return ret;
->  }
+> 	- address some othe minor issues which commented by Lorenzo
 > 
-> +const struct iommu_ops *iommu_add_device(struct device *dev,
-> +                                        const struct iommu_ops *ops)
-> +{
-> +       if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
-> +           dev->bus && !dev->iommu_group) {
-> +               int err = ops->add_device(dev);
-> +
-> +               if (err)
-> +                       ops = ERR_PTR(err);
-> +       }
-> +
-> +       return ops;
-> +}
-> +EXPORT_SYMBOL_GPL(iommu_add_device);
-> +
->  int iommu_attach_device(struct iommu_domain *domain, struct device *dev)
->  {
->         struct iommu_group *group;
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index 2d04663..4b49dc2 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -224,17 +224,8 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
->                 ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
->         else
->                 ops = of_platform_iommu_init(dev, master_np);
-> -       /*
-> -        * If we have reason to believe the IOMMU driver missed the initial
-> -        * add_device callback for dev, replay it to get things in order.
-> -        */
-> -       if (!IS_ERR_OR_NULL(ops) && ops->add_device &&
-> -           dev->bus && !dev->iommu_group) {
-> -               int err = ops->add_device(dev);
+> 	- Add review and test tag as it's no functional change except
+> 	  the last patch of mbigen
 > 
-> -               if (err)
-> -                       ops = ERR_PTR(err);
-> -       }
-> +       ops = iommu_add_device(dev, ops);
+> 	- rebase on top of 4.10-rc4 and test it on x86, ia64 and ARM64
+> 	  platforms (also with Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
+>           Add IRQ combiner driver" and Lorenzo's patch
+>           https://patchwork.kernel.org/patch/9507041/)
 > 
->         return ops;
->  }
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index add30c3..1d54a91 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -232,6 +232,8 @@ struct iommu_ops {
->  extern struct iommu_domain *iommu_domain_alloc(struct bus_type *bus);
->  extern struct iommu_group *iommu_group_get_by_id(int id);
->  extern void iommu_domain_free(struct iommu_domain *domain);
-> +extern const struct iommu_ops *iommu_add_device(struct device *dev,
-> +                                               const struct iommu_ops *ops);
->  extern int iommu_attach_device(struct iommu_domain *domain,
->                                struct device *dev);
->  extern void iommu_detach_device(struct iommu_domain *domain,
-> @@ -405,6 +407,12 @@ static inline void iommu_domain_free(struct iommu_domain *domain)
->  {
->  }
+> v6 -> v7: 
+> 	- Introduce iort_node_map_platform_id() to retrieve the
+> 	  dev id for both NC (named component) -> ITS/SMMU and
+> 	  NC -> SMMU -> ITS cases, suggested by Lorenzo;
 > 
-> +static inline const struct iommu_ops *iommu_add_device(struct device *dev,
-> +                                             const struct iommu_ops *ops)
-> +{
-> +       return NULL;
-> +}
-> +
->  static inline int iommu_attach_device(struct iommu_domain *domain,
->                                       struct device *dev)
->  {
-> --
-> 1.8.2.1
+> 	- Reorder the patches and rewrite some commit message;
+> 
+> 	- Remove the test tags because it has major changes
+> 	  to retrieve the dev id, Sinan, Majun, Xinwei, could
+> 	  you please test them again on your platform?
+> 
+> 	- rebased on top of 4.10-rc3 and Lorenzo's patch
+>           https://patchwork.kernel.org/patch/9507041/
+> 
+> 	- Tested against Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
+>           Add IRQ combiner driver"
+> 
+> v5 -> v6:
+>         - Call acpi_configure_pmsi_domain() for platform devices in
+>           acpi_platform_notify() as it's cleaner (suggested by Rafael)
+>         - Remove the "u8 type" for iort_id_map() because it's unused
+>         - Rebase on top of 4.10-rc2
+>         - Collect test and review tags
+> 
+> v4 -> v5:
+>         - Add mbigen support back with tested on with Agustin's patchset,
+>           and it's a good example of how ACPI platform MSI works
+>         - rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
+> 
+> v3 -> v4:
+>         - Drop mbi-gen patches to just submit platform msi support because
+>           will rebase mbi-gen patches on top of Agustin's patchset, and discusion
+>           is going there.
+>         - Add a patch to support device topology such as NC(named componant, paltform device)
+>           ->SMMU->ITS which suggested by Lorenzo;
+>         - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
+>         - rebased on top of 4.9-rc7
+> 
+> v2 -> v3:
+>         - Drop RFC tag
+>         - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
+>         - Add 3 cleanup patches (patch 1, 2, 3)
+>         - Drop arch_init call patch from last version
+>         - Introduce a callback for platform device to set msi domain
+>         - Introduce a new API to get paltform device's domain instead of
+>           reusing the PCI one in previous version
+>         - Add a patch to rework iort_node_get_id()
+> 
+> [1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
+> 
+> v1 -> v2:
+>         - Fix the bug of if multi Interrupt() resoures in single _PRS,
+>           we need to calculate all the irq numbers (I missed it in previous
+>           version);
+>         - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
+>           SMMU patches (also Robin's SMMu patches)
+>         - Add patch irqchip: mbigen: promote mbigen init.
+> 
+> Hanjun Guo (13):
+>   ACPI: IORT: fix the indentation in iort_scan_node()
+>   ACPI: IORT: add missing comment for iort_dev_find_its_id()
+>   ACPI: IORT: minor cleanup for iort_match_node_callback()
+>   irqchip: gic-v3-its: keep the head file include in alphabetic order
+>   irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+>   irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
+>     for ACPI
+>   irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
+>     domain
+>   ACPI: IORT: rename iort_node_map_rid() to make it generic
+>   ACPI: IORT: introduce iort_node_map_platform_id() to retrieve dev id
+>   ACPI: platform-msi: retrieve dev id from IORT
+>   ACPI: platform: setup MSI domain for ACPI based platform device
+>   msi: platform: make platform_msi_create_device_domain() ACPI aware
+>   irqchip: mbigen: Add ACPI support
+> 
+> Kefeng Wang (2):
+>   irqchip: mbigen: drop module owner
+>   irqchip: mbigen: introduce mbigen_of_create_domain()
+> 
+>  drivers/acpi/arm64/iort.c                     | 158 +++++++++++++++++++++-----
+>  drivers/acpi/glue.c                           |   6 +
+>  drivers/base/platform-msi.c                   |   3 +-
+>  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++----
+>  drivers/irqchip/irq-gic-v3-its.c              |   3 +-
+>  drivers/irqchip/irq-mbigen.c                  | 109 +++++++++++++++---
+>  include/linux/acpi_iort.h                     |   8 ++
+>  7 files changed, 316 insertions(+), 77 deletions(-)
+> 
+> -- 
+> 1.7.12.4
 > 
