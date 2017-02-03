@@ -1,161 +1,151 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
-Date: Fri, 3 Feb 2017 18:36:26 +0000
-Message-ID: <20170203183626.GB17899@red-moon>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V8 09/10] trace, ras: add ARM processor error trace event
+Date: Fri, 3 Feb 2017 13:18:40 -0700
+Message-ID: <70bd0d57-4369-ac7d-10c6-2c9de62a666f@codeaurora.org>
+References: <1485969413-23577-1-git-send-email-tbaicar@codeaurora.org>
+ <1485969413-23577-10-git-send-email-tbaicar@codeaurora.org>
+ <20170201221544.3d8651e5@grimm.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57446 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751568AbdBCSe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 3 Feb 2017 13:34:26 -0500
-Content-Disposition: inline
-In-Reply-To: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:49662 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752156AbdBCUSr (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 15:18:47 -0500
+In-Reply-To: <20170201221544.3d8651e5@grimm.local.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Sinan Kaya <okaya@codeaurora.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, S
 
-Hanjun, Sinan,
+Hello Steve,
 
-On Wed, Jan 18, 2017 at 08:54:50PM +0800, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> With platform msi support landed in the kernel, and the introduction
-> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
-> is ready, this patch set add few patches to enable the ACPI platform
-> msi support.
-> 
-> For platform device connecting to ITS on arm platform, we have IORT
-> table with the named componant node to describe the mappings of paltform
-> device and ITS, so we can retrieve the dev id and find its parent
-> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
 
-Depending on how things go, I prepared a branch with the first 12
-patches (I basically updated some logs and added some cosmetics changes)
-for testing (Hanjun please have a look in details since I may have misread
-some logs), whether or not I will send a pull request for it we shall see
-next week.
-
-Here:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/platform-msi
+On 2/1/2017 8:15 PM, Steven Rostedt wrote:
+> On Wed,  1 Feb 2017 10:16:52 -0700
+> Tyler Baicar <tbaicar@codeaurora.org> wrote:
+>
+>> Currently there are trace events for the various RAS
+>> errors with the exception of ARM processor type errors.
+>> Add a new trace event for such errors so that the user
+>> will know when they occur. These trace events are
+>> consistent with the ARM processor error section type
+>> defined in UEFI 2.6 spec section N.2.4.4.
+>>
+>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> Acked-by: Steven Rostedt <rostedt@goodmis.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c    |  7 ++++++-
+>>   drivers/firmware/efi/cper.c |  1 +
+>>   drivers/ras/ras.c           |  1 +
+>>   include/ras/ras_event.h     | 34 ++++++++++++++++++++++++++++++++++
+>>   4 files changed, 42 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index a989345..013faf0 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -512,7 +512,12 @@ static void ghes_do_proc(struct ghes *ghes,
+>>   
+>>   		}
+>>   #endif
+>> -		else {
+>> +		else if (!uuid_le_cmp(sec_type, CPER_SEC_PROC_ARM)) {
+>> +			struct cper_sec_proc_arm *arm_err;
+>> +
+>> +			arm_err = acpi_hest_generic_data_payload(gdata);
+>> +			trace_arm_event(arm_err);
+> According to the kbuild failure, I'm guessing this file requires a:
+>
+>   #include <ras/ras_event.h>
+I add that include in patch 8/10 of this series, so ghes.c has the 
+include before this patch. The kbuild
+complained about the same thing for both trace events added in this 
+series. Upon further debug, it
+looks like I'll need to verify that CONFIG_RAS is enabled to make these 
+trace event calls. It's strange
+that kbuild didn't complain in earlier versions of this series because 
+these have been this way the
+whole time :) I'll add the config check in the next series.
 
 Thanks,
-Lorenzo
+Tyler
+> -- Steve
+>
+>> +		} else {
+>>   			void *unknown_err = acpi_hest_generic_data_payload(gdata);
+>>   			trace_unknown_sec_event(&sec_type,
+>>   					fru_id, fru_text, sec_sev,
+>> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+>> index 48cb8ee..0ec678e 100644
+>> --- a/drivers/firmware/efi/cper.c
+>> +++ b/drivers/firmware/efi/cper.c
+>> @@ -35,6 +35,7 @@
+>>   #include <linux/printk.h>
+>>   #include <linux/bcd.h>
+>>   #include <acpi/ghes.h>
+>> +#include <ras/ras_event.h>
+>>   
+>>   #define INDENT_SP	" "
+>>   
+>> diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
+>> index fb2500b..8ba5a94 100644
+>> --- a/drivers/ras/ras.c
+>> +++ b/drivers/ras/ras.c
+>> @@ -28,3 +28,4 @@ static int __init ras_init(void)
+>>   #endif
+>>   EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
+>>   EXPORT_TRACEPOINT_SYMBOL_GPL(unknown_sec_event);
+>> +EXPORT_TRACEPOINT_SYMBOL_GPL(arm_event);
+>> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
+>> index 5861b6f..b36db48 100644
+>> --- a/include/ras/ras_event.h
+>> +++ b/include/ras/ras_event.h
+>> @@ -162,6 +162,40 @@
+>>   );
+>>   
+>>   /*
+>> + * ARM Processor Events Report
+>> + *
+>> + * This event is generated when hardware detects an ARM processor error
+>> + * has occurred. UEFI 2.6 spec section N.2.4.4.
+>> + */
+>> +TRACE_EVENT(arm_event,
+>> +
+>> +	TP_PROTO(const struct cper_sec_proc_arm *proc),
+>> +
+>> +	TP_ARGS(proc),
+>> +
+>> +	TP_STRUCT__entry(
+>> +		__field(u64, mpidr)
+>> +		__field(u64, midr)
+>> +		__field(u32, running_state)
+>> +		__field(u32, psci_state)
+>> +		__field(u8, affinity)
+>> +	),
+>> +
+>> +	TP_fast_assign(
+>> +		__entry->affinity = proc->affinity_level;
+>> +		__entry->mpidr = proc->mpidr;
+>> +		__entry->midr = proc->midr;
+>> +		__entry->running_state = proc->running_state;
+>> +		__entry->psci_state = proc->psci_state;
+>> +	),
+>> +
+>> +	TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
+>> +		  "running state: %d; PSCI state: %d",
+>> +		  __entry->affinity, __entry->mpidr, __entry->midr,
+>> +		  __entry->running_state, __entry->psci_state)
+>> +);
+>> +
+>> +/*
+>>    * Unknown Section Report
+>>    *
+>>    * This event is generated when hardware detected a hardware
 
-> v7 -> v8:
-> 	- Using _CRS instead of _PRS for Interrupt resources for mbigen
-> 
-> 	- reshuffle the patch slightly to introduce iort_node_map_platform_id()
-> 	  first and then retrieve the dev id for platform MSI, no functional
-> 	  change
-> 
-> 	- Fix the compile error with patch "irqchip: gicv3-its: platform-msi:
-> 	  scan MADT to create platform msi domain", which forgot to add 
-> 	  <include/acpi_iort.h> (added in later patches in last version).
-> 
-> 	- renew some commit message which suggested by Lorenzo
-> 
-> 	- address some othe minor issues which commented by Lorenzo
-> 
-> 	- Add review and test tag as it's no functional change except
-> 	  the last patch of mbigen
-> 
-> 	- rebase on top of 4.10-rc4 and test it on x86, ia64 and ARM64
-> 	  platforms (also with Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
->           Add IRQ combiner driver" and Lorenzo's patch
->           https://patchwork.kernel.org/patch/9507041/)
-> 
-> v6 -> v7: 
-> 	- Introduce iort_node_map_platform_id() to retrieve the
-> 	  dev id for both NC (named component) -> ITS/SMMU and
-> 	  NC -> SMMU -> ITS cases, suggested by Lorenzo;
-> 
-> 	- Reorder the patches and rewrite some commit message;
-> 
-> 	- Remove the test tags because it has major changes
-> 	  to retrieve the dev id, Sinan, Majun, Xinwei, could
-> 	  you please test them again on your platform?
-> 
-> 	- rebased on top of 4.10-rc3 and Lorenzo's patch
->           https://patchwork.kernel.org/patch/9507041/
-> 
-> 	- Tested against Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
->           Add IRQ combiner driver"
-> 
-> v5 -> v6:
->         - Call acpi_configure_pmsi_domain() for platform devices in
->           acpi_platform_notify() as it's cleaner (suggested by Rafael)
->         - Remove the "u8 type" for iort_id_map() because it's unused
->         - Rebase on top of 4.10-rc2
->         - Collect test and review tags
-> 
-> v4 -> v5:
->         - Add mbigen support back with tested on with Agustin's patchset,
->           and it's a good example of how ACPI platform MSI works
->         - rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
-> 
-> v3 -> v4:
->         - Drop mbi-gen patches to just submit platform msi support because
->           will rebase mbi-gen patches on top of Agustin's patchset, and discusion
->           is going there.
->         - Add a patch to support device topology such as NC(named componant, paltform device)
->           ->SMMU->ITS which suggested by Lorenzo;
->         - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
->         - rebased on top of 4.9-rc7
-> 
-> v2 -> v3:
->         - Drop RFC tag
->         - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
->         - Add 3 cleanup patches (patch 1, 2, 3)
->         - Drop arch_init call patch from last version
->         - Introduce a callback for platform device to set msi domain
->         - Introduce a new API to get paltform device's domain instead of
->           reusing the PCI one in previous version
->         - Add a patch to rework iort_node_get_id()
-> 
-> [1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
-> 
-> v1 -> v2:
->         - Fix the bug of if multi Interrupt() resoures in single _PRS,
->           we need to calculate all the irq numbers (I missed it in previous
->           version);
->         - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
->           SMMU patches (also Robin's SMMu patches)
->         - Add patch irqchip: mbigen: promote mbigen init.
-> 
-> Hanjun Guo (13):
->   ACPI: IORT: fix the indentation in iort_scan_node()
->   ACPI: IORT: add missing comment for iort_dev_find_its_id()
->   ACPI: IORT: minor cleanup for iort_match_node_callback()
->   irqchip: gic-v3-its: keep the head file include in alphabetic order
->   irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
->   irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
->     for ACPI
->   irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
->     domain
->   ACPI: IORT: rename iort_node_map_rid() to make it generic
->   ACPI: IORT: introduce iort_node_map_platform_id() to retrieve dev id
->   ACPI: platform-msi: retrieve dev id from IORT
->   ACPI: platform: setup MSI domain for ACPI based platform device
->   msi: platform: make platform_msi_create_device_domain() ACPI aware
->   irqchip: mbigen: Add ACPI support
-> 
-> Kefeng Wang (2):
->   irqchip: mbigen: drop module owner
->   irqchip: mbigen: introduce mbigen_of_create_domain()
-> 
->  drivers/acpi/arm64/iort.c                     | 158 +++++++++++++++++++++-----
->  drivers/acpi/glue.c                           |   6 +
->  drivers/base/platform-msi.c                   |   3 +-
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++----
->  drivers/irqchip/irq-gic-v3-its.c              |   3 +-
->  drivers/irqchip/irq-mbigen.c                  | 109 +++++++++++++++---
->  include/linux/acpi_iort.h                     |   8 ++
->  7 files changed, 316 insertions(+), 77 deletions(-)
-> 
-> -- 
-> 1.7.12.4
-> 
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
+
