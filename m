@@ -1,122 +1,62 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v8 15/15] irqchip: mbigen: Add ACPI support
-Date: Fri, 03 Feb 2017 10:27:59 +0800
-Message-ID: <5893EAAF.6000204@linaro.org>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com> <1484744105-53140-16-git-send-email-guohanjun@huawei.com>
+From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V7 08/11] drivers: acpi: Handle IOMMU lookup failure with
+	deferred probing or error
+Date: Fri, 03 Feb 2017 11:37:04 +0800
+Message-ID: <5893FAE0.8070301@linaro.org>
+References: <f2370671-ece8-fbee-de19-350dd625088f@codeaurora.org>
+	<93e79759-d614-9b36-d5ab-63e8eb725009@arm.com>
+	<14751205-f034-7f0d-442a-854c3909425c@codeaurora.org>
+	<5ba9f366d6e25397cdef8ad95b49e199@codeaurora.org>
+	<175a3798-b824-ef1a-e112-9f6f472973ae@codeaurora.org>
+	<20170130143851.GJ16461@arm.com>
+	<b2e50c17de156341deab9fb8e91a8dec@codeaurora.org>
+	<1e048aff-0d77-b9f2-ebf8-2ba315b90ca7@codeaurora.org>
+	<20170130165124.GA11712@red-moon>
+	<f401e27e-d619-0eec-2401-50d8e2fc2f0f@codeaurora.org>
+	<20170201185230.GA1922@red-moon>
+	<3f4aa4c1e660c7e62256de9ca64fc822@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:35160 "EHLO
-        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751653AbdBCC2J (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2017 21:28:09 -0500
-Received: by mail-pf0-f172.google.com with SMTP id f144so1910359pfa.2
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Feb 2017 18:28:09 -0800 (PST)
-In-Reply-To: <1484744105-53140-16-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <3f4aa4c1e660c7e62256de9ca64fc822-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Nate Watterson <nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, Matthias Brugger <mbrugger@suse.com>, Ming Lei <tom.leiming@gmail.com>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, Wei Xu <xuwei5@hisilicon.com>, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 
-On 01/18/2017 08:55 PM, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
+On 02/03/2017 03:01 AM, Nate Watterson wrote:
+> On 2017-02-01 13:52, Lorenzo Pieralisi wrote:
+>>
+>> I debugged the issue and Nate's fix is correct, the fact that you
+>> can't it hit it with mainline is just a matter of timing because it has
+>> to do with the CTX pointer value (we OR it with the existing value), so
+>> it may work or not depending on how the cdptr memory allocation
+>> pattern turns out to be (which explains why Nate and I can hit it with
+>> simple PCI device remove/add execution too).
+>>
+>> So it is neither an ACPI nor an IOMMU probe deferral issue per-se,
+>> fix is already queued, so it is all good.
+>>
+>> What about USB stalls ?
+> Our fault. The USB controller was getting 48-bit IOVAs, but the
+> bus it sits on only supports 44-bits so the controller's DMA
+> transactions ended up targeting addresses that were never mapped.
 >
-> With the preparation of platform msi support and interrupt producer
-> in DSDT, we can add mbigen ACPI support now.
->
-> We are using Interrupt resource type in _CRS methd to indicate number
-> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
->
-> For mbigen,
->      Device(MBI0) {
->            Name(_HID, "HISI0152")
->            Name(_UID, Zero)
->            Name(_CRS, ResourceTemplate() {
->                    Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-> 		  Interrupt(ResourceProducer,...) {12,14,....}
->            })
->      }
->
-> For devices,
->     Device(COM0) {
->            Name(_HID, "ACPIIDxx")
->            Name(_UID, Zero)
->            Name(_CRS, ResourceTemplate() {
->                   Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
->            })
->      }
->
-> With the help of platform msi and interrupt producer, then devices
-> will get the virq from mbigen's irqdomain.
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Ma Jun <majun258@huawei.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> ---
->   drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
->   1 file changed, 67 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-> index 4e11da5..64f8561 100644
-> --- a/drivers/irqchip/irq-mbigen.c
-> +++ b/drivers/irqchip/irq-mbigen.c
-> @@ -16,6 +16,7 @@
->    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->    */
->
-> +#include <linux/acpi.h>
->   #include <linux/interrupt.h>
->   #include <linux/irqchip.h>
->   #include <linux/module.h>
-> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
->   				    unsigned long *hwirq,
->   				    unsigned int *type)
->   {
-> -	if (is_of_node(fwspec->fwnode)) {
-> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
->   		if (fwspec->param_count != 2)
->   			return -EINVAL;
->
-> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
->   	return 0;
->   }
->
-> +#ifdef CONFIG_ACPI
-> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
-> +					     void *context)
-> +{
-> +	struct acpi_resource_extended_irq *ext_irq;
-> +	u32 *num_irqs = context;
-> +
-> +	switch (ares->type) {
-> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> +		ext_irq = &ares->data.extended_irq;
-> +		*num_irqs += ext_irq->interrupt_count;
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
-> +				     struct mbigen_device *mgn_chip)
-> +{
-> +	struct irq_domain *domain;
-> +	u32 num_msis = 0;
-> +	acpi_status status;
-> +
-> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
-> +				     mbigen_acpi_process_resource, &num_msis);
-> +        if (ACPI_FAILURE(status) || num_msis == 0)
+> It started working once I applied the iort/dma-mapping patches I
+> sent out earlier this week that use the iort memory_address_limit
+> field to check if a dma_mask is sane.
 
-There are some trailing white spaces in this patch, I will send a
-updated one if no more comments.
+OK, great, I tested this patch with platform USB device which was
+working fine on Hisilicon D03, so I didn't miss anything here.
 
 Thanks
 Hanjun
