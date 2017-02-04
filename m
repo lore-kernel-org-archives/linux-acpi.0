@@ -1,96 +1,177 @@
-From: Dan O'Donovan <dan@emutex.com>
-Subject: [PATCH v5 1/3] ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
-Date: Sat,  4 Feb 2017 08:00:26 +0000
-Message-ID: <1486195228-10929-2-git-send-email-dan@emutex.com>
-References: <1485523815-9629-1-git-send-email-dan@emutex.com>
- <1486195228-10929-1-git-send-email-dan@emutex.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1486195228-10929-1-git-send-email-dan@emutex.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [Update][PATCH v8 15/15] irqchip: mbigen: Add ACPI support
+Date: Sat, 4 Feb 2017 18:06:37 +0800
+Message-ID: <1486202797-61269-1-git-send-email-guohanjun@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:60588 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753811AbdBDKN5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2017 05:13:57 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-When using devicetree stuff like i2c_client.name or spi_device.modalias
-is initialized to the first DT compatible id with the vendor prefix
-stripped. Since some drivers rely on this try to replicate it when using
-ACPI with DT ids.
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Signed-off-by: Dan O'Donovan <dan@emutex.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+With the preparation of platform msi support and interrupt producer
+in DSDT, we can add mbigen ACPI support now.
+
+We are using Interrupt resource type in _CRS methd to indicate number
+of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
+
+For mbigen,
+    Device(MBI0) {
+          Name(_HID, "HISI0152")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+		  Interrupt(ResourceProducer,...) {12,14,....}
+          })
+    }
+
+For devices,
+   Device(COM0) {
+          Name(_HID, "ACPIIDxx")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+          })
+    }
+
+With the help of platform msi and interrupt producer, then devices
+will get the virq from mbigen's irqdomain.
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Ma Jun <majun258@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/bus.c      | 42 ++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  2 ++
- 2 files changed, 44 insertions(+)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 95855cb..80cb5eb 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -677,6 +677,48 @@ static bool acpi_of_match_device(struct acpi_device *adev,
- 	return false;
+There are some trailing white spaces in previous
+version, send a updated one.
+
+ drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 67 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index 3756408..e6bb503 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -16,6 +16,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/interrupt.h>
+ #include <linux/irqchip.h>
+ #include <linux/module.h>
+@@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
+ 				    unsigned long *hwirq,
+ 				    unsigned int *type)
+ {
+-	if (is_of_node(fwspec->fwnode)) {
++	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
+ 		if (fwspec->param_count != 2)
+ 			return -EINVAL;
+ 
+@@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
+ 	return 0;
  }
  
-+static bool acpi_of_modalias(struct acpi_device *adev,
-+			     char *modalias, size_t len)
++#ifdef CONFIG_ACPI
++static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
++					     void *context)
 +{
-+	const union acpi_object *of_compatible;
-+	const union acpi_object *obj;
-+	const char *str, *chr;
++	struct acpi_resource_extended_irq *ext_irq;
++	u32 *num_irqs = context;
 +
-+	of_compatible = adev->data.of_compatible;
-+	if (!of_compatible)
-+		return false;
++	switch (ares->type) {
++	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
++		ext_irq = &ares->data.extended_irq;
++		*num_irqs += ext_irq->interrupt_count;
++		break;
++	default:
++		break;
++	}
 +
-+	if (of_compatible->type == ACPI_TYPE_PACKAGE)
-+		obj = of_compatible->package.elements;
-+	else /* Must be ACPI_TYPE_STRING. */
-+		obj = of_compatible;
-+
-+	str = obj->string.pointer;
-+	chr = strchr(str, ',');
-+	strlcpy(modalias, chr ? chr + 1 : str, len);
-+
-+	return true;
++	return AE_OK;
 +}
 +
-+/**
-+ * acpi_set_modalias - Set modalias using "compatible" property or supplied ID
-+ * @adev:	ACPI device object to match
-+ * @default_id:	ID string to use as default if no compatible string found
-+ * @modalias:   Pointer to buffer that modalias value will be copied into
-+ * @len:	Length of modalias buffer
-+ *
-+ * This is a counterpart of of_modalias_node() for struct acpi_device objects.
-+ * If there is a compatible string for @adev, it will be copied to @modalias
-+ * with the vendor prefix stripped; otherwise, @default_id will be used.
-+ */
-+void acpi_set_modalias(struct acpi_device *adev, const char *default_id,
-+		       char *modalias, size_t len)
++static int mbigen_acpi_create_domain(struct platform_device *pdev,
++				     struct mbigen_device *mgn_chip)
 +{
-+	if (!acpi_of_modalias(adev, modalias, len))
-+		strlcpy(modalias, default_id, len);
-+}
-+EXPORT_SYMBOL_GPL(acpi_set_modalias);
++	struct irq_domain *domain;
++	u32 num_msis = 0;
++	acpi_status status;
 +
- static bool __acpi_match_device_cls(const struct acpi_device_id *id,
- 				    struct acpi_hardware_id *hwid)
++	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
++				     mbigen_acpi_process_resource, &num_msis);
++	if (ACPI_FAILURE(status) || num_msis == 0)
++		return -EINVAL;
++
++	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
++						   mbigen_write_msg,
++						   &mbigen_domain_ops,
++						   mgn_chip);
++	if (!domain)
++		return -ENOMEM;
++
++	return 0;
++}
++#else
++static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
++					    struct mbigen_device *mgn_chip)
++{
++	return -ENODEV;
++}
++#endif
++
+ static int mbigen_device_probe(struct platform_device *pdev)
  {
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 4242c31..ef0ae8a 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -522,6 +522,8 @@ void acpi_bus_trim(struct acpi_device *start);
- acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids);
-+void acpi_set_modalias(struct acpi_device *adev, const char *default_id,
-+		       char *modalias, size_t len);
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
+ 	struct mbigen_device *mgn_chip;
+@@ -289,9 +338,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ 	if (IS_ERR(mgn_chip->base))
+ 		return PTR_ERR(mgn_chip->base);
  
+-	err = mbigen_of_create_domain(pdev, mgn_chip);
+-	if (err)
++	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
++		err = mbigen_of_create_domain(pdev, mgn_chip);
++	else if (ACPI_COMPANION(&pdev->dev))
++		err = mbigen_acpi_create_domain(pdev, mgn_chip);
++	else
++		err = -EINVAL;
++
++	if (err) {
++		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
+ 		return err;
++	}
+ 
+ 	platform_set_drvdata(pdev, mgn_chip);
+ 	return 0;
+@@ -303,10 +360,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ };
+ MODULE_DEVICE_TABLE(of, mbigen_of_match);
+ 
++static const struct acpi_device_id mbigen_acpi_match[] = {
++	{ "HISI0152", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
++
+ static struct platform_driver mbigen_platform_driver = {
+ 	.driver = {
+ 		.name		= "Hisilicon MBIGEN-V2",
+ 		.of_match_table	= mbigen_of_match,
++		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
+ 	},
+ 	.probe			= mbigen_device_probe,
+ };
 -- 
-2.7.4
+1.7.12.4
+
