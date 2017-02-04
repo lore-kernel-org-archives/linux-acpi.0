@@ -1,74 +1,58 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
-Date: Sat, 4 Feb 2017 15:02:15 +0800
-Message-ID: <58957C77.7070206@huawei.com>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
- <20170203183626.GB17899@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170203183626.GB17899@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, Ming Lei <tom.leiming@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Wei Xu <xuwei5@hisilicon.com>, linuxarm@huawei.com, huxinwei@huawei.com, linux-acpi@vger.kernel.org, Matthias Brugger <mbrugger@suse.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Agustin Vega-Frias <agustinv@codeaurora.org>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+From: Dan O'Donovan <dan@emutex.com>
+Subject: [PATCH v5 3/3] spi: acpi: Initialize modalias from of_compatible
+Date: Sat,  4 Feb 2017 08:00:28 +0000
+Message-ID: <1486195228-10929-4-git-send-email-dan@emutex.com>
+References: <1485523815-9629-1-git-send-email-dan@emutex.com>
+ <1486195228-10929-1-git-send-email-dan@emutex.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bert.emutex.com ([91.103.1.109]:58255 "EHLO bert.emutex.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753785AbdBDIBq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 4 Feb 2017 03:01:46 -0500
+In-Reply-To: <1486195228-10929-1-git-send-email-dan@emutex.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>
 
-Hi Lorenzo,
+When using devicetree spi_device.modalias is set to the compatible
+string with the vendor prefix removed. For SPI devices described via
+ACPI the spi_device.modalias string is initialized by acpi_device_hid.
+When using ACPI and DT ids this string ends up something like "PRP0001".
 
-On 2017/2/4 2:36, Lorenzo Pieralisi wrote:
-> Hanjun, Sinan,
->
-> On Wed, Jan 18, 2017 at 08:54:50PM +0800, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> With platform msi support landed in the kernel, and the introduction
->> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
->> is ready, this patch set add few patches to enable the ACPI platform
->> msi support.
->>
->> For platform device connecting to ITS on arm platform, we have IORT
->> table with the named componant node to describe the mappings of paltform
->> device and ITS, so we can retrieve the dev id and find its parent
->> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
-> Depending on how things go, I prepared a branch with the first 12
-> patches (I basically updated some logs and added some cosmetics changes)
-> for testing (Hanjun please have a look in details since I may have misread
-> some logs), whether or not I will send a pull request for it we shall see
-> next week.
->
-> Here:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/platform-msi
+Change acpi_register_spi_device to use the of_compatible property if
+present. This makes it easier to instantiate spi drivers through ACPI
+with DT ids.
 
-Thanks a lot for putting them together, I fetched your git tree and
-took a detail look, there is one issue in patch "msi: platform: make
-platform_msi_create_device_domain() ACPI aware" which has two
-"Cc: Greg KH <gregkh@linuxfoundation.org>" in the commit log
-(it's in the original patch from me, my bad), others are pretty good
-to me (to make sure it works I retested those patches and patches
-in your branch work as before).
+Signed-off-by: Dan O'Donovan <dan@emutex.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---
+ drivers/spi/spi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-BTW, patches in Lorenzo's branch have no conflicts with Agustin's
-patch set + my mbigen one, so after a pull request to Rafael, could
-them (Agustin's patch set + my mbigen one) go via one tree such as
-Marc's one for 4.11?  I know it's a little bit late but those patches
-are quite self-contained, which Agustin's changes are conditional
-on the ACPI_GENERIC_GSI config which is only available with
-ARM64 ACPI and others (interrupt combiner and mbigen) are specific
-to QC and Hisilicon platforms.
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 656dd3e..d9afc32 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -1722,13 +1722,15 @@ static acpi_status acpi_register_spi_device(struct spi_master *master,
+ 		return AE_OK;
+ 	}
+ 
++	acpi_set_modalias(adev, acpi_device_hid(adev),
++			  spi->modalias, sizeof(spi->modalias));
++
+ 	if (spi->irq < 0)
+ 		spi->irq = acpi_dev_gpio_irq_get(adev, 0);
+ 
+ 	acpi_device_set_enumerated(adev);
+ 
+ 	adev->power.flags.ignore_parent = true;
+-	strlcpy(spi->modalias, acpi_device_hid(adev), sizeof(spi->modalias));
+ 	if (spi_add_device(spi)) {
+ 		adev->power.flags.ignore_parent = false;
+ 		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
+-- 
+2.7.4
 
-Marc, Lorenzo, could you give some comments that how can we
-proceed those patches (Agustin's patch set + my mbigen one)?
-It's really critical for us, thank you very much.
-
-Best Regards
-Hanjun
