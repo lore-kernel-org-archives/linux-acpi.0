@@ -1,22 +1,96 @@
-From: Friedrich Mayrhofer <dantonio@cucea.udg.mx>
-Subject: Did You Get My Message This Time?
-Date: Sat, 4 Feb 2017 01:51:31 -0600 (CST)
-Message-ID: <2140661383.186607.1486194691780.JavaMail.zimbra@cucea.udg.mx>
-Reply-To: Friedrich Mayrhofer <friedricmayrhofer7@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zimbra.cucea.udg.mx ([148.202.23.104]:40156 "EHLO
-        zimbra.cucea.udg.mx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753921AbdBDICH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2017 03:02:07 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dan O'Donovan <dan@emutex.com>
+Subject: [PATCH v5 1/3] ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
+Date: Sat,  4 Feb 2017 08:00:26 +0000
+Message-ID: <1486195228-10929-2-git-send-email-dan@emutex.com>
+References: <1485523815-9629-1-git-send-email-dan@emutex.com>
+ <1486195228-10929-1-git-send-email-dan@emutex.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1486195228-10929-1-git-send-email-dan@emutex.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>
 List-Id: linux-acpi@vger.kernel.org
 
+When using devicetree stuff like i2c_client.name or spi_device.modalias
+is initialized to the first DT compatible id with the vendor prefix
+stripped. Since some drivers rely on this try to replicate it when using
+ACPI with DT ids.
 
+Signed-off-by: Dan O'Donovan <dan@emutex.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+---
+ drivers/acpi/bus.c      | 42 ++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  2 ++
+ 2 files changed, 44 insertions(+)
 
-This is the second time i am sending you this mail.I, Friedrich Mayrhofer Donate $ 1,000,000.00 to You, Email Me personally for more details.
-
-Regards.
-Friedrich Mayrhofer
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 95855cb..80cb5eb 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -677,6 +677,48 @@ static bool acpi_of_match_device(struct acpi_device *adev,
+ 	return false;
+ }
+ 
++static bool acpi_of_modalias(struct acpi_device *adev,
++			     char *modalias, size_t len)
++{
++	const union acpi_object *of_compatible;
++	const union acpi_object *obj;
++	const char *str, *chr;
++
++	of_compatible = adev->data.of_compatible;
++	if (!of_compatible)
++		return false;
++
++	if (of_compatible->type == ACPI_TYPE_PACKAGE)
++		obj = of_compatible->package.elements;
++	else /* Must be ACPI_TYPE_STRING. */
++		obj = of_compatible;
++
++	str = obj->string.pointer;
++	chr = strchr(str, ',');
++	strlcpy(modalias, chr ? chr + 1 : str, len);
++
++	return true;
++}
++
++/**
++ * acpi_set_modalias - Set modalias using "compatible" property or supplied ID
++ * @adev:	ACPI device object to match
++ * @default_id:	ID string to use as default if no compatible string found
++ * @modalias:   Pointer to buffer that modalias value will be copied into
++ * @len:	Length of modalias buffer
++ *
++ * This is a counterpart of of_modalias_node() for struct acpi_device objects.
++ * If there is a compatible string for @adev, it will be copied to @modalias
++ * with the vendor prefix stripped; otherwise, @default_id will be used.
++ */
++void acpi_set_modalias(struct acpi_device *adev, const char *default_id,
++		       char *modalias, size_t len)
++{
++	if (!acpi_of_modalias(adev, modalias, len))
++		strlcpy(modalias, default_id, len);
++}
++EXPORT_SYMBOL_GPL(acpi_set_modalias);
++
+ static bool __acpi_match_device_cls(const struct acpi_device_id *id,
+ 				    struct acpi_hardware_id *hwid)
+ {
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 4242c31..ef0ae8a 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -522,6 +522,8 @@ void acpi_bus_trim(struct acpi_device *start);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
++void acpi_set_modalias(struct acpi_device *adev, const char *default_id,
++		       char *modalias, size_t len);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
+-- 
+2.7.4
