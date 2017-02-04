@@ -1,61 +1,61 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
-Date: Sat, 4 Feb 2017 11:59:27 +0800
-Message-ID: <5895519F.2060608@huawei.com>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
- <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpica: Fix double-free in acpi_ns_repair_CID()
+Date: Sat, 4 Feb 2017 04:19:33 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
+References: <20170203205654.28269-1-jprvita@endlessm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:37909 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753510AbdBDEA0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2017 23:00:26 -0500
-In-Reply-To: <a2eb29e2-0f46-0be0-dc43-b3a086556965@codeaurora.org>
+Received: from mga11.intel.com ([192.55.52.93]:8173 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753543AbdBDETf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 3 Feb 2017 23:19:35 -0500
+In-Reply-To: <20170203205654.28269-1-jprvita@endlessm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Agustin Vega-Frias <agustinv@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: =?utf-8?B?Sm/Do28gUGF1bG8gUmVjaGkgVml0YQ==?= <jprvita@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Daniel Drake <drake@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>, =?utf-8?B?Sm/Do28gUGF1bG8gUmVjaGkgVml0YQ==?= <jprvita@endlessm.com>, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-On 2017/2/3 22:50, Sinan Kaya wrote:
-> On 1/18/2017 7:54 AM, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> With platform msi support landed in the kernel, and the introduction
->> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
->> is ready, this patch set add few patches to enable the ACPI platform
->> msi support.
->>
->> For platform device connecting to ITS on arm platform, we have IORT
->> table with the named componant node to describe the mappings of paltform
->> device and ITS, so we can retrieve the dev id and find its parent
->> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
->>
-> I understand that there is a consensus on IORT/SMMUv3 specific pieces
-> of this series while there is some ongoing work on the MBIgen part in
-> due to dependency on Agustin's patch vs. ACPI definitions.
-
-I think both Agustin's patch set and my mbigen one are in good shape
-now if I didn't miss something, Rafael and Lorenzo already acked Agustin's
-patch [1-2/3], I provided my review and test tags on them.
-
-And Lorenzo said about the mbigen patches:
-"I think this patch (and the FW that goes with it) is wrong, but the rest
-of the series, in particular the IORT bits, are ok with me."
-and I fixed the wrong patch and updated the _PRS to _CRS as Lorenzo
-suggested in v8.
-
-So, can I kindly ask that those patches (Agustin's patch set and my mbigen one)
-be merged to 4.11 please? It's really important for Hisilicon (Hip06/Hip07) SoCs
-which native NIC [1], SAS [2], USB and even the console on Hip07-D05 drivers
-depend on those patches, and those platform are completely dead without
-them if PCI is not enabled...
-
-Thanks
-Hanjun
-
-[1]: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/ethernet/hisilicon/hns/
-[2]: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/scsi/hisi_sas/
-
-
+SGVyZSdzIHRoZSBzZXF1ZW5jZSBvZiBldmVudHMgYXMgSSBzZWUgaXQ6DQoNClJlcGFpcl9ISUQg
+aXMgYSBzdGFuZGFsb25lIGZ1bmN0aW9uIHRoYXQgcmVtb3ZlcyBvbmUgcmVmZXJlbmNlIG9uIHRo
+ZSBpbmNvbWluZyBvYmplY3QuIEZvciBzaW1wbGUgX0hJRCBvYmplY3RzLCB0aGlzIGluIGZhY3Qg
+ZGVsZXRlcyB0aGUgb2JqZWN0Lg0KDQpGb3IgX0NJRCwgYWxsIGVsZW1lbnRzIG9mIHRoZSBwYWNr
+YWdlIGFyZSBleGFtaW5lZC4gSWYgYSByZXBhaXIgd2FzIG1hZGUgb24gYSBfSElEIHdpdGhpbiB0
+aGUgX0NJRCBmdW5jdGlvbiwgb25lIHJlZmVyZW5jZSBvbiB0aGUgb3JpZ2luYWwgb2JqZWN0IHdh
+cyByZW1vdmVkIGJ5IFJlcGFpcl9ISUQuIEhvd2V2ZXIsIHNpbmNlIHRoZSBvYmplY3QgaXMgcGFy
+dCBvZiBhIHBhY2thZ2UsIGl0IGhhcyBhbiBleHRyYSByZWZlcmVuY2UgdG8gcmVmbGVjdCB0aGlz
+IGZhY3QuIFRodXMsIGluIHRoZSBjYXNlIGluIHF1ZXN0aW9uLCB0aGUgZWxlbWVudHMgb2YgdGhl
+IHBhY2thZ2UgYWxsIGhhdmUgYXQgbGVhc3QgdHdvIHJlZmVyZW5jZXMuIFJlcGFpcl9ISUQgcmVt
+b3ZlcyBvbmUgcmVmZXJlbmNlLCB0aHVzIHRoZSBleHRyYSBSZW1vdmVSZWZlcmVuY2UgaXMgbmVl
+ZGVkIGluIFJlcGFpcl9DSUQgdG8gYnJpbmcgdGhlIHJlZmVyZW5jZSBjb3VudCBkb3duIHRvIHpl
+cm8gYWN0dWFsbHkgZGVsZXRlIHRoZSBvYmplY3QgKGluIHRoZSB0eXBpY2FsIGNhc2Ugd2hlcmUg
+dGhlIG9iamVjdCBoYWQgdHdvIHJlZmVyZW5jZXMpLg0KDQpCb2INCg0KDQo+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEgW21haWx0bzpq
+cHJ2aXRhQGdtYWlsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBGZWJydWFyeSAwMywgMjAxNyAxMjo1
+NyBQTQ0KPiBUbzogTW9vcmUsIFJvYmVydDsgWmhlbmcsIEx2OyBXeXNvY2tpLCBSYWZhZWwgSjsg
+TGVuIEJyb3duOyBMaW4gTWluZw0KPiBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGRl
+dmVsQGFjcGljYS5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYW5pZWwg
+RHJha2U7IGxpbnV4QGVuZGxlc3NtLmNvbTsgSm/Do28gUGF1bG8gUmVjaGkNCj4gVml0YQ0KPiBT
+dWJqZWN0OiBbUEFUQ0hdIGFjcGljYTogRml4IGRvdWJsZS1mcmVlIGluIGFjcGlfbnNfcmVwYWly
+X0NJRCgpDQo+IA0KPiBXaGVuIGFjcGlfbnNfcmVwYWlyX0NJRCgpIGlzIGNhbGxlZCBmb3IgYSBf
+Q0lEIHdoaWNoIHJldHVybnMgYSBwYWNrYWdlIG9mDQo+IHN0cmluZ3MsIGl0IGNhbGxzIGFjcGlf
+bnNfcmVwYWlyX0hJRCgpIGZvciBlYWNoIG9mIHRoZSBwYWNrYWdlIGVsZW1lbnRzLg0KPiBhY3Bp
+X25zX3JlcGFpcl9ISUQoKSBjYWxscyBhY3BpX3V0X3JlbW92ZV9yZWZlcmVuY2UoKSBvbiB0aGUg
+b3JpZ2luYWwNCj4gb2JqZWN0LCBidXQgYWNwaV9uc19yZXBhaXJfQ0lEKCkgY2FsbHMgaXQgYWdh
+aW4gb24gcmV0dXJuLCBsZWFkaW5nIHRvIGENCj4gZG91YmxlIGZyZWUuDQo+IA0KPiBUaGlzIHBy
+b2JsZW0gd2FzIHNlZW4gb24gYSBBY2VyIFRyYXZlbE1hdGUgUDQ0OS1HMi1NRy4NCj4gDQo+IFRo
+YW5rcyB0byBEYW5pZWwgRHJha2UgZm9yIGhlbHBpbmcgaW52ZXN0aWdhdGluZyB0aGlzIHByb2Js
+ZW0uDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBKb8OjbyBQYXVsbyBSZWNoaSBWaXRhIDxqcHJ2aXRh
+QGVuZGxlc3NtLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL25zcmVwYWlyMi5j
+IHwgMiAtLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9uc3JlcGFpcjIuYw0KPiBiL2RyaXZlcnMvYWNwaS9h
+Y3BpY2EvbnNyZXBhaXIyLmMgaW5kZXggZDUzMzYxMjI0ODZiLi5jNDI5YzhlY2E0NzYgMTAwNjQ0
+DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvbnNyZXBhaXIyLmMNCj4gKysrIGIvZHJpdmVy
+cy9hY3BpL2FjcGljYS9uc3JlcGFpcjIuYw0KPiBAQCAtNDExLDggKzQxMSw2IEBAIGFjcGlfbnNf
+cmVwYWlyX0NJRChzdHJ1Y3QgYWNwaV9ldmFsdWF0ZV9pbmZvICppbmZvLA0KPiANCj4gIAkJCSgq
+ZWxlbWVudF9wdHIpLT5jb21tb24ucmVmZXJlbmNlX2NvdW50ID0NCj4gIAkJCSAgICBvcmlnaW5h
+bF9yZWZfY291bnQ7DQo+IC0NCj4gLQkJCWFjcGlfdXRfcmVtb3ZlX3JlZmVyZW5jZShvcmlnaW5h
+bF9lbGVtZW50KTsNCj4gIAkJfQ0KPiANCj4gIAkJZWxlbWVudF9wdHIrKzsNCj4gLS0NCj4gMi4x
+MS4wDQoNCg==
