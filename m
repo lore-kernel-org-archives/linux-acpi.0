@@ -1,177 +1,50 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [Update][PATCH v8 15/15] irqchip: mbigen: Add ACPI support
-Date: Sat, 4 Feb 2017 18:06:37 +0800
-Message-ID: <1486202797-61269-1-git-send-email-guohanjun@huawei.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v5 3/3] spi: acpi: Initialize modalias from of_compatible
+Date: Sat, 4 Feb 2017 11:16:40 +0100
+Message-ID: <20170204101638.qmhdvzwmnmmnrpa7@sirena.org.uk>
+References: <1485523815-9629-1-git-send-email-dan@emutex.com>
+ <1486195228-10929-1-git-send-email-dan@emutex.com>
+ <1486195228-10929-4-git-send-email-dan@emutex.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:60588 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753811AbdBDKN5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2017 05:13:57 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="55e4jgix7p4jdrej"
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1486195228-10929-4-git-send-email-dan@emutex.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Dan O'Donovan <dan@emutex.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
 
-With the preparation of platform msi support and interrupt producer
-in DSDT, we can add mbigen ACPI support now.
+--55e4jgix7p4jdrej
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-We are using Interrupt resource type in _CRS methd to indicate number
-of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
+On Sat, Feb 04, 2017 at 08:00:28AM +0000, Dan O'Donovan wrote:
 
-For mbigen,
-    Device(MBI0) {
-          Name(_HID, "HISI0152")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-		  Interrupt(ResourceProducer,...) {12,14,....}
-          })
-    }
+> +	acpi_set_modalias(adev, acpi_device_hid(adev),
+> +			  spi->modalias, sizeof(spi->modalias));
+> +
 
-For devices,
-   Device(COM0) {
-          Name(_HID, "ACPIIDxx")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
-          })
-    }
+The formatting here is really weird (why isn't the third argument on the
+line above?) but otherwise
 
-With the help of platform msi and interrupt producer, then devices
-will get the virq from mbigen's irqdomain.
+Acked-by: Mark Brown <broonie@kernel.org>
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ma Jun <majun258@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
----
+--55e4jgix7p4jdrej
+Content-Type: application/pgp-signature; name="signature.asc"
 
-There are some trailing white spaces in previous
-version, send a updated one.
+-----BEGIN PGP SIGNATURE-----
 
- drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 67 insertions(+), 3 deletions(-)
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliVqgUACgkQJNaLcl1U
+h9DV0wf8CKLaM+Nj0zKzfVMoXk/3rXmwuouaBRHT5CwYcNhLHVzvzS9M/WVhJrij
+dT0M5Kl+1l55TFZ68RSc5MXzuAs4xovJ6ZttaFDrPlpJq0Q/wLWW4QdnjlG0AOLZ
+g49kYtyeyYo/p4GKFza2Qq9IfjjGK9LcqLZQlVTWdHLIx8ajV7fGvGQ8OAqyWP5h
+XQzsJFLWCBqBJomx+UoJDRLmoNxeypRB4CG5BDKfvVfjG26l6OAIh235k8j81fSK
+iFc8SllmrYGf3x37xDpw6lz3eP7KbdxEZ3XWyewIJAT2ZpjihPeD4kIFJCzbYB7+
+0LU0+pkF/4jg1aGaar+T0ad2SivZGw==
+=MzXW
+-----END PGP SIGNATURE-----
 
-diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-index 3756408..e6bb503 100644
---- a/drivers/irqchip/irq-mbigen.c
-+++ b/drivers/irqchip/irq-mbigen.c
-@@ -16,6 +16,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/interrupt.h>
- #include <linux/irqchip.h>
- #include <linux/module.h>
-@@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
- 				    unsigned long *hwirq,
- 				    unsigned int *type)
- {
--	if (is_of_node(fwspec->fwnode)) {
-+	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
- 		if (fwspec->param_count != 2)
- 			return -EINVAL;
- 
-@@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI
-+static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
-+					     void *context)
-+{
-+	struct acpi_resource_extended_irq *ext_irq;
-+	u32 *num_irqs = context;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-+		ext_irq = &ares->data.extended_irq;
-+		*num_irqs += ext_irq->interrupt_count;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static int mbigen_acpi_create_domain(struct platform_device *pdev,
-+				     struct mbigen_device *mgn_chip)
-+{
-+	struct irq_domain *domain;
-+	u32 num_msis = 0;
-+	acpi_status status;
-+
-+	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
-+				     mbigen_acpi_process_resource, &num_msis);
-+	if (ACPI_FAILURE(status) || num_msis == 0)
-+		return -EINVAL;
-+
-+	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
-+						   mbigen_write_msg,
-+						   &mbigen_domain_ops,
-+						   mgn_chip);
-+	if (!domain)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+#else
-+static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
-+					    struct mbigen_device *mgn_chip)
-+{
-+	return -ENODEV;
-+}
-+#endif
-+
- static int mbigen_device_probe(struct platform_device *pdev)
- {
- 	struct mbigen_device *mgn_chip;
-@@ -289,9 +338,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
- 	if (IS_ERR(mgn_chip->base))
- 		return PTR_ERR(mgn_chip->base);
- 
--	err = mbigen_of_create_domain(pdev, mgn_chip);
--	if (err)
-+	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-+		err = mbigen_of_create_domain(pdev, mgn_chip);
-+	else if (ACPI_COMPANION(&pdev->dev))
-+		err = mbigen_acpi_create_domain(pdev, mgn_chip);
-+	else
-+		err = -EINVAL;
-+
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
- 		return err;
-+	}
- 
- 	platform_set_drvdata(pdev, mgn_chip);
- 	return 0;
-@@ -303,10 +360,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
- };
- MODULE_DEVICE_TABLE(of, mbigen_of_match);
- 
-+static const struct acpi_device_id mbigen_acpi_match[] = {
-+	{ "HISI0152", 0 },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
-+
- static struct platform_driver mbigen_platform_driver = {
- 	.driver = {
- 		.name		= "Hisilicon MBIGEN-V2",
- 		.of_match_table	= mbigen_of_match,
-+		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
- 	},
- 	.probe			= mbigen_device_probe,
- };
--- 
-1.7.12.4
-
+--55e4jgix7p4jdrej--
