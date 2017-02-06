@@ -1,141 +1,109 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v21 06/13] clocksource: arm_arch_timer: move arch_timer_needs_of_probing into DT init call
-Date: Tue,  7 Feb 2017 02:50:08 +0800
-Message-ID: <20170206185015.12296-7-fu.wei@linaro.org>
-References: <20170206185015.12296-1-fu.wei@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170206185015.12296-1-fu.wei@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] x86/acpi: keep x86_cpu_to_acpiid mapping valid on cpu hotplug
+Date: Mon, 6 Feb 2017 22:05:57 +0100
+Message-ID: <CAJZ5v0i83hgXVymsdpLTGxrChy0qMpdbQR3Lzqvt3fFMzoaxxw@mail.gmail.com>
+References: <20170206170151.25542-1-vkuznets@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20170206170151.25542-1-vkuznets@redhat.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: the arch/x86 maintainers <x86@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Jones <drjones@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Fu Wei <fu.wei@linaro.org>
+On Mon, Feb 6, 2017 at 6:01 PM, Vitaly Kuznetsov <vkuznets@redhat.com> wrote:
+> We may or may not have all possible CPUs in MADT on boot but in any case
+> we're overwriting x86_cpu_to_acpiid mapping with U32_MAX when
+> acpi_register_lapic() is called again on the CPU hotplug path:
+> acpi_processor_hotadd_init() -> acpi_map_cpu() -> acpi_register_lapic().
+>
+> As we have the required acpi_id information in acpi_processor_hotadd_init()
+> propagate it to acpi_map_cpu() to always keep x86_cpu_to_acpiid mapping
+> valid.
+>
+> Reported-by: Andrew Jones <drjones@redhat.com>
+> Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
 
-Because arch_timer_needs_of_probing is only for booting with device-tree,
-but arch_timer_common_init is a generic init call which shouldn't include
-the FW-specific code. It's better to put arch_timer_needs_of_probing into
-DT init function.
+Is the bug report available and if so, do you have a pointer to it?
 
-But for per-cpu timer, the arch_timer_common_init is called from
-arch_timer_init. For reaching the goal above, this patch disassemble
-arch_timer_init and use arch_timer_register and arch_timer_common_init
-directly, just like arch_timer_mem init code is doing.
-By this way, all the DT relevant code are only called from DT init call.
+> ---
+>  arch/ia64/kernel/acpi.c       | 3 ++-
+>  arch/x86/kernel/acpi/boot.c   | 5 +++--
+>  drivers/acpi/acpi_processor.c | 4 ++--
+>  include/linux/acpi.h          | 3 ++-
+>  4 files changed, 9 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> index 9273e03..7508c30 100644
+> --- a/arch/ia64/kernel/acpi.c
+> +++ b/arch/ia64/kernel/acpi.c
+> @@ -887,7 +887,8 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
+>  }
+>
+>  /* wrapper to silence section mismatch warning */
+> -int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
+> +int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
+> +                      int *pcpu)
+>  {
+>         return _acpi_map_lsapic(handle, physid, pcpu);
+>  }
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 64422f8..04bc5f3 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -723,11 +723,12 @@ int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>         return 0;
+>  }
+>
+> -int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
+> +int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
+> +                int *pcpu)
+>  {
+>         int cpu;
+>
+> -       cpu = acpi_register_lapic(physid, U32_MAX, ACPI_MADT_ENABLED);
+> +       cpu = acpi_register_lapic(physid, acpi_id, ACPI_MADT_ENABLED);
+>         if (cpu < 0) {
+>                 pr_info(PREFIX "Unable to map lapic to logical cpu number\n");
+>                 return cpu;
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 3de3b6b..4467a80 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -165,7 +165,7 @@ static int acpi_processor_errata(void)
+>
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>  int __weak acpi_map_cpu(acpi_handle handle,
+> -               phys_cpuid_t physid, int *pcpu)
+> +               phys_cpuid_t physid, u32 acpi_id, int *pcpu)
+>  {
+>         return -ENODEV;
+>  }
+> @@ -203,7 +203,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+>         cpu_maps_update_begin();
+>         cpu_hotplug_begin();
+>
+> -       ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
+> +       ret = acpi_map_cpu(pr->handle, pr->phys_id, pr->acpi_id, &pr->id);
+>         if (ret)
+>                 goto out;
+>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 5b36974..6ab47e9 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -291,7 +291,8 @@ bool acpi_processor_validate_proc_id(int proc_id);
+>
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>  /* Arch dependent functions for cpu hotplug support */
+> -int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+> +int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
+> +                int *pcpu);
+>  int acpi_unmap_cpu(int cpu);
+>  int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
+>  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+> --
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/clocksource/arm_arch_timer.c | 46 ++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 97ed103..f2b9ec4 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -887,9 +887,6 @@ static bool __init arch_timer_needs_of_probing(void)
- 
- static int __init arch_timer_common_init(void)
- {
--	if (acpi_disabled && arch_timer_needs_of_probing())
--		return 0;
--
- 	arch_timer_banner(arch_timers_present);
- 	arch_counter_register(arch_timers_present);
- 	return arch_timer_arch_init();
-@@ -927,26 +924,9 @@ static enum arch_timer_ppi_nr __init arch_timer_select_ppi(void)
- 	return ARCH_TIMER_PHYS_SECURE_PPI;
- }
- 
--static int __init arch_timer_init(void)
--{
--	int ret;
--
--	ret = arch_timer_register();
--	if (ret)
--		return ret;
--
--	ret = arch_timer_common_init();
--	if (ret)
--		return ret;
--
--	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
--
--	return 0;
--}
--
- static int __init arch_timer_of_init(struct device_node *np)
- {
--	int i;
-+	int i, ret;
- 
- 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
- 		pr_warn("multiple nodes in dt, skipping\n");
-@@ -957,6 +937,8 @@ static int __init arch_timer_of_init(struct device_node *np)
- 	for (i = ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
- 		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
- 
-+	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
-+
- 	/*
- 	 * Try to determine the frequency from the device tree,
- 	 * if fail, get the frequency from the sysreg CNTFRQ.
-@@ -1001,7 +983,14 @@ static int __init arch_timer_of_init(struct device_node *np)
- 	arch_counter_suspend_stop = of_property_read_bool(np,
- 							 "arm,no-tick-in-suspend");
- 
--	return arch_timer_init();
-+	ret = arch_timer_register();
-+	if (ret)
-+		return ret;
-+
-+	if (arch_timer_needs_of_probing())
-+		return 0;
-+
-+	return arch_timer_common_init();
- }
- CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
- CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
-@@ -1093,7 +1082,8 @@ static int __init arch_timer_mem_init(struct device_node *np)
- 	if (ret)
- 		goto out;
- 
--	return arch_timer_common_init();
-+	if (!arch_timer_needs_of_probing())
-+		ret = arch_timer_common_init();
- out:
- 	iounmap(cntctlbase);
- 	of_node_put(best_frame);
-@@ -1122,6 +1112,7 @@ static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
- /* Initialize per-processor generic timer */
- static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- {
-+	int ret;
- 	struct acpi_table_gtdt *gtdt;
- 
- 	if (arch_timers_present & ARCH_TIMER_TYPE_CP15) {
-@@ -1149,6 +1140,8 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
- 		gtdt->non_secure_el2_flags);
- 
-+	arch_timer_kvm_info.virtual_irq = arch_timer_ppi[ARCH_TIMER_VIRT_PPI];
-+
- 	/* Get the frequency from the sysreg CNTFRQ */
- 	arch_timer_sysreg_freq = arch_timer_get_sysreg_freq();
- 	if (!arch_timer_sysreg_freq) {
-@@ -1165,8 +1158,11 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	/* Always-on capability */
- 	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
- 
--	arch_timer_init();
--	return 0;
-+	ret = arch_timer_register();
-+	if (ret)
-+		return ret;
-+
-+	return arch_timer_common_init();
- }
- CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
- #endif
--- 
-2.9.3
+Thanks,
+Rafael
