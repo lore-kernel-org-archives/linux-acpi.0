@@ -1,102 +1,64 @@
-From: Dan O'Donovan <dan@emutex.com>
-Subject: [PATCH v6 0/3] Init device ids from ACPI of_compatible
-Date: Sun,  5 Feb 2017 16:30:11 +0000
-Message-ID: <1486312214-20770-1-git-send-email-dan@emutex.com>
-References: <1486195228-10929-1-git-send-email-dan@emutex.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpica: Fix double-free in acpi_ns_repair_CID()
+Date: Mon, 6 Feb 2017 01:44:15 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE36E22@SHSMSX101.ccr.corp.intel.com>
+References: <20170203205654.28269-1-jprvita@endlessm.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bert.emutex.com ([91.103.1.109]:58288 "EHLO bert.emutex.com"
+Received: from mga03.intel.com ([134.134.136.65]:20399 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751592AbdBEQai (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 5 Feb 2017 11:30:38 -0500
-In-Reply-To: <1486195228-10929-1-git-send-email-dan@emutex.com>
+        id S1751532AbdBFBoT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 5 Feb 2017 20:44:19 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>
+To: "Moore, Robert" <robert.moore@intel.com>, Jo?o Paulo Rechi Vita <jprvita@gmail.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Daniel Drake <drake@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>, Jo?o Paulo Rechi Vita <jprvita@endlessm.com>, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-When using devicetree, stuff like i2c_client.name or spi_device.modalias
-is initialized to the first DT compatible id with the vendor prefix
-stripped. Since some drivers rely on this in order to differentiate between
-hardware variants, try to replicate it when using ACPI with DT ids.
-
-This also makes it so that the i2c_device_id parameter passed to probe is
-non-NULL when matching with ACPI and DT ids.
-
-Tested using ACPI overlays but there is no actual dependency. This series
-just extends the PRP0001 feature to be more useful for I2C/SPI.
-
-The patches only touches the ACPI-specific parts of the i2c and spi core.
-
-Here is an example .dsl for an SPI accelerometer connected to minnowboard max:
-
-Device (ACCL)
-{
-    Name (_ADR, Zero)
-    Name (_HID, "PRP0001")
-    Name (_UID, One)
-
-    Method (_CRS, 0, Serialized)
-    {
-	Name (RBUF, ResourceTemplate ()
-	{
-	    SPISerialBus(1, PolarityLow, FourWireMode, 16,
-		    ControllerInitiated, 1000000, ClockPolarityLow,
-		    ClockPhaseFirst, "\\_SB.SPI1",)
-	    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-		     "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-	    { // Pin list
-		    1
-	    }
-	})
-	Return (RBUF)
-    }
-    Name (_DSD, Package ()
-    {
-	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-	Package ()
-	{
-	    Package () {"compatible", "st,lis3dh"},
-	}
-    })
-}
-
-Credit to Leonard Crestez for the original version of this patch set.
-
-Link to v5: http://www.spinics.net/lists/linux-acpi/msg71902.html
-Changes:
- * Change formatting of arguments passed to acpi_set_modalias (Mark Brown)
-
-Link to v4: http://www.spinics.net/lists/linux-acpi/msg71657.html
-Changes:
- * add acpi_set_modalias wrapper to handle fallback to ACPI ID (Mark Brown)
-
-Link to v3: http://www.spinics.net/lists/linux-acpi/msg71531.html
-Changes:
- * Minor cosmetic/readability improvements (Andy Shevchenko)
-
-Link to v2: https://lkml.org/lkml/2016/7/13/392
-Changes:
- * Use appropriate subject prefix for each subsystem (Mark Brown)
- * Use ACPI info as before if getting OF info fails (Mark Brown)
- * Minor cosmetic/readability improvements (Rafael J. Wysocki)
-
-Link to v1: https://www.spinics.net/lists/linux-acpi/msg66469.html
-Changes:
- * Rebase on after acpi overlays got it.
- * Change acpi_of_modalias outlen param to size_t
- * Use {} after else
-
-Dan O'Donovan (3):
-  ACPI / bus: Export acpi_of_modalias equiv of of_modalias_node
-  i2c: acpi: Initialize info.type from of_compatible
-  spi: acpi: Initialize modalias from of_compatible
-
- drivers/acpi/bus.c      | 42 ++++++++++++++++++++++++++++++++++++++++++
- drivers/i2c/i2c-core.c  |  3 ++-
- drivers/spi/spi.c       |  4 +++-
- include/acpi/acpi_bus.h |  2 ++
- 4 files changed, 49 insertions(+), 2 deletions(-)
-
--- 
-2.7.4
-
+SGksDQoNClNvIGlmIGEgcmVhbCBwcm9ibGVtIHJlbGF0ZWQgdG8gcGFja2FnZSByZWZlcmVuY2Ug
+Y291bnRpbmcgaXMgdHJpZ2dlcmVkLCB0aGUgcHJvYmxlbSBzaG91bGQgYmUgZml4ZWQgZWxzZXdo
+ZXJlIElNTy4NClNlZSB0aGlzIGJ1ZyBmb3IgcmVmZXJlbmNlOg0KaHR0cHM6Ly9idWdzLmFjcGlj
+YS5vcmcvc2hvd19idWcuY2dpP2lkPTEzMzYNCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2
+DQoNCj4gRnJvbTogTW9vcmUsIFJvYmVydA0KPiBTdWJqZWN0OiBSRTogW1BBVENIXSBhY3BpY2E6
+IEZpeCBkb3VibGUtZnJlZSBpbiBhY3BpX25zX3JlcGFpcl9DSUQoKQ0KPiANCj4gSGVyZSdzIHRo
+ZSBzZXF1ZW5jZSBvZiBldmVudHMgYXMgSSBzZWUgaXQ6DQo+IA0KPiBSZXBhaXJfSElEIGlzIGEg
+c3RhbmRhbG9uZSBmdW5jdGlvbiB0aGF0IHJlbW92ZXMgb25lIHJlZmVyZW5jZSBvbiB0aGUgaW5j
+b21pbmcgb2JqZWN0LiBGb3Igc2ltcGxlIF9ISUQNCj4gb2JqZWN0cywgdGhpcyBpbiBmYWN0IGRl
+bGV0ZXMgdGhlIG9iamVjdC4NCj4gDQo+IEZvciBfQ0lELCBhbGwgZWxlbWVudHMgb2YgdGhlIHBh
+Y2thZ2UgYXJlIGV4YW1pbmVkLiBJZiBhIHJlcGFpciB3YXMgbWFkZSBvbiBhIF9ISUQgd2l0aGlu
+IHRoZSBfQ0lEDQo+IGZ1bmN0aW9uLCBvbmUgcmVmZXJlbmNlIG9uIHRoZSBvcmlnaW5hbCBvYmpl
+Y3Qgd2FzIHJlbW92ZWQgYnkgUmVwYWlyX0hJRC4gSG93ZXZlciwgc2luY2UgdGhlIG9iamVjdCBp
+cw0KPiBwYXJ0IG9mIGEgcGFja2FnZSwgaXQgaGFzIGFuIGV4dHJhIHJlZmVyZW5jZSB0byByZWZs
+ZWN0IHRoaXMgZmFjdC4gVGh1cywgaW4gdGhlIGNhc2UgaW4gcXVlc3Rpb24sIHRoZQ0KPiBlbGVt
+ZW50cyBvZiB0aGUgcGFja2FnZSBhbGwgaGF2ZSBhdCBsZWFzdCB0d28gcmVmZXJlbmNlcy4gUmVw
+YWlyX0hJRCByZW1vdmVzIG9uZSByZWZlcmVuY2UsIHRodXMgdGhlDQo+IGV4dHJhIFJlbW92ZVJl
+ZmVyZW5jZSBpcyBuZWVkZWQgaW4gUmVwYWlyX0NJRCB0byBicmluZyB0aGUgcmVmZXJlbmNlIGNv
+dW50IGRvd24gdG8gemVybyBhY3R1YWxseQ0KPiBkZWxldGUgdGhlIG9iamVjdCAoaW4gdGhlIHR5
+cGljYWwgY2FzZSB3aGVyZSB0aGUgb2JqZWN0IGhhZCB0d28gcmVmZXJlbmNlcykuDQo+IA0KPiBC
+b2INCj4gDQo+IA0KPiA+IEZyb206IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEgW21haWx0bzpqcHJ2
+aXRhQGdtYWlsLmNvbV0NCj4gPiBTdWJqZWN0OiBbUEFUQ0hdIGFjcGljYTogRml4IGRvdWJsZS1m
+cmVlIGluIGFjcGlfbnNfcmVwYWlyX0NJRCgpDQo+ID4NCj4gPiBXaGVuIGFjcGlfbnNfcmVwYWly
+X0NJRCgpIGlzIGNhbGxlZCBmb3IgYSBfQ0lEIHdoaWNoIHJldHVybnMgYSBwYWNrYWdlIG9mDQo+
+ID4gc3RyaW5ncywgaXQgY2FsbHMgYWNwaV9uc19yZXBhaXJfSElEKCkgZm9yIGVhY2ggb2YgdGhl
+IHBhY2thZ2UgZWxlbWVudHMuDQo+ID4gYWNwaV9uc19yZXBhaXJfSElEKCkgY2FsbHMgYWNwaV91
+dF9yZW1vdmVfcmVmZXJlbmNlKCkgb24gdGhlIG9yaWdpbmFsDQo+ID4gb2JqZWN0LCBidXQgYWNw
+aV9uc19yZXBhaXJfQ0lEKCkgY2FsbHMgaXQgYWdhaW4gb24gcmV0dXJuLCBsZWFkaW5nIHRvIGEN
+Cj4gPiBkb3VibGUgZnJlZS4NCj4gPg0KPiA+IFRoaXMgcHJvYmxlbSB3YXMgc2VlbiBvbiBhIEFj
+ZXIgVHJhdmVsTWF0ZSBQNDQ5LUcyLU1HLg0KPiA+DQo+ID4gVGhhbmtzIHRvIERhbmllbCBEcmFr
+ZSBmb3IgaGVscGluZyBpbnZlc3RpZ2F0aW5nIHRoaXMgcHJvYmxlbS4NCj4gPg0KPiA+IFNpZ25l
+ZC1vZmYtYnk6IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEgPGpwcnZpdGFAZW5kbGVzc20uY29tPg0K
+PiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL25zcmVwYWlyMi5jIHwgMiAtLQ0KPiA+
+ICAxIGZpbGUgY2hhbmdlZCwgMiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9k
+cml2ZXJzL2FjcGkvYWNwaWNhL25zcmVwYWlyMi5jDQo+ID4gYi9kcml2ZXJzL2FjcGkvYWNwaWNh
+L25zcmVwYWlyMi5jIGluZGV4IGQ1MzM2MTIyNDg2Yi4uYzQyOWM4ZWNhNDc2IDEwMDY0NA0KPiA+
+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvbnNyZXBhaXIyLmMNCj4gPiArKysgYi9kcml2ZXJz
+L2FjcGkvYWNwaWNhL25zcmVwYWlyMi5jDQo+ID4gQEAgLTQxMSw4ICs0MTEsNiBAQCBhY3BpX25z
+X3JlcGFpcl9DSUQoc3RydWN0IGFjcGlfZXZhbHVhdGVfaW5mbyAqaW5mbywNCj4gPg0KPiA+ICAJ
+CQkoKmVsZW1lbnRfcHRyKS0+Y29tbW9uLnJlZmVyZW5jZV9jb3VudCA9DQo+ID4gIAkJCSAgICBv
+cmlnaW5hbF9yZWZfY291bnQ7DQo+ID4gLQ0KPiA+IC0JCQlhY3BpX3V0X3JlbW92ZV9yZWZlcmVu
+Y2Uob3JpZ2luYWxfZWxlbWVudCk7DQo+ID4gIAkJfQ0KPiA+DQo+ID4gIAkJZWxlbWVudF9wdHIr
+KzsNCj4gPiAtLQ0KPiA+IDIuMTEuMA0KDQo=
