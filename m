@@ -1,104 +1,51 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: [PATCH] acpica: Fix double-free in acpi_ns_repair_CID()
-Date: Mon, 6 Feb 2017 09:06:17 -0600
-Message-ID: <CAD8Lp46dOONGZYkr7izJo+rrRhxCr9H62HRbsUTB_ycLTmDaWg@mail.gmail.com>
-References: <20170203205654.28269-1-jprvita@endlessm.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CE36E22@SHSMSX101.ccr.corp.intel.com> <CA+A7VXXNk58unA+k6743VV7=cHTTbW8YHVf_5GAYdv1EPA5dPw@mail.gmail.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 3/3] spi: acpi: Initialize modalias from of_compatible
+Date: Mon, 6 Feb 2017 16:31:48 +0000
+Message-ID: <20170206163148.sl7xoefrxjw3i3na@sirena.org.uk>
+References: <1486195228-10929-1-git-send-email-dan@emutex.com>
+ <1486312214-20770-1-git-send-email-dan@emutex.com>
+ <1486312214-20770-4-git-send-email-dan@emutex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:34711 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752323AbdBFPGT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2017 10:06:19 -0500
-Received: by mail-oi0-f52.google.com with SMTP id s203so48301661oie.1
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Feb 2017 07:06:18 -0800 (PST)
-In-Reply-To: <CA+A7VXXNk58unA+k6743VV7=cHTTbW8YHVf_5GAYdv1EPA5dPw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kzxie6xrpilthtcj"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1486312214-20770-4-git-send-email-dan-M3NBUjLqch7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan O'Donovan <dan-M3NBUjLqch7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jarkko Nikula <jarkko.nikula-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@gmail.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux@endlessm.com" <linux@endlessm.com>, Jo?o Paulo Rechi Vita <jprvita@endlessm.com>, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-On Mon, Feb 6, 2017 at 8:46 AM, Jo=C3=A3o Paulo Rechi Vita <jprvita@gmail.c=
-om> wrote:
-> Yes, the real problem is i2c_hid not being probed for the touchpad
-> device on this platform
 
-The lack of probe was because when i2c_acpi_add_device() called
-acpi_bus_get_device() on the handle for the touchpad device (TPL1), it
-was returning the acpi_device for something totally unrelated.
+--kzxie6xrpilthtcj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-We checked that the original handle-to-device mapping was set up
-correctly before that point, hence this looks like memory corruption,
-and the problem went away as soon as we fixed the double free.
+On Sun, Feb 05, 2017 at 04:30:14PM +0000, Dan O'Donovan wrote:
+> When using devicetree spi_device.modalias is set to the compatible
+> string with the vendor prefix removed. For SPI devices described via
+> ACPI the spi_device.modalias string is initialized by acpi_device_hid.
+> When using ACPI and DT ids this string ends up something like "PRP0001".
 
-> [    0.317002] ACPI Warning: Obj ffffa00472a445e8, Reference Count is
-> already zero, cannot decrement
-> [    0.317178]  (20160422/utdelete-442)
->
->> See this bug for reference:
->> https://bugs.acpica.org/show_bug.cgi?id=3D1336
->>
->
-> Looks like it could be the same problem, indeed. I'm attaching a
-> kernel log with acpi.trace_debug_layer=3D0x10091
-> acpi.trace_debug_level=3D0x107FFF
-> acpi.trace_method_name=3D_SB.PCI0.I2C1.TPL1._CID
-> acpi.trace_state=3Dopcode, which is what I was using to investigate the
-> problem
+Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-The debug messages in that log stop when the method execution
-completes, so it may also be useful to share a part of an earlier log
-where you can see the double freeing happen in a bit more detail. For
-each of the 2 objects double-freed below we confirmed that the first
-unreference is the one in acpi_ns_repair_HID and the second
-unreference is the one removed in JP's patch.
+--kzxie6xrpilthtcj
+Content-Type: application/pgp-signature; name="signature.asc"
 
-nsprepkg-0105 ns_check_package      : \_SB.PCI0.I2C1.TPL1._CID
-Validating return Package of Type 2, Count 2
-utobject-0404 ut_allocate_object_des: ffff940f6ba36480 Size 48
-utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36cf0 Current
-Refs=3D1 [To Be Decremented]
-utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36cf0 Type 02
-Refs 00 [Decremented]
-utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36cf0,
-ptr ffff9f654004e2a8
-utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36cf0 [Str=
-ing]
-utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36cf0 Current
-Refs=3D0 [To Be Decremented]
-ACPI Warning: Obj ffff940f6ba36cf0, Reference Count is already zero,
-cannot decrement
-(20160422/utdelete-442)
-utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36cf0 Type 02
-Refs 00 [Decremented]
-utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36cf0,
-ptr ffff9f654004e2a8
-utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36cf0 [Str=
-ing]
-utobject-0404 ut_allocate_object_des: ffff940f6ba36cf0 Size 48
-utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36c60 Current
-Refs=3D1 [To Be Decremented]
-utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36c60 Type 02
-Refs 00 [Decremented]
-utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36c60,
-ptr ffff9f654004e2b2
-utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36c60 [Str=
-ing]
-utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36c60 Current
-Refs=3D0 [To Be Decremented]
-ACPI Warning: Obj ffff940f6ba36c60, Reference Count is already zero,
-cannot decrement
-(20160422/utdelete-442)
-utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36c60 Type 02
-Refs 00 [Decremented]
-utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36c60,
-ptr ffff9f654004e2b2
-utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36c60 [Str=
-ing]
-  nseval-0315 ns_evaluate           : *** Completed evaluation of
-object _CID ***
+-----BEGIN PGP SIGNATURE-----
 
-Thanks,
-Daniel
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliYpPQACgkQJNaLcl1U
+h9CeLQf/bXWk3S1vf4ttePrXbgFgQK4Z3E6yqBwQ+e42gW9K3XsmRthDfe/Mowc8
+q1+pBzU/EZylKYFZMLkVQc/PfM3GEth8Jdm+D+Jum0VVVFHHiFmJ2hqYdaSTe/zr
+/KCdQtvNjNi7ik0TySfNpWPqE7o7gP/gGXCMcgbRwzQQkW2FnrpJJIrV/du0HczY
+LyZ4ioJNwF3CWdnPonWrN1/a2qZaz0KVKhucDL7GWINEY1hXWdum+O7s11NyjSWY
+8QsIIR+ZayYwHJeYQIpkm2Q7qz2oy0qBdkQ1PIzv39Ny0FBkkWfy2OC9+W1scu23
+wSMHcU6FrDWLOe+cQGFBYMv8pWy7vQ==
+=ml/y
+-----END PGP SIGNATURE-----
+
+--kzxie6xrpilthtcj--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
