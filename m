@@ -1,51 +1,99 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 3/3] spi: acpi: Initialize modalias from of_compatible
-Date: Mon, 6 Feb 2017 16:31:48 +0000
-Message-ID: <20170206163148.sl7xoefrxjw3i3na@sirena.org.uk>
-References: <1486195228-10929-1-git-send-email-dan@emutex.com>
- <1486312214-20770-1-git-send-email-dan@emutex.com>
- <1486312214-20770-4-git-send-email-dan@emutex.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="kzxie6xrpilthtcj"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1486312214-20770-4-git-send-email-dan-M3NBUjLqch7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan O'Donovan <dan-M3NBUjLqch7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jarkko Nikula <jarkko.nikula-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: [PATCH] x86/acpi: keep x86_cpu_to_acpiid mapping valid on cpu hotplug
+Date: Mon,  6 Feb 2017 18:01:51 +0100
+Message-ID: <20170206170151.25542-1-vkuznets@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: x86@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Jones <drjones@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
+We may or may not have all possible CPUs in MADT on boot but in any case
+we're overwriting x86_cpu_to_acpiid mapping with U32_MAX when
+acpi_register_lapic() is called again on the CPU hotplug path:
+acpi_processor_hotadd_init() -> acpi_map_cpu() -> acpi_register_lapic().
 
---kzxie6xrpilthtcj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+As we have the required acpi_id information in acpi_processor_hotadd_init()
+propagate it to acpi_map_cpu() to always keep x86_cpu_to_acpiid mapping
+valid.
 
-On Sun, Feb 05, 2017 at 04:30:14PM +0000, Dan O'Donovan wrote:
-> When using devicetree spi_device.modalias is set to the compatible
-> string with the vendor prefix removed. For SPI devices described via
-> ACPI the spi_device.modalias string is initialized by acpi_device_hid.
-> When using ACPI and DT ids this string ends up something like "PRP0001".
+Reported-by: Andrew Jones <drjones@redhat.com>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+---
+ arch/ia64/kernel/acpi.c       | 3 ++-
+ arch/x86/kernel/acpi/boot.c   | 5 +++--
+ drivers/acpi/acpi_processor.c | 4 ++--
+ include/linux/acpi.h          | 3 ++-
+ 4 files changed, 9 insertions(+), 6 deletions(-)
 
-Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
---kzxie6xrpilthtcj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliYpPQACgkQJNaLcl1U
-h9CeLQf/bXWk3S1vf4ttePrXbgFgQK4Z3E6yqBwQ+e42gW9K3XsmRthDfe/Mowc8
-q1+pBzU/EZylKYFZMLkVQc/PfM3GEth8Jdm+D+Jum0VVVFHHiFmJ2hqYdaSTe/zr
-/KCdQtvNjNi7ik0TySfNpWPqE7o7gP/gGXCMcgbRwzQQkW2FnrpJJIrV/du0HczY
-LyZ4ioJNwF3CWdnPonWrN1/a2qZaz0KVKhucDL7GWINEY1hXWdum+O7s11NyjSWY
-8QsIIR+ZayYwHJeYQIpkm2Q7qz2oy0qBdkQ1PIzv39Ny0FBkkWfy2OC9+W1scu23
-wSMHcU6FrDWLOe+cQGFBYMv8pWy7vQ==
-=ml/y
------END PGP SIGNATURE-----
-
---kzxie6xrpilthtcj--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 9273e03..7508c30 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -887,7 +887,8 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
+ }
+ 
+ /* wrapper to silence section mismatch warning */
+-int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
++int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
++		       int *pcpu)
+ {
+ 	return _acpi_map_lsapic(handle, physid, pcpu);
+ }
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 64422f8..04bc5f3 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -723,11 +723,12 @@ int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ 	return 0;
+ }
+ 
+-int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
++int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
++		 int *pcpu)
+ {
+ 	int cpu;
+ 
+-	cpu = acpi_register_lapic(physid, U32_MAX, ACPI_MADT_ENABLED);
++	cpu = acpi_register_lapic(physid, acpi_id, ACPI_MADT_ENABLED);
+ 	if (cpu < 0) {
+ 		pr_info(PREFIX "Unable to map lapic to logical cpu number\n");
+ 		return cpu;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 3de3b6b..4467a80 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -165,7 +165,7 @@ static int acpi_processor_errata(void)
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ int __weak acpi_map_cpu(acpi_handle handle,
+-		phys_cpuid_t physid, int *pcpu)
++		phys_cpuid_t physid, u32 acpi_id, int *pcpu)
+ {
+ 	return -ENODEV;
+ }
+@@ -203,7 +203,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+ 	cpu_maps_update_begin();
+ 	cpu_hotplug_begin();
+ 
+-	ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
++	ret = acpi_map_cpu(pr->handle, pr->phys_id, pr->acpi_id, &pr->id);
+ 	if (ret)
+ 		goto out;
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 5b36974..6ab47e9 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -291,7 +291,8 @@ bool acpi_processor_validate_proc_id(int proc_id);
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ /* Arch dependent functions for cpu hotplug support */
+-int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
++int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
++		 int *pcpu);
+ int acpi_unmap_cpu(int cpu);
+ int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+-- 
+2.9.3
