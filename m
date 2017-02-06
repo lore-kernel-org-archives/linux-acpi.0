@@ -1,71 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH -next] ACPI/IORT: Fix the error return code in iort_add_smmu_platform_device()
-Date: Mon, 06 Feb 2017 13:09:15 +0100
-Message-ID: <1649911.ou6PYt3Jgf@aspire.rjw.lan>
-References: <20170205154559.31664-1-weiyj.lk@gmail.com> <1922286.EyoiMMS0FI@aspire.rjw.lan> <20170206120733.GA31126@red-moon>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [GIT PULL] ACPI IORT fixes for v4.10-rc8
+Date: Mon, 6 Feb 2017 13:38:56 +0000
+Message-ID: <20170206133856.GA14139@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57168 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751517AbdBFMOC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2017 07:14:02 -0500
-In-Reply-To: <20170206120733.GA31126@red-moon>
+Received: from foss.arm.com ([217.140.101.70]:57620 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752104AbdBFNgx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Feb 2017 08:36:53 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Len Brown <lenb@kernel.org>, Wei Yongjun <weiyongjun1@huawei.com>, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+To: will.deacon@arm.com, catalin.marinas@arm.com
+Cc: hanjun.guo@linaro.org, dan.carpenter@oracle.com, okaya@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On Monday, February 06, 2017 12:07:33 PM Lorenzo Pieralisi wrote:
-> [+ Catalin, Will]
-> 
-> On Mon, Feb 06, 2017 at 12:41:12PM +0100, Rafael J. Wysocki wrote:
-> > On Monday, February 06, 2017 10:04:11 AM Lorenzo Pieralisi wrote:
-> > > On Sun, Feb 05, 2017 at 03:45:59PM +0000, Wei Yongjun wrote:
-> > > > From: Wei Yongjun <weiyongjun1@huawei.com>
-> > > > 
-> > > > The error return code PTR_ERR(pdev) is always 0 since pdev is
-> > > > equal to 0 in this error handling case.
-> > > > 
-> > > > Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> > > > ---
-> > > >  drivers/acpi/arm64/iort.c | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > It has been reported twice already:
-> > > 
-> > > https://patchwork.kernel.org/patch/9521003/
-> > > 
-> > > Rafael, do you expect me to send you a pull request with IORT fixes ?
-> > > 
-> > > I can't see Dan's patch in linux-acpi patchwork anymore, and there
-> > > is another fix pending:
-> > > 
-> > > https://patchwork.kernel.org/patch/9507041/
-> > > 
-> > > Please let me know how you want to handle them.
-> > 
-> > I wasn't sure about who was the target maintainer to be honest.
-> > 
-> > I'd prefer ARM64-specific material to go in via the ARM64 tree, if
-> > that's possible.
-> 
-> I CC'ed Catalin and Will so that we can sort this out, I took for
-> granted that ACPI changes would go via the ACPI tree even if they
-> are ARM64 specific, I am not sure it makes much sense for them to
-> go via the arm64 arch tree, anyway it is something to be decided
-> because the two fixes above have already missed -rc* and I have to
-> know which way patches should go from now onwards.
+Hi Will, Catalin,
 
-On x86 the arch-specific ACPI changes go in via the arch tree as a rule, FWIW,
-but also I'm sufficiently familiar with x86 (I think) to route them via the ACPI
-tree with enough confidence.
-
-Quite honestly, my ARM64 knowledge is not sufficient to decide whether or not
-the changes actually make sense, so I would request an ACK from the ARM64
-maintainers before taking those changes anyway.
+please consider pulling a couple of minor ACPI IORT fixes that were
+missed in the last few -rc* cycles but should be considered for
+merging as soon as possible, hopefully before v4.10 is released.
 
 Thanks,
-Rafael
+Lorenzo
 
+The following changes since commit d5adbfcd5f7bcc6fa58a41c5c5ada0e5c826ce2c:
+
+  Linux 4.10-rc7 (2017-02-05 15:10:58 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/iort-fixes-for-v4.10
+
+for you to fetch changes up to 2a42d9d5dd259b0bdef34a00da426ac5fb0261e1:
+
+  ACPI/IORT: Fix the error return code in iort_add_smmu_platform_device() (2017-02-06 12:50:53 +0000)
+
+----------------------------------------------------------------
+IORT fixes as a fall-out from IORT SMMU changes:
+
+* Fix return value when IORT code allocating platform
+  devices fails, that is causing a successful return
+  on failure
+* Fix the indexing in iort_node_get_id() so that the correct
+  mapping entry is used to return the correct IORT parent
+  node resulting from the mapping
+
+----------------------------------------------------------------
+Dan Carpenter (1):
+      ACPI/IORT: Fix the error return code in iort_add_smmu_platform_device()
+
+Lorenzo Pieralisi (1):
+      ACPI/IORT: Fix iort_node_get_id() mapping entries indexing
+
+ drivers/acpi/arm64/iort.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
