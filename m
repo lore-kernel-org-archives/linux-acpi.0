@@ -1,64 +1,62 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] acpica: Fix double-free in acpi_ns_repair_CID()
-Date: Mon, 6 Feb 2017 01:44:15 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE36E22@SHSMSX101.ccr.corp.intel.com>
-References: <20170203205654.28269-1-jprvita@endlessm.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH -next] ACPI/IORT: Fix the error return code in
+ iort_add_smmu_platform_device()
+Date: Mon, 6 Feb 2017 10:04:11 +0000
+Message-ID: <20170206100411.GA12444@red-moon>
+References: <20170205154559.31664-1-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:20399 "EHLO mga03.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:54060 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751532AbdBFBoT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 5 Feb 2017 20:44:19 -0500
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
-Content-Language: en-US
+        id S1751698AbdBFKCJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Feb 2017 05:02:09 -0500
+Content-Disposition: inline
+In-Reply-To: <20170205154559.31664-1-weiyj.lk@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Jo?o Paulo Rechi Vita <jprvita@gmail.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Daniel Drake <drake@endlessm.com>, "linux@endlessm.com" <linux@endlessm.com>, Jo?o Paulo Rechi Vita <jprvita@endlessm.com>, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>
+To: Wei Yongjun <weiyj.lk@gmail.com>, rjw@rjwysocki.net
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Len Brown <lenb@kernel.org>, Wei Yongjun <weiyongjun1@huawei.com>, linux-acpi@vger.kernel.org
 
-SGksDQoNClNvIGlmIGEgcmVhbCBwcm9ibGVtIHJlbGF0ZWQgdG8gcGFja2FnZSByZWZlcmVuY2Ug
-Y291bnRpbmcgaXMgdHJpZ2dlcmVkLCB0aGUgcHJvYmxlbSBzaG91bGQgYmUgZml4ZWQgZWxzZXdo
-ZXJlIElNTy4NClNlZSB0aGlzIGJ1ZyBmb3IgcmVmZXJlbmNlOg0KaHR0cHM6Ly9idWdzLmFjcGlj
-YS5vcmcvc2hvd19idWcuY2dpP2lkPTEzMzYNCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCkx2
-DQoNCj4gRnJvbTogTW9vcmUsIFJvYmVydA0KPiBTdWJqZWN0OiBSRTogW1BBVENIXSBhY3BpY2E6
-IEZpeCBkb3VibGUtZnJlZSBpbiBhY3BpX25zX3JlcGFpcl9DSUQoKQ0KPiANCj4gSGVyZSdzIHRo
-ZSBzZXF1ZW5jZSBvZiBldmVudHMgYXMgSSBzZWUgaXQ6DQo+IA0KPiBSZXBhaXJfSElEIGlzIGEg
-c3RhbmRhbG9uZSBmdW5jdGlvbiB0aGF0IHJlbW92ZXMgb25lIHJlZmVyZW5jZSBvbiB0aGUgaW5j
-b21pbmcgb2JqZWN0LiBGb3Igc2ltcGxlIF9ISUQNCj4gb2JqZWN0cywgdGhpcyBpbiBmYWN0IGRl
-bGV0ZXMgdGhlIG9iamVjdC4NCj4gDQo+IEZvciBfQ0lELCBhbGwgZWxlbWVudHMgb2YgdGhlIHBh
-Y2thZ2UgYXJlIGV4YW1pbmVkLiBJZiBhIHJlcGFpciB3YXMgbWFkZSBvbiBhIF9ISUQgd2l0aGlu
-IHRoZSBfQ0lEDQo+IGZ1bmN0aW9uLCBvbmUgcmVmZXJlbmNlIG9uIHRoZSBvcmlnaW5hbCBvYmpl
-Y3Qgd2FzIHJlbW92ZWQgYnkgUmVwYWlyX0hJRC4gSG93ZXZlciwgc2luY2UgdGhlIG9iamVjdCBp
-cw0KPiBwYXJ0IG9mIGEgcGFja2FnZSwgaXQgaGFzIGFuIGV4dHJhIHJlZmVyZW5jZSB0byByZWZs
-ZWN0IHRoaXMgZmFjdC4gVGh1cywgaW4gdGhlIGNhc2UgaW4gcXVlc3Rpb24sIHRoZQ0KPiBlbGVt
-ZW50cyBvZiB0aGUgcGFja2FnZSBhbGwgaGF2ZSBhdCBsZWFzdCB0d28gcmVmZXJlbmNlcy4gUmVw
-YWlyX0hJRCByZW1vdmVzIG9uZSByZWZlcmVuY2UsIHRodXMgdGhlDQo+IGV4dHJhIFJlbW92ZVJl
-ZmVyZW5jZSBpcyBuZWVkZWQgaW4gUmVwYWlyX0NJRCB0byBicmluZyB0aGUgcmVmZXJlbmNlIGNv
-dW50IGRvd24gdG8gemVybyBhY3R1YWxseQ0KPiBkZWxldGUgdGhlIG9iamVjdCAoaW4gdGhlIHR5
-cGljYWwgY2FzZSB3aGVyZSB0aGUgb2JqZWN0IGhhZCB0d28gcmVmZXJlbmNlcykuDQo+IA0KPiBC
-b2INCj4gDQo+IA0KPiA+IEZyb206IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEgW21haWx0bzpqcHJ2
-aXRhQGdtYWlsLmNvbV0NCj4gPiBTdWJqZWN0OiBbUEFUQ0hdIGFjcGljYTogRml4IGRvdWJsZS1m
-cmVlIGluIGFjcGlfbnNfcmVwYWlyX0NJRCgpDQo+ID4NCj4gPiBXaGVuIGFjcGlfbnNfcmVwYWly
-X0NJRCgpIGlzIGNhbGxlZCBmb3IgYSBfQ0lEIHdoaWNoIHJldHVybnMgYSBwYWNrYWdlIG9mDQo+
-ID4gc3RyaW5ncywgaXQgY2FsbHMgYWNwaV9uc19yZXBhaXJfSElEKCkgZm9yIGVhY2ggb2YgdGhl
-IHBhY2thZ2UgZWxlbWVudHMuDQo+ID4gYWNwaV9uc19yZXBhaXJfSElEKCkgY2FsbHMgYWNwaV91
-dF9yZW1vdmVfcmVmZXJlbmNlKCkgb24gdGhlIG9yaWdpbmFsDQo+ID4gb2JqZWN0LCBidXQgYWNw
-aV9uc19yZXBhaXJfQ0lEKCkgY2FsbHMgaXQgYWdhaW4gb24gcmV0dXJuLCBsZWFkaW5nIHRvIGEN
-Cj4gPiBkb3VibGUgZnJlZS4NCj4gPg0KPiA+IFRoaXMgcHJvYmxlbSB3YXMgc2VlbiBvbiBhIEFj
-ZXIgVHJhdmVsTWF0ZSBQNDQ5LUcyLU1HLg0KPiA+DQo+ID4gVGhhbmtzIHRvIERhbmllbCBEcmFr
-ZSBmb3IgaGVscGluZyBpbnZlc3RpZ2F0aW5nIHRoaXMgcHJvYmxlbS4NCj4gPg0KPiA+IFNpZ25l
-ZC1vZmYtYnk6IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEgPGpwcnZpdGFAZW5kbGVzc20uY29tPg0K
-PiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL25zcmVwYWlyMi5jIHwgMiAtLQ0KPiA+
-ICAxIGZpbGUgY2hhbmdlZCwgMiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL2FjcGkvYWNwaWNhL25zcmVwYWlyMi5jDQo+ID4gYi9kcml2ZXJzL2FjcGkvYWNwaWNh
-L25zcmVwYWlyMi5jIGluZGV4IGQ1MzM2MTIyNDg2Yi4uYzQyOWM4ZWNhNDc2IDEwMDY0NA0KPiA+
-IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvbnNyZXBhaXIyLmMNCj4gPiArKysgYi9kcml2ZXJz
-L2FjcGkvYWNwaWNhL25zcmVwYWlyMi5jDQo+ID4gQEAgLTQxMSw4ICs0MTEsNiBAQCBhY3BpX25z
-X3JlcGFpcl9DSUQoc3RydWN0IGFjcGlfZXZhbHVhdGVfaW5mbyAqaW5mbywNCj4gPg0KPiA+ICAJ
-CQkoKmVsZW1lbnRfcHRyKS0+Y29tbW9uLnJlZmVyZW5jZV9jb3VudCA9DQo+ID4gIAkJCSAgICBv
-cmlnaW5hbF9yZWZfY291bnQ7DQo+ID4gLQ0KPiA+IC0JCQlhY3BpX3V0X3JlbW92ZV9yZWZlcmVu
-Y2Uob3JpZ2luYWxfZWxlbWVudCk7DQo+ID4gIAkJfQ0KPiA+DQo+ID4gIAkJZWxlbWVudF9wdHIr
-KzsNCj4gPiAtLQ0KPiA+IDIuMTEuMA0KDQo=
+On Sun, Feb 05, 2017 at 03:45:59PM +0000, Wei Yongjun wrote:
+> From: Wei Yongjun <weiyongjun1@huawei.com>
+> 
+> The error return code PTR_ERR(pdev) is always 0 since pdev is
+> equal to 0 in this error handling case.
+> 
+> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+
+It has been reported twice already:
+
+https://patchwork.kernel.org/patch/9521003/
+
+Rafael, do you expect me to send you a pull request with IORT fixes ?
+
+I can't see Dan's patch in linux-acpi patchwork anymore, and there
+is another fix pending:
+
+https://patchwork.kernel.org/patch/9507041/
+
+Please let me know how you want to handle them.
+
+Thanks !
+Lorenzo
+
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index e0d2e6e..655407a 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -828,7 +828,7 @@ static int __init iort_add_smmu_platform_device(struct acpi_iort_node *node)
+>  
+>  	pdev = platform_device_alloc(ops->name, PLATFORM_DEVID_AUTO);
+>  	if (!pdev)
+> -		return PTR_ERR(pdev);
+> +		return -ENOMEM;
+>  
+>  	count = ops->iommu_count_resources(node);
+
+
