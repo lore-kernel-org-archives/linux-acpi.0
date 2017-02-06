@@ -1,27 +1,25 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH -next] ACPI/IORT: Fix the error return code in
- iort_add_smmu_platform_device()
-Date: Mon, 6 Feb 2017 12:10:43 +0000
-Message-ID: <20170206121042.GD19939@arm.com>
-References: <20170205154559.31664-1-weiyj.lk@gmail.com>
- <20170206100411.GA12444@red-moon>
- <1922286.EyoiMMS0FI@aspire.rjw.lan>
- <20170206120733.GA31126@red-moon>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH -next] ACPI/IORT: Fix the error return code in iort_add_smmu_platform_device()
+Date: Mon, 06 Feb 2017 13:09:15 +0100
+Message-ID: <1649911.ou6PYt3Jgf@aspire.rjw.lan>
+References: <20170205154559.31664-1-weiyj.lk@gmail.com> <1922286.EyoiMMS0FI@aspire.rjw.lan> <20170206120733.GA31126@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56310 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751911AbdBFMKm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Feb 2017 07:10:42 -0500
-Content-Disposition: inline
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57168 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751517AbdBFMOC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2017 07:14:02 -0500
 In-Reply-To: <20170206120733.GA31126@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wei Yongjun <weiyj.lk@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Len Brown <lenb@kernel.org>, Wei Yongjun <weiyongjun1@huawei.com>, linux-acpi@vger.kernel.org, catalin.marinas@arm.com
+Cc: Wei Yongjun <weiyj.lk@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Len Brown <lenb@kernel.org>, Wei Yongjun <weiyongjun1@huawei.com>, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
 
-On Mon, Feb 06, 2017 at 12:07:33PM +0000, Lorenzo Pieralisi wrote:
+On Monday, February 06, 2017 12:07:33 PM Lorenzo Pieralisi wrote:
+> [+ Catalin, Will]
+> 
 > On Mon, Feb 06, 2017 at 12:41:12PM +0100, Rafael J. Wysocki wrote:
 > > On Monday, February 06, 2017 10:04:11 AM Lorenzo Pieralisi wrote:
 > > > On Sun, Feb 05, 2017 at 03:45:59PM +0000, Wei Yongjun wrote:
@@ -60,9 +58,14 @@ On Mon, Feb 06, 2017 at 12:07:33PM +0000, Lorenzo Pieralisi wrote:
 > because the two fixes above have already missed -rc* and I have to
 > know which way patches should go from now onwards.
 
-I have no problem taking arm64 ACPI patches via arm64 if that's what
-Rafael prefers. However, I won't proactively pick them up like I do for
-other arm64 patches, so please send me a pull request when you have stuff
-that you want merged.
+On x86 the arch-specific ACPI changes go in via the arch tree as a rule, FWIW,
+but also I'm sufficiently familiar with x86 (I think) to route them via the ACPI
+tree with enough confidence.
 
-Will
+Quite honestly, my ARM64 knowledge is not sufficient to decide whether or not
+the changes actually make sense, so I would request an ACK from the ARM64
+maintainers before taking those changes anyway.
+
+Thanks,
+Rafael
+
