@@ -1,90 +1,104 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v8 00/15] ACPI platform MSI support and its example mbigen
-Date: Mon, 6 Feb 2017 14:22:34 +0000
-Message-ID: <20170206142234.GC14139@red-moon>
-References: <1484744105-53140-1-git-send-email-guohanjun@huawei.com>
- <20170203183626.GB17899@red-moon>
- <58957C77.7070206@huawei.com>
+From: Daniel Drake <drake@endlessm.com>
+Subject: Re: [PATCH] acpica: Fix double-free in acpi_ns_repair_CID()
+Date: Mon, 6 Feb 2017 09:06:17 -0600
+Message-ID: <CAD8Lp46dOONGZYkr7izJo+rrRhxCr9H62HRbsUTB_ycLTmDaWg@mail.gmail.com>
+References: <20170203205654.28269-1-jprvita@endlessm.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE36E22@SHSMSX101.ccr.corp.intel.com> <CA+A7VXXNk58unA+k6743VV7=cHTTbW8YHVf_5GAYdv1EPA5dPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58876 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751669AbdBFOUb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Feb 2017 09:20:31 -0500
-Content-Disposition: inline
-In-Reply-To: <58957C77.7070206@huawei.com>
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:34711 "EHLO
+        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752323AbdBFPGT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2017 10:06:19 -0500
+Received: by mail-oi0-f52.google.com with SMTP id s203so48301661oie.1
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Feb 2017 07:06:18 -0800 (PST)
+In-Reply-To: <CA+A7VXXNk58unA+k6743VV7=cHTTbW8YHVf_5GAYdv1EPA5dPw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Agustin Vega-Frias <agustinv@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Matthias Brugger <mbrugger@suse.com>, Wei Xu <xuwei5@hisilicon.com>, Ming Lei <tom.leiming@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@gmail.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux@endlessm.com" <linux@endlessm.com>, Jo?o Paulo Rechi Vita <jprvita@endlessm.com>, "Box, David E" <david.e.box@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-On Sat, Feb 04, 2017 at 03:02:15PM +0800, Hanjun Guo wrote:
-> Hi Lorenzo,
-> 
-> On 2017/2/4 2:36, Lorenzo Pieralisi wrote:
-> > Hanjun, Sinan,
-> >
-> > On Wed, Jan 18, 2017 at 08:54:50PM +0800, Hanjun Guo wrote:
-> >> From: Hanjun Guo <hanjun.guo@linaro.org>
-> >>
-> >> With platform msi support landed in the kernel, and the introduction
-> >> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
-> >> is ready, this patch set add few patches to enable the ACPI platform
-> >> msi support.
-> >>
-> >> For platform device connecting to ITS on arm platform, we have IORT
-> >> table with the named componant node to describe the mappings of paltform
-> >> device and ITS, so we can retrieve the dev id and find its parent
-> >> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
-> > Depending on how things go, I prepared a branch with the first 12
-> > patches (I basically updated some logs and added some cosmetics changes)
-> > for testing (Hanjun please have a look in details since I may have misread
-> > some logs), whether or not I will send a pull request for it we shall see
-> > next week.
-> >
-> > Here:
-> >
-> > git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/platform-msi
-> 
-> Thanks a lot for putting them together, I fetched your git tree and
-> took a detail look, there is one issue in patch "msi: platform: make
-> platform_msi_create_device_domain() ACPI aware" which has two
-> "Cc: Greg KH <gregkh@linuxfoundation.org>" in the commit log
-> (it's in the original patch from me, my bad), others are pretty good
-> to me (to make sure it works I retested those patches and patches
-> in your branch work as before).
-> 
-> BTW, patches in Lorenzo's branch have no conflicts with Agustin's
-> patch set + my mbigen one, so after a pull request to Rafael, could
-> them (Agustin's patch set + my mbigen one) go via one tree such as
-> Marc's one for 4.11?  I know it's a little bit late but those patches
-> are quite self-contained, which Agustin's changes are conditional
-> on the ACPI_GENERIC_GSI config which is only available with
-> ARM64 ACPI and others (interrupt combiner and mbigen) are specific
-> to QC and Hisilicon platforms.
-> 
-> Marc, Lorenzo, could you give some comments that how can we
-> proceed those patches (Agustin's patch set + my mbigen one)?
-> It's really critical for us, thank you very much.
+On Mon, Feb 6, 2017 at 8:46 AM, Jo=C3=A3o Paulo Rechi Vita <jprvita@gmail.c=
+om> wrote:
+> Yes, the real problem is i2c_hid not being probed for the touchpad
+> device on this platform
 
-Ok, given that:
+The lack of probe was because when i2c_acpi_add_device() called
+acpi_bus_get_device() on the handle for the touchpad device (TPL1), it
+was returning the acpi_device for something totally unrelated.
 
-- We have decided that from now onwards ACPI IORT patches should go
-  via the ARM64 tree
-- This series does not yet handle ARM SMMU MSIs (but it has to and I
-  want to see how this will work - waiting for spec updates)
-- It depends on fixes that will get merged via the v4.11 arm64 queue
-- We are at -rc7 and I do not think it is fair at all to ask Will
-  and Catalin to pull this code now given that it comes out of thin
-  air for them
-- Last but not least: it is not bad to take time for the dust to
-  settle given that we merged lots of IORT code last two cycles
+We checked that the original handle-to-device mapping was set up
+correctly before that point, hence this looks like memory corruption,
+and the problem went away as soon as we fixed the double free.
 
-I have decided that the whole series will be considered v4.12
-material, I do not expect it to be a major disruption given that
-we should have a stable code base for it come v4.11-rc1 (inclusive
-of Agustin's key probe deferral series).
+> [    0.317002] ACPI Warning: Obj ffffa00472a445e8, Reference Count is
+> already zero, cannot decrement
+> [    0.317178]  (20160422/utdelete-442)
+>
+>> See this bug for reference:
+>> https://bugs.acpica.org/show_bug.cgi?id=3D1336
+>>
+>
+> Looks like it could be the same problem, indeed. I'm attaching a
+> kernel log with acpi.trace_debug_layer=3D0x10091
+> acpi.trace_debug_level=3D0x107FFF
+> acpi.trace_method_name=3D_SB.PCI0.I2C1.TPL1._CID
+> acpi.trace_state=3Dopcode, which is what I was using to investigate the
+> problem
+
+The debug messages in that log stop when the method execution
+completes, so it may also be useful to share a part of an earlier log
+where you can see the double freeing happen in a bit more detail. For
+each of the 2 objects double-freed below we confirmed that the first
+unreference is the one in acpi_ns_repair_HID and the second
+unreference is the one removed in JP's patch.
+
+nsprepkg-0105 ns_check_package      : \_SB.PCI0.I2C1.TPL1._CID
+Validating return Package of Type 2, Count 2
+utobject-0404 ut_allocate_object_des: ffff940f6ba36480 Size 48
+utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36cf0 Current
+Refs=3D1 [To Be Decremented]
+utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36cf0 Type 02
+Refs 00 [Decremented]
+utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36cf0,
+ptr ffff9f654004e2a8
+utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36cf0 [Str=
+ing]
+utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36cf0 Current
+Refs=3D0 [To Be Decremented]
+ACPI Warning: Obj ffff940f6ba36cf0, Reference Count is already zero,
+cannot decrement
+(20160422/utdelete-442)
+utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36cf0 Type 02
+Refs 00 [Decremented]
+utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36cf0,
+ptr ffff9f654004e2a8
+utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36cf0 [Str=
+ing]
+utobject-0404 ut_allocate_object_des: ffff940f6ba36cf0 Size 48
+utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36c60 Current
+Refs=3D1 [To Be Decremented]
+utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36c60 Type 02
+Refs 00 [Decremented]
+utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36c60,
+ptr ffff9f654004e2b2
+utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36c60 [Str=
+ing]
+utdelete-0750 ut_remove_reference   : Obj ffff940f6ba36c60 Current
+Refs=3D0 [To Be Decremented]
+ACPI Warning: Obj ffff940f6ba36c60, Reference Count is already zero,
+cannot decrement
+(20160422/utdelete-442)
+utdelete-0447 ut_update_ref_count   : Obj ffff940f6ba36c60 Type 02
+Refs 00 [Decremented]
+utdelete-0096 ut_delete_internal_obj: **** String ffff940f6ba36c60,
+ptr ffff9f654004e2b2
+utdelete-0336 ut_delete_internal_obj: Deleting Object ffff940f6ba36c60 [Str=
+ing]
+  nseval-0315 ns_evaluate           : *** Completed evaluation of
+object _CID ***
 
 Thanks,
-Lorenzo
+Daniel
