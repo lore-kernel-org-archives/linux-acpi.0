@@ -1,109 +1,194 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] x86/acpi: keep x86_cpu_to_acpiid mapping valid on cpu hotplug
-Date: Mon, 6 Feb 2017 22:05:57 +0100
-Message-ID: <CAJZ5v0i83hgXVymsdpLTGxrChy0qMpdbQR3Lzqvt3fFMzoaxxw@mail.gmail.com>
-References: <20170206170151.25542-1-vkuznets@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.10
+Date: Mon, 6 Feb 2017 17:41:48 -0800
+Message-ID: <CAPcyv4gskP8FMP8x8stU5Q+P0aDSBu+zDqa3mp0S-RncOT145g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20170206170151.25542-1-vkuznets@redhat.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: the arch/x86 maintainers <x86@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Jones <drjones@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:35061 "EHLO
+        mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751654AbdBGBlt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2017 20:41:49 -0500
+Received: by mail-oi0-f50.google.com with SMTP id j15so57093661oih.2
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Feb 2017 17:41:49 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 
-On Mon, Feb 6, 2017 at 6:01 PM, Vitaly Kuznetsov <vkuznets@redhat.com> wrote:
-> We may or may not have all possible CPUs in MADT on boot but in any case
-> we're overwriting x86_cpu_to_acpiid mapping with U32_MAX when
-> acpi_register_lapic() is called again on the CPU hotplug path:
-> acpi_processor_hotadd_init() -> acpi_map_cpu() -> acpi_register_lapic().
->
-> As we have the required acpi_id information in acpi_processor_hotadd_init()
-> propagate it to acpi_map_cpu() to always keep x86_cpu_to_acpiid mapping
-> valid.
->
-> Reported-by: Andrew Jones <drjones@redhat.com>
-> Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Hi Linus, please pull from:
 
-Is the bug report available and if so, do you have a pointer to it?
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-> ---
->  arch/ia64/kernel/acpi.c       | 3 ++-
->  arch/x86/kernel/acpi/boot.c   | 5 +++--
->  drivers/acpi/acpi_processor.c | 4 ++--
->  include/linux/acpi.h          | 3 ++-
->  4 files changed, 9 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index 9273e03..7508c30 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -887,7 +887,8 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
->  }
->
->  /* wrapper to silence section mismatch warning */
-> -int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
-> +int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
-> +                      int *pcpu)
->  {
->         return _acpi_map_lsapic(handle, physid, pcpu);
->  }
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index 64422f8..04bc5f3 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -723,11 +723,12 @@ int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
->         return 0;
->  }
->
-> -int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
-> +int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
-> +                int *pcpu)
->  {
->         int cpu;
->
-> -       cpu = acpi_register_lapic(physid, U32_MAX, ACPI_MADT_ENABLED);
-> +       cpu = acpi_register_lapic(physid, acpi_id, ACPI_MADT_ENABLED);
->         if (cpu < 0) {
->                 pr_info(PREFIX "Unable to map lapic to logical cpu number\n");
->                 return cpu;
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> index 3de3b6b..4467a80 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -165,7 +165,7 @@ static int acpi_processor_errata(void)
->
->  #ifdef CONFIG_ACPI_HOTPLUG_CPU
->  int __weak acpi_map_cpu(acpi_handle handle,
-> -               phys_cpuid_t physid, int *pcpu)
-> +               phys_cpuid_t physid, u32 acpi_id, int *pcpu)
->  {
->         return -ENODEV;
->  }
-> @@ -203,7 +203,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
->         cpu_maps_update_begin();
->         cpu_hotplug_begin();
->
-> -       ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
-> +       ret = acpi_map_cpu(pr->handle, pr->phys_id, pr->acpi_id, &pr->id);
->         if (ret)
->                 goto out;
->
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 5b36974..6ab47e9 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -291,7 +291,8 @@ bool acpi_processor_validate_proc_id(int proc_id);
->
->  #ifdef CONFIG_ACPI_HOTPLUG_CPU
->  /* Arch dependent functions for cpu hotplug support */
-> -int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
-> +int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
-> +                int *pcpu);
->  int acpi_unmap_cpu(int cpu);
->  int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
->  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
-> --
+...to receive:
 
-Thanks,
-Rafael
+* Fix a crash that can result when SIGINT is sent to a process that is
+awaiting completion of an address range scrub command. We were not
+properly cleaning up the workqueue after wait_event_interruptible().
+
+* Fix a memory hotplug failure condition that results from not
+reserving enough space out of persistent memory for the memmap. By
+default we align to 2M allocations that the memory hotplug code
+assumes, but if the administrator specifies a non-default 4K-alignment
+then we can fail to correctly size the reservation.
+
+* A one line fix to improve the predictability of libnvdimm block
+device names. A common operation is to reconfigure /dev/pmem0 into a
+different mode. For example, a reconfiguration might set a new mode
+that reserves some of the capacity for a struct page memmap array. It
+surprises users if the device name changes to "/dev/pmem0.1" after the
+mode change and then back to /dev/pmem0 after a reboot.
+
+* Add 'const' to some function pointer tables.
+
+None of these are showstoppers for 4.10 and could wait for 4.11 merge
+window, but they are low enough risk for this late in the cycle and
+the fixes have waiting users . They have received a build success
+notification from the 0day robot, pass the latest ndctl unit tests,
+and appeared in next-20170206.
+
+The following changes since commit 7a308bb3016f57e5be11a677d15b821536419d36:
+
+  Linux 4.10-rc5 (2017-01-22 12:54:15 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+for you to fetch changes up to bfb34527a32a1a576d9bfb7026d3ab0369a6cd60:
+
+  libnvdimm, pfn: fix memmap reservation size versus 4K alignment
+(2017-02-04 14:47:31 -0800)
+
+----------------------------------------------------------------
+Bhumika Goyal (1):
+      nvdimm: constify device_type structures
+
+Dan Williams (3):
+      libnvdimm, namespace: do not delete namespace-id 0
+      acpi, nfit: fix acpi_nfit_flush_probe() crash
+      libnvdimm, pfn: fix memmap reservation size versus 4K alignment
+
+ drivers/acpi/nfit/core.c        |  6 +++++-
+ drivers/nvdimm/namespace_devs.c | 17 ++++++++++-------
+ drivers/nvdimm/pfn_devs.c       |  7 ++-----
+ 3 files changed, 17 insertions(+), 13 deletions(-)
+
+commit 970d14e3989160ee9e97c7d75ecbc893fd29dab9
+Author: Bhumika Goyal <bhumirks@gmail.com>
+Date:   Wed Jan 25 00:54:07 2017 +0530
+
+    nvdimm: constify device_type structures
+
+    Declare device_type structure as const as it is only stored in the
+    type field of a device structure. This field is of type const, so add
+    const to declaration of device_type structure.
+
+    File size before:
+      text   data    bss    dec    hex filename
+      19278   3199     16  22493   57dd nvdimm/namespace_devs.o
+
+    File size after:
+      text   data    bss    dec    hex filename
+      19929   3160     16  23105   5a41 nvdimm/namespace_devs.o
+
+    Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit 9d032f4201d39e5cf43a8709a047e481f5723fdc
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Wed Jan 25 00:54:07 2017 +0530
+
+    libnvdimm, namespace: do not delete namespace-id 0
+
+    Given that the naming of pmem devices changes from the pmemX form to the
+    pmemX.Y form when namespace id is greater than 0, arrange for namespaces
+    with id-0 to be exempt from deletion. Otherwise a simple reconfiguration
+    of an existing namespace to a new mode results in a name change of the
+    resulting block device:
+
+        # ndctl list --namespace=namespace1.0
+        {
+          "dev":"namespace1.0",
+          "mode":"raw",
+          "size":2147483648,
+          "uuid":"3dadf3dc-89b9-4b24-b20e-abc8a4707ce3",
+          "blockdev":"pmem1"
+        }
+
+        # ndctl create-namespace --reconfig=namespace1.0 --mode=memory --force
+        {
+          "dev":"namespace1.1",
+          "mode":"memory",
+          "size":2111832064,
+          "uuid":"7b4a6341-7318-4219-a02c-fb57c0bbf613",
+          "blockdev":"pmem1.1"
+        }
+
+    This change does require tooling changes to explicitly look for
+    namespaceX.0 if the seed has already advanced to another namespace.
+
+    Cc: <stable@vger.kernel.org>
+    Fixes: 98a29c39dc68 ("libnvdimm, namespace: allow creation of
+multiple pmem-namespaces per region")
+    Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit e471486c13b82b1338d49c798f78bb62b1ed0a9e
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Thu Feb 2 10:31:00 2017 -0800
+
+    acpi, nfit: fix acpi_nfit_flush_probe() crash
+
+    We queue an on-stack work item to 'nfit_wq' and wait for it to complete
+    as part of a 'flush_probe' request. However, if the user cancels the
+    wait we need to make sure the item is flushed from the queue otherwise
+    we are leaving an out-of-scope stack address on the work list.
+
+     BUG: unable to handle kernel paging request at ffffbcb3c72f7cd0
+     IP: [<ffffffffa9413a7b>] __list_add+0x1b/0xb0
+     [..]
+     RIP: 0010:[<ffffffffa9413a7b>]  [<ffffffffa9413a7b>] __list_add+0x1b/0xb0
+     RSP: 0018:ffffbcb3c7ba7c00  EFLAGS: 00010046
+     [..]
+     Call Trace:
+      [<ffffffffa90bb11a>] insert_work+0x3a/0xc0
+      [<ffffffffa927fdda>] ? seq_open+0x5a/0xa0
+      [<ffffffffa90bb30a>] __queue_work+0x16a/0x460
+      [<ffffffffa90bbb08>] queue_work_on+0x38/0x40
+      [<ffffffffc0cf2685>] acpi_nfit_flush_probe+0x95/0xc0 [nfit]
+      [<ffffffffc0cf25d0>] ? nfit_visible+0x40/0x40 [nfit]
+      [<ffffffffa9571495>] wait_probe_show+0x25/0x60
+      [<ffffffffa9546b30>] dev_attr_show+0x20/0x50
+
+    Fixes: 7ae0fa439faf ("nfit, libnvdimm: async region scrub workqueue")
+    Cc: <stable@vger.kernel.org>
+    Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+commit bfb34527a32a1a576d9bfb7026d3ab0369a6cd60
+Author: Dan Williams <dan.j.williams@intel.com>
+Date:   Sat Feb 4 14:47:31 2017 -0800
+
+    libnvdimm, pfn: fix memmap reservation size versus 4K alignment
+
+    When vmemmap_populate() allocates space for the memmap it does so in 2MB
+    sized chunks. The libnvdimm-pfn driver incorrectly accounts for this
+    when the alignment of the device is set to 4K. When this happens we
+    trigger memory allocation failures in altmap_alloc_block_buf() and
+    trigger warnings of the form:
+
+     WARNING: CPU: 0 PID: 3376 at arch/x86/mm/init_64.c:656
+arch_add_memory+0xe4/0xf0
+     [..]
+     Call Trace:
+      dump_stack+0x86/0xc3
+      __warn+0xcb/0xf0
+      warn_slowpath_null+0x1d/0x20
+      arch_add_memory+0xe4/0xf0
+      devm_memremap_pages+0x29b/0x4e0
+
+    Fixes: 315c562536c4 ("libnvdimm, pfn: add 'align' attribute,
+default to HPAGE_SIZE")
+    Cc: <stable@vger.kernel.org>
+    Signed-off-by: Dan Williams <dan.j.williams@intel.com>
