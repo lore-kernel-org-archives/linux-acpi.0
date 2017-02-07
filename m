@@ -1,104 +1,89 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v2 15/16] device property: Add fwnode_get_next_parent()
-Date: Tue, 7 Feb 2017 11:57:55 -0700
-Message-ID: <9a481aec-92e6-ac01-b825-167bf73dfb11@redhat.com>
-References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
- <1486052546-19257-16-git-send-email-sakari.ailus@linux.intel.com>
-Reply-To: ahs3@redhat.com
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpica: Fix double-free in acpi_ns_repair_CID()
+Date: Tue, 7 Feb 2017 21:07:26 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E564357@ORSMSX110.amr.corp.intel.com>
+References: <20170203205654.28269-1-jprvita@endlessm.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E563AEA@ORSMSX110.amr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE36E22@SHSMSX101.ccr.corp.intel.com>
+ <CA+A7VXXNk58unA+k6743VV7=cHTTbW8YHVf_5GAYdv1EPA5dPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:34001 "EHLO
-        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754502AbdBGS56 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2017 13:57:58 -0500
-Received: by mail-qt0-f178.google.com with SMTP id w20so138724900qtb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Feb 2017 10:57:58 -0800 (PST)
-In-Reply-To: <1486052546-19257-16-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:24128 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752869AbdBGVIr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 Feb 2017 16:08:47 -0500
+In-Reply-To: <CA+A7VXXNk58unA+k6743VV7=cHTTbW8YHVf_5GAYdv1EPA5dPw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org
+To: =?utf-8?B?Sm/Do28gUGF1bG8gUmVjaGkgVml0YQ==?= <jprvita@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Daniel Drake <drake@endlessm.com>, Jo?o Paulo Rechi Vita <jprvita@endlessm.com>, "Box, David E" <david.e.box@intel.com>
 
-On 02/02/2017 09:22 AM, Sakari Ailus wrote:
-> In order to differentiate the functionality between dropping a reference
-> to the node (or not) for the benefit of OF, introduce
-> fwnode_get_next_parent().
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/base/property.c  | 29 +++++++++++++++++++++++++++++
->  include/linux/property.h |  1 +
->  2 files changed, 30 insertions(+)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 28125a5..8e4398f 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -868,6 +868,35 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
->  EXPORT_SYMBOL_GPL(device_add_properties);
->  
->  /**
-> + * fwnode_get_next_parent - Iterate to the node's parent
-> + * @fwnode: Firmware whose parent is retrieved
-> + *
-> + * This is like fwnode_get_parent() except that it drops the refcount
-> + * on the passed node, making it suitable for iterating through a
-> + * node's parents.
-> + *
-> + * Returns a node pointer with refcount incremented, use
-> + * fwnode_handle_node() on it when done.
-> + */
-> +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
-> +{
-> +	struct fwnode_handle *parent = NULL;
-> +
-> +	if (is_of_node(fwnode)) {
-> +		struct device_node *node;
-> +
-> +		node = of_get_next_parent(to_of_node(fwnode));
-> +		if (node)
-> +			parent = &node->fwnode;
-> +	} else if (is_acpi_node(fwnode)) {
-> +		parent = acpi_node_get_parent(fwnode);
-> +	}
-> +
-> +	return parent;
-> +}
-> +EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
-
-I think I agree with Rob's prior comments about making an ops struct for DT
-vs ACPI.  Out of the 16 patches, 2/16, 3/16, 5/16 (multiple times), and this
-patch all end up using the same construct.  Maybe it needs to be a separate
-refactoring effort, but if it's happening this often just in this patch set,
-it seems like it's getting time to clean things up.
-
-> +/**
->   * fwnode_get_parent - Return parent firwmare node
->   * @fwnode: Firmware whose parent is retrieved
->   *
-> diff --git a/include/linux/property.h b/include/linux/property.h
-> index eb7ba73..760df98 100644
-> --- a/include/linux/property.h
-> +++ b/include/linux/property.h
-> @@ -73,6 +73,7 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
->  				 const char *propname, const char *string);
->  
->  struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
-> +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
->  struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
->  						 struct fwnode_handle *child);
->  
-> 
-
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+V2UgYXJlIGxvb2tpbmcgYXQgdGhpcy4gSXQgbWlnaHQgYWxzbyBoZWxwIGlmIHlvdSBjb3VsZCBz
+ZW5kIGEgZnVsbCBhY3BpZHVtcCBmb3IgdGhlIG1hY2hpbmUuIFRoYW5rcy4NCg0KDQo+IC0tLS0t
+T3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEgW21h
+aWx0bzpqcHJ2aXRhQGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5LCBGZWJydWFyeSA2LCAyMDE3
+IDY6NDYgQU0NCj4gVG86IFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiBDYzogTW9v
+cmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFd5c29ja2ksIFJhZmFlbCBKDQo+
+IDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT47IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3Jn
+PjsgTGluIE1pbmcNCj4gPG1pbmcubS5saW5AaW50ZWwuY29tPjsgbGludXgtYWNwaUB2Z2VyLmtl
+cm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmc7DQo+IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5v
+cmc7IERhbmllbCBEcmFrZSA8ZHJha2VAZW5kbGVzc20uY29tPjsNCj4gbGludXhAZW5kbGVzc20u
+Y29tOyBKbz9vIFBhdWxvIFJlY2hpIFZpdGEgPGpwcnZpdGFAZW5kbGVzc20uY29tPjsgQm94LA0K
+PiBEYXZpZCBFIDxkYXZpZC5lLmJveEBpbnRlbC5jb20+OyBTY2htYXVzcywgRXJpaw0KPiA8ZXJp
+ay5zY2htYXVzc0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGFjcGljYTogRml4
+IGRvdWJsZS1mcmVlIGluIGFjcGlfbnNfcmVwYWlyX0NJRCgpDQo+IA0KPiBPbiA1IEZlYnJ1YXJ5
+IDIwMTcgYXQgMjA6NDQsIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4g
+Pj4gRnJvbTogTW9vcmUsIFJvYmVydA0KPiA+PiBTdWJqZWN0OiBSRTogW1BBVENIXSBhY3BpY2E6
+IEZpeCBkb3VibGUtZnJlZSBpbiBhY3BpX25zX3JlcGFpcl9DSUQoKQ0KPiA+Pg0KPiA+PiBIZXJl
+J3MgdGhlIHNlcXVlbmNlIG9mIGV2ZW50cyBhcyBJIHNlZSBpdDoNCj4gPj4NCj4gPj4gUmVwYWly
+X0hJRCBpcyBhIHN0YW5kYWxvbmUgZnVuY3Rpb24gdGhhdCByZW1vdmVzIG9uZSByZWZlcmVuY2Ug
+b24gdGhlDQo+ID4+IGluY29taW5nIG9iamVjdC4gRm9yIHNpbXBsZSBfSElEIG9iamVjdHMsIHRo
+aXMgaW4gZmFjdCBkZWxldGVzIHRoZQ0KPiBvYmplY3QuDQo+ID4+DQo+ID4+IEZvciBfQ0lELCBh
+bGwgZWxlbWVudHMgb2YgdGhlIHBhY2thZ2UgYXJlIGV4YW1pbmVkLiBJZiBhIHJlcGFpciB3YXMN
+Cj4gPj4gbWFkZSBvbiBhIF9ISUQgd2l0aGluIHRoZSBfQ0lEIGZ1bmN0aW9uLCBvbmUgcmVmZXJl
+bmNlIG9uIHRoZQ0KPiA+PiBvcmlnaW5hbCBvYmplY3Qgd2FzIHJlbW92ZWQgYnkgUmVwYWlyX0hJ
+RC4gSG93ZXZlciwgc2luY2UgdGhlIG9iamVjdA0KPiA+PiBpcyBwYXJ0IG9mIGEgcGFja2FnZSwg
+aXQgaGFzIGFuIGV4dHJhIHJlZmVyZW5jZSB0byByZWZsZWN0IHRoaXMgZmFjdC4NCj4gPj4gVGh1
+cywgaW4gdGhlIGNhc2UgaW4gcXVlc3Rpb24sIHRoZSBlbGVtZW50cyBvZiB0aGUgcGFja2FnZSBh
+bGwgaGF2ZQ0KPiA+PiBhdCBsZWFzdCB0d28gcmVmZXJlbmNlcy4gUmVwYWlyX0hJRCByZW1vdmVz
+IG9uZSByZWZlcmVuY2UsIHRodXMgdGhlDQo+IGV4dHJhIFJlbW92ZVJlZmVyZW5jZSBpcyBuZWVk
+ZWQgaW4gUmVwYWlyX0NJRCB0byBicmluZyB0aGUgcmVmZXJlbmNlDQo+IGNvdW50IGRvd24gdG8g
+emVybyBhY3R1YWxseSBkZWxldGUgdGhlIG9iamVjdCAoaW4gdGhlIHR5cGljYWwgY2FzZSB3aGVy
+ZQ0KPiB0aGUgb2JqZWN0IGhhZCB0d28gcmVmZXJlbmNlcykuDQo+ID4+DQo+IA0KPiBUaGlzIGlz
+IG5vdCB3aGF0IGlzIGhhcHBlbmluZyBvbiB0aGlzIG1hY2hpbmUuIEJlbGxvdyB5b3UgY2FuIHNl
+ZSBzb21lDQo+IHByaW50a3MgSSd2ZSBhZGRlZCBpbiBhY3BpX25zX3JlcGFpcl9DSUQoKSwgcmln
+aHQgYmVmb3JlIGFuZCBhZnRlcg0KPiBhY3BpX25zX3JlcGFpcl9ISUQoKSBpcyBjYWxsZWQ6DQo+
+IA0KPiBbICAgIDAuMjQ0OTQyXSBhY3BpX25zX3JlcGFpcl9DSUQ6IGNhbGxpbmcgYWNwaV9uc19y
+ZXBhaXJfSElEIGZvcg0KPiBlbGVtZW50IGZmZmY5YTY3YjNhNDRmMzAsIHJlZmNvdW50PTEgW1xf
+U0IuUENJMC5JMkMxLlRQTDEuX0NJRF0NCj4gWyAgICAwLjI0NTA3Ml0gYWNwaV9uc19yZXBhaXJf
+Q0lEOiByZXR1cm5lZCBmcm9tIGFjcGlfbnNfcmVwYWlyX0hJRA0KPiBmb3IgZWxlbWVudCBmZmZm
+OWE2N2IzYTQ0ZjMwLCByZWZjb3VudD0wIFtcX1NCLlBDSTAuSTJDMS5UUEwxLl9DSURdDQo+IFsg
+ICAgMC4yNDUyMDJdIGFjcGlfbnNfcmVwYWlyX0NJRDogZWxlbWVudCB3YXMgcmVwbGFjZWQgYnkg
+ZWxlbWVudF9wdHINCj4gZmZmZjlhNjdiM2E0NDgyOCwgcmVmY291bnQ9MSBbXF9TQi5QQ0kwLkky
+QzEuVFBMMS5fQ0lEXQ0KPiANCj4gSGVyZSB3ZSB3b3VsZCBjYWxsDQo+IGFjcGlfdXRfcmVtb3Zl
+X3JlZmVyZW5jZShvcmlnaW5hbF9lbGVtZW50PT1mZmZmOWE2N2IzYTQ0ZjMwKSwgd2hpY2gNCj4g
+YWxyZWFkeSBoYXMgcmVmY291bnQ9PTAuIE1heWJlIHRoZXJlIGlzIGEgcmVmY291bnQgaW5jcmVt
+ZW50IG1pc3NpbmcNCj4gZnJvbSBzb21ld2hlcmUgZWxzZT8NCj4gDQo+ID4gSGksDQo+ID4NCj4g
+PiBTbyBpZiBhIHJlYWwgcHJvYmxlbSByZWxhdGVkIHRvIHBhY2thZ2UgcmVmZXJlbmNlIGNvdW50
+aW5nIGlzDQo+IHRyaWdnZXJlZCwgdGhlIHByb2JsZW0gc2hvdWxkIGJlIGZpeGVkIGVsc2V3aGVy
+ZSBJTU8uDQo+IA0KPiBZZXMsIHRoZSByZWFsIHByb2JsZW0gaXMgaTJjX2hpZCBub3QgYmVpbmcg
+cHJvYmVkIGZvciB0aGUgdG91Y2hwYWQNCj4gZGV2aWNlIG9uIHRoaXMgcGxhdGZvcm0gKHNvcnJ5
+LCBzaG91bGQgaGF2ZSBhZGRlZCB0aGlzIGluZm9ybWF0aW9uIHRvDQo+IHRoZSBjb21taXQgbWVz
+c2FnZSBhcyB3ZWxsKS4gV2hhdCBicm91Z2h0IG1lIHRvIHRoaXMgdW5yZWYgd2FzIGZvbGxvd2lu
+Zw0KPiBtZXNzYWdlcyBvbiB0aGUga2VybmVsIGxvZzoNCj4gDQo+IFsgICAgMC4zMTcwMDJdIEFD
+UEkgV2FybmluZzogT2JqIGZmZmZhMDA0NzJhNDQ1ZTgsIFJlZmVyZW5jZSBDb3VudCBpcw0KPiBh
+bHJlYWR5IHplcm8sIGNhbm5vdCBkZWNyZW1lbnQNCj4gWyAgICAwLjMxNzE3OF0gICgyMDE2MDQy
+Mi91dGRlbGV0ZS00NDIpDQo+IA0KPiA+IFNlZSB0aGlzIGJ1ZyBmb3IgcmVmZXJlbmNlOg0KPiA+
+IGh0dHBzOi8vYnVncy5hY3BpY2Eub3JnL3Nob3dfYnVnLmNnaT9pZD0xMzM2DQo+ID4NCj4gDQo+
+IExvb2tzIGxpa2UgaXQgY291bGQgYmUgdGhlIHNhbWUgcHJvYmxlbSwgaW5kZWVkLiBJJ20gYXR0
+YWNoaW5nIGEga2VybmVsDQo+IGxvZyB3aXRoIGFjcGkudHJhY2VfZGVidWdfbGF5ZXI9MHgxMDA5
+MSBhY3BpLnRyYWNlX2RlYnVnX2xldmVsPTB4MTA3RkZGDQo+IGFjcGkudHJhY2VfbWV0aG9kX25h
+bWU9X1NCLlBDSTAuSTJDMS5UUEwxLl9DSUQNCj4gYWNwaS50cmFjZV9zdGF0ZT1vcGNvZGUsIHdo
+aWNoIGlzIHdoYXQgSSB3YXMgdXNpbmcgdG8gaW52ZXN0aWdhdGUgdGhlDQo+IHByb2JsZW0sIGFu
+ZCB0aGUgbWFjaGluZSdzIERTRFQuIFBsZWFzZSBsZXQgbWUga25vdyBpZiB0aGVyZSBpcyBhbnkN
+Cj4gb3RoZXIgaW5mb3JtYXRpb24gSSBjYW4gcHJvdmlkZSB0byBoZWxwIGNsYXJpZnkgdGhpcyBp
+c3N1ZS4NCj4gDQo+IFRoYW5rcywNCj4gDQo+IC0tDQo+IEpvw6NvIFBhdWxvIFJlY2hpIFZpdGEN
+Cj4gaHR0cDovL2Fib3V0Lm1lL2pwcnZpdGENCg==
