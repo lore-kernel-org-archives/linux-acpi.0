@@ -1,112 +1,104 @@
-From: Juri Lelli <juri.lelli@arm.com>
-Subject: [ANNOUNCE][CFP] Power Management and Scheduling in the Linux Kernel
- (OSPM-summit)
-Date: Tue, 7 Feb 2017 14:51:48 +0000
-Message-ID: <20170207145148.GA18354@e106622-lin>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 15/16] device property: Add fwnode_get_next_parent()
+Date: Tue, 7 Feb 2017 11:57:55 -0700
+Message-ID: <9a481aec-92e6-ac01-b825-167bf73dfb11@redhat.com>
+References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1486052546-19257-16-git-send-email-sakari.ailus@linux.intel.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, juri.lelli@arm.com, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f178.google.com ([209.85.216.178]:34001 "EHLO
+        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754502AbdBGS56 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2017 13:57:58 -0500
+Received: by mail-qt0-f178.google.com with SMTP id w20so138724900qtb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Feb 2017 10:57:58 -0800 (PST)
+In-Reply-To: <1486052546-19257-16-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org
 
-Power Management and Scheduling in the Linux Kernel (OSPM-summit)
-April 3-4, 2017
-Scuola Superiore Sant'Anna (SSSA)
-Pisa, Italy
+On 02/02/2017 09:22 AM, Sakari Ailus wrote:
+> In order to differentiate the functionality between dropping a reference
+> to the node (or not) for the benefit of OF, introduce
+> fwnode_get_next_parent().
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/base/property.c  | 29 +++++++++++++++++++++++++++++
+>  include/linux/property.h |  1 +
+>  2 files changed, 30 insertions(+)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 28125a5..8e4398f 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -868,6 +868,35 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
+>  EXPORT_SYMBOL_GPL(device_add_properties);
+>  
+>  /**
+> + * fwnode_get_next_parent - Iterate to the node's parent
+> + * @fwnode: Firmware whose parent is retrieved
+> + *
+> + * This is like fwnode_get_parent() except that it drops the refcount
+> + * on the passed node, making it suitable for iterating through a
+> + * node's parents.
+> + *
+> + * Returns a node pointer with refcount incremented, use
+> + * fwnode_handle_node() on it when done.
+> + */
+> +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+> +{
+> +	struct fwnode_handle *parent = NULL;
+> +
+> +	if (is_of_node(fwnode)) {
+> +		struct device_node *node;
+> +
+> +		node = of_get_next_parent(to_of_node(fwnode));
+> +		if (node)
+> +			parent = &node->fwnode;
+> +	} else if (is_acpi_node(fwnode)) {
+> +		parent = acpi_node_get_parent(fwnode);
+> +	}
+> +
+> +	return parent;
+> +}
+> +EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
 
-http://retis.sssup.it/ospm-summit/
----
+I think I agree with Rob's prior comments about making an ops struct for DT
+vs ACPI.  Out of the 16 patches, 2/16, 3/16, 5/16 (multiple times), and this
+patch all end up using the same construct.  Maybe it needs to be a separate
+refactoring effort, but if it's happening this often just in this patch set,
+it seems like it's getting time to clean things up.
 
-.:: FOCUS
+> +/**
+>   * fwnode_get_parent - Return parent firwmare node
+>   * @fwnode: Firmware whose parent is retrieved
+>   *
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index eb7ba73..760df98 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -73,6 +73,7 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+>  				 const char *propname, const char *string);
+>  
+>  struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
+> +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
+>  						 struct fwnode_handle *child);
+>  
+> 
 
-Power management and scheduling techniques to reduce energy consumption while
-meeting performance and latency requirements are receiving considerable
-attention from the Linux Kernel development community. 
 
-The Power Management and Scheduling in the Linux Kernel (OSPM-summit) summit
-aims at fostering further interest and discussion to happen.
-
-.:: FORMAT
-
-The summit is organized to cover two days of discussions and talks.
-
-First day is mainly focused on discussion and hacking sessions about
-topics/patches that are already under review in the Linux kernel mailing lists
-and to debate and plan development tasks for more forward looking work items
-centred around power management in the Linux kernel. The list of topics
-includes (but it is not limited to):
-
-* Energy Aware Scheduling: next steps and energy model expression;
-* SCHED_DEADLINE reclaiming of unused bandwidth, coupling with schedutil
-  cpufreq governor and group scheduling support;
-* fix the load metric exposed to cpuidle;
-* IRQ prediction;
-* ACPI power management: kernel/firmware bindings and development model;
-
-Second day instead welcomes presentations from both end users and developers on
-topics about Power management and scheduling in Linux covering, but not limited
-to:
-
-* Power management techniques
-* Real-time and non real-time scheduling techniques
-* Energy awareness
-* Mobile/Server power management real-world use cases (successes and
-  failures)
-* Power management and scheduling tooling (tracing, configuration,
-  integration testing, etc.)
-
-Presentations can cover recently developed technologies, ongoing work and new
-ideas. Please understand that this workshop is not intended for presenting
-sales and marketing pitches.
-
-.:: ATTENDING
-
-Attending the OSPM-summit is free of charge, but registration to the event is
-mandatory. The event can allow a maximum of 50 people (so, be sure to register
-early!). To register send an email to ospm-registration@retis.sssup.it. While
-it is not strictly required to submit a topic/presentation, registrations with
-a topic/presentation proposal will take precedence.
-
-.:: VENUE
-
-The workshop will take place at ReTiS Lab*, Scuola Superiore Sant'Anna, Pisa,
-Italy. Pisa is a small town, walking distance from the city center to the venue
-is 20 minutes, walking distance from the airport to the city center is 30
-minutes. More details are available from the summit web page:
-http://retis.sssup.it/ospm-summit/
-
-* https://goo.gl/maps/2pPXG2v7Lfp
-
-.:: SUBMIT A TOPIC/PRESENTATION
-
-To submit a topic/presentation send an email to
-ospm-registration@retis.sssup.it specifying:
-
- subject
-  - [TOPIC] or [PRESENTATION]
-  - short title
-
- body
-  - first name, family name
-  - abstract/topic of interest
-  - affiliation (if any)
-  - short biography
-  - expected duration (only for topics, presentations get 30min slots)
-
-Deadline for submitting topics/presentations is 26th of February 2017.
-Notifications for accepted topics/presentations will be sent out on 5th of
-March 2017.
-
-.:: ORGANIZERS (in alphabetical order)
-
-Luca Abeni (SSSA)
-Patrick Bellasi (ARM)
-Tommaso Cucinotta (SSSA)
-Dietmar Eggemann (ARM)
-Sudeep Holla (ARM)
-Juri Lelli (ARM)
-Lorenzo Pieralisi (ARM)
-Morten Rasmussen (ARM)
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
