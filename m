@@ -1,60 +1,112 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v5 4/4] i2c: allow specify device properties in
- i2c_board_info
-Date: Tue, 7 Feb 2017 14:25:06 +0100
-Message-ID: <20170207132506.jdpcyvlqgonkaitb@ninjato>
-References: <20170203014128.317-1-dmitry.torokhov@gmail.com>
- <20170203014128.317-5-dmitry.torokhov@gmail.com>
+From: Juri Lelli <juri.lelli@arm.com>
+Subject: [ANNOUNCE][CFP] Power Management and Scheduling in the Linux Kernel
+ (OSPM-summit)
+Date: Tue, 7 Feb 2017 14:51:48 +0000
+Message-ID: <20170207145148.GA18354@e106622-lin>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3vnrjln5x4tnacdi"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:40738 "EHLO pokefinder.org"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753378AbdBGNZL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Feb 2017 08:25:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20170203014128.317-5-dmitry.torokhov@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
-
-
---3vnrjln5x4tnacdi
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, juri.lelli@arm.com, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 02, 2017 at 05:41:28PM -0800, Dmitry Torokhov wrote:
-> With many drivers converting to using generic device properties, it is
-> useful to provide array of device properties when instantiating new i2c
-> client via i2c_board_info and have them automatically added to the device
-> in question.
->=20
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Power Management and Scheduling in the Linux Kernel (OSPM-summit)
+April 3-4, 2017
+Scuola Superiore Sant'Anna (SSSA)
+Pisa, Italy
 
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+http://retis.sssup.it/ospm-summit/
+---
 
+.:: FOCUS
 
---3vnrjln5x4tnacdi
-Content-Type: application/pgp-signature; name="signature.asc"
+Power management and scheduling techniques to reduce energy consumption while
+meeting performance and latency requirements are receiving considerable
+attention from the Linux Kernel development community. 
 
------BEGIN PGP SIGNATURE-----
+The Power Management and Scheduling in the Linux Kernel (OSPM-summit) summit
+aims at fostering further interest and discussion to happen.
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAliZyqwACgkQFA3kzBSg
-Kba0SA/+LkB0tknAs51DSZKdkdsg6TCLbyED4uujvSESDQIIDbWo6vLgUzUFvaYZ
-rV3+vX11wkgw70QVZfyEDMmKZt7lVzIqD2KWHRDGWuj4UBSSaxPbsCDqBpQZLdk5
-TuTByKTkvJ1hUpVWXDuAsfFVo513K4dNpgECVEIgbla2pseWXUWVFZb6Immlbsmy
-6IfWVJEMMsux25ao8RbGMKYEnskvpeu/YyKmM29esmV2kFmng62kq3jIrRY+GG43
-3Wds2AIs2NY7qOY1U6ydi7m4WeILkoqqZjm80VWkdo4K6GZNzZzZuC1MUjO4ezWx
-/7GgsbvnGyJyClfchKSqwjLXHA4RvURy1vYC4o4K1n0qRaOJ8tNdDEtUudVwm0QP
-lx2B6KfGUg0p62rGaUt1OJuazLFere9QAEr6qAbk/NtsD/7KUx2PmmyGfgmGUE+g
-UYIunLh7eGV0slVhKtuFjHXFqgnaW1BFxDy38I/e/FXL3J3VcyTwPZ4QdFLvHjYy
-0gIj0P33c72uy5MAZOFhYBsSTjuZPlDEx8Rgfd59UZ9KPiHBSreQL6hin4jGPgqD
-JV7fFUEJ7MScEvnG8qCPY4tB8/yVrbbnVrguZWtw+ah+48KAqm7ZZZzgHkOeJ4t5
-U2sk20B/dkd1VphbKsRHjE9xLpv8T9t+i3skrwgkU1mz4uEL/6k=
-=ahbf
------END PGP SIGNATURE-----
+.:: FORMAT
 
---3vnrjln5x4tnacdi--
+The summit is organized to cover two days of discussions and talks.
+
+First day is mainly focused on discussion and hacking sessions about
+topics/patches that are already under review in the Linux kernel mailing lists
+and to debate and plan development tasks for more forward looking work items
+centred around power management in the Linux kernel. The list of topics
+includes (but it is not limited to):
+
+* Energy Aware Scheduling: next steps and energy model expression;
+* SCHED_DEADLINE reclaiming of unused bandwidth, coupling with schedutil
+  cpufreq governor and group scheduling support;
+* fix the load metric exposed to cpuidle;
+* IRQ prediction;
+* ACPI power management: kernel/firmware bindings and development model;
+
+Second day instead welcomes presentations from both end users and developers on
+topics about Power management and scheduling in Linux covering, but not limited
+to:
+
+* Power management techniques
+* Real-time and non real-time scheduling techniques
+* Energy awareness
+* Mobile/Server power management real-world use cases (successes and
+  failures)
+* Power management and scheduling tooling (tracing, configuration,
+  integration testing, etc.)
+
+Presentations can cover recently developed technologies, ongoing work and new
+ideas. Please understand that this workshop is not intended for presenting
+sales and marketing pitches.
+
+.:: ATTENDING
+
+Attending the OSPM-summit is free of charge, but registration to the event is
+mandatory. The event can allow a maximum of 50 people (so, be sure to register
+early!). To register send an email to ospm-registration@retis.sssup.it. While
+it is not strictly required to submit a topic/presentation, registrations with
+a topic/presentation proposal will take precedence.
+
+.:: VENUE
+
+The workshop will take place at ReTiS Lab*, Scuola Superiore Sant'Anna, Pisa,
+Italy. Pisa is a small town, walking distance from the city center to the venue
+is 20 minutes, walking distance from the airport to the city center is 30
+minutes. More details are available from the summit web page:
+http://retis.sssup.it/ospm-summit/
+
+* https://goo.gl/maps/2pPXG2v7Lfp
+
+.:: SUBMIT A TOPIC/PRESENTATION
+
+To submit a topic/presentation send an email to
+ospm-registration@retis.sssup.it specifying:
+
+ subject
+  - [TOPIC] or [PRESENTATION]
+  - short title
+
+ body
+  - first name, family name
+  - abstract/topic of interest
+  - affiliation (if any)
+  - short biography
+  - expected duration (only for topics, presentations get 30min slots)
+
+Deadline for submitting topics/presentations is 26th of February 2017.
+Notifications for accepted topics/presentations will be sent out on 5th of
+March 2017.
+
+.:: ORGANIZERS (in alphabetical order)
+
+Luca Abeni (SSSA)
+Patrick Bellasi (ARM)
+Tommaso Cucinotta (SSSA)
+Dietmar Eggemann (ARM)
+Sudeep Holla (ARM)
+Juri Lelli (ARM)
+Lorenzo Pieralisi (ARM)
+Morten Rasmussen (ARM)
