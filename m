@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/4] ACPICA: Tools: Update common signon, remove compilation bit width
-Date: Wed,  8 Feb 2017 11:00:15 +0800
-Message-ID: <945c17a09814625469bcee054190af6577713daa.1486522441.git.lv.zheng@intel.com>
+Subject: [PATCH 4/4] ACPICA: Update version to 20170119
+Date: Wed,  8 Feb 2017 11:00:22 +0800
+Message-ID: <cd4074255878a95f120a5467c07b4b370604fa11.1486522441.git.lv.zheng@intel.com>
 References: <cover.1486522441.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1486522441.git.lv.zheng@intel.com>
@@ -12,52 +12,29 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 43e04e75a9849072a1557b674004d8093bddb9ef
+ACPICA commit 711a8c19d3c646fdc069c38912d9037c7fa5e718
 
-Remove the bit width of the compiler that generated the tool
-from the tool signon. This was confusing and unnecessary.
+Version 20170119.
 
-Changed the iASL signon to add "disassembler" to the name.
-
-Link: https://github.com/acpica/acpica/commit/43e04e75
+Link: https://github.com/acpica/acpica/commit/711a8c19
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acapps.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
-index c32bbe4..b65f273 100644
---- a/drivers/acpi/acpica/acapps.h
-+++ b/drivers/acpi/acpica/acapps.h
-@@ -54,23 +54,23 @@
- #define ACPICA_COPYRIGHT            "Copyright (c) 2000 - 2017 Intel Corporation"
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index bb23cf7..3795386 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
- #if ACPI_MACHINE_WIDTH == 64
--#define ACPI_WIDTH          "-64"
-+#define ACPI_WIDTH          " (64-bit version)"
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
- #elif ACPI_MACHINE_WIDTH == 32
--#define ACPI_WIDTH          "-32"
-+#define ACPI_WIDTH          " (32-bit version)"
+-#define ACPI_CA_VERSION                 0x20161222
++#define ACPI_CA_VERSION                 0x20170119
  
- #else
- #error unknown ACPI_MACHINE_WIDTH
--#define ACPI_WIDTH          "-??"
-+#define ACPI_WIDTH          " (unknown bit width, not 32 or 64)"
- 
- #endif
- 
- /* Macros for signons and file headers */
- 
- #define ACPI_COMMON_SIGNON(utility_name) \
--	"\n%s\n%s version %8.8X%s\n%s\n\n", \
-+	"\n%s\n%s version %8.8X\n%s\n\n", \
- 	ACPICA_NAME, \
--	utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, \
-+	utility_name, ((u32) ACPI_CA_VERSION), \
- 	ACPICA_COPYRIGHT
- 
- #define ACPI_COMMON_HEADER(utility_name, prefix) \
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 2.7.4
