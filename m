@@ -1,147 +1,83 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/4] ACPICA: Linuxize: Restore and fix intel compiler build
-Date: Wed,  8 Feb 2017 11:00:01 +0800
-Message-ID: <66c136ec5ccd718abe72f693b7d937b0f7912c64.1486522441.git.lv.zheng@intel.com>
-References: <cover.1486522441.git.lv.zheng@intel.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <cover.1486522441.git.lv.zheng@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, #@vger.kernel.org, 4.9+@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH v2 15/16] device property: Add fwnode_get_next_parent()
+Date: Wed, 08 Feb 2017 12:50:25 +0100
+Message-ID: <6293579.fEEljmGD4Z@aspire.rjw.lan>
+References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com> <1486052546-19257-16-git-send-email-sakari.ailus@linux.intel.com> <9a481aec-92e6-ac01-b825-167bf73dfb11@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9a481aec-92e6-ac01-b825-167bf73dfb11-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit b59347d0b8b676cb555fe8da5cad08fcd4eeb0d3
+On Tuesday, February 07, 2017 11:57:55 AM Al Stone wrote:
+> On 02/02/2017 09:22 AM, Sakari Ailus wrote:
+> > In order to differentiate the functionality between dropping a reference
+> > to the node (or not) for the benefit of OF, introduce
+> > fwnode_get_next_parent().
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > ---
+> >  drivers/base/property.c  | 29 +++++++++++++++++++++++++++++
+> >  include/linux/property.h |  1 +
+> >  2 files changed, 30 insertions(+)
+> > 
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > index 28125a5..8e4398f 100644
+> > --- a/drivers/base/property.c
+> > +++ b/drivers/base/property.c
+> > @@ -868,6 +868,35 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
+> >  EXPORT_SYMBOL_GPL(device_add_properties);
+> >  
+> >  /**
+> > + * fwnode_get_next_parent - Iterate to the node's parent
+> > + * @fwnode: Firmware whose parent is retrieved
+> > + *
+> > + * This is like fwnode_get_parent() except that it drops the refcount
+> > + * on the passed node, making it suitable for iterating through a
+> > + * node's parents.
+> > + *
+> > + * Returns a node pointer with refcount incremented, use
+> > + * fwnode_handle_node() on it when done.
+> > + */
+> > +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
+> > +{
+> > +	struct fwnode_handle *parent = NULL;
+> > +
+> > +	if (is_of_node(fwnode)) {
+> > +		struct device_node *node;
+> > +
+> > +		node = of_get_next_parent(to_of_node(fwnode));
+> > +		if (node)
+> > +			parent = &node->fwnode;
+> > +	} else if (is_acpi_node(fwnode)) {
+> > +		parent = acpi_node_get_parent(fwnode);
+> > +	}
+> > +
+> > +	return parent;
+> > +}
+> > +EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+> 
+> I think I agree with Rob's prior comments about making an ops struct for DT
+> vs ACPI.  Out of the 16 patches, 2/16, 3/16, 5/16 (multiple times), and this
+> patch all end up using the same construct.  Maybe it needs to be a separate
+> refactoring effort, but if it's happening this often just in this patch set,
+> it seems like it's getting time to clean things up.
 
-The following commit cleans up compiler specific inclusions:
-  Commit: 9fa1cebdbfff3db8953cebca8ee327d75edefc40
-  Subject: ACPICA: OSL: Cleanup the inclusion order of the
-           compiler-specific headers
-But breaks one thing due to the following old issue:
- Buidling Linux kernel with Intel compiler originally depends on acgcc.h
- not acintel.h.
-So after making Intel compiler build working in ACPICA upstream by
-correctly using acintel.h, it becomes unable to build Linux kernel using
-Intel compiler as there is no acintel.h in the kernel source tree.
+As long as there are two cases only (ACPI vs DT), an ops struct wouldn't
+really make things simpler and it would make the code more difficult to
+follow.
 
-This patch releases acintel.h to Linux kernel and fixes its inclusion in
-acenv.h.
+But we do have a third case (static or built-in properties) and it doesn't
+seem to be covered at all.
 
-Fixes: 9fa1cebdbfff ("ACPICA: OSL: Cleanup the inclusion order of the compiler-specific headers")
-Cc: stable@vger.kernel.org # 4.9+
-Link: https://github.com/acpica/acpica/commit/b59347d0
-Tested-by: Stepan M Mishura <stepan.m.mishura@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/platform/acenv.h   |  2 +-
- include/acpi/platform/acintel.h | 87 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 88 insertions(+), 1 deletion(-)
- create mode 100644 include/acpi/platform/acintel.h
+Thanks,
+Rafael
 
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index 926efe9..6fa9c52 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -178,7 +178,7 @@
- #include "acmsvc.h"
- 
- #elif defined(__INTEL_COMPILER)
--#include "acintel.h"
-+#include <acpi/platform/acintel.h>
- 
- #endif
- 
-diff --git a/include/acpi/platform/acintel.h b/include/acpi/platform/acintel.h
-new file mode 100644
-index 0000000..17bd3b7
---- /dev/null
-+++ b/include/acpi/platform/acintel.h
-@@ -0,0 +1,87 @@
-+/******************************************************************************
-+ *
-+ * Name: acintel.h - VC specific defines, etc.
-+ *
-+ *****************************************************************************/
-+
-+/*
-+ * Copyright (C) 2000 - 2017, Intel Corp.
-+ * All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions, and the following disclaimer,
-+ *    without modification.
-+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
-+ *    substantially similar to the "NO WARRANTY" disclaimer below
-+ *    ("Disclaimer") and any redistribution must be conditioned upon
-+ *    including a substantially similar Disclaimer requirement for further
-+ *    binary redistribution.
-+ * 3. Neither the names of the above-listed copyright holders nor the names
-+ *    of any contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * NO WARRANTY
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGES.
-+ */
-+
-+#ifndef __ACINTEL_H__
-+#define __ACINTEL_H__
-+
-+/*
-+ * Use compiler specific <stdarg.h> is a good practice for even when
-+ * -nostdinc is specified (i.e., ACPI_USE_STANDARD_HEADERS undefined.
-+ */
-+#include <stdarg.h>
-+
-+/* Configuration specific to Intel 64-bit C compiler */
-+
-+#define COMPILER_DEPENDENT_INT64    __int64
-+#define COMPILER_DEPENDENT_UINT64   unsigned __int64
-+#define ACPI_INLINE                 __inline
-+
-+/*
-+ * Calling conventions:
-+ *
-+ * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
-+ * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
-+ * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
-+ * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
-+ */
-+#define ACPI_SYSTEM_XFACE
-+#define ACPI_EXTERNAL_XFACE
-+#define ACPI_INTERNAL_XFACE
-+#define ACPI_INTERNAL_VAR_XFACE
-+
-+/* remark 981 - operands evaluated in no particular order */
-+#pragma warning(disable:981)
-+
-+/* warn C4100: unreferenced formal parameter */
-+#pragma warning(disable:4100)
-+
-+/* warn C4127: conditional expression is constant */
-+#pragma warning(disable:4127)
-+
-+/* warn C4706: assignment within conditional expression */
-+#pragma warning(disable:4706)
-+
-+/* warn C4214: bit field types other than int */
-+#pragma warning(disable:4214)
-+
-+#endif				/* __ACINTEL_H__ */
--- 
-2.7.4
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
