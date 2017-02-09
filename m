@@ -1,64 +1,97 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: Cherryview wake up events
-Date: Thu, 9 Feb 2017 11:38:18 +0200
-Message-ID: <20170209093818.GX19313@lahna.fi.intel.com>
-References: <20170202111222.aoiwinw37jrquhbh@sig21.net>
- <20170202113508.GM2053@lahna.fi.intel.com>
- <20170202121639.GO2053@lahna.fi.intel.com>
- <20170202135257.q2djuvnhlsu2qv2v@sig21.net>
- <20170202142618.GX2053@lahna.fi.intel.com>
- <20170202143145.xnjnicrxf5uapuwl@sig21.net>
- <20170202150212.GA2053@lahna.fi.intel.com>
- <20170202154243.wxrdcy6yqohcwvw3@sig21.net>
- <20170202155826.GF2053@lahna.fi.intel.com>
- <20170209092426.6jkcv2sxwwifygwk@sig21.net>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH V8 06/10] acpi: apei: panic OS with fatal error status
+ block
+Date: Thu, 09 Feb 2017 10:48:42 +0000
+Message-ID: <589C490A.9080109@arm.com>
+References: <1485969413-23577-1-git-send-email-tbaicar@codeaurora.org>
+ <1485969413-23577-7-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:8325 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752237AbdBIJnd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Feb 2017 04:43:33 -0500
-Content-Disposition: inline
-In-Reply-To: <20170209092426.6jkcv2sxwwifygwk@sig21.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1485969413-23577-7-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>, zjzhang@codeaurora.org
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Cohen <david.a.cohen@linux.intel.com>, ramakrishna.pallala@intel.com, erik.veijola@intel.com
 
-On Thu, Feb 09, 2017 at 10:24:26AM +0100, Johannes Stezenbach wrote:
-> On Thu, Feb 02, 2017 at 05:58:26PM +0200, Mika Westerberg wrote:
-> > On Thu, Feb 02, 2017 at 04:42:43PM +0100, Johannes Stezenbach wrote:
-> > > On Thu, Feb 02, 2017 at 05:02:12PM +0200, Mika Westerberg wrote:
-> > > > Is the model Asus E200HA? Something like this (sorry the information is
-> > > > in Finnish but the machine should look the same):
-> > > > 
-> > > > https://www.karkkainen.com/verkkokauppa/asus-e200ha-fd0005ts-11-6--hd-kannettava-tietokone
-> > > 
-> > > Looks right, mine is E200HA-FD0004TS but I think that just means dark blue color.
-> > 
-> > OK, we have one other Cherrytrail machine here which may have the same
-> > PMIC. We'll check that first and if it does not have the same, I'll
-> > order the above machine.
+Hi Jonathan, Tyler,
+
+On 01/02/17 17:16, Tyler Baicar wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 > 
-> Probably it's too early to ask, but did you go for the E200HA
-> or what device are you going to use?  And did you start poking
-> at it, or what timeframe can we expect some patches to test?
+> Even if an error status block's severity is fatal, the kernel does not
+> honor the severity level and panic.
+> 
+> With the firmware first model, the platform could inform the OS about a
+> fatal hardware error through the non-NMI GHES notification type. The OS
+> should panic when a hardware error record is received with this
+> severity.
+> 
+> Call panic() after CPER data in error status block is printed if
+> severity is fatal, before each error section is handled.
 
-I ordered E200HA from the above link. It should arrive soon so I have
-not yet started working on it. My colleaque (Erik Veijola, CC'd) is
-actually doing the real work - I'll help him when there is need.
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 8756172..86c1f15 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -687,6 +689,13 @@ static int ghes_ack_error(struct acpi_hest_generic_v2 *generic_v2)
+>  	return rc;
+>  }
+>  
+> +static void __ghes_call_panic(void)
+> +{
+> +	if (panic_timeout == 0)
+> +		panic_timeout = ghes_panic_timeout;
+> +	panic("Fatal hardware error!");
+> +}
+> +
 
-About the time frame, once the machine arrives we'll start working and
-try to get the patches ready as soon as possible (but remember we have
-other things to do as well).
+__ghes_panic() also has:
+>	__ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
 
-Let's use the bugzilla entry to track progress.
+Which prints this estatus regardless of rate limiting and cache-ing.
 
-> BTW, just to clarify about the test patches I added in bugzilla:
-> https://bugzilla.kernel.org/show_bug.cgi?id=193891
-> You can use them but I also don't mind if they go to the
-> garbage can, they were just quickly cobbled together
-> for testing.
+[ ... ]
 
-OK, thanks.
+> @@ -698,6 +707,10 @@ static int ghes_proc(struct ghes *ghes)
+>  		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+
+ghes_print_estatus() uses some custom rate limiting '2 messages every 5
+seconds', GHES_SEV_PANIC shares the same limit as GHES_SEV_RECOVERABLE.
+
+I think its possible to get 2 recoverable messages, then a panic in a 5 second
+window. The rate limit will kick in to stop the panic estatus block being
+printed, but we still go on to call panic() without the real reason being printed...
+
+(the caching thing only seems to consider identical messages, given we would
+never see two panic messages, I don't think that will cause any problems.)
+
+>  			ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>  	}
+> +	if (ghes_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC) {
+> +		__ghes_call_panic();
+> +	}
+> +
+
+I think this ghes_severity() then panic() should go above the:
+>	if (!ghes_estatus_cached(ghes->estatus)) {
+and we should call __ghes_print_estatus() here too, to make sure the message
+definitely got out!
+
+
+With that,
+Reviewed-by: James Morse <james.morse@arm.com>
+
+
+Thanks,
+
+James
