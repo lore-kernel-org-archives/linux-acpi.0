@@ -1,57 +1,53 @@
-From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] acpi, nfit: skip ARS on machine-check-recovery capable
- platforms
-Date: Thu, 9 Feb 2017 17:20:56 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F3A2B11EA@ORSMSX114.amr.corp.intel.com>
-References: <148651103020.2605.2544850985469410207.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x4937fopvla.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4hM2pz-sAcuXJTidfTMwA9sRVzCgwJjiw8ndtco8jmP=w@mail.gmail.com>
+From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Subject: Re: [PATCH v14 0/6] Enable PMUs in ACPI systems
+Date: Fri, 10 Feb 2017 11:36:36 +0530
+Message-ID: <CAFpQJXVjMuEKE-LqN57v8Txzj6A=Hccj07XWbBaR_dRgiCLNQg@mail.gmail.com>
+References: <1485210765-9422-1-git-send-email-jeremy.linton@arm.com> <cea38f4f-4696-baab-b539-f9d0a8db3f42@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4hM2pz-sAcuXJTidfTMwA9sRVzCgwJjiw8ndtco8jmP=w@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:32908 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750979AbdBJGG6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2017 01:06:58 -0500
+Received: by mail-oi0-f67.google.com with SMTP id j15so1896058oih.0
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Feb 2017 22:06:37 -0800 (PST)
+In-Reply-To: <cea38f4f-4696-baab-b539-f9d0a8db3f42@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, steve.capper@arm.com, mlangsdorf@redhat.com, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, "msalter@redhat.com" <msalter@redhat.com>, Bamvor Zhang Jian <bamvor.zhangjian@linaro.org>, Jayachandran.Nair@cavium.com
 
-> Adding Tony so he can either confirm, or point and laugh at my
-> assumptions. In general you're right that there are machine check
-> events that are not recoverable, but I'm thinking of problems like bus
-> lockups and other disasters out of the direct cpu-to-memory data path.
-> The question is whether should we avoid the cpu consuming media errors
-> at all costs regardless of machine-check recovery. Tony might there be
-> system-fatal gaps in memcpy_mcsafe() or userspace poison consumption
-> handling that you would recommend aggressively trying to avoid media
-> errors?
+On Tue, Jan 24, 2017 at 1:19 PM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>
+>
+> On 2017/1/24 6:32, Jeremy Linton wrote:
+>>
+>> This patch expands and reworks the patches published by Mark Salter
+>> in order to clean up a few of the previous review comments, as well as
+>> add support for newer CPUs and big/little configurations.
+>>
+>> v14:
+>> - drop rename patch requested for v6
+>> - Shuffle couple include lines from one patch to a later
+>>   patch.
+>
+>
+> Test again on D03 and works fine as before,
+>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+>
+> Hanjun
 
-TL;DR - I think it is worth it ... but I worry more about errors than most
-people.
+Tested this series on Cavium's ThunderX2 CN99XX platform.
 
-In current generation systems the two most common sources of machine
-checks are memory, and I/O.  They dwarf all the others like cache and
-bus lockups.  So it is worth trying to avoid memory issues.
+Tested-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
 
-Whether you can recover from a machine check triggered from a CPU
-read of memory depends on which instructions you use, and the alignment
-of the access. That's why memcpy_mcsafe() will start with a few byte reads
-if needed to align the source address while other copy routines prefer to
-align the destination ... memory writes that straddle cache lines are more
-expensive than reads that do that ... but the point of the routine is to be
-safe, so we drop a tiny amount of performance in the unaligned case to
-make sure we will be able to recover.
-
-We can't control how userspace will access memory ... so if we can find
-the errors before they stumble into them it is a win.
-
--Tony
+thanks
+Ganapat
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
