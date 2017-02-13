@@ -1,124 +1,61 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 3/8] v4l: async: Add fwnode match support
-Date: Mon, 13 Feb 2017 15:28:11 +0200
-Message-ID: <1486992496-21078-4-git-send-email-sakari.ailus@linux.intel.com>
-References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Two questions about the MADT in ACPI table
+Date: Mon, 13 Feb 2017 21:31:38 +0800
+Message-ID: <5f035cfc-3de1-235d-b387-cd7add94a5e1@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:16689 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752337AbdBMNbd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Feb 2017 08:31:33 -0500
-In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from cn.fujitsu.com ([59.151.112.132]:24244 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751982AbdBMNcR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2017 08:32:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, rafael@kernel.org, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Add fwnode matching to complement OF node matching. And fwnode may also be
-an OF node.
+Hi, Rafael, Lv
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
- include/media/v4l2-async.h           |  5 +++++
- include/media/v4l2-subdev.h          |  3 +++
- 3 files changed, 20 insertions(+)
+May I ask for your help.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 96cc733..384ad5e 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- 			    of_node_full_name(asd->match.of.node));
- }
- 
-+static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-+{
-+	return sd->fwnode == asd->match.fwnode.fwn;
-+}
-+
- static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- 	if (!asd->match.custom.match)
-@@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		case V4L2_ASYNC_MATCH_OF:
- 			match = match_of;
- 			break;
-+		case V4L2_ASYNC_MATCH_FWNODE:
-+			match = match_fwnode;
-+			break;
- 		default:
- 			/* Cannot happen, unless someone breaks us */
- 			WARN_ON(true);
-@@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
- 		case V4L2_ASYNC_MATCH_OF:
-+		case V4L2_ASYNC_MATCH_FWNODE:
- 			break;
- 		default:
- 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-@@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 	 */
- 	if (!sd->of_node && sd->dev)
- 		sd->of_node = sd->dev->of_node;
-+	if (!sd->fwnode && sd->dev)
-+		sd->fwnode = sd->dev->of_node ?
-+			&sd->dev->of_node->fwnode : sd->dev->fwnode;
- 
- 	mutex_lock(&list_lock);
- 
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 8e2a236..8f552d2 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -32,6 +32,7 @@ struct v4l2_async_notifier;
-  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
-  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
-  * @V4L2_ASYNC_MATCH_OF: Match will use OF node
-+ * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
-  *
-  * This enum is used by the asyncrhronous sub-device logic to define the
-  * algorithm that will be used to match an asynchronous device.
-@@ -41,6 +42,7 @@ enum v4l2_async_match_type {
- 	V4L2_ASYNC_MATCH_DEVNAME,
- 	V4L2_ASYNC_MATCH_I2C,
- 	V4L2_ASYNC_MATCH_OF,
-+	V4L2_ASYNC_MATCH_FWNODE,
- };
- 
- /**
-@@ -58,6 +60,9 @@ struct v4l2_async_subdev {
- 			const struct device_node *node;
- 		} of;
- 		struct {
-+			struct fwnode_handle *fwn;
-+		} fwnode;
-+		struct {
- 			const char *name;
- 		} device_name;
- 		struct {
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 0ab1c5d..5f1669c 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
-  * @devnode: subdev device node
-  * @dev: pointer to the physical device, if any
-  * @of_node: The device_node of the subdev, usually the same as dev->of_node.
-+ * @fwnode: The fwnode_handle of the subdev, usually the same as
-+ *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
-  * @async_list: Links this subdev to a global subdev_list or @notifier->done
-  *	list.
-  * @asd: Pointer to respective &struct v4l2_async_subdev.
-@@ -819,6 +821,7 @@ struct v4l2_subdev {
- 	struct video_device *devnode;
- 	struct device *dev;
- 	struct device_node *of_node;
-+	struct fwnode_handle *fwnode;
- 	struct list_head async_list;
- 	struct v4l2_async_subdev *asd;
- 	struct v4l2_async_notifier *notifier;
--- 
-2.7.4
+Recently, I am very confused about the generation of the MADT
+in ACPI table.
+
+1: Why we put all the Apic Ids which flag==1 in front of the
+one which flag==0 in MADT?
+
+Just like that:
+
+-----orginal-----------------MADT-------
+Apic Id	Enable Flag	Apic Id	Enable Flag
+0x00	1		0x00	1
+0x02	1		0x02	1
+0x04	0		0x10	1
+0x06	0		0x12	1
+0x10	1		0x04	0
+0x12	1		0x06	0
+0x14	0		0x14	0
+0x16	0		0x16	0
+
+If the flag is the same, It will not change the order.
+
+-----orginal-----------------MADT---------
+Apic Id	Enable Flag	Apic Id	Enable Flag
+0x00	0		0x00	0
+0x02	0		0x02	0
+0x04	0		0x04	0
+0x06	0		0x06	0
+0x10	0		0x10	0
+0x12	0		0x12	0
+0x14	0		0x14	0
+0x16	0		0x16	0
+
+
+2: If the order rule can be changed ?
+If it can be done, What should I do?
+
+Thanks,
+Liyang.
+
 
