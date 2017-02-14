@@ -1,62 +1,27 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: ACPI problem causing non functional backlight control
- on win10 cherrytrail devices
-Date: Tue, 14 Feb 2017 14:56:13 +0100
-Message-ID: <0ff3690e-e851-eee4-665a-a487a1c24988@redhat.com>
+From: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: =?utf-8?Q?=D0=9A=D0=9B=D0=98=D0=95=D0=9D=D0=A1=D0=9A=D0?=
+        =?utf-8?Q?=98=D0=95_=D0=91=D0=90=D0=97=D0=AB_=D1=82=D0=B5?=
+        =?utf-8?Q?=D0=BB_+79139230330_Skype=3A_prodawez390_Email?=
+        =?utf-8?Q?=3A_prodawez393=40gmail=2Ecom_Viber=5Cwhatsapp?=
+        =?utf-8?Q?=5Ctelegram_+79139230330_=D0=A3=D0=B7=D0=BD=D0?=
+        =?utf-8?Q?=B0=D0=B9=D1=82=D0=B5_=D0=BF=D0=BE=D0=B4=D1=80?=
+        =?utf-8?Q?=D0=BE=D0=B1=D0=BD=D0=B5=D0=B5!!!?=
+Date: Tue, 14 Feb 2017 21:49:13 +0300
+Message-ID: <9268F4AB9F4B65D60A0F46FB1F4492CB@vger.kernel.org>
+Reply-To: "linux-acpi@vger.kernel.org" <prodawez393@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: intel-gfx <intel-gfx@lists.freedesktop.org>, linux-acpi <linux-acpi@vger.kernel.org>
-Cc: linux-pwm@vger.kernel.org
+Content-Type: text/plain; charset="utf-8";
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 103-15-187-116.op-net.com ([103.15.187.116]:52835 "EHLO
+        103-15-187-116.op-net.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754345AbdBNPs6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Feb 2017 10:48:58 -0500
+Received: from 103.15.187.116 (localhost [IPv6:::1])
+        by 103-15-187-116.op-net.com (Postfix) with SMTP id E119E7513B7
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Feb 2017 04:59:31 +0700 (WIB)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-SGkgQWxsLAoKT24gY2hlcnJ5dHJhaWwgdGFibGV0cyAvIGxhcHRvcHMgdGhlIGJhY2tsaWdodCB0
-eXBpY2FsbHkKaXMgY29udHJvbGxlZCBieSB0aGUgbHBzcyBwd20gbW9kdWxlLCB0aGlzIGlzIGxp
-c3RlZAphcyBhbiBhY3BpIGRldmljZSB3aXRoIGEgSElEIG9mIDgwODYyMjg4LiBBbGwgMyBjaGVy
-cnl0cmFpbApkZXZpY2VzIEkndmUgYWNjZXNzIHRvIGhhdmUgdGhlIGZvbGxvd2luZyBkc2R0IGNv
-ZGUgZm9yIHRoaXM6CgogICAgICAgICBEZXZpY2UgKFBXTTEpCiAgICAgICAgIHsKICAgICAgICAg
-ICAgIE5hbWUgKF9ISUQsICI4MDg2MjI4OCIpICAvLyBfSElEOiBIYXJkd2FyZSBJRAogICAgICAg
-ICAgICAgTmFtZSAoX0NJRCwgIjgwODYyMjg4IikgIC8vIF9DSUQ6IENvbXBhdGlibGUgSUQKICAg
-ICAgICAgICAgIE5hbWUgKF9ERE4sICJJbnRlbChSKSBQV00gQ29udHJvbGxlciAjMSAtIDgwODYy
-Mjg4IikgIC8vIF9ERE46IERPUyBECjxzbmlwPgoKICAgICAgICAgICAgIE1ldGhvZCAoX1NUQSwg
-MCwgTm90U2VyaWFsaXplZCkgIC8vIF9TVEE6IFN0YXR1cwogICAgICAgICAgICAgewogICAgICAg
-ICAgICAgICAgIElmIChPU0lEID09IE9uZSkKICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAg
-ICAgICAgICAgIFJldHVybiAoWmVybykKICAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAg
-ICAgIFJldHVybiAoMHgwRikKICAgICAgICAgICAgIH0KPHNuaXA+CiAgICAgICAgIH0KCk5vdGlj
-ZSB0aGUgT1NJRCA9PSBPbmUsIE9TSUQgaXMgc29tZXRoaW5nLCB3ZWxsIHJlYWxseSBzdHVwaWQK
-KHNvcnJ5IEkndmUgbm8gbmljZXIgd29yZCBmb3IgdGhpcykgaW4gY2hlcnJ5dHJhaWwgQUNQSSB0
-YWJsZXMsCndoZXJlIG9uZSBjYW4gb2Z0ZW4gY2hvb3NlIHdoaWNoIE9TIHRvIGNvbmZpZ3VyZSB0
-aGUgdGFibGVzIGZvcgppbiB0aGUgQklPUyB0eXBpY2FsbHkgb25lIGNhbiBjaG9vc2UgYmV0d2Vl
-biBBbmRyb2lkIGFuZCBXaW44LjEKKHRoaXMgaXMgbWl4ZWQgd2l0aCB0aGUgdHlwaWNhbCBfT1NJ
-IGNhbGxzIHNldHRpbmcgT1NZUykuCgpGb3IgYWRkZWQgZnVuLCBPU0lEIHNvbWV0aW1lcyBjaGFu
-Z2VzIGRlcGVuZGluZyBvbiB0aGluZ3MgbGlrZQp0aGUgRUZJIHN5c3RlbSBwYXJ0aXRpb24gaGF2
-aW5nIGFuIEVGSS9Cb290L2Jvb3R4NjQuZWZpIHByZXNlbnQKb3Igbm90LiBJZiBwcmVzZW50IHRo
-ZW4gdGhlIGZpcm13YXJlIGFzc3VtZXMgaXQgaXMgYm9vdGluZyB3aW5kb3dzCjEwIGFuZCB3aWxs
-IHNldCBPU0lEIHRvIE9uZS4gT24gYW5vdGhlciBkZXZpY2UgaXQgaXMgc2ltcGx5CmFsd2F5cyBP
-bmUsIHNvIG9uIHRoZXNlIGRldmljZXMgX1NUQSBmb3IgdGhlICI4MDg2MjI4OCIgZGV2aWNlCnJl
-dHVybnMgMCwgbm8gbWF0Y2hpbmcgcGxhdGZvcm0gZGV2aWNlIGdldHMgY3JlYXRlZCBhbmQgdGhl
-CnB3bS1scHNzLXBsYXRmcm9tIGRyaXZlciBkb2VzIG5vdCBiaW5kIHRvIHRoZSBwd20gY29udHJv
-bGxlci4KCldoaWNoIGNhdXNlcyBub25lIHdvcmtpbmcgYmFja2xpZ2h0IGNvbnRyb2wsIHRoZXJl
-IGFyZSA4LCB5ZXMKRUlHSFQgYWNwaV92aWRlbyMgYmFja2xpZ2h0IGludGVyZmFjZXMgd2hpY2gg
-Z2V0IHJlZ2lzdGVyZWQKaWYgdGhlIHB3bSBjb250cm9sbGVyIGlzIG5vdCBmb3VuZCBieSB0aGUg
-aTkxNSBkcml2ZXIsIGJ1dCBub25lCm9mIHRoZW0gd29ya3MuCgpJJ20gZ3Vlc3NpbmcgdGhhdCBp
-biBXaW5kb3dzIDEwIGlmIHRoZSBpOTE1IG9wcmVnaW9uIHNwZWNpZmllcwp0aGF0IHB3bSBzaG91
-bGQgYmUgdXNlZCB0aGF0IHRoZSB3aW5kb3dzIGdyYXBoaWNzIGRyaXZlcnMgdGhlbgoic2ltcGx5
-IiBkaXJlY3RseSBhY2Nlc3NlcyB0aGUgcHdtIGNvbnRyb2xsZXIgaXRzZWxmLgoKVW5sZXNzIHdl
-IHdhbnQgdG8gZG8gdGhlIHNhbWUsIHdlIGFyZSBnb2luZyB0byBuZWVkIHNvbWUgd2F5CnRvIG92
-ZXJyaWRlIHRoZSBfU1RBIHJlc3VsdCBmb3IgYSBkZXZpY2UgYW5kIGdldCB0aGUgYWNwaQpidXMg
-dG8gcmUtZW51bWVyYXRlIHRoZSBkZXZpY2UgYWZ0ZXIgd2UndmUgZG9uZSB0aGUgb3ZlcnJpZGUu
-CgpSZWdhcmRzLAoKSGFucwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3Rv
-cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRl
-bC1nZngK
