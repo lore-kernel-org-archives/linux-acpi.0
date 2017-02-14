@@ -1,75 +1,71 @@
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: [PATCH] ACPI, APEI: Fix BERT resources conflict with ACPI NVS area
-Date: Tue, 14 Feb 2017 10:01:13 +0800
-Message-ID: <20170214020143.29713-1-ying.huang@intel.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Date: Tue, 14 Feb 2017 09:06:59 +0200
+Message-ID: <20170214070658.GJ16975@valkosipuli.retiisi.org.uk>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1486992496-21078-6-git-send-email-sakari.ailus@linux.intel.com>
+ <20170213165746.GB1103@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:64271 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751583AbdBNCCW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Feb 2017 21:02:22 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38286 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750716AbdBNHHI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Feb 2017 02:07:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20170213165746.GB1103@ti.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@suse.de>, Fu Wei <fu.wei@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
-From: Huang Ying <ying.huang@intel.com>
+Hi Benoit,
 
-It was reported that some firmware will use ACPI NVS area for BERT
-address range.  This will cause resources conflict because the ACPI
-NVS area is marked as busy already.  Fix this via excluding ACPI NVS
-area when requesting IO resources for BERT.
+On Mon, Feb 13, 2017 at 10:57:47AM -0600, Benoit Parrot wrote:
+> Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Mon [2017-Feb-13 15:28:13 +0200]:
+...
+> > @@ -421,6 +423,7 @@ config VIDEO_TI_VPE
+> >  	select VIDEO_TI_VPDMA
+> >  	select VIDEO_TI_SC
+> >  	select VIDEO_TI_CSC
+> > +	select V4L2_FWNODE
+> 
+> Sakari,
+> 
+> TI_VPE does not use async registration, but as you already saw TI_CAL does.
+> So adding "select V4L2_FWNODE" should be moved to the VIDEO_TI_CAL section.
+> Once that's fixed you can add my acked-by for both the TI_CAL and AM437x_VPFE.
 
-Reported-and-tested-by: Hans Kristian Rosbach <hansr@raskesider.no>
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
----
- drivers/acpi/apei/bert.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+Thanks for the review and for spotting this! I think I just used the name
+of the directory, and assumed that the matching Kconfig option is the right
+one. There don't seem to be other cases such as that one.
 
-diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
-index a05b5c0cf181..12771fcf0417 100644
---- a/drivers/acpi/apei/bert.c
-+++ b/drivers/acpi/apei/bert.c
-@@ -97,6 +97,7 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
- 
- static int __init bert_init(void)
- {
-+	struct apei_resources bert_resources;
- 	struct acpi_bert_region *boot_error_region;
- 	struct acpi_table_bert *bert_tab;
- 	unsigned int region_len;
-@@ -127,13 +128,14 @@ static int __init bert_init(void)
- 	}
- 
- 	region_len = bert_tab->region_length;
--	if (!request_mem_region(bert_tab->address, region_len, "APEI BERT")) {
--		pr_err("Can't request iomem region <%016llx-%016llx>.\n",
--		       (unsigned long long)bert_tab->address,
--		       (unsigned long long)bert_tab->address + region_len - 1);
--		return -EIO;
--	}
--
-+	apei_resources_init(&bert_resources);
-+	rc = apei_resources_add(&bert_resources, bert_tab->address,
-+				region_len, true);
-+	if (rc)
-+		return rc;
-+	rc = apei_resources_request(&bert_resources, "APEI BERT");
-+	if (rc)
-+		goto out_fini;
- 	boot_error_region = ioremap_cache(bert_tab->address, region_len);
- 	if (boot_error_region) {
- 		bert_print_all(boot_error_region, region_len);
-@@ -142,7 +144,9 @@ static int __init bert_init(void)
- 		rc = -ENOMEM;
- 	}
- 
--	release_mem_region(bert_tab->address, region_len);
-+	apei_resources_release(&bert_resources);
-+out_fini:
-+	apei_resources_fini(&bert_resources);
- 
- 	return rc;
- }
+diff:
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index cced276..2f7792c 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -129,6 +129,7 @@ config VIDEO_TI_CAL
+ 	depends on SOC_DRA7XX || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_FWNODE
+ 	default n
+ 	---help---
+ 	  Support for the TI CAL (Camera Adaptation Layer) block
+@@ -423,7 +424,6 @@ config VIDEO_TI_VPE
+ 	select VIDEO_TI_VPDMA
+ 	select VIDEO_TI_SC
+ 	select VIDEO_TI_CSC
+-	select V4L2_FWNODE
+ 	default n
+ 	---help---
+ 	  Support for the TI VPE(Video Processing Engine) block
+
 -- 
-2.11.0
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
