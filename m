@@ -1,89 +1,71 @@
-From: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH V8 06/10] acpi: apei: panic OS with fatal error status
- block
-Date: Wed, 15 Feb 2017 12:13:09 +0000
-Message-ID: <58A445D5.7030501@arm.com>
-References: <1485969413-23577-1-git-send-email-tbaicar@codeaurora.org> <1485969413-23577-7-git-send-email-tbaicar@codeaurora.org> <589C490A.9080109@arm.com> <5b06372d-e389-5157-ccb4-a7b023990d4d@codeaurora.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2] tty: pl011: Work around QDF2400 E44 stuck BUSY bit
+Date: Wed, 15 Feb 2017 12:24:16 +0000
+Message-ID: <20170215122415.GG31733@leverpostej>
+References: <20170214235347.8812-1-cov@codeaurora.org>
+ <6a3ea0e5-f824-380e-1c4a-3e72b160e98a@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5b06372d-e389-5157-ccb4-a7b023990d4d-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org, punit.agr
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6a3ea0e5-f824-380e-1c4a-3e72b160e98a@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, Robin Murphy <robin.murphy@arm.com>, linux-kernel@vger.kernel.org, shankerd@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell King <linux@armlinux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Mark Langsdorf <mlangsdo@redhat.com>, Mark Salter <msalter@redhat.com>, Jon Masters <jcm@redhat.com>, Neil
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tyler,
+Hi,
 
-On 13/02/17 22:45, Baicar, Tyler wrote:
-> On 2/9/2017 3:48 AM, James Morse wrote:
->> On 01/02/17 17:16, Tyler Baicar wrote:
->>> From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>>
->>> Even if an error status block's severity is fatal, the kernel does not
->>> honor the severity level and panic.
->>>
->>> With the firmware first model, the platform could inform the OS about a
->>> fatal hardware error through the non-NMI GHES notification type. The OS
->>> should panic when a hardware error record is received with this
->>> severity.
->>>
->>> Call panic() after CPER data in error status block is printed if
->>> severity is fatal, before each error section is handled.
+On Tue, Feb 14, 2017 at 08:39:40PM -0600, Timur Tabi wrote:
+> Christopher Covington wrote:
+ 
+> >+	if (!memcmp(table->header.oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
+> >+		if (!memcmp(table->header.oem_table_id, "QDF2432 ",
+> >+				ACPI_OEM_TABLE_ID_SIZE) ||
+> >+				(!memcmp(table->header.oem_table_id,
+> >+				"QDF2400 ", ACPI_OEM_TABLE_ID_SIZE) &&
+> >+				table->header.oem_revision == 0))
+> >+			uart = "qdf2400_e44";
+> >+
 
->>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->>> index 8756172..86c1f15 100644
->>> --- a/drivers/acpi/apei/ghes.c
->>> +++ b/drivers/acpi/apei/ghes.c
->>> @@ -687,6 +689,13 @@ static int ghes_ack_error(struct acpi_hest_generic_v2
->>> *generic_v2)
->>>       return rc;
->>>   }
->>>   +static void __ghes_call_panic(void)
->>> +{
->>> +    if (panic_timeout == 0)
->>> +        panic_timeout = ghes_panic_timeout;
->>> +    panic("Fatal hardware error!");
->>> +}
->>> +
+Thanks for reworking this. I'm much happier with this than the MIDR
+check.
 
->> __ghes_panic() also has:
->>>     __ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
->> Which prints this estatus regardless of rate limiting and cache-ing.
+Splitting out the test into its own function, as Timur suggested, would
+generally be nicer. Minor comments on that below.
 
-[...]
+> static bool needs_qdf2400_e44(struct acpi_table_header *h)
+> {
 
->>>               ghes_estatus_cache_add(ghes->generic, ghes->estatus);
->>>       }
->>> +    if (ghes_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC) {
->>> +        __ghes_call_panic();
->>> +    }
+This is detecting the presence of the erratum so, has_qdf2400_e44() or
+needs__qdf2400_e44_workaround() would be better names. I'd personally
+prefer the former, but either is fine.
 
->> I think this ghes_severity() then panic() should go above the:
->>>     if (!ghes_estatus_cached(ghes->estatus)) {
->> and we should call __ghes_print_estatus() here too, to make sure the message
->> definitely got out!
+> 	const char *id;
+> 
+> 	/* The erratum only applies to Qualcomm Technologies SOCs */
+> 	if (memcmp(h->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
+> 		return False;
+> 
+> 	id = h->oem_table_id;
+> 
+> 	if (!memcmp(id, "QDF2432 ", ACPI_OEM_TABLE_ID_SIZE))
+> 		return True;
+> 
+> 	if (!memcmp(id, "QDF2000 ", ACPI_OEM_TABLE_ID_SIZE) &&
+> 		h->oem_revision == 0)
+> 		return True;
+> 	
+> 	return False;
+> }
 
+s/False/false/g
+s/True/true/g
 
-> Okay, that makes sense. If we move this up, is there a problem with calling
-> __ghes_panic() instead of making the __ghes_print_estatus() and
-> __ghes_call_panic() calls here? It looks like that will just add a call to
-> oops_begin() and ghes_print_queued_estatus() as well, but this is what
-> ghes_notify_nmi() does if the severity is panic.
+With that, this looks fine to me. I'm not too familiar with the pl011
+driver. On the assumption the other changes have already been vetted:
 
-
-I don't think the queued stuff is relevant, isn't that just for x86-NMI messages
-that it doesn't print out directly?
-
-A quick grep shows arm64 doesn't have oops_begin(), you may have to add some
-equivalent mechanism. Lets try and avoid that rabbit hole!
-
-Given __ghes_panic() calls __ghes_print_estatus() too, you could try moving that
-into your new __ghes_call_panic().... or whatever results in the least lines
-changed!
-
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 
 Thanks,
-
-James
+Mark.
