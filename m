@@ -1,89 +1,106 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
 Subject: Re: Two questions about the MADT in ACPI table
-Date: Wed, 15 Feb 2017 15:07:58 +0800
-Message-ID: <3c813571-aedb-d91c-0ddc-648ad5ebedb5@cn.fujitsu.com>
+Date: Wed, 15 Feb 2017 16:01:01 +0800
+Message-ID: <67d1764f-b740-c79b-2f24-9adb6dc79609@cn.fujitsu.com>
 References: <5f035cfc-3de1-235d-b387-cd7add94a5e1@cn.fujitsu.com>
- <46ea45ad-e2de-27f6-e71a-6908703a48cf@linaro.org>
- <94fde58d-0869-83e3-b095-7ce78690b04c@cn.fujitsu.com>
- <66316e54-f8e5-f657-c6ce-459877a55889@linaro.org>
+ <CAJZ5v0hSJUi8UEayDGmCRirW7GuzWbHvoZsveDLkVmNh_-sswg@mail.gmail.com>
+ <97d15525-d344-1bd8-d9e0-27a444e8d24f@cn.fujitsu.com>
+ <be0c3ff6-321d-e3c1-2b19-6d917281368e@cn.fujitsu.com>
+ <c1973231-d7c3-ef76-888c-a6371bd5982f@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:21835 "EHLO
+Received: from cn.fujitsu.com ([59.151.112.132]:30964 "EHLO
         heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750810AbdBOHIB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Feb 2017 02:08:01 -0500
-In-Reply-To: <66316e54-f8e5-f657-c6ce-459877a55889@linaro.org>
+        with ESMTP id S1751067AbdBOIBO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Feb 2017 03:01:14 -0500
+In-Reply-To: <c1973231-d7c3-ef76-888c-a6371bd5982f@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, rafael@kernel.org, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi, Hanjun
+Hi,
 
-[...]
->> -------MADT---------
->> Apic Id | Enable Flag
->> 0x00        1
->> 0x02        1
+>>>>
+>>>> Are you asking about Local APIC IDs?
+>>>>
+>>>
+>>> Yes, it is. Something about *Processor Local APIC Structure*.
+>>>
+>>> In MADT, Their arrangement may be different between the usable
+>>> processors and unusable processors(Processor Enabled is 1 or 0
+>>> in MADT).
+>>>
+>>> The rule of the arrangement seems like that it makes the usable
+>>> processors in front of the unusable processors, when we generate
+>>> the MADT at the booting time. And it seems do not care about the
+>>> arrangement of the unusable processors.
+>>>
+>>> Unfortunately, the unusable processors will be used in CPU hotplug.
+>>> And we also make the cpu_id <-> apic_id fixed according to the MADT
+>>> after linux-4.9. So the arrangement may be influence on the value of
+>>> CPUIds.
 >
-> Digital order.
->
->> 0x04        0
->> 0x06        0
->> 0x10        0
->> 0x12        0
->> 0x14        0
->> 0x16        0
->
-> Same here...
->
->> -------------------------------------
->>
->> 2. I use the local APIC IDs with 0x10 and 0x12. Then, startup the
->> computer. There are 4 online CPUs.
->> The MADT likes:
->> ------MADT-------
->> Apic Id | Enable Flag
->> 0x00        1
->> 0x02        1
->> 0x10        1
->> 0x12        1
->
-> And digital order...
->
->> 0x04        0
->> 0x16        0
->
-> 0x06?
+> Can you specify the issues?
 
-oops! yes.
+OK,
 
+maybe the logical CPU IDs are not
+> continuous in a numa node even two CPUs are hyper-threadings
+> in one core?
 >
->> 0x14        0
->> 0x16        0
->>
->> The position of the 0x10 and 0x12 is changed.
->
-> So your firmware will list enabled CPUs first and
-> them disabled one, both in digital order, and lot of
-> firmware (but not all of them) doing the same thing.
 
-It seems reasonable, I understood! :)
+Yes, it is. The logical CPU IDs may be not serial, when we
+use "lscpu" in the OS. it may like that:
 
-Thanks,
-Liyang
+NUMA node0 CPU：    0-23,256-279
+NUMA node1 CPU：    24-47,280-303
 
+Or even like
+
+Node2: 64-69, 72-77, 80-85, 88-93, 320-325, 328-333, 336-341 344-349
+Node3: 96-101, 104-109, 112-117, 120-125, 352-357, 360-365, 368-373, 376-381
+
+The reason :
+
+1. We make the cpu_id <-> apic_id fixed according to the MADT. details
+see in commit f7c28833c252031bc in kernel upstream tree.
+2. We may have a Local APIC entry in MADT, but it has not Corresponding
+processor device in DSDT. and the Local APIC entry also occupy an
+logical CPU ID.
+
+So, the seqence of logical CPU IDs will skip it. and will not be serial.
+
+As the ACPI table is not reliable, if we fix it, we may need do in
+software level.
+
+And now, I don't have a good way to fix it.
+So, I guess I need more knowledge about the ACPI table.
+
+>>>
+>>> I am investigating this. So I hope to know:
+>>>
+>>> 1. How the MADT is generated, Where can I find the Method/Function of
+>>> the generation?
 >
-> Thanks
-> Hanjun
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It depends on the firmware I think and lots of them are not open source,
+> you may try the UEFI tianocore project (www.tianocore.org).
 >
+
+I will have a look.
+
+>>>
+>>> 2. Is there a rule used for the order of the Local APIC/x2APIC IDs?
 >
+> I think not, there is no rules in the ACPI spec for the ordering
+> of processor entries (local apic/x2apic/gicc).
 >
+
+As you say, normally, by digital order default.
+
+Thanks
+Liyang.
 
 
