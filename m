@@ -1,159 +1,94 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v2] tty: pl011: Work around QDF2400 E44 stuck BUSY bit
-Date: Tue, 14 Feb 2017 20:39:40 -0600
-Message-ID: <6a3ea0e5-f824-380e-1c4a-3e72b160e98a@codeaurora.org>
-References: <20170214235347.8812-1-cov@codeaurora.org>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: Two questions about the MADT in ACPI table
+Date: Wed, 15 Feb 2017 10:53:51 +0800
+Message-ID: <97d15525-d344-1bd8-d9e0-27a444e8d24f@cn.fujitsu.com>
+References: <5f035cfc-3de1-235d-b387-cd7add94a5e1@cn.fujitsu.com>
+ <CAJZ5v0hSJUi8UEayDGmCRirW7GuzWbHvoZsveDLkVmNh_-sswg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56380 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751479AbdBOCjq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Feb 2017 21:39:46 -0500
-In-Reply-To: <20170214235347.8812-1-cov@codeaurora.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:9038 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750943AbdBOCyB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Feb 2017 21:54:01 -0500
+In-Reply-To: <CAJZ5v0hSJUi8UEayDGmCRirW7GuzWbHvoZsveDLkVmNh_-sswg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>, Jonathan Corbet <corbet@lwn.net>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, Robin Murphy <robin.murphy@arm.com>, linux-kernel@vger.kernel.org, shankerd@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell King <linux@armlinux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
-Cc: Mark Langsdorf <mlangsdo@redhat.com>, Mark Salter <msalter@redhat.com>, Jon Masters <jcm@redhat.com>, Neil Leeder <nleeder@codeaurora.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Christopher Covington wrote:
-> The Qualcomm Datacenter Technologies QDF2400 family of SoCs contains a
-> custom (non-PrimeCell) implementation of the SBSA UART. Occasionally the
-> BUSY bit in the Flag Register gets stuck as 1, erratum 44 for both 2432v1
-> and 2400v1 SoCs. Checking that the Transmit FIFO Empty (TXFE) bit is 0,
-> instead of checking that the BUSY bit is 1, works around the issue. To
-> facilitate this substitution when UART AMBA Port (UAP) data is available,
-> introduce vendor-specific inversion of Feature Register bits. For the
-> earlycon case, implement alternative putc and early_write functions.
-> Similar to what how ARMv8 ACPI PCI quirks are detected during MCFG parsing,
-> check the OEM fields of the Serial Port Console Redirection (SPCR) ACPI
-> table to determine if the current platform is known to be affected by the
-> erratum.
+Dear, Rafael
 
-Please break this up into paragraphs.
-
-
-> +	if (!memcmp(table->header.oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
-> +		if (!memcmp(table->header.oem_table_id, "QDF2432 ",
-> +				ACPI_OEM_TABLE_ID_SIZE) ||
-> +				(!memcmp(table->header.oem_table_id,
-> +				"QDF2400 ", ACPI_OEM_TABLE_ID_SIZE) &&
-> +				table->header.oem_revision == 0))
-> +			uart = "qdf2400_e44";
-> +
-
-Hey, you just wrote this
-And it looks crazy
-But here's my function
-So call it, maybe?
-
-static bool needs_qdf2400_e44(struct acpi_table_header *h)
-{
-	const char *id;
-
-	/* The erratum only applies to Qualcomm Technologies SOCs */
-	if (memcmp(h->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
-		return False;
-
-	id = h->oem_table_id;
-
-	if (!memcmp(id, "QDF2432 ", ACPI_OEM_TABLE_ID_SIZE))
-		return True;
-
-	if (!memcmp(id, "QDF2000 ", ACPI_OEM_TABLE_ID_SIZE) &&
-		h->oem_revision == 0)
-		return True;
-	
-	return False;
-}
-
-...
-
-	if (needs_qdf2400_e44(&table->header))
-		uart = "qdf2400_e44";
-
-
-> +/*
-> + * Erratum 44 for QDF2432v1 and QDF2400v1 SoCs describes the BUSY bit as
-> + * occasionally getting stuck as 1. To avoid the potential for a hang, check
-> + * TXFE == 0 instead of BUSY == 1. This may not be suitable for all UART
-> + * implementations, so only do so if an affected platform is detected in
-> + * parse_spcr().
-> + */
-> +static bool qdf2400_e44 = false;
-
-Please rename this to needs_qdf2400_e44
-
->  static u16 pl011_st_offsets[REG_ARRAY_SIZE] = {
->  	[REG_DR] = UART01x_DR,
->  	[REG_ST_DMAWM] = ST_UART011_DMAWM,
-> @@ -1518,7 +1543,8 @@ static unsigned int pl011_tx_empty(struct uart_port *port)
->  {
->  	struct uart_amba_port *uap =
->  	    container_of(port, struct uart_amba_port, port);
-> -	unsigned int status = pl011_read(uap, REG_FR);
-> +	/* Allow feature register bits to be inverted to work around errata */
-
-Blank line above the comment, please.
-
-> +	unsigned int status = pl011_read(uap, REG_FR) ^ uap->vendor->inv_fr;
->  	return status & (uap->vendor->fr_busy | UART01x_FR_TXFF) ?
->  							0 : TIOCSER_TEMT;
->  }
-> @@ -2215,10 +2241,12 @@ pl011_console_write(struct console *co, const char *s, unsigned int count)
->  	uart_console_write(&uap->port, s, count, pl011_console_putchar);
+At 02/14/2017 06:18 AM, Rafael J. Wysocki wrote:
+> On Mon, Feb 13, 2017 at 2:31 PM, Dou Liyang <douly.fnst@cn.fujitsu.com> wrote:
+>> Hi, Rafael, Lv
+>>
+>> May I ask for your help.
+>>
+>> Recently, I am very confused about the generation of the MADT
+>> in ACPI table.
+>>
+>> 1: Why we put all the Apic Ids which flag==1 in front of the
+>> one which flag==0 in MADT?
+>>
+>> Just like that:
+>>
+>> -----orginal----------|-------MADT-------
+>> Apic Id | Enable Flag |   Apic Id | Enable Flag
+>> 0x00    	1               0x00    1
+>> 0x02    	1               0x02    1
+>> 0x04    	0               0x10    1
+>> 0x06    	0               0x12    1
+>> 0x10    	1               0x04    0
+>> 0x12    	1               0x06    0
+>> 0x14   	0               0x14    0
+>> 0x16    	0               0x16    0
+>>
+>> If the flag is the same, It will not change the order.
+>>
+>> -----orginal----------|-------MADT---------
+>> Apic Id | Enable Flag |  Apic Id | Enable Flag
+>> 0x00    	0               0x00    0
+>> 0x02    	0               0x02    0
+>> 0x04    	0               0x04    0
+>> 0x06    	0               0x06    0
+>> 0x10    	0               0x10    0
+>> 0x12    	0               0x12    0
+>> 0x14    	0               0x14    0
+>> 0x16    	0               0x16    0
+>>
+>>
+>> 2: If the order rule can be changed ?
+>> If it can be done, What should I do?
 >
->  	/*
-> -	 *	Finally, wait for transmitter to become empty
-> -	 *	and restore the TCR
-> +	 *	Finally, wait for transmitter to become empty and restore the
-> +	 *	TCR. Allow feature register bits to be inverted to work around
-> +	 *	errata.
->  	 */
-> -	while (pl011_read(uap, REG_FR) & uap->vendor->fr_busy)
-> +	while ((pl011_read(uap, REG_FR) ^ uap->vendor->inv_fr)
-> +						& uap->vendor->fr_busy)
->  		cpu_relax();
->  	if (!uap->vendor->always_enabled)
->  		pl011_write(old_cr, uap, REG_CR);
-> @@ -2340,8 +2368,13 @@ static int __init pl011_console_match(struct console *co, char *name, int idx,
->  	resource_size_t addr;
->  	int i;
+> Are you asking about Local APIC IDs?
 >
-> -	if (strcmp(name, "pl011") != 0)
-> +	if (strcmp(name, "qdf2400_e44") == 0) {
-> +		if (!qdf2400_e44)
-> +			pr_info("UART: Working around QDF2400 SoC erratum 44");
 
-Just use pr_once(), and you can skip the "if (!qdf2400_e44)".  Although I don't 
-understand why you need to do that.  pl011_console_match() should only be called 
-once anyway, right?
+Yes, it is. Something about *Processor Local APIC Structure*.
 
-> +		qdf2400_e44 = true;
-> +	} else if (strcmp(name, "pl011") != 0) {
->  		return -ENODEV;
-> +	}
->
->  	if (uart_parse_earlycon(options, &iotype, &addr, &options))
->  		return -ENODEV;
-> @@ -2383,6 +2416,25 @@ static struct console amba_console = {
->
->  #define AMBA_CONSOLE	(&amba_console)
->
-> +static void qdf2400_e44_putc(struct uart_port *port, int c)
-> +{
-> +	while (readl(port->membase + UART01x_FR) & UART01x_FR_TXFF)
-> +		cpu_relax();
-> +	if (port->iotype == UPIO_MEM32)
-> +		writel(c, port->membase + UART01x_DR);
-> +	else
-> +		writeb(c, port->membase + UART01x_DR);
+In MADT, Their arrangement may be different between the usable
+processors and unusable processors(Processor Enabled is 1 or 0
+in MADT).
 
-I think you can ignore the UPIO_MEM32 test and always use writel(), even on the 
-QDF2400.
+The rule of the arrangement seems like that it makes the usable
+processors in front of the unusable processors, when we generate
+the MADT at the booting time. And it seems do not care about the
+arrangement of the unusable processors.
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, hosted by The Linux Foundation.
+Unfortunately, the unusable processors will be used in CPU hotplug.
+And we also make the cpu_id <-> apic_id fixed according to the MADT
+after linux-4.9. So the arrangement may be influence on the value of
+CPUIds.
+
+I am investigating this. So I hope to know:
+
+1. How the MADT is generated, Where can I find the Method/Function of
+the generation?
+
+2. Is there a rule used for the order of the Local APIC/x2APIC IDs?
+
+Thanks,
+  Liyang
+
+
