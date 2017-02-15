@@ -1,92 +1,113 @@
-From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V8 06/10] acpi: apei: panic OS with fatal error status
- block
-Date: Wed, 15 Feb 2017 10:07:25 -0700
-Message-ID: <c6af9776-abff-36b8-6ad6-148990664c04@codeaurora.org>
-References: <1485969413-23577-1-git-send-email-tbaicar@codeaurora.org>
- <1485969413-23577-7-git-send-email-tbaicar@codeaurora.org>
- <589C490A.9080109@arm.com>
- <5b06372d-e389-5157-ccb4-a7b023990d4d@codeaurora.org>
- <58A445D5.7030501@arm.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH 0/2] RFC: Move efi bgrt code out of arch/x86
+Date: Wed, 15 Feb 2017 17:44:28 +0000
+Message-ID: <CAKv+Gu-qv83fi9qBugA=Od2htcLb966SPBpZXSnXdH=AYw-COw@mail.gmail.com>
+References: <1487163892-27701-1-git-send-email-bhsharma@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <58A445D5.7030501-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org, punit.agr
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f51.google.com ([209.85.214.51]:37245 "EHLO
+        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751356AbdBORoa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Feb 2017 12:44:30 -0500
+Received: by mail-it0-f51.google.com with SMTP id x75so69087052itb.0
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Feb 2017 09:44:29 -0800 (PST)
+In-Reply-To: <1487163892-27701-1-git-send-email-bhsharma@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bhupesh Sharma <bhsharma@redhat.com>
+Cc: "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Nicolai Stange <nicstange@gmail.com>, Leif Lindholm <leif.lindholm@linaro.org>, "Prakhya, Sai Praneeth" <sai.praneeth.prakhya@intel.com>, Peter Jones <pjones@redhat.com>, Bhupesh SHARMA <bhupesh.linux@gmail.com>, Ingo Molnar <mingo@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Dan Williams <dan.j.williams@intel.com>, Dave Young <dyoung@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Mark Rutland <mark.rutland@arm.com>, Will Deacon <will.deacon@arm.com>
 
-On 2/15/2017 5:13 AM, James Morse wrote:
-> Hi Tyler,
+Hello Bhupesh,
+
+On 15 February 2017 at 13:04, Bhupesh Sharma <bhsharma@redhat.com> wrote:
+> This patchset presents a RFC approach to move the ACPI BGRT table
+> handling related code out of 'arch/x86' and place it inside
+> 'drivers/firmware/efi' so that it can be used to support
+> ACPI BGRT table and BGRT logo across x86 and AARCH64 ARCHs.
 >
-> On 13/02/17 22:45, Baicar, Tyler wrote:
->> On 2/9/2017 3:48 AM, James Morse wrote:
->>> On 01/02/17 17:16, Tyler Baicar wrote:
->>>> From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>>>
->>>> Even if an error status block's severity is fatal, the kernel does not
->>>> honor the severity level and panic.
->>>>
->>>> With the firmware first model, the platform could inform the OS about a
->>>> fatal hardware error through the non-NMI GHES notification type. The OS
->>>> should panic when a hardware error record is received with this
->>>> severity.
->>>>
->>>> Call panic() after CPER data in error status block is printed if
->>>> severity is fatal, before each error section is handled.
->>>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->>>> index 8756172..86c1f15 100644
->>>> --- a/drivers/acpi/apei/ghes.c
->>>> +++ b/drivers/acpi/apei/ghes.c
->>>> @@ -687,6 +689,13 @@ static int ghes_ack_error(struct acpi_hest_generic_v2
->>>> *generic_v2)
->>>>        return rc;
->>>>    }
->>>>    +static void __ghes_call_panic(void)
->>>> +{
->>>> +    if (panic_timeout == 0)
->>>> +        panic_timeout = ghes_panic_timeout;
->>>> +    panic("Fatal hardware error!");
->>>> +}
->>>> +
->>> __ghes_panic() also has:
->>>>      __ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
->>> Which prints this estatus regardless of rate limiting and cache-ing.
-> [...]
+> Note that this patchset is primarily tested on Qemu VMs for x86_64
+> and AARCH64 environments, while I try to get my hands on a real
+> AARCH64 hardware which supports a graphic card and whose boot firmware
+> I can modify to support the ACPI BGRT table to be passed to the kernel.
 >
->>>>                ghes_estatus_cache_add(ghes->generic, ghes->estatus);
->>>>        }
->>>> +    if (ghes_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC) {
->>>> +        __ghes_call_panic();
->>>> +    }
->>> I think this ghes_severity() then panic() should go above the:
->>>>      if (!ghes_estatus_cached(ghes->estatus)) {
->>> and we should call __ghes_print_estatus() here too, to make sure the message
->>> definitely got out!
+> Here are some details/outputs about/from the test environment:
 >
->> Okay, that makes sense. If we move this up, is there a problem with calling
->> __ghes_panic() instead of making the __ghes_print_estatus() and
->> __ghes_call_panic() calls here? It looks like that will just add a call to
->> oops_begin() and ghes_print_queued_estatus() as well, but this is what
->> ghes_notify_nmi() does if the severity is panic.
+> AARCH64:
+> ========
+> 1. I used the latest Qemu (master branch) and compiled it for aarch64 with softmmu support.
+>    Here is the command line I use to launch the same:
 >
-> I don't think the queued stuff is relevant, isn't that just for x86-NMI messages
-> that it doesn't print out directly?
+> # qemu-system-aarch64 -cpu cortex-a57 -M virt -m 2048 -bios QEMU_EFI.fd -kernel Image -initrd rootfs.cpio -serial stdio --append "acpi=force" -device virtio-gpu-pci
 >
-> A quick grep shows arm64 doesn't have oops_begin(), you may have to add some
-> equivalent mechanism. Lets try and avoid that rabbit hole!
+> where, QEMU_EFI.fd is the DEBUG build of EDK2 ArmVirtQemu.dsc (master branch)
+>        rootfs.cpio is the AARCH64 build of Buildroot (Little Endian AARCH64)
+>        -device virtio-gpu-pci provides the Graphical support required to have BGRT logo.
 >
-> Given __ghes_panic() calls __ghes_print_estatus() too, you could try moving that
-> into your new __ghes_call_panic().... or whatever results in the least lines
-> changed!
-Sounds good, I will just use __ghes_print_estatus() and __ghes_call_panic().
+>
+> 2. Here are some test results once Linux boots up, which show a valid BGRT table/logo being
+>    seen by the kernel:
+>
+> # acpidump
+> ...
+>
+> BGRT @ 0x0000000000000000
+>   0000: 42 47 52 54 38 00 00 00 01 B4 49 4E 54 45 4C 20  BGRT8.....INTEL
+>   0010: 45 44 4B 32 20 20 20 20 02 00 00 00 20 20 20 20  EDK2    ....
+>   0020: 13 00 00 01 01 00 01 00 00 80 B0 BA 00 00 00 00  ................
+>   0030: 2F 01 00 00 0F 01 00 00                          /.......
+>
+> # dmesg | grep -i BGRT
+> [    0.000000] ACPI: BGRT 0x00000000B8640000 000038 (v01 INTEL  EDK2     00000002      01000013)
+>
+>
+> # ls -lah /sys/firmware/acpi/bgrt/image
+> -r--r--r--    1 root     root       32.9K Feb 15 11:27 /sys/firmware/acpi/bgrt/image
+>
+> x86:
+> ====
+> 1. I used the latest Qemu (master branch) and compiled it for x86.
+>    Here is the command line I use to launch the same:
+>
+> # qemu-system-x86_64 -enable-kvm -sdl -m 2048 -vga std -boot c -cpu host -bios OVMF_CODE.fd -kernel bzImage -initrd rootfs.cpio -serial stdio
+>
+> where, OVMF_CODE.fd is the RELEASE build of EDK2 OvmfPkg (master branch)
+>        rootfs.cpio is the x86_64 build of Buildroot
+>
+> 2. Similar test results are seen as noted for the AARCH64 case above, which show a valid BGRT table/logo being
+>    seen by the kernel.
+>
+> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: Matt Fleming <matt@codeblueprint.co.uk>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dave Young <dyoung@redhat.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+>
+> Bhupesh Sharma (2):
+>   x86/efi-bgrt: Move efi-bgrt handling out of arch/x86
+>   bgrt: Make ACPI BGRT parsing code common for ARCHs
+>
+>  arch/arm64/kernel/acpi.c                               | 3 +++
+>  arch/x86/kernel/acpi/boot.c                            | 6 ------
+>  arch/x86/platform/efi/Makefile                         | 1 -
+>  drivers/acpi/Kconfig                                   | 2 +-
+>  drivers/acpi/bgrt.c                                    | 6 ++++++
+>  drivers/firmware/efi/Makefile                          | 1 +
+>  {arch/x86/platform => drivers/firmware}/efi/efi-bgrt.c | 0
+>  include/linux/efi-bgrt.h                               | 2 ++
+>  8 files changed, 13 insertions(+), 8 deletions(-)
+>  rename {arch/x86/platform => drivers/firmware}/efi/efi-bgrt.c (100%)
+>
+
+These patches look fine to me, and I think we should be able to merge
+them without any changes.
+
+Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+
+You only failed to cc the ACPI maintainers, please add Len and Rafael next time.
 
 Thanks,
-Tyler
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Ard.
