@@ -1,106 +1,89 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: Two questions about the MADT in ACPI table
-Date: Wed, 15 Feb 2017 16:01:01 +0800
-Message-ID: <67d1764f-b740-c79b-2f24-9adb6dc79609@cn.fujitsu.com>
-References: <5f035cfc-3de1-235d-b387-cd7add94a5e1@cn.fujitsu.com>
- <CAJZ5v0hSJUi8UEayDGmCRirW7GuzWbHvoZsveDLkVmNh_-sswg@mail.gmail.com>
- <97d15525-d344-1bd8-d9e0-27a444e8d24f@cn.fujitsu.com>
- <be0c3ff6-321d-e3c1-2b19-6d917281368e@cn.fujitsu.com>
- <c1973231-d7c3-ef76-888c-a6371bd5982f@linaro.org>
+From: James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V8 06/10] acpi: apei: panic OS with fatal error status
+ block
+Date: Wed, 15 Feb 2017 12:13:09 +0000
+Message-ID: <58A445D5.7030501@arm.com>
+References: <1485969413-23577-1-git-send-email-tbaicar@codeaurora.org> <1485969413-23577-7-git-send-email-tbaicar@codeaurora.org> <589C490A.9080109@arm.com> <5b06372d-e389-5157-ccb4-a7b023990d4d@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:30964 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751067AbdBOIBO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Feb 2017 03:01:14 -0500
-In-Reply-To: <c1973231-d7c3-ef76-888c-a6371bd5982f@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5b06372d-e389-5157-ccb4-a7b023990d4d-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org, punit.agr
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi,
+Hi Tyler,
 
->>>>
->>>> Are you asking about Local APIC IDs?
->>>>
+On 13/02/17 22:45, Baicar, Tyler wrote:
+> On 2/9/2017 3:48 AM, James Morse wrote:
+>> On 01/02/17 17:16, Tyler Baicar wrote:
+>>> From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 >>>
->>> Yes, it is. Something about *Processor Local APIC Structure*.
+>>> Even if an error status block's severity is fatal, the kernel does not
+>>> honor the severity level and panic.
 >>>
->>> In MADT, Their arrangement may be different between the usable
->>> processors and unusable processors(Processor Enabled is 1 or 0
->>> in MADT).
+>>> With the firmware first model, the platform could inform the OS about a
+>>> fatal hardware error through the non-NMI GHES notification type. The OS
+>>> should panic when a hardware error record is received with this
+>>> severity.
 >>>
->>> The rule of the arrangement seems like that it makes the usable
->>> processors in front of the unusable processors, when we generate
->>> the MADT at the booting time. And it seems do not care about the
->>> arrangement of the unusable processors.
->>>
->>> Unfortunately, the unusable processors will be used in CPU hotplug.
->>> And we also make the cpu_id <-> apic_id fixed according to the MADT
->>> after linux-4.9. So the arrangement may be influence on the value of
->>> CPUIds.
->
-> Can you specify the issues?
+>>> Call panic() after CPER data in error status block is printed if
+>>> severity is fatal, before each error section is handled.
 
-OK,
+>>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>>> index 8756172..86c1f15 100644
+>>> --- a/drivers/acpi/apei/ghes.c
+>>> +++ b/drivers/acpi/apei/ghes.c
+>>> @@ -687,6 +689,13 @@ static int ghes_ack_error(struct acpi_hest_generic_v2
+>>> *generic_v2)
+>>>       return rc;
+>>>   }
+>>>   +static void __ghes_call_panic(void)
+>>> +{
+>>> +    if (panic_timeout == 0)
+>>> +        panic_timeout = ghes_panic_timeout;
+>>> +    panic("Fatal hardware error!");
+>>> +}
+>>> +
 
-maybe the logical CPU IDs are not
-> continuous in a numa node even two CPUs are hyper-threadings
-> in one core?
->
+>> __ghes_panic() also has:
+>>>     __ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
+>> Which prints this estatus regardless of rate limiting and cache-ing.
 
-Yes, it is. The logical CPU IDs may be not serial, when we
-use "lscpu" in the OS. it may like that:
+[...]
 
-NUMA node0 CPU：    0-23,256-279
-NUMA node1 CPU：    24-47,280-303
+>>>               ghes_estatus_cache_add(ghes->generic, ghes->estatus);
+>>>       }
+>>> +    if (ghes_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC) {
+>>> +        __ghes_call_panic();
+>>> +    }
 
-Or even like
-
-Node2: 64-69, 72-77, 80-85, 88-93, 320-325, 328-333, 336-341 344-349
-Node3: 96-101, 104-109, 112-117, 120-125, 352-357, 360-365, 368-373, 376-381
-
-The reason :
-
-1. We make the cpu_id <-> apic_id fixed according to the MADT. details
-see in commit f7c28833c252031bc in kernel upstream tree.
-2. We may have a Local APIC entry in MADT, but it has not Corresponding
-processor device in DSDT. and the Local APIC entry also occupy an
-logical CPU ID.
-
-So, the seqence of logical CPU IDs will skip it. and will not be serial.
-
-As the ACPI table is not reliable, if we fix it, we may need do in
-software level.
-
-And now, I don't have a good way to fix it.
-So, I guess I need more knowledge about the ACPI table.
-
->>>
->>> I am investigating this. So I hope to know:
->>>
->>> 1. How the MADT is generated, Where can I find the Method/Function of
->>> the generation?
->
-> It depends on the firmware I think and lots of them are not open source,
-> you may try the UEFI tianocore project (www.tianocore.org).
->
-
-I will have a look.
-
->>>
->>> 2. Is there a rule used for the order of the Local APIC/x2APIC IDs?
->
-> I think not, there is no rules in the ACPI spec for the ordering
-> of processor entries (local apic/x2apic/gicc).
->
-
-As you say, normally, by digital order default.
-
-Thanks
-Liyang.
+>> I think this ghes_severity() then panic() should go above the:
+>>>     if (!ghes_estatus_cached(ghes->estatus)) {
+>> and we should call __ghes_print_estatus() here too, to make sure the message
+>> definitely got out!
 
 
+> Okay, that makes sense. If we move this up, is there a problem with calling
+> __ghes_panic() instead of making the __ghes_print_estatus() and
+> __ghes_call_panic() calls here? It looks like that will just add a call to
+> oops_begin() and ghes_print_queued_estatus() as well, but this is what
+> ghes_notify_nmi() does if the severity is panic.
+
+
+I don't think the queued stuff is relevant, isn't that just for x86-NMI messages
+that it doesn't print out directly?
+
+A quick grep shows arm64 doesn't have oops_begin(), you may have to add some
+equivalent mechanism. Lets try and avoid that rabbit hole!
+
+Given __ghes_panic() calls __ghes_print_estatus() too, you could try moving that
+into your new __ghes_call_panic().... or whatever results in the least lines
+changed!
+
+
+Thanks,
+
+James
