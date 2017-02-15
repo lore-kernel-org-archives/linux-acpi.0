@@ -1,76 +1,121 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH V10 07/10] efi: print unrecognized CPER section
-Date: Wed, 15 Feb 2017 12:07:03 -0800
-Message-ID: <1487189223.6214.60.camel@perches.com>
-References: <1487188282-2568-1-git-send-email-tbaicar@codeaurora.org>
-         <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3] tty: pl011: Work around QDF2400 E44 stuck BUSY bit
+Date: Wed, 15 Feb 2017 12:07:54 -0800
+Message-ID: <20170215200754.GA23091@kroah.com>
+References: <20170215180159.11359-1-cov@codeaurora.org>
+ <20170215195026.GN31733@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vge
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170215195026.GN31733@leverpostej>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Christopher Covington <cov@codeaurora.org>, Jonathan Corbet <corbet@lwn.net>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, Robin Murphy <robin.murphy@arm.com>, linux-kernel@vger.kernel.org, shankerd@codeaurora.org, timur@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell King <linux@armlinux.org.uk>, Jiri Slaby <jslaby@suse.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Mark Langsdorf <mlangsdo@redhat.com>, Mark Salter <msalter@redhat.com>, Jon Masters <jcm@redhat.com>, Neil
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2017-02-15 at 12:51 -0700, Tyler Baicar wrote:
-> UEFI spec allows for non-standard section in Common Platform Error
-> Record. This is defined in section N.2.3 of UEFI version 2.5.
+On Wed, Feb 15, 2017 at 07:50:27PM +0000, Mark Rutland wrote:
+> On Wed, Feb 15, 2017 at 01:01:59PM -0500, Christopher Covington wrote:
+> > The Qualcomm Datacenter Technologies QDF2400 family of SoCs contains a
+> > custom (non-PrimeCell) implementation of the SBSA UART. Occasionally the
+> > BUSY bit in the Flag Register gets stuck as 1, erratum 44 for both 2432v1
+> > and 2400v1 SoCs.Checking that the Transmit FIFO Empty (TXFE) bit is 0,
+> > instead of checking that the BUSY bit is 1, works around the issue.
+> > 
+> > To facilitate this substitution of flags and values, introduce
+> > vendor-specific inversion of Feature Register bits when UART AMBA Port
+> > (UAP) data is available. For the earlycon case, prior to UAP availability,
+> > implement alternative putc and early_write functions.
+> > 
+> > Similar to what how ARMv8 ACPI PCI quirks are detected during MCFG parsing,
+> > check the OEM fields of the Serial Port Console Redirection (SPCR) ACPI
+> > table to determine if the current platform is known to be affected by the
+> > erratum.
+> > 
+> > Signed-off-by: Christopher Covington <cov@codeaurora.org>
+> > Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+> > ---
+> > Since v2: Formatting and other improvements per Timur's suggestions
+> > Due to known (although trivial) conflicts in silicon-errata.txt, based on
+> > http://git.kernel.org/cgit/linux/kernel/git/arm64/linux.git/log/?h=for-next/core
+> > ---
+> >  Documentation/arm64/silicon-errata.txt |  2 ++
+> >  drivers/acpi/spcr.c                    | 23 ++++++++++++
+> >  drivers/tty/serial/amba-pl011.c        | 66 ++++++++++++++++++++++++++++++----
+> >  3 files changed, 84 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+> > index a71b8095dbd8..bc3d086bc624 100644
+> > --- a/Documentation/arm64/silicon-errata.txt
+> > +++ b/Documentation/arm64/silicon-errata.txt
+> > @@ -68,3 +68,5 @@ stable kernels.
+> >  |                |                 |                 |                             |
+> >  | Qualcomm Tech. | Falkor v1       | E1003           | QCOM_FALKOR_ERRATUM_1003    |
+> >  | Qualcomm Tech. | Falkor v1       | E1009           | QCOM_FALKOR_ERRATUM_1009    |
+> > +| Qualcomm Tech. | QDF2432v1 UART  | SoC E44         | N/A                         |
+> > +| Qualcomm Tech. | QDF2400v1 UART  | SoC E44         | N/A                         |
+> > diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> > index b8019c4c1d38..2b5d0fac81f0 100644
+> > --- a/drivers/acpi/spcr.c
+> > +++ b/drivers/acpi/spcr.c
+> > @@ -16,6 +16,26 @@
+> >  #include <linux/kernel.h>
+> >  #include <linux/serial_core.h>
+> >  
+> > +/*
+> > + * Some Qualcomm Datacenter Technologies SoCs have a defective UART BUSY bit.
+> > + * Detect them by examining the OEM fields in the SPCR header, similiar to PCI
+> > + * quirk detection in pci_mcfg.c.
+> > + */
+> > +static bool qdf2400_erratum_44_present(struct acpi_table_header *h)
+> > +{
+> > +	if (memcmp(h->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
+> > +		return false;
+> > +
+> > +	if (!memcmp(h->oem_table_id, "QDF2432 ", ACPI_OEM_TABLE_ID_SIZE))
+> > +		return true;
+> > +
+> > +	if (!memcmp(h->oem_table_id, "QDF2400 ", ACPI_OEM_TABLE_ID_SIZE) &&
+> > +			h->oem_revision == 0)
+> > +		return true;
+> > +
+> > +	return false;
+> > +}
+> > +
+> >  /**
+> >   * parse_spcr() - parse ACPI SPCR table and add preferred console
+> >   *
+> > @@ -93,6 +113,9 @@ int __init parse_spcr(bool earlycon)
+> >  		goto done;
+> >  	}
+> >  
+> > +	if (qdf2400_erratum_44_present(&table->header))
+> > +		uart = "qdf2400_e44";
+> > +
 > 
-> Currently if the CPER section's type (UUID) does not match with
-> one of the section types that the kernel knows how to parse, the
-> section is skipped. Therefore, user is not able to see
-> such CPER data, for instance, error record of non-standard section.
+> This addresses my concern with using the MIDR; thanks for respinning
+> this. FWIW:
 > 
-> For above mentioned case, this change prints out the raw data in
-> hex in dmesg buffer. Data length is taken from Error Data length
-> field of Generic Error Data Entry.
+> Acked-by: Mark Rutland <mark.rutland@arm.com>
 > 
-> Following is a sample output from dmesg:
-> [  115.771702] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
-> [  115.779042] {1}[Hardware Error]: It has been corrected by h/w and requires no further action
-> [  115.787456] {1}[Hardware Error]: event severity: corrected
-> [  115.792927] {1}[Hardware Error]:  Error 0, type: corrected
-> [  115.798415] {1}[Hardware Error]:  fru_id: 00000000-0000-0000-0000-000000000000
-> [  115.805596] {1}[Hardware Error]:  fru_text:
-> [  115.816105] {1}[Hardware Error]:  section type: d2e2621c-f936-468d-0d84-15a4ed015c8b
-> [  115.823880] {1}[Hardware Error]:  section length: 88
-> [  115.828779] {1}[Hardware Error]:   00000000: 01000001 00000002 5f434345 525f4543
-> [  115.836153] {1}[Hardware Error]:   00000010: 0000574d 00000000 00000000 00000000
-> [  115.843531] {1}[Hardware Error]:   00000020: 00000000 00000000 00000000 00000000
-> [  115.850908] {1}[Hardware Error]:   00000030: 00000000 00000000 00000000 00000000
-> [  115.858288] {1}[Hardware Error]:   00000040: fe800000 00000000 00000004 5f434345
-> [  115.865665] {1}[Hardware Error]:   00000050: 525f4543 0000574d
-> 
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> ---
->  drivers/firmware/efi/cper.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index c2b0a12..48cb8ee 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -591,8 +591,16 @@ static void cper_estatus_print_section(
->  			cper_print_proc_arm(newpfx, arm_err);
->  		else
->  			goto err_section_too_small;
-> -	} else
-> -		printk("%s""section type: unknown, %pUl\n", newpfx, sec_type);
-> +	} else {
-> +		const void *unknown_err;
-> +
-> +		unknown_err = acpi_hest_generic_data_payload(gdata);
-> +		printk("%ssection type: %pUl\n", newpfx, sec_type);
-> +		printk("%ssection length: %d\n", newpfx,
-> +		       gdata->error_data_length);
-> +		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4,
-> +			       unknown_err, gdata->error_data_length, 0);
+> It might be best to split the silicon-errata doc into a separate patch.
+> That can go via the arm64 tree without conflict whiel the driver patch
+> can go via the tty tree.
 
-I suggest using true instead of 0 for the last argument
+Well, I can't take this as-is because I get conflicts in my tty tree
+with the doc, and with the driver itself:
 
-		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4,
-			       unknown_err, gdata->error_data_length, true);
+	checking file Documentation/arm64/silicon-errata.txt
+	Hunk #1 FAILED at 68.
+	1 out of 1 hunk FAILED
+	checking file drivers/acpi/spcr.c
+	checking file drivers/tty/serial/amba-pl011.c
+	Hunk #5 FAILED at 2370.
+	1 out of 8 hunks FAILED
 
-It might help make deciphering the hex block a little easier.
+I have no idea what the driver conflict is, what branch was this made
+against?
+
+thanks,
+
+greg k-h
