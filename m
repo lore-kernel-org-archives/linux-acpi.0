@@ -1,55 +1,101 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH] ACPI, APEI: Fix BERT resources conflict with ACPI NVS
- area
-Date: Thu, 16 Feb 2017 10:52:30 +0100
-Message-ID: <20170216095230.ecbb6hfqmcpk3jbw@pd.tnic>
-References: <20170214020143.29713-1-ying.huang@intel.com>
- <4305135.N5b65JQej5@aspire.rjw.lan>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 2/2] arch_timer: acpi: add hisi timer erratum data
+Date: Thu, 16 Feb 2017 10:04:53 +0000
+Message-ID: <86fujexxh6.fsf@arm.com>
+References: <1485254391-51551-1-git-send-email-guohanjun@huawei.com>
+        <1485254391-51551-3-git-send-email-guohanjun@huawei.com>
+        <20170124105717.GB6277@leverpostej>
+        <a2ac2a70-09fb-5cec-c090-b8ebde90e24f@arm.com>
+        <589D6776.2010400@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:40055 "EHLO mx2.suse.de"
+Received: from foss.arm.com ([217.140.101.70]:39488 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753403AbdBPJwu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Feb 2017 04:52:50 -0500
-Content-Disposition: inline
-In-Reply-To: <4305135.N5b65JQej5@aspire.rjw.lan>
+        id S1753483AbdBPKFE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Feb 2017 05:05:04 -0500
+In-Reply-To: <589D6776.2010400@huawei.com> (Hanjun Guo's message of "Fri, 10
+        Feb 2017 15:10:46 +0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Huang, Ying" <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tony Luck <tony.luck@intel.com>, Fu Wei <fu.wei@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Will Deacon <will.deacon@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Fu Wei <fu.wei@linaro.org>, Ding Tianhong <dingtianhong@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Alexander Graf <agraf@suse.de>, mbrugger@suse.com, yousaf.kaukab@suse.com, sanil.kumar@huawei.com
 
-On Thu, Feb 16, 2017 at 12:42:00AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, February 14, 2017 10:01:13 AM Huang, Ying wrote:
-> > From: Huang Ying <ying.huang@intel.com>
-> > 
-> > It was reported that some firmware will use ACPI NVS area for BERT
-> > address range.  This will cause resources conflict because the ACPI
-> > NVS area is marked as busy already.  Fix this via excluding ACPI NVS
-> > area when requesting IO resources for BERT.
-> > 
-> > Reported-and-tested-by: Hans Kristian Rosbach <hansr@raskesider.no>
-> > Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-> 
-> Boris, what do you think?
+On Fri, Feb 10 2017 at 07:10:46 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+> Hi Marc,
+>
+> On 2017/1/24 19:32, Marc Zyngier wrote:
+>> On 24/01/17 10:57, Mark Rutland wrote:
+>>> On Tue, Jan 24, 2017 at 06:39:51PM +0800, Hanjun Guo wrote:
+>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>
+>>>> Add hisilicon timer specific erratum fixes.
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>  drivers/clocksource/arm_arch_timer.c | 22 ++++++++++++++++++++++
+>>>>  1 file changed, 22 insertions(+)
+>>>>
+>>>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+>>>> index 80d6f76..3e62a09 100644
+>>>> --- a/drivers/clocksource/arm_arch_timer.c
+>>>> +++ b/drivers/clocksource/arm_arch_timer.c
+>>>> @@ -1156,10 +1156,32 @@ struct gtdt_arch_timer_fixup {
+>>>>  	void *context;
+>>>>  };
+>>>>  
+>>>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
+>>>> +static void __init hisi_erratum_workaroud_enable(void *context)
+>>>> +{
+>>>> +	int i;
+>>>> +
+>>>> +	for (i = 0; i < ARRAY_SIZE(ool_workarounds); i++) {
+>>>> +		if (!strcmp(context, ool_workarounds[i].id)) {
+>>>> +			timer_unstable_counter_workaround = &ool_workarounds[i];
+>>>> +			static_branch_enable(&arch_timer_read_ool_enabled);
+>>>> +			pr_info("arch_timer: Enabling workaround for %s\n",
+>>>> +				timer_unstable_counter_workaround->id);
+>>>> +			break;
+>>>> +		}
+>>>> +	}
+>>>> +}
+>>>> +#endif
+>>>> +
+>>>>  /* note: this needs to be updated according to the doc of OEM ID
+>>>>   * and TABLE ID for different board.
+>>>>   */
+>>>>  static struct gtdt_arch_timer_fixup arch_timer_quirks[] __initdata = {
+>>>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
+>>>> +	{"HISI  ", "HIP05   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>>>> +	{"HISI  ", "HIP06   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>>>> +	{"HISI  ", "HIP07   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
+>>>> +#endif
+>>>>  };
+>>> NAK. This duplicates logic unnecessarily (for enabling the workaround),
+>>> and (ab)uses the id, which was intended to be specific to DT (since it
+>>> is a DT property name).
+>> Agreed, that's properly revolting.
+>>
+>>> We should split the matching from the particular workaround (and
+>>> enabling thereof), so that we can go straight from ACPI match to
+>>> workaround (without having to use the DT id in this manner), and don't
+>>> have to duplicate the logic to enable the workaround.
+>>>
+>>> I believe Marc is looking at some rework in this area which may enable
+>>> this, so please wait for that to appear.
+>> Yeah, I'm implementing a semi-flexible way to add new quirk types, and
+>> the last thing I want to see is two (or more) tables describing the same
+>> thing.
+>
+> Kindly ping, if you have patches in hand, I can test against our platforms,
+> thank you very much.
 
-Lemme see, so the BERT is for hw errors which have happened during the
-previous boot and the machine couldn't handle them. So they do get saved
-in some mem in the fw for inspection during the next boot.
+I'm planning to make something available next week. I don't think there
+is any sense of urgency anyway (it is not like we've broken something,
+as this platform has always been defective).
 
-And "some firmware" has decided to write them into non-volatile storage
-- because you should never ever forget those errors! :-)
+Thanks,
 
-And I don't understand the "fix" here: we're excluding the NVS area when
-mapping the BERT table but then how are we supposed to read those errors
-from there?
-
-Or am I missing something obvious?
-
+	M.
 -- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Jazz is not dead. It just smells funny.
