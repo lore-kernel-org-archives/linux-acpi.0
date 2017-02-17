@@ -1,246 +1,124 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Only one core of four since kernel 4.9
-Date: Fri, 17 Feb 2017 02:08:03 +0100
-Message-ID: <2108716.1HKX82X6Ar@aspire.rjw.lan>
-References: <df38fa50-ccb3-0377-f71c-50ac08cfc749@larkos.de> <85e6af97-5a3a-9952-2a35-3aa91e28fef8@larkos.de> <760bcdfc-1aca-dfa9-76d0-03eca85cd6a9@larkos.de>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH 1/2] acpi: Fix the mapping handle in case of declaring
+ processors using the Device operator
+Date: Fri, 17 Feb 2017 09:48:48 +0800
+Message-ID: <32d3205d-f976-7b0d-3a5d-f2688280b836@cn.fujitsu.com>
+References: <1487241492-30005-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <2ba0b2be-f858-18c5-1b12-105df4c2962a@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51110 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754334AbdBQBNC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Feb 2017 20:13:02 -0500
-In-Reply-To: <760bcdfc-1aca-dfa9-76d0-03eca85cd6a9@larkos.de>
+Received: from cn.fujitsu.com ([59.151.112.132]:6011 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754913AbdBQBsy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Feb 2017 20:48:54 -0500
+In-Reply-To: <2ba0b2be-f858-18c5-1b12-105df4c2962a@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: DonMartio <donmartio@larkos.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Gu Zheng <guz.fnst@cn.fujitsu.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, rjw@rjwysocki.net, rafael@kernel.org, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-[+x86, Thomas and Gu Zheng]
 
-On Thursday, February 16, 2017 10:37:11 PM DonMartio wrote:
-> Hi again,
-> 
-> i think this got lost in the noise of this mailing list.
-> The patch is working for me (kernel-4-9.10 now) but i think it's not 
-> meant this way.
-> 
-> Could you peek into the patch and check if this is the right way or if 
-> this could cause any trouble
-> 
-> kind regards
-> DonMartio
-> 
-> On 22.01.2017 15:48, DonMartio wrote:
-> > Got a kernel 4.9.5 running now with all my four cores.
-> > I created a small patch which work but may be not the correct way to 
-> > solve this issue.
-> >
-> > kind regards
-> > Martin
-> >
-> > On 21.01.2017 19:06, Martin Regner wrote:
-> >> Hi again,
-> >>
-> >> I fiddled around a little bit and added some logging.
-> >>
-> >> This shows a strange thing:
-> >>
-> >> [ 0.000000] DONMARTIO apicid 5
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 1
-> >> [ 0.000000] DONMARTIO disabled cpus 1
-> >> [ 0.000000] DONMARTIO cpu 1
-> >> [ 0.000000] DONMARTIO apicid 6
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 2
-> >> [ 0.000000] DONMARTIO disabled cpus 2
-> >> [ 0.000000] DONMARTIO cpu 2
-> >> [ 0.000000] DONMARTIO apicid 7
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 3
-> >> [ 0.000000] DONMARTIO disabled cpus 3
-> >> [ 0.000000] DONMARTIO cpu 3
-> >> [ 0.000000] DONMARTIO apicid 8
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 4
-> >> [ 0.000000] DONMARTIO disabled cpus 4
-> >> [ 0.000000] DONMARTIO cpu 4
-> >> [ 0.000000] DONMARTIO apicid 16
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO disabled cpus 4
-> >> [ 0.000000] DONMARTIO cpu 0
-> >> [ 0.000000] DONMARTIO apicid 17
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 5
-> >> [ 0.000000] DONMARTIO disabled cpus 4
-> >> [ 0.000000] DONMARTIO cpu 5
-> >> [ 0.000000] DONMARTIO apicid 18
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 6
-> >> [ 0.000000] DONMARTIO disabled cpus 4
-> >> [ 0.000000] DONMARTIO cpu 6
-> >> [ 0.000000] DONMARTIO apicid 19
-> >> [ 0.000000] DONMARTIO physical_apicid 16
-> >> [ 0.000000] DONMARTIO logical cpuids 7
-> >> [ 0.000000] DONMARTIO disabled cpus 4
-> >> [ 0.000000] DONMARTIO cpu 7
-> >>
-> >>
-> >> The system checks eight cpu's on my quadcore. The first four are 
-> >> disabled.
-> >>
-> >> If i add this line
-> >>
-> >> if(apicid < 16) return -ENODEV;
-> >>
-> >> at the beginning of the function __generic_processor_info, i get all 
-> >> 4 cores.
-> >> (I took the 16, because i know the lowest apicid from the kernel 
-> >> 4.8.17 output).
-> >>
-> >> I'm really curious what's going wrong here.
-> >>
-> >> Kind regards
-> >> Martin
-> >>
-> >>
-> >> On 20.01.2017 07:33, DonMartio wrote:
-> >>> Hi,
-> >>>
-> >>> since kernel 4.9 only one core is recognized of my AMD FX(tm)-4100 
-> >>> Quad-Core Processor.
-> >>> I discussed this here 
-> >>> <https://forums.gentoo.org/viewtopic-t-1056638-start-25-postdays-0-postorder-asc-highlight-.html> 
-> >>> first and tried a lot of thinks without any luck.
-> >>>
-> >>> One tip of another user was to do a bisect first and then file a 
-> >>> possible bug.
-> >>> I did that with kernel 4.8.17 (which works) and 4.9 and came finally 
-> >>> to the following commit:
-> >>>
-> >>> [8f54969dc8d6704632b42cbb5e47730cd75cc713] x86/acpi: Introduce 
-> >>> persistent storage for cpuid <-> apicid mapping
-> >>> 8f54969dc8d6704632b42cbb5e47730cd75cc713 is the first bad commit
-> >>> commit 8f54969dc8d6704632b42cbb5e47730cd75cc713
-> >>> Author: Gu Zheng<guz.fnst@cn.fujitsu.com>
-> >>> Date:   Thu Aug 25 16:35:16 2016 +0800
-> >>>
-> >>>     x86/acpi: Introduce persistent storage for cpuid <-> apicid mapping
-> >>>
-> >>>     The whole patch-set aims at making cpuid <-> nodeid mapping 
-> >>> persistent. So that,
-> >>>     when node online/offline happens, cache based on cpuid <-> 
-> >>> nodeid mapping such as
-> >>>     wq_numa_possible_cpumask will not cause any problem.
-> >>>     It contains 4 steps:
-> >>>     1. Enable apic registeration flow to handle both enabled and 
-> >>> disabled cpus.
-> >>>     2. Introduce a new array storing all possible cpuid <-> apicid 
-> >>> mapping.
-> >>>     3. Enable _MAT and MADT relative apis to return non-present or 
-> >>> disabled cpus' apicid.
-> >>>     4. Establish all possible cpuid <-> nodeid mapping.
-> >>>
-> >>>     This patch finishes step 2.
-> >>>
-> >>>     In this patch, we introduce a new static array named 
-> >>> cpuid_to_apicid[],
-> >>>     which is large enough to store info for all possible cpus.
-> >>>
-> >>>     And then, we modify the cpuid calculation. In 
-> >>> generic_processor_info(),
-> >>>     it simply finds the next unused cpuid. And it is also why the 
-> >>> cpuid <-> nodeid
-> >>>     mapping changes with node hotplug.
-> >>>
-> >>>     After this patch, we find the next unused cpuid, map it to an 
-> >>> apicid,
-> >>>     and store the mapping in cpuid_to_apicid[], so that cpuid <-> 
-> >>> apicid
-> >>>     mapping will be persistent.
-> >>>
-> >>>     And finally we will use this array to make cpuid <-> nodeid 
-> >>> persistent.
-> >>>
-> >>>     cpuid <-> apicid mapping is established at local apic 
-> >>> registeration time.
-> >>>     But non-present or disabled cpus are ignored.
-> >>>
-> >>>     In this patch, we establish all possible cpuid <-> apicid 
-> >>> mapping when
-> >>>     registering local apic.
-> >>>
-> >>>     Signed-off-by: Gu Zheng<guz.fnst@cn.fujitsu.com>
-> >>>     Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
-> >>>     Signed-off-by: Zhu Guihua<zhugh.fnst@cn.fujitsu.com>
-> >>>     Signed-off-by: Dou Liyang<douly.fnst@cn.fujitsu.com>
-> >>>     Acked-by: Ingo Molnar<mingo@kernel.org>
-> >>>     Cc:mika.j.penttila@gmail.com
-> >>>     Cc:len.brown@intel.com
-> >>>     Cc:rafael@kernel.org
-> >>>     Cc:rjw@rjwysocki.net
-> >>>     Cc:yasu.isimatu@gmail.com
-> >>>     Cc:linux-mm@kvack.org
-> >>>     Cc:linux-acpi@vger.kernel.org
-> >>>     Cc:isimatu.yasuaki@jp.fujitsu.com
-> >>>     Cc:gongzhaogang@inspur.com
-> >>>     Cc:tj@kernel.org
-> >>>     Cc:izumi.taku@jp.fujitsu.com
-> >>>     Cc:cl@linux.com
-> >>>     Cc:chen.tang@easystack.cn
-> >>>     Cc:akpm@linux-foundation.org
-> >>>     Cc:kamezawa.hiroyu@jp.fujitsu.com
-> >>>     Cc:lenb@kernel.org
-> >>> Link:http://lkml.kernel.org/r/1472114120-3281-4-git-send-email-douly.fnst@cn.fujitsu.com 
-> >>>
-> >>>     Signed-off-by: Thomas Gleixner<tglx@linutronix.de>
-> >>>
-> >>> Is my cpuid missing in the mapping mentioned above?
-> >>>
-> >>> ~ # lscpu
-> >>> Architecture:          x86_64
-> >>> CPU op-mode(s):        32-bit, 64-bit
-> >>> Byte Order:            Little Endian
-> >>> CPU(s):                4
-> >>> On-line CPU(s) list:   0-3
-> >>> Thread(s) per core:    2
-> >>> Core(s) per socket:    2
-> >>> Socket(s):             1
-> >>> Vendor ID:             AuthenticAMD
-> >>> CPU family:            21
-> >>> Model:                 1
-> >>> Model name:            AMD FX(tm)-4100 Quad-Core Processor
-> >>> Stepping:              2
-> >>> CPU MHz:               3600.000
-> >>> CPU max MHz:           3600,0000
-> >>> CPU min MHz:           1400,0000
-> >>> BogoMIPS:              7183.66
-> >>> Virtualization:        AMD-V
-> >>> L1d cache:             16K
-> >>> L1i cache:             64K
-> >>> L2 cache:              2048K
-> >>> L3 cache:              8192K
-> >>> Flags:                 fpu vme de pse tsc msr pae mce cx8 apic sep 
-> >>> mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx 
-> >>> mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl 
-> >>> nonstop_tsc extd_apicid aperfmperf eagerfpu pni pclmulqdq monitor 
-> >>> ssse3 cx16 sse4_1 sse4_2 popcnt aes xsave avx lahf_lm cmp_legacy svm 
-> >>> extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs xop 
-> >>> skinit wdt lwp fma4 nodeid_msr topoext perfctr_core perfctr_nb cpb 
-> >>> hw_pstate vmmcall arat npt lbrv svm_lock nrip_save tsc_scale 
-> >>> vmcb_clean flushbyasid decodeassists pausefilter pfthreshold
-> >>>
-> >>>
-> >>> Or do i miss some new kernel config option?
-> >>> Do you need more information?
-> >>>
-> >>> Thanks in advance
-> >>> Martin
-> >>>
-> >>
-> >
-> 
+
+At 02/16/2017 09:06 PM, Hanjun Guo wrote:
+> On 2017/2/16 18:38, Dou Liyang wrote:
+>> In ACPI spec, we can declare processors using both Processor and
+>> Device operator. But now, we just handle the mapping of processors
+>> which are declared by Processor operator.
+>>
+>> It misses the processors declared by Device operator.
+>>
+>> The patch adds this case of the Device operator.
+>>
+>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+>> ---
+>>  drivers/acpi/processor_core.c | 6 ++++--
+>>  1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/processor_core.c
+>> b/drivers/acpi/processor_core.c
+>> index 611a558..1aab5b0 100644
+>> --- a/drivers/acpi/processor_core.c
+>> +++ b/drivers/acpi/processor_core.c
+>> @@ -344,8 +344,10 @@ void __init acpi_set_processor_mapping(void)
+>>  {
+>>      /* Set persistent cpu <-> node mapping for all processors. */
+>>      acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+>> -                ACPI_UINT32_MAX, set_processor_node_mapping,
+>> -                NULL, NULL, NULL);
+>> +                ACPI_UINT32_MAX, set_processor_node_mapping,
+>> +                NULL, NULL, NULL);
+>
+> no need to update the code above.
+
+Here is some format problem I fixed, but it looks like I didn't do
+anything. I will modify it in next version.
+
+>
+>> +    acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
+>> set_processor_node_mapping,
+>> +                NULL, NULL);
+>
+> It makes sense to me to add support for Processor devices of setting
+> persistent cpu <-> node mapping, but I just wondering if there is no
+> Processor device or Processor Operator for a processor entry(such as
+> local apic, the spec didn't say it's a mandatory) in MADT,
+
+
+It is in DSDT. Declare processprs like:
+
+Processor (ProcessorName, ProcessorID, PBlockAddress, PblockLength) { 
+ObjectList }
+
+Or
+
+Device (DeviceName) { ObjectList }
+
+how do we
+> set the mappings?
+
+Step 1. we generate the logical CPU IDs by the Local APIC/x2APIC ID in
+MADT. So, we have the mapping of CPU ID <-> Local Apic ID. We also can
+get the mapping of Processor ID/UID <-> Local Apic ID directly in MADT.
+
+  195 [0ECh 0236   1]                Subtable Type : 00 [Processor Local 
+APIC]
+  196 [0EDh 0237   1]                       Length : 08
+  197 [0EEh 0238   1]                *Processor ID : 40*
+  198 [0EFh 0239   1]                *Local Apic ID : 40*
+  199 [0F0h 0240   4]        Flags (decoded below) : 00000001
+  200                            Processor Enabled : 1
+
+So, at last, we get the mapping of
+
+*Processor ID/UID <-> Local Apic ID <-> CPU ID*
+
+Step 2. we can get *processorID/_UID <-> Node ID(_PXM)* in DSDT.
+
+So, we get the maaping of *Node ID <-> CPU ID* according to
+
+*Node ID(_PXM) <-> Processor ID/UID <-> Local Apic ID <-> CPU ID*
+
+>
+> BTW, multi places in the ACPI driver are using the same pattern here
+> to scan all the processors, maybe we can add a function then call it
+> to reduce some lines of code?
+>
+
+Yes, I think so.
+
+Thanks,
+Liyang.
+
+> Thanks
+> Hanjun
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+
 
