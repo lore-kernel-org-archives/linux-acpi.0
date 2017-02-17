@@ -1,275 +1,203 @@
 From: Joe Perches <joe@perches.com>
-Subject: [PATCH 10/35] drivers/acpi: Convert remaining uses of pr_warning to pr_warn
-Date: Thu, 16 Feb 2017 23:11:23 -0800
-Message-ID: <454a626e0c01a3fbefa4f559853f47346f60af99.1487314667.git.joe@perches.com>
-References: <cover.1487314666.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1487314666.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 00/35] treewide trivial patches converting
+	pr_warning to pr_warn
+Date: Thu, 16 Feb 2017 23:11:13 -0800
+Message-ID: <cover.1487314666.git.joe@perches.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xen.org>
+List-Unsubscribe: <https://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <https://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xen.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xen.org>
+To: Alexander Shishkin <alexander.shishkin@linux.intel.com>, Karol Herbst <karolherbst@gmail.com>, Pekka Paalanen <ppaalanen@gmail.com>, Richard Weinberger <richard@nod.at>, Fabio Estevam <fabio.estevam@nxp.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, tboot-devel@lists.sourceforge.net, nouveau@lists.freedesktop.org, oprofile-list@lists.sf.net, sfi-devel@simplefirmware.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com, virtualization@lists.linux-foundation.org, linux-crypto@vger.kernel.org, linux-ide@vger.kernel.org, gigaset307x-common@lists.sourceforge.net, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, netdev@vger.kernel.org, linux-input@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-To enable eventual removal of pr_warning
-
-This makes pr_warn use consistent for drivers/acpi
-
-Prior to this patch, there were 20 uses of pr_warning and
-45 uses of pr_warn in drivers/acpi
-
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/acpi/apei/apei-base.c | 32 ++++++++++++++++----------------
- drivers/acpi/apei/einj.c      |  4 ++--
- drivers/acpi/apei/erst-dbg.c  |  4 ++--
- drivers/acpi/apei/ghes.c      | 30 ++++++++++++++----------------
- drivers/acpi/apei/hest.c      | 10 +++++-----
- drivers/acpi/resource.c       |  4 ++--
- 6 files changed, 41 insertions(+), 43 deletions(-)
-
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index da370e1d31f4..63b7830c2498 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -178,9 +178,9 @@ int __apei_exec_run(struct apei_exec_context *ctx, u8 action,
- 		if (ip == ctx->ip) {
- 			if (entry->instruction >= ctx->instructions ||
- 			    !ctx->ins_table[entry->instruction].run) {
--				pr_warning(FW_WARN APEI_PFX
-+				pr_warn(FW_WARN APEI_PFX
- 			"Invalid action table, unknown instruction type: %d\n",
--					   entry->instruction);
-+					entry->instruction);
- 				return -EINVAL;
- 			}
- 			run = ctx->ins_table[entry->instruction].run;
-@@ -219,9 +219,9 @@ static int apei_exec_for_each_entry(struct apei_exec_context *ctx,
- 		if (end)
- 			*end = i;
- 		if (ins >= ctx->instructions || !ins_table[ins].run) {
--			pr_warning(FW_WARN APEI_PFX
-+			pr_warn(FW_WARN APEI_PFX
- 			"Invalid action table, unknown instruction type: %d\n",
--				   ins);
-+				ins);
- 			return -EINVAL;
- 		}
- 		rc = func(ctx, entry, data);
-@@ -587,18 +587,18 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
- 	space_id = reg->space_id;
- 	*paddr = get_unaligned(&reg->address);
- 	if (!*paddr) {
--		pr_warning(FW_BUG APEI_PFX
-+		pr_warn(FW_BUG APEI_PFX
- 			   "Invalid physical address in GAR [0x%llx/%u/%u/%u/%u]\n",
--			   *paddr, bit_width, bit_offset, access_size_code,
--			   space_id);
-+			*paddr, bit_width, bit_offset, access_size_code,
-+			space_id);
- 		return -EINVAL;
- 	}
- 
- 	if (access_size_code < 1 || access_size_code > 4) {
--		pr_warning(FW_BUG APEI_PFX
-+		pr_warn(FW_BUG APEI_PFX
- 			   "Invalid access size code in GAR [0x%llx/%u/%u/%u/%u]\n",
--			   *paddr, bit_width, bit_offset, access_size_code,
--			   space_id);
-+			*paddr, bit_width, bit_offset, access_size_code,
-+			space_id);
- 		return -EINVAL;
- 	}
- 	*access_bit_width = 1UL << (access_size_code + 2);
-@@ -612,19 +612,19 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
- 		*access_bit_width = 64;
- 
- 	if ((bit_width + bit_offset) > *access_bit_width) {
--		pr_warning(FW_BUG APEI_PFX
-+		pr_warn(FW_BUG APEI_PFX
- 			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
--			   *paddr, bit_width, bit_offset, access_size_code,
--			   space_id);
-+			*paddr, bit_width, bit_offset, access_size_code,
-+			space_id);
- 		return -EINVAL;
- 	}
- 
- 	if (space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
- 	    space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
--		pr_warning(FW_BUG APEI_PFX
-+		pr_warn(FW_BUG APEI_PFX
- 			   "Invalid address space type in GAR [0x%llx/%u/%u/%u/%u]\n",
--			   *paddr, bit_width, bit_offset, access_size_code,
--			   space_id);
-+			*paddr, bit_width, bit_offset, access_size_code,
-+			space_id);
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index ec50c32ea3da..730a594483f4 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -180,7 +180,7 @@ static int einj_get_available_error_type(u32 *type)
- static int einj_timedout(u64 *t)
- {
- 	if ((s64)*t < SPIN_UNIT) {
--		pr_warning(FW_WARN "Firmware does not respond in time\n");
-+		pr_warn(FW_WARN "Firmware does not respond in time\n");
- 		return 1;
- 	}
- 	*t -= SPIN_UNIT;
-@@ -320,7 +320,7 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
- 	}
- 	rc = einj_check_trigger_header(trigger_tab);
- 	if (rc) {
--		pr_warning(FW_BUG "Invalid trigger error action table.\n");
-+		pr_warn(FW_BUG "Invalid trigger error action table.\n");
- 		goto out_rel_header;
- 	}
- 
-diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
-index 6330f557a2c8..795db6a8ddaf 100644
---- a/drivers/acpi/apei/erst-dbg.c
-+++ b/drivers/acpi/apei/erst-dbg.c
-@@ -126,9 +126,9 @@ static ssize_t erst_dbg_read(struct file *filp, char __user *ubuf,
- 	if (rc < 0)
- 		goto out;
- 	if (len > ERST_DBG_RECORD_LEN_MAX) {
--		pr_warning(ERST_DBG_PFX
-+		pr_warn(ERST_DBG_PFX
- 			   "Record (ID: 0x%llx) length is too long: %zd\n",
--			   id, len);
-+			id, len);
- 		rc = -EIO;
- 		goto out;
- 	}
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index e53bef6cf53c..e86b0029b5a1 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -254,10 +254,9 @@ static struct ghes *ghes_new(struct acpi_hest_generic *generic)
- 		goto err_free;
- 	error_block_length = generic->error_block_length;
- 	if (error_block_length > GHES_ESTATUS_MAX_SIZE) {
--		pr_warning(FW_WARN GHES_PFX
--			   "Error status block length is too long: %u for "
--			   "generic hardware error source: %d.\n",
--			   error_block_length, generic->header.source_id);
-+		pr_warn(FW_WARN GHES_PFX
-+			   "Error status block length is too long: %u for generic hardware error source: %d.\n",
-+			error_block_length, generic->header.source_id);
- 		error_block_length = GHES_ESTATUS_MAX_SIZE;
- 	}
- 	ghes->estatus = kmalloc(error_block_length, GFP_KERNEL);
-@@ -345,9 +344,9 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
- 	rc = apei_read(&buf_paddr, &g->error_status_address);
- 	if (rc) {
- 		if (!silent && printk_ratelimit())
--			pr_warning(FW_WARN GHES_PFX
-+			pr_warn(FW_WARN GHES_PFX
- "Failed to read error status block address for hardware error source: %d.\n",
--				   g->header.source_id);
-+				g->header.source_id);
- 		return -EIO;
- 	}
- 	if (!buf_paddr)
-@@ -378,7 +377,7 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
- 
- err_read_block:
- 	if (rc && !silent && printk_ratelimit())
--		pr_warning(FW_WARN GHES_PFX
-+		pr_warn(FW_WARN GHES_PFX
- 			   "Failed to read error status block!\n");
- 	return rc;
- }
-@@ -671,8 +670,8 @@ static void ghes_add_timer(struct ghes *ghes)
- 	unsigned long expire;
- 
- 	if (!g->notify.poll_interval) {
--		pr_warning(FW_WARN GHES_PFX "Poll interval is 0 for generic hardware error source: %d, disabled.\n",
--			   g->header.source_id);
-+		pr_warn(FW_WARN GHES_PFX "Poll interval is 0 for generic hardware error source: %d, disabled.\n",
-+			g->header.source_id);
- 		return;
- 	}
- 	expire = jiffies + msecs_to_jiffies(g->notify.poll_interval);
-@@ -974,21 +973,20 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 		}
- 		break;
- 	case ACPI_HEST_NOTIFY_LOCAL:
--		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
--			   generic->header.source_id);
-+		pr_warn(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
-+			generic->header.source_id);
- 		goto err;
- 	default:
--		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
--			   generic->notify.type, generic->header.source_id);
-+		pr_warn(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
-+			generic->notify.type, generic->header.source_id);
- 		goto err;
- 	}
- 
- 	rc = -EIO;
- 	if (generic->error_block_length <
- 	    sizeof(struct acpi_hest_generic_status)) {
--		pr_warning(FW_BUG GHES_PFX "Invalid error block length: %u for generic hardware error source: %d\n",
--			   generic->error_block_length,
--			   generic->header.source_id);
-+		pr_warn(FW_BUG GHES_PFX "Invalid error block length: %u for generic hardware error source: %d\n",
-+			generic->error_block_length, generic->header.source_id);
- 		goto err;
- 	}
- 	ghes = ghes_new(generic);
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index 8f2a98e23bba..107ca7a32c13 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -92,15 +92,15 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
- 	for (i = 0; i < hest_tab->error_source_count; i++) {
- 		len = hest_esrc_len(hest_hdr);
- 		if (!len) {
--			pr_warning(FW_WARN HEST_PFX
-+			pr_warn(FW_WARN HEST_PFX
- 				   "Unknown or unused hardware error source "
- 				   "type: %d for hardware error source: %d.\n",
--				   hest_hdr->type, hest_hdr->source_id);
-+				hest_hdr->type, hest_hdr->source_id);
- 			return -EINVAL;
- 		}
- 		if ((void *)hest_hdr + len >
- 		    (void *)hest_tab + hest_tab->header.length) {
--			pr_warning(FW_BUG HEST_PFX
-+			pr_warn(FW_BUG HEST_PFX
- 		"Table contents overflow for hardware error source: %d.\n",
- 				hest_hdr->source_id);
- 			return -EINVAL;
-@@ -162,8 +162,8 @@ static int __init hest_parse_ghes(struct acpi_hest_header *hest_hdr, void *data)
- 		ghes_dev = ghes_arr->ghes_devs[i];
- 		hdr = *(struct acpi_hest_header **)ghes_dev->dev.platform_data;
- 		if (hdr->source_id == hest_hdr->source_id) {
--			pr_warning(FW_WARN HEST_PFX "Duplicated hardware error source ID: %d.\n",
--				   hdr->source_id);
-+			pr_warn(FW_WARN HEST_PFX "Duplicated hardware error source ID: %d.\n",
-+				hdr->source_id);
- 			return -EIO;
- 		}
- 	}
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index cd4c4271dc4c..0f490ff21121 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -420,8 +420,8 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
- 		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
- 
- 		if (triggering != trig || polarity != pol) {
--			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
--				   t ? "level" : "edge", p ? "low" : "high");
-+			pr_warn("ACPI: IRQ %d override to %s, %s\n",
-+				gsi, t ? "level" : "edge", p ? "low" : "high");
- 			triggering = trig;
- 			polarity = pol;
- 		}
--- 
-2.10.0.rc2.1.g053435c
+VGhlcmUgYXJlIH40MzAwIHVzZXMgb2YgcHJfd2FybiBhbmQgfjI1MCB1c2VzIG9mIHRoZSBvbGRl
+cgpwcl93YXJuaW5nIGluIHRoZSBrZXJuZWwgc291cmNlIHRyZWUuCgpNYWtlIHRoZSB1c2Ugb2Yg
+cHJfd2FybiBjb25zaXN0ZW50IGFjcm9zcyBhbGwga2VybmVsIGZpbGVzLgoKVGhpcyBleGNsdWRl
+cyBhbGwgZmlsZXMgaW4gdG9vbHMvIGFzIHRoZXJlIGlzIGEgc2VwYXJhdGUKZGVmaW5lIHByX3dh
+cm5pbmcgZm9yIHRoYXQgZGlyZWN0b3J5IHRyZWUgYW5kIHByX3dhcm4gaXMKbm90IHVzZWQgaW4g
+dG9vbHMvLgoKRG9uZSB3aXRoICdzZWQgcy9cYnByX3dhcm5pbmdcYi9wcl93YXJuLycgYW5kIHNv
+bWUgZW1hY3NpbmcuCgpNaXNjZWxsYW5lYToKCm8gQ29hbGVzY2UgZm9ybWF0cyBhbmQgcmVhbGln
+biBhcmd1bWVudHMKClNvbWUgZmlsZXMgbm90IGNvbXBpbGVkIC0gbm8gY3Jvc3MtY29tcGlsZXJz
+CgpKb2UgUGVyY2hlcyAoMzUpOgogIGFscGhhOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHBy
+X3dhcm5pbmcgdG8gcHJfd2FybgogIEFSTTogZXA5M3h4OiBDb252ZXJ0IHJlbWFpbmluZyB1c2Vz
+IG9mIHByX3dhcm5pbmcgdG8gcHJfd2FybgogIGFybTY0OiBDb252ZXJ0IHJlbWFpbmluZyB1c2Vz
+IG9mIHByX3dhcm5pbmcgdG8gcHJfd2FybgogIGFyY2gvYmxhY2tmaW46IENvbnZlcnQgcmVtYWlu
+aW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgaWE2NDogQ29udmVydCByZW1haW5p
+bmcgdXNlIG9mIHByX3dhcm5pbmcgdG8gcHJfd2FybgogIHBvd2VycGM6IENvbnZlcnQgcmVtYWlu
+aW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgc2g6IENvbnZlcnQgcmVtYWluaW5n
+IHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgc3BhcmM6IENvbnZlcnQgcmVtYWluaW5n
+IHVzZSBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KICB4ODY6IENvbnZlcnQgcmVtYWluaW5nIHVz
+ZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJpdmVycy9hY3BpOiBDb252ZXJ0IHJlbWFp
+bmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJfd2FybgogIGJsb2NrL2RyYmQ6IENvbnZlcnQg
+cmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZ2Ryb206IENvbnZlcnQg
+cmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJpdmVycy9jaGFyOiBD
+b252ZXJ0IHJlbWFpbmluZyB1c2Ugb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgY2xvY2tzb3Vy
+Y2U6IENvbnZlcnQgcmVtYWluaW5nIHVzZSBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KICBkcml2
+ZXJzL2NyeXB0bzogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRvIHByX3dh
+cm4KICBmbWM6IENvbnZlcnQgcmVtYWluaW5nIHVzZSBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4K
+ICBkcml2ZXJzL2dwdTogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRvIHBy
+X3dhcm4KICBkcml2ZXJzL2lkZTogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5n
+IHRvIHByX3dhcm4KICBkcml2ZXJzL2lucHV0OiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHBy
+X3dhcm5pbmcgdG8gcHJfd2FybgogIGRyaXZlcnMvaXNkbjogQ29udmVydCByZW1haW5pbmcgdXNl
+cyBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KICBkcml2ZXJzL21hY2ludG9zaDogQ29udmVydCBy
+ZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KICBkcml2ZXJzL21lZGlhOiBD
+b252ZXJ0IHJlbWFpbmluZyB1c2Ugb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJpdmVycy9t
+ZmQ6IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJp
+dmVycy9tdGQ6IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJu
+CiAgZHJpdmVycy9vZjogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRvIHBy
+X3dhcm4KICBkcml2ZXJzL29wcm9maWxlOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dh
+cm5pbmcgdG8gcHJfd2FybgogIGRyaXZlcnMvcGxhdGZvcm06IENvbnZlcnQgcmVtYWluaW5nIHVz
+ZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJpdmVycy9yYXBpZGlvOiBDb252ZXJ0IHJl
+bWFpbmluZyB1c2Ugb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJpdmVycy9zY3NpOiBDb252
+ZXJ0IHJlbWFpbmluZyB1c2Ugb2YgcHJfd2FybmluZyB0byBwcl93YXJuCiAgZHJpdmVycy9zaDog
+Q29udmVydCByZW1haW5pbmcgdXNlIG9mIHByX3dhcm5pbmcgdG8gcHJfd2FybgogIGRyaXZlcnMv
+dHR5OiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJfd2FybgogIGRy
+aXZlcnMvdmlkZW86IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93
+YXJuCiAga2VybmVsL3RyYWNlOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcg
+dG8gcHJfd2FybgogIGxpYjogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRv
+IHByX3dhcm4KICBzb3VuZC9zb2M6IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2Fybmlu
+ZyB0byBwcl93YXJuCgogYXJjaC9hbHBoYS9rZXJuZWwvcGVyZl9ldmVudC5jICAgICAgICAgICAg
+ICAgICAgICAgfCAgNCArLQogYXJjaC9hcm0vbWFjaC1lcDkzeHgvY29yZS5jICAgICAgICAgICAg
+ICAgICAgICAgICAgfCAgNCArLQogYXJjaC9hcm02NC9pbmNsdWRlL2FzbS9zeXNjYWxsLmggICAg
+ICAgICAgICAgICAgICAgfCAgOCArKy0tCiBhcmNoL2FybTY0L2tlcm5lbC9od19icmVha3BvaW50
+LmMgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0KIGFyY2gvYXJtNjQva2VybmVsL3NtcC5jICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0KIGFyY2gvYmxhY2tmaW4va2VybmVsL25t
+aS5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvYmxhY2tmaW4va2VybmVs
+L3B0cmFjZS5jICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvYmxhY2tmaW4vbWFj
+aC1iZjUzMy9ib2FyZHMvc3RhbXAuYyAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvYmxhY2tmaW4v
+bWFjaC1iZjUzNy9ib2FyZHMvY21fYmY1MzdlLmMgICAgICAgIHwgIDIgKy0KIGFyY2gvYmxhY2tm
+aW4vbWFjaC1iZjUzNy9ib2FyZHMvY21fYmY1Mzd1LmMgICAgICAgIHwgIDIgKy0KIGFyY2gvYmxh
+Y2tmaW4vbWFjaC1iZjUzNy9ib2FyZHMvc3RhbXAuYyAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gv
+YmxhY2tmaW4vbWFjaC1iZjUzNy9ib2FyZHMvdGNtX2JmNTM3LmMgICAgICAgIHwgIDIgKy0KIGFy
+Y2gvYmxhY2tmaW4vbWFjaC1iZjU2MS9ib2FyZHMvY21fYmY1NjEuYyAgICAgICAgIHwgIDIgKy0K
+IGFyY2gvYmxhY2tmaW4vbWFjaC1iZjU2MS9ib2FyZHMvZXpraXQuYyAgICAgICAgICAgIHwgIDIg
+Ky0KIGFyY2gvYmxhY2tmaW4vbW0vaXNyYW0tZHJpdmVyLmMgICAgICAgICAgICAgICAgICAgIHwg
+IDQgKy0KIGFyY2gvaWE2NC9rZXJuZWwvc2V0dXAuYyAgICAgICAgICAgICAgICAgICAgICAgICAg
+IHwgIDYgKy0tCiBhcmNoL3Bvd2VycGMva2VybmVsL3BjaS1jb21tb24uYyAgICAgICAgICAgICAg
+ICAgICB8ICA0ICstCiBhcmNoL3Bvd2VycGMvbW0vaW5pdF82NC5jICAgICAgICAgICAgICAgICAg
+ICAgICAgICB8ICA1ICstLQogYXJjaC9wb3dlcnBjL21tL21lbS5jICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgfCAgMyArLQogYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy81MTJ4L21wYzUxMnhf
+c2hhcmVkLmMgICAgICAgfCAgNCArLQogYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy84NXh4L3NvY3Jh
+dGVzX2ZwZ2FfcGljLmMgICAgfCAgNyArKy0tCiBhcmNoL3Bvd2VycGMvcGxhdGZvcm1zLzg2eHgv
+bXBjODZ4eF9ocGNuLmMgICAgICAgICB8ICAyICstCiBhcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bh
+c2VtaS9kbWFfbGliLmMgICAgICAgICAgICB8ICA0ICstCiBhcmNoL3Bvd2VycGMvcGxhdGZvcm1z
+L3Bvd2VybnYvb3BhbC5jICAgICAgICAgICAgICB8ICA4ICsrLS0KIGFyY2gvcG93ZXJwYy9wbGF0
+Zm9ybXMvcG93ZXJudi9wY2ktaW9kYS5jICAgICAgICAgIHwgMTAgKystLS0KIGFyY2gvcG93ZXJw
+Yy9wbGF0Zm9ybXMvcHMzL2RldmljZS1pbml0LmMgICAgICAgICAgIHwgMTQgKysrLS0tLQogYXJj
+aC9wb3dlcnBjL3BsYXRmb3Jtcy9wczMvbW0uYyAgICAgICAgICAgICAgICAgICAgfCAgNCArLQog
+YXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wczMvb3MtYXJlYS5jICAgICAgICAgICAgICAgfCAgMiAr
+LQogYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wc2VyaWVzL2lvbW11LmMgICAgICAgICAgICAgfCAg
+OCArKy0tCiBhcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3BzZXJpZXMvc2V0dXAuYyAgICAgICAgICAg
+ICB8ICA0ICstCiBhcmNoL3Bvd2VycGMvc3lzZGV2L2ZzbF9wY2kuYyAgICAgICAgICAgICAgICAg
+ICAgICB8ICA5ICsrLS0tCiBhcmNoL3Bvd2VycGMvc3lzZGV2L21waWMuYyAgICAgICAgICAgICAg
+ICAgICAgICAgICB8IDEwICsrLS0tCiBhcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3MvaWNwLW5hdGl2
+ZS5jICAgICAgICAgICAgICB8IDEwICsrLS0tCiBhcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3MvaWNz
+LW9wYWwuYyAgICAgICAgICAgICAgICB8ICA0ICstCiBhcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3Mv
+aWNzLXJ0YXMuYyAgICAgICAgICAgICAgICB8ICA0ICstCiBhcmNoL3Bvd2VycGMvc3lzZGV2L3hp
+Y3MveGljcy1jb21tb24uYyAgICAgICAgICAgICB8ICA4ICsrLS0KIGFyY2gvc2gvYm9hcmRzL21h
+Y2gtc2RrNzc4Ni9ubWkuYyAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvc2gvZHJpdmVy
+cy9wY2kvZml4dXBzLXNkazc3ODYuYyAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvc2gva2Vy
+bmVsL2lvX3RyYXBwZWQuYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvc2gv
+a2VybmVsL3NldHVwLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gv
+c2gvbW0vY29uc2lzdGVudC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDUgKy0tCiBh
+cmNoL3NwYXJjL2tlcm5lbC9zbXBfNjQuYyAgICAgICAgICAgICAgICAgICAgICAgICB8ICA1ICst
+LQogYXJjaC94ODYva2VybmVsL2FtZF9nYXJ0XzY0LmMgICAgICAgICAgICAgICAgICAgICAgfCAx
+MiArKy0tLS0KIGFyY2gveDg2L2tlcm5lbC9hcGljL2FwaWMuYyAgICAgICAgICAgICAgICAgICAg
+ICAgIHwgNDYgKysrKysrKysrKy0tLS0tLS0tLS0tLQogYXJjaC94ODYva2VybmVsL2FwaWMvYXBp
+Y19ub29wLmMgICAgICAgICAgICAgICAgICAgfCAgMiArLQogYXJjaC94ODYva2VybmVsL3NldHVw
+X3BlcmNwdS5jICAgICAgICAgICAgICAgICAgICAgfCAgNCArLQogYXJjaC94ODYva2VybmVsL3Ri
+b290LmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxNSArKysrLS0tCiBhcmNoL3g4Ni9r
+ZXJuZWwvdHNjX3N5bmMuYyAgICAgICAgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0KIGFyY2gv
+eDg2L21tL2ttbWlvLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDggKystLQog
+YXJjaC94ODYvbW0vbW1pby1tb2QuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgNSAr
+LS0KIGFyY2gveDg2L21tL251bWEuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwg
+MTIgKysrLS0tCiBhcmNoL3g4Ni9tbS9udW1hX2VtdWxhdGlvbi5jICAgICAgICAgICAgICAgICAg
+ICAgICB8ICA2ICstLQogYXJjaC94ODYvbW0vdGVzdG1taW90cmFjZS5jICAgICAgICAgICAgICAg
+ICAgICAgICAgfCAgNSArLS0KIGFyY2gveDg2L29wcm9maWxlL29wX3g4Nl9tb2RlbC5oICAgICAg
+ICAgICAgICAgICAgIHwgIDYgKy0tCiBhcmNoL3g4Ni9wbGF0Zm9ybS9vbHBjL29scGMteG8xNS1z
+Y2kuYyAgICAgICAgICAgICB8ICAyICstCiBhcmNoL3g4Ni9wbGF0Zm9ybS9zZmkvc2ZpLmMgICAg
+ICAgICAgICAgICAgICAgICAgICB8ICAzICstCiBhcmNoL3g4Ni94ZW4vZGVidWdmcy5jICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICB8ICAyICstCiBhcmNoL3g4Ni94ZW4vc2V0dXAuYyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAyICstCiBkcml2ZXJzL2FjcGkvYXBlaS9hcGVp
+LWJhc2UuYyAgICAgICAgICAgICAgICAgICAgICB8IDMyICsrKysrKystLS0tLS0tLQogZHJpdmVy
+cy9hY3BpL2FwZWkvZWluai5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgNCArLQogZHJp
+dmVycy9hY3BpL2FwZWkvZXJzdC1kYmcuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgNCArLQog
+ZHJpdmVycy9hY3BpL2FwZWkvZ2hlcy5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAzMCAr
+KysrKysrLS0tLS0tLQogZHJpdmVycy9hY3BpL2FwZWkvaGVzdC5jICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgfCAxMCArKy0tLQogZHJpdmVycy9hY3BpL3Jlc291cmNlLmMgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgfCAgNCArLQogZHJpdmVycy9ibG9jay9kcmJkL2RyYmRfbmwuYyAgICAg
+ICAgICAgICAgICAgICAgICAgfCAxMyArKystLS0KIGRyaXZlcnMvY2Ryb20vZ2Ryb20uYyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0KIGRyaXZlcnMvY2hhci92aXJ0aW9fY29u
+c29sZS5jICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGRyaXZlcnMvY2xvY2tzb3VyY2Uv
+c2Ftc3VuZ19wd21fdGltZXIuYyAgICAgICAgICAgIHwgIDQgKy0KIGRyaXZlcnMvY3J5cHRvL24y
+X2NvcmUuYyAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTIgKysrLS0tCiBkcml2ZXJzL2Zt
+Yy9mbWMtZmFrZWRldi5jICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAyICstCiBkcml2ZXJz
+L2dwdS9kcm0vYW1kL3Bvd2VycGxheS9od21nci9zbXU3X2h3bWdyLmMgICB8ICAyICstCiBkcml2
+ZXJzL2dwdS9kcm0vYW1kL3Bvd2VycGxheS9pbmMvcHBfZGVidWcuaCAgICAgICB8ICAyICstCiBk
+cml2ZXJzL2dwdS9kcm0vYW1kL3Bvd2VycGxheS9zbXVtZ3IvZmlqaV9zbWMuYyAgICB8ICA0ICst
+CiBkcml2ZXJzL2dwdS9kcm0vYW1kL3Bvd2VycGxheS9zbXVtZ3IvaWNlbGFuZF9zbWMuYyB8IDE0
+ICsrKy0tLS0KIC4uLi9ncHUvZHJtL2FtZC9wb3dlcnBsYXkvc211bWdyL3BvbGFyaXMxMF9zbWMu
+YyAgIHwgIDQgKy0KIGRyaXZlcnMvZ3B1L2RybS9hbWQvcG93ZXJwbGF5L3NtdW1nci90b25nYV9z
+bWMuYyAgIHwgIDQgKy0KIGRyaXZlcnMvaWRlL3R4NDkzOGlkZS5jICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHwgIDIgKy0KIGRyaXZlcnMvaWRlL3R4NDkzOWlkZS5jICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIHwgIDUgKy0tCiBkcml2ZXJzL2lucHV0L2dhbWVwb3J0L2dhbWVwb3J0LmMg
+ICAgICAgICAgICAgICAgICB8ICA0ICstCiBkcml2ZXJzL2lucHV0L2pveXN0aWNrL2dhbWVjb24u
+YyAgICAgICAgICAgICAgICAgICB8ICAzICstCiBkcml2ZXJzL2lucHV0L21pc2MvYXBhbmVsLmMg
+ICAgICAgICAgICAgICAgICAgICAgICB8ICAzICstCiBkcml2ZXJzL2lucHV0L21pc2MveGVuLWti
+ZGZyb250LmMgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0KIGRyaXZlcnMvaW5wdXQvc2VyaW8v
+c2VyaW8uYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDggKystLQogZHJpdmVycy9pc2RuL2dp
+Z2FzZXQvaW50ZXJmYWNlLmMgICAgICAgICAgICAgICAgICAgfCAgMiArLQogZHJpdmVycy9pc2Ru
+L2hhcmR3YXJlL21JU0ROL2F2bWZyaXR6LmMgICAgICAgICAgICAgfCAxNyArKysrLS0tLQogZHJp
+dmVycy9pc2RuL2hhcmR3YXJlL21JU0ROL2hmY211bHRpLmMgICAgICAgICAgICAgfCAgOCArKy0t
+CiBkcml2ZXJzL2lzZG4vaGFyZHdhcmUvbUlTRE4vaGZjcGNpLmMgICAgICAgICAgICAgICB8ICA0
+ICstCiBkcml2ZXJzL2lzZG4vaGFyZHdhcmUvbUlTRE4vaGZjc3VzYi5jICAgICAgICAgICAgICB8
+ICA0ICstCiBkcml2ZXJzL2lzZG4vaGFyZHdhcmUvbUlTRE4vbUlTRE5pcGFjLmMgICAgICAgICAg
+ICB8ICA0ICstCiBkcml2ZXJzL2lzZG4vaGFyZHdhcmUvbUlTRE4vbUlTRE5pc2FyLmMgICAgICAg
+ICAgICB8IDEwICsrLS0tCiBkcml2ZXJzL2lzZG4vaGFyZHdhcmUvbUlTRE4vbmV0amV0LmMgICAg
+ICAgICAgICAgICB8ICA4ICsrLS0KIGRyaXZlcnMvaXNkbi9oYXJkd2FyZS9tSVNETi93NjY5Mi5j
+ICAgICAgICAgICAgICAgIHwgMTIgKysrLS0tCiBkcml2ZXJzL2lzZG4vbUlTRE4vaHdjaGFubmVs
+LmMgICAgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0KIGRyaXZlcnMvbWFjaW50b3NoL3dpbmRm
+YXJtX2ZjdV9jb250cm9scy5jICAgICAgICAgIHwgIDUgKy0tCiBkcml2ZXJzL21hY2ludG9zaC93
+aW5kZmFybV9sbTg3X3NlbnNvci5jICAgICAgICAgICB8ICA0ICstCiBkcml2ZXJzL21hY2ludG9z
+aC93aW5kZmFybV9wbTcyLmMgICAgICAgICAgICAgICAgICB8IDIyICsrKysrLS0tLS0tCiBkcml2
+ZXJzL21hY2ludG9zaC93aW5kZmFybV9ybTMxLmMgICAgICAgICAgICAgICAgICB8ICA2ICstLQog
+ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zaF92b3UuYyAgICAgICAgICAgICAgICAgICAgfCAgNCAr
+LQogZHJpdmVycy9tZmQvZGI4NTAwLXByY211LmMgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
+MiArLQogZHJpdmVycy9tZmQvc3RhMngxMS1tZmQuYyAgICAgICAgICAgICAgICAgICAgICAgICAg
+fCAgNCArLQogZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jICAgICAgICAgICAgICAgICAgICAg
+ICAgfCAgNyArLS0tCiBkcml2ZXJzL210ZC9jaGlwcy9jZmlfY21kc2V0XzAwMDIuYyAgICAgICAg
+ICAgICAgICB8IDEyICsrKystLQogZHJpdmVycy9tdGQvbmFuZC9jbXgyNzBfbmFuZC5jICAgICAg
+ICAgICAgICAgICAgICAgfCAgNCArLQogZHJpdmVycy9tdGQvb2ZwYXJ0LmMgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgfCAgNCArLQogZHJpdmVycy9vZi9mZHQuYyAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgfCAyMCArKysrKy0tLS0tCiBkcml2ZXJzL29wcm9maWxlL29w
+cm9maWxlX3BlcmYuYyAgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0KIGRyaXZlcnMvcGxhdGZv
+cm0veDg2L2FzdXMtbGFwdG9wLmMgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGRyaXZlcnMvcGxh
+dGZvcm0veDg2L2VlZXBjLWxhcHRvcC5jICAgICAgICAgICAgICAgIHwgIDIgKy0KIGRyaXZlcnMv
+cGxhdGZvcm0veDg2L2ludGVsX29ha3RyYWlsLmMgICAgICAgICAgICAgIHwgMTAgKystLS0KIGRy
+aXZlcnMvcmFwaWRpby9yaW8tc3lzZnMuYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0K
+IGRyaXZlcnMvc2NzaS9hMzAwMC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIg
+Ky0KIGRyaXZlcnMvc2gvaW50Yy9jb3JlLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwg
+IDQgKy0KIGRyaXZlcnMvdHR5L2h2Yy9odmNzLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IHwgIDIgKy0KIGRyaXZlcnMvdHR5L3R0eV9pby5jICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIHwgIDQgKy0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvYXR5L3JhZGVvbl9iYXNlLmMgICAgICAg
+ICAgICAgIHwgIDQgKy0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvY29yZS9mYm1vbi5jICAgICAgICAg
+ICAgICAgICAgIHwgIDQgKy0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvcHhhZmIuYyAgICAgICAgICAg
+ICAgICAgICAgICAgIHwgIDcgKystLQoga2VybmVsL3RyYWNlL3RyYWNlX2JlbmNobWFyay5jICAg
+ICAgICAgICAgICAgICAgICAgfCAgNCArLQogbGliL2NwdV9ybWFwLmMgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgfCAgMiArLQogbGliL2RtYS1kZWJ1Zy5jICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgMiArLQogc291bmQvc29jL2ZzbC9pbXgtYXVkbXV4
+LmMgICAgICAgICAgICAgICAgICAgICAgICAgfCAgNiArLS0KIHNvdW5kL3NvYy9zYW1zdW5nL3Mz
+Yy1pMnMtdjIuYyAgICAgICAgICAgICAgICAgICAgIHwgIDYgKy0tCiAxMjIgZmlsZXMgY2hhbmdl
+ZCwgMzY3IGluc2VydGlvbnMoKyksIDM5NyBkZWxldGlvbnMoLSkKCi0tIAoyLjEwLjAucmMyLjEu
+ZzA1MzQzNWMKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpYZW4tZGV2ZWwgbWFpbGluZyBsaXN0Clhlbi1kZXZlbEBsaXN0cy54ZW4ub3JnCmh0dHBzOi8v
+bGlzdHMueGVuLm9yZy94ZW4tZGV2ZWwK
