@@ -1,60 +1,89 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to
-	pr_warn
-Date: Fri, 17 Feb 2017 13:37:33 +0100
-Message-ID: <CAMuHMdWsG0DboaLqXag53Vejwvc5PPY2k2gy9PSdHWbNEx6nRQ@mail.gmail.com>
-References: <cover.1487314666.git.joe@perches.com>
-	<CAJZ5v0gNcGtnXpE1n6LSq7ey+UDKx+oQfmTg0_PgFwzB0Dd_5A@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH][RFC v4] ACPI throttling: Disable the MSR T-state if
+ enabled after resumed
+Date: Sat, 18 Feb 2017 10:02:07 +0100
+Message-ID: <20170218090207.GB8937@amd>
+References: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAJZ5v0gNcGtnXpE1n6LSq7ey+UDKx+oQfmTg0_PgFwzB0Dd_5A@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, nouveau@lists.freedesktop.org, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, dri-devel <dri-devel@lists.freedesktop.org>, virtualization@lists.linux-foundation.org, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, MTD Maling List <linux-mtd@lists.infradead.org>, sparclinux <sparclinux@vger.kernel.org>, Lars Ellenberg <drbd-dev@lists.linbit.com>, "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kernel.org>, Richard Weinberger <richard@nod.at>, sfi-devel@simplefirmware.org, amd-gfx@lists.freedesktop.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, tboot-devel@lists.sourceforge.net, oprofil
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="/NkBOFFp2J2Af1nK"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59656 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750850AbdBRJCK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Feb 2017 04:02:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 
-Hi Rafael,
 
-On Fri, Feb 17, 2017 at 1:27 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Fri, Feb 17, 2017 at 8:11 AM, Joe Perches <joe@perches.com> wrote:
->> There are ~4300 uses of pr_warn and ~250 uses of the older
->> pr_warning in the kernel source tree.
->>
->> Make the use of pr_warn consistent across all kernel files.
->>
->> This excludes all files in tools/ as there is a separate
->> define pr_warning for that directory tree and pr_warn is
->> not used in tools/.
->>
->> Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
->
-> Sorry about asking if that has been asked already.
->
-> Wouldn't it be slightly less intrusive to simply redefined
-> pr_warning() as a synonym for pr_warn()?
+--/NkBOFFp2J2Af1nK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That's already the case.
+On Fri 2017-02-17 16:27:30, Chen Yu wrote:
+> Previously a bug was reported that on certain Broadwell
+> platform, after resumed from S3, the CPU is running at
+> an anomalously low speed, due to the BIOS has enabled the
+> MSR throttling across S3. The solution to this was to introduce
+> a quirk framework to save/restore tstate MSR register around
+> suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
+> Introduce quirk framework to save/restore extra MSR
+> registers around suspend/resume").
+>=20
+> However there are still three problems left:
+> 1. More and more reports show that other platforms also
+>    encountered the same issue, so the quirk list might
+>    be endless.
+> 2. Each CPUs should take the save/restore operation into
+>    consideration, rather than the boot CPU alone.
+> 3. Normally ACPI T-state re-evaluation is done on resume,
+>    however there is no _TSS on the bogus platform, thus
+>    above re-evaluation code does not run on that machine.
+>=20
+> Solution:
+> This patch is based on the fact that, we generally should not
+> expect the system to come back from resume with throttling
+> enabled, but leverage the OS components to deal with it,
+> such as thermal event. So we simply clear the MSR T-state
+> and print the warning if it is found to be enabled after
+> resumed back. Besides, we can remove the quirk in previous patch
+> later.
 
-This series cleans up the cruft, so we can catch all users with
-"git grep -w pr_warn".
+What if the machine _is_ hot?=20
 
-Gr{oetje,eeting}s,
+> +static int acpi_throttling_init_ops(void)
+> +{
+> +	/*
+> +	 * Reevaluate on boot CPU. Since it is not always CPU0,
+> +	 * we can not invoke throttling_msr_reevaluate(0) directly.
+> +	 */
 
-                        Geert
+Boot cpu is not cpu#0? How can that be?
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Should we introduce generic framework to "fix" all the cpus? Actually,
+should this be done right on cpu hotplug?
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--/NkBOFFp2J2Af1nK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlioDY8ACgkQMOfwapXb+vK0zwCgmNYBCYnuyrmqRUuh/zOG2Zbk
+96IAn1V5osZHJNk91ZbdtZVUB2U0V05A
+=6NOW
+-----END PGP SIGNATURE-----
+
+--/NkBOFFp2J2Af1nK--
