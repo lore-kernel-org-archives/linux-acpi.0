@@ -1,104 +1,22 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 2/2] arch_timer: acpi: add hisi timer erratum data
-Date: Mon, 20 Feb 2017 19:00:55 +0000
-Message-ID: <6c3a2952-731b-dfae-ba22-f9d7df25d691@arm.com>
-References: <1485254391-51551-1-git-send-email-guohanjun@huawei.com>
- <1485254391-51551-3-git-send-email-guohanjun@huawei.com>
- <20170124105717.GB6277@leverpostej>
- <a2ac2a70-09fb-5cec-c090-b8ebde90e24f@arm.com> <589D6776.2010400@huawei.com>
+From: Viet Xuan Luong <pidsbbjp@ksp.gov.in>
+Subject: RE
+Date: Tue, 21 Feb 2017 02:03:58 +0530 (IST)
+Message-ID: <1421479680.482036.1487622838042.JavaMail.zimbra__36517.9837718189$1487624445$gmane$org@ksp.gov.in>
+Reply-To: Viet Xuan Luong <vietxuanluong204@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52236 "EHLO foss.arm.com"
+Received: from mail.ksphc.org ([218.248.45.2]:56728 "EHLO mail.ksp.gov.in"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751100AbdBTTBB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Feb 2017 14:01:01 -0500
-In-Reply-To: <589D6776.2010400@huawei.com>
+        id S1751019AbdBTU7c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Feb 2017 15:59:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Fu Wei <fu.wei@linaro.org>, Ding Tianhong <dingtianhong@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, Alexander Graf <agraf@suse.de>, mbrugger@suse.com, yousaf.kaukab@suse.com, sanil.kumar@huawei.com
 
-On 10/02/17 07:10, Hanjun Guo wrote:
-> Hi Marc,
-> 
-> On 2017/1/24 19:32, Marc Zyngier wrote:
->> On 24/01/17 10:57, Mark Rutland wrote:
->>> On Tue, Jan 24, 2017 at 06:39:51PM +0800, Hanjun Guo wrote:
->>>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>>
->>>> Add hisilicon timer specific erratum fixes.
->>>>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> ---
->>>>  drivers/clocksource/arm_arch_timer.c | 22 ++++++++++++++++++++++
->>>>  1 file changed, 22 insertions(+)
->>>>
->>>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
->>>> index 80d6f76..3e62a09 100644
->>>> --- a/drivers/clocksource/arm_arch_timer.c
->>>> +++ b/drivers/clocksource/arm_arch_timer.c
->>>> @@ -1156,10 +1156,32 @@ struct gtdt_arch_timer_fixup {
->>>>  	void *context;
->>>>  };
->>>>  
->>>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
->>>> +static void __init hisi_erratum_workaroud_enable(void *context)
->>>> +{
->>>> +	int i;
->>>> +
->>>> +	for (i = 0; i < ARRAY_SIZE(ool_workarounds); i++) {
->>>> +		if (!strcmp(context, ool_workarounds[i].id)) {
->>>> +			timer_unstable_counter_workaround = &ool_workarounds[i];
->>>> +			static_branch_enable(&arch_timer_read_ool_enabled);
->>>> +			pr_info("arch_timer: Enabling workaround for %s\n",
->>>> +				timer_unstable_counter_workaround->id);
->>>> +			break;
->>>> +		}
->>>> +	}
->>>> +}
->>>> +#endif
->>>> +
->>>>  /* note: this needs to be updated according to the doc of OEM ID
->>>>   * and TABLE ID for different board.
->>>>   */
->>>>  static struct gtdt_arch_timer_fixup arch_timer_quirks[] __initdata = {
->>>> +#ifdef CONFIG_HISILICON_ERRATUM_161010101
->>>> +	{"HISI  ", "HIP05   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
->>>> +	{"HISI  ", "HIP06   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
->>>> +	{"HISI  ", "HIP07   ", 0, &hisi_erratum_workaroud_enable, "hisilicon,erratum-161010101"},
->>>> +#endif
->>>>  };
->>> NAK. This duplicates logic unnecessarily (for enabling the workaround),
->>> and (ab)uses the id, which was intended to be specific to DT (since it
->>> is a DT property name).
->> Agreed, that's properly revolting.
->>
->>> We should split the matching from the particular workaround (and
->>> enabling thereof), so that we can go straight from ACPI match to
->>> workaround (without having to use the DT id in this manner), and don't
->>> have to duplicate the logic to enable the workaround.
->>>
->>> I believe Marc is looking at some rework in this area which may enable
->>> this, so please wait for that to appear.
->> Yeah, I'm implementing a semi-flexible way to add new quirk types, and
->> the last thing I want to see is two (or more) tables describing the same
->> thing.
-> 
-> Kindly ping, if you have patches in hand, I can test against our platforms,
-> thank you very much.
+I am Viet Xuan Luong. I am an American soldier presently on active  service with 4th Squadron battalion here in Afghanistan. I served with the third Infantry Division in Iraq before thousand of my lucky  colleagues were pulled out in August Last year, leaving me among the  unlucky ones drafted to Afghanistan where I am serving presently. Am  seeking your urgent help, please get back to me via email and I will  tell you more about it thank you and God bless you.
 
-I've just pushed out a branch based on arm64/for-next/core, plus the
-HiSi timer workaround:
 
-https://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git/log/?h=timers/errata-rework
-
-I'll post the patches for review once the merge window is open, but
-hopefully that should get you going.
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Respectfully submitted.
+vietxuanluong204@gmail.com
+Viet Xuan Luong
