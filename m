@@ -1,39 +1,79 @@
-From: "Huang\, Ying" <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI, APEI: Fix BERT resources conflict with ACPI NVS area
-Date: Mon, 20 Feb 2017 08:56:12 +0800
-Message-ID: <87h93pvfwz.fsf@yhuang-dev.intel.com>
-References: <20170214020143.29713-1-ying.huang@intel.com>
-        <4305135.N5b65JQej5@aspire.rjw.lan>
-        <20170216095230.ecbb6hfqmcpk3jbw@pd.tnic>
-        <87fujea0wo.fsf@yhuang-dev.intel.com>
-        <20170216103215.ppo2oe7byql5r6ve@pd.tnic>
-        <8737fdaca7.fsf@yhuang-dev.intel.com>
-        <20170217100202.xi5x4lqdk6gqtfd5@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ascii
+From: "Huang, Ying" <ying.huang@intel.com>
+Subject: [PATCH -v2] ACPI, APEI: Fix BERT resources conflict with ACPI NVS area
+Date: Mon, 20 Feb 2017 09:12:58 +0800
+Message-ID: <20170220011343.6736-1-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36856 "EHLO mga01.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:25783 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751307AbdBTA5A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 19 Feb 2017 19:57:00 -0500
-In-Reply-To: <20170217100202.xi5x4lqdk6gqtfd5@pd.tnic> (Borislav Petkov's
-        message of "Fri, 17 Feb 2017 11:02:02 +0100")
+        id S1751307AbdBTBOE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 19 Feb 2017 20:14:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: "Huang, Ying" <ying.huang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tony Luck <tony.luck@intel.com>, Fu Wei <fu.wei@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@suse.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Borislav Petkov <bp@suse.de> writes:
+From: Huang Ying <ying.huang@intel.com>
 
-> On Fri, Feb 17, 2017 at 08:31:12AM +0800, Huang, Ying wrote:
->> I am not sure whether the NVS area is a part of the BERT area, but
->> apparently they are overlapped in some way.  We will access the whole
->> BERT area here via ioremap the whole range.
->
-> This is the part that was missing from the commit message - explaining
-> *why* we need this fix.
+It was reported that on some machines, there is overlap between ACPI
+NVS area and BERT address range.  This appears reasonable because BERT
+contents need to be non-volatile across reboot.  But this will cause
+resources conflict in current Linux kernel implementation because the
+ACPI NVS area is marked as busy.  The resource conflict is fixed via
+excluding the ACPI NVS area when requesting IO resources for BERT.
+When accessing the BERT contents, the whole BERT address range will be
+ioremapped and accessed.
 
-OK.  I will revise the patch description accordingly.
+Reported-and-tested-by: Hans Kristian Rosbach <hansr@raskesider.no>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+---
+ drivers/acpi/apei/bert.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-Best Regards,
-Huang, Ying
+diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
+index a05b5c0cf181..12771fcf0417 100644
+--- a/drivers/acpi/apei/bert.c
++++ b/drivers/acpi/apei/bert.c
+@@ -97,6 +97,7 @@ static int __init bert_check_table(struct acpi_table_bert *bert_tab)
+ 
+ static int __init bert_init(void)
+ {
++	struct apei_resources bert_resources;
+ 	struct acpi_bert_region *boot_error_region;
+ 	struct acpi_table_bert *bert_tab;
+ 	unsigned int region_len;
+@@ -127,13 +128,14 @@ static int __init bert_init(void)
+ 	}
+ 
+ 	region_len = bert_tab->region_length;
+-	if (!request_mem_region(bert_tab->address, region_len, "APEI BERT")) {
+-		pr_err("Can't request iomem region <%016llx-%016llx>.\n",
+-		       (unsigned long long)bert_tab->address,
+-		       (unsigned long long)bert_tab->address + region_len - 1);
+-		return -EIO;
+-	}
+-
++	apei_resources_init(&bert_resources);
++	rc = apei_resources_add(&bert_resources, bert_tab->address,
++				region_len, true);
++	if (rc)
++		return rc;
++	rc = apei_resources_request(&bert_resources, "APEI BERT");
++	if (rc)
++		goto out_fini;
+ 	boot_error_region = ioremap_cache(bert_tab->address, region_len);
+ 	if (boot_error_region) {
+ 		bert_print_all(boot_error_region, region_len);
+@@ -142,7 +144,9 @@ static int __init bert_init(void)
+ 		rc = -ENOMEM;
+ 	}
+ 
+-	release_mem_region(bert_tab->address, region_len);
++	apei_resources_release(&bert_resources);
++out_fini:
++	apei_resources_fini(&bert_resources);
+ 
+ 	return rc;
+ }
+-- 
+2.11.0
+
