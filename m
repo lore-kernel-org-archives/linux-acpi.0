@@ -1,7 +1,7 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v2 4/4] acpi: Move the verification of duplicate proc_id from booting time to hot-plug time
-Date: Mon, 20 Feb 2017 16:47:51 +0800
-Message-ID: <1487580471-17665-5-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v2 3/4] acpi: Fix the check handle in case of declaring processors using the Device operator
+Date: Mon, 20 Feb 2017 16:47:50 +0800
+Message-ID: <1487580471-17665-4-git-send-email-douly.fnst@cn.fujitsu.com>
 References: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,76 +12,75 @@ To: mingo@kernel.org, tglx@linutronix.de, peterz@infradead.org, rjw@rjwysocki.ne
 Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-After we revert the the mapping of "cpuid <-> nodeid" fixed at the
-booting time. and do it at the hot-plug time. we should also do the
-verification of duplicate proc_id at the time.
+In ACPI spec, we can declare processors using both Processor and
+Device operator. And before we use the ACPI table, we should check
+the correctness for all processors in ACPI namespace.
 
-The patch rename the verfication function and move it to
-drivers/acpi::acpi_processor_get_info.
+But, Currently, the check handle is just include only the processors
+which are declared by Processor operator. It misses the processors
+declared by Device operator.
+
+The patch adds the case of Device operator.
 
 Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
 ---
- drivers/acpi/acpi_processor.c | 13 ++++++++++---
- include/linux/acpi.h          |  2 +-
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/acpi/acpi_processor.c | 32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index eb500e1..2483383 100644
+index f43a586..eb500e1 100644
 --- a/drivers/acpi/acpi_processor.c
 +++ b/drivers/acpi/acpi_processor.c
-@@ -280,6 +280,13 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 		pr->acpi_id = value;
- 	}
- 
-+	if(duplicate_processor_id(pr->acpi_id)) {
-+		dev_err(&device->dev,
-+			"Failed to get unique processor _UID (0x%x)\n",
-+			pr->acpi_id);
-+		return -ENODEV;
-+	}
-+
- 	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
- 					pr->acpi_id);
- 	if (invalid_phys_cpuid(pr->phys_id))
-@@ -580,7 +587,7 @@ static struct acpi_scan_handler processor_container_handler = {
- static int nr_unique_ids __initdata;
- 
- /* The number of the duplicate processor IDs */
--static int nr_duplicate_ids __initdata;
-+static int nr_duplicate_ids;
- 
- /* Used to store the unique processor IDs */
- static int unique_processor_ids[] __initdata = {
-@@ -588,7 +595,7 @@ static int unique_processor_ids[] __initdata = {
- };
- 
- /* Used to store the duplicate processor IDs */
--static int duplicate_processor_ids[] __initdata = {
-+static int duplicate_processor_ids[] = {
- 	[0 ... NR_CPUS - 1] = -1,
- };
- 
-@@ -672,7 +679,7 @@ void __init acpi_processor_check_duplicates(void)
- 						NULL, NULL);
- }
- 
--bool __init acpi_processor_validate_proc_id(int proc_id)
-+bool duplicate_processor_id(int proc_id)
+@@ -633,25 +633,43 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
+ 						  void **rv)
  {
- 	int i;
+ 	acpi_status status;
++	acpi_object_type acpi_type;
++	unsigned long long uid;
+ 	union acpi_object object = { 0 };
+ 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
  
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d180cbd..b692a70 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -287,7 +287,7 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+-	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
+-	if (ACPI_FAILURE(status))
+-		acpi_handle_info(handle, "Not get the processor object\n");
+-	else
+-		processor_validated_ids_update(object.processor.proc_id);
++	status = acpi_get_type(handle, &acpi_type);
++	switch (acpi_type) {
++	case ACPI_TYPE_PROCESSOR:
++		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			acpi_handle_info(handle, "Not get the processor object\n");
++		else
++			processor_validated_ids_update(
++						object.processor.proc_id);
++		break;
++	case ACPI_TYPE_DEVICE:
++		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
++		if (ACPI_FAILURE(status))
++			return false;
++		processor_validated_ids_update(uid);
++		break;
++	default:
++		return false;
++	}
+ 
+ 	return AE_OK;
  }
  
- /* Validate the processor object's proc_id */
--bool acpi_processor_validate_proc_id(int proc_id);
-+bool duplicate_processor_id(int proc_id);
+-static void __init acpi_processor_check_duplicates(void)
++void __init acpi_processor_check_duplicates(void)
+ {
+-	/* Search all processor nodes in ACPI namespace */
++	/* check the correctness for all processors in ACPI namespace */
+ 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+ 						ACPI_UINT32_MAX,
+ 						acpi_processor_ids_walk,
+ 						NULL, NULL, NULL);
++	acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID, acpi_processor_ids_walk,
++						NULL, NULL);
+ }
  
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
+ bool __init acpi_processor_validate_proc_id(int proc_id)
 -- 
 2.5.5
