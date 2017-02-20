@@ -1,86 +1,47 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v2 3/4] acpi: Fix the check handle in case of declaring processors using the Device operator
-Date: Mon, 20 Feb 2017 16:47:50 +0800
-Message-ID: <1487580471-17665-4-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH -v2] ACPI, APEI: Fix BERT resources conflict with ACPI
+ NVS area
+Date: Mon, 20 Feb 2017 10:44:19 +0100
+Message-ID: <20170220094419.j6effubsn7qct55q@pd.tnic>
+References: <20170220011343.6736-1-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@kernel.org, tglx@linutronix.de, peterz@infradead.org, rjw@rjwysocki.net, hpa@zytor.com, rafael@kernel.org, cl@linux.com, tj@kernel.org, akpm@linux-foundation.org, rafael.j.wysocki@intel.com, len.brown@intel.com, izumi.taku@jp.fujitsu.com, xiaolong.ye@intel.com
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:52716 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751072AbdBTJop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Feb 2017 04:44:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20170220011343.6736-1-ying.huang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Huang, Ying" <ying.huang@intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In ACPI spec, we can declare processors using both Processor and
-Device operator. And before we use the ACPI table, we should check
-the correctness for all processors in ACPI namespace.
+On Mon, Feb 20, 2017 at 09:12:58AM +0800, Huang, Ying wrote:
+> From: Huang Ying <ying.huang@intel.com>
+> 
+> It was reported that on some machines, there is overlap between ACPI
+> NVS area and BERT address range.  This appears reasonable because BERT
+> contents need to be non-volatile across reboot.  But this will cause
+> resources conflict in current Linux kernel implementation because the
+> ACPI NVS area is marked as busy.  The resource conflict is fixed via
+> excluding the ACPI NVS area when requesting IO resources for BERT.
+> When accessing the BERT contents, the whole BERT address range will be
+> ioremapped and accessed.
+> 
+> Reported-and-tested-by: Hans Kristian Rosbach <hansr@raskesider.no>
+> Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+> ---
+>  drivers/acpi/apei/bert.c | 20 ++++++++++++--------
+>  1 file changed, 12 insertions(+), 8 deletions(-)
 
-But, Currently, the check handle is just include only the processors
-which are declared by Processor operator. It misses the processors
-declared by Device operator.
+Acked-by: Borislav Petkov <bp@suse.de>
 
-The patch adds the case of Device operator.
-
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- drivers/acpi/acpi_processor.c | 32 +++++++++++++++++++++++++-------
- 1 file changed, 25 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index f43a586..eb500e1 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -633,25 +633,43 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
- 						  void **rv)
- {
- 	acpi_status status;
-+	acpi_object_type acpi_type;
-+	unsigned long long uid;
- 	union acpi_object object = { 0 };
- 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
- 
--	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
--	if (ACPI_FAILURE(status))
--		acpi_handle_info(handle, "Not get the processor object\n");
--	else
--		processor_validated_ids_update(object.processor.proc_id);
-+	status = acpi_get_type(handle, &acpi_type);
-+	switch (acpi_type) {
-+	case ACPI_TYPE_PROCESSOR:
-+		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			acpi_handle_info(handle, "Not get the processor object\n");
-+		else
-+			processor_validated_ids_update(
-+						object.processor.proc_id);
-+		break;
-+	case ACPI_TYPE_DEVICE:
-+		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		processor_validated_ids_update(uid);
-+		break;
-+	default:
-+		return false;
-+	}
- 
- 	return AE_OK;
- }
- 
--static void __init acpi_processor_check_duplicates(void)
-+void __init acpi_processor_check_duplicates(void)
- {
--	/* Search all processor nodes in ACPI namespace */
-+	/* check the correctness for all processors in ACPI namespace */
- 	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
- 						ACPI_UINT32_MAX,
- 						acpi_processor_ids_walk,
- 						NULL, NULL, NULL);
-+	acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID, acpi_processor_ids_walk,
-+						NULL, NULL);
- }
- 
- bool __init acpi_processor_validate_proc_id(int proc_id)
 -- 
-2.5.5
+Regards/Gruss,
+    Boris.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
