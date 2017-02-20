@@ -1,327 +1,362 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management updates for v4.11-rc1
-Date: Tue, 21 Feb 2017 00:39:05 +0100
-Message-ID: <CAJZ5v0iFCYqHeGD1MejBCsFAr3fd=8=e1BWrc0BsctHqCkXYCQ@mail.gmail.com>
+Subject: [GIT PULL] ACPI updates for v4.11-rc1
+Date: Tue, 21 Feb 2017 00:40:55 +0100
+Message-ID: <CAJZ5v0ioZdrsCWpBWZ_ZvZzGQUKLOAp2sp6WdMP1OEVFuKhR2Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:33946 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750826AbdBTXjH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Feb 2017 18:39:07 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Linus,
 
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-4.11-rc1
+ acpi-4.11-rc1
 
-with top-most commit eee77a8a0d268b936b1641fd7d55efaa17c351d6
+with top-most commit ac18c0c4e2b1f84fc11d013cd7363377ae4cde43
 
- Merge branch 'pm-tools'
+ Merge branches 'acpi-ec', 'acpi-button' and 'acpi-apei'
 
 on top of commit 7089db84e356562f8ba737c29e472cc42d530dbc
 
  Linux 4.10-rc8
 
-to receive power management updates for v4.11-rc1.
+to receive ACPI updates for v4.11-rc1.
 
-The majority of changes go into the Operating Performance Points (OPP)
-framework and cpufreq this time, followed by devfreq and some scattered
-updates all over.
-
-The OPP changes are mostly related to switching over from RCU-based
-synchronization, that turned out to be overly complicated and
-problematic, to reference counting using krefs.
-
-In the cpufreq land there are core cleanups, documentation updates,
-a new driver for Broadcom BMIPS SoCs, a new cpufreq-dt sub-driver for
-TI SoCs that require special handling, ARM64 SoCs support for the
-qoriq driver, intel_pstate updates, powernv driver update and assorted
-fixes.
-
-The devfreq changes are mostly fixes related to the sysfs interface and
-some Exynos drivers updates.
-
-Apart from that, the cpuidle menu governor will support per-CPU PM QoS
-constraints for the wakeup latency now, some bugs in the wakeup IRQs
-framework are fixed, the generic power domains framework should handle
-asynchronous invocations of *noirq suspend/resume callbacks from now on,
-the analyze_suspend.py script is updated and there is a new tool for
-intel_pstate diagnostics.
+These update the ACPICA code in the kernel to upstream revision
+20170119, which among other things updates copyright notices in
+all of the ACPICA files, fix a couple of issues in the ACPI EC
+and button drivers, fix modalias handling for non-discoverable
+devices with DT-compatible identification strings, add a suspend
+quirk for one platform and fix a message in the APEI code.
 
 Specifics:
 
- - Operating Performance Points (OPP) framework fixes, cleanups and
-   switch over from RCU-based synchronization to reference counting
-   using krefs (Viresh Kumar, Wei Yongjun, Dave Gerlach).
+ - Update of the ACPICA code in the kernel to upstream revision
+   20170119 including:
+   * Fixes related to the handling of the bit width and bit offset
+     fields in Generic Address Structure (Lv Zheng).
+   * ACPI resources handling fix related to invalid resource
+     descriptors (Bob Moore).
+   * Fix to enable implicit result conversion for several ASL
+     library functions (Bob Moore).
+   * Support for method invocations as target operands in AML
+     (Bob Moore).
+   * Fix to use a correct operand type for DeRefOf() in some
+     situations (Bob Moore).
+   * Utilities updates (Bob Moore, Lv Zheng).
+   * Disassembler/debugger updates (David Box, Lv Zheng).
+   * Build fixes (Colin Ian King, Lv Zheng).
+   * Update of copyright notices in all files (Bob Moore).
 
- - cpufreq core cleanups and documentation updates (Viresh Kumar,
-   Rafael Wysocki).
+ - Fix for modalias handling for SPI and I2C devices with
+   DT-compatible identification strings (Dan O'Donovan).
 
- - New cpufreq driver for Broadcom BMIPS SoCs (Markus Mayer).
+ - Fixes for the ACPI EC and button drivers (Lv Zheng).
 
- - New cpufreq-dt sub-driver for TI SoCs requiring special handling,
-   like in the AM335x, AM437x, DRA7x, and AM57x families, along with
-   new DT bindings for it (Dave Gerlach, Paul Gortmaker).
+ - ACPI processor handling fix related to CPU hotplug (online/offline)
+   on x86 (Vitaly Kuznetsov).
 
- - ARM64 SoCs support for the qoriq cpufreq driver (Tang Yuantian).
+ - Suspend quirk to save/restore NVS memory over S3 transitions for
+   Lenovo G50-45 (Zhang Rui).
 
- - intel_pstate driver updates including a new sysfs knob to control
-   the driver's operation mode and fixes related to the no_turbo
-   sysfs knob and the hardware-managed P-states feature support
-   (Rafael Wysocki, Srinivas Pandruvada).
-
- - New interface to export ultra-turbo frequencies for the powernv
-   cpufreq driver (Shilpasri Bhat).
-
- - Assorted fixes for cpufreq drivers (Arnd Bergmann, Dan Carpenter,
-   Wei Yongjun).
-
- - devfreq core fixes, mostly related to the sysfs interface exported
-   by it (Chanwoo Choi, Chris Diamand).
-
- - Updates of the exynos-bus and exynos-ppmu devfreq drivers (Chanwoo
-   Choi).
-
- - Device PM QoS extension to support CPUs and support for per-CPU
-   wakeup (device resume) latency constraints in the cpuidle menu
-   governor (Alex Shi).
-
- - Wakeup IRQs framework fixes (Grygorii Strashko).
-
- - Generic power domains framework update including a fix to make
-   it handle asynchronous invocations of *noirq suspend/resume
-   callbacks correctly (Ulf Hansson, Geert Uytterhoeven).
-
- - Assorted fixes and cleanups in the core suspend/hibernate code,
-   PM QoS framework and x86 ACPI idle support code (Corentin Labbe,
-   Geert Uytterhoeven, Geliang Tang, John Keeping, Nick Desaulniers).
-
- - Update of the analyze_suspend.py script is updated to version 4.5
-   offering multiple improvements (Todd Brandt).
-
- - New tool for intel_pstate diagnostics using the pstate_sample
-   tracepoint (Doug Smythies).
+ - Message formatting fix for the ACPI APEI code (Colin Ian King).
 
 Thanks!
 
 ---------------
 
-Alex Shi (3):
-      cpuidle/menu: stop seeking deeper idle if current state is deep enough
-      cpuidle/menu: add per CPU PM QoS resume latency consideration
-      CPU / PM: expose pm_qos_resume_latency for CPUs
+Bob Moore (11):
+      ACPICA: Macro header: Fix some typos in comments
+      ACPICA: Utilities: Update debug output
+      ACPICA: Resources: Not a valid resource if buffer length too long
+      ACPICA: Fix for implicit result conversion for the ToXXX functions
+      ACPICA: Parser: Allow method invocations as target operands
+      ACPICA: Fix a problem with recent extra support for control
+method invocations
+      ACPICA: Parser: Update parse info table for some operators
+      ACPICA: Update version to 20161222
+      ACPICA: Source tree: Update copyright notices to 2017
+      ACPICA: Tools: Update common signon, remove compilation bit width
+      ACPICA: Update version to 20170119
 
-Arnd Bergmann (1):
-      cpufreq: CPPC: add ACPI_PROCESSOR dependency
+Colin Ian King (2):
+      ACPICA: Linux-specific header: Add support for s390x compilation
+      ACPI, APEI, EINJ: fix malformed newline escape
 
-Chanwoo Choi (11):
-      PM / devfreq: exynos-bus: Add the detailed correlation for Exynos5433
-      PM / devfreq: exynos-ppmu: Use the regmap interface to handle
-the registers
-      PM / devfreq: exynos-bus: Print the real clock rate of bus
-      PM / devfreq: Fix the checkpatch warnings
-      PM / devfreq: Fix the wrong description for userspace governor
-      PM / devfreq: exynos-ppmu: Show the registred device for ppmu device
-      PM / devfreq: Fix available_governor sysfs
-      PM / devfreq: Fix wrong trans_stat of passive devfreq device
-      PM / devfreq: Remove unnecessary separate _remove_devfreq()
-      PM / devfreq: Simplify the sysfs name of devfreq-event device
-      PM / devfreq: Modify the device name as devfreq(X) for sysfs
+Dan O'Donovan (3):
+      ACPI / bus: Introduce acpi_of_modalias() equiv of of_modalias_node()
+      i2c: acpi: Initialize info.type from of_compatible
+      spi: acpi: Initialize modalias from of_compatible
 
-Chris Diamand (1):
-      PM / devfreq: Don't delete sysfs group twice
+David E. Box (1):
+      ACPICA: Disassembler: Add Switch/Case disassembly support
 
-Corentin LABBE (1):
-      PM / QoS: Remove unneeded linux/miscdevice.h include
+Lv Zheng (13):
+      ACPICA: Debugger: Rename debugger OSL names
+      ACPICA: Hardware: Remove bit_offset masking support
+      ACPICA: Hardware: Add access_width/bit_offset support in acpi_hw_write()
+      ACPICA: Utilities: Add power of two rounding support
+      ACPICA: Hardware: Sort access bit width algorithm
+      ACPICA: Hardware: Add sleep register hooks
+      ACPICA: MSVC: Fix MSVC6 build issues
+      ACPICA: EFI: Add efihello demo application
+      ACPI / EC: Remove old CLEAR_ON_RESUME quirk
+      ACPI / EC: Use busy polling mode when GPE is not enabled
+      ACPI / button: Change default behavior to lid_init_state=open
+      ACPI / button: Remove lid_init_state=method mode
+      ACPICA: Linuxize: Restore and fix Intel compiler build
 
-Dan Carpenter (1):
-      cpufreq: s3c2416: double free on driver init error path
+Vitaly Kuznetsov (1):
+      x86/ACPI: keep x86_cpu_to_acpiid mapping valid on CPU hotplug
 
-Dave Gerlach (4):
-      PM / OPP: Expose _of_get_opp_desc_node as dev_pm_opp API
-      Documentation: dt: add bindings for ti-cpufreq
-      cpufreq: ti: Add cpufreq driver to determine available OPPs at runtime
-      cpufreq: dt: Don't use generic platdev driver for ti-cpufreq platforms
-
-Doug Smythies (1):
-      tools/power/x86: Debug utility for intel_pstate driver
-
-Geert Uytterhoeven (3):
-      PM / Domains: Provide dummy governors if CONFIG_PM_GENERIC_DOMAINS=n
-      PM / sleep: Fix test_suspend after sleep state rework
-      PM / Documentation: Spelling s/wrtie/write/
-
-Geliang Tang (1):
-      PM / Hibernate: Use rb_entry() instead of container_of()
-
-Grygorii Strashko (3):
-      PM / wakeirq: Enable dedicated wakeirq for suspend
-      PM / wakeirq: Fix spurious wake-up events for dedicated wakeirqs
-      PM / wakeirq: report a wakeup_event on dedicated wekup irq
-
-John Keeping (1):
-      PM / QoS: Fix memory leak on resume_latency.notifiers
-
-Markus Mayer (5):
-      MIPS: BMIPS: Update defconfig
-      BMIPS: Enable prerequisites for CPUfreq in MIPS Kconfig.
-      cpufreq: bmips-cpufreq: CPUfreq driver for Broadcom's BMIPS SoCs
-      MIPS: BMIPS: enable CPUfreq
-      MAINTAINERS: cpufreq: add bmips-cpufreq.c
-
-Nick Desaulniers (1):
-      ACPI / idle: small formatting fixes
-
-Paul Gortmaker (1):
-      cpufreq: make ti-cpufreq explicitly non-modular
-
-Rafael J. Wysocki (3):
-      cpufreq: intel_pstate: Expose global sysfs attributes upfront
-      cpufreq: intel_pstate: Operation mode control from sysfs
-      cpufreq: Do not clear real_cpus mask on policy init
-
-Shilpasri G Bhat (1):
-      cpufreq: powernv: Add boost files to export ultra-turbo frequencies
-
-Srinivas Pandruvada (3):
-      cpufreq: intel_pstate: Lower frequency than expected under no_turbo
-      cpufreq: intel_pstate: Make HWP limits compatible with legacy
-      cpufreq: intel_pstate: Calculate guaranteed performance for HWP
-
-Tang Yuantian (2):
-      cpufreq: qoriq: add ARM64 SoCs support
-      cpufreq: qoriq: Don't look at clock implementation details
-
-Todd E Brandt (4):
-      scripts: analyze_suspend.py: Update to upstream v4.3
-      scripts: analyze_suspend.py: Update to upstream v4.4
-      scripts: analyze_suspend.py: Update to upstream v4.5
-      AnalyzeSuspend: fix drag and zoom bug in javascript
-
-Ulf Hansson (3):
-      PM / Domains: Rename functions in genpd for power on/off
-      PM / Domains: Correct comment in irq_safe_dev_in_no_sleep_domain()
-      PM / Domains: Fix asynchronous execution of *noirq() callbacks
-
-Viresh Kumar (29):
-      PM / OPP: Fix memory leak while adding duplicate OPPs
-      PM / OPP: Remove useless TODO
-      PM / OPP: Rename _allocate_opp() to _opp_allocate()
-      PM / OPP: Error out on failing to add static OPPs for v1 bindings
-      PM / OPP: Add light weight _opp_free() routine
-      PM / OPP: Rename and split _dev_pm_opp_remove_table()
-      PM / OPP: Don't allocate OPP table from _opp_allocate()
-      PM / OPP: Rename dev_pm_opp_get_suspend_opp() and return OPP rate
-      PM / OPP: Don't expose srcu_head to register notifiers
-      PM / OPP: Split out part of _add_opp_table() and _remove_opp_table()
-      PM / OPP: Add per OPP table mutex
-      PM / OPP: Add 'struct kref' to OPP table
-      PM / OPP: Return opp_table from dev_pm_opp_set_*() routines
-      PM / OPP: Take reference of the OPP table while adding/removing OPPs
-      PM / OPP: Use dev_pm_opp_get_opp_table() instead of _add_opp_table()
-      PM / OPP: Add 'struct kref' to struct dev_pm_opp
-      PM / OPP: Update OPP users to put reference
-      PM / OPP: Take kref from _find_opp_table()
-      PM / OPP: Move away from RCU locking
-      PM / OPP: Simplify _opp_set_availability()
-      PM / OPP: Simplify dev_pm_opp_get_max_volt_latency()
-      PM / OPP: Update Documentation to remove RCU specific bits
-      cpufreq: Remove policy create/remove notifiers
-      cpufreq: Remove CONFIG_CPU_FREQ_STAT_DETAILS config option
-      cpufreq: Documentation: Minor reformatting
-      cpufreq: Documentation: Updates based on current code
-      ACPI: processor_perflib: Simplify code and stop using CPUFREQ_START
-      cpufreq: Remove CPUFREQ_START notifier event
-      cpufreq: Fix typos in comments
-
-Wei Yongjun (2):
-      PM / OPP: Make _find_opp_table_unlocked() static
-      cpufreq: brcmstb-avs-cpufreq: remove unnecessary platform_set_drvdata()
+Zhang Rui (1):
+      ACPI: save NVS memory for Lenovo G50-45
 
 ---------------
 
- .../ABI/testing/sysfs-class-devfreq-event          |   25 +
- Documentation/cpu-freq/core.txt                    |   24 +-
- Documentation/cpu-freq/cpu-drivers.txt             |  177 +-
- Documentation/cpu-freq/cpufreq-stats.txt           |   24 +-
- Documentation/cpu-freq/governors.txt               |  322 ++--
- Documentation/cpu-freq/index.txt                   |   23 +-
- Documentation/cpu-freq/intel-pstate.txt            |   15 +
- Documentation/cpu-freq/user-guide.txt              |   60 +-
- .../devicetree/bindings/cpufreq/ti-cpufreq.txt     |  128 ++
- .../devicetree/bindings/devfreq/exynos-bus.txt     |   14 +
- Documentation/power/opp.txt                        |   52 +-
- Documentation/power/states.txt                     |    2 +-
- MAINTAINERS                                        |    7 +
- arch/arm/configs/exynos_defconfig                  |    2 +-
- arch/arm/configs/multi_v5_defconfig                |    2 +-
- arch/arm/configs/multi_v7_defconfig                |    2 +-
- arch/arm/configs/mvebu_v5_defconfig                |    2 +-
- arch/arm/configs/pxa_defconfig                     |    2 +-
- arch/arm/configs/shmobile_defconfig                |    2 +-
- arch/arm/mach-omap2/pm.c                           |    5 +-
- arch/mips/Kconfig                                  |    2 +
- arch/mips/configs/bmips_stb_defconfig              |   16 +-
- arch/mips/configs/lemote2f_defconfig               |    1 -
- arch/powerpc/configs/ppc6xx_defconfig              |    1 -
- arch/sh/configs/sh7785lcr_32bit_defconfig          |    2 +-
- arch/x86/kernel/acpi/cstate.c                      |    9 +-
- drivers/acpi/processor_perflib.c                   |    4 +-
- drivers/base/cpu.c                                 |    2 +
- drivers/base/power/domain.c                        |  124 +-
- drivers/base/power/opp/core.c                      | 1011 ++++------
- drivers/base/power/opp/cpu.c                       |   66 +-
- drivers/base/power/opp/of.c                        |  154 +-
- drivers/base/power/opp/opp.h                       |   40 +-
- drivers/base/power/qos.c                           |    2 +-
- drivers/base/power/wakeirq.c                       |   22 +-
- drivers/clk/tegra/clk-dfll.c                       |   17 +-
- drivers/cpufreq/Kconfig                            |   20 +-
- drivers/cpufreq/Kconfig.arm                        |   13 +-
- drivers/cpufreq/Makefile                           |    2 +
- drivers/cpufreq/bmips-cpufreq.c                    |  188 ++
- drivers/cpufreq/brcmstb-avs-cpufreq.c              |    2 -
- drivers/cpufreq/cpufreq-dt-platdev.c               |    2 -
- drivers/cpufreq/cpufreq-dt.c                       |    7 +-
- drivers/cpufreq/cpufreq.c                          |   21 +-
- drivers/cpufreq/cpufreq_stats.c                    |   14 -
- drivers/cpufreq/exynos5440-cpufreq.c               |    5 +-
- drivers/cpufreq/imx6q-cpufreq.c                    |   10 +-
- drivers/cpufreq/intel_pstate.c                     |  385 +++-
- drivers/cpufreq/mt8173-cpufreq.c                   |    8 +-
- drivers/cpufreq/omap-cpufreq.c                     |    4 +-
- drivers/cpufreq/powernv-cpufreq.c                  |   50 +-
- drivers/cpufreq/ppc_cbe_cpufreq_pmi.c              |    3 -
- drivers/cpufreq/qoriq-cpufreq.c                    |  148 +-
- drivers/cpufreq/s3c2416-cpufreq.c                  |    1 -
- drivers/cpufreq/sti-cpufreq.c                      |   13 +-
- drivers/cpufreq/ti-cpufreq.c                       |  268 +++
- drivers/cpuidle/governors/menu.c                   |   11 +-
- drivers/devfreq/devfreq-event.c                    |    4 +-
- drivers/devfreq/devfreq.c                          |  114 +-
- drivers/devfreq/event/exynos-ppmu.c                |  329 +++-
- drivers/devfreq/exynos-bus.c                       |   22 +-
- drivers/devfreq/governor.h                         |    2 +
- drivers/devfreq/governor_passive.c                 |   10 +-
- drivers/devfreq/governor_userspace.c               |   11 +-
- drivers/devfreq/rk3399_dmc.c                       |   16 +-
- drivers/devfreq/tegra-devfreq.c                    |    4 +-
- drivers/thermal/cpu_cooling.c                      |   11 +-
- drivers/thermal/devfreq_cooling.c                  |   15 +-
- include/linux/cpufreq.h                            |    7 +-
- include/linux/devfreq.h                            |    3 +
- include/linux/pm_domain.h                          |    3 +
- include/linux/pm_opp.h                             |   72 +-
- include/linux/pm_qos.h                             |    1 -
- kernel/power/suspend_test.c                        |    2 +-
- kernel/power/swap.c                                |    2 +-
- scripts/analyze_suspend.py                         | 1933 ++++++++++++--------
- .../x86/intel_pstate_tracer/intel_pstate_tracer.py |  569 ++++++
- 77 files changed, 4163 insertions(+), 2505 deletions(-)
+ Documentation/acpi/acpi-lid.txt                    |  16 +--
+ arch/ia64/kernel/acpi.c                            |   3 +-
+ arch/x86/kernel/acpi/boot.c                        |   5 +-
+ drivers/acpi/acpi_processor.c                      |   4 +-
+ drivers/acpi/acpica/acapps.h                       |  14 +-
+ drivers/acpi/acpica/accommon.h                     |   2 +-
+ drivers/acpi/acpica/acdebug.h                      |   2 +-
+ drivers/acpi/acpica/acdispat.h                     |   2 +-
+ drivers/acpi/acpica/acevents.h                     |   2 +-
+ drivers/acpi/acpica/acglobal.h                     |   2 +-
+ drivers/acpi/acpica/achware.h                      |   2 +-
+ drivers/acpi/acpica/acinterp.h                     |   2 +-
+ drivers/acpi/acpica/aclocal.h                      |   9 +-
+ drivers/acpi/acpica/acmacros.h                     |  74 +++++++++-
+ drivers/acpi/acpica/acnamesp.h                     |   2 +-
+ drivers/acpi/acpica/acobject.h                     |   2 +-
+ drivers/acpi/acpica/acopcode.h                     |  24 ++--
+ drivers/acpi/acpica/acparser.h                     |   2 +-
+ drivers/acpi/acpica/acpredef.h                     |   2 +-
+ drivers/acpi/acpica/acresrc.h                      |   2 +-
+ drivers/acpi/acpica/acstruct.h                     |   2 +-
+ drivers/acpi/acpica/actables.h                     |   2 +-
+ drivers/acpi/acpica/acutils.h                      |   2 +-
+ drivers/acpi/acpica/amlcode.h                      |  22 ++-
+ drivers/acpi/acpica/amlresrc.h                     |   2 +-
+ drivers/acpi/acpica/dbcmds.c                       |   2 +-
+ drivers/acpi/acpica/dbconvert.c                    |   2 +-
+ drivers/acpi/acpica/dbdisply.c                     |   2 +-
+ drivers/acpi/acpica/dbexec.c                       |   2 +-
+ drivers/acpi/acpica/dbfileio.c                     |   2 +-
+ drivers/acpi/acpica/dbhistry.c                     |   2 +-
+ drivers/acpi/acpica/dbinput.c                      |   2 +-
+ drivers/acpi/acpica/dbmethod.c                     |   2 +-
+ drivers/acpi/acpica/dbnames.c                      |   2 +-
+ drivers/acpi/acpica/dbobject.c                     |   2 +-
+ drivers/acpi/acpica/dbstats.c                      |   2 +-
+ drivers/acpi/acpica/dbtest.c                       |   2 +-
+ drivers/acpi/acpica/dbutils.c                      |   2 +-
+ drivers/acpi/acpica/dbxface.c                      |   6 +-
+ drivers/acpi/acpica/dsargs.c                       |   2 +-
+ drivers/acpi/acpica/dscontrol.c                    |   2 +-
+ drivers/acpi/acpica/dsdebug.c                      |   2 +-
+ drivers/acpi/acpica/dsfield.c                      |   2 +-
+ drivers/acpi/acpica/dsinit.c                       |   2 +-
+ drivers/acpi/acpica/dsmethod.c                     |   2 +-
+ drivers/acpi/acpica/dsmthdat.c                     |   2 +-
+ drivers/acpi/acpica/dsobject.c                     |   2 +-
+ drivers/acpi/acpica/dsopcode.c                     |   2 +-
+ drivers/acpi/acpica/dsutils.c                      |   2 +-
+ drivers/acpi/acpica/dswexec.c                      |   2 +-
+ drivers/acpi/acpica/dswload.c                      |   2 +-
+ drivers/acpi/acpica/dswload2.c                     |   2 +-
+ drivers/acpi/acpica/dswscope.c                     |   2 +-
+ drivers/acpi/acpica/dswstate.c                     |   2 +-
+ drivers/acpi/acpica/evevent.c                      |   2 +-
+ drivers/acpi/acpica/evglock.c                      |   2 +-
+ drivers/acpi/acpica/evgpe.c                        |   2 +-
+ drivers/acpi/acpica/evgpeblk.c                     |   2 +-
+ drivers/acpi/acpica/evgpeinit.c                    |   2 +-
+ drivers/acpi/acpica/evgpeutil.c                    |   2 +-
+ drivers/acpi/acpica/evhandler.c                    |   2 +-
+ drivers/acpi/acpica/evmisc.c                       |   2 +-
+ drivers/acpi/acpica/evregion.c                     |   2 +-
+ drivers/acpi/acpica/evrgnini.c                     |   2 +-
+ drivers/acpi/acpica/evsci.c                        |   2 +-
+ drivers/acpi/acpica/evxface.c                      |   2 +-
+ drivers/acpi/acpica/evxfevnt.c                     |   2 +-
+ drivers/acpi/acpica/evxfgpe.c                      |   2 +-
+ drivers/acpi/acpica/evxfregn.c                     |   2 +-
+ drivers/acpi/acpica/exconcat.c                     |   2 +-
+ drivers/acpi/acpica/exconfig.c                     |   2 +-
+ drivers/acpi/acpica/exconvrt.c                     |   3 +-
+ drivers/acpi/acpica/excreate.c                     |   2 +-
+ drivers/acpi/acpica/exdebug.c                      |   2 +-
+ drivers/acpi/acpica/exdump.c                       |   2 +-
+ drivers/acpi/acpica/exfield.c                      |   2 +-
+ drivers/acpi/acpica/exfldio.c                      |   2 +-
+ drivers/acpi/acpica/exmisc.c                       |   2 +-
+ drivers/acpi/acpica/exmutex.c                      |   2 +-
+ drivers/acpi/acpica/exnames.c                      |   2 +-
+ drivers/acpi/acpica/exoparg1.c                     |   2 +-
+ drivers/acpi/acpica/exoparg2.c                     |   2 +-
+ drivers/acpi/acpica/exoparg3.c                     |   2 +-
+ drivers/acpi/acpica/exoparg6.c                     |   2 +-
+ drivers/acpi/acpica/exprep.c                       |   2 +-
+ drivers/acpi/acpica/exregion.c                     |   2 +-
+ drivers/acpi/acpica/exresnte.c                     |   2 +-
+ drivers/acpi/acpica/exresolv.c                     |   2 +-
+ drivers/acpi/acpica/exresop.c                      |   3 +-
+ drivers/acpi/acpica/exstore.c                      |   2 +-
+ drivers/acpi/acpica/exstoren.c                     |   2 +-
+ drivers/acpi/acpica/exstorob.c                     |   2 +-
+ drivers/acpi/acpica/exsystem.c                     |   2 +-
+ drivers/acpi/acpica/extrace.c                      |   2 +-
+ drivers/acpi/acpica/exutils.c                      |   2 +-
+ drivers/acpi/acpica/hwacpi.c                       |   2 +-
+ drivers/acpi/acpica/hwesleep.c                     |  37 +++--
+ drivers/acpi/acpica/hwgpe.c                        |   2 +-
+ drivers/acpi/acpica/hwpci.c                        |   2 +-
+ drivers/acpi/acpica/hwregs.c                       | 155 +++++++++++++++------
+ drivers/acpi/acpica/hwsleep.c                      |  13 +-
+ drivers/acpi/acpica/hwtimer.c                      |   2 +-
+ drivers/acpi/acpica/hwvalid.c                      |   2 +-
+ drivers/acpi/acpica/hwxface.c                      |   2 +-
+ drivers/acpi/acpica/hwxfsleep.c                    |   2 +-
+ drivers/acpi/acpica/nsaccess.c                     |   2 +-
+ drivers/acpi/acpica/nsalloc.c                      |   2 +-
+ drivers/acpi/acpica/nsarguments.c                  |   2 +-
+ drivers/acpi/acpica/nsconvert.c                    |   2 +-
+ drivers/acpi/acpica/nsdump.c                       |   2 +-
+ drivers/acpi/acpica/nsdumpdv.c                     |   2 +-
+ drivers/acpi/acpica/nseval.c                       |   2 +-
+ drivers/acpi/acpica/nsinit.c                       |   2 +-
+ drivers/acpi/acpica/nsload.c                       |   2 +-
+ drivers/acpi/acpica/nsnames.c                      |   2 +-
+ drivers/acpi/acpica/nsobject.c                     |   2 +-
+ drivers/acpi/acpica/nsparse.c                      |   2 +-
+ drivers/acpi/acpica/nspredef.c                     |   2 +-
+ drivers/acpi/acpica/nsprepkg.c                     |   2 +-
+ drivers/acpi/acpica/nsrepair.c                     |   2 +-
+ drivers/acpi/acpica/nsrepair2.c                    |   2 +-
+ drivers/acpi/acpica/nssearch.c                     |   2 +-
+ drivers/acpi/acpica/nsutils.c                      |   2 +-
+ drivers/acpi/acpica/nswalk.c                       |   2 +-
+ drivers/acpi/acpica/nsxfeval.c                     |   2 +-
+ drivers/acpi/acpica/nsxfname.c                     |   2 +-
+ drivers/acpi/acpica/nsxfobj.c                      |   2 +-
+ drivers/acpi/acpica/psargs.c                       |  99 ++++++++-----
+ drivers/acpi/acpica/psloop.c                       |   6 +-
+ drivers/acpi/acpica/psobject.c                     |  12 +-
+ drivers/acpi/acpica/psopcode.c                     |   2 +-
+ drivers/acpi/acpica/psopinfo.c                     |   2 +-
+ drivers/acpi/acpica/psparse.c                      |   2 +-
+ drivers/acpi/acpica/psscope.c                      |   2 +-
+ drivers/acpi/acpica/pstree.c                       |  12 +-
+ drivers/acpi/acpica/psutils.c                      |   2 +-
+ drivers/acpi/acpica/pswalk.c                       |   2 +-
+ drivers/acpi/acpica/psxface.c                      |   2 +-
+ drivers/acpi/acpica/rsaddr.c                       |   2 +-
+ drivers/acpi/acpica/rscalc.c                       |   2 +-
+ drivers/acpi/acpica/rscreate.c                     |   2 +-
+ drivers/acpi/acpica/rsdump.c                       |   2 +-
+ drivers/acpi/acpica/rsdumpinfo.c                   |   2 +-
+ drivers/acpi/acpica/rsinfo.c                       |   2 +-
+ drivers/acpi/acpica/rsio.c                         |   2 +-
+ drivers/acpi/acpica/rsirq.c                        |   2 +-
+ drivers/acpi/acpica/rslist.c                       |   2 +-
+ drivers/acpi/acpica/rsmemory.c                     |   2 +-
+ drivers/acpi/acpica/rsmisc.c                       |   2 +-
+ drivers/acpi/acpica/rsserial.c                     |   2 +-
+ drivers/acpi/acpica/rsutils.c                      |   2 +-
+ drivers/acpi/acpica/rsxface.c                      |   2 +-
+ drivers/acpi/acpica/tbdata.c                       |   2 +-
+ drivers/acpi/acpica/tbfadt.c                       |   2 +-
+ drivers/acpi/acpica/tbfind.c                       |   2 +-
+ drivers/acpi/acpica/tbinstal.c                     |   2 +-
+ drivers/acpi/acpica/tbprint.c                      |   2 +-
+ drivers/acpi/acpica/tbutils.c                      |   2 +-
+ drivers/acpi/acpica/tbxface.c                      |   2 +-
+ drivers/acpi/acpica/tbxfload.c                     |   2 +-
+ drivers/acpi/acpica/tbxfroot.c                     |   2 +-
+ drivers/acpi/acpica/utaddress.c                    |   2 +-
+ drivers/acpi/acpica/utalloc.c                      |   2 +-
+ drivers/acpi/acpica/utascii.c                      |   2 +-
+ drivers/acpi/acpica/utbuffer.c                     |   2 +-
+ drivers/acpi/acpica/utcache.c                      |   2 +-
+ drivers/acpi/acpica/utcopy.c                       |   2 +-
+ drivers/acpi/acpica/utdebug.c                      |   2 +-
+ drivers/acpi/acpica/utdecode.c                     |   6 +-
+ drivers/acpi/acpica/utdelete.c                     |   8 +-
+ drivers/acpi/acpica/uterror.c                      |   2 +-
+ drivers/acpi/acpica/uteval.c                       |   2 +-
+ drivers/acpi/acpica/utexcep.c                      |   2 +-
+ drivers/acpi/acpica/utglobal.c                     |   2 +-
+ drivers/acpi/acpica/uthex.c                        |   2 +-
+ drivers/acpi/acpica/utids.c                        |   2 +-
+ drivers/acpi/acpica/utinit.c                       |   2 +-
+ drivers/acpi/acpica/utlock.c                       |   2 +-
+ drivers/acpi/acpica/utmath.c                       |   2 +-
+ drivers/acpi/acpica/utmisc.c                       |   2 +-
+ drivers/acpi/acpica/utmutex.c                      |   2 +-
+ drivers/acpi/acpica/utnonansi.c                    |   2 +-
+ drivers/acpi/acpica/utobject.c                     |   2 +-
+ drivers/acpi/acpica/utosi.c                        |   2 +-
+ drivers/acpi/acpica/utownerid.c                    |   2 +-
+ drivers/acpi/acpica/utpredef.c                     |   2 +-
+ drivers/acpi/acpica/utprint.c                      |   2 +-
+ drivers/acpi/acpica/utresrc.c                      |  19 ++-
+ drivers/acpi/acpica/utstate.c                      |   2 +-
+ drivers/acpi/acpica/utstring.c                     |   2 +-
+ drivers/acpi/acpica/utstrtoul64.c                  |   2 +-
+ drivers/acpi/acpica/uttrack.c                      |   2 +-
+ drivers/acpi/acpica/utuuid.c                       |   2 +-
+ drivers/acpi/acpica/utxface.c                      |   2 +-
+ drivers/acpi/acpica/utxferror.c                    |   2 +-
+ drivers/acpi/acpica/utxfinit.c                     |   2 +-
+ drivers/acpi/acpica/utxfmutex.c                    |   2 +-
+ drivers/acpi/apei/einj.c                           |   2 +-
+ drivers/acpi/bus.c                                 |  42 ++++++
+ drivers/acpi/button.c                              |  11 +-
+ drivers/acpi/ec.c                                  | 115 ++++-----------
+ drivers/acpi/internal.h                            |   4 +-
+ drivers/acpi/osl.c                                 |  27 +++-
+ drivers/acpi/sleep.c                               |  19 +++
+ drivers/i2c/i2c-core.c                             |   3 +-
+ drivers/spi/spi.c                                  |   4 +-
+ include/acpi/acbuffer.h                            |   2 +-
+ include/acpi/acconfig.h                            |   2 +-
+ include/acpi/acexcep.h                             |  11 +-
+ include/acpi/acnames.h                             |   2 +-
+ include/acpi/acoutput.h                            |   2 +-
+ include/acpi/acpi.h                                |   2 +-
+ include/acpi/acpi_bus.h                            |   2 +
+ include/acpi/acpiosxf.h                            |  14 +-
+ include/acpi/acpixf.h                              |   4 +-
+ include/acpi/acrestyp.h                            |   2 +-
+ include/acpi/actbl.h                               |   2 +-
+ include/acpi/actbl1.h                              |   2 +-
+ include/acpi/actbl2.h                              |   2 +-
+ include/acpi/actbl3.h                              |   2 +-
+ include/acpi/actypes.h                             |   2 +-
+ include/acpi/acuuid.h                              |   2 +-
+ include/acpi/platform/acenv.h                      |   9 +-
+ include/acpi/platform/acenvex.h                    |   2 +-
+ include/acpi/platform/acgcc.h                      |   2 +-
+ include/acpi/platform/acgccex.h                    |   2 +-
+ include/acpi/platform/acintel.h                    |  87 ++++++++++++
+ include/acpi/platform/aclinux.h                    |   9 +-
+ include/acpi/platform/aclinuxex.h                  |   6 +-
+ include/linux/acpi.h                               |   3 +-
+ tools/power/acpi/common/cmfsize.c                  |   2 +-
+ tools/power/acpi/common/getopt.c                   |   2 +-
+ .../acpi/os_specific/service_layers/oslinuxtbl.c   |   2 +-
+ .../acpi/os_specific/service_layers/osunixdir.c    |   2 +-
+ .../acpi/os_specific/service_layers/osunixmap.c    |   2 +-
+ .../acpi/os_specific/service_layers/osunixxf.c     |  24 +++-
+ tools/power/acpi/tools/acpidump/acpidump.h         |   2 +-
+ tools/power/acpi/tools/acpidump/apdump.c           |   2 +-
+ tools/power/acpi/tools/acpidump/apfiles.c          |   2 +-
+ tools/power/acpi/tools/acpidump/apmain.c           |   2 +-
+ 240 files changed, 838 insertions(+), 506 deletions(-)
