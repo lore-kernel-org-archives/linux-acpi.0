@@ -1,321 +1,223 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2.1 11/16] of: No need to include linux/property.h, linux/fwnode.h is sufficient
-Date: Mon, 20 Feb 2017 12:37:09 +0200
-Message-ID: <1487587029-21068-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1486052546-19257-12-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:39095 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752587AbdBTKip (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Feb 2017 05:38:45 -0500
-In-Reply-To: <1486052546-19257-12-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v21 00/13] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Tue, 21 Feb 2017 00:20:52 +0800
+Message-ID: <CADyBb7t_zrLetPQQ8=k8oN6iMHhuMHO8O3XTZqGYvTT9p0evKw@mail.gmail.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170206185015.12296-1-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei Huang <wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Leo Duran <leo.duran-5C7GfCeVMHo@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, linux-watchdog@vger.k
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-of.h requires a definition of struct fwnode_handle, and for that it
-includes linux/property.h. struct fwnode_handle, however, is defined in
-linux/fwnode.h. Include linux/fwnode.h directly.
+Hi Mark, Marc
 
-A number of users were however depending on linux/property.h, thus fix
-them by including that header directly as well.
+On 7 February 2017 at 02:50,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>
+> This patchset:
+>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>         1. Introduce two functions to get the frequency from mmio and sysreg.
+>         2. separate out device-tree code from arch_timer_detect_rate
+>         3. remove arch_timer_detect_rate use arch_timer_get_*_freq directly
+>         4. split arch_timer_rate for different types of timer
+>         5. Refactor arch_timer_needs_probing, and move it into DT init call
+>         6. Introduce some new structs and refactor the MMIO timer init code
+>         for reusing some common code.
+>
+>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>     memory-mapped timer and SBSA Generic Watchdog timer.
+>     This driver can help to simplify all the relevant timer drivers,
+>     and separate all the ACPI GTDT knowledge from them.
+>
+>     (3)Simplify ACPI code for arm_arch_timer
+>
+>     (4)Add GTDT support for ARM memory-mapped timer.
+>
+> This patchset has been tested on the following platforms with ACPI enabled:
+>     (1)ARM Foundation v8 model
+>
+> Changelog:
+> v21: https://lkml.org/lkml/2017/2/6/
+>      Introduce two functions to get the frequency from mmio and sysreg.
+>      Remove arch_timer_detect_rate use arch_timer_get_*_freq directly
+>      Split arch_timer_rate for different types of timer.
+>      Skip secure timer frame in GTDT driver.
+>      Rebase to git://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git arch-timer/cleanup
+>      (The first 6 patches in v20 have been merged into arch-timer/cleanup branch)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v2:
+Did I follow your suggestion correctly?
+I wonder how to improve this patchset. May I have your some suggestion
+or feedback on v21? :-)
 
-Add changes required for device property API usage in tsc200x-core.c and
-dwc2/debugfs.c . Tested on linux-next and linux-pm.
+Great thanks for your help!
 
- drivers/base/core.c                       | 1 +
- drivers/input/keyboard/gpio_keys.c        | 1 +
- drivers/input/misc/drv260x.c              | 1 +
- drivers/input/misc/gpio_decoder.c         | 1 +
- drivers/input/touchscreen/ad7879.c        | 1 +
- drivers/input/touchscreen/edt-ft5x06.c    | 1 +
- drivers/input/touchscreen/tsc200x-core.c  | 2 +-
- drivers/net/ethernet/faraday/ftgmac100.c  | 1 +
- drivers/net/ethernet/smsc/smc91x.c        | 1 +
- drivers/phy/phy-tusb1210.c                | 1 +
- drivers/power/supply/bq24735-charger.c    | 1 +
- drivers/usb/common/common.c               | 1 +
- drivers/usb/dwc2/debugfs.c                | 3 ++-
- drivers/usb/dwc2/params.c                 | 1 +
- drivers/usb/dwc2/pci.c                    | 3 ++-
- drivers/usb/dwc3/host.c                   | 1 +
- include/linux/of.h                        | 2 +-
- sound/soc/codecs/rt5514.c                 | 1 +
- sound/soc/codecs/ts3a227e.c               | 1 +
- sound/soc/mediatek/mt8173/mt8173-rt5650.c | 1 +
- sound/soc/rockchip/rk3399_gru_sound.c     | 1 +
- 21 files changed, 23 insertions(+), 4 deletions(-)
+>
+> v20: https://lkml.org/lkml/2017/1/18/534
+>      Reorder the first 4 patches and split the 4th patches.
+>      Leave CNTHCTL_* as they originally were.
+>      Fix the bug in arch_timer_select_ppi.
+>      Split "Rework counter frequency detection" patch.
+>      Rework the arch_timer_detect_rate function.
+>      Improve the commit message of "Refactor MMIO timer probing".
+>      Rebase to 4.10.0-rc4
+>
+> v19: https://lkml.org/lkml/2016/12/21/25
+>      Fix a '\n' missing in a error message in arch_timer_mem_init.
+>      Add "request_mem_region" for ioremapping cntbase, according to
+>      f947ee1 clocksource/drivers/arm_arch_timer: Map frame with of_io_request_and_map()
+>      Rebase to 4.9.0-gfb779ff
+>
+> v18: https://lkml.org/lkml/2016/12/8/446
+>      Fix 8/15 patch problem of "int ret;" in arch_timer_acpi_init.
+>      Rebase to 4.9.0-rc8-g9269898
+>
+> v17: https://lkml.org/lkml/2016/11/25/140
+>      Take out some cleanups from 4/15.
+>      Merge 5/15 and 6/15, improve PPI determination code,
+>      improve commit message.
+>      Rework counter frequency detection.
+>      Move arch_timer_needs_of_probing into DT init call.
+>      Move Platform Timer scan loop back to timer init call to avoid allocating
+>      and free memory.
+>      Improve all the exported functions' comment.
+>
+> v16: https://lkml.org/lkml/2016/11/16/268
+>      Fix patchset problem about static enum ppi_nr of 01/13 in v15.
+>      Refactor arch_timer_detect_rate.
+>      Refactor arch_timer_needs_probing.
+>
+> v15: https://lkml.org/lkml/2016/11/15/366
+>      Re-order patches
+>      Add arm_arch_timer refactoring patches to prepare for GTDT:
+>          1. rename some  enums and defines, and some cleanups
+>          2. separate out arch_timer_uses_ppi init code and fix a potential bug
+>          3. Improve some new structs, refactor the timer init code.
+>      Since the some structs have been changed, GTDT parser for memory-mapped
+>      timer and SBSA Generic Watchdog timer have been update.
+>
+> v14: https://lkml.org/lkml/2016/9/28/573
+>      Separate memory-mapped timer GTDT support into two patches
+>          1. Refactor the timer init code to prepare for GTDT
+>          2. Add GTDT support for memory-mapped timer
+>
+> v13: http://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1231717.html
+>      Improve arm_arch_timer code for memory-mapped
+>      timer GTDT support, refactor original memory-mapped timer
+>      dt support for reusing some common code.
+>
+> v12: https://lkml.org/lkml/2016/9/13/250
+>      Rebase to latest Linux 4.8-rc6
+>      Delete the confusing "skipping" in the error message.
+>
+> V11: https://lkml.org/lkml/2016/9/6/354
+>      Rebase to latest Linux 4.8-rc5
+>      Delete typedef (suggested by checkpatch.pl)
+>
+> V10: https://lkml.org/lkml/2016/7/26/215
+>      Drop the "readq" patch.
+>      Rebase to latest Linux 4.7.
+>
+> V9: https://lkml.org/lkml/2016/7/25/345
+>     Improve pr_err message in acpi gtdt driver.
+>     Update Commit message for 7/9
+>     shorten the irq mapping function name
+>     Improve GTDT driver for memory-mapped timer
+>
+> v8: https://lkml.org/lkml/2016/7/19/660
+>     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+>     and also improve printk message.
+>     Simplify is_timer_block and is_watchdog.
+>     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+>     Delete __init in include/linux/acpi.h for GTDT API
+>     Make ARM64 select GTDT.
+>     Delete "#include <linux/module.h>" from acpi_gtdt.c
+>     Simplify GT block parse code.
+>
+> v7: https://lkml.org/lkml/2016/7/13/769
+>     Move the GTDT driver to drivers/acpi/arm64
+>     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+>     Merge 3 patches of GTDT parser driver.
+>     Fix the for_each_platform_timer bug.
+>
+> v6: https://lkml.org/lkml/2016/6/29/580
+>     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+>     and SBSA Generic Watchdog timer
+>     Improve driver by suggestions and example code from Daniel Lezcano
+>
+> v5: https://lkml.org/lkml/2016/5/24/356
+>     Sorting out all patches, simplify the API of GTDT driver:
+>     GTDT driver just fills the data struct for arm_arch_timer driver.
+>
+> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+>     Delete the kvm relevant patches
+>     Separate two patches for sorting out the code for arm_arch_timer.
+>     Improve irq info export code to allow missing irq info in GTDT table.
+>
+> v3: https://lkml.org/lkml/2016/2/1/658
+>     Improve GTDT driver code:
+>       (1)improve pr_* by defining pr_fmt(fmt)
+>       (2)simplify gtdt_sbsa_gwdt_init
+>       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+>       to get GTDT table.
+>     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+>     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+>
+> v2: https://lkml.org/lkml/2015/12/2/10
+>     Rebase to latest kernel version(4.4-rc3).
+>     Fix the bug about the config problem,
+>     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+>
+> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+>
+> Fu Wei (13):
+>   clocksource: arm_arch_timer: introduce two functions to get the
+>     frequency from mmio and sysreg.
+>   clocksource: arm_arch_timer: separate out device-tree code from
+>     arch_timer_detect_rate
+>   clocksource: arm_arch_timer: remove arch_timer_detect_rate
+>   clocksource: arm_arch_timer: split arch_timer_rate for different types
+>     of timer
+>   clocksource: arm_arch_timer: refactor arch_timer_needs_probing
+>   clocksource: arm_arch_timer: move arch_timer_needs_of_probing into DT
+>     init call
+>   clocksource: arm_arch_timer: introduce some new structs to prepare for
+>     GTDT
+>   clocksource: arm_arch_timer: refactor MMIO timer probing.
+>   acpi/arm64: Add GTDT table parse driver
+>   clocksource: arm_arch_timer: simplify ACPI support code.
+>   acpi/arm64: Add memory-mapped timer support in GTDT driver
+>   clocksource: arm_arch_timer: add GTDT support for memory-mapped timer
+>   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+>
+>  arch/arm64/Kconfig                   |   1 +
+>  drivers/acpi/arm64/Kconfig           |   3 +
+>  drivers/acpi/arm64/Makefile          |   1 +
+>  drivers/acpi/arm64/gtdt.c            | 378 +++++++++++++++++++++++++++++++++++
+>  drivers/clocksource/arm_arch_timer.c | 354 ++++++++++++++++++++------------
+>  drivers/watchdog/Kconfig             |   1 +
+>  include/clocksource/arm_arch_timer.h |  17 ++
+>  include/linux/acpi.h                 |   7 +
+>  8 files changed, 635 insertions(+), 127 deletions(-)
+>  create mode 100644 drivers/acpi/arm64/gtdt.c
+>
+> --
+> 2.9.3
+>
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index bd87807..ad5a4f7 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -24,6 +24,7 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/sysfs.h>
-diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index 582462d..a560fad 100644
---- a/drivers/input/keyboard/gpio_keys.c
-+++ b/drivers/input/keyboard/gpio_keys.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/sysctl.h>
- #include <linux/proc_fs.h>
-+#include <linux/property.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/input.h>
-diff --git a/drivers/input/misc/drv260x.c b/drivers/input/misc/drv260x.c
-index 0a2b865..1642219 100644
---- a/drivers/input/misc/drv260x.c
-+++ b/drivers/input/misc/drv260x.c
-@@ -22,6 +22,7 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/property.h>
- #include <linux/regulator/consumer.h>
- 
- #include <dt-bindings/input/ti-drv260x.h>
-diff --git a/drivers/input/misc/gpio_decoder.c b/drivers/input/misc/gpio_decoder.c
-index ca7e0ba..a498848 100644
---- a/drivers/input/misc/gpio_decoder.c
-+++ b/drivers/input/misc/gpio_decoder.c
-@@ -22,6 +22,7 @@
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- 
- struct gpio_decoder {
- 	struct input_polled_dev *poll_dev;
-diff --git a/drivers/input/touchscreen/ad7879.c b/drivers/input/touchscreen/ad7879.c
-index e16a446..38ad365 100644
---- a/drivers/input/touchscreen/ad7879.c
-+++ b/drivers/input/touchscreen/ad7879.c
-@@ -34,6 +34,7 @@
- #include <linux/input/touchscreen.h>
- #include <linux/platform_data/ad7879.h>
- #include <linux/module.h>
-+#include <linux/property.h>
- #include "ad7879.h"
- 
- #define AD7879_REG_ZEROS		0
-diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
-index 28466e3..1978f8b 100644
---- a/drivers/input/touchscreen/edt-ft5x06.c
-+++ b/drivers/input/touchscreen/edt-ft5x06.c
-@@ -39,6 +39,7 @@
- #include <linux/input/mt.h>
- #include <linux/input/touchscreen.h>
- #include <linux/of_device.h>
-+#include <linux/property.h>
- 
- #define WORK_REGISTER_THRESHOLD		0x00
- #define WORK_REGISTER_REPORT_RATE	0x08
-diff --git a/drivers/input/touchscreen/tsc200x-core.c b/drivers/input/touchscreen/tsc200x-core.c
-index b7059ed..8849f51 100644
---- a/drivers/input/touchscreen/tsc200x-core.c
-+++ b/drivers/input/touchscreen/tsc200x-core.c
-@@ -25,11 +25,11 @@
- #include <linux/input/touchscreen.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
--#include <linux/pm.h>
- #include <linux/of.h>
- #include <linux/spi/tsc2005.h>
- #include <linux/regulator/consumer.h>
- #include <linux/regmap.h>
-+#include <linux/property.h>
- #include <linux/gpio/consumer.h>
- #include "tsc200x-core.h"
- 
-diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
-index 2625872..69f2693 100644
---- a/drivers/net/ethernet/faraday/ftgmac100.c
-+++ b/drivers/net/ethernet/faraday/ftgmac100.c
-@@ -30,6 +30,7 @@
- #include <linux/netdevice.h>
- #include <linux/phy.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- #include <net/ip.h>
- #include <net/ncsi.h>
- 
-diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
-index 65077c7..5352a08 100644
---- a/drivers/net/ethernet/smsc/smc91x.c
-+++ b/drivers/net/ethernet/smsc/smc91x.c
-@@ -75,6 +75,7 @@ static const char version[] =
- #include <linux/ioport.h>
- #include <linux/crc32.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- #include <linux/spinlock.h>
- #include <linux/ethtool.h>
- #include <linux/mii.h>
-diff --git a/drivers/phy/phy-tusb1210.c b/drivers/phy/phy-tusb1210.c
-index 4f6d5e7..f7dd21aa 100644
---- a/drivers/phy/phy-tusb1210.c
-+++ b/drivers/phy/phy-tusb1210.c
-@@ -12,6 +12,7 @@
- #include <linux/module.h>
- #include <linux/ulpi/driver.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/property.h>
- 
- #include "ulpi_phy.h"
- 
-diff --git a/drivers/power/supply/bq24735-charger.c b/drivers/power/supply/bq24735-charger.c
-index eb7783b..038f806 100644
---- a/drivers/power/supply/bq24735-charger.c
-+++ b/drivers/power/supply/bq24735-charger.c
-@@ -27,6 +27,7 @@
- #include <linux/of.h>
- #include <linux/gpio/consumer.h>
- #include <linux/power_supply.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- 
- #include <linux/power/bq24735-charger.h>
-diff --git a/drivers/usb/common/common.c b/drivers/usb/common/common.c
-index 5ef8da6..534a498 100644
---- a/drivers/usb/common/common.c
-+++ b/drivers/usb/common/common.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/property.h>
- #include <linux/usb/ch9.h>
- #include <linux/usb/of.h>
- #include <linux/usb/otg.h>
-diff --git a/drivers/usb/dwc2/debugfs.c b/drivers/usb/dwc2/debugfs.c
-index 0a13091..86736e4 100644
---- a/drivers/usb/dwc2/debugfs.c
-+++ b/drivers/usb/dwc2/debugfs.c
-@@ -14,9 +14,10 @@
-  * GNU General Public License for more details.
-  */
- 
--#include <linux/spinlock.h>
- #include <linux/debugfs.h>
-+#include <linux/property.h>
- #include <linux/seq_file.h>
-+#include <linux/spinlock.h>
- #include <linux/uaccess.h>
- 
- #include "core.h"
-diff --git a/drivers/usb/dwc2/params.c b/drivers/usb/dwc2/params.c
-index a786256..7e6da29 100644
---- a/drivers/usb/dwc2/params.c
-+++ b/drivers/usb/dwc2/params.c
-@@ -35,6 +35,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of_device.h>
-+#include <linux/property.h>
- 
- #include "core.h"
- 
-diff --git a/drivers/usb/dwc2/pci.c b/drivers/usb/dwc2/pci.c
-index a23329e..abf6140 100644
---- a/drivers/usb/dwc2/pci.c
-+++ b/drivers/usb/dwc2/pci.c
-@@ -44,8 +44,9 @@
- #include <linux/spinlock.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
--#include <linux/slab.h>
- #include <linux/pci.h>
-+#include <linux/property.h>
-+#include <linux/slab.h>
- #include <linux/usb.h>
- 
- #include <linux/usb/hcd.h>
-diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-index 487f0ff..562cbde 100644
---- a/drivers/usb/dwc3/host.c
-+++ b/drivers/usb/dwc3/host.c
-@@ -16,6 +16,7 @@
-  */
- 
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- 
- #include "core.h"
- 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 55eee5d..16b2054 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -23,7 +23,7 @@
- #include <linux/spinlock.h>
- #include <linux/topology.h>
- #include <linux/notifier.h>
--#include <linux/property.h>
-+#include <linux/fwnode.h>
- #include <linux/list.h>
- 
- #include <asm/byteorder.h>
-diff --git a/sound/soc/codecs/rt5514.c b/sound/soc/codecs/rt5514.c
-index b281a46..0749219 100644
---- a/sound/soc/codecs/rt5514.c
-+++ b/sound/soc/codecs/rt5514.c
-@@ -15,6 +15,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/pm.h>
-+#include <linux/property.h>
- #include <linux/regmap.h>
- #include <linux/i2c.h>
- #include <linux/platform_device.h>
-diff --git a/sound/soc/codecs/ts3a227e.c b/sound/soc/codecs/ts3a227e.c
-index 4356843..e80b28b 100644
---- a/sound/soc/codecs/ts3a227e.c
-+++ b/sound/soc/codecs/ts3a227e.c
-@@ -14,6 +14,7 @@
- #include <linux/input.h>
- #include <linux/module.h>
- #include <linux/of_gpio.h>
-+#include <linux/property.h>
- #include <linux/regmap.h>
- 
- #include <sound/core.h>
-diff --git a/sound/soc/mediatek/mt8173/mt8173-rt5650.c b/sound/soc/mediatek/mt8173/mt8173-rt5650.c
-index ba65f41..433ae4f 100644
---- a/sound/soc/mediatek/mt8173/mt8173-rt5650.c
-+++ b/sound/soc/mediatek/mt8173/mt8173-rt5650.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
-+#include <linux/property.h>
- #include <sound/soc.h>
- #include <sound/jack.h>
- #include "../../codecs/rt5645.h"
-diff --git a/sound/soc/rockchip/rk3399_gru_sound.c b/sound/soc/rockchip/rk3399_gru_sound.c
-index 3475c61..9134b46 100644
---- a/sound/soc/rockchip/rk3399_gru_sound.c
-+++ b/sound/soc/rockchip/rk3399_gru_sound.c
-@@ -22,6 +22,7 @@
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
- #include <linux/delay.h>
-+#include <linux/property.h>
- #include <linux/spi/spi.h>
- #include <linux/input.h>
- #include <sound/core.h>
+
+
 -- 
-2.7.4
+Best regards,
 
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
