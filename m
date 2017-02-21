@@ -1,100 +1,81 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V10 07/10] efi: print unrecognized CPER section
-Date: Tue, 21 Feb 2017 19:10:11 +0000
-Message-ID: <58AC9093.5020303@arm.com>
-References: <1487188282-2568-1-git-send-email-tbaicar@codeaurora.org>
- <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org>
+From: Tobias Schumacher <tobe.schumacher@gmail.com>
+Subject: Re: [PATCH] Fix lock up when switching off discrete graphics card
+ in Dell XPS 9560 https://bugzilla.kernel.org/show_bug.cgi?id=156341
+Date: Tue, 21 Feb 2017 20:33:38 +0100
+Message-ID: <1487705618.3670.1.camel@gmail.com>
+References: <20170221003625.17551-1-tobe.schumacher@gmail.com>
+         <20170221094133.7qfs6p7uwatlj3rp@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34254 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753215AbdBUTdn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2017 14:33:43 -0500
+In-Reply-To: <20170221094133.7qfs6p7uwatlj3rp@lenoch>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Tyler,
+Hi Ladislav,
 
-On 15/02/17 19:51, Tyler Baicar wrote:
-> UEFI spec allows for non-standard section in Common Platform Error
-> Record. This is defined in section N.2.3 of UEFI version 2.5.
+Am Dienstag, den 21.02.2017, 10:41 +0100 schrieb Ladislav Michl:
+> Hi Tobias,
 > 
-> Currently if the CPER section's type (UUID) does not match with
-> one of the section types that the kernel knows how to parse, the
-> section is skipped. Therefore, user is not able to see
-> such CPER data, for instance, error record of non-standard section.
+> On Tue, Feb 21, 2017 at 01:36:25AM +0100, Tobias Schumacher wrote:
+> > Signed-off-by: Tobias Schumacher <tobe.schumacher@gmail.com>
+> > ---
+> >  drivers/acpi/blacklist.c | 14 ++++++++++++++
+> >  1 file changed, 14 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> > index 4421f7c..7945f2f 100644
+> > --- a/drivers/acpi/blacklist.c
+> > +++ b/drivers/acpi/blacklist.c
+> > @@ -188,6 +188,20 @@ static struct dmi_system_id
+> > acpi_rev_dmi_table[] __initdata = {
+> >  		      DMI_MATCH(DMI_PRODUCT_NAME, "Latitude
+> > 3350"),
+> >  		},
+> >  	},
+> > +	/*
+> > +	 * Resolves issues that cause the system to lock up
+> > +	 * under certain conditions when the discrete graphics
+> > +	 * card is turned off
+> > +	 */
+> > +	{
+> > +	 .callback = dmi_enable_rev_override,
+> > +	 .ident = "DELL XPS 15 (2017)",
+> > +	 .matches = {
+> > +			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> > +			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15
+> > 9560"),
+> > +		},
+> > +	},
+> > +
+> >  #endif
+> >  	{}
+> >  };
 > 
-> For above mentioned case, this change prints out the raw data in
-> hex in dmesg buffer. Data length is taken from Error Data length
-> field of Generic Error Data Entry.
-> 
-> Following is a sample output from dmesg:
-> [  115.771702] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
-> [  115.779042] {1}[Hardware Error]: It has been corrected by h/w and requires no further action
-> [  115.787456] {1}[Hardware Error]: event severity: corrected
-> [  115.792927] {1}[Hardware Error]:  Error 0, type: corrected
-> [  115.798415] {1}[Hardware Error]:  fru_id: 00000000-0000-0000-0000-000000000000
-> [  115.805596] {1}[Hardware Error]:  fru_text:
-> [  115.816105] {1}[Hardware Error]:  section type: d2e2621c-f936-468d-0d84-15a4ed015c8b
-> [  115.823880] {1}[Hardware Error]:  section length: 88
-> [  115.828779] {1}[Hardware Error]:   00000000: 01000001 00000002 5f434345 525f4543
-> [  115.836153] {1}[Hardware Error]:   00000010: 0000574d 00000000 00000000 00000000
-> [  115.843531] {1}[Hardware Error]:   00000020: 00000000 00000000 00000000 00000000
-> [  115.850908] {1}[Hardware Error]:   00000030: 00000000 00000000 00000000 00000000
-> [  115.858288] {1}[Hardware Error]:   00000040: fe800000 00000000 00000004 5f434345
-> [  115.865665] {1}[Hardware Error]:   00000050: 525f4543 0000574d
+> I thought conclusion was _not_ adding any new devices into this
+> evergrowing
+> list. Or am I mistaken? As otherwise I'll sent similar patch for my
+> laptop ;-)
 
-The use-case for this is to capture the data and decode it with a vendor tool?
-(if so, please mention that in the commit message!)
+I don't know to be honest - I recently switched back from Mac to Linux
+and searched for a way to get things working properly. Without any
+kernel parameters and patches switching off the discrete graphics will
+lead to lockups when executing for example lspci. Booting with
+'acpi_osi=! acpi_osi="Windows 2009"' fixes this, but unfortunately the
+touchpad will stop working properly. With this patch both things work.
 
+If the conclusion is not adding new devices here, is there also a
+prefered way of fixing this? I guess getting Dell to fix this would be
+the ideal solution, but what can we do in the meantime? Would adding a
+kernel parameter like acpi_rev that overrides the reported ACPI
+revision be acceptable? The only other solution I could thing of would
+be patching the ACPI tables.
 
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index c2b0a12..48cb8ee 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -591,8 +591,16 @@ static void cper_estatus_print_section(
->  			cper_print_proc_arm(newpfx, arm_err);
->  		else
->  			goto err_section_too_small;
-> -	} else
-> -		printk("%s""section type: unknown, %pUl\n", newpfx, sec_type);
-
-Nit: Its odd that you remove the 'unknown' from this, but we don't get told what
-it is, so surely its still unknown.
-
-
-> +	} else {
-> +		const void *unknown_err;
-> +
-> +		unknown_err = acpi_hest_generic_data_payload(gdata);
-> +		printk("%ssection type: %pUl\n", newpfx, sec_type);
-> +		printk("%ssection length: %d\n", newpfx,
-
-Nit: please use the "%s""section... that this file consistently uses. This means
-this code will still work as expected when someone adds '%ss' support to printk!
-
-
-> +		       gdata->error_data_length);
-> +		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4,
-> +			       unknown_err, gdata->error_data_length, 0);
-> +	}
->  
->  	return;
-
-
-FWIW:
-Reviewed-by: James Morse <james.morse@arm.com>
-
-
-Thanks,
-
-James
+  Tobias
