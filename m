@@ -1,61 +1,26 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V2] arm64: kconfig: allow support for memory failure handling
-Date: Tue, 21 Feb 2017 16:45:23 -0700
-Message-ID: <1487720723-14871-1-git-send-email-tbaicar@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:37862 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752000AbdBUXp2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2017 18:45:28 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V10 07/10] efi: print unrecognized CPER section
+Date: Tue, 21 Feb 2017 16:30:52 -0800
+Message-ID: <1487723452.24224.1.camel@perches.com>
+References: <1487188282-2568-1-git-send-email-tbaicar@codeaurora.org>
+         <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org>
+         <58AC9093.5020303@arm.com>
+         <9b8aee3f-9ab6-121a-cad0-96a39743de55@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9b8aee3f-9ab6-121a-cad0-96a39743de55-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>
+Cc: christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Suzuki.Po
 List-Id: linux-acpi@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, punit.agrawal@arm.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+On Tue, 2017-02-21 at 12:39 -0700, Baicar, Tyler wrote:
+> On 2/21/2017 12:10 PM, James Morse wrote:
+> > Nit: please use the "%s""section... that this file consistently uses. This means
+> > this code will still work as expected when someone adds '%ss' support to printk!
 
-If ACPI_APEI and MEMORY_FAILURE is configured, select
-ACPI_APEI_MEMORY_FAILURE. This enables memory failure recovery
-when such memory failure is reported through ACPI APEI. APEI
-(ACPI Platform Error Interfaces) provides a means for the
-platform to convey error information to the kernel.
+Huh?
 
-Declare ARCH_SUPPORTS_MEMORY_FAILURE, as arm64 does support
-memory failure recovery attempt.
-
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
----
- arch/arm64/Kconfig        | 1 +
- drivers/acpi/apei/Kconfig | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 1117421..61e0bb0 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -15,6 +15,7 @@ config ARM64
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_SUPPORTS_MEMORY_FAILURE
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index b0140c8..6d9a812 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -9,6 +9,7 @@ config ACPI_APEI
- 	select MISC_FILESYSTEMS
- 	select PSTORE
- 	select UEFI_CPER
-+	select ACPI_APEI_MEMORY_FAILURE if MEMORY_FAILURE
- 	depends on HAVE_ACPI_APEI
- 	help
- 	  APEI allows to report errors (for example from the chipset)
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
-
+How would that work?
