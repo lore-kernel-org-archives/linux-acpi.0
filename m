@@ -1,67 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] arm64: kconfig: allow support for memory failure handling
-Date: Wed, 22 Feb 2017 01:53:54 +0100
-Message-ID: <4367727.rNzyOA836A@aspire.rjw.lan>
-References: <1487720723-14871-1-git-send-email-tbaicar@codeaurora.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH V10 07/10] efi: print unrecognized CPER section
+Date: Wed, 22 Feb 2017 01:12:42 +0000
+Message-ID: <20170222011241.GX21222@n2100.armlinux.org.uk>
+References: <1487188282-2568-1-git-send-email-tbaicar@codeaurora.org>
+ <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org>
+ <58AC9093.5020303@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48965 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753020AbdBVA66 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Feb 2017 19:58:58 -0500
-In-Reply-To: <1487720723-14871-1-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <58AC9093.5020303@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, linux-kernel@vger.kernel.org, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, astone@redhat.com, hanjun.guo@linaro.org, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, punit.agrawal@arm.com, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Borislav Petkov <bp@suse.de>
 
-[+ Boris]
+On Tue, Feb 21, 2017 at 07:10:11PM +0000, James Morse wrote:
+> Hi Tyler,
+> 
+> On 15/02/17 19:51, Tyler Baicar wrote:
+> > +	} else {
+> > +		const void *unknown_err;
+> > +
+> > +		unknown_err = acpi_hest_generic_data_payload(gdata);
+> > +		printk("%ssection type: %pUl\n", newpfx, sec_type);
+> > +		printk("%ssection length: %d\n", newpfx,
+> 
+> Nit: please use the "%s""section... that this file consistently uses. This means
+> this code will still work as expected when someone adds '%ss' support to printk!
 
-On Tuesday, February 21, 2017 04:45:23 PM Tyler Baicar wrote:
-> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-> 
-> If ACPI_APEI and MEMORY_FAILURE is configured, select
-> ACPI_APEI_MEMORY_FAILURE. This enables memory failure recovery
-> when such memory failure is reported through ACPI APEI. APEI
-> (ACPI Platform Error Interfaces) provides a means for the
-> platform to convey error information to the kernel.
-> 
-> Declare ARCH_SUPPORTS_MEMORY_FAILURE, as arm64 does support
-> memory failure recovery attempt.
-> 
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->  arch/arm64/Kconfig        | 1 +
->  drivers/acpi/apei/Kconfig | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 1117421..61e0bb0 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -15,6 +15,7 @@ config ARM64
->  	select ARCH_HAS_SG_CHAIN
->  	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
->  	select ARCH_USE_CMPXCHG_LOCKREF
-> +	select ARCH_SUPPORTS_MEMORY_FAILURE
->  	select ARCH_SUPPORTS_ATOMIC_RMW
->  	select ARCH_SUPPORTS_NUMA_BALANCING
->  	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
-> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-> index b0140c8..6d9a812 100644
-> --- a/drivers/acpi/apei/Kconfig
-> +++ b/drivers/acpi/apei/Kconfig
-> @@ -9,6 +9,7 @@ config ACPI_APEI
->  	select MISC_FILESYSTEMS
->  	select PSTORE
->  	select UEFI_CPER
-> +	select ACPI_APEI_MEMORY_FAILURE if MEMORY_FAILURE
->  	depends on HAVE_ACPI_APEI
->  	help
->  	  APEI allows to report errors (for example from the chipset)
-> 
+No.  That is wrong:
 
+"%s""section" is stored in memory as bytes containing:
+
+'%' 's' 's' 'e' 'c' 't' 'i' 'o' 'n'
+
+whereas "%ssection" is stored in memory as bytes containing:
+
+'%' 's' 's' 'e' 'c' 't' 'i' 'o' 'n'
+
+They're exactly the same, so when printk() comes to parse the string, it
+sees exactly the same byte sequence.  So, the only thing that's happening
+is code obfuscation for no good reason what so ever.
+
+If you don't believe me, run some build tests and look at the resulting
+strings... also look at the C standard.  "Adjacent string literal tokens
+are concatenated."
+
+Please get rid of this obfuscation.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
