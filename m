@@ -1,76 +1,70 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH V2] arm64: kconfig: allow support for memory failure
- handling
-Date: Wed, 22 Feb 2017 12:43:42 +0100
-Message-ID: <20170222114342.tz5wmnynwjos44fd@pd.tnic>
-References: <1487720723-14871-1-git-send-email-tbaicar@codeaurora.org>
- <4367727.rNzyOA836A@aspire.rjw.lan>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 15/16] device property: Add fwnode_get_next_parent()
+Date: Wed, 22 Feb 2017 15:12:47 +0200
+Message-ID: <20170222131246.GP16975@valkosipuli.retiisi.org.uk>
+References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
+ <9a481aec-92e6-ac01-b825-167bf73dfb11@redhat.com>
+ <6293579.fEEljmGD4Z@aspire.rjw.lan>
+ <7605668.5ZxNsBFnEG@aspire.rjw.lan>
+ <20170221081749.GC16975@valkosipuli.retiisi.org.uk>
+ <CAJZ5v0iWj1gBThCAbY2m+R6VEp-88Pn=5FckvKv9Q=d2cidYyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:55014 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932453AbdBVLog (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Feb 2017 06:44:36 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51962 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932211AbdBVNM4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Feb 2017 08:12:56 -0500
 Content-Disposition: inline
-In-Reply-To: <4367727.rNzyOA836A@aspire.rjw.lan>
+In-Reply-To: <CAJZ5v0iWj1gBThCAbY2m+R6VEp-88Pn=5FckvKv9Q=d2cidYyQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tyler Baicar <tbaicar@codeaurora.org>, catalin.marinas@arm.com, will.deacon@arm.com, lenb@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, punit.agrawal@arm.com, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <ahs3@redhat.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>
 
-On Wed, Feb 22, 2017 at 01:53:54AM +0100, Rafael J. Wysocki wrote:
-> [+ Boris]
+Hi Rafael,
+
+On Wed, Feb 22, 2017 at 12:00:07AM +0100, Rafael J. Wysocki wrote:
+> On Tue, Feb 21, 2017 at 9:17 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > Hi Rafael,
+> >
+> > On Wed, Feb 08, 2017 at 01:19:57PM +0100, Rafael J. Wysocki wrote:
+> > ...
+> >> > > I think I agree with Rob's prior comments about making an ops struct for DT
+> >> > > vs ACPI.  Out of the 16 patches, 2/16, 3/16, 5/16 (multiple times), and this
+> >> > > patch all end up using the same construct.  Maybe it needs to be a separate
+> >> > > refactoring effort, but if it's happening this often just in this patch set,
+> >> > > it seems like it's getting time to clean things up.
+> >> >
+> >> > As long as there are two cases only (ACPI vs DT), an ops struct wouldn't
+> >> > really make things simpler and it would make the code more difficult to
+> >> > follow.
+> >> >
+> >> > But we do have a third case (static or built-in properties) and it doesn't
+> >> > seem to be covered at all.
+> >>
+> >> That said the ops struct could be introduced on top of this series just fine.
+> >> It even might be cleaner to do it this way, so I'm not asking for a redesign
+> >> here.
+> >>
+> >> I'd like the built-in properties to be covered too, however.
+> >
+> > That sounds good to me.
 > 
-> On Tuesday, February 21, 2017 04:45:23 PM Tyler Baicar wrote:
-> > From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-> > 
-> > If ACPI_APEI and MEMORY_FAILURE is configured, select
-> > ACPI_APEI_MEMORY_FAILURE. This enables memory failure recovery
-> > when such memory failure is reported through ACPI APEI. APEI
-> > (ACPI Platform Error Interfaces) provides a means for the
-> > platform to convey error information to the kernel.
-> > 
-> > Declare ARCH_SUPPORTS_MEMORY_FAILURE, as arm64 does support
-> > memory failure recovery attempt.
-> > 
-> > Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> > Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-> > ---
-> >  arch/arm64/Kconfig        | 1 +
-> >  drivers/acpi/apei/Kconfig | 1 +
-> >  2 files changed, 2 insertions(+)
-> > 
-> > diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> > index 1117421..61e0bb0 100644
-> > --- a/arch/arm64/Kconfig
-> > +++ b/arch/arm64/Kconfig
-> > @@ -15,6 +15,7 @@ config ARM64
-> >  	select ARCH_HAS_SG_CHAIN
-> >  	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
-> >  	select ARCH_USE_CMPXCHG_LOCKREF
-> > +	select ARCH_SUPPORTS_MEMORY_FAILURE
-> >  	select ARCH_SUPPORTS_ATOMIC_RMW
-> >  	select ARCH_SUPPORTS_NUMA_BALANCING
-> >  	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
-> > diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-> > index b0140c8..6d9a812 100644
-> > --- a/drivers/acpi/apei/Kconfig
-> > +++ b/drivers/acpi/apei/Kconfig
-> > @@ -9,6 +9,7 @@ config ACPI_APEI
-> >  	select MISC_FILESYSTEMS
-> >  	select PSTORE
-> >  	select UEFI_CPER
-> > +	select ACPI_APEI_MEMORY_FAILURE if MEMORY_FAILURE
+> OK
+> 
+> Please update the patches to built-in properties into account, then. :-)
 
-Yap, looks ok to me: we're basically enabling
-ghes_handle_memory_failure() to queue a memory address at fault for
-possibly offlining on arm64. And since the arch supports it...
+Will do.
+
+I also noticed that I had accidentally merged two patches from RFC v1 to
+PATCH v1 sets (device property: Obtain device's fwnode independently of FW
+type). There's a redundant patch adding device_fwnode_handle() function as
+well, I'll drop that patch (the same subject).
 
 -- 
-Regards/Gruss,
-    Boris.
+Kind regards,
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
