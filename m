@@ -1,58 +1,65 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 2/2] arch_timer: acpi: add hisi timer erratum data
-Date: Wed, 22 Feb 2017 09:29:50 +0000
-Message-ID: <ff440d6e-fcec-fdbd-24c9-ea0485fc4192@arm.com>
-References: <1485254391-51551-1-git-send-email-guohanjun@huawei.com>
- <1485254391-51551-3-git-send-email-guohanjun@huawei.com>
- <20170124105717.GB6277@leverpostej>
- <a2ac2a70-09fb-5cec-c090-b8ebde90e24f@arm.com> <589D6776.2010400@huawei.com>
- <6c3a2952-731b-dfae-ba22-f9d7df25d691@arm.com> <58AC2AEF.1030803@huawei.com>
- <874lzn602f.fsf@on-the-bus.cambridge.arm.com>
- <F2063470-F18A-4521-AABE-29E35D44CFE5@suse.de>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH V10 07/10] efi: print unrecognized CPER section
+Date: Wed, 22 Feb 2017 10:13:28 +0000
+Message-ID: <58AD6448.1070301@arm.com>
+References: <1487188282-2568-1-git-send-email-tbaicar@codeaurora.org> <1487188282-2568-8-git-send-email-tbaicar@codeaurora.org> <58AC9093.5020303@arm.com> <20170222011241.GX21222@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41830 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:42180 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754509AbdBVJaA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Feb 2017 04:30:00 -0500
-In-Reply-To: <F2063470-F18A-4521-AABE-29E35D44CFE5@suse.de>
+        id S1753692AbdBVKNj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Feb 2017 05:13:39 -0500
+In-Reply-To: <20170222011241.GX21222@n2100.armlinux.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Graf <agraf@suse.de>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Mark Rutland <mark.rutland@arm.com>, Will Deacon <will.deacon@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Fu Wei <fu.wei@linaro.org>, Ding Tianhong <dingtianhong@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>, mbrugger@suse.com, yousaf.kaukab@suse.com, sanil.kumar@huawei.com
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpic
 
-On 22/02/17 04:08, Alexander Graf wrote:
-
-[irrelevant stuff]
-
-> Thanks for handling this quickly :).
+On 22/02/17 01:12, Russell King - ARM Linux wrote:
+> On Tue, Feb 21, 2017 at 07:10:11PM +0000, James Morse wrote:
+>> Hi Tyler,
+>>
+>> On 15/02/17 19:51, Tyler Baicar wrote:
+>>> +	} else {
+>>> +		const void *unknown_err;
+>>> +
+>>> +		unknown_err = acpi_hest_generic_data_payload(gdata);
+>>> +		printk("%ssection type: %pUl\n", newpfx, sec_type);
+>>> +		printk("%ssection length: %d\n", newpfx,
+>>
+>> Nit: please use the "%s""section... that this file consistently uses. This means
+>> this code will still work as expected when someone adds '%ss' support to printk!
 > 
-> One thing I can't get my head around yet is VM propagation of these
-> erratas. For the dt property based approach, I can at least see how
-> someone adds that property into the guest dt when running on broken
-> hosts.
+> No.  That is wrong:
 > 
-> But how would that work when the erratum matching happens based on
-> the OEM identifier? Would a VM suddenly have to have HiSilicon as
-> OEM? Or would we forbid kvm usage altogether on those CPUs?
+> "%s""section" is stored in memory as bytes containing:
+> 
+> '%' 's' 's' 'e' 'c' 't' 'i' 'o' 'n'
+> 
+> whereas "%ssection" is stored in memory as bytes containing:
+> 
+> '%' 's' 's' 'e' 'c' 't' 'i' 'o' 'n'
+> 
+> They're exactly the same, so when printk() comes to parse the string, it
+> sees exactly the same byte sequence.  So, the only thing that's happening
+> is code obfuscation for no good reason what so ever.
+> 
+> If you don't believe me, run some build tests and look at the resulting
+> strings... also look at the C standard.  "Adjacent string literal tokens
+> are concatenated."
+> 
+> Please get rid of this obfuscation.
 
-s/CPU/SoC/
+Sure, I was always told not do this, clearly I didn't think about it for very long!
 
-Simple: you only use DT as a guest, because it is the only firmware
-interface that allows you to reliably describe an arbitrary erratum.
-ACPI is too inflexible for that. Injecting bits of the host's ACPI
-tables in the guest doesn't strike me as a reliable solution, as you're
-not describing the erratum itself. I imagine you 'd have some userspace
-tool to dump the host ACPI table, match it against a list of known
-errata, and inject the corresponding property into the guest's DT.
+This file otherwise consistently uses the now-weird "%s""otherstring" pattern.
 
-Furthermore, I don't see any reason to actively prevent KVM from running
-on any system. If we did, we'd start with the RPi...
+
 
 Thanks,
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+James
+
+
