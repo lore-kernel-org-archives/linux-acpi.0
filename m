@@ -1,114 +1,61 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 17/20] device property: Use fwnode_operations for obtaining the remote port
-Date: Thu, 23 Feb 2017 19:01:13 +0200
-Message-ID: <1487869276-25244-18-git-send-email-sakari.ailus@linux.intel.com>
-References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487869276-25244-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 15/16] device property: Add fwnode_get_next_parent()
+Date: Thu, 23 Feb 2017 19:01:38 +0200
+Message-ID: <20170223170138.GT16975@valkosipuli.retiisi.org.uk>
+References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
+ <9a481aec-92e6-ac01-b825-167bf73dfb11@redhat.com>
+ <6293579.fEEljmGD4Z@aspire.rjw.lan>
+ <7605668.5ZxNsBFnEG@aspire.rjw.lan>
+ <20170221081749.GC16975@valkosipuli.retiisi.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52524 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751637AbdBWRIf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Feb 2017 12:08:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20170221081749.GC16975@valkosipuli.retiisi.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ahs3@redhat.com, Sakari Ailus <sakari.ailus@linux.intel.com>, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org
 
-Change the implementation of fwnode_graph_get_remote_port() function to
-use struct fwnode_operations.
+On Tue, Feb 21, 2017 at 10:17:49AM +0200, Sakari Ailus wrote:
+> Hi Rafael,
+> 
+> On Wed, Feb 08, 2017 at 01:19:57PM +0100, Rafael J. Wysocki wrote:
+> ...
+> > > > I think I agree with Rob's prior comments about making an ops struct for DT
+> > > > vs ACPI.  Out of the 16 patches, 2/16, 3/16, 5/16 (multiple times), and this
+> > > > patch all end up using the same construct.  Maybe it needs to be a separate
+> > > > refactoring effort, but if it's happening this often just in this patch set,
+> > > > it seems like it's getting time to clean things up.
+> > > 
+> > > As long as there are two cases only (ACPI vs DT), an ops struct wouldn't
+> > > really make things simpler and it would make the code more difficult to
+> > > follow.
+> > > 
+> > > But we do have a third case (static or built-in properties) and it doesn't
+> > > seem to be covered at all.
+> > 
+> > That said the ops struct could be introduced on top of this series just fine.
+> > It even might be cleaner to do it this way, so I'm not asking for a redesign
+> > here.
+> > 
+> > I'd like the built-in properties to be covered too, however.
+> 
+> That sounds good to me. 
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/acpi/property.c | 11 +++++++++++
- drivers/base/property.c | 18 +-----------------
- drivers/of/base.c       | 13 +++++++++++++
- 3 files changed, 25 insertions(+), 17 deletions(-)
+After looking at the implementation, the fwnode interface is rather complete
+for property sets --- graphs are inherently cross-device concepts and
+property sets don't really lend themselves to that. I think it'd be good to
+have at least a use case for that before implementing it based on a thought
+that it might be needed for something.
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 39bffd3..623260d 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1194,6 +1194,16 @@ static struct fwnode_handle *acpi_fwnode_graph_get_remote_endpoint(
- 	return endpoint;
- }
- 
-+static struct fwnode_handle *acpi_fwnode_graph_get_remote_port(
-+	struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *port = NULL;
-+
-+	acpi_graph_get_remote_endpoint(fwnode, NULL, &port, NULL);
-+
-+	return port;
-+}
-+
- const struct fwnode_operations acpi_fwnode_ops = {
- 	.property_present = acpi_fwnode_property_present,
- 	.property_read_int_array = acpi_fwnode_property_read_int_array,
-@@ -1203,4 +1213,5 @@ const struct fwnode_operations acpi_fwnode_ops = {
- 	.get_named_child_node = acpi_fwnode_get_named_child_node,
- 	.graph_get_next_endpoint = acpi_fwnode_graph_get_next_endpoint,
- 	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
-+	.graph_get_remote_port = acpi_fwnode_graph_get_remote_port,
- };
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index fbdd0a0..5636290 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1124,23 +1124,7 @@ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port_parent);
-  */
- struct fwnode_handle *fwnode_graph_get_remote_port(struct fwnode_handle *fwnode)
- {
--	struct fwnode_handle *port = NULL;
--
--	if (is_of_node(fwnode)) {
--		struct device_node *node;
--
--		node = of_graph_get_remote_port(to_of_node(fwnode));
--		if (node)
--			port = &node->fwnode;
--	} else if (is_acpi_node(fwnode)) {
--		int ret;
--
--		ret = acpi_graph_get_remote_endpoint(fwnode, NULL, &port, NULL);
--		if (ret)
--			return NULL;
--	}
--
--	return port;
-+	return fwnode_call_ptr_op(fwnode, graph_get_remote_endpoint);
- }
- EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port);
- 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 17fce20..bdc195c 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2593,6 +2593,18 @@ static struct fwnode_handle *of_fwnode_graph_get_remote_endpoint(
- 	return NULL;
- }
- 
-+static struct fwnode_handle *of_fwnode_graph_get_remote_port(
-+	struct fwnode_handle *fwnode)
-+{
-+	struct device_node *node;
-+
-+	node = of_graph_get_remote_port(to_of_node(fwnode));
-+	if (node)
-+		return of_fwnode_handle(node);
-+
-+	return NULL;
-+}
-+
- const struct fwnode_operations of_fwnode_ops = {
- 	.get = of_fwnode_get,
- 	.put = of_fwnode_put,
-@@ -2604,4 +2616,5 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.get_named_child_node = of_fwnode_get_named_child_node,
- 	.graph_get_next_endpoint = of_fwnode_graph_get_next_endpoint,
- 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
-+	.graph_get_remote_port = of_fwnode_graph_get_remote_port,
- };
 -- 
-2.7.4
+Regards,
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
