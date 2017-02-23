@@ -1,159 +1,245 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 06/20] device property: Introduce firmware property operations, set them
-Date: Thu, 23 Feb 2017 19:01:02 +0200
-Message-ID: <1487869276-25244-7-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 09/20] device property: Use fwnode_operations for reading integer arrays
+Date: Thu, 23 Feb 2017 19:01:05 +0200
+Message-ID: <1487869276-25244-10-git-send-email-sakari.ailus@linux.intel.com>
 References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:13125 "EHLO mga05.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:49847 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751823AbdBWRKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 23 Feb 2017 12:10:38 -0500
+        id S1751125AbdBWRLK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Feb 2017 12:11:10 -0500
 In-Reply-To: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Add ops field for the firmware operations to struct fwnode_handle. Set the
-ops pointer based on firmware type in fwnode initialisation.
+Change the implementation of fwnode_property_read_*_array() class of
+functions to use struct fwnode_operations.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 3 +++
- drivers/acpi/scan.c     | 1 +
- drivers/base/property.c | 3 +++
- drivers/of/base.c       | 2 ++
- include/linux/acpi.h    | 4 ++++
- include/linux/fwnode.h  | 5 +++++
- include/linux/of.h      | 2 ++
- 7 files changed, 20 insertions(+)
+ drivers/acpi/property.c | 27 +++++++++++++++
+ drivers/base/property.c | 92 ++++++++++++++++++++++++++-----------------------
+ drivers/of/base.c       | 25 ++++++++++++++
+ 3 files changed, 100 insertions(+), 44 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 6e776de..0651a74 100644
+index 14b96ec..b84d0e5 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -57,6 +57,7 @@ static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
- 
- 	dn->name = link->package.elements[0].string.pointer;
- 	dn->fwnode.type = FWNODE_ACPI_DATA;
-+	dn->fwnode.ops = &acpi_fwnode_ops;
- 	dn->parent = parent;
- 	INIT_LIST_HEAD(&dn->data.subnodes);
- 
-@@ -1108,3 +1109,5 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
- 
- 	return 0;
+@@ -1116,6 +1116,33 @@ static bool acpi_fwnode_property_present(struct fwnode_handle *fwnode,
+ 	return !acpi_node_prop_get(fwnode, propname, NULL);
  }
+ 
++static int acpi_fwnode_property_read_int_array(
++	struct fwnode_handle *fwnode, const char *propname,
++	unsigned int elem_size, void *val, size_t nval)
++{
++	enum dev_prop_type type;
 +
-+const struct fwnode_operations acpi_fwnode_ops;
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 1926918..901720f 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1441,6 +1441,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	device->handle = handle;
- 	device->parent = acpi_bus_get_parent(handle);
- 	device->fwnode.type = FWNODE_ACPI;
-+	device->fwnode.ops = &acpi_fwnode_ops;
- 	acpi_set_device_status(device, sta);
- 	acpi_device_get_busid(device);
- 	acpi_set_pnp_ids(handle, &device->pnp, type);
++	switch (elem_size) {
++	case sizeof(u8):
++		type = DEV_PROP_U8;
++		break;
++	case sizeof(u16):
++		type = DEV_PROP_U16;
++		break;
++	case sizeof(u32):
++		type = DEV_PROP_U32;
++		break;
++	case sizeof(u64):
++		type = DEV_PROP_U64;
++		break;
++	default:
++		return -ENXIO;
++	}
++
++	return acpi_node_prop_read(fwnode, propname, type, val, nval);
++}
++
+ const struct fwnode_operations acpi_fwnode_ops = {
+ 	.property_present = acpi_fwnode_property_present,
++	.property_read_int_array = acpi_fwnode_property_read_int_array,
+ };
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 5cb270f..906411e 100644
+index 37aea12..8c2068a 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -183,6 +183,8 @@ static int pset_prop_read_string(struct property_set *pset,
- 	return 0;
+@@ -189,8 +189,32 @@ static bool pset_fwnode_property_present(struct fwnode_handle *fwnode,
+ 	return !!pset_prop_get(to_pset_node(fwnode), propname);
  }
  
-+static const struct fwnode_operations pset_fwnode_ops;
++static int pset_fwnode_read_int_array(
++	struct fwnode_handle *fwnode, const char *propname,
++	unsigned int elem_size, void *val, size_t nval)
++{
++	struct property_set *node = to_pset_node(fwnode);
 +
- /**
-  * device_property_present - check if a property of a device is present
-  * @dev: Device whose property is being checked
-@@ -882,6 +884,7 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
- 		return PTR_ERR(p);
++	if (!val)
++		return pset_prop_count_elems_of_size(node, propname, elem_size);
++
++	switch (elem_size) {
++	case sizeof(u8):
++		return pset_prop_read_u8_array(node, propname, val, nval);
++	case sizeof(u16):
++		return pset_prop_read_u16_array(node, propname, val, nval);
++	case sizeof(u32):
++		return pset_prop_read_u32_array(node, propname, val, nval);
++	case sizeof(u64):
++		return pset_prop_read_u64_array(node, propname, val, nval);
++	}
++
++	return -ENXIO;
++}
++
+ static const struct fwnode_operations pset_fwnode_ops = {
+ 	.property_present = pset_fwnode_property_present,
++	.property_read_int_array = pset_fwnode_read_int_array,
+ };
  
- 	p->fwnode.type = FWNODE_PDATA;
-+	p->fwnode.ops = &pset_fwnode_ops;
- 	set_secondary_fwnode(dev, &p->fwnode);
- 	return 0;
+ /**
+@@ -393,42 +417,22 @@ int device_property_match_string(struct device *dev, const char *propname,
  }
+ EXPORT_SYMBOL_GPL(device_property_match_string);
+ 
+-#define OF_DEV_PROP_READ_ARRAY(node, propname, type, val, nval)				\
+-	(val) ? of_property_read_##type##_array((node), (propname), (val), (nval))	\
+-	      : of_property_count_elems_of_size((node), (propname), sizeof(type))
+-
+-#define PSET_PROP_READ_ARRAY(node, propname, type, val, nval)				\
+-	(val) ? pset_prop_read_##type##_array((node), (propname), (val), (nval))	\
+-	      : pset_prop_count_elems_of_size((node), (propname), sizeof(type))
+-
+-#define FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_, _val_, _nval_)	\
+-({											\
+-	int _ret_;									\
+-	if (is_of_node(_fwnode_))							\
+-		_ret_ = OF_DEV_PROP_READ_ARRAY(to_of_node(_fwnode_), _propname_,	\
+-					       _type_, _val_, _nval_);			\
+-	else if (is_acpi_node(_fwnode_))						\
+-		_ret_ = acpi_node_prop_read(_fwnode_, _propname_, _proptype_,		\
+-					    _val_, _nval_);				\
+-	else if (is_pset_node(_fwnode_)) 						\
+-		_ret_ = PSET_PROP_READ_ARRAY(to_pset_node(_fwnode_), _propname_,	\
+-					     _type_, _val_, _nval_);			\
+-	else										\
+-		_ret_ = -ENXIO;								\
+-	_ret_;										\
+-})
+-
+-#define FWNODE_PROP_READ_ARRAY(_fwnode_, _propname_, _type_, _proptype_, _val_, _nval_)	\
+-({											\
+-	int _ret_;									\
+-	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
+-				 _val_, _nval_);					\
+-	if (_ret_ == -EINVAL && !IS_ERR_OR_NULL(_fwnode_) &&				\
+-	    !IS_ERR_OR_NULL(_fwnode_->secondary))					\
+-		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
+-				_proptype_, _val_, _nval_);				\
+-	_ret_;										\
+-})
++static int fwnode_property_read_int_array(
++	struct fwnode_handle *fwnode, const char *propname,
++	unsigned int elem_size, void *val, size_t nval)
++{
++	int ret;
++
++	ret = fwnode_call_int_op(fwnode, property_read_int_array, propname,
++				 elem_size, val, nval);
++	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
++	    !IS_ERR_OR_NULL(fwnode->secondary))
++		ret = fwnode_call_int_op(
++			fwnode->secondary, property_read_int_array, propname,
++			elem_size, val, nval);
++
++	return ret;
++}
+ 
+ /**
+  * fwnode_property_read_u8_array - return a u8 array property of firmware node
+@@ -451,8 +455,8 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
+ int fwnode_property_read_u8_array(struct fwnode_handle *fwnode,
+ 				  const char *propname, u8 *val, size_t nval)
+ {
+-	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u8, DEV_PROP_U8,
+-				      val, nval);
++	return fwnode_property_read_int_array(fwnode, propname, sizeof(u8),
++					      val, nval);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_read_u8_array);
+ 
+@@ -477,8 +481,8 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_u8_array);
+ int fwnode_property_read_u16_array(struct fwnode_handle *fwnode,
+ 				   const char *propname, u16 *val, size_t nval)
+ {
+-	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u16, DEV_PROP_U16,
+-				      val, nval);
++	return fwnode_property_read_int_array(fwnode, propname, sizeof(u16),
++					      val, nval);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_read_u16_array);
+ 
+@@ -503,8 +507,8 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_u16_array);
+ int fwnode_property_read_u32_array(struct fwnode_handle *fwnode,
+ 				   const char *propname, u32 *val, size_t nval)
+ {
+-	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u32, DEV_PROP_U32,
+-				      val, nval);
++	return fwnode_property_read_int_array(fwnode, propname, sizeof(u32),
++					      val, nval);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_read_u32_array);
+ 
+@@ -529,8 +533,8 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_u32_array);
+ int fwnode_property_read_u64_array(struct fwnode_handle *fwnode,
+ 				   const char *propname, u64 *val, size_t nval)
+ {
+-	return FWNODE_PROP_READ_ARRAY(fwnode, propname, u64, DEV_PROP_U64,
+-				      val, nval);
++	return fwnode_property_read_int_array(fwnode, propname, sizeof(u64),
++					      val, nval);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_read_u64_array);
+ 
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index d4bea3c..c08ed0e 100644
+index 84f2530..80f736d 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -2469,3 +2469,5 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node)
- 	return of_get_next_parent(np);
+@@ -2486,8 +2486,33 @@ static bool of_fwnode_property_present(struct fwnode_handle *fwnode,
+ 	return of_property_read_bool(to_of_node(fwnode), propname);
  }
- EXPORT_SYMBOL(of_graph_get_remote_port);
-+
-+const struct fwnode_operations of_fwnode_ops;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 05ff957..85ca76d 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -56,6 +56,9 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
- 	acpi_fwnode_handle(adev) : NULL)
- #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
  
++static int of_fwnode_property_read_int_array(
++	struct fwnode_handle *fwnode, const char *propname,
++	unsigned int elem_size, void *val, size_t nval)
++{
++	struct device_node *node = to_of_node(fwnode);
 +
-+extern const struct fwnode_operations acpi_fwnode_ops;
++	if (!val)
++		return of_property_count_elems_of_size(node, propname,
++						       elem_size);
 +
- static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
- {
- 	struct fwnode_handle *fwnode;
-@@ -65,6 +68,7 @@ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
- 		return NULL;
- 
- 	fwnode->type = FWNODE_ACPI_STATIC;
-+	fwnode->ops = &acpi_fwnode_ops;
- 
- 	return fwnode;
- }
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 37d6ee1..4edb60d 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -12,6 +12,8 @@
- #ifndef _LINUX_FWNODE_H_
- #define _LINUX_FWNODE_H_
- 
-+#include <linux/types.h>
++	switch (elem_size) {
++	case sizeof(u8):
++		return of_property_read_u8_array(node, propname, val, nval);
++	case sizeof(u16):
++		return of_property_read_u16_array(node, propname, val, nval);
++	case sizeof(u32):
++		return of_property_read_u32_array(node, propname, val, nval);
++	case sizeof(u64):
++		return of_property_read_u64_array(node, propname, val, nval);
++	}
 +
- enum fwnode_type {
- 	FWNODE_INVALID = 0,
- 	FWNODE_OF,
-@@ -22,9 +24,12 @@ enum fwnode_type {
- 	FWNODE_IRQCHIP
++	return -ENXIO;
++}
++
+ const struct fwnode_operations of_fwnode_ops = {
+ 	.get = of_fwnode_get,
+ 	.put = of_fwnode_put,
+ 	.property_present = of_fwnode_property_present,
++	.property_read_int_array = of_fwnode_property_read_int_array,
  };
- 
-+struct fwnode_operations;
-+
- struct fwnode_handle {
- 	enum fwnode_type type;
- 	struct fwnode_handle *secondary;
-+	const struct fwnode_operations *ops;
- };
- 
- struct fwnode_endpoint {
-diff --git a/include/linux/of.h b/include/linux/of.h
-index e0ddb22..21ecde3 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -100,10 +100,12 @@ struct of_reconfig_data {
- 
- /* initialize a node */
- extern struct kobj_type of_node_ktype;
-+extern const struct fwnode_operations of_fwnode_ops;
- static inline void of_node_init(struct device_node *node)
- {
- 	kobject_init(&node->kobj, &of_node_ktype);
- 	node->fwnode.type = FWNODE_OF;
-+	node->fwnode.ops = &of_fwnode_ops;
- }
- 
- /* true when node is initialized */
 -- 
 2.7.4
 
