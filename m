@@ -1,92 +1,119 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 13/20] device property: Use fwnode_operations for obtaining next child node
-Date: Thu, 23 Feb 2017 19:01:09 +0200
-Message-ID: <1487869276-25244-14-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 08/20] device property: Use fwnode_operations for fwnode_property_present()
+Date: Thu, 23 Feb 2017 19:01:04 +0200
+Message-ID: <1487869276-25244-9-git-send-email-sakari.ailus@linux.intel.com>
 References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52711 "EHLO mga01.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:36211 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751634AbdBWRIf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 23 Feb 2017 12:08:35 -0500
+        id S1751823AbdBWRId (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Feb 2017 12:08:33 -0500
 In-Reply-To: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Change the implementation of fwnode_property_get_parent() function to use
-struct fwnode_operations.
+Change the implementation of fwnode_property_present() to use struct
+fwnode_operations.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c |  1 +
- drivers/base/property.c | 13 +------------
- drivers/of/base.c       | 14 ++++++++++++++
- 3 files changed, 16 insertions(+), 12 deletions(-)
+ drivers/acpi/property.c | 10 +++++++++-
+ drivers/base/property.c | 27 ++++++++++++---------------
+ drivers/of/base.c       |  7 +++++++
+ 3 files changed, 28 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index a20b81f..fc1d5da 100644
+index 0651a74..14b96ec 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -1161,4 +1161,5 @@ const struct fwnode_operations acpi_fwnode_ops = {
- 	.property_read_int_array = acpi_fwnode_property_read_int_array,
- 	.property_read_string_array = acpi_fwnode_property_read_string_array,
- 	.get_parent = acpi_fwnode_get_parent,
-+	.get_next_child_node = acpi_get_next_subnode,
- };
+@@ -1110,4 +1110,12 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
+ 	return 0;
+ }
+ 
+-const struct fwnode_operations acpi_fwnode_ops;
++static bool acpi_fwnode_property_present(struct fwnode_handle *fwnode,
++					 const char *propname)
++{
++	return !acpi_node_prop_get(fwnode, propname, NULL);
++}
++
++const struct fwnode_operations acpi_fwnode_ops = {
++	.property_present = acpi_fwnode_property_present,
++};
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index e730f4f..e9068b1 100644
+index 0ab2ea5..37aea12 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -875,18 +875,7 @@ EXPORT_SYMBOL_GPL(fwnode_get_parent);
- struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
- 						 struct fwnode_handle *child)
- {
--	if (is_of_node(fwnode)) {
--		struct device_node *node;
--
--		node = of_get_next_available_child(to_of_node(fwnode),
--						   to_of_node(child));
--		if (node)
--			return &node->fwnode;
--	} else if (is_acpi_node(fwnode)) {
--		return acpi_get_next_subnode(fwnode, child);
--	}
--
--	return NULL;
-+	return fwnode_call_ptr_op(fwnode, get_next_child_node, child);
+@@ -183,7 +183,15 @@ static int pset_prop_read_string(struct property_set *pset,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
  
+-static const struct fwnode_operations pset_fwnode_ops;
++static bool pset_fwnode_property_present(struct fwnode_handle *fwnode,
++					 const char *propname)
++{
++	return !!pset_prop_get(to_pset_node(fwnode), propname);
++}
++
++static const struct fwnode_operations pset_fwnode_ops = {
++	.property_present = pset_fwnode_property_present,
++};
+ 
+ /**
+  * device_property_present - check if a property of a device is present
+@@ -198,18 +206,6 @@ bool device_property_present(struct device *dev, const char *propname)
+ }
+ EXPORT_SYMBOL_GPL(device_property_present);
+ 
+-static bool __fwnode_property_present(struct fwnode_handle *fwnode,
+-				      const char *propname)
+-{
+-	if (is_of_node(fwnode))
+-		return of_property_read_bool(to_of_node(fwnode), propname);
+-	else if (is_acpi_node(fwnode))
+-		return !acpi_node_prop_get(fwnode, propname, NULL);
+-	else if (is_pset_node(fwnode))
+-		return !!pset_prop_get(to_pset_node(fwnode), propname);
+-	return false;
+-}
+-
+ /**
+  * fwnode_property_present - check if a property of a firmware node is present
+  * @fwnode: Firmware node whose property to check
+@@ -219,10 +215,11 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+ {
+ 	bool ret;
+ 
+-	ret = __fwnode_property_present(fwnode, propname);
++	ret = fwnode_call_int_op(fwnode, property_present, propname);
+ 	if (ret == false && !IS_ERR_OR_NULL(fwnode) &&
+ 	    !IS_ERR_OR_NULL(fwnode->secondary))
+-		ret = __fwnode_property_present(fwnode->secondary, propname);
++		ret = fwnode_call_int_op(fwnode->secondary, property_present,
++					 propname);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_present);
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 5825eda..66a7970 100644
+index cbc4998..84f2530 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -2542,6 +2542,19 @@ static struct fwnode_handle *of_fwnode_get_parent(struct fwnode_handle *fwnode)
- 	return NULL;
+@@ -2480,7 +2480,14 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
+ 	of_node_put(to_of_node(fwnode));
  }
  
-+static struct fwnode_handle *of_fwnode_get_next_child_node(
-+	struct fwnode_handle *fwnode, struct fwnode_handle *child)
++static bool of_fwnode_property_present(struct fwnode_handle *fwnode,
++				       const char *propname)
 +{
-+	struct device_node *node;
-+
-+	node = of_get_next_available_child(to_of_node(fwnode),
-+					   to_of_node(child));
-+	if (node)
-+		return of_fwnode_handle(node);
-+
-+	return NULL;
++	return of_property_read_bool(to_of_node(fwnode), propname);
 +}
 +
  const struct fwnode_operations of_fwnode_ops = {
  	.get = of_fwnode_get,
  	.put = of_fwnode_put,
-@@ -2549,4 +2562,5 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.property_read_int_array = of_fwnode_property_read_int_array,
- 	.property_read_string_array = of_fwnode_property_read_string_array,
- 	.get_parent = of_fwnode_get_parent,
-+	.get_next_child_node = of_fwnode_get_next_child_node,
++	.property_present = of_fwnode_property_present,
  };
 -- 
 2.7.4
