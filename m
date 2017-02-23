@@ -1,197 +1,116 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 11/20] device property: Use fwnode_operations for reading string arrays
-Date: Thu, 23 Feb 2017 19:01:07 +0200
-Message-ID: <1487869276-25244-12-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 16/20] device property: Use fwnode_operations for obtaining the remote endpoint
+Date: Thu, 23 Feb 2017 19:01:12 +0200
+Message-ID: <1487869276-25244-17-git-send-email-sakari.ailus@linux.intel.com>
 References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1487869276-25244-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:60701 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751656AbdBWRIf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Feb 2017 12:08:35 -0500
+In-Reply-To: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Change the implementation of fwnode_property_read_string_array() function
-to use struct fwnode_operations.
+Change the implementation of fwnode_graph_get_remote_endpoint() function to
+use struct fwnode_operations.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c |  9 ++++++
- drivers/base/property.c | 81 ++++++++++++++++++-------------------------------
- drivers/of/base.c       | 22 ++++++++++++++
- 3 files changed, 61 insertions(+), 51 deletions(-)
+ drivers/acpi/property.c | 11 +++++++++++
+ drivers/base/property.c | 20 +-------------------
+ drivers/of/base.c       | 13 +++++++++++++
+ 3 files changed, 25 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index b84d0e5..4e76b31 100644
+index bf7b7f0..39bffd3 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -1142,7 +1142,16 @@ static int acpi_fwnode_property_read_int_array(
- 	return acpi_node_prop_read(fwnode, propname, type, val, nval);
+@@ -1184,6 +1184,16 @@ static struct fwnode_handle *acpi_fwnode_graph_get_next_endpoint(
+ 	return endpoint;
  }
  
-+static int acpi_fwnode_property_read_string_array(
-+	struct fwnode_handle *fwnode, const char *propname, const char **val,
-+	size_t nval)
++static struct fwnode_handle *acpi_fwnode_graph_get_remote_endpoint(
++	struct fwnode_handle *fwnode)
 +{
-+	return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
-+				   val, nval);
++	struct fwnode_handle *endpoint = NULL;
++
++	acpi_graph_get_remote_endpoint(fwnode, NULL, NULL, &endpoint);
++
++	return endpoint;
 +}
 +
  const struct fwnode_operations acpi_fwnode_ops = {
  	.property_present = acpi_fwnode_property_present,
  	.property_read_int_array = acpi_fwnode_property_read_int_array,
-+	.property_read_string_array = acpi_fwnode_property_read_string_array,
+@@ -1192,4 +1202,5 @@ const struct fwnode_operations acpi_fwnode_ops = {
+ 	.get_next_child_node = acpi_get_next_subnode,
+ 	.get_named_child_node = acpi_fwnode_get_named_child_node,
+ 	.graph_get_next_endpoint = acpi_fwnode_graph_get_next_endpoint,
++	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
  };
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index b251525..136ba66 100644
+index 01add33..fbdd0a0 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -187,9 +187,34 @@ static int pset_fwnode_read_int_array(
- 	return -ENXIO;
- }
- 
-+static int pset_fwnode_property_read_string_array(
-+	struct fwnode_handle *fwnode, const char *propname, const char **val,
-+	size_t nval)
-+{
-+	struct property_set *node = to_pset_node(fwnode);
-+	struct property_entry *prop;
-+
-+	/* Read properties if val is non-NULL */
-+	if (val)
-+		return pset_prop_read_string_array(node, propname, val, nval);
-+
-+	prop = pset_prop_get(node, propname);
-+	if (!prop)
-+		return -EINVAL;
-+
-+	/* The array length for a non-array string property is 1. */
-+	if (!prop->is_array)
-+		return 1;
-+
-+	/* Return the length of an array. */
-+	return pset_prop_count_elems_of_size(node, propname,
-+					     sizeof(const char *));
-+}
-+
- static const struct fwnode_operations pset_fwnode_ops = {
- 	.property_present = pset_fwnode_property_present,
- 	.property_read_int_array = pset_fwnode_read_int_array,
-+	.property_read_string_array = pset_fwnode_property_read_string_array,
- };
- 
- /**
-@@ -513,54 +538,6 @@ int fwnode_property_read_u64_array(struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_u64_array);
- 
--static int __fwnode_property_read_string_array(struct fwnode_handle *fwnode,
--					       const char *propname,
--					       const char **val, size_t nval)
--{
--	if (is_of_node(fwnode)) {
--		int rval;
--
--		if (!val)
--			return of_property_count_strings(to_of_node(fwnode),
--							 propname);
--
--		rval = of_property_read_string_array(to_of_node(fwnode),
--						     propname, val, nval);
--
--		if (rval < 0)
--			return rval;
--
--		if (rval == nval)
--			return 0;
--
--		return -EOVERFLOW;
--	} else if (is_acpi_node(fwnode))
--		return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
--					   val, nval);
--	else if (is_pset_node(fwnode)) {
--		struct property_set *node = to_pset_node(fwnode);
--		struct property_entry *prop;
--
--		/* Read properties if val is non-NULL */
--		if (val)
--			return pset_prop_read_string_array(node, propname,
--							   val, nval);
--
--		prop = pset_prop_get(node, propname);
--		if (!prop)
--			return -EINVAL;
--
--		/* The array length for a non-array string property is 1. */
--		if (!prop->is_array)
--			return 1;
--
--		/* Return the length of an array. */
--		return pset_prop_count_elems_of_size(node, propname,
--						     sizeof(const char *));
--	}
--	return -ENXIO;
--}
--
- /**
-  * fwnode_property_read_string_array - return string array property of a node
-  * @fwnode: Firmware node to get the property of
-@@ -585,11 +562,13 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+@@ -1153,25 +1153,7 @@ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port);
+ struct fwnode_handle *
+ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
  {
- 	int ret;
- 
--	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
-+	ret = fwnode_call_int_op(fwnode, property_read_string_array, propname,
-+				 val, nval);
- 	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
- 	    !IS_ERR_OR_NULL(fwnode->secondary))
--		ret = __fwnode_property_read_string_array(fwnode->secondary,
--							  propname, val, nval);
-+		ret = fwnode_call_int_op(fwnode->secondary,
-+					 property_read_string_array, propname,
-+					 val, nval);
- 	return ret;
+-	struct fwnode_handle *endpoint = NULL;
+-
+-	if (is_of_node(fwnode)) {
+-		struct device_node *node;
+-
+-		node = of_parse_phandle(to_of_node(fwnode), "remote-endpoint",
+-					0);
+-		if (node)
+-			endpoint = &node->fwnode;
+-	} else if (is_acpi_node(fwnode)) {
+-		int ret;
+-
+-		ret = acpi_graph_get_remote_endpoint(fwnode, NULL, NULL,
+-						     &endpoint);
+-		if (ret)
+-			return NULL;
+-	}
+-
+-	return endpoint;
++	return fwnode_call_ptr_op(fwnode, graph_get_remote_endpoint);
  }
- EXPORT_SYMBOL_GPL(fwnode_property_read_string_array);
+ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
+ 
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 80f736d..7bd9eec 100644
+index b7adfb6..17fce20 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -2510,9 +2510,31 @@ static int of_fwnode_property_read_int_array(
- 	return -ENXIO;
+@@ -2581,6 +2581,18 @@ static struct fwnode_handle *of_fwnode_graph_get_next_endpoint(
+ 	return NULL;
  }
  
-+static int of_fwnode_property_read_string_array(
-+	struct fwnode_handle *fwnode, const char *propname,
-+	const char **val, size_t nval)
++static struct fwnode_handle *of_fwnode_graph_get_remote_endpoint(
++	struct fwnode_handle *fwnode)
 +{
-+	struct device_node *node = to_of_node(fwnode);
-+	int rval;
++	struct device_node *node;
 +
-+	if (!val)
-+		return of_property_count_strings(node, propname);
++	node = of_parse_phandle(to_of_node(fwnode), "remote-endpoint", 0);
++	if (node)
++		return of_fwnode_handle(node);
 +
-+	rval = of_property_read_string_array(node, propname, val, nval);
-+
-+	if (rval < 0)
-+		return rval;
-+
-+	if (rval == nval)
-+		return 0;
-+
-+	return -EOVERFLOW;
++	return NULL;
 +}
 +
  const struct fwnode_operations of_fwnode_ops = {
  	.get = of_fwnode_get,
  	.put = of_fwnode_put,
- 	.property_present = of_fwnode_property_present,
- 	.property_read_int_array = of_fwnode_property_read_int_array,
-+	.property_read_string_array = of_fwnode_property_read_string_array,
+@@ -2591,4 +2603,5 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.get_next_child_node = of_fwnode_get_next_child_node,
+ 	.get_named_child_node = of_fwnode_get_named_child_node,
+ 	.graph_get_next_endpoint = of_fwnode_graph_get_next_endpoint,
++	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
  };
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
