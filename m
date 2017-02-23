@@ -1,120 +1,159 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 14/20] device property: Use fwnode_operations for obtaining a named child node
-Date: Thu, 23 Feb 2017 19:01:10 +0200
-Message-ID: <1487869276-25244-15-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 06/20] device property: Introduce firmware property operations, set them
+Date: Thu, 23 Feb 2017 19:01:02 +0200
+Message-ID: <1487869276-25244-7-git-send-email-sakari.ailus@linux.intel.com>
 References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:22945 "EHLO mga06.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:13125 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751609AbdBWRId (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 23 Feb 2017 12:08:33 -0500
+        id S1751823AbdBWRKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Feb 2017 12:10:38 -0500
 In-Reply-To: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Change the implementation of fwnode_property_get_parent() function to use
-struct fwnode_operations.
+Add ops field for the firmware operations to struct fwnode_handle. Set the
+ops pointer based on firmware type in fwnode initialisation.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c | 17 +++++++++++++++++
- drivers/base/property.c | 18 +-----------------
- drivers/of/base.c       | 14 ++++++++++++++
- 3 files changed, 32 insertions(+), 17 deletions(-)
+ drivers/acpi/property.c | 3 +++
+ drivers/acpi/scan.c     | 1 +
+ drivers/base/property.c | 3 +++
+ drivers/of/base.c       | 2 ++
+ include/linux/acpi.h    | 4 ++++
+ include/linux/fwnode.h  | 5 +++++
+ include/linux/of.h      | 2 ++
+ 7 files changed, 20 insertions(+)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index fc1d5da..b704a33 100644
+index 6e776de..0651a74 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -1156,10 +1156,27 @@ static struct fwnode_handle *acpi_fwnode_get_parent(
- 	return acpi_node_get_parent(fwnode);
- }
+@@ -57,6 +57,7 @@ static bool acpi_nondev_subnode_extract(const union acpi_object *desc,
  
-+static struct fwnode_handle *acpi_fwnode_get_named_child_node(
-+	struct fwnode_handle *fwnode, const char *childname)
-+{
-+	struct fwnode_handle *child;
+ 	dn->name = link->package.elements[0].string.pointer;
+ 	dn->fwnode.type = FWNODE_ACPI_DATA;
++	dn->fwnode.ops = &acpi_fwnode_ops;
+ 	dn->parent = parent;
+ 	INIT_LIST_HEAD(&dn->data.subnodes);
+ 
+@@ -1108,3 +1109,5 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
+ 
+ 	return 0;
+ }
 +
-+	/*
-+	 * Find first matching named child node of this fwnode.
-+	 * For ACPI this will be a data only sub-node.
-+	 */
-+	fwnode_for_each_child_node(fwnode, child)
-+		if (acpi_data_node_match(child, childname))
-+			return child;
-+
-+	return NULL;
-+}
-+
- const struct fwnode_operations acpi_fwnode_ops = {
- 	.property_present = acpi_fwnode_property_present,
- 	.property_read_int_array = acpi_fwnode_property_read_int_array,
- 	.property_read_string_array = acpi_fwnode_property_read_string_array,
- 	.get_parent = acpi_fwnode_get_parent,
- 	.get_next_child_node = acpi_get_next_subnode,
-+	.get_named_child_node = acpi_fwnode_get_named_child_node,
- };
++const struct fwnode_operations acpi_fwnode_ops;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 1926918..901720f 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1441,6 +1441,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 	device->handle = handle;
+ 	device->parent = acpi_bus_get_parent(handle);
+ 	device->fwnode.type = FWNODE_ACPI;
++	device->fwnode.ops = &acpi_fwnode_ops;
+ 	acpi_set_device_status(device, sta);
+ 	acpi_device_get_busid(device);
+ 	acpi_set_pnp_ids(handle, &device->pnp, type);
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index e9068b1..5db8e26 100644
+index 5cb270f..906411e 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -907,23 +907,7 @@ EXPORT_SYMBOL_GPL(device_get_next_child_node);
- struct fwnode_handle *fwnode_get_named_child_node(struct fwnode_handle *fwnode,
- 						  const char *childname)
- {
--	struct fwnode_handle *child;
--
--	/*
--	 * Find first matching named child node of this fwnode.
--	 * For ACPI this will be a data only sub-node.
--	 */
--	fwnode_for_each_child_node(fwnode, child) {
--		if (is_of_node(child)) {
--			if (!of_node_cmp(to_of_node(child)->name, childname))
--				return child;
--		} else if (is_acpi_data_node(child)) {
--			if (acpi_data_node_match(child, childname))
--				return child;
--		}
--	}
--
--	return NULL;
-+	return fwnode_call_ptr_op(fwnode, get_named_child_node, childname);
+@@ -183,6 +183,8 @@ static int pset_prop_read_string(struct property_set *pset,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(fwnode_get_named_child_node);
  
++static const struct fwnode_operations pset_fwnode_ops;
++
+ /**
+  * device_property_present - check if a property of a device is present
+  * @dev: Device whose property is being checked
+@@ -882,6 +884,7 @@ int device_add_properties(struct device *dev, struct property_entry *properties)
+ 		return PTR_ERR(p);
+ 
+ 	p->fwnode.type = FWNODE_PDATA;
++	p->fwnode.ops = &pset_fwnode_ops;
+ 	set_secondary_fwnode(dev, &p->fwnode);
+ 	return 0;
+ }
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 66a7970..082490b 100644
+index d4bea3c..c08ed0e 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -2555,6 +2555,19 @@ static struct fwnode_handle *of_fwnode_get_next_child_node(
- 	return NULL;
+@@ -2469,3 +2469,5 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node)
+ 	return of_get_next_parent(np);
+ }
+ EXPORT_SYMBOL(of_graph_get_remote_port);
++
++const struct fwnode_operations of_fwnode_ops;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 05ff957..85ca76d 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -56,6 +56,9 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+ 	acpi_fwnode_handle(adev) : NULL)
+ #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+ 
++
++extern const struct fwnode_operations acpi_fwnode_ops;
++
+ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
+ {
+ 	struct fwnode_handle *fwnode;
+@@ -65,6 +68,7 @@ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
+ 		return NULL;
+ 
+ 	fwnode->type = FWNODE_ACPI_STATIC;
++	fwnode->ops = &acpi_fwnode_ops;
+ 
+ 	return fwnode;
+ }
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 37d6ee1..4edb60d 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -12,6 +12,8 @@
+ #ifndef _LINUX_FWNODE_H_
+ #define _LINUX_FWNODE_H_
+ 
++#include <linux/types.h>
++
+ enum fwnode_type {
+ 	FWNODE_INVALID = 0,
+ 	FWNODE_OF,
+@@ -22,9 +24,12 @@ enum fwnode_type {
+ 	FWNODE_IRQCHIP
+ };
+ 
++struct fwnode_operations;
++
+ struct fwnode_handle {
+ 	enum fwnode_type type;
+ 	struct fwnode_handle *secondary;
++	const struct fwnode_operations *ops;
+ };
+ 
+ struct fwnode_endpoint {
+diff --git a/include/linux/of.h b/include/linux/of.h
+index e0ddb22..21ecde3 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -100,10 +100,12 @@ struct of_reconfig_data {
+ 
+ /* initialize a node */
+ extern struct kobj_type of_node_ktype;
++extern const struct fwnode_operations of_fwnode_ops;
+ static inline void of_node_init(struct device_node *node)
+ {
+ 	kobject_init(&node->kobj, &of_node_ktype);
+ 	node->fwnode.type = FWNODE_OF;
++	node->fwnode.ops = &of_fwnode_ops;
  }
  
-+static struct fwnode_handle *of_fwnode_get_named_child_node(
-+	struct fwnode_handle *fwnode, const char *childname)
-+{
-+	struct device_node *node = to_of_node(fwnode);
-+	struct device_node *child;
-+
-+	for_each_available_child_of_node(node, child)
-+		if (!of_node_cmp(child->name, childname))
-+			return of_fwnode_handle(child);
-+
-+	return NULL;
-+}
-+
- const struct fwnode_operations of_fwnode_ops = {
- 	.get = of_fwnode_get,
- 	.put = of_fwnode_put,
-@@ -2563,4 +2576,5 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.property_read_string_array = of_fwnode_property_read_string_array,
- 	.get_parent = of_fwnode_get_parent,
- 	.get_next_child_node = of_fwnode_get_next_child_node,
-+	.get_named_child_node = of_fwnode_get_named_child_node,
- };
+ /* true when node is initialized */
 -- 
 2.7.4
 
