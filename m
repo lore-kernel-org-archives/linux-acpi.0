@@ -1,70 +1,78 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 15/16] device property: Add fwnode_get_next_parent()
-Date: Wed, 22 Feb 2017 15:12:47 +0200
-Message-ID: <20170222131246.GP16975@valkosipuli.retiisi.org.uk>
-References: <1486052546-19257-1-git-send-email-sakari.ailus@linux.intel.com>
- <9a481aec-92e6-ac01-b825-167bf73dfb11@redhat.com>
- <6293579.fEEljmGD4Z@aspire.rjw.lan>
- <7605668.5ZxNsBFnEG@aspire.rjw.lan>
- <20170221081749.GC16975@valkosipuli.retiisi.org.uk>
- <CAJZ5v0iWj1gBThCAbY2m+R6VEp-88Pn=5FckvKv9Q=d2cidYyQ@mail.gmail.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to
+ pr_warn
+Date: Thu, 23 Feb 2017 09:28:23 -0600
+Message-ID: <CAL_JsqLTaq-QLTqfyDO8EVJYpgeUx1e4J0Fo2NvfFWqVoiVedQ@mail.gmail.com>
+References: <cover.1487314666.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51962 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932211AbdBVNM4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Feb 2017 08:12:56 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iWj1gBThCAbY2m+R6VEp-88Pn=5FckvKv9Q=d2cidYyQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <cover.1487314666.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, SH-Linux <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Linux-ALSA <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, "linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, sfi-devel-yLnuTTp1/kvcsJTPyzm5gB2eb7JE58TQ@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tboot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, oprofile-list-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linux-media@vger.k
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <ahs3@redhat.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>
 
-Hi Rafael,
-
-On Wed, Feb 22, 2017 at 12:00:07AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Feb 21, 2017 at 9:17 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Hi Rafael,
-> >
-> > On Wed, Feb 08, 2017 at 01:19:57PM +0100, Rafael J. Wysocki wrote:
-> > ...
-> >> > > I think I agree with Rob's prior comments about making an ops struct for DT
-> >> > > vs ACPI.  Out of the 16 patches, 2/16, 3/16, 5/16 (multiple times), and this
-> >> > > patch all end up using the same construct.  Maybe it needs to be a separate
-> >> > > refactoring effort, but if it's happening this often just in this patch set,
-> >> > > it seems like it's getting time to clean things up.
-> >> >
-> >> > As long as there are two cases only (ACPI vs DT), an ops struct wouldn't
-> >> > really make things simpler and it would make the code more difficult to
-> >> > follow.
-> >> >
-> >> > But we do have a third case (static or built-in properties) and it doesn't
-> >> > seem to be covered at all.
-> >>
-> >> That said the ops struct could be introduced on top of this series just fine.
-> >> It even might be cleaner to do it this way, so I'm not asking for a redesign
-> >> here.
-> >>
-> >> I'd like the built-in properties to be covered too, however.
-> >
-> > That sounds good to me.
-> 
-> OK
-> 
-> Please update the patches to built-in properties into account, then. :-)
-
-Will do.
-
-I also noticed that I had accidentally merged two patches from RFC v1 to
-PATCH v1 sets (device property: Obtain device's fwnode independently of FW
-type). There's a redundant patch adding device_fwnode_handle() function as
-well, I'll drop that patch (the same subject).
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+T24gRnJpLCBGZWIgMTcsIDIwMTcgYXQgMToxMSBBTSwgSm9lIFBlcmNoZXMgPGpvZUBwZXJjaGVz
+LmNvbT4gd3JvdGU6Cj4gVGhlcmUgYXJlIH40MzAwIHVzZXMgb2YgcHJfd2FybiBhbmQgfjI1MCB1
+c2VzIG9mIHRoZSBvbGRlcgo+IHByX3dhcm5pbmcgaW4gdGhlIGtlcm5lbCBzb3VyY2UgdHJlZS4K
+Pgo+IE1ha2UgdGhlIHVzZSBvZiBwcl93YXJuIGNvbnNpc3RlbnQgYWNyb3NzIGFsbCBrZXJuZWwg
+ZmlsZXMuCj4KPiBUaGlzIGV4Y2x1ZGVzIGFsbCBmaWxlcyBpbiB0b29scy8gYXMgdGhlcmUgaXMg
+YSBzZXBhcmF0ZQo+IGRlZmluZSBwcl93YXJuaW5nIGZvciB0aGF0IGRpcmVjdG9yeSB0cmVlIGFu
+ZCBwcl93YXJuIGlzCj4gbm90IHVzZWQgaW4gdG9vbHMvLgo+Cj4gRG9uZSB3aXRoICdzZWQgcy9c
+YnByX3dhcm5pbmdcYi9wcl93YXJuLycgYW5kIHNvbWUgZW1hY3NpbmcuCj4KPiBNaXNjZWxsYW5l
+YToKPgo+IG8gQ29hbGVzY2UgZm9ybWF0cyBhbmQgcmVhbGlnbiBhcmd1bWVudHMKPgo+IFNvbWUg
+ZmlsZXMgbm90IGNvbXBpbGVkIC0gbm8gY3Jvc3MtY29tcGlsZXJzCj4KPiBKb2UgUGVyY2hlcyAo
+MzUpOgo+ICAgYWxwaGE6IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBw
+cl93YXJuCj4gICBBUk06IGVwOTN4eDogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJu
+aW5nIHRvIHByX3dhcm4KPiAgIGFybTY0OiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dh
+cm5pbmcgdG8gcHJfd2Fybgo+ICAgYXJjaC9ibGFja2ZpbjogQ29udmVydCByZW1haW5pbmcgdXNl
+cyBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KPiAgIGlhNjQ6IENvbnZlcnQgcmVtYWluaW5nIHVz
+ZSBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KPiAgIHBvd2VycGM6IENvbnZlcnQgcmVtYWluaW5n
+IHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBzaDogQ29udmVydCByZW1haW5pbmcg
+dXNlcyBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KPiAgIHNwYXJjOiBDb252ZXJ0IHJlbWFpbmlu
+ZyB1c2Ugb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICB4ODY6IENvbnZlcnQgcmVtYWluaW5n
+IHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBkcml2ZXJzL2FjcGk6IENvbnZlcnQg
+cmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBibG9jay9kcmJkOiBD
+b252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJfd2Fybgo+ICAgZ2Ryb206
+IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBkcml2
+ZXJzL2NoYXI6IENvbnZlcnQgcmVtYWluaW5nIHVzZSBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4K
+PiAgIGNsb2Nrc291cmNlOiBDb252ZXJ0IHJlbWFpbmluZyB1c2Ugb2YgcHJfd2FybmluZyB0byBw
+cl93YXJuCj4gICBkcml2ZXJzL2NyeXB0bzogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93
+YXJuaW5nIHRvIHByX3dhcm4KPiAgIGZtYzogQ29udmVydCByZW1haW5pbmcgdXNlIG9mIHByX3dh
+cm5pbmcgdG8gcHJfd2Fybgo+ICAgZHJpdmVycy9ncHU6IENvbnZlcnQgcmVtYWluaW5nIHVzZXMg
+b2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBkcml2ZXJzL2lkZTogQ29udmVydCByZW1haW5p
+bmcgdXNlcyBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KPiAgIGRyaXZlcnMvaW5wdXQ6IENvbnZl
+cnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBkcml2ZXJzL2lz
+ZG46IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBk
+cml2ZXJzL21hY2ludG9zaDogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRv
+IHByX3dhcm4KPiAgIGRyaXZlcnMvbWVkaWE6IENvbnZlcnQgcmVtYWluaW5nIHVzZSBvZiBwcl93
+YXJuaW5nIHRvIHByX3dhcm4KPiAgIGRyaXZlcnMvbWZkOiBDb252ZXJ0IHJlbWFpbmluZyB1c2Vz
+IG9mIHByX3dhcm5pbmcgdG8gcHJfd2Fybgo+ICAgZHJpdmVycy9tdGQ6IENvbnZlcnQgcmVtYWlu
+aW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBkcml2ZXJzL29mOiBDb252ZXJ0
+IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJfd2Fybgo+ICAgZHJpdmVycy9vcHJv
+ZmlsZTogQ29udmVydCByZW1haW5pbmcgdXNlcyBvZiBwcl93YXJuaW5nIHRvIHByX3dhcm4KPiAg
+IGRyaXZlcnMvcGxhdGZvcm06IENvbnZlcnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0
+byBwcl93YXJuCj4gICBkcml2ZXJzL3JhcGlkaW86IENvbnZlcnQgcmVtYWluaW5nIHVzZSBvZiBw
+cl93YXJuaW5nIHRvIHByX3dhcm4KPiAgIGRyaXZlcnMvc2NzaTogQ29udmVydCByZW1haW5pbmcg
+dXNlIG9mIHByX3dhcm5pbmcgdG8gcHJfd2Fybgo+ICAgZHJpdmVycy9zaDogQ29udmVydCByZW1h
+aW5pbmcgdXNlIG9mIHByX3dhcm5pbmcgdG8gcHJfd2Fybgo+ICAgZHJpdmVycy90dHk6IENvbnZl
+cnQgcmVtYWluaW5nIHVzZXMgb2YgcHJfd2FybmluZyB0byBwcl93YXJuCj4gICBkcml2ZXJzL3Zp
+ZGVvOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJfd2Fybgo+ICAg
+a2VybmVsL3RyYWNlOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJf
+d2Fybgo+ICAgbGliOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcgdG8gcHJf
+d2Fybgo+ICAgc291bmQvc29jOiBDb252ZXJ0IHJlbWFpbmluZyB1c2VzIG9mIHByX3dhcm5pbmcg
+dG8gcHJfd2FybgoKV2hlcmUncyB0aGUgcmVtb3ZhbCBvZiBwcl93YXJuaW5nIHNvIHdlIGRvbid0
+IGhhdmUgbW9yZSBzbmVhayBpbj8KClJvYgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2FtZC1nZngK
