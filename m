@@ -1,43 +1,57 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 00/16] ACPI graph support
-Date: Fri, 24 Feb 2017 11:13:09 +0200
-Message-ID: <20170224091309.GW16975@valkosipuli.retiisi.org.uk>
-References: <1487866776-24578-1-git-send-email-sakari.ailus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v1.1 05/20] device property: Add macros for calling fwnode operations
+Date: Fri, 24 Feb 2017 11:36:31 +0200
+Message-ID: <1487928991-14959-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1487869276-25244-6-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38744 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751057AbdBXJNo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 24 Feb 2017 04:13:44 -0500
-Content-Disposition: inline
-In-Reply-To: <1487866776-24578-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mga05.intel.com ([192.55.52.43]:60780 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751125AbdBXJnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Feb 2017 04:43:12 -0500
+In-Reply-To: <1487869276-25244-6-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Thu, Feb 23, 2017 at 06:19:20PM +0200, Sakari Ailus wrote:
-> changes since v2.2:
-> 
-> - Drop device_fwnode_handle() function in favour of moving the existing
->   dev_fwnode() function from drivers/base/property.c to linux/property.h
->   (now patch 12).
-> 
-> - Unmerge two unrelated patches accidentally merged between RFC v1 and
->   PATCH v1 of the series. The patch adding device_fwnode_handle() was
->   accidentally merged with "device property: Obtain device's fwnode
->   independently of FW type".
-> 
-> - Remove redundant forward declaration of struct device in
->   linux/property.h.
+Not all implementations may implement all fwnode operations. Instead of
+leaving this up to the caller to figure out, add a few macros for the
+purpose.
 
-I forgot to mention that the patch "device property: Get endpoint index from
-the ACPI tables" has been merged with "device property: Obtain device's
-fwnode independently of FW type". This is how it was expected to be already
-in v2. There are no changes in code though.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v1:
 
+- Use correct return codes for ops returning integers. -ENXIO is returned if an op
+  does not exist and -EINVAL is returned if fwnode is NULL.
+
+ include/linux/fwnode.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index ede74fb..75e2a00 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -82,4 +82,19 @@ struct fwnode_operations {
+ 				    struct fwnode_endpoint *endpoint);
+ };
+ 
++#define fwnode_has_op(fwnode, op)				\
++	((fwnode) && (fwnode)->ops && (fwnode)->ops->op)
++#define fwnode_call_int_op(fwnode, op, ...)				\
++	(fwnode ? (fwnode_has_op(fwnode, op) ?				\
++		   (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : -ENXIO) : \
++	 -EINVAL)
++#define fwnode_call_ptr_op(fwnode, op, ...)		\
++	(fwnode_has_op(fwnode, op) ?			\
++	 (fwnode)->ops->op(fwnode, ## __VA_ARGS__) : NULL)
++#define fwnode_call_void_op(fwnode, op, ...)				\
++	do {								\
++		if (fwnode_has_op(fwnode, op))				\
++			(fwnode)->ops->op(fwnode, ## __VA_ARGS__);	\
++	} while (false)
++
+ #endif
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
+
