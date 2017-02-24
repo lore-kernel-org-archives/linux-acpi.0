@@ -1,56 +1,43 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH 00/20] Move firmware specific code to firmware specific
- locations
-Date: Fri, 24 Feb 2017 10:25:02 +0200
-Message-ID: <20170224082501.GV16975@valkosipuli.retiisi.org.uk>
-References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
- <2915459.fDeP2CYj8T@aspire.rjw.lan>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v3 00/16] ACPI graph support
+Date: Fri, 24 Feb 2017 11:13:09 +0200
+Message-ID: <20170224091309.GW16975@valkosipuli.retiisi.org.uk>
+References: <1487866776-24578-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38744 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751057AbdBXJNo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Feb 2017 04:13:44 -0500
 Content-Disposition: inline
-In-Reply-To: <2915459.fDeP2CYj8T-yvgW3jdyMHm1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+In-Reply-To: <1487866776-24578-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Thu, Feb 23, 2017 at 11:37:12PM +0100, Rafael J. Wysocki wrote:
-> On Thursday, February 23, 2017 07:00:56 PM Sakari Ailus wrote:
-> > Hi,
-> > 
-> > This set moves firmware specific implementations of the device / fwnode
-> > property API to locations that are specific to firmware implementation,
-> > still leaving property set (which isn't really firmware) implementation in
-> > drivers/base/property.c.
-> > 
-> > The set begins with a few bugfixes (patches 1--3), followed by adding
-> > fwnode_operations struct and then gradually moving firmware dependent code
-> > to drivers/acpi/property.c and drivers/of/base.c.
-> > 
-> > The set depends on the ACPI graph support here:
-> > 
-> > <URL:http://marc.info/?l=linux-acpi&m=148786716920942&w=2>
-> > 
-> > Comments are welcome.
+On Thu, Feb 23, 2017 at 06:19:20PM +0200, Sakari Ailus wrote:
+> changes since v2.2:
 > 
-> Patches [1-3/20] from this series seem to be fixes that don't depend on the
-> rest of it and don't depend on the other series you posted.
+> - Drop device_fwnode_handle() function in favour of moving the existing
+>   dev_fwnode() function from drivers/base/property.c to linux/property.h
+>   (now patch 12).
 > 
-> If that is the case, it would be good to get them in during this cycle instead
-> of sitting on them for several weeks.
+> - Unmerge two unrelated patches accidentally merged between RFC v1 and
+>   PATCH v1 of the series. The patch adding device_fwnode_handle() was
+>   accidentally merged with "device property: Obtain device's fwnode
+>   independently of FW type".
 > 
-> So is that the case?
+> - Remove redundant forward declaration of struct device in
+>   linux/property.h.
 
-Correct. There are no dependencies from patches 1--3 to the rest (first set
-or this one).
+I forgot to mention that the patch "device property: Get endpoint index from
+the ACPI tables" has been merged with "device property: Obtain device's
+fwnode independently of FW type". This is how it was expected to be already
+in v2. There are no changes in code though.
 
 -- 
-Regards,
-
 Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
