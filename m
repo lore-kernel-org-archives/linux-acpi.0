@@ -1,60 +1,56 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 03/20] device property: of_property_read_string_array()
- returns number of strings
-Date: Fri, 24 Feb 2017 10:15:45 +0200
-Message-ID: <20170224081545.GU16975@valkosipuli.retiisi.org.uk>
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH 00/20] Move firmware specific code to firmware specific
+ locations
+Date: Fri, 24 Feb 2017 10:25:02 +0200
+Message-ID: <20170224082501.GV16975@valkosipuli.retiisi.org.uk>
 References: <1487869276-25244-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487869276-25244-4-git-send-email-sakari.ailus@linux.intel.com>
- <CAL_JsqK-jMEdtRPxVQxypPFxZL5SXe-7ACy5SDNzATVYtqApPA@mail.gmail.com>
+ <2915459.fDeP2CYj8T@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36562 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751001AbdBXIXC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 24 Feb 2017 03:23:02 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqK-jMEdtRPxVQxypPFxZL5SXe-7ACy5SDNzATVYtqApPA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <2915459.fDeP2CYj8T-yvgW3jdyMHm1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>
 
-Hi Rob,
-
-On Thu, Feb 23, 2017 at 05:42:07PM -0600, Rob Herring wrote:
-> On Thu, Feb 23, 2017 at 11:00 AM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > of_property_read_string_array() returns number of strings read if the
-> > target array of pointers is non-NULL. fwnode_property_read_string_array()
-> > is documented to return 0 in that case. Fix this.
+On Thu, Feb 23, 2017 at 11:37:12PM +0100, Rafael J. Wysocki wrote:
+> On Thursday, February 23, 2017 07:00:56 PM Sakari Ailus wrote:
+> > Hi,
+> > 
+> > This set moves firmware specific implementations of the device / fwnode
+> > property API to locations that are specific to firmware implementation,
+> > still leaving property set (which isn't really firmware) implementation in
+> > drivers/base/property.c.
+> > 
+> > The set begins with a few bugfixes (patches 1--3), followed by adding
+> > fwnode_operations struct and then gradually moving firmware dependent code
+> > to drivers/acpi/property.c and drivers/of/base.c.
+> > 
+> > The set depends on the ACPI graph support here:
+> > 
+> > <URL:http://marc.info/?l=linux-acpi&m=148786716920942&w=2>
+> > 
+> > Comments are welcome.
 > 
-> It seems of_property_read_string_array is more capable. If the number
-> of strings is variable and I want use the fwnode API, then what do I
-> do? IMO, you should fix the fwnode API.
+> Patches [1-3/20] from this series seem to be fixes that don't depend on the
+> rest of it and don't depend on the other series you posted.
+> 
+> If that is the case, it would be good to get them in during this cycle instead
+> of sitting on them for several weeks.
+> 
+> So is that the case?
 
-It is not more capable but simply different.
-
-The caller typically needs to allocate memory to hold a pointer array, which
-means it needs to call the function with NULL output array argument anyway.
-There is the special case where the maximum number of strings is known,
-though. You could remove an additional call in this case.
-
-However, why I do argue for this interface is safety: returning zero on
-success is always a safe choice. Programmers often check for zero only
-because it might be shorter to write or someone might thing it looks nicer:
-
-int ret = fwnode_property_read_string_array(fwnode, "foo");
-if (ret)
-	goto err;
-
-Additionally, returning zero is consistent within the pack: the OF (and
-fwnode) integer array access functions return zero on success, i.e. not the
-number of array elements read.
+Correct. There are no dependencies from patches 1--3 to the rest (first set
+or this one).
 
 -- 
-Kind regards,
+Regards,
 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
