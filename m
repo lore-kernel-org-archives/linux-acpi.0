@@ -1,183 +1,158 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2] acpi: acpica: fix acpi operand cache leak
-Date: Sat, 25 Feb 2017 01:55:49 +0100
-Message-ID: <CAJZ5v0gUOcV2+r9fMxYS89FrWk1HoguAvF2qO=Lt9o-eNRhEBQ@mail.gmail.com>
-References: <1487292003-25769-1-git-send-email-kkamagui@gmail.com>
- <6316430.DDm6VSBqH3@aspire.rjw.lan> <CAHjaAcT7OoTDEweCBwL=BuC-RL6DjKo0AMGS-8HearCdy4_7QQ@mail.gmail.com>
- <3660439.lHcxWCEFi4@aspire.rjw.lan> <CAHjaAcQJmJ9H3Qr1mWUax31JR+uSBw-8nR0RJcdjsQKkzS+tBg@mail.gmail.com>
+From: Xiongfeng Wang <wangxiongfeng2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
+Date: Sat, 25 Feb 2017 15:15:47 +0800
+Message-ID: <df6ba5dc-d93f-925a-46bf-1e1e209d17f3@huawei.com>
+References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
+ <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35739 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751534AbdBYAzv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Feb 2017 19:55:51 -0500
-In-Reply-To: <CAHjaAcQJmJ9H3Qr1mWUax31JR+uSBw-8nR0RJcdjsQKkzS+tBg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1487712121-16688-11-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm@vg
 List-Id: linux-acpi@vger.kernel.org
-To: Seunghun Han <kkamagui@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Robert Moore <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Feb 24, 2017 at 11:37 PM, Seunghun Han <kkamagui@gmail.com> wrote:
-> Hi, Rafael.
->
-> I agree with you and I added my opinion below.
->
-> 2017-02-25 1:50 GMT+09:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
->> On Friday, February 24, 2017 09:56:21 PM Seunghun Han wrote:
->>> Hi, Rafeal.
->>>
->>> I added my opinion below.
->>>
->>> 2017-02-24 21:13 GMT+09:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
->>> > On Friday, February 24, 2017 09:15:52 PM Seunghun Han wrote:
->>> >> Hi, Rafael.
->>> >>
->>> >> I added my opinion below.
->>> >>
->>> >> 2017-02-24 20:50 GMT+09:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
->>> >> > On Friday, February 24, 2017 08:52:42 PM Seunghun Han wrote:
->>> >> >> Hi, Lv Zheng.
->>> >> >>
->>> >> >> I added my handcrafted ACPI table under your request, because
->>> >> >> "acpidump -c on" and "acpidump -c off" doesn't work.
->>> >> >>
->>> >> >> 2017-02-21 19:36 GMT+09:00 Seunghun Han <kkamagui@gmail.com>:
->>> >> >> > Hello,
->>> >> >> >
->>> >> >> > I attached the test results below,
->>> >> >> >
->>> >> >> > 2017-02-21 9:53 GMT+09:00 Rowafael J. Wysocki <rjw@rjwysocki.net>:
->>> >> >> >> On Tuesday, February 21, 2017 12:33:08 AM Zheng, Lv wrote:
->>> >> >> >>> Hi,
->>> >> >> >>>
->>> >> >> >>> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Seunghun
->>> >> >> >>> > Han
->>> >> >> >>> > Subject: [PATCH v2] acpi: acpica: fix acpi operand cache leak
->>> >> >> >>> >
->>> >> >> >>> > I'm Seunghun Han, and I work for National Security Research Institute of
->>> >> >> >>> > South Korea.
->>> >> >> >>> >
->>> >> >> >>> > I have been doing a research on ACPI and making a handcrafted ACPI table
->>> >> >> >>> > for my research.
->>> >> >> >>> > Errors of handcrafted ACPI tables are handled well in Linux kernel while boot
->>> >> >> >>> > process, and Linux kernel goes well without critical problems.
->>> >> >> >>> > But I found some ACPI operand cache leaks in ACPI early abort cases.
->>> >> >> >>> >
->>> >> >> >>> > Boot log of ACPI operand cache leak is as follows:
->>> >> >> >>> > >[    0.174332] ACPI: Added _OSI(Module Device)
->>> >> >> >>> > >[    0.175504] ACPI: Added _OSI(Processor Device)
->>> >> >> >>> > >[    0.176010] ACPI: Added _OSI(3.0 _SCP Extensions)
->>> >> >> >>> > >[    0.177032] ACPI: Added _OSI(Processor Aggregator Device)
->>> >> >> >>> > >[    0.178284] ACPI: SCI (IRQ16705) allocation failed
->>> >> >> >>> > >[    0.179352] ACPI Exception: AE_NOT_ACQUIRED, Unable to install System Control Interrupt handler
->>> >> >> >>> > (20160930/evevent-131)
->>> >> >> >>> > >[    0.180008] ACPI: Unable to start the ACPI Interpreter
->>> >> >> >>> > >[    0.181125] ACPI Error: Could not remove SCI handler (20160930/evmisc-281)
->>> >> >> >>> > >[    0.184068] kmem_cache_destroy Acpi-Operand: Slab cache still has objects
->>> >> >> >>> > >[    0.185358] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.10.0-rc3 #2
->>> >> >> >>> > >[    0.186820] Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
->>> >> >> >>> > >[    0.188000] Call Trace:
->>> >> >> >>> > >[    0.188000]  ? dump_stack+0x5c/0x7d
->>> >> >> >>> > >[    0.188000]  ? kmem_cache_destroy+0x224/0x230
->>> >> >> >>> > >[    0.188000]  ? acpi_sleep_proc_init+0x22/0x22
->>> >> >> >>> > >[    0.188000]  ? acpi_os_delete_cache+0xa/0xd
->>> >> >> >>> > >[    0.188000]  ? acpi_ut_delete_caches+0x3f/0x7b
->>> >> >> >>> > >[    0.188000]  ? acpi_terminate+0x5/0xf
->>> >> >> >>> > >[    0.188000]  ? acpi_init+0x288/0x32e
->>> >> >> >>> > >[    0.188000]  ? __class_create+0x4c/0x80
->>> >> >> >>> > >[    0.188000]  ? video_setup+0x7a/0x7a
->>> >> >> >>> > >[    0.188000]  ? do_one_initcall+0x4e/0x1b0
->>> >> >> >>> > >[    0.188000]  ? kernel_init_freeable+0x194/0x21a
->>> >> >> >>> > >[    0.188000]  ? rest_init+0x80/0x80
->>> >> >> >>> > >[    0.188000]  ? kernel_init+0xa/0x100
->>> >> >> >>> > >[    0.188000]  ? ret_from_fork+0x25/0x30
->>> >> >> >>>
->>> >> >> >>> I'm more interested in the way of triggering AE_NOT_ACQUIRED error.
->>> >> >> >>> So could you send us the handcrafted ACPI table or both the "acpidump -c on" and "acpidump -c off" output?
->>> >> >>
->>> >> >> I modified FACP, FACS, APIC table in VirtualBox for Linux.
->>> >> >> Here are raw dumps of table.
->>> >> >
->>> >> > So, excuse me, but what's the security issue here?
->>> >> >
->>> >> > You hacked your ACPI tables into pieces which requires root privileges anyway.
->>> >> >
->>> >> > Thanks,
->>> >> > Rafael
->>> >> >
->>> >>
->>> >> As you mentioned earlier, I hacked my ACPI table for research, so it seems that
->>> >> it is not a security issue.
->>> >>
->>> >> But, if new mainboard are released and they have a vendor-specific ACPI table
->>> >> which has invalid data, the old version of kernel (<=4.9) will possibly expose
->>> >> kernel address and KASLR will be neutralized unintentionally.
->>> >
->>> > But that would mean a basically non-functional system, so I'm not sure how
->>> > anyone can actually take advantage of the "KASLR neutralization".
->>>
->>> I think an attacker can take advantage of the "KASLR neutralization". As you
->>> know, KASLR is good technology to protect kernel from kernel exploits.
->>>
->>> If the kernel has vulnerabilities, the attacker can make exploit using them.
->>> But, the exploit usually needs gadgets (small code), therefore the attacker
->>> should know where the gadgets are in kernel. If the KASLR is working in kernel,
->>> the attacker should find the actual kernel address, and he can get kernel
->>> address information from kernel warning.
->>
->> If the system basically doesn't work, that information isn't  particularly useful.
->>
->>> >> I know the vendors collaborate with Linux kernel developers, but the problem
->>> >> can still occur.
->>> >>
->>> >> Hardware vendors release so many kinds of mainboard in a year, and the major
->>> >> Linux distros (Ubuntu, Fedora, etc.) will have 4.8 kernel for a long time.
->>> >>
->>> >> For this reason, I think this issue has a security aspect.
->>> >
->>> > Well, not quite IMO.
->>> >
->>> > If the system needs ACPI tables and the kernel cannot use them, it just won't
->>> > work no matter what.
->>> >
->>> > Thanks,
->>> > Rafael
->>> >
->>> Yes, you are right. But, Linux kernel has well-defined exception handlers, so
->>> some systems may work fine like my test machine. Moreover the users may not
->>> recognize what the problem is, and I think that they will use the system in
->>> insecure status for a long time.
->>
->> A virtual box or a guest can run without ACPI tables.  A bare metal system
->> where ACPI tables are necessary will be more-or-less unusable if the kernel
->> cannot use them (it won't be able to detect interrupt controllers and the PCI
->> host bridge just for starters).
->>
->> Running a guest with totally broken ACPI tables requires root privileges on the
->> host.  Running a bare metal system with totally broken ACPI tables (which seems
->> to be your basic concern) may be a good research project, but nobody will do
->> that in practice.  And everybody who tries that will notice what's going on.
->>
->> Yes, you found a bug, but I still am not convinced about how this is security-related.
->
-> I totally agree with you that this case is not in practice now.
-> I just started researching on ACPI, and I don't have enough ideas to occur
-> a security problem using a bug. I just think that it has a little possibility
-> which is security-related.
->
-> Thank you so much for your guides.
-> It helps me a lot to change my research direction.
->
-> So, could my patch be merged in next kernel (4.11 rc-1)? or do I need to do
-> something for it?
-> Please let me know.
+Hi Tyler,
 
-Generally, ACPICA patches (and this is one of them) have to go in via
-the upstream ACPICA project maintained by Bob Moore and Lv.  Please
-see MAINTAINERS for pointers to the mailing list etc.
 
-Lv, can you please advise on the next steps?
+On 2017/2/22 5:22, Tyler Baicar wrote:
+> Currently external aborts are unsupported by the guest abort
+> handling. Add handling for SEAs so that the host kernel reports
+> SEAs which occur in the guest kernel.
+> 
+> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> ---
+>  arch/arm/include/asm/kvm_arm.h       |  1 +
+>  arch/arm/include/asm/system_misc.h   |  5 +++++
+>  arch/arm/kvm/mmu.c                   | 18 ++++++++++++++++--
+>  arch/arm64/include/asm/kvm_arm.h     |  1 +
+>  arch/arm64/include/asm/system_misc.h |  2 ++
+>  arch/arm64/mm/fault.c                | 18 ++++++++++++++++++
+>  6 files changed, 43 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/kvm_arm.h b/arch/arm/include/asm/kvm_arm.h
+> index e22089f..33a77509 100644
+> --- a/arch/arm/include/asm/kvm_arm.h
+> +++ b/arch/arm/include/asm/kvm_arm.h
+> @@ -187,6 +187,7 @@
+>  #define FSC_FAULT	(0x04)
+>  #define FSC_ACCESS	(0x08)
+>  #define FSC_PERM	(0x0c)
+> +#define FSC_EXTABT	(0x10)
+>  
+>  /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
+>  #define HPFAR_MASK	(~0xf)
+> diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
+> index a3d61ad..ea45d94 100644
+> --- a/arch/arm/include/asm/system_misc.h
+> +++ b/arch/arm/include/asm/system_misc.h
+> @@ -24,4 +24,9 @@
+>  
+>  #endif /* !__ASSEMBLY__ */
+>  
+> +static inline int handle_guest_sea(unsigned long addr, unsigned int esr)
+> +{
+> +	return -1;
+> +}
+> +
+>  #endif /* __ASM_ARM_SYSTEM_MISC_H */
+> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
+> index a5265ed..04f1dd50 100644
+> --- a/arch/arm/kvm/mmu.c
+> +++ b/arch/arm/kvm/mmu.c
+> @@ -29,6 +29,7 @@
+>  #include <asm/kvm_asm.h>
+>  #include <asm/kvm_emulate.h>
+>  #include <asm/virt.h>
+> +#include <asm/system_misc.h>
+>  
+>  #include "trace.h"
+>  
+> @@ -1444,8 +1445,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
+>  
+>  	/* Check the stage-2 fault is trans. fault or write fault */
+>  	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
+> -	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
+> -	    fault_status != FSC_ACCESS) {
+> +
+> +	/* The host kernel will handle the synchronous external abort. There
+> +	 * is no need to pass the error into the guest.
+> +	 */
+
+Can we inject an sea into the guest, so that the guest can kill the
+application which causes the error if the guest won't be terminated
+later. I'm not sure whether ghes_handle_memory_failure() called in
+ghes_do_proc() will kill the qemu process. I think it only kill user
+processes marked with PF_MCE_PROCESS & PF_MCE_EARLY.
+
+> +	if (fault_status == FSC_EXTABT) {
+> +		if(handle_guest_sea((unsigned long)fault_ipa,
+> +				    kvm_vcpu_get_hsr(vcpu))) {
+> +			kvm_err("Failed to handle guest SEA, FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
+> +				kvm_vcpu_trap_get_class(vcpu),
+> +				(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
+> +				(unsigned long)kvm_vcpu_get_hsr(vcpu));
+> +			return -EFAULT;
+> +		}
+> +	} else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
+> +		   fault_status != FSC_ACCESS) {
+>  		kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
+>  			kvm_vcpu_trap_get_class(vcpu),
+>  			(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
+> diff --git a/arch/arm64/include/asm/kvm_arm.h b/arch/arm64/include/asm/kvm_arm.h
+> index 2a2752b..2b11d59 100644
+> --- a/arch/arm64/include/asm/kvm_arm.h
+> +++ b/arch/arm64/include/asm/kvm_arm.h
+> @@ -201,6 +201,7 @@
+>  #define FSC_FAULT	ESR_ELx_FSC_FAULT
+>  #define FSC_ACCESS	ESR_ELx_FSC_ACCESS
+>  #define FSC_PERM	ESR_ELx_FSC_PERM
+> +#define FSC_EXTABT	ESR_ELx_FSC_EXTABT
+>  
+>  /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
+>  #define HPFAR_MASK	(~UL(0xf))
+> diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
+> index bc81243..5b2cecd1 100644
+> --- a/arch/arm64/include/asm/system_misc.h
+> +++ b/arch/arm64/include/asm/system_misc.h
+> @@ -58,4 +58,6 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
+>  
+>  #endif	/* __ASSEMBLY__ */
+>  
+> +int handle_guest_sea(unsigned long addr, unsigned int esr);
+> +
+>  #endif	/* __ASM_SYSTEM_MISC_H */
+> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> index b2d57fc..403277b 100644
+> --- a/arch/arm64/mm/fault.c
+> +++ b/arch/arm64/mm/fault.c
+> @@ -602,6 +602,24 @@ static const char *fault_name(unsigned int esr)
+>  }
+>  
+>  /*
+> + * Handle Synchronous External Aborts that occur in a guest kernel.
+> + */
+> +int handle_guest_sea(unsigned long addr, unsigned int esr)
+> +{
+> +	/*
+> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
+> +	 * rcu_read_lock().
+> +	 */
+> +	if(IS_ENABLED(HAVE_ACPI_APEI_SEA)) {
+> +		nmi_enter();
+> +		ghes_notify_sea();
+> +		nmi_exit();
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+>   * Dispatch a data abort to the relevant handler.
+>   */
+>  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+> 
 
 Thanks,
-Rafael
+Wang Xiongfeng
