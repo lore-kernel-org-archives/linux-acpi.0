@@ -1,123 +1,52 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / bus: Introduce a list of ids for
-	"always present" devices
-Date: Mon, 27 Feb 2017 23:02:08 +0100
-Message-ID: <CAJZ5v0hnfKg7sMRkZdGEUQ2fRX4-uJRSsNR1_ddNYuizAvQx+Q@mail.gmail.com>
-References: <20170225182328.26644-1-hdegoede@redhat.com>
- <3161510.WQnmWnCBb0@aspire.rjw.lan>
- <ccbbaa31-9140-f976-bdcd-7e5ad23a47c8@redhat.com>
- <CAJZ5v0jFFK-0Kv7LpNO5gj1xM-xcSXCGJfReGMknUXUNfn9Ujw@mail.gmail.com>
- <53f42d4d-542e-096c-6a91-031b61adcbe0@redhat.com>
- <CAJZ5v0jAFr0eJ44mMjpsvrGfnaqN1BQNQdN688mfA0SajimBtg@mail.gmail.com>
- <3c8dd76e-bffd-39ba-c515-333f0f0873cb@redhat.com>
+Subject: Re: [PATCH] tools/power/acpi: Add .gitignore file
+Date: Mon, 27 Feb 2017 22:57:01 +0100
+Message-ID: <CAJZ5v0gpOKYZRh1kJmTAz3DEyP=48XboELU1TtQwrh7mbwr0qQ@mail.gmail.com>
+References: <1487541473-21479-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <3c8dd76e-bffd-39ba-c515-333f0f0873cb@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:36432 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751556AbdB0WEF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Feb 2017 17:04:05 -0500
+Received: by mail-oi0-f68.google.com with SMTP id f192so1554672oic.3
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Feb 2017 14:03:47 -0800 (PST)
+In-Reply-To: <1487541473-21479-1-git-send-email-prarit@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-T24gTW9uLCBGZWIgMjcsIDIwMTcgYXQgMTA6NTggUE0sIEhhbnMgZGUgR29lZGUgPGhkZWdvZWRl
-QHJlZGhhdC5jb20+IHdyb3RlOgo+IEhpLAo+Cj4KPiBPbiAyNy0wMi0xNyAyMjo0OSwgUmFmYWVs
-IEouIFd5c29ja2kgd3JvdGU6Cj4+Cj4+IE9uIE1vbiwgRmViIDI3LCAyMDE3IGF0IDEwOjI5IFBN
-LCBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgo+PiB3cm90ZToKPj4+Cj4+PiBI
-aSwKPj4+Cj4+Pgo+Pj4gT24gMjctMDItMTcgMjI6MjUsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3Rl
-Ogo+Pj4+Cj4+Pj4KPj4+PiBPbiBNb24sIEZlYiAyNywgMjAxNyBhdCAzOjI1IFBNLCBIYW5zIGRl
-IEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgo+Pj4+IHdyb3RlOgo+Pj4+Pgo+Pj4+Pgo+Pj4+
-PiBIaSwKPj4+Pj4KPj4+Pj4KPj4+Pj4gT24gMjctMDItMTcgMTQ6MzAsIFJhZmFlbCBKLiBXeXNv
-Y2tpIHdyb3RlOgo+Pj4+Pj4KPj4+Pj4+Cj4+Pj4+Pgo+Pj4+Pj4gK01pa2EgJiBBbmR5Cj4+Pj4+
-Pgo+Pj4+Pj4gT24gU2F0dXJkYXksIEZlYnJ1YXJ5IDI1LCAyMDE3IDA3OjIzOjI4IFBNIEhhbnMg
-ZGUgR29lZGUgd3JvdGU6Cj4+Pj4+Pj4KPj4+Pj4+Pgo+Pj4+Pj4+Cj4+Pj4+Pj4gU2V2ZXJhbCBj
-aGVycnl0cmFpbCBkZXZpY2VzIChhbGwgb2Ygd2hpY2ggc2hpcCB3aXRoIHdpbmRvd3MgMTApIGhp
-ZGUKPj4+Pj4+PiB0aGUKPj4+Pj4+PiBscHNzIHB3bSBjb250cm9sbGVyIGluIEFDUEksIHR5cGlj
-YWxseSB0aGUgX1NUQSBtZXRob2QgbG9va3MgbGlrZQo+Pj4+Pj4+IHRoaXM6Cj4+Pj4+Pj4KPj4+
-Pj4+PiAgICAgTWV0aG9kIChfU1RBLCAwLCBOb3RTZXJpYWxpemVkKSAgLy8gX1NUQTogU3RhdHVz
-Cj4+Pj4+Pj4gICAgIHsKPj4+Pj4+PiAgICAgICAgIElmIChPU0lEID09IE9uZSkKPj4+Pj4+PiAg
-ICAgICAgIHsKPj4+Pj4+PiAgICAgICAgICAgICBSZXR1cm4gKFplcm8pCj4+Pj4+Pj4gICAgICAg
-ICB9Cj4+Pj4+Pj4KPj4+Pj4+PiAgICAgICAgIFJldHVybiAoMHgwRikKPj4+Pj4+PiAgICAgfQo+
-Pj4+Pj4+Cj4+Pj4+Pj4gV2hlcmUgT1NJRCBpcyBzb21lIGRhcmsgbWFnaWMgc2VlbiBpbiBhbGwg
-Y2hlcnJ5dHJhaWwgQUNQSSB0YWJsZXMKPj4+Pj4+PiBtYWtpbmcKPj4+Pj4+PiB0aGUgbWFjaGlu
-ZSBiZWhhdmUgZGlmZmVyZW50bHkgZGVwZW5kaW5nIG9uIHdoaWNoIE9TIGl0ICp0aGlua3MqIGl0
-Cj4+Pj4+Pj4gaXMKPj4+Pj4+PiBib290aW5nLCB0aGlzIGdldHMgc2V0IGluIGEgbnVtYmVyIG9m
-IHdheXMgd2hpY2ggd2UgY2Fubm90IGNvbnRyb2wsCj4+Pj4+Pj4gb24KPj4+Pj4+PiBzb21lIG5l
-d2VyIG1hY2hpbmVzIGl0IHNpbXBsZSBoYXJkY29kZWQgdG8gIk9uZSIgYWthIHdpbjEwLgo+Pj4+
-Pj4+Cj4+Pj4+Pj4gVGhpcyBjYXVzZXMgdGhlIFBXTSBjb250cm9sbGVyIHRvIGdldCBoaWRkZW4s
-IHdoaWNoIG1lYW5zIExpbnV4Cj4+Pj4+Pj4gY2Fubm90Cj4+Pj4+Pj4gY29udHJvbCB0aGUgYmFj
-a2xpZ2h0IGxldmVsIG9uIGNodCBiYXNlZCB0YWJsZXRzIC8gbGFwdG9wcy4KPj4+Pj4+Pgo+Pj4+
-Pj4+IFNpbmNlIGxvYWRpbmcgdGhlIGRyaXZlciBmb3IgdGhpcyBkb2VzIG5vIGhhcm0gKHRoZSBv
-bmx5IGluIGtlcm5lbAo+Pj4+Pj4+IHVzZXIKPj4+Pj4+PiBvZiBpdCBpcyB0aGUgaTkxNSBkcml2
-ZXIsIHdoaWNoIHdpbGwgb25seSB1c2UgaXQgd2hlbiBpdCBuZWVkcyBpdCksCj4+Pj4+Pj4gdGhp
-cwo+Pj4+Pj4+IGNvbW1pdCBtYWtlcyBhY3BpX2J1c19nZXRfc3RhdHVzKCkgYWx3YXlzIHNldCBz
-dGF0dXMgdG8KPj4+Pj4+PiBBQ1BJX1NUQV9ERUZBVUxUCj4+Pj4+Pj4gZm9yIHRoZSA4MDg2MjI4
-OCBkZXZpY2UsIGZpeGluZyB0aGUgbGFjayBvZiBiYWNrbGlnaHQgY29udHJvbC4KPj4+Pj4+Pgo+
-Pj4+Pj4+IFNpZ25lZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdvZWRlQHJlZGhhdC5jb20+
-Cj4+Pj4+Pj4gLS0tCj4+Pj4+Pj4gIGRyaXZlcnMvYWNwaS9idXMuYyB8IDI1ICsrKysrKysrKysr
-KysrKysrKysrKysrKysKPj4+Pj4+PiAgMSBmaWxlIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKykK
-Pj4+Pj4+Pgo+Pj4+Pj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYnVzLmMgYi9kcml2ZXJz
-L2FjcGkvYnVzLmMKPj4+Pj4+PiBpbmRleCA5NTg1NWNiLi40ODNkNGQwIDEwMDY0NAo+Pj4+Pj4+
-IC0tLSBhL2RyaXZlcnMvYWNwaS9idXMuYwo+Pj4+Pj4+ICsrKyBiL2RyaXZlcnMvYWNwaS9idXMu
-Ywo+Pj4+Pj4+IEBAIC0xMDksMTEgKzEwOSwzNiBAQCBhY3BpX3N0YXR1cwo+Pj4+Pj4+IGFjcGlf
-YnVzX2dldF9zdGF0dXNfaGFuZGxlKGFjcGlfaGFuZGxlCj4+Pj4+Pj4gaGFuZGxlLAo+Pj4+Pj4+
-ICAgICAgICAgcmV0dXJuIHN0YXR1czsKPj4+Pj4+PiAgfQo+Pj4+Pj4+Cj4+Pj4+Pj4gKy8qCj4+
-Pj4+Pj4gKyAqIFNvbWUgQUNQSSBkZXZpY2VzIGFyZSBoaWRkZW4gKHN0YXR1cyA9PSAweDApIGlu
-IHJlY2VudCBCSU9TLWVzCj4+Pj4+Pj4gYmVjYXVzZQo+Pj4+Pj4+ICsgKiBzb21lIHJlY2VudCB3
-aW5kb3dzIGRyaXZlcnMgYmluZCB0byBvbmUgZGV2aWNlIGJ1dCBwb2tlIGF0Cj4+Pj4+Pj4gbXVs
-dGlwbGUKPj4+Pj4+PiArICogZGV2aWNlcyBhdCB0aGUgc2FtZSB0aW1lLCBzbyB0aGUgb3RoZXJz
-IGdldCBoaWRkZW4uCj4+Pj4+Pj4gKyAqIFdlIHdvcmsgYXJvdW5kIHRoaXMgYnkgYWx3YXlzIHJl
-cG9ydGluZyBBQ1BJX1NUQV9ERUZBVUxUIGZvcgo+Pj4+Pj4+IHRoZXNlCj4+Pj4+Pj4gKyAqIGRl
-dmljZXMuIE5vdGUgdGhpcyBNVVNUIG9ubHkgYmUgZG9uZSBmb3IgZGV2aWNlcyB3aGVyZSB0aGlz
-IGlzCj4+Pj4+Pj4gc2FmZS4KPj4+Pj4+PiArICovCj4+Pj4+Pj4gK3N0YXRpYyBjb25zdCBzdHJ1
-Y3QgYWNwaV9kZXZpY2VfaWQgYWx3YXlzX3ByZXNlbnRfZGV2aWNlX2lkc1tdID0gewo+Pj4+Pj4+
-ICsgICAgICAgLyoKPj4+Pj4+PiArICAgICAgICAqIENoZXJyeXRyYWlsIHB3bSBkaXJlY3RseSBw
-b2tlZCBieSBHUFUgZHJpdmVyIGluIHdpbjEwLAo+Pj4+Pj4+ICsgICAgICAgICogYnV0IExpbnV4
-IHVzZXMgYSBzZXBhcmF0ZSBwd20gZHJpdmVyLCBoYXJtbGVzcyBpZiBub3QKPj4+Pj4+PiB1c2Vk
-Lgo+Pj4+Pj4+ICsgICAgICAgICovCj4+Pj4+Pj4gKyAgICAgICB7ICI4MDg2MjI4OCIsIH0sCj4+
-Pj4+Pj4gKyAgICAgICB7IH0KPj4+Pj4+PiArfTsKPj4+Pj4+PiArCj4+Pj4+Pj4gIGludCBhY3Bp
-X2J1c19nZXRfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQo+Pj4+Pj4+ICB7Cj4+
-Pj4+Pj4gICAgICAgICBhY3BpX3N0YXR1cyBzdGF0dXM7Cj4+Pj4+Pj4gICAgICAgICB1bnNpZ25l
-ZCBsb25nIGxvbmcgc3RhOwo+Pj4+Pj4+Cj4+Pj4+Pj4gKyAgICAgICAvKiBhY3BpX21hdGNoX2Rl
-dmljZV9pZHMgY2hlY2tzIHN0YXR1cywgc28gc3RhcnQgd2l0aCBkZWZhdWx0Cj4+Pj4+Pj4gKi8K
-Pj4+Pj4+PiArICAgICAgIGFjcGlfc2V0X2RldmljZV9zdGF0dXMoZGV2aWNlLCBBQ1BJX1NUQV9E
-RUZBVUxUKTsKPj4+Pj4+Cj4+Pj4+Pgo+Pj4+Pj4KPj4+Pj4+Cj4+Pj4+PiBUaGlzIHNob3VsZG4n
-dCBiZSBkb25lIGluIGEgImdldCIgcm91dGluZS4KPj4+Pj4KPj4+Pj4KPj4+Pj4KPj4+Pj4KPj4+
-Pj4gV2l0aCB0aGlzIHlvdSBtZWFuIHRoZSBhY3BpX21hdGNoX2RldmljZV9pZHMoKSBjaGVjayBJ
-IGFzc3VtZSA/Cj4+Pj4+IChhY3BpX2J1c19nZXRfc3RhdHVzIGFscmVhZHkgY2FsbHMgYWNwaV9z
-ZXRfZGV2aWNlX3N0YXR1cygpKQo+Pj4+Cj4+Pj4KPj4+Pgo+Pj4+IFllcywgdGhlIGRldmljZSBJ
-RCBjaGVjay4KPj4+Pgo+Pj4+Pj4gSWRlYWxseSwgYSBzY2FuIGhhbmRsZXIgc2hvdWxkIGRvIHRo
-YXQgb3Igc2ltaWxhci4KPj4+Pj4KPj4+Pj4KPj4+Pj4KPj4+Pj4KPj4+Pj4gVGhlIHByb2JsZW0g
-aXMgdGhhdCBkcml2ZXJzL2FjcGkvc2Nhbi5jOiBhY3BpX2J1c19hdHRhY2goKQo+Pj4+PiBjYWxs
-cyBhY3BpX2J1c19nZXRfc3RhdHVzKCkgYW5kIGlmIGl0IGRvZXMgbm90IHNldAo+Pj4+PiB0aGUg
-c3RhdHVzIHRvIHByZXNlbnQgYWNwaV9idXNfYXR0YWNoKCkgZXhpdHMgd2l0aG91dCBib3RoZXJp
-bmcKPj4+Pj4gd2l0aCBhdHRhY2hpbmcgc2NhbiBoYW5kbGVycywgd2hpY2ggaXMgd2h5IEkgZW5k
-ZWQgdXAgZG9pbmcgdGhpcwo+Pj4+PiBoZXJlLgo+Pj4+Cj4+Pj4KPj4+Pgo+Pj4+IEZhaXIgZW5v
-dWdoLgo+Pj4+Cj4+Pj4gVHdvIHByb2JsZW1zIHdpdGggdGhpcyBhcHByb2FjaC4KPj4+Pgo+Pj4+
-IE9uZSBpcyB0aGF0IGl0IGRvZXNuJ3QgcHJldmVudCBfU1RBIGZyb20gYmVpbmcgZXZhbHVhdGVk
-IGFzCj4+Pj4gYWNwaV9idXNfZ2V0X3N0YXR1c19oYW5kbGUoKSBpcyBjYWxsZWQgZGlyZWN0bHkg
-ZnJvbSBhIGNvdXBsZSBvZgo+Pj4+IHBsYWNlcy4KPj4+Cj4+Pgo+Pj4gWWVzIEkgbm90aWNlZCB0
-aGF0LCBidXQgdGhhdCBpcyBub3QgYSBwcm9ibGVtIGZvciB0aGlzCj4+PiAoYW5kIEkgd291bGQg
-YXNzdW1lIG1vc3QpIGRldmljZXMuIEludGVydmVuaW5nIGRpcmVjdGx5Cj4+PiBpbiBhY3BpX2J1
-c19nZXRfc3RhdHVzX2hhbmRsZSBpcyBoYXJkZXIgYXMgdGhlcmUgaXMgbm8KPj4+IGFjY2VzcyB0
-byB0aGUgaGlkIHRoZXJlLgo+Pgo+Pgo+PiBCdXQgaWYgeW91IG1vZGlmeSBhY3BpX3NldF9kZXZp
-Y2Vfc3RhdHVzKCksIHRoYXQgc2hvdWxkIG1ha2UgaXQKPj4gY29uc2lzdGVudCBBRkFJQ1MuCj4+
-Cj4+IEFuZCB0aGlzIGlzIGp1c3QgYSBxdWlyayBmb3IgZGV2aWNlcyB3aGVyZSBfU1RBIGlzIGtu
-b3duIHRvIHJldHVybgo+PiBnYXJiYWdlIHNvbWV0aW1lcyBhbmQgSSdkIGNhbGwgaXQgYSBxdWly
-ayBvcGVubHkuCj4KPgo+IE9rLCBjdXJyZW50bHkgYWNwaV9zZXRfZGV2aWNlX3N0YXR1cygpIGlz
-IGFuIGlubGluZSBmdW5jdGlvbiBpbgo+IGluY2x1ZGUvYWNwaS9hY3BpX2J1cy5oLiBJZiBJIHVu
-ZGVyc3RhbmQgeW91IGNvcnJlY3RseSB5b3Ugd2FudCBtZQo+IHRvIHVuaW5saW5lIGl0IGFuZCBo
-YXZlIGEgdGFibGUgd2l0aCBxdWlya3Mgd2hpY2ggc3BlY2lmeSBhbiBvdmVycmlkZQo+IHZhbHVl
-IHRvIGFwcGx5IGZvciBjZXJ0YWluIGFjcGlfaWRzIGluIHRoZSB1bmlubGluZWQgdmVyc2lvbiwg
-Y29ycmVjdCA/CgpZZXMuCgpUaGFua3MsClJhZmFlbApfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9pbnRlbC1nZngK
+On Sun, Feb 19, 2017 at 10:57 PM, Prarit Bhargava <prarit@redhat.com> wrote:
+> Add a .gitignore file so that git commands do not pick up the resulting
+> binaries and directories.
+>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: devel@acpica.org
+
+Missing sign-off.
+
+> ---
+>  tools/power/acpi/.gitignore |    4 ++++
+>  1 file changed, 4 insertions(+)
+>  create mode 100644 tools/power/acpi/.gitignore
+>
+> diff --git a/tools/power/acpi/.gitignore b/tools/power/acpi/.gitignore
+> new file mode 100644
+> index 000000000000..cba3d994995c
+> --- /dev/null
+> +++ b/tools/power/acpi/.gitignore
+> @@ -0,0 +1,4 @@
+> +acpidbg
+> +acpidump
+> +ec
+> +include
+> --
+> 1.7.9.3
+
+Thanks,
+Rafael
