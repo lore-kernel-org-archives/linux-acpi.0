@@ -1,63 +1,92 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [RFC PATCH V1 v4.10-rc3 1/1] acpi: apei: handle GSIV
- notification type
-Date: Mon, 27 Feb 2017 15:39:20 -0500
-Message-ID: <20170227153920.5f4f6942@gandalf.local.home>
-References: <86258A5CC0A3704780874CF6004BA8A62DCAB57E@lhreml502-mbs>
- <20170227185818.GA8577@windriver.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / bus: Introduce a list of ids for
+	"always present" devices
+Date: Mon, 27 Feb 2017 22:25:19 +0100
+Message-ID: <CAJZ5v0jFFK-0Kv7LpNO5gj1xM-xcSXCGJfReGMknUXUNfn9Ujw@mail.gmail.com>
+References: <20170225182328.26644-1-hdegoede@redhat.com>
+ <3161510.WQnmWnCBb0@aspire.rjw.lan>
+ <ccbbaa31-9140-f976-bdcd-7e5ad23a47c8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20170227185818.GA8577@windriver.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "matt@codeblueprint.co.uk" <matt@codeblueprint.co.uk>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "fu.wei@linaro.org" <fu.wei@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eun.taik.lee@samsung.com" <eun.taik.lee@samsung.com>, shijie.huang@arm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <ccbbaa31-9140-f976-bdcd-7e5ad23a47c8@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 27 Feb 2017 13:58:19 -0500
-Paul Gortmaker <paul.gortmaker@windriver.com> wrote:
-
-
-> > --- a/drivers/acpi/apei/Kconfig
-> > +++ b/drivers/acpi/apei/Kconfig
-> > @@ -1,6 +1,15 @@
-> >  config HAVE_ACPI_APEI
-> >  	bool
-> >  
-> > +config HAVE_ACPI_APEI_GSIV
-> > +        bool "APEI GSIV(Global System Interrupt) logging/recovering support"
-> > +        depends on ACPI_APEI && ACPI_APEI_GHES
-> > +        help
-> > +          This option should be enabled if the system supports
-> > +          firmware first handling of GSIV (Global System Interrupt)
-> > +	  for the hardware errors and allows OS to do error
-> > +          recovery/logging.
-> > +
-> >  config HAVE_ACPI_APEI_NMI
-> >  	bool  
-> 
-> A "config HAVE_<foo>" option normally doesn't have a "help" section
-> since it isn't meant to be user selected.  You can see that in the other
-> two options that exist right here in the context of your patch.
-
-I will argue that having "help" messages for even configs that do not
-get selected are useful. It helps reviewers of the code to know why one
-of these events should be enabled or not.
-
-
-> 
-> Also your Cc list here seems rather large; not sure how you came up with
-> such a large list...
-
-+1
-
--- Steve
+T24gTW9uLCBGZWIgMjcsIDIwMTcgYXQgMzoyNSBQTSwgSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVA
+cmVkaGF0LmNvbT4gd3JvdGU6Cj4gSGksCj4KPgo+IE9uIDI3LTAyLTE3IDE0OjMwLCBSYWZhZWwg
+Si4gV3lzb2NraSB3cm90ZToKPj4KPj4gK01pa2EgJiBBbmR5Cj4+Cj4+IE9uIFNhdHVyZGF5LCBG
+ZWJydWFyeSAyNSwgMjAxNyAwNzoyMzoyOCBQTSBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+Pj4KPj4+
+IFNldmVyYWwgY2hlcnJ5dHJhaWwgZGV2aWNlcyAoYWxsIG9mIHdoaWNoIHNoaXAgd2l0aCB3aW5k
+b3dzIDEwKSBoaWRlIHRoZQo+Pj4gbHBzcyBwd20gY29udHJvbGxlciBpbiBBQ1BJLCB0eXBpY2Fs
+bHkgdGhlIF9TVEEgbWV0aG9kIGxvb2tzIGxpa2UgdGhpczoKPj4+Cj4+PiAgICAgTWV0aG9kIChf
+U1RBLCAwLCBOb3RTZXJpYWxpemVkKSAgLy8gX1NUQTogU3RhdHVzCj4+PiAgICAgewo+Pj4gICAg
+ICAgICBJZiAoT1NJRCA9PSBPbmUpCj4+PiAgICAgICAgIHsKPj4+ICAgICAgICAgICAgIFJldHVy
+biAoWmVybykKPj4+ICAgICAgICAgfQo+Pj4KPj4+ICAgICAgICAgUmV0dXJuICgweDBGKQo+Pj4g
+ICAgIH0KPj4+Cj4+PiBXaGVyZSBPU0lEIGlzIHNvbWUgZGFyayBtYWdpYyBzZWVuIGluIGFsbCBj
+aGVycnl0cmFpbCBBQ1BJIHRhYmxlcyBtYWtpbmcKPj4+IHRoZSBtYWNoaW5lIGJlaGF2ZSBkaWZm
+ZXJlbnRseSBkZXBlbmRpbmcgb24gd2hpY2ggT1MgaXQgKnRoaW5rcyogaXQgaXMKPj4+IGJvb3Rp
+bmcsIHRoaXMgZ2V0cyBzZXQgaW4gYSBudW1iZXIgb2Ygd2F5cyB3aGljaCB3ZSBjYW5ub3QgY29u
+dHJvbCwgb24KPj4+IHNvbWUgbmV3ZXIgbWFjaGluZXMgaXQgc2ltcGxlIGhhcmRjb2RlZCB0byAi
+T25lIiBha2Egd2luMTAuCj4+Pgo+Pj4gVGhpcyBjYXVzZXMgdGhlIFBXTSBjb250cm9sbGVyIHRv
+IGdldCBoaWRkZW4sIHdoaWNoIG1lYW5zIExpbnV4IGNhbm5vdAo+Pj4gY29udHJvbCB0aGUgYmFj
+a2xpZ2h0IGxldmVsIG9uIGNodCBiYXNlZCB0YWJsZXRzIC8gbGFwdG9wcy4KPj4+Cj4+PiBTaW5j
+ZSBsb2FkaW5nIHRoZSBkcml2ZXIgZm9yIHRoaXMgZG9lcyBubyBoYXJtICh0aGUgb25seSBpbiBr
+ZXJuZWwgdXNlcgo+Pj4gb2YgaXQgaXMgdGhlIGk5MTUgZHJpdmVyLCB3aGljaCB3aWxsIG9ubHkg
+dXNlIGl0IHdoZW4gaXQgbmVlZHMgaXQpLCB0aGlzCj4+PiBjb21taXQgbWFrZXMgYWNwaV9idXNf
+Z2V0X3N0YXR1cygpIGFsd2F5cyBzZXQgc3RhdHVzIHRvIEFDUElfU1RBX0RFRkFVTFQKPj4+IGZv
+ciB0aGUgODA4NjIyODggZGV2aWNlLCBmaXhpbmcgdGhlIGxhY2sgb2YgYmFja2xpZ2h0IGNvbnRy
+b2wuCj4+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0
+LmNvbT4KPj4+IC0tLQo+Pj4gIGRyaXZlcnMvYWNwaS9idXMuYyB8IDI1ICsrKysrKysrKysrKysr
+KysrKysrKysrKysKPj4+ICAxIGZpbGUgY2hhbmdlZCwgMjUgaW5zZXJ0aW9ucygrKQo+Pj4KPj4+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYnVzLmMgYi9kcml2ZXJzL2FjcGkvYnVzLmMKPj4+
+IGluZGV4IDk1ODU1Y2IuLjQ4M2Q0ZDAgMTAwNjQ0Cj4+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYnVz
+LmMKPj4+ICsrKyBiL2RyaXZlcnMvYWNwaS9idXMuYwo+Pj4gQEAgLTEwOSwxMSArMTA5LDM2IEBA
+IGFjcGlfc3RhdHVzIGFjcGlfYnVzX2dldF9zdGF0dXNfaGFuZGxlKGFjcGlfaGFuZGxlCj4+PiBo
+YW5kbGUsCj4+PiAgICAgICAgIHJldHVybiBzdGF0dXM7Cj4+PiAgfQo+Pj4KPj4+ICsvKgo+Pj4g
+KyAqIFNvbWUgQUNQSSBkZXZpY2VzIGFyZSBoaWRkZW4gKHN0YXR1cyA9PSAweDApIGluIHJlY2Vu
+dCBCSU9TLWVzCj4+PiBiZWNhdXNlCj4+PiArICogc29tZSByZWNlbnQgd2luZG93cyBkcml2ZXJz
+IGJpbmQgdG8gb25lIGRldmljZSBidXQgcG9rZSBhdCBtdWx0aXBsZQo+Pj4gKyAqIGRldmljZXMg
+YXQgdGhlIHNhbWUgdGltZSwgc28gdGhlIG90aGVycyBnZXQgaGlkZGVuLgo+Pj4gKyAqIFdlIHdv
+cmsgYXJvdW5kIHRoaXMgYnkgYWx3YXlzIHJlcG9ydGluZyBBQ1BJX1NUQV9ERUZBVUxUIGZvciB0
+aGVzZQo+Pj4gKyAqIGRldmljZXMuIE5vdGUgdGhpcyBNVVNUIG9ubHkgYmUgZG9uZSBmb3IgZGV2
+aWNlcyB3aGVyZSB0aGlzIGlzIHNhZmUuCj4+PiArICovCj4+PiArc3RhdGljIGNvbnN0IHN0cnVj
+dCBhY3BpX2RldmljZV9pZCBhbHdheXNfcHJlc2VudF9kZXZpY2VfaWRzW10gPSB7Cj4+PiArICAg
+ICAgIC8qCj4+PiArICAgICAgICAqIENoZXJyeXRyYWlsIHB3bSBkaXJlY3RseSBwb2tlZCBieSBH
+UFUgZHJpdmVyIGluIHdpbjEwLAo+Pj4gKyAgICAgICAgKiBidXQgTGludXggdXNlcyBhIHNlcGFy
+YXRlIHB3bSBkcml2ZXIsIGhhcm1sZXNzIGlmIG5vdCB1c2VkLgo+Pj4gKyAgICAgICAgKi8KPj4+
+ICsgICAgICAgeyAiODA4NjIyODgiLCB9LAo+Pj4gKyAgICAgICB7IH0KPj4+ICt9Owo+Pj4gKwo+
+Pj4gIGludCBhY3BpX2J1c19nZXRfc3RhdHVzKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQo+
+Pj4gIHsKPj4+ICAgICAgICAgYWNwaV9zdGF0dXMgc3RhdHVzOwo+Pj4gICAgICAgICB1bnNpZ25l
+ZCBsb25nIGxvbmcgc3RhOwo+Pj4KPj4+ICsgICAgICAgLyogYWNwaV9tYXRjaF9kZXZpY2VfaWRz
+IGNoZWNrcyBzdGF0dXMsIHNvIHN0YXJ0IHdpdGggZGVmYXVsdCAqLwo+Pj4gKyAgICAgICBhY3Bp
+X3NldF9kZXZpY2Vfc3RhdHVzKGRldmljZSwgQUNQSV9TVEFfREVGQVVMVCk7Cj4+Cj4+Cj4+IFRo
+aXMgc2hvdWxkbid0IGJlIGRvbmUgaW4gYSAiZ2V0IiByb3V0aW5lLgo+Cj4KPiBXaXRoIHRoaXMg
+eW91IG1lYW4gdGhlIGFjcGlfbWF0Y2hfZGV2aWNlX2lkcygpIGNoZWNrIEkgYXNzdW1lID8KPiAo
+YWNwaV9idXNfZ2V0X3N0YXR1cyBhbHJlYWR5IGNhbGxzIGFjcGlfc2V0X2RldmljZV9zdGF0dXMo
+KSkKClllcywgdGhlIGRldmljZSBJRCBjaGVjay4KCj4+IElkZWFsbHksIGEgc2NhbiBoYW5kbGVy
+IHNob3VsZCBkbyB0aGF0IG9yIHNpbWlsYXIuCj4KPgo+IFRoZSBwcm9ibGVtIGlzIHRoYXQgZHJp
+dmVycy9hY3BpL3NjYW4uYzogYWNwaV9idXNfYXR0YWNoKCkKPiBjYWxscyBhY3BpX2J1c19nZXRf
+c3RhdHVzKCkgYW5kIGlmIGl0IGRvZXMgbm90IHNldAo+IHRoZSBzdGF0dXMgdG8gcHJlc2VudCBh
+Y3BpX2J1c19hdHRhY2goKSBleGl0cyB3aXRob3V0IGJvdGhlcmluZwo+IHdpdGggYXR0YWNoaW5n
+IHNjYW4gaGFuZGxlcnMsIHdoaWNoIGlzIHdoeSBJIGVuZGVkIHVwIGRvaW5nIHRoaXMKPiBoZXJl
+LgoKRmFpciBlbm91Z2guCgpUd28gcHJvYmxlbXMgd2l0aCB0aGlzIGFwcHJvYWNoLgoKT25lIGlz
+IHRoYXQgaXQgZG9lc24ndCBwcmV2ZW50IF9TVEEgZnJvbSBiZWluZyBldmFsdWF0ZWQgYXMKYWNw
+aV9idXNfZ2V0X3N0YXR1c19oYW5kbGUoKSBpcyBjYWxsZWQgZGlyZWN0bHkgZnJvbSBhIGNvdXBs
+ZSBvZgpwbGFjZXMuCgpTZWNvbmQsIHdoYXQgaWYgdGhlIHNhbWUgZGV2aWNlIElEIGlzIHVzZWQg
+b24gYW5vdGhlciBzeXN0ZW0gd2hlcmUKX1NUQSBhY3R1YWxseSB3b3JrcyBjb3JyZWN0bHkgZm9y
+IHRoYXQgZGV2aWNlPwoKVGhhbmtzLApSYWZhZWwKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vaW50ZWwtZ2Z4Cg==
