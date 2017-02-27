@@ -1,219 +1,320 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] acpi: acpica: fix acpi operand cache leak
-Date: Mon, 27 Feb 2017 02:45:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE41241@SHSMSX101.ccr.corp.intel.com>
-References: <1487292003-25769-1-git-send-email-kkamagui@gmail.com>
- <6316430.DDm6VSBqH3@aspire.rjw.lan>
- <CAHjaAcT7OoTDEweCBwL=BuC-RL6DjKo0AMGS-8HearCdy4_7QQ@mail.gmail.com>
- <3660439.lHcxWCEFi4@aspire.rjw.lan>
- <CAHjaAcQJmJ9H3Qr1mWUax31JR+uSBw-8nR0RJcdjsQKkzS+tBg@mail.gmail.com>
- <CAJZ5v0gUOcV2+r9fMxYS89FrWk1HoguAvF2qO=Lt9o-eNRhEBQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:45777 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751306AbdB0Cz2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 26 Feb 2017 21:55:28 -0500
-In-Reply-To: <CAJZ5v0gUOcV2+r9fMxYS89FrWk1HoguAvF2qO=Lt9o-eNRhEBQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Michal Hocko <mhocko@kernel.org>
+Subject: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
+Date: Mon, 27 Feb 2017 10:28:17 +0100
+Message-ID: <20170227092817.23571-1-mhocko@kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Seunghun Han <kkamagui@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
-YWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZh
-ZWwgSi4NCj4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBhY3BpOiBhY3BpY2E6
-IGZpeCBhY3BpIG9wZXJhbmQgY2FjaGUgbGVhaw0KPiANCj4gT24gRnJpLCBGZWIgMjQsIDIwMTcg
-YXQgMTE6MzcgUE0sIFNldW5naHVuIEhhbiA8a2thbWFndWlAZ21haWwuY29tPiB3cm90ZToNCj4g
-PiBIaSwgUmFmYWVsLg0KPiA+DQo+ID4gSSBhZ3JlZSB3aXRoIHlvdSBhbmQgSSBhZGRlZCBteSBv
-cGluaW9uIGJlbG93Lg0KPiA+DQo+ID4gMjAxNy0wMi0yNSAxOjUwIEdNVCswOTowMCBSYWZhZWwg
-Si4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+Og0KPiA+PiBPbiBGcmlkYXksIEZlYnJ1YXJ5
-IDI0LCAyMDE3IDA5OjU2OjIxIFBNIFNldW5naHVuIEhhbiB3cm90ZToNCj4gPj4+IEhpLCBSYWZl
-YWwuDQo+ID4+Pg0KPiA+Pj4gSSBhZGRlZCBteSBvcGluaW9uIGJlbG93Lg0KPiA+Pj4NCj4gPj4+
-IDIwMTctMDItMjQgMjE6MTMgR01UKzA5OjAwIFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNv
-Y2tpLm5ldD46DQo+ID4+PiA+IE9uIEZyaWRheSwgRmVicnVhcnkgMjQsIDIwMTcgMDk6MTU6NTIg
-UE0gU2V1bmdodW4gSGFuIHdyb3RlOg0KPiA+Pj4gPj4gSGksIFJhZmFlbC4NCj4gPj4+ID4+DQo+
-ID4+PiA+PiBJIGFkZGVkIG15IG9waW5pb24gYmVsb3cuDQo+ID4+PiA+Pg0KPiA+Pj4gPj4gMjAx
-Ny0wMi0yNCAyMDo1MCBHTVQrMDk6MDAgUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2ku
-bmV0PjoNCj4gPj4+ID4+ID4gT24gRnJpZGF5LCBGZWJydWFyeSAyNCwgMjAxNyAwODo1Mjo0MiBQ
-TSBTZXVuZ2h1biBIYW4gd3JvdGU6DQo+ID4+PiA+PiA+PiBIaSwgTHYgWmhlbmcuDQo+ID4+PiA+
-PiA+Pg0KPiA+Pj4gPj4gPj4gSSBhZGRlZCBteSBoYW5kY3JhZnRlZCBBQ1BJIHRhYmxlIHVuZGVy
-IHlvdXIgcmVxdWVzdCwgYmVjYXVzZQ0KPiA+Pj4gPj4gPj4gImFjcGlkdW1wIC1jIG9uIiBhbmQg
-ImFjcGlkdW1wIC1jIG9mZiIgZG9lc24ndCB3b3JrLg0KPiA+Pj4gPj4gPj4NCj4gPj4+ID4+ID4+
-IDIwMTctMDItMjEgMTk6MzYgR01UKzA5OjAwIFNldW5naHVuIEhhbiA8a2thbWFndWlAZ21haWwu
-Y29tPjoNCj4gPj4+ID4+ID4+ID4gSGVsbG8sDQo+ID4+PiA+PiA+PiA+DQo+ID4+PiA+PiA+PiA+
-IEkgYXR0YWNoZWQgdGhlIHRlc3QgcmVzdWx0cyBiZWxvdywNCj4gPj4+ID4+ID4+ID4NCj4gPj4+
-ID4+ID4+ID4gMjAxNy0wMi0yMSA5OjUzIEdNVCswOTowMCBSb3dhZmFlbCBKLiBXeXNvY2tpIDxy
-andAcmp3eXNvY2tpLm5ldD46DQo+ID4+PiA+PiA+PiA+PiBPbiBUdWVzZGF5LCBGZWJydWFyeSAy
-MSwgMjAxNyAxMjozMzowOCBBTSBaaGVuZywgTHYgd3JvdGU6DQo+ID4+PiA+PiA+PiA+Pj4gSGks
-DQo+ID4+PiA+PiA+PiA+Pj4NCj4gPj4+ID4+ID4+ID4+PiA+IEZyb206IGxpbnV4LWFjcGktb3du
-ZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5v
-cmddIE9uDQo+IEJlaGFsZiBPZiBTZXVuZ2h1bg0KPiA+Pj4gPj4gPj4gPj4+ID4gSGFuDQo+ID4+
-PiA+PiA+PiA+Pj4gPiBTdWJqZWN0OiBbUEFUQ0ggdjJdIGFjcGk6IGFjcGljYTogZml4IGFjcGkg
-b3BlcmFuZCBjYWNoZSBsZWFrDQo+ID4+PiA+PiA+PiA+Pj4gPg0KPiA+Pj4gPj4gPj4gPj4+ID4g
-SSdtIFNldW5naHVuIEhhbiwgYW5kIEkgd29yayBmb3IgTmF0aW9uYWwgU2VjdXJpdHkgUmVzZWFy
-Y2ggSW5zdGl0dXRlIG9mDQo+ID4+PiA+PiA+PiA+Pj4gPiBTb3V0aCBLb3JlYS4NCj4gPj4+ID4+
-ID4+ID4+PiA+DQo+ID4+PiA+PiA+PiA+Pj4gPiBJIGhhdmUgYmVlbiBkb2luZyBhIHJlc2VhcmNo
-IG9uIEFDUEkgYW5kIG1ha2luZyBhIGhhbmRjcmFmdGVkIEFDUEkgdGFibGUNCj4gPj4+ID4+ID4+
-ID4+PiA+IGZvciBteSByZXNlYXJjaC4NCj4gPj4+ID4+ID4+ID4+PiA+IEVycm9ycyBvZiBoYW5k
-Y3JhZnRlZCBBQ1BJIHRhYmxlcyBhcmUgaGFuZGxlZCB3ZWxsIGluIExpbnV4IGtlcm5lbCB3aGls
-ZSBib290DQo+ID4+PiA+PiA+PiA+Pj4gPiBwcm9jZXNzLCBhbmQgTGludXgga2VybmVsIGdvZXMg
-d2VsbCB3aXRob3V0IGNyaXRpY2FsIHByb2JsZW1zLg0KPiA+Pj4gPj4gPj4gPj4+ID4gQnV0IEkg
-Zm91bmQgc29tZSBBQ1BJIG9wZXJhbmQgY2FjaGUgbGVha3MgaW4gQUNQSSBlYXJseSBhYm9ydCBj
-YXNlcy4NCj4gPj4+ID4+ID4+ID4+PiA+DQo+ID4+PiA+PiA+PiA+Pj4gPiBCb290IGxvZyBvZiBB
-Q1BJIG9wZXJhbmQgY2FjaGUgbGVhayBpcyBhcyBmb2xsb3dzOg0KPiA+Pj4gPj4gPj4gPj4+ID4g
-PlsgICAgMC4xNzQzMzJdIEFDUEk6IEFkZGVkIF9PU0koTW9kdWxlIERldmljZSkNCj4gPj4+ID4+
-ID4+ID4+PiA+ID5bICAgIDAuMTc1NTA0XSBBQ1BJOiBBZGRlZCBfT1NJKFByb2Nlc3NvciBEZXZp
-Y2UpDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE3NjAxMF0gQUNQSTogQWRkZWQgX09TSSgz
-LjAgX1NDUCBFeHRlbnNpb25zKQ0KPiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xNzcwMzJdIEFD
-UEk6IEFkZGVkIF9PU0koUHJvY2Vzc29yIEFnZ3JlZ2F0b3IgRGV2aWNlKQ0KPiA+Pj4gPj4gPj4g
-Pj4+ID4gPlsgICAgMC4xNzgyODRdIEFDUEk6IFNDSSAoSVJRMTY3MDUpIGFsbG9jYXRpb24gZmFp
-bGVkDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE3OTM1Ml0gQUNQSSBFeGNlcHRpb246IEFF
-X05PVF9BQ1FVSVJFRCwgVW5hYmxlIHRvIGluc3RhbGwgU3lzdGVtIENvbnRyb2wNCj4gSW50ZXJy
-dXB0IGhhbmRsZXINCj4gPj4+ID4+ID4+ID4+PiA+ICgyMDE2MDkzMC9ldmV2ZW50LTEzMSkNCj4g
-Pj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTgwMDA4XSBBQ1BJOiBVbmFibGUgdG8gc3RhcnQgdGhl
-IEFDUEkgSW50ZXJwcmV0ZXINCj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTgxMTI1XSBBQ1BJ
-IEVycm9yOiBDb3VsZCBub3QgcmVtb3ZlIFNDSSBoYW5kbGVyICgyMDE2MDkzMC9ldm1pc2MtMjgx
-KQ0KPiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODQwNjhdIGttZW1fY2FjaGVfZGVzdHJveSBB
-Y3BpLU9wZXJhbmQ6IFNsYWIgY2FjaGUgc3RpbGwgaGFzIG9iamVjdHMNCj4gPj4+ID4+ID4+ID4+
-PiA+ID5bICAgIDAuMTg1MzU4XSBDUFU6IDAgUElEOiAxIENvbW06IHN3YXBwZXIvMCBOb3QgdGFp
-bnRlZCA0LjEwLjAtcmMzICMyDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4NjgyMF0gSGFy
-ZHdhcmUgbmFtZTogaW5ub3RlayBHbWJIIFZpcnR1YWxCb3gvVmlydHVhbEJveCwgQklPUyBWaXJ0
-dWFsQm94DQo+IDEyLzAxLzIwMDYNCj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSBD
-YWxsIFRyYWNlOg0KPiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IGR1bXBfc3Rh
-Y2srMHg1Yy8weDdkDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8ga21lbV9j
-YWNoZV9kZXN0cm95KzB4MjI0LzB4MjMwDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAw
-MF0gID8gYWNwaV9zbGVlcF9wcm9jX2luaXQrMHgyMi8weDIyDQo+ID4+PiA+PiA+PiA+Pj4gPiA+
-WyAgICAwLjE4ODAwMF0gID8gYWNwaV9vc19kZWxldGVfY2FjaGUrMHhhLzB4ZA0KPiA+Pj4gPj4g
-Pj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IGFjcGlfdXRfZGVsZXRlX2NhY2hlcysweDNmLzB4
-N2INCj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBhY3BpX3Rlcm1pbmF0ZSsw
-eDUvMHhmDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gYWNwaV9pbml0KzB4
-Mjg4LzB4MzJlDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gX19jbGFzc19j
-cmVhdGUrMHg0Yy8weDgwDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gdmlk
-ZW9fc2V0dXArMHg3YS8weDdhDQo+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8g
-ZG9fb25lX2luaXRjYWxsKzB4NGUvMHgxYjANCj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4
-MDAwXSAgPyBrZXJuZWxfaW5pdF9mcmVlYWJsZSsweDE5NC8weDIxYQ0KPiA+Pj4gPj4gPj4gPj4+
-ID4gPlsgICAgMC4xODgwMDBdICA/IHJlc3RfaW5pdCsweDgwLzB4ODANCj4gPj4+ID4+ID4+ID4+
-PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBrZXJuZWxfaW5pdCsweGEvMHgxMDANCj4gPj4+ID4+ID4+
-ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyByZXRfZnJvbV9mb3JrKzB4MjUvMHgzMA0KPiA+Pj4g
-Pj4gPj4gPj4+DQo+ID4+PiA+PiA+PiA+Pj4gSSdtIG1vcmUgaW50ZXJlc3RlZCBpbiB0aGUgd2F5
-IG9mIHRyaWdnZXJpbmcgQUVfTk9UX0FDUVVJUkVEIGVycm9yLg0KPiA+Pj4gPj4gPj4gPj4+IFNv
-IGNvdWxkIHlvdSBzZW5kIHVzIHRoZSBoYW5kY3JhZnRlZCBBQ1BJIHRhYmxlIG9yIGJvdGggdGhl
-ICJhY3BpZHVtcCAtYyBvbiIgYW5kDQo+ICJhY3BpZHVtcCAtYyBvZmYiIG91dHB1dD8NCj4gPj4+
-ID4+ID4+DQo+ID4+PiA+PiA+PiBJIG1vZGlmaWVkIEZBQ1AsIEZBQ1MsIEFQSUMgdGFibGUgaW4g
-VmlydHVhbEJveCBmb3IgTGludXguDQo+ID4+PiA+PiA+PiBIZXJlIGFyZSByYXcgZHVtcHMgb2Yg
-dGFibGUuDQo+ID4+PiA+PiA+DQo+ID4+PiA+PiA+IFNvLCBleGN1c2UgbWUsIGJ1dCB3aGF0J3Mg
-dGhlIHNlY3VyaXR5IGlzc3VlIGhlcmU/DQo+ID4+PiA+PiA+DQo+ID4+PiA+PiA+IFlvdSBoYWNr
-ZWQgeW91ciBBQ1BJIHRhYmxlcyBpbnRvIHBpZWNlcyB3aGljaCByZXF1aXJlcyByb290IHByaXZp
-bGVnZXMgYW55d2F5Lg0KPiA+Pj4gPj4gPg0KPiA+Pj4gPj4gPiBUaGFua3MsDQo+ID4+PiA+PiA+
-IFJhZmFlbA0KPiA+Pj4gPj4gPg0KPiA+Pj4gPj4NCj4gPj4+ID4+IEFzIHlvdSBtZW50aW9uZWQg
-ZWFybGllciwgSSBoYWNrZWQgbXkgQUNQSSB0YWJsZSBmb3IgcmVzZWFyY2gsIHNvIGl0IHNlZW1z
-IHRoYXQNCj4gPj4+ID4+IGl0IGlzIG5vdCBhIHNlY3VyaXR5IGlzc3VlLg0KPiA+Pj4gPj4NCj4g
-Pj4+ID4+IEJ1dCwgaWYgbmV3IG1haW5ib2FyZCBhcmUgcmVsZWFzZWQgYW5kIHRoZXkgaGF2ZSBh
-IHZlbmRvci1zcGVjaWZpYyBBQ1BJIHRhYmxlDQo+ID4+PiA+PiB3aGljaCBoYXMgaW52YWxpZCBk
-YXRhLCB0aGUgb2xkIHZlcnNpb24gb2Yga2VybmVsICg8PTQuOSkgd2lsbCBwb3NzaWJseSBleHBv
-c2UNCj4gPj4+ID4+IGtlcm5lbCBhZGRyZXNzIGFuZCBLQVNMUiB3aWxsIGJlIG5ldXRyYWxpemVk
-IHVuaW50ZW50aW9uYWxseS4NCj4gPj4+ID4NCj4gPj4+ID4gQnV0IHRoYXQgd291bGQgbWVhbiBh
-IGJhc2ljYWxseSBub24tZnVuY3Rpb25hbCBzeXN0ZW0sIHNvIEknbSBub3Qgc3VyZSBob3cNCj4g
-Pj4+ID4gYW55b25lIGNhbiBhY3R1YWxseSB0YWtlIGFkdmFudGFnZSBvZiB0aGUgIktBU0xSIG5l
-dXRyYWxpemF0aW9uIi4NCj4gPj4+DQo+ID4+PiBJIHRoaW5rIGFuIGF0dGFja2VyIGNhbiB0YWtl
-IGFkdmFudGFnZSBvZiB0aGUgIktBU0xSIG5ldXRyYWxpemF0aW9uIi4gQXMgeW91DQo+ID4+PiBr
-bm93LCBLQVNMUiBpcyBnb29kIHRlY2hub2xvZ3kgdG8gcHJvdGVjdCBrZXJuZWwgZnJvbSBrZXJu
-ZWwgZXhwbG9pdHMuDQo+ID4+Pg0KPiA+Pj4gSWYgdGhlIGtlcm5lbCBoYXMgdnVsbmVyYWJpbGl0
-aWVzLCB0aGUgYXR0YWNrZXIgY2FuIG1ha2UgZXhwbG9pdCB1c2luZyB0aGVtLg0KPiA+Pj4gQnV0
-LCB0aGUgZXhwbG9pdCB1c3VhbGx5IG5lZWRzIGdhZGdldHMgKHNtYWxsIGNvZGUpLCB0aGVyZWZv
-cmUgdGhlIGF0dGFja2VyDQo+ID4+PiBzaG91bGQga25vdyB3aGVyZSB0aGUgZ2FkZ2V0cyBhcmUg
-aW4ga2VybmVsLiBJZiB0aGUgS0FTTFIgaXMgd29ya2luZyBpbiBrZXJuZWwsDQo+ID4+PiB0aGUg
-YXR0YWNrZXIgc2hvdWxkIGZpbmQgdGhlIGFjdHVhbCBrZXJuZWwgYWRkcmVzcywgYW5kIGhlIGNh
-biBnZXQga2VybmVsDQo+ID4+PiBhZGRyZXNzIGluZm9ybWF0aW9uIGZyb20ga2VybmVsIHdhcm5p
-bmcuDQo+ID4+DQo+ID4+IElmIHRoZSBzeXN0ZW0gYmFzaWNhbGx5IGRvZXNuJ3Qgd29yaywgdGhh
-dCBpbmZvcm1hdGlvbiBpc24ndCAgcGFydGljdWxhcmx5IHVzZWZ1bC4NCj4gPj4NCj4gPj4+ID4+
-IEkga25vdyB0aGUgdmVuZG9ycyBjb2xsYWJvcmF0ZSB3aXRoIExpbnV4IGtlcm5lbCBkZXZlbG9w
-ZXJzLCBidXQgdGhlIHByb2JsZW0NCj4gPj4+ID4+IGNhbiBzdGlsbCBvY2N1ci4NCj4gPj4+ID4+
-DQo+ID4+PiA+PiBIYXJkd2FyZSB2ZW5kb3JzIHJlbGVhc2Ugc28gbWFueSBraW5kcyBvZiBtYWlu
-Ym9hcmQgaW4gYSB5ZWFyLCBhbmQgdGhlIG1ham9yDQo+ID4+PiA+PiBMaW51eCBkaXN0cm9zIChV
-YnVudHUsIEZlZG9yYSwgZXRjLikgd2lsbCBoYXZlIDQuOCBrZXJuZWwgZm9yIGEgbG9uZyB0aW1l
-Lg0KPiA+Pj4gPj4NCj4gPj4+ID4+IEZvciB0aGlzIHJlYXNvbiwgSSB0aGluayB0aGlzIGlzc3Vl
-IGhhcyBhIHNlY3VyaXR5IGFzcGVjdC4NCj4gPj4+ID4NCj4gPj4+ID4gV2VsbCwgbm90IHF1aXRl
-IElNTy4NCj4gPj4+ID4NCj4gPj4+ID4gSWYgdGhlIHN5c3RlbSBuZWVkcyBBQ1BJIHRhYmxlcyBh
-bmQgdGhlIGtlcm5lbCBjYW5ub3QgdXNlIHRoZW0sIGl0IGp1c3Qgd29uJ3QNCj4gPj4+ID4gd29y
-ayBubyBtYXR0ZXIgd2hhdC4NCj4gPj4+ID4NCj4gPj4+ID4gVGhhbmtzLA0KPiA+Pj4gPiBSYWZh
-ZWwNCj4gPj4+ID4NCj4gPj4+IFllcywgeW91IGFyZSByaWdodC4gQnV0LCBMaW51eCBrZXJuZWwg
-aGFzIHdlbGwtZGVmaW5lZCBleGNlcHRpb24gaGFuZGxlcnMsIHNvDQo+ID4+PiBzb21lIHN5c3Rl
-bXMgbWF5IHdvcmsgZmluZSBsaWtlIG15IHRlc3QgbWFjaGluZS4gTW9yZW92ZXIgdGhlIHVzZXJz
-IG1heSBub3QNCj4gPj4+IHJlY29nbml6ZSB3aGF0IHRoZSBwcm9ibGVtIGlzLCBhbmQgSSB0aGlu
-ayB0aGF0IHRoZXkgd2lsbCB1c2UgdGhlIHN5c3RlbSBpbg0KPiA+Pj4gaW5zZWN1cmUgc3RhdHVz
-IGZvciBhIGxvbmcgdGltZS4NCj4gPj4NCj4gPj4gQSB2aXJ0dWFsIGJveCBvciBhIGd1ZXN0IGNh
-biBydW4gd2l0aG91dCBBQ1BJIHRhYmxlcy4gIEEgYmFyZSBtZXRhbCBzeXN0ZW0NCj4gPj4gd2hl
-cmUgQUNQSSB0YWJsZXMgYXJlIG5lY2Vzc2FyeSB3aWxsIGJlIG1vcmUtb3ItbGVzcyB1bnVzYWJs
-ZSBpZiB0aGUga2VybmVsDQo+ID4+IGNhbm5vdCB1c2UgdGhlbSAoaXQgd29uJ3QgYmUgYWJsZSB0
-byBkZXRlY3QgaW50ZXJydXB0IGNvbnRyb2xsZXJzIGFuZCB0aGUgUENJDQo+ID4+IGhvc3QgYnJp
-ZGdlIGp1c3QgZm9yIHN0YXJ0ZXJzKS4NCj4gPj4NCj4gPj4gUnVubmluZyBhIGd1ZXN0IHdpdGgg
-dG90YWxseSBicm9rZW4gQUNQSSB0YWJsZXMgcmVxdWlyZXMgcm9vdCBwcml2aWxlZ2VzIG9uIHRo
-ZQ0KPiA+PiBob3N0LiAgUnVubmluZyBhIGJhcmUgbWV0YWwgc3lzdGVtIHdpdGggdG90YWxseSBi
-cm9rZW4gQUNQSSB0YWJsZXMgKHdoaWNoIHNlZW1zDQo+ID4+IHRvIGJlIHlvdXIgYmFzaWMgY29u
-Y2VybikgbWF5IGJlIGEgZ29vZCByZXNlYXJjaCBwcm9qZWN0LCBidXQgbm9ib2R5IHdpbGwgZG8N
-Cj4gPj4gdGhhdCBpbiBwcmFjdGljZS4gIEFuZCBldmVyeWJvZHkgd2hvIHRyaWVzIHRoYXQgd2ls
-bCBub3RpY2Ugd2hhdCdzIGdvaW5nIG9uLg0KPiA+Pg0KPiA+PiBZZXMsIHlvdSBmb3VuZCBhIGJ1
-ZywgYnV0IEkgc3RpbGwgYW0gbm90IGNvbnZpbmNlZCBhYm91dCBob3cgdGhpcyBpcyBzZWN1cml0
-eS1yZWxhdGVkLg0KPiA+DQo+ID4gSSB0b3RhbGx5IGFncmVlIHdpdGggeW91IHRoYXQgdGhpcyBj
-YXNlIGlzIG5vdCBpbiBwcmFjdGljZSBub3cuDQo+ID4gSSBqdXN0IHN0YXJ0ZWQgcmVzZWFyY2hp
-bmcgb24gQUNQSSwgYW5kIEkgZG9uJ3QgaGF2ZSBlbm91Z2ggaWRlYXMgdG8gb2NjdXINCj4gPiBh
-IHNlY3VyaXR5IHByb2JsZW0gdXNpbmcgYSBidWcuIEkganVzdCB0aGluayB0aGF0IGl0IGhhcyBh
-IGxpdHRsZSBwb3NzaWJpbGl0eQ0KPiA+IHdoaWNoIGlzIHNlY3VyaXR5LXJlbGF0ZWQuDQo+ID4N
-Cj4gPiBUaGFuayB5b3Ugc28gbXVjaCBmb3IgeW91ciBndWlkZXMuDQo+ID4gSXQgaGVscHMgbWUg
-YSBsb3QgdG8gY2hhbmdlIG15IHJlc2VhcmNoIGRpcmVjdGlvbi4NCj4gPg0KPiA+IFNvLCBjb3Vs
-ZCBteSBwYXRjaCBiZSBtZXJnZWQgaW4gbmV4dCBrZXJuZWwgKDQuMTEgcmMtMSk/IG9yIGRvIEkg
-bmVlZCB0byBkbw0KPiA+IHNvbWV0aGluZyBmb3IgaXQ/DQo+ID4gUGxlYXNlIGxldCBtZSBrbm93
-Lg0KPiANCj4gR2VuZXJhbGx5LCBBQ1BJQ0EgcGF0Y2hlcyAoYW5kIHRoaXMgaXMgb25lIG9mIHRo
-ZW0pIGhhdmUgdG8gZ28gaW4gdmlhDQo+IHRoZSB1cHN0cmVhbSBBQ1BJQ0EgcHJvamVjdCBtYWlu
-dGFpbmVkIGJ5IEJvYiBNb29yZSBhbmQgTHYuICBQbGVhc2UNCj4gc2VlIE1BSU5UQUlORVJTIGZv
-ciBwb2ludGVycyB0byB0aGUgbWFpbGluZyBsaXN0IGV0Yy4NCj4gDQo+IEx2LCBjYW4geW91IHBs
-ZWFzZSBhZHZpc2Ugb24gdGhlIG5leHQgc3RlcHM/DQoNCkkgYWxyZWFkeSBnYXZlIG15IGFkdmlj
-ZXMuDQpUaGUgZml4IHdhcyBPSyB0byBtZSBhbmQgSSBiYWNrIHBvcnRlZCBpdCB0byBBQ1BJQ0E6
-DQpodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9wdWxsLzIwNg0KSG93ZXZlciBpdCBm
-aXhlcyBhIGNvZGUgcGF0aCB0aGF0IGluIHRoZW9yeSBzaG91bGRuJ3QgYmUgaW52b2tlZCBpbiBM
-aW51eCBrZXJuZWwuDQpCdXQgYW55d2F5IGl0IHdhcyBtZXJnZWQgYW5kIHlvdSB3aWxsIHNlZSBp
-dCBpbiB0aGUgbmV4dCBBQ1BJQ0EgcmVsZWFzZS4NCg0KSSBhc2tlZCBIYW4gZm9yIHRoZSBoYW5k
-Y3JhZnRlZCBBQ1BJIHRhYmxlLg0KQW5kIG9idGFpbmVkIHRoYXQ6DQpBQ1BJOiBGQUNQIDB4MDAw
-MDAwMDBERkZGMDBGMCAwMDAwRjQgKHYwNCBWQk9YIFZCT1hGQUNQIDAwMDAwMDAxIEFTTCAgMDAw
-MDAwNjEpDQoweDAwMDA6IDQ2IDQxIDQzIDUwIEY0IDAwIDAwIDAwIDA0IDYwIDU2IDQyIDRGIDU4
-IDIwIDIwDQoweDAwMTA6IDU2IDQyIDRGIDU4IDQ2IDQxIDQzIDUwIDAxIDAwIDAwIDAwIDQxIDUz
-IDRDIDIwDQoweDAwMjA6IDYxIDAwIDAwIDAwIDAwIDAyIEZGIERGIDgwIDA0IEZGIERGIDQxIDQx
-IDQxIDQxDQoweDAwMzA6IDJFIDQ0IDAwIDAwIEExIEEwIDAwIDAwIDAwIDQwIDAwIDAwIDAwIDAw
-IDAwIDAwDQoweDAwNDA6IDA0IDQwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDA4IDQw
-IDAwIDAwDQoweDAwNTA6IDIwIDQwIDAwIDAwIDAwIDAwIDAwIDAwIDA0IDAyIDAwIDA0IDAyIDAw
-IDAwIDAwDQoweDAwNjA6IDY1IDAwIEU5IDAzIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAz
-IDAwIDAwDQoweDAwNzA6IDQxIDA1IDAwIDAwIDAxIDA4IDAwIDAxIDUwIDQwIDAwIDAwIDAwIDAw
-IDAwIDAwDQoweDAwODA6IDEwIDAwIDAwIDAwIDAwIDAyIEZGIERGIDAwIDAwIDAwIDAwIDgwIDA0
-IEZGIERGDQoweDAwOTA6IDAwIDAwIDAwIDAwIDAxIDIwIDAwIDAyIDAwIDQwIDAwIDAwIDAwIDAw
-IDAwIDAwDQoweDAwQTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAxIDEw
-IDAwIDAyDQoweDAwQjA6IDA0IDQwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwDQoweDAwQzA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwDQoweDAwRDA6IDAxIDIwIDAwIDAzIDA4IDQwIDAwIDAwIDAwIDAwIDAwIDAwIDAxIDEw
-IDAwIDAxDQoweDAwRTA6IDIwIDQwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwDQoweDAwRjA6IDAwIDAwIDAwIDAwDQoNCkFDUEk6IEZBQ1MgMHgwMDAwMDAwMERGRkYw
-MjAwIDAwMDA0MA0KMHgwMDAwOiA0NiA0MSA0MyA1MyA0MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMA0KMHgwMDEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCA0MSA0MSA0MSA0
-MSA0MSA0MSA0MQ0KMHgwMDIwOiAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCA0MSAwMCAwMCAw
-MCAwMCAwMCAwMA0KMHgwMDMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMA0KDQpBQ1BJOiBBUElDIDB4MDAwMDAwMDBERkZGMDI0MCAwMDAwNkMgKHYwMiBW
-Qk9YIFZCT1hBUElDIDAwMDAwMDAxIEFTTCAgMDAwMDAwNjEpDQoweDAwMDA6IDQxIDUwIDQ5IDQz
-IDZDIDAwIDAwIDAwIDAyIDIxIDU2IDQyIDRGIDU4IDIwIDIwDQoweDAwMTA6IDU2IDQyIDRGIDU4
-IDQxIDUwIDQ5IDQzIDAxIDAwIDAwIDAwIDQxIDUzIDRDIDIwDQoweDAwMjA6IDYxIDAwIDAwIDAw
-IDAwIDAwIEUwIEZFIDAxIDAwIDAwIDAwIDAyIDBBIDAwIDAwDQoweDAwMzA6IDAyIDAwIDAwIDAw
-IDAwIDAwIDAyIDBBIDAwIDA5IDA5IDAwIDAwIDAwIDBEIDAwDQoweDAwNDA6IDAwIDA4IDAwIDAw
-IDAxIDAwIDQxIDQxIDQxIDQxIDQxIDQxIDQxIDQxIDQxIDAwDQoweDAwNTA6IDAwIDA4IDAyIDAy
-IDAxIDAwIDAwIDAwIDAwIDA4IDAzIDAzIDAxIDAwIDAwIDAwDQoweDAwNjA6IDAxIDBDIDA0IDAw
-IDAwIDAwIEMwIEZFIDAwIDAwIDAwIDAwDQoNCldoZXJlIHRoZXJlIGlzIHN0aWxsIG5vIEFNTCB0
-YWJsZXMgYW5kIHRoZSBmYWlsdXJlIGluIHRoZSBwYXRjaCBkZXNjcmlwdGlvbiBzZWVtcyB0byBi
-ZSByZWxhdGVkIHRvIHRoZSBBTUwgdGFibGVzLg0KU28gSSdtIHN0aWxsIG5vdCBhd2FyZSBvZiB3
-aGF0IHRoZSAiaGFuZGNyYWZ0ZWQgdGFibGVzIiBtZWFudCB0byB1cyBhbmQgd2hhdCB0aGUgcHJv
-YmxlbSB3YXMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQpMdg0KDQo+IA0KPiBUaGFua3Ms
-DQo+IFJhZmFlbA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0
-aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNz
-YWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBh
-dCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+From: Michal Hocko <mhocko@suse.com>
+
+This knob has been added by 31bc3858ea3e ("memory-hotplug: add automatic
+onlining policy for the newly added memory") mainly to cover memory
+hotplug based balooning solutions currently implemented for HyperV
+and Xen. Both of them want to online the memory as soon after
+registering as possible otherwise they can register too much memory
+which cannot be used and trigger the oom killer (we need ~1.5% of the
+registered memory so a large increase can consume all the available
+memory). hv_mem_hot_add even waits for the userspace to online the
+memory if the auto onlining is disabled to mitigate that problem.
+
+Adding yet another knob and a config option just doesn't make much sense
+IMHO. How is a random user supposed to know when to enable this option?
+Ballooning drivers know much better that they want to do an immediate
+online rather than waiting for the userspace to do that. If the memory
+is onlined for a different purpose then we already have a notification
+for the userspace and udev can handle the onlining. So the knob as well
+as the config option for the default behavior just doesn't make any
+sense. Let's remove them and allow user of add_memory to request the
+online status explicitly. Not only it makes more sense it also removes a
+lot of clutter.
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+
+Hi,
+I am sending this as an RFC because this is a user visible change. Maybe
+we won't be able to remove the sysfs knob which would be sad, especially
+when it has been added without a wider discussion and IMHO it is just
+wrong. Is there any reason why a kernel command line parameter wouldn't
+work just fine?
+
+Even in that case I believe that we should remove
+CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE knob. It just adds to an already
+messy config space. Does anybody depend on the policy during the early
+boot before the userspace can set the sysfs knob? Or why those users cannot
+simply use the kernel command line parameter.
+
+I also believe that the wait-for-userspace in hyperV should just die. It
+should do the unconditional onlining. Same as Xen. I do not see any
+reason why those should depend on the userspace. This should be just
+fixed regardless of the sysfs/config part. I can separate this out of course.
+
+Thoughts/Concerns?
+
+ drivers/acpi/acpi_memhotplug.c |  2 +-
+ drivers/base/memory.c          | 33 +--------------------------------
+ drivers/hv/hv_balloon.c        | 26 +-------------------------
+ drivers/s390/char/sclp_cmd.c   |  2 +-
+ drivers/xen/balloon.c          |  2 +-
+ include/linux/memory_hotplug.h |  4 +---
+ mm/Kconfig                     | 16 ----------------
+ mm/memory_hotplug.c            | 22 ++--------------------
+ 8 files changed, 8 insertions(+), 99 deletions(-)
+
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 6b0d3ef7309c..2b1c35fb36d1 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -228,7 +228,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 		if (node < 0)
+ 			node = memory_add_physaddr_to_nid(info->start_addr);
+ 
+-		result = add_memory(node, info->start_addr, info->length);
++		result = add_memory(node, info->start_addr, info->length, false);
+ 
+ 		/*
+ 		 * If the memory block has been used by the kernel, add_memory()
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index fa26ffd25fa6..476c2c02f938 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -446,37 +446,6 @@ print_block_size(struct device *dev, struct device_attribute *attr,
+ static DEVICE_ATTR(block_size_bytes, 0444, print_block_size, NULL);
+ 
+ /*
+- * Memory auto online policy.
+- */
+-
+-static ssize_t
+-show_auto_online_blocks(struct device *dev, struct device_attribute *attr,
+-			char *buf)
+-{
+-	if (memhp_auto_online)
+-		return sprintf(buf, "online\n");
+-	else
+-		return sprintf(buf, "offline\n");
+-}
+-
+-static ssize_t
+-store_auto_online_blocks(struct device *dev, struct device_attribute *attr,
+-			 const char *buf, size_t count)
+-{
+-	if (sysfs_streq(buf, "online"))
+-		memhp_auto_online = true;
+-	else if (sysfs_streq(buf, "offline"))
+-		memhp_auto_online = false;
+-	else
+-		return -EINVAL;
+-
+-	return count;
+-}
+-
+-static DEVICE_ATTR(auto_online_blocks, 0644, show_auto_online_blocks,
+-		   store_auto_online_blocks);
+-
+-/*
+  * Some architectures will have custom drivers to do this, and
+  * will not need to do it from userspace.  The fake hot-add code
+  * as well as ppc64 will do all of their discovery in userspace
+@@ -500,7 +469,7 @@ memory_probe_store(struct device *dev, struct device_attribute *attr,
+ 
+ 	nid = memory_add_physaddr_to_nid(phys_addr);
+ 	ret = add_memory(nid, phys_addr,
+-			 MIN_MEMORY_BLOCK_SIZE * sections_per_block);
++			 MIN_MEMORY_BLOCK_SIZE * sections_per_block, false);
+ 
+ 	if (ret)
+ 		goto out;
+diff --git a/drivers/hv/hv_balloon.c b/drivers/hv/hv_balloon.c
+index 14c3dc4bd23c..3e052bedade5 100644
+--- a/drivers/hv/hv_balloon.c
++++ b/drivers/hv/hv_balloon.c
+@@ -535,11 +535,6 @@ struct hv_dynmem_device {
+ 	bool host_specified_ha_region;
+ 
+ 	/*
+-	 * State to synchronize hot-add.
+-	 */
+-	struct completion  ol_waitevent;
+-	bool ha_waiting;
+-	/*
+ 	 * This thread handles hot-add
+ 	 * requests from the host as well as notifying
+ 	 * the host with regards to memory pressure in
+@@ -587,11 +582,6 @@ static int hv_memory_notifier(struct notifier_block *nb, unsigned long val,
+ 		spin_lock_irqsave(&dm_device.ha_lock, flags);
+ 		dm_device.num_pages_onlined += mem->nr_pages;
+ 		spin_unlock_irqrestore(&dm_device.ha_lock, flags);
+-	case MEM_CANCEL_ONLINE:
+-		if (dm_device.ha_waiting) {
+-			dm_device.ha_waiting = false;
+-			complete(&dm_device.ol_waitevent);
+-		}
+ 		break;
+ 
+ 	case MEM_OFFLINE:
+@@ -683,12 +673,9 @@ static void hv_mem_hot_add(unsigned long start, unsigned long size,
+ 		has->covered_end_pfn +=  processed_pfn;
+ 		spin_unlock_irqrestore(&dm_device.ha_lock, flags);
+ 
+-		init_completion(&dm_device.ol_waitevent);
+-		dm_device.ha_waiting = !memhp_auto_online;
+-
+ 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
+-				(HA_CHUNK << PAGE_SHIFT));
++				(HA_CHUNK << PAGE_SHIFT), true);
+ 
+ 		if (ret) {
+ 			pr_warn("hot_add memory failed error is %d\n", ret);
+@@ -708,17 +695,6 @@ static void hv_mem_hot_add(unsigned long start, unsigned long size,
+ 			spin_unlock_irqrestore(&dm_device.ha_lock, flags);
+ 			break;
+ 		}
+-
+-		/*
+-		 * Wait for the memory block to be onlined when memory onlining
+-		 * is done outside of kernel (memhp_auto_online). Since the hot
+-		 * add has succeeded, it is ok to proceed even if the pages in
+-		 * the hot added region have not been "onlined" within the
+-		 * allowed time.
+-		 */
+-		if (dm_device.ha_waiting)
+-			wait_for_completion_timeout(&dm_device.ol_waitevent,
+-						    5*HZ);
+ 		post_status(&dm_device);
+ 	}
+ 
+diff --git a/drivers/s390/char/sclp_cmd.c b/drivers/s390/char/sclp_cmd.c
+index b9c5522b8a68..f54c621195b6 100644
+--- a/drivers/s390/char/sclp_cmd.c
++++ b/drivers/s390/char/sclp_cmd.c
+@@ -404,7 +404,7 @@ static void __init add_memory_merged(u16 rn)
+ 	if (!size)
+ 		goto skip_add;
+ 	for (addr = start; addr < start + size; addr += block_size)
+-		add_memory(numa_pfn_to_nid(PFN_DOWN(addr)), addr, block_size);
++		add_memory(numa_pfn_to_nid(PFN_DOWN(addr)), addr, block_size, false);
+ skip_add:
+ 	first_rn = rn;
+ 	num = 1;
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index db107fa50ca1..fce961de8771 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -355,7 +355,7 @@ static enum bp_state reserve_additional_memory(void)
+ 	 * callers drop the mutex before trying again.
+ 	 */
+ 	mutex_unlock(&balloon_mutex);
+-	rc = add_memory_resource(nid, resource, memhp_auto_online);
++	rc = add_memory_resource(nid, resource, true);
+ 	mutex_lock(&balloon_mutex);
+ 
+ 	if (rc) {
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 134a2f69c21a..a72f7f64ee26 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -100,8 +100,6 @@ extern void __online_page_free(struct page *page);
+ 
+ extern int try_online_node(int nid);
+ 
+-extern bool memhp_auto_online;
+-
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern bool is_pageblock_removable_nolock(struct page *page);
+ extern int arch_remove_memory(u64 start, u64 size);
+@@ -272,7 +270,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+ 
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
+-extern int add_memory(int nid, u64 start, u64 size);
++extern int add_memory(int nid, u64 start, u64 size, bool online);
+ extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+ 		bool for_device);
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 9b8fccb969dc..a64a3bca43d5 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -193,22 +193,6 @@ config MEMORY_HOTPLUG_SPARSE
+ 	def_bool y
+ 	depends on SPARSEMEM && MEMORY_HOTPLUG
+ 
+-config MEMORY_HOTPLUG_DEFAULT_ONLINE
+-        bool "Online the newly added memory blocks by default"
+-        default n
+-        depends on MEMORY_HOTPLUG
+-        help
+-	  This option sets the default policy setting for memory hotplug
+-	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
+-	  determines what happens to newly added memory regions. Policy setting
+-	  can always be changed at runtime.
+-	  See Documentation/memory-hotplug.txt for more information.
+-
+-	  Say Y here if you want all hot-plugged memory blocks to appear in
+-	  'online' state by default.
+-	  Say N here if you want the default policy to keep all hot-plugged
+-	  memory blocks in 'offline' state.
+-
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+ 	select MEMORY_ISOLATION
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index c35dd1976574..8520c9166f47 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -78,24 +78,6 @@ static struct {
+ #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+ #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
+ 
+-#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+-bool memhp_auto_online;
+-#else
+-bool memhp_auto_online = true;
+-#endif
+-EXPORT_SYMBOL_GPL(memhp_auto_online);
+-
+-static int __init setup_memhp_default_state(char *str)
+-{
+-	if (!strcmp(str, "online"))
+-		memhp_auto_online = true;
+-	else if (!strcmp(str, "offline"))
+-		memhp_auto_online = false;
+-
+-	return 1;
+-}
+-__setup("memhp_default_state=", setup_memhp_default_state);
+-
+ void get_online_mems(void)
+ {
+ 	might_sleep();
+@@ -1420,7 +1402,7 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
+ }
+ EXPORT_SYMBOL_GPL(add_memory_resource);
+ 
+-int __ref add_memory(int nid, u64 start, u64 size)
++int __ref add_memory(int nid, u64 start, u64 size, bool online)
+ {
+ 	struct resource *res;
+ 	int ret;
+@@ -1429,7 +1411,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 	if (IS_ERR(res))
+ 		return PTR_ERR(res);
+ 
+-	ret = add_memory_resource(nid, res, memhp_auto_online);
++	ret = add_memory_resource(nid, res, online);
+ 	if (ret < 0)
+ 		release_memory_resource(res);
+ 	return ret;
+-- 
+2.11.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
