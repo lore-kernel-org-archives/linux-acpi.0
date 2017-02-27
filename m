@@ -1,129 +1,76 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPI / bus: Introduce a list of ids for "always present"
- devices
-Date: Mon, 27 Feb 2017 15:25:32 +0100
-Message-ID: <ccbbaa31-9140-f976-bdcd-7e5ad23a47c8@redhat.com>
-References: <20170225182328.26644-1-hdegoede@redhat.com>
- <3161510.WQnmWnCBb0@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Rui Wang <rui.y.wang@intel.com>
+Subject: [PATCH 1/2] x86/PCI: Implement pci_release_device to release IRQ from IOAPIC
+Date: Mon, 27 Feb 2017 22:15:43 +0800
+Message-ID: <1488204944-27189-2-git-send-email-rui.y.wang@intel.com>
+References: <1488204944-27189-1-git-send-email-rui.y.wang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40996 "EHLO mx1.redhat.com"
+Received: from mga05.intel.com ([192.55.52.43]:61082 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751547AbdB0OZg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Feb 2017 09:25:36 -0500
-In-Reply-To: <3161510.WQnmWnCBb0@aspire.rjw.lan>
+        id S1751593AbdB0OcO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Feb 2017 09:32:14 -0500
+In-Reply-To: <1488204944-27189-1-git-send-email-rui.y.wang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, Len Brown <lenb@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
+Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com, x86@kernel.org
 
-Hi,
+The revert of 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq()
+and pcibios_free_irq()") causes a problem for IOAPIC hotplug. The
+problem is that IRQs are allocated and freed in pci_enable_device()
+and pci_disable_device(). But there are some drivers which don't call
+pci_disable_device(), and they have good reasons not calling it, so
+if they're using IOAPIC their IRQs won't have a chance to be released
+from the IOAPIC. When this happens IOAPIC hot-removal fails with a
+kernel stack dump and an error message like this:
 
-On 27-02-17 14:30, Rafael J. Wysocki wrote:
-> +Mika & Andy
->
-> On Saturday, February 25, 2017 07:23:28 PM Hans de Goede wrote:
->> Several cherrytrail devices (all of which ship with windows 10) hide the
->> lpss pwm controller in ACPI, typically the _STA method looks like this:
->>
->>     Method (_STA, 0, NotSerialized)  // _STA: Status
->>     {
->>         If (OSID == One)
->>         {
->>             Return (Zero)
->>         }
->>
->>         Return (0x0F)
->>     }
->>
->> Where OSID is some dark magic seen in all cherrytrail ACPI tables making
->> the machine behave differently depending on which OS it *thinks* it is
->> booting, this gets set in a number of ways which we cannot control, on
->> some newer machines it simple hardcoded to "One" aka win10.
->>
->> This causes the PWM controller to get hidden, which means Linux cannot
->> control the backlight level on cht based tablets / laptops.
->>
->> Since loading the driver for this does no harm (the only in kernel user
->> of it is the i915 driver, which will only use it when it needs it), this
->> commit makes acpi_bus_get_status() always set status to ACPI_STA_DEFAULT
->> for the 80862288 device, fixing the lack of backlight control.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>  drivers/acpi/bus.c | 25 +++++++++++++++++++++++++
->>  1 file changed, 25 insertions(+)
->>
->> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
->> index 95855cb..483d4d0 100644
->> --- a/drivers/acpi/bus.c
->> +++ b/drivers/acpi/bus.c
->> @@ -109,11 +109,36 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
->>  	return status;
->>  }
->>
->> +/*
->> + * Some ACPI devices are hidden (status == 0x0) in recent BIOS-es because
->> + * some recent windows drivers bind to one device but poke at multiple
->> + * devices at the same time, so the others get hidden.
->> + * We work around this by always reporting ACPI_STA_DEFAULT for these
->> + * devices. Note this MUST only be done for devices where this is safe.
->> + */
->> +static const struct acpi_device_id always_present_device_ids[] = {
->> +	/*
->> +	 * Cherrytrail pwm directly poked by GPU driver in win10,
->> +	 * but Linux uses a separate pwm driver, harmless if not used.
->> +	 */
->> +	{ "80862288", },
->> +	{ }
->> +};
->> +
->>  int acpi_bus_get_status(struct acpi_device *device)
->>  {
->>  	acpi_status status;
->>  	unsigned long long sta;
->>
->> +	/* acpi_match_device_ids checks status, so start with default */
->> +	acpi_set_device_status(device, ACPI_STA_DEFAULT);
->
-> This shouldn't be done in a "get" routine.
+[149335.697989] pin16 on IOAPIC2 is still in use.
 
-With this you mean the acpi_match_device_ids() check I assume ?
-(acpi_bus_get_status already calls acpi_set_device_status())
+It turns out that we can fix it in a different way without moving IRQ
+allocation into pcibios_alloc_irq(), thus avoiding the regression of
+991de2e59090. We can keep the allocation and freeing of IRQs as is
+within pci_enable_device()/pci_disable_device(), without breaking any
+previous assumption of the rest of the system, keeping compatibility
+with both the legacy and the modern drivers. We can accomplish this by
+implementing the existing __weak hook of pcibios_release_device() thus
+when a pci device is about to be deleted we get notified in the hook
+and take the chance to release its IRQ, if any, from the IOAPIC.
 
-> Ideally, a scan handler should do that or similar.
+Besides implementing pcibios_release_device(), the hot-removal of
+IOAPIC needs to be broken into two parts: the PCI part and the ACPI
+part. The PCI part releases PCI resources before the PCI bus is gone,
+and the ACPI part is moved to a stage later than the hot-removal of
+the PCI root bus, so we have the chance to hook every PCI device's
+pcibios_release_device(), before we remove the IOAPIC.
 
-The problem is that drivers/acpi/scan.c: acpi_bus_attach()
-calls acpi_bus_get_status() and if it does not set
-the status to present acpi_bus_attach() exits without bothering
-with attaching scan handlers, which is why I ended up doing this
-here.
+This patch implements pcibios_release_device() on x86 to release any
+IRQ not released by the driver, so that the IOAPIC can then be safely
+hot-removed.
 
->> +	if (acpi_match_device_ids(device, always_present_device_ids) == 0) {
->> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] is in always present list setting status [%08x]\n",
->> +				  device->pnp.bus_id, ACPI_STA_DEFAULT));
->
-> pr_debug() please.  The ACPI_DEBUG_PRINT() stuff is basically for ACPICA
-> (yes, I know it is used elsewhere and no, it is not a good idea to do that).
+Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+---
+ arch/x86/pci/common.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Ok, that is easy to fix :)
-
-
->> +		return 0;
->> +	}
->> +	acpi_set_device_status(device, 0);
->> +
->>  	status = acpi_bus_get_status_handle(device->handle, &sta);
->>  	if (ACPI_FAILURE(status))
->>  		return -ENODEV;
->>
->
-> Thanks,
-> Rafael
-
-Regards,
-
-Hans
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 0cb52ae..4eba071 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -735,6 +735,15 @@ void pcibios_disable_device (struct pci_dev *dev)
+ 		pcibios_disable_irq(dev);
+ }
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
++void pcibios_release_device(struct pci_dev *dev)
++{
++	if (atomic_dec_return(&dev->enable_cnt) >=0)
++		pcibios_disable_device(dev);
++
++}
++#endif
++
+ int pci_ext_cfg_avail(void)
+ {
+ 	if (raw_pci_ext_ops)
+-- 
+1.8.3.1
 
