@@ -1,93 +1,155 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
-Date: Mon, 27 Feb 2017 13:58:42 +0000
-Message-ID: <58B43092.6040401@arm.com>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
- <df6ba5dc-d93f-925a-46bf-1e1e209d17f3@huawei.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI / PMIC: Add opregion driver for Intel CHT
+ WhiskeyCove PMIC
+Date: Mon, 27 Feb 2017 15:20:33 +0100
+Message-ID: <51ee3a33-b789-731d-4df6-1ffa011d1940@redhat.com>
+References: <20170227102023.10272-1-hdegoede@redhat.com>
+ <1770161.xO7XBEenWm@aspire.rjw.lan>
+ <1488202902.20145.35.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <df6ba5dc-d93f-925a-46bf-1e1e209d17f3@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Xiongfeng Wang <wangxiongfeng2@huawei.com>, punit.agrawal@arm.com
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, marc.zyngier@arm.com, john.garry@huawei.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:60842 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751360AbdB0OUh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Feb 2017 09:20:37 -0500
+In-Reply-To: <1488202902.20145.35.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, Darren Hart <darren.hart@intel.com>, Hans de Goede <hdegoede@redhat.com>
 
-Hi Wang Xiongfeng,
+Hi,
 
-On 25/02/17 07:15, Xiongfeng Wang wrote:
-> On 2017/2/22 5:22, Tyler Baicar wrote:
->> Currently external aborts are unsupported by the guest abort
->> handling. Add handling for SEAs so that the host kernel reports
->> SEAs which occur in the guest kernel.
+On 27-02-17 14:41, Andy Shevchenko wrote:
+> On Mon, 2017-02-27 at 14:25 +0100, Rafael J. Wysocki wrote:
+>> +Andy Shevchenko & Darren Hart
+>>
+>> On Monday, February 27, 2017 11:20:23 AM Hans de Goede wrote:
+>>> Add opregion driver for Intel CHT WhiskeyCove PMIC, based on various
+>>> non upstreamed CHT WhiskeyCove PMIC patches. This does not include
+>>> support for the Thermal opregion (DPTF) due to lacking
+>>> documentation.
+>>>
+>>> Cc: Bin Gao <bin.gao@intel.com>
+>>> Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> Andy, any comments?
+>
+> I don't see definitions like CHT_WC_ here. Where are they defined?
 
->> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
->> index a5265ed..04f1dd50 100644
->> --- a/arch/arm/kvm/mmu.c
->> +++ b/arch/arm/kvm/mmu.c
->> @@ -1444,8 +1445,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
->>  
->>  	/* Check the stage-2 fault is trans. fault or write fault */
->>  	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
->> -	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
->> -	    fault_status != FSC_ACCESS) {
->> +
->> +	/* The host kernel will handle the synchronous external abort. There
->> +	 * is no need to pass the error into the guest.
->> +	 */
+They are defined in include/linux/mfd/intel_chtwc.h which gets added
+by this patch: https://lkml.org/lkml/2017/2/27/90
 
-> Can we inject an sea into the guest, so that the guest can kill the
-> application which causes the error if the guest won't be terminated
-> later. I'm not sure whether ghes_handle_memory_failure() called in
-> ghes_do_proc() will kill the qemu process. I think it only kill user
-> processes marked with PF_MCE_PROCESS & PF_MCE_EARLY.
+> Thus, question, how differs this to Broxton version of Whiskey Cove PMIC
+> opregion?
 
-My understanding is the pages will get unmapped and recovered where possible
-(e.g. re-read from disk), the user space process will get SIGBUS/SIGSEV when it
-next tries to access that page, which could be some time later.
-These flags in find_early_kill_thread() are a way to make the memory-failure
-code signal the process early, before it does any recovery. The 'MCE' makes me
-think its x86 specific.
-(early and late are described more in [0])
+They seem to be different devices in all but name, there are some
+similarities but not enough to allow doing a merged driver. E.g.
+the CHT WhiskeyCove use i2c and the BXT one uses some mmio based
+mailbox interface and almost all the register addresses are
+different.
 
+>
+> Some minor comments below.
+>
+>>
+>>> +config CHT_WC_PMIC_OPREGION
+>>> +	bool "ACPI operation region support for CHT WhiskeyCove
+>>> PMIC"
+>>> +	depends on INTEL_SOC_PMIC
+>>> +	help
+>>> +	  This config adds ACPI operation region support for CHT
+>>> WhiskeyCove PMIC.
+>
+> Whiskey Cove
 
-Guests are a special case as QEMU may never access the faulty memory itself, so
-it won't receive the 'late' signal. It looks like ARM/arm64 KVM lacks support
-for KVM_PFN_ERR_HWPOISON which sends SIGBUS from KVM's fault-handling code. I
-have patches to add support for this which I intend to send at rc1.
+I used the spelling from the BXT Kconfig bit, but I agree
+the spelling with the " " in there is better, will fix.
 
-[0] suggests 'KVM qemu' sets these MCE flags to take the 'early' path, but given
-x86s KVM_PFN_ERR_HWPOISON, this may be out of date.
+>
+>>> @@ -0,0 +1,236 @@
+>>>
+>
+>>> +/*
+>>> + * Regulator support is based on the non upstream patch:
+>>> + * "regulator: whiskey_cove: implements WhiskeyCove pmic VRF
+>>> support"
+>>> + */
+>
+> Perhaps link to the patch?
 
+Those kinda links tend to go 404, but I can add a link to the
+comment if you want, I used this as a base:
 
-Either way, once QEMU gets a signal indicating the virtual address, it can
-generate its own APEI CPER records and use the KVM APIs to mock up an
-Synchronous External Abort, (or inject an IRQ or run the vcpu waiting for the
-guest's polling thread to come round, whichever was described to the guest via
-the HEST/GHES tables).
+https://github.com/intel-aero/meta-intel-aero/blob/master/recipes-kernel/linux/linux-yocto/0019-regulator-whiskey_cove-implements-WhiskeyCove-pmic-V.patch
 
-We can't hand the APEI CPER records we have in the kernel to the guest, as they
-hold a host physical address, and maybe a host virtual address. We don't know
-where in guest memory we could write new APEI CPER records as these locations
-have to be reserved in the guests-UEFI memory map, and only QEMU knows where
-they are.
+>
+>>> +static struct pmic_table power_table[] = {
+>>> +	{
+>>> +		.address = 0x0,
+>>> +		.reg = CHT_WC_V1P8A_CTRL,
+>>> +		.bit = 0x01,
+>>> +	}, /* V18A */
+>>>
+>
+>>> +};
+>
+>>> +static int intel_cht_wc_pmic_update_power(struct regmap *regmap,
+>>> int reg,
+>>> +		int bit, bool on)
+>>> +{
+>>> +	u8 val, mask = bit;
+>>>
+>
+>>> +
+>>> +	if (on)
+>>> +		val = 0x01;
+>>> +	else
+>>> +		val = 0x00;
+>>> +
+>>> +	return regmap_update_bits(regmap, reg, mask, val);
+>
+> Perhaps just:
+>
+> return regmap_update_bits(regmap, reg, mask, on ? 1 : 0);
 
-To deliver RAS events to a guest we have to get QEMU involved.
+Sure, will fix.
 
+>>> +
+>>> +static struct platform_device_id cht_wc_opregion_id_table[] = {
+>>> +	{ .name = "cht_wcove_region" },
+>>> +	{},
+>>> +};
+>>> +
+>>> +static struct platform_driver intel_cht_wc_pmic_opregion_driver = {
+>>> +	.probe = intel_cht_wc_pmic_opregion_probe,
+>>> +	.driver = {
+>>> +		.name = "cht_whiskey_cove_pmic",
+>>> +	},
+>>> +	.id_table = cht_wc_opregion_id_table,
+>>> +};
+>>> +
+>>> +static int __init intel_cht_wc_pmic_opregion_driver_init(void)
+>>> +{
+>>> +	return
+>>> platform_driver_register(&intel_cht_wc_pmic_opregion_driver);
+>>> +}
+>>> +device_initcall(intel_cht_wc_pmic_opregion_driver_init);
+>
+> Don't we have builtin_platform_driver() ?
+> Or it's not an equivalent?
 
-Thanks,
+Actually I believe this should become a tristate having all the
+i2c based PMIC stiff as builtin only makes no sense since the
+i2c-controller driver in practice can (and often is) a module
+and that seems to work fine. It seems these opregion stuff is
+not needed till the first suspend / freeze (famous last words ?)
 
-James
+So I will change this to be a tristate for the next version.
 
+Regards,
 
-[0] https://www.kernel.org/doc/Documentation/vm/hwpoison.txt
+Hans
