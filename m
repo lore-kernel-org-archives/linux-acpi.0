@@ -1,184 +1,302 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
-Date: Mon, 27 Feb 2017 19:31:21 +0800
-Message-ID: <CAMj-D2AcBNozWXgKq2L_hb7G84i-10m=sGXx3j5ysrJ-nC=p0w@mail.gmail.com>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
- <58B00E12.5020602@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <58B00E12.5020602@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: mark.rutland@arm.com, linux-efi@vger.kernel.org, kvm@vger.kernel.org, rkrcmar@redhat.com, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, tn@semihalf.com, zjzhang@codeaurora.org, linux@armlinux.org.uk, gengdongjiu@huawei.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, Suzuki.Poulose@arm.com, Marc Zyngier <marc.zyngier@arm.com>, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.g
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / PMIC: Add opregion driver for Intel CHT WhiskeyCove PMIC
+Date: Mon, 27 Feb 2017 11:20:23 +0100
+Message-ID: <20170227102023.10272-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:36642 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752274AbdB0Lhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Feb 2017 06:37:33 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
 
-@@ -1444,8 +1445,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu
-*vcpu, struct kvm_run *run)
+Add opregion driver for Intel CHT WhiskeyCove PMIC, based on various
+non upstreamed CHT WhiskeyCove PMIC patches. This does not include
+support for the Thermal opregion (DPTF) due to lacking documentation.
 
-        /* Check the stage-2 fault is trans. fault or write fault */
-        fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
--       if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
--           fault_status != FSC_ACCESS) {
+Cc: Bin Gao <bin.gao@intel.com>
+Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/Kconfig                 |   6 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/pmic/intel_pmic_chtwc.c | 236 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 243 insertions(+)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_chtwc.c
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 83e5f7e..41c9f4c 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -516,6 +516,12 @@ config BXT_WC_PMIC_OPREGION
+ 	help
+ 	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
+ 
++config CHT_WC_PMIC_OPREGION
++	bool "ACPI operation region support for CHT WhiskeyCove PMIC"
++	depends on INTEL_SOC_PMIC
++	help
++	  This config adds ACPI operation region support for CHT WhiskeyCove PMIC.
 +
-+       /* The host kernel will handle the synchronous external abort. There
-+        * is no need to pass the error into the guest.
-+        */
-+       if (fault_status == FSC_EXTABT) {
-+               if(handle_guest_sea((unsigned long)fault_ipa,
-+                                   kvm_vcpu_get_hsr(vcpu))) {
-+                       kvm_err("Failed to handle guest SEA, FSC:
-EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
-+                               kvm_vcpu_trap_get_class(vcpu),
-+                               (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-+                               (unsigned long)kvm_vcpu_get_hsr(vcpu));
-+                       return -EFAULT;
-+               }
-+       } else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
-+                  fault_status != FSC_ACCESS) {
-                kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
-                        kvm_vcpu_trap_get_class(vcpu),
-                        (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
+ endif
+ 
+ config ACPI_CONFIGFS
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 9ed0878..1256830 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -102,6 +102,7 @@ obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
+ obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
+ obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
+ obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
++obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
+ 
+ obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
+ 
+diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
+new file mode 100644
+index 0000000..d197805
+--- /dev/null
++++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
+@@ -0,0 +1,236 @@
++/*
++ * intel_pmic_chtwc.c - Intel CHT WhiskeyCove PMIC operation region driver
++ * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
++ *
++ * Based on various non upstream patches to support the CHT Whiskey Cove PMIC:
++ * Copyright (C) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/acpi.h>
++#include <linux/init.h>
++#include <linux/mfd/intel_chtwc.h>
++#include <linux/mfd/intel_soc_pmic.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include "intel_pmic.h"
++
++/*
++ * Regulator support is based on the non upstream patch:
++ * "regulator: whiskey_cove: implements WhiskeyCove pmic VRF support"
++ */
++static struct pmic_table power_table[] = {
++	{
++		.address = 0x0,
++		.reg = CHT_WC_V1P8A_CTRL,
++		.bit = 0x01,
++	}, /* V18A */
++	{
++		.address = 0x04,
++		.reg = CHT_WC_V1P8SX_CTRL,
++		.bit = 0x07,
++	}, /* V18X */
++	{
++		.address = 0x08,
++		.reg = CHT_WC_VDDQ_CTRL,
++		.bit = 0x01,
++	}, /* VDDQ */
++	{
++		.address = 0x0c,
++		.reg = CHT_WC_V1P2A_CTRL,
++		.bit = 0x07,
++	}, /* V12A */
++	{
++		.address = 0x10,
++		.reg = CHT_WC_V1P2SX_CTRL,
++		.bit = 0x07,
++	}, /* V12X */
++	{
++		.address = 0x14,
++		.reg = CHT_WC_V2P8SX_CTRL,
++		.bit = 0x07,
++	}, /* V28X */
++	{
++		.address = 0x18,
++		.reg = CHT_WC_V3P3A_CTRL,
++		.bit = 0x01,
++	}, /* V33A */
++	{
++		.address = 0x1c,
++		.reg = CHT_WC_V3P3SD_CTRL,
++		.bit = 0x07,
++	}, /* V3SD */
++	{
++		.address = 0x20,
++		.reg = CHT_WC_VSDIO_CTRL,
++		.bit = 0x07,
++	}, /* VSD */
++/*	{
++		.address = 0x24,
++		.reg = ??,
++		.bit = ??,
++	}, ** VSW2 */
++/*	{
++		.address = 0x28,
++		.reg = ??,
++		.bit = ??,
++	}, ** VSW1 */
++/*	{
++		.address = 0x2c,
++		.reg = ??,
++		.bit = ??,
++	}, ** VUPY */
++/*	{
++		.address = 0x30,
++		.reg = ??,
++		.bit = ??,
++	}, ** VRSO */
++	{
++		.address = 0x34,
++		.reg = CHT_WC_VPROG1A_CTRL,
++		.bit = 0x07,
++	}, /* VP1A */
++	{
++		.address = 0x38,
++		.reg = CHT_WC_VPROG1B_CTRL,
++		.bit = 0x07,
++	}, /* VP1B */
++	{
++		.address = 0x3c,
++		.reg = CHT_WC_VPROG1F_CTRL,
++		.bit = 0x07,
++	}, /* VP1F */
++	{
++		.address = 0x40,
++		.reg = CHT_WC_VPROG2D_CTRL,
++		.bit = 0x07,
++	}, /* VP2D */
++	{
++		.address = 0x44,
++		.reg = CHT_WC_VPROG3A_CTRL,
++		.bit = 0x07,
++	}, /* VP3A */
++	{
++		.address = 0x48,
++		.reg = CHT_WC_VPROG3B_CTRL,
++		.bit = 0x07,
++	}, /* VP3B */
++	{
++		.address = 0x4c,
++		.reg = CHT_WC_VPROG4A_CTRL,
++		.bit = 0x07,
++	}, /* VP4A */
++	{
++		.address = 0x50,
++		.reg = CHT_WC_VPROG4B_CTRL,
++		.bit = 0x07,
++	}, /* VP4B */
++	{
++		.address = 0x54,
++		.reg = CHT_WC_VPROG4C_CTRL,
++		.bit = 0x07,
++	}, /* VP4C */
++	{
++		.address = 0x58,
++		.reg = CHT_WC_VPROG4D_CTRL,
++		.bit = 0x07,
++	}, /* VP4D */
++	{
++		.address = 0x5c,
++		.reg = CHT_WC_VPROG5A_CTRL,
++		.bit = 0x07,
++	}, /* VP5A */
++	{
++		.address = 0x60,
++		.reg = CHT_WC_VPROG5B_CTRL,
++		.bit = 0x07,
++	}, /* VP5B */
++	{
++		.address = 0x64,
++		.reg = CHT_WC_VPROG6A_CTRL,
++		.bit = 0x07,
++	}, /* VP6A */
++	{
++		.address = 0x68,
++		.reg = CHT_WC_VPROG6B_CTRL,
++		.bit = 0x07,
++	}, /* VP6B */
++/*	{
++		.address = 0x6c,
++		.reg = ??,
++		.bit = ??,
++	}  ** VP7A */
++};
++
++static int intel_cht_wc_pmic_get_power(struct regmap *regmap, int reg,
++		int bit, u64 *value)
++{
++	int data;
++
++	if (regmap_read(regmap, reg, &data))
++		return -EIO;
++
++	*value = (data & bit) ? 1 : 0;
++	return 0;
++}
++
++static int intel_cht_wc_pmic_update_power(struct regmap *regmap, int reg,
++		int bit, bool on)
++{
++	u8 val, mask = bit;
++
++	if (on)
++		val = 0x01;
++	else
++		val = 0x00;
++
++	return regmap_update_bits(regmap, reg, mask, val);
++}
++
++/*
++ * The thermal table and ops are empty, we do not support the Thermal opregion
++ * (DPTF) due to lacking documentation.
++ */
++static struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
++	.get_power		= intel_cht_wc_pmic_get_power,
++	.update_power		= intel_cht_wc_pmic_update_power,
++	.power_table		= power_table,
++	.power_table_count	= ARRAY_SIZE(power_table),
++};
++
++static int intel_cht_wc_pmic_opregion_probe(struct platform_device *pdev)
++{
++	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
++
++	return intel_pmic_install_opregion_handler(&pdev->dev,
++			ACPI_HANDLE(pdev->dev.parent),
++			pmic->regmap,
++			&intel_cht_wc_pmic_opregion_data);
++}
++
++static struct platform_device_id cht_wc_opregion_id_table[] = {
++	{ .name = "cht_wcove_region" },
++	{},
++};
++
++static struct platform_driver intel_cht_wc_pmic_opregion_driver = {
++	.probe = intel_cht_wc_pmic_opregion_probe,
++	.driver = {
++		.name = "cht_whiskey_cove_pmic",
++	},
++	.id_table = cht_wc_opregion_id_table,
++};
++
++static int __init intel_cht_wc_pmic_opregion_driver_init(void)
++{
++	return platform_driver_register(&intel_cht_wc_pmic_opregion_driver);
++}
++device_initcall(intel_cht_wc_pmic_opregion_driver_init);
+-- 
+2.9.3
 
-
-
-if the error is SEA and we want to inject the sea to guest OK, after
-finish the handle, whether we need to directly return? instead of
-continuation? as shown below:
-
-       if (fault_status == FSC_EXTABT) {
-               if(handle_guest_sea((unsigned long)fault_ipa,
-                                   kvm_vcpu_get_hsr(vcpu))) {
-                       kvm_err("Failed to handle guest SEA, FSC:
-EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
-                               kvm_vcpu_trap_get_class(vcpu),
-                               (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-                               (unsigned long)kvm_vcpu_get_hsr(vcpu));
-                       return -EFAULT;
-          } else
-                       return 1;
-
-
-
-
-
-
-2017-02-24 18:42 GMT+08:00 James Morse <james.morse@arm.com>:
-> Hi Tyler,
->
-> On 21/02/17 21:22, Tyler Baicar wrote:
->> Currently external aborts are unsupported by the guest abort
->> handling. Add handling for SEAs so that the host kernel reports
->> SEAs which occur in the guest kernel.
->
->> diff --git a/arch/arm/include/asm/kvm_arm.h b/arch/arm/include/asm/kvm_arm.h
->> index e22089f..33a77509 100644
->> --- a/arch/arm/include/asm/kvm_arm.h
->> +++ b/arch/arm/include/asm/kvm_arm.h
->> @@ -187,6 +187,7 @@
->>  #define FSC_FAULT    (0x04)
->>  #define FSC_ACCESS   (0x08)
->>  #define FSC_PERM     (0x0c)
->> +#define FSC_EXTABT   (0x10)
->
-> arm64 has ESR_ELx_FSC_EXTABT which is used in inject_abt64(), but for matching
-> an external abort coming from hardware the range is wider.
->
-> Looking at the ARM-ARMs 'ISS encoding for an exception from an Instruction
-> Abort' in 'D7.2.27 ESR_ELx, Exception Syndrome Register (ELx)' (page D7-1954 of
-> version 'k'...iss10775), the ten flavours of you Synchronous abort you hooked
-> with do_sea() in patch 4 occupy 0x10 to 0x1f...
->
->
->> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
->> index a5265ed..04f1dd50 100644
->> --- a/arch/arm/kvm/mmu.c
->> +++ b/arch/arm/kvm/mmu.c
->> @@ -29,6 +29,7 @@
->>  #include <asm/kvm_asm.h>
->>  #include <asm/kvm_emulate.h>
->>  #include <asm/virt.h>
->> +#include <asm/system_misc.h>
->>
->>  #include "trace.h"
->>
->> @@ -1444,8 +1445,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
->>
->>       /* Check the stage-2 fault is trans. fault or write fault */
->>       fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
->
-> ... kvm_vcpu_trap_get_fault_type() on both arm and arm64 masks the HSR/ESR_EL2
-> with 0x3c ...
->
->
->> -     if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
->> -         fault_status != FSC_ACCESS) {
->> +
->> +     /* The host kernel will handle the synchronous external abort. There
->> +      * is no need to pass the error into the guest.
->> +      */
->> +     if (fault_status == FSC_EXTABT) {
->
-> ... but here we only check for 'Synchronous external abort, not on a translation
-> table walk'. Are the other types relevant?
->
-> If so we need some helper as this range is sparse and 'all other values are
-> reserved'. The aarch32 HSR format is slightly different. (G6-4411 ISS encoding
-> from an exception from a Data Abort).
->
-> If not, can we change patch 4 to check this type too so we don't call out to
-> APEI for a fault type we know isn't relevant.
->
->
->> +             if(handle_guest_sea((unsigned long)fault_ipa,
->> +                                 kvm_vcpu_get_hsr(vcpu))) {
->> +                     kvm_err("Failed to handle guest SEA, FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
->> +                             kvm_vcpu_trap_get_class(vcpu),
->> +                             (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
->> +                             (unsigned long)kvm_vcpu_get_hsr(vcpu));
->> +                     return -EFAULT;
->> +             }
->> +     } else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
->> +                fault_status != FSC_ACCESS) {
->>               kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
->>                       kvm_vcpu_trap_get_class(vcpu),
->>                       (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
->
->> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
->> index b2d57fc..403277b 100644
->> --- a/arch/arm64/mm/fault.c
->> +++ b/arch/arm64/mm/fault.c
->> @@ -602,6 +602,24 @@ static const char *fault_name(unsigned int esr)
->>  }
->>
->>  /*
->> + * Handle Synchronous External Aborts that occur in a guest kernel.
->> + */
->> +int handle_guest_sea(unsigned long addr, unsigned int esr)
->> +{
->
->> +     if(IS_ENABLED(HAVE_ACPI_APEI_SEA)) {
->> +             nmi_enter();
->> +             ghes_notify_sea();
->> +             nmi_exit();
->
-> This nmi stuff was needed for synchronous aborts that may have interrupted
-> APEI's interrupts-masked code. We want to avoid trying to take the same set of
-> locks, hence taking the in_nmi() path through APEI. Here we know we interrupted
-> a guest, so there is no risk that we have interrupted APEI on the host.
-> ghes_notify_sea() can safely take the normal path.
->
->
-> Thanks,
->
-> James
