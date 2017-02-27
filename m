@@ -1,125 +1,109 @@
-From: Vitaly Kuznetsov <vkuznets-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
-Date: Mon, 27 Feb 2017 14:17:56 +0100
-Message-ID: <87wpcbvkl7.fsf@vitty.brq.redhat.com>
-References: <20170227092817.23571-1-mhocko@kernel.org>
-        <87lgssvtni.fsf@vitty.brq.redhat.com>
-        <20170227102132.GI14029@dhcp22.suse.cz>
-        <87efyjx60o.fsf@vitty.brq.redhat.com>
-        <20170227125636.GB26504@dhcp22.suse.cz>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / bus: Introduce a list of ids for "always present" devices
+Date: Mon, 27 Feb 2017 14:30:25 +0100
+Message-ID: <3161510.WQnmWnCBb0@aspire.rjw.lan>
+References: <20170225182328.26644-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170227125636.GB26504-2MMpYkNvuYDjFM9bn6wA6Q@public.gmane.org> (Michal Hocko's message
-        of "Mon, 27 Feb 2017 13:56:37 +0100")
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "K. Y. Srinivasan" <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Daniel Kiper <daniel.kiper-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61703 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751378AbdB0Nff (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Feb 2017 08:35:35 -0500
+In-Reply-To: <20170225182328.26644-1-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>, Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>, Len Brown <lenb@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> writes:
++Mika & Andy
 
-> On Mon 27-02-17 11:49:43, Vitaly Kuznetsov wrote:
->> Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> writes:
->> 
->> > On Mon 27-02-17 11:02:09, Vitaly Kuznetsov wrote:
->> > [...]
->> >> I don't have anything new to add to the discussion happened last week
->> >> but I'd like to summarize my arguments against this change:
->> >> 
->> >> 1) This patch doesn't solve any issue. Configuration option is not an
->> >> issue by itself, it is an option for distros to decide what they want to
->> >> ship: udev rule with known issues (legacy mode) or enable the new
->> >> option. Distro makers and users building their kernels should be able to
->> >> answer this simple question "do you want to automatically online all
->> >> newly added memory or not".
->> >
->> > OK, so could you be more specific? Distributions have no clue about
->> > which HW their kernel runs on so how can they possibly make a sensible
->> > decision here?
->> 
->> They at least have an idea if they ship udev rule or not. I can also
->> imagine different choices for non-x86 architectures but I don't know
->> enough about them to have an opinion.
->
-> I really do not follow. If they know whether they ship the udev rule
-> then why do they need a kernel help at all? Anyway this global policy
-> actually breaks some usecases. Say you would have a default set to
-> online. What should user do if _some_ nodes should be online_movable?
-> Or, say that HyperV or other hotplug based ballooning implementation
-> really want to online the movable memory in order to have a realiable
-> hotremove. Now you have a global policy which goes against it.
->
+On Saturday, February 25, 2017 07:23:28 PM Hans de Goede wrote:
+> Several cherrytrail devices (all of which ship with windows 10) hide the
+> lpss pwm controller in ACPI, typically the _STA method looks like this:
+> 
+>     Method (_STA, 0, NotSerialized)  // _STA: Status
+>     {
+>         If (OSID == One)
+>         {
+>             Return (Zero)
+>         }
+> 
+>         Return (0x0F)
+>     }
+> 
+> Where OSID is some dark magic seen in all cherrytrail ACPI tables making
+> the machine behave differently depending on which OS it *thinks* it is
+> booting, this gets set in a number of ways which we cannot control, on
+> some newer machines it simple hardcoded to "One" aka win10.
+> 
+> This causes the PWM controller to get hidden, which means Linux cannot
+> control the backlight level on cht based tablets / laptops.
+> 
+> Since loading the driver for this does no harm (the only in kernel user
+> of it is the i915 driver, which will only use it when it needs it), this
+> commit makes acpi_bus_get_status() always set status to ACPI_STA_DEFAULT
+> for the 80862288 device, fixing the lack of backlight control.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/bus.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 95855cb..483d4d0 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -109,11 +109,36 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+>  	return status;
+>  }
+>  
+> +/*
+> + * Some ACPI devices are hidden (status == 0x0) in recent BIOS-es because
+> + * some recent windows drivers bind to one device but poke at multiple
+> + * devices at the same time, so the others get hidden.
+> + * We work around this by always reporting ACPI_STA_DEFAULT for these
+> + * devices. Note this MUST only be done for devices where this is safe.
+> + */
+> +static const struct acpi_device_id always_present_device_ids[] = {
+> +	/*
+> +	 * Cherrytrail pwm directly poked by GPU driver in win10,
+> +	 * but Linux uses a separate pwm driver, harmless if not used.
+> +	 */
+> +	{ "80862288", },
+> +	{ }
+> +};
+> +
+>  int acpi_bus_get_status(struct acpi_device *device)
+>  {
+>  	acpi_status status;
+>  	unsigned long long sta;
+>  
+> +	/* acpi_match_device_ids checks status, so start with default */
+> +	acpi_set_device_status(device, ACPI_STA_DEFAULT);
 
-While I think that hotremove is a special case which really requires
-manual intervention (at least to decide which memory goes NORMAL and
-which MOVABLE), MEMORY_HOTPLUG_DEFAULT_ONLINE is probably not for it.
+This shouldn't be done in a "get" routine.
 
-[snip]
+Ideally, a scan handler should do that or similar.
 
->
->> The difference with real hardware is how the operation is performed:
->> with real hardware you need to take a DIMM, go to your server room, open
->> the box, insert DIMM, go back to your seat. Asking to do some manual
->> action to actually enable memory is kinda OK. The beauty of hypervisors
->> is that everything happens automatically (e.g. when the VM is running
->> out of memory).
->
-> I do not see your point. Either you have some (semi)automatic way to
-> balance memory in guest based on the memory pressure (let's call it
-> ballooning) or this is an administration operation (say you buy more
-> DIMs or pay more to your virtualization provider) and then it is up to
-> the guest owner to tell what to do about that memory. In other words you
-> really do not want to wait in the first case as you are under memory
-> pressure which is _actively_ managed or this is much more relaxed
-> environment.
+> +	if (acpi_match_device_ids(device, always_present_device_ids) == 0) {
+> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] is in always present list setting status [%08x]\n",
+> +				  device->pnp.bus_id, ACPI_STA_DEFAULT));
 
-I don't see a contradiction between what I say and what you say here :-)
-Yes, there are case when we're not in a hurry and there are cases when
-we can't wait.
+pr_debug() please.  The ACPI_DEBUG_PRINT() stuff is basically for ACPICA
+(yes, I know it is used elsewhere and no, it is not a good idea to do that).
 
->
->> >> 3) Kernel command line is not a viable choice, it is rather a debug
->> >> method.
->> >
->> > Why?
->> >
->> 
->> Because we usually have just a few things there (root=, console=) and
->> the rest is used when something goes wrong or for 'special' cases, not
->> for the majority of users.
->
-> auto online or even memory hotplug seems something that requires
-> a special HW/configuration already so I fail to see your point. It is
-> normal to put kernel parameters to override the default. And AFAIU
-> default offline is a sensible default for the standard memory hotplug.
->
+> +		return 0;
+> +	}
+> +	acpi_set_device_status(device, 0);
+> +
+>  	status = acpi_bus_get_status_handle(device->handle, &sta);
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+> 
 
-It depends how we define 'standard'. The point I'm trying to make is
-that it's really common for VMs to use this technique while in hardware
-(x86) world it is a rare occasion. The 'sensible default' may differ.
+Thanks,
+Rafael
 
-> [...]
->
->> >> 2) Adding new memory can (in some extreme cases) still fail as we need
->> >> some *other* memory before we're able to online the newly added
->> >> block. This is an issue to be solved and it is doable (IMO) with some
->> >> pre-allocation.
->> >
->> > you cannot preallocate for all the possible memory that can be added.
->> 
->> For all, no, but for 1 next block - yes, and then I'll preallocate for
->> the next one.
->
-> You are still thinking in the scope of your particular use case and I
-> believe the whole thing is shaped around that very same thing and that
-> is why it should have been rejected in the first place. Especially when
-> that use case can be handled without user visible configuration knob.
-
-I think my use case is broad enough. At least it applies to all
-virtualization technoligies and not only to Hyper-V. But yes, I agree
-that adding a parameter to add_memory() solves my particular use case as
-well.
-
--- 
-  Vitaly
