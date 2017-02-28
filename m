@@ -1,79 +1,116 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v2 1/2] x86/PCI: Implement pcibios_release_device to release IRQ from IOAPIC
-Date: Tue, 28 Feb 2017 21:34:28 +0800
-Message-ID: <1488288869-31290-2-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH v2 2/2] x86/ioapic: Split IOAPIC hot-removal into two steps
+Date: Tue, 28 Feb 2017 21:34:29 +0800
+Message-ID: <1488288869-31290-3-git-send-email-rui.y.wang@intel.com>
 References: <201702280904.A2EXAFMQ%fengguang.wu@intel.com>
  <1488288869-31290-1-git-send-email-rui.y.wang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:59108 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752093AbdB1Nv6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Feb 2017 08:51:58 -0500
+        id S1752421AbdB1NwG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Feb 2017 08:52:06 -0500
 In-Reply-To: <1488288869-31290-1-git-send-email-rui.y.wang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
 Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com, x86@kernel.org, fengguang.wu@intel.com, kbuild-all@01.org
 
-The revert of 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq()
-and pcibios_free_irq()") causes a problem for IOAPIC hotplug. The
-problem is that IRQs are allocated and freed in pci_enable_device()
-and pci_disable_device(). But there are some drivers which don't call
-pci_disable_device(), and they have good reasons not calling it, so
-if they're using IOAPIC their IRQs won't have a chance to be released
-from the IOAPIC. When this happens IOAPIC hot-removal fails with a
-kernel stack dump and an error message like this:
+The hot-removal of IOAPIC is broken into two parts: the PCI part and
+the ACPI part. The PCI part releases PCI resources before the PCI bus
+is gone, and the ACPI part is moved to a stage later than the hot-removal
+of the PCI root bus, so that the IOAPIC driver is able to hook the
+pcibios_release_device() of every PCI device under the same parent root
+bus, before the IOAPIC is hot-removed. This makes it possible for the
+IOAPIC to free any IRQ resource previously unable to get freed.
 
-[149335.697989] pin16 on IOAPIC2 is still in use.
-
-It turns out that we can fix it in a different way without moving IRQ
-allocation into pcibios_alloc_irq(), thus avoiding the regression of
-991de2e59090. We can keep the allocation and freeing of IRQs as is
-within pci_enable_device()/pci_disable_device(), without breaking any
-previous assumption of the rest of the system, keeping compatibility
-with both the legacy and the modern drivers. We can accomplish this by
-implementing the existing __weak hook of pcibios_release_device() thus
-when a pci device is about to be deleted we get notified in the hook
-and take the chance to release its IRQ, if any, from the IOAPIC.
-
-Besides implementing pcibios_release_device(), the hot-removal of
-IOAPIC needs to be broken into two parts: the PCI part and the ACPI
-part. The PCI part releases PCI resources before the PCI bus is gone,
-and the ACPI part is moved to a stage later than the hot-removal of
-the PCI root bus, so we have the chance to hook every PCI device's
-pcibios_release_device(), before we remove the IOAPIC.
-
-This patch implements pcibios_release_device() on x86 to release any
-IRQ not released by the driver, so that the IOAPIC can then be safely
-hot-removed.
-
-v2: Fixed a typo (pcibios_release_device)
+v2: Fixed compiling error on i386 (missing stub of pci_ioapic_remove())
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- arch/x86/pci/common.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/internal.h |  2 ++
+ drivers/acpi/ioapic.c   | 22 ++++++++++++++++------
+ drivers/acpi/pci_root.c |  4 ++--
+ 3 files changed, 20 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 0cb52ae..190e718 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -735,6 +735,15 @@ void pcibios_disable_device (struct pci_dev *dev)
- 		pcibios_disable_irq(dev);
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 219b90b..f159001 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -41,8 +41,10 @@ static inline void acpi_amba_init(void) {}
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
++void pci_ioapic_remove(struct acpi_pci_root *root);
+ int acpi_ioapic_remove(struct acpi_pci_root *root);
+ #else
++static inline void pci_ioapic_remove(struct acpi_pci_root *root) { return; }
+ static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+ #endif
+ #ifdef CONFIG_ACPI_DOCK
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index 6d7ce6e..1120dfd6 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -206,24 +206,34 @@ int acpi_ioapic_add(acpi_handle root_handle)
+ 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
  }
  
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+void pcibios_release_device(struct pci_dev *dev)
-+{
-+	if (atomic_dec_return(&dev->enable_cnt) >= 0)
-+		pcibios_disable_device(dev);
-+
-+}
-+#endif
-+
- int pci_ext_cfg_avail(void)
+-int acpi_ioapic_remove(struct acpi_pci_root *root)
++void pci_ioapic_remove(struct acpi_pci_root *root)
  {
- 	if (raw_pci_ext_ops)
+-	int retval = 0;
+ 	struct acpi_pci_ioapic *ioapic, *tmp;
+ 
+ 	mutex_lock(&ioapic_list_lock);
+ 	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
+ 		if (root->device->handle != ioapic->root_handle)
+ 			continue;
+-
+-		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
+-			retval = -EBUSY;
+-
+ 		if (ioapic->pdev) {
+ 			pci_release_region(ioapic->pdev, 0);
+ 			pci_disable_device(ioapic->pdev);
+ 			pci_dev_put(ioapic->pdev);
+ 		}
++	}
++	mutex_unlock(&ioapic_list_lock);
++}
++
++int acpi_ioapic_remove(struct acpi_pci_root *root)
++{
++	int retval = 0;
++	struct acpi_pci_ioapic *ioapic, *tmp;
++
++	mutex_lock(&ioapic_list_lock);
++	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
++		if (root->device->handle != ioapic->root_handle)
++			continue;
++		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
++			retval = -EBUSY;
+ 		if (ioapic->res.flags && ioapic->res.parent)
+ 			release_resource(&ioapic->res);
+ 		list_del(&ioapic->list);
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index bf601d4..919be0a 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -648,12 +648,12 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+ 
+ 	pci_stop_root_bus(root->bus);
+ 
+-	WARN_ON(acpi_ioapic_remove(root));
+-
++	pci_ioapic_remove(root);
+ 	device_set_run_wake(root->bus->bridge, false);
+ 	pci_acpi_remove_bus_pm_notifier(device);
+ 
+ 	pci_remove_root_bus(root->bus);
++	WARN_ON(acpi_ioapic_remove(root));
+ 
+ 	dmar_device_remove(device->handle);
+ 
 -- 
 1.8.3.1
 
