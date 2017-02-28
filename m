@@ -1,116 +1,165 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v2 2/2] x86/ioapic: Split IOAPIC hot-removal into two steps
-Date: Tue, 28 Feb 2017 21:34:29 +0800
-Message-ID: <1488288869-31290-3-git-send-email-rui.y.wang@intel.com>
-References: <201702280904.A2EXAFMQ%fengguang.wu@intel.com>
- <1488288869-31290-1-git-send-email-rui.y.wang@intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+Date: Tue, 28 Feb 2017 15:31:39 +0100
+Message-ID: <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:59108 "EHLO mga02.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:38920 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752421AbdB1NwG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Feb 2017 08:52:06 -0500
-In-Reply-To: <1488288869-31290-1-git-send-email-rui.y.wang@intel.com>
+        id S1751639AbdB1Ocb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Feb 2017 09:32:31 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net
-Cc: tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com, x86@kernel.org, fengguang.wu@intel.com, kbuild-all@01.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-The hot-removal of IOAPIC is broken into two parts: the PCI part and
-the ACPI part. The PCI part releases PCI resources before the PCI bus
-is gone, and the ACPI part is moved to a stage later than the hot-removal
-of the PCI root bus, so that the IOAPIC driver is able to hook the
-pcibios_release_device() of every PCI device under the same parent root
-bus, before the IOAPIC is hot-removed. This makes it possible for the
-IOAPIC to free any IRQ resource previously unable to get freed.
+Hi,
 
-v2: Fixed compiling error on i386 (missing stub of pci_ioapic_remove())
+On 28-02-17 06:19, Zheng, Lv wrote:
+> Hi,
+>
+>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+>> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
+>>
+>> Some machines have the exact (byte for byte) same SSDT tables multiple
+>> times in the root_table_list.
+>
+> Could you give a machine list here?
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- drivers/acpi/internal.h |  2 ++
- drivers/acpi/ioapic.c   | 22 ++++++++++++++++------
- drivers/acpi/pci_root.c |  4 ++--
- 3 files changed, 20 insertions(+), 8 deletions(-)
+Currently I'm seeing this on a GPD win machine:
 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 219b90b..f159001 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -41,8 +41,10 @@ static inline void acpi_amba_init(void) {}
- void acpi_container_init(void);
- void acpi_memory_hotplug_init(void);
- #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
-+void pci_ioapic_remove(struct acpi_pci_root *root);
- int acpi_ioapic_remove(struct acpi_pci_root *root);
- #else
-+static inline void pci_ioapic_remove(struct acpi_pci_root *root) { return; }
- static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
- #endif
- #ifdef CONFIG_ACPI_DOCK
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index 6d7ce6e..1120dfd6 100644
---- a/drivers/acpi/ioapic.c
-+++ b/drivers/acpi/ioapic.c
-@@ -206,24 +206,34 @@ int acpi_ioapic_add(acpi_handle root_handle)
- 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
- }
- 
--int acpi_ioapic_remove(struct acpi_pci_root *root)
-+void pci_ioapic_remove(struct acpi_pci_root *root)
- {
--	int retval = 0;
- 	struct acpi_pci_ioapic *ioapic, *tmp;
- 
- 	mutex_lock(&ioapic_list_lock);
- 	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
- 		if (root->device->handle != ioapic->root_handle)
- 			continue;
--
--		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
--			retval = -EBUSY;
--
- 		if (ioapic->pdev) {
- 			pci_release_region(ioapic->pdev, 0);
- 			pci_disable_device(ioapic->pdev);
- 			pci_dev_put(ioapic->pdev);
- 		}
-+	}
-+	mutex_unlock(&ioapic_list_lock);
-+}
-+
-+int acpi_ioapic_remove(struct acpi_pci_root *root)
-+{
-+	int retval = 0;
-+	struct acpi_pci_ioapic *ioapic, *tmp;
-+
-+	mutex_lock(&ioapic_list_lock);
-+	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
-+		if (root->device->handle != ioapic->root_handle)
-+			continue;
-+		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
-+			retval = -EBUSY;
- 		if (ioapic->res.flags && ioapic->res.parent)
- 			release_resource(&ioapic->res);
- 		list_del(&ioapic->list);
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index bf601d4..919be0a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -648,12 +648,12 @@ static void acpi_pci_root_remove(struct acpi_device *device)
- 
- 	pci_stop_root_bus(root->bus);
- 
--	WARN_ON(acpi_ioapic_remove(root));
--
-+	pci_ioapic_remove(root);
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
- 	pci_remove_root_bus(root->bus);
-+	WARN_ON(acpi_ioapic_remove(root));
- 
- 	dmar_device_remove(device->handle);
- 
--- 
-1.8.3.1
+http://www.gpd.hk/gpdwin.asp
 
+I thought I was seeing it on more machines, but those have
+different apci table loading errors...
+
+>> Detect this and silently skip the duplicates
+>> rather then printing a scary looking set of errors.
+>
+> Why will this matter to OSPMs?
+
+Not sure what you mean with OSPMs but I can tell you why this
+matters in general, Linux distributions like e.g. Fedora have
+been putting a lot of work in a smooth boot experience where
+end users do not get any scary text messages. For some more
+embedded like systems this even is a hard requirement.
+
+The kernel supports quiet kernel cmdline argument to silence
+normal kernel messages, which is part of what is needed but
+messages with a log level of error still get shown, breaking
+the "no scary text messages" product requirement.
+
+> And should we add non-costless steps just in order to reduce errors,
+
+Yes we should, work on that front has been happening for years,
+also the CPU cost of this check is quite small, memcmp will
+only happen on identically sized tables and even then it will
+exit as soon as a single byte differs.
+
+> while the errors are on the contrary useful (in1dicating platform issues)?
+
+These errors are useful for developers / during testing but
+not in production setups, esp. in the case of duplicate tables
+where not loading the duplicate leads to 0 bad side effects.
+
+I've an alternative proposal though, since this check just fixes
+a small part of the early boot messages caused by SSDT loading
+and since the code itself chooses to ignore any errors:
+
+         /* Ignore errors while loading tables, get as many as possible */
+
+How about setting a global flag while loading these tables and making
+
+ACPI_EXCEPTION calls log the exceptions with a log level of warning
+as well as turning the final:
+
+                 ACPI_ERROR((AE_INFO,
+                             "%u table load failures, %u successful",
+                             tables_failed, tables_loaded));
+
+Into a warning ?
+
+Regards,
+
+Hans
+
+
+
+
+>
+> Thanks
+> Lv
+>
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  drivers/acpi/acpica/tbxfload.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+>>  1 file changed, 40 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+>> index 82019c0..1971cd7 100644
+>> --- a/drivers/acpi/acpica/tbxfload.c
+>> +++ b/drivers/acpi/acpica/tbxfload.c
+>> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+>>
+>>  /*******************************************************************************
+>>   *
+>> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
+>> + *
+>> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
+>> + *              index         - index of table to find a duplicate of
+>> + *
+>> + * RETURN:      TRUE if a duplicate is found, FALSE if not
+>> + *
+>> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
+>> + *              avoid trying to load duplicate ssdt tables
+>> + *
+>> + ******************************************************************************/
+>> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
+>> +{
+>> +	struct acpi_table_desc *dup;
+>> +	u32 i;
+>> +
+>> +	for (i = 0; i < index; ++i) {
+>> +		dup = &acpi_gbl_root_table_list.tables[i];
+>> +
+>> +		if (!acpi_gbl_root_table_list.tables[i].address ||
+>> +		    (!ACPI_COMPARE_NAME(dup->signature.ascii, ACPI_SIG_SSDT)
+>> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
+>> +					   ACPI_SIG_PSDT)
+>> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
+>> +					   ACPI_SIG_OSDT))
+>> +		    || ACPI_FAILURE(acpi_tb_validate_table(dup))
+>> +		    || dup->length != table->length) {
+>> +			continue;
+>> +		}
+>> +
+>> +		if (memcmp(dup->pointer, table->pointer, table->length) == 0)
+>> +			return TRUE;
+>> +	}
+>> +	return FALSE;
+>> +}
+>> +
+>> +/*******************************************************************************
+>> + *
+>>   * FUNCTION:    acpi_tb_load_namespace
+>>   *
+>>   * PARAMETERS:  None
+>> @@ -212,7 +250,8 @@ acpi_status acpi_tb_load_namespace(void)
+>>  					   ACPI_SIG_PSDT)
+>>  		     && !ACPI_COMPARE_NAME(table->signature.ascii,
+>>  					   ACPI_SIG_OSDT))
+>> -		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
+>> +		    || ACPI_FAILURE(acpi_tb_validate_table(table))
+>> +		    || acpi_tb_find_duplicate_ssdt(table, i)) {
+>>  			continue;
+>>  		}
+>>
+>> --
+>> 2.9.3
+>
