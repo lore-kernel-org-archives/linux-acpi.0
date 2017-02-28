@@ -1,55 +1,59 @@
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
-Date: Tue, 28 Feb 2017 11:21:05 +0100
-Message-ID: <20170228102105.GA13872@osiris>
-References: <20170227092817.23571-1-mhocko@kernel.org>
- <87lgssvtni.fsf@vitty.brq.redhat.com>
- <20170227112510.GA4129@osiris>
- <20170227154304.GK26504@dhcp22.suse.cz>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2] ACPI / PMIC: Add opregion driver for Intel CHT
+ WhiskeyCove PMIC
+Date: Tue, 28 Feb 2017 12:18:35 +0100
+Message-ID: <62049bce-0aad-8f08-23fd-23be769c9e19@redhat.com>
+References: <20170227202628.5737-1-hdegoede@redhat.com>
+ <CAHp75VfY3zu94ivvvfDU51RCUwRdXucQ_aKLR9GcPnPXMEWp1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20170227154304.GK26504@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [209.132.183.28] ([209.132.183.28]:36812 "EHLO mx1.redhat.com"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S1751154AbdB1LTj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Feb 2017 06:19:39 -0500
+In-Reply-To: <CAHp75VfY3zu94ivvvfDU51RCUwRdXucQ_aKLR9GcPnPXMEWp1Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Mon, Feb 27, 2017 at 04:43:04PM +0100, Michal Hocko wrote:
-> On Mon 27-02-17 12:25:10, Heiko Carstens wrote:
-> > On Mon, Feb 27, 2017 at 11:02:09AM +0100, Vitaly Kuznetsov wrote:
-> > > A couple of other thoughts:
-> > > 1) Having all newly added memory online ASAP is probably what people
-> > > want for all virtual machines.
-> > 
-> > This is not true for s390. On s390 we have "standby" memory that a guest
-> > sees and potentially may use if it sets it online. Every guest that sets
-> > memory offline contributes to the hypervisor's standby memory pool, while
-> > onlining standby memory takes memory away from the standby pool.
-> > 
-> > The use-case is that a system administrator in advance knows the maximum
-> > size a guest will ever have and also defines how much memory should be used
-> > at boot time. The difference is standby memory.
-> > 
-> > Auto-onlining of standby memory is the last thing we want.
-> > 
-> > > Unfortunately, we have additional complexity with memory zones
-> > > (ZONE_NORMAL, ZONE_MOVABLE) and in some cases manual intervention is
-> > > required. Especially, when further unplug is expected.
-> > 
-> > This also is a reason why auto-onlining doesn't seem be the best way.
-> 
-> Can you imagine any situation when somebody actually might want to have
-> this knob enabled? From what I understand it doesn't seem to be the
-> case.
+Hi,
 
-I can only speak for s390, and at least here I think auto-online is always
-wrong, especially if you consider the added complexity that you may want to
-online memory sometimes to ZONE_NORMAL and sometimes to ZONE_MOVABLE.
+Thnak you for the review.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+On 27-02-17 22:50, Andy Shevchenko wrote:
+> On Mon, Feb 27, 2017 at 10:26 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Add opregion driver for Intel CHT WhiskeyCove PMIC, based on various
+>> non upstreamed CHT WhiskeyCove PMIC patches. This does not include
+>> support for the Thermal opregion (DPTF) due to lacking documentation.
+>
+> Couple of nitpicks.
+>
+>> @@ -0,0 +1,232 @@
+>> +/*
+>> + * intel_pmic_chtwc.c - Intel CHT Whiskey Cove PMIC operation region driver
+>
+> I would remove file name. You never know if it's going to be renamed or not.
+>
+>> +static int intel_cht_wc_pmic_update_power(struct regmap *regmap, int reg,
+>> +               int bit, bool on)
+>> +{
+>
+>> +       u8 mask = bit;
+>> +
+>> +       return regmap_update_bits(regmap, reg, mask, on ? 1 : 0);
+>
+> Hmm... Just leave one line?
+
+Both fixed. I will send a new version together with a new version
+of the Intel CHT WhiskeyCove PMIC mfd driver.
+
+Since this patch relies on defines from the generic mfd header that one
+needs to be merged first. Given the dependency it is probably best of both are
+merged through the mfd tree. Rafael, is that ok with you ?
+
+Regards,
+
+Hans
