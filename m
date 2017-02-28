@@ -1,304 +1,73 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2] ACPI / PMIC: Add opregion driver for Intel CHT WhiskeyCove PMIC
-Date: Mon, 27 Feb 2017 21:26:28 +0100
-Message-ID: <20170227202628.5737-1-hdegoede@redhat.com>
+From: Corey Minyard <minyard@acm.org>
+Subject: [GIT PULL] Pull request fro 4.11 for IPMI
+Date: Mon, 27 Feb 2017 20:02:00 -0600
+Message-ID: <101a1825-e3da-19fc-c030-90c62c31bb88@acm.org>
+Reply-To: minyard@acm.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36088 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751291AbdB1BOg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Feb 2017 20:14:36 -0500
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:36298 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751473AbdB1Cht (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Feb 2017 21:37:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ipmitool-devel <ipmitool-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Jeffery <andrew@aj.id.au>, =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>, Bhumika Goyal <bhumirks@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rami Rosen <ramirose@gmail.com>
 
-Add opregion driver for Intel CHT WhiskeyCove PMIC, based on various
-non upstreamed CHT WhiskeyCove PMIC patches. This does not include
-support for the Thermal opregion (DPTF) due to lacking documentation.
+The following changes since commit c433eb70f37de2514f3ae3d43dd7e4a75493fe48:
 
-Cc: Bin Gao <bin.gao@intel.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v2:
--s/WhiskeyCove/Whiskey Cove/
--Some minor style tweaks
--Allow building as module
----
- drivers/acpi/Kconfig                 |   6 +
- drivers/acpi/Makefile                |   1 +
- drivers/acpi/pmic/intel_pmic_chtwc.c | 232 +++++++++++++++++++++++++++++++++++
- 3 files changed, 239 insertions(+)
- create mode 100644 drivers/acpi/pmic/intel_pmic_chtwc.c
+   Merge tag 'pinctrl-v4.10-2' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl 
+(2017-01-05 10:36:56 -0800)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 83e5f7e..56e8b48 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -516,6 +516,12 @@ config BXT_WC_PMIC_OPREGION
- 	help
- 	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
- 
-+config CHT_WC_PMIC_OPREGION
-+	tristate "ACPI operation region support for CHT Whiskey Cove PMIC"
-+	depends on MFD_INTEL_CHT_WC
-+	help
-+	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
-+
- endif
- 
- config ACPI_CONFIGFS
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 9ed0878..1256830 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -102,6 +102,7 @@ obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
- obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
- obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
- obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
-+obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
- 
- obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
- 
-diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
-new file mode 100644
-index 0000000..a9574d5
---- /dev/null
-+++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
-@@ -0,0 +1,232 @@
-+/*
-+ * intel_pmic_chtwc.c - Intel CHT Whiskey Cove PMIC operation region driver
-+ * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
-+ *
-+ * Based on various non upstream patches to support the CHT Whiskey Cove PMIC:
-+ * Copyright (C) 2013-2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/init.h>
-+#include <linux/mfd/intel_chtwc.h>
-+#include <linux/mfd/intel_soc_pmic.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include "intel_pmic.h"
-+
-+/*
-+ * Regulator support is based on the non upstream patch:
-+ * "regulator: whiskey_cove: implements Whiskey Cove pmic VRF support"
-+ * https://github.com/intel-aero/meta-intel-aero/blob/master/recipes-kernel/linux/linux-yocto/0019-regulator-whiskey_cove-implements-WhiskeyCove-pmic-V.patch
-+ */
-+static struct pmic_table power_table[] = {
-+	{
-+		.address = 0x0,
-+		.reg = CHT_WC_V1P8A_CTRL,
-+		.bit = 0x01,
-+	}, /* V18A */
-+	{
-+		.address = 0x04,
-+		.reg = CHT_WC_V1P8SX_CTRL,
-+		.bit = 0x07,
-+	}, /* V18X */
-+	{
-+		.address = 0x08,
-+		.reg = CHT_WC_VDDQ_CTRL,
-+		.bit = 0x01,
-+	}, /* VDDQ */
-+	{
-+		.address = 0x0c,
-+		.reg = CHT_WC_V1P2A_CTRL,
-+		.bit = 0x07,
-+	}, /* V12A */
-+	{
-+		.address = 0x10,
-+		.reg = CHT_WC_V1P2SX_CTRL,
-+		.bit = 0x07,
-+	}, /* V12X */
-+	{
-+		.address = 0x14,
-+		.reg = CHT_WC_V2P8SX_CTRL,
-+		.bit = 0x07,
-+	}, /* V28X */
-+	{
-+		.address = 0x18,
-+		.reg = CHT_WC_V3P3A_CTRL,
-+		.bit = 0x01,
-+	}, /* V33A */
-+	{
-+		.address = 0x1c,
-+		.reg = CHT_WC_V3P3SD_CTRL,
-+		.bit = 0x07,
-+	}, /* V3SD */
-+	{
-+		.address = 0x20,
-+		.reg = CHT_WC_VSDIO_CTRL,
-+		.bit = 0x07,
-+	}, /* VSD */
-+/*	{
-+		.address = 0x24,
-+		.reg = ??,
-+		.bit = ??,
-+	}, ** VSW2 */
-+/*	{
-+		.address = 0x28,
-+		.reg = ??,
-+		.bit = ??,
-+	}, ** VSW1 */
-+/*	{
-+		.address = 0x2c,
-+		.reg = ??,
-+		.bit = ??,
-+	}, ** VUPY */
-+/*	{
-+		.address = 0x30,
-+		.reg = ??,
-+		.bit = ??,
-+	}, ** VRSO */
-+	{
-+		.address = 0x34,
-+		.reg = CHT_WC_VPROG1A_CTRL,
-+		.bit = 0x07,
-+	}, /* VP1A */
-+	{
-+		.address = 0x38,
-+		.reg = CHT_WC_VPROG1B_CTRL,
-+		.bit = 0x07,
-+	}, /* VP1B */
-+	{
-+		.address = 0x3c,
-+		.reg = CHT_WC_VPROG1F_CTRL,
-+		.bit = 0x07,
-+	}, /* VP1F */
-+	{
-+		.address = 0x40,
-+		.reg = CHT_WC_VPROG2D_CTRL,
-+		.bit = 0x07,
-+	}, /* VP2D */
-+	{
-+		.address = 0x44,
-+		.reg = CHT_WC_VPROG3A_CTRL,
-+		.bit = 0x07,
-+	}, /* VP3A */
-+	{
-+		.address = 0x48,
-+		.reg = CHT_WC_VPROG3B_CTRL,
-+		.bit = 0x07,
-+	}, /* VP3B */
-+	{
-+		.address = 0x4c,
-+		.reg = CHT_WC_VPROG4A_CTRL,
-+		.bit = 0x07,
-+	}, /* VP4A */
-+	{
-+		.address = 0x50,
-+		.reg = CHT_WC_VPROG4B_CTRL,
-+		.bit = 0x07,
-+	}, /* VP4B */
-+	{
-+		.address = 0x54,
-+		.reg = CHT_WC_VPROG4C_CTRL,
-+		.bit = 0x07,
-+	}, /* VP4C */
-+	{
-+		.address = 0x58,
-+		.reg = CHT_WC_VPROG4D_CTRL,
-+		.bit = 0x07,
-+	}, /* VP4D */
-+	{
-+		.address = 0x5c,
-+		.reg = CHT_WC_VPROG5A_CTRL,
-+		.bit = 0x07,
-+	}, /* VP5A */
-+	{
-+		.address = 0x60,
-+		.reg = CHT_WC_VPROG5B_CTRL,
-+		.bit = 0x07,
-+	}, /* VP5B */
-+	{
-+		.address = 0x64,
-+		.reg = CHT_WC_VPROG6A_CTRL,
-+		.bit = 0x07,
-+	}, /* VP6A */
-+	{
-+		.address = 0x68,
-+		.reg = CHT_WC_VPROG6B_CTRL,
-+		.bit = 0x07,
-+	}, /* VP6B */
-+/*	{
-+		.address = 0x6c,
-+		.reg = ??,
-+		.bit = ??,
-+	}  ** VP7A */
-+};
-+
-+static int intel_cht_wc_pmic_get_power(struct regmap *regmap, int reg,
-+		int bit, u64 *value)
-+{
-+	int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = (data & bit) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int intel_cht_wc_pmic_update_power(struct regmap *regmap, int reg,
-+		int bit, bool on)
-+{
-+	u8 mask = bit;
-+
-+	return regmap_update_bits(regmap, reg, mask, on ? 1 : 0);
-+}
-+
-+/*
-+ * The thermal table and ops are empty, we do not support the Thermal opregion
-+ * (DPTF) due to lacking documentation.
-+ */
-+static struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
-+	.get_power		= intel_cht_wc_pmic_get_power,
-+	.update_power		= intel_cht_wc_pmic_update_power,
-+	.power_table		= power_table,
-+	.power_table_count	= ARRAY_SIZE(power_table),
-+};
-+
-+static int intel_cht_wc_pmic_opregion_probe(struct platform_device *pdev)
-+{
-+	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
-+
-+	return intel_pmic_install_opregion_handler(&pdev->dev,
-+			ACPI_HANDLE(pdev->dev.parent),
-+			pmic->regmap,
-+			&intel_cht_wc_pmic_opregion_data);
-+}
-+
-+static struct platform_device_id cht_wc_opregion_id_table[] = {
-+	{ .name = "cht_wcove_region" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(platform, cht_wc_opregion_id_table);
-+
-+static struct platform_driver intel_cht_wc_pmic_opregion_driver = {
-+	.probe = intel_cht_wc_pmic_opregion_probe,
-+	.driver = {
-+		.name = "cht_whiskey_cove_pmic",
-+	},
-+	.id_table = cht_wc_opregion_id_table,
-+};
-+module_platform_driver(intel_cht_wc_pmic_opregion_driver);
-+
-+MODULE_DESCRIPTION("Intel CHT Whiskey Cove PMIC operation region driver");
-+MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
-+MODULE_LICENSE("GPL");
--- 
-2.9.3
+are available in the git repository at:
+
+   git://git.code.sf.net/p/openipmi/linux-ipmi tags/for-linus-4.11
+
+for you to fetch changes up to eb994594bc22220976f367c03ffa141580aa45e4:
+
+   ipmi: bt-bmc: Use a regmap for register access (2017-02-20 11:00:48 
+-0600)
+
+----------------------------------------------------------------
+This is a few small fixes to the main IPMI driver, make some
+things const, fix typos, etc.
+
+The last patch came in about a week ago, but IMHO it's best to
+go in now.  It is not for the main driver, it's for the bt-bmc
+driver, which runs on the management controller side, not on
+the host side, so the scope is limited and the change is
+necessary.
+
+Thanks,
+
+-corey
+
+----------------------------------------------------------------
+Andrew Jeffery (1):
+       ipmi: bt-bmc: Use a regmap for register access
+
+Bhumika Goyal (1):
+       char: ipmi: constify ipmi_smi_handlers structures
+
+Corey Minyard (2):
+       ipmi: make ipmi_usr_hndl const
+       acpi:ipmi: Make IPMI user handler const
+
+Rami Rosen (1):
+       Documentation: Fix a typo in IPMI.txt.
+
+  Documentation/IPMI.txt              |  2 +-
+  drivers/acpi/acpi_ipmi.c            |  2 +-
+  drivers/char/ipmi/Kconfig           |  3 +-
+  drivers/char/ipmi/bt-bmc.c          | 80 
++++++++++++++++++++++++++++----------
+  drivers/char/ipmi/ipmi_devintf.c    |  2 +-
+  drivers/char/ipmi/ipmi_msghandler.c |  4 +-
+  drivers/char/ipmi/ipmi_powernv.c    |  2 +-
+  drivers/char/ipmi/ipmi_watchdog.c   |  2 +-
+  include/linux/ipmi.h                |  2 +-
+  9 files changed, 69 insertions(+), 30 deletions(-)
 
