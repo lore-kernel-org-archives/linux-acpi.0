@@ -1,301 +1,192 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V11 05/10] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Wed, 1 Mar 2017 12:22:40 -0700
-Message-ID: <5f0b63c0-8a0d-8161-efcb-3d60e3275a21@codeaurora.org>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-6-git-send-email-tbaicar@codeaurora.org>
- <58B67B69.8000702@huawei.com>
+From: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 2/2] nfit, libnvdimm: fix interleave set cookie calculation
+Date: Wed, 01 Mar 2017 12:57:07 -0700
+Message-ID: <1488398227.24621.1.camel@linux.intel.com>
+References: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <148835949014.28806.14335060350919963814.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <58B67B69.8000702@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <148835949014.28806.14335060350919963814.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Xie XiuQi,
+Patch verified, cookies align again
 
-
-On 3/1/2017 12:42 AM, Xie XiuQi wrote:
-> Hi Tyler,
->
-> On 2017/2/22 5:21, Tyler Baicar wrote:
->> ARM APEI extension proposal added SEA (Synchronous External Abort)
->> notification type for ARMv8.
->> Add a new GHES error source handling function for SEA. If an error
->> source's notification type is SEA, then this function can be registered
->> into the SEA exception handler. That way GHES will parse and report
->> SEA exceptions when they occur.
-> I have a question about ghes_proc. In ghes_proc, we just parse and report
-> the error information, but no one use it for error recovery now.
->
-> Take the SEA case for example, we get the physical address from parsing
-> the GHES table. But the memory management system or other drivers/modules
-> know what the really meaning of the error address/page. There is no way to
-> notify them to do the recovery now.
->
-> So, could we add a notify at appropriate position. All drivers or modules
-> which are interested in this error could receive and take the corresponding
-> action.
-Error recovery is outside the scope of these patches. These patches are 
-supposed to setup the infrastructure to parse/report the SEAs. Error 
-recovery can be added after the fact which is what has been done for 
-platform memory errors; the page off-lining support was added after the 
-error parsing/reporting code was in.
-
-Thanks,
-Tyler
->
->> An SEA can interrupt code that had interrupts masked and is treated as
->> an NMI. To aid this the page of address space for mapping APEI buffers
->> while in_nmi() is always reserved, and ghes_ioremap_pfn_nmi() is
->> changed to use the helper methods to find the prot_t to map with in
->> the same way as ghes_ioremap_pfn_irq().
->>
->> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->> CC: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->> ---
->>   arch/arm64/Kconfig        |  1 +
->>   arch/arm64/mm/fault.c     | 13 ++++++++
->>   drivers/acpi/apei/Kconfig | 15 +++++++++
->>   drivers/acpi/apei/ghes.c  | 77 +++++++++++++++++++++++++++++++++++++++++++----
->>   include/acpi/ghes.h       |  7 +++++
->>   5 files changed, 107 insertions(+), 6 deletions(-)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 1117421..fca4dc1 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -88,6 +88,7 @@ config ARM64
->>   	select HAVE_IRQ_TIME_ACCOUNTING
->>   	select HAVE_MEMBLOCK
->>   	select HAVE_MEMBLOCK_NODE_MAP if NUMA
->> +	select HAVE_NMI if ACPI_APEI_SEA
->>   	select HAVE_PATA_PLATFORM
->>   	select HAVE_PERF_EVENTS
->>   	select HAVE_PERF_REGS
->> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
->> index d178dc0..b2d57fc 100644
->> --- a/arch/arm64/mm/fault.c
->> +++ b/arch/arm64/mm/fault.c
->> @@ -41,6 +41,8 @@
->>   #include <asm/pgtable.h>
->>   #include <asm/tlbflush.h>
->>   
->> +#include <acpi/ghes.h>
->> +
->>   static const char *fault_name(unsigned int esr);
->>   
->>   #ifdef CONFIG_KPROBES
->> @@ -498,6 +500,17 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
->>   	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
->>   		 fault_name(esr), esr, addr);
->>   
->> +	/*
->> +	 * Synchronous aborts may interrupt code which had interrupts masked.
->> +	 * Before calling out into the wider kernel tell the interested
->> +	 * subsystems.
->> +	 */
->> +	if (IS_ENABLED(ACPI_APEI_SEA)) {
->> +		nmi_enter();
->> +		ghes_notify_sea();
->> +		nmi_exit();
->> +	}
->> +
->>   	info.si_signo = SIGBUS;
->>   	info.si_errno = 0;
->>   	info.si_code  = 0;
->> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
->> index b0140c8..c545dd1 100644
->> --- a/drivers/acpi/apei/Kconfig
->> +++ b/drivers/acpi/apei/Kconfig
->> @@ -39,6 +39,21 @@ config ACPI_APEI_PCIEAER
->>   	  PCIe AER errors may be reported via APEI firmware first mode.
->>   	  Turn on this option to enable the corresponding support.
->>   
->> +config ACPI_APEI_SEA
->> +	bool "APEI Synchronous External Abort logging/recovering support"
->> +	depends on ARM64 && ACPI_APEI && ACPI_APEI_GHES
->> +	default y
->> +	help
->> +	  This option should be enabled if the system supports
->> +	  firmware first handling of SEA (Synchronous External Abort).
->> +	  SEA happens with certain faults of data abort or instruction
->> +	  abort synchronous exceptions on ARMv8 systems. If a system
->> +	  supports firmware first handling of SEA, the platform analyzes
->> +	  and handles hardware error notifications from SEA, and it may then
->> +	  form a HW error record for the OS to parse and handle. This
->> +	  option allows the OS to look for such hardware error record, and
->> +	  take appropriate action.
->> +
->>   config ACPI_APEI_MEMORY_FAILURE
->>   	bool "APEI memory error recovering support"
->>   	depends on ACPI_APEI && MEMORY_FAILURE
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index b25e7cf..b0596ba 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -114,11 +114,7 @@
->>    * Two virtual pages are used, one for IRQ/PROCESS context, the other for
->>    * NMI context (optionally).
->>    */
->> -#ifdef CONFIG_HAVE_ACPI_APEI_NMI
->>   #define GHES_IOREMAP_PAGES           2
->> -#else
->> -#define GHES_IOREMAP_PAGES           1
->> -#endif
->>   #define GHES_IOREMAP_IRQ_PAGE(base)	(base)
->>   #define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
->>   
->> @@ -157,10 +153,14 @@ static void ghes_ioremap_exit(void)
->>   static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
->>   {
->>   	unsigned long vaddr;
->> +	phys_addr_t paddr;
->> +	pgprot_t prot;
->>   
->>   	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
->> -	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
->> -			   pfn << PAGE_SHIFT, PAGE_KERNEL);
->> +
->> +	paddr = pfn << PAGE_SHIFT;
->> +	prot = arch_apei_get_mem_attribute(paddr);
->> +	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
->>   
->>   	return (void __iomem *)vaddr;
->>   }
->> @@ -767,6 +767,50 @@ static int ghes_notify_sci(struct notifier_block *this,
->>   	.notifier_call = ghes_notify_sci,
->>   };
->>   
->> +#ifdef CONFIG_ACPI_APEI_SEA
->> +static LIST_HEAD(ghes_sea);
->> +
->> +void ghes_notify_sea(void)
->> +{
->> +	struct ghes *ghes;
->> +
->> +	/*
->> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
->> +	 * rcu_read_lock().
->> +	 */
->> +	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
->> +		ghes_proc(ghes);
->> +	}
->> +}
->> +
->> +static void ghes_sea_add(struct ghes *ghes)
->> +{
->> +	mutex_lock(&ghes_list_mutex);
->> +	list_add_rcu(&ghes->list, &ghes_sea);
->> +	mutex_unlock(&ghes_list_mutex);
->> +}
->> +
->> +static void ghes_sea_remove(struct ghes *ghes)
->> +{
->> +	mutex_lock(&ghes_list_mutex);
->> +	list_del_rcu(&ghes->list);
->> +	mutex_unlock(&ghes_list_mutex);
->> +	synchronize_rcu();
->> +}
->> +#else /* CONFIG_ACPI_APEI_SEA */
->> +static inline void ghes_sea_add(struct ghes *ghes)
->> +{
->> +	pr_err(GHES_PFX "ID: %d, trying to add SEA notification which is not supported\n",
->> +	       ghes->generic->header.source_id);
->> +}
->> +
->> +static inline void ghes_sea_remove(struct ghes *ghes)
->> +{
->> +	pr_err(GHES_PFX "ID: %d, trying to remove SEA notification which is not supported\n",
->> +	       ghes->generic->header.source_id);
->> +}
->> +#endif /* CONFIG_ACPI_APEI_SEA */
->> +
->>   #ifdef CONFIG_HAVE_ACPI_APEI_NMI
->>   /*
->>    * printk is not safe in NMI context.  So in NMI handler, we allocate
->> @@ -1012,6 +1056,14 @@ static int ghes_probe(struct platform_device *ghes_dev)
->>   	case ACPI_HEST_NOTIFY_EXTERNAL:
->>   	case ACPI_HEST_NOTIFY_SCI:
->>   		break;
->> +	case ACPI_HEST_NOTIFY_SEA:
->> +		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
->> +			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEA is not supported\n",
->> +				generic->header.source_id);
->> +			rc = -ENOTSUPP;
->> +			goto err;
->> +		}
->> +		break;
->>   	case ACPI_HEST_NOTIFY_NMI:
->>   		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
->>   			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
->> @@ -1023,6 +1075,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
->>   		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
->>   			   generic->header.source_id);
->>   		goto err;
->> +	case ACPI_HEST_NOTIFY_GPIO:
->> +	case ACPI_HEST_NOTIFY_SEI:
->> +	case ACPI_HEST_NOTIFY_GSIV:
->> +		pr_warn(GHES_PFX "Generic hardware error source: %d notified via notification type %u is not supported\n",
->> +			generic->header.source_id, generic->header.source_id);
->> +		rc = -ENOTSUPP;
->> +		goto err;
->>   	default:
->>   		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
->>   			   generic->notify.type, generic->header.source_id);
->> @@ -1077,6 +1136,9 @@ static int ghes_probe(struct platform_device *ghes_dev)
->>   		list_add_rcu(&ghes->list, &ghes_sci);
->>   		mutex_unlock(&ghes_list_mutex);
->>   		break;
->> +	case ACPI_HEST_NOTIFY_SEA:
->> +		ghes_sea_add(ghes);
->> +		break;
->>   	case ACPI_HEST_NOTIFY_NMI:
->>   		ghes_nmi_add(ghes);
->>   		break;
->> @@ -1119,6 +1181,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
->>   			unregister_acpi_hed_notifier(&ghes_notifier_sci);
->>   		mutex_unlock(&ghes_list_mutex);
->>   		break;
->> +	case ACPI_HEST_NOTIFY_SEA:
->> +		ghes_sea_remove(ghes);
->> +		break;
->>   	case ACPI_HEST_NOTIFY_NMI:
->>   		ghes_nmi_remove(ghes);
->>   		break;
->> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
->> index 6ae318b..18bc935 100644
->> --- a/include/acpi/ghes.h
->> +++ b/include/acpi/ghes.h
->> @@ -1,3 +1,6 @@
->> +#ifndef GHES_H
->> +#define GHES_H
->> +
->>   #include <acpi/apei.h>
->>   #include <acpi/hed.h>
->>   
->> @@ -95,3 +98,7 @@ static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data
->>   		(void *)(((struct acpi_hest_generic_data_v300 *)(gdata)) + 1) :
->>   		gdata + 1;
->>   }
->> +
->> +void ghes_notify_sea(void);
->> +
->> +#endif /* GHES_H */
->>
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+On Wed, 2017-03-01 at 01:11 -0800, Dan Williams wrote:
+> The interleave-set cookie is a sum that sanity checks the composition of
+> an interleave set has not changed from when the namespace was initially
+> created.  The checksum is calculated by sorting the DIMMs by their
+> location in the interleave-set. The comparison for the sort must be
+> 64-bit wide, not byte-by-byte as performed by memcmp() in the broken
+> case.
+> 
+> Fix the implementation to accept correct cookie values in addition to
+> the Linux "memcmp" order cookies, but only allow correct cookies to be
+> generated going forward. It does mean that namespaces created by
+> third-party-tooling, or created by newer kernels with this fix, will not
+> validate on older kernels. However, there are a couple mitigating
+> conditions:
+> 
+>     1/ platforms with namespace-label capable NVDIMMs are not widely
+>        available.
+> 
+>     2/ interleave-sets with a single-dimm are by definition not affected
+>        (nothing to sort). This covers the QEMU-KVM NVDIMM emulation case.
+> 
+> The cookie stored in the namespace label can be fixed up by writing
+> the namespace "alt_name" attribute in sysfs.
+> 
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set state-tracking infrastructure")
+> Reported-by: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/acpi/nfit/core.c        |   16 +++++++++++++++-
+>  drivers/nvdimm/namespace_devs.c |   18 ++++++++++++++----
+>  drivers/nvdimm/nd.h             |    1 +
+>  drivers/nvdimm/region_devs.c    |    9 +++++++++
+>  include/linux/libnvdimm.h       |    2 ++
+>  5 files changed, 41 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 7361d00818e2..662036bdc65e 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1603,7 +1603,7 @@ static size_t sizeof_nfit_set_info(int num_mappings)
+>  		+ num_mappings * sizeof(struct nfit_set_info_map);
+>  }
+>  
+> -static int cmp_map(const void *m0, const void *m1)
+> +static int cmp_map_compat(const void *m0, const void *m1)
+>  {
+>  	const struct nfit_set_info_map *map0 = m0;
+>  	const struct nfit_set_info_map *map1 = m1;
+> @@ -1612,6 +1612,14 @@ static int cmp_map(const void *m0, const void *m1)
+>  			sizeof(u64));
+>  }
+>  
+> +static int cmp_map(const void *m0, const void *m1)
+> +{
+> +	const struct nfit_set_info_map *map0 = m0;
+> +	const struct nfit_set_info_map *map1 = m1;
+> +
+> +	return map0->region_offset - map1->region_offset;
+> +}
+> +
+>  /* Retrieve the nth entry referencing this spa */
+>  static struct acpi_nfit_memory_map *memdev_from_spa(
+>  		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
+> @@ -1667,6 +1675,12 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+>  	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
+>  			cmp_map, NULL);
+>  	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
+> +
+> +	/* support namespaces created with the wrong sort order */
+> +	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
+> +			cmp_map_compat, NULL);
+> +	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
+> +
+>  	ndr_desc->nd_set = nd_set;
+>  	devm_kfree(dev, info);
+>  
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index ce3e8dfa10ad..1b481a5fb966 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1700,6 +1700,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
+>  struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  		struct nd_namespace_label *nd_label)
+>  {
+> +	u64 altcookie = nd_region_interleave_set_altcookie(nd_region);
+>  	u64 cookie = nd_region_interleave_set_cookie(nd_region);
+>  	struct nd_label_ent *label_ent;
+>  	struct nd_namespace_pmem *nspm;
+> @@ -1718,7 +1719,11 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  	if (__le64_to_cpu(nd_label->isetcookie) != cookie) {
+>  		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
+>  				nd_label->uuid);
+> -		return ERR_PTR(-EAGAIN);
+> +		if (__le64_to_cpu(nd_label->isetcookie) != altcookie)
+> +			return ERR_PTR(-EAGAIN);
+> +
+> +		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
+> +				nd_label->uuid);
+>  	}
+>  
+>  	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
+> @@ -1733,9 +1738,14 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  	res->name = dev_name(&nd_region->dev);
+>  	res->flags = IORESOURCE_MEM;
+>  
+> -	for (i = 0; i < nd_region->ndr_mappings; i++)
+> -		if (!has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
+> -			break;
+> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> +		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
+> +			continue;
+> +		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
+> +			continue;
+> +		break;
+> +	}
+> +
+>  	if (i < nd_region->ndr_mappings) {
+>  		struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
+>  
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 35dd75057e16..2a99c83aa19f 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -328,6 +328,7 @@ struct nd_region *to_nd_region(struct device *dev);
+>  int nd_region_to_nstype(struct nd_region *nd_region);
+>  int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+>  u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
+> +u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
+>  void nvdimm_bus_lock(struct device *dev);
+>  void nvdimm_bus_unlock(struct device *dev);
+>  bool is_nvdimm_bus_locked(struct device *dev);
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index 7cd705f3247c..b7cb5066d961 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -505,6 +505,15 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
+>  	return 0;
+>  }
+>  
+> +u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region)
+> +{
+> +	struct nd_interleave_set *nd_set = nd_region->nd_set;
+> +
+> +	if (nd_set)
+> +		return nd_set->altcookie;
+> +	return 0;
+> +}
+> +
+>  void nd_mapping_free_labels(struct nd_mapping *nd_mapping)
+>  {
+>  	struct nd_label_ent *label_ent, *e;
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 8458c5351e56..77e7af32543f 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -70,6 +70,8 @@ struct nd_cmd_desc {
+>  
+>  struct nd_interleave_set {
+>  	u64 cookie;
+> +	/* compatibility with initial buggy Linux implementation */
+> +	u64 altcookie;
+>  };
+>  
+>  struct nd_mapping_desc {
+> 
