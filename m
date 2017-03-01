@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] tools/testing/nvdimm: make iset cookie predictable
-Date: Wed, 01 Mar 2017 01:11:24 -0800
-Message-ID: <148835948457.28806.60862861470412098.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 2/2] nfit, libnvdimm: fix interleave set cookie calculation
+Date: Wed, 01 Mar 2017 01:11:30 -0800
+Message-ID: <148835949014.28806.14335060350919963814.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,86 +18,170 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-For testing changes to the iset cookie algorithm we need a value that is
-constant from run-to-run.
+The interleave-set cookie is a sum that sanity checks the composition of
+an interleave set has not changed from when the namespace was initially
+created.  The checksum is calculated by sorting the DIMMs by their
+location in the interleave-set. The comparison for the sort must be
+64-bit wide, not byte-by-byte as performed by memcmp() in the broken
+case.
 
-Stop including dynamic data in the emulated region_offset values. Also,
-pick values that sort in a different order depending on whether the
-comparison is a memcmp() of two 8-byte arrays or subtraction of two
-64-bit values.
+Fix the implementation to accept correct cookie values in addition to
+the Linux "memcmp" order cookies, but only allow correct cookies to be
+generated going forward. It does mean that namespaces created by
+third-party-tooling, or created by newer kernels with this fix, will not
+validate on older kernels. However, there are a couple mitigating
+conditions:
 
+    1/ platforms with namespace-label capable NVDIMMs are not widely
+       available.
+
+    2/ interleave-sets with a single-dimm are by definition not affected
+       (nothing to sort). This covers the QEMU-KVM NVDIMM emulation case.
+
+The cookie stored in the namespace label can be fixed up by writing
+the namespace "alt_name" attribute in sysfs.
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set state-tracking infrastructure")
+Reported-by: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- tools/testing/nvdimm/test/nfit.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/nfit/core.c        |   16 +++++++++++++++-
+ drivers/nvdimm/namespace_devs.c |   18 ++++++++++++++----
+ drivers/nvdimm/nd.h             |    1 +
+ drivers/nvdimm/region_devs.c    |    9 +++++++++
+ include/linux/libnvdimm.h       |    2 ++
+ 5 files changed, 41 insertions(+), 5 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 45be8b55a663..798f17655433 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -887,7 +887,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->range_index = 0+1;
- 	memdev->region_index = 4+1;
- 	memdev->region_size = SPA0_SIZE/2;
--	memdev->region_offset = t->spa_set_dma[0];
-+	memdev->region_offset = 1;
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 2;
-@@ -902,7 +902,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->range_index = 0+1;
- 	memdev->region_index = 5+1;
- 	memdev->region_size = SPA0_SIZE/2;
--	memdev->region_offset = t->spa_set_dma[0] + SPA0_SIZE/2;
-+	memdev->region_offset = (1 << 8);
- 	memdev->address = 0;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 2;
-@@ -917,7 +917,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->range_index = 1+1;
- 	memdev->region_index = 4+1;
- 	memdev->region_size = SPA1_SIZE/4;
--	memdev->region_offset = t->spa_set_dma[1];
-+	memdev->region_offset = (1 << 16);
- 	memdev->address = SPA0_SIZE/2;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
-@@ -932,7 +932,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->range_index = 1+1;
- 	memdev->region_index = 5+1;
- 	memdev->region_size = SPA1_SIZE/4;
--	memdev->region_offset = t->spa_set_dma[1] + SPA1_SIZE/4;
-+	memdev->region_offset = (1 << 24);
- 	memdev->address = SPA0_SIZE/2;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
-@@ -947,7 +947,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->range_index = 1+1;
- 	memdev->region_index = 6+1;
- 	memdev->region_size = SPA1_SIZE/4;
--	memdev->region_offset = t->spa_set_dma[1] + 2*SPA1_SIZE/4;
-+	memdev->region_offset = (1ULL << 32);
- 	memdev->address = SPA0_SIZE/2;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
-@@ -962,7 +962,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	memdev->range_index = 1+1;
- 	memdev->region_index = 7+1;
- 	memdev->region_size = SPA1_SIZE/4;
--	memdev->region_offset = t->spa_set_dma[1] + 3*SPA1_SIZE/4;
-+	memdev->region_offset = (1ULL << 40);
- 	memdev->address = SPA0_SIZE/2;
- 	memdev->interleave_index = 0;
- 	memdev->interleave_ways = 4;
-@@ -1380,7 +1380,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 		memdev->range_index = 11+1;
- 		memdev->region_index = 9+1;
- 		memdev->region_size = SPA0_SIZE;
--		memdev->region_offset = t->spa_set_dma[2];
-+		memdev->region_offset = (1ULL << 48);
- 		memdev->address = 0;
- 		memdev->interleave_index = 0;
- 		memdev->interleave_ways = 1;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 7361d00818e2..662036bdc65e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1603,7 +1603,7 @@ static size_t sizeof_nfit_set_info(int num_mappings)
+ 		+ num_mappings * sizeof(struct nfit_set_info_map);
+ }
+ 
+-static int cmp_map(const void *m0, const void *m1)
++static int cmp_map_compat(const void *m0, const void *m1)
+ {
+ 	const struct nfit_set_info_map *map0 = m0;
+ 	const struct nfit_set_info_map *map1 = m1;
+@@ -1612,6 +1612,14 @@ static int cmp_map(const void *m0, const void *m1)
+ 			sizeof(u64));
+ }
+ 
++static int cmp_map(const void *m0, const void *m1)
++{
++	const struct nfit_set_info_map *map0 = m0;
++	const struct nfit_set_info_map *map1 = m1;
++
++	return map0->region_offset - map1->region_offset;
++}
++
+ /* Retrieve the nth entry referencing this spa */
+ static struct acpi_nfit_memory_map *memdev_from_spa(
+ 		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
+@@ -1667,6 +1675,12 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
+ 	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
+ 			cmp_map, NULL);
+ 	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
++
++	/* support namespaces created with the wrong sort order */
++	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
++			cmp_map_compat, NULL);
++	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
++
+ 	ndr_desc->nd_set = nd_set;
+ 	devm_kfree(dev, info);
+ 
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index ce3e8dfa10ad..1b481a5fb966 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1700,6 +1700,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
+ struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 		struct nd_namespace_label *nd_label)
+ {
++	u64 altcookie = nd_region_interleave_set_altcookie(nd_region);
+ 	u64 cookie = nd_region_interleave_set_cookie(nd_region);
+ 	struct nd_label_ent *label_ent;
+ 	struct nd_namespace_pmem *nspm;
+@@ -1718,7 +1719,11 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	if (__le64_to_cpu(nd_label->isetcookie) != cookie) {
+ 		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
+ 				nd_label->uuid);
+-		return ERR_PTR(-EAGAIN);
++		if (__le64_to_cpu(nd_label->isetcookie) != altcookie)
++			return ERR_PTR(-EAGAIN);
++
++		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
++				nd_label->uuid);
+ 	}
+ 
+ 	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
+@@ -1733,9 +1738,14 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	res->name = dev_name(&nd_region->dev);
+ 	res->flags = IORESOURCE_MEM;
+ 
+-	for (i = 0; i < nd_region->ndr_mappings; i++)
+-		if (!has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
+-			break;
++	for (i = 0; i < nd_region->ndr_mappings; i++) {
++		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
++			continue;
++		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
++			continue;
++		break;
++	}
++
+ 	if (i < nd_region->ndr_mappings) {
+ 		struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
+ 
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 35dd75057e16..2a99c83aa19f 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -328,6 +328,7 @@ struct nd_region *to_nd_region(struct device *dev);
+ int nd_region_to_nstype(struct nd_region *nd_region);
+ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
++u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
+ void nvdimm_bus_lock(struct device *dev);
+ void nvdimm_bus_unlock(struct device *dev);
+ bool is_nvdimm_bus_locked(struct device *dev);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 7cd705f3247c..b7cb5066d961 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -505,6 +505,15 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
+ 	return 0;
+ }
+ 
++u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region)
++{
++	struct nd_interleave_set *nd_set = nd_region->nd_set;
++
++	if (nd_set)
++		return nd_set->altcookie;
++	return 0;
++}
++
+ void nd_mapping_free_labels(struct nd_mapping *nd_mapping)
+ {
+ 	struct nd_label_ent *label_ent, *e;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 8458c5351e56..77e7af32543f 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -70,6 +70,8 @@ struct nd_cmd_desc {
+ 
+ struct nd_interleave_set {
+ 	u64 cookie;
++	/* compatibility with initial buggy Linux implementation */
++	u64 altcookie;
+ };
+ 
+ struct nd_mapping_desc {
