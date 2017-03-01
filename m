@@ -1,203 +1,268 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
-Date: Wed, 1 Mar 2017 10:31:41 +0800
-Message-ID: <4ff98823-d6f0-eb2e-4b98-f6d5e255f6c3@huawei.com>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
- <df6ba5dc-d93f-925a-46bf-1e1e209d17f3@huawei.com> <58B43092.6040401@arm.com>
- <3df82a7b-1a32-e2d7-ae78-7132a4eab1a0@huawei.com> <58B57941.3000703@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2] acpi: acpica: fix acpi operand cache leak
+Date: Wed, 1 Mar 2017 03:05:37 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE43EAF@SHSMSX101.ccr.corp.intel.com>
+References: <1487292003-25769-1-git-send-email-kkamagui@gmail.com>
+ <6316430.DDm6VSBqH3@aspire.rjw.lan>
+ <CAHjaAcT7OoTDEweCBwL=BuC-RL6DjKo0AMGS-8HearCdy4_7QQ@mail.gmail.com>
+ <3660439.lHcxWCEFi4@aspire.rjw.lan>
+ <CAHjaAcQJmJ9H3Qr1mWUax31JR+uSBw-8nR0RJcdjsQKkzS+tBg@mail.gmail.com>
+ <CAJZ5v0gUOcV2+r9fMxYS89FrWk1HoguAvF2qO=Lt9o-eNRhEBQ@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE41241@SHSMSX101.ccr.corp.intel.com>
+ <CAHjaAcSP2W6ysgUv3_iM_Vpx7g-BQAvaG1vhY3PkBW9N98dHsA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <58B57941.3000703@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, linux@armlinux.org.uk, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:15237 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751485AbdCADJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Feb 2017 22:09:10 -0500
+In-Reply-To: <CAHjaAcSP2W6ysgUv3_iM_Vpx7g-BQAvaG1vhY3PkBW9N98dHsA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seunghun Han <kkamagui@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi James,
-
-On 2017/2/28 21:21, James Morse wrote:
-> Hi,
-> 
-> On 28/02/17 06:25, Xiongfeng Wang wrote:
->> On 2017/2/27 21:58, James Morse wrote:
->>> On 25/02/17 07:15, Xiongfeng Wang wrote:
->>>> Can we inject an sea into the guest, so that the guest can kill the
->>>> application which causes the error if the guest won't be terminated
->>>> later. I'm not sure whether ghes_handle_memory_failure() called in
->>>> ghes_do_proc() will kill the qemu process. I think it only kill user
->>>> processes marked with PF_MCE_PROCESS & PF_MCE_EARLY.
->>>
->>> My understanding is the pages will get unmapped and recovered where possible
->>> (e.g. re-read from disk), the user space process will get SIGBUS/SIGSEV when it
->>> next tries to access that page, which could be some time later.
->>> These flags in find_early_kill_thread() are a way to make the memory-failure
->>> code signal the process early, before it does any recovery. The 'MCE' makes me
->>> think its x86 specific.
->>> (early and late are described more in [0])
->>>
->>>
->>> Guests are a special case as QEMU may never access the faulty memory itself, so
->>> it won't receive the 'late' signal. It looks like ARM/arm64 KVM lacks support
->>> for KVM_PFN_ERR_HWPOISON which sends SIGBUS from KVM's fault-handling code. I
->>> have patches to add support for this which I intend to send at rc1.
->>>
->>> [0] suggests 'KVM qemu' sets these MCE flags to take the 'early' path, but given
->>> x86s KVM_PFN_ERR_HWPOISON, this may be out of date.
->>>
->>>
->>> Either way, once QEMU gets a signal indicating the virtual address, it can
->>> generate its own APEI CPER records and use the KVM APIs to mock up an
->>> Synchronous External Abort, (or inject an IRQ or run the vcpu waiting for the
->>> guest's polling thread to come round, whichever was described to the guest via
->>> the HEST/GHES tables).
->>>
->>> We can't hand the APEI CPER records we have in the kernel to the guest, as they
->>> hold a host physical address, and maybe a host virtual address. We don't know
->>> where in guest memory we could write new APEI CPER records as these locations
->>> have to be reserved in the guests-UEFI memory map, and only QEMU knows where
->>> they are.
->>>
->>> To deliver RAS events to a guest we have to get QEMU involved.
-> 
->> I have another idea about the handling procedure of SEA. Can we divide
->> the SEA handing procedure into two procedures? The first procedure does
->> the more urgent work, including sending SIGBUS to user process or panic,
->> just as PATCH 04/10 does.
-> 
-> How do we know which user processes to signal? (There may be more than one - we
-> need a memory address to find them).
-> How do we know if this error is serious and we should panic?
-> This information is in the APEI CPER records.
-> 
-Since the SEA exception is synchronous, the current user process is the
-one to be signaled if the exception is taken from EL0. Certainly, the
-error memory may be mapped to several processes. When another process
-read that area again, another SEA will be generated, and that process
-will be signaled. Also we can get the virtual address of the error data
-from FAR_EL1. When the user process is signaled, virtual address is
-attached, and the process can register its own signal handler if it can
-handle the error according to the virtual address of the error data.
-
-We can determine where the exception is taken from according to CPSR
-stored in the stack. And if the exception is taken from EL1, the error
-is in the kernel space now, and we are going to consume it, so we need
-to panic now.
-> 
->> The second procedure does the APEI analysis
->> work, including calling memory_failure. The second procedure is executed
->> when actual errors detected in memory, such as a 2-bit ECC error is
->> detected  on memory read or write, in which case, a fault handling
->> interrupt is generated by the memory controller, as RAS Extension
->> specification says.
-> 
-> You are splitting the APEI notification and the processing of records. One has
-> to happen immediately after the other because we want to contain the error.
-> 
-My understanding is that processing of records is not so urgent since
-the process access the error data has been killed (The first procedure
-is executed in SEA exception handler). Other codes won't access the
-error data, so the error won't be consumed and propagated.
-> 
->> We can route this fault handling interrupt into EL3. After BIOS has
->> filled the HEST table, it can notify OS with an IRQ. And the second
->> procedure is executed in the IRQ handler. The notification type of
->> HEST/GHES tables is GSIV.
->>
->> When uncorrectable data error is detected on write data, a fault
->> handling interrupt is generated, and no SEA is generated,
-> 
-> This sounds more like ACPI's firmware first error handling. Yes errors should be
-> routed to EL3 where firmware can do some platform-specific work, then describe
-> them to the host OS via CPER records.
-
-Yes , I'm saying the ACPI's firmware first error handling.
-
-> By doing this, you could prevent a hardware-generated External Abort reaching
-> the host OS, but you still need to notify the OS via one of the mechanisms in
-> '18.3.2.9 Hardware Error Notification'.
-
-Yes, the BIOS will notify OS with GSIV notify type, which will rely on
-Shiju's patch 'acpi: apei: handle GSIV notification type'
-
-> 
-> If the error is synchronous (we read a bad page of memory instead of it being
-> detected on background DRAM scrub) we need to notify the OS synchronously. Using
-> SEA would be a firmware-generated External Abort delivered to EL2/EL1.
-
-Yes, the first procedure is executed in SEA exception handler and is
-synchronous. The second procedure won't access the error data and is not
-so urgent, so it may not need to be synchronous.
-> 
-> However the notification is done it needs to match one of the GHES records in
-> the HEST, so firmware has to decide which notification methods it will use
-> before we boot the OS.
-> 
-> 
->> In ARM/arm64 KVM situation, when an SEA takes place, an SEA is injected
->> into guest os directly in kvm_handle_guest_abort(). And the guest os can
->> execute the first procedure.
-> 
-> What can the guest do with this? Without the APEI CPER records it doesn't know
-> what happened. Was it unrecoverable memory corruption? In which case killing the
-> running task is a start... Which memory ranges should we mark as unusable? Maybe
-> it was something more catastrophic for the running CPU, in which case we should
-> panic().
-> 
-If an SEA is injected into guest OS, the guest OS will jump to the SEA
-exception entry when the context switched to guest OS. And the CPSR and
-FAR_EL1 are recovered according to the content of vcpu. Then the guest
-OS can signal a process or panic. If another guest process read the
-error data, another SEA will be generated and it will be single too.
-
-Without QEMU involved, the drawback is that no APEI table can be mocked
-up in guest OS, and no memory_failure() will be called. So the memory of
-error data will be released into buddy system and assigned to another
-process. If the error was caused by instantaneous radiation or
-electromagnetic, the memory is usable again if it is written with a
-correct data. If the memory has wore out and a correct data is written,
-the ECC error may occurs again with high possibility. Before a 2-bit ECC
-error is reported, much more 1-bit errors will be reported. This is
-report to host os, the host os can determine the memory node has worn
-out and hot-plug out the memory node, and guest os may be terminated if
-its memory data can't be migrated.
-
-Of course, it is better to get QEMU involved, so the memory_failure can
-be executed in guest OS. But before that implemented, can we add SEA
-injection in kvm_handle_guest_abort()?
-> 
->> When the host OS executes the second procedure and analyses the HEST
->> table, it sends SIGBUS to qemu process in memory_failure(). And the qemu
->> process can mock up a HEST table with IPA of the error data. Then the
->> qemu process can notify the guest OS with an IRQ, and the second
->> procedure is executed in guest OS. Is this idea reasonable?
-> 
-> So we tell the guest something happened, and it should wait a while to find out
-> what... I don't think this will work. It is best to not run the guest until Qemu
-> has done its work and called VCPU_RUN again. This way we only notify the guest
-> once the records are available for processing. This is how APEI's firmware-first
-> works between the host OS and EL3, it should be the same between a guest and
-> QEMU (which plays the part of firmware for the guest).
-> 
-> 
-> Can you share more details of the problem you are trying to solve? I don't think
-> we can get RAS support in a guest 'for free', somewhere along the line we need
-> support from Qemu.
-> 
-
-
-Thanks,
-
-Wang Xiongfeng
-
-.
+SGksIA0KDQo+IEZyb206IFNldW5naHVuIEhhbiBbbWFpbHRvOmtrYW1hZ3VpQGdtYWlsLmNvbV0N
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2Ml0gYWNwaTogYWNwaWNhOiBmaXggYWNwaSBvcGVyYW5k
+IGNhY2hlIGxlYWsNCj4gDQo+IEhlbGxvLCBMdiBhbmQgUmFmYWVsLg0KPiANCj4gSSBjaGVja2Vk
+IHRoYXQgbXkgcGF0Y2ggd2FzIG1lcmdlZCB0byBBQ1BJQ0EgcHJvamVjdC4NCj4gVGhhbmsgeW91
+IGZvciB5b3VyIG5vdGljZS4NCj4gDQo+IEkgYWRkZWQgYW4gYW5hbHlzaXMgcmVwb3J0IHdoaWNo
+IGhhcyB0aGUgcm9vdCBjYXVzZSBvZiB0aGlzIHByb2JsZW0gYmVsb3cuDQo+IA0KPiAyMDE3LTAy
+LTI3IDExOjQ1IEdNVCswOTowMCBaaGVuZywgTHYgPGx2LnpoZW5nQGludGVsLmNvbT46DQo+ID4g
+SGksIFJhZmFlbA0KPiA+DQo+ID4+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwu
+b3JnIFttYWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBP
+Zg0KPiBSYWZhZWwgSi4NCj4gPj4gV3lzb2NraQ0KPiA+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYy
+XSBhY3BpOiBhY3BpY2E6IGZpeCBhY3BpIG9wZXJhbmQgY2FjaGUgbGVhaw0KPiA+Pg0KPiA+PiBP
+biBGcmksIEZlYiAyNCwgMjAxNyBhdCAxMTozNyBQTSwgU2V1bmdodW4gSGFuIDxra2FtYWd1aUBn
+bWFpbC5jb20+IHdyb3RlOg0KPiA+PiA+IEhpLCBSYWZhZWwuDQo+ID4+ID4NCj4gPj4gPiBJIGFn
+cmVlIHdpdGggeW91IGFuZCBJIGFkZGVkIG15IG9waW5pb24gYmVsb3cuDQo+ID4+ID4NCj4gPj4g
+PiAyMDE3LTAyLTI1IDE6NTAgR01UKzA5OjAwIFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNv
+Y2tpLm5ldD46DQo+ID4+ID4+IE9uIEZyaWRheSwgRmVicnVhcnkgMjQsIDIwMTcgMDk6NTY6MjEg
+UE0gU2V1bmdodW4gSGFuIHdyb3RlOg0KPiA+PiA+Pj4gSGksIFJhZmVhbC4NCj4gPj4gPj4+DQo+
+ID4+ID4+PiBJIGFkZGVkIG15IG9waW5pb24gYmVsb3cuDQo+ID4+ID4+Pg0KPiA+PiA+Pj4gMjAx
+Ny0wMi0yNCAyMToxMyBHTVQrMDk6MDAgUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2ku
+bmV0PjoNCj4gPj4gPj4+ID4gT24gRnJpZGF5LCBGZWJydWFyeSAyNCwgMjAxNyAwOToxNTo1MiBQ
+TSBTZXVuZ2h1biBIYW4gd3JvdGU6DQo+ID4+ID4+PiA+PiBIaSwgUmFmYWVsLg0KPiA+PiA+Pj4g
+Pj4NCj4gPj4gPj4+ID4+IEkgYWRkZWQgbXkgb3BpbmlvbiBiZWxvdy4NCj4gPj4gPj4+ID4+DQo+
+ID4+ID4+PiA+PiAyMDE3LTAyLTI0IDIwOjUwIEdNVCswOTowMCBSYWZhZWwgSi4gV3lzb2NraSA8
+cmp3QHJqd3lzb2NraS5uZXQ+Og0KPiA+PiA+Pj4gPj4gPiBPbiBGcmlkYXksIEZlYnJ1YXJ5IDI0
+LCAyMDE3IDA4OjUyOjQyIFBNIFNldW5naHVuIEhhbiB3cm90ZToNCj4gPj4gPj4+ID4+ID4+IEhp
+LCBMdiBaaGVuZy4NCj4gPj4gPj4+ID4+ID4+DQo+ID4+ID4+PiA+PiA+PiBJIGFkZGVkIG15IGhh
+bmRjcmFmdGVkIEFDUEkgdGFibGUgdW5kZXIgeW91ciByZXF1ZXN0LCBiZWNhdXNlDQo+ID4+ID4+
+PiA+PiA+PiAiYWNwaWR1bXAgLWMgb24iIGFuZCAiYWNwaWR1bXAgLWMgb2ZmIiBkb2Vzbid0IHdv
+cmsuDQo+ID4+ID4+PiA+PiA+Pg0KPiA+PiA+Pj4gPj4gPj4gMjAxNy0wMi0yMSAxOTozNiBHTVQr
+MDk6MDAgU2V1bmdodW4gSGFuIDxra2FtYWd1aUBnbWFpbC5jb20+Og0KPiA+PiA+Pj4gPj4gPj4g
+PiBIZWxsbywNCj4gPj4gPj4+ID4+ID4+ID4NCj4gPj4gPj4+ID4+ID4+ID4gSSBhdHRhY2hlZCB0
+aGUgdGVzdCByZXN1bHRzIGJlbG93LA0KPiA+PiA+Pj4gPj4gPj4gPg0KPiA+PiA+Pj4gPj4gPj4g
+PiAyMDE3LTAyLTIxIDk6NTMgR01UKzA5OjAwIFJvd2FmYWVsIEouIFd5c29ja2kgPHJqd0Byand5
+c29ja2kubmV0PjoNCj4gPj4gPj4+ID4+ID4+ID4+IE9uIFR1ZXNkYXksIEZlYnJ1YXJ5IDIxLCAy
+MDE3IDEyOjMzOjA4IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4gPj4gPj4+ID4+ID4+ID4+PiBIaSwN
+Cj4gPj4gPj4+ID4+ID4+ID4+Pg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gRnJvbTogbGludXgtYWNw
+aS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2Vy
+bmVsLm9yZ10gT24NCj4gPj4gQmVoYWxmIE9mIFNldW5naHVuDQo+ID4+ID4+PiA+PiA+PiA+Pj4g
+PiBIYW4NCj4gPj4gPj4+ID4+ID4+ID4+PiA+IFN1YmplY3Q6IFtQQVRDSCB2Ml0gYWNwaTogYWNw
+aWNhOiBmaXggYWNwaSBvcGVyYW5kIGNhY2hlIGxlYWsNCj4gPj4gPj4+ID4+ID4+ID4+PiA+DQo+
+ID4+ID4+PiA+PiA+PiA+Pj4gPiBJJ20gU2V1bmdodW4gSGFuLCBhbmQgSSB3b3JrIGZvciBOYXRp
+b25hbCBTZWN1cml0eSBSZXNlYXJjaCBJbnN0aXR1dGUgb2YNCj4gPj4gPj4+ID4+ID4+ID4+PiA+
+IFNvdXRoIEtvcmVhLg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4NCj4gPj4gPj4+ID4+ID4+ID4+PiA+
+IEkgaGF2ZSBiZWVuIGRvaW5nIGEgcmVzZWFyY2ggb24gQUNQSSBhbmQgbWFraW5nIGEgaGFuZGNy
+YWZ0ZWQgQUNQSSB0YWJsZQ0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gZm9yIG15IHJlc2VhcmNoLg0K
+PiA+PiA+Pj4gPj4gPj4gPj4+ID4gRXJyb3JzIG9mIGhhbmRjcmFmdGVkIEFDUEkgdGFibGVzIGFy
+ZSBoYW5kbGVkIHdlbGwgaW4gTGludXgga2VybmVsIHdoaWxlIGJvb3QNCj4gPj4gPj4+ID4+ID4+
+ID4+PiA+IHByb2Nlc3MsIGFuZCBMaW51eCBrZXJuZWwgZ29lcyB3ZWxsIHdpdGhvdXQgY3JpdGlj
+YWwgcHJvYmxlbXMuDQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiBCdXQgSSBmb3VuZCBzb21lIEFDUEkg
+b3BlcmFuZCBjYWNoZSBsZWFrcyBpbiBBQ1BJIGVhcmx5IGFib3J0IGNhc2VzLg0KPiA+PiA+Pj4g
+Pj4gPj4gPj4+ID4NCj4gPj4gPj4+ID4+ID4+ID4+PiA+IEJvb3QgbG9nIG9mIEFDUEkgb3BlcmFu
+ZCBjYWNoZSBsZWFrIGlzIGFzIGZvbGxvd3M6DQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAw
+LjE3NDMzMl0gQUNQSTogQWRkZWQgX09TSShNb2R1bGUgRGV2aWNlKQ0KPiA+PiA+Pj4gPj4gPj4g
+Pj4+ID4gPlsgICAgMC4xNzU1MDRdIEFDUEk6IEFkZGVkIF9PU0koUHJvY2Vzc29yIERldmljZSkN
+Cj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTc2MDEwXSBBQ1BJOiBBZGRlZCBfT1NJKDMu
+MCBfU0NQIEV4dGVuc2lvbnMpDQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE3NzAzMl0g
+QUNQSTogQWRkZWQgX09TSShQcm9jZXNzb3IgQWdncmVnYXRvciBEZXZpY2UpDQo+ID4+ID4+PiA+
+PiA+PiA+Pj4gPiA+WyAgICAwLjE3ODI4NF0gQUNQSTogU0NJIChJUlExNjcwNSkgYWxsb2NhdGlv
+biBmYWlsZWQNCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTc5MzUyXSBBQ1BJIEV4Y2Vw
+dGlvbjogQUVfTk9UX0FDUVVJUkVELCBVbmFibGUgdG8gaW5zdGFsbCBTeXN0ZW0gQ29udHJvbA0K
+PiA+PiBJbnRlcnJ1cHQgaGFuZGxlcg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gKDIwMTYwOTMwL2V2
+ZXZlbnQtMTMxKQ0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODAwMDhdIEFDUEk6IFVu
+YWJsZSB0byBzdGFydCB0aGUgQUNQSSBJbnRlcnByZXRlcg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4g
+PlsgICAgMC4xODExMjVdIEFDUEkgRXJyb3I6IENvdWxkIG5vdCByZW1vdmUgU0NJIGhhbmRsZXIg
+KDIwMTYwOTMwL2V2bWlzYy0yODEpDQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4NDA2
+OF0ga21lbV9jYWNoZV9kZXN0cm95IEFjcGktT3BlcmFuZDogU2xhYiBjYWNoZSBzdGlsbCBoYXMg
+b2JqZWN0cw0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODUzNThdIENQVTogMCBQSUQ6
+IDEgQ29tbTogc3dhcHBlci8wIE5vdCB0YWludGVkIDQuMTAuMC1yYzMgIzINCj4gPj4gPj4+ID4+
+ID4+ID4+PiA+ID5bICAgIDAuMTg2ODIwXSBIYXJkd2FyZSBuYW1lOiBpbm5vdGVrIEdtYkggVmly
+dHVhbEJveC9WaXJ0dWFsQm94LCBCSU9TIFZpcnR1YWxCb3gNCj4gPj4gMTIvMDEvMjAwNg0KPiA+
+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdIENhbGwgVHJhY2U6DQo+ID4+ID4+PiA+
+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gZHVtcF9zdGFjaysweDVjLzB4N2QNCj4gPj4g
+Pj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBrbWVtX2NhY2hlX2Rlc3Ryb3krMHgy
+MjQvMHgyMzANCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBhY3BpX3Ns
+ZWVwX3Byb2NfaW5pdCsweDIyLzB4MjINCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4
+MDAwXSAgPyBhY3BpX29zX2RlbGV0ZV9jYWNoZSsweGEvMHhkDQo+ID4+ID4+PiA+PiA+PiA+Pj4g
+PiA+WyAgICAwLjE4ODAwMF0gID8gYWNwaV91dF9kZWxldGVfY2FjaGVzKzB4M2YvMHg3Yg0KPiA+
+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IGFjcGlfdGVybWluYXRlKzB4NS8w
+eGYNCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBhY3BpX2luaXQrMHgy
+ODgvMHgzMmUNCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBfX2NsYXNz
+X2NyZWF0ZSsweDRjLzB4ODANCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAg
+PyB2aWRlb19zZXR1cCsweDdhLzB4N2ENCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4
+MDAwXSAgPyBkb19vbmVfaW5pdGNhbGwrMHg0ZS8weDFiMA0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4g
+PlsgICAgMC4xODgwMDBdICA/IGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MTk0LzB4MjFhDQo+ID4+
+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gcmVzdF9pbml0KzB4ODAvMHg4MA0K
+PiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IGtlcm5lbF9pbml0KzB4YS8w
+eDEwMA0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IHJldF9mcm9tX2Zv
+cmsrMHgyNS8weDMwDQo+ID4+ID4+PiA+PiA+PiA+Pj4NCj4gPj4gPj4+ID4+ID4+ID4+PiBJJ20g
+bW9yZSBpbnRlcmVzdGVkIGluIHRoZSB3YXkgb2YgdHJpZ2dlcmluZyBBRV9OT1RfQUNRVUlSRUQg
+ZXJyb3IuDQo+ID4+ID4+PiA+PiA+PiA+Pj4gU28gY291bGQgeW91IHNlbmQgdXMgdGhlIGhhbmRj
+cmFmdGVkIEFDUEkgdGFibGUgb3IgYm90aCB0aGUgImFjcGlkdW1wIC1jIG9uIiBhbmQNCj4gPj4g
+ImFjcGlkdW1wIC1jIG9mZiIgb3V0cHV0Pw0KPiA+PiA+Pj4gPj4gPj4NCj4gPj4gPj4+ID4+ID4+
+IEkgbW9kaWZpZWQgRkFDUCwgRkFDUywgQVBJQyB0YWJsZSBpbiBWaXJ0dWFsQm94IGZvciBMaW51
+eC4NCj4gPj4gPj4+ID4+ID4+IEhlcmUgYXJlIHJhdyBkdW1wcyBvZiB0YWJsZS4NCj4gPj4gPj4+
+ID4+ID4NCj4gPj4gPj4+ID4+ID4gU28sIGV4Y3VzZSBtZSwgYnV0IHdoYXQncyB0aGUgc2VjdXJp
+dHkgaXNzdWUgaGVyZT8NCj4gPj4gPj4+ID4+ID4NCj4gPj4gPj4+ID4+ID4gWW91IGhhY2tlZCB5
+b3VyIEFDUEkgdGFibGVzIGludG8gcGllY2VzIHdoaWNoIHJlcXVpcmVzIHJvb3QgcHJpdmlsZWdl
+cyBhbnl3YXkuDQo+ID4+ID4+PiA+PiA+DQo+ID4+ID4+PiA+PiA+IFRoYW5rcywNCj4gPj4gPj4+
+ID4+ID4gUmFmYWVsDQo+ID4+ID4+PiA+PiA+DQo+ID4+ID4+PiA+Pg0KPiA+PiA+Pj4gPj4gQXMg
+eW91IG1lbnRpb25lZCBlYXJsaWVyLCBJIGhhY2tlZCBteSBBQ1BJIHRhYmxlIGZvciByZXNlYXJj
+aCwgc28gaXQgc2VlbXMgdGhhdA0KPiA+PiA+Pj4gPj4gaXQgaXMgbm90IGEgc2VjdXJpdHkgaXNz
+dWUuDQo+ID4+ID4+PiA+Pg0KPiA+PiA+Pj4gPj4gQnV0LCBpZiBuZXcgbWFpbmJvYXJkIGFyZSBy
+ZWxlYXNlZCBhbmQgdGhleSBoYXZlIGEgdmVuZG9yLXNwZWNpZmljIEFDUEkgdGFibGUNCj4gPj4g
+Pj4+ID4+IHdoaWNoIGhhcyBpbnZhbGlkIGRhdGEsIHRoZSBvbGQgdmVyc2lvbiBvZiBrZXJuZWwg
+KDw9NC45KSB3aWxsIHBvc3NpYmx5IGV4cG9zZQ0KPiA+PiA+Pj4gPj4ga2VybmVsIGFkZHJlc3Mg
+YW5kIEtBU0xSIHdpbGwgYmUgbmV1dHJhbGl6ZWQgdW5pbnRlbnRpb25hbGx5Lg0KPiA+PiA+Pj4g
+Pg0KPiA+PiA+Pj4gPiBCdXQgdGhhdCB3b3VsZCBtZWFuIGEgYmFzaWNhbGx5IG5vbi1mdW5jdGlv
+bmFsIHN5c3RlbSwgc28gSSdtIG5vdCBzdXJlIGhvdw0KPiA+PiA+Pj4gPiBhbnlvbmUgY2FuIGFj
+dHVhbGx5IHRha2UgYWR2YW50YWdlIG9mIHRoZSAiS0FTTFIgbmV1dHJhbGl6YXRpb24iLg0KPiA+
+PiA+Pj4NCj4gPj4gPj4+IEkgdGhpbmsgYW4gYXR0YWNrZXIgY2FuIHRha2UgYWR2YW50YWdlIG9m
+IHRoZSAiS0FTTFIgbmV1dHJhbGl6YXRpb24iLiBBcyB5b3UNCj4gPj4gPj4+IGtub3csIEtBU0xS
+IGlzIGdvb2QgdGVjaG5vbG9neSB0byBwcm90ZWN0IGtlcm5lbCBmcm9tIGtlcm5lbCBleHBsb2l0
+cy4NCj4gPj4gPj4+DQo+ID4+ID4+PiBJZiB0aGUga2VybmVsIGhhcyB2dWxuZXJhYmlsaXRpZXMs
+IHRoZSBhdHRhY2tlciBjYW4gbWFrZSBleHBsb2l0IHVzaW5nIHRoZW0uDQo+ID4+ID4+PiBCdXQs
+IHRoZSBleHBsb2l0IHVzdWFsbHkgbmVlZHMgZ2FkZ2V0cyAoc21hbGwgY29kZSksIHRoZXJlZm9y
+ZSB0aGUgYXR0YWNrZXINCj4gPj4gPj4+IHNob3VsZCBrbm93IHdoZXJlIHRoZSBnYWRnZXRzIGFy
+ZSBpbiBrZXJuZWwuIElmIHRoZSBLQVNMUiBpcyB3b3JraW5nIGluIGtlcm5lbCwNCj4gPj4gPj4+
+IHRoZSBhdHRhY2tlciBzaG91bGQgZmluZCB0aGUgYWN0dWFsIGtlcm5lbCBhZGRyZXNzLCBhbmQg
+aGUgY2FuIGdldCBrZXJuZWwNCj4gPj4gPj4+IGFkZHJlc3MgaW5mb3JtYXRpb24gZnJvbSBrZXJu
+ZWwgd2FybmluZy4NCj4gPj4gPj4NCj4gPj4gPj4gSWYgdGhlIHN5c3RlbSBiYXNpY2FsbHkgZG9l
+c24ndCB3b3JrLCB0aGF0IGluZm9ybWF0aW9uIGlzbid0ICBwYXJ0aWN1bGFybHkgdXNlZnVsLg0K
+PiA+PiA+Pg0KPiA+PiA+Pj4gPj4gSSBrbm93IHRoZSB2ZW5kb3JzIGNvbGxhYm9yYXRlIHdpdGgg
+TGludXgga2VybmVsIGRldmVsb3BlcnMsIGJ1dCB0aGUgcHJvYmxlbQ0KPiA+PiA+Pj4gPj4gY2Fu
+IHN0aWxsIG9jY3VyLg0KPiA+PiA+Pj4gPj4NCj4gPj4gPj4+ID4+IEhhcmR3YXJlIHZlbmRvcnMg
+cmVsZWFzZSBzbyBtYW55IGtpbmRzIG9mIG1haW5ib2FyZCBpbiBhIHllYXIsIGFuZCB0aGUgbWFq
+b3INCj4gPj4gPj4+ID4+IExpbnV4IGRpc3Ryb3MgKFVidW50dSwgRmVkb3JhLCBldGMuKSB3aWxs
+IGhhdmUgNC44IGtlcm5lbCBmb3IgYSBsb25nIHRpbWUuDQo+ID4+ID4+PiA+Pg0KPiA+PiA+Pj4g
+Pj4gRm9yIHRoaXMgcmVhc29uLCBJIHRoaW5rIHRoaXMgaXNzdWUgaGFzIGEgc2VjdXJpdHkgYXNw
+ZWN0Lg0KPiA+PiA+Pj4gPg0KPiA+PiA+Pj4gPiBXZWxsLCBub3QgcXVpdGUgSU1PLg0KPiA+PiA+
+Pj4gPg0KPiA+PiA+Pj4gPiBJZiB0aGUgc3lzdGVtIG5lZWRzIEFDUEkgdGFibGVzIGFuZCB0aGUg
+a2VybmVsIGNhbm5vdCB1c2UgdGhlbSwgaXQganVzdCB3b24ndA0KPiA+PiA+Pj4gPiB3b3JrIG5v
+IG1hdHRlciB3aGF0Lg0KPiA+PiA+Pj4gPg0KPiA+PiA+Pj4gPiBUaGFua3MsDQo+ID4+ID4+PiA+
+IFJhZmFlbA0KPiA+PiA+Pj4gPg0KPiA+PiA+Pj4gWWVzLCB5b3UgYXJlIHJpZ2h0LiBCdXQsIExp
+bnV4IGtlcm5lbCBoYXMgd2VsbC1kZWZpbmVkIGV4Y2VwdGlvbiBoYW5kbGVycywgc28NCj4gPj4g
+Pj4+IHNvbWUgc3lzdGVtcyBtYXkgd29yayBmaW5lIGxpa2UgbXkgdGVzdCBtYWNoaW5lLiBNb3Jl
+b3ZlciB0aGUgdXNlcnMgbWF5IG5vdA0KPiA+PiA+Pj4gcmVjb2duaXplIHdoYXQgdGhlIHByb2Js
+ZW0gaXMsIGFuZCBJIHRoaW5rIHRoYXQgdGhleSB3aWxsIHVzZSB0aGUgc3lzdGVtIGluDQo+ID4+
+ID4+PiBpbnNlY3VyZSBzdGF0dXMgZm9yIGEgbG9uZyB0aW1lLg0KPiA+PiA+Pg0KPiA+PiA+PiBB
+IHZpcnR1YWwgYm94IG9yIGEgZ3Vlc3QgY2FuIHJ1biB3aXRob3V0IEFDUEkgdGFibGVzLiAgQSBi
+YXJlIG1ldGFsIHN5c3RlbQ0KPiA+PiA+PiB3aGVyZSBBQ1BJIHRhYmxlcyBhcmUgbmVjZXNzYXJ5
+IHdpbGwgYmUgbW9yZS1vci1sZXNzIHVudXNhYmxlIGlmIHRoZSBrZXJuZWwNCj4gPj4gPj4gY2Fu
+bm90IHVzZSB0aGVtIChpdCB3b24ndCBiZSBhYmxlIHRvIGRldGVjdCBpbnRlcnJ1cHQgY29udHJv
+bGxlcnMgYW5kIHRoZSBQQ0kNCj4gPj4gPj4gaG9zdCBicmlkZ2UganVzdCBmb3Igc3RhcnRlcnMp
+Lg0KPiA+PiA+Pg0KPiA+PiA+PiBSdW5uaW5nIGEgZ3Vlc3Qgd2l0aCB0b3RhbGx5IGJyb2tlbiBB
+Q1BJIHRhYmxlcyByZXF1aXJlcyByb290IHByaXZpbGVnZXMgb24gdGhlDQo+ID4+ID4+IGhvc3Qu
+ICBSdW5uaW5nIGEgYmFyZSBtZXRhbCBzeXN0ZW0gd2l0aCB0b3RhbGx5IGJyb2tlbiBBQ1BJIHRh
+YmxlcyAod2hpY2ggc2VlbXMNCj4gPj4gPj4gdG8gYmUgeW91ciBiYXNpYyBjb25jZXJuKSBtYXkg
+YmUgYSBnb29kIHJlc2VhcmNoIHByb2plY3QsIGJ1dCBub2JvZHkgd2lsbCBkbw0KPiA+PiA+PiB0
+aGF0IGluIHByYWN0aWNlLiAgQW5kIGV2ZXJ5Ym9keSB3aG8gdHJpZXMgdGhhdCB3aWxsIG5vdGlj
+ZSB3aGF0J3MgZ29pbmcgb24uDQo+ID4+ID4+DQo+ID4+ID4+IFllcywgeW91IGZvdW5kIGEgYnVn
+LCBidXQgSSBzdGlsbCBhbSBub3QgY29udmluY2VkIGFib3V0IGhvdyB0aGlzIGlzIHNlY3VyaXR5
+LXJlbGF0ZWQuDQo+ID4+ID4NCj4gPj4gPiBJIHRvdGFsbHkgYWdyZWUgd2l0aCB5b3UgdGhhdCB0
+aGlzIGNhc2UgaXMgbm90IGluIHByYWN0aWNlIG5vdy4NCj4gPj4gPiBJIGp1c3Qgc3RhcnRlZCBy
+ZXNlYXJjaGluZyBvbiBBQ1BJLCBhbmQgSSBkb24ndCBoYXZlIGVub3VnaCBpZGVhcyB0byBvY2N1
+cg0KPiA+PiA+IGEgc2VjdXJpdHkgcHJvYmxlbSB1c2luZyBhIGJ1Zy4gSSBqdXN0IHRoaW5rIHRo
+YXQgaXQgaGFzIGEgbGl0dGxlIHBvc3NpYmlsaXR5DQo+ID4+ID4gd2hpY2ggaXMgc2VjdXJpdHkt
+cmVsYXRlZC4NCj4gPj4gPg0KPiA+PiA+IFRoYW5rIHlvdSBzbyBtdWNoIGZvciB5b3VyIGd1aWRl
+cy4NCj4gPj4gPiBJdCBoZWxwcyBtZSBhIGxvdCB0byBjaGFuZ2UgbXkgcmVzZWFyY2ggZGlyZWN0
+aW9uLg0KPiA+PiA+DQo+ID4+ID4gU28sIGNvdWxkIG15IHBhdGNoIGJlIG1lcmdlZCBpbiBuZXh0
+IGtlcm5lbCAoNC4xMSByYy0xKT8gb3IgZG8gSSBuZWVkIHRvIGRvDQo+ID4+ID4gc29tZXRoaW5n
+IGZvciBpdD8NCj4gPj4gPiBQbGVhc2UgbGV0IG1lIGtub3cuDQo+ID4+DQo+ID4+IEdlbmVyYWxs
+eSwgQUNQSUNBIHBhdGNoZXMgKGFuZCB0aGlzIGlzIG9uZSBvZiB0aGVtKSBoYXZlIHRvIGdvIGlu
+IHZpYQ0KPiA+PiB0aGUgdXBzdHJlYW0gQUNQSUNBIHByb2plY3QgbWFpbnRhaW5lZCBieSBCb2Ig
+TW9vcmUgYW5kIEx2LiAgUGxlYXNlDQo+ID4+IHNlZSBNQUlOVEFJTkVSUyBmb3IgcG9pbnRlcnMg
+dG8gdGhlIG1haWxpbmcgbGlzdCBldGMuDQo+ID4+DQo+ID4+IEx2LCBjYW4geW91IHBsZWFzZSBh
+ZHZpc2Ugb24gdGhlIG5leHQgc3RlcHM/DQo+ID4NCj4gPiBJIGFscmVhZHkgZ2F2ZSBteSBhZHZp
+Y2VzLg0KPiA+IFRoZSBmaXggd2FzIE9LIHRvIG1lIGFuZCBJIGJhY2sgcG9ydGVkIGl0IHRvIEFD
+UElDQToNCj4gPiBodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9wdWxsLzIwNg0KPiA+
+IEhvd2V2ZXIgaXQgZml4ZXMgYSBjb2RlIHBhdGggdGhhdCBpbiB0aGVvcnkgc2hvdWxkbid0IGJl
+IGludm9rZWQgaW4gTGludXgga2VybmVsLg0KPiA+IEJ1dCBhbnl3YXkgaXQgd2FzIG1lcmdlZCBh
+bmQgeW91IHdpbGwgc2VlIGl0IGluIHRoZSBuZXh0IEFDUElDQSByZWxlYXNlLg0KPiA+DQo+ID4g
+SSBhc2tlZCBIYW4gZm9yIHRoZSBoYW5kY3JhZnRlZCBBQ1BJIHRhYmxlLg0KPiA+IEFuZCBvYnRh
+aW5lZCB0aGF0Og0KPiA+IEFDUEk6IEZBQ1AgMHgwMDAwMDAwMERGRkYwMEYwIDAwMDBGNCAodjA0
+IFZCT1ggVkJPWEZBQ1AgMDAwMDAwMDEgQVNMICAwMDAwMDA2MSkNCj4gPiAweDAwMDA6IDQ2IDQx
+IDQzIDUwIEY0IDAwIDAwIDAwIDA0IDYwIDU2IDQyIDRGIDU4IDIwIDIwDQo+ID4gMHgwMDEwOiA1
+NiA0MiA0RiA1OCA0NiA0MSA0MyA1MCAwMSAwMCAwMCAwMCA0MSA1MyA0QyAyMA0KPiA+IDB4MDAy
+MDogNjEgMDAgMDAgMDAgMDAgMDIgRkYgREYgODAgMDQgRkYgREYgNDEgNDEgNDEgNDENCj4gPiAw
+eDAwMzA6IDJFIDQ0IDAwIDAwIEExIEEwIDAwIDAwIDAwIDQwIDAwIDAwIDAwIDAwIDAwIDAwDQo+
+ID4gMHgwMDQwOiAwNCA0MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwOCA0MCAwMCAw
+MA0KPiA+IDB4MDA1MDogMjAgNDAgMDAgMDAgMDAgMDAgMDAgMDAgMDQgMDIgMDAgMDQgMDIgMDAg
+MDAgMDANCj4gPiAweDAwNjA6IDY1IDAwIEU5IDAzIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAzIDAwIDAwDQo+ID4gMHgwMDcwOiA0MSAwNSAwMCAwMCAwMSAwOCAwMCAwMSA1MCA0MCAwMCAw
+MCAwMCAwMCAwMCAwMA0KPiA+IDB4MDA4MDogMTAgMDAgMDAgMDAgMDAgMDIgRkYgREYgMDAgMDAg
+MDAgMDAgODAgMDQgRkYgREYNCj4gPiAweDAwOTA6IDAwIDAwIDAwIDAwIDAxIDIwIDAwIDAyIDAw
+IDQwIDAwIDAwIDAwIDAwIDAwIDAwDQo+ID4gMHgwMEEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMSAxMCAwMCAwMg0KPiA+IDB4MDBCMDogMDQgNDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAweDAwQzA6IDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQo+ID4gMHgwMEQwOiAwMSAyMCAwMCAw
+MyAwOCA0MCAwMCAwMCAwMCAwMCAwMCAwMCAwMSAxMCAwMCAwMQ0KPiA+IDB4MDBFMDogMjAgNDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAweDAwRjA6IDAw
+IDAwIDAwIDAwDQo+ID4NCj4gPiBBQ1BJOiBGQUNTIDB4MDAwMDAwMDBERkZGMDIwMCAwMDAwNDAN
+Cj4gPiAweDAwMDA6IDQ2IDQxIDQzIDUzIDQwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwDQo+ID4gMHgwMDEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCA0MSA0MSA0MSA0MSA0
+MSA0MSA0MQ0KPiA+IDB4MDAyMDogMDEgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgNDEgMDAgMDAg
+MDAgMDAgMDAgMDANCj4gPiAweDAwMzA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwDQo+ID4NCj4gPiBBQ1BJOiBBUElDIDB4MDAwMDAwMDBERkZGMDI0MCAw
+MDAwNkMgKHYwMiBWQk9YIFZCT1hBUElDIDAwMDAwMDAxIEFTTCAgMDAwMDAwNjEpDQo+ID4gMHgw
+MDAwOiA0MSA1MCA0OSA0MyA2QyAwMCAwMCAwMCAwMiAyMSA1NiA0MiA0RiA1OCAyMCAyMA0KPiA+
+IDB4MDAxMDogNTYgNDIgNEYgNTggNDEgNTAgNDkgNDMgMDEgMDAgMDAgMDAgNDEgNTMgNEMgMjAN
+Cj4gPiAweDAwMjA6IDYxIDAwIDAwIDAwIDAwIDAwIEUwIEZFIDAxIDAwIDAwIDAwIDAyIDBBIDAw
+IDAwDQo+ID4gMHgwMDMwOiAwMiAwMCAwMCAwMCAwMCAwMCAwMiAwQSAwMCAwOSAwOSAwMCAwMCAw
+MCAwRCAwMA0KPiA+IDB4MDA0MDogMDAgMDggMDAgMDAgMDEgMDAgNDEgNDEgNDEgNDEgNDEgNDEg
+NDEgNDEgNDEgMDANCj4gPiAweDAwNTA6IDAwIDA4IDAyIDAyIDAxIDAwIDAwIDAwIDAwIDA4IDAz
+IDAzIDAxIDAwIDAwIDAwDQo+ID4gMHgwMDYwOiAwMSAwQyAwNCAwMCAwMCAwMCBDMCBGRSAwMCAw
+MCAwMCAwMA0KPiA+DQo+ID4gV2hlcmUgdGhlcmUgaXMgc3RpbGwgbm8gQU1MIHRhYmxlcyBhbmQg
+dGhlIGZhaWx1cmUgaW4gdGhlIHBhdGNoIGRlc2NyaXB0aW9uIHNlZW1zIHRvIGJlIHJlbGF0ZWQg
+dG8NCj4gdGhlIEFNTCB0YWJsZXMuDQo+ID4gU28gSSdtIHN0aWxsIG5vdCBhd2FyZSBvZiB3aGF0
+IHRoZSAiaGFuZGNyYWZ0ZWQgdGFibGVzIiBtZWFudCB0byB1cyBhbmQgd2hhdCB0aGUgcHJvYmxl
+bSB3YXMuDQo+IA0KPiBBY3R1YWxseSwgSSBkaWQgbm90IGNoYW5nZSBEU0RUIGFuZCBTU0RULiBJ
+IGNoYW5nZWQgb25seSBGQUNQLCBGQUNTIGFuZCBBUElDIGZvcg0KPiBteSBoYW5kY3JhZnRlZCBB
+Q1BJIHRhYmxlLg0KPiANCj4gSSBoYXZlIGFuYWx5emVkIHRoZSByb290IGNhdXNlIG9mIHRoZSBw
+cm9ibGVtLCBhbmQgSSBoYXZlIGZvdW5kIHRoYXQgbXkNCj4gaGFuZGNyYWZ0ZWQgQUNQSSB0YWJs
+ZSBoYXMgdG9vIGJpZyBTQ0kgSVJRIChsaWtlIDE2NzA1KS4NCj4gU28sIGFjcGlfb3NfaW5zdGFs
+bF9pbnRlcnJ1cHRfaGFuZGxlcigpIHdoaWNoIGlzIGNhbGxlZCBieQ0KPiBhY3BpX2VuYWJsZV9z
+dWJzeXN0ZW0oKQ0KPiB3YXMgZmFpbGVkIGFuZCByZXR1cm5lZCBBRV9OT1RfQUNRVUlSRUQgKDB4
+MTQpIHdpdGggIkFDUEk6IFNDSSAoSVJRMTY3MDUpDQo+IGFsbG9jYXRpb24gZmFpbGVkIiBsb2cu
+DQoNClRoYW5rcyBmb3IgdGhlIGV4cGxhbmF0aW9uLg0KVGhlcmUgZG9lc24ndCBzZWVtIHRvIGJl
+IGFueSByZXF1aXJlZCBhZGRpdGlvbmFsIGZpeCBmb3Igc3VjaCBhIHdyb25nIHNjaSBpcnEgIy4N
+CldoaWNoIGNhbiByZWxlYXNlIG1lIGZyb20gdGhlIHRyaWdnZXJlZCBlcnJvciBub3cuIDopDQoN
+Cj4gDQo+IEJlY2F1c2Ugb2YgZXJyb3IgY29kZSwgYWNwaV9idXNfaW5pdCgpLCB0aGUgY2FsbGVy
+IG9mIGFjcGlfZW5hYmxlX3N1YnN5c3RlbSgpLA0KPiBzaG93ZWQgIlVuYWJsZSB0byBzdGFydCB0
+aGUgQUNQSSBJbnRlcnByZXRlciIgYW5kIGNhbGxlZCBhY3BpX3Rlcm1pbmF0ZSgpIGZvcg0KPiBl
+eGNlcHRpb24gaGFuZGxpbmcuIEFmdGVyIGNhbGxpbmcgYWNwaV90ZXJtaW5hdGUoKSwgYXMgeW91
+IGtub3csIGNhY2hlIGxlYWsNCj4gb2NjdXJyZWQuDQo+IFRoaXMgbWVhbnMgdGhhdCBlcnJvciBv
+ZiBhY3BpX2xvYWRfdGFibGVzKCksIGFjcGlfaW5pdGlhbGl6ZV9vYmplY3RzKCksDQo+IGFjcGlf
+YnVzX2luaXRfaXJxKCkgYW5kIGFjcGlfaW5zdGFsbF9ub3RpZnlfaGFuZGxlcigpIHdoaWNoIGFy
+ZSBjYWxsZWQgYnkNCj4gYWNwaV9idXNfaW5pdCgpIGNhbiBjYXVzZSBjYWNoZSBsZWFrLg0KPiAN
+Cj4gSWYgeW91IHdhbnQgdG8gc2VlIHRoaXMgZXJyb3IgaGFuZGxpbmcgc2VxdWVuY2UsIEkgc3Vn
+Z2VzdCB5b3UgdGhhdCB5b3UgY2hhbmdlDQo+IHRoZSBjb2RlIG9mIGFjcGlfb3NfaW5zdGFsbF9p
+bnRlcnJ1cHRfaGFuZGxlcigpIHRvIHJldHVybiBBRV9OT1RfQUNRVUlSRUQNCj4gaW1tZWRpYXRl
+bHkuIFRoZW4sIHlvdSBjYW4gc2VlIHRoZSBlcnJvciBoYW5kbGluZyBzZXF1ZW5jZSB3aXRob3V0
+IG15DQo+IGhhbmRjcmFmdGVkDQo+IEFDUEkgdGFibGUuDQoNCllvdSBjYW4gYWx3YXlzIGhhcmRl
+biB0aGUgY29kZSB3aXRoIGFjY2VwdGFibGUgaW1wcm92ZW1lbnRzLg0KRmVlbCBmcmVlIHRvIGNv
+bnRpbnVlIHlvdXIgY29udHJpYnV0aW9uLg0KDQo+IA0KPiBJIHlvdSB3YW50IGFkZGl0aW9uYWwg
+aW5mb3JtYXRpb24gYWJvdXQgdGhpcywgcGxlYXNlIGxldCBtZSBrbm93Lg0KDQpTdXJlLg0KDQpU
+aGFua3MNCkx2DQoNCj4gDQo+IEJlc3QgcmVnYXJkcy4NCj4gDQo+ID4NCj4gPiBUaGFua3MgYW5k
+IGJlc3QgcmVnYXJkcw0KPiA+IEx2DQo+ID4NCj4gPj4NCj4gPj4gVGhhbmtzLA0KPiA+PiBSYWZh
+ZWwNCj4gPj4gLS0NCj4gPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhl
+IGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4+IHRoZSBib2R5IG9mIGEgbWVz
+c2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4+IE1vcmUgbWFqb3Jkb21vIGlu
+Zm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
