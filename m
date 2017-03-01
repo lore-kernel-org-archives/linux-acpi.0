@@ -1,11 +1,13 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/2] nfit, libnvdimm: fix and unit test isetcookie calculation
-Date: Wed, 01 Mar 2017 01:11:19 -0800
-Message-ID: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 1/2] tools/testing/nvdimm: make iset cookie predictable
+Date: Wed, 01 Mar 2017 01:11:24 -0800
+Message-ID: <148835948457.28806.60862861470412098.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <148835947931.28806.15339584183213827869.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,33 +18,86 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nick noticed that his implementation of the isetcookie calculation was
-producing different results than the Linux enabling. Linux is broken in
-its usage of memcmp() to sort the components of an array that is hashed
-by a fletcher64 sum. See patch2 for more details.
+For testing changes to the iset cookie algorithm we need a value that is
+constant from run-to-run.
 
-Patch1 arranges for the unit test infrastructure to produce data that
-sorts differently under the two schemes. The original simulated data was
-masking this problem.
+Stop including dynamic data in the emulated region_offset values. Also,
+pick values that sort in a different order depending on whether the
+comparison is a memcmp() of two 8-byte arrays or subtraction of two
+64-bit values.
 
-This implementation is tested with a new "ndctl write-labels" command.
-It allows namespace labels with broken cookie values to be written and
-validate that the compatibility code behaves as expected.
-
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-
-Dan Williams (2):
-      tools/testing/nvdimm: make iset cookie predictable
-      nfit, libnvdimm: fix interleave set cookie calculation
-
-
- drivers/acpi/nfit/core.c         |   16 +++++++++++++++-
- drivers/nvdimm/namespace_devs.c  |   18 ++++++++++++++----
- drivers/nvdimm/nd.h              |    1 +
- drivers/nvdimm/region_devs.c     |    9 +++++++++
- include/linux/libnvdimm.h        |    2 ++
  tools/testing/nvdimm/test/nfit.c |   14 +++++++-------
- 6 files changed, 48 insertions(+), 12 deletions(-)
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 45be8b55a663..798f17655433 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -887,7 +887,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->range_index = 0+1;
+ 	memdev->region_index = 4+1;
+ 	memdev->region_size = SPA0_SIZE/2;
+-	memdev->region_offset = t->spa_set_dma[0];
++	memdev->region_offset = 1;
+ 	memdev->address = 0;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 2;
+@@ -902,7 +902,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->range_index = 0+1;
+ 	memdev->region_index = 5+1;
+ 	memdev->region_size = SPA0_SIZE/2;
+-	memdev->region_offset = t->spa_set_dma[0] + SPA0_SIZE/2;
++	memdev->region_offset = (1 << 8);
+ 	memdev->address = 0;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 2;
+@@ -917,7 +917,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->range_index = 1+1;
+ 	memdev->region_index = 4+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+-	memdev->region_offset = t->spa_set_dma[1];
++	memdev->region_offset = (1 << 16);
+ 	memdev->address = SPA0_SIZE/2;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 4;
+@@ -932,7 +932,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->range_index = 1+1;
+ 	memdev->region_index = 5+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+-	memdev->region_offset = t->spa_set_dma[1] + SPA1_SIZE/4;
++	memdev->region_offset = (1 << 24);
+ 	memdev->address = SPA0_SIZE/2;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 4;
+@@ -947,7 +947,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->range_index = 1+1;
+ 	memdev->region_index = 6+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+-	memdev->region_offset = t->spa_set_dma[1] + 2*SPA1_SIZE/4;
++	memdev->region_offset = (1ULL << 32);
+ 	memdev->address = SPA0_SIZE/2;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 4;
+@@ -962,7 +962,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->range_index = 1+1;
+ 	memdev->region_index = 7+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+-	memdev->region_offset = t->spa_set_dma[1] + 3*SPA1_SIZE/4;
++	memdev->region_offset = (1ULL << 40);
+ 	memdev->address = SPA0_SIZE/2;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 4;
+@@ -1380,7 +1380,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		memdev->range_index = 11+1;
+ 		memdev->region_index = 9+1;
+ 		memdev->region_size = SPA0_SIZE;
+-		memdev->region_offset = t->spa_set_dma[2];
++		memdev->region_offset = (1ULL << 48);
+ 		memdev->address = 0;
+ 		memdev->interleave_index = 0;
+ 		memdev->interleave_ways = 1;
