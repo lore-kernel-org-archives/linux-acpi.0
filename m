@@ -1,268 +1,199 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] acpi: acpica: fix acpi operand cache leak
-Date: Wed, 1 Mar 2017 03:05:37 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE43EAF@SHSMSX101.ccr.corp.intel.com>
-References: <1487292003-25769-1-git-send-email-kkamagui@gmail.com>
- <6316430.DDm6VSBqH3@aspire.rjw.lan>
- <CAHjaAcT7OoTDEweCBwL=BuC-RL6DjKo0AMGS-8HearCdy4_7QQ@mail.gmail.com>
- <3660439.lHcxWCEFi4@aspire.rjw.lan>
- <CAHjaAcQJmJ9H3Qr1mWUax31JR+uSBw-8nR0RJcdjsQKkzS+tBg@mail.gmail.com>
- <CAJZ5v0gUOcV2+r9fMxYS89FrWk1HoguAvF2qO=Lt9o-eNRhEBQ@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E886CE41241@SHSMSX101.ccr.corp.intel.com>
- <CAHjaAcSP2W6ysgUv3_iM_Vpx7g-BQAvaG1vhY3PkBW9N98dHsA@mail.gmail.com>
+Subject: RE: [PATCH] ACPICA: Detect duplicate SSDT tables
+Date: Wed, 1 Mar 2017 03:21:26 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
+ <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:15237 "EHLO mga11.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:43937 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751485AbdCADJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Feb 2017 22:09:10 -0500
-In-Reply-To: <CAHjaAcSP2W6ysgUv3_iM_Vpx7g-BQAvaG1vhY3PkBW9N98dHsA@mail.gmail.com>
+        id S1751468AbdCAD0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Feb 2017 22:26:53 -0500
+In-Reply-To: <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Seunghun Han <kkamagui@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-SGksIA0KDQo+IEZyb206IFNldW5naHVuIEhhbiBbbWFpbHRvOmtrYW1hZ3VpQGdtYWlsLmNvbV0N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2Ml0gYWNwaTogYWNwaWNhOiBmaXggYWNwaSBvcGVyYW5k
-IGNhY2hlIGxlYWsNCj4gDQo+IEhlbGxvLCBMdiBhbmQgUmFmYWVsLg0KPiANCj4gSSBjaGVja2Vk
-IHRoYXQgbXkgcGF0Y2ggd2FzIG1lcmdlZCB0byBBQ1BJQ0EgcHJvamVjdC4NCj4gVGhhbmsgeW91
-IGZvciB5b3VyIG5vdGljZS4NCj4gDQo+IEkgYWRkZWQgYW4gYW5hbHlzaXMgcmVwb3J0IHdoaWNo
-IGhhcyB0aGUgcm9vdCBjYXVzZSBvZiB0aGlzIHByb2JsZW0gYmVsb3cuDQo+IA0KPiAyMDE3LTAy
-LTI3IDExOjQ1IEdNVCswOTowMCBaaGVuZywgTHYgPGx2LnpoZW5nQGludGVsLmNvbT46DQo+ID4g
-SGksIFJhZmFlbA0KPiA+DQo+ID4+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwu
-b3JnIFttYWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBP
-Zg0KPiBSYWZhZWwgSi4NCj4gPj4gV3lzb2NraQ0KPiA+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYy
-XSBhY3BpOiBhY3BpY2E6IGZpeCBhY3BpIG9wZXJhbmQgY2FjaGUgbGVhaw0KPiA+Pg0KPiA+PiBP
-biBGcmksIEZlYiAyNCwgMjAxNyBhdCAxMTozNyBQTSwgU2V1bmdodW4gSGFuIDxra2FtYWd1aUBn
-bWFpbC5jb20+IHdyb3RlOg0KPiA+PiA+IEhpLCBSYWZhZWwuDQo+ID4+ID4NCj4gPj4gPiBJIGFn
-cmVlIHdpdGggeW91IGFuZCBJIGFkZGVkIG15IG9waW5pb24gYmVsb3cuDQo+ID4+ID4NCj4gPj4g
-PiAyMDE3LTAyLTI1IDE6NTAgR01UKzA5OjAwIFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNv
-Y2tpLm5ldD46DQo+ID4+ID4+IE9uIEZyaWRheSwgRmVicnVhcnkgMjQsIDIwMTcgMDk6NTY6MjEg
-UE0gU2V1bmdodW4gSGFuIHdyb3RlOg0KPiA+PiA+Pj4gSGksIFJhZmVhbC4NCj4gPj4gPj4+DQo+
-ID4+ID4+PiBJIGFkZGVkIG15IG9waW5pb24gYmVsb3cuDQo+ID4+ID4+Pg0KPiA+PiA+Pj4gMjAx
-Ny0wMi0yNCAyMToxMyBHTVQrMDk6MDAgUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2ku
-bmV0PjoNCj4gPj4gPj4+ID4gT24gRnJpZGF5LCBGZWJydWFyeSAyNCwgMjAxNyAwOToxNTo1MiBQ
-TSBTZXVuZ2h1biBIYW4gd3JvdGU6DQo+ID4+ID4+PiA+PiBIaSwgUmFmYWVsLg0KPiA+PiA+Pj4g
-Pj4NCj4gPj4gPj4+ID4+IEkgYWRkZWQgbXkgb3BpbmlvbiBiZWxvdy4NCj4gPj4gPj4+ID4+DQo+
-ID4+ID4+PiA+PiAyMDE3LTAyLTI0IDIwOjUwIEdNVCswOTowMCBSYWZhZWwgSi4gV3lzb2NraSA8
-cmp3QHJqd3lzb2NraS5uZXQ+Og0KPiA+PiA+Pj4gPj4gPiBPbiBGcmlkYXksIEZlYnJ1YXJ5IDI0
-LCAyMDE3IDA4OjUyOjQyIFBNIFNldW5naHVuIEhhbiB3cm90ZToNCj4gPj4gPj4+ID4+ID4+IEhp
-LCBMdiBaaGVuZy4NCj4gPj4gPj4+ID4+ID4+DQo+ID4+ID4+PiA+PiA+PiBJIGFkZGVkIG15IGhh
-bmRjcmFmdGVkIEFDUEkgdGFibGUgdW5kZXIgeW91ciByZXF1ZXN0LCBiZWNhdXNlDQo+ID4+ID4+
-PiA+PiA+PiAiYWNwaWR1bXAgLWMgb24iIGFuZCAiYWNwaWR1bXAgLWMgb2ZmIiBkb2Vzbid0IHdv
-cmsuDQo+ID4+ID4+PiA+PiA+Pg0KPiA+PiA+Pj4gPj4gPj4gMjAxNy0wMi0yMSAxOTozNiBHTVQr
-MDk6MDAgU2V1bmdodW4gSGFuIDxra2FtYWd1aUBnbWFpbC5jb20+Og0KPiA+PiA+Pj4gPj4gPj4g
-PiBIZWxsbywNCj4gPj4gPj4+ID4+ID4+ID4NCj4gPj4gPj4+ID4+ID4+ID4gSSBhdHRhY2hlZCB0
-aGUgdGVzdCByZXN1bHRzIGJlbG93LA0KPiA+PiA+Pj4gPj4gPj4gPg0KPiA+PiA+Pj4gPj4gPj4g
-PiAyMDE3LTAyLTIxIDk6NTMgR01UKzA5OjAwIFJvd2FmYWVsIEouIFd5c29ja2kgPHJqd0Byand5
-c29ja2kubmV0PjoNCj4gPj4gPj4+ID4+ID4+ID4+IE9uIFR1ZXNkYXksIEZlYnJ1YXJ5IDIxLCAy
-MDE3IDEyOjMzOjA4IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4gPj4gPj4+ID4+ID4+ID4+PiBIaSwN
-Cj4gPj4gPj4+ID4+ID4+ID4+Pg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gRnJvbTogbGludXgtYWNw
-aS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2Vy
-bmVsLm9yZ10gT24NCj4gPj4gQmVoYWxmIE9mIFNldW5naHVuDQo+ID4+ID4+PiA+PiA+PiA+Pj4g
-PiBIYW4NCj4gPj4gPj4+ID4+ID4+ID4+PiA+IFN1YmplY3Q6IFtQQVRDSCB2Ml0gYWNwaTogYWNw
-aWNhOiBmaXggYWNwaSBvcGVyYW5kIGNhY2hlIGxlYWsNCj4gPj4gPj4+ID4+ID4+ID4+PiA+DQo+
-ID4+ID4+PiA+PiA+PiA+Pj4gPiBJJ20gU2V1bmdodW4gSGFuLCBhbmQgSSB3b3JrIGZvciBOYXRp
-b25hbCBTZWN1cml0eSBSZXNlYXJjaCBJbnN0aXR1dGUgb2YNCj4gPj4gPj4+ID4+ID4+ID4+PiA+
-IFNvdXRoIEtvcmVhLg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4NCj4gPj4gPj4+ID4+ID4+ID4+PiA+
-IEkgaGF2ZSBiZWVuIGRvaW5nIGEgcmVzZWFyY2ggb24gQUNQSSBhbmQgbWFraW5nIGEgaGFuZGNy
-YWZ0ZWQgQUNQSSB0YWJsZQ0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gZm9yIG15IHJlc2VhcmNoLg0K
-PiA+PiA+Pj4gPj4gPj4gPj4+ID4gRXJyb3JzIG9mIGhhbmRjcmFmdGVkIEFDUEkgdGFibGVzIGFy
-ZSBoYW5kbGVkIHdlbGwgaW4gTGludXgga2VybmVsIHdoaWxlIGJvb3QNCj4gPj4gPj4+ID4+ID4+
-ID4+PiA+IHByb2Nlc3MsIGFuZCBMaW51eCBrZXJuZWwgZ29lcyB3ZWxsIHdpdGhvdXQgY3JpdGlj
-YWwgcHJvYmxlbXMuDQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiBCdXQgSSBmb3VuZCBzb21lIEFDUEkg
-b3BlcmFuZCBjYWNoZSBsZWFrcyBpbiBBQ1BJIGVhcmx5IGFib3J0IGNhc2VzLg0KPiA+PiA+Pj4g
-Pj4gPj4gPj4+ID4NCj4gPj4gPj4+ID4+ID4+ID4+PiA+IEJvb3QgbG9nIG9mIEFDUEkgb3BlcmFu
-ZCBjYWNoZSBsZWFrIGlzIGFzIGZvbGxvd3M6DQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAw
-LjE3NDMzMl0gQUNQSTogQWRkZWQgX09TSShNb2R1bGUgRGV2aWNlKQ0KPiA+PiA+Pj4gPj4gPj4g
-Pj4+ID4gPlsgICAgMC4xNzU1MDRdIEFDUEk6IEFkZGVkIF9PU0koUHJvY2Vzc29yIERldmljZSkN
-Cj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTc2MDEwXSBBQ1BJOiBBZGRlZCBfT1NJKDMu
-MCBfU0NQIEV4dGVuc2lvbnMpDQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE3NzAzMl0g
-QUNQSTogQWRkZWQgX09TSShQcm9jZXNzb3IgQWdncmVnYXRvciBEZXZpY2UpDQo+ID4+ID4+PiA+
-PiA+PiA+Pj4gPiA+WyAgICAwLjE3ODI4NF0gQUNQSTogU0NJIChJUlExNjcwNSkgYWxsb2NhdGlv
-biBmYWlsZWQNCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTc5MzUyXSBBQ1BJIEV4Y2Vw
-dGlvbjogQUVfTk9UX0FDUVVJUkVELCBVbmFibGUgdG8gaW5zdGFsbCBTeXN0ZW0gQ29udHJvbA0K
-PiA+PiBJbnRlcnJ1cHQgaGFuZGxlcg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gKDIwMTYwOTMwL2V2
-ZXZlbnQtMTMxKQ0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODAwMDhdIEFDUEk6IFVu
-YWJsZSB0byBzdGFydCB0aGUgQUNQSSBJbnRlcnByZXRlcg0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4g
-PlsgICAgMC4xODExMjVdIEFDUEkgRXJyb3I6IENvdWxkIG5vdCByZW1vdmUgU0NJIGhhbmRsZXIg
-KDIwMTYwOTMwL2V2bWlzYy0yODEpDQo+ID4+ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4NDA2
-OF0ga21lbV9jYWNoZV9kZXN0cm95IEFjcGktT3BlcmFuZDogU2xhYiBjYWNoZSBzdGlsbCBoYXMg
-b2JqZWN0cw0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODUzNThdIENQVTogMCBQSUQ6
-IDEgQ29tbTogc3dhcHBlci8wIE5vdCB0YWludGVkIDQuMTAuMC1yYzMgIzINCj4gPj4gPj4+ID4+
-ID4+ID4+PiA+ID5bICAgIDAuMTg2ODIwXSBIYXJkd2FyZSBuYW1lOiBpbm5vdGVrIEdtYkggVmly
-dHVhbEJveC9WaXJ0dWFsQm94LCBCSU9TIFZpcnR1YWxCb3gNCj4gPj4gMTIvMDEvMjAwNg0KPiA+
-PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdIENhbGwgVHJhY2U6DQo+ID4+ID4+PiA+
-PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gZHVtcF9zdGFjaysweDVjLzB4N2QNCj4gPj4g
-Pj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBrbWVtX2NhY2hlX2Rlc3Ryb3krMHgy
-MjQvMHgyMzANCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBhY3BpX3Ns
-ZWVwX3Byb2NfaW5pdCsweDIyLzB4MjINCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4
-MDAwXSAgPyBhY3BpX29zX2RlbGV0ZV9jYWNoZSsweGEvMHhkDQo+ID4+ID4+PiA+PiA+PiA+Pj4g
-PiA+WyAgICAwLjE4ODAwMF0gID8gYWNwaV91dF9kZWxldGVfY2FjaGVzKzB4M2YvMHg3Yg0KPiA+
-PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IGFjcGlfdGVybWluYXRlKzB4NS8w
-eGYNCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBhY3BpX2luaXQrMHgy
-ODgvMHgzMmUNCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAgPyBfX2NsYXNz
-X2NyZWF0ZSsweDRjLzB4ODANCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4MDAwXSAg
-PyB2aWRlb19zZXR1cCsweDdhLzB4N2ENCj4gPj4gPj4+ID4+ID4+ID4+PiA+ID5bICAgIDAuMTg4
-MDAwXSAgPyBkb19vbmVfaW5pdGNhbGwrMHg0ZS8weDFiMA0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4g
-PlsgICAgMC4xODgwMDBdICA/IGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MTk0LzB4MjFhDQo+ID4+
-ID4+PiA+PiA+PiA+Pj4gPiA+WyAgICAwLjE4ODAwMF0gID8gcmVzdF9pbml0KzB4ODAvMHg4MA0K
-PiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IGtlcm5lbF9pbml0KzB4YS8w
-eDEwMA0KPiA+PiA+Pj4gPj4gPj4gPj4+ID4gPlsgICAgMC4xODgwMDBdICA/IHJldF9mcm9tX2Zv
-cmsrMHgyNS8weDMwDQo+ID4+ID4+PiA+PiA+PiA+Pj4NCj4gPj4gPj4+ID4+ID4+ID4+PiBJJ20g
-bW9yZSBpbnRlcmVzdGVkIGluIHRoZSB3YXkgb2YgdHJpZ2dlcmluZyBBRV9OT1RfQUNRVUlSRUQg
-ZXJyb3IuDQo+ID4+ID4+PiA+PiA+PiA+Pj4gU28gY291bGQgeW91IHNlbmQgdXMgdGhlIGhhbmRj
-cmFmdGVkIEFDUEkgdGFibGUgb3IgYm90aCB0aGUgImFjcGlkdW1wIC1jIG9uIiBhbmQNCj4gPj4g
-ImFjcGlkdW1wIC1jIG9mZiIgb3V0cHV0Pw0KPiA+PiA+Pj4gPj4gPj4NCj4gPj4gPj4+ID4+ID4+
-IEkgbW9kaWZpZWQgRkFDUCwgRkFDUywgQVBJQyB0YWJsZSBpbiBWaXJ0dWFsQm94IGZvciBMaW51
-eC4NCj4gPj4gPj4+ID4+ID4+IEhlcmUgYXJlIHJhdyBkdW1wcyBvZiB0YWJsZS4NCj4gPj4gPj4+
-ID4+ID4NCj4gPj4gPj4+ID4+ID4gU28sIGV4Y3VzZSBtZSwgYnV0IHdoYXQncyB0aGUgc2VjdXJp
-dHkgaXNzdWUgaGVyZT8NCj4gPj4gPj4+ID4+ID4NCj4gPj4gPj4+ID4+ID4gWW91IGhhY2tlZCB5
-b3VyIEFDUEkgdGFibGVzIGludG8gcGllY2VzIHdoaWNoIHJlcXVpcmVzIHJvb3QgcHJpdmlsZWdl
-cyBhbnl3YXkuDQo+ID4+ID4+PiA+PiA+DQo+ID4+ID4+PiA+PiA+IFRoYW5rcywNCj4gPj4gPj4+
-ID4+ID4gUmFmYWVsDQo+ID4+ID4+PiA+PiA+DQo+ID4+ID4+PiA+Pg0KPiA+PiA+Pj4gPj4gQXMg
-eW91IG1lbnRpb25lZCBlYXJsaWVyLCBJIGhhY2tlZCBteSBBQ1BJIHRhYmxlIGZvciByZXNlYXJj
-aCwgc28gaXQgc2VlbXMgdGhhdA0KPiA+PiA+Pj4gPj4gaXQgaXMgbm90IGEgc2VjdXJpdHkgaXNz
-dWUuDQo+ID4+ID4+PiA+Pg0KPiA+PiA+Pj4gPj4gQnV0LCBpZiBuZXcgbWFpbmJvYXJkIGFyZSBy
-ZWxlYXNlZCBhbmQgdGhleSBoYXZlIGEgdmVuZG9yLXNwZWNpZmljIEFDUEkgdGFibGUNCj4gPj4g
-Pj4+ID4+IHdoaWNoIGhhcyBpbnZhbGlkIGRhdGEsIHRoZSBvbGQgdmVyc2lvbiBvZiBrZXJuZWwg
-KDw9NC45KSB3aWxsIHBvc3NpYmx5IGV4cG9zZQ0KPiA+PiA+Pj4gPj4ga2VybmVsIGFkZHJlc3Mg
-YW5kIEtBU0xSIHdpbGwgYmUgbmV1dHJhbGl6ZWQgdW5pbnRlbnRpb25hbGx5Lg0KPiA+PiA+Pj4g
-Pg0KPiA+PiA+Pj4gPiBCdXQgdGhhdCB3b3VsZCBtZWFuIGEgYmFzaWNhbGx5IG5vbi1mdW5jdGlv
-bmFsIHN5c3RlbSwgc28gSSdtIG5vdCBzdXJlIGhvdw0KPiA+PiA+Pj4gPiBhbnlvbmUgY2FuIGFj
-dHVhbGx5IHRha2UgYWR2YW50YWdlIG9mIHRoZSAiS0FTTFIgbmV1dHJhbGl6YXRpb24iLg0KPiA+
-PiA+Pj4NCj4gPj4gPj4+IEkgdGhpbmsgYW4gYXR0YWNrZXIgY2FuIHRha2UgYWR2YW50YWdlIG9m
-IHRoZSAiS0FTTFIgbmV1dHJhbGl6YXRpb24iLiBBcyB5b3UNCj4gPj4gPj4+IGtub3csIEtBU0xS
-IGlzIGdvb2QgdGVjaG5vbG9neSB0byBwcm90ZWN0IGtlcm5lbCBmcm9tIGtlcm5lbCBleHBsb2l0
-cy4NCj4gPj4gPj4+DQo+ID4+ID4+PiBJZiB0aGUga2VybmVsIGhhcyB2dWxuZXJhYmlsaXRpZXMs
-IHRoZSBhdHRhY2tlciBjYW4gbWFrZSBleHBsb2l0IHVzaW5nIHRoZW0uDQo+ID4+ID4+PiBCdXQs
-IHRoZSBleHBsb2l0IHVzdWFsbHkgbmVlZHMgZ2FkZ2V0cyAoc21hbGwgY29kZSksIHRoZXJlZm9y
-ZSB0aGUgYXR0YWNrZXINCj4gPj4gPj4+IHNob3VsZCBrbm93IHdoZXJlIHRoZSBnYWRnZXRzIGFy
-ZSBpbiBrZXJuZWwuIElmIHRoZSBLQVNMUiBpcyB3b3JraW5nIGluIGtlcm5lbCwNCj4gPj4gPj4+
-IHRoZSBhdHRhY2tlciBzaG91bGQgZmluZCB0aGUgYWN0dWFsIGtlcm5lbCBhZGRyZXNzLCBhbmQg
-aGUgY2FuIGdldCBrZXJuZWwNCj4gPj4gPj4+IGFkZHJlc3MgaW5mb3JtYXRpb24gZnJvbSBrZXJu
-ZWwgd2FybmluZy4NCj4gPj4gPj4NCj4gPj4gPj4gSWYgdGhlIHN5c3RlbSBiYXNpY2FsbHkgZG9l
-c24ndCB3b3JrLCB0aGF0IGluZm9ybWF0aW9uIGlzbid0ICBwYXJ0aWN1bGFybHkgdXNlZnVsLg0K
-PiA+PiA+Pg0KPiA+PiA+Pj4gPj4gSSBrbm93IHRoZSB2ZW5kb3JzIGNvbGxhYm9yYXRlIHdpdGgg
-TGludXgga2VybmVsIGRldmVsb3BlcnMsIGJ1dCB0aGUgcHJvYmxlbQ0KPiA+PiA+Pj4gPj4gY2Fu
-IHN0aWxsIG9jY3VyLg0KPiA+PiA+Pj4gPj4NCj4gPj4gPj4+ID4+IEhhcmR3YXJlIHZlbmRvcnMg
-cmVsZWFzZSBzbyBtYW55IGtpbmRzIG9mIG1haW5ib2FyZCBpbiBhIHllYXIsIGFuZCB0aGUgbWFq
-b3INCj4gPj4gPj4+ID4+IExpbnV4IGRpc3Ryb3MgKFVidW50dSwgRmVkb3JhLCBldGMuKSB3aWxs
-IGhhdmUgNC44IGtlcm5lbCBmb3IgYSBsb25nIHRpbWUuDQo+ID4+ID4+PiA+Pg0KPiA+PiA+Pj4g
-Pj4gRm9yIHRoaXMgcmVhc29uLCBJIHRoaW5rIHRoaXMgaXNzdWUgaGFzIGEgc2VjdXJpdHkgYXNw
-ZWN0Lg0KPiA+PiA+Pj4gPg0KPiA+PiA+Pj4gPiBXZWxsLCBub3QgcXVpdGUgSU1PLg0KPiA+PiA+
-Pj4gPg0KPiA+PiA+Pj4gPiBJZiB0aGUgc3lzdGVtIG5lZWRzIEFDUEkgdGFibGVzIGFuZCB0aGUg
-a2VybmVsIGNhbm5vdCB1c2UgdGhlbSwgaXQganVzdCB3b24ndA0KPiA+PiA+Pj4gPiB3b3JrIG5v
-IG1hdHRlciB3aGF0Lg0KPiA+PiA+Pj4gPg0KPiA+PiA+Pj4gPiBUaGFua3MsDQo+ID4+ID4+PiA+
-IFJhZmFlbA0KPiA+PiA+Pj4gPg0KPiA+PiA+Pj4gWWVzLCB5b3UgYXJlIHJpZ2h0LiBCdXQsIExp
-bnV4IGtlcm5lbCBoYXMgd2VsbC1kZWZpbmVkIGV4Y2VwdGlvbiBoYW5kbGVycywgc28NCj4gPj4g
-Pj4+IHNvbWUgc3lzdGVtcyBtYXkgd29yayBmaW5lIGxpa2UgbXkgdGVzdCBtYWNoaW5lLiBNb3Jl
-b3ZlciB0aGUgdXNlcnMgbWF5IG5vdA0KPiA+PiA+Pj4gcmVjb2duaXplIHdoYXQgdGhlIHByb2Js
-ZW0gaXMsIGFuZCBJIHRoaW5rIHRoYXQgdGhleSB3aWxsIHVzZSB0aGUgc3lzdGVtIGluDQo+ID4+
-ID4+PiBpbnNlY3VyZSBzdGF0dXMgZm9yIGEgbG9uZyB0aW1lLg0KPiA+PiA+Pg0KPiA+PiA+PiBB
-IHZpcnR1YWwgYm94IG9yIGEgZ3Vlc3QgY2FuIHJ1biB3aXRob3V0IEFDUEkgdGFibGVzLiAgQSBi
-YXJlIG1ldGFsIHN5c3RlbQ0KPiA+PiA+PiB3aGVyZSBBQ1BJIHRhYmxlcyBhcmUgbmVjZXNzYXJ5
-IHdpbGwgYmUgbW9yZS1vci1sZXNzIHVudXNhYmxlIGlmIHRoZSBrZXJuZWwNCj4gPj4gPj4gY2Fu
-bm90IHVzZSB0aGVtIChpdCB3b24ndCBiZSBhYmxlIHRvIGRldGVjdCBpbnRlcnJ1cHQgY29udHJv
-bGxlcnMgYW5kIHRoZSBQQ0kNCj4gPj4gPj4gaG9zdCBicmlkZ2UganVzdCBmb3Igc3RhcnRlcnMp
-Lg0KPiA+PiA+Pg0KPiA+PiA+PiBSdW5uaW5nIGEgZ3Vlc3Qgd2l0aCB0b3RhbGx5IGJyb2tlbiBB
-Q1BJIHRhYmxlcyByZXF1aXJlcyByb290IHByaXZpbGVnZXMgb24gdGhlDQo+ID4+ID4+IGhvc3Qu
-ICBSdW5uaW5nIGEgYmFyZSBtZXRhbCBzeXN0ZW0gd2l0aCB0b3RhbGx5IGJyb2tlbiBBQ1BJIHRh
-YmxlcyAod2hpY2ggc2VlbXMNCj4gPj4gPj4gdG8gYmUgeW91ciBiYXNpYyBjb25jZXJuKSBtYXkg
-YmUgYSBnb29kIHJlc2VhcmNoIHByb2plY3QsIGJ1dCBub2JvZHkgd2lsbCBkbw0KPiA+PiA+PiB0
-aGF0IGluIHByYWN0aWNlLiAgQW5kIGV2ZXJ5Ym9keSB3aG8gdHJpZXMgdGhhdCB3aWxsIG5vdGlj
-ZSB3aGF0J3MgZ29pbmcgb24uDQo+ID4+ID4+DQo+ID4+ID4+IFllcywgeW91IGZvdW5kIGEgYnVn
-LCBidXQgSSBzdGlsbCBhbSBub3QgY29udmluY2VkIGFib3V0IGhvdyB0aGlzIGlzIHNlY3VyaXR5
-LXJlbGF0ZWQuDQo+ID4+ID4NCj4gPj4gPiBJIHRvdGFsbHkgYWdyZWUgd2l0aCB5b3UgdGhhdCB0
-aGlzIGNhc2UgaXMgbm90IGluIHByYWN0aWNlIG5vdy4NCj4gPj4gPiBJIGp1c3Qgc3RhcnRlZCBy
-ZXNlYXJjaGluZyBvbiBBQ1BJLCBhbmQgSSBkb24ndCBoYXZlIGVub3VnaCBpZGVhcyB0byBvY2N1
-cg0KPiA+PiA+IGEgc2VjdXJpdHkgcHJvYmxlbSB1c2luZyBhIGJ1Zy4gSSBqdXN0IHRoaW5rIHRo
-YXQgaXQgaGFzIGEgbGl0dGxlIHBvc3NpYmlsaXR5DQo+ID4+ID4gd2hpY2ggaXMgc2VjdXJpdHkt
-cmVsYXRlZC4NCj4gPj4gPg0KPiA+PiA+IFRoYW5rIHlvdSBzbyBtdWNoIGZvciB5b3VyIGd1aWRl
-cy4NCj4gPj4gPiBJdCBoZWxwcyBtZSBhIGxvdCB0byBjaGFuZ2UgbXkgcmVzZWFyY2ggZGlyZWN0
-aW9uLg0KPiA+PiA+DQo+ID4+ID4gU28sIGNvdWxkIG15IHBhdGNoIGJlIG1lcmdlZCBpbiBuZXh0
-IGtlcm5lbCAoNC4xMSByYy0xKT8gb3IgZG8gSSBuZWVkIHRvIGRvDQo+ID4+ID4gc29tZXRoaW5n
-IGZvciBpdD8NCj4gPj4gPiBQbGVhc2UgbGV0IG1lIGtub3cuDQo+ID4+DQo+ID4+IEdlbmVyYWxs
-eSwgQUNQSUNBIHBhdGNoZXMgKGFuZCB0aGlzIGlzIG9uZSBvZiB0aGVtKSBoYXZlIHRvIGdvIGlu
-IHZpYQ0KPiA+PiB0aGUgdXBzdHJlYW0gQUNQSUNBIHByb2plY3QgbWFpbnRhaW5lZCBieSBCb2Ig
-TW9vcmUgYW5kIEx2LiAgUGxlYXNlDQo+ID4+IHNlZSBNQUlOVEFJTkVSUyBmb3IgcG9pbnRlcnMg
-dG8gdGhlIG1haWxpbmcgbGlzdCBldGMuDQo+ID4+DQo+ID4+IEx2LCBjYW4geW91IHBsZWFzZSBh
-ZHZpc2Ugb24gdGhlIG5leHQgc3RlcHM/DQo+ID4NCj4gPiBJIGFscmVhZHkgZ2F2ZSBteSBhZHZp
-Y2VzLg0KPiA+IFRoZSBmaXggd2FzIE9LIHRvIG1lIGFuZCBJIGJhY2sgcG9ydGVkIGl0IHRvIEFD
-UElDQToNCj4gPiBodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9wdWxsLzIwNg0KPiA+
-IEhvd2V2ZXIgaXQgZml4ZXMgYSBjb2RlIHBhdGggdGhhdCBpbiB0aGVvcnkgc2hvdWxkbid0IGJl
-IGludm9rZWQgaW4gTGludXgga2VybmVsLg0KPiA+IEJ1dCBhbnl3YXkgaXQgd2FzIG1lcmdlZCBh
-bmQgeW91IHdpbGwgc2VlIGl0IGluIHRoZSBuZXh0IEFDUElDQSByZWxlYXNlLg0KPiA+DQo+ID4g
-SSBhc2tlZCBIYW4gZm9yIHRoZSBoYW5kY3JhZnRlZCBBQ1BJIHRhYmxlLg0KPiA+IEFuZCBvYnRh
-aW5lZCB0aGF0Og0KPiA+IEFDUEk6IEZBQ1AgMHgwMDAwMDAwMERGRkYwMEYwIDAwMDBGNCAodjA0
-IFZCT1ggVkJPWEZBQ1AgMDAwMDAwMDEgQVNMICAwMDAwMDA2MSkNCj4gPiAweDAwMDA6IDQ2IDQx
-IDQzIDUwIEY0IDAwIDAwIDAwIDA0IDYwIDU2IDQyIDRGIDU4IDIwIDIwDQo+ID4gMHgwMDEwOiA1
-NiA0MiA0RiA1OCA0NiA0MSA0MyA1MCAwMSAwMCAwMCAwMCA0MSA1MyA0QyAyMA0KPiA+IDB4MDAy
-MDogNjEgMDAgMDAgMDAgMDAgMDIgRkYgREYgODAgMDQgRkYgREYgNDEgNDEgNDEgNDENCj4gPiAw
-eDAwMzA6IDJFIDQ0IDAwIDAwIEExIEEwIDAwIDAwIDAwIDQwIDAwIDAwIDAwIDAwIDAwIDAwDQo+
-ID4gMHgwMDQwOiAwNCA0MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwOCA0MCAwMCAw
-MA0KPiA+IDB4MDA1MDogMjAgNDAgMDAgMDAgMDAgMDAgMDAgMDAgMDQgMDIgMDAgMDQgMDIgMDAg
-MDAgMDANCj4gPiAweDAwNjA6IDY1IDAwIEU5IDAzIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAzIDAwIDAwDQo+ID4gMHgwMDcwOiA0MSAwNSAwMCAwMCAwMSAwOCAwMCAwMSA1MCA0MCAwMCAw
-MCAwMCAwMCAwMCAwMA0KPiA+IDB4MDA4MDogMTAgMDAgMDAgMDAgMDAgMDIgRkYgREYgMDAgMDAg
-MDAgMDAgODAgMDQgRkYgREYNCj4gPiAweDAwOTA6IDAwIDAwIDAwIDAwIDAxIDIwIDAwIDAyIDAw
-IDQwIDAwIDAwIDAwIDAwIDAwIDAwDQo+ID4gMHgwMEEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMSAxMCAwMCAwMg0KPiA+IDB4MDBCMDogMDQgNDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAweDAwQzA6IDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQo+ID4gMHgwMEQwOiAwMSAyMCAwMCAw
-MyAwOCA0MCAwMCAwMCAwMCAwMCAwMCAwMCAwMSAxMCAwMCAwMQ0KPiA+IDB4MDBFMDogMjAgNDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCj4gPiAweDAwRjA6IDAw
-IDAwIDAwIDAwDQo+ID4NCj4gPiBBQ1BJOiBGQUNTIDB4MDAwMDAwMDBERkZGMDIwMCAwMDAwNDAN
-Cj4gPiAweDAwMDA6IDQ2IDQxIDQzIDUzIDQwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwDQo+ID4gMHgwMDEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCA0MSA0MSA0MSA0MSA0
-MSA0MSA0MQ0KPiA+IDB4MDAyMDogMDEgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgNDEgMDAgMDAg
-MDAgMDAgMDAgMDANCj4gPiAweDAwMzA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwDQo+ID4NCj4gPiBBQ1BJOiBBUElDIDB4MDAwMDAwMDBERkZGMDI0MCAw
-MDAwNkMgKHYwMiBWQk9YIFZCT1hBUElDIDAwMDAwMDAxIEFTTCAgMDAwMDAwNjEpDQo+ID4gMHgw
-MDAwOiA0MSA1MCA0OSA0MyA2QyAwMCAwMCAwMCAwMiAyMSA1NiA0MiA0RiA1OCAyMCAyMA0KPiA+
-IDB4MDAxMDogNTYgNDIgNEYgNTggNDEgNTAgNDkgNDMgMDEgMDAgMDAgMDAgNDEgNTMgNEMgMjAN
-Cj4gPiAweDAwMjA6IDYxIDAwIDAwIDAwIDAwIDAwIEUwIEZFIDAxIDAwIDAwIDAwIDAyIDBBIDAw
-IDAwDQo+ID4gMHgwMDMwOiAwMiAwMCAwMCAwMCAwMCAwMCAwMiAwQSAwMCAwOSAwOSAwMCAwMCAw
-MCAwRCAwMA0KPiA+IDB4MDA0MDogMDAgMDggMDAgMDAgMDEgMDAgNDEgNDEgNDEgNDEgNDEgNDEg
-NDEgNDEgNDEgMDANCj4gPiAweDAwNTA6IDAwIDA4IDAyIDAyIDAxIDAwIDAwIDAwIDAwIDA4IDAz
-IDAzIDAxIDAwIDAwIDAwDQo+ID4gMHgwMDYwOiAwMSAwQyAwNCAwMCAwMCAwMCBDMCBGRSAwMCAw
-MCAwMCAwMA0KPiA+DQo+ID4gV2hlcmUgdGhlcmUgaXMgc3RpbGwgbm8gQU1MIHRhYmxlcyBhbmQg
-dGhlIGZhaWx1cmUgaW4gdGhlIHBhdGNoIGRlc2NyaXB0aW9uIHNlZW1zIHRvIGJlIHJlbGF0ZWQg
-dG8NCj4gdGhlIEFNTCB0YWJsZXMuDQo+ID4gU28gSSdtIHN0aWxsIG5vdCBhd2FyZSBvZiB3aGF0
-IHRoZSAiaGFuZGNyYWZ0ZWQgdGFibGVzIiBtZWFudCB0byB1cyBhbmQgd2hhdCB0aGUgcHJvYmxl
-bSB3YXMuDQo+IA0KPiBBY3R1YWxseSwgSSBkaWQgbm90IGNoYW5nZSBEU0RUIGFuZCBTU0RULiBJ
-IGNoYW5nZWQgb25seSBGQUNQLCBGQUNTIGFuZCBBUElDIGZvcg0KPiBteSBoYW5kY3JhZnRlZCBB
-Q1BJIHRhYmxlLg0KPiANCj4gSSBoYXZlIGFuYWx5emVkIHRoZSByb290IGNhdXNlIG9mIHRoZSBw
-cm9ibGVtLCBhbmQgSSBoYXZlIGZvdW5kIHRoYXQgbXkNCj4gaGFuZGNyYWZ0ZWQgQUNQSSB0YWJs
-ZSBoYXMgdG9vIGJpZyBTQ0kgSVJRIChsaWtlIDE2NzA1KS4NCj4gU28sIGFjcGlfb3NfaW5zdGFs
-bF9pbnRlcnJ1cHRfaGFuZGxlcigpIHdoaWNoIGlzIGNhbGxlZCBieQ0KPiBhY3BpX2VuYWJsZV9z
-dWJzeXN0ZW0oKQ0KPiB3YXMgZmFpbGVkIGFuZCByZXR1cm5lZCBBRV9OT1RfQUNRVUlSRUQgKDB4
-MTQpIHdpdGggIkFDUEk6IFNDSSAoSVJRMTY3MDUpDQo+IGFsbG9jYXRpb24gZmFpbGVkIiBsb2cu
-DQoNClRoYW5rcyBmb3IgdGhlIGV4cGxhbmF0aW9uLg0KVGhlcmUgZG9lc24ndCBzZWVtIHRvIGJl
-IGFueSByZXF1aXJlZCBhZGRpdGlvbmFsIGZpeCBmb3Igc3VjaCBhIHdyb25nIHNjaSBpcnEgIy4N
-CldoaWNoIGNhbiByZWxlYXNlIG1lIGZyb20gdGhlIHRyaWdnZXJlZCBlcnJvciBub3cuIDopDQoN
-Cj4gDQo+IEJlY2F1c2Ugb2YgZXJyb3IgY29kZSwgYWNwaV9idXNfaW5pdCgpLCB0aGUgY2FsbGVy
-IG9mIGFjcGlfZW5hYmxlX3N1YnN5c3RlbSgpLA0KPiBzaG93ZWQgIlVuYWJsZSB0byBzdGFydCB0
-aGUgQUNQSSBJbnRlcnByZXRlciIgYW5kIGNhbGxlZCBhY3BpX3Rlcm1pbmF0ZSgpIGZvcg0KPiBl
-eGNlcHRpb24gaGFuZGxpbmcuIEFmdGVyIGNhbGxpbmcgYWNwaV90ZXJtaW5hdGUoKSwgYXMgeW91
-IGtub3csIGNhY2hlIGxlYWsNCj4gb2NjdXJyZWQuDQo+IFRoaXMgbWVhbnMgdGhhdCBlcnJvciBv
-ZiBhY3BpX2xvYWRfdGFibGVzKCksIGFjcGlfaW5pdGlhbGl6ZV9vYmplY3RzKCksDQo+IGFjcGlf
-YnVzX2luaXRfaXJxKCkgYW5kIGFjcGlfaW5zdGFsbF9ub3RpZnlfaGFuZGxlcigpIHdoaWNoIGFy
-ZSBjYWxsZWQgYnkNCj4gYWNwaV9idXNfaW5pdCgpIGNhbiBjYXVzZSBjYWNoZSBsZWFrLg0KPiAN
-Cj4gSWYgeW91IHdhbnQgdG8gc2VlIHRoaXMgZXJyb3IgaGFuZGxpbmcgc2VxdWVuY2UsIEkgc3Vn
-Z2VzdCB5b3UgdGhhdCB5b3UgY2hhbmdlDQo+IHRoZSBjb2RlIG9mIGFjcGlfb3NfaW5zdGFsbF9p
-bnRlcnJ1cHRfaGFuZGxlcigpIHRvIHJldHVybiBBRV9OT1RfQUNRVUlSRUQNCj4gaW1tZWRpYXRl
-bHkuIFRoZW4sIHlvdSBjYW4gc2VlIHRoZSBlcnJvciBoYW5kbGluZyBzZXF1ZW5jZSB3aXRob3V0
-IG15DQo+IGhhbmRjcmFmdGVkDQo+IEFDUEkgdGFibGUuDQoNCllvdSBjYW4gYWx3YXlzIGhhcmRl
-biB0aGUgY29kZSB3aXRoIGFjY2VwdGFibGUgaW1wcm92ZW1lbnRzLg0KRmVlbCBmcmVlIHRvIGNv
-bnRpbnVlIHlvdXIgY29udHJpYnV0aW9uLg0KDQo+IA0KPiBJIHlvdSB3YW50IGFkZGl0aW9uYWwg
-aW5mb3JtYXRpb24gYWJvdXQgdGhpcywgcGxlYXNlIGxldCBtZSBrbm93Lg0KDQpTdXJlLg0KDQpU
-aGFua3MNCkx2DQoNCj4gDQo+IEJlc3QgcmVnYXJkcy4NCj4gDQo+ID4NCj4gPiBUaGFua3MgYW5k
-IGJlc3QgcmVnYXJkcw0KPiA+IEx2DQo+ID4NCj4gPj4NCj4gPj4gVGhhbmtzLA0KPiA+PiBSYWZh
-ZWwNCj4gPj4gLS0NCj4gPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhl
-IGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4+IHRoZSBib2R5IG9mIGEgbWVz
-c2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4+IE1vcmUgbWFqb3Jkb21vIGlu
-Zm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+Hi,
+
+> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+> 
+> Hi,
+> 
+> On 28-02-17 06:19, Zheng, Lv wrote:
+> > Hi,
+> >
+> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>
+> >> Some machines have the exact (byte for byte) same SSDT tables multiple
+> >> times in the root_table_list.
+> >
+> > Could you give a machine list here?
+> 
+> Currently I'm seeing this on a GPD win machine:
+> 
+> http://www.gpd.hk/gpdwin.asp
+> 
+> I thought I was seeing it on more machines, but those have
+> different apci table loading errors...
+
+I'm not sure what the Windows clones will behave in this case.
+Upon seeing a duplicate table, will Windows:
+1. override old namespace node, or
+2. discard (maybe silently) new namespace node that has conflict namespace hierarchy position against existing node, or
+3. just complain us with a blue screen, or
+4. compare all tables first.
+
+Before knowing the de-facto standard behavior, I'm not sure if the behavior introduced by this commit is correct.
+We should be able to judge if this case is real after knowing the Windows behavior.
+
+So I don't think this commit goes the right direction on the right track.
+
+> 
+> >> Detect this and silently skip the duplicates
+> >> rather then printing a scary looking set of errors.
+> >
+> > Why will this matter to OSPMs?
+> 
+> Not sure what you mean with OSPMs but I can tell you why this
+> matters in general, Linux distributions like e.g. Fedora have
+> been putting a lot of work in a smooth boot experience where
+> end users do not get any scary text messages. For some more
+> embedded like systems this even is a hard requirement.
+> 
+> The kernel supports quiet kernel cmdline argument to silence
+> normal kernel messages, which is part of what is needed but
+> messages with a log level of error still get shown, breaking
+> the "no scary text messages" product requirement.
+> 
+> > And should we add non-costless steps just in order to reduce errors,
+> 
+> Yes we should, work on that front has been happening for years,
+> also the CPU cost of this check is quite small, memcmp will
+> only happen on identically sized tables and even then it will
+> exit as soon as a single byte differs.
+
+Even though, there are server systems containing many tables, almost one/two/three table(s) per CPU.
+And you surely need to compare each of them against each of the others.
+
+> 
+> > while the errors are on the contrary useful (in1dicating platform issues)?
+> 
+> These errors are useful for developers / during testing but
+> not in production setups, esp. in the case of duplicate tables
+> where not loading the duplicate leads to 0 bad side effects.
+> 
+> I've an alternative proposal though, since this check just fixes
+> a small part of the early boot messages caused by SSDT loading
+> and since the code itself chooses to ignore any errors:
+> 
+>          /* Ignore errors while loading tables, get as many as possible */
+> 
+> How about setting a global flag while loading these tables and making
+> 
+> ACPI_EXCEPTION calls log the exceptions with a log level of warning
+> as well as turning the final:
+> 
+>                  ACPI_ERROR((AE_INFO,
+>                              "%u table load failures, %u successful",
+>                              tables_failed, tables_loaded));
+> 
+> Into a warning ?
+
+So will Linux just unconditionally change pr_err() into pr_warn() in the printk.h?
+ACPI_EXCEPTION here actually means blue screen in Windows.
+Maybe it's correct, maybe not.
+Linux doesn't run into panic in ACPI_EXCEPTIION just because Linux ACPI implementation still has compliance issues against the de-facto standard.
+Anyway, we should tune the logging level according to the de-facto standard behavior.
+
+Thanks and best regards
+Lv
+
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> 
+> 
+> >
+> > Thanks
+> > Lv
+> >
+> >>
+> >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >> ---
+> >>  drivers/acpi/acpica/tbxfload.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+> >>  1 file changed, 40 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> >> index 82019c0..1971cd7 100644
+> >> --- a/drivers/acpi/acpica/tbxfload.c
+> >> +++ b/drivers/acpi/acpica/tbxfload.c
+> >> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+> >>
+> >>  /*******************************************************************************
+> >>   *
+> >> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
+> >> + *
+> >> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
+> >> + *              index         - index of table to find a duplicate of
+> >> + *
+> >> + * RETURN:      TRUE if a duplicate is found, FALSE if not
+> >> + *
+> >> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
+> >> + *              avoid trying to load duplicate ssdt tables
+> >> + *
+> >> + ******************************************************************************/
+> >> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
+> >> +{
+> >> +	struct acpi_table_desc *dup;
+> >> +	u32 i;
+> >> +
+> >> +	for (i = 0; i < index; ++i) {
+> >> +		dup = &acpi_gbl_root_table_list.tables[i];
+> >> +
+> >> +		if (!acpi_gbl_root_table_list.tables[i].address ||
+> >> +		    (!ACPI_COMPARE_NAME(dup->signature.ascii, ACPI_SIG_SSDT)
+> >> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
+> >> +					   ACPI_SIG_PSDT)
+> >> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
+> >> +					   ACPI_SIG_OSDT))
+> >> +		    || ACPI_FAILURE(acpi_tb_validate_table(dup))
+> >> +		    || dup->length != table->length) {
+> >> +			continue;
+> >> +		}
+> >> +
+> >> +		if (memcmp(dup->pointer, table->pointer, table->length) == 0)
+> >> +			return TRUE;
+> >> +	}
+> >> +	return FALSE;
+> >> +}
+> >> +
+> >> +/*******************************************************************************
+> >> + *
+> >>   * FUNCTION:    acpi_tb_load_namespace
+> >>   *
+> >>   * PARAMETERS:  None
+> >> @@ -212,7 +250,8 @@ acpi_status acpi_tb_load_namespace(void)
+> >>  					   ACPI_SIG_PSDT)
+> >>  		     && !ACPI_COMPARE_NAME(table->signature.ascii,
+> >>  					   ACPI_SIG_OSDT))
+> >> -		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
+> >> +		    || ACPI_FAILURE(acpi_tb_validate_table(table))
+> >> +		    || acpi_tb_find_duplicate_ssdt(table, i)) {
+> >>  			continue;
+> >>  		}
+> >>
+> >> --
+> >> 2.9.3
+> >
