@@ -1,128 +1,102 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v2 3/4] acpi: Fix the check handle in case of declaring
- processors using the Device operator
-Date: Wed, 1 Mar 2017 12:12:31 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1703011152310.4005@nanos>
-References: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com> <1487580471-17665-4-git-send-email-douly.fnst@cn.fujitsu.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [RFC PATCH V1 v4.10-rc3 1/1] acpi: apei: handle GSIV notification
+ type
+Date: Wed, 01 Mar 2017 17:04:09 +0000
+Message-ID: <58B6FF09.6030306@arm.com>
+References: <86258A5CC0A3704780874CF6004BA8A62DCAB57E@lhreml502-mbs>
+ <58B579A1.90109@arm.com> <43507f99-d80b-6409-d249-b9b18425a1da@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:39280 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752342AbdCAMe4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2017 07:34:56 -0500
-In-Reply-To: <1487580471-17665-4-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <43507f99-d80b-6409-d249-b9b18425a1da@linaro.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Hanjun Guo <hanjun.guo@linaro.org>, Shiju Jose <shiju.jose@huawei.com>
+Cc: "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "matt@codeblueprint.co.uk" <matt@codeblueprint.co.uk>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "paul.gortmaker@windriver.com" <paul.gortmaker@windriver.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "fu.wei@linaro.org" <fu.wei@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, eun.taik.lee@s
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: mingo@kernel.org, peterz@infradead.org, rjw@rjwysocki.net, hpa@zytor.com, rafael@kernel.org, cl@linux.com, tj@kernel.org, akpm@linux-foundation.org, rafael.j.wysocki@intel.com, len.brown@intel.com, izumi.taku@jp.fujitsu.com, xiaolong.ye@intel.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 20 Feb 2017, Dou Liyang wrote:
+Hi Hanjun,
 
-> In ACPI spec, we can declare processors using both Processor and
-> Device operator. And before we use the ACPI table, we should check
-> the correctness for all processors in ACPI namespace.
+On 01/03/17 08:27, Hanjun Guo wrote:
+> On 2017/2/28 21:22, James Morse wrote:
+>> On 27/02/17 18:19, Shiju Jose wrote:
+>>> Add a new GHES error source handling function for
+>>> GSIV(Global System Interrupt Vector).
+>>> If an error source's notification type is GSIV,
+>>> then this handling function can be registered
+>>> into the GSIV handler and it can parse
+>>> and report error information when they occur.
+>>
+>> I'm missing some of the story here, but how is GSIV different from 'External
+>> Interrupt'? I'm guessing something other than the CPU takes this 'interrupt'...
 > 
-> But, Currently, the check handle is just include only the processors
-> which are declared by Processor operator. It misses the processors
-> declared by Device operator.
+> Yes, it's the same from CPU side (they are interrupts!), but there
+> is history behind them and the usage is different.
 > 
-> The patch adds the case of Device operator.
+> I think External Interrupt was introduced before ACPI is available on
+> ARM (hardware reduced platforms), so I guess it was used for errors
+> reported to OS which were not using SCI mechanism, for example, some
+> IO error reporting.
+> 
+> For External Interrupt, we don't use the ACPI event system, so for
+> the firmware, it just report the errors associate with the interrupt
+> number, the kernel map the interrupt number and install the
+> irq handler for it.
+> 
+> For GSIV based event, it was introduced for hardware reduced platform
+> in recent ACPI revision, and ARM64 is one of its consumers. When
+> errors are reported via GSIV, ACPI event notification needs to be
+> implemented and requires the platform to define a hardware error device
+> (PNP0C33) in ACPI namespace, and also a generic event device ACPI0013.
 
-See the comments in the previous mails. They apply here as well.
+Okay, so for APEI this really means PNP0C33 was Notify()d. 'SCI' means the same
+but the route they take to get into APEI is different.
 
-Though this changelog is actively confusing. The subject line says:
 
-  acpi: Fix the check handle in case of declaring processors using the Device
-  	operator
+> For example, if we are using SPI (ARM GIC) 100 to report errors, there
+> is a ACPI0013 driver in drivers/acpi/evged.c to register the irq, when
 
-Aside of being a way too long subject, it suggests that there is just a
-missing check for the case where a processor is declared via the Device
-operator. But that's not what the patch is doing.
+Aha, this is where the interrupt-magic happens.
 
-It implements the distinction between Device and Processor operator, which
-is missing in acpi_processor_ids_walk() right now.
 
-So the proper changelog (if I understand the patch correctly) would be:
+> error happened and trigger the interrupt, ACPI0013 driver will
+> notify the error device (PNP0C33), then error device driver
+> (drivers/acpi/hed.c) will process the error data form APEI table...
 
-Subject: acpi/processor: Implement DEVICE operator for processor enumeration
 
-  ACPI allows to declare processors either with the PROCESSOR or with the
-  DEVICE operator. The current implementation handles only the PROCESSOR
-  operator.
+>> The GHES GSIV code below is identical to the behaviour of the SCI Notification
+>> type... are these two names for the same thing? (I'm confused!)
+> 
+> SCI is also an 'interrupt' but it's a special irq number for ACPI
+> event, and it has GPE (general purpose event) registers behind it,
+> which is used only on Intel platforms. SCI based event use
+> Method(\_GPE._L0x) to notify the error device (PNP0C33), but GSIV
+> is used for HW-reduced platform which has no GPEs.
 
-  On a system which uses the DEVICE operator for processor enumeration the
-  evaluation fails.
+> Hope it can clarify something :)
 
-  Check for the ACPI type of the ACPI handle and evaluate PROCESSOR and
-  DEVICE types seperately.
+Yes thanks! (the mist is slowly clearing...)
 
-Hmm?
+If ACPI_HEST_NOTIFY_SCI and ACPI_HEST_NOTIFY_GSIV both mean 'receive
+notification from PNP0C33', is there any point having separate lists and
+add/remove functions for them?
 
->  {
->  	acpi_status status;
-> +	acpi_object_type acpi_type;
-> +	unsigned long long uid;
->  	union acpi_object object = { 0 };
->  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
->  
-> -	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-> -	if (ACPI_FAILURE(status))
-> -		acpi_handle_info(handle, "Not get the processor object\n");
-> -	else
-> -		processor_validated_ids_update(object.processor.proc_id);
-> +	status = acpi_get_type(handle, &acpi_type);
+Instead, could we rename Linux's ghes_notifier_sci() and ghes_sci list to
+describe 'hed' instead, then group the two case statements together? There would
+be no need to add a selectable CONFIG_ACPI_APEI_GSIV, as SCI is already built-in
+and this way the code added is tiny. The only thing we would lose is the name
+'GSIV' in the not-supported error message which we don't need if its always
+supported.
 
-Shouldn't the status be checked here?
-
-> +	switch (acpi_type) {
-> +	case ACPI_TYPE_PROCESSOR:
-> +		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-> +		if (ACPI_FAILURE(status))
-> +			acpi_handle_info(handle, "Not get the processor object\n");
-> +		else
-> +			processor_validated_ids_update(
-> +						object.processor.proc_id);
-> +		break;
-> +	case ACPI_TYPE_DEVICE:
-> +		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
-> +		if (ACPI_FAILURE(status))
-> +			return false;
-> +		processor_validated_ids_update(uid);
-> +		break;
-> +	default:
-> +		return false;
-
-This is inconsistent vs. the failure handling in the PROCESSOR and DEVICE
-case and the default case does not give any information either.
-
-What about this:
-
-	switch (acpi_type) {
-	case ACPI_TYPE_PROCESSOR:
-		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-		if (ACPI_FAILURE(status))
-			goto err;
-		uid = object.processor.proc_id;
-		break;
-		
-	case ACPI_TYPE_DEVICE:
-		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
-		if (ACPI_FAILURE(status))
-			goto err;
-		break;
-	default:
-		goto err;
-	}
-
-	processor_validated_ids_update(uid);
-	return true;
-
-err:
-	acpi_handle_info(handle, "Invalid processor object\n");
-	return false;
-}
 
 Thanks,
 
-	tglx
+James
