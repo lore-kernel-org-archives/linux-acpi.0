@@ -1,199 +1,286 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Detect duplicate SSDT tables
-Date: Wed, 1 Mar 2017 03:21:26 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
-References: <20170227093432.3308-1-hdegoede@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
- <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH V11 05/10] acpi: apei: handle SEA notification type for
+ ARMv8
+Date: Wed, 1 Mar 2017 15:42:33 +0800
+Message-ID: <58B67B69.8000702@huawei.com>
+References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
+ <1487712121-16688-6-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:43937 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751468AbdCAD0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Feb 2017 22:26:53 -0500
-In-Reply-To: <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
-Content-Language: en-US
+Received: from szxga02-in.huawei.com ([45.249.212.188]:3370 "EHLO
+        dggrg02-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751962AbdCAHqN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2017 02:46:13 -0500
+In-Reply-To: <1487712121-16688-6-git-send-email-tbaicar@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vg
 
-Hi,
+Hi Tyler,
 
-> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
-> 
-> Hi,
-> 
-> On 28-02-17 06:19, Zheng, Lv wrote:
-> > Hi,
-> >
-> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
-> >>
-> >> Some machines have the exact (byte for byte) same SSDT tables multiple
-> >> times in the root_table_list.
-> >
-> > Could you give a machine list here?
-> 
-> Currently I'm seeing this on a GPD win machine:
-> 
-> http://www.gpd.hk/gpdwin.asp
-> 
-> I thought I was seeing it on more machines, but those have
-> different apci table loading errors...
+On 2017/2/22 5:21, Tyler Baicar wrote:
+> ARM APEI extension proposal added SEA (Synchronous External Abort)
+> notification type for ARMv8.
+> Add a new GHES error source handling function for SEA. If an error
+> source's notification type is SEA, then this function can be registered
+> into the SEA exception handler. That way GHES will parse and report
+> SEA exceptions when they occur.
 
-I'm not sure what the Windows clones will behave in this case.
-Upon seeing a duplicate table, will Windows:
-1. override old namespace node, or
-2. discard (maybe silently) new namespace node that has conflict namespace hierarchy position against existing node, or
-3. just complain us with a blue screen, or
-4. compare all tables first.
+I have a question about ghes_proc. In ghes_proc, we just parse and report
+the error information, but no one use it for error recovery now.
 
-Before knowing the de-facto standard behavior, I'm not sure if the behavior introduced by this commit is correct.
-We should be able to judge if this case is real after knowing the Windows behavior.
+Take the SEA case for example, we get the physical address from parsing
+the GHES table. But the memory management system or other drivers/modules
+know what the really meaning of the error address/page. There is no way to
+notify them to do the recovery now.
 
-So I don't think this commit goes the right direction on the right track.
+So, could we add a notify at appropriate position. All drivers or modules
+which are interested in this error could receive and take the corresponding
+action.
 
-> 
-> >> Detect this and silently skip the duplicates
-> >> rather then printing a scary looking set of errors.
-> >
-> > Why will this matter to OSPMs?
-> 
-> Not sure what you mean with OSPMs but I can tell you why this
-> matters in general, Linux distributions like e.g. Fedora have
-> been putting a lot of work in a smooth boot experience where
-> end users do not get any scary text messages. For some more
-> embedded like systems this even is a hard requirement.
-> 
-> The kernel supports quiet kernel cmdline argument to silence
-> normal kernel messages, which is part of what is needed but
-> messages with a log level of error still get shown, breaking
-> the "no scary text messages" product requirement.
-> 
-> > And should we add non-costless steps just in order to reduce errors,
-> 
-> Yes we should, work on that front has been happening for years,
-> also the CPU cost of this check is quite small, memcmp will
-> only happen on identically sized tables and even then it will
-> exit as soon as a single byte differs.
+---
+Thanks,
+Xie XiuQi
 
-Even though, there are server systems containing many tables, almost one/two/three table(s) per CPU.
-And you surely need to compare each of them against each of the others.
 
+> An SEA can interrupt code that had interrupts masked and is treated as
+> an NMI. To aid this the page of address space for mapping APEI buffers
+> while in_nmi() is always reserved, and ghes_ioremap_pfn_nmi() is
+> changed to use the helper methods to find the prot_t to map with in
+> the same way as ghes_ioremap_pfn_irq().
 > 
-> > while the errors are on the contrary useful (in1dicating platform issues)?
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> ---
+>  arch/arm64/Kconfig        |  1 +
+>  arch/arm64/mm/fault.c     | 13 ++++++++
+>  drivers/acpi/apei/Kconfig | 15 +++++++++
+>  drivers/acpi/apei/ghes.c  | 77 +++++++++++++++++++++++++++++++++++++++++++----
+>  include/acpi/ghes.h       |  7 +++++
+>  5 files changed, 107 insertions(+), 6 deletions(-)
 > 
-> These errors are useful for developers / during testing but
-> not in production setups, esp. in the case of duplicate tables
-> where not loading the duplicate leads to 0 bad side effects.
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 1117421..fca4dc1 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -88,6 +88,7 @@ config ARM64
+>  	select HAVE_IRQ_TIME_ACCOUNTING
+>  	select HAVE_MEMBLOCK
+>  	select HAVE_MEMBLOCK_NODE_MAP if NUMA
+> +	select HAVE_NMI if ACPI_APEI_SEA
+>  	select HAVE_PATA_PLATFORM
+>  	select HAVE_PERF_EVENTS
+>  	select HAVE_PERF_REGS
+> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> index d178dc0..b2d57fc 100644
+> --- a/arch/arm64/mm/fault.c
+> +++ b/arch/arm64/mm/fault.c
+> @@ -41,6 +41,8 @@
+>  #include <asm/pgtable.h>
+>  #include <asm/tlbflush.h>
+>  
+> +#include <acpi/ghes.h>
+> +
+>  static const char *fault_name(unsigned int esr);
+>  
+>  #ifdef CONFIG_KPROBES
+> @@ -498,6 +500,17 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>  	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
+>  		 fault_name(esr), esr, addr);
+>  
+> +	/*
+> +	 * Synchronous aborts may interrupt code which had interrupts masked.
+> +	 * Before calling out into the wider kernel tell the interested
+> +	 * subsystems.
+> +	 */
+> +	if (IS_ENABLED(ACPI_APEI_SEA)) {
+> +		nmi_enter();
+> +		ghes_notify_sea();
+> +		nmi_exit();
+> +	}
+> +
+>  	info.si_signo = SIGBUS;
+>  	info.si_errno = 0;
+>  	info.si_code  = 0;
+> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+> index b0140c8..c545dd1 100644
+> --- a/drivers/acpi/apei/Kconfig
+> +++ b/drivers/acpi/apei/Kconfig
+> @@ -39,6 +39,21 @@ config ACPI_APEI_PCIEAER
+>  	  PCIe AER errors may be reported via APEI firmware first mode.
+>  	  Turn on this option to enable the corresponding support.
+>  
+> +config ACPI_APEI_SEA
+> +	bool "APEI Synchronous External Abort logging/recovering support"
+> +	depends on ARM64 && ACPI_APEI && ACPI_APEI_GHES
+> +	default y
+> +	help
+> +	  This option should be enabled if the system supports
+> +	  firmware first handling of SEA (Synchronous External Abort).
+> +	  SEA happens with certain faults of data abort or instruction
+> +	  abort synchronous exceptions on ARMv8 systems. If a system
+> +	  supports firmware first handling of SEA, the platform analyzes
+> +	  and handles hardware error notifications from SEA, and it may then
+> +	  form a HW error record for the OS to parse and handle. This
+> +	  option allows the OS to look for such hardware error record, and
+> +	  take appropriate action.
+> +
+>  config ACPI_APEI_MEMORY_FAILURE
+>  	bool "APEI memory error recovering support"
+>  	depends on ACPI_APEI && MEMORY_FAILURE
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b25e7cf..b0596ba 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -114,11 +114,7 @@
+>   * Two virtual pages are used, one for IRQ/PROCESS context, the other for
+>   * NMI context (optionally).
+>   */
+> -#ifdef CONFIG_HAVE_ACPI_APEI_NMI
+>  #define GHES_IOREMAP_PAGES           2
+> -#else
+> -#define GHES_IOREMAP_PAGES           1
+> -#endif
+>  #define GHES_IOREMAP_IRQ_PAGE(base)	(base)
+>  #define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
+>  
+> @@ -157,10 +153,14 @@ static void ghes_ioremap_exit(void)
+>  static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
+>  {
+>  	unsigned long vaddr;
+> +	phys_addr_t paddr;
+> +	pgprot_t prot;
+>  
+>  	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
+> -	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
+> -			   pfn << PAGE_SHIFT, PAGE_KERNEL);
+> +
+> +	paddr = pfn << PAGE_SHIFT;
+> +	prot = arch_apei_get_mem_attribute(paddr);
+> +	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
+>  
+>  	return (void __iomem *)vaddr;
+>  }
+> @@ -767,6 +767,50 @@ static int ghes_notify_sci(struct notifier_block *this,
+>  	.notifier_call = ghes_notify_sci,
+>  };
+>  
+> +#ifdef CONFIG_ACPI_APEI_SEA
+> +static LIST_HEAD(ghes_sea);
+> +
+> +void ghes_notify_sea(void)
+> +{
+> +	struct ghes *ghes;
+> +
+> +	/*
+> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
+> +	 * rcu_read_lock().
+> +	 */
+> +	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
+> +		ghes_proc(ghes);
+> +	}
+> +}
+> +
+> +static void ghes_sea_add(struct ghes *ghes)
+> +{
+> +	mutex_lock(&ghes_list_mutex);
+> +	list_add_rcu(&ghes->list, &ghes_sea);
+> +	mutex_unlock(&ghes_list_mutex);
+> +}
+> +
+> +static void ghes_sea_remove(struct ghes *ghes)
+> +{
+> +	mutex_lock(&ghes_list_mutex);
+> +	list_del_rcu(&ghes->list);
+> +	mutex_unlock(&ghes_list_mutex);
+> +	synchronize_rcu();
+> +}
+> +#else /* CONFIG_ACPI_APEI_SEA */
+> +static inline void ghes_sea_add(struct ghes *ghes)
+> +{
+> +	pr_err(GHES_PFX "ID: %d, trying to add SEA notification which is not supported\n",
+> +	       ghes->generic->header.source_id);
+> +}
+> +
+> +static inline void ghes_sea_remove(struct ghes *ghes)
+> +{
+> +	pr_err(GHES_PFX "ID: %d, trying to remove SEA notification which is not supported\n",
+> +	       ghes->generic->header.source_id);
+> +}
+> +#endif /* CONFIG_ACPI_APEI_SEA */
+> +
+>  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+>  /*
+>   * printk is not safe in NMI context.  So in NMI handler, we allocate
+> @@ -1012,6 +1056,14 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  	case ACPI_HEST_NOTIFY_EXTERNAL:
+>  	case ACPI_HEST_NOTIFY_SCI:
+>  		break;
+> +	case ACPI_HEST_NOTIFY_SEA:
+> +		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
+> +			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEA is not supported\n",
+> +				generic->header.source_id);
+> +			rc = -ENOTSUPP;
+> +			goto err;
+> +		}
+> +		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+>  			pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
+> @@ -1023,6 +1075,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
+>  			   generic->header.source_id);
+>  		goto err;
+> +	case ACPI_HEST_NOTIFY_GPIO:
+> +	case ACPI_HEST_NOTIFY_SEI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +		pr_warn(GHES_PFX "Generic hardware error source: %d notified via notification type %u is not supported\n",
+> +			generic->header.source_id, generic->header.source_id);
+> +		rc = -ENOTSUPP;
+> +		goto err;
+>  	default:
+>  		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
+>  			   generic->notify.type, generic->header.source_id);
+> @@ -1077,6 +1136,9 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		list_add_rcu(&ghes->list, &ghes_sci);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+> +	case ACPI_HEST_NOTIFY_SEA:
+> +		ghes_sea_add(ghes);
+> +		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		ghes_nmi_add(ghes);
+>  		break;
+> @@ -1119,6 +1181,9 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>  			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+> +	case ACPI_HEST_NOTIFY_SEA:
+> +		ghes_sea_remove(ghes);
+> +		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		ghes_nmi_remove(ghes);
+>  		break;
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 6ae318b..18bc935 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -1,3 +1,6 @@
+> +#ifndef GHES_H
+> +#define GHES_H
+> +
+>  #include <acpi/apei.h>
+>  #include <acpi/hed.h>
+>  
+> @@ -95,3 +98,7 @@ static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data
+>  		(void *)(((struct acpi_hest_generic_data_v300 *)(gdata)) + 1) :
+>  		gdata + 1;
+>  }
+> +
+> +void ghes_notify_sea(void);
+> +
+> +#endif /* GHES_H */
 > 
-> I've an alternative proposal though, since this check just fixes
-> a small part of the early boot messages caused by SSDT loading
-> and since the code itself chooses to ignore any errors:
-> 
->          /* Ignore errors while loading tables, get as many as possible */
-> 
-> How about setting a global flag while loading these tables and making
-> 
-> ACPI_EXCEPTION calls log the exceptions with a log level of warning
-> as well as turning the final:
-> 
->                  ACPI_ERROR((AE_INFO,
->                              "%u table load failures, %u successful",
->                              tables_failed, tables_loaded));
-> 
-> Into a warning ?
 
-So will Linux just unconditionally change pr_err() into pr_warn() in the printk.h?
-ACPI_EXCEPTION here actually means blue screen in Windows.
-Maybe it's correct, maybe not.
-Linux doesn't run into panic in ACPI_EXCEPTIION just because Linux ACPI implementation still has compliance issues against the de-facto standard.
-Anyway, we should tune the logging level according to the de-facto standard behavior.
-
-Thanks and best regards
-Lv
-
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> 
-> 
-> >
-> > Thanks
-> > Lv
-> >
-> >>
-> >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >> ---
-> >>  drivers/acpi/acpica/tbxfload.c | 41 ++++++++++++++++++++++++++++++++++++++++-
-> >>  1 file changed, 40 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-> >> index 82019c0..1971cd7 100644
-> >> --- a/drivers/acpi/acpica/tbxfload.c
-> >> +++ b/drivers/acpi/acpica/tbxfload.c
-> >> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
-> >>
-> >>  /*******************************************************************************
-> >>   *
-> >> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
-> >> + *
-> >> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
-> >> + *              index         - index of table to find a duplicate of
-> >> + *
-> >> + * RETURN:      TRUE if a duplicate is found, FALSE if not
-> >> + *
-> >> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
-> >> + *              avoid trying to load duplicate ssdt tables
-> >> + *
-> >> + ******************************************************************************/
-> >> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
-> >> +{
-> >> +	struct acpi_table_desc *dup;
-> >> +	u32 i;
-> >> +
-> >> +	for (i = 0; i < index; ++i) {
-> >> +		dup = &acpi_gbl_root_table_list.tables[i];
-> >> +
-> >> +		if (!acpi_gbl_root_table_list.tables[i].address ||
-> >> +		    (!ACPI_COMPARE_NAME(dup->signature.ascii, ACPI_SIG_SSDT)
-> >> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
-> >> +					   ACPI_SIG_PSDT)
-> >> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
-> >> +					   ACPI_SIG_OSDT))
-> >> +		    || ACPI_FAILURE(acpi_tb_validate_table(dup))
-> >> +		    || dup->length != table->length) {
-> >> +			continue;
-> >> +		}
-> >> +
-> >> +		if (memcmp(dup->pointer, table->pointer, table->length) == 0)
-> >> +			return TRUE;
-> >> +	}
-> >> +	return FALSE;
-> >> +}
-> >> +
-> >> +/*******************************************************************************
-> >> + *
-> >>   * FUNCTION:    acpi_tb_load_namespace
-> >>   *
-> >>   * PARAMETERS:  None
-> >> @@ -212,7 +250,8 @@ acpi_status acpi_tb_load_namespace(void)
-> >>  					   ACPI_SIG_PSDT)
-> >>  		     && !ACPI_COMPARE_NAME(table->signature.ascii,
-> >>  					   ACPI_SIG_OSDT))
-> >> -		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
-> >> +		    || ACPI_FAILURE(acpi_tb_validate_table(table))
-> >> +		    || acpi_tb_find_duplicate_ssdt(table, i)) {
-> >>  			continue;
-> >>  		}
-> >>
-> >> --
-> >> 2.9.3
-> >
