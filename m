@@ -1,192 +1,290 @@
-From: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 2/2] nfit, libnvdimm: fix interleave set cookie calculation
-Date: Wed, 01 Mar 2017 12:57:07 -0700
-Message-ID: <1488398227.24621.1.camel@linux.intel.com>
-References: <148835947931.28806.15339584183213827869.stgit@dwillia2-desk3.amr.corp.intel.com>
- <148835949014.28806.14335060350919963814.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Detect duplicate SSDT tables
+Date: Wed, 1 Mar 2017 20:38:19 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E56876F@ORSMSX110.amr.corp.intel.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
+ <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
+ <a2cdcf07-055c-6cb2-a0f2-b179a128f845@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <148835949014.28806.14335060350919963814.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:8999 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751055AbdCAVoa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 1 Mar 2017 16:44:30 -0500
+In-Reply-To: <a2cdcf07-055c-6cb2-a0f2-b179a128f845@redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Box, David E" <david.e.box@intel.com>
 
-Patch verified, cookies align again
+Sorry if I've missed any of this conversation, but I have a couple of thoughts:
 
-On Wed, 2017-03-01 at 01:11 -0800, Dan Williams wrote:
-> The interleave-set cookie is a sum that sanity checks the composition of
-> an interleave set has not changed from when the namespace was initially
-> created.  The checksum is calculated by sorting the DIMMs by their
-> location in the interleave-set. The comparison for the sort must be
-> 64-bit wide, not byte-by-byte as performed by memcmp() in the broken
-> case.
+1) It might be sufficient to just compare the incoming table header (36 bytes). The header contains both the table length and the checksum -- as well as the OEM ID and OEM version. I take it that the XSDT pointers to the duplicate tables are different.
+
+2) As far as comparing every incoming SSDT byte-for-byte against all previously loaded SSDTs, I have to think "what about the boot time?". Especially since SSDTs are increasing in both size and number (See example from a real machine below).
+
+
+ACPI: RSDP 0x0000000000492954 000024 (v02 Intel )
+ACPI: XSDT 0x000000000068C938 0000B4 (v00 Intel  AcpiExec 00001001 INTL 20170224)
+ACPI: FACP 0x0000000000492978 000114 (v05 Intel  AcpiExec 00001001 INTL 20170224)
+ACPI: DSDT 0x0000000000690048 022FD6 (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: FACS 0x0000000000492AB0 000040
+ACPI: SSDT 0x00000000006B3028 0004B7 (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x000000000068D940 000B49 (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006B34E8 0004A3 (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006B3998 000E58 (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006B47F8 00037F (v02 PmRef  Cpu0Cst  00003001 INTL 20121220)
+ACPI: SSDT 0x000000000068E498 000660 (v02 PmRef  Cpu0Ist  00003000 INTL 20121220)
+ACPI: SSDT 0x00000000006B4B80 0005AA (v02 PmRef  ApIst    00003000 INTL 20121220)
+ACPI: SSDT 0x000000000068EB00 000119 (v02 PmRef  ApCst    00003000 INTL 20121220)
+ACPI: SSDT 0x000000000068EC28 00004B (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006B5138 0052EE (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006BA430 002C4A (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006BD088 0004C8 (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x000000000068EC80 0002D4 (v01 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006BD558 002BAE (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006C0110 00019A (v02 LENOVO CB-01    00000001 ACPI 00040000)
+ACPI: SSDT 0x00000000006C02B8 0006DC (v02 LENOVO CB-01    00000001 ACPI 00040000)
+
+
+
+
+> -----Original Message-----
+> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> Sent: Wednesday, March 1, 2017 1:19 AM
+> To: Zheng, Lv <lv.zheng@intel.com>; Rafael J . Wysocki
+> <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>; Moore, Robert
+> <robert.moore@intel.com>
+> Cc: linux-acpi@vger.kernel.org; devel@acpica.org
+> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
 > 
-> Fix the implementation to accept correct cookie values in addition to
-> the Linux "memcmp" order cookies, but only allow correct cookies to be
-> generated going forward. It does mean that namespaces created by
-> third-party-tooling, or created by newer kernels with this fix, will not
-> validate on older kernels. However, there are a couple mitigating
-> conditions:
+> Hi,
 > 
->     1/ platforms with namespace-label capable NVDIMMs are not widely
->        available.
+> On 01-03-17 04:21, Zheng, Lv wrote:
+> > Hi,
+> >
+> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>
+> >> Hi,
+> >>
+> >> On 28-02-17 06:19, Zheng, Lv wrote:
+> >>> Hi,
+> >>>
+> >>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >>>> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>>>
+> >>>> Some machines have the exact (byte for byte) same SSDT tables
+> >>>> multiple times in the root_table_list.
+> >>>
+> >>> Could you give a machine list here?
+> >>
+> >> Currently I'm seeing this on a GPD win machine:
+> >>
+> >> http://www.gpd.hk/gpdwin.asp
+> >>
+> >> I thought I was seeing it on more machines, but those have different
+> >> apci table loading errors...
+> >
+> > I'm not sure what the Windows clones will behave in this case.
+> > Upon seeing a duplicate table, will Windows:
+> > 1. override old namespace node, or
+> > 2. discard (maybe silently) new namespace node that has conflict
+> > namespace hierarchy position against existing node, or 3. just
+> > complain us with a blue screen, or 4. compare all tables first.
+> >
+> > Before knowing the de-facto standard behavior, I'm not sure if the
+> behavior introduced by this commit is correct.
+> > We should be able to judge if this case is real after knowing the
+> Windows behavior.
 > 
->     2/ interleave-sets with a single-dimm are by definition not affected
->        (nothing to sort). This covers the QEMU-KVM NVDIMM emulation case.
+> It is impossible to know what Windows does under the hood, but it does
+> work without complaints on this device, so it certainly does not do 3.
+> As for 1., 2. and 4. since these are identical tables the end result is
+> the same in all 3 cases, it is as if only a single copy was used:
 > 
-> The cookie stored in the namespace label can be fixed up by writing
-> the namespace "alt_name" attribute in sysfs.
+> 1. Overriding with the exact same table is a no-op 2. Silently
+> discarding means the old copy is used 4. Comparing tables and presumable
+> then not loading duplicate
+>     ones will result in the old copy being used.
 > 
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set state-tracking infrastructure")
-> Reported-by: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/acpi/nfit/core.c        |   16 +++++++++++++++-
->  drivers/nvdimm/namespace_devs.c |   18 ++++++++++++++----
->  drivers/nvdimm/nd.h             |    1 +
->  drivers/nvdimm/region_devs.c    |    9 +++++++++
->  include/linux/libnvdimm.h       |    2 ++
->  5 files changed, 41 insertions(+), 5 deletions(-)
+> So it really does not matter which route windows goes, the end result
+> is: Things work without the user being show scary error messages during
+> boot.
 > 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 7361d00818e2..662036bdc65e 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1603,7 +1603,7 @@ static size_t sizeof_nfit_set_info(int num_mappings)
->  		+ num_mappings * sizeof(struct nfit_set_info_map);
->  }
->  
-> -static int cmp_map(const void *m0, const void *m1)
-> +static int cmp_map_compat(const void *m0, const void *m1)
->  {
->  	const struct nfit_set_info_map *map0 = m0;
->  	const struct nfit_set_info_map *map1 = m1;
-> @@ -1612,6 +1612,14 @@ static int cmp_map(const void *m0, const void *m1)
->  			sizeof(u64));
->  }
->  
-> +static int cmp_map(const void *m0, const void *m1)
-> +{
-> +	const struct nfit_set_info_map *map0 = m0;
-> +	const struct nfit_set_info_map *map1 = m1;
-> +
-> +	return map0->region_offset - map1->region_offset;
-> +}
-> +
->  /* Retrieve the nth entry referencing this spa */
->  static struct acpi_nfit_memory_map *memdev_from_spa(
->  		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
-> @@ -1667,6 +1675,12 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
->  	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
->  			cmp_map, NULL);
->  	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
-> +
-> +	/* support namespaces created with the wrong sort order */
-> +	sort(&info->mapping[0], nr, sizeof(struct nfit_set_info_map),
-> +			cmp_map_compat, NULL);
-> +	nd_set->altcookie = nd_fletcher64(info, sizeof_nfit_set_info(nr), 0);
-> +
->  	ndr_desc->nd_set = nd_set;
->  	devm_kfree(dev, info);
->  
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index ce3e8dfa10ad..1b481a5fb966 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -1700,6 +1700,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
->  struct device *create_namespace_pmem(struct nd_region *nd_region,
->  		struct nd_namespace_label *nd_label)
->  {
-> +	u64 altcookie = nd_region_interleave_set_altcookie(nd_region);
->  	u64 cookie = nd_region_interleave_set_cookie(nd_region);
->  	struct nd_label_ent *label_ent;
->  	struct nd_namespace_pmem *nspm;
-> @@ -1718,7 +1719,11 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
->  	if (__le64_to_cpu(nd_label->isetcookie) != cookie) {
->  		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
->  				nd_label->uuid);
-> -		return ERR_PTR(-EAGAIN);
-> +		if (__le64_to_cpu(nd_label->isetcookie) != altcookie)
-> +			return ERR_PTR(-EAGAIN);
-> +
-> +		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
-> +				nd_label->uuid);
->  	}
->  
->  	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
-> @@ -1733,9 +1738,14 @@ struct device *create_namespace_pmem(struct nd_region *nd_region,
->  	res->name = dev_name(&nd_region->dev);
->  	res->flags = IORESOURCE_MEM;
->  
-> -	for (i = 0; i < nd_region->ndr_mappings; i++)
-> -		if (!has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
-> -			break;
-> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
-> +		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
-> +			continue;
-> +		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
-> +			continue;
-> +		break;
-> +	}
-> +
->  	if (i < nd_region->ndr_mappings) {
->  		struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
->  
-> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> index 35dd75057e16..2a99c83aa19f 100644
-> --- a/drivers/nvdimm/nd.h
-> +++ b/drivers/nvdimm/nd.h
-> @@ -328,6 +328,7 @@ struct nd_region *to_nd_region(struct device *dev);
->  int nd_region_to_nstype(struct nd_region *nd_region);
->  int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
->  u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
-> +u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region);
->  void nvdimm_bus_lock(struct device *dev);
->  void nvdimm_bus_unlock(struct device *dev);
->  bool is_nvdimm_bus_locked(struct device *dev);
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index 7cd705f3247c..b7cb5066d961 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-> @@ -505,6 +505,15 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
->  	return 0;
->  }
->  
-> +u64 nd_region_interleave_set_altcookie(struct nd_region *nd_region)
-> +{
-> +	struct nd_interleave_set *nd_set = nd_region->nd_set;
-> +
-> +	if (nd_set)
-> +		return nd_set->altcookie;
-> +	return 0;
-> +}
-> +
->  void nd_mapping_free_labels(struct nd_mapping *nd_mapping)
->  {
->  	struct nd_label_ent *label_ent, *e;
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 8458c5351e56..77e7af32543f 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -70,6 +70,8 @@ struct nd_cmd_desc {
->  
->  struct nd_interleave_set {
->  	u64 cookie;
-> +	/* compatibility with initial buggy Linux implementation */
-> +	u64 altcookie;
->  };
->  
->  struct nd_mapping_desc {
+> > So I don't think this commit goes the right direction on the right
+> track.
+> >
+> >>
+> >>>> Detect this and silently skip the duplicates rather then printing a
+> >>>> scary looking set of errors.
+> >>>
+> >>> Why will this matter to OSPMs?
+> >>
+> >> Not sure what you mean with OSPMs but I can tell you why this matters
+> >> in general, Linux distributions like e.g. Fedora have been putting a
+> >> lot of work in a smooth boot experience where end users do not get
+> >> any scary text messages. For some more embedded like systems this
+> >> even is a hard requirement.
+> >>
+> >> The kernel supports quiet kernel cmdline argument to silence normal
+> >> kernel messages, which is part of what is needed but messages with a
+> >> log level of error still get shown, breaking the "no scary text
+> >> messages" product requirement.
+> >>
+> >>> And should we add non-costless steps just in order to reduce errors,
+> >>
+> >> Yes we should, work on that front has been happening for years, also
+> >> the CPU cost of this check is quite small, memcmp will only happen on
+> >> identically sized tables and even then it will exit as soon as a
+> >> single byte differs.
+> >
+> > Even though, there are server systems containing many tables, almost
+> one/two/three table(s) per CPU.
+> > And you surely need to compare each of them against each of the
+> others.
 > 
+> And those machines typically take quite a lot time to boot anyways.
+> 
+> Note my patch is only checking previously loaded tables (we do want to
+> load the first copy). So all it is doing is accessing system memory from
+> the CPU. I think you will find in impossible to even measure the extra
+> boot time these few extra (likely cached) system memory accesses take,
+> let alone that it will be anywhere near relevant for the total boot
+> time.
+> 
+> >>> while the errors are on the contrary useful (in1dicating platform
+> issues)?
+> >>
+> >> These errors are useful for developers / during testing but not in
+> >> production setups, esp. in the case of duplicate tables where not
+> >> loading the duplicate leads to 0 bad side effects.
+> >>
+> >> I've an alternative proposal though, since this check just fixes a
+> >> small part of the early boot messages caused by SSDT loading and
+> >> since the code itself chooses to ignore any errors:
+> >>
+> >>          /* Ignore errors while loading tables, get as many as
+> >> possible */
+> >>
+> >> How about setting a global flag while loading these tables and making
+> >>
+> >> ACPI_EXCEPTION calls log the exceptions with a log level of warning
+> >> as well as turning the final:
+> >>
+> >>                  ACPI_ERROR((AE_INFO,
+> >>                              "%u table load failures, %u successful",
+> >>                              tables_failed, tables_loaded));
+> >>
+> >> Into a warning ?
+> >
+> > So will Linux just unconditionally change pr_err() into pr_warn() in
+> the printk.h?
+> 
+> I'm not talking about unconditionally doing this, the acpica code itself
+> contains in drivers/acpi/acpica/tbxfload.c:
+> 
+>          /* Ignore errors while loading tables, get as many as possible
+> */
+> 
+> Since acpica is ignoring errors here, it would seem reasonable to me for
+> acpica to treat all ACPI_ERROR / ACPI_EXCEPTION calls while doing this
+> as ACPI_WARNING calls.
+> 
+> > ACPI_EXCEPTION here actually means blue screen in Windows.
+> > Maybe it's correct, maybe not.
+> > Linux doesn't run into panic in ACPI_EXCEPTIION just because Linux
+> ACPI implementation still has compliance issues against the de-facto
+> standard.
+> 
+> De-facto standard ? ACPI is a written standard, not a de-facto standard.
+> I surely hope ACPICA tries to implements the standard as written...
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> 
+> >>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>>> ---
+> >>>>  drivers/acpi/acpica/tbxfload.c | 41
+> >>>> ++++++++++++++++++++++++++++++++++++++++-
+> >>>>  1 file changed, 40 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/drivers/acpi/acpica/tbxfload.c
+> >>>> b/drivers/acpi/acpica/tbxfload.c index 82019c0..1971cd7 100644
+> >>>> --- a/drivers/acpi/acpica/tbxfload.c
+> >>>> +++ b/drivers/acpi/acpica/tbxfload.c
+> >>>> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+> >>>>
+> >>>>
+> /***********************************************************************
+> ********
+> >>>>   *
+> >>>> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
+> >>>> + *
+> >>>> + * PARAMETERS:  table         - validated acpi_table_desc of table
+> to check
+> >>>> + *              index         - index of table to find a duplicate
+> of
+> >>>> + *
+> >>>> + * RETURN:      TRUE if a duplicate is found, FALSE if not
+> >>>> + *
+> >>>> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace
+> to
+> >>>> + *              avoid trying to load duplicate ssdt tables
+> >>>> + *
+> >>>> +
+> >>>> +******************************************************************
+> >>>> +************/ static u8 acpi_tb_find_duplicate_ssdt(struct
+> >>>> +acpi_table_desc *table, u32 index) {
+> >>>> +	struct acpi_table_desc *dup;
+> >>>> +	u32 i;
+> >>>> +
+> >>>> +	for (i = 0; i < index; ++i) {
+> >>>> +		dup = &acpi_gbl_root_table_list.tables[i];
+> >>>> +
+> >>>> +		if (!acpi_gbl_root_table_list.tables[i].address ||
+> >>>> +		    (!ACPI_COMPARE_NAME(dup->signature.ascii,
+> ACPI_SIG_SSDT)
+> >>>> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
+> >>>> +					   ACPI_SIG_PSDT)
+> >>>> +		     && !ACPI_COMPARE_NAME(dup->signature.ascii,
+> >>>> +					   ACPI_SIG_OSDT))
+> >>>> +		    || ACPI_FAILURE(acpi_tb_validate_table(dup))
+> >>>> +		    || dup->length != table->length) {
+> >>>> +			continue;
+> >>>> +		}
+> >>>> +
+> >>>> +		if (memcmp(dup->pointer, table->pointer, table->length)
+> == 0)
+> >>>> +			return TRUE;
+> >>>> +	}
+> >>>> +	return FALSE;
+> >>>> +}
+> >>>> +
+> >>>> +/*****************************************************************
+> >>>> +**************
+> >>>> + *
+> >>>>   * FUNCTION:    acpi_tb_load_namespace
+> >>>>   *
+> >>>>   * PARAMETERS:  None
+> >>>> @@ -212,7 +250,8 @@ acpi_status acpi_tb_load_namespace(void)
+> >>>>  					   ACPI_SIG_PSDT)
+> >>>>  		     && !ACPI_COMPARE_NAME(table->signature.ascii,
+> >>>>  					   ACPI_SIG_OSDT))
+> >>>> -		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
+> >>>> +		    || ACPI_FAILURE(acpi_tb_validate_table(table))
+> >>>> +		    || acpi_tb_find_duplicate_ssdt(table, i)) {
+> >>>>  			continue;
+> >>>>  		}
+> >>>>
+> >>>> --
+> >>>> 2.9.3
+> >>>
