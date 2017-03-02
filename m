@@ -1,20 +1,20 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v2 3/4] acpi: Fix the check handle in case of declaring
- processors using the Device operator
-Date: Thu, 2 Mar 2017 16:12:23 +0800
-Message-ID: <d45eeebf-2b91-c718-6168-6ff1fdeffc9c@cn.fujitsu.com>
+Subject: Re: [PATCH v2 2/4] Revert"x86/acpi: Enable MADT APIs to return
+ disabled apicids"
+Date: Thu, 2 Mar 2017 16:02:38 +0800
+Message-ID: <af90b512-b771-d1e5-08e6-7589f6dfca17@cn.fujitsu.com>
 References: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1487580471-17665-4-git-send-email-douly.fnst@cn.fujitsu.com>
- <alpine.DEB.2.20.1703011152310.4005@nanos>
+ <1487580471-17665-3-git-send-email-douly.fnst@cn.fujitsu.com>
+ <alpine.DEB.2.20.1703011151090.4005@nanos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:7849 "EHLO
+Received: from cn.fujitsu.com ([59.151.112.132]:47308 "EHLO
         heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754239AbdCBIMf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2017 03:12:35 -0500
-In-Reply-To: <alpine.DEB.2.20.1703011152310.4005@nanos>
+        with ESMTP id S1750771AbdCBIRh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2017 03:17:37 -0500
+In-Reply-To: <alpine.DEB.2.20.1703011151090.4005@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>
@@ -22,129 +22,32 @@ Cc: mingo@kernel.org, peterz@infradead.org, rjw@rjwysocki.net, hpa@zytor.com, ra
 
 Hi tglx,
 
-At 03/01/2017 07:12 PM, Thomas Gleixner wrote:
+At 03/01/2017 06:52 PM, Thomas Gleixner wrote:
 > On Mon, 20 Feb 2017, Dou Liyang wrote:
 >
->> In ACPI spec, we can declare processors using both Processor and
->> Device operator. And before we use the ACPI table, we should check
->> the correctness for all processors in ACPI namespace.
+>> After we never do the last mapping of "cpuid <-> nodeid" at booting time. we
+>> also no need to enable MADT APIs to return disabled apicid.
 >>
->> But, Currently, the check handle is just include only the processors
->> which are declared by Processor operator. It misses the processors
->> declared by Device operator.
->>
->> The patch adds the case of Device operator.
+>> So, The patch work for reverting the commit 8ad893faf2:
+>> "x86/acpi: Enable MADT APIs to return disabled apicids"
 >
-> See the comments in the previous mails. They apply here as well.
+> Again, this changelog is confusing. A simple:
 >
-> Though this changelog is actively confusing. The subject line says:
+>   Remove the leftovers of the boot time 'cpuid <-> nodeid' mapping approach.
 >
->   acpi: Fix the check handle in case of declaring processors using the Device
->   	operator
->
-> Aside of being a way too long subject, it suggests that there is just a
-> missing check for the case where a processor is declared via the Device
-> operator. But that's not what the patch is doing.
->
-> It implements the distinction between Device and Processor operator, which
-> is missing in acpi_processor_ids_walk() right now.
->
-> So the proper changelog (if I understand the patch correctly) would be:
->
-> Subject: acpi/processor: Implement DEVICE operator for processor enumeration
->
->   ACPI allows to declare processors either with the PROCESSOR or with the
->   DEVICE operator. The current implementation handles only the PROCESSOR
->   operator.
->
->   On a system which uses the DEVICE operator for processor enumeration the
->   evaluation fails.
->
->   Check for the ACPI type of the ACPI handle and evaluate PROCESSOR and
->   DEVICE types seperately.
->
-> Hmm?
+> would be sufficient and entirely clear.
 >
 
-Yes, you are right. I didn't explain clearly.
-I will modify in my next version.
+Yes, I see, I will rewrite it in next version.
 
->>  {
->>  	acpi_status status;
->> +	acpi_object_type acpi_type;
->> +	unsigned long long uid;
->>  	union acpi_object object = { 0 };
->>  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
->>
->> -	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
->> -	if (ACPI_FAILURE(status))
->> -		acpi_handle_info(handle, "Not get the processor object\n");
->> -	else
->> -		processor_validated_ids_update(object.processor.proc_id);
->> +	status = acpi_get_type(handle, &acpi_type);
->
-> Shouldn't the status be checked here?
+Thanks.
 
-oops, Yes. Need to be checked.
-
->
->> +	switch (acpi_type) {
->> +	case ACPI_TYPE_PROCESSOR:
->> +		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
->> +		if (ACPI_FAILURE(status))
->> +			acpi_handle_info(handle, "Not get the processor object\n");
->> +		else
->> +			processor_validated_ids_update(
->> +						object.processor.proc_id);
->> +		break;
->> +	case ACPI_TYPE_DEVICE:
->> +		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
->> +		if (ACPI_FAILURE(status))
->> +			return false;
->> +		processor_validated_ids_update(uid);
->> +		break;
->> +	default:
->> +		return false;
->
-> This is inconsistent vs. the failure handling in the PROCESSOR and DEVICE
-> case and the default case does not give any information either.
->
-> What about this:
->
-> 	switch (acpi_type) {
-> 	case ACPI_TYPE_PROCESSOR:
-> 		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-> 		if (ACPI_FAILURE(status))
-> 			goto err;
-> 		uid = object.processor.proc_id;
-> 		break;
-> 		
-> 	case ACPI_TYPE_DEVICE:
-> 		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
-> 		if (ACPI_FAILURE(status))
-> 			goto err;
-> 		break;
-> 	default:
-> 		goto err;
-> 	}
->
-> 	processor_validated_ids_update(uid);
-> 	return true;
->
-> err:
-> 	acpi_handle_info(handle, "Invalid processor object\n");
-> 	return false;
-> }
->
-
-Looks good than mine.
-
-Thanks,
 	Liyang.
 
 > Thanks,
 >
 > 	tglx
+>
 >
 >
 >
