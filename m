@@ -1,160 +1,101 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Log Exceptions and Errors as warning while
- loading extra tables
-Date: Thu, 2 Mar 2017 02:03:33 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE446E2@SHSMSX101.ccr.corp.intel.com>
-References: <20170301103653.2296-1-hdegoede@redhat.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v2 1/4] Revert"x86/acpi: Set persistent cpuid <-> nodeid
+ mapping when booting"
+Date: Thu, 2 Mar 2017 15:58:27 +0800
+Message-ID: <da62bc3d-c153-6c4f-93a6-d7b9037f4755@cn.fujitsu.com>
+References: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <1487580471-17665-2-git-send-email-douly.fnst@cn.fujitsu.com>
+ <alpine.DEB.2.20.1703011137560.4005@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:4519 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752238AbdCBEHd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Mar 2017 23:07:33 -0500
-In-Reply-To: <20170301103653.2296-1-hdegoede@redhat.com>
-Content-Language: en-US
+Received: from cn.fujitsu.com ([59.151.112.132]:24570 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750733AbdCBIMG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2017 03:12:06 -0500
+In-Reply-To: <alpine.DEB.2.20.1703011137560.4005@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: mingo@kernel.org, peterz@infradead.org, rjw@rjwysocki.net, hpa@zytor.com, rafael@kernel.org, cl@linux.com, tj@kernel.org, akpm@linux-foundation.org, rafael.j.wysocki@intel.com, len.brown@intel.com, izumi.taku@jp.fujitsu.com, xiaolong.ye@intel.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+Hi tglx,
 
-> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> Subject: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
-> 
-> Honor the "Ignore errors while loading tables, get as many as possible"
-> comment in the tbxfload.c code and log any exceptions and errors during
-> loading extra tables as warnings.
-> 
-> This is important because many desktop and embedded applicance Linux
-> use-cases have a hard requirement of not showing any (scary) text
-> messages during system bootup, which get broken by errors reported
-> by attempts to load the extra tables, as messaged logged at a KERN_ERR
-> level are always shown even if the quiet kernel cmdline option is used.
+Thank you very much for your guidance! It makes me more profound
+understanding of the changelog. And you also rewrote my changelog for
+giving me an example.
 
-This looks worse than comparing the tables.
-So before determining what should be done for the check of the duplicated aml tables.
-Let's skip this submission.
+I am so grateful that you can help me so carefully.
+Once I heard the charm of the open source community, Now i can
+really feel it. I love it so much.
 
-Thanks
-Lv
+I will try to improve myself and help others.  :)
 
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/acpica/acglobal.h  |  1 +
->  drivers/acpi/acpica/tbxfload.c  |  4 +++-
->  drivers/acpi/acpica/uterror.c   | 10 ++++++++--
->  drivers/acpi/acpica/utxferror.c | 19 ++++++++++---------
->  4 files changed, 22 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-> index edbb42e..5ae9eee 100644
-> --- a/drivers/acpi/acpica/acglobal.h
-> +++ b/drivers/acpi/acpica/acglobal.h
-> @@ -146,6 +146,7 @@ ACPI_GLOBAL(acpi_cache_t *, acpi_gbl_operand_cache);
->  ACPI_INIT_GLOBAL(u32, acpi_gbl_startup_flags, 0);
->  ACPI_INIT_GLOBAL(u8, acpi_gbl_shutdown, TRUE);
->  ACPI_INIT_GLOBAL(u8, acpi_gbl_early_initialization, TRUE);
-> +ACPI_INIT_GLOBAL(u8, acpi_gbl_log_errors_exceptions_as_warnings, FALSE);
-> 
->  /* Global handlers */
-> 
-> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-> index 1971cd7..b0c5478 100644
-> --- a/drivers/acpi/acpica/tbxfload.c
-> +++ b/drivers/acpi/acpica/tbxfload.c
-> @@ -256,6 +256,7 @@ acpi_status acpi_tb_load_namespace(void)
->  		}
-> 
->  		/* Ignore errors while loading tables, get as many as possible */
-> +		acpi_gbl_log_errors_exceptions_as_warnings = TRUE;
-> 
->  		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
->  		status = acpi_ns_load_table(i, acpi_gbl_root_node);
-> @@ -276,11 +277,12 @@ acpi_status acpi_tb_load_namespace(void)
->  			tables_loaded++;
->  		}
->  	}
-> +	acpi_gbl_log_errors_exceptions_as_warnings = FALSE;
-> 
->  	if (!tables_failed) {
->  		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded", tables_loaded));
->  	} else {
-> -		ACPI_ERROR((AE_INFO,
-> +		ACPI_WARNING((AE_INFO,
->  			    "%u table load failures, %u successful",
->  			    tables_failed, tables_loaded));
-> 
-> diff --git a/drivers/acpi/acpica/uterror.c b/drivers/acpi/acpica/uterror.c
-> index 475932c..e01ff1f 100644
-> --- a/drivers/acpi/acpica/uterror.c
-> +++ b/drivers/acpi/acpica/uterror.c
-> @@ -205,7 +205,10 @@ acpi_ut_namespace_error(const char *module_name,
->  	char *name = NULL;
-> 
->  	ACPI_MSG_REDIRECT_BEGIN;
-> -	acpi_os_printf(ACPI_MSG_ERROR);
-> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> +		acpi_os_printf(ACPI_MSG_WARNING);
-> +	else
-> +		acpi_os_printf(ACPI_MSG_ERROR);
-> 
->  	if (lookup_status == AE_BAD_CHARACTER) {
-> 
-> @@ -269,7 +272,10 @@ acpi_ut_method_error(const char *module_name,
->  	struct acpi_namespace_node *node = prefix_node;
-> 
->  	ACPI_MSG_REDIRECT_BEGIN;
-> -	acpi_os_printf(ACPI_MSG_ERROR);
-> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> +		acpi_os_printf(ACPI_MSG_WARNING);
-> +	else
-> +		acpi_os_printf(ACPI_MSG_ERROR);
-> 
->  	if (path) {
->  		status = acpi_ns_get_node(prefix_node, path,
-> diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
-> index d9f15cb..c8ca25af 100644
-> --- a/drivers/acpi/acpica/utxferror.c
-> +++ b/drivers/acpi/acpica/utxferror.c
-> @@ -73,7 +73,10 @@ acpi_error(const char *module_name, u32 line_number, const char *format, ...)
->  	va_list arg_list;
-> 
->  	ACPI_MSG_REDIRECT_BEGIN;
-> -	acpi_os_printf(ACPI_MSG_ERROR);
-> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> +		acpi_os_printf(ACPI_MSG_WARNING);
-> +	else
-> +		acpi_os_printf(ACPI_MSG_ERROR);
-> 
->  	va_start(arg_list, format);
->  	acpi_os_vprintf(format, arg_list);
-> @@ -107,16 +110,14 @@ acpi_exception(const char *module_name,
->  	va_list arg_list;
-> 
->  	ACPI_MSG_REDIRECT_BEGIN;
-> -
-> -	/* For AE_OK, just print the message */
-> -
-> -	if (ACPI_SUCCESS(status)) {
-> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> +		acpi_os_printf(ACPI_MSG_WARNING);
-> +	else
->  		acpi_os_printf(ACPI_MSG_EXCEPTION);
-> 
-> -	} else {
-> -		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
-> -			       acpi_format_exception(status));
-> -	}
-> +	/* For AE_OK, just print the message */
-> +	if (ACPI_FAILURE(status))
-> +		acpi_os_printf("%s, ", acpi_format_exception(status));
-> 
->  	va_start(arg_list, format);
->  	acpi_os_vprintf(format, arg_list);
-> --
-> 2.9.3
+Thanks,
+	Liyang.
+
+At 03/01/2017 06:51 PM, Thomas Gleixner wrote:
+> On Mon, 20 Feb 2017, Dou Liyang wrote:
+>
+>> Currently, We make the mapping of "cpuid <-> nodeid" fixed at the booting time.
+>> It keeps consistent with the WorkQueue and avoids some bugs which may be caused
+>> by the dynamic assignment.
+>>
+>> But, The ACPI table is unreliable and it is very risky that we use the entity
+>> which isn't related to a physical device at booting time.
+>>
+>> Now, we revert our patches. Do the last mapping of "cpuid <-> nodeid" at
+>> hot-plug time, not at booting time where we did some useless work.
+>> It also can make the mapping of "cpuid <-> nodeid" fixed and avoid excessive
+>> use of the ACPI table.
+>>
+>> The patch revert the commit dc6db24d24:
+>>   "x86/acpi: Set persistent cpuid <-> nodeid mapping when booting".
+>
+> That changelog needs some massaging. Something like this:
+>
+>   The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
+>   tables to keep associations of workqueues and other node related items
+>   consistent across cpu hotplug.
+>
+>   But, ACPI tables are unreliable and failures with that boot time mapping
+>   have been reported on machines where the ACPI table and the physical
+>   information which is retrieved at actual hotplug is inconsistent.
+>
+>   Revert the mapping implementation so it can be replaced with a less error
+>   prone approach.
+>
+> This clearly describes:
+>
+>   1) The context
+>
+>   2) The problem
+>
+>   3) The solution (revert)
+>
+> You don't have to explain what the new solution will be in the changelog of
+> the revert. For the revert it's only relevant WHY we do the revert.
+>
+> Please avoid writing changelogs in 'we' form. Write it pure technical, like
+> a manual.
+>
+> Also avoid phrases like: "The patch/This patch". We all know already that
+> this is a patch, otherwise it wouldn't have been sent.
+>
+> Documentation/process/submitting-patches.rst says:
+>
+>   Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
+>   instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
+>   to do frotz", as if you are giving orders to the codebase to change
+>   its behaviour.
+>
+> Thanks,
+>
+> 	tglx
+>
+>
+>
+>
+
 
