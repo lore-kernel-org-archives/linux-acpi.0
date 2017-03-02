@@ -1,65 +1,100 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
-Date: Thu, 2 Mar 2017 15:28:16 +0100
-Message-ID: <20170302142816.GK1404@dhcp22.suse.cz>
-References: <20170227154304.GK26504@dhcp22.suse.cz>
- <1488462828-174523-1-git-send-email-imammedo@redhat.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+Date: Thu, 2 Mar 2017 16:24:30 +0100
+Message-ID: <edd79f72-2c06-5cb7-a676-3bd940ca5b4d@redhat.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
+ <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
+ <a2cdcf07-055c-6cb2-a0f2-b179a128f845@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE446CB@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1488462828-174523-1-git-send-email-imammedo@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:54738 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752687AbdCBPe7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 2 Mar 2017 10:34:59 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE446CB@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Thu 02-03-17 14:53:48, Igor Mammedov wrote:
-[...]
-> When trying to support memory unplug on guest side in RHEL7,
-> experience shows otherwise. Simplistic udev rule which onlines
-> added block doesn't work in case one wants to online it as movable.
-> 
-> Hotplugged blocks in current kernel should be onlined in reverse
-> order to online blocks as movable depending on adjacent blocks zone.
+Hi,
 
-Could you be more specific please? Setting online_movable from the udev
-rule should just work regardless of the ordering or the state of other
-memblocks. If that doesn't work I would call it a bug.
+On 02-03-17 02:59, Zheng, Lv wrote:
+> Hi,
+>
+>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+>> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+>>
+>> Hi,
+>>
+>> On 01-03-17 04:21, Zheng, Lv wrote:
+>>> Hi,
+>>>
+>>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+>>>> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+>>>>
+>>>> Hi,
+>>>>
+>>>> On 28-02-17 06:19, Zheng, Lv wrote:
+>>>>> Hi,
+>>>>>
+>>>>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+>>>>>> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
+>>>>>>
+>>>>>> Some machines have the exact (byte for byte) same SSDT tables multiple
+>>>>>> times in the root_table_list.
 
-> Which means simple udev rule isn't usable since it gets event from
-> the first to the last hotplugged block order. So now we would have
-> to write a daemon that would
->  - watch for all blocks in hotplugged memory appear (how would it know)
->  - online them in right order (order might also be different depending
->    on kernel version)
->    -- it becomes even more complicated in NUMA case when there are
->       multiple zones and kernel would have to provide user-space
->       with information about zone maps
-> 
-> In short current experience shows that userspace approach
->  - doesn't solve issues that Vitaly has been fixing (i.e. onlining
->    fast and/or under memory pressure) when udev (or something else
->    might be killed)
+<snip>
 
-yeah and that is why the patch does the onlining from the kernel.
- 
-> > Can you imagine any situation when somebody actually might want to have
-> > this knob enabled? From what I understand it doesn't seem to be the
-> > case.
-> For x86:
->  * this config option is enabled by default in recent Fedora,
+>>>>>> Detect this and silently skip the duplicates
+>>>>>> rather then printing a scary looking set of errors.
 
-How do you want to support usecases which really want to online memory
-as movable? Do you expect those users to disable the option because
-unless I am missing something the in kernel auto onlining only supporst
-regular onlining.
--- 
-Michal Hocko
-SUSE Labs
+<snip>
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>>>>> ---
+>>>>>>  drivers/acpi/acpica/tbxfload.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+>>>>>>  1 file changed, 40 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+>>>>>> index 82019c0..1971cd7 100644
+>>>>>> --- a/drivers/acpi/acpica/tbxfload.c
+>>>>>> +++ b/drivers/acpi/acpica/tbxfload.c
+>>>>>> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+>>>>>>
+>>>>>>  /*******************************************************************************
+>>>>>>   *
+>>>>>> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
+>>>>>> + *
+>>>>>> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
+>>>>>> + *              index         - index of table to find a duplicate of
+>>>>>> + *
+>>>>>> + * RETURN:      TRUE if a duplicate is found, FALSE if not
+>>>>>> + *
+>>>>>> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
+>>>>>> + *              avoid trying to load duplicate ssdt tables
+>>>>>> + *
+>>>>>> + ******************************************************************************/
+>>>>>> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
+>
+> If you really want to add this.
+> My suggestion is:
+> Invoke this function in acpi_tb_verify_temp_table().
+> This is the function we use to verify if a table is OK.
+> Otherwise it won't be installed to the global table list.
+>
+> And the name should contain "aml_table" or "aml" rather than "ssdt" according to your check below.
+
+Ok, when I've some time I will do a new version moving the functionality
+to acpi_tb_verify_temp_table(). I will post a v2 with this change when
+it is ready. I will also just compare the headers then as suggested in
+other replies in this thread.
+
+Regards,
+
+Hans
