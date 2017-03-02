@@ -1,185 +1,107 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] ACPICA: Log Exceptions and Errors as warning while
- loading extra tables
-Date: Thu, 2 Mar 2017 16:27:14 +0100
-Message-ID: <0518b7f7-8d08-0071-df54-af19806883ae@redhat.com>
-References: <20170301103653.2296-1-hdegoede@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE446E2@SHSMSX101.ccr.corp.intel.com>
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
+Date: Thu, 2 Mar 2017 18:03:15 +0100
+Message-ID: <20170302180315.78975d4b@nial.brq.redhat.com>
+References: <20170227154304.GK26504@dhcp22.suse.cz>
+	<1488462828-174523-1-git-send-email-imammedo@redhat.com>
+	<20170302142816.GK1404@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35650 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753386AbdCBPe7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Mar 2017 10:34:59 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE446E2@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170302142816.GK1404@dhcp22.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y.
+ Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi,
+On Thu, 2 Mar 2017 15:28:16 +0100
+Michal Hocko <mhocko@kernel.org> wrote:
 
-On 02-03-17 03:03, Zheng, Lv wrote:
-> Hi,
->
->> From: Hans de Goede [mailto:hdegoede@redhat.com]
->> Subject: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
->>
->> Honor the "Ignore errors while loading tables, get as many as possible"
->> comment in the tbxfload.c code and log any exceptions and errors during
->> loading extra tables as warnings.
->>
->> This is important because many desktop and embedded applicance Linux
->> use-cases have a hard requirement of not showing any (scary) text
->> messages during system bootup, which get broken by errors reported
->> by attempts to load the extra tables, as messaged logged at a KERN_ERR
->> level are always shown even if the quiet kernel cmdline option is used.
->
-> This looks worse than comparing the tables.
+> On Thu 02-03-17 14:53:48, Igor Mammedov wrote:
+> [...]
+> > When trying to support memory unplug on guest side in RHEL7,
+> > experience shows otherwise. Simplistic udev rule which onlines
+> > added block doesn't work in case one wants to online it as movable.
+> > 
+> > Hotplugged blocks in current kernel should be onlined in reverse
+> > order to online blocks as movable depending on adjacent blocks zone.  
+> 
+> Could you be more specific please? Setting online_movable from the udev
+> rule should just work regardless of the ordering or the state of other
+> memblocks. If that doesn't work I would call it a bug.
+It's rather an implementation constrain than a bug
+for details and workaround patch see
+ [1] https://bugzilla.redhat.com/show_bug.cgi?id=1314306#c7
+patch attached there is limited by another memory hotplug
+issue, which is NORMAL/MOVABLE zone balance, if kernel runs
+on configuration where the most of memory is hot-removable
+kernel might experience lack of memory in zone NORMAL.
 
-This is really another patch entirely, it would also make the duplicate
-table thing less of an issue, but even with a fix for the duplicate tables
-we still need something like this to lower the log level of errors while
-loading extra tables as that currently causes errors to be spewn on
-way to many machines, e.g. on my main workstation I get:
+> 
+> > Which means simple udev rule isn't usable since it gets event from
+> > the first to the last hotplugged block order. So now we would have
+> > to write a daemon that would
+> >  - watch for all blocks in hotplugged memory appear (how would it know)
+> >  - online them in right order (order might also be different depending
+> >    on kernel version)
+> >    -- it becomes even more complicated in NUMA case when there are
+> >       multiple zones and kernel would have to provide user-space
+> >       with information about zone maps
+> > 
+> > In short current experience shows that userspace approach
+> >  - doesn't solve issues that Vitaly has been fixing (i.e. onlining
+> >    fast and/or under memory pressure) when udev (or something else
+> >    might be killed)  
+> 
+> yeah and that is why the patch does the onlining from the kernel.
+onlining in this patch is limited to hyperv and patch breaks
+auto-online on x86 kvm/vmware/baremetal as they reuse the same
+hotplug path.
 
-[    0.019856] ACPI Warning: [\_SB_.PCI0.XHC_.RHUB.HS11] Namespace lookup failure, AE_NOT_FOUND (20160930/dswload-210)
-[    0.019859] ACPI Warning: AE_NOT_FOUND, During name lookup/catalog (20160930/psobject-227)
-[    0.019886] ACPI Warning: AE_NOT_FOUND, (SSDT:xh_rvp08) while loading table (20160930/tbxfload-268)
-[    0.026491] ACPI Warning: 1 table load failures, 5 successful (20160930/tbxfload-287)
+> > > Can you imagine any situation when somebody actually might want to have
+> > > this knob enabled? From what I understand it doesn't seem to be the
+> > > case.  
+> > For x86:
+> >  * this config option is enabled by default in recent Fedora,  
+> 
+> How do you want to support usecases which really want to online memory
+> as movable? Do you expect those users to disable the option because
+> unless I am missing something the in kernel auto onlining only supporst
+> regular onlining.
+current auto onlining config option does what it's been designed for,
+i.e. it onlines hotplugged memory.
+It's possible for non average Fedora user to override default
+(commit 86dd995d6) if she/he needs non default behavior
+(i.e. user knows how to online manually and/or can write
+a daemon that would handle all of nuances of kernel in use).
 
-(this is with the patch, before that this were all errors and exceptions).
+For the rest when Fedora is used in cloud and user increases memory
+via management interface of whatever cloud she/he uses, it just works.
 
-Add IIRC I'm getting yet another set of errors on my XPS 15, etc.
+So it's choice of distribution to pick its own default that makes
+majority of user-base happy and this patch removes it without taking
+that in consideration.
 
-Regards,
+How to online memory is different issue not related to this patch,
+current default onlining as ZONE_NORMAL works well for scaling
+up VMs.
 
-Hans
+Memory unplug is rather new and it doesn't work reliably so far,
+moving onlining to user-space won't really help. Further work
+is need to be done so that it would work reliably.
 
+Now about the question of onlining removable memory as movable,
+x86 kernel is able to get info, if hotadded memory is removable,
+from ACPI subsystem and online it as movable one without any
+intervention from user-space where it's hard to do so,
+as patch[1] shows.
+Problem is still researched and when we figure out how to fix
+hot-remove issues we might enable auto-onlining by default for x86.
 
-
-> So before determining what should be done for the check of the duplicated aml tables.
-> Let's skip this submission.
->
-> Thanks
-> Lv
->
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>  drivers/acpi/acpica/acglobal.h  |  1 +
->>  drivers/acpi/acpica/tbxfload.c  |  4 +++-
->>  drivers/acpi/acpica/uterror.c   | 10 ++++++++--
->>  drivers/acpi/acpica/utxferror.c | 19 ++++++++++---------
->>  4 files changed, 22 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
->> index edbb42e..5ae9eee 100644
->> --- a/drivers/acpi/acpica/acglobal.h
->> +++ b/drivers/acpi/acpica/acglobal.h
->> @@ -146,6 +146,7 @@ ACPI_GLOBAL(acpi_cache_t *, acpi_gbl_operand_cache);
->>  ACPI_INIT_GLOBAL(u32, acpi_gbl_startup_flags, 0);
->>  ACPI_INIT_GLOBAL(u8, acpi_gbl_shutdown, TRUE);
->>  ACPI_INIT_GLOBAL(u8, acpi_gbl_early_initialization, TRUE);
->> +ACPI_INIT_GLOBAL(u8, acpi_gbl_log_errors_exceptions_as_warnings, FALSE);
->>
->>  /* Global handlers */
->>
->> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
->> index 1971cd7..b0c5478 100644
->> --- a/drivers/acpi/acpica/tbxfload.c
->> +++ b/drivers/acpi/acpica/tbxfload.c
->> @@ -256,6 +256,7 @@ acpi_status acpi_tb_load_namespace(void)
->>  		}
->>
->>  		/* Ignore errors while loading tables, get as many as possible */
->> +		acpi_gbl_log_errors_exceptions_as_warnings = TRUE;
->>
->>  		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
->>  		status = acpi_ns_load_table(i, acpi_gbl_root_node);
->> @@ -276,11 +277,12 @@ acpi_status acpi_tb_load_namespace(void)
->>  			tables_loaded++;
->>  		}
->>  	}
->> +	acpi_gbl_log_errors_exceptions_as_warnings = FALSE;
->>
->>  	if (!tables_failed) {
->>  		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded", tables_loaded));
->>  	} else {
->> -		ACPI_ERROR((AE_INFO,
->> +		ACPI_WARNING((AE_INFO,
->>  			    "%u table load failures, %u successful",
->>  			    tables_failed, tables_loaded));
->>
->> diff --git a/drivers/acpi/acpica/uterror.c b/drivers/acpi/acpica/uterror.c
->> index 475932c..e01ff1f 100644
->> --- a/drivers/acpi/acpica/uterror.c
->> +++ b/drivers/acpi/acpica/uterror.c
->> @@ -205,7 +205,10 @@ acpi_ut_namespace_error(const char *module_name,
->>  	char *name = NULL;
->>
->>  	ACPI_MSG_REDIRECT_BEGIN;
->> -	acpi_os_printf(ACPI_MSG_ERROR);
->> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
->> +		acpi_os_printf(ACPI_MSG_WARNING);
->> +	else
->> +		acpi_os_printf(ACPI_MSG_ERROR);
->>
->>  	if (lookup_status == AE_BAD_CHARACTER) {
->>
->> @@ -269,7 +272,10 @@ acpi_ut_method_error(const char *module_name,
->>  	struct acpi_namespace_node *node = prefix_node;
->>
->>  	ACPI_MSG_REDIRECT_BEGIN;
->> -	acpi_os_printf(ACPI_MSG_ERROR);
->> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
->> +		acpi_os_printf(ACPI_MSG_WARNING);
->> +	else
->> +		acpi_os_printf(ACPI_MSG_ERROR);
->>
->>  	if (path) {
->>  		status = acpi_ns_get_node(prefix_node, path,
->> diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
->> index d9f15cb..c8ca25af 100644
->> --- a/drivers/acpi/acpica/utxferror.c
->> +++ b/drivers/acpi/acpica/utxferror.c
->> @@ -73,7 +73,10 @@ acpi_error(const char *module_name, u32 line_number, const char *format, ...)
->>  	va_list arg_list;
->>
->>  	ACPI_MSG_REDIRECT_BEGIN;
->> -	acpi_os_printf(ACPI_MSG_ERROR);
->> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
->> +		acpi_os_printf(ACPI_MSG_WARNING);
->> +	else
->> +		acpi_os_printf(ACPI_MSG_ERROR);
->>
->>  	va_start(arg_list, format);
->>  	acpi_os_vprintf(format, arg_list);
->> @@ -107,16 +110,14 @@ acpi_exception(const char *module_name,
->>  	va_list arg_list;
->>
->>  	ACPI_MSG_REDIRECT_BEGIN;
->> -
->> -	/* For AE_OK, just print the message */
->> -
->> -	if (ACPI_SUCCESS(status)) {
->> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
->> +		acpi_os_printf(ACPI_MSG_WARNING);
->> +	else
->>  		acpi_os_printf(ACPI_MSG_EXCEPTION);
->>
->> -	} else {
->> -		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
->> -			       acpi_format_exception(status));
->> -	}
->> +	/* For AE_OK, just print the message */
->> +	if (ACPI_FAILURE(status))
->> +		acpi_os_printf("%s, ", acpi_format_exception(status));
->>
->>  	va_start(arg_list, format);
->>  	acpi_os_vprintf(format, arg_list);
->> --
->> 2.9.3
->
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
