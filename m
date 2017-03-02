@@ -1,60 +1,160 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
-Date: Wed, 1 Mar 2017 22:56:46 +0100
-Message-ID: <CAJZ5v0i70OWDZXb7CObRykiEpgQ_=1QWA2ZQM9YYQipVLPbaxg@mail.gmail.com>
-References: <20170227093432.3308-1-hdegoede@redhat.com> <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
- <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com> <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
- <a2cdcf07-055c-6cb2-a0f2-b179a128f845@redhat.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E56876F@ORSMSX110.amr.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: Log Exceptions and Errors as warning while
+ loading extra tables
+Date: Thu, 2 Mar 2017 02:03:33 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE446E2@SHSMSX101.ccr.corp.intel.com>
+References: <20170301103653.2296-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:34542 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753862AbdCBD6X (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2017 22:58:23 -0500
-Received: by mail-ot0-f193.google.com with SMTP id w44so6267950otw.1
-        for <linux-acpi@vger.kernel.org>; Wed, 01 Mar 2017 19:58:22 -0800 (PST)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E56876F@ORSMSX110.amr.corp.intel.com>
+Received: from mga07.intel.com ([134.134.136.100]:4519 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752238AbdCBEHd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 1 Mar 2017 23:07:33 -0500
+In-Reply-To: <20170301103653.2296-1-hdegoede@redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Box, David E" <david.e.box@intel.com>
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Wed, Mar 1, 2017 at 9:38 PM, Moore, Robert <robert.moore@intel.com> wrote:
-> Sorry if I've missed any of this conversation, but I have a couple of thoughts:
->
-> 1) It might be sufficient to just compare the incoming table header (36 bytes). The header contains both the table length and the checksum -- as well as the OEM ID and OEM version. I take it that the XSDT pointers to the duplicate tables are different.
->
-> 2) As far as comparing every incoming SSDT byte-for-byte against all previously loaded SSDTs, I have to think "what about the boot time?". Especially since SSDTs are increasing in both size and number (See example from a real machine below).
->
->
-> ACPI: RSDP 0x0000000000492954 000024 (v02 Intel )
-> ACPI: XSDT 0x000000000068C938 0000B4 (v00 Intel  AcpiExec 00001001 INTL 20170224)
-> ACPI: FACP 0x0000000000492978 000114 (v05 Intel  AcpiExec 00001001 INTL 20170224)
-> ACPI: DSDT 0x0000000000690048 022FD6 (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: FACS 0x0000000000492AB0 000040
-> ACPI: SSDT 0x00000000006B3028 0004B7 (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x000000000068D940 000B49 (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006B34E8 0004A3 (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006B3998 000E58 (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006B47F8 00037F (v02 PmRef  Cpu0Cst  00003001 INTL 20121220)
-> ACPI: SSDT 0x000000000068E498 000660 (v02 PmRef  Cpu0Ist  00003000 INTL 20121220)
-> ACPI: SSDT 0x00000000006B4B80 0005AA (v02 PmRef  ApIst    00003000 INTL 20121220)
-> ACPI: SSDT 0x000000000068EB00 000119 (v02 PmRef  ApCst    00003000 INTL 20121220)
-> ACPI: SSDT 0x000000000068EC28 00004B (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006B5138 0052EE (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006BA430 002C4A (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006BD088 0004C8 (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x000000000068EC80 0002D4 (v01 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006BD558 002BAE (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006C0110 00019A (v02 LENOVO CB-01    00000001 ACPI 00040000)
-> ACPI: SSDT 0x00000000006C02B8 0006DC (v02 LENOVO CB-01    00000001 ACPI 00040000)
->
+Hi,
 
-Right.
+> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> Subject: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
+> 
+> Honor the "Ignore errors while loading tables, get as many as possible"
+> comment in the tbxfload.c code and log any exceptions and errors during
+> loading extra tables as warnings.
+> 
+> This is important because many desktop and embedded applicance Linux
+> use-cases have a hard requirement of not showing any (scary) text
+> messages during system bootup, which get broken by errors reported
+> by attempts to load the extra tables, as messaged logged at a KERN_ERR
+> level are always shown even if the quiet kernel cmdline option is used.
 
-Whatever allows us to make a "we've loaded this table already, skip
-it" decision without comparing byte-for-byte, please.
+This looks worse than comparing the tables.
+So before determining what should be done for the check of the duplicated aml tables.
+Let's skip this submission.
 
-Thanks,
-Rafael
+Thanks
+Lv
+
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/acpica/acglobal.h  |  1 +
+>  drivers/acpi/acpica/tbxfload.c  |  4 +++-
+>  drivers/acpi/acpica/uterror.c   | 10 ++++++++--
+>  drivers/acpi/acpica/utxferror.c | 19 ++++++++++---------
+>  4 files changed, 22 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+> index edbb42e..5ae9eee 100644
+> --- a/drivers/acpi/acpica/acglobal.h
+> +++ b/drivers/acpi/acpica/acglobal.h
+> @@ -146,6 +146,7 @@ ACPI_GLOBAL(acpi_cache_t *, acpi_gbl_operand_cache);
+>  ACPI_INIT_GLOBAL(u32, acpi_gbl_startup_flags, 0);
+>  ACPI_INIT_GLOBAL(u8, acpi_gbl_shutdown, TRUE);
+>  ACPI_INIT_GLOBAL(u8, acpi_gbl_early_initialization, TRUE);
+> +ACPI_INIT_GLOBAL(u8, acpi_gbl_log_errors_exceptions_as_warnings, FALSE);
+> 
+>  /* Global handlers */
+> 
+> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> index 1971cd7..b0c5478 100644
+> --- a/drivers/acpi/acpica/tbxfload.c
+> +++ b/drivers/acpi/acpica/tbxfload.c
+> @@ -256,6 +256,7 @@ acpi_status acpi_tb_load_namespace(void)
+>  		}
+> 
+>  		/* Ignore errors while loading tables, get as many as possible */
+> +		acpi_gbl_log_errors_exceptions_as_warnings = TRUE;
+> 
+>  		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+>  		status = acpi_ns_load_table(i, acpi_gbl_root_node);
+> @@ -276,11 +277,12 @@ acpi_status acpi_tb_load_namespace(void)
+>  			tables_loaded++;
+>  		}
+>  	}
+> +	acpi_gbl_log_errors_exceptions_as_warnings = FALSE;
+> 
+>  	if (!tables_failed) {
+>  		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded", tables_loaded));
+>  	} else {
+> -		ACPI_ERROR((AE_INFO,
+> +		ACPI_WARNING((AE_INFO,
+>  			    "%u table load failures, %u successful",
+>  			    tables_failed, tables_loaded));
+> 
+> diff --git a/drivers/acpi/acpica/uterror.c b/drivers/acpi/acpica/uterror.c
+> index 475932c..e01ff1f 100644
+> --- a/drivers/acpi/acpica/uterror.c
+> +++ b/drivers/acpi/acpica/uterror.c
+> @@ -205,7 +205,10 @@ acpi_ut_namespace_error(const char *module_name,
+>  	char *name = NULL;
+> 
+>  	ACPI_MSG_REDIRECT_BEGIN;
+> -	acpi_os_printf(ACPI_MSG_ERROR);
+> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
+> +		acpi_os_printf(ACPI_MSG_WARNING);
+> +	else
+> +		acpi_os_printf(ACPI_MSG_ERROR);
+> 
+>  	if (lookup_status == AE_BAD_CHARACTER) {
+> 
+> @@ -269,7 +272,10 @@ acpi_ut_method_error(const char *module_name,
+>  	struct acpi_namespace_node *node = prefix_node;
+> 
+>  	ACPI_MSG_REDIRECT_BEGIN;
+> -	acpi_os_printf(ACPI_MSG_ERROR);
+> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
+> +		acpi_os_printf(ACPI_MSG_WARNING);
+> +	else
+> +		acpi_os_printf(ACPI_MSG_ERROR);
+> 
+>  	if (path) {
+>  		status = acpi_ns_get_node(prefix_node, path,
+> diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
+> index d9f15cb..c8ca25af 100644
+> --- a/drivers/acpi/acpica/utxferror.c
+> +++ b/drivers/acpi/acpica/utxferror.c
+> @@ -73,7 +73,10 @@ acpi_error(const char *module_name, u32 line_number, const char *format, ...)
+>  	va_list arg_list;
+> 
+>  	ACPI_MSG_REDIRECT_BEGIN;
+> -	acpi_os_printf(ACPI_MSG_ERROR);
+> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
+> +		acpi_os_printf(ACPI_MSG_WARNING);
+> +	else
+> +		acpi_os_printf(ACPI_MSG_ERROR);
+> 
+>  	va_start(arg_list, format);
+>  	acpi_os_vprintf(format, arg_list);
+> @@ -107,16 +110,14 @@ acpi_exception(const char *module_name,
+>  	va_list arg_list;
+> 
+>  	ACPI_MSG_REDIRECT_BEGIN;
+> -
+> -	/* For AE_OK, just print the message */
+> -
+> -	if (ACPI_SUCCESS(status)) {
+> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
+> +		acpi_os_printf(ACPI_MSG_WARNING);
+> +	else
+>  		acpi_os_printf(ACPI_MSG_EXCEPTION);
+> 
+> -	} else {
+> -		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
+> -			       acpi_format_exception(status));
+> -	}
+> +	/* For AE_OK, just print the message */
+> +	if (ACPI_FAILURE(status))
+> +		acpi_os_printf("%s, ", acpi_format_exception(status));
+> 
+>  	va_start(arg_list, format);
+>  	acpi_os_vprintf(format, arg_list);
+> --
+> 2.9.3
+
