@@ -1,107 +1,119 @@
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
-Date: Thu, 2 Mar 2017 18:03:15 +0100
-Message-ID: <20170302180315.78975d4b@nial.brq.redhat.com>
-References: <20170227154304.GK26504@dhcp22.suse.cz>
-	<1488462828-174523-1-git-send-email-imammedo@redhat.com>
-	<20170302142816.GK1404@dhcp22.suse.cz>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v1] gpio: acpi: Add managed variant of acpi_dev_add_driver_gpios()
+Date: Thu, 02 Mar 2017 23:07:28 +0100
+Message-ID: <11931412.qmz2QKIKDY@aspire.rjw.lan>
+References: <20170302134805.81705-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170302142816.GK1404@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y.
- Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57630 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751229AbdCBWTW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2017 17:19:22 -0500
+In-Reply-To: <20170302134805.81705-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org
 
-On Thu, 2 Mar 2017 15:28:16 +0100
-Michal Hocko <mhocko@kernel.org> wrote:
-
-> On Thu 02-03-17 14:53:48, Igor Mammedov wrote:
-> [...]
-> > When trying to support memory unplug on guest side in RHEL7,
-> > experience shows otherwise. Simplistic udev rule which onlines
-> > added block doesn't work in case one wants to online it as movable.
-> > 
-> > Hotplugged blocks in current kernel should be onlined in reverse
-> > order to online blocks as movable depending on adjacent blocks zone.  
+On Thursday, March 02, 2017 03:48:05 PM Andy Shevchenko wrote:
+> Introduce device managed variant of acpi_dev_add_driver_gpios() and its
+> counterpart acpi_dev_remove_driver_gpios().
 > 
-> Could you be more specific please? Setting online_movable from the udev
-> rule should just work regardless of the ordering or the state of other
-> memblocks. If that doesn't work I would call it a bug.
-It's rather an implementation constrain than a bug
-for details and workaround patch see
- [1] https://bugzilla.redhat.com/show_bug.cgi?id=1314306#c7
-patch attached there is limited by another memory hotplug
-issue, which is NORMAL/MOVABLE zone balance, if kernel runs
-on configuration where the most of memory is hot-removable
-kernel might experience lack of memory in zone NORMAL.
-
+> The functions in most cases are used in driver's ->probe() and
+> ->remove() callbacks, that's why it's useful to have managed variant of
+> them.
 > 
-> > Which means simple udev rule isn't usable since it gets event from
-> > the first to the last hotplugged block order. So now we would have
-> > to write a daemon that would
-> >  - watch for all blocks in hotplugged memory appear (how would it know)
-> >  - online them in right order (order might also be different depending
-> >    on kernel version)
-> >    -- it becomes even more complicated in NUMA case when there are
-> >       multiple zones and kernel would have to provide user-space
-> >       with information about zone maps
-> > 
-> > In short current experience shows that userspace approach
-> >  - doesn't solve issues that Vitaly has been fixing (i.e. onlining
-> >    fast and/or under memory pressure) when udev (or something else
-> >    might be killed)  
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
 > 
-> yeah and that is why the patch does the onlining from the kernel.
-onlining in this patch is limited to hyperv and patch breaks
-auto-online on x86 kvm/vmware/baremetal as they reuse the same
-hotplug path.
-
-> > > Can you imagine any situation when somebody actually might want to have
-> > > this knob enabled? From what I understand it doesn't seem to be the
-> > > case.  
-> > For x86:
-> >  * this config option is enabled by default in recent Fedora,  
+> This is supposed to go through GPIO tree.
 > 
-> How do you want to support usecases which really want to online memory
-> as movable? Do you expect those users to disable the option because
-> unless I am missing something the in kernel auto onlining only supporst
-> regular onlining.
-current auto onlining config option does what it's been designed for,
-i.e. it onlines hotplugged memory.
-It's possible for non average Fedora user to override default
-(commit 86dd995d6) if she/he needs non default behavior
-(i.e. user knows how to online manually and/or can write
-a daemon that would handle all of nuances of kernel in use).
+> Linus, can you create an immutable branch that other subsystems can use
+> it if needed?
+> 
+> (We currently have one possible leak and devm_*() would help there)
+> 
+>  drivers/gpio/gpiolib-acpi.c | 31 +++++++++++++++++++++++++++++++
+>  include/linux/acpi.h        | 11 +++++++++++
+>  2 files changed, 42 insertions(+)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index 1459e6183194..3fe63d8ed426 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -362,6 +362,37 @@ int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_add_driver_gpios);
+>  
+> +static void devm_acpi_dev_release_driver_gpios(struct device *dev, void *res)
+> +{
+> +	acpi_dev_remove_driver_gpios(ACPI_COMPANION(dev));
+> +}
+> +
+> +int devm_acpi_dev_add_driver_gpios(struct device *dev,
+> +				   const struct acpi_gpio_mapping *gpios)
+> +{
+> +	void *res;
+> +	int ret;
+> +
+> +	res = devres_alloc(devm_acpi_dev_release_driver_gpios, 0, GFP_KERNEL);
+> +	if (!res)
+> +		return -ENOMEM;
+> +
+> +	ret = acpi_dev_add_driver_gpios(ACPI_COMPANION(dev), gpios);
+> +	if (ret) {
+> +		devres_free(res);
+> +		return ret;
+> +	}
+> +	devres_add(dev, res);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_acpi_dev_add_driver_gpios);
+> +
+> +void devm_acpi_dev_remove_driver_gpios(struct device *dev)
+> +{
+> +	WARN_ON(devres_release(dev, devm_acpi_dev_release_driver_gpios, NULL, NULL));
+> +}
+> +EXPORT_SYMBOL_GPL(devm_acpi_dev_remove_driver_gpios);
+> +
+>  static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
+>  				      const char *name, int index,
+>  				      struct acpi_reference_args *args)
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 673acda012af..c8eaaad4a9ed 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -952,6 +952,10 @@ static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev)
+>  		adev->driver_gpios = NULL;
+>  }
+>  
+> +int devm_acpi_dev_add_driver_gpios(struct device *dev,
+> +				   const struct acpi_gpio_mapping *gpios);
+> +void devm_acpi_dev_remove_driver_gpios(struct device *dev);
+> +
+>  int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index);
+>  #else
+>  static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+> @@ -961,6 +965,13 @@ static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+>  }
+>  static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev) {}
+>  
+> +static inline int devm_acpi_dev_add_driver_gpios(struct device *dev,
+> +			      const struct acpi_gpio_mapping *gpios)
+> +{
+> +	return -ENXIO;
+> +}
+> +static inline void devm_acpi_dev_remove_driver_gpios(struct device *dev) {}
+> +
+>  static inline int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
+>  {
+>  	return -ENXIO;
+> 
 
-For the rest when Fedora is used in cloud and user increases memory
-via management interface of whatever cloud she/he uses, it just works.
+ACK for the ACPI header update.
 
-So it's choice of distribution to pick its own default that makes
-majority of user-base happy and this patch removes it without taking
-that in consideration.
+Thanks,
+Rafael
 
-How to online memory is different issue not related to this patch,
-current default onlining as ZONE_NORMAL works well for scaling
-up VMs.
-
-Memory unplug is rather new and it doesn't work reliably so far,
-moving onlining to user-space won't really help. Further work
-is need to be done so that it would work reliably.
-
-Now about the question of onlining removable memory as movable,
-x86 kernel is able to get info, if hotadded memory is removable,
-from ACPI subsystem and online it as movable one without any
-intervention from user-space where it's hard to do so,
-as patch[1] shows.
-Problem is still researched and when we figure out how to fix
-hot-remove issues we might enable auto-onlining by default for x86.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
