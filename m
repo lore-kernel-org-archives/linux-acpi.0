@@ -1,98 +1,120 @@
-From: Daniel Drake <drake-6IF/jdPJHihWk0Htik3J/w@public.gmane.org>
-Subject: Multiple Acer laptops hang on ACPI poweroff
-Date: Fri,  3 Mar 2017 14:15:24 -0600
-Message-ID: <20170303201524.8150-1-drake@endlessm.com>
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-6IF/jdPJHihWk0Htik3J/w@public.gmane.org, chiu-6IF/jdPJHihWk0Htik3J/w@public.gmane.org
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PULL] libnvdimm fixes for 4.11-rc1
+Date: Fri, 3 Mar 2017 14:00:49 -0800
+Message-ID: <CAPcyv4iQKk18wMCDLhCrfTgn7mAEL6k9hYLGFAmEvWUeBR5qLw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Some particular Acer/Packard Bell machines hang during shutdown.
-The system completely hangs while doing bit operations for turning on SLP_EN
-bit in ACPI PM1A control address and Sleep Control Register. Thus the
-normal acpi_power_off path can never complete the shutdown process.
+Hi Linus, please pull from:
 
-We have found a workaround to force these systems to use EFI for poweroff,
-included below, but I wonder if anything better can be done. It is especially
-not ideal because the system hangs the same way when going into suspend and
-we don't have a workaround for that.
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-Any debugging tips for how to diagnose such problems?
+...to receive a fix and regression test case for nvdimm namespace
+label compatibility.
 
-Thanks
-Daniel
+Details:
+An "nvdimm namespace label" is metadata on an nvdimm that provisions
+dimm capacity into a "namespace" that can host a block device /
+dax-filesytem, or a device-dax character device. A namespace is an
+object that other operating environment and platform firmware needs to
+comprehend for capabilities like booting from an nvdimm. The label
+metadata contains a checksum that Linux was not calculating correctly
+leading to other environments rejecting the Linux label.
+
+These have received a build success notification from the kbuild
+robot, and a positive test result from Nick who reported the problem.
 
 ---
- drivers/firmware/efi/reboot.c | 42 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/firmware/efi/reboot.c b/drivers/firmware/efi/reboot.c
-index 62ead9b..6d1496d 100644
---- a/drivers/firmware/efi/reboot.c
-+++ b/drivers/firmware/efi/reboot.c
-@@ -4,6 +4,7 @@
-  */
- #include <linux/efi.h>
- #include <linux/reboot.h>
-+#include <linux/dmi.h>
- 
- int efi_reboot_quirk_mode = -1;
- 
-@@ -43,6 +44,45 @@ void efi_reboot(enum reboot_mode reboot_mode, const char *__unused)
- 	efi.reset_system(efi_mode, EFI_SUCCESS, 0, NULL);
- }
- 
-+static const struct dmi_system_id force_efi_poweroff[] = {
-+        {
-+                .ident = "Packard Bell Easynote ENLG81AP",
-+                .matches = {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Packard Bell"),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Easynote ENLG81AP"),
-+                },
-+        },
-+        {
-+                .ident = "Packard Bell Easynote ENTE69AP",
-+                .matches = {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Packard Bell"),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Easynote ENTE69AP"),
-+                },
-+        },
-+        {
-+                .ident = "Acer Aspire ES1-533",
-+                .matches = {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Aspire ES1-533"),
-+                },
-+        },
-+        {
-+                .ident = "Acer Aspire ES1-732",
-+                .matches = {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Aspire ES1-732"),
-+                },
-+        },
-+        {}
-+};
-+
-+bool efi_poweroff_forced(void)
-+{
-+	if (dmi_check_system(force_efi_poweroff))
-+		return true;
-+	return false;
-+}
-+
- bool __weak efi_poweroff_required(void)
- {
- 	return false;
-@@ -58,7 +98,7 @@ static int __init efi_shutdown_init(void)
- 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
- 		return -ENODEV;
- 
--	if (efi_poweroff_required())
-+	if (efi_poweroff_required() || efi_poweroff_forced())
- 		pm_power_off = efi_power_off;
- 
- 	return 0;
--- 
-2.9.3
+The following changes since commit c470abd4fde40ea6a0846a2beab642a578c0b8cd:
+
+  Linux 4.10 (2017-02-19 14:34:00 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+for you to fetch changes up to 86ef58a4e35e8fa66afb5898cf6dec6a3bb29f67:
+
+  nfit, libnvdimm: fix interleave set cookie calculation (2017-03-01
+00:49:42 -0800)
+
+----------------------------------------------------------------
+Dan Williams (2):
+      tools/testing/nvdimm: make iset cookie predictable
+      nfit, libnvdimm: fix interleave set cookie calculation
+
+ drivers/acpi/nfit/core.c         | 16 +++++++++++++++-
+ drivers/nvdimm/namespace_devs.c  | 18 ++++++++++++++----
+ drivers/nvdimm/nd.h              |  1 +
+ drivers/nvdimm/region_devs.c     |  9 +++++++++
+ include/linux/libnvdimm.h        |  2 ++
+ tools/testing/nvdimm/test/nfit.c | 14 +++++++-------
+ 6 files changed, 48 insertions(+), 12 deletions(-)
+
+commit 86ef58a4e35e8fa66afb5898cf6dec6a3bb29f67
+Author: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Tue Feb 28 18:32:48 2017 -0800
+
+    nfit, libnvdimm: fix interleave set cookie calculation
+
+    The interleave-set cookie is a sum that sanity checks the composition of
+    an interleave set has not changed from when the namespace was initially
+    created.  The checksum is calculated by sorting the DIMMs by their
+    location in the interleave-set. The comparison for the sort must be
+    64-bit wide, not byte-by-byte as performed by memcmp() in the broken
+    case.
+
+    Fix the implementation to accept correct cookie values in addition to
+    the Linux "memcmp" order cookies, but only allow correct cookies to be
+    generated going forward. It does mean that namespaces created by
+    third-party-tooling, or created by newer kernels with this fix, will not
+    validate on older kernels. However, there are a couple mitigating
+    conditions:
+
+        1/ platforms with namespace-label capable NVDIMMs are not widely
+           available.
+
+        2/ interleave-sets with a single-dimm are by definition not affected
+           (nothing to sort). This covers the QEMU-KVM NVDIMM emulation case.
+
+    The cookie stored in the namespace label will be fixed by any write the
+    namespace label, the most straightforward way to achieve this is to
+    write to the "alt_name" attribute of a namespace in sysfs.
+
+    Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+    Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set
+state-tracking infrastructure")
+    Reported-by: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+    Tested-by: Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+    Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+commit df06a2d57711a1472ced72207373eeb6422d4721
+Author: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Mar 1 00:03:37 2017 -0800
+
+    tools/testing/nvdimm: make iset cookie predictable
+
+    For testing changes to the iset cookie algorithm we need a value that is
+    constant from run-to-run.
+
+    Stop including dynamic data in the emulated region_offset values. Also,
+    pick values that sort in a different order depending on whether the
+    comparison is a memcmp() of two 8-byte arrays or subtraction of two
+    64-bit values.
+
+    Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
