@@ -1,178 +1,89 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v3 1/5] Revert"x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
-Date: Fri, 3 Mar 2017 16:02:23 +0800
-Message-ID: <1488528147-2279-2-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: [PATCH 1/2] arm64: RAS: add ras extension runtime detection
+Date: Fri, 3 Mar 2017 18:39:54 +0800
+Message-ID: <1488537595-72161-1-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@kernel.org, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, lenb@kernel.org, xiaolong.ye@intel.com, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+To: catalin.marinas@arm.com, will.deacon@arm.com, tbaicar@codeaurora.org, zjzhang@codeaurora.org, marc.zyngier@arm.com, james.morse@arm.com
+Cc: wangkefeng.wang@huawei.com, shiju.jose@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, fu.wei@linaro.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
-tables to keep associations of workqueues and other node related items
-consistent across cpu hotplug.
+According to <<RAS Extension PRD03>> document, we add RAS extension
+feature runtime detection, which would be used for error recovery
+in the future.
 
-But, ACPI tables are unreliable and failures with that boot time mapping
-have been reported on machines where the ACPI table and the physical
-information which is retrieved at actual hotplug is inconsistent.
-
-Revert the mapping implementation so it can be replaced with a less error
-prone approach.
-
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Tested-by: Xiaolong Ye <xiaolong.ye@intel.com>
+Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 ---
- arch/x86/kernel/acpi/boot.c   |  2 +-
- drivers/acpi/acpi_processor.c |  5 ---
- drivers/acpi/bus.c            |  1 -
- drivers/acpi/processor_core.c | 73 -------------------------------------------
- include/linux/acpi.h          |  3 --
- 5 files changed, 1 insertion(+), 83 deletions(-)
+ arch/arm64/include/asm/cpucaps.h |  3 ++-
+ arch/arm64/include/asm/sysreg.h  |  2 ++
+ arch/arm64/kernel/cpufeature.c   | 11 +++++++++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index ae32838..f6b0e87 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -710,7 +710,7 @@ static void __init acpi_set_irq_model_ioapic(void)
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- #include <acpi/processor.h>
+diff --git a/arch/arm64/include/asm/cpucaps.h b/arch/arm64/include/asm/cpucaps.h
+index fb78a5d..3847cf8 100644
+--- a/arch/arm64/include/asm/cpucaps.h
++++ b/arch/arm64/include/asm/cpucaps.h
+@@ -37,7 +37,8 @@
+ #define ARM64_HAS_NO_FPSIMD			16
+ #define ARM64_WORKAROUND_REPEAT_TLBI		17
+ #define ARM64_WORKAROUND_QCOM_FALKOR_E1003	18
++#define ARM64_HAS_RAS_EXTN			19
  
--int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	int nid;
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 4467a80..5d208a9 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -182,11 +182,6 @@ int __weak arch_register_cpu(int cpu)
+-#define ARM64_NCAPS				19
++#define ARM64_NCAPS				20
  
- void __weak arch_unregister_cpu(int cpu) {}
+ #endif /* __ASM_CPUCAPS_H */
+diff --git a/arch/arm64/include/asm/sysreg.h b/arch/arm64/include/asm/sysreg.h
+index ac24b6e..32964c7 100644
+--- a/arch/arm64/include/asm/sysreg.h
++++ b/arch/arm64/include/asm/sysreg.h
+@@ -157,6 +157,7 @@
+ #define ID_AA64ISAR0_AES_SHIFT		4
  
--int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
--{
--	return -ENODEV;
--}
--
- static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
- 	unsigned long long sta;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 80cb5eb..34fbe02 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1249,7 +1249,6 @@ static int __init acpi_init(void)
- 	acpi_wakeup_device_init();
- 	acpi_debugger_init();
- 	acpi_setup_sb_notify_handler();
--	acpi_set_processor_mapping();
- 	return 0;
- }
+ /* id_aa64pfr0 */
++#define ID_AA64PFR0_RAS_SHIFT		28
+ #define ID_AA64PFR0_GIC_SHIFT		24
+ #define ID_AA64PFR0_ASIMD_SHIFT		20
+ #define ID_AA64PFR0_FP_SHIFT		16
+@@ -165,6 +166,7 @@
+ #define ID_AA64PFR0_EL1_SHIFT		4
+ #define ID_AA64PFR0_EL0_SHIFT		0
  
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 611a558..a843862 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -278,79 +278,6 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
++#define ID_AA64PFR0_RAS_V1		0x1
+ #define ID_AA64PFR0_FP_NI		0xf
+ #define ID_AA64PFR0_FP_SUPPORTED	0x0
+ #define ID_AA64PFR0_ASIMD_NI		0xf
+diff --git a/arch/arm64/kernel/cpufeature.c b/arch/arm64/kernel/cpufeature.c
+index abda8e8..b0fb81e 100644
+--- a/arch/arm64/kernel/cpufeature.c
++++ b/arch/arm64/kernel/cpufeature.c
+@@ -98,6 +98,7 @@
+ };
  
--#ifdef CONFIG_ACPI_HOTPLUG_CPU
--static bool __init
--map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
--{
--	int type, id;
--	u32 acpi_id;
--	acpi_status status;
--	acpi_object_type acpi_type;
--	unsigned long long tmp;
--	union acpi_object object = { 0 };
--	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
--
--	status = acpi_get_type(handle, &acpi_type);
--	if (ACPI_FAILURE(status))
--		return false;
--
--	switch (acpi_type) {
--	case ACPI_TYPE_PROCESSOR:
--		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
--		if (ACPI_FAILURE(status))
--			return false;
--		acpi_id = object.processor.proc_id;
--
--		/* validate the acpi_id */
--		if(acpi_processor_validate_proc_id(acpi_id))
--			return false;
--		break;
--	case ACPI_TYPE_DEVICE:
--		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
--		if (ACPI_FAILURE(status))
--			return false;
--		acpi_id = tmp;
--		break;
--	default:
--		return false;
--	}
--
--	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
--
--	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
--	id = acpi_map_cpuid(*phys_id, acpi_id);
--
--	if (id < 0)
--		return false;
--	*cpuid = id;
--	return true;
--}
--
--static acpi_status __init
--set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
--			   void **rv)
--{
--	phys_cpuid_t phys_id;
--	int cpu_id;
--
--	if (!map_processor(handle, &phys_id, &cpu_id))
--		return AE_ERROR;
--
--	acpi_map_cpu2node(handle, cpu_id, phys_id);
--	return AE_OK;
--}
--
--void __init acpi_set_processor_mapping(void)
--{
--	/* Set persistent cpu <-> node mapping for all processors. */
--	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX, set_processor_node_mapping,
--			    NULL, NULL, NULL);
--}
--#else
--void __init acpi_set_processor_mapping(void) {}
--#endif /* CONFIG_ACPI_HOTPLUG_CPU */
--
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
- 			 u64 *phys_addr, int *ioapic_id)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 673acda..63a7519 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -294,11 +294,8 @@ bool acpi_processor_validate_proc_id(int proc_id);
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
- 		 int *pcpu);
- int acpi_unmap_cpu(int cpu);
--int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ static const struct arm64_ftr_bits ftr_id_aa64pfr0[] = {
++	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, ID_AA64PFR0_RAS_SHIFT, 4, 0),
+ 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, ID_AA64PFR0_GIC_SHIFT, 4, 0),
+ 	S_ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64PFR0_ASIMD_SHIFT, 4, ID_AA64PFR0_ASIMD_NI),
+ 	S_ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64PFR0_FP_SHIFT, 4, ID_AA64PFR0_FP_NI),
+@@ -860,6 +861,16 @@ static bool has_no_fpsimd(const struct arm64_cpu_capabilities *entry, int __unus
+ 		.min_field_value = 0,
+ 		.matches = has_no_fpsimd,
+ 	},
++	{
++		.desc = "ARM64 RAS Extension Support",
++		.capability = ARM64_HAS_RAS_EXTN,
++		.def_scope = SCOPE_SYSTEM,
++		.matches = has_cpuid_feature,
++		.sys_reg = SYS_ID_AA64PFR0_EL1,
++		.sign = FTR_UNSIGNED,
++		.field_pos = ID_AA64PFR0_RAS_SHIFT,
++		.min_field_value = ID_AA64PFR0_RAS_V1,
++	},
+ 	{},
+ };
  
--void acpi_set_processor_mapping(void);
--
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
- #endif
 -- 
-2.5.5
+1.8.3.1
