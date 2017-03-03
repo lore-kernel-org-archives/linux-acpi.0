@@ -1,109 +1,123 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Detect duplicate SSDT tables
-Date: Fri, 3 Mar 2017 02:50:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE44EC5@SHSMSX101.ccr.corp.intel.com>
-References: <20170227093432.3308-1-hdegoede@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
- <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
- <a2cdcf07-055c-6cb2-a0f2-b179a128f845@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE446CB@SHSMSX101.ccr.corp.intel.com>
- <edd79f72-2c06-5cb7-a676-3bd940ca5b4d@redhat.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH V1 v4.10-rc3 1/1] acpi: apei: handle GSIV notification
+ type
+Date: Fri, 3 Mar 2017 12:20:15 +0800
+Message-ID: <43301c6b-558c-990a-5736-7725063b0c23@linaro.org>
+References: <86258A5CC0A3704780874CF6004BA8A62DCAB57E@lhreml502-mbs>
+ <58B579A1.90109@arm.com> <43507f99-d80b-6409-d249-b9b18425a1da@linaro.org>
+ <58B6FF09.6030306@arm.com>
+ <86258A5CC0A3704780874CF6004BA8A62DCAC378@lhreml502-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:44273 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751148AbdCCCzj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Mar 2017 21:55:39 -0500
-In-Reply-To: <edd79f72-2c06-5cb7-a676-3bd940ca5b4d@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <86258A5CC0A3704780874CF6004BA8A62DCAC378@lhreml502-mbs>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Shiju Jose <shiju.jose@huawei.com>, James Morse <james.morse@arm.com>
+Cc: "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "matt@codeblueprint.co.uk" <matt@codeblueprint.co.uk>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "paul.gortmaker@windriver.com" <paul.gortmaker@windriver.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "fu.wei@linaro.org" <fu.wei@linaro.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, eun.taik.lee@s
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi,
+On 2017/3/2 21:45, Shiju Jose wrote:
+> Hi James,
+>
+>>
+>> Hi Hanjun,
+>>
+>> On 01/03/17 08:27, Hanjun Guo wrote:
+>>> On 2017/2/28 21:22, James Morse wrote:
+>>>> On 27/02/17 18:19, Shiju Jose wrote:
+>>>>> Add a new GHES error source handling function for GSIV(Global
+>> System
+>>>>> Interrupt Vector).
+>>>>> If an error source's notification type is GSIV, then this handling
+>>>>> function can be registered into the GSIV handler and it can parse
+>>>>> and report error information when they occur.
+>>>>
+>>>> I'm missing some of the story here, but how is GSIV different from
+>>>> 'External Interrupt'? I'm guessing something other than the CPU
+>> takes this 'interrupt'...
+>>>
+>>> Yes, it's the same from CPU side (they are interrupts!), but there is
+>>> history behind them and the usage is different.
+>>>
+>>> I think External Interrupt was introduced before ACPI is available on
+>>> ARM (hardware reduced platforms), so I guess it was used for errors
+>>> reported to OS which were not using SCI mechanism, for example, some
+>>> IO error reporting.
+>>>
+>>> For External Interrupt, we don't use the ACPI event system, so for
+>> the
+>>> firmware, it just report the errors associate with the interrupt
+>>> number, the kernel map the interrupt number and install the irq
+>>> handler for it.
+>>>
+>>> For GSIV based event, it was introduced for hardware reduced platform
+>>> in recent ACPI revision, and ARM64 is one of its consumers. When
+>>> errors are reported via GSIV, ACPI event notification needs to be
+>>> implemented and requires the platform to define a hardware error
+>>> device
+>>> (PNP0C33) in ACPI namespace, and also a generic event device ACPI0013.
+>>
+>> Okay, so for APEI this really means PNP0C33 was Notify()d. 'SCI' means
+>> the same but the route they take to get into APEI is different.
+>>
+>>
+>>> For example, if we are using SPI (ARM GIC) 100 to report errors,
+>> there
+>>> is a ACPI0013 driver in drivers/acpi/evged.c to register the irq,
+>> when
+>>
+>> Aha, this is where the interrupt-magic happens.
+>>
+>>
+>>> error happened and trigger the interrupt, ACPI0013 driver will notify
+>>> the error device (PNP0C33), then error device driver
+>>> (drivers/acpi/hed.c) will process the error data form APEI table...
+>>
+>>
+>>>> The GHES GSIV code below is identical to the behaviour of the SCI
+>>>> Notification type... are these two names for the same thing? (I'm
+>>>> confused!)
+>>>
+>>> SCI is also an 'interrupt' but it's a special irq number for ACPI
+>>> event, and it has GPE (general purpose event) registers behind it,
+>>> which is used only on Intel platforms. SCI based event use
+>>> Method(\_GPE._L0x) to notify the error device (PNP0C33), but GSIV is
+>>> used for HW-reduced platform which has no GPEs.
+>>
+>>> Hope it can clarify something :)
+>>
+>> Yes thanks! (the mist is slowly clearing...)
+>>
+>> If ACPI_HEST_NOTIFY_SCI and ACPI_HEST_NOTIFY_GSIV both mean 'receive
+>> notification from PNP0C33', is there any point having separate lists
+>> and add/remove functions for them?
+>>
+>> Instead, could we rename Linux's ghes_notifier_sci() and ghes_sci list
+>> to describe 'hed' instead, then group the two case statements together?
+>> There would be no need to add a selectable CONFIG_ACPI_APEI_GSIV, as
+>> SCI is already built-in and this way the code added is tiny. The only
+>> thing we would lose is the name 'GSIV' in the not-supported error
+>> message which we don't need if its always supported.
+>
+> This method was tested ok. However we were not sure about reusing/changing the
+> existing ghes_notifier_sci() for gsiv will be accepted.
 
-> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
-> 
-> Hi,
-> 
-> On 02-03-17 02:59, Zheng, Lv wrote:
-> > Hi,
-> >
-> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
-> >>
-> >> Hi,
-> >>
-> >> On 01-03-17 04:21, Zheng, Lv wrote:
-> >>> Hi,
-> >>>
-> >>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >>>> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
-> >>>>
-> >>>> Hi,
-> >>>>
-> >>>> On 28-02-17 06:19, Zheng, Lv wrote:
-> >>>>> Hi,
-> >>>>>
-> >>>>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >>>>>> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
-> >>>>>>
-> >>>>>> Some machines have the exact (byte for byte) same SSDT tables multiple
-> >>>>>> times in the root_table_list.
-> 
-> <snip>
-> 
-> >>>>>> Detect this and silently skip the duplicates
-> >>>>>> rather then printing a scary looking set of errors.
-> 
-> <snip>
-> 
-> >>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >>>>>> ---
-> >>>>>>  drivers/acpi/acpica/tbxfload.c | 41 ++++++++++++++++++++++++++++++++++++++++-
-> >>>>>>  1 file changed, 40 insertions(+), 1 deletion(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-> >>>>>> index 82019c0..1971cd7 100644
-> >>>>>> --- a/drivers/acpi/acpica/tbxfload.c
-> >>>>>> +++ b/drivers/acpi/acpica/tbxfload.c
-> >>>>>> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
-> >>>>>>
-> >>>>>>  /*******************************************************************************
-> >>>>>>   *
-> >>>>>> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
-> >>>>>> + *
-> >>>>>> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
-> >>>>>> + *              index         - index of table to find a duplicate of
-> >>>>>> + *
-> >>>>>> + * RETURN:      TRUE if a duplicate is found, FALSE if not
-> >>>>>> + *
-> >>>>>> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
-> >>>>>> + *              avoid trying to load duplicate ssdt tables
-> >>>>>> + *
-> >>>>>> + ******************************************************************************/
-> >>>>>> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
-> >
-> > If you really want to add this.
-> > My suggestion is:
-> > Invoke this function in acpi_tb_verify_temp_table().
-> > This is the function we use to verify if a table is OK.
-> > Otherwise it won't be installed to the global table list.
-> >
-> > And the name should contain "aml_table" or "aml" rather than "ssdt" according to your check below.
-> 
-> Ok, when I've some time I will do a new version moving the functionality
-> to acpi_tb_verify_temp_table(). I will post a v2 with this change when
-> it is ready. I will also just compare the headers then as suggested in
-> other replies in this thread.
+For now a notify (SCI/GSIV/GPIO) will trigger the process of all the
+ghes data even they are on different list, so add them on a single
+list and process them will have the same effect.
 
-If you wish, I can offer help here.
-It actually won't take me much time to generate such a change.
+> Thus added a separate handling function ghes_notifier_gsiv() for gsiv.
 
-Thanks and best regards
-Lv
+I think we can prepare the patch and send out for review.
+
+Thanks
+Hanjun
