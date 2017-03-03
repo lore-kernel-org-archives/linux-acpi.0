@@ -1,164 +1,178 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v3 0/5] Do repair works for the mapping of cpuid <->
- nodeid
-Date: Fri, 3 Mar 2017 16:32:28 +0800
-Message-ID: <de364325-0e0a-91a2-704c-3d6ff9cad705@cn.fujitsu.com>
+Subject: [PATCH v3 1/5] Revert"x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
+Date: Fri, 3 Mar 2017 16:02:23 +0800
+Message-ID: <1488528147-2279-2-git-send-email-douly.fnst@cn.fujitsu.com>
 References: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: mingo@kernel.org, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, lenb@kernel.org, xiaolong.ye@intel.com, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
+tables to keep associations of workqueues and other node related items
+consistent across cpu hotplug.
 
-My Simple Test Result:
+But, ACPI tables are unreliable and failures with that boot time mapping
+have been reported on machines where the ACPI table and the physical
+information which is retrieved at actual hotplug is inconsistent.
 
-In our box: Fujitsu PQ2000 with 1 nodes for hot-plug.
+Revert the mapping implementation so it can be replaced with a less error
+prone approach.
 
-Before the patchset:
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Tested-by: Xiaolong Ye <xiaolong.ye@intel.com>
+---
+ arch/x86/kernel/acpi/boot.c   |  2 +-
+ drivers/acpi/acpi_processor.c |  5 ---
+ drivers/acpi/bus.c            |  1 -
+ drivers/acpi/processor_core.c | 73 -------------------------------------------
+ include/linux/acpi.h          |  3 --
+ 5 files changed, 1 insertion(+), 83 deletions(-)
 
-+-------------------------------------+
-|                                     |
-|  NUMA node0 CPU£º    0-23,256-279    +------+
-|  NUMA node1 CPU£º    24-47,280-303   |      |
-|                                     |      |
-+-------------------------------------+      |
-                                          Hot-plug
-+-------------------------------------+      +
-|                                     |      |
-|  NUMA Node0: 0-23, 256-279          <------+
-|  NUMA Node1: 24-47, 280-303         |
-|  NUMA Node2: 64|69, 72-77, 80-85, 88-93...
-|  NUMA Node3: 96-101, 104-109, 112-117,...
-|                                     |      |
-+-------------------------------------+      |
-                                          Hot-remove
-+-------------------------------------+      |
-|                                     |      |
-|  NUMA node0 CPU£º    0-23,256-279    |      |
-|  NUMA node1 CPU£º    24-47,280-303   +^-----+
-|                                     |
-|                                     |
-+-------------------------------------+
-
-After the patchset:
-
-+-------------------------------------+
-|                                     |
-|  NUMA node0 CPU£º    0-23,48-71      +------+
-|  NUMA node1 CPU£º    24-47,72-95     |      |
-|                                     |      |
-+-------------------------------------+      |
-                                          Hot-plug
-+-------------------------------------+      +
-|                                     |      |
-|  NUMA node0 CPU£º    0-23,48-71      <------+
-|  NUMA node1 CPU£º    24-47,72-95     |
-|  NUMA node2 CPU£º    96-143          +------+
-|  NUMA node3 CPU£º    144-191         |      |
-|                                     |      |
-+-------------------------------------+      |
-                                          Hot-remove
-+-------------------------------------+      |
-|                                     |      |
-|  NUMA node0 CPU£º    0-23,48-71      |      |
-|  NUMA node1 CPU£º    24-47,72-95     +^-----+
-|                                     |
-|                                     |
-+-------------------------------------+
-
-And I also test some cases in VMs with QEmu.
-
-And When I get more nodes, I will test the whole
-function.
-
-Thanks,
-Liyang.
-
-At 03/03/2017 04:02 PM, Dou Liyang wrote:
-> [Summary]:
->
-> 1, Revert two commits
-> 2, Fix the order of Logical CPU IDs
-> 3, Move the validation of processor IDs to hot-plug time.
->
-> The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
-> tables to keep associations of workqueues and other node related items
-> consistent across cpu hotplug as following:
->
-> Step 1. Make the "Logical CPU ID <-> Processor ID/UID" fixed Using MADT:
-> We generate the logical CPU IDs by the Local APIC/x2APIC IDs orderly and
-> get the mapping of Processor ID/UID <-> Local Apic ID directly in MADT.
-> So, we get the mapping of
-> *Processor ID/UID <-> Local Apic ID <-> Logical CPU ID*
->
-> Step 2. Make the "Processor ID/UID <-> Node ID(_PXM)" fixed Using DSDT:
-> The maaping of "Processor ID/UID <-> Node ID(_PXM)" is ready-made in
-> each entities. we just use it directly.
->
-> But, ACPI tables are unreliable and failures with that boot time mapping
-> have been reported on machines where the ACPI table and the physical
-> information which is retrieved at actual hotplug is inconsistent. Here
-> has already two bugs we found:
->
-> 1. Duplicated Processor IDs in DSDT.
-> 	It has been fixed by commits:
-> 	'8e089eaa1999 ("acpi: Provide mechanism to validate processors
-> in the ACPI tables")' and 'fd74da217df7 ("acpi: Validate processor id
-> when mapping the processor")'
->
-> 2. The _PXM in DSDT is inconsistent with the one in MADT.
-> 	It may cause the bug, which is shown in:
-> 		https://lkml.org/lkml/2017/2/12/200
->
-> And one phenomenon is happened in some specific boxes:
->
-> 1. The logical CPU IDs is discrete. Such as:
-> 	Node2: 64-69, 72-77, 80-85, 88-93,...
->
-> There may be more strange things happened in the futher. We shouldn't just
-> only fix them everytime, we should solve this problem from the source to
-> avoid such problems happened again and again.
->
-> Find a simple and easy way:
->
-> 1. Do the step 1 when the CPU flag is enabled
-> 2. Do the step 2 at hot-plug time, not at boot time when we did some
-> useless work.
->
-> It also can make the mapping of "cpuid <-> nodeid" fixed and avoid
-> excessive using of the ACPI tables.
->
-> Change log:
->   v2 -> v3: 1. rewirte the changelogs
-> 		copy the changelogs Thomas Gleixner <tglx@linutronix.de>
-> 		rewrite for the patch 1,2,4,5.
->             2. s/duplicate_processor_id()/acpi_duplicate_processor_id().
-> 		by Thomas Gleixner <tglx@linutronix.de>'s advice.
->             3. modify the error handle in acpi_processor_ids_walk()
-> 		by Thomas Gleixner <tglx@linutronix.de>'s advice.
->             4. add a new patch for restoring the order of CPU IDs
->
->   v1 -> v2: 1. fix some comments.
->             2. add the verification of duplicate processor id.
->
-> Dou Liyang (5):
->   Revert"x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
->   Revert"x86/acpi: Enable MADT APIs to return disabled apicids"
->   x86/acpi: Restore the order of CPU IDs
->   acpi/processor: Implement DEVICE operator for processor enumeration
->   acpi/processor: Check for duplicate processor ids at hotplug time
->
->  arch/x86/kernel/acpi/boot.c   |   9 ++-
->  arch/x86/kernel/apic/apic.c   |  26 +++------
->  drivers/acpi/acpi_processor.c |  57 +++++++++++++-----
->  drivers/acpi/bus.c            |   1 -
->  drivers/acpi/processor_core.c | 133 +++++++-----------------------------------
->  include/linux/acpi.h          |   5 +-
->  6 files changed, 79 insertions(+), 152 deletions(-)
->
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index ae32838..f6b0e87 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -710,7 +710,7 @@ static void __init acpi_set_irq_model_ioapic(void)
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ #include <acpi/processor.h>
+ 
+-int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+ 	int nid;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 4467a80..5d208a9 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -182,11 +182,6 @@ int __weak arch_register_cpu(int cpu)
+ 
+ void __weak arch_unregister_cpu(int cpu) {}
+ 
+-int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+-{
+-	return -ENODEV;
+-}
+-
+ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
+ 	unsigned long long sta;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 80cb5eb..34fbe02 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1249,7 +1249,6 @@ static int __init acpi_init(void)
+ 	acpi_wakeup_device_init();
+ 	acpi_debugger_init();
+ 	acpi_setup_sb_notify_handler();
+-	acpi_set_processor_mapping();
+ 	return 0;
+ }
+ 
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 611a558..a843862 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -278,79 +278,6 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ 
+-#ifdef CONFIG_ACPI_HOTPLUG_CPU
+-static bool __init
+-map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
+-{
+-	int type, id;
+-	u32 acpi_id;
+-	acpi_status status;
+-	acpi_object_type acpi_type;
+-	unsigned long long tmp;
+-	union acpi_object object = { 0 };
+-	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+-
+-	status = acpi_get_type(handle, &acpi_type);
+-	if (ACPI_FAILURE(status))
+-		return false;
+-
+-	switch (acpi_type) {
+-	case ACPI_TYPE_PROCESSOR:
+-		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
+-		if (ACPI_FAILURE(status))
+-			return false;
+-		acpi_id = object.processor.proc_id;
+-
+-		/* validate the acpi_id */
+-		if(acpi_processor_validate_proc_id(acpi_id))
+-			return false;
+-		break;
+-	case ACPI_TYPE_DEVICE:
+-		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
+-		if (ACPI_FAILURE(status))
+-			return false;
+-		acpi_id = tmp;
+-		break;
+-	default:
+-		return false;
+-	}
+-
+-	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
+-
+-	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
+-	id = acpi_map_cpuid(*phys_id, acpi_id);
+-
+-	if (id < 0)
+-		return false;
+-	*cpuid = id;
+-	return true;
+-}
+-
+-static acpi_status __init
+-set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
+-			   void **rv)
+-{
+-	phys_cpuid_t phys_id;
+-	int cpu_id;
+-
+-	if (!map_processor(handle, &phys_id, &cpu_id))
+-		return AE_ERROR;
+-
+-	acpi_map_cpu2node(handle, cpu_id, phys_id);
+-	return AE_OK;
+-}
+-
+-void __init acpi_set_processor_mapping(void)
+-{
+-	/* Set persistent cpu <-> node mapping for all processors. */
+-	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+-			    ACPI_UINT32_MAX, set_processor_node_mapping,
+-			    NULL, NULL, NULL);
+-}
+-#else
+-void __init acpi_set_processor_mapping(void) {}
+-#endif /* CONFIG_ACPI_HOTPLUG_CPU */
+-
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+ 			 u64 *phys_addr, int *ioapic_id)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 673acda..63a7519 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -294,11 +294,8 @@ bool acpi_processor_validate_proc_id(int proc_id);
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
+ 		 int *pcpu);
+ int acpi_unmap_cpu(int cpu);
+-int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+-void acpi_set_processor_mapping(void);
+-
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
+ #endif
+-- 
+2.5.5
