@@ -1,126 +1,164 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
-Date: Fri, 3 Mar 2017 09:27:23 +0100
-Message-ID: <20170303082723.GB31499@dhcp22.suse.cz>
-References: <20170227154304.GK26504@dhcp22.suse.cz>
- <1488462828-174523-1-git-send-email-imammedo@redhat.com>
- <20170302142816.GK1404@dhcp22.suse.cz>
- <20170302180315.78975d4b@nial.brq.redhat.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v3 0/5] Do repair works for the mapping of cpuid <->
+ nodeid
+Date: Fri, 3 Mar 2017 16:32:28 +0800
+Message-ID: <de364325-0e0a-91a2-704c-3d6ff9cad705@cn.fujitsu.com>
+References: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20170302180315.78975d4b@nial.brq.redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mingo@kernel.org, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, lenb@kernel.org, xiaolong.ye@intel.com, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu 02-03-17 18:03:15, Igor Mammedov wrote:
-> On Thu, 2 Mar 2017 15:28:16 +0100
-> Michal Hocko <mhocko@kernel.org> wrote:
-> 
-> > On Thu 02-03-17 14:53:48, Igor Mammedov wrote:
-> > [...]
-> > > When trying to support memory unplug on guest side in RHEL7,
-> > > experience shows otherwise. Simplistic udev rule which onlines
-> > > added block doesn't work in case one wants to online it as movable.
-> > > 
-> > > Hotplugged blocks in current kernel should be onlined in reverse
-> > > order to online blocks as movable depending on adjacent blocks zone.  
-> > 
-> > Could you be more specific please? Setting online_movable from the udev
-> > rule should just work regardless of the ordering or the state of other
-> > memblocks. If that doesn't work I would call it a bug.
-> It's rather an implementation constrain than a bug
-> for details and workaround patch see
->  [1] https://bugzilla.redhat.com/show_bug.cgi?id=1314306#c7
+Hi All,
 
-"You are not authorized to access bug #1314306"
+My Simple Test Result:
 
-could you paste the reasoning here please?
+In our box: Fujitsu PQ2000 with 1 nodes for hot-plug.
 
-> patch attached there is limited by another memory hotplug
-> issue, which is NORMAL/MOVABLE zone balance, if kernel runs
-> on configuration where the most of memory is hot-removable
-> kernel might experience lack of memory in zone NORMAL.
+Before the patchset:
 
-yes and that is an inherent problem of movable memory.
++-------------------------------------+
+|                                     |
+|  NUMA node0 CPU£º    0-23,256-279    +------+
+|  NUMA node1 CPU£º    24-47,280-303   |      |
+|                                     |      |
++-------------------------------------+      |
+                                          Hot-plug
++-------------------------------------+      +
+|                                     |      |
+|  NUMA Node0: 0-23, 256-279          <------+
+|  NUMA Node1: 24-47, 280-303         |
+|  NUMA Node2: 64|69, 72-77, 80-85, 88-93...
+|  NUMA Node3: 96-101, 104-109, 112-117,...
+|                                     |      |
++-------------------------------------+      |
+                                          Hot-remove
++-------------------------------------+      |
+|                                     |      |
+|  NUMA node0 CPU£º    0-23,256-279    |      |
+|  NUMA node1 CPU£º    24-47,280-303   +^-----+
+|                                     |
+|                                     |
++-------------------------------------+
 
-> > > Which means simple udev rule isn't usable since it gets event from
-> > > the first to the last hotplugged block order. So now we would have
-> > > to write a daemon that would
-> > >  - watch for all blocks in hotplugged memory appear (how would it know)
-> > >  - online them in right order (order might also be different depending
-> > >    on kernel version)
-> > >    -- it becomes even more complicated in NUMA case when there are
-> > >       multiple zones and kernel would have to provide user-space
-> > >       with information about zone maps
-> > > 
-> > > In short current experience shows that userspace approach
-> > >  - doesn't solve issues that Vitaly has been fixing (i.e. onlining
-> > >    fast and/or under memory pressure) when udev (or something else
-> > >    might be killed)  
-> > 
-> > yeah and that is why the patch does the onlining from the kernel.
-> onlining in this patch is limited to hyperv and patch breaks
-> auto-online on x86 kvm/vmware/baremetal as they reuse the same
-> hotplug path.
+After the patchset:
 
-Those can use the udev or do you see any reason why they couldn't?
++-------------------------------------+
+|                                     |
+|  NUMA node0 CPU£º    0-23,48-71      +------+
+|  NUMA node1 CPU£º    24-47,72-95     |      |
+|                                     |      |
++-------------------------------------+      |
+                                          Hot-plug
++-------------------------------------+      +
+|                                     |      |
+|  NUMA node0 CPU£º    0-23,48-71      <------+
+|  NUMA node1 CPU£º    24-47,72-95     |
+|  NUMA node2 CPU£º    96-143          +------+
+|  NUMA node3 CPU£º    144-191         |      |
+|                                     |      |
++-------------------------------------+      |
+                                          Hot-remove
++-------------------------------------+      |
+|                                     |      |
+|  NUMA node0 CPU£º    0-23,48-71      |      |
+|  NUMA node1 CPU£º    24-47,72-95     +^-----+
+|                                     |
+|                                     |
++-------------------------------------+
 
-> > > > Can you imagine any situation when somebody actually might want to have
-> > > > this knob enabled? From what I understand it doesn't seem to be the
-> > > > case.  
-> > > For x86:
-> > >  * this config option is enabled by default in recent Fedora,  
-> > 
-> > How do you want to support usecases which really want to online memory
-> > as movable? Do you expect those users to disable the option because
-> > unless I am missing something the in kernel auto onlining only supporst
-> > regular onlining.
+And I also test some cases in VMs with QEmu.
+
+And When I get more nodes, I will test the whole
+function.
+
+Thanks,
+Liyang.
+
+At 03/03/2017 04:02 PM, Dou Liyang wrote:
+> [Summary]:
 >
-> current auto onlining config option does what it's been designed for,
-> i.e. it onlines hotplugged memory.
-> It's possible for non average Fedora user to override default
-> (commit 86dd995d6) if she/he needs non default behavior
-> (i.e. user knows how to online manually and/or can write
-> a daemon that would handle all of nuances of kernel in use).
-> 
-> For the rest when Fedora is used in cloud and user increases memory
-> via management interface of whatever cloud she/he uses, it just works.
-> 
-> So it's choice of distribution to pick its own default that makes
-> majority of user-base happy and this patch removes it without taking
-> that in consideration.
-
-You still can have a udev rule to achive the same thing for
-non-ballooning based hotplug.
-
-> How to online memory is different issue not related to this patch,
-> current default onlining as ZONE_NORMAL works well for scaling
-> up VMs.
-> 
-> Memory unplug is rather new and it doesn't work reliably so far,
-> moving onlining to user-space won't really help. Further work
-> is need to be done so that it would work reliably.
-
-The main problem I have with this is that this is a limited usecase
-driven configuration knob which doesn't work properly for other usecases
-(namely movable online once your distribution choses to set the config
-option to auto online). There is a userspace solution for this so this
-shouldn't have been merged in the first place! It sneaked a proper review
-process (linux-api wasn't CC to get a broader attenttion) which is
-really sad.
-
-So unless this causes a major regression which would be hard to fix I
-will submit the patch for inclusion.
--- 
-Michal Hocko
-SUSE Labs
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 1, Revert two commits
+> 2, Fix the order of Logical CPU IDs
+> 3, Move the validation of processor IDs to hot-plug time.
+>
+> The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
+> tables to keep associations of workqueues and other node related items
+> consistent across cpu hotplug as following:
+>
+> Step 1. Make the "Logical CPU ID <-> Processor ID/UID" fixed Using MADT:
+> We generate the logical CPU IDs by the Local APIC/x2APIC IDs orderly and
+> get the mapping of Processor ID/UID <-> Local Apic ID directly in MADT.
+> So, we get the mapping of
+> *Processor ID/UID <-> Local Apic ID <-> Logical CPU ID*
+>
+> Step 2. Make the "Processor ID/UID <-> Node ID(_PXM)" fixed Using DSDT:
+> The maaping of "Processor ID/UID <-> Node ID(_PXM)" is ready-made in
+> each entities. we just use it directly.
+>
+> But, ACPI tables are unreliable and failures with that boot time mapping
+> have been reported on machines where the ACPI table and the physical
+> information which is retrieved at actual hotplug is inconsistent. Here
+> has already two bugs we found:
+>
+> 1. Duplicated Processor IDs in DSDT.
+> 	It has been fixed by commits:
+> 	'8e089eaa1999 ("acpi: Provide mechanism to validate processors
+> in the ACPI tables")' and 'fd74da217df7 ("acpi: Validate processor id
+> when mapping the processor")'
+>
+> 2. The _PXM in DSDT is inconsistent with the one in MADT.
+> 	It may cause the bug, which is shown in:
+> 		https://lkml.org/lkml/2017/2/12/200
+>
+> And one phenomenon is happened in some specific boxes:
+>
+> 1. The logical CPU IDs is discrete. Such as:
+> 	Node2: 64-69, 72-77, 80-85, 88-93,...
+>
+> There may be more strange things happened in the futher. We shouldn't just
+> only fix them everytime, we should solve this problem from the source to
+> avoid such problems happened again and again.
+>
+> Find a simple and easy way:
+>
+> 1. Do the step 1 when the CPU flag is enabled
+> 2. Do the step 2 at hot-plug time, not at boot time when we did some
+> useless work.
+>
+> It also can make the mapping of "cpuid <-> nodeid" fixed and avoid
+> excessive using of the ACPI tables.
+>
+> Change log:
+>   v2 -> v3: 1. rewirte the changelogs
+> 		copy the changelogs Thomas Gleixner <tglx@linutronix.de>
+> 		rewrite for the patch 1,2,4,5.
+>             2. s/duplicate_processor_id()/acpi_duplicate_processor_id().
+> 		by Thomas Gleixner <tglx@linutronix.de>'s advice.
+>             3. modify the error handle in acpi_processor_ids_walk()
+> 		by Thomas Gleixner <tglx@linutronix.de>'s advice.
+>             4. add a new patch for restoring the order of CPU IDs
+>
+>   v1 -> v2: 1. fix some comments.
+>             2. add the verification of duplicate processor id.
+>
+> Dou Liyang (5):
+>   Revert"x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
+>   Revert"x86/acpi: Enable MADT APIs to return disabled apicids"
+>   x86/acpi: Restore the order of CPU IDs
+>   acpi/processor: Implement DEVICE operator for processor enumeration
+>   acpi/processor: Check for duplicate processor ids at hotplug time
+>
+>  arch/x86/kernel/acpi/boot.c   |   9 ++-
+>  arch/x86/kernel/apic/apic.c   |  26 +++------
+>  drivers/acpi/acpi_processor.c |  57 +++++++++++++-----
+>  drivers/acpi/bus.c            |   1 -
+>  drivers/acpi/processor_core.c | 133 +++++++-----------------------------------
+>  include/linux/acpi.h          |   5 +-
+>  6 files changed, 79 insertions(+), 152 deletions(-)
+>
