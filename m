@@ -1,81 +1,104 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v4 15/16] device property: Add fwnode_get_next_parent()
-Date: Mon,  6 Mar 2017 16:19:29 +0200
-Message-ID: <1488809970-25568-16-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v4 13/16] device property: Add support for fwnode endpoints
+Date: Mon,  6 Mar 2017 16:19:27 +0200
+Message-ID: <1488809970-25568-14-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36728 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932322AbdCFOTz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:19:55 -0500
-In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-In order to differentiate the functionality between dropping a reference
-to the node (or not) for the benefit of OF, introduce
-fwnode_get_next_parent().
+Similar to OF endpoints, endpoint type nodes can be also supported on
+ACPI. In order to make it possible for drivers to ignore the matter,
+add a type for fwnode_endpoint and a function to parse them.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On ACPI, find the child node index instead of relying on the "endpoint"
+property.
+
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/base/property.c  | 29 +++++++++++++++++++++++++++++
- include/linux/property.h |  1 +
- 2 files changed, 30 insertions(+)
+ drivers/base/property.c  | 36 ++++++++++++++++++++++++++++++++++++
+ include/linux/fwnode.h   |  6 ++++++
+ include/linux/property.h |  3 +++
+ 3 files changed, 45 insertions(+)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index b8c1017..defeba9 100644
+index 860e160..b8c1017 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -953,6 +953,35 @@ int device_add_properties(struct device *dev,
- EXPORT_SYMBOL_GPL(device_add_properties);
- 
- /**
-+ * fwnode_get_next_parent - Iterate to the node's parent
-+ * @fwnode: Firmware whose parent is retrieved
+@@ -1330,3 +1330,39 @@ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
+ 	return endpoint;
+ }
+ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
++
++/*
++ * fwnode_graph_parse_endpoint() - parse common endpoint node properties
++ * @node: pointer to endpoint device_node
++ * @endpoint: pointer to the fwnode endpoint data structure
 + *
-+ * This is like fwnode_get_parent() except that it drops the refcount
-+ * on the passed node, making it suitable for iterating through a
-+ * node's parents.
-+ *
-+ * Returns a node pointer with refcount incremented, use
-+ * fwnode_handle_node() on it when done.
++ * The caller should hold a reference to @node.
 + */
-+struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
++int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
++				struct fwnode_endpoint *endpoint)
 +{
-+	struct fwnode_handle *parent = NULL;
++	struct fwnode_handle *port_fwnode = fwnode_get_parent(fwnode);
 +
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node;
++	memset(endpoint, 0, sizeof(*endpoint));
 +
-+		node = of_get_next_parent(to_of_node(fwnode));
-+		if (node)
-+			parent = &node->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		parent = acpi_node_get_parent(fwnode);
++	endpoint->local_fwnode = fwnode;
++
++	if (is_acpi_node(port_fwnode)) {
++		struct fwnode_handle *iter;
++
++		fwnode_property_read_u32(port_fwnode, "port", &endpoint->port);
++
++		for (iter = fwnode_get_next_child_node(port_fwnode, NULL);
++		     iter != fwnode;
++		     iter = fwnode_get_next_child_node(port_fwnode, iter))
++			endpoint->id++;
++	} else {
++		fwnode_property_read_u32(port_fwnode, "reg", &endpoint->port);
++		fwnode_property_read_u32(fwnode, "reg", &endpoint->id);
 +	}
 +
-+	return parent;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
++	fwnode_handle_put(port_fwnode);
 +
-+/**
-  * fwnode_get_parent - Return parent firwmare node
-  * @fwnode: Firmware whose parent is retrieved
-  *
++	return 0;
++}
++EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 8bd28ce..cb60f29 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -27,4 +27,10 @@ struct fwnode_handle {
+ 	struct fwnode_handle *secondary;
+ };
+ 
++struct fwnode_endpoint {
++	unsigned int port;
++	unsigned int id;
++	const struct fwnode_handle *local_fwnode;
++};
++
+ #endif
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 45ef00a..19dd35e 100644
+index 0b61ea4..45ef00a 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -77,6 +77,7 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
- 				 const char *propname, const char *string);
+@@ -284,4 +284,7 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
+ struct fwnode_handle *fwnode_graph_get_remote_endpoint(
+ 	struct fwnode_handle *fwnode);
  
- struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
-+struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
- 						 struct fwnode_handle *child);
- 
++int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
++				struct fwnode_endpoint *endpoint);
++
+ #endif /* _LINUX_PROPERTY_H_ */
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
