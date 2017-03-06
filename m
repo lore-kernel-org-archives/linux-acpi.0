@@ -1,101 +1,183 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
-Date: Mon, 6 Mar 2017 09:28:50 +0800
-Message-ID: <CAMj-D2CepweZ4y38-U=XX3V8xsKs2vnxGz6RyRTtjA0CcitFAg@mail.gmail.com>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
- <df6ba5dc-d93f-925a-46bf-1e1e209d17f3@huawei.com> <58B43092.6040401@arm.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v3 0/5] Do repair works for the mapping of cpuid <->
+ nodeid
+Date: Mon, 6 Mar 2017 10:11:36 +0800
+Message-ID: <cb23761b-6800-f387-b302-c02f0cced2d0@cn.fujitsu.com>
+References: <1488528147-2279-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <de364325-0e0a-91a2-704c-3d6ff9cad705@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <58B43092.6040401@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, Xiongfeng Wang <wangxiongfeng2@huawei.com>, Fu Wei <fu.wei@linaro.org>, zjzhang@codeaurora.org, linux@armlinux.org.uk, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, Len Brown <lenb@kernel.org>, harba@codeaurora.org, john.garry@huawei.com, Marc Zyngier <marc.zyngier@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, rostedt@goodmis.org, nkaje@codeaurora.org, Sandeepa Prabhu <sandeepa.s.prabhu@gmail.com>, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, Hanjun Guo <hanj>
+Content-Type: text/plain; charset="gbk"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:20545 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752414AbdCFCLw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Mar 2017 21:11:52 -0500
+In-Reply-To: <de364325-0e0a-91a2-704c-3d6ff9cad705@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mingo@kernel.org, tglx@linutronix.de, hpa@zytor.com, rjw@rjwysocki.net, lenb@kernel.org, xiaolong.ye@intel.com, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi James,
 
 
-> Hi Wang Xiongfeng,
+At 03/03/2017 04:32 PM, Dou Liyang wrote:
+> Hi All,
 >
-> On 25/02/17 07:15, Xiongfeng Wang wrote:
->> On 2017/2/22 5:22, Tyler Baicar wrote:
->>> Currently external aborts are unsupported by the guest abort
->>> handling. Add handling for SEAs so that the host kernel reports
->>> SEAs which occur in the guest kernel.
+> My Simple Test Result:
 >
->>> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
->>> index a5265ed..04f1dd50 100644
->>> --- a/arch/arm/kvm/mmu.c
->>> +++ b/arch/arm/kvm/mmu.c
->>> @@ -1444,8 +1445,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
->>>
->>>      /* Check the stage-2 fault is trans. fault or write fault */
->>>      fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
->>> -    if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
->>> -        fault_status != FSC_ACCESS) {
->>> +
->>> +    /* The host kernel will handle the synchronous external abort. There
->>> +     * is no need to pass the error into the guest.
->>> +     */
->
->> Can we inject an sea into the guest, so that the guest can kill the
->> application which causes the error if the guest won't be terminated
->> later. I'm not sure whether ghes_handle_memory_failure() called in
->> ghes_do_proc() will kill the qemu process. I think it only kill user
->> processes marked with PF_MCE_PROCESS & PF_MCE_EARLY.
->
-> My understanding is the pages will get unmapped and recovered where possible
-> (e.g. re-read from disk), the user space process will get SIGBUS/SIGSEV when it
-> next tries to access that page, which could be some time later.
-> These flags in find_early_kill_thread() are a way to make the memory-failure
-> code signal the process early, before it does any recovery. The 'MCE' makes me
-> think its x86 specific.
-> (early and late are described more in [0])
->
->
-> Guests are a special case as QEMU may never access the faulty memory itself, so
-> it won't receive the 'late' signal. It looks like ARM/arm64 KVM lacks support
-> for KVM_PFN_ERR_HWPOISON which sends SIGBUS from KVM's fault-handling code. I
-> have patches to add support for this which I intend to send at rc1.
+> In our box: Fujitsu PQ2000 with 1 nodes for hot-plug.
 
-could you push this patch to opensource?
+s/1 nodes/2 nodes in 1 SB which contains CPU, Memory.../
+
+Thanks,
+	Liyang
 
 
 >
-> [0] suggests 'KVM qemu' sets these MCE flags to take the 'early' path, but given
-> x86s KVM_PFN_ERR_HWPOISON, this may be out of date.
+> Before the patchset:
 >
+> +-------------------------------------+
+> |                                     |
+> |  NUMA node0 CPU£º    0-23,256-279    +------+
+> |  NUMA node1 CPU£º    24-47,280-303   |      |
+> |                                     |      |
+> +-------------------------------------+      |
+>                                          Hot-plug
+> +-------------------------------------+      +
+> |                                     |      |
+> |  NUMA Node0: 0-23, 256-279          <------+
+> |  NUMA Node1: 24-47, 280-303         |
+> |  NUMA Node2: 64|69, 72-77, 80-85, 88-93...
+> |  NUMA Node3: 96-101, 104-109, 112-117,...
+> |                                     |      |
+> +-------------------------------------+      |
+>                                          Hot-remove
+> +-------------------------------------+      |
+> |                                     |      |
+> |  NUMA node0 CPU£º    0-23,256-279    |      |
+> |  NUMA node1 CPU£º    24-47,280-303   +^-----+
+> |                                     |
+> |                                     |
+> +-------------------------------------+
 >
-> Either way, once QEMU gets a signal indicating the virtual address, it can
-> generate its own APEI CPER records and use the KVM APIs to mock up an
-> Synchronous External Abort, (or inject an IRQ or run the vcpu waiting for the
-> guest's polling thread to come round, whichever was described to the guest via
-> the HEST/GHES tables).
+> After the patchset:
 >
-> We can't hand the APEI CPER records we have in the kernel to the guest, as they
-> hold a host physical address, and maybe a host virtual address. We don't know
-> where in guest memory we could write new APEI CPER records as these locations
-> have to be reserved in the guests-UEFI memory map, and only QEMU knows where
-> they are.
+> +-------------------------------------+
+> |                                     |
+> |  NUMA node0 CPU£º    0-23,48-71      +------+
+> |  NUMA node1 CPU£º    24-47,72-95     |      |
+> |                                     |      |
+> +-------------------------------------+      |
+>                                          Hot-plug
+> +-------------------------------------+      +
+> |                                     |      |
+> |  NUMA node0 CPU£º    0-23,48-71      <------+
+> |  NUMA node1 CPU£º    24-47,72-95     |
+> |  NUMA node2 CPU£º    96-143          +------+
+> |  NUMA node3 CPU£º    144-191         |      |
+> |                                     |      |
+> +-------------------------------------+      |
+>                                          Hot-remove
+> +-------------------------------------+      |
+> |                                     |      |
+> |  NUMA node0 CPU£º    0-23,48-71      |      |
+> |  NUMA node1 CPU£º    24-47,72-95     +^-----+
+> |                                     |
+> |                                     |
+> +-------------------------------------+
 >
-> To deliver RAS events to a guest we have to get QEMU involved.
+> And I also test some cases in VMs with QEmu.
 >
+> And When I get more nodes, I will test the whole
+> function.
 >
 > Thanks,
+> Liyang.
 >
-> James
->
->
-> [0] https://www.kernel.org/doc/Documentation/vm/hwpoison.txt
->
+> At 03/03/2017 04:02 PM, Dou Liyang wrote:
+>> [Summary]:
+>>
+>> 1, Revert two commits
+>> 2, Fix the order of Logical CPU IDs
+>> 3, Move the validation of processor IDs to hot-plug time.
+>>
+>> The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
+>> tables to keep associations of workqueues and other node related items
+>> consistent across cpu hotplug as following:
+>>
+>> Step 1. Make the "Logical CPU ID <-> Processor ID/UID" fixed Using MADT:
+>> We generate the logical CPU IDs by the Local APIC/x2APIC IDs orderly and
+>> get the mapping of Processor ID/UID <-> Local Apic ID directly in MADT.
+>> So, we get the mapping of
+>> *Processor ID/UID <-> Local Apic ID <-> Logical CPU ID*
+>>
+>> Step 2. Make the "Processor ID/UID <-> Node ID(_PXM)" fixed Using DSDT:
+>> The maaping of "Processor ID/UID <-> Node ID(_PXM)" is ready-made in
+>> each entities. we just use it directly.
+>>
+>> But, ACPI tables are unreliable and failures with that boot time mapping
+>> have been reported on machines where the ACPI table and the physical
+>> information which is retrieved at actual hotplug is inconsistent. Here
+>> has already two bugs we found:
+>>
+>> 1. Duplicated Processor IDs in DSDT.
+>>     It has been fixed by commits:
+>>     '8e089eaa1999 ("acpi: Provide mechanism to validate processors
+>> in the ACPI tables")' and 'fd74da217df7 ("acpi: Validate processor id
+>> when mapping the processor")'
+>>
+>> 2. The _PXM in DSDT is inconsistent with the one in MADT.
+>>     It may cause the bug, which is shown in:
+>>         https://lkml.org/lkml/2017/2/12/200
+>>
+>> And one phenomenon is happened in some specific boxes:
+>>
+>> 1. The logical CPU IDs is discrete. Such as:
+>>     Node2: 64-69, 72-77, 80-85, 88-93,...
+>>
+>> There may be more strange things happened in the futher. We shouldn't
+>> just
+>> only fix them everytime, we should solve this problem from the source to
+>> avoid such problems happened again and again.
+>>
+>> Find a simple and easy way:
+>>
+>> 1. Do the step 1 when the CPU flag is enabled
+>> 2. Do the step 2 at hot-plug time, not at boot time when we did some
+>> useless work.
+>>
+>> It also can make the mapping of "cpuid <-> nodeid" fixed and avoid
+>> excessive using of the ACPI tables.
+>>
+>> Change log:
+>>   v2 -> v3: 1. rewirte the changelogs
+>>         copy the changelogs Thomas Gleixner <tglx@linutronix.de>
+>>         rewrite for the patch 1,2,4,5.
+>>             2. s/duplicate_processor_id()/acpi_duplicate_processor_id().
+>>         by Thomas Gleixner <tglx@linutronix.de>'s advice.
+>>             3. modify the error handle in acpi_processor_ids_walk()
+>>         by Thomas Gleixner <tglx@linutronix.de>'s advice.
+>>             4. add a new patch for restoring the order of CPU IDs
+>>
+>>   v1 -> v2: 1. fix some comments.
+>>             2. add the verification of duplicate processor id.
+>>
+>> Dou Liyang (5):
+>>   Revert"x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
+>>   Revert"x86/acpi: Enable MADT APIs to return disabled apicids"
+>>   x86/acpi: Restore the order of CPU IDs
+>>   acpi/processor: Implement DEVICE operator for processor enumeration
+>>   acpi/processor: Check for duplicate processor ids at hotplug time
+>>
+>>  arch/x86/kernel/acpi/boot.c   |   9 ++-
+>>  arch/x86/kernel/apic/apic.c   |  26 +++------
+>>  drivers/acpi/acpi_processor.c |  57 +++++++++++++-----
+>>  drivers/acpi/bus.c            |   1 -
+>>  drivers/acpi/processor_core.c | 133
+>> +++++++-----------------------------------
+>>  include/linux/acpi.h          |   5 +-
+>>  6 files changed, 79 insertions(+), 152 deletions(-)
+>>
+
+
