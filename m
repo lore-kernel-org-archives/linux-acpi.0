@@ -1,116 +1,40 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH 2/2] acpi: apei: handle SEI notification type for ARMv8
-Date: Mon, 6 Mar 2017 19:06:32 +0800
-Message-ID: <58BD42B8.3060804@huawei.com>
-References: <1488537595-72161-1-git-send-email-xiexiuqi@huawei.com>
- <1488537595-72161-2-git-send-email-xiexiuqi@huawei.com>
- <58BD3355.2010201@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <58BD3355.2010201@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>, tbaicar@codeaurora.org
-Cc: wangkefeng.wang@huawei.com, zjzhang@codeaurora.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, fu.wei@linaro.org, guohanjun@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, linux-arm-kernel@lists.infradead.org, shiju.jose@huawei.com
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 1/3] device property: fwnode_property_read_string_array() may return -EILSEQ
+Date: Mon,  6 Mar 2017 15:26:29 +0200
+Message-ID: <1488806791-25488-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1488806791-25488-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:50760 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753010AbdCFN07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Mar 2017 08:26:59 -0500
+In-Reply-To: <1488806791-25488-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Hi James,
+fwnode_property_read_string_array() may return -EILSEQ through
+of_property_read_string_array(). Document this.
 
-Thanks for your comments.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/base/property.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2017/3/6 18:00, James Morse wrote:
-> Hi Xie XiuQi,
-> 
-> On 03/03/17 10:39, Xie XiuQi wrote:
->> ARM APEI extension proposal added SEI (asynchronous SError interrupt)
->> notification type for ARMv8.
->>
->> Add a new GHES error source handling function for SEI. In firmware
->> first mode, if an error source's notification type is SEI. Then GHES
->> could parse and report the detail error information.
-> 
-> This patch doesn't apply to any upstream tree. Is this based on Tyler's larger
-> UEFI/ACPI update series? If so, please mention this in your cover letter, (Nit:
-> please include a cover letter when sending two or more patches!).
-> 
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index c458c63..19a3dc5 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -589,7 +589,7 @@ static int __fwnode_property_read_string(struct fwnode_handle *fwnode,
+  *         %0 if the property was found (success),
+  *	   %-EINVAL if given arguments are not valid,
+  *	   %-ENODATA if the property does not have a value,
+- *	   %-EPROTO if the property is not an array of strings,
++ *	   %-EPROTO or %-EILSEQ if the property is not an array of strings,
+  *	   %-EOVERFLOW if the size of the property is not as expected,
+  *	   %-ENXIO if no suitable firmware interface is present.
+  */
+-- 
+2.7.4
 
-Yes, this patch is based on Tyler's series "[PATCH V11 00/10] Add UEFI 2.6 and ACPI 6.1 updates
-for RAS on ARM64" and linux-next 20170302.
-
-I'll add a cover letter next time, thanks.
-
-
-> What happens if the SError Interrupt arrives while KVM was doing its work? We
-> set the HCR_EL2.AMO bit when running a guest, so KVM may receive these instead
-> of the host kernel.
-> 
-
-OK, I'll do it in next version.
-
-> 
->> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
->> index 1122d7f..a32f046 100644
->> --- a/drivers/acpi/apei/Kconfig
->> +++ b/drivers/acpi/apei/Kconfig
->> @@ -18,6 +18,20 @@ config HAVE_ACPI_APEI_SEA
->>  	  option allows the OS to look for such hardware error record, and
->>  	  take appropriate action.
->>  
->> +config ACPI_APEI_SEI
->> +	bool "APEI Asynchronous SError Interrupt logging/recovering support"
->> +	depends on ARM64 && ACPI_APEI_GHES
->> +	help
->> +	  This option should be enabled if the system supports
->> +	  firmware first handling of SEI (asynchronous SError interrupt).
->> +
->> +	  SEI happens with invalid instruction access or asynchronous exceptions
->> +	  on ARMv8 systems. If a system supports firmware first handling of SEI,
->> +	  the platform analyzes and handles hardware error notifications from
->> +	  SEI, and it may then form a HW error record for the OS to parse and
->> +	  handle. This option allows the OS to look for such hardware error
->> +	  record, and take appropriate action.
->> +
->>  config ACPI_APEI
->>  	bool "ACPI Platform Error Interface (APEI)"
->>  	select MISC_FILESYSTEMS
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index 3e4ea1b..d084a09 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -850,6 +850,50 @@ static inline void ghes_sea_remove(struct ghes *ghes)
->>  }
->>  #endif /* CONFIG_HAVE_ACPI_APEI_SEA */
->>  
->> +#ifdef CONFIG_ACPI_APEI_SEI
->> +static LIST_HEAD(ghes_sei);
->> +
->> +void ghes_notify_sei(void)
->> +{
->> +	struct ghes *ghes;
->> +
->> +	/*
->> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
-> 
-> Where nmi_exit()?
-> 
-> This nmi enter/exit was to prevent APEI being interrupted by APEI and trying to
-> take the same set of locks. APEI masks IRQs to prevent this happening normally,
-> but Synchronous External Abort couldn't be masked.
-> We don't mask Asynchronous Exceptions in APEI so the same thing can happen here.
-> Adding nmi_{enter,exit}() round the ghes call in the arch bad_mode() will
-> prevent this lockup.
-> 
-
-Thank you for your detailed explanation, I'll add it in next version.
-
-Thanks,
-Xie XiuQi
