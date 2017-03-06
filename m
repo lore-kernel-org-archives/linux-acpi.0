@@ -1,77 +1,52 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v4 12/16] device property: Move dev_fwnode() to linux/property.h
-Date: Mon,  6 Mar 2017 16:19:26 +0200
-Message-ID: <1488809970-25568-13-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 08/16] of: Add of_fwnode_handle() to convert device nodes to fwnode_handle
+Date: Mon,  6 Mar 2017 16:19:22 +0200
+Message-ID: <1488809970-25568-9-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:31374 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932219AbdCFOT7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:19:59 -0500
+In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-The function to obtain a fwnode related to a struct device is useful for
-drivers that use the fwnode property API: it allows not being aware of the
-underlying firmware implementation.
+of_fwnode_handle() returns a struct fwnode_handle of the struct
+device_node. This may be used on the fwnode property API.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Use a macro instead of a function in order to support const and non-const
+arguments.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/base/property.c  |  6 ------
- include/linux/property.h | 10 ++++++++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/of.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 111049b..860e160 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -183,12 +183,6 @@ static int pset_prop_read_string(struct property_set *pset,
- 	return 0;
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 21e6323..e5d4225f 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -159,6 +159,8 @@ static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+ 		container_of(fwnode, struct device_node, fwnode) : NULL;
  }
  
--static inline struct fwnode_handle *dev_fwnode(struct device *dev)
--{
--	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
--		&dev->of_node->fwnode : dev->fwnode;
--}
--
- /**
-  * device_property_present - check if a property of a device is present
-  * @dev: Device whose property is being checked
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 0ae7d20..0b61ea4 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -13,11 +13,11 @@
- #ifndef _LINUX_PROPERTY_H_
- #define _LINUX_PROPERTY_H_
- 
-+#include <linux/device.h>
- #include <linux/fwnode.h>
-+#include <linux/of.h>
- #include <linux/types.h>
- 
--struct device;
--
- enum dev_prop_type {
- 	DEV_PROP_U8,
- 	DEV_PROP_U16,
-@@ -33,6 +33,12 @@ enum dev_dma_attr {
- 	DEV_DMA_COHERENT,
- };
- 
-+static inline struct fwnode_handle *dev_fwnode(struct device *dev)
-+{
-+	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
-+		&dev->of_node->fwnode : dev->fwnode;
-+}
++#define of_fwnode_handle(node) (&(node)->fwnode)
 +
- bool device_property_present(struct device *dev, const char *propname);
- int device_property_read_u8_array(struct device *dev, const char *propname,
- 				  u8 *val, size_t nval);
+ static inline bool of_have_populated_dt(void)
+ {
+ 	return of_root != NULL;
+@@ -602,6 +604,8 @@ static inline struct device_node *of_find_node_with_property(
+ 	return NULL;
+ }
+ 
++#define of_fwnode_handle(node) NULL
++
+ static inline bool of_have_populated_dt(void)
+ {
+ 	return false;
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
