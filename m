@@ -1,67 +1,116 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
-Date: Mon, 06 Mar 2017 10:28:04 +0000
-Message-ID: <58BD39B4.9050809@arm.com>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
- <58B00E12.5020602@arm.com>
- <ff3aa805-0e03-9854-e294-ff6934c57f3f@codeaurora.org>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH 2/2] acpi: apei: handle SEI notification type for ARMv8
+Date: Mon, 6 Mar 2017 19:06:32 +0800
+Message-ID: <58BD42B8.3060804@huawei.com>
+References: <1488537595-72161-1-git-send-email-xiexiuqi@huawei.com>
+ <1488537595-72161-2-git-send-email-xiexiuqi@huawei.com>
+ <58BD3355.2010201@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <ff3aa805-0e03-9854-e294-ff6934c57f3f@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <58BD3355.2010201@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>, tbaicar@codeaurora.org
+Cc: wangkefeng.wang@huawei.com, zjzhang@codeaurora.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, fu.wei@linaro.org, guohanjun@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, linux-arm-kernel@lists.infradead.org, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tyler,
+Hi James,
 
-On 28/02/17 19:43, Baicar, Tyler wrote:
-> On 2/24/2017 3:42 AM, James Morse wrote:
->> On 21/02/17 21:22, Tyler Baicar wrote:
->>> Currently external aborts are unsupported by the guest abort
->>> handling. Add handling for SEAs so that the host kernel reports
->>> SEAs which occur in the guest kernel.
+Thanks for your comments.
 
->>> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
->>> index b2d57fc..403277b 100644
->>> --- a/arch/arm64/mm/fault.c
->>> +++ b/arch/arm64/mm/fault.c
->>> @@ -602,6 +602,24 @@ static const char *fault_name(unsigned int esr)
->>>   }
->>>
->>>   /*
->>> + * Handle Synchronous External Aborts that occur in a guest kernel.
->>> + */
->>> +int handle_guest_sea(unsigned long addr, unsigned int esr)
->>> +{
->>> +    if(IS_ENABLED(HAVE_ACPI_APEI_SEA)) {
->>> +        nmi_enter();
->>> +        ghes_notify_sea();
->>> +        nmi_exit();
+On 2017/3/6 18:00, James Morse wrote:
+> Hi Xie XiuQi,
+> 
+> On 03/03/17 10:39, Xie XiuQi wrote:
+>> ARM APEI extension proposal added SEI (asynchronous SError interrupt)
+>> notification type for ARMv8.
+>>
+>> Add a new GHES error source handling function for SEI. In firmware
+>> first mode, if an error source's notification type is SEI. Then GHES
+>> could parse and report the detail error information.
+> 
+> This patch doesn't apply to any upstream tree. Is this based on Tyler's larger
+> UEFI/ACPI update series? If so, please mention this in your cover letter, (Nit:
+> please include a cover letter when sending two or more patches!).
+> 
 
->> This nmi stuff was needed for synchronous aborts that may have interrupted
->> APEI's interrupts-masked code. We want to avoid trying to take the same set of
->> locks, hence taking the in_nmi() path through APEI. Here we know we interrupted
->> a guest, so there is no risk that we have interrupted APEI on the host.
->> ghes_notify_sea() can safely take the normal path.
+Yes, this patch is based on Tyler's series "[PATCH V11 00/10] Add UEFI 2.6 and ACPI 6.1 updates
+for RAS on ARM64" and linux-next 20170302.
 
-> Makes sense, I can remove the nmi_* calls here.
+I'll add a cover letter next time, thanks.
 
-Just occurs to me: if we do this we need to add the rcu_read_lock() in
-ghes_notify_sea() as its not protected by the rcu/nmi weirdness.
 
+> What happens if the SError Interrupt arrives while KVM was doing its work? We
+> set the HCR_EL2.AMO bit when running a guest, so KVM may receive these instead
+> of the host kernel.
+> 
+
+OK, I'll do it in next version.
+
+> 
+>> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+>> index 1122d7f..a32f046 100644
+>> --- a/drivers/acpi/apei/Kconfig
+>> +++ b/drivers/acpi/apei/Kconfig
+>> @@ -18,6 +18,20 @@ config HAVE_ACPI_APEI_SEA
+>>  	  option allows the OS to look for such hardware error record, and
+>>  	  take appropriate action.
+>>  
+>> +config ACPI_APEI_SEI
+>> +	bool "APEI Asynchronous SError Interrupt logging/recovering support"
+>> +	depends on ARM64 && ACPI_APEI_GHES
+>> +	help
+>> +	  This option should be enabled if the system supports
+>> +	  firmware first handling of SEI (asynchronous SError interrupt).
+>> +
+>> +	  SEI happens with invalid instruction access or asynchronous exceptions
+>> +	  on ARMv8 systems. If a system supports firmware first handling of SEI,
+>> +	  the platform analyzes and handles hardware error notifications from
+>> +	  SEI, and it may then form a HW error record for the OS to parse and
+>> +	  handle. This option allows the OS to look for such hardware error
+>> +	  record, and take appropriate action.
+>> +
+>>  config ACPI_APEI
+>>  	bool "ACPI Platform Error Interface (APEI)"
+>>  	select MISC_FILESYSTEMS
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index 3e4ea1b..d084a09 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -850,6 +850,50 @@ static inline void ghes_sea_remove(struct ghes *ghes)
+>>  }
+>>  #endif /* CONFIG_HAVE_ACPI_APEI_SEA */
+>>  
+>> +#ifdef CONFIG_ACPI_APEI_SEI
+>> +static LIST_HEAD(ghes_sei);
+>> +
+>> +void ghes_notify_sei(void)
+>> +{
+>> +	struct ghes *ghes;
+>> +
+>> +	/*
+>> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
+> 
+> Where nmi_exit()?
+> 
+> This nmi enter/exit was to prevent APEI being interrupted by APEI and trying to
+> take the same set of locks. APEI masks IRQs to prevent this happening normally,
+> but Synchronous External Abort couldn't be masked.
+> We don't mask Asynchronous Exceptions in APEI so the same thing can happen here.
+> Adding nmi_{enter,exit}() round the ghes call in the arch bad_mode() will
+> prevent this lockup.
+> 
+
+Thank you for your detailed explanation, I'll add it in next version.
 
 Thanks,
-
-James
+Xie XiuQi
