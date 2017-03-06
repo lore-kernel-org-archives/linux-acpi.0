@@ -1,73 +1,210 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V11 10/10] arm/arm64: KVM: add guest SEA support
-Date: Mon, 6 Mar 2017 07:00:30 -0700
-Message-ID: <4b4bea7c-7591-8051-7be0-528581f29d10@codeaurora.org>
-References: <1487712121-16688-1-git-send-email-tbaicar@codeaurora.org>
- <1487712121-16688-11-git-send-email-tbaicar@codeaurora.org>
- <58B00E12.5020602@arm.com>
- <ff3aa805-0e03-9854-e294-ff6934c57f3f@codeaurora.org>
- <58BD39B4.9050809@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <58BD39B4.9050809@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 03/16] ACPI / property: Add fwnode_get_next_child_node()
+Date: Mon,  6 Mar 2017 16:19:17 +0200
+Message-ID: <1488809970-25568-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:52282 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932312AbdCFOTp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:19:45 -0500
+In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Hello James,
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
+The ACPI _DSD hierarchical data extension [1] makes it possible to have
+hierarchies deeper than one level in similar way than DT allows. These
+"subsubnodes" have not been accessible because device property
+implementation only provides device_get_next_child_node() that is limited
+to direct descendants of a device.
 
-On 3/6/2017 3:28 AM, James Morse wrote:
-> On 28/02/17 19:43, Baicar, Tyler wrote:
->> On 2/24/2017 3:42 AM, James Morse wrote:
->>> On 21/02/17 21:22, Tyler Baicar wrote:
->>>> Currently external aborts are unsupported by the guest abort
->>>> handling. Add handling for SEAs so that the host kernel reports
->>>> SEAs which occur in the guest kernel.
->>>> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
->>>> index b2d57fc..403277b 100644
->>>> --- a/arch/arm64/mm/fault.c
->>>> +++ b/arch/arm64/mm/fault.c
->>>> @@ -602,6 +602,24 @@ static const char *fault_name(unsigned int esr)
->>>>    }
->>>>
->>>>    /*
->>>> + * Handle Synchronous External Aborts that occur in a guest kernel.
->>>> + */
->>>> +int handle_guest_sea(unsigned long addr, unsigned int esr)
->>>> +{
->>>> +    if(IS_ENABLED(HAVE_ACPI_APEI_SEA)) {
->>>> +        nmi_enter();
->>>> +        ghes_notify_sea();
->>>> +        nmi_exit();
->>> This nmi stuff was needed for synchronous aborts that may have interrupted
->>> APEI's interrupts-masked code. We want to avoid trying to take the same set of
->>> locks, hence taking the in_nmi() path through APEI. Here we know we interrupted
->>> a guest, so there is no risk that we have interrupted APEI on the host.
->>> ghes_notify_sea() can safely take the normal path.
->> Makes sense, I can remove the nmi_* calls here.
-> Just occurs to me: if we do this we need to add the rcu_read_lock() in
-> ghes_notify_sea() as its not protected by the rcu/nmi weirdness.
->
-True, would you suggest leaving these nmi_* calls or adding the rcu_* 
-calls? And since that's only needed for this KVM case, shouldn't the 
-rcu_* calls just replace the nmi_* calls here (outside of ghes_notify_sea)?
+We need this ability in order support things like remote endpoints
+currently supported in DT with of_graph_* APIs.
 
-Thanks,
-Tyler
+Modify acpi_get_next_subnode() to accept fwnode handle instead and update
+callers accordingly. Also add a new function fwnode_get_next_child_node()
+that works directly with fwnodes and modify device_get_next_child_node() to
+call it directly. While there add a macro fwnode_for_each_child_node()
+analogous to the current device_for_each_child_node() but it works with
+fwnodes instead of devices.
 
+[1] http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/property.c  | 27 +++++++++++++++++----------
+ drivers/base/property.c  | 38 ++++++++++++++++++++++++++++++--------
+ include/linux/acpi.h     |  8 ++++----
+ include/linux/property.h |  6 ++++++
+ 4 files changed, 57 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 587c9d0..8730ce7 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -880,21 +880,22 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
+ }
+ 
+ /**
+- * acpi_get_next_subnode - Return the next child node handle for a device.
+- * @dev: Device to find the next child node for.
++ * acpi_get_next_subnode - Return the next child node handle for a fwnode
++ * @fwnode: Firmware node to find the next child node for.
+  * @child: Handle to one of the device's child nodes or a null handle.
+  */
+-struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
++struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
+ 					    struct fwnode_handle *child)
+ {
+-	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct acpi_device *adev = to_acpi_device_node(fwnode);
+ 	struct list_head *head, *next;
+ 
+-	if (!adev)
+-		return NULL;
+-
+ 	if (!child || child->type == FWNODE_ACPI) {
+-		head = &adev->children;
++		if (adev)
++			head = &adev->children;
++		else
++			goto nondev;
++
+ 		if (list_empty(head))
+ 			goto nondev;
+ 
+@@ -903,7 +904,6 @@ struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+ 			next = adev->node.next;
+ 			if (next == head) {
+ 				child = NULL;
+-				adev = ACPI_COMPANION(dev);
+ 				goto nondev;
+ 			}
+ 			adev = list_entry(next, struct acpi_device, node);
+@@ -915,9 +915,16 @@ struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+ 
+  nondev:
+ 	if (!child || child->type == FWNODE_ACPI_DATA) {
++		struct acpi_data_node *data = to_acpi_data_node(fwnode);
+ 		struct acpi_data_node *dn;
+ 
+-		head = &adev->data.subnodes;
++		if (adev)
++			head = &adev->data.subnodes;
++		else if (data)
++			head = &data->data.subnodes;
++		else
++			return NULL;
++
+ 		if (list_empty(head))
+ 			return NULL;
+ 
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 1023e50..55d994d 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -983,24 +983,46 @@ struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
+ EXPORT_SYMBOL_GPL(fwnode_get_parent);
+ 
+ /**
+- * device_get_next_child_node - Return the next child node handle for a device
+- * @dev: Device to find the next child node for.
+- * @child: Handle to one of the device's child nodes or a null handle.
++ * fwnode_get_next_child_node - Return the next child node handle for a node
++ * @fwnode: Firmware node to find the next child node for.
++ * @child: Handle to one of the node's child nodes or a %NULL handle.
+  */
+-struct fwnode_handle *device_get_next_child_node(struct device *dev,
++struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
+ 						 struct fwnode_handle *child)
+ {
+-	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
++	if (is_of_node(fwnode)) {
+ 		struct device_node *node;
+ 
+-		node = of_get_next_available_child(dev->of_node, to_of_node(child));
++		node = of_get_next_available_child(to_of_node(fwnode),
++						   to_of_node(child));
+ 		if (node)
+ 			return &node->fwnode;
+-	} else if (IS_ENABLED(CONFIG_ACPI)) {
+-		return acpi_get_next_subnode(dev, child);
++	} else if (is_acpi_node(fwnode)) {
++		return acpi_get_next_subnode(fwnode, child);
+ 	}
++
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
++
++/**
++ * device_get_next_child_node - Return the next child node handle for a device
++ * @dev: Device to find the next child node for.
++ * @child: Handle to one of the device's child nodes or a null handle.
++ */
++struct fwnode_handle *device_get_next_child_node(struct device *dev,
++						 struct fwnode_handle *child)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct fwnode_handle *fwnode = NULL;
++
++	if (dev->of_node)
++		fwnode = &dev->of_node->fwnode;
++	else if (adev)
++		fwnode = acpi_fwnode_handle(adev);
++
++	return fwnode_get_next_child_node(fwnode, child);
++}
+ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+ 
+ /**
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index a6f1b74..8096b3a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1000,8 +1000,8 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode, const char *propname,
+ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
+ 		       enum dev_prop_type proptype, void *val, size_t nval);
+ 
+-struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+-					    struct fwnode_handle *subnode);
++struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
++					    struct fwnode_handle *child);
+ struct fwnode_handle *acpi_node_get_parent(struct fwnode_handle *fwnode);
+ 
+ struct acpi_probe_entry;
+@@ -1119,8 +1119,8 @@ static inline int acpi_dev_prop_read(struct acpi_device *adev,
+ 	return -ENXIO;
+ }
+ 
+-static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+-						struct fwnode_handle *subnode)
++static inline struct fwnode_handle *
++acpi_get_next_subnode(struct fwnode_handle *fwnode, struct fwnode_handle *child)
+ {
+ 	return NULL;
+ }
+diff --git a/include/linux/property.h b/include/linux/property.h
+index ab0a816..f4786a86 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -71,6 +71,12 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *string);
+ 
+ struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
++						 struct fwnode_handle *child);
++
++#define fwnode_for_each_child_node(fwnode, child)			\
++	for (child = fwnode_get_next_child_node(fwnode, NULL); child;	\
++	     child = fwnode_get_next_child_node(fwnode, child))
+ 
+ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 						 struct fwnode_handle *child);
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+2.7.4
+
