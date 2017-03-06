@@ -1,86 +1,120 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 01/17] device property: Add operations struct for fwnode operations
-Date: Mon,  6 Mar 2017 17:42:47 +0200
-Message-ID: <1488814983-25695-2-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 05/17] device property: Use fwnode_operations for fwnode_property_present()
+Date: Mon,  6 Mar 2017 17:42:51 +0200
+Message-ID: <1488814983-25695-6-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51791 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753649AbdCFPnd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Mar 2017 10:43:33 -0500
-In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Prepare moving firmware specific implementations of the fwnode properties
-under a common ops struct. This will allow having a single implementation
-of firmware independent portions of the fwnode framework.
+Change the implementation of fwnode_property_present() to use struct
+fwnode_operations.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- include/linux/fwnode.h | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ drivers/acpi/property.c | 10 +++++++++-
+ drivers/base/property.c | 27 ++++++++++++---------------
+ drivers/of/base.c       |  7 +++++++
+ 3 files changed, 28 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index cb60f29..ede74fb 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -33,4 +33,53 @@ struct fwnode_endpoint {
- 	const struct fwnode_handle *local_fwnode;
- };
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 0651a74..14b96ec 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1110,4 +1110,12 @@ int acpi_graph_get_remote_endpoint(struct fwnode_handle *fwnode,
+ 	return 0;
+ }
  
-+/**
-+ * struct fwnode_operations - Operations for fwnode interface
-+ * @get: Get a reference to an fwnode.
-+ * @put: Put a reference to an fwnode.
-+ * @property_present: Return true if a property is present.
-+ * @property_read_integer_array: Read an array of integer properties. Return
-+ *				 zero on success, a negative error code
-+ *				 otherwise.
-+ * @property_read_string_array: Read an array of string properties. Return zero
-+ *				on success, a negative error code otherwise.
-+ * @get_parent: Return the parent of an fwnode.
-+ * @get_next_child_node: Return the next child node in an iteration.
-+ * @get_named_child_node: Return a child node with a given name.
-+ * @graph_get_next_endpoint: Return an endpoint node in an iteration.
-+ * @graph_get_remote_endpoint: Return the remote endpoint node of an endpoint
-+ *			       node.
-+ * @graph_get_remote_port: Return the remote port node of an endpoint node.
-+ * @graph_get_remote_port_parent: Return the parent of a port node of the
-+ *				  remote endpoint node of an endpoint node.
-+ */
-+struct fwnode_operations {
-+	void (*get)(struct fwnode_handle *fwnode);
-+	void (*put)(struct fwnode_handle *fwnode);
-+	bool (*property_present)(struct fwnode_handle *fwnode,
-+				 const char *propname);
-+	int (*property_read_int_array)(struct fwnode_handle *fwnode,
-+				       const char *propname,
-+				       unsigned int elem_size, void *val,
-+				       size_t nval);
-+	int (*property_read_string_array)(struct fwnode_handle *fwnode_handle,
-+					  const char *propname,
-+					  const char **val, size_t nval);
-+	struct fwnode_handle *(*get_parent)(struct fwnode_handle *fwnode);
-+	struct fwnode_handle *(*get_next_child_node)(
-+		struct fwnode_handle *fwnode, struct fwnode_handle *child);
-+	struct fwnode_handle *(*get_named_child_node)(
-+		struct fwnode_handle *fwnode, const char *name);
-+	struct fwnode_handle *(*graph_get_next_endpoint)(
-+		struct fwnode_handle *fwnode, struct fwnode_handle *prev);
-+	struct fwnode_handle *(*graph_get_remote_endpoint)(
-+		struct fwnode_handle *fwnode);
-+	struct fwnode_handle *(*graph_get_remote_port)(
-+		struct fwnode_handle *fwnode);
-+	struct fwnode_handle *(*graph_get_remote_port_parent)(
-+		struct fwnode_handle *fwnode);
-+	int (*graph_parse_endpoint)(struct fwnode_handle *fwnode,
-+				    struct fwnode_endpoint *endpoint);
-+};
+-const struct fwnode_operations acpi_fwnode_ops;
++static bool acpi_fwnode_property_present(struct fwnode_handle *fwnode,
++					 const char *propname)
++{
++	return !acpi_node_prop_get(fwnode, propname, NULL);
++}
 +
- #endif
++const struct fwnode_operations acpi_fwnode_ops = {
++	.property_present = acpi_fwnode_property_present,
++};
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index faa4fa6..e150df0 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -183,7 +183,15 @@ static int pset_prop_read_string(struct property_set *pset,
+ 	return 0;
+ }
+ 
+-static const struct fwnode_operations pset_fwnode_ops;
++static bool pset_fwnode_property_present(struct fwnode_handle *fwnode,
++					 const char *propname)
++{
++	return !!pset_prop_get(to_pset_node(fwnode), propname);
++}
++
++static const struct fwnode_operations pset_fwnode_ops = {
++	.property_present = pset_fwnode_property_present,
++};
+ 
+ /**
+  * device_property_present - check if a property of a device is present
+@@ -198,18 +206,6 @@ bool device_property_present(struct device *dev, const char *propname)
+ }
+ EXPORT_SYMBOL_GPL(device_property_present);
+ 
+-static bool __fwnode_property_present(struct fwnode_handle *fwnode,
+-				      const char *propname)
+-{
+-	if (is_of_node(fwnode))
+-		return of_property_read_bool(to_of_node(fwnode), propname);
+-	else if (is_acpi_node(fwnode))
+-		return !acpi_node_prop_get(fwnode, propname, NULL);
+-	else if (is_pset_node(fwnode))
+-		return !!pset_prop_get(to_pset_node(fwnode), propname);
+-	return false;
+-}
+-
+ /**
+  * fwnode_property_present - check if a property of a firmware node is present
+  * @fwnode: Firmware node whose property to check
+@@ -219,10 +215,11 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+ {
+ 	bool ret;
+ 
+-	ret = __fwnode_property_present(fwnode, propname);
++	ret = fwnode_call_int_op(fwnode, property_present, propname);
+ 	if (ret == false && !IS_ERR_OR_NULL(fwnode) &&
+ 	    !IS_ERR_OR_NULL(fwnode->secondary))
+-		ret = __fwnode_property_present(fwnode->secondary, propname);
++		ret = fwnode_call_int_op(fwnode->secondary, property_present,
++					 propname);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_present);
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index c18da80..46e0b2a 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2546,7 +2546,14 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
+ 	of_node_put(to_of_node(fwnode));
+ }
+ 
++static bool of_fwnode_property_present(struct fwnode_handle *fwnode,
++				       const char *propname)
++{
++	return of_property_read_bool(to_of_node(fwnode), propname);
++}
++
+ const struct fwnode_operations of_fwnode_ops = {
+ 	.get = of_fwnode_get,
+ 	.put = of_fwnode_put,
++	.property_present = of_fwnode_property_present,
+ };
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
