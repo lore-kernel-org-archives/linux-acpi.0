@@ -1,38 +1,80 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v4 10/16] irqchip/gic: Add missing forward declaration for struct device
-Date: Mon,  6 Mar 2017 16:19:24 +0200
-Message-ID: <1488809970-25568-11-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 02/16] device property: Add fwnode_get_parent()
+Date: Mon,  6 Mar 2017 16:19:16 +0200
+Message-ID: <1488809970-25568-3-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:29226 "EHLO mga01.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:59909 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753988AbdCFOUC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:20:02 -0500
+        id S1751378AbdCFOYz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:55 -0500
 In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-A pointer to struct device is used in the header as a function argument
-but there's no declaration for it. Add one.
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Now that ACPI has support for returning parent firmware node for both types
+of nodes we can expose this to others as well. This adds a new function
+fwnode_get_parent() that can be used for DT and ACPI nodes to retrieve the
+parent firmware node.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- include/linux/irqchip/arm-gic.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/property.c  | 25 +++++++++++++++++++++++++
+ include/linux/property.h |  2 ++
+ 2 files changed, 27 insertions(+)
 
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index eafc965..b16afa1 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -100,6 +100,7 @@
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index e67ec24..1023e50 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -958,6 +958,31 @@ int device_add_properties(struct device *dev,
+ EXPORT_SYMBOL_GPL(device_add_properties);
  
- #include <linux/irqdomain.h>
+ /**
++ * fwnode_get_parent - Return parent firwmare node
++ * @fwnode: Firmware whose parent is retrieved
++ *
++ * Return parent firmware node of the given node if possible or %NULL if no
++ * parent was available.
++ */
++struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *parent = NULL;
++
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_get_parent(to_of_node(fwnode));
++		if (node)
++			parent = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		parent = acpi_node_get_parent(fwnode);
++	}
++
++	return parent;
++}
++EXPORT_SYMBOL_GPL(fwnode_get_parent);
++
++/**
+  * device_get_next_child_node - Return the next child node handle for a device
+  * @dev: Device to find the next child node for.
+  * @child: Handle to one of the device's child nodes or a null handle.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 64e3a9c..ab0a816 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -70,6 +70,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *string);
  
-+struct device;
- struct device_node;
- struct gic_chip_data;
++struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++
+ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 						 struct fwnode_handle *child);
  
 -- 
 2.7.4
