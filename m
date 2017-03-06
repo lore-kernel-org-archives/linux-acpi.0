@@ -1,220 +1,225 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH 15/18] pstore: Replace arguments for erase() API
-Date: Mon,  6 Mar 2017 13:55:29 -0800
-Message-ID: <1488837332-71582-16-git-send-email-keescook@chromium.org>
-References: <1488837332-71582-1-git-send-email-keescook@chromium.org>
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1488837332-71582-1-git-send-email-keescook@chromium.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-efi@vger.kernel.org, linux-doc@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, Pan Xinhui <xinhui.pan@linux.vnet.ibm.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Paul Mackerras <paulus@samba.org>, Anton Vorontsov <anton@enomsg.org>, linux-acpi@vger.kernel.org, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Len Brown <lenb@kernel.org>, Kees Cook <keescook@chromium.org>, Nobuhiro Iwamatsu <nobuhiro.iwamatsu.kw@hitachi.com>, Geliang Tang <geliangtang@163.com>, Tony Luck <tony.luck@intel.com>, Daniel Axtens <dja@axtens.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Colin Cross <ccross@android.com>, linuxppc-dev@lists.ozlabs.org
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: 4.11-rc1 acpi stomping ext4 slabs
+Date: Mon, 6 Mar 2017 23:35:09 +0100
+Message-ID: <CAJZ5v0h47dTwpOPJfzyM41YaS8u3es83wh7xtJ3fxn1cKbuELA@mail.gmail.com>
+References: <86f1c7af-0d74-f1fd-e1fb-cc2302824e27@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <86f1c7af-0d74-f1fd-e1fb-cc2302824e27@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nikolay Borisov <n.borisov.lkml@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ted Ts'o <tytso@mit.edu>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ext4 Developers List <linux-ext4@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This removes the argument list for the erase() callback and replaces it
-with a pointer to the backend record details to be removed.
+On Mon, Mar 6, 2017 at 9:31 PM, Nikolay Borisov
+<n.borisov.lkml@gmail.com> wrote:
+> Hello,
+>
+> Booting 4.11-rc1 with kasan enabled and "slub_debug=F" produces the following errors:
+>
+> [    7.070797] ==================================================================
+> [    7.071724] BUG: KASAN: slab-out-of-bounds in filldir+0xc3/0x160 at addr ffff88006bc2b0ae
+> [    7.071724] Read of size 20 by task systemd/1
+> [    7.071724] CPU: 1 PID: 1 Comm: systemd Not tainted 4.11.0-rc1-nbor #150
+> [    7.071724] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+> [    7.071724] Call Trace:
+> [    7.071724]  dump_stack+0x85/0xc9
+> [    7.071724]  kasan_object_err+0x2c/0x90
+> [    7.071724]  kasan_report+0x285/0x510
+> [    7.071724]  check_memory_region+0x137/0x160
+> [    7.071724]  kasan_check_read+0x11/0x20
+> [    7.071724]  filldir+0xc3/0x160
+> [    7.071724]  call_filldir+0x88/0x140
+> [    7.071724]  ext4_readdir+0x757/0x920
+> [    7.071724]  ? iterate_dir+0x49/0x190
+> [    7.071724]  iterate_dir+0x7d/0x190
+> [    7.071724]  ? entry_SYSCALL_64_fastpath+0x5/0xc6
+> [    7.071724]  SyS_getdents+0xac/0x170
+> [    7.071724]  ? filldir64+0x170/0x170
+> [    7.071724]  entry_SYSCALL_64_fastpath+0x23/0xc6
+> [    7.071724] RIP: 0033:0x7fa37ca2dd3b
+> [    7.071724] RSP: 002b:00007ffc63daf400 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+> [    7.071724] RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007fa37ca2dd3b
+> [    7.071724] RDX: 0000000000008000 RSI: 0000560b369e4a10 RDI: 0000000000000004
+> [    7.071724] RBP: 00007fa37cd29b20 R08: 00007fa37cd29bd8 R09: 0000000000000000
+> [    7.071724] R10: 000000000000008f R11: 0000000000000206 R12: 0000000000008041
+> [    7.071724] R13: 00007fa37cd29b78 R14: 000000000000270f R15: 00007fa37cd29b78
+> [    7.071724] Object at ffff88006bc2b080, in cache kmalloc-96 size: 96
+> [    7.071724] Allocated:
+> [    7.071724] PID = 1
+> [    7.071724]  save_stack_trace+0x1b/0x20
+> [    7.071724]  kasan_kmalloc.part.4+0x64/0xf0
+> [    7.071724]  kasan_kmalloc+0x85/0xb0
+> [    7.071724]  __kmalloc+0x12b/0x320
+> [    7.071724]  ext4_htree_store_dirent+0x3e/0x120
+> [    7.071724]  htree_dirblock_to_tree+0xb9/0x1a0
+> [    7.071724]  ext4_htree_fill_tree+0xa3/0x310
+> [    7.071724]  ext4_readdir+0x6a9/0x920
+> [    7.071724]  iterate_dir+0x7d/0x190
+> [    7.071724]  SyS_getdents+0xac/0x170
+> [    7.071724]  entry_SYSCALL_64_fastpath+0x23/0xc6
+> [    7.071724] Freed:
+> [    7.071724] PID = 1
+> [    7.071724]  save_stack_trace+0x1b/0x20
+> [    7.071724]  kasan_slab_free+0xbe/0x190
+> [    7.071724]  kfree+0xff/0x2f0
+> [    7.071724]  acpi_ut_evaluate_object+0x18e/0x19d
+> [    7.071724]  acpi_ut_execute_STA+0x26/0x53
+> [    7.071724]  acpi_ns_get_device_callback+0x73/0x163
+> [    7.071724]  acpi_ns_walk_namespace+0xc0/0x17a
+> [    7.071724]  acpi_get_devices+0x66/0x7d
+> [    7.071724]  pnpacpi_init+0x52/0x74
+> [    7.071724]  do_one_initcall+0x51/0x1b0
+> [    7.071724]  kernel_init_freeable+0x20a/0x2a1
+> [    7.071724]  kernel_init+0xe/0x100
+> [    7.071724]  ret_from_fork+0x31/0x40
+> [    7.071724] Memory state around the buggy address:
+> [    7.071724]  ffff88006bc2af80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+> [    7.071724]  ffff88006bc2b000: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+> [    7.071724] >ffff88006bc2b080: 00 00 00 00 00 00 00 00 05 fc fc fc fc fc fc fc
+> [    7.071724]                                            ^
+> [    7.071724]  ffff88006bc2b100: 00 00 00 00 00 00 00 00 00 04 fc fc fc fc fc fc
+> [    7.071724]  ffff88006bc2b180: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+>
+> Not killing the VM instantly produces a continuous stream of kasan errors. Most of them
+> are identical to the one above, however there was one which was different:
+>
+> [    5.846193] ==================================================================
+> [    5.846787] BUG: KASAN: slab-out-of-bounds in filldir+0xc3/0x160 at addr ffff88006c783eae
+> [    5.847177] Read of size 22 by task systemd/1
+> [    5.847177] CPU: 3 PID: 1 Comm: systemd Tainted: G    B           4.11.0-rc1-nbor #150
+> [    5.847177] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+> [    5.847177] Call Trace:
+> [    5.847177]  dump_stack+0x85/0xc9
+> [    5.847177]  kasan_object_err+0x2c/0x90
+> [    5.847177]  kasan_report+0x285/0x510
+> [    5.847177]  check_memory_region+0x137/0x160
+> [    5.847177]  kasan_check_read+0x11/0x20
+> [    5.847177]  filldir+0xc3/0x160
+> [    5.847177]  call_filldir+0x88/0x140
+> [    5.847177]  ext4_readdir+0x757/0x920
+> [    5.847177]  ? iterate_dir+0x49/0x190
+> [    5.847177]  iterate_dir+0x7d/0x190
+> [    5.847177]  ? entry_SYSCALL_64_fastpath+0x5/0xc6
+> [    5.847177]  SyS_getdents+0xac/0x170
+> [    5.847177]  ? filldir64+0x170/0x170
+> [    5.847177]  entry_SYSCALL_64_fastpath+0x23/0xc6
+> [    5.847177] RIP: 0033:0x7f9dbd4e1d3b
+> [    5.847177] RSP: 002b:00007ffee6b51a60 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+> [    5.847177] RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007f9dbd4e1d3b
+> [    5.847177] RDX: 0000000000008000 RSI: 000055c046802a10 RDI: 0000000000000004
+> [    5.847177] RBP: 00007f9dbd7ddb20 R08: 00007f9dbd7ddbd8 R09: 0000000000000000
+> [    5.847177] R10: 000000000000008f R11: 0000000000000206 R12: 0000000000008041
+> [    5.847177] R13: 00007f9dbd7ddb78 R14: 000000000000270f R15: 00007f9dbd7ddb78
+> [    5.847177] Object at ffff88006c783e80, in cache kmalloc-96 size: 96
+> [    5.847177] Allocated:
+> [    5.847177] PID = 1
+> [    5.847177]  save_stack_trace+0x1b/0x20
+> [    5.847177]  kasan_kmalloc.part.4+0x64/0xf0
+> [    5.847177]  kasan_kmalloc+0x85/0xb0
+> [    5.847177]  __kmalloc+0x12b/0x320
+> [    5.847177]  ext4_htree_store_dirent+0x3e/0x120
+> [    5.847177]  htree_dirblock_to_tree+0xb9/0x1a0
+> [    5.847177]  ext4_htree_fill_tree+0xa3/0x310
+> [    5.847177]  ext4_readdir+0x6a9/0x920
+> [    5.847177]  iterate_dir+0x7d/0x190
+> [    5.847177]  SyS_getdents+0xac/0x170
+> [    5.847177]  entry_SYSCALL_64_fastpath+0x23/0xc6
+> [    5.847177] Freed:
+> [    5.847177] PID = 1
+> [    5.847177]  save_stack_trace+0x1b/0x20
+> [    5.847177]  kasan_slab_free+0xbe/0x190
+> [    5.847177]  kfree+0xff/0x2f0
+> [    5.847177]  krealloc+0xac/0xc0
+> [    5.847177]  create_trace_option_files+0x127/0x270
+> [    5.847177]  __update_tracer_options+0x2c/0x40
+> [    5.847177]  tracer_init_tracefs+0x1a4/0x1b7
+> [    5.847177]  do_one_initcall+0x51/0x1b0
+> [    5.847177]  kernel_init_freeable+0x20a/0x2a1
+> [    5.847177]  kernel_init+0xe/0x100
+> [    5.847177]  ret_from_fork+0x31/0x40
+> [    5.847177] Memory state around the buggy address:
+>
+> So the free path is different.
+>
+> On a different boot with slab_debug options omitted e.g. no debugging enabled for SLUB
+> I got:
+>
+> [    5.586620] ==================================================================
+> [    5.587445] BUG: KASAN: slab-out-of-bounds in filldir+0xc3/0x160 at addr ffff880000141aae
+> [    5.587584] Read of size 20 by task systemd/1
+> [    5.587584] CPU: 0 PID: 1 Comm: systemd Not tainted 4.11.0-rc1-nbor #148
+> [    5.587584] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+> [    5.587584] Call Trace:
+> [    5.587584]  dump_stack+0x85/0xc9
+> [    5.587584]  kasan_object_err+0x2c/0x90
+> [    5.587584]  kasan_report+0x285/0x510
+> [    5.587584]  check_memory_region+0x137/0x160
+> [    5.587584]  kasan_check_read+0x11/0x20
+> [    5.587584]  filldir+0xc3/0x160
+> [    5.587584]  call_filldir+0x88/0x140
+> [    5.587584]  ext4_readdir+0x757/0x920
+> [    5.587584]  ? iterate_dir+0x49/0x190
+> [    5.587584]  iterate_dir+0x7d/0x190
+> [    5.587584]  ? entry_SYSCALL_64_fastpath+0x5/0xc6
+> [    5.587584]  SyS_getdents+0xac/0x170
+> [    5.587584]  ? filldir64+0x170/0x170
+> [    5.587584]  entry_SYSCALL_64_fastpath+0x23/0xc6
+> [    5.587584] RIP: 0033:0x7f71af785d3b
+> [    5.587584] RSP: 002b:00007ffeeda83390 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+> [    5.587584] RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007f71af785d3b
+> [    5.587584] RDX: 0000000000008000 RSI: 0000561e6483ba10 RDI: 0000000000000004
+> [    5.587584] RBP: 00007f71afa81b20 R08: 00007f71afa81bd8 R09: 0000000000000000
+> [    5.587584] R10: 000000000000008f R11: 0000000000000206 R12: 0000000000008041
+> [    5.587584] R13: 00007f71afa81b78 R14: 000000000000270f R15: 00007f71afa81b78
+> [    5.587584] Object at ffff880000141a80, in cache kmalloc-96 size: 96
+> [    5.587584] Allocated:
+> [    5.587584] PID = 1
+> [    5.587584]  save_stack_trace+0x1b/0x20
+> [    5.587584]  kasan_kmalloc.part.4+0x64/0xf0
+> [    5.587584]  kasan_kmalloc+0x85/0xb0
+> [    5.587584]  __kmalloc+0x12b/0x320
+> [    5.587584]  ext4_htree_store_dirent+0x3e/0x120
+> [    5.587584]  htree_dirblock_to_tree+0xb9/0x1a0
+> [    5.587584]  ext4_htree_fill_tree+0xa3/0x310
+> [    5.587584]  ext4_readdir+0x6a9/0x920
+> [    5.587584]  iterate_dir+0x7d/0x190
+> [    5.587584]  SyS_getdents+0xac/0x170
+> [    5.587584]  entry_SYSCALL_64_fastpath+0x23/0xc6
+> [    5.587584] Freed:
+> [    5.587584] PID = 1
+> [    5.587584]  save_stack_trace+0x1b/0x20
+> [    5.587584]  kasan_slab_free+0xbe/0x190
+> [    5.587584]  kfree+0xff/0x2f0
+> [    5.587584]  acpi_evaluate_object+0x26c/0x27e
+> [    5.587584]  acpi_evaluate_integer+0x34/0x53
+> [    5.587584]  acpi_get_node+0x2b/0x51
+> [    5.587584]  pci_acpi_scan_root+0x2e/0x1d0
+> [    5.587584]  acpi_pci_root_add+0x264/0x34b
+> [    5.587584]  acpi_bus_attach+0xb6/0x15c
+> [    5.587584]  acpi_bus_attach+0x123/0x15c
+> [    5.587584]  acpi_bus_attach+0x123/0x15c
+> [    5.587584]  acpi_bus_scan+0x5b/0x6b
+> [    5.587584]  acpi_scan_init+0xcd/0x211
+> [    5.587584]  acpi_init+0x2e0/0x309
+> [    5.587584]  do_one_initcall+0x51/0x1b0
+> [    5.587584]  kernel_init_freeable+0x20a/0x2a1
+> [    5.587584]  kernel_init+0xe/0x100
+> [    5.587584]  ret_from_fork+0x31/0x40
+> [    5.587584] Memory state around the buggy address:
+> [    5.587584]  ffff880000141980: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+> [    5.587584]  ffff880000141a00: 00 00 00 00 00 00 00 00 00 03 fc fc fc fc fc fc
+> [    5.587584] >ffff880000141a80: 00 00 00 00 00 00 00 00 05 fc fc fc fc fc fc fc
+> [    5.587584]                                            ^
+> [    5.587584]  ffff880000141b00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+> [    5.587584]  ffff880000141b80: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+>
+> I'm not sure if this is an ext4 or ACPI problem.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/acpi/apei/erst.c          |  8 +++-----
- drivers/firmware/efi/efi-pstore.c | 26 +++++++++++---------------
- fs/pstore/inode.c                 | 12 +++++-------
- fs/pstore/ram.c                   | 15 +++++++--------
- include/linux/pstore.h            | 16 +++++-----------
- 5 files changed, 31 insertions(+), 46 deletions(-)
+If this is a new bug, you can look for the first bad commit using git-bisect.
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 440588d189e7..7207e5fc9d3d 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -927,8 +927,7 @@ static int erst_open_pstore(struct pstore_info *psi);
- static int erst_close_pstore(struct pstore_info *psi);
- static ssize_t erst_reader(struct pstore_record *record);
- static int erst_writer(struct pstore_record *record);
--static int erst_clearer(enum pstore_type_id type, u64 id, int count,
--			struct timespec time, struct pstore_info *psi);
-+static int erst_clearer(struct pstore_record *record);
- 
- static struct pstore_info erst_info = {
- 	.owner		= THIS_MODULE,
-@@ -1100,10 +1099,9 @@ static int erst_writer(struct pstore_record *record)
- 	return ret;
- }
- 
--static int erst_clearer(enum pstore_type_id type, u64 id, int count,
--			struct timespec time, struct pstore_info *psi)
-+static int erst_clearer(struct pstore_record *record)
- {
--	return erst_clear(id);
-+	return erst_clear(record->id);
- }
- 
- static int __init erst_init(void)
-diff --git a/drivers/firmware/efi/efi-pstore.c b/drivers/firmware/efi/efi-pstore.c
-index f81e3ec6f1c0..93d8cdbe7ef4 100644
---- a/drivers/firmware/efi/efi-pstore.c
-+++ b/drivers/firmware/efi/efi-pstore.c
-@@ -266,10 +266,7 @@ static int efi_pstore_write(struct pstore_record *record)
- };
- 
- struct pstore_erase_data {
--	u64 id;
--	enum pstore_type_id type;
--	int count;
--	struct timespec time;
-+	struct pstore_record *record;
- 	efi_char16_t *name;
- };
- 
-@@ -295,8 +292,9 @@ static int efi_pstore_erase_func(struct efivar_entry *entry, void *data)
- 		 * Check if an old format, which doesn't support
- 		 * holding multiple logs, remains.
- 		 */
--		sprintf(name_old, "dump-type%u-%u-%lu", ed->type,
--			(unsigned int)ed->id, ed->time.tv_sec);
-+		snprintf(name_old, sizeof(name_old), "dump-type%u-%u-%lu",
-+			ed->record->type, (unsigned int)ed->record->id,
-+			ed->record->time.tv_sec);
- 
- 		for (i = 0; i < DUMP_NAME_LEN; i++)
- 			efi_name_old[i] = name_old[i];
-@@ -321,8 +319,7 @@ static int efi_pstore_erase_func(struct efivar_entry *entry, void *data)
- 	return 1;
- }
- 
--static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
--			    struct timespec time, struct pstore_info *psi)
-+static int efi_pstore_erase(struct pstore_record *record)
- {
- 	struct pstore_erase_data edata;
- 	struct efivar_entry *entry = NULL;
-@@ -331,17 +328,16 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- 	int found, i;
- 	unsigned int part;
- 
--	do_div(id, 1000);
--	part = do_div(id, 100);
--	sprintf(name, "dump-type%u-%u-%d-%lu", type, part, count, time.tv_sec);
-+	do_div(record->id, 1000);
-+	part = do_div(record->id, 100);
-+	snprintf(name, sizeof(name), "dump-type%u-%u-%d-%lu",
-+		 record->type, record->part, record->count,
-+		 record->time.tv_sec);
- 
- 	for (i = 0; i < DUMP_NAME_LEN; i++)
- 		efi_name[i] = name[i];
- 
--	edata.id = part;
--	edata.type = type;
--	edata.count = count;
--	edata.time = time;
-+	edata.record = record;
- 	edata.name = efi_name;
- 
- 	if (efivar_entry_iter_begin())
-diff --git a/fs/pstore/inode.c b/fs/pstore/inode.c
-index 0ea281b457fa..06504b69575b 100644
---- a/fs/pstore/inode.c
-+++ b/fs/pstore/inode.c
-@@ -210,14 +210,12 @@ static int pstore_unlink(struct inode *dir, struct dentry *dentry)
- 	if (err)
- 		return err;
- 
--	if (record->psi->erase) {
--		mutex_lock(&record->psi->read_mutex);
--		record->psi->erase(record->type, record->id, record->count,
--			      d_inode(dentry)->i_ctime, record->psi);
--		mutex_unlock(&record->psi->read_mutex);
--	} else {
-+	if (!record->psi->erase)
- 		return -EPERM;
--	}
-+
-+	mutex_lock(&record->psi->read_mutex);
-+	record->psi->erase(record);
-+	mutex_unlock(&record->psi->read_mutex);
- 
- 	return simple_unlink(dir, dentry);
- }
-diff --git a/fs/pstore/ram.c b/fs/pstore/ram.c
-index ca6e2a814e37..a18575fe32e9 100644
---- a/fs/pstore/ram.c
-+++ b/fs/pstore/ram.c
-@@ -469,25 +469,24 @@ static int notrace ramoops_pstore_write_buf_user(enum pstore_type_id type,
- 	return -EINVAL;
- }
- 
--static int ramoops_pstore_erase(enum pstore_type_id type, u64 id, int count,
--				struct timespec time, struct pstore_info *psi)
-+static int ramoops_pstore_erase(struct pstore_record *record)
- {
--	struct ramoops_context *cxt = psi->data;
-+	struct ramoops_context *cxt = record->psi->data;
- 	struct persistent_ram_zone *prz;
- 
--	switch (type) {
-+	switch (record->type) {
- 	case PSTORE_TYPE_DMESG:
--		if (id >= cxt->max_dump_cnt)
-+		if (record->id >= cxt->max_dump_cnt)
- 			return -EINVAL;
--		prz = cxt->dprzs[id];
-+		prz = cxt->dprzs[record->id];
- 		break;
- 	case PSTORE_TYPE_CONSOLE:
- 		prz = cxt->cprz;
- 		break;
- 	case PSTORE_TYPE_FTRACE:
--		if (id >= cxt->max_ftrace_cnt)
-+		if (record->id >= cxt->max_ftrace_cnt)
- 			return -EINVAL;
--		prz = cxt->fprzs[id];
-+		prz = cxt->fprzs[record->id];
- 		break;
- 	case PSTORE_TYPE_PMSG:
- 		prz = cxt->mprz;
-diff --git a/include/linux/pstore.h b/include/linux/pstore.h
-index c672de41e9b5..a4b2c21a512e 100644
---- a/include/linux/pstore.h
-+++ b/include/linux/pstore.h
-@@ -177,15 +177,11 @@ struct pstore_record {
-  *
-  * @erase:
-  *	Delete a record from backend storage.  Different backends
-- *	identify records differently, so all possible methods of
-- *	identification are included to help the backend locate the
-- *	record to remove.
-+ *	identify records differently, so entire original record is
-+ *	passed back to assist in identification of what the backend
-+ *	should remove from storage.
-  *
-- *	@type:	in: pstore record type to write
-- *	@id:	in: per-type unique identifier for the record
-- *	@count:	in: Oops count
-- *	@time:	in: timestamp for the record
-- *	@psi:	in: pointer to the struct pstore_info for the backend
-+ *	@record:	pointer to record metadata.
-  *
-  *	Returns 0 on success, and non-zero on error.
-  *
-@@ -215,9 +211,7 @@ struct pstore_info {
- 			enum kmsg_dump_reason reason, u64 *id,
- 			unsigned int part, const char __user *buf,
- 			bool compressed, size_t size, struct pstore_info *psi);
--	int		(*erase)(enum pstore_type_id type, u64 id,
--			int count, struct timespec time,
--			struct pstore_info *psi);
-+	int		(*erase)(struct pstore_record *record);
- };
- 
- /* Supported frontends */
--- 
-2.7.4
+I don't recall changing the ACPI code involved in 4.11-rc1, though.
+
+Thanks,
+Rafael
