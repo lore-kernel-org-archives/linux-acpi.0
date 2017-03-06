@@ -1,101 +1,131 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v2 09/17] device property: Use fwnode_operations for obtaining parent node
-Date: Mon,  6 Mar 2017 17:42:55 +0200
-Message-ID: <1488814983-25695-10-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 16/17] device property: Use fwnode_operations for parsing graph endpoint
+Date: Mon,  6 Mar 2017 17:43:02 +0200
+Message-ID: <1488814983-25695-17-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:8558 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932067AbdCFPnn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Mar 2017 10:43:43 -0500
+In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Change the implementation of fwnode_property_get_parent() function to use
-struct fwnode_operations.
+Change the implementation of fwnode_graph_parse_endpoint() function to
+use struct fwnode_operations.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/property.c |  7 +++++++
- drivers/base/property.c | 14 +-------------
- drivers/of/base.c       | 12 ++++++++++++
- 3 files changed, 20 insertions(+), 13 deletions(-)
+ drivers/acpi/property.c | 19 +++++++++++++++++++
+ drivers/base/property.c | 22 +---------------------
+ drivers/of/base.c       | 17 +++++++++++++++++
+ 3 files changed, 37 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 4e76b31..a20b81f 100644
+index 1790256..23bc12d 100644
 --- a/drivers/acpi/property.c
 +++ b/drivers/acpi/property.c
-@@ -1150,8 +1150,15 @@ static int acpi_fwnode_property_read_string_array(
- 				   val, nval);
+@@ -1214,6 +1214,24 @@ static struct fwnode_handle *acpi_fwnode_graph_get_remote_port_parent(
+ 	return parent;
  }
  
-+static struct fwnode_handle *acpi_fwnode_get_parent(
-+	struct fwnode_handle *fwnode)
++static int acpi_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
++					    struct fwnode_endpoint *endpoint)
 +{
-+	return acpi_node_get_parent(fwnode);
++	struct fwnode_handle *port_fwnode = fwnode_get_parent(fwnode);
++	struct fwnode_handle *iter;
++
++	endpoint->local_fwnode = fwnode;
++
++	fwnode_property_read_u32(port_fwnode, "port", &endpoint->port);
++
++	for (iter = fwnode_get_next_child_node(port_fwnode, NULL);
++	     iter != fwnode;
++	     iter = fwnode_get_next_child_node(port_fwnode, iter))
++		endpoint->id++;
++
++	return 0;
 +}
 +
  const struct fwnode_operations acpi_fwnode_ops = {
  	.property_present = acpi_fwnode_property_present,
  	.property_read_int_array = acpi_fwnode_property_read_int_array,
- 	.property_read_string_array = acpi_fwnode_property_read_string_array,
-+	.get_parent = acpi_fwnode_get_parent,
+@@ -1225,4 +1243,5 @@ const struct fwnode_operations acpi_fwnode_ops = {
+ 	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
+ 	.graph_get_remote_port = acpi_fwnode_graph_get_remote_port,
+ 	.graph_get_remote_port_parent = acpi_fwnode_graph_get_remote_port_parent,
++	.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint,
  };
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 62bd59d..f8ac9f2 100644
+index 9767a09..c6399cf 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -928,19 +928,7 @@ EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
-  */
- struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
+@@ -1199,28 +1199,8 @@ EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
+ int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
+ 				struct fwnode_endpoint *endpoint)
  {
--	struct fwnode_handle *parent = NULL;
+-	struct fwnode_handle *port_fwnode = fwnode_get_parent(fwnode);
 -
--	if (is_of_node(fwnode)) {
--		struct device_node *node;
+ 	memset(endpoint, 0, sizeof(*endpoint));
+ 
+-	endpoint->local_fwnode = fwnode;
 -
--		node = of_get_parent(to_of_node(fwnode));
--		if (node)
--			parent = &node->fwnode;
--	} else if (is_acpi_node(fwnode)) {
--		parent = acpi_node_get_parent(fwnode);
+-	if (is_acpi_node(port_fwnode)) {
+-		struct fwnode_handle *iter;
+-
+-		fwnode_property_read_u32(port_fwnode, "port", &endpoint->port);
+-
+-		for (iter = fwnode_get_next_child_node(port_fwnode, NULL);
+-		     iter != fwnode;
+-		     iter = fwnode_get_next_child_node(port_fwnode, iter))
+-			endpoint->id++;
+-	} else {
+-		fwnode_property_read_u32(port_fwnode, "reg", &endpoint->port);
+-		fwnode_property_read_u32(fwnode, "reg", &endpoint->id);
 -	}
 -
--	return parent;
-+	return fwnode_call_ptr_op(fwnode, get_parent);
+-	fwnode_handle_put(port_fwnode);
+-
+-	return 0;
++	return fwnode_call_int_op(fwnode, graph_parse_endpoint, endpoint);
  }
- EXPORT_SYMBOL_GPL(fwnode_get_parent);
- 
+ EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
 diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 18e51b5..190107b 100644
+index 8bf3b77..7757aa6 100644
 --- a/drivers/of/base.c
 +++ b/drivers/of/base.c
-@@ -2597,10 +2597,22 @@ static int of_fwnode_property_read_string_array(
- 	return -EOVERFLOW;
+@@ -2683,6 +2683,22 @@ static struct fwnode_handle *of_fwnode_graph_get_remote_port_parent(
+ 	return NULL;
  }
  
-+static struct fwnode_handle *of_fwnode_get_parent(struct fwnode_handle *fwnode)
++static int of_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
++					  struct fwnode_endpoint *endpoint)
 +{
-+	struct device_node *node;
++	struct device_node *node = to_of_node(fwnode);
++	struct device_node *port_node = of_get_parent(node);
 +
-+	node = of_get_parent(to_of_node(fwnode));
-+	if (node)
-+		return of_fwnode_handle(node);
++	endpoint->local_fwnode = fwnode;
 +
-+	return NULL;
++	of_property_read_u32(port_node, "reg", &endpoint->port);
++	of_property_read_u32(node, "reg", &endpoint->id);
++
++	of_node_put(port_node);
++
++	return 0;
 +}
 +
  const struct fwnode_operations of_fwnode_ops = {
  	.get = of_fwnode_get,
  	.put = of_fwnode_put,
- 	.property_present = of_fwnode_property_present,
- 	.property_read_int_array = of_fwnode_property_read_int_array,
- 	.property_read_string_array = of_fwnode_property_read_string_array,
-+	.get_parent = of_fwnode_get_parent,
+@@ -2696,4 +2712,5 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
+ 	.graph_get_remote_port = of_fwnode_graph_get_remote_port,
+ 	.graph_get_remote_port_parent = of_fwnode_graph_get_remote_port_parent,
++	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
  };
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
