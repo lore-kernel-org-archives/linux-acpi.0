@@ -1,75 +1,102 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v2 04/17] device property: Use fwnode_operations for fwnode_handle_{get,put}
-Date: Mon,  6 Mar 2017 17:42:50 +0200
-Message-ID: <1488814983-25695-5-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 07/17] device property: Read strings using string array reading functions
+Date: Mon,  6 Mar 2017 17:42:53 +0200
+Message-ID: <1488814983-25695-8-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:46019 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754100AbdCFPon (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 6 Mar 2017 10:44:43 -0500
+In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Change the implementation of fwnode_handle_get() and fwnode_handle_put()
-to use struct fwnode_operations.
+Always read strings using of_property_read_string_array() instead of
+of_property_read_string(). This allows using a single operation struct
+callback for accessing strings.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Same for pset_prop_read_string_array() and pset_prop_read_string().
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/base/property.c |  6 ++----
- drivers/of/base.c       | 15 ++++++++++++++-
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ drivers/base/property.c | 47 +----------------------------------------------
+ 1 file changed, 1 insertion(+), 46 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index e4794bf..faa4fa6 100644
+index 77a1657..2ee09a1 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -1098,8 +1098,7 @@ EXPORT_SYMBOL_GPL(device_get_named_child_node);
-  */
- void fwnode_handle_get(struct fwnode_handle *fwnode)
+@@ -158,31 +158,6 @@ static int pset_prop_read_string_array(struct property_set *pset,
+ 	return 0;
+ }
+ 
+-static int pset_prop_read_string(struct property_set *pset,
+-				 const char *propname, const char **strings)
+-{
+-	const struct property_entry *prop;
+-	const char * const *pointer;
+-
+-	prop = pset_prop_get(pset, propname);
+-	if (!prop)
+-		return -EINVAL;
+-	if (!prop->is_string)
+-		return -EILSEQ;
+-	if (prop->is_array) {
+-		pointer = prop->pointer.str;
+-		if (!pointer)
+-			return -ENODATA;
+-	} else {
+-		pointer = &prop->value.str;
+-		if (*pointer && strnlen(*pointer, prop->length) >= prop->length)
+-			return -EILSEQ;
+-	}
+-
+-	*strings = *pointer;
+-	return 0;
+-}
+-
+ static bool pset_fwnode_property_present(struct fwnode_handle *fwnode,
+ 					 const char *propname)
  {
--	if (is_of_node(fwnode))
--		of_node_get(to_of_node(fwnode));
-+	fwnode_call_void_op(fwnode, get);
+@@ -586,19 +561,6 @@ static int __fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+ 	return -ENXIO;
  }
- EXPORT_SYMBOL_GPL(fwnode_handle_get);
  
-@@ -1113,8 +1112,7 @@ EXPORT_SYMBOL_GPL(fwnode_handle_get);
-  */
- void fwnode_handle_put(struct fwnode_handle *fwnode)
+-static int __fwnode_property_read_string(struct fwnode_handle *fwnode,
+-					 const char *propname, const char **val)
+-{
+-	if (is_of_node(fwnode))
+-		return of_property_read_string(to_of_node(fwnode), propname, val);
+-	else if (is_acpi_node(fwnode))
+-		return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
+-					   val, 1);
+-	else if (is_pset_node(fwnode))
+-		return pset_prop_read_string(to_pset_node(fwnode), propname, val);
+-	return -ENXIO;
+-}
+-
+ /**
+  * fwnode_property_read_string_array - return string array property of a node
+  * @fwnode: Firmware node to get the property of
+@@ -650,14 +612,7 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_string_array);
+ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ 				const char *propname, const char **val)
  {
--	if (is_of_node(fwnode))
--		of_node_put(to_of_node(fwnode));
-+	fwnode_call_void_op(fwnode, put);
+-	int ret;
+-
+-	ret = __fwnode_property_read_string(fwnode, propname, val);
+-	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
+-	    !IS_ERR_OR_NULL(fwnode->secondary))
+-		ret = __fwnode_property_read_string(fwnode->secondary,
+-						    propname, val);
+-	return ret;
++	return fwnode_property_read_string_array(fwnode, propname, val, 1);
  }
- EXPORT_SYMBOL_GPL(fwnode_handle_put);
+ EXPORT_SYMBOL_GPL(fwnode_property_read_string);
  
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index b07af01..c18da80 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2536,4 +2536,17 @@ struct device_node *of_graph_get_remote_node(const struct device_node *node,
- }
- EXPORT_SYMBOL(of_graph_get_remote_node);
- 
--const struct fwnode_operations of_fwnode_ops;
-+static void of_fwnode_get(struct fwnode_handle *fwnode)
-+{
-+	of_node_get(to_of_node(fwnode));
-+}
-+
-+static void of_fwnode_put(struct fwnode_handle *fwnode)
-+{
-+	of_node_put(to_of_node(fwnode));
-+}
-+
-+const struct fwnode_operations of_fwnode_ops = {
-+	.get = of_fwnode_get,
-+	.put = of_fwnode_put,
-+};
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
