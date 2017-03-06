@@ -1,198 +1,221 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V12 10/10] arm/arm64: KVM: add guest SEA support
-Date: Mon,  6 Mar 2017 13:45:03 -0700
-Message-ID: <1488833103-21082-11-git-send-email-tbaicar@codeaurora.org>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
+From: Nikolay Borisov <n.borisov.lkml@gmail.com>
+Subject: 4.11-rc1 acpi stomping ext4 slabs
+Date: Mon, 6 Mar 2017 22:31:00 +0200
+Message-ID: <86f1c7af-0d74-f1fd-e1fb-cc2302824e27@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.com, harba@codeaur
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35513 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753776AbdCFVB0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Mar 2017 16:01:26 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Ext4 Developers List <linux-ext4@vger.kernel.org>
 
-Currently external aborts are unsupported by the guest abort
-handling. Add handling for SEAs so that the host kernel reports
-SEAs which occur in the guest kernel.
+Hello, 
 
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
----
- arch/arm/include/asm/kvm_arm.h       | 10 ++++++++++
- arch/arm/include/asm/system_misc.h   |  5 +++++
- arch/arm/kvm/mmu.c                   | 36 ++++++++++++++++++++++++++++++++++--
- arch/arm64/include/asm/kvm_arm.h     | 10 ++++++++++
- arch/arm64/include/asm/system_misc.h |  2 ++
- arch/arm64/mm/fault.c                | 18 ++++++++++++++++++
- 6 files changed, 79 insertions(+), 2 deletions(-)
+Booting 4.11-rc1 with kasan enabled and "slub_debug=F" produces the following errors:
 
-diff --git a/arch/arm/include/asm/kvm_arm.h b/arch/arm/include/asm/kvm_arm.h
-index e22089f..a1a3dff 100644
---- a/arch/arm/include/asm/kvm_arm.h
-+++ b/arch/arm/include/asm/kvm_arm.h
-@@ -187,6 +187,16 @@
- #define FSC_FAULT	(0x04)
- #define FSC_ACCESS	(0x08)
- #define FSC_PERM	(0x0c)
-+#define FSC_SEA		(0x10)
-+#define FSC_SEA_TTW0	(0x14)
-+#define FSC_SEA_TTW1	(0x15)
-+#define FSC_SEA_TTW2	(0x16)
-+#define FSC_SEA_TTW3	(0x17)
-+#define FSC_SECC	(0x18)
-+#define FSC_SECC_TTW0	(0x1c)
-+#define FSC_SECC_TTW1	(0x1d)
-+#define FSC_SECC_TTW2	(0x1e)
-+#define FSC_SECC_TTW3	(0x1f)
- 
- /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
- #define HPFAR_MASK	(~0xf)
-diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
-index a3d61ad..ea45d94 100644
---- a/arch/arm/include/asm/system_misc.h
-+++ b/arch/arm/include/asm/system_misc.h
-@@ -24,4 +24,9 @@
- 
- #endif /* !__ASSEMBLY__ */
- 
-+static inline int handle_guest_sea(unsigned long addr, unsigned int esr)
-+{
-+	return -1;
-+}
-+
- #endif /* __ASM_ARM_SYSTEM_MISC_H */
-diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
-index a5265ed..f3608c9 100644
---- a/arch/arm/kvm/mmu.c
-+++ b/arch/arm/kvm/mmu.c
-@@ -29,6 +29,7 @@
- #include <asm/kvm_asm.h>
- #include <asm/kvm_emulate.h>
- #include <asm/virt.h>
-+#include <asm/system_misc.h>
- 
- #include "trace.h"
- 
-@@ -1409,6 +1410,24 @@ static void handle_access_fault(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa)
- 		kvm_set_pfn_accessed(pfn);
- }
- 
-+static bool is_abort_synchronous(unsigned long fault_status) {
-+	switch (fault_status) {
-+	case FSC_SEA:
-+	case FSC_SEA_TTW0:
-+	case FSC_SEA_TTW1:
-+	case FSC_SEA_TTW2:
-+	case FSC_SEA_TTW3:
-+	case FSC_SECC:
-+	case FSC_SECC_TTW0:
-+	case FSC_SECC_TTW1:
-+	case FSC_SECC_TTW2:
-+	case FSC_SECC_TTW3:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
- /**
-  * kvm_handle_guest_abort - handles all 2nd stage aborts
-  * @vcpu:	the VCPU pointer
-@@ -1444,8 +1463,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
- 
- 	/* Check the stage-2 fault is trans. fault or write fault */
- 	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
--	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
--	    fault_status != FSC_ACCESS) {
-+
-+	/* The host kernel will handle the synchronous external abort. There
-+	 * is no need to pass the error into the guest.
-+	 */
-+	if (is_abort_synchronous(fault_status)) {
-+		if(handle_guest_sea((unsigned long)fault_ipa,
-+				    kvm_vcpu_get_hsr(vcpu))) {
-+			kvm_err("Failed to handle guest SEA, FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
-+				kvm_vcpu_trap_get_class(vcpu),
-+				(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-+				(unsigned long)kvm_vcpu_get_hsr(vcpu));
-+			return -EFAULT;
-+		}
-+	} else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
-+		   fault_status != FSC_ACCESS) {
- 		kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
- 			kvm_vcpu_trap_get_class(vcpu),
- 			(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-diff --git a/arch/arm64/include/asm/kvm_arm.h b/arch/arm64/include/asm/kvm_arm.h
-index 2a2752b..dcacdbb 100644
---- a/arch/arm64/include/asm/kvm_arm.h
-+++ b/arch/arm64/include/asm/kvm_arm.h
-@@ -201,6 +201,16 @@
- #define FSC_FAULT	ESR_ELx_FSC_FAULT
- #define FSC_ACCESS	ESR_ELx_FSC_ACCESS
- #define FSC_PERM	ESR_ELx_FSC_PERM
-+#define FSC_SEA		ESR_ELx_FSC_EXTABT
-+#define FSC_SEA_TTW0	(0x14)
-+#define FSC_SEA_TTW1	(0x15)
-+#define FSC_SEA_TTW2	(0x16)
-+#define FSC_SEA_TTW3	(0x17)
-+#define FSC_SECC	(0x18)
-+#define FSC_SECC_TTW0	(0x1c)
-+#define FSC_SECC_TTW1	(0x1d)
-+#define FSC_SECC_TTW2	(0x1e)
-+#define FSC_SECC_TTW3	(0x1f)
- 
- /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
- #define HPFAR_MASK	(~UL(0xf))
-diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-index bc81243..5b2cecd1 100644
---- a/arch/arm64/include/asm/system_misc.h
-+++ b/arch/arm64/include/asm/system_misc.h
-@@ -58,4 +58,6 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
- 
- #endif	/* __ASSEMBLY__ */
- 
-+int handle_guest_sea(unsigned long addr, unsigned int esr);
-+
- #endif	/* __ASM_SYSTEM_MISC_H */
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index b2d57fc..31c5171 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -602,6 +602,24 @@ static const char *fault_name(unsigned int esr)
- }
- 
- /*
-+ * Handle Synchronous External Aborts that occur in a guest kernel.
-+ */
-+int handle_guest_sea(unsigned long addr, unsigned int esr)
-+{
-+	/*
-+	 * synchronize_rcu() will wait for nmi_exit(), so no need to
-+	 * rcu_read_lock().
-+	 */
-+	if(IS_ENABLED(ACPI_APEI_SEA)) {
-+		rcu_read_lock();
-+		ghes_notify_sea();
-+		rcu_read_unlock();
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-  * Dispatch a data abort to the relevant handler.
-  */
- asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+[    7.070797] ==================================================================
+[    7.071724] BUG: KASAN: slab-out-of-bounds in filldir+0xc3/0x160 at addr ffff88006bc2b0ae
+[    7.071724] Read of size 20 by task systemd/1
+[    7.071724] CPU: 1 PID: 1 Comm: systemd Not tainted 4.11.0-rc1-nbor #150
+[    7.071724] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[    7.071724] Call Trace:
+[    7.071724]  dump_stack+0x85/0xc9
+[    7.071724]  kasan_object_err+0x2c/0x90
+[    7.071724]  kasan_report+0x285/0x510
+[    7.071724]  check_memory_region+0x137/0x160
+[    7.071724]  kasan_check_read+0x11/0x20
+[    7.071724]  filldir+0xc3/0x160
+[    7.071724]  call_filldir+0x88/0x140
+[    7.071724]  ext4_readdir+0x757/0x920
+[    7.071724]  ? iterate_dir+0x49/0x190
+[    7.071724]  iterate_dir+0x7d/0x190
+[    7.071724]  ? entry_SYSCALL_64_fastpath+0x5/0xc6
+[    7.071724]  SyS_getdents+0xac/0x170
+[    7.071724]  ? filldir64+0x170/0x170
+[    7.071724]  entry_SYSCALL_64_fastpath+0x23/0xc6
+[    7.071724] RIP: 0033:0x7fa37ca2dd3b
+[    7.071724] RSP: 002b:00007ffc63daf400 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+[    7.071724] RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007fa37ca2dd3b
+[    7.071724] RDX: 0000000000008000 RSI: 0000560b369e4a10 RDI: 0000000000000004
+[    7.071724] RBP: 00007fa37cd29b20 R08: 00007fa37cd29bd8 R09: 0000000000000000
+[    7.071724] R10: 000000000000008f R11: 0000000000000206 R12: 0000000000008041
+[    7.071724] R13: 00007fa37cd29b78 R14: 000000000000270f R15: 00007fa37cd29b78
+[    7.071724] Object at ffff88006bc2b080, in cache kmalloc-96 size: 96
+[    7.071724] Allocated:
+[    7.071724] PID = 1
+[    7.071724]  save_stack_trace+0x1b/0x20
+[    7.071724]  kasan_kmalloc.part.4+0x64/0xf0
+[    7.071724]  kasan_kmalloc+0x85/0xb0
+[    7.071724]  __kmalloc+0x12b/0x320
+[    7.071724]  ext4_htree_store_dirent+0x3e/0x120
+[    7.071724]  htree_dirblock_to_tree+0xb9/0x1a0
+[    7.071724]  ext4_htree_fill_tree+0xa3/0x310
+[    7.071724]  ext4_readdir+0x6a9/0x920
+[    7.071724]  iterate_dir+0x7d/0x190
+[    7.071724]  SyS_getdents+0xac/0x170
+[    7.071724]  entry_SYSCALL_64_fastpath+0x23/0xc6
+[    7.071724] Freed:
+[    7.071724] PID = 1
+[    7.071724]  save_stack_trace+0x1b/0x20
+[    7.071724]  kasan_slab_free+0xbe/0x190
+[    7.071724]  kfree+0xff/0x2f0
+[    7.071724]  acpi_ut_evaluate_object+0x18e/0x19d
+[    7.071724]  acpi_ut_execute_STA+0x26/0x53
+[    7.071724]  acpi_ns_get_device_callback+0x73/0x163
+[    7.071724]  acpi_ns_walk_namespace+0xc0/0x17a
+[    7.071724]  acpi_get_devices+0x66/0x7d
+[    7.071724]  pnpacpi_init+0x52/0x74
+[    7.071724]  do_one_initcall+0x51/0x1b0
+[    7.071724]  kernel_init_freeable+0x20a/0x2a1
+[    7.071724]  kernel_init+0xe/0x100
+[    7.071724]  ret_from_fork+0x31/0x40
+[    7.071724] Memory state around the buggy address:
+[    7.071724]  ffff88006bc2af80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[    7.071724]  ffff88006bc2b000: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+[    7.071724] >ffff88006bc2b080: 00 00 00 00 00 00 00 00 05 fc fc fc fc fc fc fc
+[    7.071724]                                            ^
+[    7.071724]  ffff88006bc2b100: 00 00 00 00 00 00 00 00 00 04 fc fc fc fc fc fc
+[    7.071724]  ffff88006bc2b180: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+
+Not killing the VM instantly produces a continuous stream of kasan errors. Most of them 
+are identical to the one above, however there was one which was different: 
+
+[    5.846193] ==================================================================
+[    5.846787] BUG: KASAN: slab-out-of-bounds in filldir+0xc3/0x160 at addr ffff88006c783eae
+[    5.847177] Read of size 22 by task systemd/1
+[    5.847177] CPU: 3 PID: 1 Comm: systemd Tainted: G    B           4.11.0-rc1-nbor #150
+[    5.847177] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[    5.847177] Call Trace:
+[    5.847177]  dump_stack+0x85/0xc9
+[    5.847177]  kasan_object_err+0x2c/0x90
+[    5.847177]  kasan_report+0x285/0x510
+[    5.847177]  check_memory_region+0x137/0x160
+[    5.847177]  kasan_check_read+0x11/0x20
+[    5.847177]  filldir+0xc3/0x160
+[    5.847177]  call_filldir+0x88/0x140
+[    5.847177]  ext4_readdir+0x757/0x920
+[    5.847177]  ? iterate_dir+0x49/0x190
+[    5.847177]  iterate_dir+0x7d/0x190
+[    5.847177]  ? entry_SYSCALL_64_fastpath+0x5/0xc6
+[    5.847177]  SyS_getdents+0xac/0x170
+[    5.847177]  ? filldir64+0x170/0x170
+[    5.847177]  entry_SYSCALL_64_fastpath+0x23/0xc6
+[    5.847177] RIP: 0033:0x7f9dbd4e1d3b
+[    5.847177] RSP: 002b:00007ffee6b51a60 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+[    5.847177] RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007f9dbd4e1d3b
+[    5.847177] RDX: 0000000000008000 RSI: 000055c046802a10 RDI: 0000000000000004
+[    5.847177] RBP: 00007f9dbd7ddb20 R08: 00007f9dbd7ddbd8 R09: 0000000000000000
+[    5.847177] R10: 000000000000008f R11: 0000000000000206 R12: 0000000000008041
+[    5.847177] R13: 00007f9dbd7ddb78 R14: 000000000000270f R15: 00007f9dbd7ddb78
+[    5.847177] Object at ffff88006c783e80, in cache kmalloc-96 size: 96
+[    5.847177] Allocated:
+[    5.847177] PID = 1
+[    5.847177]  save_stack_trace+0x1b/0x20
+[    5.847177]  kasan_kmalloc.part.4+0x64/0xf0
+[    5.847177]  kasan_kmalloc+0x85/0xb0
+[    5.847177]  __kmalloc+0x12b/0x320
+[    5.847177]  ext4_htree_store_dirent+0x3e/0x120
+[    5.847177]  htree_dirblock_to_tree+0xb9/0x1a0
+[    5.847177]  ext4_htree_fill_tree+0xa3/0x310
+[    5.847177]  ext4_readdir+0x6a9/0x920
+[    5.847177]  iterate_dir+0x7d/0x190
+[    5.847177]  SyS_getdents+0xac/0x170
+[    5.847177]  entry_SYSCALL_64_fastpath+0x23/0xc6
+[    5.847177] Freed:
+[    5.847177] PID = 1
+[    5.847177]  save_stack_trace+0x1b/0x20
+[    5.847177]  kasan_slab_free+0xbe/0x190
+[    5.847177]  kfree+0xff/0x2f0
+[    5.847177]  krealloc+0xac/0xc0
+[    5.847177]  create_trace_option_files+0x127/0x270
+[    5.847177]  __update_tracer_options+0x2c/0x40
+[    5.847177]  tracer_init_tracefs+0x1a4/0x1b7
+[    5.847177]  do_one_initcall+0x51/0x1b0
+[    5.847177]  kernel_init_freeable+0x20a/0x2a1
+[    5.847177]  kernel_init+0xe/0x100
+[    5.847177]  ret_from_fork+0x31/0x40
+[    5.847177] Memory state around the buggy address:
+
+So the free path is different. 
+
+On a different boot with slab_debug options omitted e.g. no debugging enabled for SLUB
+I got:
+
+[    5.586620] ==================================================================
+[    5.587445] BUG: KASAN: slab-out-of-bounds in filldir+0xc3/0x160 at addr ffff880000141aae
+[    5.587584] Read of size 20 by task systemd/1
+[    5.587584] CPU: 0 PID: 1 Comm: systemd Not tainted 4.11.0-rc1-nbor #148
+[    5.587584] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[    5.587584] Call Trace:
+[    5.587584]  dump_stack+0x85/0xc9
+[    5.587584]  kasan_object_err+0x2c/0x90
+[    5.587584]  kasan_report+0x285/0x510
+[    5.587584]  check_memory_region+0x137/0x160
+[    5.587584]  kasan_check_read+0x11/0x20
+[    5.587584]  filldir+0xc3/0x160
+[    5.587584]  call_filldir+0x88/0x140
+[    5.587584]  ext4_readdir+0x757/0x920
+[    5.587584]  ? iterate_dir+0x49/0x190
+[    5.587584]  iterate_dir+0x7d/0x190
+[    5.587584]  ? entry_SYSCALL_64_fastpath+0x5/0xc6
+[    5.587584]  SyS_getdents+0xac/0x170
+[    5.587584]  ? filldir64+0x170/0x170
+[    5.587584]  entry_SYSCALL_64_fastpath+0x23/0xc6
+[    5.587584] RIP: 0033:0x7f71af785d3b
+[    5.587584] RSP: 002b:00007ffeeda83390 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+[    5.587584] RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007f71af785d3b
+[    5.587584] RDX: 0000000000008000 RSI: 0000561e6483ba10 RDI: 0000000000000004
+[    5.587584] RBP: 00007f71afa81b20 R08: 00007f71afa81bd8 R09: 0000000000000000
+[    5.587584] R10: 000000000000008f R11: 0000000000000206 R12: 0000000000008041
+[    5.587584] R13: 00007f71afa81b78 R14: 000000000000270f R15: 00007f71afa81b78
+[    5.587584] Object at ffff880000141a80, in cache kmalloc-96 size: 96
+[    5.587584] Allocated:
+[    5.587584] PID = 1
+[    5.587584]  save_stack_trace+0x1b/0x20
+[    5.587584]  kasan_kmalloc.part.4+0x64/0xf0
+[    5.587584]  kasan_kmalloc+0x85/0xb0
+[    5.587584]  __kmalloc+0x12b/0x320
+[    5.587584]  ext4_htree_store_dirent+0x3e/0x120
+[    5.587584]  htree_dirblock_to_tree+0xb9/0x1a0
+[    5.587584]  ext4_htree_fill_tree+0xa3/0x310
+[    5.587584]  ext4_readdir+0x6a9/0x920
+[    5.587584]  iterate_dir+0x7d/0x190
+[    5.587584]  SyS_getdents+0xac/0x170
+[    5.587584]  entry_SYSCALL_64_fastpath+0x23/0xc6
+[    5.587584] Freed:
+[    5.587584] PID = 1
+[    5.587584]  save_stack_trace+0x1b/0x20
+[    5.587584]  kasan_slab_free+0xbe/0x190
+[    5.587584]  kfree+0xff/0x2f0
+[    5.587584]  acpi_evaluate_object+0x26c/0x27e
+[    5.587584]  acpi_evaluate_integer+0x34/0x53
+[    5.587584]  acpi_get_node+0x2b/0x51
+[    5.587584]  pci_acpi_scan_root+0x2e/0x1d0
+[    5.587584]  acpi_pci_root_add+0x264/0x34b
+[    5.587584]  acpi_bus_attach+0xb6/0x15c
+[    5.587584]  acpi_bus_attach+0x123/0x15c
+[    5.587584]  acpi_bus_attach+0x123/0x15c
+[    5.587584]  acpi_bus_scan+0x5b/0x6b
+[    5.587584]  acpi_scan_init+0xcd/0x211
+[    5.587584]  acpi_init+0x2e0/0x309
+[    5.587584]  do_one_initcall+0x51/0x1b0
+[    5.587584]  kernel_init_freeable+0x20a/0x2a1
+[    5.587584]  kernel_init+0xe/0x100
+[    5.587584]  ret_from_fork+0x31/0x40
+[    5.587584] Memory state around the buggy address:
+[    5.587584]  ffff880000141980: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+[    5.587584]  ffff880000141a00: 00 00 00 00 00 00 00 00 00 03 fc fc fc fc fc fc
+[    5.587584] >ffff880000141a80: 00 00 00 00 00 00 00 00 05 fc fc fc fc fc fc fc
+[    5.587584]                                            ^
+[    5.587584]  ffff880000141b00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+[    5.587584]  ffff880000141b80: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+
+I'm not sure if this is an ext4 or ACPI problem. 
+
+
