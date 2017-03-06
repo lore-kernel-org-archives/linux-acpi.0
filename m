@@ -1,52 +1,56 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v4 08/16] of: Add of_fwnode_handle() to convert device nodes to fwnode_handle
-Date: Mon,  6 Mar 2017 16:19:22 +0200
-Message-ID: <1488809970-25568-9-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v4 09/16] driver core: Arrange headers alphabetically
+Date: Mon,  6 Mar 2017 16:19:23 +0200
+Message-ID: <1488809970-25568-10-git-send-email-sakari.ailus@linux.intel.com>
 References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:31374 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932219AbdCFOT7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:19:59 -0500
-In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1488809970-25568-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-of_fwnode_handle() returns a struct fwnode_handle of the struct
-device_node. This may be used on the fwnode property API.
-
-Use a macro instead of a function in order to support const and non-const
-arguments.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- include/linux/of.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/base/core.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 21e6323..e5d4225f 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -159,6 +159,8 @@ static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
- 		container_of(fwnode, struct device_node, fwnode) : NULL;
- }
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 684bda4..fde2c7c 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -13,20 +13,20 @@
+ #include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/fwnode.h>
++#include <linux/genhd.h>
+ #include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/slab.h>
+-#include <linux/string.h>
++#include <linux/kallsyms.h>
+ #include <linux/kdev_t.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/netdevice.h>
+ #include <linux/notifier.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/genhd.h>
+-#include <linux/kallsyms.h>
+-#include <linux/mutex.h>
+ #include <linux/pm_runtime.h>
+-#include <linux/netdevice.h>
+ #include <linux/sched/signal.h>
++#include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/sysfs.h>
  
-+#define of_fwnode_handle(node) (&(node)->fwnode)
-+
- static inline bool of_have_populated_dt(void)
- {
- 	return of_root != NULL;
-@@ -602,6 +604,8 @@ static inline struct device_node *of_find_node_with_property(
- 	return NULL;
- }
- 
-+#define of_fwnode_handle(node) NULL
-+
- static inline bool of_have_populated_dt(void)
- {
- 	return false;
+ #include "base.h"
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
