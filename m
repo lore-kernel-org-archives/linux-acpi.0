@@ -1,125 +1,111 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v9 08/15] ACPI/IORT: Rename iort_node_map_rid() to make it generic
-Date: Tue, 7 Mar 2017 20:40:03 +0800
-Message-ID: <1488890410-15503-9-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v9 07/15] irqchip: gicv3-its: platform-msi: scan MADT to
+ create platform msi domain
+Date: Tue, 7 Mar 2017 20:40:02 +0800
+Message-ID: <1488890410-15503-8-git-send-email-guohanjun@huawei.com>
 References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-iort_node_map_rid() was designed to take an input id (that is not
-necessarily a PCI requester id) and map it to an output id (eg an SMMU
-streamid or an ITS deviceid) according to the mappings provided by an
-IORT node mapping entries. This means that the iort_node_map_rid() input
-id is not always a PCI requester id as its name, parameters and local
-variables suggest, which is misleading.
+With the introduction of its_pmsi_init_one(), support for ACPI
+firmware interface can be plugged into the gicv3 ITS driver.
 
-Apply the s/rid/id substitution to the iort_node_map_rid() mapping
-function and its users to make sure its intended usage is clearer.
+Add code to scan the MADT table to get the ITS entry(ies), then use
+the information to create the platform msi domain for devices
+connected to it, mirroring the ITS PCI MSI code path.
 
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+[lorenzo.pieralisi@arm.com: rewrote commit log]
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Reviewed-by: Matthias Brugger <mbrugger@suse.com>
 Tested-by: Ming Lei <ming.lei@canonical.com>
 Tested-by: Wei Xu <xuwei5@hisilicon.com>
 Tested-by: Sinan Kaya <okaya@codeaurora.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/arm64/iort.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 37 +++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index a6b807d..28d0088 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -355,11 +355,11 @@ struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
- 	return NULL;
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 3d9efd1..e4ba9f4 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -15,6 +15,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi_iort.h>
+ #include <linux/device.h>
+ #include <linux/msi.h>
+ #include <linux/of.h>
+@@ -103,6 +104,41 @@ static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
+ 	return 0;
  }
  
--static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
--						u32 rid_in, u32 *rid_out,
--						u8 type_mask)
-+static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
-+					       u32 id_in, u32 *id_out,
-+					       u8 type_mask)
++#ifdef CONFIG_ACPI
++static int __init
++its_pmsi_parse_madt(struct acpi_subtable_header *header,
++			const unsigned long end)
++{
++	struct acpi_madt_generic_translator *its_entry;
++	struct fwnode_handle *domain_handle;
++	const char *node_name;
++	int err = -ENXIO;
++
++	its_entry = (struct acpi_madt_generic_translator *)header;
++	node_name = kasprintf(GFP_KERNEL, "ITS@0x%lx",
++			      (long)its_entry->base_address);
++	domain_handle = iort_find_domain_token(its_entry->translation_id);
++	if (!domain_handle) {
++		pr_err("%s: Unable to locate ITS domain handle\n", node_name);
++		goto out;
++	}
++
++	err = its_pmsi_init_one(domain_handle, node_name);
++
++out:
++	kfree(node_name);
++	return err;
++}
++
++static void __init its_pmsi_acpi_init(void)
++{
++	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
++			      its_pmsi_parse_madt, 0);
++}
++#else
++static inline void its_pmsi_acpi_init(void) { }
++#endif
++
+ static void __init its_pmsi_of_init(void)
  {
--	u32 rid = rid_in;
-+	u32 id = id_in;
- 
- 	/* Parse the ID mapping tree to find specified node type */
- 	while (node) {
-@@ -367,8 +367,8 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 		int i;
- 
- 		if (IORT_TYPE_MASK(node->type) & type_mask) {
--			if (rid_out)
--				*rid_out = rid;
-+			if (id_out)
-+				*id_out = id;
- 			return node;
- 		}
- 
-@@ -385,9 +385,9 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 			goto fail_map;
- 		}
- 
--		/* Do the RID translation */
-+		/* Do the ID translation */
- 		for (i = 0; i < node->mapping_count; i++, map++) {
--			if (!iort_id_map(map, node->type, rid, &rid))
-+			if (!iort_id_map(map, node->type, id, &id))
- 				break;
- 		}
- 
-@@ -399,9 +399,9 @@ static struct acpi_iort_node *iort_node_map_rid(struct acpi_iort_node *node,
- 	}
- 
- fail_map:
--	/* Map input RID to output RID unchanged on mapping failure*/
--	if (rid_out)
--		*rid_out = rid_in;
-+	/* Map input ID to output ID unchanged on mapping failure */
-+	if (id_out)
-+		*id_out = id_in;
- 
- 	return NULL;
+ 	struct device_node *np;
+@@ -119,6 +155,7 @@ static void __init its_pmsi_of_init(void)
+ static int __init its_pmsi_init(void)
+ {
+ 	its_pmsi_of_init();
++	its_pmsi_acpi_init();
+ 	return 0;
  }
-@@ -439,7 +439,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
- 	if (!node)
- 		return req_id;
- 
--	iort_node_map_rid(node, req_id, &dev_id, IORT_MSI_TYPE);
-+	iort_node_map_id(node, req_id, &dev_id, IORT_MSI_TYPE);
- 	return dev_id;
- }
- 
-@@ -462,7 +462,7 @@ static int iort_dev_find_its_id(struct device *dev, u32 req_id,
- 	if (!node)
- 		return -ENXIO;
- 
--	node = iort_node_map_rid(node, req_id, NULL, IORT_MSI_TYPE);
-+	node = iort_node_map_id(node, req_id, NULL, IORT_MSI_TYPE);
- 	if (!node)
- 		return -ENXIO;
- 
-@@ -591,8 +591,8 @@ const struct iommu_ops *iort_iommu_configure(struct device *dev)
- 		if (!node)
- 			return NULL;
- 
--		parent = iort_node_map_rid(node, rid, &streamid,
--					   IORT_IOMMU_TYPE);
-+		parent = iort_node_map_id(node, rid, &streamid,
-+					  IORT_IOMMU_TYPE);
- 
- 		ops = iort_iommu_xlate(dev, parent, streamid);
- 
+ early_initcall(its_pmsi_init);
 -- 
 1.7.12.4
