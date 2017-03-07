@@ -1,93 +1,104 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v9 05/15] irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
-Date: Tue, 7 Mar 2017 20:40:00 +0800
-Message-ID: <1488890410-15503-6-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v9 14/15] irqchip: mbigen: introduce mbigen_of_create_domain()
+Date: Tue, 7 Mar 2017 20:40:09 +0800
+Message-ID: <1488890410-15503-15-git-send-email-guohanjun@huawei.com>
 References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([45.249.212.188]:3395 "EHLO
-        dggrg02-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755141AbdCGMrc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2017 07:47:32 -0500
+Received: from szxga01-in.huawei.com ([45.249.212.187]:3832 "EHLO
+        dggrg01-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755142AbdCGMv0 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2017 07:51:26 -0500
 In-Reply-To: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
 
-By adding ACPI support for platform MSI, the gicv3 driver has to
-provide code to retrieve the dev id through ACPI instead of device
-tree bindings; given that its_pmsi_prepare() allows already to get
-the dev id but it is OF dependent, factor OF related code out into
-a single function to make its_pmsi_prepare() ready to be used with
-other firmware interfaces.
+Introduce mbigen_of_create_domain() to consolidate OF related
+code and prepare for ACPI later, no funtional change.
 
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-[lorenzo.pieralisi@arm.com: rewrote commit log]
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Reviewed-by: Matthias Brugger <mbrugger@suse.com>
+Reviewed-by: Ma Jun <majun258@huawei.com>
 Tested-by: Ming Lei <ming.lei@canonical.com>
 Tested-by: Wei Xu <xuwei5@hisilicon.com>
-Tested-by: Sinan Kaya <okaya@codeaurora.org>
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/irqchip/irq-gic-v3-its-platform-msi.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ drivers/irqchip/irq-mbigen.c | 43 ++++++++++++++++++++++++++++---------------
+ 1 file changed, 28 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-index 470b4aa..3c94278 100644
---- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-@@ -24,15 +24,11 @@
- 	.name			= "ITS-pMSI",
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index c01ab41..3756408 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -236,27 +236,15 @@ static int mbigen_irq_domain_alloc(struct irq_domain *domain,
+ 	.free		= irq_domain_free_irqs_common,
  };
  
--static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
--			    int nvec, msi_alloc_info_t *info)
-+static int of_pmsi_get_dev_id(struct irq_domain *domain, struct device *dev,
-+				  u32 *dev_id)
+-static int mbigen_device_probe(struct platform_device *pdev)
++static int mbigen_of_create_domain(struct platform_device *pdev,
++				   struct mbigen_device *mgn_chip)
  {
--	struct msi_domain_info *msi_info;
--	u32 dev_id;
- 	int ret, index = 0;
+-	struct mbigen_device *mgn_chip;
++	struct device *parent;
+ 	struct platform_device *child;
+ 	struct irq_domain *domain;
+ 	struct device_node *np;
+-	struct device *parent;
+-	struct resource *res;
+ 	u32 num_pins;
  
--	msi_info = msi_get_domain_info(domain->parent);
+-	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
+-	if (!mgn_chip)
+-		return -ENOMEM;
 -
- 	/* Suck the DeviceID out of the msi-parent property */
- 	do {
- 		struct of_phandle_args args;
-@@ -43,11 +39,24 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
- 		if (args.np == irq_domain_get_of_node(domain)) {
- 			if (WARN_ON(args.args_count != 1))
- 				return -EINVAL;
--			dev_id = args.args[0];
-+			*dev_id = args.args[0];
- 			break;
- 		}
- 	} while (!ret);
+-	mgn_chip->pdev = pdev;
+-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	mgn_chip->base = devm_ioremap_resource(&pdev->dev, res);
+-	if (IS_ERR(mgn_chip->base))
+-		return PTR_ERR(mgn_chip->base);
+-
+ 	for_each_child_of_node(pdev->dev.of_node, np) {
+ 		if (!of_property_read_bool(np, "interrupt-controller"))
+ 			continue;
+@@ -280,6 +268,31 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ 			return -ENOMEM;
+ 	}
  
-+	return ret;
++	return 0;
 +}
 +
-+static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
-+			    int nvec, msi_alloc_info_t *info)
++static int mbigen_device_probe(struct platform_device *pdev)
 +{
-+	struct msi_domain_info *msi_info;
-+	u32 dev_id;
-+	int ret;
++	struct mbigen_device *mgn_chip;
++	struct resource *res;
++	int err;
 +
-+	msi_info = msi_get_domain_info(domain->parent);
++	mgn_chip = devm_kzalloc(&pdev->dev, sizeof(*mgn_chip), GFP_KERNEL);
++	if (!mgn_chip)
++		return -ENOMEM;
 +
-+	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
- 	if (ret)
- 		return ret;
- 
++	mgn_chip->pdev = pdev;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	mgn_chip->base = devm_ioremap(&pdev->dev, res->start,
++				      resource_size(res));
++	if (IS_ERR(mgn_chip->base))
++		return PTR_ERR(mgn_chip->base);
++
++	err = mbigen_of_create_domain(pdev, mgn_chip);
++	if (err)
++		return err;
++
+ 	platform_set_drvdata(pdev, mgn_chip);
+ 	return 0;
+ }
 -- 
 1.7.12.4
 
