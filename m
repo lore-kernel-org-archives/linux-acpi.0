@@ -1,123 +1,78 @@
-From: Shiju Jose <shiju.jose@huawei.com>
-Subject: {RFC PATCH v1 v4.11-rc1 1/1} acpi: apei: common handler in ghes for
- HW errors notified via hed(PNP0C33) driver
-Date: Tue, 7 Mar 2017 16:07:27 +0000
-Message-ID: <86258A5CC0A3704780874CF6004BA8A62DCAF445@lhreml502-mbs>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH 03/18] pstore: Avoid race in module unloading
+Date: Tue, 7 Mar 2017 08:18:40 -0800
+Message-ID: <CAGXu5jLWBFVH92PK+vPAsv5sDyLCX6=85NWFXNetC0JDBNUUqQ@mail.gmail.com>
+References: <1488837332-71582-1-git-send-email-keescook@chromium.org>
+ <1488837332-71582-4-git-send-email-keescook@chromium.org>
+ <CADWwUUZAxwUqHU9eRrtP5Hk7KO9KkyvdBy7Z5Xehwhv43fvZVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:12028 "EHLO
-        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932946AbdCGQIY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2017 11:08:24 -0500
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <CADWwUUZAxwUqHU9eRrtP5Hk7KO9KkyvdBy7Z5Xehwhv43fvZVQ@mail.gmail.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Namhyung Kim <namhyung@gmail.com>
+Cc: "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Pan Xinhui <xinhui.pan@linux.vnet.ibm.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Paul Mackerras <paulus@samba.org>, Anton Vorontsov <anton@enomsg.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Len Brown <lenb@kernel.org>, Nobuhiro Iwamatsu <nobuhiro.iwamatsu.kw@hitachi.com>, Geliang Tang <geliangtang@163.com>, Tony Luck <tony.luck@intel.com>, Daniel Axtens <dja@axtens.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Colin Cross <ccross@android.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "james.morse@arm.com" <james.morse@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>
-Cc: "xuwei (O)" <xuwei5@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, Xiexiuqi <xiexiuqi@huawei.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Shiju Jose <shiju.jose@huawei.com>
 
-Add common handler in ghes for HW errors notified via hed(PNP0C33) driver.
-1. Rename ghes_notify_sci() to ghes_notify_hed().
-2. Rename struct notifier_block ghes_notifier_sci to
-   struct notifier_block ghes_notifier_hed.
-3. Rename ghes_sci list to ghes_hed.
-4. Make ghes_notify_hed as common handler for
-   notification types SCI, GSIV and GPIO.
+On Tue, Mar 7, 2017 at 8:16 AM, Namhyung Kim <namhyung@gmail.com> wrote:
+> Hi Kees,
+>
+> On Tue, Mar 7, 2017 at 6:55 AM, Kees Cook <keescook@chromium.org> wrote:
+>> Technically, it might be possible for struct pstore_info to go out of
+>> scope after the module_put(), so report the backend name first.
+>
+> But in that case, using pstore will crash the kernel anyway, right?
+> If so, why pstore doesn't keep a reference until unregister?
+> Do I miss something?
 
-Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
----
- drivers/acpi/apei/ghes.c | 28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+I could be wrong with this, since the backend can't call unregister
+until register has finished... I'll drop this patch.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index b192b42..fd39929 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -89,14 +89,14 @@
- module_param_named(disable, ghes_disable, bool, 0);
- 
- /*
-- * All error sources notified with SCI shares one notifier function,
-+ * All error sources notified with HED shares one notifier function,
-  * so they need to be linked and checked one by one.  This is applied
-  * to NMI too.
-  *
-  * RCU is used for these lists, so ghes_list_mutex is only used for
-  * list changing, not for traversing.
-  */
--static LIST_HEAD(ghes_sci);
-+static LIST_HEAD(ghes_hed);
- static DEFINE_MUTEX(ghes_list_mutex);
- 
- /*
-@@ -702,14 +702,14 @@ static irqreturn_t ghes_irq_func(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--static int ghes_notify_sci(struct notifier_block *this,
-+static int ghes_notify_hed(struct notifier_block *this,
- 				  unsigned long event, void *data)
- {
- 	struct ghes *ghes;
- 	int ret = NOTIFY_DONE;
- 
- 	rcu_read_lock();
--	list_for_each_entry_rcu(ghes, &ghes_sci, list) {
-+	list_for_each_entry_rcu(ghes, &ghes_hed, list) {
- 		if (!ghes_proc(ghes))
- 			ret = NOTIFY_OK;
- 	}
-@@ -718,8 +718,8 @@ static int ghes_notify_sci(struct notifier_block *this,
- 	return ret;
- }
- 
--static struct notifier_block ghes_notifier_sci = {
--	.notifier_call = ghes_notify_sci,
-+static struct notifier_block ghes_notifier_hed = {
-+	.notifier_call = ghes_notify_hed,
- };
- 
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
-@@ -966,6 +966,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_POLLED:
- 	case ACPI_HEST_NOTIFY_EXTERNAL:
- 	case ACPI_HEST_NOTIFY_SCI:
-+	case ACPI_HEST_NOTIFY_GSIV:
-+	case ACPI_HEST_NOTIFY_GPIO:
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
-@@ -1026,10 +1028,12 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 		}
- 		break;
- 	case ACPI_HEST_NOTIFY_SCI:
-+	case ACPI_HEST_NOTIFY_GSIV:
-+	case ACPI_HEST_NOTIFY_GPIO:
- 		mutex_lock(&ghes_list_mutex);
--		if (list_empty(&ghes_sci))
--			register_acpi_hed_notifier(&ghes_notifier_sci);
--		list_add_rcu(&ghes->list, &ghes_sci);
-+		if (list_empty(&ghes_hed))
-+			register_acpi_hed_notifier(&ghes_notifier_hed);
-+		list_add_rcu(&ghes->list, &ghes_hed);
- 		mutex_unlock(&ghes_list_mutex);
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
-@@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 		free_irq(ghes->irq, ghes);
- 		break;
- 	case ACPI_HEST_NOTIFY_SCI:
-+	case ACPI_HEST_NOTIFY_GSIV:
-+	case ACPI_HEST_NOTIFY_GPIO:
- 		mutex_lock(&ghes_list_mutex);
- 		list_del_rcu(&ghes->list);
--		if (list_empty(&ghes_sci))
--			unregister_acpi_hed_notifier(&ghes_notifier_sci);
-+		if (list_empty(&ghes_hed))
-+			unregister_acpi_hed_notifier(&ghes_notifier_hed);
- 		mutex_unlock(&ghes_list_mutex);
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
+-Kees
+
+>
+> Thanks,
+> Namhyung
+>
+>
+>>
+>> Signed-off-by: Kees Cook <keescook@chromium.org>
+>> ---
+>>  fs/pstore/platform.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/fs/pstore/platform.c b/fs/pstore/platform.c
+>> index 074fe85a2078..d69ef8a840b9 100644
+>> --- a/fs/pstore/platform.c
+>> +++ b/fs/pstore/platform.c
+>> @@ -722,10 +722,10 @@ int pstore_register(struct pstore_info *psi)
+>>          */
+>>         backend = psi->name;
+>>
+>> -       module_put(owner);
+>> -
+>>         pr_info("Registered %s as persistent store backend\n", psi->name);
+>>
+>> +       module_put(owner);
+>> +
+>>         return 0;
+>>  }
+>>  EXPORT_SYMBOL_GPL(pstore_register);
+>> --
+>> 2.7.4
+>>
+
+
+
 -- 
-1.9.1
+Kees Cook
+Pixel Security
