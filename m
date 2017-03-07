@@ -1,72 +1,103 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v9 03/15] ACPI/IORT: Rework iort_match_node_callback() return value handling
-Date: Tue, 7 Mar 2017 20:39:58 +0800
-Message-ID: <1488890410-15503-4-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v9 06/15] irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare for ACPI
+Date: Tue, 7 Mar 2017 20:40:01 +0800
+Message-ID: <1488890410-15503-7-git-send-email-guohanjun@huawei.com>
 References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([45.249.212.188]:3394 "EHLO
-        dggrg02-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755119AbdCGMrl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2017 07:47:41 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-The return value handling in iort_match_node_callback() is
-too convoluted; update the iort_match_node_callback() return
-value handling to make code easier to read.
+Introduce its_pmsi_init_one() to separate firmware dependent
+code (ie OF dependent code) and firmware agnostic code so
+that gic3-its code can be made to support other firmware
+bindings easily.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 [lorenzo.pieralisi@arm.com: rewrote commit log]
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Reviewed-by: Matthias Brugger <mbrugger@suse.com>
 Tested-by: Ming Lei <ming.lei@canonical.com>
 Tested-by: Wei Xu <xuwei5@hisilicon.com>
 Tested-by: Sinan Kaya <okaya@codeaurora.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/acpi/arm64/iort.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c | 45 ++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index abc5774..a6b807d 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -253,17 +253,15 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
- 					    void *context)
+diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+index 3c94278..3d9efd1 100644
+--- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+@@ -82,34 +82,43 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+ 	{},
+ };
+ 
+-static int __init its_pmsi_init(void)
++static int __init its_pmsi_init_one(struct fwnode_handle *fwnode,
++				const char *name)
  {
- 	struct device *dev = context;
--	acpi_status status;
-+	acpi_status status = AE_NOT_FOUND;
+-	struct device_node *np;
+ 	struct irq_domain *parent;
  
- 	if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT) {
- 		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
- 		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
- 		struct acpi_iort_named_component *ncomp;
++	parent = irq_find_matching_fwnode(fwnode, DOMAIN_BUS_NEXUS);
++	if (!parent || !msi_get_domain_info(parent)) {
++		pr_err("%s: unable to locate ITS domain\n", name);
++		return -ENXIO;
++	}
++
++	if (!platform_msi_create_irq_domain(fwnode, &its_pmsi_domain_info,
++					    parent)) {
++		pr_err("%s: unable to create platform domain\n", name);
++		return -ENXIO;
++	}
++
++	pr_info("Platform MSI: %s domain created\n", name);
++	return 0;
++}
++
++static void __init its_pmsi_of_init(void)
++{
++	struct device_node *np;
++
+ 	for (np = of_find_matching_node(NULL, its_device_id); np;
+ 	     np = of_find_matching_node(np, its_device_id)) {
+ 		if (!of_property_read_bool(np, "msi-controller"))
+ 			continue;
  
--		if (!adev) {
--			status = AE_NOT_FOUND;
-+		if (!adev)
- 			goto out;
+-		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
+-		if (!parent || !msi_get_domain_info(parent)) {
+-			pr_err("%s: unable to locate ITS domain\n",
+-			       np->full_name);
+-			continue;
 -		}
- 
- 		status = acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buf);
- 		if (ACPI_FAILURE(status)) {
-@@ -289,8 +287,6 @@ static acpi_status iort_match_node_callback(struct acpi_iort_node *node,
- 		 */
- 		status = pci_rc->pci_segment_number == pci_domain_nr(bus) ?
- 							AE_OK : AE_NOT_FOUND;
--	} else {
--		status = AE_NOT_FOUND;
+-
+-		if (!platform_msi_create_irq_domain(of_node_to_fwnode(np),
+-						    &its_pmsi_domain_info,
+-						    parent)) {
+-			pr_err("%s: unable to create platform domain\n",
+-			       np->full_name);
+-			continue;
+-		}
+-
+-		pr_info("Platform MSI: %s domain created\n", np->full_name);
++		its_pmsi_init_one(of_node_to_fwnode(np), np->full_name);
  	}
- out:
- 	return status;
++}
+ 
++static int __init its_pmsi_init(void)
++{
++	its_pmsi_of_init();
+ 	return 0;
+ }
+ early_initcall(its_pmsi_init);
 -- 
 1.7.12.4
-
