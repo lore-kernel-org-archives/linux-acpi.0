@@ -1,60 +1,52 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v9 12/15] msi: platform: make platform_msi_create_device_domain() ACPI aware
-Date: Tue, 7 Mar 2017 20:40:07 +0800
-Message-ID: <1488890410-15503-13-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v9 13/15] irqchip: mbigen: drop module owner
+Date: Tue, 7 Mar 2017 20:40:08 +0800
+Message-ID: <1488890410-15503-14-git-send-email-guohanjun@huawei.com>
 References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
 
-The irqdomain creation that is carried out in:
+Module owner will be set by driver core, so drop it.
 
-platform_msi_create_device_domain()
-
-relies on the fwnode_handle interrupt controller token to associate the
-interrupt controller with a specific irqdomain. Current code relies on
-the OF layer to retrieve a fwnode_handle for the device representing the
-interrupt controller from its device->of_node pointer.  This makes
-platform_msi_create_device_domain() DT specific whilst it really is not
-because after the merge of commit f94277af03ea ("of/platform: Initialise
-dev->fwnode appropriately") the fwnode_handle can easily be retrieved
-from the dev->fwnode pointer in a firmware agnostic way.
-
-Update platform_msi_create_device_domain() to retrieve the interrupt
-controller fwnode_handle from the dev->fwnode pointer so that it can
-be used seamlessly in ACPI and DT systems.
-
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Reviewed-by: Ma Jun <majun258@huawei.com>
 Tested-by: Ming Lei <ming.lei@canonical.com>
 Tested-by: Wei Xu <xuwei5@hisilicon.com>
 Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/base/platform-msi.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/irqchip/irq-mbigen.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
-index 0fc7c4d..d35e9a2 100644
---- a/drivers/base/platform-msi.c
-+++ b/drivers/base/platform-msi.c
-@@ -345,8 +345,7 @@ struct irq_domain *
- 
- 	data->host_data = host_data;
- 	domain = irq_domain_create_hierarchy(dev->msi_domain, 0, nvec,
--					     of_node_to_fwnode(dev->of_node),
--					     ops, data);
-+					     dev->fwnode, ops, data);
- 	if (!domain)
- 		goto free_priv;
- 
+diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+index 03b79b0..c01ab41 100644
+--- a/drivers/irqchip/irq-mbigen.c
++++ b/drivers/irqchip/irq-mbigen.c
+@@ -293,7 +293,6 @@ static int mbigen_device_probe(struct platform_device *pdev)
+ static struct platform_driver mbigen_platform_driver = {
+ 	.driver = {
+ 		.name		= "Hisilicon MBIGEN-V2",
+-		.owner		= THIS_MODULE,
+ 		.of_match_table	= mbigen_of_match,
+ 	},
+ 	.probe			= mbigen_device_probe,
 -- 
 1.7.12.4
