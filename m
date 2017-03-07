@@ -1,158 +1,256 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V12 10/10] arm/arm64: KVM: add guest SEA support
-Date: Tue, 07 Mar 2017 11:48:36 +0000
-Message-ID: <58BE9E14.6040208@arm.com>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
- <1488833103-21082-11-git-send-email-tbaicar@codeaurora.org>
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
+Date: Tue, 7 Mar 2017 13:40:04 +0100
+Message-ID: <20170307134004.58343e14@nial.brq.redhat.com>
+References: <20170227154304.GK26504@dhcp22.suse.cz>
+	<1488462828-174523-1-git-send-email-imammedo@redhat.com>
+	<20170302142816.GK1404@dhcp22.suse.cz>
+	<20170302180315.78975d4b@nial.brq.redhat.com>
+	<20170303082723.GB31499@dhcp22.suse.cz>
+	<20170303183422.6358ee8f@nial.brq.redhat.com>
+	<20170306145417.GG27953@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1488833103-21082-11-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170306145417.GG27953@dhcp22.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y.
+ Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Igor Mammedov <imammedo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tyler,
+On Mon, 6 Mar 2017 15:54:17 +0100
+Michal Hocko <mhocko@kernel.org> wrote:
 
-On 06/03/17 20:45, Tyler Baicar wrote:
-> Currently external aborts are unsupported by the guest abort
-> handling. Add handling for SEAs so that the host kernel reports
-> SEAs which occur in the guest kernel.
+> On Fri 03-03-17 18:34:22, Igor Mammedov wrote:
+> > On Fri, 3 Mar 2017 09:27:23 +0100
+> > Michal Hocko <mhocko@kernel.org> wrote:
+> >   
+> > > On Thu 02-03-17 18:03:15, Igor Mammedov wrote:  
+> > > > On Thu, 2 Mar 2017 15:28:16 +0100
+> > > > Michal Hocko <mhocko@kernel.org> wrote:
+> > > >     
+> > > > > On Thu 02-03-17 14:53:48, Igor Mammedov wrote:
+[...]
 
-> diff --git a/arch/arm/include/asm/kvm_arm.h b/arch/arm/include/asm/kvm_arm.h
-> index e22089f..a1a3dff 100644
-> --- a/arch/arm/include/asm/kvm_arm.h
-> +++ b/arch/arm/include/asm/kvm_arm.h
-> @@ -187,6 +187,16 @@
->  #define FSC_FAULT	(0x04)
->  #define FSC_ACCESS	(0x08)
->  #define FSC_PERM	(0x0c)
-> +#define FSC_SEA		(0x10)
-> +#define FSC_SEA_TTW0	(0x14)
-> +#define FSC_SEA_TTW1	(0x15)
-> +#define FSC_SEA_TTW2	(0x16)
-> +#define FSC_SEA_TTW3	(0x17)
-> +#define FSC_SECC	(0x18)
-> +#define FSC_SECC_TTW0	(0x1c)
-
-aarch32 doesn't have either of these 'TW0' values, it's an unused encoding.
-(However ...)
-
-> +#define FSC_SECC_TTW1	(0x1d)
-> +#define FSC_SECC_TTW2	(0x1e)
-> +#define FSC_SECC_TTW3	(0x1f)
->  
->  /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
->  #define HPFAR_MASK	(~0xf)
-
->  #endif /* __ASM_ARM_SYSTEM_MISC_H */
-> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
-> index a5265ed..f3608c9 100644
-> --- a/arch/arm/kvm/mmu.c
-> +++ b/arch/arm/kvm/mmu.c
-> @@ -1444,8 +1463,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
->  
->  	/* Check the stage-2 fault is trans. fault or write fault */
->  	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
-> -	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
-> -	    fault_status != FSC_ACCESS) {
-> +
-> +	/* The host kernel will handle the synchronous external abort. There
-> +	 * is no need to pass the error into the guest.
-> +	 */
-> +	if (is_abort_synchronous(fault_status)) {
-> +		if(handle_guest_sea((unsigned long)fault_ipa,
-> +				    kvm_vcpu_get_hsr(vcpu))) {
-
-
-... Looking further up in this function:
->	is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
->	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
->		kvm_inject_vabt(vcpu);
->		return 1;
->	}
-
-... so external data aborts will have already been 'claimed' by kvm and dealt
-with, and we already have a helper for spotting external aborts. (sorry I didn't
-spot it earlier).
-
-We need to do the handle_guest_sea() before this code.
-
-kvm_inject_vabt() makes an SError interrupt pending for the guest. This makes a
-synchronous error asynchronous as the guest may have SError interrupts masked.
-
-I guess this was the best that could be done at the time of (4055710baca8
-"arm/arm64: KVM: Inject virtual abort when guest exits on external abort"), but
-in the light of this firmware-first handling, I'm not sure its the right thing
-to do.
-
-Is it possible for handle_guest_sea() to return whether it actually found any
-work to do? If there was none I think we should keep this kvm_inject_vabt() as
-it is the existing behaviour.
-
-
-> +			kvm_err("Failed to handle guest SEA, FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
-> +				kvm_vcpu_trap_get_class(vcpu),
-> +				(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-> +				(unsigned long)kvm_vcpu_get_hsr(vcpu));
-> +			return -EFAULT;
-> +		}
-> +	} else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
-> +		   fault_status != FSC_ACCESS) {
->  		kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
->  			kvm_vcpu_trap_get_class(vcpu),
->  			(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-
-
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index b2d57fc..31c5171 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -602,6 +602,24 @@ static const char *fault_name(unsigned int esr)
->  }
->  
->  /*
-> + * Handle Synchronous External Aborts that occur in a guest kernel.
-> + */
-> +int handle_guest_sea(unsigned long addr, unsigned int esr)
-> +{
-> +	/*
-> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
-> +	 * rcu_read_lock().
-> +	 */
-
-This comment has a life of its own! Given we don't always call ghes_notify_sea()
-when we interrupted un-interruptable code its not always true. I think the
-rcu_read_{,un}lock() should go against the list walk (so it looks like the
-examples), and ditch the comment!
-
-
-> +	if(IS_ENABLED(ACPI_APEI_SEA)) {
-> +		rcu_read_lock();
-> +		ghes_notify_sea();
-> +		rcu_read_unlock();
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
->   * Dispatch a data abort to the relevant handler.
->   */
->  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+> > > > > memblocks. If that doesn't work I would call it a bug.    
+> > > > It's rather an implementation constrain than a bug
+> > > > for details and workaround patch see
+> > > >  [1] https://bugzilla.redhat.com/show_bug.cgi?id=1314306#c7    
+> > > 
+> > > "You are not authorized to access bug #1314306"  
+> > Sorry,
+> > I've made it public, related comments and patch should be accessible now
+> > (code snippets in BZ are based on older kernel but logic is still the same upstream)
+> >    
+> > > could you paste the reasoning here please?  
+> > sure here is reproducer:
+> > start VM with CLI:
+> >   qemu-system-x86_64  -enable-kvm -m size=1G,slots=2,maxmem=4G -numa node \
+> >   -object memory-backend-ram,id=m1,size=1G -device pc-dimm,node=0,memdev=m1 \
+> >   /path/to/guest_image
+> > 
+> > then in guest dimm1 blocks are from 32-39
+> > 
+> >   echo online_movable > /sys/devices/system/memory/memory32/state
+> > -bash: echo: write error: Invalid argument
+> > 
+> > in current mainline kernel it triggers following code path:
+> > 
+> > online_pages()
+> >   ...
+> >        if (online_type == MMOP_ONLINE_KERNEL) {                                 
+> >                 if (!zone_can_shift(pfn, nr_pages, ZONE_NORMAL, &zone_shift))    
+> >                         return -EINVAL;  
 > 
+> Are you sure? I would expect MMOP_ONLINE_MOVABLE here
+pretty much, reproducer is above so try and see for yourself
 
+[...]
+> [...]
+> > > > > > Which means simple udev rule isn't usable since it gets event from
+> > > > > > the first to the last hotplugged block order. So now we would have
+> > > > > > to write a daemon that would
+> > > > > >  - watch for all blocks in hotplugged memory appear (how would it know)
+> > > > > >  - online them in right order (order might also be different depending
+> > > > > >    on kernel version)
+> > > > > >    -- it becomes even more complicated in NUMA case when there are
+> > > > > >       multiple zones and kernel would have to provide user-space
+> > > > > >       with information about zone maps
+> > > > > > 
+> > > > > > In short current experience shows that userspace approach
+> > > > > >  - doesn't solve issues that Vitaly has been fixing (i.e. onlining
+> > > > > >    fast and/or under memory pressure) when udev (or something else
+> > > > > >    might be killed)      
+> > > > > 
+> > > > > yeah and that is why the patch does the onlining from the kernel.    
+> > > > onlining in this patch is limited to hyperv and patch breaks
+> > > > auto-online on x86 kvm/vmware/baremetal as they reuse the same
+> > > > hotplug path.    
+> > > 
+> > > Those can use the udev or do you see any reason why they couldn't?  
+> >
+> > Reasons are above, under >>>> and >> quotations, patch breaks
+> > what Vitaly's fixed (including kvm/vmware usecases) i.e. udev/some
+> > user-space process could be killed if hotplugged memory isn't onlined
+> > fast enough leading to service termination and/or memory not
+> > being onlined at all (if udev is killed)  
+> 
+> OK, so from the discussion so far I have learned that this would be
+> problem _only_ if we are trying to hotplug a _lot_ of memory at once
+> (~1.5% of the online memory is needed).  I am kind of skeptical this is
+> a reasonable usecase. Who is going to hotadd 8G to 256M machine (which
+> would eat half of the available memory which is still quite far from
+> OOM)? Even if the memory balloning uses hotplug then such a grow sounds
+> a bit excessive.
+Slow and killable udev issue doesn't really depends on
+amount of hotplugged memory since it's onlined in blocks
+(128M for x64). Considering that it's currently onlined
+as zone normal, kernel doesn't have any issues adding more
+follow up blocks of memory.
 
-Thanks,
+> > Currently udev rule is not usable and one needs a daemon
+> > which would correctly do onlining and keep zone balance
+> > even for simple case usecase of 1 normal and 1 movable zone.
+> > And it gets more complicated in case of multiple numa nodes
+> > with multiple zones.  
+> 
+> That sounds to be more related to the current implementation than
+> anything else and as such is not a reason to invent specific user
+> visible api. Btw. you are talking about movable zones byt the auto
+> onlining doesn't allow to auto online movable memory. So either I miss
+> your point or I am utterly confused.
+in current state neither does udev rule as memory is onlined
+as NORMAL (x64 variant at least), which is the same as auto online
+does now.
 
-James
+We are discussing 2 different issues here and thread got pretty
+hard to follow. I'll try to sum up at results the end.
+
+> [...]
+> > > > Memory unplug is rather new and it doesn't work reliably so far,
+> > > > moving onlining to user-space won't really help. Further work
+> > > > is need to be done so that it would work reliably.    
+> > > 
+> > > The main problem I have with this is that this is a limited usecase
+> > > driven configuration knob which doesn't work properly for other usecases
+> > > (namely movable online once your distribution choses to set the config
+> > > option to auto online).  
+> >
+> > it works for default usecase in Fedora and non-default
+> > movable can be used with
+> >  1) removable memory auto-online as movable in kernel, like
+> >     patch [1] would make movable hotplugged memory
+> >     (when I have time I'll try to work on it)
+> >  2) (or in worst case due to lack of alternative) explicitly
+> >     disabled auto-online on kernel CLI + onlining daemon 
+> >     (since udev isn't working in current kernel due to ordering issue)  
+> 
+> So I fail to see how this can work. Say the default will auto online
+> all the added memory. This will be all in Zone Normal because the auto
+> onlining doesn't do online_movable. Now I would like to online the
+> memory as movable but that might fail because some kernel objects might
+> be already sitting there so the offline would fail.
+same happens with udev rule as currently it can online from
+the first to last hotplugged block only as Zone Normal.
+see
+  arch/x86/mm/init_64.c:
+      acpi_memory_enable_device() -> add_memory -> add_memory_resource
+
+both auto online and udev could be fixed by patch
+https://bugzilla.redhat.com/attachment.cgi?id=1146332
+to online reomovable memory as movable.
+
+> > > There is a userspace solution for this so this
+> > > shouldn't have been merged in the first place!  
+> > Sorry, currently user-space udev solution doesn't work nor
+> > will it work reliably in extreme conditions.
+> >   
+> > > It sneaked a proper review
+> > > process (linux-api wasn't CC to get a broader attenttion) which is
+> > > really sad.  
+> >
+> > get_maintainer.pl doesn't lists linux-api for 31bc3858ea3e,
+> > MAINTAINERS should be fixed if linux-api were to be CCed.  
+> 
+> user visible APIs _should_ be discussed at this mailing list regardless
+> what get_maintainer.pl says. This is not about who is the maintainer but
+> about getting as wide audience for things that would have to be
+> maintained basically for ever.
+How would random contributor know which list to CC?
+
+> > > So unless this causes a major regression which would be hard to fix I
+> > > will submit the patch for inclusion.  
+> > it will be a major regression due to lack of daemon that
+> > could online fast and can't be killed on OOM. So this
+> > clean up patch does break used feature without providing
+> > a viable alternative.  
+> 
+> So let's discuss the current memory hotplug shortcomings and get rid of
+> the crud which developed on top. I will start by splitting up the patch
+> into 3 parts. Do the auto online thing from the HyperV and xen balloning
+> drivers and dropping the config option and finally drop the sysfs knob.
+> The last patch might be NAKed and I can live with that as long as the
+> reasoning is proper and there is a general consensus on that.
+PS: CC me on that patches too
+
+It's major regression if you remove auto online in kernels that
+run on top of x86 kvm/vmware hypervisors, making API cleanups
+while breaking useful functionality doesn't make sense.
+
+I would ACK config option removal if auto online keeps working
+for all x86 hypervisors (hyperv/xen isn't the only who needs it)
+and keep kernel CLI option to override default.
+
+That doesn't mean that others will agree with flipping default,
+that's why config option has been added.
+
+Now to sum up what's been discussed on this thread, there were 2
+different issues discussed:
+  1) memory hotplug: remove in kernel auto online for all
+                     except of hyperv/xen
+
+       - suggested RFC is not acceptable from virt point of view
+         as it regresses guests on top of x86 kvm/vmware which
+         both use ACPI based memory hotplug.
+
+       - udev/userspace solution doesn't work in practice as it's
+         too slow and unreliable when system is under load which
+         is quite common in virt usecase. That's why auto online
+         has been introduced in the first place.
+
+  2) memory unplug: online memory as movable
+
+       - doesn't work currently with udev rule due to kernel
+         issues https://bugzilla.redhat.com/show_bug.cgi?id=1314306#c7
+
+       - could be fixed both for in kernel auto online and udev
+         with following patch:
+         https://bugzilla.redhat.com/attachment.cgi?id=1146332
+         but fixing it this way exposes zone disbalance issues,
+         which are not present in current kernel as blocks are
+         onlined in Zone Normal. So this is area to work and
+         improve on.
+
+       - currently if one wants to use online_movable,
+         one has to either
+           * disable auto online in kernel OR
+           * remove udev rule that distro ships
+         AND write custom daemon that will be able to online
+         block in right zone/order. So currently whole
+         online_movable thing isn't working by default
+         regardless of who onlines memory.
+
+         I'm in favor of implementing that in kernel as it keeps
+         kernel internals inside kernel and doesn't need
+         kernel API to be involved (memory blocks in sysfs,
+         online_kernel, online_movable)
+         There would be no need in userspace which would have to
+         deal with kernel zoo and maintain that as well.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
