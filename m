@@ -1,166 +1,123 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v9 00/15] ACPI platform MSI support and its example mbigen
-Date: Tue, 7 Mar 2017 14:43:34 +0000
-Message-ID: <20170307144334.GB26990@red-moon>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+From: Shiju Jose <shiju.jose@huawei.com>
+Subject: {RFC PATCH v1 v4.11-rc1 1/1} acpi: apei: common handler in ghes for
+ HW errors notified via hed(PNP0C33) driver
+Date: Tue, 7 Mar 2017 16:07:27 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A62DCAF445@lhreml502-mbs>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:12028 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932946AbdCGQIY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2017 11:08:24 -0500
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "james.morse@arm.com" <james.morse@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>
+Cc: "xuwei (O)" <xuwei5@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, Xiexiuqi <xiexiuqi@huawei.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Shiju Jose <shiju.jose@huawei.com>
 
-On Tue, Mar 07, 2017 at 08:39:55PM +0800, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> With platform msi support landed in the kernel, and the introduction
-> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
-> is ready, this patch set add few patches to enable the ACPI platform
-> msi support.
-> 
-> For platform device connecting to ITS on arm platform, we have IORT
-> table with the named componant node to describe the mappings of paltform
-> device and ITS, so we can retrieve the dev id and find its parent
-> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
-> 
-> v8 -> v9:
-> 	- Rebased on top of 4.11-rc1 and retest;
-> 	- Some of patch's commit message was updated by Lorenzo and
-> 	  it's clearer (thanks!)
-> 
-> No update in the code, hope it's the final revision.
+Add common handler in ghes for HW errors notified via hed(PNP0C33) driver.
+1. Rename ghes_notify_sci() to ghes_notify_hed().
+2. Rename struct notifier_block ghes_notifier_sci to
+   struct notifier_block ghes_notifier_hed.
+3. Rename ghes_sci list to ghes_hed.
+4. Make ghes_notify_hed as common handler for
+   notification types SCI, GSIV and GPIO.
 
-I will be off the radar till -rc3 but I do not expect major changes
-to the series in its current form given that dependencies were merged
-in the merge window (ACPI IRQ probe deferral and IORT fixes).
+Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+---
+ drivers/acpi/apei/ghes.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-Thanks,
-Lorenzo
-
-> v7 -> v8:
-> 	- Using _CRS instead of _PRS for Interrupt resources for mbigen
-> 
-> 	- reshuffle the patch slightly to introduce iort_node_map_platform_id()
-> 	  first and then retrieve the dev id for platform MSI, no functional
-> 	  change
-> 
-> 	- Fix the compile error with patch "irqchip: gicv3-its: platform-msi:
-> 	  scan MADT to create platform msi domain", which forgot to add 
-> 	  <include/acpi_iort.h> (added in later patches in last version).
-> 
-> 	- renew some commit message which suggested by Lorenzo
-> 
-> 	- address some othe minor issues which commented by Lorenzo
-> 
-> 	- Add review and test tag as it's no functional change except
-> 	  the last patch of mbigen
-> 
-> 	- rebase on top of 4.10-rc4 and test it on x86, ia64 and ARM64
-> 	  platforms (also with Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
->           Add IRQ combiner driver" and Lorenzo's patch
->           https://patchwork.kernel.org/patch/9507041/)
-> 
-> v6 -> v7: 
-> 	- Introduce iort_node_map_platform_id() to retrieve the
-> 	  dev id for both NC (named component) -> ITS/SMMU and
-> 	  NC -> SMMU -> ITS cases, suggested by Lorenzo;
-> 
-> 	- Reorder the patches and rewrite some commit message;
-> 
-> 	- Remove the test tags because it has major changes
-> 	  to retrieve the dev id, Sinan, Majun, Xinwei, could
-> 	  you please test them again on your platform?
-> 
-> 	- rebased on top of 4.10-rc3 and Lorenzo's patch
->           https://patchwork.kernel.org/patch/9507041/
-> 
-> 	- Tested against Agustin's patch [1-2/3] "[PATCH V9 0/3] irqchip: qcom:
->           Add IRQ combiner driver"
-> 
-> v5 -> v6:
->         - Call acpi_configure_pmsi_domain() for platform devices in
->           acpi_platform_notify() as it's cleaner (suggested by Rafael)
->         - Remove the "u8 type" for iort_id_map() because it's unused
->         - Rebase on top of 4.10-rc2
->         - Collect test and review tags
-> 
-> v4 -> v5:
->         - Add mbigen support back with tested on with Agustin's patchset,
->           and it's a good example of how ACPI platform MSI works
->         - rebased on top of lastest Linus tree (commit 52bce91 splice: reinstate SIGPIPE/EPIPE handling)
-> 
-> v3 -> v4:
->         - Drop mbi-gen patches to just submit platform msi support because
->           will rebase mbi-gen patches on top of Agustin's patchset, and discusion
->           is going there.
->         - Add a patch to support device topology such as NC(named componant, paltform device)
->           ->SMMU->ITS which suggested by Lorenzo;
->         - rebased on top of Lorenzo's v9 of ACPI IORT ARM SMMU support;
->         - rebased on top of 4.9-rc7
-> 
-> v2 -> v3:
->         - Drop RFC tag
->         - Rebase against v4.9-rc2 and Lorenzo's v6 of ACPI IORT ARM SMMU support [1]
->         - Add 3 cleanup patches (patch 1, 2, 3)
->         - Drop arch_init call patch from last version
->         - Introduce a callback for platform device to set msi domain
->         - Introduce a new API to get paltform device's domain instead of
->           reusing the PCI one in previous version
->         - Add a patch to rework iort_node_get_id()
-> 
-> [1]: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1251993.html
-> 
-> v1 -> v2:
->         - Fix the bug of if multi Interrupt() resoures in single _PRS,
->           we need to calculate all the irq numbers (I missed it in previous
->           version);
->         - Rebased on Marc's irq/irqchip-4.9 branch and Lorenzo's v5
->           SMMU patches (also Robin's SMMu patches)
->         - Add patch irqchip: mbigen: promote mbigen init.
-> 
-> Hanjun Guo (13):
->   ACPI/IORT: Fix the indentation in iort_scan_node()
->   ACPI/IORT: Add missing comment for iort_dev_find_its_id()
->   ACPI/IORT: Rework iort_match_node_callback() return value handling
->   irqchip: gic-v3-its: keep the include header files in alphabetic
->     order
->   irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
->   irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare
->     for ACPI
->   irqchip: gicv3-its: platform-msi: scan MADT to create platform msi
->     domain
->   ACPI/IORT: Rename iort_node_map_rid() to make it generic
->   ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
->   ACPI: platform-msi: retrieve dev id from IORT
->   ACPI: platform: setup MSI domain for ACPI based platform device
->   msi: platform: make platform_msi_create_device_domain() ACPI aware
->   irqchip: mbigen: Add ACPI support
-> 
-> Kefeng Wang (2):
->   irqchip: mbigen: drop module owner
->   irqchip: mbigen: introduce mbigen_of_create_domain()
-> 
->  drivers/acpi/arm64/iort.c                     | 158 +++++++++++++++++++++-----
->  drivers/acpi/glue.c                           |   6 +
->  drivers/base/platform-msi.c                   |   3 +-
->  drivers/irqchip/irq-gic-v3-its-platform-msi.c | 106 +++++++++++++----
->  drivers/irqchip/irq-gic-v3-its.c              |   2 +-
->  drivers/irqchip/irq-mbigen.c                  | 110 +++++++++++++++---
->  include/linux/acpi_iort.h                     |   8 ++
->  7 files changed, 317 insertions(+), 76 deletions(-)
-> 
-> -- 
-> 1.7.12.4
-> 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index b192b42..fd39929 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -89,14 +89,14 @@
+ module_param_named(disable, ghes_disable, bool, 0);
+ 
+ /*
+- * All error sources notified with SCI shares one notifier function,
++ * All error sources notified with HED shares one notifier function,
+  * so they need to be linked and checked one by one.  This is applied
+  * to NMI too.
+  *
+  * RCU is used for these lists, so ghes_list_mutex is only used for
+  * list changing, not for traversing.
+  */
+-static LIST_HEAD(ghes_sci);
++static LIST_HEAD(ghes_hed);
+ static DEFINE_MUTEX(ghes_list_mutex);
+ 
+ /*
+@@ -702,14 +702,14 @@ static irqreturn_t ghes_irq_func(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int ghes_notify_sci(struct notifier_block *this,
++static int ghes_notify_hed(struct notifier_block *this,
+ 				  unsigned long event, void *data)
+ {
+ 	struct ghes *ghes;
+ 	int ret = NOTIFY_DONE;
+ 
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(ghes, &ghes_sci, list) {
++	list_for_each_entry_rcu(ghes, &ghes_hed, list) {
+ 		if (!ghes_proc(ghes))
+ 			ret = NOTIFY_OK;
+ 	}
+@@ -718,8 +718,8 @@ static int ghes_notify_sci(struct notifier_block *this,
+ 	return ret;
+ }
+ 
+-static struct notifier_block ghes_notifier_sci = {
+-	.notifier_call = ghes_notify_sci,
++static struct notifier_block ghes_notifier_hed = {
++	.notifier_call = ghes_notify_hed,
+ };
+ 
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+@@ -966,6 +966,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 	case ACPI_HEST_NOTIFY_POLLED:
+ 	case ACPI_HEST_NOTIFY_EXTERNAL:
+ 	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_GSIV:
++	case ACPI_HEST_NOTIFY_GPIO:
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+@@ -1026,10 +1028,12 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 		}
+ 		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_GSIV:
++	case ACPI_HEST_NOTIFY_GPIO:
+ 		mutex_lock(&ghes_list_mutex);
+-		if (list_empty(&ghes_sci))
+-			register_acpi_hed_notifier(&ghes_notifier_sci);
+-		list_add_rcu(&ghes->list, &ghes_sci);
++		if (list_empty(&ghes_hed))
++			register_acpi_hed_notifier(&ghes_notifier_hed);
++		list_add_rcu(&ghes->list, &ghes_hed);
+ 		mutex_unlock(&ghes_list_mutex);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+@@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 		free_irq(ghes->irq, ghes);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_GSIV:
++	case ACPI_HEST_NOTIFY_GPIO:
+ 		mutex_lock(&ghes_list_mutex);
+ 		list_del_rcu(&ghes->list);
+-		if (list_empty(&ghes_sci))
+-			unregister_acpi_hed_notifier(&ghes_notifier_sci);
++		if (list_empty(&ghes_hed))
++			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+ 		mutex_unlock(&ghes_list_mutex);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+-- 
+1.9.1
