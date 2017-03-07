@@ -1,72 +1,143 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v4 00/16] ACPI graph support
-Date: Tue, 7 Mar 2017 15:49:36 +0200
-Message-ID: <20170307134936.GJ3220@valkosipuli.retiisi.org.uk>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170307074948.GE3220@valkosipuli.retiisi.org.uk>
- <CAJZ5v0iNqTb55xrq21Byn5q6XUeFYSa2mMLj+Jnu1_d0DyMvxQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
+Date: Tue, 7 Mar 2017 14:35:25 +0000
+Message-ID: <20170307143525.GA26990@red-moon>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37844 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752390AbdCGNto (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2017 08:49:44 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iNqTb55xrq21Byn5q6XUeFYSa2mMLj+Jnu1_d0DyMvxQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-Hi Rafael,
-
-On Tue, Mar 07, 2017 at 02:23:33PM +0100, Rafael J. Wysocki wrote:
-> On Tue, Mar 7, 2017 at 8:49 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Hi Rafael,
-> >
-> > On Mon, Mar 06, 2017 at 04:19:14PM +0200, Sakari Ailus wrote:
-> >> This set contains patches written by Mika Westerberg and by myself. The
-> >> patchset brings support for graphs to ACPI. The functionality achieved by
-> >> these patches is very similar to what the Device tree provides: the port
-> >> and the endpoint concept are being employed. The patches make use of the
-> >> _DSD property and data extensions to achieve this. The fwnode interface is
-> >> extended by graph functionality; this way graph information originating
-> >> from both OF and ACPI may be accessed using the same interface, without
-> >> being aware of the underlying firmware interface.
-> >
-> > I've tested the patches again on ARM (OF) and x86-64 (ACPI).
+On Tue, Mar 07, 2017 at 08:40:05PM +0800, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
 > 
-> OK
+> For devices connecting to ITS, the devices need to identify themself
+> through a dev id; this dev id is represented in the IORT table in named
+> component node [1] for platform devices, so this patch adds code that
+> scans the IORT table to retrieve the devices' dev id.
 > 
-> > I have V4L2 patches depending on the ACPI graph patchset that I'd like to
-> > have in during the same merge window. Would you either accept a pull
-> > request, or could I have a branch on top of v4.11-rc1 containing these
-> > patches only (for media tree)?
-> >
-> > The patchset "Move firmware specific code to firmware specific locations"
-> > depends on "Fwnode property API fixes for OF, pset". Would you prefer to
-> > send the bugfixes as fixes to v4.11 or just put it all to v4.12?
+> Leveraging the iort_node_map_platform_id() IORT API, add a new function
+> call, iort_pmsi_get_dev_id() and use it in its_pmsi_prepare() to allow
+> retrieving dev id in ACPI platforms.
 > 
-> I'll put it all into v4.12 if that's not a problem.
-
-That's fine for me but see below...
-
+> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
 > 
-> Also I don't really have the time to take care of that this week due
-> to other work.  I'll get to it next week, most likely.
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> [lorenzo.pieralisi@arm.com: rewrote commit log]
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Tested-by: Ming Lei <ming.lei@canonical.com>
+> Tested-by: Wei Xu <xuwei5@hisilicon.com>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> ---
+>  drivers/acpi/arm64/iort.c                     | 24 ++++++++++++++++++++++++
+>  drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
+>  include/linux/acpi_iort.h                     |  5 +++++
+>  3 files changed, 31 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 83cd59d..fb95ceb 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -468,6 +468,30 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+>  }
+>  
+>  /**
+> + * iort_pmsi_get_dev_id() - Get the device id for a device
+> + * @dev: The device for which the mapping is to be done.
+> + * @dev_id: The device ID found.
+> + *
+> + * Returns: 0 for successful find a dev id, -ENODEV on error
+> + */
+> +int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+> +{
+> +	int i;
+> +	struct acpi_iort_node *node;
+> +
+> +	node = iort_find_dev_node(dev);
+> +	if (!node)
+> +		return -ENODEV;
 
-Ack.
+I think that when specs are updated so that we can enable SMMU MSIs we
+shall have to find a way to get the acpi_iort_node for a device that is
+not a named component here (ie SMMU), I reckon we can use the
+fwnode_handle but I have to have a deeper look.
 
-Would you prefer me to send a pull request, or pick up the patches --- in
-the latter case I'd like to request an immutable branch with these patches
-only on v4.11-rc1 which I could use for basing my dependent V4L2 patches
-that go to the media tree.
+This does not affect the patchset in its current form, just scanning
+the code to make sure we will be able to support SMMU MSIs too when
+time comes.
 
-Thanks.
+Thanks,
+Lorenzo
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> +
+> +	for (i = 0; i < node->mapping_count; i++) {
+> +		if (iort_node_map_platform_id(node, dev_id, IORT_MSI_TYPE, i))
+> +			return 0;
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +/**
+>   * iort_dev_find_its_id() - Find the ITS identifier for a device
+>   * @dev: The device.
+>   * @req_id: Device's requester ID
+> diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+> index e4ba9f4..e801fc0 100644
+> --- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+> +++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
+> @@ -57,7 +57,8 @@ static int its_pmsi_prepare(struct irq_domain *domain, struct device *dev,
+>  
+>  	msi_info = msi_get_domain_info(domain->parent);
+>  
+> -	ret = of_pmsi_get_dev_id(domain, dev, &dev_id);
+> +	ret = dev->of_node ? of_pmsi_get_dev_id(domain, dev, &dev_id) :
+> +		iort_pmsi_get_dev_id(dev, &dev_id);
+>  	if (ret)
+>  		return ret;
+>  
+> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
+> index 77e0809..d074c77 100644
+> --- a/include/linux/acpi_iort.h
+> +++ b/include/linux/acpi_iort.h
+> @@ -34,6 +34,7 @@
+>  bool iort_node_match(u8 type);
+>  u32 iort_msi_map_rid(struct device *dev, u32 req_id);
+>  struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
+> +int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
+>  /* IOMMU interface */
+>  void iort_set_dma_mask(struct device *dev);
+>  const struct iommu_ops *iort_iommu_configure(struct device *dev);
+> @@ -45,6 +46,10 @@ static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
+>  static inline struct irq_domain *iort_get_device_domain(struct device *dev,
+>  							u32 req_id)
+>  { return NULL; }
+> +
+> +static inline int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id)
+> +{ return -ENODEV; }
+> +
+>  /* IOMMU interface */
+>  static inline void iort_set_dma_mask(struct device *dev) { }
+>  static inline
+> -- 
+> 1.7.12.4
+> 
