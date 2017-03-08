@@ -1,127 +1,201 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V12 10/10] arm/arm64: KVM: add guest SEA support
-Date: Wed, 08 Mar 2017 16:09:06 +0000
-Message-ID: <58C02CA2.4030601@arm.com>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
- <1488833103-21082-11-git-send-email-tbaicar@codeaurora.org>
- <58BE9E14.6040208@arm.com>
- <783e18ac-9495-aaf6-8fbd-5a48c0b68f5b@codeaurora.org>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH V8 01/11] iommu/of: Refactor of_iommu_configure() for
+	error handling
+Date: Wed, 8 Mar 2017 18:58:20 +0000
+Message-ID: <8701bfbe-e52e-0e26-2a71-f5f81684de70@arm.com>
+References: <1486136933-20328-1-git-send-email-sricharan@codeaurora.org>
+	<1486136933-20328-2-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <783e18ac-9495-aaf6-8fbd-5a48c0b68f5b@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1486136933-20328-2-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/03/17 17:58, Baicar, Tyler wrote:
-> On 3/7/2017 4:48 AM, James Morse wrote:
->> On 06/03/17 20:45, Tyler Baicar wrote:
->>> Currently external aborts are unsupported by the guest abort
->>> handling. Add handling for SEAs so that the host kernel reports
->>> SEAs which occur in the guest kernel.
+Hello,
 
->>> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
->>> index a5265ed..f3608c9 100644
->>> --- a/arch/arm/kvm/mmu.c
->>> +++ b/arch/arm/kvm/mmu.c
->>> @@ -1444,8 +1463,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu,
->>> struct kvm_run *run)
->>>         /* Check the stage-2 fault is trans. fault or write fault */
->>>       fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
->>> -    if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
->>> -        fault_status != FSC_ACCESS) {
->>> +
->>> +    /* The host kernel will handle the synchronous external abort. There
->>> +     * is no need to pass the error into the guest.
->>> +     */
->>> +    if (is_abort_synchronous(fault_status)) {
->>> +        if(handle_guest_sea((unsigned long)fault_ipa,
->>> +                    kvm_vcpu_get_hsr(vcpu))) {
->>
->> ... Looking further up in this function:
->>>     is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
->>>     if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
->>>         kvm_inject_vabt(vcpu);
->>>         return 1;
->>>     }
->> ... so external data aborts will have already been 'claimed' by kvm and dealt
->> with, and we already have a helper for spotting external aborts. (sorry I didn't
->> spot it earlier).
->>
->> We need to do the handle_guest_sea() before this code.
->>
->> kvm_inject_vabt() makes an SError interrupt pending for the guest. This makes a
->> synchronous error asynchronous as the guest may have SError interrupts masked.
->>
->> I guess this was the best that could be done at the time of (4055710baca8
->> "arm/arm64: KVM: Inject virtual abort when guest exits on external abort"), but
->> in the light of this firmware-first handling, I'm not sure its the right thing
->> to do.
->>
->> Is it possible for handle_guest_sea() to return whether it actually found any
->> work to do? If there was none I think we should keep this kvm_inject_vabt() as
->> it is the existing behaviour.
+On 03/02/17 15:48, Sricharan R wrote:
+> From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> 
+> In preparation for some upcoming cleverness, rework the control flow in
+> of_iommu_configure() to minimise duplication and improve the propogation
+> of errors. It's also as good a time as any to switch over from the
+> now-just-a-compatibility-wrapper of_iommu_get_ops() to using the generic
+> IOMMU instance interface directly.
+> 
+> Tested-by: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  [*] Resolved a conflict while rebasing on top linux-next as the patch
+>      is not there in mainline master.
+> 
+>         "iommu: Drop the of_iommu_{set/get}_ops() interface"
+>         https://lkml.org/lkml/2017/1/3/489
+> 
+>  drivers/iommu/of_iommu.c | 83 +++++++++++++++++++++++++++++++-----------------
+>  1 file changed, 53 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+> index d7f480a..ee49081 100644
+> --- a/drivers/iommu/of_iommu.c
+> +++ b/drivers/iommu/of_iommu.c
+> @@ -96,6 +96,28 @@ int of_get_dma_window(struct device_node *dn, const char *prefix, int index,
+>  }
+>  EXPORT_SYMBOL_GPL(of_get_dma_window);
+>  
+> +static const struct iommu_ops
+> +*of_iommu_xlate(struct device *dev, struct of_phandle_args *iommu_spec)
+> +{
+> +	const struct iommu_ops *ops;
+> +	struct fwnode_handle *fwnode = &iommu_spec->np->fwnode;
+> +	int err;
+> +
+> +	ops = iommu_get_instance(fwnode);
+> +	if (!ops || !ops->of_xlate)
+> +		return NULL;
+> +
+> +	err = iommu_fwspec_init(dev, &iommu_spec->np->fwnode, ops);
+> +	if (err)
+> +		return ERR_PTR(err);
+> +
+> +	err = ops->of_xlate(dev, iommu_spec);
+> +	if (err)
+> +		return ERR_PTR(err);
+> +
+> +	return ops;
+> +}
+> +
+>  static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>  {
+>  	struct of_phandle_args *iommu_spec = data;
+> @@ -105,10 +127,11 @@ static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>  }
+>  
+>  static const struct iommu_ops
+> -*of_pci_iommu_configure(struct pci_dev *pdev, struct device_node *bridge_np)
+> +*of_pci_iommu_init(struct pci_dev *pdev, struct device_node *bridge_np)
+>  {
+>  	const struct iommu_ops *ops;
+>  	struct of_phandle_args iommu_spec;
+> +	int err;
+>  
+>  	/*
+>  	 * Start by tracing the RID alias down the PCI topology as
+> @@ -123,56 +146,56 @@ static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>  	 * bus into the system beyond, and which IOMMU it ends up at.
+>  	 */
+>  	iommu_spec.np = NULL;
+> -	if (of_pci_map_rid(bridge_np, iommu_spec.args[0], "iommu-map",
+> -			   "iommu-map-mask", &iommu_spec.np, iommu_spec.args))
+> -		return NULL;
+> +	err = of_pci_map_rid(bridge_np, iommu_spec.args[0], "iommu-map",
+> +			     "iommu-map-mask", &iommu_spec.np,
+> +			     iommu_spec.args);
+> +	if (err)
+> +		return ERR_PTR(err);
 
-> Yes, I'll move the handle_guest_sea() call above this. My testing didn't call
-> into that if statement for some reason...it made it to the handle_guest_sea()
-> call successfully.
+This change doesn't work with of_pci_map_rid when the PCI RC isn't behind
+an IOMMU:
 
-I guess you're not using data aborts for testing then.
+        map = of_get_property(np, map_name, &map_len);
+        if (!map) {
+                if (target)
+                        return -ENODEV;
+                /* Otherwise, no map implies no translation */
+                *id_out = rid;
+                return 0;
+        }
 
-
-> If there is no work for the GHES code to do it will return and could still make
-> the kvm_inject_vabt() call. It will also return and do that same thing if the
-> error was not fatal in GHES...would that be an issue?
-
-We might inject a superfluous SError Interrupt in that case.
-
-For memory errors we may do the whole unmapping and signalling thing to handle
-the fault. For recoverable faults, QEMU can generate its own CPER records for
-the guest and do the work to notify the guest. Everything looks fine until the
-guest gets the extra SError interrupt.
-
-If there is firmware-first RAS data, we should skip the injected SError
-Interrupt as the host's RAS code should choose what to do. If this Synchronous
-External Abort was nothing to do with RAS, we should inject the SError interrupt
-as it's the existing behaviour, and not all platforms will have this Synchronous
-External Abort mechanism.
-
-x86's APEI NMI needs to know if the NMI was due to RAS, so we can probably
-borrow the same trick. ghes_notify_nmi() calls ghes_read_estatus() for each
-struct ghes. If they all return an error, there was no work to do.
-
-
-(I assume firmware will only generate one of these at a time, so there is no
-risk of one list-walker processing two entries, then the second finding nothing
-to do?)
-
+Previously with no iommu-map, we returned -ENODEV but it was discarded by
+of_pci_iommu_configure. Now it is propagated and the whole device probing
+fails. Instead, maybe of_pci_map_rid should always return 0 if no
+iommu-map, and the caller should check if *target is still NULL?
 
 Thanks,
+Jean-Philippe
 
-James
-
-
->>> +            kvm_err("Failed to handle guest SEA, FSC: EC=%#x xFSC=%#lx
->>> ESR_EL2=%#lx\n",
->>> +                kvm_vcpu_trap_get_class(vcpu),
->>> +                (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
->>> +                (unsigned long)kvm_vcpu_get_hsr(vcpu));
->>> +            return -EFAULT;
->>> +        }
->>> +    } else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
->>> +           fault_status != FSC_ACCESS) {
->>>           kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
->>>               kvm_vcpu_trap_get_class(vcpu),
->>>               (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
->>
+>  
+> -	ops = iommu_get_instance(&iommu_spec.np->fwnode);
+> -	if (!ops || !ops->of_xlate ||
+> -	    iommu_fwspec_init(&pdev->dev, &iommu_spec.np->fwnode, ops) ||
+> -	    ops->of_xlate(&pdev->dev, &iommu_spec))
+> -		ops = NULL;
+> +	ops = of_iommu_xlate(&pdev->dev, &iommu_spec);
+>  
+>  	of_node_put(iommu_spec.np);
+>  	return ops;
+>  }
+>  
+> -const struct iommu_ops *of_iommu_configure(struct device *dev,
+> -					   struct device_node *master_np)
+> +static const struct iommu_ops
+> +*of_platform_iommu_init(struct device *dev, struct device_node *np)
+>  {
+>  	struct of_phandle_args iommu_spec;
+> -	struct device_node *np;
+>  	const struct iommu_ops *ops = NULL;
+>  	int idx = 0;
+>  
+> -	if (dev_is_pci(dev))
+> -		return of_pci_iommu_configure(to_pci_dev(dev), master_np);
+> -
+>  	/*
+>  	 * We don't currently walk up the tree looking for a parent IOMMU.
+>  	 * See the `Notes:' section of
+>  	 * Documentation/devicetree/bindings/iommu/iommu.txt
+>  	 */
+> -	while (!of_parse_phandle_with_args(master_np, "iommus",
+> -					   "#iommu-cells", idx,
+> -					   &iommu_spec)) {
+> -		np = iommu_spec.np;
+> -		ops = iommu_get_instance(&np->fwnode);
+> -
+> -		if (!ops || !ops->of_xlate ||
+> -		    iommu_fwspec_init(dev, &np->fwnode, ops) ||
+> -		    ops->of_xlate(dev, &iommu_spec))
+> -			goto err_put_node;
+> -
+> -		of_node_put(np);
+> +	while (!of_parse_phandle_with_args(np, "iommus", "#iommu-cells",
+> +					   idx, &iommu_spec)) {
+> +		ops = of_iommu_xlate(dev, &iommu_spec);
+> +		of_node_put(iommu_spec.np);
+>  		idx++;
+> +		if (IS_ERR_OR_NULL(ops))
+> +			break;
+>  	}
+>  
+>  	return ops;
+> +}
+> +
+> +const struct iommu_ops *of_iommu_configure(struct device *dev,
+> +					   struct device_node *master_np)
+> +{
+> +	const struct iommu_ops *ops;
+> +
+> +	if (!master_np)
+> +		return NULL;
+> +
+> +	if (dev_is_pci(dev))
+> +		ops = of_pci_iommu_init(to_pci_dev(dev), master_np);
+> +	else
+> +		ops = of_platform_iommu_init(dev, master_np);
+>  
+> -err_put_node:
+> -	of_node_put(np);
+> -	return NULL;
+> +	return IS_ERR(ops) ? NULL : ops;
+>  }
+>  
+>  static int __init of_iommu_init(void)
+> 
