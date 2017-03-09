@@ -1,83 +1,137 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] ACPI: skip boot interrupt rerouting when index is zero
-Date: Wed, 8 Mar 2017 16:34:10 -0600
-Message-ID: <20170308223410.GA12086@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170210114517.14812-1-sassmann@kpanic.de>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH V12 09/10] trace, ras: add ARM processor error trace event
+Date: Thu, 9 Mar 2017 17:41:22 +0800
+Message-ID: <58C12342.2090701@huawei.com>
+References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
+ <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:49988 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751825AbdCHWmK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 8 Mar 2017 17:42:10 -0500
-Content-Disposition: inline
-In-Reply-To: <20170210114517.14812-1-sassmann@kpanic.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kern
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Assmann <sassmann@kpanic.de>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net
 
-Hi Stefan,
+Hi Tyler Baicar,
 
-On Fri, Feb 10, 2017 at 12:45:17PM +0100, Stefan Assmann wrote:
-> When checking for boot interrupts and PRT index is zero avoid doing
-> any interrupt rerouting since the code currently does not handle
-> determining the IRQ via _CRS method.
-
-I don't understand this at all.  Can you educate me a little?
-
-This bug occurs on the M2N-LR system.  I think that board contains an
-Intel 6702PXH PCIe-to-PCI-X bridge to support its PCI-X slots.  A
-PCI-X 3ware 9550SX is plugged in below the 6702PXH, and the problem is
-with the wired INTx interrupts from the 9550SX.
-
-Can we tell where those PCI-X INTx wires are connected?  There's an
-IOAPIC in the 6702PXH; if they're connected there, the Intel 6700PXH
-64-bit PCI Hub datasheet [1], sec 2.15.2, says it should generate
-upstream PCIe INTx messages ("boot interrupts") if the PCI-X INTx
-interrupt is masked in the APIC.
-
-If the PCI-X INTx wires are connected elsewhere, e.g., to some other
-IOAPIC, the 6702PXH should never see its IOAPIC inputs wiggle and it
-should never generate a boot interrupt.
-
-The fact that the 6702PXH IOAPIC doesn't appear in the lspci output
-and that "pci=noioapicquirk" is a workaround makes me think that we
-aren't using the 6702PXH IOAPIC and therefore we don't see boot
-interrupts on this system.
-
-So my guess is that we should not use the IRQ reroute feature on this
-system, and I think that's what your patch accomplishes.  But I don't
-understand the way you figure it out.  Looking for "entry->index == 0"
-doesn't seem like an obvious connection.
-
-[1] http://www.intel.com/content/dam/doc/datasheet/6700pxh-64-bit-pci-hub-datasheet.pdf
-
-> Fixes:
-> https://bugzilla.kernel.org/show_bug.cgi?id=43074
+On 2017/3/7 4:45, Tyler Baicar wrote:
+> Currently there are trace events for the various RAS
+> errors with the exception of ARM processor type errors.
+> Add a new trace event for such errors so that the user
+> will know when they occur. These trace events are
+> consistent with the ARM processor error section type
+> defined in UEFI 2.6 spec section N.2.4.4.
 > 
-> Signed-off-by: Stefan Assmann <sassmann@kpanic.de>
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> Acked-by: Steven Rostedt <rostedt@goodmis.org>
 > ---
->  drivers/acpi/pci_irq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/apei/ghes.c    |  8 +++++++-
+>  drivers/firmware/efi/cper.c |  1 +
+>  drivers/ras/ras.c           |  1 +
+>  include/ras/ras_event.h     | 34 ++++++++++++++++++++++++++++++++++
+>  4 files changed, 43 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index c576a6f..6ecbde0 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -280,7 +280,7 @@ static int bridge_has_boot_interrupt_variant(struct pci_bus *bus)
->  static int acpi_reroute_boot_interrupt(struct pci_dev *dev,
->  				       struct acpi_prt_entry *entry)
->  {
-> -	if (noioapicquirk || noioapicreroute) {
-> +	if (noioapicquirk || noioapicreroute || entry->index == 0) {
->  		return 0;
->  	} else {
->  		switch (bridge_has_boot_interrupt_variant(dev->bus)) {
-> -- 
-> 2.9.3
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 842c0cc..81d7b79 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -514,7 +514,13 @@ static void ghes_do_proc(struct ghes *ghes,
+>  		}
+>  #endif
+>  #ifdef CONFIG_RAS
+> -		else if (trace_unknown_sec_event_enabled()) {
+> +		else if (!uuid_le_cmp(sec_type, CPER_SEC_PROC_ARM) &&
+> +			 trace_arm_event_enabled()) {
+> +			struct cper_sec_proc_arm *arm_err;
+> +
+> +			arm_err = acpi_hest_generic_data_payload(gdata);
+> +			trace_arm_event(arm_err);
+> +		} else if (trace_unknown_sec_event_enabled()) {
+>  			void *unknown_err = acpi_hest_generic_data_payload(gdata);
+>  			trace_unknown_sec_event(&sec_type,
+>  					fru_id, fru_text, sec_sev,
+> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+> index 545a6c2..e9fb56a 100644
+> --- a/drivers/firmware/efi/cper.c
+> +++ b/drivers/firmware/efi/cper.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/printk.h>
+>  #include <linux/bcd.h>
+>  #include <acpi/ghes.h>
+> +#include <ras/ras_event.h>
+>  
+>  #define INDENT_SP	" "
+>  
+> diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
+> index fb2500b..8ba5a94 100644
+> --- a/drivers/ras/ras.c
+> +++ b/drivers/ras/ras.c
+> @@ -28,3 +28,4 @@ static int __init ras_init(void)
+>  #endif
+>  EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
+>  EXPORT_TRACEPOINT_SYMBOL_GPL(unknown_sec_event);
+> +EXPORT_TRACEPOINT_SYMBOL_GPL(arm_event);
+> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
+> index 5861b6f..b36db48 100644
+> --- a/include/ras/ras_event.h
+> +++ b/include/ras/ras_event.h
+> @@ -162,6 +162,40 @@
+>  );
+>  
+>  /*
+> + * ARM Processor Events Report
+> + *
+> + * This event is generated when hardware detects an ARM processor error
+> + * has occurred. UEFI 2.6 spec section N.2.4.4.
+> + */
+> +TRACE_EVENT(arm_event,
+> +
+> +	TP_PROTO(const struct cper_sec_proc_arm *proc),
+> +
+> +	TP_ARGS(proc),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(u64, mpidr)
+> +		__field(u64, midr)
+> +		__field(u32, running_state)
+> +		__field(u32, psci_state)
+> +		__field(u8, affinity)
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->affinity = proc->affinity_level;
+> +		__entry->mpidr = proc->mpidr;
+> +		__entry->midr = proc->midr;
+> +		__entry->running_state = proc->running_state;
+> +		__entry->psci_state = proc->psci_state;
+> +	),
+> +
+> +	TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
+> +		  "running state: %d; PSCI state: %d",
+> +		  __entry->affinity, __entry->mpidr, __entry->midr,
+> +		  __entry->running_state, __entry->psci_state)
+> +);
+> +
+
+I think these fields are not enough, we need also export arm processor error
+information (UEFI 2.6 spec section N.2.4.4.1), or at least the error type,
+address, etc. So that the userspace (such as rasdaemon tool) could know what
+error occurred.
+
+Thanks,
+Xie XiuQi
+
+> +/*
+>   * Unknown Section Report
+>   *
+>   * This event is generated when hardware detected a hardware
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
