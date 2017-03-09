@@ -1,74 +1,81 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
-Date: Thu, 9 Mar 2017 23:50:18 +0100
-Message-ID: <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com>
-References: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
- <20170309181134.GA15721@bhelgaas-glaptop.roam.corp.google.com>
- <CAK8P3a0iECAKBKG6zqXO5VaPze9OzxzSY+cBFHsM46xVAGhE1A@mail.gmail.com> <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 00/16] ACPI graph support
+Date: Fri, 10 Mar 2017 00:05:04 +0100
+Message-ID: <1810272.34jmmMEX8i@aspire.rjw.lan>
+References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com> <CAJZ5v0iNqTb55xrq21Byn5q6XUeFYSa2mMLj+Jnu1_d0DyMvxQ@mail.gmail.com> <20170307134936.GJ3220@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:35211 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753579AbdCIWuU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Mar 2017 17:50:20 -0500
-In-Reply-To: <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55935 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751875AbdCIXKZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Mar 2017 18:10:25 -0500
+In-Reply-To: <20170307134936.GJ3220@valkosipuli.retiisi.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Thu, Mar 9, 2017 at 11:37 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Thu, Mar 09, 2017 at 11:09:24PM +0100, Arnd Bergmann wrote:
->> On Thu, Mar 9, 2017 at 7:11 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> > On Thu, Mar 09, 2017 at 03:41:03PM +0000, Gabriele Paoloni wrote:
->> >> Hi Bjorn and all
->> >>
->> >> I have a question regarding bus addresses for IO resources in the
->> >> ACPI table.
->> >>
->> >> The question is if from an ACPI perspective it is legal to have two
->> >> entries in separate _CRS methods using the same IO bus address.
->> >>
->> >> As an example please see the code at the bottom: we have the same
->> >> bus address starting at 0x0 with (obviously) different offsets
->> >> leading to different CPU physical addresses. Is this legal?
->> >
->> > Yes.
->> >
->> > These are on separate PCI buses (PCI0 leads to 0000:00 and PCI1 leads
->> > to 0001:e0), so there should be no conflict.  Those are completely
->> > independent PCI buses, and their bus address spaces are also
->> > independent.
->> >
->> > You do have to make sure the CPU physical addresses don't conflict, of
->> > course.
->>
->> Ok. My reading of the ia64 code was that it would reject this as being
->> overlapping resources, but I was probably misreading then.
->
-> I'm fairly sure ia64 supported multiple 0-0xffff I/O port spaces (in PCI
-> I/O space), but I don't have dmesg logs from any of those machines any
-> more.
+On Tuesday, March 07, 2017 03:49:36 PM Sakari Ailus wrote:
+> Hi Rafael,
 
-Ok. I've read the code again and you are right: ia64 checks that the
-CPU address is unique, not the PCI I/O space address.
+Hi,
 
->> What is the expected way to deal with a device using an I/O resource
->> that is not a child of either PCI host bridge in this case (e.g. a
->> BMC behind a PCI-LPC bridge)? Is this only allowed to exist below
->> the device that provides the respective I/O space?
->
-> That's a good question.  I'm not really familiar with PCI-LPC bridges.
-> I guess they're not PCI-to-PCI bridges and wouldn't have I/O windows
-> like I'm used to?  What *do* they look like?
+> On Tue, Mar 07, 2017 at 02:23:33PM +0100, Rafael J. Wysocki wrote:
+> > On Tue, Mar 7, 2017 at 8:49 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > > Hi Rafael,
+> > >
+> > > On Mon, Mar 06, 2017 at 04:19:14PM +0200, Sakari Ailus wrote:
+> > >> This set contains patches written by Mika Westerberg and by myself. The
+> > >> patchset brings support for graphs to ACPI. The functionality achieved by
+> > >> these patches is very similar to what the Device tree provides: the port
+> > >> and the endpoint concept are being employed. The patches make use of the
+> > >> _DSD property and data extensions to achieve this. The fwnode interface is
+> > >> extended by graph functionality; this way graph information originating
+> > >> from both OF and ACPI may be accessed using the same interface, without
+> > >> being aware of the underlying firmware interface.
+> > >
+> > > I've tested the patches again on ARM (OF) and x86-64 (ACPI).
+> > 
+> > OK
+> > 
+> > > I have V4L2 patches depending on the ACPI graph patchset that I'd like to
+> > > have in during the same merge window. Would you either accept a pull
+> > > request, or could I have a branch on top of v4.11-rc1 containing these
+> > > patches only (for media tree)?
+> > >
+> > > The patchset "Move firmware specific code to firmware specific locations"
+> > > depends on "Fwnode property API fixes for OF, pset". Would you prefer to
+> > > send the bugfixes as fixes to v4.11 or just put it all to v4.12?
+> > 
+> > I'll put it all into v4.12 if that's not a problem.
+> 
+> That's fine for me but see below...
+> 
+> > 
+> > Also I don't really have the time to take care of that this week due
+> > to other work.  I'll get to it next week, most likely.
+> 
+> Ack.
+> 
+> Would you prefer me to send a pull request, or pick up the patches --- in
+> the latter case I'd like to request an immutable branch with these patches
+> only on v4.11-rc1 which I could use for basing my dependent V4L2 patches
+> that go to the media tree.
 
-They are like PCI-ISA bridges, connecting devices that use either
-hardcoded I/O ports (uart, ipmi-kcs, ...) or ISAPNP.
+So from this series I can queue up patches [1-7/16] no problem.
 
-In the case that we are interested in specifically here, there is not
-actually a PCI-LPC bridge, but a LPC host bridge that is independent
-of PCI but has its own I/O space, and a number of child devices attached
-to that.
+Patch [8/16] requires an ACK from Rob for me to take it.
 
-      Arnd
+Patch [9/16] is not even related to this series technically, so please send it
+separately to Greg.
+
+Patch [10/16] needs to be folded into the one that depends on it IMO.
+
+I also have questions to patches [11-16/16], but I'll respond to those
+separately later.
+
+Thanks,
+Rafael
+
