@@ -1,110 +1,181 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
-Date: Thu, 9 Mar 2017 12:11:34 -0600
-Message-ID: <20170309181134.GA15721@bhelgaas-glaptop.roam.corp.google.com>
-References: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
+From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH V9 00/11] IOMMU probe deferral support
+Date: Fri, 10 Mar 2017 00:30:50 +0530
+Message-ID: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:60450 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752627AbdCISLj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 9 Mar 2017 13:11:39 -0500
-Content-Disposition: inline
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "arnd@arndb.de" <arnd@arndb.de>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Mar 09, 2017 at 03:41:03PM +0000, Gabriele Paoloni wrote:
-> Hi Bjorn and all
-> 
-> I have a question regarding bus addresses for IO resources in the
-> ACPI table.
-> 
-> The question is if from an ACPI perspective it is legal to have two
-> entries in separate _CRS methods using the same IO bus address.
-> 
-> As an example please see the code at the bottom: we have the same
-> bus address starting at 0x0 with (obviously) different offsets
-> leading to different CPU physical addresses. Is this legal?
+This series calls the dma ops configuration for the devices
+at a generic place so that it works for all busses.
+The dma_configure_ops for a device is now called during
+the device_attach callback just before the probe of the
+bus/driver is called. Similarly dma_deconfigure is called during
+device/driver_detach path.
 
-Yes.
+pci_bus_add_devices    (platform/amba)(_device_create/driver_register)
+       |                         |
+pci_bus_add_device     (device_add/driver_register)
+       |                         |
+device_attach           device_initial_probe
+       |                         |
+__device_attach_driver    __device_attach_driver
+       |
+driver_probe_device
+       |
+really_probe
+       |
+dma_configure
 
-These are on separate PCI buses (PCI0 leads to 0000:00 and PCI1 leads
-to 0001:e0), so there should be no conflict.  Those are completely
-independent PCI buses, and their bus address spaces are also
-independent.
+Similarly on the device/driver_unregister path __device_release_driver is
+called which inturn calls dma_deconfigure.
 
-You do have to make sure the CPU physical addresses don't conflict, of
-course.
+Rebased the series against mainline 4.11-rc1. Applies and builds cleanly
+against mainline and linux-next. There is a conflict with patch#9
+against iommu-next, but that should go away eventually as iommu-next
+is rebased against 4.11-rc1.
+  
+* Tested with platform and pci devices for probe deferral
+  and reprobe on arm64 based platform.
 
-It looks like these are memory space on the CPU side, and the bridge
-converts it to PCI I/O space, right?  There is an ACPI _TTP bit to
-indicate this, which I don't see in your descriptors.
+Previous post of this series [6]. 
 
-> p.s. full DSDT is here:
-> https://git.linaro.org/people/heyi.guo/OpenPlatformPkg.git/tree/Chips/Hisilicon/Hi1610/Hi1610AcpiTables/Dsdt/D03Pci.asl?h=estuary-rp
-> 
-> Many thanks
-> Gab
-> 
-> ----
-> 
->   Device (PCI0)
->   {
->     Name (_HID, "HISI0080") // PCI Express Root Bridge
->     Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
->     Name(_SEG, 0) // Segment of this Root complex
->     Name(_BBN, 0) // Base Bus Number
->     Name(_CCA, 1)
->     Method (_CRS, 0, Serialized) { // Root complex resources
-> 
-> [...]
-> 
->         QWordIO (
->           ResourceProducer,
->           MinFixed,
->           MaxFixed,
->           PosDecode,
->           EntireRange,
->           0x0, // Granularity
->           0x0, // Min Base Address
->           0xffff, // Max Base Address
->           0xb7ff0000, // Translate
->           0x10000 // Length
->         )
->       }) // Name(RBUF)
->       Return (RBUF)
->     } // Method(_CRS)
-> 
-> 
-> // PCIe Root bus
->   Device (PCI1)
->   {
->     Name (_HID, "HISI0080") // PCI Express Root Bridge
->     Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
->     Name(_SEG, 1) // Segment of this Root complex
->     Name(_BBN, 0xe0) // Base Bus Number
->     Name(_CCA, 1)
->     Method (_CRS, 0, Serialized) { // Root complex resources
-> 
-> [...]
-> 
->         QWordIO (
->           ResourceProducer,
->           MinFixed,
->           MaxFixed,
->           PosDecode,
->           EntireRange,
->           0x0, // Granularity
->           0x0, // Min Base Address
->           0xffff, // Max Base Address
->           0xbdff0000, // Translate
->           0x10000 // Length
->         )
->       }) // Name(RBUF)
->       Return (RBUF)
->     } // Method(_CRS)
-> 
+ [V9]
+     * Rebased on top of 4.11-rc1.
+
+     * Merged Robin's fixes for legacy binding issue,
+       pci devices with no iommu-map property.
+     
+ [V8]
+     * Picked up all the acks and tested tags from Marek and
+       Hanjun for DT and ACPI patches respectively, since
+       no functional changes was done.
+
+     * Addressed Minor comments Sinan and Bjorn.
+
+     * Added Robin's fix for fixing the deferencing NULL for
+       of_iommu_table after init in patch #2.
+
+     * Rebased it on top of linux-next
+
+ [V7]
+     * Updated the subject and commit log for patch #6 as per
+       comments from Lorenzo. No functional changes.
+
+ [V6]
+     * Fixed a bug in dma_configure function pointed out by
+       Robin.
+     * Reordered the patches as per comments from Robin and
+       Lorenzo.
+     * Added Tags.
+
+ [V5]
+     * Reworked the pci configuration code hanging outside and
+       pushed it to dma_configure as in PATCH#5,6,7.
+       Also added a couple of patches that Lorenzo provided for
+       correcting the Probe deferring mechanism in case of
+       ACPI devices from here [5].
+
+ [V4]
+     * Took the reworked patches [2] from Robin's branch and
+       rebased on top of Lorenzo's ACPI IORT ARM support series [3].
+
+     * Added the patches for moving the dma ops configuration of
+       acpi based devices to probe time as well.
+ [V3]
+     * Removed the patch to split dma_masks/dma_ops configuration
+       separately based on review comments that both masks and ops are
+       required only during the device probe time.
+
+     * Reworked the series based on Generic DT bindings series.
+
+     * Added call to iommu's remove_device in the cleanup path for arm and
+       arm64.
+
+     * Removed the notifier trick in arm64 to handle early device
+       registration.
+
+     * Added reset of dma_ops in cleanup path for arm based on comments.
+
+     * Fixed the pci_iommu_configure path and tested with PCI device as
+       well.
+ 
+     * Fixed a bug to return the correct iommu_ops from patch 7 [4] in
+       last post.
+
+     * Fixed few other cosmetic comments.
+  
+ [V2]
+     * Updated the Initial post to call dma_configure/deconfigure from
+       generic code
+ 
+     * Added iommu add_device callback from of_iommu_configure path
+
+ [V1]
+     * Initial post from Laurent Pinchart [1]
+
+[1] http://lists.linuxfoundation.org/pipermail/iommu/2015-May/013016.html
+[2] http://www.linux-arm.org/git?p=linux-rm.git;a=shortlog;h=refs/heads/iommu/defer
+[3] https://lkml.org/lkml/2016/11/21/141
+[4] https://www.mail-archive.com/iommu@xxxxxxxxxxxxxxxxxxxxxxxxxx/msg13940.html
+[5] git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git iommu/probe-deferral
+[6] http://www.spinics.net/lists/linux-pci/msg57992.html
+[7] https://www.spinics.net/lists/arm-kernel/msg556209.html
+
+Laurent Pinchart (3):
+  of: dma: Move range size workaround to of_dma_get_range()
+  of: dma: Make of_dma_deconfigure() public
+  iommu: of: Handle IOMMU lookup failure with deferred probing or error
+
+Lorenzo Pieralisi (2):
+  ACPI/IORT: Add function to check SMMUs drivers presence
+  ACPI/IORT: Remove linker section for IORT entries probing
+
+Robin Murphy (3):
+  iommu/of: Refactor of_iommu_configure() for error handling
+  iommu/of: Prepare for deferred IOMMU configuration
+  iommu/arm-smmu: Clean up early-probing workarounds
+
+Sricharan R (3):
+  of/acpi: Configure dma operations at probe time for platform/amba/pci
+    bus devices
+  drivers: acpi: Handle IOMMU lookup failure with deferred probing or
+    error
+  arm64: dma-mapping: Remove the notifier trick to handle early setting
+    of dma_ops
+
+ arch/arm64/mm/dma-mapping.c       | 142 +++++---------------------------------
+ drivers/acpi/arm64/iort.c         |  40 ++++++++++-
+ drivers/acpi/glue.c               |   5 --
+ drivers/acpi/scan.c               |   7 +-
+ drivers/base/dd.c                 |   9 +++
+ drivers/base/dma-mapping.c        |  41 +++++++++++
+ drivers/iommu/arm-smmu-v3.c       |  46 +-----------
+ drivers/iommu/arm-smmu.c          | 110 +++++++++++++----------------
+ drivers/iommu/of_iommu.c          | 126 ++++++++++++++++++++++++---------
+ drivers/of/address.c              |  20 +++++-
+ drivers/of/device.c               |  34 ++++-----
+ drivers/of/platform.c             |  10 +--
+ drivers/pci/probe.c               |  28 --------
+ include/acpi/acpi_bus.h           |   2 +-
+ include/asm-generic/vmlinux.lds.h |   1 -
+ include/linux/acpi.h              |   7 +-
+ include/linux/acpi_iort.h         |   3 -
+ include/linux/dma-mapping.h       |   3 +
+ include/linux/of_device.h         |  10 ++-
+ 19 files changed, 308 insertions(+), 336 deletions(-)
+
+-- 
+QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
