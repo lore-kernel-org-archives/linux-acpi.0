@@ -1,55 +1,88 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v9 00/15] ACPI platform MSI support and its example mbigen
-Date: Thu, 9 Mar 2017 21:22:41 +0800
-Message-ID: <67f52db7-c7b4-1c60-e844-28fd406d14d5@linaro.org>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
- <20170307144334.GB26990@red-moon>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: [QUESTION]: Same IO bus address in different _CRS methods
+Date: Thu, 9 Mar 2017 15:41:03 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:34869 "EHLO
-        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbdCINXT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Mar 2017 08:23:19 -0500
-Received: by mail-pf0-f172.google.com with SMTP id j5so28881517pfb.2
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Mar 2017 05:23:18 -0800 (PST)
-In-Reply-To: <20170307144334.GB26990@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "arnd@arndb.de" <arnd@arndb.de>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com
 
-Hi Marc,
+Hi Bjorn and all
 
-On 2017/3/7 22:43, Lorenzo Pieralisi wrote:
-> On Tue, Mar 07, 2017 at 08:39:55PM +0800, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> With platform msi support landed in the kernel, and the introduction
->> of IORT for GICv3 ITS (PCI MSI) and SMMU, the framework for platform msi
->> is ready, this patch set add few patches to enable the ACPI platform
->> msi support.
->>
->> For platform device connecting to ITS on arm platform, we have IORT
->> table with the named componant node to describe the mappings of paltform
->> device and ITS, so we can retrieve the dev id and find its parent
->> irqdomain (ITS) from IORT table (simlar with the ACPI ITS support).
->>
->> v8 -> v9:
->> 	- Rebased on top of 4.11-rc1 and retest;
->> 	- Some of patch's commit message was updated by Lorenzo and
->> 	  it's clearer (thanks!)
->>
->> No update in the code, hope it's the final revision.
->
-> I will be off the radar till -rc3 but I do not expect major changes
-> to the series in its current form given that dependencies were merged
-> in the merge window (ACPI IRQ probe deferral and IORT fixes).
+I have a question regarding bus addresses for IO resources in the ACPI table.
 
-What's your opinion on this patch set? especially for the last 3
-patches for mbigen driver, please comment on it to see if I need
-to take further steps.
+The question is if from an ACPI perspective it is legal to have two entries in
+separate _CRS methods using the same IO bus address.
 
-Thanks
-Hanjun
+As an example please see the code at the bottom: we have the same bus address
+starting at 0x0 with (obviously) different offsets leading to different CPU
+physical addresses. Is this legal?
+
+p.s. full DSDT is here:
+https://git.linaro.org/people/heyi.guo/OpenPlatformPkg.git/tree/Chips/Hisilicon/Hi1610/Hi1610AcpiTables/Dsdt/D03Pci.asl?h=estuary-rp
+
+Many thanks
+Gab
+
+----
+
+  Device (PCI0)
+  {
+    Name (_HID, "HISI0080") // PCI Express Root Bridge
+    Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
+    Name(_SEG, 0) // Segment of this Root complex
+    Name(_BBN, 0) // Base Bus Number
+    Name(_CCA, 1)
+    Method (_CRS, 0, Serialized) { // Root complex resources
+
+[...]
+
+        QWordIO (
+          ResourceProducer,
+          MinFixed,
+          MaxFixed,
+          PosDecode,
+          EntireRange,
+          0x0, // Granularity
+          0x0, // Min Base Address
+          0xffff, // Max Base Address
+          0xb7ff0000, // Translate
+          0x10000 // Length
+        )
+      }) // Name(RBUF)
+      Return (RBUF)
+    } // Method(_CRS)
+
+
+// PCIe Root bus
+  Device (PCI1)
+  {
+    Name (_HID, "HISI0080") // PCI Express Root Bridge
+    Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
+    Name(_SEG, 1) // Segment of this Root complex
+    Name(_BBN, 0xe0) // Base Bus Number
+    Name(_CCA, 1)
+    Method (_CRS, 0, Serialized) { // Root complex resources
+
+[...]
+
+        QWordIO (
+          ResourceProducer,
+          MinFixed,
+          MaxFixed,
+          PosDecode,
+          EntireRange,
+          0x0, // Granularity
+          0x0, // Min Base Address
+          0xffff, // Max Base Address
+          0xbdff0000, // Translate
+          0x10000 // Length
+        )
+      }) // Name(RBUF)
+      Return (RBUF)
+    } // Method(_CRS)
