@@ -1,244 +1,74 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v21 00/13] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 9 Mar 2017 23:47:16 +0100
-Message-ID: <CADyBb7urVf87LTsyrtoaAExTeOZSBAvT91enGBK4cm6723q+1Q@mail.gmail.com>
-References: <20170206185015.12296-1-fu.wei@linaro.org> <CADyBb7t_zrLetPQQ8=k8oN6iMHhuMHO8O3XTZqGYvTT9p0evKw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
+Date: Thu, 9 Mar 2017 23:50:18 +0100
+Message-ID: <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com>
+References: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
+ <20170309181134.GA15721@bhelgaas-glaptop.roam.corp.google.com>
+ <CAK8P3a0iECAKBKG6zqXO5VaPze9OzxzSY+cBFHsM46xVAGhE1A@mail.gmail.com> <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADyBb7t_zrLetPQQ8=k8oN6iMHhuMHO8O3XTZqGYvTT9p0evKw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei Huang <wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Leo Duran <leo.duran-5C7GfCeVMHo@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, linux-watchdog@vger.k
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:35211 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753579AbdCIWuU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Mar 2017 17:50:20 -0500
+In-Reply-To: <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Mark, Marc,
-
-I have tried to rebase all the 19(6+13) patches  on 4.11-rc1,
-all the patchse can directly apply on  4.11-rc1,
-
-Could you help to review the patches, and see if there is anywhere I
-can improve ?
-Great thanks ! :-)
-
-
-
-On 20 February 2017 at 17:20, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> Hi Mark, Marc
+On Thu, Mar 9, 2017 at 11:37 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Thu, Mar 09, 2017 at 11:09:24PM +0100, Arnd Bergmann wrote:
+>> On Thu, Mar 9, 2017 at 7:11 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> > On Thu, Mar 09, 2017 at 03:41:03PM +0000, Gabriele Paoloni wrote:
+>> >> Hi Bjorn and all
+>> >>
+>> >> I have a question regarding bus addresses for IO resources in the
+>> >> ACPI table.
+>> >>
+>> >> The question is if from an ACPI perspective it is legal to have two
+>> >> entries in separate _CRS methods using the same IO bus address.
+>> >>
+>> >> As an example please see the code at the bottom: we have the same
+>> >> bus address starting at 0x0 with (obviously) different offsets
+>> >> leading to different CPU physical addresses. Is this legal?
+>> >
+>> > Yes.
+>> >
+>> > These are on separate PCI buses (PCI0 leads to 0000:00 and PCI1 leads
+>> > to 0001:e0), so there should be no conflict.  Those are completely
+>> > independent PCI buses, and their bus address spaces are also
+>> > independent.
+>> >
+>> > You do have to make sure the CPU physical addresses don't conflict, of
+>> > course.
+>>
+>> Ok. My reading of the ia64 code was that it would reject this as being
+>> overlapping resources, but I was probably misreading then.
 >
-> On 7 February 2017 at 02:50,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
->> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>
->> This patchset:
->>     (1)Preparation for adding GTDT support in arm_arch_timer:
->>         1. Introduce two functions to get the frequency from mmio and sysreg.
->>         2. separate out device-tree code from arch_timer_detect_rate
->>         3. remove arch_timer_detect_rate use arch_timer_get_*_freq directly
->>         4. split arch_timer_rate for different types of timer
->>         5. Refactor arch_timer_needs_probing, and move it into DT init call
->>         6. Introduce some new structs and refactor the MMIO timer init code
->>         for reusing some common code.
->>
->>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
->>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->>     memory-mapped timer and SBSA Generic Watchdog timer.
->>     This driver can help to simplify all the relevant timer drivers,
->>     and separate all the ACPI GTDT knowledge from them.
->>
->>     (3)Simplify ACPI code for arm_arch_timer
->>
->>     (4)Add GTDT support for ARM memory-mapped timer.
->>
->> This patchset has been tested on the following platforms with ACPI enabled:
->>     (1)ARM Foundation v8 model
->>
->> Changelog:
->> v21: https://lkml.org/lkml/2017/2/6/
->>      Introduce two functions to get the frequency from mmio and sysreg.
->>      Remove arch_timer_detect_rate use arch_timer_get_*_freq directly
->>      Split arch_timer_rate for different types of timer.
->>      Skip secure timer frame in GTDT driver.
->>      Rebase to git://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git arch-timer/cleanup
->>      (The first 6 patches in v20 have been merged into arch-timer/cleanup branch)
->
-> Did I follow your suggestion correctly?
-> I wonder how to improve this patchset. May I have your some suggestion
-> or feedback on v21? :-)
->
-> Great thanks for your help!
->
->>
->> v20: https://lkml.org/lkml/2017/1/18/534
->>      Reorder the first 4 patches and split the 4th patches.
->>      Leave CNTHCTL_* as they originally were.
->>      Fix the bug in arch_timer_select_ppi.
->>      Split "Rework counter frequency detection" patch.
->>      Rework the arch_timer_detect_rate function.
->>      Improve the commit message of "Refactor MMIO timer probing".
->>      Rebase to 4.10.0-rc4
->>
->> v19: https://lkml.org/lkml/2016/12/21/25
->>      Fix a '\n' missing in a error message in arch_timer_mem_init.
->>      Add "request_mem_region" for ioremapping cntbase, according to
->>      f947ee1 clocksource/drivers/arm_arch_timer: Map frame with of_io_request_and_map()
->>      Rebase to 4.9.0-gfb779ff
->>
->> v18: https://lkml.org/lkml/2016/12/8/446
->>      Fix 8/15 patch problem of "int ret;" in arch_timer_acpi_init.
->>      Rebase to 4.9.0-rc8-g9269898
->>
->> v17: https://lkml.org/lkml/2016/11/25/140
->>      Take out some cleanups from 4/15.
->>      Merge 5/15 and 6/15, improve PPI determination code,
->>      improve commit message.
->>      Rework counter frequency detection.
->>      Move arch_timer_needs_of_probing into DT init call.
->>      Move Platform Timer scan loop back to timer init call to avoid allocating
->>      and free memory.
->>      Improve all the exported functions' comment.
->>
->> v16: https://lkml.org/lkml/2016/11/16/268
->>      Fix patchset problem about static enum ppi_nr of 01/13 in v15.
->>      Refactor arch_timer_detect_rate.
->>      Refactor arch_timer_needs_probing.
->>
->> v15: https://lkml.org/lkml/2016/11/15/366
->>      Re-order patches
->>      Add arm_arch_timer refactoring patches to prepare for GTDT:
->>          1. rename some  enums and defines, and some cleanups
->>          2. separate out arch_timer_uses_ppi init code and fix a potential bug
->>          3. Improve some new structs, refactor the timer init code.
->>      Since the some structs have been changed, GTDT parser for memory-mapped
->>      timer and SBSA Generic Watchdog timer have been update.
->>
->> v14: https://lkml.org/lkml/2016/9/28/573
->>      Separate memory-mapped timer GTDT support into two patches
->>          1. Refactor the timer init code to prepare for GTDT
->>          2. Add GTDT support for memory-mapped timer
->>
->> v13: http://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1231717.html
->>      Improve arm_arch_timer code for memory-mapped
->>      timer GTDT support, refactor original memory-mapped timer
->>      dt support for reusing some common code.
->>
->> v12: https://lkml.org/lkml/2016/9/13/250
->>      Rebase to latest Linux 4.8-rc6
->>      Delete the confusing "skipping" in the error message.
->>
->> V11: https://lkml.org/lkml/2016/9/6/354
->>      Rebase to latest Linux 4.8-rc5
->>      Delete typedef (suggested by checkpatch.pl)
->>
->> V10: https://lkml.org/lkml/2016/7/26/215
->>      Drop the "readq" patch.
->>      Rebase to latest Linux 4.7.
->>
->> V9: https://lkml.org/lkml/2016/7/25/345
->>     Improve pr_err message in acpi gtdt driver.
->>     Update Commit message for 7/9
->>     shorten the irq mapping function name
->>     Improve GTDT driver for memory-mapped timer
->>
->> v8: https://lkml.org/lkml/2016/7/19/660
->>     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
->>     and also improve printk message.
->>     Simplify is_timer_block and is_watchdog.
->>     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
->>     Delete __init in include/linux/acpi.h for GTDT API
->>     Make ARM64 select GTDT.
->>     Delete "#include <linux/module.h>" from acpi_gtdt.c
->>     Simplify GT block parse code.
->>
->> v7: https://lkml.org/lkml/2016/7/13/769
->>     Move the GTDT driver to drivers/acpi/arm64
->>     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
->>     Merge 3 patches of GTDT parser driver.
->>     Fix the for_each_platform_timer bug.
->>
->> v6: https://lkml.org/lkml/2016/6/29/580
->>     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
->>     and SBSA Generic Watchdog timer
->>     Improve driver by suggestions and example code from Daniel Lezcano
->>
->> v5: https://lkml.org/lkml/2016/5/24/356
->>     Sorting out all patches, simplify the API of GTDT driver:
->>     GTDT driver just fills the data struct for arm_arch_timer driver.
->>
->> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
->>     Delete the kvm relevant patches
->>     Separate two patches for sorting out the code for arm_arch_timer.
->>     Improve irq info export code to allow missing irq info in GTDT table.
->>
->> v3: https://lkml.org/lkml/2016/2/1/658
->>     Improve GTDT driver code:
->>       (1)improve pr_* by defining pr_fmt(fmt)
->>       (2)simplify gtdt_sbsa_gwdt_init
->>       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
->>       to get GTDT table.
->>     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
->>     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
->>
->> v2: https://lkml.org/lkml/2015/12/2/10
->>     Rebase to latest kernel version(4.4-rc3).
->>     Fix the bug about the config problem,
->>     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
->>
->> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
->>
->> Fu Wei (13):
->>   clocksource: arm_arch_timer: introduce two functions to get the
->>     frequency from mmio and sysreg.
->>   clocksource: arm_arch_timer: separate out device-tree code from
->>     arch_timer_detect_rate
->>   clocksource: arm_arch_timer: remove arch_timer_detect_rate
->>   clocksource: arm_arch_timer: split arch_timer_rate for different types
->>     of timer
->>   clocksource: arm_arch_timer: refactor arch_timer_needs_probing
->>   clocksource: arm_arch_timer: move arch_timer_needs_of_probing into DT
->>     init call
->>   clocksource: arm_arch_timer: introduce some new structs to prepare for
->>     GTDT
->>   clocksource: arm_arch_timer: refactor MMIO timer probing.
->>   acpi/arm64: Add GTDT table parse driver
->>   clocksource: arm_arch_timer: simplify ACPI support code.
->>   acpi/arm64: Add memory-mapped timer support in GTDT driver
->>   clocksource: arm_arch_timer: add GTDT support for memory-mapped timer
->>   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
->>
->>  arch/arm64/Kconfig                   |   1 +
->>  drivers/acpi/arm64/Kconfig           |   3 +
->>  drivers/acpi/arm64/Makefile          |   1 +
->>  drivers/acpi/arm64/gtdt.c            | 378 +++++++++++++++++++++++++++++++++++
->>  drivers/clocksource/arm_arch_timer.c | 354 ++++++++++++++++++++------------
->>  drivers/watchdog/Kconfig             |   1 +
->>  include/clocksource/arm_arch_timer.h |  17 ++
->>  include/linux/acpi.h                 |   7 +
->>  8 files changed, 635 insertions(+), 127 deletions(-)
->>  create mode 100644 drivers/acpi/arm64/gtdt.c
->>
->> --
->> 2.9.3
->>
->
->
->
-> --
-> Best regards,
->
-> Fu Wei
-> Software Engineer
-> Red Hat
+> I'm fairly sure ia64 supported multiple 0-0xffff I/O port spaces (in PCI
+> I/O space), but I don't have dmesg logs from any of those machines any
+> more.
 
+Ok. I've read the code again and you are right: ia64 checks that the
+CPU address is unique, not the PCI I/O space address.
 
+>> What is the expected way to deal with a device using an I/O resource
+>> that is not a child of either PCI host bridge in this case (e.g. a
+>> BMC behind a PCI-LPC bridge)? Is this only allowed to exist below
+>> the device that provides the respective I/O space?
+>
+> That's a good question.  I'm not really familiar with PCI-LPC bridges.
+> I guess they're not PCI-to-PCI bridges and wouldn't have I/O windows
+> like I'm used to?  What *do* they look like?
 
--- 
-Best regards,
+They are like PCI-ISA bridges, connecting devices that use either
+hardcoded I/O ports (uart, ipmi-kcs, ...) or ISAPNP.
 
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In the case that we are interested in specifically here, there is not
+actually a PCI-LPC bridge, but a LPC host bridge that is independent
+of PCI but has its own I/O space, and a number of child devices attached
+to that.
+
+      Arnd
