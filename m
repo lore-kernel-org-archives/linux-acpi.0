@@ -1,57 +1,70 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
- [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
-Date: Fri, 10 Mar 2017 16:53:33 +0100
-Message-ID: <20170310155333.GN3753@dhcp22.suse.cz>
-References: <20170227154304.GK26504@dhcp22.suse.cz>
- <1488462828-174523-1-git-send-email-imammedo@redhat.com>
- <20170302142816.GK1404@dhcp22.suse.cz>
- <20170302180315.78975d4b@nial.brq.redhat.com>
- <20170303082723.GB31499@dhcp22.suse.cz>
- <20170303183422.6358ee8f@nial.brq.redhat.com>
- <20170306145417.GG27953@dhcp22.suse.cz>
- <20170307134004.58343e14@nial.brq.redhat.com>
- <20170309125400.GI11592@dhcp22.suse.cz>
- <20170310135807.GI3753@dhcp22.suse.cz>
+From: Meelis Roos <mroos@linux.ee>
+Subject: Re: 4.10 ACPI: UBSAN: Undefined behaviour in
+ drivers/acpi/sysfs.c:757:33
+Date: Fri, 10 Mar 2017 17:53:49 +0200 (EET)
+Message-ID: <alpine.LRH.2.20.1703101752080.15226@math.ut.ee>
+References: <alpine.LRH.2.20.1703101745520.15226@math.ut.ee>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20170310135807.GI3753@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Reza Arbab <arbab@linux.vnet.ibm.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LRH.2.20.1703101745520.15226@math.ut.ee>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri 10-03-17 14:58:07, Michal Hocko wrote:
-[...]
-> This would explain why onlining from the last block actually works but
-> to me this sounds like a completely crappy behavior. All we need to
-> guarantee AFAICS is that Normal and Movable zones do not overlap. I
-> believe there is even no real requirement about ordering of the physical
-> memory in Normal vs. Movable zones as long as they do not overlap. But
-> let's keep it simple for the start and always enforce the current status
-> quo that Normal zone is physically preceeding Movable zone.
-> Can somebody explain why we cannot have a simple rule for Normal vs.
-> Movable which would be:
-> 	- block [pfn, pfn+block_size] can be Normal if
-> 	  !zone_populated(MOVABLE) || pfn+block_size < ZONE_MOVABLE->zone_start_pfn
-> 	- block [pfn, pfn+block_size] can be Movable if
-> 	  !zone_populated(NORMAL) || ZONE_NORMAL->zone_end_pfn < pfn
+> Tried 4.10 on a PC with Ahlon64 X2 CPU and Asun M2N-E maiboard and got 
+> this UBSAN warning that was not here with 4.9:
+> 
+> [    0.217716] ================================================================================
+> [    0.217950] UBSAN: Undefined behaviour in drivers/acpi/sysfs.c:757:33
+> [    0.218082] shift exponent 64 is too large for 64-bit type 'long long unsigned int'
+> [    0.218316] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.10.0 #18
+> [    0.218446] Hardware name: System manufacturer System Product Name/M2N-E, BIOS ASUS M2N-E ACPI BIOS Revision 1703 01/25/2010
+> [    0.218684] Call Trace:
+> [    0.218815]  ? dump_stack+0x47/0x6c
+> [    0.218943]  ? ubsan_epilogue+0x9/0x40
+> [    0.219071]  ? __ubsan_handle_shift_out_of_bounds+0x124/0x160
+> [    0.219203]  ? ktime_get+0x4d/0xf0
+> [    0.219332]  ? wakeup_source_add+0x60/0x100
+> [    0.219462]  ? acpi_gpe_apply_masked_gpes+0x3c/0x7d
+> [    0.219592]  ? acpi_scan_init+0x261/0x287
+> [    0.219721]  ? acpi_init+0x2f3/0x343
+> [    0.219849]  ? acpi_sleep_proc_init+0x22/0x22
+> [    0.219979]  ? do_one_initcall+0x56/0x1f0
+> [    0.220000]  ? kernel_init_freeable+0x245/0x2d2
+> [    0.220000]  ? rest_init+0x70/0x70
+> [    0.220000]  ? kernel_init+0x6/0x110
+> [    0.220000]  ? rest_init+0x70/0x70
+> [    0.220000]  ? ret_from_fork+0x23/0x30
+> [    0.220000] 
+> ================================================================================
 
-OK, so while I was playing with this setup some more I probably got why
-this is done this way. All new memblocks are added to the zone Normal
-where they are accounted as spanned but not present. When we do
-online_movable we just cut from the end of the Normal zone and move it
-to Movable zone. This sounds really awkward. What was the reason to go
-this way? Why cannot we simply add those pages to the zone at the online
-time?
+And the same happens on Sun Ultra 20 Opteron workstation, with a 
+slightly different backtrace:
+
+[    0.196897] ================================================================================
+[    0.196927] UBSAN: Undefined behaviour in drivers/acpi/sysfs.c:757:33
+[    0.196946] shift exponent 64 is too large for 64-bit type 'long long unsigned int'
+[    0.196977] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.10.0-09686-g9e314890292c #21
+[    0.197004] Hardware name: Sun Microsystems Sun Ultra 20 Workstation/2864, BIOS 2.3.0  05/15/2008
+[    0.197032] Call Trace:
+[    0.197056]  ? dump_stack+0x47/0x65
+[    0.197075]  ? ubsan_epilogue+0x9/0x40
+[    0.197093]  ? __ubsan_handle_shift_out_of_bounds+0xf8/0x140
+[    0.197112]  ? __kmalloc_track_caller+0xb4/0x230
+[    0.197131]  ? ktime_get+0x4d/0xf0
+[    0.197149]  ? wakeup_source_add+0x82/0x110
+[    0.197169]  ? acpi_gpe_apply_masked_gpes+0x3c/0x7d
+[    0.197187]  ? acpi_scan_init+0x261/0x287
+[    0.197204]  ? acpi_init+0x2f3/0x343
+[    0.197222]  ? acpi_sleep_proc_init+0x22/0x22
+[    0.197240]  ? do_one_initcall+0x46/0x1d0
+[    0.197260]  ? kernel_init_freeable+0x245/0x2d2
+[    0.197279]  ? rest_init+0x80/0x80
+[    0.197296]  ? kernel_init+0x6/0x110
+[    0.197313]  ? rest_init+0x80/0x80
+[    0.197330]  ? ret_from_fork+0x23/0x30
+[    0.197346] ================================================================================
+
 -- 
-Michal Hocko
-SUSE Labs
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Meelis Roos <mroos@linux.ee>
