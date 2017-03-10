@@ -1,84 +1,161 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: 4.10 ACPI: UBSAN: Undefined behaviour in drivers/acpi/sysfs.c:757:33
-Date: Fri, 10 Mar 2017 17:46:58 +0100
-Message-ID: <CAJZ5v0hVpcyntF6r=-5PO+EJWjEHZVF4QM_LsMdK6KHN_aNXOQ@mail.gmail.com>
-References: <alpine.LRH.2.20.1703101745520.15226@math.ut.ee> <alpine.LRH.2.20.1703101752080.15226@math.ut.ee>
+From: James Morse <james.morse@arm.com>
+Subject: Re: {RFC PATCH v1 v4.11-rc1 1/1} acpi: apei: common handler in ghes
+ for HW errors notified via hed(PNP0C33) driver
+Date: Fri, 10 Mar 2017 17:16:28 +0000
+Message-ID: <58C2DF6C.6000900@arm.com>
+References: <86258A5CC0A3704780874CF6004BA8A62DCAF445@lhreml502-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f179.google.com ([74.125.82.179]:32817 "EHLO
-        mail-ot0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754107AbdCJQrA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2017 11:47:00 -0500
-In-Reply-To: <alpine.LRH.2.20.1703101752080.15226@math.ut.ee>
+Received: from foss.arm.com ([217.140.101.70]:60514 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932595AbdCJRQp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 Mar 2017 12:16:45 -0500
+In-Reply-To: <86258A5CC0A3704780874CF6004BA8A62DCAF445@lhreml502-mbs>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Meelis Roos <mroos@linux.ee>, Lv <lv.zheng@intel.com>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Shiju Jose <shiju.jose@huawei.com>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "xuwei (O)" <xuwei5@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, Xiexiuqi <xiexiuqi@huawei.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-ac>
 
-+Lv
+Hi Shiju,
 
-On Fri, Mar 10, 2017 at 4:53 PM, Meelis Roos <mroos@linux.ee> wrote:
->> Tried 4.10 on a PC with Ahlon64 X2 CPU and Asun M2N-E maiboard and got
->> this UBSAN warning that was not here with 4.9:
->>
->> [    0.217716] ================================================================================
->> [    0.217950] UBSAN: Undefined behaviour in drivers/acpi/sysfs.c:757:33
->> [    0.218082] shift exponent 64 is too large for 64-bit type 'long long unsigned int'
->> [    0.218316] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.10.0 #18
->> [    0.218446] Hardware name: System manufacturer System Product Name/M2N-E, BIOS ASUS M2N-E ACPI BIOS Revision 1703 01/25/2010
->> [    0.218684] Call Trace:
->> [    0.218815]  ? dump_stack+0x47/0x6c
->> [    0.218943]  ? ubsan_epilogue+0x9/0x40
->> [    0.219071]  ? __ubsan_handle_shift_out_of_bounds+0x124/0x160
->> [    0.219203]  ? ktime_get+0x4d/0xf0
->> [    0.219332]  ? wakeup_source_add+0x60/0x100
->> [    0.219462]  ? acpi_gpe_apply_masked_gpes+0x3c/0x7d
+On 07/03/17 16:07, Shiju Jose wrote:
+> Add common handler in ghes for HW errors notified via hed(PNP0C33) driver.
+> 1. Rename ghes_notify_sci() to ghes_notify_hed().
+> 2. Rename struct notifier_block ghes_notifier_sci to
+>    struct notifier_block ghes_notifier_hed.
+> 3. Rename ghes_sci list to ghes_hed.
+> 4. Make ghes_notify_hed as common handler for
+>    notification types SCI, GSIV and GPIO.
+> 
 
-So should ACPI_MASKABLE_GPE_MAX be 64?
+I think the code here is fine, but we need to put this in front of the ACPI
+maintainers, and if we can, make their job easy.
 
-It looks like that.
+How did you come up with the CC list for this patch? scripts/get_maintainer.pl
+lists:
+> "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI,commit_signer:2/4=50%)
+> Len Brown <lenb@kernel.org> (supporter:ACPI)
 
->> [    0.219592]  ? acpi_scan_init+0x261/0x287
->> [    0.219721]  ? acpi_init+0x2f3/0x343
->> [    0.219849]  ? acpi_sleep_proc_init+0x22/0x22
->> [    0.219979]  ? do_one_initcall+0x56/0x1f0
->> [    0.220000]  ? kernel_init_freeable+0x245/0x2d2
->> [    0.220000]  ? rest_init+0x70/0x70
->> [    0.220000]  ? kernel_init+0x6/0x110
->> [    0.220000]  ? rest_init+0x70/0x70
->> [    0.220000]  ? ret_from_fork+0x23/0x30
->> [    0.220000]
->> ================================================================================
->
-> And the same happens on Sun Ultra 20 Opteron workstation, with a
-> slightly different backtrace:
->
-> [    0.196897] ================================================================================
-> [    0.196927] UBSAN: Undefined behaviour in drivers/acpi/sysfs.c:757:33
-> [    0.196946] shift exponent 64 is too large for 64-bit type 'long long unsigned int'
-> [    0.196977] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.10.0-09686-g9e314890292c #21
-> [    0.197004] Hardware name: Sun Microsystems Sun Ultra 20 Workstation/2864, BIOS 2.3.0  05/15/2008
-> [    0.197032] Call Trace:
-> [    0.197056]  ? dump_stack+0x47/0x65
-> [    0.197075]  ? ubsan_epilogue+0x9/0x40
-> [    0.197093]  ? __ubsan_handle_shift_out_of_bounds+0xf8/0x140
-> [    0.197112]  ? __kmalloc_track_caller+0xb4/0x230
-> [    0.197131]  ? ktime_get+0x4d/0xf0
-> [    0.197149]  ? wakeup_source_add+0x82/0x110
-> [    0.197169]  ? acpi_gpe_apply_masked_gpes+0x3c/0x7d
-> [    0.197187]  ? acpi_scan_init+0x261/0x287
-> [    0.197204]  ? acpi_init+0x2f3/0x343
-> [    0.197222]  ? acpi_sleep_proc_init+0x22/0x22
-> [    0.197240]  ? do_one_initcall+0x46/0x1d0
-> [    0.197260]  ? kernel_init_freeable+0x245/0x2d2
-> [    0.197279]  ? rest_init+0x80/0x80
-> [    0.197296]  ? kernel_init+0x6/0x110
-> [    0.197313]  ? rest_init+0x80/0x80
-> [    0.197330]  ? ret_from_fork+0x23/0x30
-> [    0.197346] ================================================================================
+as the maintainers for the file changed by this patch, but they weren't CCd.
 
-This probably is not functionally problematic, but we'll need to fix it.
+Did you use git format-patch to create this? All the other patches on the list
+have subjects of the form "[PATCH] acpi: apei....", the {}s confuse 'git am'
+meaning whoever applies this would have to edit your patch before applying it.
+
+
+Your commit message doesn't add anything that wasn't in the subject-line. It
+should describe the reason for the change. Based on Hanjun's explanation I can
+offer:
+---
+System Controller Interrupts are received by ACPI's error device, which in turn
+notifies the GHES code. The same is true of APEI's GSIV and GPIO notification types.
+Add support for GSIV and GPIO sharing the SCI register/unregister/notifier code.
+Rename the list and notifier to show this is no longer just SCI, but anything
+from the Hardware Error Device.
+
+---
+
+If you're confident you solved this the right way, (which I think we are), you
+should drop the 'RFC' from the subject. RFC indicates you don't think this
+should be merged you just want feedback.
+
+
 
 Thanks,
-Rafael
+
+James
+
+
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b192b42..fd39929 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -89,14 +89,14 @@
+>  module_param_named(disable, ghes_disable, bool, 0);
+>  
+>  /*
+> - * All error sources notified with SCI shares one notifier function,
+> + * All error sources notified with HED shares one notifier function,
+>   * so they need to be linked and checked one by one.  This is applied
+>   * to NMI too.
+>   *
+>   * RCU is used for these lists, so ghes_list_mutex is only used for
+>   * list changing, not for traversing.
+>   */
+> -static LIST_HEAD(ghes_sci);
+> +static LIST_HEAD(ghes_hed);
+>  static DEFINE_MUTEX(ghes_list_mutex);
+>  
+>  /*
+> @@ -702,14 +702,14 @@ static irqreturn_t ghes_irq_func(int irq, void *data)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static int ghes_notify_sci(struct notifier_block *this,
+> +static int ghes_notify_hed(struct notifier_block *this,
+>  				  unsigned long event, void *data)
+>  {
+>  	struct ghes *ghes;
+>  	int ret = NOTIFY_DONE;
+>  
+>  	rcu_read_lock();
+> -	list_for_each_entry_rcu(ghes, &ghes_sci, list) {
+> +	list_for_each_entry_rcu(ghes, &ghes_hed, list) {
+>  		if (!ghes_proc(ghes))
+>  			ret = NOTIFY_OK;
+>  	}
+> @@ -718,8 +718,8 @@ static int ghes_notify_sci(struct notifier_block *this,
+>  	return ret;
+>  }
+>  
+> -static struct notifier_block ghes_notifier_sci = {
+> -	.notifier_call = ghes_notify_sci,
+> +static struct notifier_block ghes_notifier_hed = {
+> +	.notifier_call = ghes_notify_hed,
+>  };
+>  
+>  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+> @@ -966,6 +966,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  	case ACPI_HEST_NOTIFY_POLLED:
+>  	case ACPI_HEST_NOTIFY_EXTERNAL:
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+> @@ -1026,10 +1028,12 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		}
+>  		break;
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		mutex_lock(&ghes_list_mutex);
+> -		if (list_empty(&ghes_sci))
+> -			register_acpi_hed_notifier(&ghes_notifier_sci);
+> -		list_add_rcu(&ghes->list, &ghes_sci);
+> +		if (list_empty(&ghes_hed))
+> +			register_acpi_hed_notifier(&ghes_notifier_hed);
+> +		list_add_rcu(&ghes->list, &ghes_hed);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+> @@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>  		free_irq(ghes->irq, ghes);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		mutex_lock(&ghes_list_mutex);
+>  		list_del_rcu(&ghes->list);
+> -		if (list_empty(&ghes_sci))
+> -			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+> +		if (list_empty(&ghes_hed))
+> +			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+> 
+
