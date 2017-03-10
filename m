@@ -1,146 +1,136 @@
-From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Subject: Re: WTH is going on with memory hotplug sysf interface
-Date: Fri, 10 Mar 2017 12:39:27 -0500
-Message-ID: <75ee9d3f-7027-782a-9cde-5192396a4a8c@gmail.com>
-References: <20170227154304.GK26504@dhcp22.suse.cz>
- <1488462828-174523-1-git-send-email-imammedo@redhat.com>
- <20170302142816.GK1404@dhcp22.suse.cz>
- <20170302180315.78975d4b@nial.brq.redhat.com>
- <20170303082723.GB31499@dhcp22.suse.cz>
- <20170303183422.6358ee8f@nial.brq.redhat.com>
- <20170306145417.GG27953@dhcp22.suse.cz>
- <20170307134004.58343e14@nial.brq.redhat.com>
- <20170309125400.GI11592@dhcp22.suse.cz>
- <20170310135807.GI3753@dhcp22.suse.cz>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V12 10/10] arm/arm64: KVM: add guest SEA support
+Date: Fri, 10 Mar 2017 11:15:29 -0700
+Message-ID: <9e2dee3d-afb3-72f6-a8f2-4fa090e87ee8@codeaurora.org>
+References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
+ <1488833103-21082-11-git-send-email-tbaicar@codeaurora.org>
+ <58BE9E14.6040208@arm.com>
+ <783e18ac-9495-aaf6-8fbd-5a48c0b68f5b@codeaurora.org>
+ <58C02CA2.4030601@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170310135807.GI3753@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Michal Hocko <mhocko@kernel.org>, Igor Mammedov <imammedo@redhat.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Reza Arbab <arbab@linux.vnet.ibm.com>, Tang Chen <tangchen@cn.fujitsu.com>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <58C02CA2.4030601@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
+Hello James,
 
 
-On 03/10/2017 08:58 AM, Michal Hocko wrote:
-> Let's CC people touching this logic. A short summary is that onlining
-> memory via udev is currently unusable for online_movable because blocks
-> are added from lower addresses while movable blocks are allowed from
-> last blocks. More below.
->
-> On Thu 09-03-17 13:54:00, Michal Hocko wrote:
->> On Tue 07-03-17 13:40:04, Igor Mammedov wrote:
->>> On Mon, 6 Mar 2017 15:54:17 +0100
->>> Michal Hocko <mhocko@kernel.org> wrote:
+On 3/8/2017 9:09 AM, James Morse wrote:
+> On 07/03/17 17:58, Baicar, Tyler wrote:
+>> On 3/7/2017 4:48 AM, James Morse wrote:
+>>> On 06/03/17 20:45, Tyler Baicar wrote:
+>>>> Currently external aborts are unsupported by the guest abort
+>>>> handling. Add handling for SEAs so that the host kernel reports
+>>>> SEAs which occur in the guest kernel.
+>>>> diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
+>>>> index a5265ed..f3608c9 100644
+>>>> --- a/arch/arm/kvm/mmu.c
+>>>> +++ b/arch/arm/kvm/mmu.c
+>>>> @@ -1444,8 +1463,21 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu,
+>>>> struct kvm_run *run)
+>>>>          /* Check the stage-2 fault is trans. fault or write fault */
+>>>>        fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
+>>>> -    if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
+>>>> -        fault_status != FSC_ACCESS) {
+>>>> +
+>>>> +    /* The host kernel will handle the synchronous external abort. There
+>>>> +     * is no need to pass the error into the guest.
+>>>> +     */
+>>>> +    if (is_abort_synchronous(fault_status)) {
+>>>> +        if(handle_guest_sea((unsigned long)fault_ipa,
+>>>> +                    kvm_vcpu_get_hsr(vcpu))) {
+>>> ... Looking further up in this function:
+>>>>      is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
+>>>>      if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
+>>>>          kvm_inject_vabt(vcpu);
+>>>>          return 1;
+>>>>      }
+>>> ... so external data aborts will have already been 'claimed' by kvm and dealt
+>>> with, and we already have a helper for spotting external aborts. (sorry I didn't
+>>> spot it earlier).
 >>>
->>>> On Fri 03-03-17 18:34:22, Igor Mammedov wrote:
->> [...]
->>>>> in current mainline kernel it triggers following code path:
->>>>>
->>>>> online_pages()
->>>>>   ...
->>>>>        if (online_type == MMOP_ONLINE_KERNEL) {
->>>>>                 if (!zone_can_shift(pfn, nr_pages, ZONE_NORMAL, &zone_shift))
->>>>>                         return -EINVAL;
->>>>
->>>> Are you sure? I would expect MMOP_ONLINE_MOVABLE here
->>> pretty much, reproducer is above so try and see for yourself
->>
->> I will play with this...
+>>> We need to do the handle_guest_sea() before this code.
+>>>
+>>> kvm_inject_vabt() makes an SError interrupt pending for the guest. This makes a
+>>> synchronous error asynchronous as the guest may have SError interrupts masked.
+>>>
+>>> I guess this was the best that could be done at the time of (4055710baca8
+>>> "arm/arm64: KVM: Inject virtual abort when guest exits on external abort"), but
+>>> in the light of this firmware-first handling, I'm not sure its the right thing
+>>> to do.
+>>>
+>>> Is it possible for handle_guest_sea() to return whether it actually found any
+>>> work to do? If there was none I think we should keep this kvm_inject_vabt() as
+>>> it is the existing behaviour.
+>> Yes, I'll move the handle_guest_sea() call above this. My testing didn't call
+>> into that if statement for some reason...it made it to the handle_guest_sea()
+>> call successfully.
+> I guess you're not using data aborts for testing then.
 >
-> OK so I did with -m 2G,slots=4,maxmem=4G -numa node,mem=1G -numa node,mem=1G which generated
-> [...]
-> [    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00000000-0x0009ffff]
-> [    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00100000-0x3fffffff]
-> [    0.000000] ACPI: SRAT: Node 1 PXM 1 [mem 0x40000000-0x7fffffff]
-> [    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x100000000-0x27fffffff] hotplug
-> [    0.000000] NUMA: Node 0 [mem 0x00000000-0x0009ffff] + [mem 0x00100000-0x3fffffff] -> [mem 0x00000000-0x3fffffff]
-> [    0.000000] NODE_DATA(0) allocated [mem 0x3fffc000-0x3fffffff]
-> [    0.000000] NODE_DATA(1) allocated [mem 0x7ffdc000-0x7ffdffff]
-> [    0.000000] Zone ranges:
-> [    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
-> [    0.000000]   DMA32    [mem 0x0000000001000000-0x000000007ffdffff]
-> [    0.000000]   Normal   empty
-> [    0.000000] Movable zone start for each node
-> [    0.000000] Early memory node ranges
-> [    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009efff]
-> [    0.000000]   node   0: [mem 0x0000000000100000-0x000000003fffffff]
-> [    0.000000]   node   1: [mem 0x0000000040000000-0x000000007ffdffff]
 >
-> so there is neither any normal zone nor movable one at the boot time.
-> Then I hotplugged 1G slot
-> (qemu) object_add memory-backend-ram,id=mem1,size=1G
-> (qemu) device_add pc-dimm,id=dimm1,memdev=mem1
+>> If there is no work for the GHES code to do it will return and could still make
+>> the kvm_inject_vabt() call. It will also return and do that same thing if the
+>> error was not fatal in GHES...would that be an issue?
+> We might inject a superfluous SError Interrupt in that case.
 >
-> unfortunatelly the memory didn't show up automatically and I got
-> [  116.375781] acpi PNP0C80:00: Enumeration failure
+> For memory errors we may do the whole unmapping and signalling thing to handle
+> the fault. For recoverable faults, QEMU can generate its own CPER records for
+> the guest and do the work to notify the guest. Everything looks fine until the
+> guest gets the extra SError interrupt.
 >
-> so I had to probe it manually (prbably the BIOS my qemu uses doesn't
-> support auto probing - I haven't really dug further). Anyway the SRAT
-> table printed during the boot told that we should start at 0x100000000
+> If there is firmware-first RAS data, we should skip the injected SError
+> Interrupt as the host's RAS code should choose what to do. If this Synchronous
+> External Abort was nothing to do with RAS, we should inject the SError interrupt
+> as it's the existing behaviour, and not all platforms will have this Synchronous
+> External Abort mechanism.
 >
-> # echo 0x100000000 > /sys/devices/system/memory/probe
-> # grep . /sys/devices/system/memory/memory32/valid_zones
-> Normal Movable
+> x86's APEI NMI needs to know if the NMI was due to RAS, so we can probably
+> borrow the same trick. ghes_notify_nmi() calls ghes_read_estatus() for each
+> struct ghes. If they all return an error, there was no work to do.
 >
-> which looks reasonably right? Both Normal and Movable zones are allowed
 >
-> # echo $((0x100000000+(128<<20))) > /sys/devices/system/memory/probe
-> # grep . /sys/devices/system/memory/memory3?/valid_zones
-> /sys/devices/system/memory/memory32/valid_zones:Normal
-> /sys/devices/system/memory/memory33/valid_zones:Normal Movable
+> (I assume firmware will only generate one of these at a time, so there is no
+> risk of one list-walker processing two entries, then the second finding nothing
+> to do?)
 >
-> Huh, so our valid_zones have changed under our feet...
->
-> # echo $((0x100000000+2*(128<<20))) > /sys/devices/system/memory/probe
-> # grep . /sys/devices/system/memory/memory3?/valid_zones
-> /sys/devices/system/memory/memory32/valid_zones:Normal
-> /sys/devices/system/memory/memory33/valid_zones:Normal
-> /sys/devices/system/memory/memory34/valid_zones:Normal Movable
->
-> and again. So only the last memblock is considered movable. Let's try to
-> online them now.
->
-> # echo online_movable > /sys/devices/system/memory/memory34/state
-> # grep . /sys/devices/system/memory/memory3?/valid_zones
-> /sys/devices/system/memory/memory32/valid_zones:Normal
-> /sys/devices/system/memory/memory33/valid_zones:Normal Movable
-> /sys/devices/system/memory/memory34/valid_zones:Movable Normal
->
+Okay, I will add in this functionality to avoid injecting an SEI if 
+there is actually a GHES error populated.
 
-I think there is no strong reason which kernel has the restriction.
-By setting the restrictions, it seems to have made management of
-these zone structs simple.
+Firmware that supports the new specs should only generate one of these 
+at a time, it will wait for the ack from kernel before sending a second 
+error (patch 1 of this series).
 
 Thanks,
-Yasuaki Ishimatsu
-
-> This would explain why onlining from the last block actually works but
-> to me this sounds like a completely crappy behavior. All we need to
-> guarantee AFAICS is that Normal and Movable zones do not overlap. I
-> believe there is even no real requirement about ordering of the physical
-> memory in Normal vs. Movable zones as long as they do not overlap. But
-> let's keep it simple for the start and always enforce the current status
-> quo that Normal zone is physically preceeding Movable zone.
-> Can somebody explain why we cannot have a simple rule for Normal vs.
-> Movable which would be:
-> 	- block [pfn, pfn+block_size] can be Normal if
-> 	  !zone_populated(MOVABLE) || pfn+block_size < ZONE_MOVABLE->zone_start_pfn
-> 	- block [pfn, pfn+block_size] can be Movable if
-> 	  !zone_populated(NORMAL) || ZONE_NORMAL->zone_end_pfn < pfn
+Tyler
 >
-> I haven't fully grokked all the restrictions on the movable zone size
-> based on the kernel parameters (find_zone_movable_pfns_for_nodes) but
-> this shouldn't really make the situation really much more complicated I
-> believe because those parameters should be mostly about static
-> initialization rather than hotplug but I might be easily missing
-> something.
 >
+>>>> +            kvm_err("Failed to handle guest SEA, FSC: EC=%#x xFSC=%#lx
+>>>> ESR_EL2=%#lx\n",
+>>>> +                kvm_vcpu_trap_get_class(vcpu),
+>>>> +                (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
+>>>> +                (unsigned long)kvm_vcpu_get_hsr(vcpu));
+>>>> +            return -EFAULT;
+>>>> +        }
+>>>> +    } else if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
+>>>> +           fault_status != FSC_ACCESS) {
+>>>>            kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
+>>>>                kvm_vcpu_trap_get_class(vcpu),
+>>>>                (unsigned long)kvm_vcpu_trap_get_fault(vcpu),
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
