@@ -1,100 +1,36 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v4 00/16] ACPI graph support
-Date: Fri, 10 Mar 2017 10:19:32 +0200
-Message-ID: <20170310081932.GT3220@valkosipuli.retiisi.org.uk>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
- <CAJZ5v0iNqTb55xrq21Byn5q6XUeFYSa2mMLj+Jnu1_d0DyMvxQ@mail.gmail.com>
- <20170307134936.GJ3220@valkosipuli.retiisi.org.uk>
- <1810272.34jmmMEX8i@aspire.rjw.lan>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [QUESTION]: Same IO bus address in different _CRS methods
+Date: Fri, 10 Mar 2017 09:57:28 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E2046F035@FRAEML521-MBX.china.huawei.com>
+References: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
+ <20170309181134.GA15721@bhelgaas-glaptop.roam.corp.google.com>
+ <CAK8P3a0iECAKBKG6zqXO5VaPze9OzxzSY+cBFHsM46xVAGhE1A@mail.gmail.com>
+ <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
+ <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E2046D682@FRAEML521-MBX.china.huawei.com>
+ <CAK8P3a1vpEqa89E9uEKGStRCdzge1au=WYEe9dkBHOo+YZUptQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57382 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755162AbdCJITh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 Mar 2017 03:19:37 -0500
-Content-Disposition: inline
-In-Reply-To: <1810272.34jmmMEX8i@aspire.rjw.lan>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:26315 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964959AbdCJJ65 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2017 04:58:57 -0500
+In-Reply-To: <CAK8P3a1vpEqa89E9uEKGStRCdzge1au=WYEe9dkBHOo+YZUptQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Rafael,
-
-On Fri, Mar 10, 2017 at 12:05:04AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, March 07, 2017 03:49:36 PM Sakari Ailus wrote:
-> > Hi Rafael,
-> 
-> Hi,
-> 
-> > On Tue, Mar 07, 2017 at 02:23:33PM +0100, Rafael J. Wysocki wrote:
-> > > On Tue, Mar 7, 2017 at 8:49 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > > > Hi Rafael,
-> > > >
-> > > > On Mon, Mar 06, 2017 at 04:19:14PM +0200, Sakari Ailus wrote:
-> > > >> This set contains patches written by Mika Westerberg and by myself. The
-> > > >> patchset brings support for graphs to ACPI. The functionality achieved by
-> > > >> these patches is very similar to what the Device tree provides: the port
-> > > >> and the endpoint concept are being employed. The patches make use of the
-> > > >> _DSD property and data extensions to achieve this. The fwnode interface is
-> > > >> extended by graph functionality; this way graph information originating
-> > > >> from both OF and ACPI may be accessed using the same interface, without
-> > > >> being aware of the underlying firmware interface.
-> > > >
-> > > > I've tested the patches again on ARM (OF) and x86-64 (ACPI).
-> > > 
-> > > OK
-> > > 
-> > > > I have V4L2 patches depending on the ACPI graph patchset that I'd like to
-> > > > have in during the same merge window. Would you either accept a pull
-> > > > request, or could I have a branch on top of v4.11-rc1 containing these
-> > > > patches only (for media tree)?
-> > > >
-> > > > The patchset "Move firmware specific code to firmware specific locations"
-> > > > depends on "Fwnode property API fixes for OF, pset". Would you prefer to
-> > > > send the bugfixes as fixes to v4.11 or just put it all to v4.12?
-> > > 
-> > > I'll put it all into v4.12 if that's not a problem.
-> > 
-> > That's fine for me but see below...
-> > 
-> > > 
-> > > Also I don't really have the time to take care of that this week due
-> > > to other work.  I'll get to it next week, most likely.
-> > 
-> > Ack.
-> > 
-> > Would you prefer me to send a pull request, or pick up the patches --- in
-> > the latter case I'd like to request an immutable branch with these patches
-> > only on v4.11-rc1 which I could use for basing my dependent V4L2 patches
-> > that go to the media tree.
-> 
-> So from this series I can queue up patches [1-7/16] no problem.
-> 
-> Patch [8/16] requires an ACK from Rob for me to take it.
-> 
-> Patch [9/16] is not even related to this series technically, so please send it
-> separately to Greg.
-
-I'll drop that patch from the set in this case and submit another patch
-later on --- for me it was a question of where do you add a header file when
-you see a randomly ordered list with some entries there twice. ;-)
-
-> 
-> Patch [10/16] needs to be folded into the one that depends on it IMO.
-
-Will do.
-
-> 
-> I also have questions to patches [11-16/16], but I'll respond to those
-> separately later.
-
-Ack.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Wy4uLl0NCg0KPiA+DQo+ID4gSWYgeW91IGd1eXMgYWdyZWUgb24gdGhlIGNvbmNsdXNpb24gYWJv
+dmUgSSB3aWxsIGNvbnRpbnVlIHdpdGggdGhlDQo+ID4gcmV3b3JrIG9mIHRoZSBIaVNpbGljb24g
+TFBDIGRyaXZlciB3aXRoIHRoZSBhc3N1bXB0aW9uIHRoYXQgd2UgbmVlZA0KPiA+IGR5bmFtaWNh
+bGx5IGFzc2lnbmVkIHRva2VucyBhbHNvIGZvciBBQ1BJLg0KPiANCj4gWWVzLCB1bmxlc3MgQmpv
+cm4gaGFzIHNvbWUgbGFzdCBjb25jZXJucywgSSB0aGluayB0aGlzIGlzIGFsbCBnb29kDQo+IGFu
+ZCB0aGUgb25seSBwcm9wZXIgd2F5IHRvIGNvbnRpbnVlLiBUaGFua3MgZm9yIGJlYXJpbmcgd2l0
+aCBtZQ0KPiB0aHJvdWdoIHRoZSBkZXRvdXIgdGhhdCBlbmRlZCB1cCBpbiB0aGUgc2FtZSBwbGFj
+ZSB3ZSB3ZXJlIGluDQo+IGJlZm9yZS4uLg0KDQpObyB3b3JyaWVzLCBhY3R1YWxseSB0aGFuayB5
+b3UgYW5kIEJqb3JuIGZvciB5b3VyIHRpbWUgYW5kIHN1cHBvcnQuDQoNCkNoZWVycw0KR2FiDQoN
+Cj4gDQo+ICAgICBBcm5kDQo=
