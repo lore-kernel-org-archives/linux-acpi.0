@@ -1,132 +1,137 @@
-From: Stefan Assmann <sassmann@kpanic.de>
-Subject: Re: [PATCH] ACPI: skip boot interrupt rerouting when index is zero
-Date: Fri, 10 Mar 2017 14:47:06 +0100
-Message-ID: <60c50f6c-bfc8-3f74-80aa-150558d6b703@kpanic.de>
-References: <20170210114517.14812-1-sassmann@kpanic.de>
- <20170308223410.GA12086@bhelgaas-glaptop.roam.corp.google.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: WTH is going on with memory hotplug sysf interface (was: Re: [RFC
+ PATCH] mm, hotplug: get rid of auto_online_blocks)
+Date: Fri, 10 Mar 2017 14:58:07 +0100
+Message-ID: <20170310135807.GI3753@dhcp22.suse.cz>
+References: <20170227154304.GK26504@dhcp22.suse.cz>
+ <1488462828-174523-1-git-send-email-imammedo@redhat.com>
+ <20170302142816.GK1404@dhcp22.suse.cz>
+ <20170302180315.78975d4b@nial.brq.redhat.com>
+ <20170303082723.GB31499@dhcp22.suse.cz>
+ <20170303183422.6358ee8f@nial.brq.redhat.com>
+ <20170306145417.GG27953@dhcp22.suse.cz>
+ <20170307134004.58343e14@nial.brq.redhat.com>
+ <20170309125400.GI11592@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:49202 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933840AbdCJNrg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2017 08:47:36 -0500
-In-Reply-To: <20170308223410.GA12086@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20170309125400.GI11592@dhcp22.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Igor Mammedov <imammedo@redhat.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Reza Arbab <arbab@linux.vnet.ibm.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net
 
-On 08.03.2017 23:34, Bjorn Helgaas wrote:
-> Hi Stefan,
+Let's CC people touching this logic. A short summary is that onlining
+memory via udev is currently unusable for online_movable because blocks
+are added from lower addresses while movable blocks are allowed from
+last blocks. More below.
 
-Hi Bjorn,
-
-> On Fri, Feb 10, 2017 at 12:45:17PM +0100, Stefan Assmann wrote:
->> When checking for boot interrupts and PRT index is zero avoid doing
->> any interrupt rerouting since the code currently does not handle
->> determining the IRQ via _CRS method.
+On Thu 09-03-17 13:54:00, Michal Hocko wrote:
+> On Tue 07-03-17 13:40:04, Igor Mammedov wrote:
+> > On Mon, 6 Mar 2017 15:54:17 +0100
+> > Michal Hocko <mhocko@kernel.org> wrote:
+> > 
+> > > On Fri 03-03-17 18:34:22, Igor Mammedov wrote:
+> [...]
+> > > > in current mainline kernel it triggers following code path:
+> > > > 
+> > > > online_pages()
+> > > >   ...
+> > > >        if (online_type == MMOP_ONLINE_KERNEL) {                                 
+> > > >                 if (!zone_can_shift(pfn, nr_pages, ZONE_NORMAL, &zone_shift))    
+> > > >                         return -EINVAL;  
+> > > 
+> > > Are you sure? I would expect MMOP_ONLINE_MOVABLE here
+> > pretty much, reproducer is above so try and see for yourself
 > 
-> I don't understand this at all.  Can you educate me a little?
+> I will play with this...
 
-Sure, I'll try to explain my chain of thoughts.
+OK so I did with -m 2G,slots=4,maxmem=4G -numa node,mem=1G -numa node,mem=1G which generated
+[...]
+[    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00000000-0x0009ffff]
+[    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00100000-0x3fffffff]
+[    0.000000] ACPI: SRAT: Node 1 PXM 1 [mem 0x40000000-0x7fffffff]
+[    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x100000000-0x27fffffff] hotplug
+[    0.000000] NUMA: Node 0 [mem 0x00000000-0x0009ffff] + [mem 0x00100000-0x3fffffff] -> [mem 0x00000000-0x3fffffff]
+[    0.000000] NODE_DATA(0) allocated [mem 0x3fffc000-0x3fffffff]
+[    0.000000] NODE_DATA(1) allocated [mem 0x7ffdc000-0x7ffdffff]
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.000000]   DMA32    [mem 0x0000000001000000-0x000000007ffdffff]
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009efff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x000000003fffffff]
+[    0.000000]   node   1: [mem 0x0000000040000000-0x000000007ffdffff]
 
-> This bug occurs on the M2N-LR system.  I think that board contains an
-> Intel 6702PXH PCIe-to-PCI-X bridge to support its PCI-X slots.  A
-> PCI-X 3ware 9550SX is plugged in below the 6702PXH, and the problem is
-> with the wired INTx interrupts from the 9550SX.
-> 
-> Can we tell where those PCI-X INTx wires are connected?  There's an
-> IOAPIC in the 6702PXH; if they're connected there, the Intel 6700PXH
-> 64-bit PCI Hub datasheet [1], sec 2.15.2, says it should generate
-> upstream PCIe INTx messages ("boot interrupts") if the PCI-X INTx
-> interrupt is masked in the APIC.
+so there is neither any normal zone nor movable one at the boot time.
+Then I hotplugged 1G slot
+(qemu) object_add memory-backend-ram,id=mem1,size=1G
+(qemu) device_add pc-dimm,id=dimm1,memdev=mem1
 
-Correct, if you take a look at bridge_has_boot_interrupt_variant() we
-actually walk up all the bridges to the root bridge and check for the
-6702PXH via irq_reroute_variant, which gets set via PCI quirks in
-quirk_reroute_to_boot_interrupts_intel().
+unfortunatelly the memory didn't show up automatically and I got
+[  116.375781] acpi PNP0C80:00: Enumeration failure
 
-> If the PCI-X INTx wires are connected elsewhere, e.g., to some other
-> IOAPIC, the 6702PXH should never see its IOAPIC inputs wiggle and it
-> should never generate a boot interrupt.
-> 
-> The fact that the 6702PXH IOAPIC doesn't appear in the lspci output
-> and that "pci=noioapicquirk" is a workaround makes me think that we
-> aren't using the 6702PXH IOAPIC and therefore we don't see boot
-> interrupts on this system.
+so I had to probe it manually (prbably the BIOS my qemu uses doesn't
+support auto probing - I haven't really dug further). Anyway the SRAT
+table printed during the boot told that we should start at 0x100000000
 
-Oh, I did not notice that dmesg only reports 1 IO-APIC. Though walking
-the bridges reports the 6702PXH IO-APIC being involved, otherwise the
-quirk wouldn't hit.
+# echo 0x100000000 > /sys/devices/system/memory/probe
+# grep . /sys/devices/system/memory/memory32/valid_zones
+Normal Movable
 
-> So my guess is that we should not use the IRQ reroute feature on this
-> system, and I think that's what your patch accomplishes.  But I don't
-> understand the way you figure it out.  Looking for "entry->index == 0"
-> doesn't seem like an obvious connection.
+which looks reasonably right? Both Normal and Movable zones are allowed
 
-The ACPI spec [1], sec 6.2.12, says
-"There are two ways that _PRT can be used. [...]
-In the second model, the PCI interrupts are hardwired to specific
-interrupt inputs on the interrupt controller and are not configurable.
-In this case, the Source field in _PRT does not reference a device, but
-instead contains the value zero, and the Source Index field contains the
-global system interrupt to which the PCI interrupt is hardwired."
+# echo $((0x100000000+(128<<20))) > /sys/devices/system/memory/probe
+# grep . /sys/devices/system/memory/memory3?/valid_zones
+/sys/devices/system/memory/memory32/valid_zones:Normal
+/sys/devices/system/memory/memory33/valid_zones:Normal Movable
 
-This has been the case on all systems we encountered boot interrupts on
-back then and thus what the quirk is based upon.
+Huh, so our valid_zones have changed under our feet...
 
-Reminder of how the _PRT entry looked like on the M2N-LR.
-3w-9xxx 0000:03:00.0: PRT pin=1 link=ffff8802140621b8 index=0
-Compared to a _PRT entry from the only system I could dig up which has
-a 6702PXH.
-megaraid 0000:03:01.0: PRT pin=1 link=          (null) index=24
-megaraid 0000:03:01.0: PCI IRQ 24 -> rerouted to legacy IRQ 16
+# echo $((0x100000000+2*(128<<20))) > /sys/devices/system/memory/probe
+# grep . /sys/devices/system/memory/memory3?/valid_zones
+/sys/devices/system/memory/memory32/valid_zones:Normal
+/sys/devices/system/memory/memory33/valid_zones:Normal
+/sys/devices/system/memory/memory34/valid_zones:Normal Movable
 
-I remembered having read that there are buggy BIOSes out there which do
-not set Source to a zero value but still put the IRQ in Index, though I
-have no prove for that, I decided not to rely on it. If entry->index is
-zero the quirk is destined to fail anyway, imho.
-We could extend the condition to (entry->link && entry->index == 0) if
-you think that is better.
+and again. So only the last memblock is considered movable. Let's try to
+online them now.
 
-Appreciate your thoughtful analysis!
+# echo online_movable > /sys/devices/system/memory/memory34/state
+# grep . /sys/devices/system/memory/memory3?/valid_zones
+/sys/devices/system/memory/memory32/valid_zones:Normal
+/sys/devices/system/memory/memory33/valid_zones:Normal Movable
+/sys/devices/system/memory/memory34/valid_zones:Movable Normal
 
-  Stefan
+This would explain why onlining from the last block actually works but
+to me this sounds like a completely crappy behavior. All we need to
+guarantee AFAICS is that Normal and Movable zones do not overlap. I
+believe there is even no real requirement about ordering of the physical
+memory in Normal vs. Movable zones as long as they do not overlap. But
+let's keep it simple for the start and always enforce the current status
+quo that Normal zone is physically preceeding Movable zone.
+Can somebody explain why we cannot have a simple rule for Normal vs.
+Movable which would be:
+	- block [pfn, pfn+block_size] can be Normal if
+	  !zone_populated(MOVABLE) || pfn+block_size < ZONE_MOVABLE->zone_start_pfn
+	- block [pfn, pfn+block_size] can be Movable if
+	  !zone_populated(NORMAL) || ZONE_NORMAL->zone_end_pfn < pfn
 
-[1] http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
+I haven't fully grokked all the restrictions on the movable zone size
+based on the kernel parameters (find_zone_movable_pfns_for_nodes) but
+this shouldn't really make the situation really much more complicated I
+believe because those parameters should be mostly about static
+initialization rather than hotplug but I might be easily missing
+something.
+-- 
+Michal Hocko
+SUSE Labs
 
-
-> 
-> [1] http://www.intel.com/content/dam/doc/datasheet/6700pxh-64-bit-pci-hub-datasheet.pdf
-> 
->> Fixes:
->> https://bugzilla.kernel.org/show_bug.cgi?id=43074
->>
->> Signed-off-by: Stefan Assmann <sassmann@kpanic.de>
->> ---
->>  drivers/acpi/pci_irq.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
->> index c576a6f..6ecbde0 100644
->> --- a/drivers/acpi/pci_irq.c
->> +++ b/drivers/acpi/pci_irq.c
->> @@ -280,7 +280,7 @@ static int bridge_has_boot_interrupt_variant(struct pci_bus *bus)
->>  static int acpi_reroute_boot_interrupt(struct pci_dev *dev,
->>  				       struct acpi_prt_entry *entry)
->>  {
->> -	if (noioapicquirk || noioapicreroute) {
->> +	if (noioapicquirk || noioapicreroute || entry->index == 0) {
->>  		return 0;
->>  	} else {
->>  		switch (bridge_has_boot_interrupt_variant(dev->bus)) {
->> -- 
->> 2.9.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
