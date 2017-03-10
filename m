@@ -1,71 +1,100 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
-Date: Fri, 10 Mar 2017 08:45:05 +0100
-Message-ID: <CAK8P3a1vpEqa89E9uEKGStRCdzge1au=WYEe9dkBHOo+YZUptQ@mail.gmail.com>
-References: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
- <20170309181134.GA15721@bhelgaas-glaptop.roam.corp.google.com>
- <CAK8P3a0iECAKBKG6zqXO5VaPze9OzxzSY+cBFHsM46xVAGhE1A@mail.gmail.com>
- <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
- <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com> <EE11001F9E5DDD47B7634E2F8A612F2E2046D682@FRAEML521-MBX.china.huawei.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v4 00/16] ACPI graph support
+Date: Fri, 10 Mar 2017 10:19:32 +0200
+Message-ID: <20170310081932.GT3220@valkosipuli.retiisi.org.uk>
+References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
+ <CAJZ5v0iNqTb55xrq21Byn5q6XUeFYSa2mMLj+Jnu1_d0DyMvxQ@mail.gmail.com>
+ <20170307134936.GJ3220@valkosipuli.retiisi.org.uk>
+ <1810272.34jmmMEX8i@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E2046D682@FRAEML521-MBX.china.huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57382 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755162AbdCJITh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 Mar 2017 03:19:37 -0500
+Content-Disposition: inline
+In-Reply-To: <1810272.34jmmMEX8i@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Fri, Mar 10, 2017 at 1:25 AM, Gabriele Paoloni
-<gabriele.paoloni@huawei.com> wrote:
->> -----Original Message-----
->> From: arndbergmann@gmail.com [mailto:arndbergmann@gmail.com] On Behalf
->> Of Arnd Bergmann
->> Sent: 09 March 2017 22:50
->> To: Bjorn Helgaas
->> Cc: Gabriele Paoloni; Bjorn Helgaas; Tomasz Nowicki; Lorenzo Pieralisi;
->> agraf@suse.de; Yuanzhichang; xuwei (O); John Garry; linux-
->> pci@vger.kernel.org; linux-acpi@vger.kernel.org
->> Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
->> >> What is the expected way to deal with a device using an I/O resource
->> >> that is not a child of either PCI host bridge in this case (e.g. a
->> >> BMC behind a PCI-LPC bridge)? Is this only allowed to exist below
->> >> the device that provides the respective I/O space?
->> >
->> > That's a good question.  I'm not really familiar with PCI-LPC
->> bridges.
->> > I guess they're not PCI-to-PCI bridges and wouldn't have I/O windows
->> > like I'm used to?  What *do* they look like?
->>
->> They are like PCI-ISA bridges, connecting devices that use either
->> hardcoded I/O ports (uart, ipmi-kcs, ...) or ISAPNP.
->>
->> In the case that we are interested in specifically here, there is not
->> actually a PCI-LPC bridge, but a LPC host bridge that is independent
->> of PCI but has its own I/O space, and a number of child devices
->> attached
->> to that.
->
-> I think that for the case that we were discussing we needed to know
-> whether we could make the assumption to have unique IO bus addresses
-> in a whole ACPI table.
->
-> The idea for ACPI was to rework acpi_pci_root_remap_iospace and,
-> rather than using the PIO tokens retrieved by pci_register_io_range(),
-> remove the call to this function and use the bus addresses defined
-> in the _CRS method.
->
-> From what Bjorn said it seems that we have at least some cases where
-> these bus addresses are not unique; therefore in linux we need to generate
-> the PIO tokens dynamically.
->
-> If you guys agree on the conclusion above I will continue with the
-> rework of the HiSilicon LPC driver with the assumption that we need
-> dynamically assigned tokens also for ACPI.
+Hi Rafael,
 
-Yes, unless Bjorn has some last concerns, I think this is all good
-and the only proper way to continue. Thanks for bearing with me
-through the detour that ended up in the same place we were in
-before...
+On Fri, Mar 10, 2017 at 12:05:04AM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, March 07, 2017 03:49:36 PM Sakari Ailus wrote:
+> > Hi Rafael,
+> 
+> Hi,
+> 
+> > On Tue, Mar 07, 2017 at 02:23:33PM +0100, Rafael J. Wysocki wrote:
+> > > On Tue, Mar 7, 2017 at 8:49 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > > > Hi Rafael,
+> > > >
+> > > > On Mon, Mar 06, 2017 at 04:19:14PM +0200, Sakari Ailus wrote:
+> > > >> This set contains patches written by Mika Westerberg and by myself. The
+> > > >> patchset brings support for graphs to ACPI. The functionality achieved by
+> > > >> these patches is very similar to what the Device tree provides: the port
+> > > >> and the endpoint concept are being employed. The patches make use of the
+> > > >> _DSD property and data extensions to achieve this. The fwnode interface is
+> > > >> extended by graph functionality; this way graph information originating
+> > > >> from both OF and ACPI may be accessed using the same interface, without
+> > > >> being aware of the underlying firmware interface.
+> > > >
+> > > > I've tested the patches again on ARM (OF) and x86-64 (ACPI).
+> > > 
+> > > OK
+> > > 
+> > > > I have V4L2 patches depending on the ACPI graph patchset that I'd like to
+> > > > have in during the same merge window. Would you either accept a pull
+> > > > request, or could I have a branch on top of v4.11-rc1 containing these
+> > > > patches only (for media tree)?
+> > > >
+> > > > The patchset "Move firmware specific code to firmware specific locations"
+> > > > depends on "Fwnode property API fixes for OF, pset". Would you prefer to
+> > > > send the bugfixes as fixes to v4.11 or just put it all to v4.12?
+> > > 
+> > > I'll put it all into v4.12 if that's not a problem.
+> > 
+> > That's fine for me but see below...
+> > 
+> > > 
+> > > Also I don't really have the time to take care of that this week due
+> > > to other work.  I'll get to it next week, most likely.
+> > 
+> > Ack.
+> > 
+> > Would you prefer me to send a pull request, or pick up the patches --- in
+> > the latter case I'd like to request an immutable branch with these patches
+> > only on v4.11-rc1 which I could use for basing my dependent V4L2 patches
+> > that go to the media tree.
+> 
+> So from this series I can queue up patches [1-7/16] no problem.
+> 
+> Patch [8/16] requires an ACK from Rob for me to take it.
+> 
+> Patch [9/16] is not even related to this series technically, so please send it
+> separately to Greg.
 
-    Arnd
+I'll drop that patch from the set in this case and submit another patch
+later on --- for me it was a question of where do you add a header file when
+you see a randomly ordered list with some entries there twice. ;-)
+
+> 
+> Patch [10/16] needs to be folded into the one that depends on it IMO.
+
+Will do.
+
+> 
+> I also have questions to patches [11-16/16], but I'll respond to those
+> separately later.
+
+Ack.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
