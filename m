@@ -1,109 +1,56 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V12 09/10] trace, ras: add ARM processor error trace event
-Date: Fri, 10 Mar 2017 11:23:13 -0700
-Message-ID: <14545228-7ff1-b31c-1fa5-daacf89a44b9@codeaurora.org>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
- <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
- <58C12342.2090701@huawei.com>
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
+ [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
+Date: Fri, 10 Mar 2017 13:00:37 -0600
+Message-ID: <20170310190037.fifahjd47joim6zy@arbab-laptop>
+References: <1488462828-174523-1-git-send-email-imammedo@redhat.com>
+ <20170302142816.GK1404@dhcp22.suse.cz>
+ <20170302180315.78975d4b@nial.brq.redhat.com>
+ <20170303082723.GB31499@dhcp22.suse.cz>
+ <20170303183422.6358ee8f@nial.brq.redhat.com>
+ <20170306145417.GG27953@dhcp22.suse.cz>
+ <20170307134004.58343e14@nial.brq.redhat.com>
+ <20170309125400.GI11592@dhcp22.suse.cz>
+ <20170310135807.GI3753@dhcp22.suse.cz>
+ <20170310155333.GN3753@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60578 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932485AbdCJSXV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2017 13:23:21 -0500
-In-Reply-To: <58C12342.2090701@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20170310155333.GN3753@dhcp22.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kern
 
-Hello Xie XiuQi,
+On Fri, Mar 10, 2017 at 04:53:33PM +0100, Michal Hocko wrote:
+>OK, so while I was playing with this setup some more I probably got why
+>this is done this way. All new memblocks are added to the zone Normal
+>where they are accounted as spanned but not present.
 
+It's not always zone Normal. See zone_for_memory(). This leads to a 
+workaround for having to do online_movable in descending block order. 
+Instead of this:
 
-On 3/9/2017 2:41 AM, Xie XiuQi wrote:
-> On 2017/3/7 4:45, Tyler Baicar wrote:
->> Currently there are trace events for the various RAS
->> errors with the exception of ARM processor type errors.
->> Add a new trace event for such errors so that the user
->> will know when they occur. These trace events are
->> consistent with the ARM processor error section type
->> defined in UEFI 2.6 spec section N.2.4.4.
->>
->> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->> Acked-by: Steven Rostedt <rostedt@goodmis.org>
->> ---
->>   drivers/acpi/apei/ghes.c    |  8 +++++++-
->>   drivers/firmware/efi/cper.c |  1 +
->>   drivers/ras/ras.c           |  1 +
->>   include/ras/ras_event.h     | 34 ++++++++++++++++++++++++++++++++++
->>   4 files changed, 43 insertions(+), 1 deletion(-)
+1. probe block 34, probe block 33, probe block 32, ...
+2. online_movable 34, online_movable 33, online_movable 32, ...
 
->> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
->> index 5861b6f..b36db48 100644
->> --- a/include/ras/ras_event.h
->> +++ b/include/ras/ras_event.h
->> @@ -162,6 +162,40 @@
->>   );
->>   
->>   /*
->> + * ARM Processor Events Report
->> + *
->> + * This event is generated when hardware detects an ARM processor error
->> + * has occurred. UEFI 2.6 spec section N.2.4.4.
->> + */
->> +TRACE_EVENT(arm_event,
->> +
->> +	TP_PROTO(const struct cper_sec_proc_arm *proc),
->> +
->> +	TP_ARGS(proc),
->> +
->> +	TP_STRUCT__entry(
->> +		__field(u64, mpidr)
->> +		__field(u64, midr)
->> +		__field(u32, running_state)
->> +		__field(u32, psci_state)
->> +		__field(u8, affinity)
->> +	),
->> +
->> +	TP_fast_assign(
->> +		__entry->affinity = proc->affinity_level;
->> +		__entry->mpidr = proc->mpidr;
->> +		__entry->midr = proc->midr;
->> +		__entry->running_state = proc->running_state;
->> +		__entry->psci_state = proc->psci_state;
->> +	),
->> +
->> +	TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
->> +		  "running state: %d; PSCI state: %d",
->> +		  __entry->affinity, __entry->mpidr, __entry->midr,
->> +		  __entry->running_state, __entry->psci_state)
->> +);
->> +
-> I think these fields are not enough, we need also export arm processor error
-> information (UEFI 2.6 spec section N.2.4.4.1), or at least the error type,
-> address, etc. So that the userspace (such as rasdaemon tool) could know what
-> error occurred.
-This is something I am planning on adding in later. It is not clear to 
-me how to actually do this at this point. If you look at the spec, there 
-is not a single error information structure. There is at least one, but 
-possibly a lot. There is also an unknown amount of context information 
-structures. In "Table 260. ARM Processor Error Section" there are 
-ERR_INFO_NUM and CONTEXT_INFO_NUM which give the number of these 
-structures. I think there will need to be separate trace events added in 
-for each of these structures because I don't think there is a way to 
-have variable amounts of structures inside of a trace event.
+you can online_movable the first block before adding the rest:
 
-The ARM processor error section also has a vendor specific error info 
-buffer which will need to be exposed to userspace. This may be something 
-that can reuse the unknown section type trace event or have it's own 
-trace event for.
+1. probe block 32, online_movable 32
+2. probe block 33, probe block 34, ...
+	- zone_for_memory() will cause these to start Movable
+3. online 33, online 34, ...
+	- they're already in Movable, so online_movable is equivalentr
 
-Thanks,
-Tyler
+I agree with your general sentiment that this stuff is very 
+nonintuitive.
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Reza Arbab
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
