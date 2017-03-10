@@ -1,87 +1,71 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [QUESTION]: Same IO bus address in different _CRS methods
-Date: Fri, 10 Mar 2017 00:25:03 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E2046D682@FRAEML521-MBX.china.huawei.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
+Date: Fri, 10 Mar 2017 08:45:05 +0100
+Message-ID: <CAK8P3a1vpEqa89E9uEKGStRCdzge1au=WYEe9dkBHOo+YZUptQ@mail.gmail.com>
 References: <EE11001F9E5DDD47B7634E2F8A612F2E2046C6AC@FRAEML521-MBX.china.huawei.com>
  <20170309181134.GA15721@bhelgaas-glaptop.roam.corp.google.com>
  <CAK8P3a0iECAKBKG6zqXO5VaPze9OzxzSY+cBFHsM46xVAGhE1A@mail.gmail.com>
  <20170309223738.GE19517@bhelgaas-glaptop.roam.corp.google.com>
- <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com>
+ <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com> <EE11001F9E5DDD47B7634E2F8A612F2E2046D682@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a3vQ+ZO3tcO41uTOVYQszXj-_x-mEFMkZmnE0A1efTxUw@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E2046D682@FRAEML521-MBX.china.huawei.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "agraf@suse.de" <agraf@suse.de>, Yuanzhichang <yuanzhichang@hisilicon.com>, "xuwei (O)" <xuwei5@hisilicon.com>, John Garry <john.garry@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgQXJuZCBhbmQgQmpvcm4NCg0KTWFueSB0aGFua3MgZm9yIHlvdXIgYW5zd2Vycw0KDQo+IC0t
-LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGFybmRiZXJnbWFubkBnbWFpbC5jb20g
-W21haWx0bzphcm5kYmVyZ21hbm5AZ21haWwuY29tXSBPbiBCZWhhbGYNCj4gT2YgQXJuZCBCZXJn
-bWFubg0KPiBTZW50OiAwOSBNYXJjaCAyMDE3IDIyOjUwDQo+IFRvOiBCam9ybiBIZWxnYWFzDQo+
-IENjOiBHYWJyaWVsZSBQYW9sb25pOyBCam9ybiBIZWxnYWFzOyBUb21hc3ogTm93aWNraTsgTG9y
-ZW56byBQaWVyYWxpc2k7DQo+IGFncmFmQHN1c2UuZGU7IFl1YW56aGljaGFuZzsgeHV3ZWkgKE8p
-OyBKb2huIEdhcnJ5OyBsaW51eC0NCj4gcGNpQHZnZXIua2VybmVsLm9yZzsgbGludXgtYWNwaUB2
-Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtRVUVTVElPTl06IFNhbWUgSU8gYnVzIGFk
-ZHJlc3MgaW4gZGlmZmVyZW50IF9DUlMgbWV0aG9kcw0KPiANCj4gT24gVGh1LCBNYXIgOSwgMjAx
-NyBhdCAxMTozNyBQTSwgQmpvcm4gSGVsZ2FhcyA8aGVsZ2Fhc0BrZXJuZWwub3JnPg0KPiB3cm90
-ZToNCj4gPiBPbiBUaHUsIE1hciAwOSwgMjAxNyBhdCAxMTowOToyNFBNICswMTAwLCBBcm5kIEJl
-cmdtYW5uIHdyb3RlOg0KPiA+PiBPbiBUaHUsIE1hciA5LCAyMDE3IGF0IDc6MTEgUE0sIEJqb3Ju
-IEhlbGdhYXMgPGhlbGdhYXNAa2VybmVsLm9yZz4NCj4gd3JvdGU6DQo+ID4+ID4gT24gVGh1LCBN
-YXIgMDksIDIwMTcgYXQgMDM6NDE6MDNQTSArMDAwMCwgR2FicmllbGUgUGFvbG9uaSB3cm90ZToN
-Cj4gPj4gPj4gSGkgQmpvcm4gYW5kIGFsbA0KPiA+PiA+Pg0KPiA+PiA+PiBJIGhhdmUgYSBxdWVz
-dGlvbiByZWdhcmRpbmcgYnVzIGFkZHJlc3NlcyBmb3IgSU8gcmVzb3VyY2VzIGluIHRoZQ0KPiA+
-PiA+PiBBQ1BJIHRhYmxlLg0KPiA+PiA+Pg0KPiA+PiA+PiBUaGUgcXVlc3Rpb24gaXMgaWYgZnJv
-bSBhbiBBQ1BJIHBlcnNwZWN0aXZlIGl0IGlzIGxlZ2FsIHRvIGhhdmUNCj4gdHdvDQo+ID4+ID4+
-IGVudHJpZXMgaW4gc2VwYXJhdGUgX0NSUyBtZXRob2RzIHVzaW5nIHRoZSBzYW1lIElPIGJ1cyBh
-ZGRyZXNzLg0KPiA+PiA+Pg0KPiA+PiA+PiBBcyBhbiBleGFtcGxlIHBsZWFzZSBzZWUgdGhlIGNv
-ZGUgYXQgdGhlIGJvdHRvbTogd2UgaGF2ZSB0aGUgc2FtZQ0KPiA+PiA+PiBidXMgYWRkcmVzcyBz
-dGFydGluZyBhdCAweDAgd2l0aCAob2J2aW91c2x5KSBkaWZmZXJlbnQgb2Zmc2V0cw0KPiA+PiA+
-PiBsZWFkaW5nIHRvIGRpZmZlcmVudCBDUFUgcGh5c2ljYWwgYWRkcmVzc2VzLiBJcyB0aGlzIGxl
-Z2FsPw0KPiA+PiA+DQo+ID4+ID4gWWVzLg0KPiA+PiA+DQo+ID4+ID4gVGhlc2UgYXJlIG9uIHNl
-cGFyYXRlIFBDSSBidXNlcyAoUENJMCBsZWFkcyB0byAwMDAwOjAwIGFuZCBQQ0kxDQo+IGxlYWRz
-DQo+ID4+ID4gdG8gMDAwMTplMCksIHNvIHRoZXJlIHNob3VsZCBiZSBubyBjb25mbGljdC4gIFRo
-b3NlIGFyZSBjb21wbGV0ZWx5DQo+ID4+ID4gaW5kZXBlbmRlbnQgUENJIGJ1c2VzLCBhbmQgdGhl
-aXIgYnVzIGFkZHJlc3Mgc3BhY2VzIGFyZSBhbHNvDQo+ID4+ID4gaW5kZXBlbmRlbnQuDQo+ID4+
-ID4NCj4gPj4gPiBZb3UgZG8gaGF2ZSB0byBtYWtlIHN1cmUgdGhlIENQVSBwaHlzaWNhbCBhZGRy
-ZXNzZXMgZG9uJ3QNCj4gY29uZmxpY3QsIG9mDQo+ID4+ID4gY291cnNlLg0KPiA+Pg0KPiA+PiBP
-ay4gTXkgcmVhZGluZyBvZiB0aGUgaWE2NCBjb2RlIHdhcyB0aGF0IGl0IHdvdWxkIHJlamVjdCB0
-aGlzIGFzDQo+IGJlaW5nDQo+ID4+IG92ZXJsYXBwaW5nIHJlc291cmNlcywgYnV0IEkgd2FzIHBy
-b2JhYmx5IG1pc3JlYWRpbmcgdGhlbi4NCj4gPg0KPiA+IEknbSBmYWlybHkgc3VyZSBpYTY0IHN1
-cHBvcnRlZCBtdWx0aXBsZSAwLTB4ZmZmZiBJL08gcG9ydCBzcGFjZXMgKGluDQo+IFBDSQ0KPiA+
-IEkvTyBzcGFjZSksIGJ1dCBJIGRvbid0IGhhdmUgZG1lc2cgbG9ncyBmcm9tIGFueSBvZiB0aG9z
-ZSBtYWNoaW5lcw0KPiBhbnkNCj4gPiBtb3JlLg0KPiANCj4gT2suIEkndmUgcmVhZCB0aGUgY29k
-ZSBhZ2FpbiBhbmQgeW91IGFyZSByaWdodDogaWE2NCBjaGVja3MgdGhhdCB0aGUNCj4gQ1BVIGFk
-ZHJlc3MgaXMgdW5pcXVlLCBub3QgdGhlIFBDSSBJL08gc3BhY2UgYWRkcmVzcy4NCj4gDQo+ID4+
-IFdoYXQgaXMgdGhlIGV4cGVjdGVkIHdheSB0byBkZWFsIHdpdGggYSBkZXZpY2UgdXNpbmcgYW4g
-SS9PIHJlc291cmNlDQo+ID4+IHRoYXQgaXMgbm90IGEgY2hpbGQgb2YgZWl0aGVyIFBDSSBob3N0
-IGJyaWRnZSBpbiB0aGlzIGNhc2UgKGUuZy4gYQ0KPiA+PiBCTUMgYmVoaW5kIGEgUENJLUxQQyBi
-cmlkZ2UpPyBJcyB0aGlzIG9ubHkgYWxsb3dlZCB0byBleGlzdCBiZWxvdw0KPiA+PiB0aGUgZGV2
-aWNlIHRoYXQgcHJvdmlkZXMgdGhlIHJlc3BlY3RpdmUgSS9PIHNwYWNlPw0KPiA+DQo+ID4gVGhh
-dCdzIGEgZ29vZCBxdWVzdGlvbi4gIEknbSBub3QgcmVhbGx5IGZhbWlsaWFyIHdpdGggUENJLUxQ
-Qw0KPiBicmlkZ2VzLg0KPiA+IEkgZ3Vlc3MgdGhleSdyZSBub3QgUENJLXRvLVBDSSBicmlkZ2Vz
-IGFuZCB3b3VsZG4ndCBoYXZlIEkvTyB3aW5kb3dzDQo+ID4gbGlrZSBJJ20gdXNlZCB0bz8gIFdo
-YXQgKmRvKiB0aGV5IGxvb2sgbGlrZT8NCj4gDQo+IFRoZXkgYXJlIGxpa2UgUENJLUlTQSBicmlk
-Z2VzLCBjb25uZWN0aW5nIGRldmljZXMgdGhhdCB1c2UgZWl0aGVyDQo+IGhhcmRjb2RlZCBJL08g
-cG9ydHMgKHVhcnQsIGlwbWkta2NzLCAuLi4pIG9yIElTQVBOUC4NCj4gDQo+IEluIHRoZSBjYXNl
-IHRoYXQgd2UgYXJlIGludGVyZXN0ZWQgaW4gc3BlY2lmaWNhbGx5IGhlcmUsIHRoZXJlIGlzIG5v
-dA0KPiBhY3R1YWxseSBhIFBDSS1MUEMgYnJpZGdlLCBidXQgYSBMUEMgaG9zdCBicmlkZ2UgdGhh
-dCBpcyBpbmRlcGVuZGVudA0KPiBvZiBQQ0kgYnV0IGhhcyBpdHMgb3duIEkvTyBzcGFjZSwgYW5k
-IGEgbnVtYmVyIG9mIGNoaWxkIGRldmljZXMNCj4gYXR0YWNoZWQNCj4gdG8gdGhhdC4NCg0KSSB0
-aGluayB0aGF0IGZvciB0aGUgY2FzZSB0aGF0IHdlIHdlcmUgZGlzY3Vzc2luZyB3ZSBuZWVkZWQg
-dG8ga25vdw0Kd2hldGhlciB3ZSBjb3VsZCBtYWtlIHRoZSBhc3N1bXB0aW9uIHRvIGhhdmUgdW5p
-cXVlIElPIGJ1cyBhZGRyZXNzZXMNCmluIGEgd2hvbGUgQUNQSSB0YWJsZS4NCg0KVGhlIGlkZWEg
-Zm9yIEFDUEkgd2FzIHRvIHJld29yayBhY3BpX3BjaV9yb290X3JlbWFwX2lvc3BhY2UgYW5kLCAN
-CnJhdGhlciB0aGFuIHVzaW5nIHRoZSBQSU8gdG9rZW5zIHJldHJpZXZlZCBieSBwY2lfcmVnaXN0
-ZXJfaW9fcmFuZ2UoKSwNCnJlbW92ZSB0aGUgY2FsbCB0byB0aGlzIGZ1bmN0aW9uIGFuZCB1c2Ug
-dGhlIGJ1cyBhZGRyZXNzZXMgZGVmaW5lZA0KaW4gdGhlIF9DUlMgbWV0aG9kLg0KDQpGcm9tIHdo
-YXQgQmpvcm4gc2FpZCBpdCBzZWVtcyB0aGF0IHdlIGhhdmUgYXQgbGVhc3Qgc29tZSBjYXNlcyB3
-aGVyZQ0KdGhlc2UgYnVzIGFkZHJlc3NlcyBhcmUgbm90IHVuaXF1ZTsgdGhlcmVmb3JlIGluIGxp
-bnV4IHdlIG5lZWQgdG8gZ2VuZXJhdGUNCnRoZSBQSU8gdG9rZW5zIGR5bmFtaWNhbGx5Lg0KDQpJ
-ZiB5b3UgZ3V5cyBhZ3JlZSBvbiB0aGUgY29uY2x1c2lvbiBhYm92ZSBJIHdpbGwgY29udGludWUg
-d2l0aCB0aGUNCnJld29yayBvZiB0aGUgSGlTaWxpY29uIExQQyBkcml2ZXIgd2l0aCB0aGUgYXNz
-dW1wdGlvbiB0aGF0IHdlIG5lZWQNCmR5bmFtaWNhbGx5IGFzc2lnbmVkIHRva2VucyBhbHNvIGZv
-ciBBQ1BJLg0KDQpBZ2FpbiBtYW55IHRoYW5rcw0KR2FiDQoNCj4gDQo+ICAgICAgIEFybmQNCg==
+On Fri, Mar 10, 2017 at 1:25 AM, Gabriele Paoloni
+<gabriele.paoloni@huawei.com> wrote:
+>> -----Original Message-----
+>> From: arndbergmann@gmail.com [mailto:arndbergmann@gmail.com] On Behalf
+>> Of Arnd Bergmann
+>> Sent: 09 March 2017 22:50
+>> To: Bjorn Helgaas
+>> Cc: Gabriele Paoloni; Bjorn Helgaas; Tomasz Nowicki; Lorenzo Pieralisi;
+>> agraf@suse.de; Yuanzhichang; xuwei (O); John Garry; linux-
+>> pci@vger.kernel.org; linux-acpi@vger.kernel.org
+>> Subject: Re: [QUESTION]: Same IO bus address in different _CRS methods
+>> >> What is the expected way to deal with a device using an I/O resource
+>> >> that is not a child of either PCI host bridge in this case (e.g. a
+>> >> BMC behind a PCI-LPC bridge)? Is this only allowed to exist below
+>> >> the device that provides the respective I/O space?
+>> >
+>> > That's a good question.  I'm not really familiar with PCI-LPC
+>> bridges.
+>> > I guess they're not PCI-to-PCI bridges and wouldn't have I/O windows
+>> > like I'm used to?  What *do* they look like?
+>>
+>> They are like PCI-ISA bridges, connecting devices that use either
+>> hardcoded I/O ports (uart, ipmi-kcs, ...) or ISAPNP.
+>>
+>> In the case that we are interested in specifically here, there is not
+>> actually a PCI-LPC bridge, but a LPC host bridge that is independent
+>> of PCI but has its own I/O space, and a number of child devices
+>> attached
+>> to that.
+>
+> I think that for the case that we were discussing we needed to know
+> whether we could make the assumption to have unique IO bus addresses
+> in a whole ACPI table.
+>
+> The idea for ACPI was to rework acpi_pci_root_remap_iospace and,
+> rather than using the PIO tokens retrieved by pci_register_io_range(),
+> remove the call to this function and use the bus addresses defined
+> in the _CRS method.
+>
+> From what Bjorn said it seems that we have at least some cases where
+> these bus addresses are not unique; therefore in linux we need to generate
+> the PIO tokens dynamically.
+>
+> If you guys agree on the conclusion above I will continue with the
+> rework of the HiSilicon LPC driver with the assumption that we need
+> dynamically assigned tokens also for ACPI.
+
+Yes, unless Bjorn has some last concerns, I think this is all good
+and the only proper way to continue. Thanks for bearing with me
+through the detour that ended up in the same place we were in
+before...
+
+    Arnd
