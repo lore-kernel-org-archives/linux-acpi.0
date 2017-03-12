@@ -1,74 +1,34 @@
-From: Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] spi: xlp: update for ARCH_VULCAN2
-Date: Sun, 12 Mar 2017 11:11:43 +0000
-Message-ID: <1489317103-5329-1-git-send-email-jnair@caviumnetworks.com>
+From: =?utf-8?q?Mariah_Dweck?= <marikirah@gmail.com>
+Subject: =?utf-8?q?Hi_good_day?=
+Date: Sun, 12 Mar 2017 19:52:28 +0100
+Message-ID: <20170312195228.91FDF9BC@volny.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Kamlakant.Patel-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gmmr1.centrum.cz ([46.255.225.252]:42639 "EHLO gmmr1.centrum.cz"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934579AbdCLTDD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 12 Mar 2017 15:03:03 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ARCH_VULCAN arm64 platform (for Broadcom Vulcan ARM64 processors) has
-been discontinued. Cavium's ThunderX2 CN99XX (ARCH_THUNDER2) will be
-the next revision of the platform.
+Hi Good day
 
-Update compile dependencies and ACPI ID to reflect this change. There
-is not need to retain ARCH_VULCAN since the Vulcan processor was never
-in production and ARCH_VULCAN will be deleted soon.
+i saw your address today then i tried your number but it was not
+available, so i decided to contact you through email, i would like to be
+your good friend my name is mairah Dweck, i have important matter to
+discuss with you,
 
-Signed-off-by: Jayachandran C <jnair-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
----
-[ I am keeping both changes in the same patch hoping it will go in thru
- the SPI maintainer, but I can split this to 2 if needed]
+Regard
+Mariah
+..................................................................................................................................
+Hallo Guten Tag
 
- drivers/acpi/acpi_apd.c | 1 +
- drivers/spi/Kconfig     | 2 +-
- drivers/spi/spi-xlp.c   | 1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+Ich sah Ihr Adresse heute Dann habe ich versucht, Ihre Nummer, aber es war
+nicht verfügbar, so habe ich beschlossen, Sie per E-Mail zu kontaktieren,
+ich möchte Ihr guter Freund zu sein mein Name ist Mariah Dweck, ich habe
+wichtige Angelegenheit mit Ihnen zu besprechen,
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 26696b6..17a1eb1 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -169,6 +169,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- #ifdef CONFIG_ARM64
- 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
- 	{ "BRCM900D", APD_ADDR(vulcan_spi_desc) },
-+	{ "CAV900D",  APD_ADDR(vulcan_spi_desc) },
- #endif
- 	{ }
- };
-diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
-index 25ae7f2e..1761c90 100644
---- a/drivers/spi/Kconfig
-+++ b/drivers/spi/Kconfig
-@@ -715,7 +715,7 @@ config SPI_XILINX
- 
- config SPI_XLP
- 	tristate "Netlogic XLP SPI controller driver"
--	depends on CPU_XLP || ARCH_VULCAN || COMPILE_TEST
-+	depends on CPU_XLP || ARCH_THUNDER2 || COMPILE_TEST
- 	help
- 	  Enable support for the SPI controller on the Netlogic XLP SoCs.
- 	  Currently supported XLP variants are XLP8XX, XLP3XX, XLP2XX, XLP9XX
-diff --git a/drivers/spi/spi-xlp.c b/drivers/spi/spi-xlp.c
-index bea7a93..80cb4d6 100644
---- a/drivers/spi/spi-xlp.c
-+++ b/drivers/spi/spi-xlp.c
-@@ -442,6 +442,7 @@ static int xlp_spi_probe(struct platform_device *pdev)
- #ifdef CONFIG_ACPI
- static const struct acpi_device_id xlp_spi_acpi_match[] = {
- 	{ "BRCM900D", 0 },
-+	{ "CAV900D",  0 },
- 	{ },
- };
- MODULE_DEVICE_TABLE(acpi, xlp_spi_acpi_match);
--- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mit freundlichen Grüßen
+Mariah
