@@ -1,96 +1,104 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
- [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
-Date: Mon, 13 Mar 2017 16:11:01 +0100
-Message-ID: <20170313151100.GS31518@dhcp22.suse.cz>
-References: <1488462828-174523-1-git-send-email-imammedo@redhat.com>
- <20170302142816.GK1404@dhcp22.suse.cz>
- <20170302180315.78975d4b@nial.brq.redhat.com>
- <20170303082723.GB31499@dhcp22.suse.cz>
- <20170303183422.6358ee8f@nial.brq.redhat.com>
- <20170306145417.GG27953@dhcp22.suse.cz>
- <20170307134004.58343e14@nial.brq.redhat.com>
- <20170309125400.GI11592@dhcp22.suse.cz>
- <20170310135807.GI3753@dhcp22.suse.cz>
- <20170310155333.GN3753@dhcp22.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20170310155333.GN3753@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Reza Arbab <arbab@linux.vnet.ibm.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, Andi Kleen <ak@linux.intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "spi: xlp: update for ARCH_VULCAN2" to the spi tree
+Date: Mon, 13 Mar 2017 16:57:09 +0000
+Message-ID: <E1cnTHR-0004r0-Ni@debutante>
+References: <1489317103-5329-1-git-send-email-jnair@caviumnetworks.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:38024 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754420AbdCMQ53 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Mar 2017 12:57:29 -0400
+In-Reply-To: <1489317103-5329-1-git-send-email-jnair@caviumnetworks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jayachandran C <jnair@caviumnetworks.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-acpi@vger.kernel.orgMark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Kamlakant.Patel@cavium.comlinux-spi@vger.kernel.org
 
-Let's add Andi
+The patch
 
-On Fri 10-03-17 16:53:33, Michal Hocko wrote:
-> On Fri 10-03-17 14:58:07, Michal Hocko wrote:
-> [...]
-> > This would explain why onlining from the last block actually works but
-> > to me this sounds like a completely crappy behavior. All we need to
-> > guarantee AFAICS is that Normal and Movable zones do not overlap. I
-> > believe there is even no real requirement about ordering of the physical
-> > memory in Normal vs. Movable zones as long as they do not overlap. But
-> > let's keep it simple for the start and always enforce the current status
-> > quo that Normal zone is physically preceeding Movable zone.
-> > Can somebody explain why we cannot have a simple rule for Normal vs.
-> > Movable which would be:
-> > 	- block [pfn, pfn+block_size] can be Normal if
-> > 	  !zone_populated(MOVABLE) || pfn+block_size < ZONE_MOVABLE->zone_start_pfn
-> > 	- block [pfn, pfn+block_size] can be Movable if
-> > 	  !zone_populated(NORMAL) || ZONE_NORMAL->zone_end_pfn < pfn
-> 
-> OK, so while I was playing with this setup some more I probably got why
-> this is done this way. All new memblocks are added to the zone Normal
-> where they are accounted as spanned but not present. When we do
-> online_movable we just cut from the end of the Normal zone and move it
-> to Movable zone. This sounds really awkward. What was the reason to go
-> this way? Why cannot we simply add those pages to the zone at the online
-> time?
+   spi: xlp: update for ARCH_VULCAN2
 
-Answering to myself. So the reason seems to be 9d99aaa31f59 ("[PATCH]
-x86_64: Support memory hotadd without sparsemem") which is no longer
-true because 
-config MEMORY_HOTPLUG
-        bool "Allow for memory hot-add"
-        depends on SPARSEMEM || X86_64_ACPI_NUMA
-        depends on ARCH_ENABLE_MEMORY_HOTPLUG
-        depends on COMPILE_TEST || !KASAN
+has been applied to the spi tree at
 
-so it is either SPARSEMEM or X86_64_ACPI_NUMA that would have to be enabled.
-config X86_64_ACPI_NUMA
-        def_bool y
-        prompt "ACPI NUMA detection"
-        depends on X86_64 && NUMA && ACPI && PCI
-        select ACPI_NUMA
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
 
-But I do not see any way how to enable anything but SPARSEMEM for x86_64
-choice
-        prompt "Memory model"
-        depends on SELECT_MEMORY_MODEL
-        default DISCONTIGMEM_MANUAL if ARCH_DISCONTIGMEM_DEFAULT
-        default SPARSEMEM_MANUAL if ARCH_SPARSEMEM_DEFAULT
-        default FLATMEM_MANUAL
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-ARCH_SPARSEMEM_DEFAULT is 32b only
-config ARCH_DISCONTIGMEM_DEFAULT
-        def_bool y
-        depends on NUMA && X86_32
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-and ARCH_SPARSEMEM_DEFAULT is enabeld on 64b. So I guess whatever was
-the reason to add this code back in 2006 is not true anymore. So I am
-really wondering. Do we absolutely need to assign pages which are not
-onlined yet to the ZONE_NORMAL unconditionally? Why cannot we put them
-out of any zone and wait for memory online operation to put them where
-requested?
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 251831bd4f4903415da7f0ce04dc0de26bc43f1d Mon Sep 17 00:00:00 2001
+From: Jayachandran C <jnair@caviumnetworks.com>
+Date: Sun, 12 Mar 2017 11:11:43 +0000
+Subject: [PATCH] spi: xlp: update for ARCH_VULCAN2
+
+ARCH_VULCAN arm64 platform (for Broadcom Vulcan ARM64 processors) has
+been discontinued. Cavium's ThunderX2 CN99XX (ARCH_THUNDER2) will be
+the next revision of the platform.
+
+Update compile dependencies and ACPI ID to reflect this change. There
+is not need to retain ARCH_VULCAN since the Vulcan processor was never
+in production and ARCH_VULCAN will be deleted soon.
+
+Signed-off-by: Jayachandran C <jnair@caviumnetworks.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/acpi/acpi_apd.c | 1 +
+ drivers/spi/Kconfig     | 2 +-
+ drivers/spi/spi-xlp.c   | 1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 7dd70927991e..89e74d0a6c33 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -164,6 +164,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+ #ifdef CONFIG_ARM64
+ 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+ 	{ "BRCM900D", APD_ADDR(vulcan_spi_desc) },
++	{ "CAV900D",  APD_ADDR(vulcan_spi_desc) },
+ #endif
+ 	{ }
+ };
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index ec4aa252d6e8..8c40b5216ad6 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -705,7 +705,7 @@ config SPI_XILINX
+ 
+ config SPI_XLP
+ 	tristate "Netlogic XLP SPI controller driver"
+-	depends on CPU_XLP || ARCH_VULCAN || COMPILE_TEST
++	depends on CPU_XLP || ARCH_THUNDER2 || COMPILE_TEST
+ 	help
+ 	  Enable support for the SPI controller on the Netlogic XLP SoCs.
+ 	  Currently supported XLP variants are XLP8XX, XLP3XX, XLP2XX, XLP9XX
+diff --git a/drivers/spi/spi-xlp.c b/drivers/spi/spi-xlp.c
+index bea7a93a6046..80cb4d6af892 100644
+--- a/drivers/spi/spi-xlp.c
++++ b/drivers/spi/spi-xlp.c
+@@ -442,6 +442,7 @@ static int xlp_spi_probe(struct platform_device *pdev)
+ #ifdef CONFIG_ACPI
+ static const struct acpi_device_id xlp_spi_acpi_match[] = {
+ 	{ "BRCM900D", 0 },
++	{ "CAV900D",  0 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(acpi, xlp_spi_acpi_match);
 -- 
-Michal Hocko
-SUSE Labs
+2.11.0
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
