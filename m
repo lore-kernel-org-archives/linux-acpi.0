@@ -1,78 +1,126 @@
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
-Date: Mon, 13 Mar 2017 13:54:59 +0100
-Message-ID: <87a88pgwv0.fsf@vitty.brq.redhat.com>
-References: <20170227154304.GK26504@dhcp22.suse.cz>
-	<1488462828-174523-1-git-send-email-imammedo@redhat.com>
-	<20170302142816.GK1404@dhcp22.suse.cz>
-	<20170302180315.78975d4b@nial.brq.redhat.com>
-	<20170303082723.GB31499@dhcp22.suse.cz>
-	<20170303183422.6358ee8f@nial.brq.redhat.com>
-	<20170306145417.GG27953@dhcp22.suse.cz>
-	<20170307134004.58343e14@nial.brq.redhat.com>
-	<20170309125400.GI11592@dhcp22.suse.cz>
-	<20170313115554.41d16b1f@nial.brq.redhat.com>
-	<20170313122825.GO31518@dhcp22.suse.cz>
+From: Shiju Jose <shiju.jose@huawei.com>
+Subject: [PATCH 1/1] acpi:apei:handle GSIV and GPIO notification types
+Date: Mon, 13 Mar 2017 13:16:28 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A62DCB6D39@lhreml502-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170313122825.GO31518@dhcp22.suse.cz> (Michal Hocko's message
-	of "Mon, 13 Mar 2017 13:28:25 +0100")
-Sender: owner-linux-mm@kvack.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:15521 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751032AbdCMNQ7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Mar 2017 09:16:59 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "bp@suse.de" <bp@suse.de>, "mingo@kernel.org" <mingo@kernel.org>, "prarit@redhat.com" <prarit@redhat.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "punit.agrawal@arm.com" <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "james.morse@arm.com" <james.morse@arm.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>
 
-Michal Hocko <mhocko@kernel.org> writes:
+System Controller Interrupts are received by ACPI's error device,
+which in turn notifies the GHES code. The same is true of
+APEI's GSIV and GPIO notification types.
+Add support for GSIV and GPIO sharing the SCI
+register/unregister/notifier code.Rename the list and notifier
+to show this is no longer just SCI, but anything from the
+Hardware Error Device.
 
-> On Mon 13-03-17 11:55:54, Igor Mammedov wrote:
->> > > 
->> > >        - suggested RFC is not acceptable from virt point of view
->> > >          as it regresses guests on top of x86 kvm/vmware which
->> > >          both use ACPI based memory hotplug.
->> > > 
->> > >        - udev/userspace solution doesn't work in practice as it's
->> > >          too slow and unreliable when system is under load which
->> > >          is quite common in virt usecase. That's why auto online
->> > >          has been introduced in the first place.  
->> > 
->> > Please try to be more specific why "too slow" is a problem. Also how
->> > much slower are we talking about?
->>
->> In virt case on host with lots VMs, userspace handler
->> processing could be scheduled late enough to trigger a race
->> between (guest memory going away/OOM handler) and memory
->> coming online.
->
-> Either you are mixing two things together or this doesn't really make
-> much sense. So is this a balloning based on memory hotplug (aka active
-> memory hotadd initiated between guest and host automatically) or a guest
-> asking for additional memory by other means (pay more for memory etc.)?
-> Because if this is an administrative operation then I seriously question
-> this reasoning.
+Signed-off-by: Shiju Jose <shiju.jose@huawei.com>
+[james.morse@arm.com: rewrote commit log]
+Signed-off-by: James Morse <james.morse@arm.com>
+CC: James Morse <james.morse@arm.com>
+CC: Hanjun Guo <guohanjun@huawei.com>
+---
+ drivers/acpi/apei/ghes.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-I'm probably repeating myself but it seems this point was lost:
-
-This is not really a 'ballooning', it is just a pure memory
-hotplug. People may have any tools monitoring their VM memory usage and
-when a VM is running low on memory they may want to hotplug more memory
-to it. With udev-style memory onlining they should be aware of page
-tables and other in-kernel structures which require allocation so they
-need to add memory slowly and gradually or they risk running into OOM
-(at least getting some processes killed and these processes may be
-important). With in-kernel memory hotplug everything happens
-synchronously and no 'slowly and gradually' algorithm is required in
-all tools which may trigger memory hotplug.
-
-It's not about slowness, it's about being synchronous or
-asynchronous. This is not related to the virtualization technology used,
-the use-case is the same for all of them which support memory hotplug.
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index b192b42..fd39929 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -89,14 +89,14 @@
+ module_param_named(disable, ghes_disable, bool, 0);
+ 
+ /*
+- * All error sources notified with SCI shares one notifier function,
++ * All error sources notified with HED shares one notifier function,
+  * so they need to be linked and checked one by one.  This is applied
+  * to NMI too.
+  *
+  * RCU is used for these lists, so ghes_list_mutex is only used for
+  * list changing, not for traversing.
+  */
+-static LIST_HEAD(ghes_sci);
++static LIST_HEAD(ghes_hed);
+ static DEFINE_MUTEX(ghes_list_mutex);
+ 
+ /*
+@@ -702,14 +702,14 @@ static irqreturn_t ghes_irq_func(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int ghes_notify_sci(struct notifier_block *this,
++static int ghes_notify_hed(struct notifier_block *this,
+ 				  unsigned long event, void *data)
+ {
+ 	struct ghes *ghes;
+ 	int ret = NOTIFY_DONE;
+ 
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(ghes, &ghes_sci, list) {
++	list_for_each_entry_rcu(ghes, &ghes_hed, list) {
+ 		if (!ghes_proc(ghes))
+ 			ret = NOTIFY_OK;
+ 	}
+@@ -718,8 +718,8 @@ static int ghes_notify_sci(struct notifier_block *this,
+ 	return ret;
+ }
+ 
+-static struct notifier_block ghes_notifier_sci = {
+-	.notifier_call = ghes_notify_sci,
++static struct notifier_block ghes_notifier_hed = {
++	.notifier_call = ghes_notify_hed,
+ };
+ 
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+@@ -966,6 +966,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 	case ACPI_HEST_NOTIFY_POLLED:
+ 	case ACPI_HEST_NOTIFY_EXTERNAL:
+ 	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_GSIV:
++	case ACPI_HEST_NOTIFY_GPIO:
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+@@ -1026,10 +1028,12 @@ static int ghes_probe(struct platform_device *ghes_dev)
+ 		}
+ 		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_GSIV:
++	case ACPI_HEST_NOTIFY_GPIO:
+ 		mutex_lock(&ghes_list_mutex);
+-		if (list_empty(&ghes_sci))
+-			register_acpi_hed_notifier(&ghes_notifier_sci);
+-		list_add_rcu(&ghes->list, &ghes_sci);
++		if (list_empty(&ghes_hed))
++			register_acpi_hed_notifier(&ghes_notifier_hed);
++		list_add_rcu(&ghes->list, &ghes_hed);
+ 		mutex_unlock(&ghes_list_mutex);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+@@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device *ghes_dev)
+ 		free_irq(ghes->irq, ghes);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_SCI:
++	case ACPI_HEST_NOTIFY_GSIV:
++	case ACPI_HEST_NOTIFY_GPIO:
+ 		mutex_lock(&ghes_list_mutex);
+ 		list_del_rcu(&ghes->list);
+-		if (list_empty(&ghes_sci))
+-			unregister_acpi_hed_notifier(&ghes_notifier_sci);
++		if (list_empty(&ghes_hed))
++			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+ 		mutex_unlock(&ghes_list_mutex);
+ 		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
 -- 
-  Vitaly
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+1.9.1
