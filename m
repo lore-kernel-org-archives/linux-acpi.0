@@ -1,65 +1,119 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH V12 09/10] trace, ras: add ARM processor error trace
- event
-Date: Mon, 13 Mar 2017 09:58:52 -0400
-Message-ID: <20170313095852.0c424d53@gandalf.local.home>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
-        <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
-        <58C12342.2090701@huawei.com>
-        <14545228-7ff1-b31c-1fa5-daacf89a44b9@codeaurora.org>
-        <58C60485.2070509@huawei.com>
-        <58C65FCB.3040508@huawei.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [RFC PATCH] mm, hotplug: get rid of auto_online_blocks
+Date: Mon, 13 Mar 2017 15:32:06 +0100
+Message-ID: <20170313143206.GQ31518@dhcp22.suse.cz>
+References: <20170303082723.GB31499@dhcp22.suse.cz>
+ <20170303183422.6358ee8f@nial.brq.redhat.com>
+ <20170306145417.GG27953@dhcp22.suse.cz>
+ <20170307134004.58343e14@nial.brq.redhat.com>
+ <20170309125400.GI11592@dhcp22.suse.cz>
+ <20170313115554.41d16b1f@nial.brq.redhat.com>
+ <20170313122825.GO31518@dhcp22.suse.cz>
+ <87a88pgwv0.fsf@vitty.brq.redhat.com>
+ <20170313131924.GP31518@dhcp22.suse.cz>
+ <87pohlfg36.fsf@vitty.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:59172 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751415AbdCMN7C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Mar 2017 09:59:02 -0400
-In-Reply-To: <58C65FCB.3040508@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <87pohlfg36.fsf@vitty.brq.redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: "Baicar, Tyler" <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org
 
-On Mon, 13 Mar 2017 17:00:59 +0800
-Xie XiuQi <xiexiuqi@huawei.com> wrote:
-
-> ---
->  drivers/acpi/apei/ghes.c |  8 +++++
->  include/linux/cper.h     |  5 +++
->  include/ras/ras_event.h  | 87 ++++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 100 insertions(+)
+On Mon 13-03-17 14:42:37, Vitaly Kuznetsov wrote:
+> Michal Hocko <mhocko@kernel.org> writes:
 > 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 251d7e0..6d34c26 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -518,9 +518,17 @@ static void ghes_do_proc(struct ghes *ghes,
->  		else if (!uuid_le_cmp(sec_type, CPER_SEC_PROC_ARM) &&
->  			 trace_arm_event_enabled()) {
->  			struct cper_sec_proc_arm *arm_err;
-> +			struct cper_arm_err_info *err_info;
-> +			int i;
+> > On Mon 13-03-17 13:54:59, Vitaly Kuznetsov wrote:
+> >> Michal Hocko <mhocko@kernel.org> writes:
+> >> 
+> >> > On Mon 13-03-17 11:55:54, Igor Mammedov wrote:
+> >> >> > > 
+> >> >> > >        - suggested RFC is not acceptable from virt point of view
+> >> >> > >          as it regresses guests on top of x86 kvm/vmware which
+> >> >> > >          both use ACPI based memory hotplug.
+> >> >> > > 
+> >> >> > >        - udev/userspace solution doesn't work in practice as it's
+> >> >> > >          too slow and unreliable when system is under load which
+> >> >> > >          is quite common in virt usecase. That's why auto online
+> >> >> > >          has been introduced in the first place.  
+> >> >> > 
+> >> >> > Please try to be more specific why "too slow" is a problem. Also how
+> >> >> > much slower are we talking about?
+> >> >>
+> >> >> In virt case on host with lots VMs, userspace handler
+> >> >> processing could be scheduled late enough to trigger a race
+> >> >> between (guest memory going away/OOM handler) and memory
+> >> >> coming online.
+> >> >
+> >> > Either you are mixing two things together or this doesn't really make
+> >> > much sense. So is this a balloning based on memory hotplug (aka active
+> >> > memory hotadd initiated between guest and host automatically) or a guest
+> >> > asking for additional memory by other means (pay more for memory etc.)?
+> >> > Because if this is an administrative operation then I seriously question
+> >> > this reasoning.
+> >> 
+> >> I'm probably repeating myself but it seems this point was lost:
+> >> 
+> >> This is not really a 'ballooning', it is just a pure memory
+> >> hotplug. People may have any tools monitoring their VM memory usage and
+> >> when a VM is running low on memory they may want to hotplug more memory
+> >> to it.
+> >
+> > What is the API those guests ask for the memory? And who is actually
+> > responsible to ask for that memory? Is it a kernel or userspace
+> > solution?
 > 
->  			arm_err = acpi_hest_generic_data_payload(gdata);
->  			trace_arm_event(arm_err);
-> +
+> Whatever, this can even be a system administrator running
+> 'free'.
 
-		if (trace_arm_proc_err_enabled()) {
+I am pretty sure that 'free' will not give you additional memory but
+let's be serious here... If this is solely about monitoring from
+userspace and requesting more memory from the userspace then I would
+consider arguing about timely hotplug operation as void because there is
+absolutely no guarantee to do the request itself in a timely fashion.
 
-> +			err_info = (struct cper_arm_err_info *)(arm_err + 1);
-> +			for (i = 0; i < arm_err->err_info_num; i++) {
-> +				trace_arm_proc_err(err_info);
-> +				err_info += 1;
-> +			}
+> Hyper-V driver sends si_mem_available() and
+> vm_memory_committed() metrics to the host every second and this can be
+> later queried by any tool (e.g. powershell script).
 
-		}
+And how exactly is this related to the acpi hotplug which you were
+arguing needs the timely handling as well?
+ 
+> >> With udev-style memory onlining they should be aware of page
+> >> tables and other in-kernel structures which require allocation so they
+> >> need to add memory slowly and gradually or they risk running into OOM
+> >> (at least getting some processes killed and these processes may be
+> >> important). With in-kernel memory hotplug everything happens
+> >> synchronously and no 'slowly and gradually' algorithm is required in
+> >> all tools which may trigger memory hotplug.
+> >
+> > What prevents those APIs being used reasonably and only asks so much
+> > memory as they can afford? I mean 1.5% available memory necessary for
+> > the hotplug is not all that much. Or more precisely what prevents to ask
+> > for this additional memory in a synchronous way?
+> 
+> The knowledge about the fact that we need to add memory slowly and
+> wait till it gets onlined is not obvious.
 
--- Steve
+yes it is and we cannot afford to give a better experience with the
+implementation that requires to have memory to online a memory.
 
->  		} else if (trace_unknown_sec_event_enabled()) {
->  			void *unknown_err = acpi_hest_generic_data_payload(gdata);
->  			trace_unknown_sec_event(&sec_type,
-> diff --git a/include/linux/cper.h b/include/linux/cper.h
+> AFAIR when you hotplug memory
+> to Windows VMs there is no such thing as 'onlining', and no brain is
+> required, a simple script 'low memory -> add mory memory' always
+> works. Asking all these script writers to think twice before issuing a
+> memory add command memory sounds like too much (to me).
+
+Pardon me, but not requiring a brain while doing something on Windows
+VMs is not really an argument...
+-- 
+Michal Hocko
+SUSE Labs
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
