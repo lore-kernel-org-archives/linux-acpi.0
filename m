@@ -1,52 +1,169 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v2 00/17] Move firmware specific code to firmware specific locations
-Date: Mon, 13 Mar 2017 23:27:40 +0100
-Message-ID: <2385585.K4ms5H7miQ@aspire.rjw.lan>
-References: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH][RFC v4] ACPI throttling: Disable the MSR T-state if enabled after resumed
+Date: Mon, 13 Mar 2017 23:41:03 +0100
+Message-ID: <2529341.3B7i2Zl8C6@aspire.rjw.lan>
+References: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488814983-25695-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, March 06, 2017 05:42:46 PM Sakari Ailus wrote:
-> Hi, 
+On Friday, February 17, 2017 04:27:30 PM Chen Yu wrote:
+> Previously a bug was reported that on certain Broadwell
+> platform, after resumed from S3, the CPU is running at
+> an anomalously low speed, due to the BIOS has enabled the
+> MSR throttling across S3. The solution to this was to introduce
+> a quirk framework to save/restore tstate MSR register around
+> suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
+> Introduce quirk framework to save/restore extra MSR
+> registers around suspend/resume").
 > 
-> This set moves firmware specific implementations of the device / fwnode
-> property API to locations that are specific to firmware implementation,
-> still leaving property set (which isn't really firmware) implementation in
-> drivers/base/property.c.
+> However there are still three problems left:
+> 1. More and more reports show that other platforms also
+>    encountered the same issue, so the quirk list might
+>    be endless.
+> 2. Each CPUs should take the save/restore operation into
+>    consideration, rather than the boot CPU alone.
+> 3. Normally ACPI T-state re-evaluation is done on resume,
+>    however there is no _TSS on the bogus platform, thus
+>    above re-evaluation code does not run on that machine.
 > 
-> The set depends on the ACPI graph support v4 patches I posted a moment
-> ago.
+> Solution:
+> This patch is based on the fact that, we generally should not
+> expect the system to come back from resume with throttling
+> enabled, but leverage the OS components to deal with it,
+> such as thermal event. So we simply clear the MSR T-state
+> and print the warning if it is found to be enabled after
+> resumed back. Besides, we can remove the quirk in previous patch
+> later.
 > 
-> The patches may be found with dependencies here:
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=90041
+> Reported-and-tested-by: Kadir <kadir@colakoglu.nl>
+> Suggested-by: Len Brown <lenb@kernel.org>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Cc: Pavel Machek <pavel@ucw.cz>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: linux-pm@vger.kernel.org
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> ---
+>  drivers/acpi/processor_throttling.c | 58 +++++++++++++++++++++++++++++++++++++
+>  1 file changed, 58 insertions(+)
 > 
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned>
-> 
-> since v1:
-> 
-> - Move the three bugfixes in front of the set into a separate patchset.
->   There are no dependencies to those from the rest of the patches.
-> 
-> - Rebase on current ACPI graph support patches (themselves on PM tree
->   4.11-rc1 merge).
+> diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+> index a12f96c..e121449 100644
+> --- a/drivers/acpi/processor_throttling.c
+> +++ b/drivers/acpi/processor_throttling.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/sched.h>
+>  #include <linux/cpufreq.h>
+>  #include <linux/acpi.h>
+> +#include <linux/syscore_ops.h>
+>  #include <acpi/processor.h>
+>  #include <asm/io.h>
+>  #include <linux/uaccess.h>
+> @@ -64,6 +65,7 @@ struct acpi_processor_throttling_arg {
+>  static int acpi_processor_get_throttling(struct acpi_processor *pr);
+>  int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  						int state, bool force);
+> +static void throttling_msr_reevaluate(int cpu);
+>  
+>  static int acpi_processor_update_tsd_coord(void)
+>  {
+> @@ -386,6 +388,15 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
+>  		pr->flags.throttling = 0;
+>  		return;
+>  	}
+> +	/*
+> +	 * It was found after resumed from suspend to ram, some BIOSes would
+> +	 * adjust the MSR tstate, however on these platforms no _PSS is provided
+> +	 * thus we never have a chance to adjust the MSR T-state anymore.
+> +	 * Thus force clearing it if MSR T-state is enabled, because generally
+> +	 * we never expect to come back from resume with throttling enabled.
+> +	 * Later let other components to adjust T-state if necessary.
+> +	 */
+> +	throttling_msr_reevaluate(pr->id);
+>  	/* the following is to recheck whether the T-state is valid for
+>  	 * the online CPU
+>  	 */
+> @@ -758,6 +769,24 @@ static int acpi_throttling_wrmsr(u64 value)
+>  	}
+>  	return ret;
+>  }
+> +
+> +static long msr_reevaluate_fn(void *data)
+> +{
+> +	u64 msr = 0;
+> +
+> +	acpi_throttling_rdmsr(&msr);
+> +	if (msr) {
+> +		printk_once(KERN_ERR "PM: The BIOS might have modified the MSR T-state, clear it for now.\n");
+> +		acpi_throttling_wrmsr(0);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static void throttling_msr_reevaluate(int cpu)
+> +{
+> +	work_on_cpu(cpu, msr_reevaluate_fn, NULL);
+> +}
+> +
+>  #else
+>  static int acpi_throttling_rdmsr(u64 *value)
+>  {
+> @@ -772,8 +801,37 @@ static int acpi_throttling_wrmsr(u64 value)
+>  		"HARDWARE addr space,NOT supported yet\n");
+>  	return -1;
+>  }
+> +
+> +static long msr_reevaluate_fn(void *data)
+> +{
+> +	return 0;
+> +}
+> +
+> +static void throttling_msr_reevaluate(int cpu)
+> +{
+> +}
+>  #endif
+>  
+> +void acpi_throttling_resume(void)
+> +{
+> +	msr_reevaluate_fn(NULL);
+> +}
+> +
+> +static struct syscore_ops acpi_throttling_syscore_ops = {
+> +	.resume		= acpi_throttling_resume,
+> +};
 
-To me, all material from patches [1-11/17] can easily go into one patch which
-would also help to review it quite a bit.
+This should go under the #ifdef too.
 
-Analogously, all material in patches [12-16/17] can go into one patch too.
+> +
+> +static int acpi_throttling_init_ops(void)
+> +{
+> +	/*
+> +	 * Reevaluate on boot CPU. Since it is not always CPU0,
+> +	 * we can not invoke throttling_msr_reevaluate(0) directly.
+> +	 */
+> +	register_syscore_ops(&acpi_throttling_syscore_ops);
+> +	return 0;
+> +}
+> +device_initcall(acpi_throttling_init_ops);
 
-The split as is appears quite artificial, honestly.
+Isn't there a good place to call register_syscore_ops() for this aleady?
+
+I'd rather not add a new device_initcall() for that.
+
+> +
+>  static int acpi_read_throttling_status(struct acpi_processor *pr,
+>  					u64 *value)
+>  {
+> 
 
 Thanks,
 Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
