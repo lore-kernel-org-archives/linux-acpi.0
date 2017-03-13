@@ -1,54 +1,90 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 14/16] of: Add nop implementation of of_get_next_parent()
-Date: Mon, 13 Mar 2017 22:55:01 +0100
-Message-ID: <3876288.h7t1S52nK5@aspire.rjw.lan>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com> <1488809970-25568-15-git-send-email-sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v4 15/16] device property: Add fwnode_get_next_parent()
+Date: Mon, 13 Mar 2017 22:58:25 +0100
+Message-ID: <2027673.WAD1C0MHDO@aspire.rjw.lan>
+References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com> <1488809970-25568-16-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55366 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63834 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752688AbdCMWA1 (ORCPT
+        by vger.kernel.org with ESMTP id S1750846AbdCMWDu (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Mar 2017 18:00:27 -0400
-In-Reply-To: <1488809970-25568-15-git-send-email-sakari.ailus@linux.intel.com>
+        Mon, 13 Mar 2017 18:03:50 -0400
+In-Reply-To: <1488809970-25568-16-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Monday, March 06, 2017 04:19:28 PM Sakari Ailus wrote:
-> To avoid #ifdefs where the function is used.
-
-A bit more explanation?
-
-About where this happens (or will happen) to be used with CONFIG_OF unset?
-
-Plus, that would require an ACK from Rob.
-
+On Monday, March 06, 2017 04:19:29 PM Sakari Ailus wrote:
+> In order to differentiate the functionality between dropping a reference
+> to the node (or not) for the benefit of OF, introduce
+> fwnode_get_next_parent().
+> 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  include/linux/of.h | 6 ++++++
->  1 file changed, 6 insertions(+)
+>  drivers/base/property.c  | 29 +++++++++++++++++++++++++++++
+>  include/linux/property.h |  1 +
+>  2 files changed, 30 insertions(+)
 > 
-> diff --git a/include/linux/of.h b/include/linux/of.h
-> index d48e225..c05fe25 100644
-> --- a/include/linux/of.h
-> +++ b/include/linux/of.h
-> @@ -586,6 +586,12 @@ static inline struct device_node *of_get_parent(const struct device_node *node)
->  	return NULL;
->  }
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index b8c1017..defeba9 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -953,6 +953,35 @@ int device_add_properties(struct device *dev,
+>  EXPORT_SYMBOL_GPL(device_add_properties);
 >  
-> +static inline struct device_node *of_get_next_parent(
-> +	const struct device_node *node)
+>  /**
+> + * fwnode_get_next_parent - Iterate to the node's parent
+> + * @fwnode: Firmware whose parent is retrieved
+> + *
+> + * This is like fwnode_get_parent() except that it drops the refcount
+> + * on the passed node, making it suitable for iterating through a
+> + * node's parents.
+> + *
+> + * Returns a node pointer with refcount incremented, use
+> + * fwnode_handle_node() on it when done.
+> + */
+> +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
 > +{
-> +	return NULL;
-> +}
+> +	struct fwnode_handle *parent = NULL;
 > +
->  static inline struct device_node *of_get_next_child(
->  	const struct device_node *node, struct device_node *prev)
->  {
+> +	if (is_of_node(fwnode)) {
+> +		struct device_node *node;
+> +
+> +		node = of_get_next_parent(to_of_node(fwnode));
+
+So I would fold the [14/15] into this one and then it should be clear why that
+change was useful.
+
+> +		if (node)
+> +			parent = &node->fwnode;
+> +	} else if (is_acpi_node(fwnode)) {
+> +		parent = acpi_node_get_parent(fwnode);
+> +	}
+> +
+> +	return parent;
+> +}
+> +EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
+> +
+> +/**
+>   * fwnode_get_parent - Return parent firwmare node
+>   * @fwnode: Firmware whose parent is retrieved
+>   *
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 45ef00a..19dd35e 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -77,6 +77,7 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+>  				 const char *propname, const char *string);
+>  
+>  struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
+> +struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
+>  						 struct fwnode_handle *child);
+>  
 > 
 
 Thanks,
