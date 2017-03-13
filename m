@@ -1,38 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V7 5/7] ACPI: Delay the enumeration on the devices whose  dependency has not met
-Date: Mon, 13 Mar 2017 22:24:34 +0100
-Message-ID: <4600523.rWNiWKrYZC@aspire.rjw.lan>
-References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com> <1489372963-9000-6-git-send-email-yuanzhichang@hisilicon.com>
+Subject: Re: [PATCH v4 10/16] irqchip/gic: Add missing forward declaration for struct device
+Date: Mon, 13 Mar 2017 22:45:24 +0100
+Message-ID: <4273177.TJH56Hy810@aspire.rjw.lan>
+References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com> <1488809970-25568-11-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46104 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44435 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751374AbdCMVaB (ORCPT
+        by vger.kernel.org with ESMTP id S1752799AbdCMVut (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Mar 2017 17:30:01 -0400
-In-Reply-To: <1489372963-9000-6-git-send-email-yuanzhichang@hisilicon.com>
+        Mon, 13 Mar 2017 17:50:49 -0400
+In-Reply-To: <1488809970-25568-11-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, mark.rutland@arm.com, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, lorenzo.pieralisi@arm.com, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-serial@vger.kernel.org, minyard@acm.org, liviu.dudau@arm.com, zourongrong@gmail.com, john.garry@huawei.com, gabriele.paoloni@huawei.com, zhichang.yuan02@gmail.com, kantyzc@163.com, xuwei5@hisilicon.com
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Monday, March 13, 2017 10:42:41 AM zhichang.yuan wrote:
-> In commit 40e7fcb1929(ACPI: Add _DEP support to fix battery issue on Asus
-> T100TA), the '_DEP' was supported to solve the dependency of Asus battery. But
-> this patch is specific to Asus battery device.
-> In the real world, there are other devices which need the dependency to play the
-> role on the enumeration order. For example, all the Hip06 LPC
-> periperals(IPMI-BT, uart, etc) must be scanned after the LPC host driver
-> finished the probing. So, it makes sense to add a checking whether the ACPI
-> device meet all the dependencies during its enumeration slot, if not, the
-> enumeration will be delayed till all dependency master finish their work.
+On Monday, March 06, 2017 04:19:24 PM Sakari Ailus wrote:
+> A pointer to struct device is used in the header as a function argument
+> but there's no declaration for it. Add one.
 > 
-> This patch adds the dependency checking in ACPI enumeration, also the
-> corresponding handling to retrigger the Hip06 LPC peripherals' scanning.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/linux/irqchip/arm-gic.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+> index eafc965..b16afa1 100644
+> --- a/include/linux/irqchip/arm-gic.h
+> +++ b/include/linux/irqchip/arm-gic.h
+> @@ -100,6 +100,7 @@
+>  
+>  #include <linux/irqdomain.h>
+>  
+> +struct device;
+>  struct device_node;
+>  struct gic_chip_data;
 
-AFAICS, _DEP is generally abused in the wild and cannot be made generic.  Sorry.
+That should be folded into the patch that really depends on it and then it
+would require an ACK from the maintainer of arm-gic.h.
 
 Thanks,
 Rafael
