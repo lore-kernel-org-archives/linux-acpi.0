@@ -1,64 +1,200 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
- [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
-Date: Mon, 13 Mar 2017 10:21:45 +0100
-Message-ID: <20170313092145.GG31518@dhcp22.suse.cz>
-References: <20170302142816.GK1404@dhcp22.suse.cz>
- <20170302180315.78975d4b@nial.brq.redhat.com>
- <20170303082723.GB31499@dhcp22.suse.cz>
- <20170303183422.6358ee8f@nial.brq.redhat.com>
- <20170306145417.GG27953@dhcp22.suse.cz>
- <20170307134004.58343e14@nial.brq.redhat.com>
- <20170309125400.GI11592@dhcp22.suse.cz>
- <20170310135807.GI3753@dhcp22.suse.cz>
- <20170310155333.GN3753@dhcp22.suse.cz>
- <20170310190037.fifahjd47joim6zy@arbab-laptop>
+From: Shiju Jose <shiju.jose@huawei.com>
+Subject: RE: {RFC PATCH v1 v4.11-rc1 1/1} acpi: apei: common handler in ghes
+ for HW errors notified via hed(PNP0C33) driver
+Date: Mon, 13 Mar 2017 09:39:28 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A62DCB5C0F@lhreml502-mbx>
+References: <86258A5CC0A3704780874CF6004BA8A62DCAF445@lhreml502-mbs>
+ <58C2DF6C.6000900@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20170310190037.fifahjd47joim6zy@arbab-laptop>
-Sender: owner-linux-mm@kvack.org
-To: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:15324 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750904AbdCMJlP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Mar 2017 05:41:15 -0400
+In-Reply-To: <58C2DF6C.6000900@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "zjzhang@codeaurora.org" <zjzhang@codeaurora.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "xuwei (O)" <xuwei5@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, Xiexiuqi <xiexiuqi@huawei.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-ac>
 
-On Fri 10-03-17 13:00:37, Reza Arbab wrote:
-> On Fri, Mar 10, 2017 at 04:53:33PM +0100, Michal Hocko wrote:
-> >OK, so while I was playing with this setup some more I probably got why
-> >this is done this way. All new memblocks are added to the zone Normal
-> >where they are accounted as spanned but not present.
+Hi Peter,
+
+Thanks for the comments.
+
+> -----Original Message-----
+> From: James Morse [mailto:james.morse@arm.com]
+> Sent: 10 March 2017 17:16
+> To: Shiju Jose
+> Cc: catalin.marinas@arm.com; will.deacon@arm.com;
+> tbaicar@codeaurora.org; zjzhang@codeaurora.org; marc.zyngier@arm.com;
+> xuwei (O); Gabriele Paoloni; John Garry; Guohanjun (Hanjun Guo);
+> Zhengqiang (turing); Xiexiuqi; fu.wei@linaro.org; wangxiongfeng (C);
+> linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org;
+> linux-acpi@vger.kernel.org
+> Subject: Re: {RFC PATCH v1 v4.11-rc1 1/1} acpi: apei: common handler in
+> ghes for HW errors notified via hed(PNP0C33) driver
 > 
-> It's not always zone Normal. See zone_for_memory(). This leads to a
-> workaround for having to do online_movable in descending block order.
-> Instead of this:
+> Hi Shiju,
 > 
-> 1. probe block 34, probe block 33, probe block 32, ...
-> 2. online_movable 34, online_movable 33, online_movable 32, ...
+> On 07/03/17 16:07, Shiju Jose wrote:
+> > Add common handler in ghes for HW errors notified via hed(PNP0C33)
+> driver.
+> > 1. Rename ghes_notify_sci() to ghes_notify_hed().
+> > 2. Rename struct notifier_block ghes_notifier_sci to
+> >    struct notifier_block ghes_notifier_hed.
+> > 3. Rename ghes_sci list to ghes_hed.
+> > 4. Make ghes_notify_hed as common handler for
+> >    notification types SCI, GSIV and GPIO.
+> >
 > 
-> you can online_movable the first block before adding the rest:
-
-I do I enforce that behavior when the probe happens automagically?
-
-> 1. probe block 32, online_movable 32
-> 2. probe block 33, probe block 34, ...
-> 	- zone_for_memory() will cause these to start Movable
-> 3. online 33, online 34, ...
-> 	- they're already in Movable, so online_movable is equivalentr
+> I think the code here is fine, but we need to put this in front of the
+> ACPI maintainers, and if we can, make their job easy.
 > 
-> I agree with your general sentiment that this stuff is very nonintuitive.
+> How did you come up with the CC list for this patch?
+> scripts/get_maintainer.pl
+> lists:
+> > "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > (supporter:ACPI,commit_signer:2/4=50%)
+> > Len Brown <lenb@kernel.org> (supporter:ACPI)
+> 
+> as the maintainers for the file changed by this patch, but they weren't
+> CCd.
+Ok. I will post the patch CC ACPI maintainers.
+> 
+> Did you use git format-patch to create this? All the other patches on
+> the list have subjects of the form "[PATCH] acpi: apei....", the {}s
+> confuse 'git am'
+> meaning whoever applies this would have to edit your patch before
+> applying it.
+Ok. I got it. I will correct in next patch. I used git format-patch to create the patch.  
+> 
+> 
+> Your commit message doesn't add anything that wasn't in the subject-
+> line. It should describe the reason for the change. Based on Hanjun's
+> explanation I can
+> offer:
+> ---
+> System Controller Interrupts are received by ACPI's error device, which
+> in turn notifies the GHES code. The same is true of APEI's GSIV and
+> GPIO notification types.
+> Add support for GSIV and GPIO sharing the SCI
+> register/unregister/notifier code.
+> Rename the list and notifier to show this is no longer just SCI, but
+> anything from the Hardware Error Device.
+sure. I will correct the commit message.  
 
-My criterion for nonintuitive is probably different because I would call
-this _completely_unusable_. Sorry for being so loud about this but the
-more I look into this area the more WTF code I see. This has seen close
-to zero review and seems to be building up more single usecase code on
-top of previous. We need to change this, seriously!
--- 
-Michal Hocko
-SUSE Labs
+> 
+> ---
+> 
+> If you're confident you solved this the right way, (which I think we
+> are), you should drop the 'RFC' from the subject. RFC indicates you
+> don't think this should be merged you just want feedback.
+This patch was posted for feedback. I will post the next version of the patch with RFC removed.  
+> 
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index
+> > b192b42..fd39929 100644
+> > --- a/drivers/acpi/apei/ghes.c
+> > +++ b/drivers/acpi/apei/ghes.c
+> > @@ -89,14 +89,14 @@
+> >  module_param_named(disable, ghes_disable, bool, 0);
+> >
+> >  /*
+> > - * All error sources notified with SCI shares one notifier function,
+> > + * All error sources notified with HED shares one notifier function,
+> >   * so they need to be linked and checked one by one.  This is
+> applied
+> >   * to NMI too.
+> >   *
+> >   * RCU is used for these lists, so ghes_list_mutex is only used for
+> >   * list changing, not for traversing.
+> >   */
+> > -static LIST_HEAD(ghes_sci);
+> > +static LIST_HEAD(ghes_hed);
+> >  static DEFINE_MUTEX(ghes_list_mutex);
+> >
+> >  /*
+> > @@ -702,14 +702,14 @@ static irqreturn_t ghes_irq_func(int irq, void
+> *data)
+> >  	return IRQ_HANDLED;
+> >  }
+> >
+> > -static int ghes_notify_sci(struct notifier_block *this,
+> > +static int ghes_notify_hed(struct notifier_block *this,
+> >  				  unsigned long event, void *data)  {
+> >  	struct ghes *ghes;
+> >  	int ret = NOTIFY_DONE;
+> >
+> >  	rcu_read_lock();
+> > -	list_for_each_entry_rcu(ghes, &ghes_sci, list) {
+> > +	list_for_each_entry_rcu(ghes, &ghes_hed, list) {
+> >  		if (!ghes_proc(ghes))
+> >  			ret = NOTIFY_OK;
+> >  	}
+> > @@ -718,8 +718,8 @@ static int ghes_notify_sci(struct notifier_block
+> *this,
+> >  	return ret;
+> >  }
+> >
+> > -static struct notifier_block ghes_notifier_sci = {
+> > -	.notifier_call = ghes_notify_sci,
+> > +static struct notifier_block ghes_notifier_hed = {
+> > +	.notifier_call = ghes_notify_hed,
+> >  };
+> >
+> >  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+> > @@ -966,6 +966,8 @@ static int ghes_probe(struct platform_device
+> *ghes_dev)
+> >  	case ACPI_HEST_NOTIFY_POLLED:
+> >  	case ACPI_HEST_NOTIFY_EXTERNAL:
+> >  	case ACPI_HEST_NOTIFY_SCI:
+> > +	case ACPI_HEST_NOTIFY_GSIV:
+> > +	case ACPI_HEST_NOTIFY_GPIO:
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_NMI:
+> >  		if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) { @@ -1026,10
+> +1028,12
+> > @@ static int ghes_probe(struct platform_device *ghes_dev)
+> >  		}
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_SCI:
+> > +	case ACPI_HEST_NOTIFY_GSIV:
+> > +	case ACPI_HEST_NOTIFY_GPIO:
+> >  		mutex_lock(&ghes_list_mutex);
+> > -		if (list_empty(&ghes_sci))
+> > -			register_acpi_hed_notifier(&ghes_notifier_sci);
+> > -		list_add_rcu(&ghes->list, &ghes_sci);
+> > +		if (list_empty(&ghes_hed))
+> > +			register_acpi_hed_notifier(&ghes_notifier_hed);
+> > +		list_add_rcu(&ghes->list, &ghes_hed);
+> >  		mutex_unlock(&ghes_list_mutex);
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_NMI:
+> > @@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device
+> *ghes_dev)
+> >  		free_irq(ghes->irq, ghes);
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_SCI:
+> > +	case ACPI_HEST_NOTIFY_GSIV:
+> > +	case ACPI_HEST_NOTIFY_GPIO:
+> >  		mutex_lock(&ghes_list_mutex);
+> >  		list_del_rcu(&ghes->list);
+> > -		if (list_empty(&ghes_sci))
+> > -			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+> > +		if (list_empty(&ghes_hed))
+> > +			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+> >  		mutex_unlock(&ghes_list_mutex);
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_NMI:
+> >
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
