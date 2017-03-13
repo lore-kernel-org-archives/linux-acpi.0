@@ -1,111 +1,141 @@
-From: Xie XiuQi <xiexiuqi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V12 09/10] trace, ras: add ARM processor error trace event
-Date: Mon, 13 Mar 2017 10:31:33 +0800
-Message-ID: <58C60485.2070509@huawei.com>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
- <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
- <58C12342.2090701@huawei.com>
- <14545228-7ff1-b31c-1fa5-daacf89a44b9@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: Detect duplicate SSDT tables
+Date: Mon, 13 Mar 2017 06:01:31 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE4934B@SHSMSX101.ccr.corp.intel.com>
+References: <20170227093432.3308-1-hdegoede@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE430EF@SHSMSX101.ccr.corp.intel.com>
+ <d2552299-d658-af67-44f1-7e528133cfaf@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE43ED5@SHSMSX101.ccr.corp.intel.com>
+ <a2cdcf07-055c-6cb2-a0f2-b179a128f845@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE446CB@SHSMSX101.ccr.corp.intel.com>
+ <edd79f72-2c06-5cb7-a676-3bd940ca5b4d@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE44EC5@SHSMSX101.ccr.corp.intel.com>
+ <1d07f8ff-9672-7141-90c4-3d67c6e23f0f@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <14545228-7ff1-b31c-1fa5-daacf89a44b9-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.orgkvm
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:7739 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751165AbdCMGBr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 13 Mar 2017 02:01:47 -0400
+In-Reply-To: <1d07f8ff-9672-7141-90c4-3d67c6e23f0f@redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi Baicar Tyler,
+Hi, Hans
 
-On 2017/3/11 2:23, Baicar, Tyler wrote:
-> Hello Xie XiuQi,
-> 
-> 
-> On 3/9/2017 2:41 AM, Xie XiuQi wrote:
->> On 2017/3/7 4:45, Tyler Baicar wrote:
->>> Currently there are trace events for the various RAS
->>> errors with the exception of ARM processor type errors.
->>> Add a new trace event for such errors so that the user
->>> will know when they occur. These trace events are
->>> consistent with the ARM processor error section type
->>> defined in UEFI 2.6 spec section N.2.4.4.
->>>
->>> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>> Acked-by: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
->>> ---
->>>   drivers/acpi/apei/ghes.c    |  8 +++++++-
->>>   drivers/firmware/efi/cper.c |  1 +
->>>   drivers/ras/ras.c           |  1 +
->>>   include/ras/ras_event.h     | 34 ++++++++++++++++++++++++++++++++++
->>>   4 files changed, 43 insertions(+), 1 deletion(-)
-> 
->>> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
->>> index 5861b6f..b36db48 100644
->>> --- a/include/ras/ras_event.h
->>> +++ b/include/ras/ras_event.h
->>> @@ -162,6 +162,40 @@
->>>   );
->>>     /*
->>> + * ARM Processor Events Report
->>> + *
->>> + * This event is generated when hardware detects an ARM processor error
->>> + * has occurred. UEFI 2.6 spec section N.2.4.4.
->>> + */
->>> +TRACE_EVENT(arm_event,
->>> +
->>> +    TP_PROTO(const struct cper_sec_proc_arm *proc),
->>> +
->>> +    TP_ARGS(proc),
->>> +
->>> +    TP_STRUCT__entry(
->>> +        __field(u64, mpidr)
->>> +        __field(u64, midr)
->>> +        __field(u32, running_state)
->>> +        __field(u32, psci_state)
->>> +        __field(u8, affinity)
->>> +    ),
->>> +
->>> +    TP_fast_assign(
->>> +        __entry->affinity = proc->affinity_level;
->>> +        __entry->mpidr = proc->mpidr;
->>> +        __entry->midr = proc->midr;
->>> +        __entry->running_state = proc->running_state;
->>> +        __entry->psci_state = proc->psci_state;
->>> +    ),
->>> +
->>> +    TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
->>> +          "running state: %d; PSCI state: %d",
->>> +          __entry->affinity, __entry->mpidr, __entry->midr,
->>> +          __entry->running_state, __entry->psci_state)
->>> +);
->>> +
->> I think these fields are not enough, we need also export arm processor error
->> information (UEFI 2.6 spec section N.2.4.4.1), or at least the error type,
->> address, etc. So that the userspace (such as rasdaemon tool) could know what
->> error occurred.
->
-> This is something I am planning on adding in later. It is not clear to me how to
-> actually do this at this point. If you look at the spec, there is not a single
-> error information structure. There is at least one, but possibly a lot. There is
-> also an unknown amount of context information structures. In "Table 260. ARM Processor
-> Error Section" there are ERR_INFO_NUM and CONTEXT_INFO_NUM which give the number of these
-> structures. I think there will need to be separate trace events added in for each of
-> these structures because I don't think there is a way to have variable amounts of
-> structures inside of a trace event.
+I noticed that in AcpiTbInstallStandardTable(), there is a similar check:
+        for (i = 0; i < AcpiGbl_RootTableList.CurrentTableCount; ++i)
+        {
+            /*
+             * Check for a table match on the entire table length,
+             * not just the header.
+             */
+            if (!AcpiTbCompareTables (&NewTableDesc, i))
+            {
+                continue;
+            }
+Could you check and tell us why this cannot cover your use case?
+Is your use case related to the LoadTable opcode?
+Thanks in advance.
 
-Yes, I agree.
+Best regards
+Lv
 
-Additional, cper_sec_proc_arm has validation bit, which indicates whether or not each of
-the fields is valid in this section. How could we show it in this trace event? If the filed
-is invalid, we would get a wrong value here.
-
---
-Thanks,
-Xie XiuQi
-
+> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
 > 
-> The ARM processor error section also has a vendor specific error info buffer which will need to be exposed to userspace. This may be something that can reuse the unknown section type trace event or have it's own trace event for.
+> Hi,
 > 
-> Thanks,
-> Tyler
+> On 03-03-17 03:50, Zheng, Lv wrote:
+> > Hi,
+> >
+> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>
+> >> Hi,
+> >>
+> >> On 02-03-17 02:59, Zheng, Lv wrote:
+> >>> Hi,
+> >>>
+> >>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >>>> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>>>
+> >>>> Hi,
+> >>>>
+> >>>> On 01-03-17 04:21, Zheng, Lv wrote:
+> >>>>> Hi,
+> >>>>>
+> >>>>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >>>>>> Subject: Re: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>>>>>
+> >>>>>> Hi,
+> >>>>>>
+> >>>>>> On 28-02-17 06:19, Zheng, Lv wrote:
+> >>>>>>> Hi,
+> >>>>>>>
+> >>>>>>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> >>>>>>>> Subject: [PATCH] ACPICA: Detect duplicate SSDT tables
+> >>>>>>>>
+> >>>>>>>> Some machines have the exact (byte for byte) same SSDT tables multiple
+> >>>>>>>> times in the root_table_list.
+> >>
+> >> <snip>
+> >>
+> >>>>>>>> Detect this and silently skip the duplicates
+> >>>>>>>> rather then printing a scary looking set of errors.
+> >>
+> >> <snip>
+> >>
+> >>>>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>>>>>>> ---
+> >>>>>>>>  drivers/acpi/acpica/tbxfload.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+> >>>>>>>>  1 file changed, 40 insertions(+), 1 deletion(-)
+> >>>>>>>>
+> >>>>>>>> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> >>>>>>>> index 82019c0..1971cd7 100644
+> >>>>>>>> --- a/drivers/acpi/acpica/tbxfload.c
+> >>>>>>>> +++ b/drivers/acpi/acpica/tbxfload.c
+> >>>>>>>> @@ -125,6 +125,44 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+> >>>>>>>>
+> >>>>>>>>  /*******************************************************************************
+> >>>>>>>>   *
+> >>>>>>>> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
+> >>>>>>>> + *
+> >>>>>>>> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
+> >>>>>>>> + *              index         - index of table to find a duplicate of
+> >>>>>>>> + *
+> >>>>>>>> + * RETURN:      TRUE if a duplicate is found, FALSE if not
+> >>>>>>>> + *
+> >>>>>>>> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
+> >>>>>>>> + *              avoid trying to load duplicate ssdt tables
+> >>>>>>>> + *
+> >>>>>>>> + ******************************************************************************/
+> >>>>>>>> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
+> >>>
+> >>> If you really want to add this.
+> >>> My suggestion is:
+> >>> Invoke this function in acpi_tb_verify_temp_table().
+> >>> This is the function we use to verify if a table is OK.
+> >>> Otherwise it won't be installed to the global table list.
+> >>>
+> >>> And the name should contain "aml_table" or "aml" rather than "ssdt" according to your check below.
+> >>
+> >> Ok, when I've some time I will do a new version moving the functionality
+> >> to acpi_tb_verify_temp_table(). I will post a v2 with this change when
+> >> it is ready. I will also just compare the headers then as suggested in
+> >> other replies in this thread.
+> >
+> > If you wish, I can offer help here.
+> > It actually won't take me much time to generate such a change.
 > 
+> Great, if you can send me a new patch to test I'm more then willing
+> to make time to test it.
+> 
+> Thanks & Regards,
+> 
+> Hans
