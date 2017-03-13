@@ -1,98 +1,65 @@
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
- [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
-Date: Mon, 13 Mar 2017 14:57:12 +0100
-Message-ID: <20170313145712.49a2d346@nial.brq.redhat.com>
-References: <1488462828-174523-1-git-send-email-imammedo@redhat.com>
-        <20170302142816.GK1404@dhcp22.suse.cz>
-        <20170302180315.78975d4b@nial.brq.redhat.com>
-        <20170303082723.GB31499@dhcp22.suse.cz>
-        <20170303183422.6358ee8f@nial.brq.redhat.com>
-        <20170306145417.GG27953@dhcp22.suse.cz>
-        <20170307134004.58343e14@nial.brq.redhat.com>
-        <20170309125400.GI11592@dhcp22.suse.cz>
-        <20170310135807.GI3753@dhcp22.suse.cz>
-        <20170313113110.6a9636a1@nial.brq.redhat.com>
-        <20170313104302.GK31518@dhcp22.suse.cz>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH V12 09/10] trace, ras: add ARM processor error trace
+ event
+Date: Mon, 13 Mar 2017 09:58:52 -0400
+Message-ID: <20170313095852.0c424d53@gandalf.local.home>
+References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
+        <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
+        <58C12342.2090701@huawei.com>
+        <14545228-7ff1-b31c-1fa5-daacf89a44b9@codeaurora.org>
+        <58C60485.2070509@huawei.com>
+        <58C65FCB.3040508@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35758 "EHLO mx1.redhat.com"
+Received: from mail.kernel.org ([198.145.29.136]:59172 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750945AbdCMN5V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Mar 2017 09:57:21 -0400
-In-Reply-To: <20170313104302.GK31518@dhcp22.suse.cz>
+        id S1751415AbdCMN7C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 13 Mar 2017 09:59:02 -0400
+In-Reply-To: <58C65FCB.3040508@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Reza Arbab <arbab@linux.vnet.ibm.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: "Baicar, Tyler" <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org
 
-On Mon, 13 Mar 2017 11:43:02 +0100
-Michal Hocko <mhocko@kernel.org> wrote:
+On Mon, 13 Mar 2017 17:00:59 +0800
+Xie XiuQi <xiexiuqi@huawei.com> wrote:
 
-> On Mon 13-03-17 11:31:10, Igor Mammedov wrote:
-> > On Fri, 10 Mar 2017 14:58:07 +0100  
-> [...]
-> > > [    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00000000-0x0009ffff]
-> > > [    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x00100000-0x3fffffff]
-> > > [    0.000000] ACPI: SRAT: Node 1 PXM 1 [mem 0x40000000-0x7fffffff]
-> > > [    0.000000] ACPI: SRAT: Node 0 PXM 0 [mem 0x100000000-0x27fffffff] hotplug
-> > > [    0.000000] NUMA: Node 0 [mem 0x00000000-0x0009ffff] + [mem 0x00100000-0x3fffffff] -> [mem 0x00000000-0x3fffffff]
-> > > [    0.000000] NODE_DATA(0) allocated [mem 0x3fffc000-0x3fffffff]
-> > > [    0.000000] NODE_DATA(1) allocated [mem 0x7ffdc000-0x7ffdffff]
-> > > [    0.000000] Zone ranges:
-> > > [    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
-> > > [    0.000000]   DMA32    [mem 0x0000000001000000-0x000000007ffdffff]
-> > > [    0.000000]   Normal   empty
-> > > [    0.000000] Movable zone start for each node
-> > > [    0.000000] Early memory node ranges
-> > > [    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009efff]
-> > > [    0.000000]   node   0: [mem 0x0000000000100000-0x000000003fffffff]
-> > > [    0.000000]   node   1: [mem 0x0000000040000000-0x000000007ffdffff]
-> > > 
-> > > so there is neither any normal zone nor movable one at the boot time.  
-> > it could be if hotpluggable memory were present at boot time in E802 table
-> > (if I remember right when running on hyperv there is movable zone at boot time),
-> > 
-> > but in qemu hotpluggable memory isn't put into E820,
-> > so zone is allocated later when memory is enumerated
-> > by ACPI subsystem and onlined.
-> > It causes less issues wrt movable zone and works for
-> > different versions of linux/windows as well.
-> > 
-> > That's where in kernel auto-onlining could be also useful,
-> > since user would be able to start-up with with small
-> > non removable memory plus several removable DIMMs
-> > and have all the memory onlined/available by the time
-> > initrd is loaded. (missing piece here is onling
-> > removable memory as movable by default).  
+> ---
+>  drivers/acpi/apei/ghes.c |  8 +++++
+>  include/linux/cper.h     |  5 +++
+>  include/ras/ras_event.h  | 87 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 100 insertions(+)
 > 
-> Why we should even care to online that memory that early rather than
-> making it available via e820?
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 251d7e0..6d34c26 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -518,9 +518,17 @@ static void ghes_do_proc(struct ghes *ghes,
+>  		else if (!uuid_le_cmp(sec_type, CPER_SEC_PROC_ARM) &&
+>  			 trace_arm_event_enabled()) {
+>  			struct cper_sec_proc_arm *arm_err;
+> +			struct cper_arm_err_info *err_info;
+> +			int i;
+> 
+>  			arm_err = acpi_hest_generic_data_payload(gdata);
+>  			trace_arm_event(arm_err);
+> +
 
-It's not forbidden by spec and has less complications
-when it comes to removable memory. Declaring it in E820
-would add following limitations/drawbacks:
- - firmware should be able to exclude removable memory
-   from its usage (currently SeaBIOS nor EFI have to
-   know/care about it) => less qemu-guest ABI to maintain.
- - OS should be taught to avoid/move (early) nonmovable
-   allocations from removable address ranges.
-   There were patches targeting that in recent kernels,
-   but it won't work with older kernels that don't have it.
-   So limiting a range of OSes that could run on QEMU
-   and do memory removal.
+		if (trace_arm_proc_err_enabled()) {
 
-E820 less approach works reasonably well with wide range
-of guest OSes and less complex that if removable memory
-were present it E820. Hence I don't have a compelling
-reason to introduce removable memory in E820 as it
-only adds to hot(un)plug issues.
+> +			err_info = (struct cper_arm_err_info *)(arm_err + 1);
+> +			for (i = 0; i < arm_err->err_info_num; i++) {
+> +				trace_arm_proc_err(err_info);
+> +				err_info += 1;
+> +			}
 
-I have an off-tree QEMU hack that puts hotremovable
-memory added with "-device pc-dimm" on CLI into E820
-to experiment with. It could be useful to play
-with zone layouts at boot time, so if you are
-interested I can rebase it on top of current master
-and post it here to play with.
+		}
+
+-- Steve
+
+>  		} else if (trace_unknown_sec_event_enabled()) {
+>  			void *unknown_err = acpi_hest_generic_data_payload(gdata);
+>  			trace_unknown_sec_event(&sec_type,
+> diff --git a/include/linux/cper.h b/include/linux/cper.h
