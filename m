@@ -1,141 +1,49 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v2 3/3] arm64: KVM: add guest SEI support
-Date: Tue, 14 Mar 2017 09:45:06 +0000
-Message-ID: <58C7BBA2.4080208@arm.com>
-References: <1488946181-130774-1-git-send-email-xiexiuqi@huawei.com> <1488946181-130774-4-git-send-email-xiexiuqi@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: [PATCH] PCI: For d3_delay and d3cold_delay, zero means zero
+Date: Tue, 14 Mar 2017 11:44:56 +0200
+Message-ID: <1489484696-14093-1-git-send-email-adrian.hunter@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58648 "EHLO foss.arm.com"
+Received: from mga05.intel.com ([192.55.52.43]:24563 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750924AbdCNJpY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 14 Mar 2017 05:45:24 -0400
-In-Reply-To: <1488946181-130774-4-git-send-email-xiexiuqi@huawei.com>
+        id S1751272AbdCNJu2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Mar 2017 05:50:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: marc.zyngier@arm.com, fu.wei@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, zjzhang@codeaurora.org, wangkefeng.wang@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, shiju.jose@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci <linux-pci@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Xie XiuQi,
+Do not sleep at all for the respective cases of d3_delay is zero or
+d3cold_delay is zero.
 
-On 08/03/17 04:09, Xie XiuQi wrote:
-> Add ghes handling for SEI so that the host kernel could parse and
-> report detailed error information for SEI which occur in the guest
-> kernel.
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+---
+ drivers/pci/pci.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-How does this interact with Synchronous External Abort as a notify method?
-Both of these take the in_nmi() path through APEI.
-
-SError Interrupts are masked during exception processing, so we don't have to
-worry about them becoming recursive.
-For SEA the firmware has to promise not to invoke another SEA while we are still
-processing the first, and SEI will be masked if we took it as an exception.
-
-What happens if we take an SEA while processing another event notified via SEI?
-Can this happen on your platform? Can someone else build a platform where this
-happens? Does the GHES APEI code need to be able to handle this?
-
-If we need to support both at the same time we will need to change Linux's APEI
-code to reserve a page of virtual address space per GHES entry, instead of one
-for NMI and one for IRQ.
-
-
-> diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-> index 5b2cecd..d68d61f 100644
-> --- a/arch/arm64/include/asm/system_misc.h
-> +++ b/arch/arm64/include/asm/system_misc.h
-> @@ -59,5 +59,6 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
->  #endif	/* __ASSEMBLY__ */
->  
->  int handle_guest_sea(unsigned long addr, unsigned int esr);
-> +int handle_guest_sei(unsigned long addr, unsigned int esr);
->  
->  #endif	/* __ASM_SYSTEM_MISC_H */
-> diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
-> index 65dbfa9..cf9f569 100644
-> --- a/arch/arm64/kernel/traps.c
-> +++ b/arch/arm64/kernel/traps.c
-> @@ -616,6 +616,24 @@ const char *esr_get_class_string(u32 esr)
->  }
->  
->  /*
-> + * Handle asynchronous SError interrupt that occur in a guest kernel.
-> + */
-> +int handle_guest_sei(unsigned long addr, unsigned int esr)
-> +{
-> +	/*
-> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
-> +	 * rcu_read_lock().
-> +	 */
-
-This comment was true for patch 4 of Tyler's series, but not-true when we got to
-patch 10. Please remove it,
-
-
-> +	if(IS_ENABLED(CONFIG_ACPI_APEI_SEI)) {
-> +		rcu_read_lock();
-
-Please put the rcu calls against the thing using them.
-
-
-> +		ghes_notify_sei();
-> +		rcu_read_unlock();
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
->   * bad_mode handles the impossible case in the exception vector. This is always
->   * fatal.
->   */
-
-> diff --git a/arch/arm64/kvm/handle_exit.c b/arch/arm64/kvm/handle_exit.c
-> index 1bfe30d..8c7dba0 100644
-> --- a/arch/arm64/kvm/handle_exit.c
-> +++ b/arch/arm64/kvm/handle_exit.c
-> @@ -172,6 +173,23 @@ static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
->  	return arm_exit_handlers[hsr_ec];
->  }
->  
-> +static int kvm_handle_guest_sei(struct kvm_vcpu *vcpu, struct kvm_run *run)
-> +{
-> +	unsigned long fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
-> +
-> +	if (handle_guest_sei((unsigned long)fault_ipa,
-> +				kvm_vcpu_get_hsr(vcpu))) {
-> +		kvm_err("Failed to handle guest SEI, FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
-> +				kvm_vcpu_trap_get_class(vcpu),
-> +				(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-> +				(unsigned long)kvm_vcpu_get_hsr(vcpu));
-> +	}
-> +
-
-> +	kvm_inject_vabt(vcpu);
-
-Always inject an SError Interrupt? How should this work when Qemu supports
-guest-RAS too?
-
-If we do want to kill the guest for RAS-related reasons we should go via
-user-space to allow Qemu to handle the error and potentially notify the guest.
-This would let Qemu generate CPER records for the guest, mirroring what just
-happened with the firmware-generated records.
-
-As on the other thread: if there were CPER records processed by
-handle_guest_sei() we should continue as normal as the fault was handled in some
-way.
-If there were no CPER records, (or the system doesn't support SEI as a GHES
-notification mechanism), then yes we should still call kvm_inject_vabt().
-
-A suggestion of how do this: [0], if you have a better suggestion please chime in!
-
-
-Thanks,
-
-James
-
-
-[0] https://www.spinics.net/lists/kvm/msg146131.html
-
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 7904d02ffdb9..9779483f81fd 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -66,7 +66,8 @@ static void pci_dev_d3_sleep(struct pci_dev *dev)
+ 	if (delay < pci_pm_d3_delay)
+ 		delay = pci_pm_d3_delay;
+ 
+-	msleep(delay);
++	if (delay)
++		msleep(delay);
+ }
+ 
+ #ifdef CONFIG_PCI_DOMAINS
+@@ -827,7 +828,8 @@ static void __pci_start_power_transition(struct pci_dev *dev, pci_power_t state)
+ 		 * because have already delayed for the bridge.
+ 		 */
+ 		if (dev->runtime_d3cold) {
+-			msleep(dev->d3cold_delay);
++			if (dev->d3cold_delay)
++				msleep(dev->d3cold_delay);
+ 			/*
+ 			 * When powering on a bridge from D3cold, the
+ 			 * whole hierarchy may be powered on into
+-- 
+1.9.1
 
