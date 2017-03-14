@@ -1,113 +1,169 @@
-From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V12 09/10] trace, ras: add ARM processor error trace event
-Date: Tue, 14 Mar 2017 13:29:08 -0600
-Message-ID: <1aceb614-a1ad-8e7c-e488-0437c4bc1502@codeaurora.org>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
- <1488833103-21082-10-git-send-email-tbaicar@codeaurora.org>
- <58C12342.2090701@huawei.com>
- <14545228-7ff1-b31c-1fa5-daacf89a44b9@codeaurora.org>
- <58C60485.2070509@huawei.com>
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
+ [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
+Date: Tue, 14 Mar 2017 20:35:21 +0100
+Message-ID: <20170314193521.GP27056@redhat.com>
+References: <20170302180315.78975d4b@nial.brq.redhat.com>
+ <20170303082723.GB31499@dhcp22.suse.cz>
+ <20170303183422.6358ee8f@nial.brq.redhat.com>
+ <20170306145417.GG27953@dhcp22.suse.cz>
+ <20170307134004.58343e14@nial.brq.redhat.com>
+ <20170309125400.GI11592@dhcp22.suse.cz>
+ <20170310135807.GI3753@dhcp22.suse.cz>
+ <20170310155333.GN3753@dhcp22.suse.cz>
+ <20170310190037.fifahjd47joim6zy@arbab-laptop>
+ <20170313092145.GG31518@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <58C60485.2070509-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Xie XiuQi <xiexiuqi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, james.morse-5wv7dgnIgG8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, eun.taik.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, sandeepa.s.prabhu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shijie.huang-5wv7dgnIgG8@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, bristot-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29Tb/PtFMR13I2A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20170313092145.GG31518@dhcp22.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>, Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Xie XiUQi,
+Hello,
 
+On Mon, Mar 13, 2017 at 10:21:45AM +0100, Michal Hocko wrote:
+> On Fri 10-03-17 13:00:37, Reza Arbab wrote:
+> > On Fri, Mar 10, 2017 at 04:53:33PM +0100, Michal Hocko wrote:
+> > >OK, so while I was playing with this setup some more I probably got why
+> > >this is done this way. All new memblocks are added to the zone Normal
+> > >where they are accounted as spanned but not present.
+> > 
+> > It's not always zone Normal. See zone_for_memory(). This leads to a
+> > workaround for having to do online_movable in descending block order.
+> > Instead of this:
+> > 
+> > 1. probe block 34, probe block 33, probe block 32, ...
+> > 2. online_movable 34, online_movable 33, online_movable 32, ...
+> > 
+> > you can online_movable the first block before adding the rest:
+> 
+> I do I enforce that behavior when the probe happens automagically?
 
-On 3/12/2017 8:31 PM, Xie XiuQi wrote:
-> Hi Baicar Tyler,
->
-> On 2017/3/11 2:23, Baicar, Tyler wrote:
->> Hello Xie XiuQi,
->>
->>
->> On 3/9/2017 2:41 AM, Xie XiuQi wrote:
->>> On 2017/3/7 4:45, Tyler Baicar wrote:
->>>> Currently there are trace events for the various RAS
->>>> errors with the exception of ARM processor type errors.
->>>> Add a new trace event for such errors so that the user
->>>> will know when they occur. These trace events are
->>>> consistent with the ARM processor error section type
->>>> defined in UEFI 2.6 spec section N.2.4.4.
->>>>
->>>> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>>> Acked-by: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
->>>> ---
->>>>    drivers/acpi/apei/ghes.c    |  8 +++++++-
->>>>    drivers/firmware/efi/cper.c |  1 +
->>>>    drivers/ras/ras.c           |  1 +
->>>>    include/ras/ras_event.h     | 34 ++++++++++++++++++++++++++++++++++
->>>>    4 files changed, 43 insertions(+), 1 deletion(-)
->>>> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
->>>> index 5861b6f..b36db48 100644
->>>> --- a/include/ras/ras_event.h
->>>> +++ b/include/ras/ras_event.h
->>>> @@ -162,6 +162,40 @@
->>>>    );
->>>>      /*
->>>> + * ARM Processor Events Report
->>>> + *
->>>> + * This event is generated when hardware detects an ARM processor error
->>>> + * has occurred. UEFI 2.6 spec section N.2.4.4.
->>>> + */
->>>> +TRACE_EVENT(arm_event,
->>>> +
->>>> +    TP_PROTO(const struct cper_sec_proc_arm *proc),
->>>> +
->>>> +    TP_ARGS(proc),
->>>> +
->>>> +    TP_STRUCT__entry(
->>>> +        __field(u64, mpidr)
->>>> +        __field(u64, midr)
->>>> +        __field(u32, running_state)
->>>> +        __field(u32, psci_state)
->>>> +        __field(u8, affinity)
->>>> +    ),
->>>> +
->>>> +    TP_fast_assign(
->>>> +        __entry->affinity = proc->affinity_level;
->>>> +        __entry->mpidr = proc->mpidr;
->>>> +        __entry->midr = proc->midr;
->>>> +        __entry->running_state = proc->running_state;
->>>> +        __entry->psci_state = proc->psci_state;
->>>> +    ),
->>>> +
->>>> +    TP_printk("affinity level: %d; MPIDR: %016llx; MIDR: %016llx; "
->>>> +          "running state: %d; PSCI state: %d",
->>>> +          __entry->affinity, __entry->mpidr, __entry->midr,
->>>> +          __entry->running_state, __entry->psci_state)
->>>> +);
->>>> +
->>> I think these fields are not enough, we need also export arm processor error
->>> information (UEFI 2.6 spec section N.2.4.4.1), or at least the error type,
->>> address, etc. So that the userspace (such as rasdaemon tool) could know what
->>> error occurred.
->> This is something I am planning on adding in later. It is not clear to me how to
->> actually do this at this point. If you look at the spec, there is not a single
->> error information structure. There is at least one, but possibly a lot. There is
->> also an unknown amount of context information structures. In "Table 260. ARM Processor
->> Error Section" there are ERR_INFO_NUM and CONTEXT_INFO_NUM which give the number of these
->> structures. I think there will need to be separate trace events added in for each of
->> these structures because I don't think there is a way to have variable amounts of
->> structures inside of a trace event.
-> Yes, I agree.
->
-> Additional, cper_sec_proc_arm has validation bit, which indicates whether or not each of
-> the fields is valid in this section. How could we show it in this trace event? If the filed
-> is invalid, we would get a wrong value here.
->
-I will add in checks for whether the fields are valid similar to what 
-you did for the error info patch.
+What I provided as guide to online as movable in current and older
+kernels is:
+
+1) Remove udev rule
+2) After adding memory with qemu/libvirt API run in the guest
+
+------- workaround start ----
+#!/bin/bash
+for i in `ls -d1 /sys/devices/system/memory/memory* | sort -nr -t y -k 5`; do if [ "`cat $i/state`" == "offline" ]; then echo online_movable > $i/state ; fi; done
+------- workaround end ----
+
+That's how bad is onlining as movable for memory hotunplug.
+
+> > 1. probe block 32, online_movable 32
+> > 2. probe block 33, probe block 34, ...
+> > 	- zone_for_memory() will cause these to start Movable
+> > 3. online 33, online 34, ...
+> > 	- they're already in Movable, so online_movable is equivalentr
+> > 
+> > I agree with your general sentiment that this stuff is very nonintuitive.
+> 
+> My criterion for nonintuitive is probably different because I would call
+> this _completely_unusable_. Sorry for being so loud about this but the
+> more I look into this area the more WTF code I see. This has seen close
+> to zero review and seems to be building up more single usecase code on
+> top of previous. We need to change this, seriously!
+
+It's not a bug, but when I found it I called it a "constraint" and
+when I debugged it (IIRC) it originated here:
+
+	} else if (online_type == MMOP_ONLINE_MOVABLE) {
+		if (!zone_can_shift(pfn, nr_pages, ZONE_MOVABLE, &zone_shift))
+			return -EINVAL;
+	}
+
+Fixing it so you could online as movable even if it wasn't the last
+block was in my todo list but then we had other plans.
+
+Unfortunately unless pfn+nr_pages of the newly created Movable zone
+matches the end of the normal zone (or whatever was there that has to
+be converted to Movable), it will fail onlining as movable.
+
+To fix it is enough to check that everything from pfn to the end of
+whatever zone existed there (or the end of the node perhaps safer) can
+be converted as movable and just convert the whole thing as movable
+instead of stopping at pfn+nr_pages.
+
+Also note, onlining highmem physical ranges as movable requires yet
+another config option to be set for the below check to pass
+(CONFIG_MOVABLE_NODE=y), which I'm not exactly sure why anybody would
+want to set =n, and perhaps would be candidate for dropping well
+before considering to drop _DEFAULT_ONLINE and at best it should be
+replaced with a kernel parameter to turn off the CONFIG_MOVABLE_NODE=y
+behavior.
+
+	if ((zone_idx(zone) > ZONE_NORMAL ||
+	    online_type == MMOP_ONLINE_MOVABLE) &&
+	    !can_online_high_movable(zone))
+		return -EINVAL;
+
+I would suggest to drop the constraints in online_pages and perhaps
+also the CONFIG_MOVABLE_NODE option before going to drop the automatic
+onlining in kernel.
+
+Because of the above constraint the udev rule is unusable anyway for
+onlining memory as movable so that it can be hotunplugged reliably
+(well not so reliably, page_migrate does a loop and tries many times
+but it occurred to me it failed once to offline and at next try it
+worked, temporary page pins with O_DIRECT screw with page_migration,
+rightfully so and no easy fix).
+
+After the above constraint is fixed I suggest to look into fixing the
+async onlining by making the udev rule run synchronously. Adding 4T to
+a 8G guest is perfectly reasonable and normal operation, no excuse for
+it to fail as long as you don't pretend such 4T to be unpluggable too
+later (which we won't).
+
+As I understand it, the whole point of _DEFFAULT_ONLINE=y is precisely
+that it's easier to fix it in kernel than fixing the udev
+rule. Furthermore the above constraint for the zone shifting which
+breaks online_movable in udev is not an issue for _DEFFAULT_ONLINE=y
+because kernel onlining is synchronous by design (no special
+synchronous udev rule fix is required) so it can cope fine with the
+existing above constraint by onlining as movable from the end of the
+last zone in each node so that such constraint never gets in the way.
+
+Extending _DEFFAULT_ONLINE=y so that it can also online as movable has
+been worked on.
+
+On a side note, kernelcore=xxx passed to a kernel with
+_DEFFAULT_ONLINE=y should already allow to create lots of
+hotunpluggable memory onlined automatically as movable (never tested
+but I would expect it to work).
+
+After the udev rule can handle adding 4T to a 8G guest and it can
+handle onlining memory as movable reliably by just doing
+s/online/online_movable/, I think then we can restart the discussion
+about the removal of _DEFFAULT_ONLINE=y. As far as I can tell, there
+are higher priority and more interesting things to fix in this area
+before _DEFFAULT_ONLINE=y can be removed. Either udev gets fixed and
+it's reasonably simpler to fix (it will remain slower) or we should
+eventually obsolete the udev rule instead, which is why the focus
+hasn't been in fixing the udev rule and to replace it instead.
+
+To be clear, I'm not necessarily against eventually removing
+_DEFFAULT_ONLINE, but an equally reliable and comparably fast
+alternative should be provided first and there's no such alternative
+right now.
+
+If s390 has special issues requiring admin or a software hotplug
+manager app to enable blocks of memory by hand, the _DEFFAULT_ONLINE
+could be then an option selected or not selected by
+arch/*/Kconfig. The udev rule is still an automatic action so it's 1:1
+with the in-kernel feature. If the in-kernel automatic onlining is not
+workable on s390 I would assume the udev rule is also not workable.
 
 Thanks,
-Tyler
+Andrea
 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
