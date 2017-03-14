@@ -1,271 +1,88 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Log Exceptions and Errors as warning while
- loading extra tables
-Date: Tue, 14 Mar 2017 08:15:28 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE49E37@SHSMSX101.ccr.corp.intel.com>
-References: <20170301103653.2296-1-hdegoede@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE446E2@SHSMSX101.ccr.corp.intel.com>
- <0518b7f7-8d08-0071-df54-af19806883ae@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE44EB1@SHSMSX101.ccr.corp.intel.com>
- <606dcada-7c56-89a6-24a0-ac8aaa1d980e@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE49617@SHSMSX101.ccr.corp.intel.com>
- <07925741-3500-8e69-cc78-cd5ec140c7c6@redhat.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V7 0/7] LPC: legacy ISA I/O support
+Date: Tue, 14 Mar 2017 09:39:15 +0100
+Message-ID: <CAK8P3a1f33ipk3Q8+wj9L6zP=ccn_AuhTfV0CC0+wAqrO-2beg@mail.gmail.com>
+References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:14297 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750868AbdCNIPp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 14 Mar 2017 04:15:45 -0400
-In-Reply-To: <07925741-3500-8e69-cc78-cd5ec140c7c6@redhat.com>
-Content-Language: en-US
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35587 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750866AbdCNIjR (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 04:39:17 -0400
+In-Reply-To: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rafael Wysocki <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, rjw@rjwysocki.net, Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, devicetree@vger.kernel.org, linux-pci <linux-pci@vger.kernel.org>, linux-serial@vger.kernel.org, Corey Minyard <minyard@acm.org>, liviu.dudau@arm.com, Zou Rongrong <zourongrong@gmail.com>, John Garry <john.ga>
 
-Hi, Hans
+On Mon, Mar 13, 2017 at 3:42 AM, zhichang.yuan
+<yuanzhichang@hisilicon.com> wrote:
+> This patchset supports the IPMI-bt device attached to the Low-Pin-Count
+> interface implemented on Hisilicon Hip06/Hip07 SoC.
+>                         -----------
+>                         | LPC host|
+>                         |         |
+>                         -----------
+>                              |
+>                 _____________V_______________LPC
+>                   |                       |
+>                   V                       V
+>                                      ------------
+>                                      |  BT(ipmi)|
+>                                      ------------
+>
+> When master accesses those peripherals beneath the Hip06/Hip07 LPC, a specific
+> LPC driver is needed to make LPC host generate the standard LPC I/O cycles with
+> the target peripherals'I/O port addresses. But on curent arm64 world, there is
+> no real I/O accesses. All the I/O operations through in/out pair are based on
+> MMIO which is not satisfied the I/O mechanism on Hip06/Hip07 LPC.
+> To solve this issue and keep the relevant existing peripherals' driver
+> untouched, this patchset implements:
+>   - introduces a generic I/O space management framwork, LIBIO, to support I/O
+>     operations of both MMIO buses and the host controllers which access their
+>     peripherals with host local I/O addresses;
+>   - redefines the in/out accessors to provide unified interfaces for MMIO and
+>     legacy I/O. Based on the LIBIO, the calling of in/out() from upper-layer
+>     drivers, such as ipmi-si, will be redirected to the corresponding
+>     device-specific I/O hooks to perfrom the I/O accesses.
+> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC peripherals
+> can be supported without any changes on the existing ipmi-si driver.
 
-> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> Subject: Re: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
-> 
-> Hi,
-> 
-> On 13-03-17 10:52, Zheng, Lv wrote:
-> > Hi, Hans
-> >
-> > For log level issue, is this fix useful for you?
-> > https://github.com/acpica/acpica/pull/121/commits/a505d3942
-> 
-> That fixes reloading already loaded tables, the problem I'm
-> getting errors about its loading a different table with identical
-> contents.
-> 
-> I will look into your suggestion to do something similar to
-> AcpiTbInstallStandardTable using AcpiTbCompareTables for the
-> SSDT tables. I will send a new patch when I can make some time
-> to look into this.
+Thanks for reposting this. I have a few high-level comments first, based on
+the walk through the code I did with Gabriele and John last week:
 
-I just completed a prototype here:
-https://github.com/acpica/acpica/pull/121
+- I think the libio framework is more generic than it needs to be, but as
+  Alex really liked it this way and it was done like this based on his earlier
+  comments, I think that's ok.
 
-I guess the original "duplicate table check" couldn't cover static SSDTs.
-Actually the duplicate table check should be a sanity check of table load.
-And for table install, we should have a different sanity check like:
-https://github.com/acpica/acpica/pull/121/commits/6e825cae5e5
-I'm not sure if this is what you want.
+- after we went back and forth on the ACPI implementation, we concluded
+  that it is correct to do the same as on DT and completely abstract the
+  number space for I/O ports. No code should rely on a Linux port number
+  to have any particular relation to the physical address or the the address
+  on a PCI or LPC bus.
 
-Thanks
-Lv
+- The name "libio" still needs to be changed, this is way too generic, as
+  "I/O" can refer to many things in the kernel, and almost none of them
+  are related to x86 programmed I/O ports in any way. My suggestion
+  would be "generic_ioport", or possibly "libioport", "libpio" or "pci_io". Any
+  of them would work for me, or someone else could come up with a better
+  name that describes what it is.
 
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> 
-> >
-> > Thanks and best regards
-> > Lv
-> >
-> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >> Subject: Re: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
-> >>
-> >> Hi,
-> >>
-> >> On 03-03-17 03:48, Zheng, Lv wrote:
-> >>> Hi,
-> >>>
-> >>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >>>> Subject: Re: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
-> >>>>
-> >>>> Hi,
-> >>>>
-> >>>> On 02-03-17 03:03, Zheng, Lv wrote:
-> >>>>> Hi,
-> >>>>>
-> >>>>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >>>>>> Subject: [PATCH] ACPICA: Log Exceptions and Errors as warning while loading extra tables
-> >>>>>>
-> >>>>>> Honor the "Ignore errors while loading tables, get as many as possible"
-> >>>>>> comment in the tbxfload.c code and log any exceptions and errors during
-> >>>>>> loading extra tables as warnings.
-> >>>>>>
-> >>>>>> This is important because many desktop and embedded applicance Linux
-> >>>>>> use-cases have a hard requirement of not showing any (scary) text
-> >>>>>> messages during system bootup, which get broken by errors reported
-> >>>>>> by attempts to load the extra tables, as messaged logged at a KERN_ERR
-> >>>>>> level are always shown even if the quiet kernel cmdline option is used.
-> >>>>>
-> >>>>> This looks worse than comparing the tables.
-> >>>>
-> >>>> This is really another patch entirely, it would also make the duplicate
-> >>>> table thing less of an issue, but even with a fix for the duplicate tables
-> >>>> we still need something like this to lower the log level of errors while
-> >>>> loading extra tables as that currently causes errors to be spewn on
-> >>>> way to many machines, e.g. on my main workstation I get:
-> >>>>
-> >>>> [    0.019856] ACPI Warning: [\_SB_.PCI0.XHC_.RHUB.HS11] Namespace lookup failure, AE_NOT_FOUND
-> >>>> (20160930/dswload-210)
-> >>>> [    0.019859] ACPI Warning: AE_NOT_FOUND, During name lookup/catalog (20160930/psobject-227)
-> >>>> [    0.019886] ACPI Warning: AE_NOT_FOUND, (SSDT:xh_rvp08) while loading table
-> (20160930/tbxfload-
-> >> 268)
-> >>>> [    0.026491] ACPI Warning: 1 table load failures, 5 successful (20160930/tbxfload-287)
-> >>>
-> >>> However some of them indicating a real issue that can be fixed by:
-> >>> 1. Merging this pull request: https://github.com/acpica/acpica/pull/189 (I made it no longer
-> >> dependent on other fixes)
-> >>> 2. Setting acpi_gbl_parse_table_as_term_list to TRUE.
-> >>> It's not far away than actually solving the real issues.
-> >>> So why do we use a one-size-fits-all solution for such kind of errors?
-> >>
-> >> Ok, I agree that doing proper fixes for errors like this is better,
-> >> so lets drop this patch.
-> >>
-> >> Regards,
-> >>
-> >> Hans
-> >>
-> >>
-> >>>
-> >>> Thanks and best regards
-> >>> Lv
-> >>>
-> >>>
-> >>>>
-> >>>> (this is with the patch, before that this were all errors and exceptions).
-> >>>>
-> >>>> Add IIRC I'm getting yet another set of errors on my XPS 15, etc.
-> >>>>
-> >>>> Regards,
-> >>>>
-> >>>> Hans
-> >>>>
-> >>>>
-> >>>>
-> >>>>> So before determining what should be done for the check of the duplicated aml tables.
-> >>>>> Let's skip this submission.
-> >>>>>
-> >>>>> Thanks
-> >>>>> Lv
-> >>>>>
-> >>>>>>
-> >>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >>>>>> ---
-> >>>>>>  drivers/acpi/acpica/acglobal.h  |  1 +
-> >>>>>>  drivers/acpi/acpica/tbxfload.c  |  4 +++-
-> >>>>>>  drivers/acpi/acpica/uterror.c   | 10 ++++++++--
-> >>>>>>  drivers/acpi/acpica/utxferror.c | 19 ++++++++++---------
-> >>>>>>  4 files changed, 22 insertions(+), 12 deletions(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-> >>>>>> index edbb42e..5ae9eee 100644
-> >>>>>> --- a/drivers/acpi/acpica/acglobal.h
-> >>>>>> +++ b/drivers/acpi/acpica/acglobal.h
-> >>>>>> @@ -146,6 +146,7 @@ ACPI_GLOBAL(acpi_cache_t *, acpi_gbl_operand_cache);
-> >>>>>>  ACPI_INIT_GLOBAL(u32, acpi_gbl_startup_flags, 0);
-> >>>>>>  ACPI_INIT_GLOBAL(u8, acpi_gbl_shutdown, TRUE);
-> >>>>>>  ACPI_INIT_GLOBAL(u8, acpi_gbl_early_initialization, TRUE);
-> >>>>>> +ACPI_INIT_GLOBAL(u8, acpi_gbl_log_errors_exceptions_as_warnings, FALSE);
-> >>>>>>
-> >>>>>>  /* Global handlers */
-> >>>>>>
-> >>>>>> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-> >>>>>> index 1971cd7..b0c5478 100644
-> >>>>>> --- a/drivers/acpi/acpica/tbxfload.c
-> >>>>>> +++ b/drivers/acpi/acpica/tbxfload.c
-> >>>>>> @@ -256,6 +256,7 @@ acpi_status acpi_tb_load_namespace(void)
-> >>>>>>  		}
-> >>>>>>
-> >>>>>>  		/* Ignore errors while loading tables, get as many as possible */
-> >>>>>> +		acpi_gbl_log_errors_exceptions_as_warnings = TRUE;
-> >>>>>>
-> >>>>>>  		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-> >>>>>>  		status = acpi_ns_load_table(i, acpi_gbl_root_node);
-> >>>>>> @@ -276,11 +277,12 @@ acpi_status acpi_tb_load_namespace(void)
-> >>>>>>  			tables_loaded++;
-> >>>>>>  		}
-> >>>>>>  	}
-> >>>>>> +	acpi_gbl_log_errors_exceptions_as_warnings = FALSE;
-> >>>>>>
-> >>>>>>  	if (!tables_failed) {
-> >>>>>>  		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded", tables_loaded));
-> >>>>>>  	} else {
-> >>>>>> -		ACPI_ERROR((AE_INFO,
-> >>>>>> +		ACPI_WARNING((AE_INFO,
-> >>>>>>  			    "%u table load failures, %u successful",
-> >>>>>>  			    tables_failed, tables_loaded));
-> >>>>>>
-> >>>>>> diff --git a/drivers/acpi/acpica/uterror.c b/drivers/acpi/acpica/uterror.c
-> >>>>>> index 475932c..e01ff1f 100644
-> >>>>>> --- a/drivers/acpi/acpica/uterror.c
-> >>>>>> +++ b/drivers/acpi/acpica/uterror.c
-> >>>>>> @@ -205,7 +205,10 @@ acpi_ut_namespace_error(const char *module_name,
-> >>>>>>  	char *name = NULL;
-> >>>>>>
-> >>>>>>  	ACPI_MSG_REDIRECT_BEGIN;
-> >>>>>> -	acpi_os_printf(ACPI_MSG_ERROR);
-> >>>>>> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> >>>>>> +		acpi_os_printf(ACPI_MSG_WARNING);
-> >>>>>> +	else
-> >>>>>> +		acpi_os_printf(ACPI_MSG_ERROR);
-> >>>>>>
-> >>>>>>  	if (lookup_status == AE_BAD_CHARACTER) {
-> >>>>>>
-> >>>>>> @@ -269,7 +272,10 @@ acpi_ut_method_error(const char *module_name,
-> >>>>>>  	struct acpi_namespace_node *node = prefix_node;
-> >>>>>>
-> >>>>>>  	ACPI_MSG_REDIRECT_BEGIN;
-> >>>>>> -	acpi_os_printf(ACPI_MSG_ERROR);
-> >>>>>> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> >>>>>> +		acpi_os_printf(ACPI_MSG_WARNING);
-> >>>>>> +	else
-> >>>>>> +		acpi_os_printf(ACPI_MSG_ERROR);
-> >>>>>>
-> >>>>>>  	if (path) {
-> >>>>>>  		status = acpi_ns_get_node(prefix_node, path,
-> >>>>>> diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
-> >>>>>> index d9f15cb..c8ca25af 100644
-> >>>>>> --- a/drivers/acpi/acpica/utxferror.c
-> >>>>>> +++ b/drivers/acpi/acpica/utxferror.c
-> >>>>>> @@ -73,7 +73,10 @@ acpi_error(const char *module_name, u32 line_number, const char *format, ...)
-> >>>>>>  	va_list arg_list;
-> >>>>>>
-> >>>>>>  	ACPI_MSG_REDIRECT_BEGIN;
-> >>>>>> -	acpi_os_printf(ACPI_MSG_ERROR);
-> >>>>>> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> >>>>>> +		acpi_os_printf(ACPI_MSG_WARNING);
-> >>>>>> +	else
-> >>>>>> +		acpi_os_printf(ACPI_MSG_ERROR);
-> >>>>>>
-> >>>>>>  	va_start(arg_list, format);
-> >>>>>>  	acpi_os_vprintf(format, arg_list);
-> >>>>>> @@ -107,16 +110,14 @@ acpi_exception(const char *module_name,
-> >>>>>>  	va_list arg_list;
-> >>>>>>
-> >>>>>>  	ACPI_MSG_REDIRECT_BEGIN;
-> >>>>>> -
-> >>>>>> -	/* For AE_OK, just print the message */
-> >>>>>> -
-> >>>>>> -	if (ACPI_SUCCESS(status)) {
-> >>>>>> +	if (acpi_gbl_log_errors_exceptions_as_warnings)
-> >>>>>> +		acpi_os_printf(ACPI_MSG_WARNING);
-> >>>>>> +	else
-> >>>>>>  		acpi_os_printf(ACPI_MSG_EXCEPTION);
-> >>>>>>
-> >>>>>> -	} else {
-> >>>>>> -		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
-> >>>>>> -			       acpi_format_exception(status));
-> >>>>>> -	}
-> >>>>>> +	/* For AE_OK, just print the message */
-> >>>>>> +	if (ACPI_FAILURE(status))
-> >>>>>> +		acpi_os_printf("%s, ", acpi_format_exception(status));
-> >>>>>>
-> >>>>>>  	va_start(arg_list, format);
-> >>>>>>  	acpi_os_vprintf(format, arg_list);
-> >>>>>> --
-> >>>>>> 2.9.3
-> >>>>>
+- I'm pretty sure the current implementation is broken for the ioport_map
+  function that tries to turn an IORESOURCE_IO number into a pointer.
+  Forcing CONFIG_GENERIC_IOMAP on would solve this, but also
+  make all MMIO operations slower, which we probably don't want.
+  It's probably enough to add a check in ioport_map() to see if the range
+  is mapped into a virtual address or not.
+
+- We could simplify the lookup a bit by using the trick from arch/ia64
+  of using an array instead of linked list for walking the port numbers.
+  There, the upper bits of the port number refer to an address space
+  number while the lower bits refer to the bus address within that
+  address space. This should work just as well as the current
+  implementation but would be a little easier to understand. Maybe
+  Bjorn can comment on this too, as I think he was involved with the
+  ia64 implementation.
+
+      Arnd
