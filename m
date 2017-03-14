@@ -1,36 +1,93 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v4 16/16] ACPI / DSD: Document references, ports and
- endpoints
-Date: Tue, 14 Mar 2017 10:09:32 +0200
-Message-ID: <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
- <1488809970-25568-17-git-send-email-sakari.ailus@linux.intel.com>
- <1629581.fh46rNHz4U@aspire.rjw.lan>
- <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V7 5/7] ACPI: Delay the enumeration on the devices whose
+  dependency has not met
+Date: Tue, 14 Mar 2017 08:14:51 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E204822B1@FRAEML521-MBX.china.huawei.com>
+References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
+ <1489372963-9000-6-git-send-email-yuanzhichang@hisilicon.com>
+ <4600523.rWNiWKrYZC@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23695 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750829AbdCNIJh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 14 Mar 2017 04:09:37 -0400
-In-Reply-To: <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:25215 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750868AbdCNIPZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 04:15:25 -0400
+In-Reply-To: <4600523.rWNiWKrYZC@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Yuanzhichang <yuanzhichang@hisilicon.com>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>linu
 
-On 03/14/17 10:08, Sakari Ailus wrote:
-> How about this instead:
+Hi Rafael
+
+Many thanks for your review
+
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: 13 March 2017 21:25
+> To: Yuanzhichang
+> Cc: catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
+> frowand.list@gmail.com; bhelgaas@google.com; rafael@kernel.org;
+> mark.rutland@arm.com; arnd@arndb.de; linux-arm-
+> kernel@lists.infradead.org; linux-acpi@vger.kernel.org;
+> lorenzo.pieralisi@arm.com; benh@kernel.crashing.org; linux-
+> kernel@vger.kernel.org; Linuxarm; devicetree@vger.kernel.org; linux-
+> pci@vger.kernel.org; linux-serial@vger.kernel.org; minyard@acm.org;
+> liviu.dudau@arm.com; zourongrong@gmail.com; John Garry; Gabriele
+> Paoloni; zhichang.yuan02@gmail.com; kantyzc@163.com; xuwei (O)
+> Subject: Re: [PATCH V7 5/7] ACPI: Delay the enumeration on the devices
+> whose dependency has not met
 > 
-> All port nodes are located under the device's "_DSD" node in the
-> hierarchical data extension tree. The property extension related to
-> each port node must contain the key "port" and an integer value which
-> is the number of the port.
+> On Monday, March 13, 2017 10:42:41 AM zhichang.yuan wrote:
+> > In commit 40e7fcb1929(ACPI: Add _DEP support to fix battery issue on
+> Asus
+> > T100TA), the '_DEP' was supported to solve the dependency of Asus
+> battery. But
+> > this patch is specific to Asus battery device.
+> > In the real world, there are other devices which need the dependency
+> to play the
+> > role on the enumeration order. For example, all the Hip06 LPC
+> > periperals(IPMI-BT, uart, etc) must be scanned after the LPC host
+> driver
+> > finished the probing. So, it makes sense to add a checking whether
+> the ACPI
+> > device meet all the dependencies during its enumeration slot, if not,
+> the
+> > enumeration will be delayed till all dependency master finish their
+> work.
+> >
+> > This patch adds the dependency checking in ACPI enumeration, also the
+> > corresponding handling to retrigger the Hip06 LPC peripherals'
+> scanning.
+> 
+> AFAICS, _DEP is generally abused in the wild and cannot be made
+> generic.  Sorry.
 
-So with matching strings instead of indices, this will change, too...
+Another option here would be to revert this patch and add a dependency
+check in the probe functions of the LPC possible children nodes (e.g. 
+in the IPMI driver:
+http://elixir.free-electrons.com/source/drivers/char/ipmi/ipmi_si_intf.c?v=4.10#L2683
+)  
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+we could add 
+
+	if (device->dep_unmet)
+		return -EPROBE_DEFER;
+
+as we now have in acpi/battery.c...
+
+I think this should not make any difference for current shipped FW that has
+got no DEP method...
+
+What do you think?
+
+Many Thanks
+Gab
+
+> 
+> Thanks,
+> Rafael
+
