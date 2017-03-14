@@ -1,53 +1,48 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v4 16/16] ACPI / DSD: Document references, ports and
- endpoints
-Date: Tue, 14 Mar 2017 19:54:09 +0200
-Message-ID: <cf2ab8be-a351-f1ea-28a9-f5cca57061cd@linux.intel.com>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
- <1488809970-25568-17-git-send-email-sakari.ailus@linux.intel.com>
- <1629581.fh46rNHz4U@aspire.rjw.lan>
- <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
- <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com>
- <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA@mail.gmail.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH] ACPI / APEI: use setup_deferrable_timer
+Date: Tue, 14 Mar 2017 12:06:48 -0600
+Message-ID: <eaf4a45e-2f63-7e04-5022-26f702522da4@codeaurora.org>
+References: <3afa5498142ef68256023257dad37b9f8352e65e.1489060803.git.geliangtang@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Al Stone <ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3afa5498142ef68256023257dad37b9f8352e65e.1489060803.git.geliangtang@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Geliang Tang <geliangtang@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+Works for me!
 
-Rafael J. Wysocki wrote:
-> On Tue, Mar 14, 2017 at 9:09 AM, Sakari Ailus
-> <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
->> On 03/14/17 10:08, Sakari Ailus wrote:
->>> How about this instead:
->>>
->>> All port nodes are located under the device's "_DSD" node in the
->>> hierarchical data extension tree. The property extension related to
->>> each port node must contain the key "port" and an integer value which
->>> is the number of the port.
->>
->> So with matching strings instead of indices, this will change, too...
+On 3/10/2017 5:46 PM, Geliang Tang wrote:
+> Use setup_deferrable_timer() instead of init_timer_deferrable() to
+> simplify the code.
 >
-> It doesn't have to AFAICS, but the number is just redundant IMO.  You
-> only need a boolean property saying "this is a port", so you know that
-> you should expect a list of endpoints in that object.
-
-No, it's not redundant. It's the number of the physical port in the 
-device --- this is how the driver gets to know where the connection has 
-been made.
+> Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>   drivers/acpi/apei/ghes.c | 5 ++---
+>   1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b192b42..33ca196 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1005,9 +1005,8 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>   
+>   	switch (generic->notify.type) {
+>   	case ACPI_HEST_NOTIFY_POLLED:
+> -		ghes->timer.function = ghes_poll_func;
+> -		ghes->timer.data = (unsigned long)ghes;
+> -		init_timer_deferrable(&ghes->timer);
+> +		setup_deferrable_timer(&ghes->timer, ghes_poll_func,
+> +				       (unsigned long)ghes);
+>   		ghes_add_timer(ghes);
+>   		break;
+>   	case ACPI_HEST_NOTIFY_EXTERNAL:
 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
