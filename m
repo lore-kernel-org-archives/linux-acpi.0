@@ -1,44 +1,64 @@
-From: Kevin Locke <kevin@kevinlocke.name>
-Subject: docked sysfs attribute always 0
-Date: Tue, 14 Mar 2017 13:26:54 -0600
-Message-ID: <20170314192654.7ezf6o6ov2v3lrdm@kevinolos>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: For d3_delay and d3cold_delay, zero means zero
+Date: Tue, 14 Mar 2017 15:04:11 -0500
+Message-ID: <20170314200411.GE26264@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170314130305.GH8232@bhelgaas-glaptop.roam.corp.google.com>
+ <1489497718-4099-1-git-send-email-adrian.hunter@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from praxis.kevinlocke.name ([205.185.125.39]:39494 "EHLO
-        praxis.kevinlocke.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751489AbdCNTgC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 15:36:02 -0400
+Received: from mail.kernel.org ([198.145.29.136]:54104 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751016AbdCNUEQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Mar 2017 16:04:16 -0400
 Content-Disposition: inline
+In-Reply-To: <1489497718-4099-1-git-send-email-adrian.hunter@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: linux-pci <linux-pci@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On my Lenovo ThinkPad T430 (2342-CTO) with kernel 4.10.1 (and
-presumably earlier) the "docked" sysfs file always contains 0 for all
-dock devices (ata_bay and battery_bay), even when devices are present,
-both at boot and after hotplug.  I could not find a documented API for
-this file, but from the code and use in widely-available dock
-scripts[1] I presume that this behavior is incorrect.  I found a
-similar issue reported by Pali Rohár[2] a few years ago which doesn't
-appear to have been resolved.
+On Tue, Mar 14, 2017 at 03:21:58PM +0200, Adrian Hunter wrote:
+> msleep() still sleeps 1 jiffy even when told to sleep for zero
+> milliseconds. That can end up being 1-2 milliseconds or more. In the cases
+> of d3_delay and d3cold_delay, that unnecessarily increases suspend and/or
+> resume latencies.
+> 
+> So, do not sleep at all for the respective cases of d3_delay is zero or
+> d3cold_delay is zero.
+> 
+> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
 
-Assuming this behavior is a bug, should I open an issue in Bugzilla to
-track it?  I'm not familiar with the mailing-list vs Bugzilla
-etiquette, but didn't find an issue for the previous report.
+Applied with Rafael's ack to pci/pm for v4.12, thanks!
 
-If there's anything else I can do to help debug, let me know.
-
-Thanks,
-Kevin
-
-P.S.  Please CC me in replies as I am not subscribed to linux-acpi.
-
-1.  http://www.thinkwiki.org/wiki/How_to_hotswap_Ultrabay_devices#Script_for_Ultrabay_eject
-2.  https://marc.info/?t=139880262200003&r=1&w=2
-
--- 
-Kevin Locke  |  kevin@kevinlocke.name    | XMPP: kevin@kevinlocke.name
-             |  https://kevinlocke.name  | IRC:   kevinoid on freenode
+> ---
+>  drivers/pci/pci.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 7904d02ffdb9..9779483f81fd 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -66,7 +66,8 @@ static void pci_dev_d3_sleep(struct pci_dev *dev)
+>  	if (delay < pci_pm_d3_delay)
+>  		delay = pci_pm_d3_delay;
+>  
+> -	msleep(delay);
+> +	if (delay)
+> +		msleep(delay);
+>  }
+>  
+>  #ifdef CONFIG_PCI_DOMAINS
+> @@ -827,7 +828,8 @@ static void __pci_start_power_transition(struct pci_dev *dev, pci_power_t state)
+>  		 * because have already delayed for the bridge.
+>  		 */
+>  		if (dev->runtime_d3cold) {
+> -			msleep(dev->d3cold_delay);
+> +			if (dev->d3cold_delay)
+> +				msleep(dev->d3cold_delay);
+>  			/*
+>  			 * When powering on a bridge from D3cold, the
+>  			 * whole hierarchy may be powered on into
+> -- 
+> 1.9.1
+> 
