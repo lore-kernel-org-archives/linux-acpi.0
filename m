@@ -1,39 +1,98 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 16/16] ACPI / DSD: Document references, ports and endpoints
-Date: Tue, 14 Mar 2017 18:05:54 +0100
-Message-ID: <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA@mail.gmail.com>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
- <1488809970-25568-17-git-send-email-sakari.ailus@linux.intel.com>
- <1629581.fh46rNHz4U@aspire.rjw.lan> <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
- <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH][RFC v4] ACPI throttling: Disable the MSR T-state if
+ enabled after resumed
+Date: Tue, 14 Mar 2017 18:38:03 +0100
+Message-ID: <20170314173803.GA17126@amd>
+References: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
+ <20170218090207.GB8937@amd>
+ <20170219043718.GA4953@yu-desktop-1.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f173.google.com ([74.125.82.173]:33590 "EHLO
-        mail-ot0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752950AbdCNRF4 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 13:05:56 -0400
-In-Reply-To: <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57540 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753570AbdCNRiG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 13:38:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20170219043718.GA4953@yu-desktop-1.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 
-On Tue, Mar 14, 2017 at 9:09 AM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> On 03/14/17 10:08, Sakari Ailus wrote:
->> How about this instead:
->>
->> All port nodes are located under the device's "_DSD" node in the
->> hierarchical data extension tree. The property extension related to
->> each port node must contain the key "port" and an integer value which
->> is the number of the port.
->
-> So with matching strings instead of indices, this will change, too...
 
-It doesn't have to AFAICS, but the number is just redundant IMO.  You
-only need a boolean property saying "this is a port", so you know that
-you should expect a list of endpoints in that object.
+--TB36FDmn/VVEgNH/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+Hi!
+
+> > > However there are still three problems left:
+> > > 1. More and more reports show that other platforms also
+> > >    encountered the same issue, so the quirk list might
+> > >    be endless.
+> > > 2. Each CPUs should take the save/restore operation into
+> > >    consideration, rather than the boot CPU alone.
+> > > 3. Normally ACPI T-state re-evaluation is done on resume,
+> > >    however there is no _TSS on the bogus platform, thus
+> > >    above re-evaluation code does not run on that machine.
+> > >=20
+> > > Solution:
+> > > This patch is based on the fact that, we generally should not
+> > > expect the system to come back from resume with throttling
+> > > enabled, but leverage the OS components to deal with it,
+> > > such as thermal event. So we simply clear the MSR T-state
+> > > and print the warning if it is found to be enabled after
+> > > resumed back. Besides, we can remove the quirk in previous patch
+> > > later.
+> >=20
+> > What if the machine _is_ hot?=20
+> >=20
+> Later the linux has a chance to adjust the tstate if the system is too ho=
+t,
+> with the help of thermal framework.
+
+Will it adjust the tstate? Normally, we do such stuff when tresholds
+are exceeded. If we are already above the threshold, we'll see no
+reason to=20
+
+> But if the cpu is not inside any thermal zone, then there is no way for t=
+he
+> OS to adjust the tstate after resume, however in this case I think it is =
+up
+> to the user space to adjust the tstate msr, for example, by using thermald
+> daemon to bind the cpu to the thermal zone.
+
+Umm. Userland should not access MSRs. And we certainly should not
+depend on userland adjusting the MSRs!
+
+> > Should we introduce generic framework to "fix" all the cpus? Actually,
+> > should this be done right on cpu hotplug?
+> Do you mean, fix other MSR-inconsistent issues, not only the tstate MSR?
+> Currently the tstate re-adjusting is invoked in cpuhotplug notifier
+> after each nonboot cpus are brought up:
+> acpi_soft_cpu_online -> acpi_processor_reevaluate_tstate -> adjust_tstate=
+_msr
+
+Ok.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--TB36FDmn/VVEgNH/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljIKnsACgkQMOfwapXb+vKrUACfVmvwRCNVAXGOC2wh6J9aOkSM
+hRoAn3eME4/Gxrzz2KW3rTpttExgtxps
+=uLEd
+-----END PGP SIGNATURE-----
+
+--TB36FDmn/VVEgNH/--
