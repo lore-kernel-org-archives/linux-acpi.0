@@ -1,66 +1,53 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI: For d3_delay and d3cold_delay, zero means zero
-Date: Tue, 14 Mar 2017 18:52:48 +0100
-Message-ID: <CAJZ5v0iB81hTsWdhCyPSOoe3GZ1jUKDqhFcZp2i8B8=+Z7DG4A@mail.gmail.com>
-References: <20170314130305.GH8232@bhelgaas-glaptop.roam.corp.google.com> <1489497718-4099-1-git-send-email-adrian.hunter@intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v4 16/16] ACPI / DSD: Document references, ports and
+ endpoints
+Date: Tue, 14 Mar 2017 19:54:09 +0200
+Message-ID: <cf2ab8be-a351-f1ea-28a9-f5cca57061cd@linux.intel.com>
+References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1488809970-25568-17-git-send-email-sakari.ailus@linux.intel.com>
+ <1629581.fh46rNHz4U@aspire.rjw.lan>
+ <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
+ <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com>
+ <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:35434 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbdCNRwu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 13:52:50 -0400
-In-Reply-To: <1489497718-4099-1-git-send-email-adrian.hunter@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Al Stone <ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci <linux-pci@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tue, Mar 14, 2017 at 2:21 PM, Adrian Hunter <adrian.hunter@intel.com> wrote:
-> msleep() still sleeps 1 jiffy even when told to sleep for zero
-> milliseconds. That can end up being 1-2 milliseconds or more. In the cases
-> of d3_delay and d3cold_delay, that unnecessarily increases suspend and/or
-> resume latencies.
->
-> So, do not sleep at all for the respective cases of d3_delay is zero or
-> d3cold_delay is zero.
->
-> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+Hi Rafael,
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Rafael J. Wysocki wrote:
+> On Tue, Mar 14, 2017 at 9:09 AM, Sakari Ailus
+> <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+>> On 03/14/17 10:08, Sakari Ailus wrote:
+>>> How about this instead:
+>>>
+>>> All port nodes are located under the device's "_DSD" node in the
+>>> hierarchical data extension tree. The property extension related to
+>>> each port node must contain the key "port" and an integer value which
+>>> is the number of the port.
+>>
+>> So with matching strings instead of indices, this will change, too...
+>
+> It doesn't have to AFAICS, but the number is just redundant IMO.  You
+> only need a boolean property saying "this is a port", so you know that
+> you should expect a list of endpoints in that object.
 
-> ---
->  drivers/pci/pci.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index 7904d02ffdb9..9779483f81fd 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -66,7 +66,8 @@ static void pci_dev_d3_sleep(struct pci_dev *dev)
->         if (delay < pci_pm_d3_delay)
->                 delay = pci_pm_d3_delay;
->
-> -       msleep(delay);
-> +       if (delay)
-> +               msleep(delay);
->  }
->
->  #ifdef CONFIG_PCI_DOMAINS
-> @@ -827,7 +828,8 @@ static void __pci_start_power_transition(struct pci_dev *dev, pci_power_t state)
->                  * because have already delayed for the bridge.
->                  */
->                 if (dev->runtime_d3cold) {
-> -                       msleep(dev->d3cold_delay);
-> +                       if (dev->d3cold_delay)
-> +                               msleep(dev->d3cold_delay);
->                         /*
->                          * When powering on a bridge from D3cold, the
->                          * whole hierarchy may be powered on into
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No, it's not redundant. It's the number of the physical port in the 
+device --- this is how the driver gets to know where the connection has 
+been made.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
