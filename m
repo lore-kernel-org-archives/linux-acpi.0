@@ -1,74 +1,59 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: WTH is going on with memory hotplug sysf interface
-Date: Tue, 14 Mar 2017 17:20:03 +0100
-Message-ID: <20170314162003.GD7772@dhcp22.suse.cz>
-References: <20170302180315.78975d4b@nial.brq.redhat.com>
- <20170303082723.GB31499@dhcp22.suse.cz>
- <20170303183422.6358ee8f@nial.brq.redhat.com>
- <20170306145417.GG27953@dhcp22.suse.cz>
- <20170307134004.58343e14@nial.brq.redhat.com>
- <20170309125400.GI11592@dhcp22.suse.cz>
- <20170310135807.GI3753@dhcp22.suse.cz>
- <75ee9d3f-7027-782a-9cde-5192396a4a8c@gmail.com>
- <20170313091907.GF31518@dhcp22.suse.cz>
- <99f14975-f89f-4484-6ae1-296b242d4bf9@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 3/3] device property: of_property_read_string_array()
+ returns number of strings
+Date: Tue, 14 Mar 2017 17:57:40 +0100
+Message-ID: <CAJZ5v0iNYhqY0VSumBx4-A2YcKcHv6UsXyGpRHgQdM4D-=_9SQ@mail.gmail.com>
+References: <1488806791-25488-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1488806791-25488-4-git-send-email-sakari.ailus@linux.intel.com>
+ <1840694.EMHZKJ1jEg@aspire.rjw.lan> <bf544a26-d551-e5e5-6ca1-513f35d057b4@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <99f14975-f89f-4484-6ae1-296b242d4bf9@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Cc: Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Reza Arbab <arbab@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f182.google.com ([74.125.82.182]:35789 "EHLO
+        mail-ot0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751036AbdCNQ5m (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 12:57:42 -0400
+In-Reply-To: <bf544a26-d551-e5e5-6ca1-513f35d057b4@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Tue 14-03-17 12:05:59, YASUAKI ISHIMATSU wrote:
-> 
-> 
-> On 03/13/2017 05:19 AM, Michal Hocko wrote:
-> >On Fri 10-03-17 12:39:27, Yasuaki Ishimatsu wrote:
-> >>On 03/10/2017 08:58 AM, Michal Hocko wrote:
-[...]
-> >>># echo online_movable > /sys/devices/system/memory/memory34/state
-> >>># grep . /sys/devices/system/memory/memory3?/valid_zones
-> >>>/sys/devices/system/memory/memory32/valid_zones:Normal
-> >>>/sys/devices/system/memory/memory33/valid_zones:Normal Movable
-> >>>/sys/devices/system/memory/memory34/valid_zones:Movable Normal
-> >>>
-> >>
-> >>I think there is no strong reason which kernel has the restriction.
-> >>By setting the restrictions, it seems to have made management of
-> >>these zone structs simple.
-> >
-> >Could you be more specific please? How could this make management any
-> >easier when udev is basically racing with the physical hotplug and the
-> >result is basically undefined?
-> >
-> 
-> When changing zone from NORMAL(N) to MOVALBE(M), we must resize both zones,
-> zone->zone_start_pfn and zone->spanned_pages. Currently there is the
-> restriction.
-> 
-> So we just simply change:
->   zone(N)->spanned_pages -= nr_pages
->   zone(M)->zone_start_pfn -= nr_pages
+On Tue, Mar 14, 2017 at 8:17 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Rafael,
+>
+> On 03/14/17 00:24, Rafael J. Wysocki wrote:
+>> On Monday, March 06, 2017 03:26:31 PM Sakari Ailus wrote:
+>>> of_property_read_string_array() returns number of strings read if the
+>>> target array of pointers is non-NULL. fwnode_property_read_string_array()
+>>> is documented to return 0 in that case. Fix this.
+>>
+>> Well, if we want people to use fwnode_property_read_string_array() instead of
+>> of_property_read_string_array(), it should better behave analogously, shouldn't it?
+>
+> Not necessarily.
+>
+> The documentation states that fwnode_property_read_string_array()
+> returns 0 on success. That makes sense since the callers often check
+> whether the return value is non-zero and then return based on that.
+> Returning zero on success is just simpler for the caller.
+>
+> Often the number of elements to read from an array is known beforehand,
+> so there's little use for the actual number read.
+>
+> Besides the fwnode variants, also the OF integer array access functions
+> return zero on success.
+>
+> Rob had a similar comment but the discussion did not continue after my
+> initial reply. I can sure change that if you still think it's better the
+> other way.
 
-Yes I understand how this made the implementation simpler. I was
-questioning how this made user management any easier. Changing
-valid zones which races with the hotplug consumer (e.g. udev) sounds
-like a terrible idea to me.
+I understand the argumentation, but if X is supposed to be an easy
+replacement for Y, it really should stick to the return value
+conventions used by the latter or it is not easy any more.
 
-Anyway, it seems that the initial assumption/restriction that all
-pages have to start on the zone Normal is not really needed. I have a
-preliminary patch which removes that and associates newly added pages
-with a zone at the online time and it seems to be working reasonably
-well. I have to iron out some corners before I post it.
--- 
-Michal Hocko
-SUSE Labs
+So yes, please.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+Rafael
