@@ -1,56 +1,89 @@
-From: Dan O'Donovan <dan@emutex.com>
-Subject: [PATCH] disable RTS override on LPSS UART with Auto Flow Control
-Date: Wed, 15 Mar 2017 14:13:48 +0000
-Message-ID: <1489587228-10764-1-git-send-email-dan@emutex.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: Re: [PATCH][RFC v4] ACPI throttling: Disable the MSR T-state if
+ enabled after resumed
+Date: Wed, 15 Mar 2017 23:11:42 +0800
+Message-ID: <20170315151142.GB467@yu-desktop-1.sh.intel.com>
+References: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
+ <20170218090207.GB8937@amd>
+ <20170219043718.GA4953@yu-desktop-1.sh.intel.com>
+ <20170314173803.GA17126@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:7978 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753061AbdCOPLn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Mar 2017 11:11:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20170314173803.GA17126@amd>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 
-Currently, Auto Flow Control is not working correctly on the Atom
-X5-Z8350 "Cherry Trail" SoC, because an "RTS override" feature is
-enabled in a vendor-specific register in the LPSS UART. The symptom
-is that RTS is not de-asserted as it should be when RTS/CTS flow
-control is enabled and the RX FIFO fills up.
+Hi,
+On Tue, Mar 14, 2017 at 06:38:03PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > > However there are still three problems left:
+> > > > 1. More and more reports show that other platforms also
+> > > >    encountered the same issue, so the quirk list might
+> > > >    be endless.
+> > > > 2. Each CPUs should take the save/restore operation into
+> > > >    consideration, rather than the boot CPU alone.
+> > > > 3. Normally ACPI T-state re-evaluation is done on resume,
+> > > >    however there is no _TSS on the bogus platform, thus
+> > > >    above re-evaluation code does not run on that machine.
+> > > > 
+> > > > Solution:
+> > > > This patch is based on the fact that, we generally should not
+> > > > expect the system to come back from resume with throttling
+> > > > enabled, but leverage the OS components to deal with it,
+> > > > such as thermal event. So we simply clear the MSR T-state
+> > > > and print the warning if it is found to be enabled after
+> > > > resumed back. Besides, we can remove the quirk in previous patch
+> > > > later.
+> > > 
+> > > What if the machine _is_ hot? 
+> > > 
+> > Later the linux has a chance to adjust the tstate if the system is too hot,
+> > with the help of thermal framework.
+> 
+> Will it adjust the tstate? Normally, we do such stuff when tresholds
+> are exceeded. If we are already above the threshold, we'll see no
+> reason to 
+> 
+According to current implementation of thermal_pm_notify, after resumed
+back, the initial temperature will be reset to -274, thus the trend of
+temperature will always be 'increasing', then the trip point(threshold)
+will be compared with currently temperature, if it is bigger than the
+trip point, the CPUs will be throttled. So I think the tstate has a chance
+to be adjusted.
+> > But if the cpu is not inside any thermal zone, then there is no way for the
+> > OS to adjust the tstate after resume, however in this case I think it is up
+> > to the user space to adjust the tstate msr, for example, by using thermald
+> > daemon to bind the cpu to the thermal zone.
+> 
+> Umm. Userland should not access MSRs. And we certainly should not
+> depend on userland adjusting the MSRs!
+> 
+I agree, so I think thermald is the only applicable solution for this case,
+because the thermald is just trying to bind the CPUs to some thermal
+zones via sysfs, and the user does not need to modify the MSRs because
+the tstate MSRs will be taken care of by the thermal zones in kernelland.
+> > > Should we introduce generic framework to "fix" all the cpus? Actually,
+> > > should this be done right on cpu hotplug?
+> > Do you mean, fix other MSR-inconsistent issues, not only the tstate MSR?
+> > Currently the tstate re-adjusting is invoked in cpuhotplug notifier
+> > after each nonboot cpus are brought up:
+> > acpi_soft_cpu_online -> acpi_processor_reevaluate_tstate -> adjust_tstate_msr
+> 
+> Ok.
+> 									Pavel
+> --
+Thanks,
+Yu
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
-This appears to be introduced by commit 1f47a77c4e49 ("ACPI / LPSS:
-not using UART RTS override with Auto Flow Control").
 
-To _disable_ the RTS override, bit 3 needs to be _set_ in the
-"GENERAL" register at offset 808h.  The power-on default is 0. The
-aforementioned commit appears to have assumed the inverse of this.
-
-Signed-off-by: Dan O'Donovan <dan@emutex.com>
----
- drivers/acpi/acpi_lpss.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 8ea836c..4b3f2d5 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -45,7 +45,7 @@ ACPI_MODULE_NAME("acpi_lpss");
- #define LPSS_RESETS_RESET_APB		BIT(1)
- #define LPSS_GENERAL			0x08
- #define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
--#define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
-+#define LPSS_GENERAL_UART_RTS_NO_OVRD	BIT(3)
- #define LPSS_SW_LTR			0x10
- #define LPSS_AUTO_LTR			0x14
- #define LPSS_LTR_SNOOP_REQ		BIT(15)
-@@ -123,10 +123,10 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
- 	writel(val | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
- 
- 	val = readl(pdata->mmio_base + LPSS_UART_CPR);
--	if (!(val & LPSS_UART_CPR_AFCE)) {
-+	if (val & LPSS_UART_CPR_AFCE) {
- 		offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
- 		val = readl(pdata->mmio_base + offset);
--		val |= LPSS_GENERAL_UART_RTS_OVRD;
-+		val |= LPSS_GENERAL_UART_RTS_NO_OVRD;
- 		writel(val, pdata->mmio_base + offset);
- 	}
- }
--- 
-2.7.4
