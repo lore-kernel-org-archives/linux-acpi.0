@@ -1,132 +1,136 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 1/7] ACPICA: Tables: Cleanup table handler invokers
-Date: Wed, 15 Mar 2017 14:36:55 +0800
-Message-ID: <7e8e6e731d22acd36ecb63520f774c19f3572b62.1489558845.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 3/7] ACPICA: Tables: Add sanity check for table install
+Date: Wed, 15 Mar 2017 14:37:10 +0800
+Message-ID: <f6eca5630bbe6233345da81b46ae3d4940350dff.1489558845.git.lv.zheng@intel.com>
 References: <cover.1489558845.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:29589 "EHLO mga06.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:13117 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750944AbdCOGhG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Mar 2017 02:37:06 -0400
+        id S1750944AbdCOGhP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Mar 2017 02:37:15 -0400
 In-Reply-To: <cover.1489558845.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
 Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Hans de Goede <hdegoede@redhat.com>
 
-Recently, we allows the table mutex to be held in both early and late stage
-APIs. This patch further cleans up the related code to reduce redundant
-code related to acpi_gbl_table_handler. Lv Zheng.
+This patch adds sanity check for table install process, avoid installing
+same tables to the global table list. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Cc: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/acpica/actables.h |  2 ++
- drivers/acpi/acpica/tbdata.c   | 43 ++++++++++++++++++++++++++++--------------
- drivers/acpi/acpica/tbinstal.c |  8 ++------
- 3 files changed, 33 insertions(+), 20 deletions(-)
+ drivers/acpi/acpica/actables.h |  2 +-
+ drivers/acpi/acpica/tbinstal.c | 33 +++++++++++++++++++++++++++------
+ include/acpi/actbl.h           |  1 +
+ 3 files changed, 29 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index c8da453..89ed31b 100644
+index 1509797..db78af4 100644
 --- a/drivers/acpi/acpica/actables.h
 +++ b/drivers/acpi/acpica/actables.h
-@@ -132,6 +132,8 @@ acpi_tb_install_and_load_table(acpi_physical_address address,
+@@ -162,7 +162,7 @@ void acpi_tb_check_dsdt_header(void);
  
- acpi_status acpi_tb_unload_table(u32 table_index);
+ struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index);
  
-+void acpi_tb_notify_table(u32 event, void *table);
-+
- void acpi_tb_terminate(void);
+-void
++acpi_status
+ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
+ 				    u8 override, u32 *table_index);
  
- acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index);
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 27c5c27..42ea044 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -818,13 +818,9 @@ acpi_tb_load_table(u32 table_index, struct acpi_namespace_node *parent_node)
- 		acpi_ev_update_gpes(owner_id);
- 	}
- 
--	/* Invoke table handler if present */
--
--	if (acpi_gbl_table_handler) {
--		(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_LOAD, table,
--					     acpi_gbl_table_handler_context);
--	}
-+	/* Invoke table handler */
- 
-+	acpi_tb_notify_table(ACPI_TABLE_EVENT_LOAD, table);
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -892,15 +888,11 @@ acpi_status acpi_tb_unload_table(u32 table_index)
- 		return_ACPI_STATUS(AE_NOT_EXIST);
- 	}
- 
--	/* Invoke table handler if present */
-+	/* Invoke table handler */
- 
--	if (acpi_gbl_table_handler) {
--		status = acpi_get_table_by_index(table_index, &table);
--		if (ACPI_SUCCESS(status)) {
--			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
--						     table,
--						     acpi_gbl_table_handler_context);
--		}
-+	status = acpi_get_table_by_index(table_index, &table);
-+	if (ACPI_SUCCESS(status)) {
-+		acpi_tb_notify_table(ACPI_TABLE_EVENT_UNLOAD, table);
- 	}
- 
- 	/* Delete the portion of the namespace owned by this table */
-@@ -914,3 +906,26 @@ acpi_status acpi_tb_unload_table(u32 table_index)
- 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
- 	return_ACPI_STATUS(status);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_notify_table
-+ *
-+ * PARAMETERS:  event               - Table event
-+ *              table               - Validated table pointer
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Notify a table event to the users.
-+ *
-+ ******************************************************************************/
-+
-+void acpi_tb_notify_table(u32 event, void *table)
-+{
-+	/* Invoke table handler if present */
-+
-+	if (acpi_gbl_table_handler) {
-+		(void)acpi_gbl_table_handler(event, table,
-+					     acpi_gbl_table_handler_context);
-+	}
-+}
 diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 4620f3c..ee74515 100644
+index 5e3d445..fa82962 100644
 --- a/drivers/acpi/acpica/tbinstal.c
 +++ b/drivers/acpi/acpica/tbinstal.c
-@@ -306,14 +306,10 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 	acpi_tb_install_table_with_override(&new_table_desc, override,
- 					    table_index);
+@@ -56,7 +56,7 @@ ACPI_MODULE_NAME("tbinstal")
+  *              override                - Whether override should be performed
+  *              table_index             - Where the table index is returned
+  *
+- * RETURN:      None
++ * RETURN:      Status
+  *
+  * DESCRIPTION: Install an ACPI table into the global data structure. The
+  *              table override mechanism is called to allow the host
+@@ -64,12 +64,13 @@ ACPI_MODULE_NAME("tbinstal")
+  *              table array.
+  *
+  ******************************************************************************/
+-void
++acpi_status
+ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
+ 				    u8 override, u32 *table_index)
+ {
+ 	u32 i;
+-	acpi_status status;
++	acpi_status status = AE_OK;
++	struct acpi_table_desc *table_desc;
  
--	/* Invoke table handler if present */
-+	/* Invoke table handler */
+ 	/*
+ 	 * ACPI Table Override:
+@@ -86,9 +87,22 @@ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
  
- 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
--	if (acpi_gbl_table_handler) {
--		(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_INSTALL,
--					     new_table_desc.pointer,
--					     acpi_gbl_table_handler_context);
--	}
-+	acpi_tb_notify_table(ACPI_TABLE_EVENT_INSTALL, new_table_desc.pointer);
  	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
  
- unlock_and_exit:
++	/* Check if the table has already been installed */
++
++	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
++		table_desc = &acpi_gbl_root_table_list.tables[i];
++		if (table_desc->address &&
++		    new_table_desc->address == table_desc->address &&
++		    ACPI_TABLE_ORIGIN(new_table_desc) ==
++		    ACPI_TABLE_ORIGIN(table_desc)) {
++			*table_index = i;
++			goto unlock_and_exit;
++		}
++	}
++
+ 	status = acpi_tb_get_next_table_descriptor(&i, NULL);
+ 	if (ACPI_FAILURE(status)) {
+-		return;
++		goto unlock_and_exit;
+ 	}
+ 
+ 	acpi_tb_init_table_descriptor(&acpi_gbl_root_table_list.tables[i],
+@@ -109,9 +123,12 @@ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
+ 		acpi_ut_set_integer_width(new_table_desc->pointer->revision);
+ 	}
+ 
++unlock_and_exit:
++
+ 	/* Release the table lock */
+ 
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++	return (status);
+ }
+ 
+ /*******************************************************************************
+@@ -177,8 +194,12 @@ acpi_tb_install_standard_table(acpi_physical_address address,
+ 
+ 	/* Add the table to the global root table list */
+ 
+-	acpi_tb_install_table_with_override(&new_table_desc, override,
+-					    table_index);
++	status =
++	    acpi_tb_install_table_with_override(&new_table_desc, override,
++						table_index);
++	if (ACPI_FAILURE(status)) {
++		goto release_and_exit;
++	}
+ 
+ 	/* Invoke table handler */
+ 
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index d92543f..7ebaa07 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -380,6 +380,7 @@ struct acpi_table_desc {
+ #define ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL (1)	/* Physical address, internally mapped */
+ #define ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL  (2)	/* Virtual address, internallly allocated */
+ #define ACPI_TABLE_ORIGIN_MASK              (3)
++#define ACPI_TABLE_ORIGIN(desc)             ((desc)->flags & ACPI_TABLE_ORIGIN_MASK)
+ #define ACPI_TABLE_IS_LOADED                (8)
+ 
+ /*
 -- 
 2.7.4
 
