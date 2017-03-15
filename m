@@ -1,97 +1,133 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Log Exceptions and Errors as warning while
- loading extra tables
-Date: Wed, 15 Mar 2017 01:16:44 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE4A433@SHSMSX101.ccr.corp.intel.com>
-References: <20170301103653.2296-1-hdegoede@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE446E2@SHSMSX101.ccr.corp.intel.com>
- <0518b7f7-8d08-0071-df54-af19806883ae@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE44EB1@SHSMSX101.ccr.corp.intel.com>
- <606dcada-7c56-89a6-24a0-ac8aaa1d980e@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE49617@SHSMSX101.ccr.corp.intel.com>
- <07925741-3500-8e69-cc78-cd5ec140c7c6@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E886CE49E37@SHSMSX101.ccr.corp.intel.com>
- <9a6d4e50-41e7-28f6-b19d-f5f989da032d@redhat.com>
+From: "zhichang.yuan" <yuanzhichang-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+Subject: Re: [PATCH V7 0/7] LPC: legacy ISA I/O support
+Date: Wed, 15 Mar 2017 12:05:17 +0800
+Message-ID: <58C8BD7D.7040207@hisilicon.com>
+References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
+ <CAK8P3a1f33ipk3Q8+wj9L6zP=ccn_AuhTfV0CC0+wAqrO-2beg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1326 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750780AbdCOBQs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 14 Mar 2017 21:16:48 -0400
-In-Reply-To: <9a6d4e50-41e7-28f6-b19d-f5f989da032d@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAK8P3a1f33ipk3Q8+wj9L6zP=ccn_AuhTfV0CC0+wAqrO-2beg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rafael Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Corey Minyard <minyard-HInyCGIudOg@public.gmane.org>, liviu.dudau-5wv7dgnIgG8@public.gmane.org, Zou Rongrong <zourongrong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, John
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi, Hans
+Hi, Arnd,
 
-> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> Subject: Re: [PATCH] ACPICA: Log Exceptions and Errors as warning while l=
-oading extra tables
->=20
-> Hi,
->=20
-> On 14-03-17 09:15, Zheng, Lv wrote:
-> > Hi, Hans
-> >
-> >> From: Hans de Goede [mailto:hdegoede@redhat.com]
-> >> Subject: Re: [PATCH] ACPICA: Log Exceptions and Errors as warning whil=
-e loading extra tables
-> >>
-> >> Hi,
-> >>
-> >> On 13-03-17 10:52, Zheng, Lv wrote:
-> >>> Hi, Hans
-> >>>
-> >>> For log level issue, is this fix useful for you?
-> >>> https://github.com/acpica/acpica/pull/121/commits/a505d3942
-> >>
-> >> That fixes reloading already loaded tables, the problem I'm
-> >> getting errors about its loading a different table with identical
-> >> contents.
-> >>
-> >> I will look into your suggestion to do something similar to
-> >> AcpiTbInstallStandardTable using AcpiTbCompareTables for the
-> >> SSDT tables. I will send a new patch when I can make some time
-> >> to look into this.
-> >
-> > I just completed a prototype here:
-> > https://github.com/acpica/acpica/pull/121
-> >
-> > I guess the original "duplicate table check" couldn't cover static SSDT=
-s.
-> > Actually the duplicate table check should be a sanity check of table lo=
-ad.
-> > And for table install, we should have a different sanity check like:
-> > https://github.com/acpica/acpica/pull/121/commits/6e825cae5e5
-> > I'm not sure if this is what you want.
->=20
-> This checks for having 2 table_descriptors pointing to the same table
-> (address in memory). But in my case there are 2 identical copies of
-> the table at 2 different addresses in memory, so this won't work.
->=20
-> After looking at this a bit myself, I think fixing this is actually
-> quite easy (now that you've pointed me to acpi_tb_install_standard_table(=
-)
->=20
-> I've come up with the attached patch to fix this. I will give this a test
-> spin and then submit it officially (assuming it works).
+Many thanks for your review!
 
-In the pull request, there are 4 fixes:
-1. add table install sanity check by detecting duplicates with table addres=
-s and table type.
-2. extend table load sanity check to LoadTable opcode.
-3. extend table load sanity check to static loaded SSDTs - I think this sho=
-uld be able to cover your case.
-4. if install/load sanity checks detect duplicate tables, they return AE_AL=
-READY_EXISTS and the error is silently discarded.
+On 2017/3/14 16:39, Arnd Bergmann wrote:
+> On Mon, Mar 13, 2017 at 3:42 AM, zhichang.yuan
+> <yuanzhichang-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org> wrote:
+>> This patchset supports the IPMI-bt device attached to the Low-Pin-Count
+>> interface implemented on Hisilicon Hip06/Hip07 SoC.
+>>                         -----------
+>>                         | LPC host|
+>>                         |         |
+>>                         -----------
+>>                              |
+>>                 _____________V_______________LPC
+>>                   |                       |
+>>                   V                       V
+>>                                      ------------
+>>                                      |  BT(ipmi)|
+>>                                      ------------
+>>
+>> When master accesses those peripherals beneath the Hip06/Hip07 LPC, a specific
+>> LPC driver is needed to make LPC host generate the standard LPC I/O cycles with
+>> the target peripherals'I/O port addresses. But on curent arm64 world, there is
+>> no real I/O accesses. All the I/O operations through in/out pair are based on
+>> MMIO which is not satisfied the I/O mechanism on Hip06/Hip07 LPC.
+>> To solve this issue and keep the relevant existing peripherals' driver
+>> untouched, this patchset implements:
+>>   - introduces a generic I/O space management framwork, LIBIO, to support I/O
+>>     operations of both MMIO buses and the host controllers which access their
+>>     peripherals with host local I/O addresses;
+>>   - redefines the in/out accessors to provide unified interfaces for MMIO and
+>>     legacy I/O. Based on the LIBIO, the calling of in/out() from upper-layer
+>>     drivers, such as ipmi-si, will be redirected to the corresponding
+>>     device-specific I/O hooks to perfrom the I/O accesses.
+>> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC peripherals
+>> can be supported without any changes on the existing ipmi-si driver.
+> 
+> Thanks for reposting this. I have a few high-level comments first, based on
+> the walk through the code I did with Gabriele and John last week:
+> 
+> - I think the libio framework is more generic than it needs to be, but as
+>   Alex really liked it this way and it was done like this based on his earlier
+>   comments, I think that's ok.
+> 
+> - after we went back and forth on the ACPI implementation, we concluded
+>   that it is correct to do the same as on DT and completely abstract the
+>   number space for I/O ports. No code should rely on a Linux port number
+>   to have any particular relation to the physical address or the the address
+>   on a PCI or LPC bus.
+Thanks again for your helps in Linaro Connect!
+I think we are heading for this direction, is it?
 
-That's the whole story for the pull request.
-I think you only checked one of them.
+> 
+> - The name "libio" still needs to be changed, this is way too generic, as
+>   "I/O" can refer to many things in the kernel, and almost none of them
+>   are related to x86 programmed I/O ports in any way. My suggestion
+>   would be "generic_ioport", or possibly "libioport", "libpio" or "pci_io". Any
+>   of them would work for me, or someone else could come up with a better
+>   name that describes what it is.
 
-Thanks and best regards
-Lv
+Ok. We will make a better name:)
+
+> 
+> - I'm pretty sure the current implementation is broken for the ioport_map
+>   function that tries to turn an IORESOURCE_IO number into a pointer.
+>   Forcing CONFIG_GENERIC_IOMAP on would solve this, but also
+>   make all MMIO operations slower, which we probably don't want.
+>   It's probably enough to add a check in ioport_map() to see if the range
+>   is mapped into a virtual address or not.
+
+
+Yes, I think our LIBIO will break the ioport_map() at this moment.
+I try to solve this issue. Could you help to check the following ideas?
+I am not deeper understanding the whole I/O framework, the following maybe not correct:(
+
+ioport_map seems architecture-dependent. For our LIBIO, we don't want to replace the existing I/O
+frameworks which support MMIO at this moment. Can we add these two revise to solve this issue?
+1) Make LIBIO only target for non GENERIC_IOMAP platforms
+
+config LIBIO
+        bool "Generic logical IO management"
+        depends on !GENERIC_IOMAP
+        def_bool y if PCI && (ARC || MN10300 || UNICORE32 || SPARC || MICROBLAZE || S390 || AVR32 || CRIS || BLACKFIN || XTENSA || ARM64)
+
+2) Modify the ioport_map() defined in asm-generic/io.h
+Add the checks to identify the input 'port' is MMIO, otherwise, return NULL;
+
+Then is it enough to avoid the negative effect on the existing I/O framework?
+
+> 
+> - We could simplify the lookup a bit by using the trick from arch/ia64
+>   of using an array instead of linked list for walking the port numbers.
+>   There, the upper bits of the port number refer to an address space
+>   number while the lower bits refer to the bus address within that
+>   address space. This should work just as well as the current
+>   implementation but would be a little easier to understand. Maybe
+>   Bjorn can comment on this too, as I think he was involved with the
+>   ia64 implementation.
+> 
+Yes, It will be more efficient.
+
+But the issue remained here is still how to coexist with the existing I/O frameworks.
+I will continue to look into.
+
+Thanks,
+Zhichang
+
+>       Arnd
+> 
+> .
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
