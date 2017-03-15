@@ -1,122 +1,29 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 7/7] ACPICA: Tables: Change table comparison using table header for static load tables
-Date: Wed, 15 Mar 2017 14:37:42 +0800
-Message-ID: <a70b2cb791b0d5f7571b624279fc46ace35d920a.1489558845.git.lv.zheng@intel.com>
-References: <cover.1489558845.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:32281 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752021AbdCOGhr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Mar 2017 02:37:47 -0400
-In-Reply-To: <cover.1489558845.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH 0/2] ThunderX external PCI fixes for legacy&new ACPI firmware
+Date: Wed, 15 Mar 2017 08:49:13 +0100
+Message-ID: <1489564155-3881-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: helgaas@kernel.org, Lorenzo.Pieralisi@arm.com, robert.richter@caviumnetworks.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org
+Cc: Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "David E . Box" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Hans de Goede <hdegoede@redhat.com>
 
-For AML tables, checksum is available for us to detect a duplicate table,
-so this patch removes byte-by-byte check for static load tables to improve
-performance, and comparing header allows us to validate if
-LEN/CSUM/OEM fields match. Suggested by Bob Moore, fixed by Lv Zheng.
+This patch series update ThunderX PEM driver to be able to boot with legacy
+and new ACPI firmware:
+1. New firmware uses registered Cavium harware ID "CAV", but kernel instead
+   uses "THRX". Fix kernel to use "CAV".
+2. Legacy firmware misses PEM quirks information so for this case kernel
+   should not assume anything from FW and figure out PEM resources on its own.
 
-Suggested-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpica/tbdata.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+Fix this all together in the following branch:
+git@github.com:semihalf-nowicki-tomasz/linux.git (thunderx-pci-legacy-fw-v1)
 
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index 180c7a3..09fab1d 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -52,10 +52,12 @@ ACPI_MODULE_NAME("tbdata")
- 
- /* Local prototypes */
- static u8
--acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index);
-+acpi_tb_compare_tables(struct acpi_table_desc *table_desc,
-+		       u8 reload, u32 table_index);
- 
- static acpi_status
- acpi_tb_validate_table_for_load(u32 *table_index,
-+				u8 reload,
- 				struct acpi_table_header **out_table);
- 
- /*******************************************************************************
-@@ -782,6 +784,7 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
-  * FUNCTION:    acpi_tb_compare_tables
-  *
-  * PARAMETERS:  table_desc          - Table 1 descriptor to be compared
-+ *              reload              - Whether reload should be performed
-  *              table_index         - Index of table 2 to be compared
-  *
-  * RETURN:      TRUE if both tables are identical.
-@@ -792,7 +795,8 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded)
-  ******************************************************************************/
- 
- static u8
--acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
-+acpi_tb_compare_tables(struct acpi_table_desc *table_desc,
-+		       u8 reload, u32 table_index)
- {
- 	acpi_status status = AE_OK;
- 	u8 is_identical;
-@@ -811,9 +815,16 @@ acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
- 	 * Check for a table match on the entire table length,
- 	 * not just the header.
- 	 */
--	is_identical = (u8)((table_desc->length != table_length ||
--			     memcmp(table_desc->pointer, table, table_length)) ?
--			    FALSE : TRUE);
-+	if (reload) {
-+		is_identical = (u8)((table_desc->length != table_length ||
-+				     memcmp(table_desc->pointer, table,
-+					    table_length)) ? FALSE : TRUE);
-+	} else {
-+		is_identical =
-+		    (u8)(memcmp
-+			 (table_desc->pointer, table,
-+			  sizeof(struct acpi_table_header)) ? FALSE : TRUE);
-+	}
- 
- 	/* Release the acquired table */
- 
-@@ -826,6 +837,7 @@ acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
-  * FUNCTION:    acpi_tb_validate_table_for_load
-  *
-  * PARAMETERS:  table_index         - Index of table
-+ *              reload              - Whether reload should be performed
-  *              out_table           - Validated table
-  *
-  * RETURN:      Status
-@@ -838,7 +850,7 @@ acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
- 
- static acpi_status
- acpi_tb_validate_table_for_load(u32 *table_index,
--				struct acpi_table_header **out_table)
-+				u8 reload, struct acpi_table_header **out_table)
- {
- 	u32 i;
- 	struct acpi_table_desc *table_desc;
-@@ -913,7 +925,7 @@ acpi_tb_validate_table_for_load(u32 *table_index,
- 		 * Check for a table match on the entire table length, not just the
- 		 * header.
- 		 */
--		if (!acpi_tb_compare_tables(table_desc, i)) {
-+		if (!acpi_tb_compare_tables(table_desc, reload, i)) {
- 			continue;
- 		}
- 
-@@ -973,7 +985,7 @@ acpi_tb_load_table(u32 *table_index,
- 
- 	/* Sanity checks */
- 
--	status = acpi_tb_validate_table_for_load(table_index, &table);
-+	status = acpi_tb_validate_table_for_load(table_index, reload, &table);
- 	if (ACPI_FAILURE(status)) {
- 		if (status == AE_ALREADY_EXISTS) {
- 			/*
+Tomasz Nowicki (2):
+  PCI: Use Cavium assigned hardware ID for ThunderX host controller
+  PCI: Add legacy firmware support for Cavium ThunderX host controller
+
+ drivers/pci/host/pci-thunder-pem.c | 58 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 55 insertions(+), 3 deletions(-)
+
 -- 
 2.7.4
-
