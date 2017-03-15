@@ -1,178 +1,56 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: Re: [PATCH][RFC v4] ACPI throttling: Disable the MSR T-state if
- enabled after resumed
-Date: Wed, 15 Mar 2017 22:43:13 +0800
-Message-ID: <20170315144313.GA467@yu-desktop-1.sh.intel.com>
-References: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
- <2529341.3B7i2Zl8C6@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dan O'Donovan <dan@emutex.com>
+Subject: [PATCH] disable RTS override on LPSS UART with Auto Flow Control
+Date: Wed, 15 Mar 2017 14:13:48 +0000
+Message-ID: <1489587228-10764-1-git-send-email-dan@emutex.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2529341.3B7i2Zl8C6@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Dan O'Donovan <dan@emutex.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-On Mon, Mar 13, 2017 at 11:41:03PM +0100, Rafael J. Wysocki wrote:
-> On Friday, February 17, 2017 04:27:30 PM Chen Yu wrote:
-> > Previously a bug was reported that on certain Broadwell
-> > platform, after resumed from S3, the CPU is running at
-> > an anomalously low speed, due to the BIOS has enabled the
-> > MSR throttling across S3. The solution to this was to introduce
-> > a quirk framework to save/restore tstate MSR register around
-> > suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
-> > Introduce quirk framework to save/restore extra MSR
-> > registers around suspend/resume").
-> > 
-> > However there are still three problems left:
-> > 1. More and more reports show that other platforms also
-> >    encountered the same issue, so the quirk list might
-> >    be endless.
-> > 2. Each CPUs should take the save/restore operation into
-> >    consideration, rather than the boot CPU alone.
-> > 3. Normally ACPI T-state re-evaluation is done on resume,
-> >    however there is no _TSS on the bogus platform, thus
-> >    above re-evaluation code does not run on that machine.
-> > 
-> > Solution:
-> > This patch is based on the fact that, we generally should not
-> > expect the system to come back from resume with throttling
-> > enabled, but leverage the OS components to deal with it,
-> > such as thermal event. So we simply clear the MSR T-state
-> > and print the warning if it is found to be enabled after
-> > resumed back. Besides, we can remove the quirk in previous patch
-> > later.
-> > 
-> > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=90041
-> > Reported-and-tested-by: Kadir <kadir@colakoglu.nl>
-> > Suggested-by: Len Brown <lenb@kernel.org>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > Cc: Pavel Machek <pavel@ucw.cz>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: Ingo Molnar <mingo@kernel.org>
-> > Cc: linux-pm@vger.kernel.org
-> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > ---
-> >  drivers/acpi/processor_throttling.c | 58 +++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 58 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-> > index a12f96c..e121449 100644
-> > --- a/drivers/acpi/processor_throttling.c
-> > +++ b/drivers/acpi/processor_throttling.c
-> > @@ -29,6 +29,7 @@
-> >  #include <linux/sched.h>
-> >  #include <linux/cpufreq.h>
-> >  #include <linux/acpi.h>
-> > +#include <linux/syscore_ops.h>
-> >  #include <acpi/processor.h>
-> >  #include <asm/io.h>
-> >  #include <linux/uaccess.h>
-> > @@ -64,6 +65,7 @@ struct acpi_processor_throttling_arg {
-> >  static int acpi_processor_get_throttling(struct acpi_processor *pr);
-> >  int acpi_processor_set_throttling(struct acpi_processor *pr,
-> >  						int state, bool force);
-> > +static void throttling_msr_reevaluate(int cpu);
-> >  
-> >  static int acpi_processor_update_tsd_coord(void)
-> >  {
-> > @@ -386,6 +388,15 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
-> >  		pr->flags.throttling = 0;
-> >  		return;
-> >  	}
-> > +	/*
-> > +	 * It was found after resumed from suspend to ram, some BIOSes would
-> > +	 * adjust the MSR tstate, however on these platforms no _PSS is provided
-> > +	 * thus we never have a chance to adjust the MSR T-state anymore.
-> > +	 * Thus force clearing it if MSR T-state is enabled, because generally
-> > +	 * we never expect to come back from resume with throttling enabled.
-> > +	 * Later let other components to adjust T-state if necessary.
-> > +	 */
-> > +	throttling_msr_reevaluate(pr->id);
-> >  	/* the following is to recheck whether the T-state is valid for
-> >  	 * the online CPU
-> >  	 */
-> > @@ -758,6 +769,24 @@ static int acpi_throttling_wrmsr(u64 value)
-> >  	}
-> >  	return ret;
-> >  }
-> > +
-> > +static long msr_reevaluate_fn(void *data)
-> > +{
-> > +	u64 msr = 0;
-> > +
-> > +	acpi_throttling_rdmsr(&msr);
-> > +	if (msr) {
-> > +		printk_once(KERN_ERR "PM: The BIOS might have modified the MSR T-state, clear it for now.\n");
-> > +		acpi_throttling_wrmsr(0);
-> > +	}
-> > +	return 0;
-> > +}
-> > +
-> > +static void throttling_msr_reevaluate(int cpu)
-> > +{
-> > +	work_on_cpu(cpu, msr_reevaluate_fn, NULL);
-> > +}
-> > +
-> >  #else
-> >  static int acpi_throttling_rdmsr(u64 *value)
-> >  {
-> > @@ -772,8 +801,37 @@ static int acpi_throttling_wrmsr(u64 value)
-> >  		"HARDWARE addr space,NOT supported yet\n");
-> >  	return -1;
-> >  }
-> > +
-> > +static long msr_reevaluate_fn(void *data)
-> > +{
-> > +	return 0;
-> > +}
-> > +
-> > +static void throttling_msr_reevaluate(int cpu)
-> > +{
-> > +}
-> >  #endif
-> >  
-> > +void acpi_throttling_resume(void)
-> > +{
-> > +	msr_reevaluate_fn(NULL);
-> > +}
-> > +
-> > +static struct syscore_ops acpi_throttling_syscore_ops = {
-> > +	.resume		= acpi_throttling_resume,
-> > +};
-> 
-> This should go under the #ifdef too.
-> 
-OK, will change it.
-> > +
-> > +static int acpi_throttling_init_ops(void)
-> > +{
-> > +	/*
-> > +	 * Reevaluate on boot CPU. Since it is not always CPU0,
-> > +	 * we can not invoke throttling_msr_reevaluate(0) directly.
-> > +	 */
-> > +	register_syscore_ops(&acpi_throttling_syscore_ops);
-> > +	return 0;
-> > +}
-> > +device_initcall(acpi_throttling_init_ops);
-> 
-> Isn't there a good place to call register_syscore_ops() for this aleady?
-> 
-> I'd rather not add a new device_initcall() for that.
-> 
-OK, will put it into acpi_processor_throttling_init.
-> > +
-> >  static int acpi_read_throttling_status(struct acpi_processor *pr,
-> >  					u64 *value)
-> >  {
-> > 
-> 
-> Thanks,
-> Rafael
-> 
-Thanks,
-Yu
+Currently, Auto Flow Control is not working correctly on the Atom
+X5-Z8350 "Cherry Trail" SoC, because an "RTS override" feature is
+enabled in a vendor-specific register in the LPSS UART. The symptom
+is that RTS is not de-asserted as it should be when RTS/CTS flow
+control is enabled and the RX FIFO fills up.
+
+This appears to be introduced by commit 1f47a77c4e49 ("ACPI / LPSS:
+not using UART RTS override with Auto Flow Control").
+
+To _disable_ the RTS override, bit 3 needs to be _set_ in the
+"GENERAL" register at offset 808h.  The power-on default is 0. The
+aforementioned commit appears to have assumed the inverse of this.
+
+Signed-off-by: Dan O'Donovan <dan@emutex.com>
+---
+ drivers/acpi/acpi_lpss.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 8ea836c..4b3f2d5 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -45,7 +45,7 @@ ACPI_MODULE_NAME("acpi_lpss");
+ #define LPSS_RESETS_RESET_APB		BIT(1)
+ #define LPSS_GENERAL			0x08
+ #define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
+-#define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
++#define LPSS_GENERAL_UART_RTS_NO_OVRD	BIT(3)
+ #define LPSS_SW_LTR			0x10
+ #define LPSS_AUTO_LTR			0x14
+ #define LPSS_LTR_SNOOP_REQ		BIT(15)
+@@ -123,10 +123,10 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
+ 	writel(val | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
+ 
+ 	val = readl(pdata->mmio_base + LPSS_UART_CPR);
+-	if (!(val & LPSS_UART_CPR_AFCE)) {
++	if (val & LPSS_UART_CPR_AFCE) {
+ 		offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
+ 		val = readl(pdata->mmio_base + offset);
+-		val |= LPSS_GENERAL_UART_RTS_OVRD;
++		val |= LPSS_GENERAL_UART_RTS_NO_OVRD;
+ 		writel(val, pdata->mmio_base + offset);
+ 	}
+ }
+-- 
+2.7.4
