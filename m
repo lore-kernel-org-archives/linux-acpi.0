@@ -1,117 +1,178 @@
-From: Stefan Assmann <sassmann@kpanic.de>
-Subject: Re: [PATCH] ACPI: skip boot interrupt rerouting when index is zero
-Date: Wed, 15 Mar 2017 15:42:22 +0100
-Message-ID: <0bb2d86d-ba1c-02b9-f4df-4ae62acbd0c7@kpanic.de>
-References: <20170210114517.14812-1-sassmann@kpanic.de>
- <20170313022040.GB8232@bhelgaas-glaptop.roam.corp.google.com>
- <d62a4124-5ae6-bfa0-2267-bbf667e6a9fd@kpanic.de>
- <20170314212307.GH26264@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0gT=ay2ud45=9pJRpxW_XJZub1XxmpuqoNJfUCDP6S=LA@mail.gmail.com>
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: Re: [PATCH][RFC v4] ACPI throttling: Disable the MSR T-state if
+ enabled after resumed
+Date: Wed, 15 Mar 2017 22:43:13 +0800
+Message-ID: <20170315144313.GA467@yu-desktop-1.sh.intel.com>
+References: <1487320050-22894-1-git-send-email-yu.c.chen@intel.com>
+ <2529341.3B7i2Zl8C6@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:55416 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753225AbdCOOma (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Mar 2017 10:42:30 -0400
-In-Reply-To: <CAJZ5v0gT=ay2ud45=9pJRpxW_XJZub1XxmpuqoNJfUCDP6S=LA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2529341.3B7i2Zl8C6@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 14.03.2017 23:15, Rafael J. Wysocki wrote:
-> On Tue, Mar 14, 2017 at 10:23 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> On Mon, Mar 13, 2017 at 09:19:02AM +0100, Stefan Assmann wrote:
->>> On 13.03.2017 03:20, Bjorn Helgaas wrote:
->>>> On Fri, Feb 10, 2017 at 12:45:17PM +0100, Stefan Assmann wrote:
->>>>> When checking for boot interrupts and PRT index is zero avoid doing
->>>>> any interrupt rerouting since the code currently does not handle
->>>>> determining the IRQ via _CRS method.
->>>>>
->>>>> Fixes:
->>>>> https://bugzilla.kernel.org/show_bug.cgi?id=43074
->>>>>
->>>>> Signed-off-by: Stefan Assmann <sassmann@kpanic.de>
->>>>> ---
->>>>>  drivers/acpi/pci_irq.c | 2 +-
->>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
->>>>> index c576a6f..6ecbde0 100644
->>>>> --- a/drivers/acpi/pci_irq.c
->>>>> +++ b/drivers/acpi/pci_irq.c
->>>>> @@ -280,7 +280,7 @@ static int bridge_has_boot_interrupt_variant(struct pci_bus *bus)
->>>>>  static int acpi_reroute_boot_interrupt(struct pci_dev *dev,
->>>>>                                   struct acpi_prt_entry *entry)
->>>>>  {
->>>>> -  if (noioapicquirk || noioapicreroute) {
->>>>> +  if (noioapicquirk || noioapicreroute || entry->index == 0) {
->>>>>            return 0;
->>>>>    } else {
->>>>>            switch (bridge_has_boot_interrupt_variant(dev->bus)) {
->>>>
->>>> I don't understand acpi_reroute_boot_interrupt() in general.
->>>>
->>>> I think I understand the chipset functionality, i.e., the Intel
->>>> 6700PXH contains two IOAPICs, each with 16 interrupt inputs, and if an
->>>> interrupt is asserted while that input is masked in the IOAPIC, the
->>>> 6700PXH generates an INTx ASSERT message on the PCIe bus.
->>>>
->>>> What I don't understand is what the "correct" way of handling this is.
->>>> I assume the intent was *not* that the OS should have device-specific
->>>> code to deal with this.
->>>
->>> Boot interrupts are a mechanism to forward IRQs to the primary PIC/APIC,
->>> this is done via the INTx messages. The idea is to provide support for
->>> legacy OSes that do not support APICs. It probably was meant to be a
->>> firmware only thing, but the problem at hand is this:
->>> The condition for generating boot interrupts is, the input being masked
->>> while an interrupt is asserted (on a non-primary IO-APIC). As you
->>> already stated.
->>> If this happens _and_ the interrupt line, the INTx messages get forwarded
->>> to, already has an IRQ handler registered then there's no handler to
->>> take care of those forwarded IRQs and eventually the kernel may
->>> falsely shutdown that interrupt line. Because of too many lost
->>> interrupts.
->>> Sidenote, if there's no IRQ handler registered on that interrupt line,
->>> the input is already masked and the boot interrupt silently disappears.
->>>
->>>> Is it a case of the BIOS doing something wrong?  Is ACPI just not
->>>> expressive enough to describe this hardware behavior?
->>>
->>> To be honest I'm not sure. The simplest of solutions would have been to
->>> implement an on/off switch for boot interrupts in the chipset, but
->>> unfortunately we did not find such a thing. So the solution we worked
->>> out was to move the interrupt handler to the legacy interrupt line.
->>
->> Rafael, do you have any hints about ways to disable this boot
->> interrupt thing?  All the devices that use this irq->reroute_variant
->> seem to be Intel devices.
+Hi,
+On Mon, Mar 13, 2017 at 11:41:03PM +0100, Rafael J. Wysocki wrote:
+> On Friday, February 17, 2017 04:27:30 PM Chen Yu wrote:
+> > Previously a bug was reported that on certain Broadwell
+> > platform, after resumed from S3, the CPU is running at
+> > an anomalously low speed, due to the BIOS has enabled the
+> > MSR throttling across S3. The solution to this was to introduce
+> > a quirk framework to save/restore tstate MSR register around
+> > suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
+> > Introduce quirk framework to save/restore extra MSR
+> > registers around suspend/resume").
+> > 
+> > However there are still three problems left:
+> > 1. More and more reports show that other platforms also
+> >    encountered the same issue, so the quirk list might
+> >    be endless.
+> > 2. Each CPUs should take the save/restore operation into
+> >    consideration, rather than the boot CPU alone.
+> > 3. Normally ACPI T-state re-evaluation is done on resume,
+> >    however there is no _TSS on the bogus platform, thus
+> >    above re-evaluation code does not run on that machine.
+> > 
+> > Solution:
+> > This patch is based on the fact that, we generally should not
+> > expect the system to come back from resume with throttling
+> > enabled, but leverage the OS components to deal with it,
+> > such as thermal event. So we simply clear the MSR T-state
+> > and print the warning if it is found to be enabled after
+> > resumed back. Besides, we can remove the quirk in previous patch
+> > later.
+> > 
+> > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=90041
+> > Reported-and-tested-by: Kadir <kadir@colakoglu.nl>
+> > Suggested-by: Len Brown <lenb@kernel.org>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > Cc: Pavel Machek <pavel@ucw.cz>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > Cc: Ingo Molnar <mingo@kernel.org>
+> > Cc: linux-pm@vger.kernel.org
+> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> > ---
+> >  drivers/acpi/processor_throttling.c | 58 +++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 58 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+> > index a12f96c..e121449 100644
+> > --- a/drivers/acpi/processor_throttling.c
+> > +++ b/drivers/acpi/processor_throttling.c
+> > @@ -29,6 +29,7 @@
+> >  #include <linux/sched.h>
+> >  #include <linux/cpufreq.h>
+> >  #include <linux/acpi.h>
+> > +#include <linux/syscore_ops.h>
+> >  #include <acpi/processor.h>
+> >  #include <asm/io.h>
+> >  #include <linux/uaccess.h>
+> > @@ -64,6 +65,7 @@ struct acpi_processor_throttling_arg {
+> >  static int acpi_processor_get_throttling(struct acpi_processor *pr);
+> >  int acpi_processor_set_throttling(struct acpi_processor *pr,
+> >  						int state, bool force);
+> > +static void throttling_msr_reevaluate(int cpu);
+> >  
+> >  static int acpi_processor_update_tsd_coord(void)
+> >  {
+> > @@ -386,6 +388,15 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
+> >  		pr->flags.throttling = 0;
+> >  		return;
+> >  	}
+> > +	/*
+> > +	 * It was found after resumed from suspend to ram, some BIOSes would
+> > +	 * adjust the MSR tstate, however on these platforms no _PSS is provided
+> > +	 * thus we never have a chance to adjust the MSR T-state anymore.
+> > +	 * Thus force clearing it if MSR T-state is enabled, because generally
+> > +	 * we never expect to come back from resume with throttling enabled.
+> > +	 * Later let other components to adjust T-state if necessary.
+> > +	 */
+> > +	throttling_msr_reevaluate(pr->id);
+> >  	/* the following is to recheck whether the T-state is valid for
+> >  	 * the online CPU
+> >  	 */
+> > @@ -758,6 +769,24 @@ static int acpi_throttling_wrmsr(u64 value)
+> >  	}
+> >  	return ret;
+> >  }
+> > +
+> > +static long msr_reevaluate_fn(void *data)
+> > +{
+> > +	u64 msr = 0;
+> > +
+> > +	acpi_throttling_rdmsr(&msr);
+> > +	if (msr) {
+> > +		printk_once(KERN_ERR "PM: The BIOS might have modified the MSR T-state, clear it for now.\n");
+> > +		acpi_throttling_wrmsr(0);
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+> > +static void throttling_msr_reevaluate(int cpu)
+> > +{
+> > +	work_on_cpu(cpu, msr_reevaluate_fn, NULL);
+> > +}
+> > +
+> >  #else
+> >  static int acpi_throttling_rdmsr(u64 *value)
+> >  {
+> > @@ -772,8 +801,37 @@ static int acpi_throttling_wrmsr(u64 value)
+> >  		"HARDWARE addr space,NOT supported yet\n");
+> >  	return -1;
+> >  }
+> > +
+> > +static long msr_reevaluate_fn(void *data)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static void throttling_msr_reevaluate(int cpu)
+> > +{
+> > +}
+> >  #endif
+> >  
+> > +void acpi_throttling_resume(void)
+> > +{
+> > +	msr_reevaluate_fn(NULL);
+> > +}
+> > +
+> > +static struct syscore_ops acpi_throttling_syscore_ops = {
+> > +	.resume		= acpi_throttling_resume,
+> > +};
 > 
-> No, I don't.
+> This should go under the #ifdef too.
 > 
->> It just seems wrong to me to unconditionally override the _PRT entry
->> when the hardware behavior is conditional on the APIC input being
->> masked.
->>
->> If we can't disable the boot interrupt thing, could we use a DMI
->> switch to special-case this M2N-LR system?  The fact that entry->index
->> is zero in this case seems like a coincidence that we shouldn't rely
->> on.  But I don't feel like I fully understand _PRT entries, so maybe
->> it's not.
+OK, will change it.
+> > +
+> > +static int acpi_throttling_init_ops(void)
+> > +{
+> > +	/*
+> > +	 * Reevaluate on boot CPU. Since it is not always CPU0,
+> > +	 * we can not invoke throttling_msr_reevaluate(0) directly.
+> > +	 */
+> > +	register_syscore_ops(&acpi_throttling_syscore_ops);
+> > +	return 0;
+> > +}
+> > +device_initcall(acpi_throttling_init_ops);
 > 
-> I'm not intimately familiar with those things either and I was not
-> involved in the development of the code in question.
+> Isn't there a good place to call register_syscore_ops() for this aleady?
 > 
-> If this is a one-off thing, a DMI-based quirk sounds reasonable at
-> least until we have more information.
-
-It's the first system I've heard of with such an issue, since those
-quirks were introduced. I'm fine with the approach to exclude this board
-via a DMI quirk. I'll have the reporter test the patch before
-submitting.
-Thanks for the feedback!
-
-  Stefan
+> I'd rather not add a new device_initcall() for that.
+> 
+OK, will put it into acpi_processor_throttling_init.
+> > +
+> >  static int acpi_read_throttling_status(struct acpi_processor *pr,
+> >  					u64 *value)
+> >  {
+> > 
+> 
+> Thanks,
+> Rafael
+> 
+Thanks,
+Yu
