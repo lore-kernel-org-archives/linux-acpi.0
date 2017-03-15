@@ -1,126 +1,172 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: WTH is going on with memory hotplug sysf interface (was: Re:
- [RFC PATCH] mm, hotplug: get rid of auto_online_blocks)
-Date: Wed, 15 Mar 2017 08:57:55 +0100
-Message-ID: <20170315075755.GC32620@dhcp22.suse.cz>
-References: <20170303082723.GB31499@dhcp22.suse.cz>
- <20170303183422.6358ee8f@nial.brq.redhat.com>
- <20170306145417.GG27953@dhcp22.suse.cz>
- <20170307134004.58343e14@nial.brq.redhat.com>
- <20170309125400.GI11592@dhcp22.suse.cz>
- <20170310135807.GI3753@dhcp22.suse.cz>
- <20170310155333.GN3753@dhcp22.suse.cz>
- <20170310190037.fifahjd47joim6zy@arbab-laptop>
- <20170313092145.GG31518@dhcp22.suse.cz>
- <20170314193521.GP27056@redhat.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v4 16/16] ACPI / DSD: Document references, ports and
+ endpoints
+Date: Wed, 15 Mar 2017 10:23:51 +0200
+Message-ID: <20170315082351.GA24531@paasikivi.fi.intel.com>
+References: <1629581.fh46rNHz4U@aspire.rjw.lan>
+ <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
+ <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com>
+ <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA@mail.gmail.com>
+ <cf2ab8be-a351-f1ea-28a9-f5cca57061cd@linux.intel.com>
+ <CAJZ5v0i4pEKkz+3Ob42x96YHpPWasH2O8VnDCz8aKw_wxywLyQ@mail.gmail.com>
+ <dba2ce05-fc0c-3994-118c-a7de6a5afc78@linux.intel.com>
+ <CAJZ5v0hCvcPgYYV0Hysfu0pEYCzzHp7KKdW3nYyjm7RGS3bHoQ@mail.gmail.com>
+ <572ba62c-3168-adcf-f9de-4826b1804f38@linux.intel.com>
+ <CAJZ5v0h+kzycm7y08300DFHUcL23k672-0BdWLwT0AbqgAY6JQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:6834 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751100AbdCOIY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Mar 2017 04:24:27 -0400
 Content-Disposition: inline
-In-Reply-To: <20170314193521.GP27056@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>, Igor Mammedov <imammedo@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, David Rientjes <rientjes@google.com>, Daniel Kiper <daniel.kiper@oracle.com>, linux-api@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, qiuxishi@huawei.com, toshi.kani@hpe.com, xieyisheng1@huawei.com, slaoub@gmail.com, iamjoonsoo.kim@lge.com, vbabka@suse.cz, Zhang Zhen <zhenzhang.zhang@huawei.com>, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>
+In-Reply-To: <CAJZ5v0h+kzycm7y08300DFHUcL23k672-0BdWLwT0AbqgAY6JQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
 
-On Tue 14-03-17 20:35:21, Andrea Arcangeli wrote:
-> Hello,
+On Wed, Mar 15, 2017 at 12:13:45AM +0100, Rafael J. Wysocki wrote:
+> On Tue, Mar 14, 2017 at 11:53 PM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > Rafael J. Wysocki wrote:
+> >>
+> >> On Tue, Mar 14, 2017 at 10:16 PM, Sakari Ailus
+> >> <sakari.ailus@linux.intel.com> wrote:
+> >>>
+> >>> Rafael J. Wysocki wrote:
+> >>>>
+> >>>>
+> >>>> On Tue, Mar 14, 2017 at 6:54 PM, Sakari Ailus
+> >>>> <sakari.ailus@linux.intel.com> wrote:
+> >>>>>
+> >>>>>
+> >>>>> Hi Rafael,
+> >>>>>
+> >>>>> Rafael J. Wysocki wrote:
+> >>>>>>
+> >>>>>>
+> >>>>>>
+> >>>>>> On Tue, Mar 14, 2017 at 9:09 AM, Sakari Ailus
+> >>>>>> <sakari.ailus@linux.intel.com> wrote:
+> >>>>>>>
+> >>>>>>>
+> >>>>>>>
+> >>>>>>> On 03/14/17 10:08, Sakari Ailus wrote:
+> >>>>>>>>
+> >>>>>>>>
+> >>>>>>>>
+> >>>>>>>> How about this instead:
+> >>>>>>>>
+> >>>>>>>> All port nodes are located under the device's "_DSD" node in the
+> >>>>>>>> hierarchical data extension tree. The property extension related to
+> >>>>>>>> each port node must contain the key "port" and an integer value
+> >>>>>>>> which
+> >>>>>>>> is the number of the port.
+> >>>>>>>
+> >>>>>>>
+> >>>>>>>
+> >>>>>>>
+> >>>>>>> So with matching strings instead of indices, this will change, too...
+> >>>>>>
+> >>>>>>
+> >>>>>>
+> >>>>>>
+> >>>>>> It doesn't have to AFAICS, but the number is just redundant IMO.  You
+> >>>>>> only need a boolean property saying "this is a port", so you know that
+> >>>>>> you should expect a list of endpoints in that object.
+> >>>>>
+> >>>>>
+> >>>>>
+> >>>>>
+> >>>>> No, it's not redundant. It's the number of the physical port in the
+> >>>>> device
+> >>>>> --- this is how the driver gets to know where the connection has been
+> >>>>> made.
+> >>>>
+> >>>>
+> >>>>
+> >>>> OK, but what exactly do you mean by "physical port"?
+> >>>
+> >>>
+> >>>
+> >>> The device (or an IP block) has physical interfaces to the world outside.
+> >>> There could be just one, but there may be more. For an ISP, there could
+> >>> be
+> >>> e.g. four CSI-2 receivers to each of which you could connect a camera
+> >>> sensor. So for an ISP device, that number tells which of the receivers a
+> >>> given sensor is connected to.
+> >>>
+> >>> The mapping between this number and what the hardware datasheet refers to
+> >>> needs to be documented per device.
+> >>
+> >>
+> >> OK, so the number actually is an arbitrary piece of data associated
+> >> with the key "port" and the interpretation of that piece of data
+> >> depends on whoever asks for that value.
+> >>
+> >> IOW, the core doesn't care.
+> >>
+> >> With all due respect to whoever invented this on the DT side, this is
+> >> just bad design to me, because it causes the "port" property to serve
+> >> two different purposes at the same time.  First, it tells the core
+> >> that this object is a port.  Second, it is expected to provide a piece
+> >> of data of unspecified interpretation to somebody.  Which means that
+> >> the "port" property is both general and device-specific at the same
+> >> time and the sanity of that is quite questionable IMO.
+> >
+> >
+> > DT uses a node called either "port" or "ports" to store the port nodes. The
+> > reg property tells the number of the port (see
+> > Documentation/devicetree/bindings/graph.txt). I'm no DT expert, but my
+> > understanding is that the node namespace is different from the property
+> > namespace.
 > 
-> On Mon, Mar 13, 2017 at 10:21:45AM +0100, Michal Hocko wrote:
-> > On Fri 10-03-17 13:00:37, Reza Arbab wrote:
-> > > On Fri, Mar 10, 2017 at 04:53:33PM +0100, Michal Hocko wrote:
-> > > >OK, so while I was playing with this setup some more I probably got why
-> > > >this is done this way. All new memblocks are added to the zone Normal
-> > > >where they are accounted as spanned but not present.
-> > > 
-> > > It's not always zone Normal. See zone_for_memory(). This leads to a
-> > > workaround for having to do online_movable in descending block order.
-> > > Instead of this:
-> > > 
-> > > 1. probe block 34, probe block 33, probe block 32, ...
-> > > 2. online_movable 34, online_movable 33, online_movable 32, ...
-> > > 
-> > > you can online_movable the first block before adding the rest:
-> > 
-> > I do I enforce that behavior when the probe happens automagically?
+> So on the DT side it actually looks OK to me.
 > 
-> What I provided as guide to online as movable in current and older
-> kernels is:
-> 
-> 1) Remove udev rule
-> 2) After adding memory with qemu/libvirt API run in the guest
-> 
-> ------- workaround start ----
-> #!/bin/bash
-> for i in `ls -d1 /sys/devices/system/memory/memory* | sort -nr -t y -k 5`; do if [ "`cat $i/state`" == "offline" ]; then echo online_movable > $i/state ; fi; done
-> ------- workaround end ----
-> 
-> That's how bad is onlining as movable for memory hotunplug.
+> And the <reg> value is referred to as the port-endpoint identifier, so
+> I guess this is used for referring to the port/endpoint instead of an
+> index or the key value somewhere?
 
-Yeah, this is really yucky. Fortunately, I already have a working prototype
-which removes this restriction altogether.
+The remote-endpoint uses phandles; they're a mechanism in DT to refer to
+different nodes in the tree (DT does not differentiate between devices and
+non-device nodes). There's a relatively good example here:
 
-> > > 1. probe block 32, online_movable 32
-> > > 2. probe block 33, probe block 34, ...
-> > > 	- zone_for_memory() will cause these to start Movable
-> > > 3. online 33, online 34, ...
-> > > 	- they're already in Movable, so online_movable is equivalentr
-> > > 
-> > > I agree with your general sentiment that this stuff is very nonintuitive.
-> > 
-> > My criterion for nonintuitive is probably different because I would call
-> > this _completely_unusable_. Sorry for being so loud about this but the
-> > more I look into this area the more WTF code I see. This has seen close
-> > to zero review and seems to be building up more single usecase code on
-> > top of previous. We need to change this, seriously!
+	arch/arm/boot/dts/omap3-n9.dts
+
 > 
-> It's not a bug, but when I found it I called it a "constraint" and
-> when I debugged it (IIRC) it originated here:
+> > If you're concerned of possible double meanings, it's entirely possible to
+> > put the port nodes under hierarchical data extension named e.g. "ports", and
+> > document that this is what the node must be called (single port node could
+> > be just called "port"). This way, it should be much more difficult to
+> > interpret a non-port node as a port node --- roughly equivalent of the DT
+> > ports node.
+> >
+> > The drawback with this change is that the size of the data structure in ASL
+> > (and AML) will grow.
 > 
-> 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
-> 		if (!zone_can_shift(pfn, nr_pages, ZONE_MOVABLE, &zone_shift))
-> 			return -EINVAL;
-> 	}
+> The "ports" thing would only be useful if we had the other properties
+> to put in there.
 > 
-> Fixing it so you could online as movable even if it wasn't the last
-> block was in my todo list but then we had other plans.
+> So I guess we can specify that the "port" property value is the
+> identifier of the port and then we will use this in the
+> "remote-endpoint" property on the other end instead of an index.
+
+Makes sense.
+
 > 
-> Unfortunately unless pfn+nr_pages of the newly created Movable zone
-> matches the end of the normal zone (or whatever was there that has to
-> be converted to Movable), it will fail onlining as movable.
+> And analogously for the "enpoint" property value.
 
-Well, I think the main problem is that we associate pages added in the
-first phase (probe) to the Normal zone. The everything else is just a
-fallout and fiddling to make it work somehow.
- 
-[...]
+The endpoint hierarchical data extension node name? There is no endpoint
+property being used by this version of the set anymore; I removed it as it
+was redundant. However a human readable endpoint node name can be chosen
+which that'd be quite practical to identify the endpoint.
 
-> To be clear, I'm not necessarily against eventually removing
-> _DEFFAULT_ONLINE, but an equally reliable and comparably fast
-> alternative should be provided first and there's no such alternative
-> right now.
+Then the remote-endpoint properties would be:
 
-As pointed in other reply that is not an intention here. I primarily
-wanted to understand the scope of the problem. I believe this config
-option was rushed into the kernel without considering other alternatives
-which would make the hotplug more usable by others as well.
- 
-> If s390 has special issues requiring admin or a software hotplug
-> manager app to enable blocks of memory by hand, the _DEFFAULT_ONLINE
-> could be then an option selected or not selected by
-> arch/*/Kconfig. The udev rule is still an automatic action so it's 1:1
-> with the in-kernel feature. If the in-kernel automatic onlining is not
-> workable on s390 I would assume the udev rule is also not workable.
+	Package () { device, port (integer), endpoint-node-name (string) }
 
-But this is not about s390. It is about different usecases which require
-different onlining policy and that is the main problem of the hardcoded
-one in the kernel. See the other reply.
 -- 
-Michal Hocko
-SUSE Labs
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Sakari Ailus
+sakari.ailus@linux.intel.com
