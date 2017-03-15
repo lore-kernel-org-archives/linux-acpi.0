@@ -1,146 +1,141 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 16/16] ACPI / DSD: Document references, ports and endpoints
-Date: Wed, 15 Mar 2017 00:13:45 +0100
-Message-ID: <CAJZ5v0h+kzycm7y08300DFHUcL23k672-0BdWLwT0AbqgAY6JQ@mail.gmail.com>
-References: <1488809970-25568-1-git-send-email-sakari.ailus@linux.intel.com>
- <1488809970-25568-17-git-send-email-sakari.ailus@linux.intel.com>
- <1629581.fh46rNHz4U@aspire.rjw.lan> <3df6ac2a-29cc-52b1-cc0c-4c1bc4198c83@linux.intel.com>
- <d0ce808b-a000-6038-c347-25fae32535dc@linux.intel.com> <CAJZ5v0j1i-tNOdyhhknYCSPbOg7KAQpYgeReH_KwgebO3AcjRA@mail.gmail.com>
- <cf2ab8be-a351-f1ea-28a9-f5cca57061cd@linux.intel.com> <CAJZ5v0i4pEKkz+3Ob42x96YHpPWasH2O8VnDCz8aKw_wxywLyQ@mail.gmail.com>
- <dba2ce05-fc0c-3994-118c-a7de6a5afc78@linux.intel.com> <CAJZ5v0hCvcPgYYV0Hysfu0pEYCzzHp7KKdW3nYyjm7RGS3bHoQ@mail.gmail.com>
- <572ba62c-3168-adcf-f9de-4826b1804f38@linux.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2] ACPICA: Detect duplicate SSDT tables
+Date: Wed, 15 Mar 2017 01:13:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E886CE4A41C@SHSMSX101.ccr.corp.intel.com>
+References: <20170314204556.16099-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f173.google.com ([74.125.82.173]:33559 "EHLO
-        mail-ot0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751309AbdCNXNr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2017 19:13:47 -0400
-In-Reply-To: <572ba62c-3168-adcf-f9de-4826b1804f38@linux.intel.com>
+Received: from mga06.intel.com ([134.134.136.31]:42445 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750842AbdCOBNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 14 Mar 2017 21:13:06 -0400
+In-Reply-To: <20170314204556.16099-1-hdegoede@redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Al Stone <ahs3@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tue, Mar 14, 2017 at 11:53 PM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> Rafael J. Wysocki wrote:
->>
->> On Tue, Mar 14, 2017 at 10:16 PM, Sakari Ailus
->> <sakari.ailus@linux.intel.com> wrote:
->>>
->>> Rafael J. Wysocki wrote:
->>>>
->>>>
->>>> On Tue, Mar 14, 2017 at 6:54 PM, Sakari Ailus
->>>> <sakari.ailus@linux.intel.com> wrote:
->>>>>
->>>>>
->>>>> Hi Rafael,
->>>>>
->>>>> Rafael J. Wysocki wrote:
->>>>>>
->>>>>>
->>>>>>
->>>>>> On Tue, Mar 14, 2017 at 9:09 AM, Sakari Ailus
->>>>>> <sakari.ailus@linux.intel.com> wrote:
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> On 03/14/17 10:08, Sakari Ailus wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> How about this instead:
->>>>>>>>
->>>>>>>> All port nodes are located under the device's "_DSD" node in the
->>>>>>>> hierarchical data extension tree. The property extension related to
->>>>>>>> each port node must contain the key "port" and an integer value
->>>>>>>> which
->>>>>>>> is the number of the port.
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> So with matching strings instead of indices, this will change, too...
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> It doesn't have to AFAICS, but the number is just redundant IMO.  You
->>>>>> only need a boolean property saying "this is a port", so you know that
->>>>>> you should expect a list of endpoints in that object.
->>>>>
->>>>>
->>>>>
->>>>>
->>>>> No, it's not redundant. It's the number of the physical port in the
->>>>> device
->>>>> --- this is how the driver gets to know where the connection has been
->>>>> made.
->>>>
->>>>
->>>>
->>>> OK, but what exactly do you mean by "physical port"?
->>>
->>>
->>>
->>> The device (or an IP block) has physical interfaces to the world outside.
->>> There could be just one, but there may be more. For an ISP, there could
->>> be
->>> e.g. four CSI-2 receivers to each of which you could connect a camera
->>> sensor. So for an ISP device, that number tells which of the receivers a
->>> given sensor is connected to.
->>>
->>> The mapping between this number and what the hardware datasheet refers to
->>> needs to be documented per device.
->>
->>
->> OK, so the number actually is an arbitrary piece of data associated
->> with the key "port" and the interpretation of that piece of data
->> depends on whoever asks for that value.
->>
->> IOW, the core doesn't care.
->>
->> With all due respect to whoever invented this on the DT side, this is
->> just bad design to me, because it causes the "port" property to serve
->> two different purposes at the same time.  First, it tells the core
->> that this object is a port.  Second, it is expected to provide a piece
->> of data of unspecified interpretation to somebody.  Which means that
->> the "port" property is both general and device-specific at the same
->> time and the sanity of that is quite questionable IMO.
->
->
-> DT uses a node called either "port" or "ports" to store the port nodes. The
-> reg property tells the number of the port (see
-> Documentation/devicetree/bindings/graph.txt). I'm no DT expert, but my
-> understanding is that the node namespace is different from the property
-> namespace.
+Hi, Hans
 
-So on the DT side it actually looks OK to me.
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hans de
+> Goede
+> Subject: [PATCH v2] ACPICA: Detect duplicate SSDT tables
+> 
+> Some machines have the exact (byte for byte) same SSDT tables multiple
+> times in the root_table_list. Detect this and silently skip the duplicates
+> rather then printing a scary looking set of errors.
 
-And the <reg> value is referred to as the port-endpoint identifier, so
-I guess this is used for referring to the port/endpoint instead of an
-index or the key value somewhere?
+The problems are:
+1. ACPICA messes up table install sanity check and table load sanity check.
+   For table install check, we only need to check address and table type (physical address or virtual address).
+   For table load check, we may do byte for byte comparison.
+2. ACPICA only implements table load sanity check for Load opcode, it doesn't cover LoadTable opcode and static loaded tables.
 
-> If you're concerned of possible double meanings, it's entirely possible to
-> put the port nodes under hierarchical data extension named e.g. "ports", and
-> document that this is what the node must be called (single port node could
-> be just called "port"). This way, it should be much more difficult to
-> interpret a non-port node as a port node --- roughly equivalent of the DT
-> ports node.
->
-> The drawback with this change is that the size of the data structure in ASL
-> (and AML) will grow.
+So this really needs not only the following change, but a slight bigger one.
 
-The "ports" thing would only be useful if we had the other properties
-to put in there.
+Thanks and best regards
+Lv
 
-So I guess we can specify that the "port" property value is the
-identifier of the port and then we will use this in the
-"remote-endpoint" property on the other end instead of an index.
-
-And analogously for the "enpoint" property value.
-
-Thanks,
-Rafael
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Changes in v2:
+> -Use existing acpi_tb_compare_tables helper
+> ---
+>  drivers/acpi/acpica/actables.h |  2 ++
+>  drivers/acpi/acpica/tbinstal.c |  6 +-----
+>  drivers/acpi/acpica/tbxfload.c | 27 ++++++++++++++++++++++++++-
+>  3 files changed, 29 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+> index c8da453..d50437c 100644
+> --- a/drivers/acpi/acpica/actables.h
+> +++ b/drivers/acpi/acpica/actables.h
+> @@ -99,6 +99,8 @@ acpi_tb_find_table(char *signature,
+>  /*
+>   * tbinstal - Table removal and deletion
+>   */
+> +u8 acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index);
+> +
+>  acpi_status acpi_tb_resize_root_table_list(void);
+> 
+>  acpi_status acpi_tb_validate_table(struct acpi_table_desc *table_desc);
+> diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
+> index 4620f3c..1431bfa 100644
+> --- a/drivers/acpi/acpica/tbinstal.c
+> +++ b/drivers/acpi/acpica/tbinstal.c
+> @@ -48,10 +48,6 @@
+>  #define _COMPONENT          ACPI_TABLES
+>  ACPI_MODULE_NAME("tbinstal")
+> 
+> -/* Local prototypes */
+> -static u8
+> -acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index);
+> -
+>  /*******************************************************************************
+>   *
+>   * FUNCTION:    acpi_tb_compare_tables
+> @@ -66,7 +62,7 @@ acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index);
+>   *
+>   ******************************************************************************/
+> 
+> -static u8
+> +u8
+>  acpi_tb_compare_tables(struct acpi_table_desc *table_desc, u32 table_index)
+>  {
+>  	acpi_status status = AE_OK;
+> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> index b71ce3b..2f718b0 100644
+> --- a/drivers/acpi/acpica/tbxfload.c
+> +++ b/drivers/acpi/acpica/tbxfload.c
+> @@ -125,6 +125,30 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+> 
+>  /*******************************************************************************
+>   *
+> + * FUNCTION:    acpi_tb_find_duplicate_ssdt
+> + *
+> + * PARAMETERS:  table         - validated acpi_table_desc of table to check
+> + *              index         - index of table to find a duplicate of
+> + *
+> + * RETURN:      TRUE if a duplicate is found, FALSE if not
+> + *
+> + * DESCRIPTION: Private helper function for acpi_tb_load_namespace to
+> + *              avoid trying to load duplicate ssdt tables
+> + *
+> + ******************************************************************************/
+> +static u8 acpi_tb_find_duplicate_ssdt(struct acpi_table_desc *table, u32 index)
+> +{
+> +	u32 i;
+> +
+> +	for (i = 0; i < index; ++i)
+> +		if (acpi_tb_compare_tables(table, i))
+> +			return TRUE;
+> +
+> +	return FALSE;
+> +}
+> +
+> +/*******************************************************************************
+> + *
+>   * FUNCTION:    acpi_tb_load_namespace
+>   *
+>   * PARAMETERS:  None
+> @@ -212,7 +236,8 @@ acpi_status acpi_tb_load_namespace(void)
+>  					   ACPI_SIG_PSDT)
+>  		     && !ACPI_COMPARE_NAME(table->signature.ascii,
+>  					   ACPI_SIG_OSDT))
+> -		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
+> +		    || ACPI_FAILURE(acpi_tb_validate_table(table))
+> +		    || acpi_tb_find_duplicate_ssdt(table, i)) {
+>  			continue;
+>  		}
+> 
+> --
+> 2.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
