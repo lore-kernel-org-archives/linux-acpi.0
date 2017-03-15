@@ -1,88 +1,142 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V7 0/7] LPC: legacy ISA I/O support
-Date: Wed, 15 Mar 2017 14:23:12 +0100
-Message-ID: <CAK8P3a3NJCndFJED4wDcvYndiJHbfTEHjTnPjBUQK6UguOswmg@mail.gmail.com>
-References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
- <CAK8P3a1f33ipk3Q8+wj9L6zP=ccn_AuhTfV0CC0+wAqrO-2beg@mail.gmail.com> <58C8BD7D.7040207@hisilicon.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <58C8BD7D.7040207@hisilicon.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rafael Wysocki <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, rjw@rjwysocki.net, Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, devicetree@vger.kernel.org, linux-pci <linux-pci@vger.kernel.org>, linux-serial@vger.kernel.org, Corey Minyard <minyard@acm.org>, liviu.dudau@arm.com, Zou Rongrong <zourongrong@gmail.com>, John Garry <john.ga>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v1.1 3/3] device property: fwnode_property_read_string_array() returns nr of strings
+Date: Wed, 15 Mar 2017 15:31:28 +0200
+Message-ID: <1489584688-15624-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1488806791-25488-4-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:43548 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751458AbdCONbv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Mar 2017 09:31:51 -0400
+In-Reply-To: <1488806791-25488-4-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Wed, Mar 15, 2017 at 5:05 AM, zhichang.yuan
-<yuanzhichang@hisilicon.com> wrote:
->> - I think the libio framework is more generic than it needs to be, but as
->>   Alex really liked it this way and it was done like this based on his earlier
->>   comments, I think that's ok.
->>
->> - after we went back and forth on the ACPI implementation, we concluded
->>   that it is correct to do the same as on DT and completely abstract the
->>   number space for I/O ports. No code should rely on a Linux port number
->>   to have any particular relation to the physical address or the the address
->>   on a PCI or LPC bus.
-> Thanks again for your helps in Linaro Connect!
-> I think we are heading for this direction, is it?
+Functionally fwnode_property_read_string_array() should match
+of_property_read_string_array() and work as a drop-in substitute for the
+latter. of_property_read_string_array() returns the number of strings read
+if the target string pointer array is non-NULL. Make
+fwnode_property_read_string_array() do the same.
 
-Yes, I think so.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+This patch replaces v1 3/3 patch in this set.
 
->> - I'm pretty sure the current implementation is broken for the ioport_map
->>   function that tries to turn an IORESOURCE_IO number into a pointer.
->>   Forcing CONFIG_GENERIC_IOMAP on would solve this, but also
->>   make all MMIO operations slower, which we probably don't want.
->>   It's probably enough to add a check in ioport_map() to see if the range
->>   is mapped into a virtual address or not.
->
->
-> Yes, I think our LIBIO will break the ioport_map() at this moment.
-> I try to solve this issue. Could you help to check the following ideas?
-> I am not deeper understanding the whole I/O framework, the following maybe not correct:(
->
-> ioport_map seems architecture-dependent. For our LIBIO, we don't want to replace the existing I/O
-> frameworks which support MMIO at this moment. Can we add these two revise to solve this issue?
-> 1) Make LIBIO only target for non GENERIC_IOMAP platforms
->
-> config LIBIO
->         bool "Generic logical IO management"
->         depends on !GENERIC_IOMAP
+Instead of changing the return value of fwnode / device property API
+string array access on OF, change the behaviour on pset and ACPI instead.
+This makes them to return the number of strings read on success.
 
-I don't think there is even a problem with GENERIC_IOMAP: If both are
-set, passing a low number as a pointer will turn an ioread32() into an
-inl(), which is implemented by libio.
+I can merge this with patch 2/3 which is changing the same part of the
+file, however I'm sending this separately at least for now as I think it's
+easier to review this way, rather than making a bugfix and a change of the
+behaviour in the same patch.
 
->         def_bool y if PCI && (ARC || MN10300 || UNICORE32 || SPARC || MICROBLAZE || S390 || AVR32 || CRIS || BLACKFIN || XTENSA || ARM64)
+Regards,
+Sakari
 
-I think most of these architectures just use their own inb/outb functions,
-and should not use libio at all.
+ drivers/base/property.c | 64 +++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 46 insertions(+), 18 deletions(-)
 
-It's also possible that they use an older way of mapping I/O ports by calling
-ioremap() on the physical address and treating the pointer as a 32-bit
-I/O port number (relying on the PCI_IOBASE=0 default). Architectures doing
-that might have other issues with libio, and I wouldn't try converting those.
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 8c98390..82187ac 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -340,8 +340,8 @@ EXPORT_SYMBOL_GPL(device_property_read_u64_array);
+  * Function reads an array of string properties with @propname from the device
+  * firmware description and stores them to @val if found.
+  *
+- * Return: number of values if @val was %NULL,
+- *         %0 if the property was found (success),
++ * Return: number of values read on success if @val is non-NULL,
++ *	   number of values available on success if @val is NULL,
+  *	   %-EINVAL if given arguments are not valid,
+  *	   %-ENODATA if the property does not have a value,
+  *	   %-EPROTO or %-EILSEQ if the property is not an array of strings,
+@@ -549,29 +549,57 @@ static int __fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+ 			of_property_read_string_array(to_of_node(fwnode),
+ 						      propname, val, nval) :
+ 			of_property_count_strings(to_of_node(fwnode), propname);
+-	else if (is_acpi_node(fwnode))
+-		return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
+-					   val, nval);
+-	else if (is_pset_node(fwnode)) {
++	else if (is_acpi_node(fwnode)) {
++		int array_len =
++			acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
++					    NULL, nval);
++		int read_len;
++		int ret;
++
++		/* Return if val is NULL or if there was an error */
++		if (!val || array_len < 0)
++			return array_len;
++
++		read_len = min_t(int, nval, array_len);
++
++		ret = acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
++					  val, read_len);
++		if (ret < 0)
++			return ret;
++
++		return read_len;
++	} else if (is_pset_node(fwnode)) {
+ 		struct property_set *node = to_pset_node(fwnode);
+ 		const struct property_entry *prop;
+-
+-		/* Read properties if val is non-NULL */
+-		if (val)
+-			return pset_prop_read_string_array(node, propname,
+-							   val, nval);
++		/* The array length for a non-array string property is 1. */
++		int array_len = 1;
++		int read_len;
++		int ret;
+ 
+ 		prop = pset_prop_get(node, propname);
+ 		if (!prop)
+ 			return -EINVAL;
+ 
+-		/* The array length for a non-array string property is 1. */
+-		if (!prop->is_array)
+-			return 1;
++		/* Read the length of an array property. */
++		if (prop->is_array)
++			array_len = pset_prop_count_elems_of_size(
++				node, propname, sizeof(const char *));
++
++
++		/* Return if val is NULL or if there was an error */
++		if (!val || array_len < 0)
++			return array_len;
++
++		read_len = min_t(int, nval, array_len);
++
++		ret = pset_prop_read_string_array(node, propname, val,
++						  read_len);
++
++		if (ret < 0)
++			return ret;
+ 
+ 		/* Return the length of an array. */
+-		return pset_prop_count_elems_of_size(node, propname,
+-						     sizeof(const char *));
++		return read_len;
+ 	}
+ 	return -ENXIO;
+ }
+@@ -599,8 +627,8 @@ static int __fwnode_property_read_string(struct fwnode_handle *fwnode,
+  * Read an string list property @propname from the given firmware node and store
+  * them to @val if found.
+  *
+- * Return: number of values if @val was %NULL,
+- *         %0 if the property was found (success),
++ * Return: number of values read on success if @val is non-NULL,
++ *	   number of values available on success if @val is NULL,
+  *	   %-EINVAL if given arguments are not valid,
+  *	   %-ENODATA if the property does not have a value,
+  *	   %-EPROTO or %-EILSEQ if the property is not an array of strings,
+-- 
+2.7.4
 
-> 2) Modify the ioport_map() defined in asm-generic/io.h
-> Add the checks to identify the input 'port' is MMIO, otherwise, return NULL;
-
-This seems fine.
-
->> - We could simplify the lookup a bit by using the trick from arch/ia64
->>   of using an array instead of linked list for walking the port numbers.
->>   There, the upper bits of the port number refer to an address space
->>   number while the lower bits refer to the bus address within that
->>   address space. This should work just as well as the current
->>   implementation but would be a little easier to understand. Maybe
->>   Bjorn can comment on this too, as I think he was involved with the
->>   ia64 implementation.
->>
-> Yes, It will be more efficient.
->
-> But the issue remained here is still how to coexist with the existing I/O frameworks.
-> I will continue to look into.
-
-Ok. Let's wait for Bjorn to reply on this idea before you spend too much time
-on this though.
-
-      Arnd
