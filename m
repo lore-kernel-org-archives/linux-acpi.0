@@ -1,188 +1,60 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v5 06/13] device property: Add support for remote endpoints
-Date: Thu, 16 Mar 2017 14:31:14 +0200
-Message-ID: <1489667481-28521-7-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v5 09/13] device property: Make dev_fwnode() public
+Date: Thu, 16 Mar 2017 14:31:17 +0200
+Message-ID: <1489667481-28521-10-git-send-email-sakari.ailus@linux.intel.com>
 References: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:55925 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752193AbdCPMb7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Mar 2017 08:31:59 -0400
-In-Reply-To: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489667481-28521-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+The function to obtain a fwnode related to a struct device is useful for
+drivers that use the fwnode property API: it allows not being aware of the
+underlying firmware implementation.
 
-This follows DT implementation of of_graph_* APIs but we call them
-fwnode_graph_* instead. For DT nodes the existing of_graph_* implementation
-will be used. For ACPI we use the new ACPI graph implementation instead.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/base/property.c  | 123 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/property.h |   9 ++++
- 2 files changed, 132 insertions(+)
+ drivers/base/property.c  | 3 ++-
+ include/linux/property.h | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index c8f3ae8..851b33f 100644
+index 6a8d8ae..4c7956e 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -15,6 +15,7 @@
- #include <linux/kernel.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/of_graph.h>
- #include <linux/property.h>
- #include <linux/etherdevice.h>
- #include <linux/phy.h>
-@@ -1218,3 +1219,125 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen)
- 	return device_get_mac_addr(dev, "address", addr, alen);
+@@ -183,11 +183,12 @@ static int pset_prop_read_string(struct property_set *pset,
+ 	return 0;
  }
- EXPORT_SYMBOL(device_get_mac_address);
-+
-+/**
-+ * device_graph_get_next_endpoint - Get next endpoint firmware node
-+ * @fwnode: Pointer to the parent firmware node
-+ * @prev: Previous endpoint node or %NULL to get the first
-+ *
-+ * Returns an endpoint firmware node pointer or %NULL if no more endpoints
-+ * are available.
-+ */
-+struct fwnode_handle *
-+fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
-+			       struct fwnode_handle *prev)
-+{
-+	struct fwnode_handle *endpoint = NULL;
-+
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node;
-+
-+		node = of_graph_get_next_endpoint(to_of_node(fwnode),
-+						  to_of_node(prev));
-+
-+		if (node)
-+			endpoint = &node->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		endpoint = acpi_graph_get_next_endpoint(fwnode, prev);
-+		if (IS_ERR(endpoint))
-+			endpoint = NULL;
-+	}
-+
-+	return endpoint;
-+
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
-+
-+/**
-+ * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
-+ * @fwnode: Endpoint firmware node pointing to the remote endpoint
-+ *
-+ * Extracts firmware node of a remote device the @fwnode points to.
-+ */
-+struct fwnode_handle *
-+fwnode_graph_get_remote_port_parent(struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *parent = NULL;
-+
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node;
-+
-+		node = of_graph_get_remote_port_parent(to_of_node(fwnode));
-+		if (node)
-+			parent = &node->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		int ret;
-+
-+		ret = acpi_graph_get_remote_endpoint(fwnode, &parent, NULL,
-+						     NULL);
-+		if (ret)
-+			return NULL;
-+	}
-+
-+	return parent;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port_parent);
-+
-+/**
-+ * fwnode_graph_get_remote_port - Return fwnode of a remote port
-+ * @fwnode: Endpoint firmware node pointing to the remote endpoint
-+ *
-+ * Extracts firmware node of a remote port the @fwnode points to.
-+ */
-+struct fwnode_handle *fwnode_graph_get_remote_port(struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *port = NULL;
-+
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node;
-+
-+		node = of_graph_get_remote_port(to_of_node(fwnode));
-+		if (node)
-+			port = &node->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		int ret;
-+
-+		ret = acpi_graph_get_remote_endpoint(fwnode, NULL, &port, NULL);
-+		if (ret)
-+			return NULL;
-+	}
-+
-+	return port;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port);
-+
-+/**
-+ * fwnode_graph_get_remote_endpoint - Return fwnode of a remote endpoint
-+ * @fwnode: Endpoint firmware node pointing to the remote endpoint
-+ *
-+ * Extracts firmware node of a remote endpoint the @fwnode points to.
-+ */
-+struct fwnode_handle *
-+fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *endpoint = NULL;
-+
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node;
-+
-+		node = of_parse_phandle(to_of_node(fwnode), "remote-endpoint",
-+					0);
-+		if (node)
-+			endpoint = &node->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		int ret;
-+
-+		ret = acpi_graph_get_remote_endpoint(fwnode, NULL, NULL,
-+						     &endpoint);
-+		if (ret)
-+			return NULL;
-+	}
-+
-+	return endpoint;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
+ 
+-static inline struct fwnode_handle *dev_fwnode(struct device *dev)
++struct fwnode_handle *dev_fwnode(struct device *dev)
+ {
+ 	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
+ 		&dev->of_node->fwnode : dev->fwnode;
+ }
++EXPORT_SYMBOL_GPL(dev_fwnode);
+ 
+ /**
+  * device_property_present - check if a property of a device is present
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 514b195..8d7809c 100644
+index 0ae7d20..6e20a12 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -268,4 +268,13 @@ int device_get_phy_mode(struct device *dev);
+@@ -33,6 +33,8 @@ enum dev_dma_attr {
+ 	DEV_DMA_COHERENT,
+ };
  
- void *device_get_mac_address(struct device *dev, char *addr, int alen);
- 
-+struct fwnode_handle *fwnode_graph_get_next_endpoint(
-+	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
-+struct fwnode_handle *fwnode_graph_get_remote_port_parent(
-+	struct fwnode_handle *fwnode);
-+struct fwnode_handle *fwnode_graph_get_remote_port(
-+	struct fwnode_handle *fwnode);
-+struct fwnode_handle *fwnode_graph_get_remote_endpoint(
-+	struct fwnode_handle *fwnode);
++struct fwnode_handle *dev_fwnode(struct device *dev);
 +
- #endif /* _LINUX_PROPERTY_H_ */
+ bool device_property_present(struct device *dev, const char *propname);
+ int device_property_read_u8_array(struct device *dev, const char *propname,
+ 				  u8 *val, size_t nval);
 -- 
 2.7.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
