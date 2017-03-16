@@ -1,60 +1,81 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v5 09/13] device property: Make dev_fwnode() public
-Date: Thu, 16 Mar 2017 14:31:17 +0200
-Message-ID: <1489667481-28521-10-git-send-email-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v5 12/13] device property: Add fwnode_get_next_parent()
+Date: Thu, 16 Mar 2017 14:31:20 +0200
+Message-ID: <1489667481-28521-13-git-send-email-sakari.ailus@linux.intel.com>
 References: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489667481-28521-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:6192 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752265AbdCPMcB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 08:32:01 -0400
+In-Reply-To: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-The function to obtain a fwnode related to a struct device is useful for
-drivers that use the fwnode property API: it allows not being aware of the
-underlying firmware implementation.
+In order to differentiate the functionality between dropping a reference
+to the node (or not) for the benefit of OF, introduce
+fwnode_get_next_parent().
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/base/property.c  | 3 ++-
- include/linux/property.h | 2 ++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/base/property.c  | 29 +++++++++++++++++++++++++++++
+ include/linux/property.h |  1 +
+ 2 files changed, 30 insertions(+)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 6a8d8ae..4c7956e 100644
+index 09f348d..c1fed33 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -183,11 +183,12 @@ static int pset_prop_read_string(struct property_set *pset,
- 	return 0;
- }
- 
--static inline struct fwnode_handle *dev_fwnode(struct device *dev)
-+struct fwnode_handle *dev_fwnode(struct device *dev)
- {
- 	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
- 		&dev->of_node->fwnode : dev->fwnode;
- }
-+EXPORT_SYMBOL_GPL(dev_fwnode);
+@@ -976,6 +976,35 @@ int device_add_properties(struct device *dev,
+ EXPORT_SYMBOL_GPL(device_add_properties);
  
  /**
-  * device_property_present - check if a property of a device is present
++ * fwnode_get_next_parent - Iterate to the node's parent
++ * @fwnode: Firmware whose parent is retrieved
++ *
++ * This is like fwnode_get_parent() except that it drops the refcount
++ * on the passed node, making it suitable for iterating through a
++ * node's parents.
++ *
++ * Returns a node pointer with refcount incremented, use
++ * fwnode_handle_node() on it when done.
++ */
++struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *parent = NULL;
++
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_get_next_parent(to_of_node(fwnode));
++		if (node)
++			parent = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		parent = acpi_node_get_parent(fwnode);
++	}
++
++	return parent;
++}
++EXPORT_SYMBOL_GPL(fwnode_get_next_parent);
++
++/**
+  * fwnode_get_parent - Return parent firwmare node
+  * @fwnode: Firmware whose parent is retrieved
+  *
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 0ae7d20..6e20a12 100644
+index 3a4e435..2f48261 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -33,6 +33,8 @@ enum dev_dma_attr {
- 	DEV_DMA_COHERENT,
- };
+@@ -73,6 +73,7 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
+ 				 const char *propname, const char *string);
  
-+struct fwnode_handle *dev_fwnode(struct device *dev);
-+
- bool device_property_present(struct device *dev, const char *propname);
- int device_property_read_u8_array(struct device *dev, const char *propname,
- 				  u8 *val, size_t nval);
+ struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
+ struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
+ 						 struct fwnode_handle *child);
+ 
 -- 
 2.7.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
