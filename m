@@ -1,14 +1,14 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v5 10/13] device property: Add support for fwnode endpoints
-Date: Thu, 16 Mar 2017 14:31:18 +0200
-Message-ID: <1489667481-28521-11-git-send-email-sakari.ailus@linux.intel.com>
-References: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v5.1 10/13] device property: Add support for fwnode endpoints
+Date: Thu, 16 Mar 2017 15:22:52 +0200
+Message-ID: <1489670572-19984-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1489667481-28521-11-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:42196 "EHLO mga06.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:60140 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751909AbdCPMc4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Mar 2017 08:32:56 -0400
-In-Reply-To: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751185AbdCPNYk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 09:24:40 -0400
+In-Reply-To: <1489667481-28521-11-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
@@ -23,16 +23,20 @@ property.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/base/property.c  | 38 ++++++++++++++++++++++++++++++++++++++
+since v5:
+
+- Read the "endpoint" property on ACPI to read the endpoint number.
+
+ drivers/base/property.c  | 32 ++++++++++++++++++++++++++++++++
  include/linux/fwnode.h   | 12 ++++++++++++
  include/linux/property.h |  3 +++
- 3 files changed, 53 insertions(+)
+ 3 files changed, 47 insertions(+)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 4c7956e..09f348d 100644
+index 4c7956e..a4fe66c 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -1353,3 +1353,41 @@ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
+@@ -1353,3 +1353,35 @@ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
  	return endpoint;
  }
  EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
@@ -56,14 +60,8 @@ index 4c7956e..09f348d 100644
 +	endpoint->local_fwnode = fwnode;
 +
 +	if (is_acpi_node(port_fwnode)) {
-+		struct fwnode_handle *iter;
-+
 +		fwnode_property_read_u32(port_fwnode, "port", &endpoint->port);
-+
-+		for (iter = fwnode_get_next_child_node(port_fwnode, NULL);
-+		     iter != fwnode;
-+		     iter = fwnode_get_next_child_node(port_fwnode, iter))
-+			endpoint->id++;
++		fwnode_property_read_u32(fwnode, "endpoint", &endpoint->id);
 +	} else {
 +		fwnode_property_read_u32(port_fwnode, "reg", &endpoint->port);
 +		fwnode_property_read_u32(fwnode, "reg", &endpoint->id);
