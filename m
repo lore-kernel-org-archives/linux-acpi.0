@@ -1,61 +1,65 @@
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: [PATCH] acpi: fix incompatibility with mcount-based function graph tracing
-Date: Thu, 16 Mar 2017 08:56:28 -0500
-Message-ID: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH 1/1] acpi:apei:handle GSIV and GPIO notification types
+Date: Thu, 16 Mar 2017 14:25:49 +0000
+Message-ID: <58CAA06D.7010900@arm.com>
+References: <86258A5CC0A3704780874CF6004BA8A62DCB6D39@lhreml502-mbx>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55836 "EHLO mx1.redhat.com"
+Received: from foss.arm.com ([217.140.101.70]:34572 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751182AbdCPOUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Mar 2017 10:20:06 -0400
+        id S1751182AbdCPO0H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 10:26:07 -0400
+In-Reply-To: <86258A5CC0A3704780874CF6004BA8A62DCB6D39@lhreml502-mbx>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>, Paul Menzel <pmenzel@molgen.mpg.de>
+To: Shiju Jose <shiju.jose@huawei.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "bp@suse.de" <bp@suse.de>, "mingo@kernel.org" <mingo@kernel.org>, "prarit@redhat.com" <prarit@redhat.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "punit.agrawal@arm.com" <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>
 
-Paul Menzel reported a warning:
+On 13/03/17 13:16, Shiju Jose wrote:
+> System Controller Interrupts are received by ACPI's error device,
+> which in turn notifies the GHES code. The same is true of
+> APEI's GSIV and GPIO notification types.
+> Add support for GSIV and GPIO sharing the SCI
+> register/unregister/notifier code.Rename the list and notifier
+> to show this is no longer just SCI, but anything from the
+> Hardware Error Device.
 
-  WARNING: CPU: 0 PID: 774 at /build/linux-ROBWaj/linux-4.9.13/kernel/trace/trace_functions_graph.c:233 ftrace_return_to_handler+0x1aa/0x1e0
-  Bad frame pointer: expected f6919d98, received f6919db0
-    from func acpi_pm_device_sleep_wake return to c43b6f9d
+Reviewed-by: James Morse <james.morse@arm.com>
 
-The warning means that function graph tracing is broken for the
-acpi_pm_device_sleep_wake() function.  That's because the acpi Makefile
-unconditionally sets the '-Os' gcc flag to optimize for size.  That's an
-issue because mcount-based function graph tracing is incompatible with
-'-Os' on x86, thanks to the following gcc bug:
 
-  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=42109
+... what looks like an existing bug:
 
-I have another patch pending which will ensure that mcount-based
-function graph tracing is never used with CONFIG_CC_OPTIMIZE_FOR_SIZE on
-x86.
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b192b42..fd39929 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>  		free_irq(ghes->irq, ghes);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_SCI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +	case ACPI_HEST_NOTIFY_GPIO:
+>  		mutex_lock(&ghes_list_mutex);
 
-But this patch is needed in addition to that one because the ACPI
-Makefile overrides that config option for no apparent reason.  It has
-had this flag since the beginning of git history, and there's no related
-comment, so I don't know why it's there.  As far as I can tell, there's
-no reason for it to be there.  The appropriate behavior is for it to
-honor CONFIG_CC_OPTIMIZE_FOR_{SIZE,PERFORMANCE} like the rest of the
-kernel.
+>  		list_del_rcu(&ghes->list);
 
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
----
- drivers/acpi/Makefile | 1 -
- 1 file changed, 1 deletion(-)
+Suspiciously, there is no synchronize_rcu() between this list_del_rcu() and the
+kfree(ghes) at the bottom of the function. It looks like 81e88fdc432a lifted it
+into the NOTIFY_NMI path. I will send a separate fix.
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index a391bbc..d94f92f 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -2,7 +2,6 @@
- # Makefile for the Linux ACPI interpreter
- #
- 
--ccflags-y			:= -Os
- ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
- 
- #
--- 
-2.7.4
 
+> -		if (list_empty(&ghes_sci))
+> -			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+> +		if (list_empty(&ghes_hed))
+> +			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+>  		mutex_unlock(&ghes_list_mutex);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+> 
+
+
+Thanks,
+
+James
