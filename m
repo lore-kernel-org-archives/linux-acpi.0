@@ -1,74 +1,67 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V7 5/7] ACPI: Delay the enumeration on the devices whose
- dependency has not met
-Date: Thu, 16 Mar 2017 16:13:41 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E20492A4C@FRAEML521-MBX.china.huawei.com>
-References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
- <1489372963-9000-6-git-send-email-yuanzhichang@hisilicon.com>
- <4600523.rWNiWKrYZC@aspire.rjw.lan> <58C9F6C6.4090700@hisilicon.com>
- <CAK8P3a2QZ_j9RQ0U=4MoAAcRcZyu0L5AiYM22QZkiRxh7Ca-iA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a2QZ_j9RQ0U=4MoAAcRcZyu0L5AiYM22QZkiRxh7Ca-iA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Yuanzhichang <yuanzhichang@hisilicon.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rafael Wysocki <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Corey
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 4/4] power: supply: axp288_charger: Unregister duplicate ACPI ac supply
+Date: Thu, 16 Mar 2017 17:16:01 +0100
+Message-ID: <20170316161601.32267-5-hdegoede@redhat.com>
+References: <20170316161601.32267-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:11776 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752849AbdCPQRK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 12:17:10 -0400
+In-Reply-To: <20170316161601.32267-1-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-SGkgQXJuZA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGFybmRiZXJn
-bWFubkBnbWFpbC5jb20gW21haWx0bzphcm5kYmVyZ21hbm5AZ21haWwuY29tXSBPbiBCZWhhbGYN
-Cj4gT2YgQXJuZCBCZXJnbWFubg0KPiBTZW50OiAxNiBNYXJjaCAyMDE3IDEwOjEzDQo+IFRvOiBZ
-dWFuemhpY2hhbmcNCj4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpOyBDYXRhbGluIE1hcmluYXM7IFdp
-bGwgRGVhY29uOyBSb2IgSGVycmluZzsgRnJhbmsNCj4gUm93YW5kOyBCam9ybiBIZWxnYWFzOyBS
-YWZhZWwgV3lzb2NraTsgTWFyayBSdXRsYW5kOyBMaW51eCBBUk07IEFDUEkNCj4gRGV2ZWwgTWFs
-aW5nIExpc3Q7IExvcmVuem8gUGllcmFsaXNpOyBCZW5qYW1pbiBIZXJyZW5zY2htaWR0OyBMaW51
-eA0KPiBLZXJuZWwgTWFpbGluZyBMaXN0OyBMaW51eGFybTsgZGV2aWNldHJlZUB2Z2VyLmtlcm5l
-bC5vcmc7IGxpbnV4LXBjaTsNCj4gbGludXgtc2VyaWFsQHZnZXIua2VybmVsLm9yZzsgQ29yZXkg
-TWlueWFyZDsgbGl2aXUuZHVkYXVAYXJtLmNvbTsgWm91DQo+IFJvbmdyb25nOyBKb2huIEdhcnJ5
-OyBHYWJyaWVsZSBQYW9sb25pOyB6aGljaGFuZy55dWFuMDJAZ21haWwuY29tOw0KPiBrYW50eXpj
-QDE2My5jb207IHh1d2VpIChPKQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIFY3IDUvN10gQUNQSTog
-RGVsYXkgdGhlIGVudW1lcmF0aW9uIG9uIHRoZSBkZXZpY2VzDQo+IHdob3NlIGRlcGVuZGVuY3kg
-aGFzIG5vdCBtZXQNCj4gDQo+IE9uIFRodSwgTWFyIDE2LCAyMDE3IGF0IDM6MjEgQU0sIHpoaWNo
-YW5nLnl1YW4NCj4gPHl1YW56aGljaGFuZ0BoaXNpbGljb24uY29tPiB3cm90ZToNCj4gPiBIaSwg
-UmFmYWVsLA0KPiA+DQo+ID4gVGhhbmtzIGZvciB5b3VyIHJldmlldyENCj4gPg0KPiA+IE9uIDIw
-MTcvMy8xNCA1OjI0LCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPj4gT24gTW9uZGF5LCBN
-YXJjaCAxMywgMjAxNyAxMDo0Mjo0MSBBTSB6aGljaGFuZy55dWFuIHdyb3RlOg0KPiA+Pj4gSW4g
-Y29tbWl0IDQwZTdmY2IxOTI5KEFDUEk6IEFkZCBfREVQIHN1cHBvcnQgdG8gZml4IGJhdHRlcnkg
-aXNzdWUNCj4gb24gQXN1cw0KPiA+Pj4gVDEwMFRBKSwgdGhlICdfREVQJyB3YXMgc3VwcG9ydGVk
-IHRvIHNvbHZlIHRoZSBkZXBlbmRlbmN5IG9mIEFzdXMNCj4gYmF0dGVyeS4gQnV0DQo+ID4+PiB0
-aGlzIHBhdGNoIGlzIHNwZWNpZmljIHRvIEFzdXMgYmF0dGVyeSBkZXZpY2UuDQo+ID4+PiBJbiB0
-aGUgcmVhbCB3b3JsZCwgdGhlcmUgYXJlIG90aGVyIGRldmljZXMgd2hpY2ggbmVlZCB0aGUNCj4g
-ZGVwZW5kZW5jeSB0byBwbGF5IHRoZQ0KPiA+Pj4gcm9sZSBvbiB0aGUgZW51bWVyYXRpb24gb3Jk
-ZXIuIEZvciBleGFtcGxlLCBhbGwgdGhlIEhpcDA2IExQQw0KPiA+Pj4gcGVyaXBlcmFscyhJUE1J
-LUJULCB1YXJ0LCBldGMpIG11c3QgYmUgc2Nhbm5lZCBhZnRlciB0aGUgTFBDIGhvc3QNCj4gZHJp
-dmVyDQo+ID4+PiBmaW5pc2hlZCB0aGUgcHJvYmluZy4gU28sIGl0IG1ha2VzIHNlbnNlIHRvIGFk
-ZCBhIGNoZWNraW5nIHdoZXRoZXINCj4gdGhlIEFDUEkNCj4gPj4+IGRldmljZSBtZWV0IGFsbCB0
-aGUgZGVwZW5kZW5jaWVzIGR1cmluZyBpdHMgZW51bWVyYXRpb24gc2xvdCwgaWYNCj4gbm90LCB0
-aGUNCj4gPj4+IGVudW1lcmF0aW9uIHdpbGwgYmUgZGVsYXllZCB0aWxsIGFsbCBkZXBlbmRlbmN5
-IG1hc3RlciBmaW5pc2ggdGhlaXINCj4gd29yay4NCj4gPj4+DQo+ID4+PiBUaGlzIHBhdGNoIGFk
-ZHMgdGhlIGRlcGVuZGVuY3kgY2hlY2tpbmcgaW4gQUNQSSBlbnVtZXJhdGlvbiwgYWxzbw0KPiB0
-aGUNCj4gPj4+IGNvcnJlc3BvbmRpbmcgaGFuZGxpbmcgdG8gcmV0cmlnZ2VyIHRoZSBIaXAwNiBM
-UEMgcGVyaXBoZXJhbHMnDQo+IHNjYW5uaW5nLg0KPiA+Pg0KPiA+PiBBRkFJQ1MsIF9ERVAgaXMg
-Z2VuZXJhbGx5IGFidXNlZCBpbiB0aGUgd2lsZCBhbmQgY2Fubm90IGJlIG1hZGUNCj4gZ2VuZXJp
-Yy4gIFNvcnJ5Lg0KPiA+Pg0KPiA+DQo+ID4gRnJvbSB0aGUgQUNQSSBzcGVjaWZpY2F0aW9uLCBf
-REVQIGlzIGZvciBvcGVyYXRpb24gcmVnaW9uIGFjY2Vzc2VzLg0KPiA+IFlvdSBhcmUgcmlnaHQu
-Li4NCj4gPg0KPiA+IEhvdyBhYm91dCB3ZSBhZGQgYSBBQ1BJIGhhbmRsZXIgZm9yIG91ciBMUEMg
-YnVzPz8gSnVzdCBsaWtlIGFtYmEuDQo+ID4gSW4gdGhpcyB3YXksIHdlIGFsc28gY2FuIHNvbHZl
-IHRoZSBpc3N1ZSBhYm91dCBMUEMgZW51bWVyYXRpb24gb3JkZXIuDQo+IA0KPiBBcyBmYXIgYXMg
-SSBjYW4gdGVsbCwgUENJIGFuZCBMUEMgaGF2ZSBleGFjdGx5IHRoZSBzYW1lIHJlcXVpcmVtZW50
-DQo+IGhlcmUsDQo+IHNvIHdoYXRldmVyIHlvdSBlbmQgdXAgZG9pbmcgZm9yIG9uZSBzaG91bGQg
-YmUgdXNlZCBmb3IgdGhlIG90aGVyIGFzDQo+IHdlbGwuDQoNCldlbGwgYXMgeW91IGtub3cgUENJ
-IGhhcyBnb3QgaGlzIG93biBoYW5kbGVyLCBpZGVudGlmaWVkIGJ5IGhpcyBvd24NCm5hbWVzcGFj
-ZSBpZCAiUE5QMEEwMyIuDQpOb3cgd2hlbiB5b3Ugc2F5ICJ5b3UgZW5kIHVwIGRvaW5nIGZvciBv
-bmUgc2hvdWxkIGJlIHVzZWQgZm9yIHRoZSBvdGhlciINCmFyZSB5b3Ugc2F5aW5nIHRoYXQgd2Ug
-c2hvdWxkIGludHJvZHVjZSBhIG5ldyBjbGFzcyBvZiBkZXZpY2VzPw0KaS5lLiBzaG91bGQgd2Ug
-aGF2ZSBhbiBBQ1BJIG5hbWVzcGFjZSBpZGVudGlmaWVyIGZvciBub24tUENJIElPIEhvc3QNCkNv
-bnRyb2xsZXJzPyAgDQoNCk90aGVyd2lzZSwgaWYgbXkgdW5kZXJzdGFuZGluZyBpcyBjb3JyZWN0
-LCBoYXZpbmcgYSBzcGVjaWZpYyBuZXcgQUNQSQ0KaGFuZGxlciBmb3IgSGlTaWxpY29uIExQQyB3
-b3VsZCBtZWFuIHRvIGFkZGluZyBhbm90aGVyIGZ1bmN0aW9uX2luaXQoKQ0KaW4gdGhlIGxpc3Qg
-b2YgYWNwaSBoYW5kbGVycyBpbml0cyBpbiBhY3BpX3NjYW5faW5pdCgpLg0KDQpCdXQgdGhlbiBl
-dmVyeSB2ZW5kb3Igd291bGQgZGVjbGFyZSBoaXMgb3duIG9uZS4uLmlzIHRoaXMgcmVhbGx5IGNv
-cnJlY3Q/DQoNCk1hbnkgVGhhbmtzDQpHYWINCg0KPiANCj4gICAgICAgQXJuZA0K
+On some systems with an axp288 PMIC the dsdt exports a non functional (*)
+ACPI AC device (ACPI0003 device), which results in a Mains power_supply
+which reports itself as being always online.
+
+This commit calls acpi_ac_unregister() after successfully registering the
+axp288_charger power_supply to remove the broken Mains power_supply.
+
+*) It depends on a vendor specific BMOP ACPI opregion we do not implement
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/power/supply/Kconfig          | 2 ++
+ drivers/power/supply/axp288_charger.c | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
+index e504644..8ee03d7 100644
+--- a/drivers/power/supply/Kconfig
++++ b/drivers/power/supply/Kconfig
+@@ -235,6 +235,8 @@ config CHARGER_AXP20X
+ config AXP288_CHARGER
+ 	tristate "X-Powers AXP288 Charger"
+ 	depends on MFD_AXP20X && EXTCON_AXP288
++	# if ACPI_AC=m, this can't be 'y'
++	depends on ACPI_AC || !ACPI_AC
+ 	help
+ 	  Say yes here to have support X-Power AXP288 power management IC (PMIC)
+ 	  integrated charger.
+diff --git a/drivers/power/supply/axp288_charger.c b/drivers/power/supply/axp288_charger.c
+index 6be2fe2..d3bf4b2 100644
+--- a/drivers/power/supply/axp288_charger.c
++++ b/drivers/power/supply/axp288_charger.c
+@@ -23,6 +23,7 @@
+ #include <linux/usb/otg.h>
+ #include <linux/notifier.h>
+ #include <linux/power_supply.h>
++#include <linux/power/acpi.h>
+ #include <linux/property.h>
+ #include <linux/mfd/axp20x.h>
+ #include <linux/extcon.h>
+@@ -876,6 +877,7 @@ static int axp288_charger_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	acpi_ac_unregister();
+ 	return 0;
+ }
+ 
+-- 
+2.9.3
+
