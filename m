@@ -1,35 +1,51 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [LKP] [PATCH v2 0/4] Revert works for the mapping of cpuid <->
- nodeid
-Date: Thu, 16 Mar 2017 16:38:19 +0800
-Message-ID: <20170316083819.GC13054@aaronlu.sh.intel.com>
-References: <1487580471-17665-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <20170221010218.GA9932@yexl-desktop>
- <20170221071059.GA19410@yexl-desktop>
- <61b3eb11-29cb-0048-e705-47c280aac892@cn.fujitsu.com>
- <20170316081457.GB13054@aaronlu.sh.intel.com>
- <alpine.DEB.2.20.1703160927330.3586@nanos>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V7 5/7] ACPI: Delay the enumeration on the devices whose
+ dependency has not met
+Date: Thu, 16 Mar 2017 11:13:01 +0100
+Message-ID: <CAK8P3a2QZ_j9RQ0U=4MoAAcRcZyu0L5AiYM22QZkiRxh7Ca-iA@mail.gmail.com>
+References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
+ <1489372963-9000-6-git-send-email-yuanzhichang@hisilicon.com>
+ <4600523.rWNiWKrYZC@aspire.rjw.lan> <58C9F6C6.4090700@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1703160927330.3586@nanos>
+In-Reply-To: <58C9F6C6.4090700@hisilicon.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>, Ye Xiaolong <xiaolong.ye@intel.com>, cl@linux.com, x86@kernel.org, akpm@linux-foundation.org, rafael@kernel.org, peterz@infradead.org, rafael.j.wysocki@intel.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, tj@kernel.org, izumi.taku@jp.fujitsu.com, lkp@01.org, mingo@kernel.org
+To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rafael Wysocki <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, devicetree@vger.kernel.org, linux-pci <linux-pci@vger.kernel.org>, linux-serial@vger.kernel.org, Corey Minyard <minyard@acm.org>, liviu.dudau@arm.com, Zou Rongrong <zourongrong@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 16, 2017 at 09:28:55AM +0100, Thomas Gleixner wrote:
-> On Thu, 16 Mar 2017, Aaron Lu wrote:
-> > 
-> > What is the status of the patch?
-> > 
-> > I still get oops during boot on a EP machine with today's Linus tree's
-> > head commit 69eea5a4ab9c("Merge branch 'for-linus' of git://git.kernel.dk/linux-block")
-> 
-> I have it applied to tip/x86/acpi. I was not aware that this is a urgent
-> issue to be forwarded to Linus ASAP.
-> 
-> I'll send it Linus wards in the next days.
+On Thu, Mar 16, 2017 at 3:21 AM, zhichang.yuan
+<yuanzhichang@hisilicon.com> wrote:
+> Hi, Rafael,
+>
+> Thanks for your review!
+>
+> On 2017/3/14 5:24, Rafael J. Wysocki wrote:
+>> On Monday, March 13, 2017 10:42:41 AM zhichang.yuan wrote:
+>>> In commit 40e7fcb1929(ACPI: Add _DEP support to fix battery issue on Asus
+>>> T100TA), the '_DEP' was supported to solve the dependency of Asus battery. But
+>>> this patch is specific to Asus battery device.
+>>> In the real world, there are other devices which need the dependency to play the
+>>> role on the enumeration order. For example, all the Hip06 LPC
+>>> periperals(IPMI-BT, uart, etc) must be scanned after the LPC host driver
+>>> finished the probing. So, it makes sense to add a checking whether the ACPI
+>>> device meet all the dependencies during its enumeration slot, if not, the
+>>> enumeration will be delayed till all dependency master finish their work.
+>>>
+>>> This patch adds the dependency checking in ACPI enumeration, also the
+>>> corresponding handling to retrigger the Hip06 LPC peripherals' scanning.
+>>
+>> AFAICS, _DEP is generally abused in the wild and cannot be made generic.  Sorry.
+>>
+>
+> From the ACPI specification, _DEP is for operation region accesses.
+> You are right...
+>
+> How about we add a ACPI handler for our LPC bus?? Just like amba.
+> In this way, we also can solve the issue about LPC enumeration order.
 
-That would be great, thanks.
+As far as I can tell, PCI and LPC have exactly the same requirement here,
+so whatever you end up doing for one should be used for the other as well.
+
+      Arnd
