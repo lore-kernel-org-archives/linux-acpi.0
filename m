@@ -1,54 +1,61 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 0/4] Move firmware specific code to firmware specific       locations
-Date: Thu, 16 Mar 2017 15:34:45 +0200
-Message-ID: <1489671289-20406-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Josh Poimboeuf <jpoimboe@redhat.com>
+Subject: [PATCH] acpi: fix incompatibility with mcount-based function graph tracing
+Date: Thu, 16 Mar 2017 08:56:28 -0500
+Message-ID: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:47336 "EHLO mga06.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:55836 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752384AbdCPNfv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Mar 2017 09:35:51 -0400
+        id S1751182AbdCPOUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 10:20:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>, Paul Menzel <pmenzel@molgen.mpg.de>
 
-Hi folks,
+Paul Menzel reported a warning:
 
-This set moves firmware specific implementations of the device / fwnode 
-property API to locations that are specific to firmware implementation, 
-still leaving property set (which isn't really firmware) implementation in
-drivers/base/property.c.
+  WARNING: CPU: 0 PID: 774 at /build/linux-ROBWaj/linux-4.9.13/kernel/trace/trace_functions_graph.c:233 ftrace_return_to_handler+0x1aa/0x1e0
+  Bad frame pointer: expected f6919d98, received f6919db0
+    from func acpi_pm_device_sleep_wake return to c43b6f9d
 
-The set depends on the ACPI graph support v5 (10/13 v5.1) patches I posted
-a moment ago.
+The warning means that function graph tracing is broken for the
+acpi_pm_device_sleep_wake() function.  That's because the acpi Makefile
+unconditionally sets the '-Os' gcc flag to optimize for size.  That's an
+issue because mcount-based function graph tracing is incompatible with
+'-Os' on x86, thanks to the following gcc bug:
 
-The patches may be found with dependencies here:
+  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=42109
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned>
+I have another patch pending which will ensure that mcount-based
+function graph tracing is never used with CONFIG_CC_OPTIMIZE_FOR_SIZE on
+x86.
 
-since v2:
+But this patch is needed in addition to that one because the ACPI
+Makefile overrides that config option for no apparent reason.  It has
+had this flag since the beginning of git history, and there's no related
+comment, so I don't know why it's there.  As far as I can tell, there's
+no reason for it to be there.  The appropriate behavior is for it to
+honor CONFIG_CC_OPTIMIZE_FOR_{SIZE,PERFORMANCE} like the rest of the
+kernel.
 
-- Move patches changing the implementation of reading strings and
-  implementing fwnode_get_next_parent() using the fwnode interface alone
-  in front of the set. I kept them separate as they do change the
-  implementation of these operations.
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+---
+ drivers/acpi/Makefile | 1 -
+ 1 file changed, 1 deletion(-)
 
-- Merge patches adding the fwnode_operations and moving the
-  implementations of the non-graph portions of the fwnode property API to
-  firmware specific locations.
-
-- Merge moving graph operations to the same struct into another patch.
-  The graph operations in the ops struct are also added in this patch now.
-
-since v1: 
-
-- Move the three bugfixes in front of the set into a separate patchset. 
-  There are no dependencies to those from the rest of the patches.
-
-- Rebase on current ACPI graph support patches (themselves on PM tree 
-  4.11-rc1 merge).
-
---
-Kind regards, 
-Sakari
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index a391bbc..d94f92f 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -2,7 +2,6 @@
+ # Makefile for the Linux ACPI interpreter
+ #
+ 
+-ccflags-y			:= -Os
+ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ 
+ #
+-- 
+2.7.4
 
