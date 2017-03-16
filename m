@@ -1,135 +1,75 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 2/2] x86/ioapic: Split IOAPIC hot-removal into two
- steps
-Date: Thu, 16 Mar 2017 12:48:42 -0500
-Message-ID: <20170316174842.GC2021@bhelgaas-glaptop.roam.corp.google.com>
-References: <201702280904.A2EXAFMQ%fengguang.wu@intel.com>
- <1488288869-31290-1-git-send-email-rui.y.wang@intel.com>
- <1488288869-31290-3-git-send-email-rui.y.wang@intel.com>
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH v2 00/17] Move firmware specific code to firmware
+ specific locations
+Date: Fri, 17 Mar 2017 00:50:20 +0200
+Message-ID: <20170316225019.GK10701@valkosipuli.retiisi.org.uk>
+References: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
+ <2385585.K4ms5H7miQ@aspire.rjw.lan>
+ <20170315141918.GF10701@valkosipuli.retiisi.org.uk>
+ <CAJZ5v0i5o+2FksW+NmYQugD6qL-1QmREd2isATifu9n0g69Q+w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1488288869-31290-3-git-send-email-rui.y.wang@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Rui Wang <rui.y.wang@intel.com>
-Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, fengguang.wu@intel.com, kbuild-all@01.org
+In-Reply-To: <CAJZ5v0i5o+2FksW+NmYQugD6qL-1QmREd2isATifu9n0g69Q+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Al Stone <ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 28, 2017 at 09:34:29PM +0800, Rui Wang wrote:
-> The hot-removal of IOAPIC is broken into two parts: the PCI part and
-> the ACPI part. The PCI part releases PCI resources before the PCI bus
-> is gone, and the ACPI part is moved to a stage later than the hot-removal
-> of the PCI root bus, so that the IOAPIC driver is able to hook the
-> pcibios_release_device() of every PCI device under the same parent root
-> bus, before the IOAPIC is hot-removed. This makes it possible for the
-> IOAPIC to free any IRQ resource previously unable to get freed.
+On Wed, Mar 15, 2017 at 03:23:41PM +0100, Rafael J. Wysocki wrote:
+> On Wed, Mar 15, 2017 at 3:19 PM, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org> wrote:
+> > On Mon, Mar 13, 2017 at 11:27:40PM +0100, Rafael J. Wysocki wrote:
+> >> On Monday, March 06, 2017 05:42:46 PM Sakari Ailus wrote:
+> >> > Hi,
+> >> >
+> >> > This set moves firmware specific implementations of the device / fwnode
+> >> > property API to locations that are specific to firmware implementation,
+> >> > still leaving property set (which isn't really firmware) implementation in
+> >> > drivers/base/property.c.
+> >> >
+> >> > The set depends on the ACPI graph support v4 patches I posted a moment
+> >> > ago.
+> >> >
+> >> > The patches may be found with dependencies here:
+> >> >
+> >> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned>
+> >> >
+> >> > since v1:
+> >> >
+> >> > - Move the three bugfixes in front of the set into a separate patchset.
+> >> >   There are no dependencies to those from the rest of the patches.
+> >> >
+> >> > - Rebase on current ACPI graph support patches (themselves on PM tree
+> >> >   4.11-rc1 merge).
+> >>
+> >> To me, all material from patches [1-11/17] can easily go into one patch which
+> >> would also help to review it quite a bit.
+> >>
+> >> Analogously, all material in patches [12-16/17] can go into one patch too.
+> >>
+> >> The split as is appears quite artificial, honestly.
+> >
+> > I believe it's easier to review the way it is. Each patch is simple and it's
+> > easy to see where a particular piece of code is moved. I'm happy to fold
+> > them, too, but I'd prefer keep "[PATCH v2 07/17] device property: Read
+> > strings using string array reading functions" separate, as it changes the
+> > implementation of reading single strings.
+> >
+> > How about that?
 > 
-> v2: Fixed compiling error on i386 (missing stub of pci_ioapic_remove())
-> 
-> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> That's fine too.
 
-Minor comments below, but
+I kept the last patch (device property: Implement fwnode_get_next_parent()
+using fwnode interface) separate, too, as I noticed it is really separate
+from moving the FW type specific parts behind an ops struct.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+The details are on the cover page of v3 of the set.
 
-> ---
->  drivers/acpi/internal.h |  2 ++
->  drivers/acpi/ioapic.c   | 22 ++++++++++++++++------
->  drivers/acpi/pci_root.c |  4 ++--
->  3 files changed, 20 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 219b90b..f159001 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -41,8 +41,10 @@ static inline void acpi_amba_init(void) {}
->  void acpi_container_init(void);
->  void acpi_memory_hotplug_init(void);
->  #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
-> +void pci_ioapic_remove(struct acpi_pci_root *root);
->  int acpi_ioapic_remove(struct acpi_pci_root *root);
->  #else
-> +static inline void pci_ioapic_remove(struct acpi_pci_root *root) { return; }
-
-Superfluous "return;" here.
-
->  static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
->  #endif
->  #ifdef CONFIG_ACPI_DOCK
-> diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-> index 6d7ce6e..1120dfd6 100644
-> --- a/drivers/acpi/ioapic.c
-> +++ b/drivers/acpi/ioapic.c
-> @@ -206,24 +206,34 @@ int acpi_ioapic_add(acpi_handle root_handle)
->  	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
->  }
->  
-> -int acpi_ioapic_remove(struct acpi_pci_root *root)
-> +void pci_ioapic_remove(struct acpi_pci_root *root)
->  {
-> -	int retval = 0;
->  	struct acpi_pci_ioapic *ioapic, *tmp;
->  
->  	mutex_lock(&ioapic_list_lock);
->  	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
-
-I don't think it's necessary to use the "safe" iterator here, since
-you're not modifying ioapic_list in the loop any more.
-
->  		if (root->device->handle != ioapic->root_handle)
->  			continue;
-> -
-> -		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
-> -			retval = -EBUSY;
-> -
->  		if (ioapic->pdev) {
->  			pci_release_region(ioapic->pdev, 0);
->  			pci_disable_device(ioapic->pdev);
->  			pci_dev_put(ioapic->pdev);
->  		}
-> +	}
-> +	mutex_unlock(&ioapic_list_lock);
-> +}
-> +
-> +int acpi_ioapic_remove(struct acpi_pci_root *root)
-> +{
-> +	int retval = 0;
-> +	struct acpi_pci_ioapic *ioapic, *tmp;
-> +
-> +	mutex_lock(&ioapic_list_lock);
-> +	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
-> +		if (root->device->handle != ioapic->root_handle)
-> +			continue;
-> +		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
-> +			retval = -EBUSY;
->  		if (ioapic->res.flags && ioapic->res.parent)
->  			release_resource(&ioapic->res);
->  		list_del(&ioapic->list);
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index bf601d4..919be0a 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -648,12 +648,12 @@ static void acpi_pci_root_remove(struct acpi_device *device)
->  
->  	pci_stop_root_bus(root->bus);
->  
-> -	WARN_ON(acpi_ioapic_remove(root));
-> -
-> +	pci_ioapic_remove(root);
->  	device_set_run_wake(root->bus->bridge, false);
->  	pci_acpi_remove_bus_pm_notifier(device);
->  
->  	pci_remove_root_bus(root->bus);
-> +	WARN_ON(acpi_ioapic_remove(root));
-
-You didn't change this, but my personal preference is not to call
-functions with side-effects inside a WARN_ON() or BUG_ON().  The
-acpi_ioapic_remove() call is essential here, and I think it gets
-obscured a bit by being inside WARN_ON().
-
->  	dmar_device_remove(device->handle);
->  
-> -- 
-> 1.8.3.1
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
