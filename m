@@ -1,158 +1,133 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: [PATCH][v5] ACPI throttling: Disable the MSR T-state if enabled after resumed
-Date: Fri, 17 Mar 2017 00:48:39 +0800
-Message-ID: <1489682919-13320-1-git-send-email-yu.c.chen@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org
-Cc: Doug Smythies <dsmythies@telus.net>, Rui Zhang <rui.zhang@intel.com>, Chen Yu <yu.c.chen@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 1/2] x86/PCI: Implement pcibios_release_device to
+ release IRQ from IOAPIC
+Date: Thu, 16 Mar 2017 12:24:32 -0500
+Message-ID: <20170316172432.GB2021@bhelgaas-glaptop.roam.corp.google.com>
+References: <201702280904.A2EXAFMQ%fengguang.wu@intel.com>
+ <1488288869-31290-1-git-send-email-rui.y.wang@intel.com>
+ <1488288869-31290-2-git-send-email-rui.y.wang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:49730 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752051AbdCPRZI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 13:25:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1488288869-31290-2-git-send-email-rui.y.wang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, fengguang.wu@intel.com, kbuild-all@01.org
 
-Previously a bug was reported that on certain Broadwell
-platform, after resumed from S3, the CPU is running at
-an anomalously low speed, due to the BIOS has enabled the
-MSR throttling across S3. The solution to this was to introduce
-a quirk framework to save/restore tstate MSR register around
-suspend/resume, in Commit 7a9c2dd08ead ("x86/pm:
-Introduce quirk framework to save/restore extra MSR
-registers around suspend/resume").
+Hi Rui,
 
-However there are still three problems left:
-1. More and more reports show that other platforms also
-   encountered the same issue, so the quirk list might
-   be endless.
-2. Each CPUs should take the save/restore operation into
-   consideration, rather than the boot CPU alone.
-3. Normally ACPI T-state re-evaluation is done on resume,
-   however there is no _TSS on the bogus platform, thus
-   above re-evaluation code does not run on that machine.
+On Tue, Feb 28, 2017 at 09:34:28PM +0800, Rui Wang wrote:
+> The revert of 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq()
+> and pcibios_free_irq()") causes a problem for IOAPIC hotplug. The
+> problem is that IRQs are allocated and freed in pci_enable_device()
+> and pci_disable_device(). But there are some drivers which don't call
+> pci_disable_device(), and they have good reasons not calling it, so
 
-Solution:
-This patch is based on the fact that, we generally should not
-expect the system to come back from resume with throttling
-enabled, but leverage the OS components to deal with it,
-such as thermal event. So we simply clear the MSR T-state
-and print the warning if it is found to be enabled after
-resumed back. Besides, we can remove the quirk in previous patch
-later.
+Can you elaborate a little on what these drivers are and what the
+reasons for not calling pci_disable_device() are?  Without a pointer
+to details, this is just a teaser :)
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=90041
-Reported-and-tested-by: Kadir <kadir@colakoglu.nl>
-Suggested-by: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
----
- drivers/acpi/processor_throttling.c | 58 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+Maybe this has to do with the "there are too many odd BIOS and bridge
+setups" comment in pci_device_remove()?  If so, I think it's a bit of
+a stretch to say they have good reasons to not call it, because nobody
+knows what those reasons are.
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index a12f96c..fe6fa02 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -29,6 +29,7 @@
- #include <linux/sched.h>
- #include <linux/cpufreq.h>
- #include <linux/acpi.h>
-+#include <linux/syscore_ops.h>
- #include <acpi/processor.h>
- #include <asm/io.h>
- #include <linux/uaccess.h>
-@@ -64,6 +65,8 @@ struct acpi_processor_throttling_arg {
- static int acpi_processor_get_throttling(struct acpi_processor *pr);
- int acpi_processor_set_throttling(struct acpi_processor *pr,
- 						int state, bool force);
-+static void throttling_msr_reevaluate(int cpu);
-+static void acpi_throttling_init_ops(void);
- 
- static int acpi_processor_update_tsd_coord(void)
- {
-@@ -214,6 +217,7 @@ void acpi_processor_throttling_init(void)
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			"Assume no T-state coordination\n"));
- 	}
-+	acpi_throttling_init_ops();
- 
- 	return;
- }
-@@ -386,6 +390,15 @@ void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
- 		pr->flags.throttling = 0;
- 		return;
- 	}
-+	/*
-+	 * It was found after resumed from suspend to ram, some BIOSes would
-+	 * adjust the MSR tstate, however on these platforms no _PSS is provided
-+	 * thus we never have a chance to adjust the MSR T-state anymore.
-+	 * Thus force clearing it if MSR T-state is enabled, because generally
-+	 * we never expect to come back from resume with throttling enabled.
-+	 * Later let other components to adjust T-state if necessary.
-+	 */
-+	throttling_msr_reevaluate(pr->id);
- 	/* the following is to recheck whether the T-state is valid for
- 	 * the online CPU
- 	 */
-@@ -758,6 +771,43 @@ static int acpi_throttling_wrmsr(u64 value)
- 	}
- 	return ret;
- }
-+
-+static long msr_reevaluate_fn(void *data)
-+{
-+	u64 msr = 0;
-+
-+	acpi_throttling_rdmsr(&msr);
-+	if (msr) {
-+		printk_once(KERN_ERR "PM: The BIOS might have modified the MSR T-state, clear it for now.\n");
-+		acpi_throttling_wrmsr(0);
-+	}
-+	return 0;
-+}
-+
-+/* Reevaluate for nonboot CPUs. */
-+static void throttling_msr_reevaluate(int cpu)
-+{
-+	work_on_cpu(cpu, msr_reevaluate_fn, NULL);
-+}
-+
-+/*
-+ * Reevaluate for boot CPU. Since it is not always CPU0(see
-+ * disable_noboot_cpus), we can not invoke throttling_msr_reevaluate(0)
-+ * directly, thus leverage syscore callback to do it.
-+ */
-+static void acpi_throttling_resume(void)
-+{
-+	msr_reevaluate_fn(NULL);
-+}
-+
-+static struct syscore_ops acpi_throttling_syscore_ops = {
-+	.resume		= acpi_throttling_resume,
-+};
-+
-+static void acpi_throttling_init_ops(void)
-+{
-+	register_syscore_ops(&acpi_throttling_syscore_ops);
-+}
- #else
- static int acpi_throttling_rdmsr(u64 *value)
- {
-@@ -772,6 +822,14 @@ static int acpi_throttling_wrmsr(u64 value)
- 		"HARDWARE addr space,NOT supported yet\n");
- 	return -1;
- }
-+
-+static void throttling_msr_reevaluate(int cpu)
-+{
-+}
-+
-+static void acpi_throttling_init_ops(void)
-+{
-+}
- #endif
- 
- static int acpi_read_throttling_status(struct acpi_processor *pr,
--- 
-2.7.4
+> if they're using IOAPIC their IRQs won't have a chance to be released
+> from the IOAPIC. When this happens IOAPIC hot-removal fails with a
+> kernel stack dump and an error message like this:
+> 
+> [149335.697989] pin16 on IOAPIC2 is still in use.
+
+Are there any bug reports for this that we should reference?  Pointing
+to a bugzilla with more details would help avoid situations like the
+vague "odd BIOS and bridge setups" comment above.
+
+> It turns out that we can fix it in a different way without moving IRQ
+> allocation into pcibios_alloc_irq(), thus avoiding the regression of
+> 991de2e59090. We can keep the allocation and freeing of IRQs as is
+> within pci_enable_device()/pci_disable_device(), without breaking any
+> previous assumption of the rest of the system, keeping compatibility
+> with both the legacy and the modern drivers. We can accomplish this by
+> implementing the existing __weak hook of pcibios_release_device() thus
+> when a pci device is about to be deleted we get notified in the hook
+> and take the chance to release its IRQ, if any, from the IOAPIC.
+
+I'm not a huge fan of using the release method because it makes the
+code flow more obscure -- the release method is called semi-magically
+when a reference count goes to zero, and it's primarily a mechanism
+for dropping references and deallocating storage.
+
+That's not to say we *can't* do it in pcibios_release_device(); it's
+just that I'd prefer a more direct approach if we can find one.
+
+If I understand correctly, after 991de2e59090, we did the IRQ setup
+and teardown in the driver attach (pci_device_probe()) and remove
+(pci_device_remove()) path.  The problem with that approach was that
+we set up the IRQ for the device but not for any upstream bridges, so
+some drivers didn't get the interrupts they expected.
+
+After we reverted 991de2e59090 (with 6c777e8799a9), we now do IRQ
+setup and teardown in the pci_enable_device() and pci_disable_device()
+paths.  The pci_enable_device() path enables all upstream bridges and
+sets up their IRQs.  The problem with this approach is that some
+drivers don't call pci_disable_device() to teardown the IRQ, and a
+subsequent hotplug removal of the IOAPIC fails because an interrupt is
+still in use.
+
+I think it makes sense to set up the IRQ in pci_enable_device() rather
+than in pci_device_probe().  Doing it at probe-time is a little
+aggressive because some drivers may not need the IRQ at all.
+
+Could we do a hybrid, i.e., do the setup in pci_enable_device() and
+the teardown in pci_device_remove()?  I think it makes sense that if a
+driver has set up the IRQ, we should make sure it's torn down when we
+unbind the driver from the device (or possibly early, if the driver
+calls pci_disable_device()).
+
+> Besides implementing pcibios_release_device(), the hot-removal of
+> IOAPIC needs to be broken into two parts: the PCI part and the ACPI
+> part. The PCI part releases PCI resources before the PCI bus is gone,
+> and the ACPI part is moved to a stage later than the hot-removal of
+> the PCI root bus, so we have the chance to hook every PCI device's
+> pcibios_release_device(), before we remove the IOAPIC.
+> 
+> This patch implements pcibios_release_device() on x86 to release any
+> IRQ not released by the driver, so that the IOAPIC can then be safely
+> hot-removed.
+> 
+> v2: Fixed a typo (pcibios_release_device)
+> 
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> ---
+>  arch/x86/pci/common.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+> index 0cb52ae..190e718 100644
+> --- a/arch/x86/pci/common.c
+> +++ b/arch/x86/pci/common.c
+> @@ -735,6 +735,15 @@ void pcibios_disable_device (struct pci_dev *dev)
+>  		pcibios_disable_irq(dev);
+>  }
+>  
+> +#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+> +void pcibios_release_device(struct pci_dev *dev)
+> +{
+> +	if (atomic_dec_return(&dev->enable_cnt) >= 0)
+> +		pcibios_disable_device(dev);
+> +
+> +}
+> +#endif
+> +
+>  int pci_ext_cfg_avail(void)
+>  {
+>  	if (raw_pci_ext_ops)
+> -- 
+> 1.8.3.1
+> 
