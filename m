@@ -1,80 +1,96 @@
-From: "zhichang.yuan" <zhichang.yuan02@gmail.com>
-Subject: Re: [PATCH V7 5/7] ACPI: Delay the enumeration on the devices whose
- dependency has not met
-Date: Thu, 16 Mar 2017 22:56:52 +0800
-Message-ID: <592befcb-8b52-3a3a-323f-55566f61c7df@gmail.com>
-References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com>
- <1489372963-9000-6-git-send-email-yuanzhichang@hisilicon.com>
- <4600523.rWNiWKrYZC@aspire.rjw.lan> <58C9F6C6.4090700@hisilicon.com>
- <CAK8P3a2QZ_j9RQ0U=4MoAAcRcZyu0L5AiYM22QZkiRxh7Ca-iA@mail.gmail.com>
+From: Shiju Jose <shiju.jose@huawei.com>
+Subject: RE: [PATCH 1/1] acpi:apei:handle GSIV and GPIO notification types
+Date: Thu, 16 Mar 2017 15:20:44 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A62DCBEEE8@lhreml502-mbs>
+References: <86258A5CC0A3704780874CF6004BA8A62DCB6D39@lhreml502-mbx>
+ <58CAA06D.7010900@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAK8P3a2QZ_j9RQ0U=4MoAAcRcZyu0L5AiYM22QZkiRxh7Ca-iA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, "zhichang.yuan" <yuanzhichang@hisilicon.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, linuxarm@huawei.com, Frank Rowand <frowand.list@gmail.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Wei Xu <xuwei5@hisilicon.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, devicetree@vger.kernel.org, Corey Minyard <minyard@acm.org>, liviu.dudau@arm.com, John Garry <john.garry@huawei.com>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, kantyzc@163.com, Linux ARM <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>Zou Rongrong <zo>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:15871 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752869AbdCPPV6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2017 11:21:58 -0400
+In-Reply-To: <58CAA06D.7010900@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "bp@suse.de" <bp@suse.de>, "mingo@kernel.org" <mingo@kernel.org>, "prarit@redhat.com" <prarit@redhat.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "punit.agrawal@arm.com" <punit.agrawal@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>
 
-Hi, Arnd,
+Hi James,
 
-
-
-On 03/16/2017 06:13 PM, Arnd Bergmann wrote:
-> On Thu, Mar 16, 2017 at 3:21 AM, zhichang.yuan
-> <yuanzhichang@hisilicon.com> wrote:
->> Hi, Rafael,
->>
->> Thanks for your review!
->>
->> On 2017/3/14 5:24, Rafael J. Wysocki wrote:
->>> On Monday, March 13, 2017 10:42:41 AM zhichang.yuan wrote:
->>>> In commit 40e7fcb1929(ACPI: Add _DEP support to fix battery issue on Asus
->>>> T100TA), the '_DEP' was supported to solve the dependency of Asus battery. But
->>>> this patch is specific to Asus battery device.
->>>> In the real world, there are other devices which need the dependency to play the
->>>> role on the enumeration order. For example, all the Hip06 LPC
->>>> periperals(IPMI-BT, uart, etc) must be scanned after the LPC host driver
->>>> finished the probing. So, it makes sense to add a checking whether the ACPI
->>>> device meet all the dependencies during its enumeration slot, if not, the
->>>> enumeration will be delayed till all dependency master finish their work.
->>>>
->>>> This patch adds the dependency checking in ACPI enumeration, also the
->>>> corresponding handling to retrigger the Hip06 LPC peripherals' scanning.
->>>
->>> AFAICS, _DEP is generally abused in the wild and cannot be made generic.  Sorry.
->>>
->>
->> From the ACPI specification, _DEP is for operation region accesses.
->> You are right...
->>
->> How about we add a ACPI handler for our LPC bus?? Just like amba.
->> In this way, we also can solve the issue about LPC enumeration order.
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of James Morse
+> Sent: 16 March 2017 14:26
+> To: Shiju Jose
+> Cc: rjw@rjwysocki.net; lenb@kernel.org; bp@suse.de; mingo@kernel.org;
+> prarit@redhat.com; tbaicar@codeaurora.org; punit.agrawal@arm.com;
+> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+> fu.wei@linaro.org; Guohanjun (Hanjun Guo); Gabriele Paoloni; John Garry;
+> xuwei (O); Zhengqiang (turing)
+> Subject: Re: [PATCH 1/1] acpi:apei:handle GSIV and GPIO notification
+> types
 > 
-> As far as I can tell, PCI and LPC have exactly the same requirement here,
-> so whatever you end up doing for one should be used for the other as well.
+> On 13/03/17 13:16, Shiju Jose wrote:
+> > System Controller Interrupts are received by ACPI's error device,
+> > which in turn notifies the GHES code. The same is true of APEI's GSIV
+> > and GPIO notification types.
+> > Add support for GSIV and GPIO sharing the SCI
+> > register/unregister/notifier code.Rename the list and notifier to
+> show
+> > this is no longer just SCI, but anything from the Hardware Error
+> > Device.
 > 
-
-Thanks for your remind!
-
-To some extend, our LPC is similar to PCI. We also need to setup the host
-resources before scanning the children. For PCI, there is an ACPI handler of
-pci_root_handler. Although our LPC is not so complicated and powerful as PCI(for
-example, LPC can't probe downside devices), I think, we can still make LPC host
-ready to work in its own ACPI handler callback....
-
-Cheers,
-Zhichang
-
-
->       Arnd
+> Reviewed-by: James Morse <james.morse@arm.com>
 > 
+> 
+> ... what looks like an existing bug:
+> 
+> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index
+> > b192b42..fd39929 100644
+> > --- a/drivers/acpi/apei/ghes.c
+> > +++ b/drivers/acpi/apei/ghes.c
+> > @@ -1068,10 +1072,12 @@ static int ghes_remove(struct platform_device
+> *ghes_dev)
+> >  		free_irq(ghes->irq, ghes);
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_SCI:
+> > +	case ACPI_HEST_NOTIFY_GSIV:
+> > +	case ACPI_HEST_NOTIFY_GPIO:
+> >  		mutex_lock(&ghes_list_mutex);
+> 
+> >  		list_del_rcu(&ghes->list);
+> 
+> Suspiciously, there is no synchronize_rcu() between this list_del_rcu()
+> and the
+> kfree(ghes) at the bottom of the function. It looks like 81e88fdc432a
+> lifted it into the NOTIFY_NMI path. I will send a separate fix.
+
+Thanks. Got it.
+
+> 
+> 
+> > -		if (list_empty(&ghes_sci))
+> > -			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+> > +		if (list_empty(&ghes_hed))
+> > +			unregister_acpi_hed_notifier(&ghes_notifier_hed);
+> >  		mutex_unlock(&ghes_list_mutex);
+> >  		break;
+> >  	case ACPI_HEST_NOTIFY_NMI:
+> >
+> 
+> 
+> Thanks,
+> 
+> James
+
+Thanks,
+Shiju
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
