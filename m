@@ -1,141 +1,70 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with compilation units
-Date: Fri, 17 Mar 2017 17:37:13 +0200
-Message-ID: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH V12 05/10] acpi: apei: handle SEA notification type for
+ ARMv8
+Date: Fri, 17 Mar 2017 16:43:11 +0000
+Message-ID: <58CC121F.5030807@arm.com>
+References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
+ <1488833103-21082-6-git-send-email-tbaicar@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1488833103-21082-6-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Crystal Cove and Whiskey Cove are two different PMICs which are
-installed on Intel Atom SoC based platforms.
+Hi Tyler,
 
-Moreover there are two independent drivers that by some reason were
-supposed (*) to get into one kernel module.
+On 06/03/17 20:44, Tyler Baicar wrote:
+> ARM APEI extension proposal added SEA (Synchronous External Abort)
+> notification type for ARMv8.
+> Add a new GHES error source handling function for SEA. If an error
+> source's notification type is SEA, then this function can be registered
+> into the SEA exception handler. That way GHES will parse and report
+> SEA exceptions when they occur.
+> An SEA can interrupt code that had interrupts masked and is treated as
+> an NMI. To aid this the page of address space for mapping APEI buffers
+> while in_nmi() is always reserved, and ghes_ioremap_pfn_nmi() is
+> changed to use the helper methods to find the prot_t to map with in
+> the same way as ghes_ioremap_pfn_irq().
 
-Fix the mess by clarifying Kconfig option for Crystal Cove and split
-Whiskey Cove out of it.
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b25e7cf..b0596ba 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1023,6 +1075,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
+>  			   generic->header.source_id);
+>  		goto err;
+> +	case ACPI_HEST_NOTIFY_GPIO:
+> +	case ACPI_HEST_NOTIFY_SEI:
+> +	case ACPI_HEST_NOTIFY_GSIV:
+> +		pr_warn(GHES_PFX "Generic hardware error source: %d notified via notification type %u is not supported\n",
+> +			generic->header.source_id, generic->header.source_id);
+> +		rc = -ENOTSUPP;
+> +		goto err;
+>  	default:
+>  		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
+>  			   generic->notify.type, generic->header.source_id);
 
-(*) It looks like the configuration was never tested with
-    INTEL_SOC_PMIC=n. The line in Makefile is actually wrong.
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-Cc: Linus Walleij <linus.walleij@linaro.org> (maintainer:GPIO SUBSYSTEM)
-Cc: Zhang Rui <rui.zhang@intel.com> (supporter:THERMAL)
-Cc: Eduardo Valentin <edubezval@gmail.com> (supporter:THERMAL)
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-- make option visible
-- fix dependencies
- drivers/acpi/Kconfig         |  2 +-
- drivers/gpio/Kconfig         |  2 +-
- drivers/mfd/Kconfig          | 14 ++++++++++++--
- drivers/mfd/Makefile         |  2 +-
- drivers/platform/x86/Kconfig |  2 +-
- drivers/thermal/Kconfig      |  2 +-
- 6 files changed, 17 insertions(+), 7 deletions(-)
+This hunk will conflict with Shiju Jose's patch[0] that adds GPIO and GSIV
+support. Can we remove it?
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 83e5f7e1a20d..03708e08fcb4 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -512,7 +512,7 @@ config XPOWER_PMIC_OPREGION
- 
- config BXT_WC_PMIC_OPREGION
- 	bool "ACPI operation region support for BXT WhiskeyCove PMIC"
--	depends on INTEL_SOC_PMIC
-+	depends on INTEL_SOC_PMIC_BXTWC
- 	help
- 	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
- 
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index 05043071fc98..9b1bcb4d0df7 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -1054,7 +1054,7 @@ config GPIO_UCB1400
- 
- config GPIO_WHISKEY_COVE
- 	tristate "GPIO support for Whiskey Cove PMIC"
--	depends on (X86 || COMPILE_TEST) && INTEL_SOC_PMIC
-+	depends on (X86 || COMPILE_TEST) && INTEL_SOC_PMIC_BXTWC
- 	select GPIOLIB_IRQCHIP
- 	help
- 	  Support for GPIO pins on Whiskey Cove PMIC.
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 55ecdfb74d31..e43afb8956ea 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -425,18 +425,28 @@ config LPC_SCH
- 	  System Management Bus and General Purpose I/O.
- 
- config INTEL_SOC_PMIC
--	bool "Support for Intel Atom SoC PMIC"
-+	bool "Support for Crystal Cove PMIC"
- 	depends on GPIOLIB
- 	depends on I2C=y
- 	select MFD_CORE
- 	select REGMAP_I2C
- 	select REGMAP_IRQ
- 	help
--	  Select this option to enable support for the PMIC device
-+	  Select this option to enable support for Crystal Cove PMIC
- 	  on some Intel SoC systems. The PMIC provides ADC, GPIO,
- 	  thermal, charger and related power management functions
- 	  on these systems.
- 
-+config INTEL_SOC_PMIC_BXTWC
-+	tristate "Support for Intel Broxton Whiskey Cove PMIC"
-+	select MFD_CORE
-+	select REGMAP_IRQ
-+	help
-+	  Select this option to enable support for Whiskey Cove PMIC
-+	  on Intel Broxton systems. The PMIC provides ADC, GPIO,
-+	  thermal, charger and related power management functions
-+	  on these systems.
-+
- config MFD_INTEL_LPSS
- 	tristate
- 	select COMMON_CLK
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 31ce07611a6f..201aeaf5112a 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -207,8 +207,8 @@ obj-$(CONFIG_MFD_RT5033)	+= rt5033.o
- obj-$(CONFIG_MFD_SKY81452)	+= sky81452.o
- 
- intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
--intel-soc-pmic-$(CONFIG_INTEL_PMC_IPC)	+= intel_soc_pmic_bxtwc.o
- obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
-+obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)	+= intel_soc_pmic_bxtwc.o
- obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
- 
- obj-$(CONFIG_MFD_ALTERA_A10SR)	+= altera-a10sr.o
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index e1bffc9bb194..883fbe7a2466 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -1019,7 +1019,7 @@ config INTEL_PMC_IPC
- config INTEL_BXTWC_PMIC_TMU
- 	tristate "Intel BXT Whiskey Cove TMU Driver"
- 	depends on REGMAP
--	depends on INTEL_SOC_PMIC && INTEL_PMC_IPC
-+	depends on INTEL_SOC_PMIC_BXTWC && INTEL_PMC_IPC
- 	---help---
- 	  Select this driver to use Intel BXT Whiskey Cove PMIC TMU feature.
- 	  This driver enables the alarm wakeup functionality in the TMU unit
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 776b34396144..751e50a3d946 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -365,7 +365,7 @@ endmenu
- 
- config INTEL_BXT_PMIC_THERMAL
- 	tristate "Intel Broxton PMIC thermal driver"
--	depends on X86 && INTEL_SOC_PMIC && REGMAP
-+	depends on X86 && INTEL_SOC_PMIC_BXTWC && REGMAP
- 	help
- 	  Select this driver for Intel Broxton PMIC with ADC channels monitoring
- 	  system temperature measurements and alerts.
--- 
-2.11.0
+
+Thanks,
+
+James
+
+
+[0] https://www.spinics.net/lists/linux-acpi/msg72654.html
