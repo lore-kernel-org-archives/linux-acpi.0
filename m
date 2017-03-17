@@ -1,173 +1,55 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 14/15] power: supply: Add driver for Cherry Trail
- Whiskey Cove PMIC Fuel Gauge
-Date: Fri, 17 Mar 2017 19:58:49 +0200
-Message-ID: <1489773529.19767.84.camel@linux.intel.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
-         <20170317095527.10487-15-hdegoede@redhat.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v21 01/13] clocksource: arm_arch_timer: introduce two
+ functions to get the frequency from mmio and sysreg.
+Date: Fri, 17 Mar 2017 18:05:13 +0000
+Message-ID: <20170317180513.GB15909@leverpostej>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+ <20170206185015.12296-2-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:2713 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751098AbdCQR6z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Mar 2017 13:58:55 -0400
-In-Reply-To: <20170317095527.10487-15-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170206185015.12296-2-fu.wei@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: fu.wei@linaro.org
+Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, rruigrok@codeaurora.org, wim@iguana.be, wei@redhat.com, lorenzo.pieralisi@arm.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, daniel.lezcano@linaro.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, lenb@kernel.org, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, marc.zyngier@arm.com, jcm@redhat.com, cov@codeaurora.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, sudeep.holla@arm.com, christoffer.dall@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
-> Add a driver for the Cherry Trail Whiskey Cove PMIC Fuel Gauge, note
-> the Cherry Trail Whiskey Cove PMIC Fuel Gauge block is purely a fuel
-> gauge
-> and not a full battery controller. As such it offers a platform_data
-> callback for extra power_supply properties for the actual external-
-> charger
-> ic driver and does not register a power_supply itself.
-
-ic -> IC
-
-Can we move to something like built-in device properties for additional
-properties instead of extending platform data?
-
-> +config CHT_WC_FUEL_GAUGE
-
-I would use similar pattern:
-
-FUEL_GAUGE_INTEL_CHTWC (or FUEL_GAUGE_CHTWC, but this might be less
-obvious about vendor)
-
-> --- /dev/null
-> +++ b/drivers/power/supply/cht_wc_fuel_gauge.c
-> @@ -0,0 +1,209 @@
-> +/*
-> + * Intel CHT Whiskey Cove Fuel Gauge driver
-
-CHT -> Cherry Trail 
-
-> + *
-> + * Cherrytrail Whiskey Cove devices have 2 functional blocks which
-> interact
-> + * with the battery.
-
-Cherry Trail? 
-
-> +#define REG_CHARGE_NOW		0x05
-> +#define REG_VOLTAGE_NOW		0x09
-> +#define REG_CURRENT_NOW		0x0a
-> +#define REG_CURRENT_AVG		0x0b
-> +#define REG_CHARGE_FULL		0x10
-> +#define REG_CHARGE_DESIGN	0x18
-> +#define REG_VOLTAGE_AVG		0x19
-
-> +#define REG_VOLTAGE_OCV		0x1b /* Only updated during
-> charging */
-
-I think comment makes more sense where actual update is happening in the
-code.
-
-> +
-> +static int cht_wc_fg_read(struct cht_wc_fg_data *fg, u8 reg,
-> +			  union power_supply_propval *val, int scale,
-> +			  int sign_extend)
+On Tue, Feb 07, 2017 at 02:50:03AM +0800, fu.wei@linaro.org wrote:
+> +static u32 arch_timer_get_sysreg_freq(void)
 > +{
-> +	int ret;
-> +
-> +	ret = i2c_smbus_read_word_data(fg->client, reg);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (sign_extend)
-> +		ret = sign_extend32(ret, 15);
-
-Magic?
-
-> +
-> +	val->intval = ret * scale;
-> +
-> +	return 0;
-> +}
-
-
-> +
-> +int cht_wc_fg_get_property(enum power_supply_property prop,
-> +			   union power_supply_propval *val)
-> +{
-> +	int ret = 0;
-
-Sounds like redundant assignment...
-
-> +
-> +	mutex_lock(&cht_wc_fg_mutex);
-> +
-> 
-
-> +	if (!cht_wc_fg) {
-> +		ret = -ENXIO;
-> +		goto out_unlock;
-> +	}
-
-...otherwise maybe
-
-ret = cht_wc_fg ? 0 : -ENXIO;
-if (ret)
- goto ...;
-
-?
-
-> +	default:
-> +		ret = -ENODATA;
-> +	}
-> +out_unlock:
-> +	mutex_unlock(&cht_wc_fg_mutex);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(cht_wc_fg_get_property);
-
-> +
-> +static int cht_wc_fg_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *i2c_id)
-> +{
-> +	struct device *dev = &client->dev;
-> +	struct cht_wc_fg_data *fg;
-> +	acpi_status status;
-> +	unsigned long long ptyp;
-
-> +	status = acpi_evaluate_integer(ACPI_HANDLE(dev), "PTYP",
-> NULL, &ptyp);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_err(dev, "Failed to get PTYPE\n");
-> +		return -ENODEV;
-> +	}
-> +
 > +	/*
-> +	 * The same ACPI HID is used with different PMICs check PTYP
-> to
-> +	 * ensure that we are dealing with a Whiskey Cove PMIC.
-> +	 */
-> +	if (ptyp != CHT_WC_FG_PTYPE)
-> +		return -ENODEV;
-
-Logically I would split this part to be a main driver for device which
-would use actual driver based on this, though I think it too much churn
-for no benefit right now.
-
-> +	mutex_lock(&cht_wc_fg_mutex);
-> +	cht_wc_fg = fg;
-> +	mutex_unlock(&cht_wc_fg_mutex);
-
-It's pity we have no common storage of single possible present device
-drivers in the kernel. I would use some kind of framework rather then
-keeping all those global variables with locking. Perhaps radix / RB
-tree.
-
-> +
-> +	return 0;
+> +	 * Try to get the frequency from the CNTFRQ of sysreg.
+> +	 */
+> +	return arch_timer_get_cntfrq();
 > +}
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+We already have arch_timer_get_cntfrq(), so I don't see the point in
+this wrapper.
+
+> +static u32 arch_timer_get_mmio_freq(void __iomem *cntbase)
+> +{
+> +	/*
+> +	 * Try to get the frequency from the CNTFRQ of timer frame registers.
+> +	 * Note: please verify cntbase in caller.
+> +	 */
+> +	return readl_relaxed(cntbase + CNTFRQ);
+> +}
+
+Wrapping the MMIO read makes sense if we're going to do this in more
+than one place, so I'm happy with this wrapper.
+
+If you can s/arch_timer_get_mmio_freq/arch_timer_get_cntfrq/, and drop
+the comments, then this looks fine to me.
+
+Thanks,
+Mark.
