@@ -1,16 +1,17 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v21 13/13] acpi/arm64: Add SBSA Generic Watchdog support
- in GTDT driver
-Date: Fri, 17 Mar 2017 20:01:54 +0000
-Message-ID: <20170317200153.GF15909@leverpostej>
+Subject: Re: [PATCH v21 00/13] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Fri, 17 Mar 2017 20:03:47 +0000
+Message-ID: <20170317200346.GG15909@leverpostej>
 References: <20170206185015.12296-1-fu.wei@linaro.org>
- <20170206185015.12296-14-fu.wei@linaro.org>
+ <CADyBb7t_zrLetPQQ8=k8oN6iMHhuMHO8O3XTZqGYvTT9p0evKw@mail.gmail.com>
+ <CADyBb7urVf87LTsyrtoaAExTeOZSBAvT91enGBK4cm6723q+1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170206185015.12296-14-fu.wei@linaro.org>
+In-Reply-To: <CADyBb7urVf87LTsyrtoaAExTeOZSBAvT91enGBK4cm6723q+1Q@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,58 +21,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: fu.wei@linaro.org
-Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, rruigrok@codeaurora.org, wim@iguana.be, wei@redhat.com, lorenzo.pieralisi@arm.com, al.stone@linaro.org, tn@semihalf.com, timur@codeaurora.org, daniel.lezcano@linaro.org, linux-acpi@vger.kernel.org, linux@roeck-us.net, lenb@kernel.org, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, marc.zyngier@arm.com, jcm@redhat.com, cov@codeaurora.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, sudeep.holla@arm.com, christoffer.dall@linaro.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCBGZWIgMDcsIDIwMTcgYXQgMDI6NTA6MTVBTSArMDgwMCwgZnUud2VpQGxpbmFyby5v
-cmcgd3JvdGU6Cj4gK3N0YXRpYyBpbnQgX19pbml0IGd0ZHRfaW1wb3J0X3Nic2FfZ3dkdChzdHJ1
-Y3QgYWNwaV9ndGR0X3dhdGNoZG9nICp3ZCwKPiArCQkJCQlpbnQgaW5kZXgpCj4gK3sKPiArCXN0
-cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXY7Cj4gKwlpbnQgaXJxID0gbWFwX2d0X2dzaSh3ZC0+
-dGltZXJfaW50ZXJydXB0LCB3ZC0+dGltZXJfZmxhZ3MpOwo+ICsJaW50IG5vX2lycSA9IDE7Cj4g
-Kwo+ICsJLyoKPiArCSAqIEFjY29yZGluZyB0byBTQlNBIHNwZWNpZmljYXRpb24gdGhlIHNpemUg
-b2YgcmVmcmVzaCBhbmQgY29udHJvbAo+ICsJICogZnJhbWVzIG9mIFNCU0EgR2VuZXJpYyBXYXRj
-aGRvZyBpcyBTWl80SyhPZmZzZXQgMHgwMDAg4oCTIDB4RkZGKS4KPiArCSAqLwo+ICsJc3RydWN0
-IHJlc291cmNlIHJlc1tdID0gewo+ICsJCURFRklORV9SRVNfTUVNKHdkLT5jb250cm9sX2ZyYW1l
-X2FkZHJlc3MsIFNaXzRLKSwKPiArCQlERUZJTkVfUkVTX01FTSh3ZC0+cmVmcmVzaF9mcmFtZV9h
-ZGRyZXNzLCBTWl80SyksCj4gKwkJREVGSU5FX1JFU19JUlEoaXJxKSwKPiArCX07Cj4gKwo+ICsJ
-cHJfZGVidWcoImZvdW5kIGEgV2F0Y2hkb2cgKDB4JWxseC8weCVsbHggZ3NpOiV1IGZsYWdzOjB4
-JXgpLlxuIiwKPiArCQkgd2QtPnJlZnJlc2hfZnJhbWVfYWRkcmVzcywgd2QtPmNvbnRyb2xfZnJh
-bWVfYWRkcmVzcywKPiArCQkgd2QtPnRpbWVyX2ludGVycnVwdCwgd2QtPnRpbWVyX2ZsYWdzKTsK
-PiArCj4gKwlpZiAoISh3ZC0+cmVmcmVzaF9mcmFtZV9hZGRyZXNzICYmIHdkLT5jb250cm9sX2Zy
-YW1lX2FkZHJlc3MpKSB7Cj4gKwkJcHJfZXJyKEZXX0JVRyAiZmFpbGVkIHRvIGdldCB0aGUgV2F0
-Y2hkb2cgYmFzZSBhZGRyZXNzLlxuIik7Cj4gKwkJcmV0dXJuIC1FSU5WQUw7Cj4gKwl9Cj4gKwo+
-ICsJaWYgKCF3ZC0+dGltZXJfaW50ZXJydXB0KQo+ICsJCXByX3dhcm4oRldfQlVHICJmYWlsZWQg
-dG8gZ2V0IHRoZSBXYXRjaGRvZyBpbnRlcnJ1cHQuXG4iKTsKCkkndmUgbm90IGJlZW4gYWJsZSB0
-byBmaW5kIHdoZXJlIHRoZSBBQ1BJIHNwZWMgc2F5cyB0aGF0IHplcm8gaXMgbm90IGEKdmFsaWQg
-R1NJVi4gVGhpcyBtYXkgc2ltcGx5IGJlIGFuIG92ZXJzaWdodC9hbWJpZ3VpdHkgaW4gdGhlIHNw
-ZWMuCgpJcyB0aGVyZSBhbnkgc3RhdGVtZW50IHRvIHRoYXQgZWZmZWN0PwoKPiArCWVsc2UgaWYg
-KGlycSA8PSAwKQo+ICsJCXByX3dhcm4oImZhaWxlZCB0byBtYXAgdGhlIFdhdGNoZG9nIGludGVy
-cnVwdC5cbiIpOwo+ICsJZWxzZQo+ICsJCW5vX2lycSA9IDA7Cj4gKwo+ICsJLyoKPiArCSAqIEFk
-ZCBhIHBsYXRmb3JtIGRldmljZSBuYW1lZCAic2JzYS1nd2R0IiB0byBtYXRjaCB0aGUgcGxhdGZv
-cm0gZHJpdmVyLgo+ICsJICogInNic2EtZ3dkdCI6IFNCU0EoU2VydmVyIEJhc2UgU3lzdGVtIEFy
-Y2hpdGVjdHVyZSkgR2VuZXJpYyBXYXRjaGRvZwo+ICsJICogVGhlIHBsYXRmb3JtIGRyaXZlciAo
-bGlrZSBkcml2ZXJzL3dhdGNoZG9nL3Nic2FfZ3dkdC5jKWNhbiBnZXQgZGV2aWNlCj4gKwkgKiBp
-bmZvIGJlbG93IGJ5IG1hdGNoaW5nIHRoaXMgbmFtZS4KPiArCSAqLwo+ICsJcGRldiA9IHBsYXRm
-b3JtX2RldmljZV9yZWdpc3Rlcl9zaW1wbGUoInNic2EtZ3dkdCIsIGluZGV4LCByZXMsCj4gKwkJ
-CQkJICAgICAgIEFSUkFZX1NJWkUocmVzKSAtIG5vX2lycSk7CgpUaGlzIG5vX2lycSB2YXJpYWJs
-ZSBpcyBtZXNzeSBhbmQgY29uZnVzaW5nLgoKR2V0IHJpZCBvZiBub19pcnEsIGFuZCByZXBsYWNl
-IGl0IHdpdGggbnJfcmVzLCBpbml0aWFsaXNlZCB0bwpBUlJBWV9TSVpFKHJlcykuIElmIHRoZXJl
-J3Mgbm8gaW50ZXJydXB0LCBzdWJ0cmFjdCBvbmUuCgpbLi4uXQoKPiArCWZvcl9lYWNoX3BsYXRm
-b3JtX3RpbWVyKHBsYXRmb3JtX3RpbWVyKSB7Cj4gKwkJaWYgKGlzX3dhdGNoZG9nKHBsYXRmb3Jt
-X3RpbWVyKSkgewo+ICsJCQlyZXQgPSBndGR0X2ltcG9ydF9zYnNhX2d3ZHQocGxhdGZvcm1fdGlt
-ZXIsIGkpOwo+ICsJCQlpZiAocmV0KQo+ICsJCQkJYnJlYWs7Cj4gKwkJCWkrKzsKPiArCQl9Cj4g
-Kwl9Cj4gKwo+ICsJaWYgKGkpCj4gKwkJcHJfaW5mbygiZm91bmQgJWQgU0JTQSBnZW5lcmljIFdh
-dGNoZG9nKHMpLlxuIiwgaSk7CgpNeSByZWFkaW5nIG9mIFNCU0EgaXMgdGhhdCB0aGVyZSBpcyBv
-bmUgd2F0Y2hkb2cgaW4gdGhlIHN5c3RlbS4KCklzIHRoYXQgbm90IHRoZSBjYXNlPwoKWy4uLl0K
-Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZyBiL2RyaXZlcnMvd2F0Y2hk
-b2cvS2NvbmZpZwo+IGluZGV4IGFjYjAwYjUuLmM4OTlkZjEgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVy
-cy93YXRjaGRvZy9LY29uZmlnCj4gKysrIGIvZHJpdmVycy93YXRjaGRvZy9LY29uZmlnCj4gQEAg
-LTIxOSw2ICsyMTksNyBAQCBjb25maWcgQVJNX1NCU0FfV0FUQ0hET0cKPiAgCXRyaXN0YXRlICJB
-Uk0gU0JTQSBHZW5lcmljIFdhdGNoZG9nIgo+ICAJZGVwZW5kcyBvbiBBUk02NAo+ICAJZGVwZW5k
-cyBvbiBBUk1fQVJDSF9USU1FUgo+ICsJZGVwZW5kcyBvbiBBQ1BJX0dURFQgfHwgIUFDUEkKCkkg
-ZG9uJ3QgdGhpbmsgdGhpcyBpcyBuZWNlc3NhcnkuCgpUaGlzIHNlcmllcyBoYXNuJ3QgdG91Y2hl
-ZCB0aGlzIGRyaXZlciBjb2RlIGF0IGFsbC4KClRoYW5rcywKTWFyay4KCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGlu
-ZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMu
-aW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Thu, Mar 09, 2017 at 11:47:16PM +0100, Fu Wei wrote:
+> Hi Mark, Marc,
+
+Hi,
+
+> I have tried to rebase all the 19(6+13) patches  on 4.11-rc1,
+> all the patchse can directly apply on  4.11-rc1,
+> 
+> Could you help to review the patches, and see if there is anywhere I
+> can improve ?
+
+I'm sorry I have taken so long to review this posting.
+
+This is generally looking much better. I'm not sure about a few details
+relating to the watchdog, but I'm largely happy to pick up the rest of
+the series, if you can address my comments.
+
+Thanks,
+Mark.
