@@ -1,75 +1,77 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH v2 00/17] Move firmware specific code to firmware
- specific locations
-Date: Fri, 17 Mar 2017 00:50:20 +0200
-Message-ID: <20170316225019.GK10701@valkosipuli.retiisi.org.uk>
-References: <1488814983-25695-1-git-send-email-sakari.ailus@linux.intel.com>
- <2385585.K4ms5H7miQ@aspire.rjw.lan>
- <20170315141918.GF10701@valkosipuli.retiisi.org.uk>
- <CAJZ5v0i5o+2FksW+NmYQugD6qL-1QmREd2isATifu9n0g69Q+w@mail.gmail.com>
+From: "Huang\, Ying" <ying.huang@intel.com>
+Subject: Re: [PATCH] ACPI / APEI: Add missing synchronize_rcu() on NOTIFY_SCI removal.
+Date: Fri, 17 Mar 2017 09:23:16 +0800
+Message-ID: <87inn8wvaz.fsf@yhuang-dev.intel.com>
+References: <20170316143039.375-1-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0i5o+2FksW+NmYQugD6qL-1QmREd2isATifu9n0g69Q+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Al Stone <ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:18120 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750785AbdCQB3K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Mar 2017 21:29:10 -0400
+In-Reply-To: <20170316143039.375-1-james.morse@arm.com> (James Morse's message
+        of "Thu, 16 Mar 2017 14:30:39 +0000")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Shiju Jose <shiju.jose@huawei.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
 
-On Wed, Mar 15, 2017 at 03:23:41PM +0100, Rafael J. Wysocki wrote:
-> On Wed, Mar 15, 2017 at 3:19 PM, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org> wrote:
-> > On Mon, Mar 13, 2017 at 11:27:40PM +0100, Rafael J. Wysocki wrote:
-> >> On Monday, March 06, 2017 05:42:46 PM Sakari Ailus wrote:
-> >> > Hi,
-> >> >
-> >> > This set moves firmware specific implementations of the device / fwnode
-> >> > property API to locations that are specific to firmware implementation,
-> >> > still leaving property set (which isn't really firmware) implementation in
-> >> > drivers/base/property.c.
-> >> >
-> >> > The set depends on the ACPI graph support v4 patches I posted a moment
-> >> > ago.
-> >> >
-> >> > The patches may be found with dependencies here:
-> >> >
-> >> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned>
-> >> >
-> >> > since v1:
-> >> >
-> >> > - Move the three bugfixes in front of the set into a separate patchset.
-> >> >   There are no dependencies to those from the rest of the patches.
-> >> >
-> >> > - Rebase on current ACPI graph support patches (themselves on PM tree
-> >> >   4.11-rc1 merge).
-> >>
-> >> To me, all material from patches [1-11/17] can easily go into one patch which
-> >> would also help to review it quite a bit.
-> >>
-> >> Analogously, all material in patches [12-16/17] can go into one patch too.
-> >>
-> >> The split as is appears quite artificial, honestly.
-> >
-> > I believe it's easier to review the way it is. Each patch is simple and it's
-> > easy to see where a particular piece of code is moved. I'm happy to fold
-> > them, too, but I'd prefer keep "[PATCH v2 07/17] device property: Read
-> > strings using string array reading functions" separate, as it changes the
-> > implementation of reading single strings.
-> >
-> > How about that?
-> 
-> That's fine too.
+Hi, James,
 
-I kept the last patch (device property: Implement fwnode_get_next_parent()
-using fwnode interface) separate, too, as I noticed it is really separate
-from moving the FW type specific parts behind an ops struct.
+James Morse <james.morse@arm.com> writes:
 
-The details are on the cover page of v3 of the set.
+> When removing a GHES device notified by SCI, list_del_rcu() is used,
+> ghes_remove() should call synchronize_rcu() before it goes on to call
+> kfree(ghes), otherwise concurrent RCU readers may still hold this list
+> entry after it has been freed.
+>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Cc: Huang Ying <ying.huang@intel.com>
+>
+> ---
+> It looks like 81e88fdc432a lifted this into ACPI_HEST_NOTIFY_NMI, missing
+> that ACPI_HEST_NOTIFY_SCI needed it too.
+>
+> If there is only ever one SCI GHES entry this is safe today as
+> unregister_acpi_hed_notifier() takes a write lock on its semaphore, meaning
+> any RCU readers will have finished.
+> If there can be more than one SCI GHES entry...
+>
+> Fixes: 81e88fdc432a ("ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support")
+>
+>  drivers/acpi/apei/ghes.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index b192b42a8351..79b3c9c5a3bc 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1073,6 +1073,7 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>  		if (list_empty(&ghes_sci))
+>  			unregister_acpi_hed_notifier(&ghes_notifier_sci);
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In remove path
+
+unregister_acpi_hed_notifier()
+  blocking_notifier_chain_unregister()
+    down_write(&nh->rwsem)
+
+While in notifier call path
+
+acpi_hed_notify()
+  blocking_notifier_call_chain()
+    __blocking_notifier_call_chain()
+      down_read(&nh->rwsem)
+
+So when unregister succeeds, the notifier call should have
+finished.
+
+Best Regards,
+Huang, Ying
+
+>  		mutex_unlock(&ghes_list_mutex);
+> +		synchronize_rcu();
+>  		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		ghes_nmi_remove(ghes);
