@@ -1,70 +1,85 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH V12 05/10] acpi: apei: handle SEA notification type for
- ARMv8
-Date: Fri, 17 Mar 2017 16:43:11 +0000
-Message-ID: <58CC121F.5030807@arm.com>
-References: <1488833103-21082-1-git-send-email-tbaicar@codeaurora.org>
- <1488833103-21082-6-git-send-email-tbaicar@codeaurora.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 01/15] mfd: Add Cherry Trail Whiskey Cove PMIC driver
+Date: Fri, 17 Mar 2017 19:00:46 +0200
+Message-ID: <1489770046.19767.66.camel@linux.intel.com>
+References: <20170317095527.10487-1-hdegoede@redhat.com>
+         <20170317095527.10487-2-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1488833103-21082-6-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:57847 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751088AbdCQRNg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 17 Mar 2017 13:13:36 -0400
+In-Reply-To: <20170317095527.10487-2-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
+Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
 
-Hi Tyler,
+On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
+> Add mfd driver for Intel CHT Whiskey Cove PMIC, based on various non
+> upstreamed CHT Whiskey Cove PMIC patches.
+> 
+> This is a somewhat minimal version which adds irqchip support and
+> cells
+> for: ACPI PMIC opregion support, the i2c-controller driving the
+> external
+> charger irc and the pwrsrc/extcon block.
+> 
+> Further cells can be added in the future if/when drivers are
+> upstreamed
+> for them.
 
-On 06/03/17 20:44, Tyler Baicar wrote:
-> ARM APEI extension proposal added SEA (Synchronous External Abort)
-> notification type for ARMv8.
-> Add a new GHES error source handling function for SEA. If an error
-> source's notification type is SEA, then this function can be registered
-> into the SEA exception handler. That way GHES will parse and report
-> SEA exceptions when they occur.
-> An SEA can interrupt code that had interrupts masked and is treated as
-> an NMI. To aid this the page of address space for mapping APEI buffers
-> while in_nmi() is always reserved, and ghes_ioremap_pfn_nmi() is
-> changed to use the helper methods to find the prot_t to map with in
-> the same way as ghes_ioremap_pfn_irq().
+Couple of minor comments, otherwise looks good to me:
 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index b25e7cf..b0596ba 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -1023,6 +1075,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
->  		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
->  			   generic->header.source_id);
->  		goto err;
-> +	case ACPI_HEST_NOTIFY_GPIO:
-> +	case ACPI_HEST_NOTIFY_SEI:
-> +	case ACPI_HEST_NOTIFY_GSIV:
-> +		pr_warn(GHES_PFX "Generic hardware error source: %d notified via notification type %u is not supported\n",
-> +			generic->header.source_id, generic->header.source_id);
-> +		rc = -ENOTSUPP;
-> +		goto err;
->  	default:
->  		pr_warning(FW_WARN GHES_PFX "Unknown notification type: %u for generic hardware error source: %d\n",
->  			   generic->notify.type, generic->header.source_id);
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
+> +/* Whiskey Cove PMIC share same ACPI ID between different platforms
+> */
+> +#define CHT_WC_HRV		3
+> +
+> +/* Level 1 IRQs (level 2 IRQs are handled in the child device
+> drivers) */
+> +enum {
+> +	CHT_WC_PWRSRC_IRQ = 0,
+> +	CHT_WC_THRM_IRQ,
+> +	CHT_WC_BCU_IRQ,
+> +	CHT_WC_ADC_IRQ,
+> +	CHT_WC_EXT_CHGR_IRQ,
+> +	CHT_WC_GPIO_IRQ,
+> +	/* There is no irq 6 */
+> +	CHT_WC_CRIT_IRQ = 7,
 
-This hunk will conflict with Shiju Jose's patch[0] that adds GPIO and GSIV
-support. Can we remove it?
+I would prefer explicit over implicit (adding = N to each line), but
+this is minor.
 
+> +};
 
-Thanks,
-
-James
+> +	pmic->regmap = devm_regmap_init(dev, NULL, client,
+> &cht_wc_regmap_cfg);
+> +	if (IS_ERR(pmic->regmap))
+> +		return PTR_ERR(pmic->regmap);
+> +
+> +	ret = devm_regmap_add_irq_chip(dev, pmic->regmap, pmic->irq,
+> +				       IRQF_ONESHOT | IRQF_SHARED, 0,
+> +				       &cht_wc_regmap_irq_chip,
+> +				       &pmic->irq_chip_data);
+> +	if (ret)
+> +		return ret;
+> +
 
 
-[0] https://www.spinics.net/lists/linux-acpi/msg72654.html
+> +	return devm_mfd_add_devices(dev, -1, cht_wc_dev,
+> ARRAY_SIZE(cht_wc_dev),
+> +			NULL, 0, regmap_irq_get_domain(pmic-
+> >irq_chip_data));
+
+PLATFORM_DEVID_NONE, please.
+
+> +}
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
