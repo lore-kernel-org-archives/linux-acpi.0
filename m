@@ -1,27 +1,48 @@
-From: "Miss Luna Seba." <lunaseba0101@gmail.com>
-Subject: REQUEST TO BE MY GUARDIAN AND THEN HELP ME THUS:
-Date: Fri, 17 Mar 2017 14:54:35 +0000 (UTC)
-Message-ID: <1499645071.2290752.1489762475807__14027.064087759$1489762493$gmane$org@mail.yahoo.com>
-References: <1499645071.2290752.1489762475807.ref@mail.yahoo.com>
-Reply-To: "Miss Luna Seba." <lunaseba689@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm21.bullet.mail.bf1.yahoo.com ([98.139.212.180]:59040 "EHLO
-        nm21.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751151AbdCQOyl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Mar 2017 10:54:41 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 2/3] mfd: intel_soc_pmic_bxtwc: Move inclusion to c-file
+Date: Fri, 17 Mar 2017 17:37:14 +0200
+Message-ID: <20170317153715.48555-2-andriy.shevchenko@linux.intel.com>
+References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+There is no need to include intel_soc_pmic.h into header which doesn't
+require it.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/mfd/intel_soc_pmic_bxtwc.c | 1 +
+ include/linux/mfd/intel_bxtwc.h    | 2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-Dearest one,
-I greet you in names of our lord? however let me give you brief introductio=
-n myself, My name is Luna Seba the only surviving daughter of Mr. & Mrs. Jo=
-seph C Seba,he deposited=C2=A0($6.5) in the bank,I will give more details c=
-oncerning me and the transaction.
-=C2=A0
-Miss Luna Seba.
+diff --git a/drivers/mfd/intel_soc_pmic_bxtwc.c b/drivers/mfd/intel_soc_pmic_bxtwc.c
+index 699c8c7c9052..c71db687b7ca 100644
+--- a/drivers/mfd/intel_soc_pmic_bxtwc.c
++++ b/drivers/mfd/intel_soc_pmic_bxtwc.c
+@@ -21,6 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/intel_bxtwc.h>
++#include <linux/mfd/intel_soc_pmic.h>
+ #include <asm/intel_pmc_ipc.h>
+ 
+ /* PMIC device registers */
+diff --git a/include/linux/mfd/intel_bxtwc.h b/include/linux/mfd/intel_bxtwc.h
+index 1a0ee9d6efe9..240d6752ec64 100644
+--- a/include/linux/mfd/intel_bxtwc.h
++++ b/include/linux/mfd/intel_bxtwc.h
+@@ -13,8 +13,6 @@
+  * more details.
+  */
+ 
+-#include <linux/mfd/intel_soc_pmic.h>
+-
+ #ifndef __INTEL_BXTWC_H__
+ #define __INTEL_BXTWC_H__
+ 
+-- 
+2.11.0
