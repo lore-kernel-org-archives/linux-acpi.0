@@ -1,47 +1,45 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v21 00/13] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Fri, 17 Mar 2017 20:03:47 +0000
-Message-ID: <20170317200346.GG15909@leverpostej>
-References: <20170206185015.12296-1-fu.wei@linaro.org>
- <CADyBb7t_zrLetPQQ8=k8oN6iMHhuMHO8O3XTZqGYvTT9p0evKw@mail.gmail.com>
- <CADyBb7urVf87LTsyrtoaAExTeOZSBAvT91enGBK4cm6723q+1Q@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with compilation units
+Date: Sat, 18 Mar 2017 17:59:30 +0100
+Message-ID: <CACRpkdYVP0snBv_K18qkKgDBVEZ19RYkDLb5Kp9dVTBo7rOAcA@mail.gmail.com>
+References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CADyBb7urVf87LTsyrtoaAExTeOZSBAvT91enGBK4cm6723q+1Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f46.google.com ([209.85.214.46]:38771 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751272AbdCRRAE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Mar 2017 13:00:04 -0400
+Received: by mail-it0-f46.google.com with SMTP id m27so58400617iti.1
+        for <linux-acpi@vger.kernel.org>; Sat, 18 Mar 2017 09:59:31 -0700 (PDT)
+In-Reply-To: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
 
-On Thu, Mar 09, 2017 at 11:47:16PM +0100, Fu Wei wrote:
-> Hi Mark, Marc,
+On Fri, Mar 17, 2017 at 4:37 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-Hi,
+> Crystal Cove and Whiskey Cove are two different PMICs which are
+> installed on Intel Atom SoC based platforms.
+>
+> Moreover there are two independent drivers that by some reason were
+> supposed (*) to get into one kernel module.
+>
+> Fix the mess by clarifying Kconfig option for Crystal Cove and split
+> Whiskey Cove out of it.
+>
+> (*) It looks like the configuration was never tested with
+>     INTEL_SOC_PMIC=n. The line in Makefile is actually wrong.
+>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
+> Cc: Linus Walleij <linus.walleij@linaro.org> (maintainer:GPIO SUBSYSTEM)
+> Cc: Zhang Rui <rui.zhang@intel.com> (supporter:THERMAL)
+> Cc: Eduardo Valentin <edubezval@gmail.com> (supporter:THERMAL)
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-> I have tried to rebase all the 19(6+13) patches  on 4.11-rc1,
-> all the patchse can directly apply on  4.11-rc1,
-> 
-> Could you help to review the patches, and see if there is anywhere I
-> can improve ?
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-I'm sorry I have taken so long to review this posting.
-
-This is generally looking much better. I'm not sure about a few details
-relating to the watchdog, but I'm largely happy to pick up the rest of
-the series, if you can address my comments.
-
-Thanks,
-Mark.
+Yours,
+Linus Walleij
