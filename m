@@ -1,79 +1,46 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Subject: Re: [PATCH] gpio: acpi: Call enable_irq_wake for _IAE GpioInts with
  Wake set
-Date: Sun, 19 Mar 2017 01:25:46 +0100
-Message-ID: <CAJZ5v0i-WbGb=4B-xdQu1=LD2sYDoAm3mEkiLqdHSw8Tw4avrA@mail.gmail.com>
+Date: Sun, 19 Mar 2017 17:25:16 +0200
+Message-ID: <1489937116.19767.92.camel@linux.intel.com>
 References: <20170318233524.5047-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:30309 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751763AbdCSPZb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 19 Mar 2017 11:25:31 -0400
 In-Reply-To: <20170318233524.5047-1-hdegoede@redhat.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 
-On Sun, Mar 19, 2017 at 12:35 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+On Sun, 2017-03-19 at 00:35 +0100, Hans de Goede wrote:
 > On baytrail / cherrytrail systems with a LID switch the LID switch is
 > often connect to a gpioint handled by an _IAE event handler.
-> Before this commit such systems would not wake up when opening the lid,
-> requiring the powerbutton to be pressed after opening the lid to wakeup.
->
+> Before this commit such systems would not wake up when opening the
+> lid,
+> requiring the powerbutton to be pressed after opening the lid to
+> wakeup.
+> 
 > This commit calls enable_irq_wake() for _IAE GpioInts with a valid
 > event handler which have their Wake flag set. This fixes such systems
 > not waking up when opening the lid.
->
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Thanks for taking care of this, the changes look OK to me.
+I perhaps give up on my nits against Capital Letters :-), though for
+consistency, please, use Baytrail, Cherry Trail.
+ 
+> +		if (event->irq_wake_enabled)
 
-Do I guess correctly that this is about wakeups from suspend-to-idle?
+You may use irqd_is_wakeup_set() instead. IRQ framework keeps this state
+already.
 
-If so, it would be good to note in the changelog that this is the case
-and that the interrupts are generated anyway on those lines on lid
-switch changes, but they are treated by the IRQ subsystem as spurious
-while suspended if not marked as wakeup IRQs.
+> +			disable_irq_wake(event->irq);
 
-> ---
->  drivers/gpio/gpiolib-acpi.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
->
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 8cd3f66..18207b2 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -28,6 +28,7 @@ struct acpi_gpio_event {
->         acpi_handle handle;
->         unsigned int pin;
->         unsigned int irq;
-> +       bool irq_wake_enabled;
->         struct gpio_desc *desc;
->  };
->
-> @@ -266,6 +267,11 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
->                 goto fail_free_event;
->         }
->
-> +       if (agpio->wake_capable == ACPI_WAKE_CAPABLE) {
-> +               enable_irq_wake(irq);
-> +               event->irq_wake_enabled = true;
-> +       }
-> +
->         list_add_tail(&event->node, &acpi_gpio->events);
->         return AE_OK;
->
-> @@ -339,6 +345,9 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
->         list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
->                 struct gpio_desc *desc;
->
-> +               if (event->irq_wake_enabled)
-> +                       disable_irq_wake(event->irq);
-> +
->                 free_irq(event->irq, event);
->                 desc = event->desc;
->                 if (WARN_ON(IS_ERR(desc)))
-> --
-> 2.9.3
 
-Thanks,
-Rafael
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
