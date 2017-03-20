@@ -1,78 +1,38 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v21 11/13] acpi/arm64: Add memory-mapped timer support in
- GTDT driver
-Date: Mon, 20 Mar 2017 21:38:16 +0800
-Message-ID: <CADyBb7s0Bwn17YMSEwxmhrZ6E1pOJLdifZ-JJL+vqRBRD+H-dw@mail.gmail.com>
-References: <20170206185015.12296-1-fu.wei@linaro.org>
- <20170206185015.12296-12-fu.wei@linaro.org>
- <20170317194055.GE15909@leverpostej>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 0/4] Avoid duplicate registering of ACPI and native
+ power-supplies
+Date: Mon, 20 Mar 2017 15:18:24 +0200
+Message-ID: <1490015904.19767.111.camel@linux.intel.com>
+References: <20170316161601.32267-1-hdegoede@redhat.com>
+         <20170320013305.v4mof5qoie3w7xdb@earth>
+         <5bdbcb12-57c1-13cf-a591-22c9334d85b6@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170317194055.GE15909@leverpostej>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5bdbcb12-57c1-13cf-a591-22c9334d85b6@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Sebastian Reichel <sre@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgTWFyaywKCk9uIDE4IE1hcmNoIDIwMTcgYXQgMDM6NDAsIE1hcmsgUnV0bGFuZCA8bWFyay5y
-dXRsYW5kQGFybS5jb20+IHdyb3RlOgo+IEhpLAo+Cj4gT24gVHVlLCBGZWIgMDcsIDIwMTcgYXQg
-MDI6NTA6MTNBTSArMDgwMCwgZnUud2VpQGxpbmFyby5vcmcgd3JvdGU6Cj4+ICtzdGF0aWMgaW50
-IF9faW5pdCBndGR0X3BhcnNlX3RpbWVyX2Jsb2NrKHN0cnVjdCBhY3BpX2d0ZHRfdGltZXJfYmxv
-Y2sgKmJsb2NrLAo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1
-Y3QgYXJjaF90aW1lcl9tZW0gKmRhdGEpCj4KPiBQbGVhc2Ugcy9kYXRhL3RpbWVyX21lbS8gaGVy
-ZSwgdG8gbWF0Y2ggdGhlIHJlc3Qgb2YgdGhlIHRpbWVyIGNvZGUuCj4KPj4gK3sKPj4gKyAgICAg
-aW50IGksIGo7Cj4+ICsgICAgIHN0cnVjdCBhY3BpX2d0ZHRfdGltZXJfZW50cnkgKmZyYW1lOwo+
-Cj4gU28gYXMgdG8gbWFrZSBpdCBjbGVhciB3aGF0IHRoaXMgaXMsIGFuZCB0byBtYWtlIHRoaW5n
-cyBhIGxpdGx0ZSBzaW1wbGVyCj4gYmVsb3csIHBsZWFzZSBzL2ZyYW1lL2d0ZHRfZnJhbWUvIGhl
-cmUuCj4KPj4gKwo+PiArICAgICBpZiAoIWJsb2NrLT50aW1lcl9jb3VudCkgewo+PiArICAgICAg
-ICAgICAgIHByX2VycihGV19CVUcgIkdUIGJsb2NrIHByZXNlbnQsIGJ1dCBmcmFtZSBjb3VudCBp
-cyB6ZXJvLiIpOwo+PiArICAgICAgICAgICAgIHJldHVybiAtRU5PREVWOwo+PiArICAgICB9Cj4+
-ICsKPj4gKyAgICAgaWYgKGJsb2NrLT50aW1lcl9jb3VudCA+IEFSQ0hfVElNRVJfTUVNX01BWF9G
-UkFNRVMpIHsKPj4gKyAgICAgICAgICAgICBwcl9lcnIoRldfQlVHICJHVCBibG9jayBsaXN0cyAl
-ZCBmcmFtZXMsIEFDUEkgc3BlYyBvbmx5IGFsbG93cyA4XG4iLAo+PiArICAgICAgICAgICAgICAg
-ICAgICBibG9jay0+dGltZXJfY291bnQpOwo+PiArICAgICAgICAgICAgIHJldHVybiAtRUlOVkFM
-Owo+PiArICAgICB9Cj4+ICsKPj4gKyAgICAgZGF0YS0+Y250Y3RsYmFzZSA9IChwaHlzX2FkZHJf
-dClibG9jay0+YmxvY2tfYWRkcmVzczsKPj4gKyAgICAgLyoKPj4gKyAgICAgICogQWNjb3JkaW5n
-IHRvICJUYWJsZSAqIENOVENUTEJhc2UgbWVtb3J5IG1hcCIgb2YKPj4gKyAgICAgICogPEFSTSBB
-cmNoaXRlY3R1cmUgUmVmZXJlbmNlIE1hbnVhbD4gZm9yIEFSTXY4LAo+PiArICAgICAgKiBUaGUg
-c2l6ZSBvZiB0aGUgQ05UQ1RMQmFzZSBmcmFtZSBpcyA0S0IoT2Zmc2V0IDB4MDAwIOKAkyAweEZG
-QykuCj4+ICsgICAgICAqLwo+Cj4gQXMgYSBnZW5lcmFsIHRoaW5nLCBwbGVhc2UgY2l0ZSB0aGUg
-dmVyc2lvbiBvZiB0aGUgQVJNIEFSTSB5b3UncmUKPiByZWZlcnJpbmcgdG8sIGFzIG92ZXIgdGlt
-ZSB0aGUgaW50ZXJuYWwgbnVtYmVyaW5nIChhbmQgdGhlIGhlYWRpbmdzKQo+IGNoYW5nZS4KPgo+
-IGUuZy4KPiAgICAgICAgIC8qCj4gICAgICAgICAgKiBUaGUgQ05UQ1RMQmFzZSBmcmFtZSBpcyA0
-S0IgKHJlZ2lzdGVyIG9mZnNldHMgMHgwMDAgLSAweEZGQykuCj4gICAgICAgICAgKiBTZWUgQVJN
-IERESSAwNDg3QS5rX2lzczEwNzc1LCBwYWdlIEkxLTUxMjksIFRhYmxlIEkxLTMKPiAgICAgICAg
-ICAqICJDTlRDVExCYXNlIG1lbW9yeSBtYXAiLgo+ICAgICAgICAgICovCj4KPj4gKyAgICAgZGF0
-YS0+c2l6ZSA9IFNaXzRLOwo+PiArCj4+ICsgICAgIGZyYW1lID0gKHZvaWQgKilibG9jayArIGJs
-b2NrLT50aW1lcl9vZmZzZXQ7Cj4+ICsgICAgIGlmIChmcmFtZSArIGJsb2NrLT50aW1lcl9jb3Vu
-dCAhPSAodm9pZCAqKWJsb2NrICsgYmxvY2stPmhlYWRlci5sZW5ndGgpCj4+ICsgICAgICAgICAg
-ICAgcmV0dXJuIC1FSU5WQUw7Cj4+ICsKPj4gKyAgICAgLyoKPj4gKyAgICAgICogR2V0IHRoZSBH
-VCB0aW1lciBGcmFtZSBkYXRhIGZvciBldmVyeSBHVCBCbG9jayBUaW1lcgo+PiArICAgICAgKi8K
-Pj4gKyAgICAgZm9yIChpID0gMCwgaiA9IDA7IGkgPCBibG9jay0+dGltZXJfY291bnQ7IGkrKywg
-ZnJhbWUrKykgewo+Cj4gV2l0aCB0aGUgZ3RkdF9mcmFtZSByZW5hbWUgYXMgYWJvdmUsIGhlcmUg
-d2UgY2FuIGRvOgo+Cj4gICAgICAgICBzdHJ1Y3QgYXJjaF90aW1lcl9tZW1fZnJhbWUgKmZyYW1l
-ID0gJnRpbWVyX21lbS0+ZnJhbWVbal07Cj4KPj4gKyAgICAgICAgICAgICBpZiAoZnJhbWUtPmNv
-bW1vbl9mbGFncyAmIEFDUElfR1REVF9HVF9JU19TRUNVUkVfVElNRVIpCj4+ICsgICAgICAgICAg
-ICAgICAgICAgICBjb250aW51ZTsKPj4gKwo+PiArICAgICAgICAgICAgIGlmICghZnJhbWUtPmJh
-c2VfYWRkcmVzcyB8fCAhZnJhbWUtPnRpbWVyX2ludGVycnVwdCkKPj4gKyAgICAgICAgICAgICAg
-ICAgICAgIHJldHVybiAtRUlOVkFMOwo+PiArCj4+ICsgICAgICAgICAgICAgZGF0YS0+ZnJhbWVb
-al0ucGh5c19pcnEgPSBtYXBfZ3RfZ3NpKGZyYW1lLT50aW1lcl9pbnRlcnJ1cHQsCj4+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZyYW1lLT50aW1l
-cl9mbGFncyk7Cj4KPiAuLi4gYWxsb3dpbmcgdXMgdG8gc2ltcGxpZnkgbGluZXMgbGlrZSB0aGlz
-LgoKVGhhbmtzLCB3aWxsIGZvbGxvdyBhbGwgdGhlIHN1Z2dlc3Rpb24gYWJvdmUuCjotKQoKPgo+
-IFRoYW5rcywKPiBNYXJrLgoKCgotLSAKQmVzdCByZWdhcmRzLAoKRnUgV2VpClNvZnR3YXJlIEVu
-Z2luZWVyClJlZCBIYXQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Mon, 2017-03-20 at 14:11 +0100, Hans de Goede wrote:
+> On 20-03-17 02:33, Sebastian Reichel wrote:
+> > On Thu, Mar 16, 2017 at 05:15:57PM +0100, Hans de Goede wrote:
+
+> we've some extra magic in the fuel-gauge's probe method to see
+> if it really is the one we want like this:
+> 
+>          status = acpi_evaluate_integer(ACPI_HANDLE(dev), "PTYP",
+> NULL, &ptyp);
+
+Just a side note. Looks like abusing (?) ACPI is not limited to GPIO
+resources and stuff. I think we will see more stuff due to Windows
+driver developers don't give a sh*t to follow standards, consistency,
+and in some cases even common sense. For above case they might have used
+_UID or _CID (compatible ID) + _HID (exact ID of the type of device) or
+something else which is standard / more common.
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
