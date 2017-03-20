@@ -1,56 +1,73 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 1/4] acpi: battery: Add acpi_battery_unregister()
- function
-Date: Mon, 20 Mar 2017 15:10:00 +0200
-Message-ID: <1490015400.19767.109.camel@linux.intel.com>
-References: <20170316161601.32267-1-hdegoede@redhat.com>
-         <20170316161601.32267-2-hdegoede@redhat.com>
-         <1489681793.19767.21.camel@linux.intel.com>
-         <84d31794-d5c5-6f09-bbdb-9f5612ddbbbe@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 3/4] power: supply: axp288_fuel_gauge: Unregister duplicate ACPI battery supply
+Date: Mon, 20 Mar 2017 14:21:49 +0100
+Message-ID: <20170320132150.18771-3-hdegoede@redhat.com>
+References: <20170320132150.18771-1-hdegoede@redhat.com>
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <84d31794-d5c5-6f09-bbdb-9f5612ddbbbe@redhat.com>
+In-Reply-To: <20170320132150.18771-1-hdegoede@redhat.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2017-03-20 at 14:03 +0100, Hans de Goede wrote:
-> Hi,
-> 
-> Thank you for the reviews!
-> 
-> On 16-03-17 17:29, Andy Shevchenko wrote:
-> > On Thu, 2017-03-16 at 17:15 +0100, Hans de Goede wrote:
+On some systems with axp288 PMIC the dsdt also exports an ACPI battery
+device (PNP0C0A device). This leads to there being 2 battery
+power_supply-s registed like this:
 
-> > > @@ -31,6 +31,7 @@
-> > >  #include <linux/delay.h>
-> > >  #include <linux/slab.h>
-> > >  #include <linux/suspend.h>
-> > > +#include <linux/mutex.h>
-> > 
-> > Keep in alphabetical order ?
-> 
-> I'm a fan of having headers in alphabetical order myself,
-> but if you look at the actual file, rather then the diff
-> context, you will see that this file uses random order.
+~$ acpi
+Battery 0: Charging, 84%, 00:49:39 until charged
+Battery 1: Unknown, 0%, rate information unavailable
 
-Okay, but can you squeeze it in most ordered part?
+Note that the ACPI battery device does not work properly this is due
+to Linux missing support for the vendor specific BMOP ACPI opregion.
+But even if the ACPI battery where to function fine we still do not
+want to export the same battery to userspace twice.
 
-> > > +++ b/include/linux/power/acpi.h
-> > 
-> > E.g. for GPIO we keep such things directly in linux/acpi.h. Does it
-> > make
-> > sense to have separate one in this case?
-> 
-> I've taken include/acpi/video.h as example here. TBH I do not think
-> shoving everything acpi related into linux/acpi.h is a good idea.
+Therefor this commit calls acpi_battery_unregister() after successfully
+registering the axp288-fuel-gauge power_supply to remove the duplicate
+(and often broken) ACPI battery power_supply.
 
-So, let Rafael judge then. I have no strong opinion, just recall that
-case.
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=194811
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Tested-by: Sergei Trusov <t.rus76@ya.ru>
+---
+ drivers/power/supply/Kconfig             | 2 ++
+ drivers/power/supply/axp288_fuel_gauge.c | 3 +++
+ 2 files changed, 5 insertions(+)
 
+diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
+index d978d75..ae8363b 100644
+--- a/drivers/power/supply/Kconfig
++++ b/drivers/power/supply/Kconfig
+@@ -242,6 +242,8 @@ config AXP288_CHARGER
+ config AXP288_FUEL_GAUGE
+ 	tristate "X-Powers AXP288 Fuel Gauge"
+ 	depends on MFD_AXP20X && IIO
++	# if ACPI_BATTERY=m, this can't be 'y'
++	depends on ACPI_BATTERY || !ACPI_BATTERY
+ 	help
+ 	  Say yes here to have support for X-Power power management IC (PMIC)
+ 	  Fuel Gauge. The device provides battery statistics and status
+diff --git a/drivers/power/supply/axp288_fuel_gauge.c b/drivers/power/supply/axp288_fuel_gauge.c
+index a8dcabc..b6efe7d 100644
+--- a/drivers/power/supply/axp288_fuel_gauge.c
++++ b/drivers/power/supply/axp288_fuel_gauge.c
+@@ -25,6 +25,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/mfd/axp20x.h>
+ #include <linux/platform_device.h>
++#include <linux/power/acpi.h>
+ #include <linux/power_supply.h>
+ #include <linux/iio/consumer.h>
+ #include <linux/debugfs.h>
+@@ -754,6 +755,8 @@ static int axp288_fuel_gauge_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	acpi_battery_unregister();
++
+ 	fuel_gauge_create_debugfs(info);
+ 	fuel_gauge_init_irq(info);
+ 	schedule_delayed_work(&info->status_monitor, STATUS_MON_DELAY_JIFFIES);
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.9.3
