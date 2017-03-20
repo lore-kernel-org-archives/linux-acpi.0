@@ -1,16 +1,16 @@
-From: Robert Richter <rric@kernel.org>
-Subject: Re: [PATCH 1/2] PCI: Use Cavium assigned hardware ID for ThunderX
+From: Robert Richter <robert.richter@cavium.com>
+Subject: Re: [PATCH 2/2] PCI: Add legacy firmware support for Cavium ThunderX
  host controller
-Date: Mon, 20 Mar 2017 11:49:46 +0100
-Message-ID: <20170320104946.GL4906@rric.localdomain>
+Date: Mon, 20 Mar 2017 12:02:41 +0100
+Message-ID: <20170320110241.GG16822@rric.localdomain>
 References: <1489564155-3881-1-git-send-email-tn@semihalf.com>
- <1489564155-3881-2-git-send-email-tn@semihalf.com>
+ <1489564155-3881-3-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1489564155-3881-2-git-send-email-tn@semihalf.com>
+In-Reply-To: <1489564155-3881-3-git-send-email-tn@semihalf.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,27 +21,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Lorenzo.Pieralisi@arm.com, Sunil.Goutham@cavium.com, rafael@kernel.org, Tomasz Nowicki <tn@semihalf.com>, linu.cherian@cavium.com, linux-pci@vger.kernel.org, ddaney@caviumnetworks.com, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo.Pieralisi@arm.com, Sunil.Goutham@cavium.com, rafael@kernel.org, Tomasz Nowicki <tn@semihalf.com>, linu.cherian@cavium.com, linux-pci@vger.kernel.org, ddaney@caviumnetworks.com, geethasowjanya.akula@gmail.com, linux-acpi@vger.kernel.org, Vadim.Lomovtsev@caviumnetworks.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bjorn,
-
-On 15.03.17 08:49:14, Tomasz Nowicki wrote:
-> "CAV" is the only PNP/ACPI hardware ID vendor prefix assigned to Cavium
-> so fix this as it should be from day one.
+On 15.03.17 08:49:15, Tomasz Nowicki wrote:
+> During early days of PCI quirks support ThunderX firmware did not provide
+> PNP0c02 node with PCI configuration space and PEM-specific register ranges.
+> This means that for legacy FW we are not reserving these resources and
+> cannot gather PEM-specific resources for further PEM initialization.
+> 
+> In order to support already deployed legacy FW calculate PEM-specific ranges
+> and provide resources reservation as fallback scenario into PEM driver when
+> we could not gather PEM reg base from ACPI tables.
 > 
 > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
 
-there is no firmware with 'THRX0002', so tagging this as
-stable. Tested with latest firmware.
+Works with old and new firmware.
 
-Fixes: 44f22bd91e88 ("PCI: Add MCFG quirks for Cavium ThunderX pass2.x host controller")
-Cc: <stable@vger.kernel.org> # v4.10
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-
-Please apply.
-
-Thanks,
 
 -Robert
