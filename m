@@ -1,45 +1,57 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 03/15] extcon: cht-wc: Add Intel Cherry Trail Whiskey
- Cove PMIC extcon driver
-Date: Mon, 20 Mar 2017 15:00:41 +0200
-Message-ID: <1490014841.19767.106.camel@linux.intel.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
-         <CGME20170317095544epcas5p42dd4115627c9cf9de3911b433024ac93@epcas5p4.samsung.com>
-         <20170317095527.10487-4-hdegoede@redhat.com> <58CF3183.4090101@samsung.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 3/4] power: supply: axp288_fuel_gauge: Unregister
+ duplicate ACPI battery supply
+Date: Mon, 20 Mar 2017 14:07:03 +0100
+Message-ID: <03a81b89-eb09-08df-3a0e-32fce7f92d2c@redhat.com>
+References: <20170316161601.32267-1-hdegoede@redhat.com>
+ <20170316161601.32267-4-hdegoede@redhat.com>
+ <1489681990.19767.23.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <58CF3183.4090101@samsung.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53846 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755149AbdCTNHM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Mar 2017 09:07:12 -0400
+In-Reply-To: <1489681990.19767.23.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Mon, 2017-03-20 at 10:33 +0900, Chanwoo Choi wrote:
-> On 2017년 03월 17일 18:55, Hans de Goede wrote:
+Hi,
 
-> > +static const struct platform_device_id cht_wc_extcon_table[] = {
-> > +	{ .name = "cht_wcove_pwrsrc" },
-> 
-> You use the 'cht_wc' word instead of 'cht_wcove_pwrsrc'.
-> So, To maintain the consistency, you better to use the 'cht-wc' as the
-> name.
-> - I prefer to use '-' instead of '_' in the name.
-> 	.name ="cht-wc"
+On 16-03-17 17:33, Andy Shevchenko wrote:
+> On Thu, 2017-03-16 at 17:16 +0100, Hans de Goede wrote:
+>> On some systems with axp288 PMIC the dsdt also exports an ACPI battery
+>> device (PNP0C0A device). This leads to there being 2 battery
+>> power_supply-s registed like this:
+>>
+>> ~$ acpi
+>> Battery 0: Charging, 84%, 00:49:39 until charged
+>> Battery 1: Unknown, 0%, rate information unavailable
+>>
+>> Note that the ACPI battery device does not work properly this is due
+>> to Linux missing support for the vendor specific BMOP ACPI opregion.
+>> But even if the ACPI battery where to function fine we still do not
+>> want to export the same battery to userspace twice.
+>>
+>> Therefor this commit calls acpi_battery_unregister() after
+>> successfully
+>> registering the axp288-fuel-gauge power_supply to remove the duplicate
+>> (and often broken) ACPI battery power_supply.
+>
+>> +	# if ACPI_BATTERY=m, this can't be 'y'
+>
+> Driver dependencies? Deferred probe?
 
-I would keep as Hans did for the sake of consistency among all Whiskey
-Cove device drivers (and predecessors like Crystal Cove).
+axp288_fuel_gauge.ko will use a symbol from drivers/acpi/battery.c
+now. If ACPI_BATTERY is disabled include/linux/power/acpi.h provides
+a stub, but if it is enabled in any form then no stub, so then
+if ACPI_BATTERY=m axp288_fuel_gauge.ko needs to be a module too.
 
-I understand your point from extcon subsystem view, but PMICs like
-Whiskey Cove are multi-functional devices, and thus naming across them
-(same prefix in use to be precise) is better idea.
+Regards,
 
-> 
-> > +	{},
-> > +};
-> > +MODULE_DEVICE_TABLE(platform, cht_wc_extcon_table);
+Hans
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
