@@ -1,35 +1,75 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] gpio: acpi: Call enable_irq_wake for _IAE GpioInts with
- Wake set
-Date: Mon, 20 Mar 2017 12:17:59 +0200
-Message-ID: <20170320101759.GI2957@lahna.fi.intel.com>
-References: <20170318233524.5047-1-hdegoede@redhat.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 01/15] mfd: Add Cherry Trail Whiskey Cove PMIC driver
+Date: Mon, 20 Mar 2017 10:41:52 +0000
+Message-ID: <20170320104152.lba24r2qilpjr2kk@dell>
+References: <20170317095527.10487-1-hdegoede@redhat.com>
+ <20170317095527.10487-2-hdegoede@redhat.com>
+ <1489770046.19767.66.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16555 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752618AbdCTKSE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:18:04 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170318233524.5047-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1489770046.19767.66.camel@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org
 
-On Sun, Mar 19, 2017 at 12:35:24AM +0100, Hans de Goede wrote:
-> On baytrail / cherrytrail systems with a LID switch the LID switch is
-> often connect to a gpioint handled by an _IAE event handler.
-> Before this commit such systems would not wake up when opening the lid,
-> requiring the powerbutton to be pressed after opening the lid to wakeup.
+On Fri, 17 Mar 2017, Andy Shevchenko wrote:
+
+> On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
+> > Add mfd driver for Intel CHT Whiskey Cove PMIC, based on various non
+> > upstreamed CHT Whiskey Cove PMIC patches.
+> > 
+> > This is a somewhat minimal version which adds irqchip support and
+> > cells
+> > for: ACPI PMIC opregion support, the i2c-controller driving the
+> > external
+> > charger irc and the pwrsrc/extcon block.
+> > 
+> > Further cells can be added in the future if/when drivers are
+> > upstreamed
+> > for them.
 > 
-> This commit calls enable_irq_wake() for _IAE GpioInts with a valid
-> event handler which have their Wake flag set. This fixes such systems
-> not waking up when opening the lid.
+> Couple of minor comments, otherwise looks good to me:
 > 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+> > +/* Whiskey Cove PMIC share same ACPI ID between different platforms
+> > */
+> > +#define CHT_WC_HRV		3
+> > +
+> > +/* Level 1 IRQs (level 2 IRQs are handled in the child device
+> > drivers) */
+> > +enum {
+> > +	CHT_WC_PWRSRC_IRQ = 0,
+> > +	CHT_WC_THRM_IRQ,
+> > +	CHT_WC_BCU_IRQ,
+> > +	CHT_WC_ADC_IRQ,
+> > +	CHT_WC_EXT_CHGR_IRQ,
+> > +	CHT_WC_GPIO_IRQ,
+> > +	/* There is no irq 6 */
+> > +	CHT_WC_CRIT_IRQ = 7,
+> 
+> I would prefer explicit over implicit (adding = N to each line), but
+> this is minor.
 
-After you have addressed comments from Andy you can add my,
+No need.  The C standard is clear on what is expected of enums.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+[...]
+
+> > +	return devm_mfd_add_devices(dev, -1, cht_wc_dev,
+> > ARRAY_SIZE(cht_wc_dev),
+> > +			NULL, 0, regmap_irq_get_domain(pmic-
+> > >irq_chip_data));
+> 
+> PLATFORM_DEVID_NONE, please.
+
++1
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
