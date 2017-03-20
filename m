@@ -1,46 +1,53 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH] disable RTS override on LPSS UART with Auto Flow Control
-Date: Mon, 20 Mar 2017 16:15:53 +0200
-Message-ID: <20170320141553.GA29812@kuha.fi.intel.com>
-References: <1489587228-10764-1-git-send-email-dan@emutex.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] gpio: acpi: Call enable_irq_wake for _IAE GpioInts with
+ Wake set
+Date: Mon, 20 Mar 2017 18:20:26 +0100
+Message-ID: <c9801c6a-b773-b5fd-25dc-6e19053512ac@redhat.com>
+References: <20170318233524.5047-1-hdegoede@redhat.com>
+ <1489937116.19767.92.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1489587228-10764-1-git-send-email-dan@emutex.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan O'Donovan <dan@emutex.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53672 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752346AbdCTRU3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Mar 2017 13:20:29 -0400
+In-Reply-To: <1489937116.19767.92.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 02:13:48PM +0000, Dan O'Donovan wrote:
-> Currently, Auto Flow Control is not working correctly on the Atom
-> X5-Z8350 "Cherry Trail" SoC, because an "RTS override" feature is
-> enabled in a vendor-specific register in the LPSS UART. The symptom
-> is that RTS is not de-asserted as it should be when RTS/CTS flow
-> control is enabled and the RX FIFO fills up.
-> 
-> This appears to be introduced by commit 1f47a77c4e49 ("ACPI / LPSS:
-> not using UART RTS override with Auto Flow Control").
-> 
-> To _disable_ the RTS override, bit 3 needs to be _set_ in the
-> "GENERAL" register at offset 808h.  The power-on default is 0. The
-> aforementioned commit appears to have assumed the inverse of this.
+Hi,
 
-True. That is what the public documentation for Atom Z8000
-(Cherrytrail/Braswell), and also Z36xx-Z37xx (Baytrail) say. The
-internal Lynxpoint PCH documentation I used describe the bit
-differently, but we should of course follow the public documentation.
-The LPSS block housing the UART is in any case the same in all these
-products.
+On 19-03-17 16:25, Andy Shevchenko wrote:
+> On Sun, 2017-03-19 at 00:35 +0100, Hans de Goede wrote:
+>> On baytrail / cherrytrail systems with a LID switch the LID switch is
+>> often connect to a gpioint handled by an _IAE event handler.
+>> Before this commit such systems would not wake up when opening the
+>> lid,
+>> requiring the powerbutton to be pressed after opening the lid to
+>> wakeup.
+>>
+>> This commit calls enable_irq_wake() for _IAE GpioInts with a valid
+>> event handler which have their Wake flag set. This fixes such systems
+>> not waking up when opening the lid.
+>
+> I perhaps give up on my nits against Capital Letters :-), though for
+> consistency, please, use Baytrail, Cherry Trail.
 
-After addressing Andy's comments:
-Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Will fix for v2.
 
-This should also go to stable.
+>
+>> +		if (event->irq_wake_enabled)
+>
+> You may use irqd_is_wakeup_set() instead. IRQ framework keeps this state
+> already.
 
+That requires having irq_data which is only (normally) available to
+irq_chip drivers, so that is not going to work here.
 
-Thanks,
+Regards,
 
--- 
-heikki
+Hans
