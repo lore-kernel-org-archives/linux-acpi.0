@@ -1,99 +1,207 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v21 13/13] acpi/arm64: Add SBSA Generic Watchdog support
- in GTDT driver
-Date: Tue, 21 Mar 2017 01:57:58 +0800
-Message-ID: <CADyBb7uZV2Qe0ga4TTS_iis5MtwJ=u6PKYSV6ED103Cmh5_O3g@mail.gmail.com>
-References: <20170206185015.12296-1-fu.wei@linaro.org>
- <20170206185015.12296-14-fu.wei@linaro.org>
- <20170317200153.GF15909@leverpostej>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 03/15] extcon: cht-wc: Add Intel Cherry Trail Whiskey Cove
+ PMIC extcon driver
+Date: Mon, 20 Mar 2017 19:08:22 +0100
+Message-ID: <c6020cde-5406-0442-adea-f973bded326b@redhat.com>
+References: <20170317095527.10487-1-hdegoede@redhat.com>
+ <20170317095527.10487-4-hdegoede@redhat.com>
+ <1489771098.19767.69.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170317200153.GF15909@leverpostej>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1489771098.19767.69.camel@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
+Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Felipe Balbi <felipe.balbi@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgTWFyawoKT24gMTggTWFyY2ggMjAxNyBhdCAwNDowMSwgTWFyayBSdXRsYW5kIDxtYXJrLnJ1
-dGxhbmRAYXJtLmNvbT4gd3JvdGU6Cj4gT24gVHVlLCBGZWIgMDcsIDIwMTcgYXQgMDI6NTA6MTVB
-TSArMDgwMCwgZnUud2VpQGxpbmFyby5vcmcgd3JvdGU6Cj4+ICtzdGF0aWMgaW50IF9faW5pdCBn
-dGR0X2ltcG9ydF9zYnNhX2d3ZHQoc3RydWN0IGFjcGlfZ3RkdF93YXRjaGRvZyAqd2QsCj4+ICsg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW50IGluZGV4KQo+PiArewo+PiAr
-ICAgICBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2Owo+PiArICAgICBpbnQgaXJxID0gbWFw
-X2d0X2dzaSh3ZC0+dGltZXJfaW50ZXJydXB0LCB3ZC0+dGltZXJfZmxhZ3MpOwo+PiArICAgICBp
-bnQgbm9faXJxID0gMTsKPj4gKwo+PiArICAgICAvKgo+PiArICAgICAgKiBBY2NvcmRpbmcgdG8g
-U0JTQSBzcGVjaWZpY2F0aW9uIHRoZSBzaXplIG9mIHJlZnJlc2ggYW5kIGNvbnRyb2wKPj4gKyAg
-ICAgICogZnJhbWVzIG9mIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyBpcyBTWl80SyhPZmZzZXQgMHgw
-MDAg4oCTIDB4RkZGKS4KPj4gKyAgICAgICovCj4+ICsgICAgIHN0cnVjdCByZXNvdXJjZSByZXNb
-XSA9IHsKPj4gKyAgICAgICAgICAgICBERUZJTkVfUkVTX01FTSh3ZC0+Y29udHJvbF9mcmFtZV9h
-ZGRyZXNzLCBTWl80SyksCj4+ICsgICAgICAgICAgICAgREVGSU5FX1JFU19NRU0od2QtPnJlZnJl
-c2hfZnJhbWVfYWRkcmVzcywgU1pfNEspLAo+PiArICAgICAgICAgICAgIERFRklORV9SRVNfSVJR
-KGlycSksCj4+ICsgICAgIH07Cj4+ICsKPj4gKyAgICAgcHJfZGVidWcoImZvdW5kIGEgV2F0Y2hk
-b2cgKDB4JWxseC8weCVsbHggZ3NpOiV1IGZsYWdzOjB4JXgpLlxuIiwKPj4gKyAgICAgICAgICAg
-ICAgd2QtPnJlZnJlc2hfZnJhbWVfYWRkcmVzcywgd2QtPmNvbnRyb2xfZnJhbWVfYWRkcmVzcywK
-Pj4gKyAgICAgICAgICAgICAgd2QtPnRpbWVyX2ludGVycnVwdCwgd2QtPnRpbWVyX2ZsYWdzKTsK
-Pj4gKwo+PiArICAgICBpZiAoISh3ZC0+cmVmcmVzaF9mcmFtZV9hZGRyZXNzICYmIHdkLT5jb250
-cm9sX2ZyYW1lX2FkZHJlc3MpKSB7Cj4+ICsgICAgICAgICAgICAgcHJfZXJyKEZXX0JVRyAiZmFp
-bGVkIHRvIGdldCB0aGUgV2F0Y2hkb2cgYmFzZSBhZGRyZXNzLlxuIik7Cj4+ICsgICAgICAgICAg
-ICAgcmV0dXJuIC1FSU5WQUw7Cj4+ICsgICAgIH0KPj4gKwo+PiArICAgICBpZiAoIXdkLT50aW1l
-cl9pbnRlcnJ1cHQpCj4+ICsgICAgICAgICAgICAgcHJfd2FybihGV19CVUcgImZhaWxlZCB0byBn
-ZXQgdGhlIFdhdGNoZG9nIGludGVycnVwdC5cbiIpOwo+Cj4gSSd2ZSBub3QgYmVlbiBhYmxlIHRv
-IGZpbmQgd2hlcmUgdGhlIEFDUEkgc3BlYyBzYXlzIHRoYXQgemVybyBpcyBub3QgYQo+IHZhbGlk
-IEdTSVYuIFRoaXMgbWF5IHNpbXBseSBiZSBhbiBvdmVyc2lnaHQvYW1iaWd1aXR5IGluIHRoZSBz
-cGVjLgo+Cj4gSXMgdGhlcmUgYW55IHN0YXRlbWVudCB0byB0aGF0IGVmZmVjdD8KCnlvdSBhcmUg
-cmlnaHQsIHplcm8gaXMgYSAgdmFsaWQgR1NJViwgSSB3aWxsIGRlbGV0ZSB0aGlzIGNoZWNrLiBU
-aGFua3MKCj4KPj4gKyAgICAgZWxzZSBpZiAoaXJxIDw9IDApCj4+ICsgICAgICAgICAgICAgcHJf
-d2FybigiZmFpbGVkIHRvIG1hcCB0aGUgV2F0Y2hkb2cgaW50ZXJydXB0LlxuIik7Cj4+ICsgICAg
-IGVsc2UKPj4gKyAgICAgICAgICAgICBub19pcnEgPSAwOwo+PiArCj4+ICsgICAgIC8qCj4+ICsg
-ICAgICAqIEFkZCBhIHBsYXRmb3JtIGRldmljZSBuYW1lZCAic2JzYS1nd2R0IiB0byBtYXRjaCB0
-aGUgcGxhdGZvcm0gZHJpdmVyLgo+PiArICAgICAgKiAic2JzYS1nd2R0IjogU0JTQShTZXJ2ZXIg
-QmFzZSBTeXN0ZW0gQXJjaGl0ZWN0dXJlKSBHZW5lcmljIFdhdGNoZG9nCj4+ICsgICAgICAqIFRo
-ZSBwbGF0Zm9ybSBkcml2ZXIgKGxpa2UgZHJpdmVycy93YXRjaGRvZy9zYnNhX2d3ZHQuYyljYW4g
-Z2V0IGRldmljZQo+PiArICAgICAgKiBpbmZvIGJlbG93IGJ5IG1hdGNoaW5nIHRoaXMgbmFtZS4K
-Pj4gKyAgICAgICovCj4+ICsgICAgIHBkZXYgPSBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXJfc2lt
-cGxlKCJzYnNhLWd3ZHQiLCBpbmRleCwgcmVzLAo+PiArICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBBUlJBWV9TSVpFKHJlcykgLSBub19pcnEpOwo+Cj4gVGhpcyBu
-b19pcnEgdmFyaWFibGUgaXMgbWVzc3kgYW5kIGNvbmZ1c2luZy4KPgo+IEdldCByaWQgb2Ygbm9f
-aXJxLCBhbmQgcmVwbGFjZSBpdCB3aXRoIG5yX3JlcywgaW5pdGlhbGlzZWQgdG8KPiBBUlJBWV9T
-SVpFKHJlcykuIElmIHRoZXJlJ3Mgbm8gaW50ZXJydXB0LCBzdWJ0cmFjdCBvbmUuCgpTdXJlLCB5
-b3UgYXJlIHJpZ2h0ICx3aWxsIGRvCgo+Cj4gWy4uLl0KPgo+PiArICAgICBmb3JfZWFjaF9wbGF0
-Zm9ybV90aW1lcihwbGF0Zm9ybV90aW1lcikgewo+PiArICAgICAgICAgICAgIGlmIChpc193YXRj
-aGRvZyhwbGF0Zm9ybV90aW1lcikpIHsKPj4gKyAgICAgICAgICAgICAgICAgICAgIHJldCA9IGd0
-ZHRfaW1wb3J0X3Nic2FfZ3dkdChwbGF0Zm9ybV90aW1lciwgaSk7Cj4+ICsgICAgICAgICAgICAg
-ICAgICAgICBpZiAocmV0KQo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsK
-Pj4gKyAgICAgICAgICAgICAgICAgICAgIGkrKzsKPj4gKyAgICAgICAgICAgICB9Cj4+ICsgICAg
-IH0KPj4gKwo+PiArICAgICBpZiAoaSkKPj4gKyAgICAgICAgICAgICBwcl9pbmZvKCJmb3VuZCAl
-ZCBTQlNBIGdlbmVyaWMgV2F0Y2hkb2cocykuXG4iLCBpKTsKPgo+IE15IHJlYWRpbmcgb2YgU0JT
-QSBpcyB0aGF0IHRoZXJlIGlzIG9uZSB3YXRjaGRvZyBpbiB0aGUgc3lzdGVtLgo+Cj4gSXMgdGhh
-dCBub3QgdGhlIGNhc2U/CgpkbyB5b3UgbWVhbjoKLS0tLS0tLS0tLS0tLS0tCjQuMi40IFdhdGNo
-ZG9ncwpUaGUgYmFzZSBzZXJ2ZXIgc3lzdGVtIGltcGxlbWVudHMgYSBHZW5lcmljIFdhdGNoZG9n
-IGFzIHNwZWNpZmllZCBpbgpBUFBFTkRJWCBBOiBHZW5lcmljIFdhdGNoZG9nLgotLS0tLS0tLS0t
-LS0tLS0KCkkgYW0gbm90IHN1cmUgYWJvdXQgdGhhdCBpZiB0aGlzIGlzIHNheWluZyAid2Ugb25s
-eSBoYXZlIG9uZSBTQlNBCndhdGNoZG9nIGluIGEgc3lzdGVtIgoKd291bGQgeW91IGxldCBtZSBr
-bm93IHdoZXJlIG1lbnRpb24gaXQ/IERvIEkgbWlzcyBzb21ldGhpbmc/CgpUaGFua3MgOi0pCgo+
-Cj4gWy4uLl0KPgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy93YXRjaGRvZy9LY29uZmlnIGIvZHJp
-dmVycy93YXRjaGRvZy9LY29uZmlnCj4+IGluZGV4IGFjYjAwYjUuLmM4OTlkZjEgMTAwNjQ0Cj4+
-IC0tLSBhL2RyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZwo+PiArKysgYi9kcml2ZXJzL3dhdGNoZG9n
-L0tjb25maWcKPj4gQEAgLTIxOSw2ICsyMTksNyBAQCBjb25maWcgQVJNX1NCU0FfV0FUQ0hET0cK
-Pj4gICAgICAgdHJpc3RhdGUgIkFSTSBTQlNBIEdlbmVyaWMgV2F0Y2hkb2ciCj4+ICAgICAgIGRl
-cGVuZHMgb24gQVJNNjQKPj4gICAgICAgZGVwZW5kcyBvbiBBUk1fQVJDSF9USU1FUgo+PiArICAg
-ICBkZXBlbmRzIG9uIEFDUElfR1REVCB8fCAhQUNQSQo+Cj4gSSBkb24ndCB0aGluayB0aGlzIGlz
-IG5lY2Vzc2FyeS4KPgo+IFRoaXMgc2VyaWVzIGhhc24ndCB0b3VjaGVkIHRoaXMgZHJpdmVyIGNv
-ZGUgYXQgYWxsLgoKeWVzLCBzaW5jZSB3ZSBhcmUgdXNpbmcgInNlbGVjdCBBQ1BJX0dURFQgaWYg
-QUNQSSIgaW4gQVJNNjQsIHdlIGRvbid0IHRoaXMuClRoYW5rcyBmb3IgcG9pbnRpbmcgaXQgb3V0
-Lgo6LSkKCj4KPiBUaGFua3MsCj4gTWFyay4KCgoKLS0gCkJlc3QgcmVnYXJkcywKCkZ1IFdlaQpT
-b2Z0d2FyZSBFbmdpbmVlcgpSZWQgSGF0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Hi,
+
+On 17-03-17 18:18, Andy Shevchenko wrote:
+> On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
+>> Add a driver for charger detection / control on the Intel Cherrytrail
+>> Whiskey Cove PMIC.
+>
+> +Cc: Felipe for some question(s) below.
+>
+>>  drivers/extcon/extcon-cht-wc.c | 356
+>
+> I would use same pattern across drivers, i.e. "chtwc" (same for the rest
+> of the drivers in this series).
+
+I already answered this in another part of the thread,
+but for the archives sake let me copy and paste my answer:
+
+"One thing I disagree with is the cht_wc > chtwc rename you are
+proposing for one Cherry Trail and Whiskey Cove are 2 different
+words (4 if you look at spelling but 2 if you look at pronunciation,
+so IMHO cht_wc is more readable other then that I see the suggested
+rename as a lot of extra churn without any tangible benefits."
+
+>
+>> +#define CHT_WC_PWRSRC_IRQ		0x6e03
+>> +#define CHT_WC_PWRSRC_IRQ_MASK		0x6e0f
+>> +#define CHT_WC_PWRSRC_STS		0x6e1e
+>> +#define CHT_WC_PWRSRC_VBUS		BIT(0)
+>> +#define CHT_WC_PWRSRC_DC		BIT(1)
+>> +#define CHT_WC_PWRSRC_BAT		BIT(2)
+>> +#define CHT_WC_PWRSRC_ID_GND		BIT(3)
+>> +#define CHT_WC_PWRSRC_ID_FLOAT		BIT(4)
+>
+> Not obvious for which register those bit definitions are.
+
+They are for all 3 CHT_WC_PWRSRC_* registers, this is the
+more or less usual irq setup for some i2c devices where
+there is a status register, an irq register where the hardware
+sets bits to 1 (and we write 1 to clear) when the corresponding
+status bits changes and a mask register to select which irq
+register bits actually will raise the interrupt line.
+
+> Also, keep them ordered by offset.
+
+Will fix.
+
+>
+>> +
+>> +#define CHT_WC_PHYCTRL			0x5e07
+>> +
+>
+>> +#define CHT_WC_CHGRCTRL0		0x5e16
+>
+> Dup!
+
+Good catch, will fix.
+
+
+>
+>> +
+>> +#define CHT_WC_CHGRCTRL0		0x5e16
+>
+>> +static int cht_wc_extcon_get_charger(struct cht_wc_extcon_data *ext)
+>> +{
+>> +	int ret, usbsrc, status, retries = 5;
+>> +
+>> +	do {
+>> +		ret = regmap_read(ext->regmap, CHT_WC_USBSRC,
+>> &usbsrc);
+>> +		if (ret) {
+>> +			dev_err(ext->dev, "Error reading usbsrc:
+>> %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +		status = usbsrc & CHT_WC_USBSRC_STS_MASK;
+>> +		if (status == CHT_WC_USBSRC_STS_SUCCESS ||
+>> +		    status == CHT_WC_USBSRC_STS_FAIL)
+>> +			break;
+>> +
+>
+>> +		msleep(200);
+>
+> Comment why and why so long?
+
+Fixed for v2 (actually switched to using jiffies +
+time_before for a more accurate timeout).
+
+>> +	} while (retries--);
+>
+>> +static void cht_wc_extcon_det_event(struct cht_wc_extcon_data *ext)
+>
+> det -> detect ?
+
+Renamed to more accurate cht_wc_extcon_pwrsrc_event
+
+> +static irqreturn_t cht_wc_extcon_isr(int irq, void *data)
+>> +{
+>> +	struct cht_wc_extcon_data *ext = data;
+>> +	int ret, irqs;
+>> +
+>> +	ret = regmap_read(ext->regmap, CHT_WC_PWRSRC_IRQ, &irqs);
+>> +	if (ret)
+>> +		dev_err(ext->dev, "Error reading irqs: %d\n", ret);
+>
+> Shouldn't we return IRQ_NONE here?
+
+I was wondering the same myself here, there is no good
+answer here, this should simply never fail ... which does
+make returning IRQ_NONE a good idea, I was worried that
+would lead to a "nobody cared, disabling irq", but as said this
+should never happen, so when it does, disabling the irq is
+probably for the best. Will fix.
+
+>
+>> +
+>> +	cht_wc_extcon_det_event(ext);
+>> +
+>> +	ret = regmap_write(ext->regmap, CHT_WC_PWRSRC_IRQ, irqs);
+>> +	if (ret)
+>> +		dev_err(ext->dev, "Error writing irqs: %d\n", ret);
+>> +
+>> +	return IRQ_HANDLED;
+>> +}
+>> +
+>
+>> +/* usb_id sysfs attribute for debug / testing purposes */
+>
+> Hmm... I would use debugfs for debug, otherwise it looks like it should
+> be framework (extcon) wide.
+
+Unfortunately these kinda sysfs files are somewhat normal when
+dealing with USB-OTG. For example my board does not have the
+id-pin hooked up to the connector, so to test host mode
+I need to echo "gnd" to the sysfs attr. But also if I actually
+want to use host-mode (or anyone else with the same or a similar
+board).
+
+This definitely is not something which belongs in the extcon-core.
+
+> Perhaps Felipe can advise something here.
+>
+>> +static int cht_wc_extcon_probe(struct platform_device *pdev)
+>> +{
+>
+>> +	struct cht_wc_extcon_data *ext;
+>> +	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev-
+>>> dev.parent);
+>
+> Exchange them (assignment first).
+
+Fixed.
+
+>
+>> +	int irq, ret;
+>> +
+>
+>
+>> +	ret = devm_request_threaded_irq(ext->dev, irq, NULL,
+>> cht_wc_extcon_isr,
+>> +					IRQF_ONESHOT, pdev->name,
+>> ext);
+>> +	if (ret) {
+>> +		dev_err(ext->dev, "Failed to request interrupt\n");
+>> +		return ret;
+>> +	}
+>> +
+>> +	/* Unmask irqs */
+>> +	ret = regmap_write(ext->regmap, CHT_WC_PWRSRC_IRQ_MASK,
+>> +			   (int)~(CHT_WC_PWRSRC_VBUS |
+>
+> Hmm... Do you need explicit casting here?
+
+Yes because the BIT(x) macros are unsigned longs and the ~ sets
+the MSB so then the compiler complaints about truncating the
+variable without the cast.
+
+>
+>> CHT_WC_PWRSRC_ID_GND |
+>> +				  CHT_WC_PWRSRC_ID_FLOAT));
+>> +	if (ret) {
+>> +		dev_err(ext->dev, "Error writing irq-mask: %d\n",
+>> ret);
+>> +		return ret;
+>> +	}
+>
+
+Regards,
+
+Hans
