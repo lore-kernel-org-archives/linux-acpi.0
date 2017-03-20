@@ -1,75 +1,99 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2] gpio: acpi: Call enable_irq_wake for _IAE GpioInts with Wake set
-Date: Mon, 20 Mar 2017 18:32:21 +0100
-Message-ID: <20170320173221.3397-1-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49256 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753264AbdCTRlN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Mar 2017 13:41:13 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v21 13/13] acpi/arm64: Add SBSA Generic Watchdog support
+ in GTDT driver
+Date: Tue, 21 Mar 2017 01:57:58 +0800
+Message-ID: <CADyBb7uZV2Qe0ga4TTS_iis5MtwJ=u6PKYSV6ED103Cmh5_O3g@mail.gmail.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+ <20170206185015.12296-14-fu.wei@linaro.org>
+ <20170317200153.GF15909@leverpostej>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170317200153.GF15909@leverpostej>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org
 
-On Bay Trail / Cherry Trail systems with a LID switch, the LID switch is
-often connect to a gpioint handled by an _IAE event handler.
-Before this commit such systems would not wake up when opening the lid,
-requiring the powerbutton to be pressed after opening the lid to wakeup.
-
-Note that Bay Trail / Cherry Trail systems use suspend-to-idle, so
-the interrupts are generated anyway on those lines on lid switch changes,
-but they are treated by the IRQ subsystem as spurious while suspended if
-not marked as wakeup IRQs.
-
-This commit calls enable_irq_wake() for _IAE GpioInts with a valid
-event handler which have their Wake flag set. This fixes such systems
-not waking up when opening the lid.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Changes in v2:
--Improve commit msg
--Add Mika's Acked-by
----
- drivers/gpio/gpiolib-acpi.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 8cd3f66..18207b2 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -28,6 +28,7 @@ struct acpi_gpio_event {
- 	acpi_handle handle;
- 	unsigned int pin;
- 	unsigned int irq;
-+	bool irq_wake_enabled;
- 	struct gpio_desc *desc;
- };
- 
-@@ -266,6 +267,11 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
- 		goto fail_free_event;
- 	}
- 
-+	if (agpio->wake_capable == ACPI_WAKE_CAPABLE) {
-+		enable_irq_wake(irq);
-+		event->irq_wake_enabled = true;
-+	}
-+
- 	list_add_tail(&event->node, &acpi_gpio->events);
- 	return AE_OK;
- 
-@@ -339,6 +345,9 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
- 	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
- 		struct gpio_desc *desc;
- 
-+		if (event->irq_wake_enabled)
-+			disable_irq_wake(event->irq);
-+
- 		free_irq(event->irq, event);
- 		desc = event->desc;
- 		if (WARN_ON(IS_ERR(desc)))
--- 
-2.9.3
-
+SGkgTWFyawoKT24gMTggTWFyY2ggMjAxNyBhdCAwNDowMSwgTWFyayBSdXRsYW5kIDxtYXJrLnJ1
+dGxhbmRAYXJtLmNvbT4gd3JvdGU6Cj4gT24gVHVlLCBGZWIgMDcsIDIwMTcgYXQgMDI6NTA6MTVB
+TSArMDgwMCwgZnUud2VpQGxpbmFyby5vcmcgd3JvdGU6Cj4+ICtzdGF0aWMgaW50IF9faW5pdCBn
+dGR0X2ltcG9ydF9zYnNhX2d3ZHQoc3RydWN0IGFjcGlfZ3RkdF93YXRjaGRvZyAqd2QsCj4+ICsg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW50IGluZGV4KQo+PiArewo+PiAr
+ICAgICBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2Owo+PiArICAgICBpbnQgaXJxID0gbWFw
+X2d0X2dzaSh3ZC0+dGltZXJfaW50ZXJydXB0LCB3ZC0+dGltZXJfZmxhZ3MpOwo+PiArICAgICBp
+bnQgbm9faXJxID0gMTsKPj4gKwo+PiArICAgICAvKgo+PiArICAgICAgKiBBY2NvcmRpbmcgdG8g
+U0JTQSBzcGVjaWZpY2F0aW9uIHRoZSBzaXplIG9mIHJlZnJlc2ggYW5kIGNvbnRyb2wKPj4gKyAg
+ICAgICogZnJhbWVzIG9mIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyBpcyBTWl80SyhPZmZzZXQgMHgw
+MDAg4oCTIDB4RkZGKS4KPj4gKyAgICAgICovCj4+ICsgICAgIHN0cnVjdCByZXNvdXJjZSByZXNb
+XSA9IHsKPj4gKyAgICAgICAgICAgICBERUZJTkVfUkVTX01FTSh3ZC0+Y29udHJvbF9mcmFtZV9h
+ZGRyZXNzLCBTWl80SyksCj4+ICsgICAgICAgICAgICAgREVGSU5FX1JFU19NRU0od2QtPnJlZnJl
+c2hfZnJhbWVfYWRkcmVzcywgU1pfNEspLAo+PiArICAgICAgICAgICAgIERFRklORV9SRVNfSVJR
+KGlycSksCj4+ICsgICAgIH07Cj4+ICsKPj4gKyAgICAgcHJfZGVidWcoImZvdW5kIGEgV2F0Y2hk
+b2cgKDB4JWxseC8weCVsbHggZ3NpOiV1IGZsYWdzOjB4JXgpLlxuIiwKPj4gKyAgICAgICAgICAg
+ICAgd2QtPnJlZnJlc2hfZnJhbWVfYWRkcmVzcywgd2QtPmNvbnRyb2xfZnJhbWVfYWRkcmVzcywK
+Pj4gKyAgICAgICAgICAgICAgd2QtPnRpbWVyX2ludGVycnVwdCwgd2QtPnRpbWVyX2ZsYWdzKTsK
+Pj4gKwo+PiArICAgICBpZiAoISh3ZC0+cmVmcmVzaF9mcmFtZV9hZGRyZXNzICYmIHdkLT5jb250
+cm9sX2ZyYW1lX2FkZHJlc3MpKSB7Cj4+ICsgICAgICAgICAgICAgcHJfZXJyKEZXX0JVRyAiZmFp
+bGVkIHRvIGdldCB0aGUgV2F0Y2hkb2cgYmFzZSBhZGRyZXNzLlxuIik7Cj4+ICsgICAgICAgICAg
+ICAgcmV0dXJuIC1FSU5WQUw7Cj4+ICsgICAgIH0KPj4gKwo+PiArICAgICBpZiAoIXdkLT50aW1l
+cl9pbnRlcnJ1cHQpCj4+ICsgICAgICAgICAgICAgcHJfd2FybihGV19CVUcgImZhaWxlZCB0byBn
+ZXQgdGhlIFdhdGNoZG9nIGludGVycnVwdC5cbiIpOwo+Cj4gSSd2ZSBub3QgYmVlbiBhYmxlIHRv
+IGZpbmQgd2hlcmUgdGhlIEFDUEkgc3BlYyBzYXlzIHRoYXQgemVybyBpcyBub3QgYQo+IHZhbGlk
+IEdTSVYuIFRoaXMgbWF5IHNpbXBseSBiZSBhbiBvdmVyc2lnaHQvYW1iaWd1aXR5IGluIHRoZSBz
+cGVjLgo+Cj4gSXMgdGhlcmUgYW55IHN0YXRlbWVudCB0byB0aGF0IGVmZmVjdD8KCnlvdSBhcmUg
+cmlnaHQsIHplcm8gaXMgYSAgdmFsaWQgR1NJViwgSSB3aWxsIGRlbGV0ZSB0aGlzIGNoZWNrLiBU
+aGFua3MKCj4KPj4gKyAgICAgZWxzZSBpZiAoaXJxIDw9IDApCj4+ICsgICAgICAgICAgICAgcHJf
+d2FybigiZmFpbGVkIHRvIG1hcCB0aGUgV2F0Y2hkb2cgaW50ZXJydXB0LlxuIik7Cj4+ICsgICAg
+IGVsc2UKPj4gKyAgICAgICAgICAgICBub19pcnEgPSAwOwo+PiArCj4+ICsgICAgIC8qCj4+ICsg
+ICAgICAqIEFkZCBhIHBsYXRmb3JtIGRldmljZSBuYW1lZCAic2JzYS1nd2R0IiB0byBtYXRjaCB0
+aGUgcGxhdGZvcm0gZHJpdmVyLgo+PiArICAgICAgKiAic2JzYS1nd2R0IjogU0JTQShTZXJ2ZXIg
+QmFzZSBTeXN0ZW0gQXJjaGl0ZWN0dXJlKSBHZW5lcmljIFdhdGNoZG9nCj4+ICsgICAgICAqIFRo
+ZSBwbGF0Zm9ybSBkcml2ZXIgKGxpa2UgZHJpdmVycy93YXRjaGRvZy9zYnNhX2d3ZHQuYyljYW4g
+Z2V0IGRldmljZQo+PiArICAgICAgKiBpbmZvIGJlbG93IGJ5IG1hdGNoaW5nIHRoaXMgbmFtZS4K
+Pj4gKyAgICAgICovCj4+ICsgICAgIHBkZXYgPSBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXJfc2lt
+cGxlKCJzYnNhLWd3ZHQiLCBpbmRleCwgcmVzLAo+PiArICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBBUlJBWV9TSVpFKHJlcykgLSBub19pcnEpOwo+Cj4gVGhpcyBu
+b19pcnEgdmFyaWFibGUgaXMgbWVzc3kgYW5kIGNvbmZ1c2luZy4KPgo+IEdldCByaWQgb2Ygbm9f
+aXJxLCBhbmQgcmVwbGFjZSBpdCB3aXRoIG5yX3JlcywgaW5pdGlhbGlzZWQgdG8KPiBBUlJBWV9T
+SVpFKHJlcykuIElmIHRoZXJlJ3Mgbm8gaW50ZXJydXB0LCBzdWJ0cmFjdCBvbmUuCgpTdXJlLCB5
+b3UgYXJlIHJpZ2h0ICx3aWxsIGRvCgo+Cj4gWy4uLl0KPgo+PiArICAgICBmb3JfZWFjaF9wbGF0
+Zm9ybV90aW1lcihwbGF0Zm9ybV90aW1lcikgewo+PiArICAgICAgICAgICAgIGlmIChpc193YXRj
+aGRvZyhwbGF0Zm9ybV90aW1lcikpIHsKPj4gKyAgICAgICAgICAgICAgICAgICAgIHJldCA9IGd0
+ZHRfaW1wb3J0X3Nic2FfZ3dkdChwbGF0Zm9ybV90aW1lciwgaSk7Cj4+ICsgICAgICAgICAgICAg
+ICAgICAgICBpZiAocmV0KQo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsK
+Pj4gKyAgICAgICAgICAgICAgICAgICAgIGkrKzsKPj4gKyAgICAgICAgICAgICB9Cj4+ICsgICAg
+IH0KPj4gKwo+PiArICAgICBpZiAoaSkKPj4gKyAgICAgICAgICAgICBwcl9pbmZvKCJmb3VuZCAl
+ZCBTQlNBIGdlbmVyaWMgV2F0Y2hkb2cocykuXG4iLCBpKTsKPgo+IE15IHJlYWRpbmcgb2YgU0JT
+QSBpcyB0aGF0IHRoZXJlIGlzIG9uZSB3YXRjaGRvZyBpbiB0aGUgc3lzdGVtLgo+Cj4gSXMgdGhh
+dCBub3QgdGhlIGNhc2U/CgpkbyB5b3UgbWVhbjoKLS0tLS0tLS0tLS0tLS0tCjQuMi40IFdhdGNo
+ZG9ncwpUaGUgYmFzZSBzZXJ2ZXIgc3lzdGVtIGltcGxlbWVudHMgYSBHZW5lcmljIFdhdGNoZG9n
+IGFzIHNwZWNpZmllZCBpbgpBUFBFTkRJWCBBOiBHZW5lcmljIFdhdGNoZG9nLgotLS0tLS0tLS0t
+LS0tLS0KCkkgYW0gbm90IHN1cmUgYWJvdXQgdGhhdCBpZiB0aGlzIGlzIHNheWluZyAid2Ugb25s
+eSBoYXZlIG9uZSBTQlNBCndhdGNoZG9nIGluIGEgc3lzdGVtIgoKd291bGQgeW91IGxldCBtZSBr
+bm93IHdoZXJlIG1lbnRpb24gaXQ/IERvIEkgbWlzcyBzb21ldGhpbmc/CgpUaGFua3MgOi0pCgo+
+Cj4gWy4uLl0KPgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy93YXRjaGRvZy9LY29uZmlnIGIvZHJp
+dmVycy93YXRjaGRvZy9LY29uZmlnCj4+IGluZGV4IGFjYjAwYjUuLmM4OTlkZjEgMTAwNjQ0Cj4+
+IC0tLSBhL2RyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZwo+PiArKysgYi9kcml2ZXJzL3dhdGNoZG9n
+L0tjb25maWcKPj4gQEAgLTIxOSw2ICsyMTksNyBAQCBjb25maWcgQVJNX1NCU0FfV0FUQ0hET0cK
+Pj4gICAgICAgdHJpc3RhdGUgIkFSTSBTQlNBIEdlbmVyaWMgV2F0Y2hkb2ciCj4+ICAgICAgIGRl
+cGVuZHMgb24gQVJNNjQKPj4gICAgICAgZGVwZW5kcyBvbiBBUk1fQVJDSF9USU1FUgo+PiArICAg
+ICBkZXBlbmRzIG9uIEFDUElfR1REVCB8fCAhQUNQSQo+Cj4gSSBkb24ndCB0aGluayB0aGlzIGlz
+IG5lY2Vzc2FyeS4KPgo+IFRoaXMgc2VyaWVzIGhhc24ndCB0b3VjaGVkIHRoaXMgZHJpdmVyIGNv
+ZGUgYXQgYWxsLgoKeWVzLCBzaW5jZSB3ZSBhcmUgdXNpbmcgInNlbGVjdCBBQ1BJX0dURFQgaWYg
+QUNQSSIgaW4gQVJNNjQsIHdlIGRvbid0IHRoaXMuClRoYW5rcyBmb3IgcG9pbnRpbmcgaXQgb3V0
+Lgo6LSkKCj4KPiBUaGFua3MsCj4gTWFyay4KCgoKLS0gCkJlc3QgcmVnYXJkcywKCkZ1IFdlaQpT
+b2Z0d2FyZSBFbmdpbmVlcgpSZWQgSGF0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
