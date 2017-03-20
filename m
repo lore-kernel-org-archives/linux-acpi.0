@@ -1,84 +1,47 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v21 01/13] clocksource: arm_arch_timer: introduce two
- functions to get the frequency from mmio and sysreg.
-Date: Mon, 20 Mar 2017 19:09:56 +0800
-Message-ID: <CADyBb7udtijHnXXqGDhtE1YxeLBqJeDFRs97Yc-P0enCA2z8Lg@mail.gmail.com>
-References: <20170206185015.12296-1-fu.wei@linaro.org>
- <20170206185015.12296-2-fu.wei@linaro.org>
- <20170317180513.GB15909@leverpostej>
- <CADyBb7vZ4G+q1y6w6OVQ7i-ZiTtcdx_w2BOSWqy=2jWhAV6Hmw@mail.gmail.com>
- <CADyBb7vawnjnL6Phxc_owTnEK0qf95cYAUWPga9axGqEWc46Ww@mail.gmail.com>
- <20170320104153.GA18585@leverpostej>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 01/15] mfd: Add Cherry Trail Whiskey Cove PMIC driver
+Date: Mon, 20 Mar 2017 14:55:05 +0200
+Message-ID: <1490014505.19767.103.camel@linux.intel.com>
+References: <20170317095527.10487-1-hdegoede@redhat.com>
+         <20170317095527.10487-2-hdegoede@redhat.com>
+         <1489770046.19767.66.camel@linux.intel.com>
+         <20170320104152.lba24r2qilpjr2kk@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170320104153.GA18585@leverpostej>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
- Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170320104152.lba24r2qilpjr2kk@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark,
+On Mon, 2017-03-20 at 10:41 +0000, Lee Jones wrote:
+> On Fri, 17 Mar 2017, Andy Shevchenko wrote:
+> > On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
 
-On 20 March 2017 at 18:41, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Mon, Mar 20, 2017 at 05:43:29PM +0800, Fu Wei wrote:
->> On 20 March 2017 at 15:36, Fu Wei <fu.wei@linaro.org> wrote:
->> > On 18 March 2017 at 02:05, Mark Rutland <mark.rutland@arm.com> wrote:
->> >> On Tue, Feb 07, 2017 at 02:50:03AM +0800, fu.wei@linaro.org wrote:
->
->> >>> +static u32 arch_timer_get_mmio_freq(void __iomem *cntbase)
->> >>> +{
->> >>> +     /*
->> >>> +      * Try to get the frequency from the CNTFRQ of timer frame registers.
->> >>> +      * Note: please verify cntbase in caller.
->> >>> +      */
->> >>> +     return readl_relaxed(cntbase + CNTFRQ);
->> >>> +}
->> >>
->> >> Wrapping the MMIO read makes sense if we're going to do this in more
->> >> than one place, so I'm happy with this wrapper.
->> >>
->> >> If you can s/arch_timer_get_mmio_freq/arch_timer_get_cntfrq/, and drop
->> >
->> > sorry, May I guess that is
->> > "s/arch_timer_get_mmio_freq/arch_timer_get_mmio_cntfrq/"
->> > or
->> > "s/arch_timer_get_mmio_freq/arch_timer_mem_get_cntfrq/"
->> >
->> > which one do you prefer? :-)
->>
->> keeping using arch_timer_get_cntfrq();  for per-CPU arch timer, then
->>
->> +static u32 arch_timer_mem_get_cntfrq(void __iomem *cntbase)
->> +{
->> +       return readl_relaxed(cntbase + CNTFRQ);
->> +}
->> +
->
-> That looks perfect to me.
->
-> Sorry for the confusion above!
+> > > +enum {
+> > > +	CHT_WC_PWRSRC_IRQ = 0,
+> > > +	CHT_WC_THRM_IRQ,
+> > > +	CHT_WC_BCU_IRQ,
+> > > +	CHT_WC_ADC_IRQ,
+> > > +	CHT_WC_EXT_CHGR_IRQ,
+> > > +	CHT_WC_GPIO_IRQ,
+> > > +	/* There is no irq 6 */
+> > > +	CHT_WC_CRIT_IRQ = 7,
+> > 
+> > I would prefer explicit over implicit (adding = N to each line), but
+> > this is minor.
+> 
+> No need.  The C standard is clear on what is expected of enums.
 
-Great, thanks , doing this way :-)
+I understand that, though I don't like gaps in enums. That's why I
+prefer in such cases pure #define over enum (yes, I understand that enum
+in many cases is better).
 
->
-> Mark.
-
-
+But this all matter of taste. So, I will not insist if it would be left
+as it is now.
 
 -- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
