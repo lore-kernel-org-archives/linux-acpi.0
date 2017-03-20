@@ -1,69 +1,197 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v21 01/13] clocksource: arm_arch_timer: introduce two
- functions to get the frequency from mmio and sysreg.
-Date: Mon, 20 Mar 2017 15:36:36 +0800
-Message-ID: <CADyBb7vZ4G+q1y6w6OVQ7i-ZiTtcdx_w2BOSWqy=2jWhAV6Hmw@mail.gmail.com>
-References: <20170206185015.12296-1-fu.wei@linaro.org> <20170206185015.12296-2-fu.wei@linaro.org>
- <20170317180513.GB15909@leverpostej>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH v2 3/3] arm64: KVM: add guest SEI support
+Date: Mon, 20 Mar 2017 15:48:16 +0800
+Message-ID: <0d082cbb-8163-1163-cdd3-3daecd57a823@huawei.com>
+References: <1488946181-130774-1-git-send-email-xiexiuqi@huawei.com>
+ <1488946181-130774-4-git-send-email-xiexiuqi@huawei.com>
+ <58C7BBA2.4080208@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170317180513.GB15909@leverpostej>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:4429 "EHLO
+        dggrg03-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752677AbdCTHzn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Mar 2017 03:55:43 -0400
+In-Reply-To: <58C7BBA2.4080208@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: marc.zyngier@arm.com, fu.wei@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, zjzhang@codeaurora.org, wangkefeng.wang@huawei.com, zhengqiang10@huawei.com, wangxiongfeng2@huawei.com, shiju.jose@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org
 
-Hi Mark,
+Hi James,
 
-On 18 March 2017 at 02:05, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Tue, Feb 07, 2017 at 02:50:03AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> +static u32 arch_timer_get_sysreg_freq(void)
+Thank you for your comments and detail explanation.
+
+On 2017/3/14 17:45, James Morse wrote:
+> Hi Xie XiuQi,
+> 
+> On 08/03/17 04:09, Xie XiuQi wrote:
+>> Add ghes handling for SEI so that the host kernel could parse and
+>> report detailed error information for SEI which occur in the guest
+>> kernel.
+> 
+> How does this interact with Synchronous External Abort as a notify method?
+> Both of these take the in_nmi() path through APEI.
+> 
+> SError Interrupts are masked during exception processing, so we don't have to
+> worry about them becoming recursive.
+
+If we use firmware first mode, SEI will be routed to EL3 first, in which mode
+the interrupt cannot be masked by the PSTATE.{A,I,F}.
+
+> For SEA the firmware has to promise not to invoke another SEA while we are still
+> processing the first, and SEI will be masked if we took it as an exception.
+> 
+
+Yes, for SEI the firmware should also promise not to invoke another SEI while the
+first SEI processing.
+
+But I have a question here, how to handle this case: on the same cpu, another SEA
+is taken while we are processing the first SEA. Should firmware detect this case and
+reset the system directly?
+
+The same question is also for SEI.
+
+> What happens if we take an SEA while processing another event notified via SEI?
+> Can this happen on your platform? Can someone else build a platform where this
+> happens? Does the GHES APEI code need to be able to handle this?
+
+IMO, the system should be panic if we take an SEA while processing another event
+notified via SEI on the same cpu, and it's not necessary to parse the GHES for the
+second SEA. However, if on different cpu, it might be taken simultaneously.
+
+> 
+> If we need to support both at the same time we will need to change Linux's APEI
+> code to reserve a page of virtual address space per GHES entry, instead of one
+> for NMI and one for IRQ.
+> 
+
+We cannot assume that firmware could prevent the SEA notify to OS while SEI is
+processing on different cpu. Because firmware use two different GHES for SEA and SEI.
+Yes, indeed, we could reserve another virtual address space for the second SEA or SEI.
+
+All above, I just analyze the spec and discuss with BIOS team, but I have no platform
+to test now. Any comments is welcome.
+
+> 
+>> diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
+>> index 5b2cecd..d68d61f 100644
+>> --- a/arch/arm64/include/asm/system_misc.h
+>> +++ b/arch/arm64/include/asm/system_misc.h
+>> @@ -59,5 +59,6 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
+>>  #endif	/* __ASSEMBLY__ */
+>>  
+>>  int handle_guest_sea(unsigned long addr, unsigned int esr);
+>> +int handle_guest_sei(unsigned long addr, unsigned int esr);
+>>  
+>>  #endif	/* __ASM_SYSTEM_MISC_H */
+>> diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
+>> index 65dbfa9..cf9f569 100644
+>> --- a/arch/arm64/kernel/traps.c
+>> +++ b/arch/arm64/kernel/traps.c
+>> @@ -616,6 +616,24 @@ const char *esr_get_class_string(u32 esr)
+>>  }
+>>  
+>>  /*
+>> + * Handle asynchronous SError interrupt that occur in a guest kernel.
+>> + */
+>> +int handle_guest_sei(unsigned long addr, unsigned int esr)
 >> +{
->> +     /*
->> +      * Try to get the frequency from the CNTFRQ of sysreg.
->> +      */
->> +     return arch_timer_get_cntfrq();
+>> +	/*
+>> +	 * synchronize_rcu() will wait for nmi_exit(), so no need to
+>> +	 * rcu_read_lock().
+>> +	 */
+> 
+> This comment was true for patch 4 of Tyler's series, but not-true when we got to
+> patch 10. Please remove it,
+
+OK, thanks.
+
+> 
+> 
+>> +	if(IS_ENABLED(CONFIG_ACPI_APEI_SEI)) {
+>> +		rcu_read_lock();
+> 
+> Please put the rcu calls against the thing using them.
+> 
+> 
+>> +		ghes_notify_sei();
+>> +		rcu_read_unlock();
+>> +	}
+>> +
+>> +	return 0;
 >> +}
->
-> We already have arch_timer_get_cntfrq(), so I don't see the point in
-> this wrapper.
->
->> +static u32 arch_timer_get_mmio_freq(void __iomem *cntbase)
+>> +
+>> +/*
+>>   * bad_mode handles the impossible case in the exception vector. This is always
+>>   * fatal.
+>>   */
+> 
+>> diff --git a/arch/arm64/kvm/handle_exit.c b/arch/arm64/kvm/handle_exit.c
+>> index 1bfe30d..8c7dba0 100644
+>> --- a/arch/arm64/kvm/handle_exit.c
+>> +++ b/arch/arm64/kvm/handle_exit.c
+>> @@ -172,6 +173,23 @@ static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
+>>  	return arm_exit_handlers[hsr_ec];
+>>  }
+>>  
+>> +static int kvm_handle_guest_sei(struct kvm_vcpu *vcpu, struct kvm_run *run)
 >> +{
->> +     /*
->> +      * Try to get the frequency from the CNTFRQ of timer frame registers.
->> +      * Note: please verify cntbase in caller.
->> +      */
->> +     return readl_relaxed(cntbase + CNTFRQ);
->> +}
->
-> Wrapping the MMIO read makes sense if we're going to do this in more
-> than one place, so I'm happy with this wrapper.
->
-> If you can s/arch_timer_get_mmio_freq/arch_timer_get_cntfrq/, and drop
+>> +	unsigned long fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
+>> +
+>> +	if (handle_guest_sei((unsigned long)fault_ipa,
+>> +				kvm_vcpu_get_hsr(vcpu))) {
+>> +		kvm_err("Failed to handle guest SEI, FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
+>> +				kvm_vcpu_trap_get_class(vcpu),
+>> +				(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
+>> +				(unsigned long)kvm_vcpu_get_hsr(vcpu));
+>> +	}
+>> +
+> 
+>> +	kvm_inject_vabt(vcpu);
+> 
+> Always inject an SError Interrupt? How should this work when Qemu supports
+> guest-RAS too?
+> 
+> If we do want to kill the guest for RAS-related reasons we should go via
+> user-space to allow Qemu to handle the error and potentially notify the guest.
+> This would let Qemu generate CPER records for the guest, mirroring what just
+> happened with the firmware-generated records.
+> 
+> As on the other thread: if there were CPER records processed by
+> handle_guest_sei() we should continue as normal as the fault was handled in some
+> way.
+> If there were no CPER records, (or the system doesn't support SEI as a GHES
+> notification mechanism), then yes we should still call kvm_inject_vabt().
+> 
+> A suggestion of how do this: [0], if you have a better suggestion please chime in!
 
-sorry, May I guess that is
-"s/arch_timer_get_mmio_freq/arch_timer_get_mmio_cntfrq/"
-or
-"s/arch_timer_get_mmio_freq/arch_timer_mem_get_cntfrq/"
-
-which one do you prefer? :-)
-
-> the comments, then this looks fine to me.
->
-> Thanks,
-> Mark.
-
-
+We need use ESB to isolate the asynchronous error, so that, recovery from SEI is possible then.
+I'll do more analyze at spec & code.
 
 -- 
-Best regards,
+Thanks,
+Xie XiuQi
 
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> [0] https://www.spinics.net/lists/kvm/msg146131.html
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
+
+
+
