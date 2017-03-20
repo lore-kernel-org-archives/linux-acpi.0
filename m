@@ -1,146 +1,96 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 2/4] ACPI: ac: Add acpi_ac_unregister() function
-Date: Mon, 20 Mar 2017 14:21:48 +0100
-Message-ID: <20170320132150.18771-2-hdegoede@redhat.com>
-References: <20170320132150.18771-1-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34912 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753935AbdCTNV4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Mar 2017 09:21:56 -0400
-In-Reply-To: <20170320132150.18771-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v21 04/13] clocksource: arm_arch_timer: split
+ arch_timer_rate for different types of timer
+Date: Mon, 20 Mar 2017 21:35:12 +0800
+Message-ID: <CADyBb7utYy=VQ=hZnuecnCo1o=bXLg19ONHESUYfhBUdahoprw@mail.gmail.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+ <20170206185015.12296-5-fu.wei@linaro.org>
+ <20170317190539.GD15909@leverpostej>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170317190539.GD15909@leverpostej>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On some systems we have a native PMIC driver which provides Mains
-monitoring, while the ACPI ac driver is broken on these systems
-due to bad DSTDs or because of missing vendor specific ACPI opregion
-(e.g. BMOP opregion) support, which the ACPI ac device in the dsdt
-relies on. This leads for example to a ADP1 power_supply which reports
-itself as always online even if no mains are connected.
+Hi Mark,
 
-This commit adds an acpi_ac_unregister() function which native PMIC
-drivers can call after successfully registering their own power_supply
-to unregister the (potentially broken) ACPI-ac power_supply.
+On 18 March 2017 at 03:05, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Tue, Feb 07, 2017 at 02:50:06AM +0800, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
+>>
+>> Currently, arch_timer_rate is used to store the frequency got from per-cpu
+>> arch-timer or the memory-mapped (MMIO) timers. But those values come from
+>> different registers which should all be initialized by firmware.
+>>
+>> This patch remove arch_timer_rate, and use arch_timer_sysreg_freq and
+>> arch_timer_mmio_freq instead.
+>>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>
+> Thanks for attacking this. Generally, I do think this is the right thing
+> to do.
+>
+> However...
+>
+>> @@ -1070,10 +1077,9 @@ static int __init arch_timer_mem_init(struct device_node *np)
+>>        * Try to determine the frequency from the device tree,
+>>        * if fail, get the frequency from the CNTFRQ reg of MMIO timer.
+>>        */
+>> -     if (!arch_timer_rate &&
+>> -         of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+>> -             arch_timer_rate = arch_timer_get_mmio_freq(base);
+>> -     if (!arch_timer_rate) {
+>> +     if (of_property_read_u32(np, "clock-frequency", &arch_timer_mmio_freq))
+>> +             arch_timer_mmio_freq = arch_timer_get_mmio_freq(base);
+>> +     if (!arch_timer_mmio_freq) {
+>>               pr_err(FW_BUG "frequency not available for MMIO timer.\n");
+>>               ret = -EINVAL;
+>>               goto out;
+>
+> ... unfortunately, I believe that this will break some DT platforms that
+> have been (unintentionally) relying on the way currently allow the
+> frequency to be probed from either the MMIO timer or the sysreg timer.
+>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v2:
--Fix capitalization in commit msg
--Minor style cleanups
----
- drivers/acpi/ac.c          | 43 ++++++++++++++++++++++++++++++++++++++-----
- include/linux/power/acpi.h |  6 ++++++
- 2 files changed, 44 insertions(+), 5 deletions(-)
+Ah, I 'm really not aware of this. Thanks for pointing it out.
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index f71b756..b42affb 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -26,11 +26,13 @@
- #include <linux/types.h>
- #include <linux/dmi.h>
- #include <linux/delay.h>
-+#include <linux/mutex.h>
- #ifdef CONFIG_ACPI_PROCFS_POWER
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #endif
- #include <linux/platform_device.h>
-+#include <linux/power/acpi.h>
- #include <linux/power_supply.h>
- #include <linux/acpi.h>
- #include "battery.h"
-@@ -422,17 +424,27 @@ static int acpi_ac_remove(struct acpi_device *device)
- 	return 0;
- }
- 
-+enum init_state_enum { AC_NONE, AC_INITIALIZED, AC_EXITED };
-+
-+static enum init_state_enum init_state;
-+static DEFINE_MUTEX(init_state_mutex);
-+
- static int __init acpi_ac_init(void)
- {
--	int result;
-+	int result, ret = -ENODEV;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
-+	/* Check if acpi_ac_unregister() got called before _init() */
-+	mutex_lock(&init_state_mutex);
-+	if (init_state != AC_NONE)
-+		goto out_unlock;
-+
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_ac_dir = acpi_lock_ac_dir();
- 	if (!acpi_ac_dir)
--		return -ENODEV;
-+		goto out_unlock;
- #endif
- 
- 
-@@ -441,18 +453,39 @@ static int __init acpi_ac_init(void)
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 		acpi_unlock_ac_dir(acpi_ac_dir);
- #endif
--		return -ENODEV;
-+		goto out_unlock;
- 	}
- 
--	return 0;
-+	init_state = AC_INITIALIZED;
-+	ret = 0;
-+
-+out_unlock:
-+	mutex_unlock(&init_state_mutex);
-+	return ret;
- }
- 
--static void __exit acpi_ac_exit(void)
-+void acpi_ac_unregister(void)
- {
-+	/* Check if _init() is done and only do unregister once */
-+	mutex_lock(&init_state_mutex);
-+	if (init_state != AC_INITIALIZED)
-+		goto out_exit;
-+
- 	acpi_bus_unregister_driver(&acpi_ac_driver);
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	acpi_unlock_ac_dir(acpi_ac_dir);
- #endif
-+
-+out_exit:
-+	init_state = AC_EXITED;
-+	mutex_unlock(&init_state_mutex);
- }
-+EXPORT_SYMBOL_GPL(acpi_ac_unregister);
-+
-+static void __exit acpi_ac_exit(void)
-+{
-+	acpi_ac_unregister();
-+}
-+
- module_init(acpi_ac_init);
- module_exit(acpi_ac_exit);
-diff --git a/include/linux/power/acpi.h b/include/linux/power/acpi.h
-index 83bdfb9..b50ae69 100644
---- a/include/linux/power/acpi.h
-+++ b/include/linux/power/acpi.h
-@@ -15,4 +15,10 @@ void acpi_battery_unregister(void);
- static inline void acpi_battery_unregister(void) {}
- #endif
- 
-+#if IS_ENABLED(CONFIG_ACPI_AC)
-+void acpi_ac_unregister(void);
-+#else
-+static inline void acpi_ac_unregister(void) {}
-+#endif
-+
- #endif
+> So while the above was my suggestion, it was not my best.
+>
+> For the timebeing, let's leave the single arch_timer_rate, but ensure
+> that it doesn't get in the way fo the ACPI code, by making the ACPI
+> probe path:
+>
+> * Probe the sysreg timers first, using the sysreg cntfrq().
+>
+> * Probe the MMIO timers second, verifying that each MMIO cntfrq matches
+>   the already-probed sysreg cntfrq.
+>
+> ... which is what I believe you suggested previously.
+
+OK, NP, will do this way.
+
+>
+> Thanks,
+> Mark.
+
+
+
 -- 
-2.9.3
+Best regards,
 
+Fu Wei
+Software Engineer
+Red Hat
