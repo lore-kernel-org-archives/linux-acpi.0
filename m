@@ -1,465 +1,360 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 3/3] extcon: cht-wc: Add Intel Cherry Trail Whiskey Cove PMIC extcon driver
-Date: Mon, 20 Mar 2017 22:30:01 +0100
-Message-ID: <20170320213001.11163-4-hdegoede@redhat.com>
+Subject: [PATCH v2 2/3] ACPI / PMIC: Add opregion driver for Intel CHT Whiskey Cove PMIC
+Date: Mon, 20 Mar 2017 22:30:00 +0100
+Message-ID: <20170320213001.11163-3-hdegoede@redhat.com>
 References: <20170320213001.11163-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47442 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:58146 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755220AbdCTVa0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Mar 2017 17:30:26 -0400
+        id S1755919AbdCTVaO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Mar 2017 17:30:14 -0400
 In-Reply-To: <20170320213001.11163-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
 
-Add a driver for charger detection / control on the Intel Cherrytrail
-Whiskey Cove PMIC.
+Add opregion driver for Intel CHT Whiskey Cove PMIC, based on various
+non upstreamed CHT Whiskey Cove PMIC patches. This does not include
+support for the Thermal opregion (DPTF) due to lacking documentation.
 
+Cc: Bin Gao <bin.gao@intel.com>
+Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
 Changes in v2:
--Improve wait for charger detection loop, use jiffies to get an accurate timeout
--Sort registers by address, remove duplicate definition
--Return IRQ_NONE on interrupt handling errors
--Various small style cleanups
--Fix reporting no charger cable being present when detecting the same
- charger type 2 times in a row
--Reset to autonomous / hw-mode on probe-error and on remove
+-s/WhiskeyCove/Whiskey Cove/
+-Some minor style tweaks
+-Allow building as module
+Changes in v3:
+-Drop filename from copyright header
+-Simplify intel_cht_wc_pmic_update_power to 1 line
+-Move defines of regulator register addresses to intel_pmic_chtwc.c,
+ it is the only place where they are used
 ---
- drivers/extcon/Kconfig         |   7 +
- drivers/extcon/Makefile        |   1 +
- drivers/extcon/extcon-cht-wc.c | 390 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 398 insertions(+)
- create mode 100644 drivers/extcon/extcon-cht-wc.c
+ drivers/acpi/Kconfig                 |   6 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/pmic/intel_pmic_chtwc.c | 280 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 287 insertions(+)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_chtwc.c
 
-diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
-index 96bbae5..4cace6b 100644
---- a/drivers/extcon/Kconfig
-+++ b/drivers/extcon/Kconfig
-@@ -52,6 +52,13 @@ config EXTCON_INTEL_INT3496
- 	  This ACPI device is typically found on Intel Baytrail or Cherrytrail
- 	  based tablets, or other Baytrail / Cherrytrail devices.
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 83e5f7e..e3c4ef0 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -516,6 +516,12 @@ config BXT_WC_PMIC_OPREGION
+ 	help
+ 	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
  
-+config EXTCON_CHT_WC
-+	tristate "Intel Cherrytrail Whiskey Cove PMIC extcon driver"
++config CHT_WC_PMIC_OPREGION
++	tristate "ACPI operation region support for CHT Whiskey Cove PMIC"
 +	depends on INTEL_SOC_PMIC_CHTWC
 +	help
-+	  Say Y here to enable extcon support for charger detection / control
-+	  on the Intel Cherrytrail Whiskey Cove PMIC.
++	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
 +
- config EXTCON_MAX14577
- 	tristate "Maxim MAX14577/77836 EXTCON Support"
- 	depends on MFD_MAX14577
-diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
-index 237ac3f..160f88b 100644
---- a/drivers/extcon/Makefile
-+++ b/drivers/extcon/Makefile
-@@ -7,6 +7,7 @@ extcon-core-objs		+= extcon.o devres.o
- obj-$(CONFIG_EXTCON_ADC_JACK)	+= extcon-adc-jack.o
- obj-$(CONFIG_EXTCON_ARIZONA)	+= extcon-arizona.o
- obj-$(CONFIG_EXTCON_AXP288)	+= extcon-axp288.o
-+obj-$(CONFIG_EXTCON_CHT_WC)	+= extcon-cht-wc.o
- obj-$(CONFIG_EXTCON_GPIO)	+= extcon-gpio.o
- obj-$(CONFIG_EXTCON_INTEL_INT3496) += extcon-intel-int3496.o
- obj-$(CONFIG_EXTCON_MAX14577)	+= extcon-max14577.o
-diff --git a/drivers/extcon/extcon-cht-wc.c b/drivers/extcon/extcon-cht-wc.c
+ endif
+ 
+ config ACPI_CONFIGFS
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index a391bbc..6f6b47f 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -102,6 +102,7 @@ obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
+ obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
+ obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
+ obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
++obj-$(CONFIG_CHT_WC_PMIC_OPREGION) += pmic/intel_pmic_chtwc.o
+ 
+ obj-$(CONFIG_ACPI_CONFIGFS)	+= acpi_configfs.o
+ 
+diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
 new file mode 100644
-index 0000000..9e14972
+index 0000000..85636d7
 --- /dev/null
-+++ b/drivers/extcon/extcon-cht-wc.c
-@@ -0,0 +1,390 @@
++++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
+@@ -0,0 +1,280 @@
 +/*
-+ * Extcon charger detection driver for Intel Cherrytrail Whiskey Cove PMIC
++ * Intel CHT Whiskey Cove PMIC operation region driver
 + * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
 + *
 + * Based on various non upstream patches to support the CHT Whiskey Cove PMIC:
 + * Copyright (C) 2013-2015 Intel Corporation. All rights reserved.
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
 + *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
-+#include <linux/extcon.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
++#include <linux/acpi.h>
++#include <linux/init.h>
 +#include <linux/mfd/intel_soc_pmic.h>
-+#include <linux/module.h>
 +#include <linux/platform_device.h>
 +#include <linux/regmap.h>
-+#include <linux/slab.h>
++#include "intel_pmic.h"
 +
-+#define CHT_WC_PHYCTRL			0x5e07
++#define CHT_WC_V1P05A_CTRL		0x6e3b
++#define CHT_WC_V1P15_CTRL		0x6e3c
++#define CHT_WC_V1P05A_VSEL		0x6e3d
++#define CHT_WC_V1P15_VSEL		0x6e3e
++#define CHT_WC_V1P8A_CTRL		0x6e56
++#define CHT_WC_V1P8SX_CTRL		0x6e57
++#define CHT_WC_VDDQ_CTRL		0x6e58
++#define CHT_WC_V1P2A_CTRL		0x6e59
++#define CHT_WC_V1P2SX_CTRL		0x6e5a
++#define CHT_WC_V1P8A_VSEL		0x6e5b
++#define CHT_WC_VDDQ_VSEL		0x6e5c
++#define CHT_WC_V2P8SX_CTRL		0x6e5d
++#define CHT_WC_V3P3A_CTRL		0x6e5e
++#define CHT_WC_V3P3SD_CTRL		0x6e5f
++#define CHT_WC_VSDIO_CTRL		0x6e67
++#define CHT_WC_V3P3A_VSEL		0x6e68
++#define CHT_WC_VPROG1A_CTRL		0x6e90
++#define CHT_WC_VPROG1B_CTRL		0x6e91
++#define CHT_WC_VPROG1F_CTRL		0x6e95
++#define CHT_WC_VPROG2D_CTRL		0x6e99
++#define CHT_WC_VPROG3A_CTRL		0x6e9a
++#define CHT_WC_VPROG3B_CTRL		0x6e9b
++#define CHT_WC_VPROG4A_CTRL		0x6e9c
++#define CHT_WC_VPROG4B_CTRL		0x6e9d
++#define CHT_WC_VPROG4C_CTRL		0x6e9e
++#define CHT_WC_VPROG4D_CTRL		0x6e9f
++#define CHT_WC_VPROG5A_CTRL		0x6ea0
++#define CHT_WC_VPROG5B_CTRL		0x6ea1
++#define CHT_WC_VPROG6A_CTRL		0x6ea2
++#define CHT_WC_VPROG6B_CTRL		0x6ea3
++#define CHT_WC_VPROG1A_VSEL		0x6ec0
++#define CHT_WC_VPROG1B_VSEL		0x6ec1
++#define CHT_WC_V1P8SX_VSEL		0x6ec2
++#define CHT_WC_V1P2SX_VSEL		0x6ec3
++#define CHT_WC_V1P2A_VSEL		0x6ec4
++#define CHT_WC_VPROG1F_VSEL		0x6ec5
++#define CHT_WC_VSDIO_VSEL		0x6ec6
++#define CHT_WC_V2P8SX_VSEL		0x6ec7
++#define CHT_WC_V3P3SD_VSEL		0x6ec8
++#define CHT_WC_VPROG2D_VSEL		0x6ec9
++#define CHT_WC_VPROG3A_VSEL		0x6eca
++#define CHT_WC_VPROG3B_VSEL		0x6ecb
++#define CHT_WC_VPROG4A_VSEL		0x6ecc
++#define CHT_WC_VPROG4B_VSEL		0x6ecd
++#define CHT_WC_VPROG4C_VSEL		0x6ece
++#define CHT_WC_VPROG4D_VSEL		0x6ecf
++#define CHT_WC_VPROG5A_VSEL		0x6ed0
++#define CHT_WC_VPROG5B_VSEL		0x6ed1
++#define CHT_WC_VPROG6A_VSEL		0x6ed2
++#define CHT_WC_VPROG6B_VSEL		0x6ed3
 +
-+#define CHT_WC_CHGRCTRL0		0x5e16
-+#define CHT_WC_CHGRCTRL0_CHGRRESET	BIT(0)
-+#define CHT_WC_CHGRCTRL0_EMRGCHREN	BIT(1)
-+#define CHT_WC_CHGRCTRL0_EXTCHRDIS	BIT(2)
-+#define CHT_WC_CHGRCTRL0_SWCONTROL	BIT(3)
-+#define CHT_WC_CHGRCTRL0_TTLCK_MASK	BIT(4)
-+#define CHT_WC_CHGRCTRL0_CCSM_OFF_MASK	BIT(5)
-+#define CHT_WC_CHGRCTRL0_DBPOFF_MASK	BIT(6)
-+#define CHT_WC_CHGRCTRL0_WDT_NOKICK	BIT(7)
-+
-+#define CHT_WC_CHGRCTRL1		0x5e17
-+
-+#define CHT_WC_USBSRC			0x5e29
-+#define CHT_WC_USBSRC_STS_MASK		GENMASK(1, 0)
-+#define CHT_WC_USBSRC_STS_SUCCESS	2
-+#define CHT_WC_USBSRC_STS_FAIL		3
-+#define CHT_WC_USBSRC_TYPE_SHIFT	2
-+#define CHT_WC_USBSRC_TYPE_MASK		GENMASK(5, 2)
-+#define CHT_WC_USBSRC_TYPE_NONE		0
-+#define CHT_WC_USBSRC_TYPE_SDP		1
-+#define CHT_WC_USBSRC_TYPE_DCP		2
-+#define CHT_WC_USBSRC_TYPE_CDP		3
-+#define CHT_WC_USBSRC_TYPE_ACA		4
-+#define CHT_WC_USBSRC_TYPE_SE1		5
-+#define CHT_WC_USBSRC_TYPE_MHL		6
-+#define CHT_WC_USBSRC_TYPE_FLOAT_DP_DN	7
-+#define CHT_WC_USBSRC_TYPE_OTHER	8
-+#define CHT_WC_USBSRC_TYPE_DCP_EXTPHY	9
-+
-+#define CHT_WC_PWRSRC_IRQ		0x6e03
-+#define CHT_WC_PWRSRC_IRQ_MASK		0x6e0f
-+#define CHT_WC_PWRSRC_STS		0x6e1e
-+#define CHT_WC_PWRSRC_VBUS		BIT(0)
-+#define CHT_WC_PWRSRC_DC		BIT(1)
-+#define CHT_WC_PWRSRC_BAT		BIT(2)
-+#define CHT_WC_PWRSRC_ID_GND		BIT(3)
-+#define CHT_WC_PWRSRC_ID_FLOAT		BIT(4)
-+
-+enum cht_wc_usb_id {
-+	USB_ID_OTG,
-+	USB_ID_GND,
-+	USB_ID_FLOAT,
-+	USB_RID_A,
-+	USB_RID_B,
-+	USB_RID_C,
++/*
++ * Regulator support is based on the non upstream patch:
++ * "regulator: whiskey_cove: implements Whiskey Cove pmic VRF support"
++ * https://github.com/intel-aero/meta-intel-aero/blob/master/recipes-kernel/linux/linux-yocto/0019-regulator-whiskey_cove-implements-WhiskeyCove-pmic-V.patch
++ */
++static struct pmic_table power_table[] = {
++	{
++		.address = 0x0,
++		.reg = CHT_WC_V1P8A_CTRL,
++		.bit = 0x01,
++	}, /* V18A */
++	{
++		.address = 0x04,
++		.reg = CHT_WC_V1P8SX_CTRL,
++		.bit = 0x07,
++	}, /* V18X */
++	{
++		.address = 0x08,
++		.reg = CHT_WC_VDDQ_CTRL,
++		.bit = 0x01,
++	}, /* VDDQ */
++	{
++		.address = 0x0c,
++		.reg = CHT_WC_V1P2A_CTRL,
++		.bit = 0x07,
++	}, /* V12A */
++	{
++		.address = 0x10,
++		.reg = CHT_WC_V1P2SX_CTRL,
++		.bit = 0x07,
++	}, /* V12X */
++	{
++		.address = 0x14,
++		.reg = CHT_WC_V2P8SX_CTRL,
++		.bit = 0x07,
++	}, /* V28X */
++	{
++		.address = 0x18,
++		.reg = CHT_WC_V3P3A_CTRL,
++		.bit = 0x01,
++	}, /* V33A */
++	{
++		.address = 0x1c,
++		.reg = CHT_WC_V3P3SD_CTRL,
++		.bit = 0x07,
++	}, /* V3SD */
++	{
++		.address = 0x20,
++		.reg = CHT_WC_VSDIO_CTRL,
++		.bit = 0x07,
++	}, /* VSD */
++/*	{
++		.address = 0x24,
++		.reg = ??,
++		.bit = ??,
++	}, ** VSW2 */
++/*	{
++		.address = 0x28,
++		.reg = ??,
++		.bit = ??,
++	}, ** VSW1 */
++/*	{
++		.address = 0x2c,
++		.reg = ??,
++		.bit = ??,
++	}, ** VUPY */
++/*	{
++		.address = 0x30,
++		.reg = ??,
++		.bit = ??,
++	}, ** VRSO */
++	{
++		.address = 0x34,
++		.reg = CHT_WC_VPROG1A_CTRL,
++		.bit = 0x07,
++	}, /* VP1A */
++	{
++		.address = 0x38,
++		.reg = CHT_WC_VPROG1B_CTRL,
++		.bit = 0x07,
++	}, /* VP1B */
++	{
++		.address = 0x3c,
++		.reg = CHT_WC_VPROG1F_CTRL,
++		.bit = 0x07,
++	}, /* VP1F */
++	{
++		.address = 0x40,
++		.reg = CHT_WC_VPROG2D_CTRL,
++		.bit = 0x07,
++	}, /* VP2D */
++	{
++		.address = 0x44,
++		.reg = CHT_WC_VPROG3A_CTRL,
++		.bit = 0x07,
++	}, /* VP3A */
++	{
++		.address = 0x48,
++		.reg = CHT_WC_VPROG3B_CTRL,
++		.bit = 0x07,
++	}, /* VP3B */
++	{
++		.address = 0x4c,
++		.reg = CHT_WC_VPROG4A_CTRL,
++		.bit = 0x07,
++	}, /* VP4A */
++	{
++		.address = 0x50,
++		.reg = CHT_WC_VPROG4B_CTRL,
++		.bit = 0x07,
++	}, /* VP4B */
++	{
++		.address = 0x54,
++		.reg = CHT_WC_VPROG4C_CTRL,
++		.bit = 0x07,
++	}, /* VP4C */
++	{
++		.address = 0x58,
++		.reg = CHT_WC_VPROG4D_CTRL,
++		.bit = 0x07,
++	}, /* VP4D */
++	{
++		.address = 0x5c,
++		.reg = CHT_WC_VPROG5A_CTRL,
++		.bit = 0x07,
++	}, /* VP5A */
++	{
++		.address = 0x60,
++		.reg = CHT_WC_VPROG5B_CTRL,
++		.bit = 0x07,
++	}, /* VP5B */
++	{
++		.address = 0x64,
++		.reg = CHT_WC_VPROG6A_CTRL,
++		.bit = 0x07,
++	}, /* VP6A */
++	{
++		.address = 0x68,
++		.reg = CHT_WC_VPROG6B_CTRL,
++		.bit = 0x07,
++	}, /* VP6B */
++/*	{
++		.address = 0x6c,
++		.reg = ??,
++		.bit = ??,
++	}  ** VP7A */
 +};
 +
-+/* Strings matching the cht_wc_usb_id enum labels */
-+static const char * const usb_id_str[] = {
-+	"otg", "gnd", "float", "rid_a", "rid_b", "rid_c" };
++static int intel_cht_wc_pmic_get_power(struct regmap *regmap, int reg,
++		int bit, u64 *value)
++{
++	int data;
 +
-+enum cht_wc_mux_select {
-+	MUX_SEL_PMIC = 0,
-+	MUX_SEL_SOC,
++	if (regmap_read(regmap, reg, &data))
++		return -EIO;
++
++	*value = (data & bit) ? 1 : 0;
++	return 0;
++}
++
++static int intel_cht_wc_pmic_update_power(struct regmap *regmap, int reg,
++		int bitmask, bool on)
++{
++	return regmap_update_bits(regmap, reg, bitmask, on ? 1 : 0);
++}
++
++/*
++ * The thermal table and ops are empty, we do not support the Thermal opregion
++ * (DPTF) due to lacking documentation.
++ */
++static struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
++	.get_power		= intel_cht_wc_pmic_get_power,
++	.update_power		= intel_cht_wc_pmic_update_power,
++	.power_table		= power_table,
++	.power_table_count	= ARRAY_SIZE(power_table),
 +};
 +
-+static const unsigned int cht_wc_extcon_cables[] = {
-+	EXTCON_USB,
-+	EXTCON_USB_HOST,
-+	EXTCON_CHG_USB_SDP,
-+	EXTCON_CHG_USB_CDP,
-+	EXTCON_CHG_USB_DCP,
-+	EXTCON_CHG_USB_ACA,
-+	EXTCON_NONE,
-+};
-+
-+struct cht_wc_extcon_data {
-+	struct device *dev;
-+	struct regmap *regmap;
-+	struct extcon_dev *edev;
-+	unsigned int previous_cable;
-+	int usb_id;
-+};
-+
-+static int cht_wc_extcon_get_id(struct cht_wc_extcon_data *ext, int pwrsrc_sts)
-+{
-+	if (ext->usb_id)
-+		return ext->usb_id;
-+
-+	if (pwrsrc_sts & CHT_WC_PWRSRC_ID_GND)
-+		return USB_ID_GND;
-+	if (pwrsrc_sts & CHT_WC_PWRSRC_ID_FLOAT)
-+		return USB_ID_FLOAT;
-+
-+	/*
-+	 * Once we have iio support for the gpadc we should read the USBID
-+	 * gpadc channel here and determine ACA role based on that.
-+	 */
-+	return USB_ID_FLOAT;
-+}
-+
-+static int cht_wc_extcon_get_charger(struct cht_wc_extcon_data *ext)
-+{
-+	int ret, usbsrc, status;
-+	unsigned long timeout;
-+
-+	/* Charger detection can take upto 600ms, wait 800ms max. */
-+	timeout = jiffies + msecs_to_jiffies(800);
-+	do {
-+		ret = regmap_read(ext->regmap, CHT_WC_USBSRC, &usbsrc);
-+		if (ret) {
-+			dev_err(ext->dev, "Error reading usbsrc: %d\n", ret);
-+			return ret;
-+		}
-+
-+		status = usbsrc & CHT_WC_USBSRC_STS_MASK;
-+		if (status == CHT_WC_USBSRC_STS_SUCCESS ||
-+		    status == CHT_WC_USBSRC_STS_FAIL)
-+			break;
-+
-+		msleep(50); /* Wait a bit before retrying */
-+	} while (time_before(jiffies, timeout));
-+
-+	if (status != CHT_WC_USBSRC_STS_SUCCESS) {
-+		if (status == CHT_WC_USBSRC_STS_FAIL)
-+			dev_warn(ext->dev, "Could not detect charger type\n");
-+		else
-+			dev_warn(ext->dev, "Timeout detecting charger type\n");
-+		return EXTCON_CHG_USB_SDP; /* Save fallback */
-+	}
-+
-+	usbsrc = (usbsrc & CHT_WC_USBSRC_TYPE_MASK) >> CHT_WC_USBSRC_TYPE_SHIFT;
-+	switch (usbsrc) {
-+	default:
-+		dev_warn(ext->dev, "Unhandled charger type %d\n", ret);
-+		/* Fall through treat as SDP */
-+	case CHT_WC_USBSRC_TYPE_SDP:
-+	case CHT_WC_USBSRC_TYPE_FLOAT_DP_DN:
-+	case CHT_WC_USBSRC_TYPE_OTHER:
-+		return EXTCON_CHG_USB_SDP;
-+	case CHT_WC_USBSRC_TYPE_CDP:
-+		return EXTCON_CHG_USB_CDP;
-+	case CHT_WC_USBSRC_TYPE_DCP:
-+	case CHT_WC_USBSRC_TYPE_DCP_EXTPHY:
-+	case CHT_WC_USBSRC_TYPE_MHL: /* MHL2+ delivers upto 2A, treat as DCP */
-+		return EXTCON_CHG_USB_DCP;
-+	case CHT_WC_USBSRC_TYPE_ACA:
-+		return EXTCON_CHG_USB_ACA;
-+	}
-+}
-+
-+static void cht_wc_extcon_set_phymux(struct cht_wc_extcon_data *ext, u8 state)
-+{
-+	int ret;
-+
-+	ret = regmap_write(ext->regmap, CHT_WC_PHYCTRL, state);
-+	if (ret)
-+		dev_err(ext->dev, "Error writing phyctrl: %d\n", ret);
-+}
-+
-+/* Small helper to sync EXTCON_CHG_USB_SDP and EXTCON_USB state */
-+static void cht_wc_extcon_set_state(struct cht_wc_extcon_data *ext,
-+				    unsigned int cable, bool state)
-+{
-+	extcon_set_state_sync(ext->edev, cable, state);
-+	if (cable == EXTCON_CHG_USB_SDP)
-+		extcon_set_state_sync(ext->edev, EXTCON_USB, state);
-+}
-+
-+static void cht_wc_extcon_pwrsrc_event(struct cht_wc_extcon_data *ext)
-+{
-+	int ret, pwrsrc_sts, id;
-+	unsigned int cable = EXTCON_NONE;
-+
-+	ret = regmap_read(ext->regmap, CHT_WC_PWRSRC_STS, &pwrsrc_sts);
-+	if (ret) {
-+		dev_err(ext->dev, "Error reading pwrsrc status: %d\n", ret);
-+		return;
-+	}
-+
-+	id = cht_wc_extcon_get_id(ext, pwrsrc_sts);
-+	if (id == USB_ID_GND) {
-+		/* The 5v boost causes a false VBUS / SDP detect, skip */
-+		goto charger_det_done;
-+	}
-+
-+	/* Plugged into a host/charger or not connected? */
-+	if (!(pwrsrc_sts & CHT_WC_PWRSRC_VBUS)) {
-+		/* Route D+ and D- to PMIC for future charger detection */
-+		cht_wc_extcon_set_phymux(ext, MUX_SEL_PMIC);
-+		goto set_state;
-+	}
-+
-+	ret = cht_wc_extcon_get_charger(ext);
-+	if (ret >= 0)
-+		cable = ret;
-+
-+charger_det_done:
-+	/* Route D+ and D- to SoC for the host / gadget controller */
-+	cht_wc_extcon_set_phymux(ext, MUX_SEL_SOC);
-+
-+set_state:
-+	if (cable != ext->previous_cable) {
-+		cht_wc_extcon_set_state(ext, cable, true);
-+		cht_wc_extcon_set_state(ext, ext->previous_cable, false);
-+		ext->previous_cable = cable;
-+	}
-+
-+	extcon_set_state_sync(ext->edev, EXTCON_USB_HOST,
-+			      id == USB_ID_GND || id == USB_RID_A);
-+}
-+
-+static irqreturn_t cht_wc_extcon_isr(int irq, void *data)
-+{
-+	struct cht_wc_extcon_data *ext = data;
-+	int ret, irqs;
-+
-+	ret = regmap_read(ext->regmap, CHT_WC_PWRSRC_IRQ, &irqs);
-+	if (ret) {
-+		dev_err(ext->dev, "Error reading irqs: %d\n", ret);
-+		return IRQ_NONE;
-+	}
-+
-+	cht_wc_extcon_pwrsrc_event(ext);
-+
-+	ret = regmap_write(ext->regmap, CHT_WC_PWRSRC_IRQ, irqs);
-+	if (ret) {
-+		dev_err(ext->dev, "Error writing irqs: %d\n", ret);
-+		return IRQ_NONE;
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/* usb_id sysfs attribute for debug / testing purposes */
-+static ssize_t usb_id_show(struct device *dev, struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct cht_wc_extcon_data *ext = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%s\n", usb_id_str[ext->usb_id]);
-+}
-+
-+static ssize_t usb_id_store(struct device *dev, struct device_attribute *attr,
-+			    const char *buf, size_t n)
-+{
-+	struct cht_wc_extcon_data *ext = dev_get_drvdata(dev);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(usb_id_str); i++) {
-+		if (sysfs_streq(buf, usb_id_str[i])) {
-+			dev_info(ext->dev, "New usb_id %s\n", usb_id_str[i]);
-+			ext->usb_id = i;
-+			cht_wc_extcon_pwrsrc_event(ext);
-+			return n;
-+		}
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static DEVICE_ATTR(usb_id, 0644, usb_id_show, usb_id_store);
-+
-+static int cht_wc_extcon_sw_control(struct cht_wc_extcon_data *ext, bool enable)
-+{
-+	int ret, mask, val;
-+
-+	mask = CHT_WC_CHGRCTRL0_SWCONTROL | CHT_WC_CHGRCTRL0_CCSM_OFF_MASK;
-+	val = enable ? mask : 0;
-+	ret = regmap_update_bits(ext->regmap, CHT_WC_CHGRCTRL0, mask, val);
-+	if (ret)
-+		dev_err(ext->dev, "Failed setting sw control: %d\n", ret);
-+
-+	return ret;
-+}
-+
-+static int cht_wc_extcon_probe(struct platform_device *pdev)
++static int intel_cht_wc_pmic_opregion_probe(struct platform_device *pdev)
 +{
 +	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
-+	struct cht_wc_extcon_data *ext;
-+	int irq, ret;
 +
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0)
-+		return irq;
-+
-+	ext = devm_kzalloc(&pdev->dev, sizeof(*ext), GFP_KERNEL);
-+	if (!ext)
-+		return -ENOMEM;
-+
-+	ext->dev = &pdev->dev;
-+	ext->regmap = pmic->regmap;
-+	ext->previous_cable = EXTCON_NONE;
-+
-+	/* Initialize extcon device */
-+	ext->edev = devm_extcon_dev_allocate(ext->dev, cht_wc_extcon_cables);
-+	if (IS_ERR(ext->edev))
-+		return PTR_ERR(ext->edev);
-+
-+	/* Enable sw control */
-+	ret = cht_wc_extcon_sw_control(ext, true);
-+	if (ret)
-+		return ret;
-+
-+	/* Register extcon device */
-+	ret = devm_extcon_dev_register(ext->dev, ext->edev);
-+	if (ret) {
-+		dev_err(ext->dev, "Failed to register extcon device\n");
-+		goto disable_sw_control;
-+	}
-+
-+	/* Route D+ and D- to PMIC for initial charger detection */
-+	cht_wc_extcon_set_phymux(ext, MUX_SEL_PMIC);
-+
-+	/* Get initial state */
-+	cht_wc_extcon_pwrsrc_event(ext);
-+
-+	ret = devm_request_threaded_irq(ext->dev, irq, NULL, cht_wc_extcon_isr,
-+					IRQF_ONESHOT, pdev->name, ext);
-+	if (ret) {
-+		dev_err(ext->dev, "Failed to request interrupt\n");
-+		goto disable_sw_control;
-+	}
-+
-+	/* Unmask irqs */
-+	ret = regmap_write(ext->regmap, CHT_WC_PWRSRC_IRQ_MASK,
-+			   (int)~(CHT_WC_PWRSRC_VBUS | CHT_WC_PWRSRC_ID_GND |
-+				  CHT_WC_PWRSRC_ID_FLOAT));
-+	if (ret) {
-+		dev_err(ext->dev, "Failed to write the irq-mask: %d\n", ret);
-+		goto disable_sw_control;
-+	}
-+
-+	platform_set_drvdata(pdev, ext);
-+	device_create_file(ext->dev, &dev_attr_usb_id);
-+
-+	return 0;
-+
-+disable_sw_control:
-+	cht_wc_extcon_sw_control(ext, false);
-+	return ret;
++	return intel_pmic_install_opregion_handler(&pdev->dev,
++			ACPI_HANDLE(pdev->dev.parent),
++			pmic->regmap,
++			&intel_cht_wc_pmic_opregion_data);
 +}
 +
-+static int cht_wc_extcon_remove(struct platform_device *pdev)
-+{
-+	struct cht_wc_extcon_data *ext = platform_get_drvdata(pdev);
-+
-+	device_remove_file(ext->dev, &dev_attr_usb_id);
-+	cht_wc_extcon_sw_control(ext, false);
-+
-+	return 0;
-+}
-+
-+static const struct platform_device_id cht_wc_extcon_table[] = {
-+	{ .name = "cht_wcove_pwrsrc" },
++static struct platform_device_id cht_wc_opregion_id_table[] = {
++	{ .name = "cht_wcove_region" },
 +	{},
 +};
-+MODULE_DEVICE_TABLE(platform, cht_wc_extcon_table);
++MODULE_DEVICE_TABLE(platform, cht_wc_opregion_id_table);
 +
-+static struct platform_driver cht_wc_extcon_driver = {
-+	.probe = cht_wc_extcon_probe,
-+	.remove = cht_wc_extcon_remove,
-+	.id_table = cht_wc_extcon_table,
++static struct platform_driver intel_cht_wc_pmic_opregion_driver = {
++	.probe = intel_cht_wc_pmic_opregion_probe,
 +	.driver = {
-+		.name = "cht_wcove_pwrsrc",
++		.name = "cht_whiskey_cove_pmic",
 +	},
++	.id_table = cht_wc_opregion_id_table,
 +};
-+module_platform_driver(cht_wc_extcon_driver);
++module_platform_driver(intel_cht_wc_pmic_opregion_driver);
 +
-+MODULE_DESCRIPTION("Intel Cherrytrail Whiskey Cove PMIC extcon driver");
++MODULE_DESCRIPTION("Intel CHT Whiskey Cove PMIC operation region driver");
 +MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
-+MODULE_LICENSE("GPL v2");
++MODULE_LICENSE("GPL");
 -- 
 2.9.3
 
