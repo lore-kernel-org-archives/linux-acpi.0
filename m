@@ -1,93 +1,73 @@
-From: "Huang\, Ying" <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI / APEI: Add missing synchronize_rcu() on NOTIFY_SCI removal.
-Date: Mon, 20 Mar 2017 14:10:45 +0800
-Message-ID: <878to08om2.fsf@yhuang-dev.intel.com>
-References: <20170316143039.375-1-james.morse@arm.com>
-        <87inn8wvaz.fsf@yhuang-dev.intel.com> <58CBC081.8060505@arm.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v21 03/13] clocksource: arm_arch_timer: remove
+ arch_timer_detect_rate
+Date: Mon, 20 Mar 2017 14:59:35 +0800
+Message-ID: <CADyBb7spKzLKb2wZFRDcXLPBmxkgV+JPAoCiDbSXmFq9qqbuCw@mail.gmail.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+ <20170206185015.12296-4-fu.wei@linaro.org>
+ <20170317180725.GC15909@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39183 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750717AbdCTGLH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 20 Mar 2017 02:11:07 -0400
-In-Reply-To: <58CBC081.8060505@arm.com> (James Morse's message of "Fri, 17 Mar
-        2017 10:54:57 +0000")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170317180725.GC15909@leverpostej>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gre>
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>, linux-acpi@vger.kernel.org, Shiju Jose <shiju.jose@huawei.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
 
-James Morse <james.morse@arm.com> writes:
+Hi Mark,
 
-> Hi Huang, Ying
+On 18 March 2017 at 02:07, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Tue, Feb 07, 2017 at 02:50:05AM +0800, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
+>>
+>> The original counter frequency detection call(arch_timer_detect_rate)
+>> include getting the frequency from the per-cpu arch-timer and the
+>> memory-mapped (MMIO) timer interfaces. But they will be needed only when
+>> the system initializes the relevant timer.
+>>
+>> This patch remove arch_timer_detect_rate founction, and use the
+>> arch_timer_get_sysreg_freq and arch_timer_get_mmio_freq directly.
+>>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
 >
-> On 17/03/17 01:23, Huang, Ying wrote:
->> James Morse <james.morse@arm.com> writes:
->> 
->>> When removing a GHES device notified by SCI, list_del_rcu() is used,
->>> ghes_remove() should call synchronize_rcu() before it goes on to call
->>> kfree(ghes), otherwise concurrent RCU readers may still hold this list
->>> entry after it has been freed.
->
->>> ---
->>> It looks like 81e88fdc432a lifted this into ACPI_HEST_NOTIFY_NMI, missing
->>> that ACPI_HEST_NOTIFY_SCI needed it too.
->>>
->>> If there is only ever one SCI GHES entry this is safe today as
->>> unregister_acpi_hed_notifier() takes a write lock on its semaphore, meaning
->>> any RCU readers will have finished.
->
->
->> In remove path
->> 
->> unregister_acpi_hed_notifier()
->>   blocking_notifier_chain_unregister()
->>     down_write(&nh->rwsem)
->> 
->> While in notifier call path
->> 
->> acpi_hed_notify()
->>   blocking_notifier_call_chain()
->>     __blocking_notifier_call_chain()
->>       down_read(&nh->rwsem)
->> 
->> So when unregister succeeds, the notifier call should have
->> finished.
->
-> You are only protected like this if the unregister call is made for every
-> list_del_rcu(), which would only be the case if there is only ever one SCI GHES
-> entry.
->
-> Is this how NOTIFY_SCI is expected to be used?
->
-> If so I agree its safe, (but confusing!) today, and we need to take account of
-> this behaviour in Shiju Jose's patch.
->
->
-> If there can be multiple SCI entries, you only get this unregister protection
-> for the last one to be freed, as the list_empty() check skips the unregister for
-> all but the last entry.
+> Could you please fold this with the prior patch?
 
-Yes.  You are right.  Feel free to add
+Sure, will do
 
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-
-In your patch.
-
-Best Regards,
-Huang, Ying
-
->>	case ACPI_HEST_NOTIFY_SCI:
->>		mutex_lock(&ghes_list_mutex);
->>		list_del_rcu(&ghes->list);
->>		if (list_empty(&ghes_sci))
->>			unregister_acpi_hed_notifier(&ghes_notifier_sci);
->>		mutex_unlock(&ghes_list_mutex);
->>		break;
 >
+>> @@ -1087,7 +1072,12 @@ static int __init arch_timer_mem_init(struct device_node *np)
+>>        */
+>>       if (!arch_timer_rate &&
+>>           of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+>> -             arch_timer_detect_rate(base);
+>> +             arch_timer_rate = arch_timer_get_mmio_freq(base);
+>> +     if (!arch_timer_rate) {
+>> +             pr_err(FW_BUG "frequency not available for MMIO timer.\n");
 >
+> It would be better to say "MMIO frequency not available.\n" here.
+
+thanks , will do
+
 >
 > Thanks,
->
-> James
+> Mark.
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
