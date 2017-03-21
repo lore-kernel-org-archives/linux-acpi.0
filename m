@@ -1,204 +1,43 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
-Date: Tue, 21 Mar 2017 14:45:21 +0000
-Message-ID: <20170321144521.GA4392@red-moon>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
- <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53656 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932803AbdCUOpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Mar 2017 10:45:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Shanker Donthineni <shankerd@codeaurora.org>
+Subject: [PATCH] ACPI : Update platform device numa node based on _PXM method
+Date: Tue, 21 Mar 2017 09:54:30 -0500
+Message-ID: <1490108070-24061-1-git-send-email-shankerd@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Vikram Sethi <vikrams@codeaurora.org>, Shanker Donthineni <shankerd@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> With the preparation of platform msi support and interrupt producer
-> in DSDT, we can add mbigen ACPI support now.
-> 
-> We are using Interrupt resource type in _CRS methd to indicate number
-> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
-> 
-> For mbigen,
->     Device(MBI0) {
->           Name(_HID, "HISI0152")
->           Name(_UID, Zero)
->           Name(_CRS, ResourceTemplate() {
->                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-> 		  Interrupt(ResourceProducer,...) {12,14,....}
+The optional _PXM method evaluates to an integer that identifies the
+proximity domain of a device object. This patch implements support for
+ACPI _PXM method and updates the platform device numa node id using
+acpi_get_node(), which provides the PXM to NUMA mapping information.
 
-What do these interrupt numbers represent ? This looks wrong to me.
-An interrupt descriptor is there to describe the interrupts a device
-can generate; you are using it just to add a "standard" (that is
-not standard at all) way of counting the number of vectors allocated
-to this specific chip and that's just wrong.
+Signed-off-by: Shanker Donthineni <shankerd@codeaurora.org>
+---
+ drivers/acpi/acpi_platform.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Can't you use something like Agustin did in the QCOM combiner:
-
-drivers/irqchip/qcom-irq-combiner.c
-
-to detect the MSI vector length (ie by describing the MBIgen through
-generic registers and use the bit width to compute the vector
-lenght) ? I am not sure how feasible it is given that my knowledge
-of MBIgen is pretty poor.
-
-I understand we want to avoid _DSD properties but we should not
-work around standard bindings to achieve that goal.
-
-Side effect: IIUC the kernel will allocate an array of resources for
-your MBIgen interrupts whose size equal the Interrupt descriptor,
-which is as bad as it can get given that those resources are to
-the best of my knowledge unused.
-
-Lorenzo
-
->           })
->     }
-> 
-> For devices,
->    Device(COM0) {
->           Name(_HID, "ACPIIDxx")
->           Name(_UID, Zero)
->           Name(_CRS, ResourceTemplate() {
->                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
->           })
->     }
-> 
-> With the help of platform msi and interrupt producer, then devices
-> will get the virq from mbigen's irqdomain.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Ma Jun <majun258@huawei.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> ---
->  drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 67 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-> index 3756408..e6bb503 100644
-> --- a/drivers/irqchip/irq-mbigen.c
-> +++ b/drivers/irqchip/irq-mbigen.c
-> @@ -16,6 +16,7 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/interrupt.h>
->  #include <linux/irqchip.h>
->  #include <linux/module.h>
-> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
->  				    unsigned long *hwirq,
->  				    unsigned int *type)
->  {
-> -	if (is_of_node(fwspec->fwnode)) {
-> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
->  		if (fwspec->param_count != 2)
->  			return -EINVAL;
->  
-> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
-> +					     void *context)
-> +{
-> +	struct acpi_resource_extended_irq *ext_irq;
-> +	u32 *num_irqs = context;
-> +
-> +	switch (ares->type) {
-> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> +		ext_irq = &ares->data.extended_irq;
-> +		*num_irqs += ext_irq->interrupt_count;
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
-> +				     struct mbigen_device *mgn_chip)
-> +{
-> +	struct irq_domain *domain;
-> +	u32 num_msis = 0;
-> +	acpi_status status;
-> +
-> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
-> +				     mbigen_acpi_process_resource, &num_msis);
-> +	if (ACPI_FAILURE(status) || num_msis == 0)
-> +		return -EINVAL;
-> +
-> +	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
-> +						   mbigen_write_msg,
-> +						   &mbigen_domain_ops,
-> +						   mgn_chip);
-> +	if (!domain)
-> +		return -ENOMEM;
-> +
-> +	return 0;
-> +}
-> +#else
-> +static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
-> +					    struct mbigen_device *mgn_chip)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif
-> +
->  static int mbigen_device_probe(struct platform_device *pdev)
->  {
->  	struct mbigen_device *mgn_chip;
-> @@ -289,9 +338,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
->  	if (IS_ERR(mgn_chip->base))
->  		return PTR_ERR(mgn_chip->base);
->  
-> -	err = mbigen_of_create_domain(pdev, mgn_chip);
-> -	if (err)
-> +	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-> +		err = mbigen_of_create_domain(pdev, mgn_chip);
-> +	else if (ACPI_COMPANION(&pdev->dev))
-> +		err = mbigen_acpi_create_domain(pdev, mgn_chip);
-> +	else
-> +		err = -EINVAL;
-> +
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
->  		return err;
-> +	}
->  
->  	platform_set_drvdata(pdev, mgn_chip);
->  	return 0;
-> @@ -303,10 +360,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
->  };
->  MODULE_DEVICE_TABLE(of, mbigen_of_match);
->  
-> +static const struct acpi_device_id mbigen_acpi_match[] = {
-> +	{ "HISI0152", 0 },
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
-> +
->  static struct platform_driver mbigen_platform_driver = {
->  	.driver = {
->  		.name		= "Hisilicon MBIGEN-V2",
->  		.of_match_table	= mbigen_of_match,
-> +		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
->  	},
->  	.probe			= mbigen_device_probe,
->  };
-> -- 
-> 1.7.12.4
-> 
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index b4c1a6a..83d953e 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -119,11 +119,14 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 	if (IS_ERR(pdev))
+ 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+ 			PTR_ERR(pdev));
+-	else
++	else {
++		set_dev_node(&pdev->dev, acpi_get_node(adev->handle));
+ 		dev_dbg(&adev->dev, "created platform device %s\n",
+ 			dev_name(&pdev->dev));
++	}
+ 
+ 	kfree(resources);
++
+ 	return pdev;
+ }
+ EXPORT_SYMBOL_GPL(acpi_create_platform_device);
+-- 
+Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
