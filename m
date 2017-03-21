@@ -1,75 +1,90 @@
-From: <kchristopher@framingham.edu>
-Subject: 42616 linux-acpi
-Date: Tue, 21 Mar 2017 19:20:29 -0000
-Message-ID: <149012402943.3620.15576050994842467325@hinet.net>
-Reply-To: <kchristopher@framingham.edu>
+From: Paul Menzel <pmenzel@molgen.mpg.de>
+Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function
+ graph tracing
+Date: Tue, 21 Mar 2017 21:44:03 +0100
+Message-ID: <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
+References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="3652.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 1-174-164-15.dynamic.hinet.net ([1.174.164.15]:44296 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1758409AbdCUTUh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Mar 2017 15:20:37 -0400
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
-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
-AAQAAAAAUEsFBgAAAAABAAEAUwAAACsMAAAAAA==
+Dear Josh,
+
+
+On 2017-03-16 14:56, Josh Poimboeuf wrote:
+> Paul Menzel reported a warning:
+> 
+>   WARNING: CPU: 0 PID: 774 at
+> /build/linux-ROBWaj/linux-4.9.13/kernel/trace/trace_functions_graph.c:233
+> ftrace_return_to_handler+0x1aa/0x1e0
+>   Bad frame pointer: expected f6919d98, received f6919db0
+>     from func acpi_pm_device_sleep_wake return to c43b6f9d
+> 
+> The warning means that function graph tracing is broken for the
+> acpi_pm_device_sleep_wake() function.  That's because the acpi Makefile
+> unconditionally sets the '-Os' gcc flag to optimize for size.  That's 
+> an
+> issue because mcount-based function graph tracing is incompatible with
+> '-Os' on x86, thanks to the following gcc bug:
+> 
+>   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=42109
+> 
+> I have another patch pending which will ensure that mcount-based
+> function graph tracing is never used with CONFIG_CC_OPTIMIZE_FOR_SIZE 
+> on
+> x86.
+> 
+> But this patch is needed in addition to that one because the ACPI
+> Makefile overrides that config option for no apparent reason.  It has
+> had this flag since the beginning of git history, and there's no 
+> related
+> comment, so I don't know why it's there.  As far as I can tell, there's
+> no reason for it to be there.  The appropriate behavior is for it to
+> honor CONFIG_CC_OPTIMIZE_FOR_{SIZE,PERFORMANCE} like the rest of the
+> kernel.
+> 
+> Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+> Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+> ---
+>  drivers/acpi/Makefile | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index a391bbc..d94f92f 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -2,7 +2,6 @@
+>  # Makefile for the Linux ACPI interpreter
+>  #
+> 
+> -ccflags-y			:= -Os
+>  ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+> 
+>  #
+
+I checked out Linux 4.9.16, applied your patch on top, and copied the 
+Debian 4.9 Linux kernel configuration, did `make menuconfig`, disabled 
+building debugging symbols, and executed `ARCH=i386 make -j40 deb-pkg`.
+
+I installed that package on the Lenovo X60, and the result with tracing 
+enabled has improved. The system suspends without a crash. 
+Unfortunately, instead of resuming when pressing the power button, it 
+starts from scratch. Suspend and resume without tracing enabled works 
+though.
+
+I’ll try to collect logs, but I don’t know, if there will be any, if the 
+system just resets.
+
+Maybe, this can be reproduced in QEMU?
+
+
+Kind regards,
+
+Paul
