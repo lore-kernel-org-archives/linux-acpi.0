@@ -1,43 +1,62 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2] gpio: acpi: Call enable_irq_wake for _IAE GpioInts
- with Wake set
-Date: Tue, 21 Mar 2017 14:40:14 +0200
-Message-ID: <1490100014.19767.126.camel@linux.intel.com>
-References: <20170320173221.3397-1-hdegoede@redhat.com>
-         <1490099423.19767.124.camel@linux.intel.com>
-         <CAJZ5v0jrq_AUysuLuyhUqWXOYm8X-koq8ra=rgrjUo+bFMyw9w@mail.gmail.com>
+From: "Lurndal, Scott" <Scott.Lurndal@cavium.com>
+Subject: Re: [Linaro-acpi] [PATCH v21 13/13] acpi/arm64: Add SBSA Generic
+ Watchdog support in GTDT driver
+Date: Tue, 21 Mar 2017 05:48:13 -0700
+Message-ID: <20170321124813.GB31496@slurndal-lnx1.caveonetworks.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+ <20170206185015.12296-14-fu.wei@linaro.org>
+ <20170317200153.GF15909@leverpostej>
+ <CADyBb7uZV2Qe0ga4TTS_iis5MtwJ=u6PKYSV6ED103Cmh5_O3g@mail.gmail.com>
+ <20170320180949.GM31213@leverpostej>
+ <20170320185002.GT31496@slurndal-lnx1.caveonetworks.com>
+ <CADyBb7vgzLCoFO6p=mu=D93VSHwuFh6cLEwVD9PvvuOUGxEgcw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:30163 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757191AbdCUMrF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Mar 2017 08:47:05 -0400
-In-Reply-To: <CAJZ5v0jrq_AUysuLuyhUqWXOYm8X-koq8ra=rgrjUo+bFMyw9w@mail.gmail.com>
+Received: from mail-bl2nam02on0073.outbound.protection.outlook.com ([104.47.38.73]:37024
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932549AbdCUMsX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 Mar 2017 08:48:23 -0400
+Content-Disposition: inline
+In-Reply-To: <CADyBb7vgzLCoFO6p=mu=D93VSHwuFh6cLEwVD9PvvuOUGxEgcw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-gpio@vger.kernel.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, 2017-03-21 at 13:36 +0100, Rafael J. Wysocki wrote:
-> On Tue, Mar 21, 2017 at 1:30 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Mon, 2017-03-20 at 18:32 +0100, Hans de Goede wrote:
-
-> > > +     bool irq_wake_enabled;
-> > > 
-> > > +             if (event->irq_wake_enabled)
-> > > 
-> > 
-> > Same (new) comment as in v1.
+On Tue, Mar 21, 2017 at 11:48:02AM +0800, Fu Wei wrote:
+> Hi Mark, Lurndal,
 > 
-> Why not just check for agpio->wake_capable == ACPI_WAKE_CAPABLE
-> instead as I said?
+> >>       The base server system implements _a_ Generic Watchdog as
+> >>       specified in APPENDIX A: Generic Watchdog.
+> >
+> >   It is a requirement of a conforming implementation that there
+> > be a generic watchdog (impl as per the appendix).   That doesn't preclude
+> > an implmentation from providing additional watchdogs (for example, if
+> > the processor implements EL3, it is likely that an implementation
+> > will include a secure watchdog as well as a non-secure watchdog).
+> >
+> >   The SBSA describes the minimal hardware requirements for a
+> > compliant server.
+> 
+> So I think, for the SBSA watchdog:
+> 
+> (1) there maybe more then one non-secure watchdog in GTDT
 
-Ah, yes, it could work as well as far as I can see from the code point
-of view.
+I suppose a firmware vendor could chose to expose more than the
+platform minimum to linux.   Not quite sure what linux would
+do with it :-)
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> 
+> (2) we may also need to skip  secure watchdogs in GTDT,
+> and only register non-secure watchdogs into platform resources.
+
+The secure watchdog will, be definition, never be accessible
+to non-secure EL2 or non-secure EL1, so only in the case of
+a secure EL1 operating system would the secure watchdog ever
+be conveyed through ACPI.   I don't think secure EL1 is in
+the scope of the SBSA, or something that needs to be accomodated
+in the GTDT at this time.
+
+scott
