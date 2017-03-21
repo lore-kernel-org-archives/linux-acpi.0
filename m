@@ -1,62 +1,204 @@
-From: "Lurndal, Scott" <Scott.Lurndal@cavium.com>
-Subject: Re: [Linaro-acpi] [PATCH v21 13/13] acpi/arm64: Add SBSA Generic
- Watchdog support in GTDT driver
-Date: Tue, 21 Mar 2017 05:48:13 -0700
-Message-ID: <20170321124813.GB31496@slurndal-lnx1.caveonetworks.com>
-References: <20170206185015.12296-1-fu.wei@linaro.org>
- <20170206185015.12296-14-fu.wei@linaro.org>
- <20170317200153.GF15909@leverpostej>
- <CADyBb7uZV2Qe0ga4TTS_iis5MtwJ=u6PKYSV6ED103Cmh5_O3g@mail.gmail.com>
- <20170320180949.GM31213@leverpostej>
- <20170320185002.GT31496@slurndal-lnx1.caveonetworks.com>
- <CADyBb7vgzLCoFO6p=mu=D93VSHwuFh6cLEwVD9PvvuOUGxEgcw@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+Date: Tue, 21 Mar 2017 14:45:21 +0000
+Message-ID: <20170321144521.GA4392@red-moon>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0073.outbound.protection.outlook.com ([104.47.38.73]:37024
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932549AbdCUMsX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Mar 2017 08:48:23 -0400
+Received: from foss.arm.com ([217.140.101.70]:53656 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932803AbdCUOpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 Mar 2017 10:45:04 -0400
 Content-Disposition: inline
-In-Reply-To: <CADyBb7vgzLCoFO6p=mu=D93VSHwuFh6cLEwVD9PvvuOUGxEgcw@mail.gmail.com>
+In-Reply-To: <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Tue, Mar 21, 2017 at 11:48:02AM +0800, Fu Wei wrote:
-> Hi Mark, Lurndal,
+On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
 > 
-> >>       The base server system implements _a_ Generic Watchdog as
-> >>       specified in APPENDIX A: Generic Watchdog.
-> >
-> >   It is a requirement of a conforming implementation that there
-> > be a generic watchdog (impl as per the appendix).   That doesn't preclude
-> > an implmentation from providing additional watchdogs (for example, if
-> > the processor implements EL3, it is likely that an implementation
-> > will include a secure watchdog as well as a non-secure watchdog).
-> >
-> >   The SBSA describes the minimal hardware requirements for a
-> > compliant server.
+> With the preparation of platform msi support and interrupt producer
+> in DSDT, we can add mbigen ACPI support now.
 > 
-> So I think, for the SBSA watchdog:
+> We are using Interrupt resource type in _CRS methd to indicate number
+> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
 > 
-> (1) there maybe more then one non-secure watchdog in GTDT
+> For mbigen,
+>     Device(MBI0) {
+>           Name(_HID, "HISI0152")
+>           Name(_UID, Zero)
+>           Name(_CRS, ResourceTemplate() {
+>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+> 		  Interrupt(ResourceProducer,...) {12,14,....}
 
-I suppose a firmware vendor could chose to expose more than the
-platform minimum to linux.   Not quite sure what linux would
-do with it :-)
+What do these interrupt numbers represent ? This looks wrong to me.
+An interrupt descriptor is there to describe the interrupts a device
+can generate; you are using it just to add a "standard" (that is
+not standard at all) way of counting the number of vectors allocated
+to this specific chip and that's just wrong.
 
+Can't you use something like Agustin did in the QCOM combiner:
+
+drivers/irqchip/qcom-irq-combiner.c
+
+to detect the MSI vector length (ie by describing the MBIgen through
+generic registers and use the bit width to compute the vector
+lenght) ? I am not sure how feasible it is given that my knowledge
+of MBIgen is pretty poor.
+
+I understand we want to avoid _DSD properties but we should not
+work around standard bindings to achieve that goal.
+
+Side effect: IIUC the kernel will allocate an array of resources for
+your MBIgen interrupts whose size equal the Interrupt descriptor,
+which is as bad as it can get given that those resources are to
+the best of my knowledge unused.
+
+Lorenzo
+
+>           })
+>     }
 > 
-> (2) we may also need to skip  secure watchdogs in GTDT,
-> and only register non-secure watchdogs into platform resources.
-
-The secure watchdog will, be definition, never be accessible
-to non-secure EL2 or non-secure EL1, so only in the case of
-a secure EL1 operating system would the secure watchdog ever
-be conveyed through ACPI.   I don't think secure EL1 is in
-the scope of the SBSA, or something that needs to be accomodated
-in the GTDT at this time.
-
-scott
+> For devices,
+>    Device(COM0) {
+>           Name(_HID, "ACPIIDxx")
+>           Name(_UID, Zero)
+>           Name(_CRS, ResourceTemplate() {
+>                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+>           })
+>     }
+> 
+> With the help of platform msi and interrupt producer, then devices
+> will get the virq from mbigen's irqdomain.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Ma Jun <majun258@huawei.com>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> ---
+>  drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 67 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+> index 3756408..e6bb503 100644
+> --- a/drivers/irqchip/irq-mbigen.c
+> +++ b/drivers/irqchip/irq-mbigen.c
+> @@ -16,6 +16,7 @@
+>   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/irqchip.h>
+>  #include <linux/module.h>
+> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
+>  				    unsigned long *hwirq,
+>  				    unsigned int *type)
+>  {
+> -	if (is_of_node(fwspec->fwnode)) {
+> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
+>  		if (fwspec->param_count != 2)
+>  			return -EINVAL;
+>  
+> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
+> +					     void *context)
+> +{
+> +	struct acpi_resource_extended_irq *ext_irq;
+> +	u32 *num_irqs = context;
+> +
+> +	switch (ares->type) {
+> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> +		ext_irq = &ares->data.extended_irq;
+> +		*num_irqs += ext_irq->interrupt_count;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
+> +				     struct mbigen_device *mgn_chip)
+> +{
+> +	struct irq_domain *domain;
+> +	u32 num_msis = 0;
+> +	acpi_status status;
+> +
+> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
+> +				     mbigen_acpi_process_resource, &num_msis);
+> +	if (ACPI_FAILURE(status) || num_msis == 0)
+> +		return -EINVAL;
+> +
+> +	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
+> +						   mbigen_write_msg,
+> +						   &mbigen_domain_ops,
+> +						   mgn_chip);
+> +	if (!domain)
+> +		return -ENOMEM;
+> +
+> +	return 0;
+> +}
+> +#else
+> +static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
+> +					    struct mbigen_device *mgn_chip)
+> +{
+> +	return -ENODEV;
+> +}
+> +#endif
+> +
+>  static int mbigen_device_probe(struct platform_device *pdev)
+>  {
+>  	struct mbigen_device *mgn_chip;
+> @@ -289,9 +338,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+>  	if (IS_ERR(mgn_chip->base))
+>  		return PTR_ERR(mgn_chip->base);
+>  
+> -	err = mbigen_of_create_domain(pdev, mgn_chip);
+> -	if (err)
+> +	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
+> +		err = mbigen_of_create_domain(pdev, mgn_chip);
+> +	else if (ACPI_COMPANION(&pdev->dev))
+> +		err = mbigen_acpi_create_domain(pdev, mgn_chip);
+> +	else
+> +		err = -EINVAL;
+> +
+> +	if (err) {
+> +		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
+>  		return err;
+> +	}
+>  
+>  	platform_set_drvdata(pdev, mgn_chip);
+>  	return 0;
+> @@ -303,10 +360,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+>  };
+>  MODULE_DEVICE_TABLE(of, mbigen_of_match);
+>  
+> +static const struct acpi_device_id mbigen_acpi_match[] = {
+> +	{ "HISI0152", 0 },
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
+> +
+>  static struct platform_driver mbigen_platform_driver = {
+>  	.driver = {
+>  		.name		= "Hisilicon MBIGEN-V2",
+>  		.of_match_table	= mbigen_of_match,
+> +		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
+>  	},
+>  	.probe			= mbigen_device_probe,
+>  };
+> -- 
+> 1.7.12.4
+> 
