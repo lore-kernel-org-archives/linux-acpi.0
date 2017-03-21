@@ -1,78 +1,59 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 03/15] extcon: cht-wc: Add Intel Cherry Trail Whiskey Cove
- PMIC extcon driver
-Date: Tue, 21 Mar 2017 15:27:18 +0900
-Message-ID: <58D0C7C6.1090008@samsung.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
- <CGME20170317095544epcas5p42dd4115627c9cf9de3911b433024ac93@epcas5p4.samsung.com>
- <20170317095527.10487-4-hdegoede@redhat.com> <58CF3183.4090101@samsung.com>
- <1490014841.19767.106.camel@linux.intel.com> <58D0A3E8.6090609@samsung.com>
- <58D0B868.6060602@samsung.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v3 3/4] device property: Move FW type specific
+ functionality to FW specific files
+Date: Tue, 21 Mar 2017 10:27:06 +0200
+Message-ID: <1655370d-6867-9466-6d26-f34a09789369@linux.intel.com>
+References: <1489671289-20406-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1489671289-20406-4-git-send-email-sakari.ailus@linux.intel.com>
+ <CAL_Jsq+HGNCbiHw8dD0R+zj+GfGxaypk7di0sbxNr4bZsjqxbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-reply-to: <58D0B868.6060602@samsung.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:31471 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756525AbdCUI1Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 Mar 2017 04:27:25 -0400
+In-Reply-To: <CAL_Jsq+HGNCbiHw8dD0R+zj+GfGxaypk7di0sbxNr4bZsjqxbA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, Al Stone <ahs3@redhat.com>
 
-Hi,
+Hi Rob,
 
-I think it again.
-The "cht_wcove_pwrsrc' is ok, if the register use the 'pwrsrc' word
-and using the 'wcove' instead of 'wc'. It is not big matter.
+Rob Herring wrote:
+> On Thu, Mar 16, 2017 at 8:34 AM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+>> The device and fwnode property API supports Devicetree, ACPI and pset
+>> properties. The implementation of this functionality for each firmware
+>> type was embedded in the fwnode property core. Move it out to firmware
+>> type specific locations, making it easier to maintain.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  drivers/acpi/property.c |  87 +++++++++++++++
+>>  drivers/acpi/scan.c     |   1 +
+>>  drivers/base/property.c | 280 +++++++++++++++++++-----------------------------
+>>  drivers/of/base.c       |  99 +++++++++++++++++
+>
+> This is the opposite direction everything else has been moving. For
+> example, I2C parsing is in drivers/i2c. But I guess this is a bit
+> different.
+>
+> In any case, please move this to drivers/of/property.c (and perhaps
+> move all of of_property_* there too).
 
-I agree to use the 'cht_wcove_pwrsrc'.
+Ok.
 
-Best Regards,
-Chanwoo Choi
+There appear to be quite a few functions dealing with properties in 
+drivers/of/base.c either directly reading their values or otherwise 
+accessing them. Let me see if I can find a roughly coherent set of 
+functions to move to property.c. I'll move the existing functions there 
+first, creating a new patch before this one.
 
+-- 
+Kind regards,
 
-On 2017년 03월 21일 14:21, Chanwoo Choi wrote:
-> On 2017년 03월 21일 12:54, Chanwoo Choi wrote:
->> On 2017년 03월 20일 22:00, Andy Shevchenko wrote:
->>> On Mon, 2017-03-20 at 10:33 +0900, Chanwoo Choi wrote:
->>>> On 2017년 03월 17일 18:55, Hans de Goede wrote:
->>>
->>>>> +static const struct platform_device_id cht_wc_extcon_table[] = {
->>>>> +	{ .name = "cht_wcove_pwrsrc" },
->>>>
->>>> You use the 'cht_wc' word instead of 'cht_wcove_pwrsrc'.
->>>> So, To maintain the consistency, you better to use the 'cht-wc' as the
->>>> name.
->>>> - I prefer to use '-' instead of '_' in the name.
->>>> 	.name ="cht-wc"
->>>
->>> I would keep as Hans did for the sake of consistency among all Whiskey
->>> Cove device drivers (and predecessors like Crystal Cove).
->>
->> The 'wcove' short word is not used in this patch.
->> If the author want to use the 'wcove', I recommend that
->> you should use the 'wcove' instead of 'wc' in this patch.
->>
->> And, I think that  'pwrsrc' is not ambiguous.
-> 
-> I'm sorry. I used the wrong word. I mean that 'pwrsrc' is not correct.
-> 
->> Hans might use the 'pwrsrc' as the 'Power Source'.
->> But, this driver is not power source. Instead,
->> this driver supports the detection of external connector.
->>
->> I think 'power source' means the power supply instead of detector.
->>
->>>
->>> I understand your point from extcon subsystem view, but PMICs like
->>> Whiskey Cove are multi-functional devices, and thus naming across them
->>> (same prefix in use to be precise) is better idea.
->>>
->>>>
->>>>> +	{},
->>>>> +};
->>>>> +MODULE_DEVICE_TABLE(platform, cht_wc_extcon_table);
->>>
->>
->>
-> 
-> 
+Sakari Ailus
+sakari.ailus@linux.intel.com
