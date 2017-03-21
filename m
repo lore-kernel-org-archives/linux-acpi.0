@@ -1,95 +1,100 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 10/15] power: supply: bq24190_charger: Use extcon to
- determine ilimit, 5v boost
-Date: Mon, 20 Mar 2017 23:38:19 +0100
-Message-ID: <b40e333a-1d30-fc79-038e-75c2cc3a98cc@redhat.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
- <20170317095527.10487-11-hdegoede@redhat.com>
- <1489772011.19767.75.camel@linux.intel.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v21 13/13] acpi/arm64: Add SBSA Generic
+ Watchdog support in GTDT driver
+Date: Tue, 21 Mar 2017 11:48:02 +0800
+Message-ID: <CADyBb7vgzLCoFO6p=mu=D93VSHwuFh6cLEwVD9PvvuOUGxEgcw@mail.gmail.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org>
+ <20170206185015.12296-14-fu.wei@linaro.org>
+ <20170317200153.GF15909@leverpostej>
+ <CADyBb7uZV2Qe0ga4TTS_iis5MtwJ=u6PKYSV6ED103Cmh5_O3g@mail.gmail.com>
+ <20170320180949.GM31213@leverpostej>
+ <20170320185002.GT31496@slurndal-lnx1.caveonetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1489772011.19767.75.camel@linux.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170320185002.GT31496@slurndal-lnx1.caveonetworks.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>, Fu Wei <fu.wei@linaro.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi Mark, Lurndal,
 
-On 17-03-17 18:33, Andy Shevchenko wrote:
-> On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
->> Add support for monitoring an extcon device with SDP/CDP/DCP and HOST
->> cables and adjust ilimit and enable/disable the 5v boost converter
->> accordingly. This is necessary on systems where the PSEL pin is
->> hardwired
->> high and ILIM needs to be set by software based on the detected
->> charger
->> type.
+
+On 21 March 2017 at 02:50, Lurndal, Scott <Scott.Lurndal@cavium.com> wrote:
+> On Mon, Mar 20, 2017 at 06:09:50PM +0000, Mark Rutland wrote:
+>> On Tue, Mar 21, 2017 at 01:57:58AM +0800, Fu Wei wrote:
+>> > On 18 March 2017 at 04:01, Mark Rutland <mark.rutland@arm.com> wrote:
+>> > > On Tue, Feb 07, 2017 at 02:50:15AM +0800, fu.wei@linaro.org wrote:
 >>
+>> > > I've not been able to find where the ACPI spec says that zero is not a
+>> > > valid GSIV. This may simply be an oversight/ambiguity in the spec.
+>> > >
+>> > > Is there any statement to that effect?
+>> >
+>> > you are right, zero is a  valid GSIV, I will delete this check. Thanks
+>>
+>> That being the case, how does one describe a watchdog that does not have
+>> an interrupt?
+>>
+>> As I mentioned, I think this is an oversight/ambiguity in the spec tat
+>> we should address.
+>>
+>> > > My reading of SBSA is that there is one watchdog in the system.
+>> > >
+>> > > Is that not the case?
+>> >
+>> > do you mean:
+>> > ---------------
+>> > 4.2.4 Watchdogs
+>> > The base server system implements a Generic Watchdog as specified in
+>> > APPENDIX A: Generic Watchdog.
+>> > ---------------
+>> >
+>> > I am not sure about that if this is saying "we only have one SBSA
+>> > watchdog in a system"
+>> >
+>> > would you let me know where mention it? Do I miss something?
+>>
+>> My reading was that the 'a' above meant a single element. i.e.
+>>
+>>       The base server system implements _a_ Generic Watchdog as
+>>       specified in APPENDIX A: Generic Watchdog.
 >
->>  config CHARGER_BQ24190
->>  	tristate "TI BQ24190 battery charger driver"
->>  	depends on I2C
+>   It is a requirement of a conforming implementation that there
+> be a generic watchdog (impl as per the appendix).   That doesn't preclude
+> an implmentation from providing additional watchdogs (for example, if
+> the processor implements EL3, it is likely that an implementation
+> will include a secure watchdog as well as a non-secure watchdog).
 >
->> +	depends on EXTCON
->
-> I dunno what is preferred here, but if we would like to keep
-> compatibility with previous configurations "select" should be used over
-> "depends on".
+>   The SBSA describes the minimal hardware requirements for a
+> compliant server.
 
-select really should only be used for hidden options,
-using select in other scenarios leads to all sort of
-problems (hard to debug Kconfig dependency loops).
+So I think, for the SBSA watchdog:
+
+(1) there maybe more then one non-secure watchdog in GTDT
+
+(2) we may also need to skip  secure watchdogs in GTDT,
+and only register non-secure watchdogs into platform resources.
+
+Please correct me, if I misunderstand something.
 
 >
->> +static void bq24190_extcon_work(struct work_struct *work)
->> +{
->> +	struct bq24190_dev_info *bdi =
->> +		container_of(work, struct bq24190_dev_info,
->> extcon_work);
->> +	int ret, iinlim = 0;
->> +
->> +	if (extcon_get_state(bdi->extcon, EXTCON_CHG_USB_SDP) == 1)
->> +		iinlim = 500000;
->> +	else if (extcon_get_state(bdi->extcon, EXTCON_CHG_USB_CDP) ==
->> 1 ||
->> +		 extcon_get_state(bdi->extcon, EXTCON_CHG_USB_ACA) ==
->> 1)
->> +		iinlim = 1500000;
->> +	else if (extcon_get_state(bdi->extcon, EXTCON_CHG_USB_DCP) ==
->> 1)
->> +		iinlim = 2000000;
->> +
->
->> +	if (iinlim) {
->
-> Could be possible to call below unconditionally here (use 0)?
+> scott
 
-If there is no Vbus setting iinlim is not useful, the charger
-will reset it to a default as soon as Vbus comes up and i2c
-transactions are not free.
 
->
->> +		ret = bq24190_set_field_val(bdi, BQ24190_REG_ISC,
->> +				BQ24190_REG_ISC_IINLIM_MASK,
->> +				BQ24190_REG_ISC_IINLIM_SHIFT,
->> +				bq24190_iinlim_values,
->> +				ARRAY_SIZE(bq24190_iinlim_values),
->> +				iinlim);
->> +		if (ret)
->> +			dev_err(bdi->dev, "Can't set IINLIM: %d\n",
->> ret);
->> +	}
->
-> Perhaps make above as a helper?
->
-> In that case no need for "if (iinlim)" and perhaps switch-case might be
-> used instead of if-else-if (latter is up to you).
 
-I prefer to keep this as is.
+-- 
+Best regards,
 
-Thanks & Regards,
-
-Hans
+Fu Wei
+Software Engineer
+Red Hat
