@@ -1,62 +1,99 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 03/15] extcon: cht-wc: Add Intel Cherry Trail Whiskey Cove
- PMIC extcon driver
-Date: Tue, 21 Mar 2017 12:54:16 +0900
-Message-ID: <58D0A3E8.6090609@samsung.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
- <CGME20170317095544epcas5p42dd4115627c9cf9de3911b433024ac93@epcas5p4.samsung.com>
- <20170317095527.10487-4-hdegoede@redhat.com> <58CF3183.4090101@samsung.com>
- <1490014841.19767.106.camel@linux.intel.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v21 13/13] acpi/arm64: Add SBSA Generic Watchdog support
+ in GTDT driver
+Date: Tue, 21 Mar 2017 13:12:09 +0800
+Message-ID: <CADyBb7s8YCZjPtiuesH-dqBtP74PewsbaEnjj3RjV7Bx_34wFg@mail.gmail.com>
+References: <20170206185015.12296-1-fu.wei@linaro.org> <20170206185015.12296-14-fu.wei@linaro.org>
+ <20170317200153.GF15909@leverpostej> <CADyBb7uZV2Qe0ga4TTS_iis5MtwJ=u6PKYSV6ED103Cmh5_O3g@mail.gmail.com>
+ <20170320180949.GM31213@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-reply-to: <1490014841.19767.106.camel@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f179.google.com ([209.85.223.179]:33301 "EHLO
+        mail-io0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753522AbdCUFMw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Mar 2017 01:12:52 -0400
+Received: by mail-io0-f179.google.com with SMTP id f84so42498157ioj.0
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Mar 2017 22:12:10 -0700 (PDT)
+In-Reply-To: <20170320180949.GM31213@leverpostej>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>
 
-On 2017년 03월 20일 22:00, Andy Shevchenko wrote:
-> On Mon, 2017-03-20 at 10:33 +0900, Chanwoo Choi wrote:
->> On 2017년 03월 17일 18:55, Hans de Goede wrote:
-> 
->>> +static const struct platform_device_id cht_wc_extcon_table[] = {
->>> +	{ .name = "cht_wcove_pwrsrc" },
+Hi Mark,
+
+On 21 March 2017 at 02:09, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Tue, Mar 21, 2017 at 01:57:58AM +0800, Fu Wei wrote:
+>> On 18 March 2017 at 04:01, Mark Rutland <mark.rutland@arm.com> wrote:
+>> > On Tue, Feb 07, 2017 at 02:50:15AM +0800, fu.wei@linaro.org wrote:
+>
+>> > I've not been able to find where the ACPI spec says that zero is not a
+>> > valid GSIV. This may simply be an oversight/ambiguity in the spec.
+>> >
+>> > Is there any statement to that effect?
 >>
->> You use the 'cht_wc' word instead of 'cht_wcove_pwrsrc'.
->> So, To maintain the consistency, you better to use the 'cht-wc' as the
->> name.
->> - I prefer to use '-' instead of '_' in the name.
->> 	.name ="cht-wc"
-> 
-> I would keep as Hans did for the sake of consistency among all Whiskey
-> Cove device drivers (and predecessors like Crystal Cove).
+>> you are right, zero is a  valid GSIV, I will delete this check. Thanks
+>
+> That being the case, how does one describe a watchdog that does not have
+> an interrupt?
 
-The 'wcove' short word is not used in this patch.
-If the author want to use the 'wcove', I recommend that
-you should use the 'wcove' instead of 'wc' in this patch.
+I think we may can use "Timer Flags", because all the GSIV come with a flag,
+if we can define a bit field called "valid" for all GSIV
 
-And, I think that  'pwrsrc' is not ambiguous.
-Hans might use the 'pwrsrc' as the 'Power Source'.
-But, this driver is not power source. Instead,
-this driver supports the detection of external connector.
+Bit Field   Bit Offset   Number of bits                 Description
+Valid            31                 1                      This bit
+indicates the validity of the timer interrupt
+                                                                 1:
+Interrupt is valid
+                                                                 0:
+Interrupt is invalid
+Then we don't need to test the value of GSIV, just test this bit instead.
 
-I think 'power source' means the power supply instead of detector.
+Just my thought, hope this makes sense to all of you :-)
 
-> 
-> I understand your point from extcon subsystem view, but PMICs like
-> Whiskey Cove are multi-functional devices, and thus naming across them
-> (same prefix in use to be precise) is better idea.
-> 
+>
+> As I mentioned, I think this is an oversight/ambiguity in the spec tat
+> we should address.
+>
+>> > My reading of SBSA is that there is one watchdog in the system.
+>> >
+>> > Is that not the case?
 >>
->>> +	{},
->>> +};
->>> +MODULE_DEVICE_TABLE(platform, cht_wc_extcon_table);
-> 
+>> do you mean:
+>> ---------------
+>> 4.2.4 Watchdogs
+>> The base server system implements a Generic Watchdog as specified in
+>> APPENDIX A: Generic Watchdog.
+>> ---------------
+>>
+>> I am not sure about that if this is saying "we only have one SBSA
+>> watchdog in a system"
+>>
+>> would you let me know where mention it? Do I miss something?
+>
+> My reading was that the 'a' above meant a single element. i.e.
+>
+>         The base server system implements _a_ Generic Watchdog as
+>         specified in APPENDIX A: Generic Watchdog.
+>
+> Subsequently in 4.2.5, it is stated:
+>
+>         In this scenario, the system wakeup timer or generic watchdog is
+>         still required to send its interrupt.
+>
+> ... which only makes sense if there is a single watchdog in the system.
+>
+> Perhaps this is an oversight in the specification.
+>
+> Thanks,
+> Mark.
+
 
 
 -- 
-Best Regards,
-Chanwoo Choi
-Samsung Electronics
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
