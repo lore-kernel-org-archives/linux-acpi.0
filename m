@@ -1,25 +1,18 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 4/5] mfd: intel_soc_pmic_chtwc: This driver must always be builtin when enabled
-Date: Wed, 22 Mar 2017 12:29:22 +0100
-Message-ID: <20170322112923.20200-5-hdegoede@redhat.com>
+Subject: [PATCH 5/5] ACPI / PMIC: mfd: intel_pmic_chtwc: This driver must always be builtin
+Date: Wed, 22 Mar 2017 12:29:23 +0100
+Message-ID: <20170322112923.20200-6-hdegoede@redhat.com>
 References: <20170322112923.20200-1-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39404 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759386AbdCVL3e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Mar 2017 07:29:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170322112923.20200-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>
 Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 The chtwc PMIC provides an ACPI OPRegion handler, which must be available
 before other drivers using it are loaded, which can only be ensured if
-the mfd, opregion and i2c-bus drivers are built in.
-
-This commit changes the option for the mfd driver to bool and adds
-a select for the i2c-bus driver, ensuring both are built-in if enabled.
+both the mfd and opregion drivers are built in.
 
 This fixes errors like these during boot:
 
@@ -32,30 +25,21 @@ acpi 80860F14:02: Failed to change power state to D0
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/mfd/Kconfig | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 08f8dcb..396245d 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -443,12 +443,15 @@ config INTEL_SOC_PMIC
- 	  on these systems.
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ec09fa2..842530f 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -517,7 +517,7 @@ config BXT_WC_PMIC_OPREGION
+ 	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
  
- config INTEL_SOC_PMIC_CHTWC
--	tristate "Support for Intel Cherry Trail Whiskey Cove PMIC"
-+	# This is a bool as it provides an ACPI Opregion which must be
-+	# available as soon as possible
-+	bool "Support for Intel Cherry Trail Whiskey Cove PMIC"
- 	depends on ACPI
- 	depends on I2C
- 	select MFD_CORE
- 	select REGMAP_I2C
- 	select REGMAP_IRQ
-+	select I2C_DESIGNWARE_PLATFORM
+ config CHT_WC_PMIC_OPREGION
+-	tristate "ACPI operation region support for CHT Whiskey Cove PMIC"
++	bool "ACPI operation region support for CHT Whiskey Cove PMIC"
+ 	depends on INTEL_SOC_PMIC_CHTWC
  	help
- 	  Select this option to enable support for the Intel Cherry Trail
- 	  Whiskey Cove PMIC found on some Intel Cherry Trail systems.
+ 	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
 -- 
 2.9.3
-
