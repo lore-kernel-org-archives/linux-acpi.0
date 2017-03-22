@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 5/5] ACPI / PMIC: mfd: intel_pmic_chtwc: This driver must always be builtin
-Date: Wed, 22 Mar 2017 12:29:23 +0100
-Message-ID: <20170322112923.20200-6-hdegoede@redhat.com>
+Subject: [PATCH 2/5] mfd: intel_soc_pmic: Select designware i2c-bus driver
+Date: Wed, 22 Mar 2017 12:29:20 +0100
+Message-ID: <20170322112923.20200-3-hdegoede@redhat.com>
 References: <20170322112923.20200-1-hdegoede@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170322112923.20200-1-hdegoede@redhat.com>
@@ -10,36 +10,49 @@ To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee J
 Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The chtwc PMIC provides an ACPI OPRegion handler, which must be available
-before other drivers using it are loaded, which can only be ensured if
-both the mfd and opregion drivers are built in.
+The Crystal Cove PMIC provides an ACPI OPRegion handler, which must be
+available before other drivers using it are loaded, which is why
+INTEL_SOC_PMIC is a bool.
 
-This fixes errors like these during boot:
+Just having the driver is not enough, the driver for the i2c-bus must
+also be built in, to ensure this, this patch adds a select for it.
 
-mmc0: SDHCI controller on ACPI [80860F14:00] using ADMA
-ACPI Error: No handler for Region [REGS] (ffff93543b0cc3a8) [UserDefinedRegion] (20170119/evregion-166)
-ACPI Error: Region UserDefinedRegion (ID=143) has no handler (20170119/exfldio-299)
-ACPI Error: Method parse/execution failed [\_SB.PCI0.I2C7.PMI5.GET] (Node ffff93543b0cde10), AE_NOT_EXIST (20170119/psparse-543)
-ACPI Error: Method parse/execution failed [\_SB.PCI0.SHC1._PS0] (Node ffff93543b0b5cd0), AE_NOT_EXIST (20170119/psparse-543)
-acpi 80860F14:02: Failed to change power state to D0
+While at it this patch also changes the human readable name of the Kconfig
+option to make clear the INTEL_SOC_PMIC option selects support for the
+Intel Crystal Cove PMIC and documents why this is a bool.
 
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Note this patch will partially conflicts with (contains the same changes as)
+a patch in Andy Shevchenko's tree.
+---
+ drivers/mfd/Kconfig | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index ec09fa2..842530f 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -517,7 +517,7 @@ config BXT_WC_PMIC_OPREGION
- 	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index d427a10..0c6a967 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -425,14 +425,17 @@ config LPC_SCH
+ 	  System Management Bus and General Purpose I/O.
  
- config CHT_WC_PMIC_OPREGION
--	tristate "ACPI operation region support for CHT Whiskey Cove PMIC"
-+	bool "ACPI operation region support for CHT Whiskey Cove PMIC"
- 	depends on INTEL_SOC_PMIC_CHTWC
+ config INTEL_SOC_PMIC
+-	bool "Support for Intel Atom SoC PMIC"
++	# This is a bool as it provides an ACPI Opregion which must be
++	# available as soon as possible
++	bool "Support for Intel Crystal Cove PMIC"
+ 	depends on GPIOLIB
+ 	depends on I2C=y
+ 	select MFD_CORE
+ 	select REGMAP_I2C
+ 	select REGMAP_IRQ
++	select I2C_DESIGNWARE_PLATFORM
  	help
- 	  This config adds ACPI operation region support for CHT Whiskey Cove PMIC.
+-	  Select this option to enable support for the PMIC device
++	  Select this option to enable support for the Crystal Cove PMIC
+ 	  on some Intel SoC systems. The PMIC provides ADC, GPIO,
+ 	  thermal, charger and related power management functions
+ 	  on these systems.
 -- 
 2.9.3
