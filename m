@@ -1,98 +1,45 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/5] ACPI / PMIC: Stop xpower OPRegion handler relying on IIO
-Date: Wed, 22 Mar 2017 12:29:19 +0100
-Message-ID: <20170322112923.20200-2-hdegoede@redhat.com>
+Subject: [PATCH 3/5] mfd: axp20c-i2c: Select designware i2c-bus driver on x86
+Date: Wed, 22 Mar 2017 12:29:21 +0100
+Message-ID: <20170322112923.20200-4-hdegoede@redhat.com>
 References: <20170322112923.20200-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38638 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34124 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759367AbdCVL33 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Mar 2017 07:29:29 -0400
+        id S1759380AbdCVL3c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Mar 2017 07:29:32 -0400
 In-Reply-To: <20170322112923.20200-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>
 Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The intel_pmic_xpower code provides an OPRegion handler, which must be
+On x86 the axp288 PMIC provides an ACPI OPRegion handler, which must be
 available before other drivers using it are loaded, which can only be
-ensured if both the mfd and opregion drivers are built in, which is why
-the Kconfig option for intel_pmic_xpower is a bool.
+ensured if the mfd, opregion driver and i2c-bus drivers are built in.
 
-The use of IIO is causing trouble for generic distro configs here as
-distros will typically want to build IIO drivers as modules and there
-really is no reason to use IIO here. The reading of the ADC value is a
-single regmap_bulk_read, which is already protected against races by
-the regmap-lock.
-
-This commit removes the use of IIO, allowing distros to enable the
-driver without needing to built IIO in and also actually simplifies
-the code.
+The opregion driver is a bool depending on MFD_AXP20X_I2C ensuring that
+it will be builtin if the opregion driver is to be enabled, add a
+select for the designware-options to ensure those get built in too.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/Kconfig                  |  2 +-
- drivers/acpi/pmic/intel_pmic_xpower.c | 21 ++++-----------------
- 2 files changed, 5 insertions(+), 18 deletions(-)
+ drivers/mfd/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index e3c4ef0..ec09fa2 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -506,7 +506,7 @@ config CRC_PMIC_OPREGION
- 
- config XPOWER_PMIC_OPREGION
- 	bool "ACPI operation region support for XPower AXP288 PMIC"
--	depends on AXP288_ADC = y
-+	depends on MFD_AXP20X_I2C
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 0c6a967..08f8dcb 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -148,6 +148,8 @@ config MFD_AXP20X_I2C
+ 	tristate "X-Powers AXP series PMICs with I2C"
+ 	select MFD_AXP20X
+ 	select REGMAP_I2C
++	select I2C_DESIGNWARE_PLATFORM if X86
++	select I2C_DESIGNWARE_BAYTRAIL if X86
+ 	depends on I2C
  	help
- 	  This config adds ACPI operation region support for XPower AXP288 PMIC.
- 
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index e6e991a..55f5111 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -18,7 +18,6 @@
- #include <linux/mfd/axp20x.h>
- #include <linux/regmap.h>
- #include <linux/platform_device.h>
--#include <linux/iio/consumer.h>
- #include "intel_pmic.h"
- 
- #define XPOWER_GPADC_LOW	0x5b
-@@ -186,28 +185,16 @@ static int intel_xpower_pmic_update_power(struct regmap *regmap, int reg,
-  * @regmap: regmap of the PMIC device
-  * @reg: register to get the reading
-  *
-- * We could get the sensor value by manipulating the HW regs here, but since
-- * the axp288 IIO driver may also access the same regs at the same time, the
-- * APIs provided by IIO subsystem are used here instead to avoid problems. As
-- * a result, the two passed in params are of no actual use.
-- *
-  * Return a positive value on success, errno on failure.
-  */
- static int intel_xpower_pmic_get_raw_temp(struct regmap *regmap, int reg)
- {
--	struct iio_channel *gpadc_chan;
--	int ret, val;
--
--	gpadc_chan = iio_channel_get(NULL, "axp288-system-temp");
--	if (IS_ERR_OR_NULL(gpadc_chan))
--		return -EACCES;
-+	u8 buf[2];
- 
--	ret = iio_read_channel_raw(gpadc_chan, &val);
--	if (ret < 0)
--		val = ret;
-+	if (regmap_bulk_read(regmap, AXP288_GP_ADC_H, buf, 2))
-+		return -EIO;
- 
--	iio_channel_release(gpadc_chan);
--	return val;
-+	return (buf[0] << 4) + ((buf[1] >> 4) & 0x0F);
- }
- 
- static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
+ 	  If you say Y here you get support for the X-Powers AXP series power
 -- 
 2.9.3
 
