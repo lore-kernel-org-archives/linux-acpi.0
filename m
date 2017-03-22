@@ -1,42 +1,22 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH 0/2] ThunderX external PCI fixes for legacy&new ACPI
- firmware
-Date: Wed, 22 Mar 2017 15:19:04 +0100
-Message-ID: <9a200f93-32e3-f225-649d-670af5e84b10@semihalf.com>
-References: <1489564155-3881-1-git-send-email-tn@semihalf.com>
- <20170321174325.GB13150@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170321174325.GB13150@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Lorenzo.Pieralisi@arm.com, robert.richter@caviumnetworks.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/7] power: supply: bq24190_charger: Various fixes + extcon support
+Date: Wed, 22 Mar 2017 15:54:36 +0100
+Message-ID: <20170322145443.29782-1-hdegoede@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 21.03.2017 18:43, Bjorn Helgaas wrote:
-> On Wed, Mar 15, 2017 at 08:49:13AM +0100, Tomasz Nowicki wrote:
->> This patch series update ThunderX PEM driver to be able to boot with legacy
->> and new ACPI firmware:
->> 1. New firmware uses registered Cavium harware ID "CAV", but kernel instead
->>    uses "THRX". Fix kernel to use "CAV".
->> 2. Legacy firmware misses PEM quirks information so for this case kernel
->>    should not assume anything from FW and figure out PEM resources on its own.
->>
->> Fix this all together in the following branch:
->> git@github.com:semihalf-nowicki-tomasz/linux.git (thunderx-pci-legacy-fw-v1)
->>
->> Tomasz Nowicki (2):
->>   PCI: Use Cavium assigned hardware ID for ThunderX host controller
->>   PCI: Add legacy firmware support for Cavium ThunderX host controller
->>
->>  drivers/pci/host/pci-thunder-pem.c | 58 ++++++++++++++++++++++++++++++++++++--
->>  1 file changed, 55 insertions(+), 3 deletions(-)
->
-> Applied with Robert's acks to pci/host-thunder for v4.12, thanks!
->
+Hi Sebastian, Liam, All,
 
-Thanks Bjorn!
+As discussed here is a v2 of my bq24190 charges. I'm not 100% sure
+the last patch should go upstream as is, we do want to remove the
+battery power_supply but I'm not sure about the timing of doing so.
 
-Tomasz
+>From my pov the other patches are ready for merging, but I guess there
+may be some remarks and a v3 of this set will be necessary :)
+
+Regards,
+
+Hans
