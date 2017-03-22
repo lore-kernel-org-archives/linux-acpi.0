@@ -1,202 +1,53 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 14/15] power: supply: Add driver for Cherry Trail Whiskey
- Cove PMIC Fuel Gauge
-Date: Wed, 22 Mar 2017 18:03:36 +0100
-Message-ID: <fadc90e1-204c-fcb6-ed02-d5514ff3e395@redhat.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
- <20170317095527.10487-15-hdegoede@redhat.com>
- <1489773529.19767.84.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Joerg Roedel <joro@8bytes.org>
+Subject: [PATCH 1/3] ACPI, ioapic: Clear on-stack resource before using it
+Date: Wed, 22 Mar 2017 18:33:23 +0100
+Message-ID: <1490204005-2733-2-git-send-email-joro@8bytes.org>
+References: <1490204005-2733-1-git-send-email-joro@8bytes.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58058 "EHLO mx1.redhat.com"
+Received: from 8bytes.org ([81.169.241.247]:40663 "EHLO theia.8bytes.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964998AbdCVRDq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Mar 2017 13:03:46 -0400
-In-Reply-To: <1489773529.19767.84.camel@linux.intel.com>
+        id S965106AbdCVRdm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Mar 2017 13:33:42 -0400
+In-Reply-To: <1490204005-2733-1-git-send-email-joro@8bytes.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
 
-Hi,
+From: Joerg Roedel <jroedel@suse.de>
 
-On 17-03-17 18:58, Andy Shevchenko wrote:
-> On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
->> Add a driver for the Cherry Trail Whiskey Cove PMIC Fuel Gauge, note
->> the Cherry Trail Whiskey Cove PMIC Fuel Gauge block is purely a fuel
->> gauge
->> and not a full battery controller. As such it offers a platform_data
->> callback for extra power_supply properties for the actual external-
->> charger
->> ic driver and does not register a power_supply itself.
->
-> ic -> IC
->
-> Can we move to something like built-in device properties for additional
-> properties instead of extending platform data?
->
->> +config CHT_WC_FUEL_GAUGE
->
-> I would use similar pattern:
->
-> FUEL_GAUGE_INTEL_CHTWC (or FUEL_GAUGE_CHTWC, but this might be less
-> obvious about vendor)
+The on-stack resource-window 'win' in setup_res() is not
+properly initialized. This causes the pointers in the
+embedded 'struct resource' to contain stale pointers.
 
-Good point, although all the fuel-gauge's seem to use
-BATTERY as prefix, so I've gone with that.
+These pointers (in my case the ->child pointer) gets later
+propagated to the global iomem_resources list, causing a #GP
+exception when the list is traversed in
+iomem_map_sanity_check().
 
->
->> --- /dev/null
->> +++ b/drivers/power/supply/cht_wc_fuel_gauge.c
->> @@ -0,0 +1,209 @@
->> +/*
->> + * Intel CHT Whiskey Cove Fuel Gauge driver
->
-> CHT -> Cherry Trail
+Fixes: c183619b63ec ('x86/irq, ACPI: Implement ACPI driver to support IOAPIC hotplug')
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+---
+ drivers/acpi/ioapic.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Fixed.
-
->
->> + *
->> + * Cherrytrail Whiskey Cove devices have 2 functional blocks which
->> interact
->> + * with the battery.
->
-> Cherry Trail?
-
-Since after discussion about how to deal with the charger / fuel_gauge
-comment v2 is going to be a stand-alone power_supply driver this
-comment has been dropped.
-
->
->> +#define REG_CHARGE_NOW		0x05
->> +#define REG_VOLTAGE_NOW		0x09
->> +#define REG_CURRENT_NOW		0x0a
->> +#define REG_CURRENT_AVG		0x0b
->> +#define REG_CHARGE_FULL		0x10
->> +#define REG_CHARGE_DESIGN	0x18
->> +#define REG_VOLTAGE_AVG		0x19
->
->> +#define REG_VOLTAGE_OCV		0x1b /* Only updated during
->> charging */
->
-> I think comment makes more sense where actual update is happening in the
-> code.
->
->> +
->> +static int cht_wc_fg_read(struct cht_wc_fg_data *fg, u8 reg,
->> +			  union power_supply_propval *val, int scale,
->> +			  int sign_extend)
->> +{
->> +	int ret;
->> +
->> +	ret = i2c_smbus_read_word_data(fg->client, reg);
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	if (sign_extend)
->> +		ret = sign_extend32(ret, 15);
->
-> Magic?
-
-Nope just simply dealing with i2c_smbus_read_word_data always
-returning 16 bit unsigned data (or a negative error code)
-and some of the registers being 16 bit signed.
-
->
->> +
->> +	val->intval = ret * scale;
->> +
->> +	return 0;
->> +}
->
->
->> +
->> +int cht_wc_fg_get_property(enum power_supply_property prop,
->> +			   union power_supply_propval *val)
->> +{
->> +	int ret = 0;
->
-> Sounds like redundant assignment...
-
-No longer redundant in v2.
-
->
->> +
->> +	mutex_lock(&cht_wc_fg_mutex);
->> +
->>
->
->> +	if (!cht_wc_fg) {
->> +		ret = -ENXIO;
->> +		goto out_unlock;
->> +	}
->
-> ...otherwise maybe
->
-> ret = cht_wc_fg ? 0 : -ENXIO;
-> if (ret)
->  goto ...;
->
-> ?
-
-With the stand-alone power_supply driver version this ugliness is gone.
-
->
->> +	default:
->> +		ret = -ENODATA;
->> +	}
->> +out_unlock:
->> +	mutex_unlock(&cht_wc_fg_mutex);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(cht_wc_fg_get_property);
->
->> +
->> +static int cht_wc_fg_probe(struct i2c_client *client,
->> +			const struct i2c_device_id *i2c_id)
->> +{
->> +	struct device *dev = &client->dev;
->> +	struct cht_wc_fg_data *fg;
->> +	acpi_status status;
->> +	unsigned long long ptyp;
->
->> +	status = acpi_evaluate_integer(ACPI_HANDLE(dev), "PTYP",
->> NULL, &ptyp);
->> +	if (ACPI_FAILURE(status)) {
->> +		dev_err(dev, "Failed to get PTYPE\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	/*
->> +	 * The same ACPI HID is used with different PMICs check PTYP
->> to
->> +	 * ensure that we are dealing with a Whiskey Cove PMIC.
->> +	 */
->> +	if (ptyp != CHT_WC_FG_PTYPE)
->> +		return -ENODEV;
->
-> Logically I would split this part to be a main driver for device which
-> would use actual driver based on this, though I think it too much churn
-> for no benefit right now.
-
-Ack.
-
->
->> +	mutex_lock(&cht_wc_fg_mutex);
->> +	cht_wc_fg = fg;
->> +	mutex_unlock(&cht_wc_fg_mutex);
->
-> It's pity we have no common storage of single possible present device
-> drivers in the kernel. I would use some kind of framework rather then
-> keeping all those global variables with locking. Perhaps radix / RB
-> tree.
-
-With the stand-alone power_supply driver version this ugliness is gone.
-
-Regards,
-
-Hans
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index 1120dfd6..7e4fbf9 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -45,6 +45,12 @@ static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
+ 	struct resource *res = data;
+ 	struct resource_win win;
+ 
++	/*
++	 * We might assign this to 'res' later, make sure all pointers are
++	 * cleared before the resource is added to the global list
++	 */
++	memset(&win, 0, sizeof(win));
++
+ 	res->flags = 0;
+ 	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM))
+ 		return AE_OK;
+-- 
+1.9.1
 
