@@ -1,231 +1,42 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
-Date: Wed, 22 Mar 2017 14:12:48 +0000
-Message-ID: <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
- <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
- <20170321144521.GA4392@red-moon>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH 0/2] ThunderX external PCI fixes for legacy&new ACPI
+ firmware
+Date: Wed, 22 Mar 2017 15:19:04 +0100
+Message-ID: <9a200f93-32e3-f225-649d-670af5e84b10@semihalf.com>
+References: <1489564155-3881-1-git-send-email-tn@semihalf.com>
+ <20170321174325.GB13150@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170321144521.GA4392@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linuxarm@huawei.com, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170321174325.GB13150@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Lorenzo.Pieralisi@arm.com, robert.richter@caviumnetworks.com, ddaney@caviumnetworks.com, Vadim.Lomovtsev@caviumnetworks.com, rafael@kernel.org, Sunil.Goutham@cavium.com, geethasowjanya.akula@gmail.com, linu.cherian@cavium.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
-> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
+On 21.03.2017 18:43, Bjorn Helgaas wrote:
+> On Wed, Mar 15, 2017 at 08:49:13AM +0100, Tomasz Nowicki wrote:
+>> This patch series update ThunderX PEM driver to be able to boot with legacy
+>> and new ACPI firmware:
+>> 1. New firmware uses registered Cavium harware ID "CAV", but kernel instead
+>>    uses "THRX". Fix kernel to use "CAV".
+>> 2. Legacy firmware misses PEM quirks information so for this case kernel
+>>    should not assume anything from FW and figure out PEM resources on its own.
 >>
->> With the preparation of platform msi support and interrupt producer
->> in DSDT, we can add mbigen ACPI support now.
+>> Fix this all together in the following branch:
+>> git@github.com:semihalf-nowicki-tomasz/linux.git (thunderx-pci-legacy-fw-v1)
 >>
->> We are using Interrupt resource type in _CRS methd to indicate number
->> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
+>> Tomasz Nowicki (2):
+>>   PCI: Use Cavium assigned hardware ID for ThunderX host controller
+>>   PCI: Add legacy firmware support for Cavium ThunderX host controller
 >>
->> For mbigen,
->>     Device(MBI0) {
->>           Name(_HID, "HISI0152")
->>           Name(_UID, Zero)
->>           Name(_CRS, ResourceTemplate() {
->>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->> 		  Interrupt(ResourceProducer,...) {12,14,....}
+>>  drivers/pci/host/pci-thunder-pem.c | 58 ++++++++++++++++++++++++++++++++++++--
+>>  1 file changed, 55 insertions(+), 3 deletions(-)
 >
-> What do these interrupt numbers represent ? This looks wrong to me.
-> An interrupt descriptor is there to describe the interrupts a device
-> can generate; you are using it just to add a "standard" (that is
-> not standard at all) way of counting the number of vectors allocated
-> to this specific chip and that's just wrong.
+> Applied with Robert's acks to pci/host-thunder for v4.12, thanks!
 >
 
-As I understand, the count of interrupts we are declaring for the mbigen 
-is the same as the sum of interrupts for that mbigen's children.
+Thanks Bjorn!
 
-So at the point we probe the mbigen, can we just deference the children 
-to count their interrupts, and use this as the #msis?
-
-> Can't you use something like Agustin did in the QCOM combiner:
->
-> drivers/irqchip/qcom-irq-combiner.c
->
-> to detect the MSI vector length (ie by describing the MBIgen through
-> generic registers and use the bit width to compute the vector
-> lenght) ? I am not sure how feasible it is given that my knowledge
-> of MBIgen is pretty poor.
->
-> I understand we want to avoid _DSD properties but we should not
-> work around standard bindings to achieve that goal.
->
-
-We use "num-pins" for dt solution, but it is not so welcome here.
-
-> Side effect: IIUC the kernel will allocate an array of resources for
-> your MBIgen interrupts whose size equal the Interrupt descriptor,
-> which is as bad as it can get given that those resources are to
-> the best of my knowledge unused.
->
-
-Much appreciated,
-John
-
-> Lorenzo
->
->>           })
->>     }
->>
->> For devices,
->>    Device(COM0) {
->>           Name(_HID, "ACPIIDxx")
->>           Name(_UID, Zero)
->>           Name(_CRS, ResourceTemplate() {
->>                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
->> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
->>           })
->>     }
->>
->> With the help of platform msi and interrupt producer, then devices
->> will get the virq from mbigen's irqdomain.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Cc: Ma Jun <majun258@huawei.com>
->> Cc: Marc Zyngier <marc.zyngier@arm.com>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> ---
->>  drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
->>  1 file changed, 67 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
->> index 3756408..e6bb503 100644
->> --- a/drivers/irqchip/irq-mbigen.c
->> +++ b/drivers/irqchip/irq-mbigen.c
->> @@ -16,6 +16,7 @@
->>   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->>   */
->>
->> +#include <linux/acpi.h>
->>  #include <linux/interrupt.h>
->>  #include <linux/irqchip.h>
->>  #include <linux/module.h>
->> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
->>  				    unsigned long *hwirq,
->>  				    unsigned int *type)
->>  {
->> -	if (is_of_node(fwspec->fwnode)) {
->> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
->>  		if (fwspec->param_count != 2)
->>  			return -EINVAL;
->>
->> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
->>  	return 0;
->>  }
->>
->> +#ifdef CONFIG_ACPI
->> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
->> +					     void *context)
->> +{
->> +	struct acpi_resource_extended_irq *ext_irq;
->> +	u32 *num_irqs = context;
->> +
->> +	switch (ares->type) {
->> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
->> +		ext_irq = &ares->data.extended_irq;
->> +		*num_irqs += ext_irq->interrupt_count;
->> +		break;
->> +	default:
->> +		break;
->> +	}
->> +
->> +	return AE_OK;
->> +}
->> +
->> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
->> +				     struct mbigen_device *mgn_chip)
->> +{
->> +	struct irq_domain *domain;
->> +	u32 num_msis = 0;
->> +	acpi_status status;
->> +
->> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
->> +				     mbigen_acpi_process_resource, &num_msis);
->> +	if (ACPI_FAILURE(status) || num_msis == 0)
->> +		return -EINVAL;
->> +
->> +	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
->> +						   mbigen_write_msg,
->> +						   &mbigen_domain_ops,
->> +						   mgn_chip);
->> +	if (!domain)
->> +		return -ENOMEM;
->> +
->> +	return 0;
->> +}
->> +#else
->> +static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
->> +					    struct mbigen_device *mgn_chip)
->> +{
->> +	return -ENODEV;
->> +}
->> +#endif
->> +
->>  static int mbigen_device_probe(struct platform_device *pdev)
->>  {
->>  	struct mbigen_device *mgn_chip;
->> @@ -289,9 +338,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
->>  	if (IS_ERR(mgn_chip->base))
->>  		return PTR_ERR(mgn_chip->base);
->>
->> -	err = mbigen_of_create_domain(pdev, mgn_chip);
->> -	if (err)
->> +	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
->> +		err = mbigen_of_create_domain(pdev, mgn_chip);
->> +	else if (ACPI_COMPANION(&pdev->dev))
->> +		err = mbigen_acpi_create_domain(pdev, mgn_chip);
->> +	else
->> +		err = -EINVAL;
->> +
->> +	if (err) {
->> +		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
->>  		return err;
->> +	}
->>
->>  	platform_set_drvdata(pdev, mgn_chip);
->>  	return 0;
->> @@ -303,10 +360,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
->>  };
->>  MODULE_DEVICE_TABLE(of, mbigen_of_match);
->>
->> +static const struct acpi_device_id mbigen_acpi_match[] = {
->> +	{ "HISI0152", 0 },
->> +	{}
->> +};
->> +MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
->> +
->>  static struct platform_driver mbigen_platform_driver = {
->>  	.driver = {
->>  		.name		= "Hisilicon MBIGEN-V2",
->>  		.of_match_table	= mbigen_of_match,
->> +		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
->>  	},
->>  	.probe			= mbigen_device_probe,
->>  };
->> --
->> 1.7.12.4
->>
-> _______________________________________________
-> linuxarm mailing list
-> linuxarm@huawei.com
-> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
->
-> .
->
+Tomasz
