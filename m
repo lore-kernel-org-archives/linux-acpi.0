@@ -1,278 +1,114 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V13 10/10] arm/arm64: KVM: add guest SEA support
-Date: Tue, 21 Mar 2017 16:47:05 -0600
-Message-ID: <1490136425-4324-11-git-send-email-tbaicar@codeaurora.org>
-References: <1490136425-4324-1-git-send-email-tbaicar@codeaurora.org>
+From: Paul Menzel <pmenzel@molgen.mpg.de>
+Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function
+ graph tracing
+Date: Wed, 22 Mar 2017 01:04:31 +0100
+Message-ID: <89481e8dbc357a0cb5cccfe1e9a4048b@molgen.mpg.de>
+References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
+ <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1490136425-4324-1-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Suzuki.Poulose@arm.com, punit.agrawal@arm.com, astone@redhat.com, harba@codeaur
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx3.molgen.mpg.de ([141.14.17.11]:41386 "EHLO mx1.molgen.mpg.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756924AbdCVAEf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 21 Mar 2017 20:04:35 -0400
+In-Reply-To: <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>
 
-Currently external aborts are unsupported by the guest abort
-handling. Add handling for SEAs so that the host kernel reports
-SEAs which occur in the guest kernel.
+Dear Josh,
 
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
----
- arch/arm/include/asm/kvm_arm.h       | 10 +++++++++
- arch/arm/include/asm/system_misc.h   |  5 +++++
- arch/arm/kvm/mmu.c                   | 41 ++++++++++++++++++++++++++++++------
- arch/arm64/include/asm/kvm_arm.h     | 10 +++++++++
- arch/arm64/include/asm/system_misc.h |  2 ++
- arch/arm64/mm/fault.c                | 19 +++++++++++++++--
- drivers/acpi/apei/ghes.c             | 13 ++++++------
- include/acpi/ghes.h                  |  2 +-
- 8 files changed, 86 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/include/asm/kvm_arm.h b/arch/arm/include/asm/kvm_arm.h
-index a3f0b3d..ebf020b 100644
---- a/arch/arm/include/asm/kvm_arm.h
-+++ b/arch/arm/include/asm/kvm_arm.h
-@@ -187,6 +187,16 @@
- #define FSC_FAULT	(0x04)
- #define FSC_ACCESS	(0x08)
- #define FSC_PERM	(0x0c)
-+#define FSC_SEA		(0x10)
-+#define FSC_SEA_TTW0	(0x14)
-+#define FSC_SEA_TTW1	(0x15)
-+#define FSC_SEA_TTW2	(0x16)
-+#define FSC_SEA_TTW3	(0x17)
-+#define FSC_SECC	(0x18)
-+#define FSC_SECC_TTW0	(0x1c)
-+#define FSC_SECC_TTW1	(0x1d)
-+#define FSC_SECC_TTW2	(0x1e)
-+#define FSC_SECC_TTW3	(0x1f)
- 
- /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
- #define HPFAR_MASK	(~0xf)
-diff --git a/arch/arm/include/asm/system_misc.h b/arch/arm/include/asm/system_misc.h
-index a3d61ad..ea45d94 100644
---- a/arch/arm/include/asm/system_misc.h
-+++ b/arch/arm/include/asm/system_misc.h
-@@ -24,4 +24,9 @@
- 
- #endif /* !__ASSEMBLY__ */
- 
-+static inline int handle_guest_sea(unsigned long addr, unsigned int esr)
-+{
-+	return -1;
-+}
-+
- #endif /* __ASM_ARM_SYSTEM_MISC_H */
-diff --git a/arch/arm/kvm/mmu.c b/arch/arm/kvm/mmu.c
-index 962616f..105b6ab 100644
---- a/arch/arm/kvm/mmu.c
-+++ b/arch/arm/kvm/mmu.c
-@@ -29,6 +29,7 @@
- #include <asm/kvm_asm.h>
- #include <asm/kvm_emulate.h>
- #include <asm/virt.h>
-+#include <asm/system_misc.h>
- 
- #include "trace.h"
- 
-@@ -1406,6 +1407,24 @@ static void handle_access_fault(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa)
- 		kvm_set_pfn_accessed(pfn);
- }
- 
-+static bool is_abort_synchronous(unsigned long fault_status) {
-+	switch (fault_status) {
-+	case FSC_SEA:
-+	case FSC_SEA_TTW0:
-+	case FSC_SEA_TTW1:
-+	case FSC_SEA_TTW2:
-+	case FSC_SEA_TTW3:
-+	case FSC_SECC:
-+	case FSC_SECC_TTW0:
-+	case FSC_SECC_TTW1:
-+	case FSC_SECC_TTW2:
-+	case FSC_SECC_TTW3:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
- /**
-  * kvm_handle_guest_abort - handles all 2nd stage aborts
-  * @vcpu:	the VCPU pointer
-@@ -1426,23 +1445,31 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
- 	unsigned long hva;
- 	bool is_iabt, write_fault, writable;
- 	gfn_t gfn;
--	int ret, idx;
-+	int ret, idx, sea_status = 1;
-+
-+	/* Check the stage-2 fault is trans. fault or write fault */
-+	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
-+
-+	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
-+
-+	/* The host kernel will handle the synchronous external abort. There
-+	 * is no need to pass the error into the guest.
-+	 */
-+	if (is_abort_synchronous(fault_status))
-+		sea_status = handle_guest_sea((unsigned long)fault_ipa,
-+				    kvm_vcpu_get_hsr(vcpu));
- 
- 	is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
--	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
-+	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu)) && sea_status) {
- 		kvm_inject_vabt(vcpu);
- 		return 1;
- 	}
- 
--	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
--
- 	trace_kvm_guest_fault(*vcpu_pc(vcpu), kvm_vcpu_get_hsr(vcpu),
- 			      kvm_vcpu_get_hfar(vcpu), fault_ipa);
- 
--	/* Check the stage-2 fault is trans. fault or write fault */
--	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
- 	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
--	    fault_status != FSC_ACCESS) {
-+	    fault_status != FSC_ACCESS && sea_status) {
- 		kvm_err("Unsupported FSC: EC=%#x xFSC=%#lx ESR_EL2=%#lx\n",
- 			kvm_vcpu_trap_get_class(vcpu),
- 			(unsigned long)kvm_vcpu_trap_get_fault(vcpu),
-diff --git a/arch/arm64/include/asm/kvm_arm.h b/arch/arm64/include/asm/kvm_arm.h
-index 6e99978..61d694c 100644
---- a/arch/arm64/include/asm/kvm_arm.h
-+++ b/arch/arm64/include/asm/kvm_arm.h
-@@ -204,6 +204,16 @@
- #define FSC_FAULT	ESR_ELx_FSC_FAULT
- #define FSC_ACCESS	ESR_ELx_FSC_ACCESS
- #define FSC_PERM	ESR_ELx_FSC_PERM
-+#define FSC_SEA		ESR_ELx_FSC_EXTABT
-+#define FSC_SEA_TTW0	(0x14)
-+#define FSC_SEA_TTW1	(0x15)
-+#define FSC_SEA_TTW2	(0x16)
-+#define FSC_SEA_TTW3	(0x17)
-+#define FSC_SECC	(0x18)
-+#define FSC_SECC_TTW0	(0x1c)
-+#define FSC_SECC_TTW1	(0x1d)
-+#define FSC_SECC_TTW2	(0x1e)
-+#define FSC_SECC_TTW3	(0x1f)
- 
- /* Hyp Prefetch Fault Address Register (HPFAR/HDFAR) */
- #define HPFAR_MASK	(~UL(0xf))
-diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-index bc81243..5b2cecd 100644
---- a/arch/arm64/include/asm/system_misc.h
-+++ b/arch/arm64/include/asm/system_misc.h
-@@ -58,4 +58,6 @@ void hook_debug_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
- 
- #endif	/* __ASSEMBLY__ */
- 
-+int handle_guest_sea(unsigned long addr, unsigned int esr);
-+
- #endif	/* __ASM_SYSTEM_MISC_H */
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index f7372ce..ee96307 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -497,6 +497,7 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- {
- 	struct siginfo info;
-+	int ret = 0;
- 
- 	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
- 		 fault_name(esr), esr, addr);
-@@ -508,7 +509,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 	 */
- 	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
- 		nmi_enter();
--		ghes_notify_sea();
-+		ret = ghes_notify_sea();
- 		nmi_exit();
- 	}
- 
-@@ -521,7 +522,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 		info.si_addr  = (void __user *)addr;
- 	arm64_notify_die("", regs, &info, esr);
- 
--	return 0;
-+	return ret;
- }
- 
- static const struct fault_info {
-@@ -603,6 +604,20 @@ static const char *fault_name(unsigned int esr)
- }
- 
- /*
-+ * Handle Synchronous External Aborts that occur in a guest kernel.
-+ */
-+int handle_guest_sea(unsigned long addr, unsigned int esr)
-+{
-+	int ret = -ENOENT;
-+
-+	if(IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
-+		ret = ghes_notify_sea();
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-  * Dispatch a data abort to the relevant handler.
-  */
- asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 230b095..81eabc6 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -810,17 +810,18 @@ static int ghes_notify_sci(struct notifier_block *this,
- #ifdef CONFIG_ACPI_APEI_SEA
- static LIST_HEAD(ghes_sea);
- 
--void ghes_notify_sea(void)
-+int ghes_notify_sea(void)
- {
- 	struct ghes *ghes;
-+	int ret = -ENOENT;
- 
--	/*
--	 * synchronize_rcu() will wait for nmi_exit(), so no need to
--	 * rcu_read_lock().
--	 */
-+	rcu_read_lock();
- 	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
--		ghes_proc(ghes);
-+		if(!ghes_proc(ghes))
-+			ret = 0;
- 	}
-+	rcu_read_unlock();
-+	return ret;
- }
- 
- static void ghes_sea_add(struct ghes *ghes)
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 18bc935..2a727dc 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -99,6 +99,6 @@ static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data
- 		gdata + 1;
- }
- 
--void ghes_notify_sea(void);
-+int ghes_notify_sea(void);
- 
- #endif /* GHES_H */
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+On 2017-03-21 21:44, Paul Menzel wrote:
+
+> On 2017-03-16 14:56, Josh Poimboeuf wrote:
+>> Paul Menzel reported a warning:
+>> 
+>>   WARNING: CPU: 0 PID: 774 at
+>> /build/linux-ROBWaj/linux-4.9.13/kernel/trace/trace_functions_graph.c:233
+>> ftrace_return_to_handler+0x1aa/0x1e0
+>>   Bad frame pointer: expected f6919d98, received f6919db0
+>>     from func acpi_pm_device_sleep_wake return to c43b6f9d
+>> 
+>> The warning means that function graph tracing is broken for the
+>> acpi_pm_device_sleep_wake() function.  That's because the acpi 
+>> Makefile
+>> unconditionally sets the '-Os' gcc flag to optimize for size.  That's 
+>> an
+>> issue because mcount-based function graph tracing is incompatible with
+>> '-Os' on x86, thanks to the following gcc bug:
+>> 
+>>   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=42109
+>> 
+>> I have another patch pending which will ensure that mcount-based
+>> function graph tracing is never used with CONFIG_CC_OPTIMIZE_FOR_SIZE 
+>> on
+>> x86.
+>> 
+>> But this patch is needed in addition to that one because the ACPI
+>> Makefile overrides that config option for no apparent reason.  It has
+>> had this flag since the beginning of git history, and there's no 
+>> related
+>> comment, so I don't know why it's there.  As far as I can tell, 
+>> there's
+>> no reason for it to be there.  The appropriate behavior is for it to
+>> honor CONFIG_CC_OPTIMIZE_FOR_{SIZE,PERFORMANCE} like the rest of the
+>> kernel.
+>> 
+>> Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+>> Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+>> ---
+>>  drivers/acpi/Makefile | 1 -
+>>  1 file changed, 1 deletion(-)
+>> 
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index a391bbc..d94f92f 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -2,7 +2,6 @@
+>>  # Makefile for the Linux ACPI interpreter
+>>  #
+>> 
+>> -ccflags-y			:= -Os
+>>  ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+>> 
+>>  #
+> 
+> I checked out Linux 4.9.16, applied your patch on top, and copied the
+> Debian 4.9 Linux kernel configuration, did `make menuconfig`, disabled
+> building debugging symbols, and executed `ARCH=i386 make -j40
+> deb-pkg`.
+> 
+> I installed that package on the Lenovo X60, and the result with
+> tracing enabled has improved. The system suspends without a crash.
+> Unfortunately, instead of resuming when pressing the power button, it
+> starts from scratch. Suspend and resume without tracing enabled works
+> though.
+> 
+> I’ll try to collect logs, but I don’t know, if there will be any, if
+> the system just resets.
+
+The system is able to resume with `no_console_suspend` passed to Linux 
+on its command line.
+
+```
+$ more /proc/cmdline
+BOOT_IMAGE=/vmlinuz-4.9.16 
+root=UUID=0198e82a-32df-4f18-bec0-3e08802b084d ro noisapnp 
+pcie_aspm=force pcie_aspm.policy=powersave nmi_watchdog=0 iomem=relaxed 
+console=t
+tyS1,115200 console=tty0 no_console_suspend
+```
+
+Please tell me, what you need from my side.
+
+> Maybe, this can be reproduced in QEMU?
+
+
+Kind regards,
+
+Paul
