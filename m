@@ -1,114 +1,476 @@
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function
- graph tracing
-Date: Wed, 22 Mar 2017 01:04:31 +0100
-Message-ID: <89481e8dbc357a0cb5cccfe1e9a4048b@molgen.mpg.de>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
- <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v2 3/3] extcon: cht-wc: Add Intel Cherry Trail Whiskey Cove
+ PMIC extcon driver
+Date: Wed, 22 Mar 2017 09:45:32 +0900
+Message-ID: <58D1C92C.5060807@samsung.com>
+References: <20170320213001.11163-1-hdegoede@redhat.com>
+ <CGME20170320213035epcas4p17da7986dd9e61716aa28b55da1acaba2@epcas4p1.samsung.com>
+ <20170320213001.11163-4-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.molgen.mpg.de ([141.14.17.11]:41386 "EHLO mx1.molgen.mpg.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756924AbdCVAEf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Mar 2017 20:04:35 -0400
-In-Reply-To: <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20170320213001.11163-4-hdegoede@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>
 
-Dear Josh,
+Hi,
 
+I already replied the some comment from v2 patch[1]
+[1] https://patchwork.kernel.org/patch/9630101/
 
-On 2017-03-21 21:44, Paul Menzel wrote:
+-- 
+Best Regards,
+Chanwoo Choi
+Samsung Electronics
 
-> On 2017-03-16 14:56, Josh Poimboeuf wrote:
->> Paul Menzel reported a warning:
->> 
->>   WARNING: CPU: 0 PID: 774 at
->> /build/linux-ROBWaj/linux-4.9.13/kernel/trace/trace_functions_graph.c:233
->> ftrace_return_to_handler+0x1aa/0x1e0
->>   Bad frame pointer: expected f6919d98, received f6919db0
->>     from func acpi_pm_device_sleep_wake return to c43b6f9d
->> 
->> The warning means that function graph tracing is broken for the
->> acpi_pm_device_sleep_wake() function.  That's because the acpi 
->> Makefile
->> unconditionally sets the '-Os' gcc flag to optimize for size.  That's 
->> an
->> issue because mcount-based function graph tracing is incompatible with
->> '-Os' on x86, thanks to the following gcc bug:
->> 
->>   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=42109
->> 
->> I have another patch pending which will ensure that mcount-based
->> function graph tracing is never used with CONFIG_CC_OPTIMIZE_FOR_SIZE 
->> on
->> x86.
->> 
->> But this patch is needed in addition to that one because the ACPI
->> Makefile overrides that config option for no apparent reason.  It has
->> had this flag since the beginning of git history, and there's no 
->> related
->> comment, so I don't know why it's there.  As far as I can tell, 
->> there's
->> no reason for it to be there.  The appropriate behavior is for it to
->> honor CONFIG_CC_OPTIMIZE_FOR_{SIZE,PERFORMANCE} like the rest of the
->> kernel.
->> 
->> Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
->> Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
->> ---
->>  drivers/acpi/Makefile | 1 -
->>  1 file changed, 1 deletion(-)
->> 
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index a391bbc..d94f92f 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -2,7 +2,6 @@
->>  # Makefile for the Linux ACPI interpreter
->>  #
->> 
->> -ccflags-y			:= -Os
->>  ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
->> 
->>  #
+On 2017년 03월 21일 06:30, Hans de Goede wrote:
+> Add a driver for charger detection / control on the Intel Cherrytrail
+> Whiskey Cove PMIC.
 > 
-> I checked out Linux 4.9.16, applied your patch on top, and copied the
-> Debian 4.9 Linux kernel configuration, did `make menuconfig`, disabled
-> building debugging symbols, and executed `ARCH=i386 make -j40
-> deb-pkg`.
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Changes in v2:
+> -Improve wait for charger detection loop, use jiffies to get an accurate timeout
+> -Sort registers by address, remove duplicate definition
+> -Return IRQ_NONE on interrupt handling errors
+> -Various small style cleanups
+> -Fix reporting no charger cable being present when detecting the same
+>  charger type 2 times in a row
+> -Reset to autonomous / hw-mode on probe-error and on remove
+> ---
+>  drivers/extcon/Kconfig         |   7 +
+>  drivers/extcon/Makefile        |   1 +
+>  drivers/extcon/extcon-cht-wc.c | 390 +++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 398 insertions(+)
+>  create mode 100644 drivers/extcon/extcon-cht-wc.c
 > 
-> I installed that package on the Lenovo X60, and the result with
-> tracing enabled has improved. The system suspends without a crash.
-> Unfortunately, instead of resuming when pressing the power button, it
-> starts from scratch. Suspend and resume without tracing enabled works
-> though.
+> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
+> index 96bbae5..4cace6b 100644
+> --- a/drivers/extcon/Kconfig
+> +++ b/drivers/extcon/Kconfig
+> @@ -52,6 +52,13 @@ config EXTCON_INTEL_INT3496
+>  	  This ACPI device is typically found on Intel Baytrail or Cherrytrail
+>  	  based tablets, or other Baytrail / Cherrytrail devices.
+>  
+> +config EXTCON_CHT_WC
+> +	tristate "Intel Cherrytrail Whiskey Cove PMIC extcon driver"
+> +	depends on INTEL_SOC_PMIC_CHTWC
+> +	help
+> +	  Say Y here to enable extcon support for charger detection / control
+> +	  on the Intel Cherrytrail Whiskey Cove PMIC.
+> +
+>  config EXTCON_MAX14577
+>  	tristate "Maxim MAX14577/77836 EXTCON Support"
+>  	depends on MFD_MAX14577
+> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
+> index 237ac3f..160f88b 100644
+> --- a/drivers/extcon/Makefile
+> +++ b/drivers/extcon/Makefile
+> @@ -7,6 +7,7 @@ extcon-core-objs		+= extcon.o devres.o
+>  obj-$(CONFIG_EXTCON_ADC_JACK)	+= extcon-adc-jack.o
+>  obj-$(CONFIG_EXTCON_ARIZONA)	+= extcon-arizona.o
+>  obj-$(CONFIG_EXTCON_AXP288)	+= extcon-axp288.o
+> +obj-$(CONFIG_EXTCON_CHT_WC)	+= extcon-cht-wc.o
+>  obj-$(CONFIG_EXTCON_GPIO)	+= extcon-gpio.o
+>  obj-$(CONFIG_EXTCON_INTEL_INT3496) += extcon-intel-int3496.o
+>  obj-$(CONFIG_EXTCON_MAX14577)	+= extcon-max14577.o
+> diff --git a/drivers/extcon/extcon-cht-wc.c b/drivers/extcon/extcon-cht-wc.c
+> new file mode 100644
+> index 0000000..9e14972
+> --- /dev/null
+> +++ b/drivers/extcon/extcon-cht-wc.c
+> @@ -0,0 +1,390 @@
+> +/*
+> + * Extcon charger detection driver for Intel Cherrytrail Whiskey Cove PMIC
+> + * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
+> + *
+> + * Based on various non upstream patches to support the CHT Whiskey Cove PMIC:
+> + * Copyright (C) 2013-2015 Intel Corporation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + */
+> +
+> +#include <linux/extcon.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/kernel.h>
+> +#include <linux/mfd/intel_soc_pmic.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/regmap.h>
+> +#include <linux/slab.h>
+> +
+> +#define CHT_WC_PHYCTRL			0x5e07
+> +
+> +#define CHT_WC_CHGRCTRL0		0x5e16
+> +#define CHT_WC_CHGRCTRL0_CHGRRESET	BIT(0)
+> +#define CHT_WC_CHGRCTRL0_EMRGCHREN	BIT(1)
+> +#define CHT_WC_CHGRCTRL0_EXTCHRDIS	BIT(2)
+> +#define CHT_WC_CHGRCTRL0_SWCONTROL	BIT(3)
+> +#define CHT_WC_CHGRCTRL0_TTLCK_MASK	BIT(4)
+> +#define CHT_WC_CHGRCTRL0_CCSM_OFF_MASK	BIT(5)
+> +#define CHT_WC_CHGRCTRL0_DBPOFF_MASK	BIT(6)
+> +#define CHT_WC_CHGRCTRL0_WDT_NOKICK	BIT(7)
+> +
+> +#define CHT_WC_CHGRCTRL1		0x5e17
+> +
+> +#define CHT_WC_USBSRC			0x5e29
+> +#define CHT_WC_USBSRC_STS_MASK		GENMASK(1, 0)
+> +#define CHT_WC_USBSRC_STS_SUCCESS	2
+> +#define CHT_WC_USBSRC_STS_FAIL		3
+> +#define CHT_WC_USBSRC_TYPE_SHIFT	2
+> +#define CHT_WC_USBSRC_TYPE_MASK		GENMASK(5, 2)
+> +#define CHT_WC_USBSRC_TYPE_NONE		0
+> +#define CHT_WC_USBSRC_TYPE_SDP		1
+> +#define CHT_WC_USBSRC_TYPE_DCP		2
+> +#define CHT_WC_USBSRC_TYPE_CDP		3
+> +#define CHT_WC_USBSRC_TYPE_ACA		4
+> +#define CHT_WC_USBSRC_TYPE_SE1		5
+> +#define CHT_WC_USBSRC_TYPE_MHL		6
+> +#define CHT_WC_USBSRC_TYPE_FLOAT_DP_DN	7
+> +#define CHT_WC_USBSRC_TYPE_OTHER	8
+> +#define CHT_WC_USBSRC_TYPE_DCP_EXTPHY	9
+> +
+> +#define CHT_WC_PWRSRC_IRQ		0x6e03
+> +#define CHT_WC_PWRSRC_IRQ_MASK		0x6e0f
+> +#define CHT_WC_PWRSRC_STS		0x6e1e
+> +#define CHT_WC_PWRSRC_VBUS		BIT(0)
+> +#define CHT_WC_PWRSRC_DC		BIT(1)
+> +#define CHT_WC_PWRSRC_BAT		BIT(2)
+> +#define CHT_WC_PWRSRC_ID_GND		BIT(3)
+> +#define CHT_WC_PWRSRC_ID_FLOAT		BIT(4)
+> +
+> +enum cht_wc_usb_id {
+> +	USB_ID_OTG,
+> +	USB_ID_GND,
+> +	USB_ID_FLOAT,
+> +	USB_RID_A,
+> +	USB_RID_B,
+> +	USB_RID_C,
+> +};
+> +
+> +/* Strings matching the cht_wc_usb_id enum labels */
+> +static const char * const usb_id_str[] = {
+> +	"otg", "gnd", "float", "rid_a", "rid_b", "rid_c" };
+> +
+> +enum cht_wc_mux_select {
+> +	MUX_SEL_PMIC = 0,
+> +	MUX_SEL_SOC,
+> +};
+> +
+> +static const unsigned int cht_wc_extcon_cables[] = {
+> +	EXTCON_USB,
+> +	EXTCON_USB_HOST,
+> +	EXTCON_CHG_USB_SDP,
+> +	EXTCON_CHG_USB_CDP,
+> +	EXTCON_CHG_USB_DCP,
+> +	EXTCON_CHG_USB_ACA,
+> +	EXTCON_NONE,
+> +};
+> +
+> +struct cht_wc_extcon_data {
+> +	struct device *dev;
+> +	struct regmap *regmap;
+> +	struct extcon_dev *edev;
+> +	unsigned int previous_cable;
+> +	int usb_id;
+> +};
+> +
+> +static int cht_wc_extcon_get_id(struct cht_wc_extcon_data *ext, int pwrsrc_sts)
+> +{
+> +	if (ext->usb_id)
+> +		return ext->usb_id;
+> +
+> +	if (pwrsrc_sts & CHT_WC_PWRSRC_ID_GND)
+> +		return USB_ID_GND;
+> +	if (pwrsrc_sts & CHT_WC_PWRSRC_ID_FLOAT)
+> +		return USB_ID_FLOAT;
+> +
+> +	/*
+> +	 * Once we have iio support for the gpadc we should read the USBID
+> +	 * gpadc channel here and determine ACA role based on that.
+> +	 */
+> +	return USB_ID_FLOAT;
+> +}
+> +
+> +static int cht_wc_extcon_get_charger(struct cht_wc_extcon_data *ext)
+> +{
+> +	int ret, usbsrc, status;
+> +	unsigned long timeout;
+> +
+> +	/* Charger detection can take upto 600ms, wait 800ms max. */
+> +	timeout = jiffies + msecs_to_jiffies(800);
+> +	do {
+> +		ret = regmap_read(ext->regmap, CHT_WC_USBSRC, &usbsrc);
+> +		if (ret) {
+> +			dev_err(ext->dev, "Error reading usbsrc: %d\n", ret);
+> +			return ret;
+> +		}
+> +
+> +		status = usbsrc & CHT_WC_USBSRC_STS_MASK;
+> +		if (status == CHT_WC_USBSRC_STS_SUCCESS ||
+> +		    status == CHT_WC_USBSRC_STS_FAIL)
+> +			break;
+> +
+> +		msleep(50); /* Wait a bit before retrying */
+> +	} while (time_before(jiffies, timeout));
+> +
+> +	if (status != CHT_WC_USBSRC_STS_SUCCESS) {
+> +		if (status == CHT_WC_USBSRC_STS_FAIL)
+> +			dev_warn(ext->dev, "Could not detect charger type\n");
+> +		else
+> +			dev_warn(ext->dev, "Timeout detecting charger type\n");
+> +		return EXTCON_CHG_USB_SDP; /* Save fallback */
+> +	}
+> +
+> +	usbsrc = (usbsrc & CHT_WC_USBSRC_TYPE_MASK) >> CHT_WC_USBSRC_TYPE_SHIFT;
+> +	switch (usbsrc) {
+> +	default:
+> +		dev_warn(ext->dev, "Unhandled charger type %d\n", ret);
+> +		/* Fall through treat as SDP */
+> +	case CHT_WC_USBSRC_TYPE_SDP:
+> +	case CHT_WC_USBSRC_TYPE_FLOAT_DP_DN:
+> +	case CHT_WC_USBSRC_TYPE_OTHER:
+> +		return EXTCON_CHG_USB_SDP;
+> +	case CHT_WC_USBSRC_TYPE_CDP:
+> +		return EXTCON_CHG_USB_CDP;
+> +	case CHT_WC_USBSRC_TYPE_DCP:
+> +	case CHT_WC_USBSRC_TYPE_DCP_EXTPHY:
+> +	case CHT_WC_USBSRC_TYPE_MHL: /* MHL2+ delivers upto 2A, treat as DCP */
+> +		return EXTCON_CHG_USB_DCP;
+> +	case CHT_WC_USBSRC_TYPE_ACA:
+> +		return EXTCON_CHG_USB_ACA;
+> +	}
+> +}
+> +
+> +static void cht_wc_extcon_set_phymux(struct cht_wc_extcon_data *ext, u8 state)
+> +{
+> +	int ret;
+> +
+> +	ret = regmap_write(ext->regmap, CHT_WC_PHYCTRL, state);
+> +	if (ret)
+> +		dev_err(ext->dev, "Error writing phyctrl: %d\n", ret);
+> +}
+> +
+> +/* Small helper to sync EXTCON_CHG_USB_SDP and EXTCON_USB state */
+> +static void cht_wc_extcon_set_state(struct cht_wc_extcon_data *ext,
+> +				    unsigned int cable, bool state)
+> +{
+> +	extcon_set_state_sync(ext->edev, cable, state);
+> +	if (cable == EXTCON_CHG_USB_SDP)
+> +		extcon_set_state_sync(ext->edev, EXTCON_USB, state);
+> +}
+> +
+> +static void cht_wc_extcon_pwrsrc_event(struct cht_wc_extcon_data *ext)
+> +{
+> +	int ret, pwrsrc_sts, id;
+> +	unsigned int cable = EXTCON_NONE;
+> +
+> +	ret = regmap_read(ext->regmap, CHT_WC_PWRSRC_STS, &pwrsrc_sts);
+> +	if (ret) {
+> +		dev_err(ext->dev, "Error reading pwrsrc status: %d\n", ret);
+> +		return;
+> +	}
+> +
+> +	id = cht_wc_extcon_get_id(ext, pwrsrc_sts);
+> +	if (id == USB_ID_GND) {
+> +		/* The 5v boost causes a false VBUS / SDP detect, skip */
+> +		goto charger_det_done;
+> +	}
+> +
+> +	/* Plugged into a host/charger or not connected? */
+> +	if (!(pwrsrc_sts & CHT_WC_PWRSRC_VBUS)) {
+> +		/* Route D+ and D- to PMIC for future charger detection */
+> +		cht_wc_extcon_set_phymux(ext, MUX_SEL_PMIC);
+> +		goto set_state;
+> +	}
+> +
+> +	ret = cht_wc_extcon_get_charger(ext);
+> +	if (ret >= 0)
+> +		cable = ret;
+> +
+> +charger_det_done:
+> +	/* Route D+ and D- to SoC for the host / gadget controller */
+> +	cht_wc_extcon_set_phymux(ext, MUX_SEL_SOC);
+> +
+> +set_state:
+> +	if (cable != ext->previous_cable) {
+> +		cht_wc_extcon_set_state(ext, cable, true);
+> +		cht_wc_extcon_set_state(ext, ext->previous_cable, false);
+> +		ext->previous_cable = cable;
+> +	}
+> +
+> +	extcon_set_state_sync(ext->edev, EXTCON_USB_HOST,
+> +			      id == USB_ID_GND || id == USB_RID_A);
+> +}
+> +
+> +static irqreturn_t cht_wc_extcon_isr(int irq, void *data)
+> +{
+> +	struct cht_wc_extcon_data *ext = data;
+> +	int ret, irqs;
+> +
+> +	ret = regmap_read(ext->regmap, CHT_WC_PWRSRC_IRQ, &irqs);
+> +	if (ret) {
+> +		dev_err(ext->dev, "Error reading irqs: %d\n", ret);
+> +		return IRQ_NONE;
+> +	}
+> +
+> +	cht_wc_extcon_pwrsrc_event(ext);
+> +
+> +	ret = regmap_write(ext->regmap, CHT_WC_PWRSRC_IRQ, irqs);
+> +	if (ret) {
+> +		dev_err(ext->dev, "Error writing irqs: %d\n", ret);
+> +		return IRQ_NONE;
+> +	}
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +/* usb_id sysfs attribute for debug / testing purposes */
+> +static ssize_t usb_id_show(struct device *dev, struct device_attribute *attr,
+> +			   char *buf)
+> +{
+> +	struct cht_wc_extcon_data *ext = dev_get_drvdata(dev);
+> +
+> +	return sprintf(buf, "%s\n", usb_id_str[ext->usb_id]);
+> +}
+> +
+> +static ssize_t usb_id_store(struct device *dev, struct device_attribute *attr,
+> +			    const char *buf, size_t n)
+> +{
+> +	struct cht_wc_extcon_data *ext = dev_get_drvdata(dev);
+> +	int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(usb_id_str); i++) {
+> +		if (sysfs_streq(buf, usb_id_str[i])) {
+> +			dev_info(ext->dev, "New usb_id %s\n", usb_id_str[i]);
+> +			ext->usb_id = i;
+> +			cht_wc_extcon_pwrsrc_event(ext);
+> +			return n;
+> +		}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static DEVICE_ATTR(usb_id, 0644, usb_id_show, usb_id_store);
+> +
+> +static int cht_wc_extcon_sw_control(struct cht_wc_extcon_data *ext, bool enable)
+> +{
+> +	int ret, mask, val;
+> +
+> +	mask = CHT_WC_CHGRCTRL0_SWCONTROL | CHT_WC_CHGRCTRL0_CCSM_OFF_MASK;
+> +	val = enable ? mask : 0;
+> +	ret = regmap_update_bits(ext->regmap, CHT_WC_CHGRCTRL0, mask, val);
+> +	if (ret)
+> +		dev_err(ext->dev, "Failed setting sw control: %d\n", ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static int cht_wc_extcon_probe(struct platform_device *pdev)
+> +{
+> +	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
+> +	struct cht_wc_extcon_data *ext;
+> +	int irq, ret;
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0)
+> +		return irq;
+> +
+> +	ext = devm_kzalloc(&pdev->dev, sizeof(*ext), GFP_KERNEL);
+> +	if (!ext)
+> +		return -ENOMEM;
+> +
+> +	ext->dev = &pdev->dev;
+> +	ext->regmap = pmic->regmap;
+> +	ext->previous_cable = EXTCON_NONE;
+> +
+> +	/* Initialize extcon device */
+> +	ext->edev = devm_extcon_dev_allocate(ext->dev, cht_wc_extcon_cables);
+> +	if (IS_ERR(ext->edev))
+> +		return PTR_ERR(ext->edev);
+> +
+> +	/* Enable sw control */
+> +	ret = cht_wc_extcon_sw_control(ext, true);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Register extcon device */
+> +	ret = devm_extcon_dev_register(ext->dev, ext->edev);
+> +	if (ret) {
+> +		dev_err(ext->dev, "Failed to register extcon device\n");
+> +		goto disable_sw_control;
+> +	}
+> +
+> +	/* Route D+ and D- to PMIC for initial charger detection */
+> +	cht_wc_extcon_set_phymux(ext, MUX_SEL_PMIC);
+> +
+> +	/* Get initial state */
+> +	cht_wc_extcon_pwrsrc_event(ext);
+> +
+> +	ret = devm_request_threaded_irq(ext->dev, irq, NULL, cht_wc_extcon_isr,
+> +					IRQF_ONESHOT, pdev->name, ext);
+> +	if (ret) {
+> +		dev_err(ext->dev, "Failed to request interrupt\n");
+> +		goto disable_sw_control;
+> +	}
+> +
+> +	/* Unmask irqs */
+> +	ret = regmap_write(ext->regmap, CHT_WC_PWRSRC_IRQ_MASK,
+> +			   (int)~(CHT_WC_PWRSRC_VBUS | CHT_WC_PWRSRC_ID_GND |
+> +				  CHT_WC_PWRSRC_ID_FLOAT));
+> +	if (ret) {
+> +		dev_err(ext->dev, "Failed to write the irq-mask: %d\n", ret);
+> +		goto disable_sw_control;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, ext);
+> +	device_create_file(ext->dev, &dev_attr_usb_id);
+> +
+> +	return 0;
+> +
+> +disable_sw_control:
+> +	cht_wc_extcon_sw_control(ext, false);
+> +	return ret;
+> +}
+> +
+> +static int cht_wc_extcon_remove(struct platform_device *pdev)
+> +{
+> +	struct cht_wc_extcon_data *ext = platform_get_drvdata(pdev);
+> +
+> +	device_remove_file(ext->dev, &dev_attr_usb_id);
+> +	cht_wc_extcon_sw_control(ext, false);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct platform_device_id cht_wc_extcon_table[] = {
+> +	{ .name = "cht_wcove_pwrsrc" },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(platform, cht_wc_extcon_table);
+> +
+> +static struct platform_driver cht_wc_extcon_driver = {
+> +	.probe = cht_wc_extcon_probe,
+> +	.remove = cht_wc_extcon_remove,
+> +	.id_table = cht_wc_extcon_table,
+> +	.driver = {
+> +		.name = "cht_wcove_pwrsrc",
+> +	},
+> +};
+> +module_platform_driver(cht_wc_extcon_driver);
+> +
+> +MODULE_DESCRIPTION("Intel Cherrytrail Whiskey Cove PMIC extcon driver");
+> +MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
+> +MODULE_LICENSE("GPL v2");
 > 
-> I’ll try to collect logs, but I don’t know, if there will be any, if
-> the system just resets.
-
-The system is able to resume with `no_console_suspend` passed to Linux 
-on its command line.
-
-```
-$ more /proc/cmdline
-BOOT_IMAGE=/vmlinuz-4.9.16 
-root=UUID=0198e82a-32df-4f18-bec0-3e08802b084d ro noisapnp 
-pcie_aspm=force pcie_aspm.policy=powersave nmi_watchdog=0 iomem=relaxed 
-console=t
-tyS1,115200 console=tty0 no_console_suspend
-```
-
-Please tell me, what you need from my side.
-
-> Maybe, this can be reproduced in QEMU?
-
-
-Kind regards,
-
-Paul
