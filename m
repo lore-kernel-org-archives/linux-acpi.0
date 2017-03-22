@@ -1,80 +1,231 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 2/5] mfd: intel_soc_pmic: Select designware i2c-bus
- driver
-Date: Wed, 22 Mar 2017 14:53:40 +0200
-Message-ID: <1490187220.19767.159.camel@linux.intel.com>
-References: <20170322112923.20200-1-hdegoede@redhat.com>
-         <20170322112923.20200-3-hdegoede@redhat.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+Date: Wed, 22 Mar 2017 14:12:48 +0000
+Message-ID: <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
+ <20170321144521.GA4392@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:38674 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934273AbdCVMxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Mar 2017 08:53:45 -0400
-In-Reply-To: <20170322112923.20200-3-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170321144521.GA4392@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linuxarm@huawei.com, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2017-03-22 at 12:29 +0100, Hans de Goede wrote:
-> The Crystal Cove PMIC provides an ACPI OPRegion handler, which must be
-> available before other drivers using it are loaded, which is why
-> INTEL_SOC_PMIC is a bool.
-> 
-> Just having the driver is not enough, the driver for the i2c-bus must
-> also be built in, to ensure this, this patch adds a select for it.
-> 
+On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
+> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> With the preparation of platform msi support and interrupt producer
+>> in DSDT, we can add mbigen ACPI support now.
+>>
+>> We are using Interrupt resource type in _CRS methd to indicate number
+>> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
+>>
+>> For mbigen,
+>>     Device(MBI0) {
+>>           Name(_HID, "HISI0152")
+>>           Name(_UID, Zero)
+>>           Name(_CRS, ResourceTemplate() {
+>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+>> 		  Interrupt(ResourceProducer,...) {12,14,....}
+>
+> What do these interrupt numbers represent ? This looks wrong to me.
+> An interrupt descriptor is there to describe the interrupts a device
+> can generate; you are using it just to add a "standard" (that is
+> not standard at all) way of counting the number of vectors allocated
+> to this specific chip and that's just wrong.
+>
 
-> While at it this patch also changes the human readable name of the
-> Kconfig
-> option to make clear the INTEL_SOC_PMIC option selects support for the
-> Intel Crystal Cove PMIC and documents why this is a bool.
+As I understand, the count of interrupts we are declaring for the mbigen 
+is the same as the sum of interrupts for that mbigen's children.
 
-The above is what my patch does, I'm okay if the change is going with
-this series as long as Lee is on the same side. Otherwise I would prefer
-to go my changes first.
+So at the point we probe the mbigen, can we just deference the children 
+to count their interrupts, and use this as the #msis?
 
-> 
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Note this patch will partially conflicts with (contains the same
-> changes as)
-> a patch in Andy Shevchenko's tree.
-> ---
->  drivers/mfd/Kconfig | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index d427a10..0c6a967 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -425,14 +425,17 @@ config LPC_SCH
->  	  System Management Bus and General Purpose I/O.
->  
->  config INTEL_SOC_PMIC
-> -	bool "Support for Intel Atom SoC PMIC"
-> +	# This is a bool as it provides an ACPI Opregion which must
-> be
-> +	# available as soon as possible
-> +	bool "Support for Intel Crystal Cove PMIC"
->  	depends on GPIOLIB
->  	depends on I2C=y
->  	select MFD_CORE
->  	select REGMAP_I2C
->  	select REGMAP_IRQ
-> +	select I2C_DESIGNWARE_PLATFORM
->  	help
-> -	  Select this option to enable support for the PMIC device
-> +	  Select this option to enable support for the Crystal Cove
-> PMIC
->  	  on some Intel SoC systems. The PMIC provides ADC, GPIO,
->  	  thermal, charger and related power management functions
->  	  on these systems.
+> Can't you use something like Agustin did in the QCOM combiner:
+>
+> drivers/irqchip/qcom-irq-combiner.c
+>
+> to detect the MSI vector length (ie by describing the MBIgen through
+> generic registers and use the bit width to compute the vector
+> lenght) ? I am not sure how feasible it is given that my knowledge
+> of MBIgen is pretty poor.
+>
+> I understand we want to avoid _DSD properties but we should not
+> work around standard bindings to achieve that goal.
+>
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+We use "num-pins" for dt solution, but it is not so welcome here.
+
+> Side effect: IIUC the kernel will allocate an array of resources for
+> your MBIgen interrupts whose size equal the Interrupt descriptor,
+> which is as bad as it can get given that those resources are to
+> the best of my knowledge unused.
+>
+
+Much appreciated,
+John
+
+> Lorenzo
+>
+>>           })
+>>     }
+>>
+>> For devices,
+>>    Device(COM0) {
+>>           Name(_HID, "ACPIIDxx")
+>>           Name(_UID, Zero)
+>>           Name(_CRS, ResourceTemplate() {
+>>                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+>> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+>>           })
+>>     }
+>>
+>> With the help of platform msi and interrupt producer, then devices
+>> will get the virq from mbigen's irqdomain.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Ma Jun <majun258@huawei.com>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> ---
+>>  drivers/irqchip/irq-mbigen.c | 70 ++++++++++++++++++++++++++++++++++++++++++--
+>>  1 file changed, 67 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
+>> index 3756408..e6bb503 100644
+>> --- a/drivers/irqchip/irq-mbigen.c
+>> +++ b/drivers/irqchip/irq-mbigen.c
+>> @@ -16,6 +16,7 @@
+>>   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>>   */
+>>
+>> +#include <linux/acpi.h>
+>>  #include <linux/interrupt.h>
+>>  #include <linux/irqchip.h>
+>>  #include <linux/module.h>
+>> @@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
+>>  				    unsigned long *hwirq,
+>>  				    unsigned int *type)
+>>  {
+>> -	if (is_of_node(fwspec->fwnode)) {
+>> +	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
+>>  		if (fwspec->param_count != 2)
+>>  			return -EINVAL;
+>>
+>> @@ -271,6 +272,54 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
+>>  	return 0;
+>>  }
+>>
+>> +#ifdef CONFIG_ACPI
+>> +static acpi_status mbigen_acpi_process_resource(struct acpi_resource *ares,
+>> +					     void *context)
+>> +{
+>> +	struct acpi_resource_extended_irq *ext_irq;
+>> +	u32 *num_irqs = context;
+>> +
+>> +	switch (ares->type) {
+>> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+>> +		ext_irq = &ares->data.extended_irq;
+>> +		*num_irqs += ext_irq->interrupt_count;
+>> +		break;
+>> +	default:
+>> +		break;
+>> +	}
+>> +
+>> +	return AE_OK;
+>> +}
+>> +
+>> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
+>> +				     struct mbigen_device *mgn_chip)
+>> +{
+>> +	struct irq_domain *domain;
+>> +	u32 num_msis = 0;
+>> +	acpi_status status;
+>> +
+>> +	status = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), METHOD_NAME__CRS,
+>> +				     mbigen_acpi_process_resource, &num_msis);
+>> +	if (ACPI_FAILURE(status) || num_msis == 0)
+>> +		return -EINVAL;
+>> +
+>> +	domain = platform_msi_create_device_domain(&pdev->dev, num_msis,
+>> +						   mbigen_write_msg,
+>> +						   &mbigen_domain_ops,
+>> +						   mgn_chip);
+>> +	if (!domain)
+>> +		return -ENOMEM;
+>> +
+>> +	return 0;
+>> +}
+>> +#else
+>> +static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
+>> +					    struct mbigen_device *mgn_chip)
+>> +{
+>> +	return -ENODEV;
+>> +}
+>> +#endif
+>> +
+>>  static int mbigen_device_probe(struct platform_device *pdev)
+>>  {
+>>  	struct mbigen_device *mgn_chip;
+>> @@ -289,9 +338,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+>>  	if (IS_ERR(mgn_chip->base))
+>>  		return PTR_ERR(mgn_chip->base);
+>>
+>> -	err = mbigen_of_create_domain(pdev, mgn_chip);
+>> -	if (err)
+>> +	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
+>> +		err = mbigen_of_create_domain(pdev, mgn_chip);
+>> +	else if (ACPI_COMPANION(&pdev->dev))
+>> +		err = mbigen_acpi_create_domain(pdev, mgn_chip);
+>> +	else
+>> +		err = -EINVAL;
+>> +
+>> +	if (err) {
+>> +		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain", mgn_chip->base);
+>>  		return err;
+>> +	}
+>>
+>>  	platform_set_drvdata(pdev, mgn_chip);
+>>  	return 0;
+>> @@ -303,10 +360,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
+>>  };
+>>  MODULE_DEVICE_TABLE(of, mbigen_of_match);
+>>
+>> +static const struct acpi_device_id mbigen_acpi_match[] = {
+>> +	{ "HISI0152", 0 },
+>> +	{}
+>> +};
+>> +MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
+>> +
+>>  static struct platform_driver mbigen_platform_driver = {
+>>  	.driver = {
+>>  		.name		= "Hisilicon MBIGEN-V2",
+>>  		.of_match_table	= mbigen_of_match,
+>> +		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
+>>  	},
+>>  	.probe			= mbigen_device_probe,
+>>  };
+>> --
+>> 1.7.12.4
+>>
+> _______________________________________________
+> linuxarm mailing list
+> linuxarm@huawei.com
+> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
+>
+> .
+>
