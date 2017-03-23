@@ -1,126 +1,143 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 4/8] gpio: acpi: Even more tighten up ACPI GPIO lookups
-Date: Thu, 23 Mar 2017 21:46:14 +0200
-Message-ID: <20170323194618.26548-5-andriy.shevchenko@linux.intel.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v1 4/8] gpio: acpi: Even more tighten up ACPI GPIO lookups
+Date: Thu, 23 Mar 2017 13:12:41 -0700
+Message-ID: <20170323201241.GB2502@dtor-ws>
 References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+ <20170323194618.26548-5-andriy.shevchenko@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20170323194618.26548-5-andriy.shevchenko@linux.intel.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Bastien Nocera <hadess@hadess.net>
 List-Id: linux-acpi@vger.kernel.org
 
-The commit 10cf4899f8af ("gpiolib: tighten up ACPI legacy gpio lookups")
-prevents to getting same resource twice if the driver asks twice using same
-connection ID.
+On Thu, Mar 23, 2017 at 09:46:14PM +0200, Andy Shevchenko wrote:
+> The commit 10cf4899f8af ("gpiolib: tighten up ACPI legacy gpio lookups")
+> prevents to getting same resource twice if the driver asks twice using same
 
-But the whole idea of fallback might bring some problems. Imagine the case when
-we have two versions of BIOS/hardware where in one _DSD is introduced along
-with GPIO resources, but the other one uses just plain GPIO resource for
-another purpose
+s/same/different/
 
-Case 1:
+> connection ID.
+> 
+> But the whole idea of fallback might bring some problems. Imagine the case when
+> we have two versions of BIOS/hardware where in one _DSD is introduced along
+> with GPIO resources, but the other one uses just plain GPIO resource for
+> another purpose
+> 
+> Case 1:
+> 
+>     Device (DEVX)
+>     {
+>         ...
+>         Name (_CRS, ResourceTemplate ()
+>         {
+>             GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+>                     "\\_SB.GPO0", 0, ResourceConsumer) {15}
+>         })
+>         Name (_DSD, Package ()
+>         {
+>             ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>             Package ()
+>             {
+>                 Package () {"some-gpios", Package() {^DEVX, 0, 0, 0 }},
+>             }
+>         })
+>     }
+> 
+> Case 2:
+> 
+>     Device (DEVX)
+>     {
+>         ...
+>         Name (_CRS, ResourceTemplate ()
+>         {
+>             GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+>                     "\\_SB.GPO0", 0, ResourceConsumer) {27}
+>         })
+>     }
+> 
+> To prevent the possible misconfiguration tighten up even more ACPI GPIO lookups
+> for case without connection ID provided.
 
-    Device (DEVX)
-    {
-        ...
-        Name (_CRS, ResourceTemplate ()
-        {
-            GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
-                    "\\_SB.GPO0", 0, ResourceConsumer) {15}
-        })
-        Name (_DSD, Package ()
-        {
-            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-            Package ()
-            {
-                Package () {"some-gpios", Package() {^DEVX, 0, 0, 0 }},
-            }
-        })
-    }
+I wonder if this will break Goodix. Irina, Bastien?
 
-Case 2:
+> 
+> In the past the issue had been triggered by "use mctrl_gpio helpers" series
+> [1,2].
+> 
+> Besides above, removal of the main logic of acpi_can_fallback_to_crs()
+> eliminates a potential memory leak when the same device has been unbound and
+> bound again.
 
-    Device (DEVX)
-    {
-        ...
-        Name (_CRS, ResourceTemplate ()
-        {
-            GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
-                    "\\_SB.GPO0", 0, ResourceConsumer) {27}
-        })
-    }
+Where? We'll reuse lookup table as ACPI device is still the same.
 
-To prevent the possible misconfiguration tighten up even more ACPI GPIO lookups
-for case without connection ID provided.
+> 
+> [1] commit 4ef03d328769 ("tty/serial/8250: use mctrl_gpio helpers")
+> [2] https://patchwork.kernel.org/patch/9283745/
+> 
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/gpio/gpiolib-acpi.c | 36 +-----------------------------------
+>  1 file changed, 1 insertion(+), 35 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index 21e4930ca2db..e516b7a0cc50 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -1121,45 +1121,11 @@ int acpi_gpio_count(struct device *dev, const char *con_id)
+>  	return count ? count : -ENOENT;
+>  }
+>  
+> -struct acpi_crs_lookup {
+> -	struct list_head node;
+> -	struct acpi_device *adev;
+> -	const char *con_id;
+> -};
+> -
+> -static DEFINE_MUTEX(acpi_crs_lookup_lock);
+> -static LIST_HEAD(acpi_crs_lookup_list);
+> -
+>  bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
+>  {
+> -	struct acpi_crs_lookup *l, *lookup = NULL;
+> -
+>  	/* Never allow fallback if the device has properties */
+>  	if (adev->data.properties || adev->driver_gpios)
+>  		return false;
+>  
+> -	mutex_lock(&acpi_crs_lookup_lock);
+> -
+> -	list_for_each_entry(l, &acpi_crs_lookup_list, node) {
+> -		if (l->adev == adev) {
+> -			lookup = l;
+> -			break;
+> -		}
+> -	}
+> -
+> -	if (!lookup) {
+> -		lookup = kmalloc(sizeof(*lookup), GFP_KERNEL);
+> -		if (lookup) {
+> -			lookup->adev = adev;
+> -			lookup->con_id = kstrdup(con_id, GFP_KERNEL);
+> -			list_add_tail(&lookup->node, &acpi_crs_lookup_list);
+> -		}
+> -	}
+> -
+> -	mutex_unlock(&acpi_crs_lookup_lock);
+> -
+> -	return lookup &&
+> -		((!lookup->con_id && !con_id) ||
+> -		 (lookup->con_id && con_id &&
+> -		  strcmp(lookup->con_id, con_id) == 0));
+> +	return con_id == NULL;
+>  }
+> -- 
+> 2.11.0
+> 
 
-In the past the issue had been triggered by "use mctrl_gpio helpers" series
-[1,2].
-
-Besides above, removal of the main logic of acpi_can_fallback_to_crs()
-eliminates a potential memory leak when the same device has been unbound and
-bound again.
-
-[1] commit 4ef03d328769 ("tty/serial/8250: use mctrl_gpio helpers")
-[2] https://patchwork.kernel.org/patch/9283745/
-
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/gpio/gpiolib-acpi.c | 36 +-----------------------------------
- 1 file changed, 1 insertion(+), 35 deletions(-)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 21e4930ca2db..e516b7a0cc50 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -1121,45 +1121,11 @@ int acpi_gpio_count(struct device *dev, const char *con_id)
- 	return count ? count : -ENOENT;
- }
- 
--struct acpi_crs_lookup {
--	struct list_head node;
--	struct acpi_device *adev;
--	const char *con_id;
--};
--
--static DEFINE_MUTEX(acpi_crs_lookup_lock);
--static LIST_HEAD(acpi_crs_lookup_list);
--
- bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
- {
--	struct acpi_crs_lookup *l, *lookup = NULL;
--
- 	/* Never allow fallback if the device has properties */
- 	if (adev->data.properties || adev->driver_gpios)
- 		return false;
- 
--	mutex_lock(&acpi_crs_lookup_lock);
--
--	list_for_each_entry(l, &acpi_crs_lookup_list, node) {
--		if (l->adev == adev) {
--			lookup = l;
--			break;
--		}
--	}
--
--	if (!lookup) {
--		lookup = kmalloc(sizeof(*lookup), GFP_KERNEL);
--		if (lookup) {
--			lookup->adev = adev;
--			lookup->con_id = kstrdup(con_id, GFP_KERNEL);
--			list_add_tail(&lookup->node, &acpi_crs_lookup_list);
--		}
--	}
--
--	mutex_unlock(&acpi_crs_lookup_lock);
--
--	return lookup &&
--		((!lookup->con_id && !con_id) ||
--		 (lookup->con_id && con_id &&
--		  strcmp(lookup->con_id, con_id) == 0));
-+	return con_id == NULL;
- }
 -- 
-2.11.0
-
+Dmitry
