@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 3/8] gpio: acpi: Do sanity check for GpioInt in acpi_find_gpio()
-Date: Thu, 23 Mar 2017 21:46:13 +0200
-Message-ID: <20170323194618.26548-4-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 4/8] gpio: acpi: Even more tighten up ACPI GPIO lookups
+Date: Thu, 23 Mar 2017 21:46:14 +0200
+Message-ID: <20170323194618.26548-5-andriy.shevchenko@linux.intel.com>
 References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
@@ -10,36 +10,117 @@ To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.co
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Check that we don't ask for output direction on GpioInt resource in cases with
-or without _DSD defined.
+The commit 10cf4899f8af ("gpiolib: tighten up ACPI legacy gpio lookups")
+prevents to getting same resource twice if the driver asks twice using same
+connection ID.
 
+But the whole idea of fallback might bring some problems. Imagine the case when
+we have two versions of BIOS/hardware where in one _DSD is introduced along
+with GPIO resources, but the other one uses just plain GPIO resource for
+another purpose
+
+Case 1:
+
+    Device (DEVX)
+    {
+        ...
+        Name (_CRS, ResourceTemplate ()
+        {
+            GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                    "\\_SB.GPO0", 0, ResourceConsumer) {15}
+        })
+        Name (_DSD, Package ()
+        {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package ()
+            {
+                Package () {"some-gpios", Package() {^DEVX, 0, 0, 0 }},
+            }
+        })
+    }
+
+Case 2:
+
+    Device (DEVX)
+    {
+        ...
+        Name (_CRS, ResourceTemplate ()
+        {
+            GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                    "\\_SB.GPO0", 0, ResourceConsumer) {27}
+        })
+    }
+
+To prevent the possible misconfiguration tighten up even more ACPI GPIO lookups
+for case without connection ID provided.
+
+In the past the issue had been triggered by "use mctrl_gpio helpers" series
+[1,2].
+
+Besides above, removal of the main logic of acpi_can_fallback_to_crs()
+eliminates a potential memory leak when the same device has been unbound and
+bound again.
+
+[1] commit 4ef03d328769 ("tty/serial/8250: use mctrl_gpio helpers")
+[2] https://patchwork.kernel.org/patch/9283745/
+
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/gpio/gpiolib-acpi.c | 36 +-----------------------------------
+ 1 file changed, 1 insertion(+), 35 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 3bda3166d418..21e4930ca2db 100644
+index 21e4930ca2db..e516b7a0cc50 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -614,12 +614,12 @@ struct gpio_desc *acpi_find_gpio(struct device *dev,
- 		desc = acpi_get_gpiod_by_index(adev, NULL, idx, &info);
- 		if (IS_ERR(desc))
- 			return desc;
-+	}
+@@ -1121,45 +1121,11 @@ int acpi_gpio_count(struct device *dev, const char *con_id)
+ 	return count ? count : -ENOENT;
+ }
  
--		if ((flags == GPIOD_OUT_LOW || flags == GPIOD_OUT_HIGH) &&
--		    info.gpioint) {
--			dev_dbg(dev, "refusing GpioInt() entry when doing GPIOD_OUT_* lookup\n");
--			return ERR_PTR(-ENOENT);
+-struct acpi_crs_lookup {
+-	struct list_head node;
+-	struct acpi_device *adev;
+-	const char *con_id;
+-};
+-
+-static DEFINE_MUTEX(acpi_crs_lookup_lock);
+-static LIST_HEAD(acpi_crs_lookup_list);
+-
+ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
+ {
+-	struct acpi_crs_lookup *l, *lookup = NULL;
+-
+ 	/* Never allow fallback if the device has properties */
+ 	if (adev->data.properties || adev->driver_gpios)
+ 		return false;
+ 
+-	mutex_lock(&acpi_crs_lookup_lock);
+-
+-	list_for_each_entry(l, &acpi_crs_lookup_list, node) {
+-		if (l->adev == adev) {
+-			lookup = l;
+-			break;
 -		}
-+	if (info.gpioint &&
-+	    (flags == GPIOD_OUT_LOW || flags == GPIOD_OUT_HIGH)) {
-+		dev_dbg(dev, "refusing GpioInt() entry when doing GPIOD_OUT_* lookup\n");
-+		return ERR_PTR(-ENOENT);
- 	}
- 
- 	if (info.polarity == GPIO_ACTIVE_LOW)
+-	}
+-
+-	if (!lookup) {
+-		lookup = kmalloc(sizeof(*lookup), GFP_KERNEL);
+-		if (lookup) {
+-			lookup->adev = adev;
+-			lookup->con_id = kstrdup(con_id, GFP_KERNEL);
+-			list_add_tail(&lookup->node, &acpi_crs_lookup_list);
+-		}
+-	}
+-
+-	mutex_unlock(&acpi_crs_lookup_lock);
+-
+-	return lookup &&
+-		((!lookup->con_id && !con_id) ||
+-		 (lookup->con_id && con_id &&
+-		  strcmp(lookup->con_id, con_id) == 0));
++	return con_id == NULL;
+ }
 -- 
 2.11.0
 
