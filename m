@@ -1,57 +1,102 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH] ACPI / Processor: Remove setup_max_cpus check in acpi_processor_add
-Date: Thu, 23 Mar 2017 15:21:53 -0600
-Message-ID: <1490304113-18264-1-git-send-email-pprakash@codeaurora.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 2/5] mfd: intel_soc_pmic: Select designware i2c-bus driver
+Date: Thu, 23 Mar 2017 23:31:31 +0100
+Message-ID: <16efec42-64cf-88e8-8ebb-cf9fdfc383c3@redhat.com>
+References: <20170322112923.20200-1-hdegoede@redhat.com>
+ <20170322112923.20200-3-hdegoede@redhat.com>
+ <1490187220.19767.159.camel@linux.intel.com>
+ <20170323164647.tyyqoziiy4jwg5vc@dell>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60942 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751105AbdCWVWI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2017 17:22:08 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:38694 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751503AbdCWWbf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 23 Mar 2017 18:31:35 -0400
+In-Reply-To: <20170323164647.tyyqoziiy4jwg5vc@dell>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, Prashanth Prakash <pprakash@codeaurora.org>
+To: Lee Jones <lee.jones@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-When maxcpus=X kernel argument is used, we parse the ACPI tables only
-for the first X cpus. The per-cpu ACPI data include the _PSD tables
-which gives information about related cpus.
+Hi,
 
-cppc_cpufreq and acpi-cpufreq parses the table once during init to
-deduce the related cpus. If a user brings a new cpu online after boot
-the related cpu data becomes incorrect.
+On 23-03-17 17:46, Lee Jones wrote:
+> On Wed, 22 Mar 2017, Andy Shevchenko wrote:
+>
+>> On Wed, 2017-03-22 at 12:29 +0100, Hans de Goede wrote:
+>>> The Crystal Cove PMIC provides an ACPI OPRegion handler, which must be
+>>> available before other drivers using it are loaded, which is why
+>>> INTEL_SOC_PMIC is a bool.
+>>>
+>>> Just having the driver is not enough, the driver for the i2c-bus must
+>>> also be built in, to ensure this, this patch adds a select for it.
+>>>
+>>
+>>> While at it this patch also changes the human readable name of the
+>>> Kconfig
+>>> option to make clear the INTEL_SOC_PMIC option selects support for the
+>>> Intel Crystal Cove PMIC and documents why this is a bool.
+>>
+>> The above is what my patch does, I'm okay if the change is going with
+>> this series as long as Lee is on the same side. Otherwise I would prefer
+>> to go my changes first.
+>
+> I think this set is going to need to be rebase on top of MFD.
 
-acpi_get_psd_map() in acpi_cppc.c returns error if it fails to find
-the parsed ACPI data for possible CPU resulting in cppc_cpufreq
-initialization failure.
+This patch (2/5) and 3/5 should apply cleanly as they only
+touch drivers/mfd/Kconfig and mfd-for-next has only 1 commit
+touching Kconfig which is no where near the areas these 2
+patches are making changes. So I believe they can be applied as is.
 
-With this change we will probe all possible CPUs prior to cpufreq
-initialization, but will bring only setup_max_cpus online. nr_cpus
-kernel parameter can be used to restict even parsing per-cpu ACPI
-tables.
+As for the other patches, patch 1/5 is for the ACPI subsys, since
+you've requested changes to the Cherry Trail Whiskey Cove MFD driver
+I will squash 4/5 into the new version of that and 5/5 again is an
+ACPI patch.
 
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
----
- drivers/acpi/acpi_processor.c | 5 -----
- 1 file changed, 5 deletions(-)
+Regards,
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 0143135..f098e25 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -388,11 +388,6 @@ static int acpi_processor_add(struct acpi_device *device,
- 	if (result) /* Processor is not physically present or unavailable */
- 		return 0;
- 
--#ifdef CONFIG_SMP
--	if (pr->id >= setup_max_cpus && pr->id != 0)
--		return 0;
--#endif
--
- 	BUG_ON(pr->id >= nr_cpu_ids);
- 
- 	/*
--- 
-Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+Hans
 
+
+
+>
+>>> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>> ---
+>>> Note this patch will partially conflicts with (contains the same
+>>> changes as)
+>>> a patch in Andy Shevchenko's tree.
+>>> ---
+>>>  drivers/mfd/Kconfig | 7 +++++--
+>>>  1 file changed, 5 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+>>> index d427a10..0c6a967 100644
+>>> --- a/drivers/mfd/Kconfig
+>>> +++ b/drivers/mfd/Kconfig
+>>> @@ -425,14 +425,17 @@ config LPC_SCH
+>>>  	  System Management Bus and General Purpose I/O.
+>>>
+>>>  config INTEL_SOC_PMIC
+>>> -	bool "Support for Intel Atom SoC PMIC"
+>>> +	# This is a bool as it provides an ACPI Opregion which must
+>>> be
+>>> +	# available as soon as possible
+>>> +	bool "Support for Intel Crystal Cove PMIC"
+>>>  	depends on GPIOLIB
+>>>  	depends on I2C=y
+>>>  	select MFD_CORE
+>>>  	select REGMAP_I2C
+>>>  	select REGMAP_IRQ
+>>> +	select I2C_DESIGNWARE_PLATFORM
+>>>  	help
+>>> -	  Select this option to enable support for the PMIC device
+>>> +	  Select this option to enable support for the Crystal Cove
+>>> PMIC
+>>>  	  on some Intel SoC systems. The PMIC provides ADC, GPIO,
+>>>  	  thermal, charger and related power management functions
+>>>  	  on these systems.
+>>
+>
