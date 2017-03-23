@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 6/8] gpio: acpi: Explain how to get GPIO descriptors in ACPI case
-Date: Thu, 23 Mar 2017 21:46:16 +0200
-Message-ID: <20170323194618.26548-7-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 7/8] gpio: acpi: Factor out acpi_gpio_to_gpiod_flags() helper
+Date: Thu, 23 Mar 2017 21:46:17 +0200
+Message-ID: <20170323194618.26548-8-andriy.shevchenko@linux.intel.com>
 References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
@@ -10,84 +10,115 @@ To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.co
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Documentation lacks of explanation how we actually use device properties
-for GPIO resources.
+The helper function acpi_gpio_to_gpiod_flags() will be used later to configure
+pin properly whenever it's requested.
 
-Add a section to the documentation about that.
+While here, introduce a checking error code returned by gpiod_configure_flags()
+and bail out if it's not okay.
 
-Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- Documentation/acpi/gpio-properties.txt | 60 ++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ drivers/gpio/gpiolib-acpi.c | 61 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 36 insertions(+), 25 deletions(-)
 
-diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-index 2aff0349facd..07954b7c3a12 100644
---- a/Documentation/acpi/gpio-properties.txt
-+++ b/Documentation/acpi/gpio-properties.txt
-@@ -156,3 +156,63 @@ pointed to by its first argument.  That should be done in the driver's .probe()
- routine.  On removal, the driver should unregister its GPIO mapping table by
- calling acpi_dev_remove_driver_gpios() on the ACPI device object where that
- table was previously registered.
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 61518273e360..d4de84670c5b 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -417,6 +417,31 @@ static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
+ 	return false;
+ }
+ 
++static enum gpiod_flags
++acpi_gpio_to_gpiod_flags(const struct acpi_resource_gpio *agpio)
++{
++	bool pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
 +
-+Using the _CRS fallback
-+-----------------------
++	switch (agpio->io_restriction) {
++	case ACPI_IO_RESTRICT_INPUT:
++		return GPIOD_IN;
++	case ACPI_IO_RESTRICT_OUTPUT:
++		/*
++		 * ACPI GPIO resources don't contain an initial value for the
++		 * GPIO. Therefore we deduce that value from the pull field
++		 * instead. If the pin is pulled up we assume default to be
++		 * high, otherwise low.
++		 */
++		return pull_up ? GPIOD_OUT_HIGH : GPIOD_OUT_LOW;
++	default:
++		/*
++		 * Assume that the BIOS has configured the direction and pull
++		 * accordingly.
++		 */
++		return GPIOD_ASIS;
++	}
++}
 +
-+If a device does not have _DSD or the driver does not create ACPI GPIO
-+mapping, the Linux GPIO framework refuses to return any GPIOs. This is
-+because the driver does not know what it actually gets. For example if we
-+have a device like below:
+ struct acpi_gpio_lookup {
+ 	struct acpi_gpio_info info;
+ 	int index;
+@@ -732,7 +757,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 	struct acpi_resource *ares;
+ 	int pin_index = (int)address;
+ 	acpi_status status;
+-	bool pull_up;
+ 	int length;
+ 	int i;
+ 
+@@ -747,7 +771,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 	}
+ 
+ 	agpio = &ares->data.gpio;
+-	pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
+ 
+ 	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
+ 	    function == ACPI_WRITE)) {
+@@ -798,35 +821,23 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 		}
+ 
+ 		if (!found) {
+-			desc = gpiochip_request_own_desc(chip, pin,
+-							 "ACPI:OpRegion");
++			enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio);
++			const char *label = "ACPI:OpRegion";
++			int err;
 +
-+  Device (BTH)
-+  {
-+      Name (_HID, ...)
-+
-+      Name (_CRS, ResourceTemplate () {
-+          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
-+                  "\\_SB.GPO0", 0, ResourceConsumer) {15}
-+          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
-+                  "\\_SB.GPO0", 0, ResourceConsumer) {27}
-+      })
-+  }
-+
-+The driver might expect to get the right GPIO when it does:
-+
-+  desc = gpiod_get(dev, "reset", GPIOD_OUT_LOW);
-+
-+but since there is no way to know the mapping between "reset" and
-+the GpioIo() in _CRS desc will hold ERR_PTR(-ENOENT).
-+
-+The driver author can solve this by passing the mapping explictly
-+(the recommended way and documented in the above chapter).
-+
-+Getting GPIO descriptor
-+-----------------------
-+
-+There are two main approaches to get GPIO resource from ACPI:
-+	desc = gpiod_get(dev, connection_id, flags);
-+	desc = gpiod_get_index(dev, connection_id, index, flags);
-+
-+We may consider two different cases here, i.e. when connection ID is
-+provided and otherwise.
-+
-+Case 1:
-+	desc = gpiod_get(dev, "non-null-connection-id", flags);
-+	desc = gpiod_get_index(dev, "non-null-connection-id", index, flags);
-+
-+Case 2:
-+	desc = gpiod_get(dev, NULL, flags);
-+	desc = gpiod_get_index(dev, NULL, index, flags);
-+
-+Case 1 assumes that corresponding ACPI device description must have
-+defined device properties and will prevent to getting any GPIO resources
-+otherwise.
-+
-+Case 2 explicitly tells GPIO core to look for resources in _CRS.
-+
-+Be aware that gpiod_get_index() in cases 1 and 2, assuming that there
-+are two versions of ACPI device description provided and no mapping is
-+present in the driver, will return different resources. That's why a
-+certain driver has to handle them carefully as explained in previous
-+chapter.
++			desc = gpiochip_request_own_desc(chip, pin, label);
+ 			if (IS_ERR(desc)) {
+ 				status = AE_ERROR;
+ 				mutex_unlock(&achip->conn_lock);
+ 				goto out;
+ 			}
+ 
+-			switch (agpio->io_restriction) {
+-			case ACPI_IO_RESTRICT_INPUT:
+-				gpiod_direction_input(desc);
+-				break;
+-			case ACPI_IO_RESTRICT_OUTPUT:
+-				/*
+-				 * ACPI GPIO resources don't contain an
+-				 * initial value for the GPIO. Therefore we
+-				 * deduce that value from the pull field
+-				 * instead. If the pin is pulled up we
+-				 * assume default to be high, otherwise
+-				 * low.
+-				 */
+-				gpiod_direction_output(desc, pull_up);
+-				break;
+-			default:
+-				/*
+-				 * Assume that the BIOS has configured the
+-				 * direction and pull accordingly.
+-				 */
+-				break;
++			err = gpiod_configure_flags(desc, label, 0, flags);
++			if (err < 0) {
++				status = AE_NOT_CONFIGURED;
++				gpiochip_free_own_desc(desc);
++				mutex_unlock(&achip->conn_lock);
++				goto out;
+ 			}
+ 
+ 			conn = kzalloc(sizeof(*conn), GFP_KERNEL);
 -- 
 2.11.0
