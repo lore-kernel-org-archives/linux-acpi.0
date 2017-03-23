@@ -1,112 +1,111 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v1 6/8] gpio: acpi: Explain how to get GPIO descriptors
- in ACPI case
-Date: Thu, 23 Mar 2017 13:28:38 -0700
-Message-ID: <20170323202838.GA11818@dtor-ws>
-References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
- <20170323194618.26548-7-andriy.shevchenko@linux.intel.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
+Date: Thu, 23 Mar 2017 21:47:47 +0100
+Message-ID: <20170323204747.w2nxxrpjwypiygwb@ninjato>
+References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="cm7mxmapcxnhkggf"
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170323194618.26548-7-andriy.shevchenko@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
+In-Reply-To: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Cc: jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 23, 2017 at 09:46:16PM +0200, Andy Shevchenko wrote:
-> Documentation lacks of explanation how we actually use device properties
-> for GPIO resources.
-> 
-> Add a section to the documentation about that.
-> 
-> Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+--cm7mxmapcxnhkggf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Mar 10, 2017 at 04:58:35PM +0300, Viktor Krasnov wrote:
+
+Thanks for the patch!
+
+adding linux-acpi to CC. This is more an ACPI question than I2C.
+
+> From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+>=20
+> Description of the problem:
+>  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
+>  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
+>    Interface Specification, version 1.0": "Each device must specify=20
+>    'SMBUS01' as its _HID and use a unique _UID value";
+>  - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
+>    and implement "SMB0001" HID instead of "SMBUS01";
+>  - I speculate that they do this because only "SMB0001" is hard coded in
+>    Windows SMBus driver produced by Microsoft.
+>=20
+> This leads to following situation:
+>  - SMBus works out of box in Windows but not in Linux;
+>  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
+>    SMBus work in Linux. Moreover the same board vendors complain that
+>    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
+>    and produce errors.  So they need to constantly patch the compiler for=
+=20
+>    each new version of BIOS.
+>=20
+> As it is very unlikely that BIOS vendors implement a correct HID in
+> future, I would propose to consider whether it is possible to work around
+> the problem by adding MS HID to the Linux i2c-scmi driver.
+>=20
+> Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
 > ---
->  Documentation/acpi/gpio-properties.txt | 60 ++++++++++++++++++++++++++++++++++
->  1 file changed, 60 insertions(+)
-> 
-> diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
-> index 2aff0349facd..07954b7c3a12 100644
-> --- a/Documentation/acpi/gpio-properties.txt
-> +++ b/Documentation/acpi/gpio-properties.txt
-> @@ -156,3 +156,63 @@ pointed to by its first argument.  That should be done in the driver's .probe()
->  routine.  On removal, the driver should unregister its GPIO mapping table by
->  calling acpi_dev_remove_driver_gpios() on the ACPI device object where that
->  table was previously registered.
-> +
-> +Using the _CRS fallback
-> +-----------------------
-> +
-> +If a device does not have _DSD or the driver does not create ACPI GPIO
-> +mapping, the Linux GPIO framework refuses to return any GPIOs. This is
-> +because the driver does not know what it actually gets. For example if we
-> +have a device like below:
-> +
-> +  Device (BTH)
-> +  {
-> +      Name (_HID, ...)
-> +
-> +      Name (_CRS, ResourceTemplate () {
-> +          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
-> +                  "\\_SB.GPO0", 0, ResourceConsumer) {15}
-> +          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
-> +                  "\\_SB.GPO0", 0, ResourceConsumer) {27}
-> +      })
-> +  }
-> +
-> +The driver might expect to get the right GPIO when it does:
-> +
-> +  desc = gpiod_get(dev, "reset", GPIOD_OUT_LOW);
-> +
-> +but since there is no way to know the mapping between "reset" and
-> +the GpioIo() in _CRS desc will hold ERR_PTR(-ENOENT).
-> +
-> +The driver author can solve this by passing the mapping explictly
-> +(the recommended way and documented in the above chapter).
+>  drivers/i2c/busses/i2c-scmi.c | 1 +
+>  include/acpi/acpi_drivers.h   | 2 ++
+>  2 files changed, 3 insertions(+)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+> index dfc98df..fb9aee0 100644
+> --- a/drivers/i2c/busses/i2c-scmi.c
+> +++ b/drivers/i2c/busses/i2c-scmi.c
+> @@ -51,6 +51,7 @@ struct acpi_smbus_cmi {
+>  static const struct acpi_device_id acpi_smbus_cmi_ids[] =3D {
+>  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
+>  	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
+> +	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
+>  	{"", 0}
+>  };
+>  MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> index 29c6912..d34538b 100644
+> --- a/include/acpi/acpi_drivers.h
+> +++ b/include/acpi/acpi_drivers.h
+> @@ -60,6 +60,8 @@
+>  #define ACPI_DOCK_HID			"LNXDOCK"
+>  /* Quirk for broken IBM BIOSes */
+>  #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+> +/* SMBUS HID definition as supported by Microsoft Windows */
+> +#define ACPI_SMBUS_MS_HID		"SMB0001"
+> =20
+>  /*
+>   * For fixed hardware buttons, we fabricate acpi_devices with HID
+> --=20
+> 1.9.3
+>=20
 
-If the driver is not platform specific, then it would have no idea about
-mapping between _CRS GPIOs and names. All such stuff should be hidden in
-platform glue (i.e drivers/platform/x86/platform_crap.c).
+--cm7mxmapcxnhkggf
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> +
-> +Getting GPIO descriptor
-> +-----------------------
-> +
-> +There are two main approaches to get GPIO resource from ACPI:
-> +	desc = gpiod_get(dev, connection_id, flags);
-> +	desc = gpiod_get_index(dev, connection_id, index, flags);
-> +
-> +We may consider two different cases here, i.e. when connection ID is
-> +provided and otherwise.
-> +
-> +Case 1:
-> +	desc = gpiod_get(dev, "non-null-connection-id", flags);
-> +	desc = gpiod_get_index(dev, "non-null-connection-id", index, flags);
-> +
-> +Case 2:
-> +	desc = gpiod_get(dev, NULL, flags);
-> +	desc = gpiod_get_index(dev, NULL, index, flags);
-> +
-> +Case 1 assumes that corresponding ACPI device description must have
-> +defined device properties and will prevent to getting any GPIO resources
-> +otherwise.
-> +
-> +Case 2 explicitly tells GPIO core to look for resources in _CRS.
-> +
-> +Be aware that gpiod_get_index() in cases 1 and 2, assuming that there
-> +are two versions of ACPI device description provided and no mapping is
-> +present in the driver, will return different resources. That's why a
-> +certain driver has to handle them carefully as explained in previous
-> +chapter.
+-----BEGIN PGP SIGNATURE-----
 
-I think that this wording is too x86-centric. We are talking about
-consumers of GPIOs here (i.e. drivers), which need unified behavior
-between ACPI, DT, and static board properties, they do not really care
-about _CRS or _DSD.
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAljUNHMACgkQFA3kzBSg
+KbbEFBAAqNW4jx65vvcQlosolgTcga7o2rVDyDfFPC/5tWo2R0zxK6H+q/DAGuHr
+FDxWzb/Zkz67XKiyPmJgVTj5b6jqGY7uvJl3iGaMPv0PQEfEjYqYAQBp33Oa6wSr
+p7xNZ76fXCi0Kh18SfjploRXIug5sCw/ox4tLGo56MGs4XNpWGHt7ubXQEQNJ2jB
+L8vSr76qvLxZRFMQXZZpPXWBKyEUJ4RqKShNn14kNIXRnWxVDBqaYp39PxYuTXGB
+moBLzITYymQTR0SSC5S0jJI1B2gEVrSUoKxzvT4TlB3s+bNw7mz/xxdDty+OVqxx
+OkJ/EcXEQUj+x2dwuXQKkb01EJ/ONiRbK3lPllEQlrrEkOgztoViA9z1CglMB/xg
+LB9m8uH/arSzJH6KqGxK3WvpCy2plJ7AtKO7dSpJSzpj50HQA34EJSzQAQ+sAMEk
+3p8qMPLRK2hTXl/6lyMWNIT3Vt1798zFu69IB8hNUSmrfBV69EVMPN6QKqNQtwzm
+cbG0DLx+NU3vfTieXE2baeTN6JxqIEJ7sA/2jIm1hUztkye5XQkKusqg1mvNakNg
+Vh5JsQtGTbbbQUpZesSZ3P4ZJ3hTCZPaR1O078nxMBBlufqhgSvYVrKsOC2K6kpL
+Ih1QTGDJjiyq/UqDc5zVy36mnM0X5MPGSdJq33WkOiI5JJr/et0=
+=sfYP
+-----END PGP SIGNATURE-----
 
-Thanks.
-
--- 
-Dmitry
+--cm7mxmapcxnhkggf--
