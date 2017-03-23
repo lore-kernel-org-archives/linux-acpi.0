@@ -1,89 +1,44 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/5] mfd: intel_soc_pmic: Select designware i2c-bus driver
-Date: Thu, 23 Mar 2017 16:46:47 +0000
-Message-ID: <20170323164647.tyyqoziiy4jwg5vc@dell>
-References: <20170322112923.20200-1-hdegoede@redhat.com>
- <20170322112923.20200-3-hdegoede@redhat.com>
- <1490187220.19767.159.camel@linux.intel.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH V13 04/10] arm64: exception: handle Synchronous External
+ Abort
+Date: Thu, 23 Mar 2017 17:02:06 +0000
+Message-ID: <20170323170206.GA32309@e104818-lin.cambridge.arm.com>
+References: <1490136425-4324-1-git-send-email-tbaicar@codeaurora.org>
+ <1490136425-4324-5-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:33971 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751844AbdCWQqv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2017 12:46:51 -0400
-Received: by mail-wr0-f173.google.com with SMTP id l37so151664322wrc.1
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Mar 2017 09:46:50 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <1490187220.19767.159.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1490136425-4324-5-git-send-email-tbaicar@codeaurora.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: linux-efi@vger.kernel.org, kvm@vger.kernel.org, matt@codeblueprint.co.uk, will.deacon@arm.com, robert.moore@intel.com, paul.gortmaker@windriver.com, lv.zheng@intel.com, kvmarm@lists.cs.columbia.edu, fu.wei@linaro.org, zjzhang@codeaurora.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, eun.taik.lee@samsung.com, shijie.huang@arm.com, labbott@redhat.com, lenb@kernel.org, harba@codeaurora.org, john.garry@huawei.com, marc.zyngier@arm.com, punit.agrawal@arm.com, rostedt@goodmis.org, nkaje@codeaurora.org, sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org, devel@acpica.org, rjw@rjwysocki.net, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, joe@perches.com, pbonzini@redhat.com, akpm@linux-foundation.org, bristot@redhat.com, shiju.jose@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 22 Mar 2017, Andy Shevchenko wrote:
-
-> On Wed, 2017-03-22 at 12:29 +0100, Hans de Goede wrote:
-> > The Crystal Cove PMIC provides an ACPI OPRegion handler, which must be
-> > available before other drivers using it are loaded, which is why
-> > INTEL_SOC_PMIC is a bool.
-> > 
-> > Just having the driver is not enough, the driver for the i2c-bus must
-> > also be built in, to ensure this, this patch adds a select for it.
-> > 
+On Tue, Mar 21, 2017 at 04:46:59PM -0600, Tyler Baicar wrote:
+> SEA exceptions are often caused by an uncorrected hardware
+> error, and are handled when data abort and instruction abort
+> exception classes have specific values for their Fault Status
+> Code.
+> When SEA occurs, before killing the process, report the error
+> in the kernel logs.
+> Update fault_info[] with specific SEA faults so that the
+> new SEA handler is used.
 > 
-> > While at it this patch also changes the human readable name of the
-> > Kconfig
-> > option to make clear the INTEL_SOC_PMIC option selects support for the
-> > Intel Crystal Cove PMIC and documents why this is a bool.
-> 
-> The above is what my patch does, I'm okay if the change is going with
-> this series as long as Lee is on the same side. Otherwise I would prefer
-> to go my changes first.
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Reviewed-by: James Morse <james.morse@arm.com>
+> ---
+>  arch/arm64/include/asm/esr.h |  1 +
+>  arch/arm64/mm/fault.c        | 43 +++++++++++++++++++++++++++++++++----------
 
-I think this set is going to need to be rebase on top of MFD.
-
-> > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > ---
-> > Note this patch will partially conflicts with (contains the same
-> > changes as)
-> > a patch in Andy Shevchenko's tree.
-> > ---
-> >  drivers/mfd/Kconfig | 7 +++++--
-> >  1 file changed, 5 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> > index d427a10..0c6a967 100644
-> > --- a/drivers/mfd/Kconfig
-> > +++ b/drivers/mfd/Kconfig
-> > @@ -425,14 +425,17 @@ config LPC_SCH
-> >  	  System Management Bus and General Purpose I/O.
-> >  
-> >  config INTEL_SOC_PMIC
-> > -	bool "Support for Intel Atom SoC PMIC"
-> > +	# This is a bool as it provides an ACPI Opregion which must
-> > be
-> > +	# available as soon as possible
-> > +	bool "Support for Intel Crystal Cove PMIC"
-> >  	depends on GPIOLIB
-> >  	depends on I2C=y
-> >  	select MFD_CORE
-> >  	select REGMAP_I2C
-> >  	select REGMAP_IRQ
-> > +	select I2C_DESIGNWARE_PLATFORM
-> >  	help
-> > -	  Select this option to enable support for the PMIC device
-> > +	  Select this option to enable support for the Crystal Cove
-> > PMIC
-> >  	  on some Intel SoC systems. The PMIC provides ADC, GPIO,
-> >  	  thermal, charger and related power management functions
-> >  	  on these systems.
-> 
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
