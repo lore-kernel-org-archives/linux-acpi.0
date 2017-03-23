@@ -1,325 +1,277 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 15/15] i2c-cht-wc: Add Intel Cherry Trail Whiskey Cove
- SMBUS controller driver
-Date: Thu, 23 Mar 2017 14:58:24 +0100
-Message-ID: <bab2ab40-df1f-97a0-17f3-e0c54b2da734@redhat.com>
-References: <20170317095527.10487-1-hdegoede@redhat.com>
- <20170317095527.10487-16-hdegoede@redhat.com>
- <1489774932.19767.86.camel@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v5.1 13/13] ACPI / DSD: Document references, ports and endpoints
+Date: Thu, 23 Mar 2017 16:12:31 +0200
+Message-ID: <1490278351-12229-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1489667481-28521-14-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1489774932.19767.86.camel@linux.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489667481-28521-14-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Document the use of references into the hierarchical data extension
+structure, as well as the use of port and endpoint concepts that are very
+similar to those in Devicetree.
 
-On 17-03-17 19:22, Andy Shevchenko wrote:
-> On Fri, 2017-03-17 at 10:55 +0100, Hans de Goede wrote:
->> The Intel Cherry Trail Whiskey Cove PMIC has a builtin SMBUS
->> controller
->> for talking to an external PMIC. Add a driver for this.
->
-> Looking to all this mess we have with PMICs, perhaps some file under
-> Documentation to explain all those dependencies with nice ASCII flow
-> charts would be created.
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+since v5:
 
-With Sebastian's suggestion to turn the fuel-gauge driver
-into a full-blown power_supply driver things luckily aren't
-quite that messy anymore.
+- Clarify port and endpoint node object naming. Using both port and endpoint
+  cleanly resolves object naming by using the appropriate port and
+  endpoint numbers.
 
-<snip>
+- Endpoint node numbers are unique within a port, not an endpoint.
 
->> +#define CHT_WC_I2C_CTRL			0x5e24
->> +#define CHT_WC_I2C_CTRL_WR		BIT(0)
->> +#define CHT_WC_I2C_CTRL_RD		BIT(1)
->> +#define CHT_WC_I2C_CLIENT_ADDR		0x5e25
->> +#define CHT_WC_I2C_REG_OFFSET		0x5e26
->> +#define CHT_WC_I2C_WRDATA		0x5e27
->> +#define CHT_WC_I2C_RDDATA		0x5e28
->> +
->> +#define CHT_WC_EXTCHGRIRQ		0x6e0a
->> +#define CHT_WC_EXTCHGRIRQ_CLIENT_IRQ	BIT(0)
->> +#define CHT_WC_EXTCHGRIRQ_WRITE_IRQ	BIT(1)
->> +#define CHT_WC_EXTCHGRIRQ_READ_IRQ	BIT(2)
->> +#define CHT_WC_EXTCHGRIRQ_NACK_IRQ	BIT(3)
->>
->
->> +#define CHT_WC_EXTCHGRIRQ_ADAP_IRQS	((u8)(BIT(1) | BIT(2) |
->> BIT(3)))
->
-> _IRQ_MASK ?
->
-> GENMASK() ?
+The diff between v5 is below.
 
-Both good idea, both fixed for v2. Note I'm not posting
-v2 until the bq24190_charger patches are in place
-(so that the device-properties to use are known).
+ diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/acpi/dsd/graph.txt
+ new file mode 100644
+-index 0000000..064fa8a
++index 0000000..ac09e31
+ --- /dev/null
+ +++ b/Documentation/acpi/dsd/graph.txt
+-@@ -0,0 +1,160 @@
++@@ -0,0 +1,162 @@
+ +Graphs
+ +
+ +
+@@ -61,21 +60,23 @@
+ +All port nodes are located under the device's "_DSD" node in the
+ +hierarchical data extension tree. The property extension related to
+ +each port node must contain the key "port" and an integer value which
+-+is the number of the port.
+++is the number of the port. The object it refers to should be called "PRTX",
+++where "X" is the number of the port.
+ +
+ +Further on, endpoints are located under the individual port nodes. The
+ +first hierarchical data extension package list entry of the endpoint
+ +nodes must begin with "endpoint" and must be followed by the number
+-+of the endpoint.
+++of the endpoint. The object it refers to should be called "EPXY", where
+++"X" is the number of the port and "Y" is the number of the endpoint.
+ +
+ +Each port node contains a property extension key "port", the value of
+ +which is the number of the port node. The each endpoint is similarly numbered
+ +with a property extension key "endpoint". Port numbers must be unique within a
+-+device and endpoint numbers must be unique within an endpoint.
+++device and endpoint numbers must be unique within a port.
+ +
+ +The endpoint reference uses property extension with "remote-endpoint" property
+ +name followed by a reference in the same package. Such references consist of the
+-+name of the remote device, number of the port in the device and finally the
+++the remote device reference, number of the port in the device and finally the
+ +number of the endpoint in that port. Individual references thus appear as:
+ +
+ +    Package() { device, port_number, endpoint_number }
+@@ -106,10 +107,10 @@
+ +		},
+ +		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+ +		Package () {
+-+		    Package () { "endpoint0", "EP0" },
+++		    Package () { "endpoint0", "EP00" },
+ +		}
+ +	    })
+-+	    Name (EP0, Package() {
+++	    Name (EP00, Package() {
+ +		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+ +		Package () {
+ +		    Package () { "endpoint", 0 },
+@@ -137,11 +138,11 @@
+ +		},
+ +		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+ +		Package () {
+-+		    Package () { "endpoint0", "EP0" },
+++		    Package () { "endpoint0", "EP40" },
+ +		}
+ +	    })
+ +
+-+	    Name (EP0, Package() {
+++	    Name (EP40, Package() {
+ +		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+ +		Package () {
+ +		    Package () { "endpoint", 0 },
 
->> +#define CHT_WC_EXTCHGRIRQ_MSK		0x6e17
->
->> +struct cht_wc_i2c_adap {
->> +	struct i2c_adapter adapter;
->> +	wait_queue_head_t wait;
->> +	struct irq_chip irqchip;
->> +	struct mutex irqchip_lock;
->> +	struct regmap *regmap;
->> +	struct irq_domain *irq_domain;
->> +	struct i2c_client *client;
->> +	int client_irq;
->> +	u8 irq_mask;
->> +	u8 old_irq_mask;
->> +	bool nack;
->> +	bool done;
->> +};
->> +
->> +static irqreturn_t cht_wc_i2c_adap_thread_handler(int id, void *data)
->> +{
->> +	struct cht_wc_i2c_adap *adap = data;
->> +	int ret, reg;
->> +
->> +	/* Read irqs */
->
-> IRQs
->
->> +	ret = regmap_read(adap->regmap, CHT_WC_EXTCHGRIRQ, &reg);
->> +	if (ret) {
->> +		dev_err(&adap->adapter.dev, "Error reading extchgrirq
->> reg\n");
->> +		return IRQ_NONE;
->> +	}
->> +
->> +	reg &= ~adap->irq_mask;
->> +
->> +	/*
->> +	 * Immediately ack irqs, so that if new irqs arrives while
->> we're
->> +	 * handling the previous ones our irq will re-trigger when
->> we're done.
->> +	 */
->> +	ret = regmap_write(adap->regmap, CHT_WC_EXTCHGRIRQ, reg);
->> +	if (ret)
->> +		dev_err(&adap->adapter.dev, "Error writing extchgrirq
->> reg\n");
->> +
->> +	/*
->> +	 * Do NOT use handle_nested_irq here, the client irq handler
->> will
->> +	 * likely want to do i2c transfers and the i2c controller
->> uses this
->> +	 * interrupt handler as well, so running the client irq
->> handler from
->> +	 * this thread will cause things to lock up.
->> +	 */
->> +	if (reg & CHT_WC_EXTCHGRIRQ_CLIENT_IRQ) {
->> +		/*
->> +		 * generic_handle_irq expects local irqs to be
->> disabled
->> +		 * as normally it is called from interrupt context.
->> +		 */
->> +		local_irq_disable();
->> +		generic_handle_irq(adap->client_irq);
->> +		local_irq_enable();
->> +	}
->> +
->> +	if (reg & CHT_WC_EXTCHGRIRQ_ADAP_IRQS) {
->
->> +		if (reg & CHT_WC_EXTCHGRIRQ_NACK_IRQ)
->> +			adap->nack = true;
->
-> adap->nack = !!(reg & ...);
+ Documentation/acpi/dsd/graph.txt | 162 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 162 insertions(+)
+ create mode 100644 Documentation/acpi/dsd/graph.txt
 
-Good idea, fixed for v2.
+diff --git a/Documentation/acpi/dsd/graph.txt b/Documentation/acpi/dsd/graph.txt
+new file mode 100644
+index 0000000..ac09e31
+--- /dev/null
++++ b/Documentation/acpi/dsd/graph.txt
+@@ -0,0 +1,162 @@
++Graphs
++
++
++_DSD
++----
++
++_DSD (Device Specific Data) [7] is a predefined ACPI device
++configuration object that can be used to convey information on
++hardware features which are not specifically covered by the ACPI
++specification [1][6]. There are two _DSD extensions that are relevant
++for graphs: property [4] and hierarchical data extensions [5]. The
++property extension provides generic key-value pairs whereas the
++hierarchical data extension supports nodes with references to other
++nodes, forming a tree. The nodes in the tree may contain properties as
++defined by the property extension. The two extensions together provide
++a tree-like structure with zero or more properties (key-value pairs)
++in each node of the tree.
++
++The data structure may be accessed at runtime by using the device_*
++and fwnode_* functions defined in include/linux/fwnode.h .
++
++Fwnode represents a generic firmware node object. It is independent on
++the firmware type. In ACPI, fwnodes are _DSD hierarchical data
++extensions objects. A device's _DSD object is represented by an
++fwnode.
++
++The data structure may be referenced to elsewhere in the ACPI tables
++by using a hard reference to the device itself and an index to the
++hierarchical data extension array on each depth.
++
++
++Ports and endpoints
++-------------------
++
++The port and endpoint concepts are very similar to those in Devicetree
++[3]. A port represents an interface in a device, and an endpoint
++represents a connection to that interface.
++
++All port nodes are located under the device's "_DSD" node in the
++hierarchical data extension tree. The property extension related to
++each port node must contain the key "port" and an integer value which
++is the number of the port. The object it refers to should be called "PRTX",
++where "X" is the number of the port.
++
++Further on, endpoints are located under the individual port nodes. The
++first hierarchical data extension package list entry of the endpoint
++nodes must begin with "endpoint" and must be followed by the number
++of the endpoint. The object it refers to should be called "EPXY", where
++"X" is the number of the port and "Y" is the number of the endpoint.
++
++Each port node contains a property extension key "port", the value of
++which is the number of the port node. The each endpoint is similarly numbered
++with a property extension key "endpoint". Port numbers must be unique within a
++device and endpoint numbers must be unique within a port.
++
++The endpoint reference uses property extension with "remote-endpoint" property
++name followed by a reference in the same package. Such references consist of the
++the remote device reference, number of the port in the device and finally the
++number of the endpoint in that port. Individual references thus appear as:
++
++    Package() { device, port_number, endpoint_number }
++
++The references to endpoints must be always done both ways, to the
++remote endpoint and back from the referred remote endpoint node.
++
++A simple example of this is show below:
++
++    Scope (\_SB.PCI0.I2C2)
++    {
++	Device (CAM0)
++	{
++	    Name (_DSD, Package () {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "compatible", Package () { "nokia,smia" } },
++		},
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "port0", "PRT0" },
++		}
++	    })
++	    Name (PRT0, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "port", 0 },
++		},
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "endpoint0", "EP00" },
++		}
++	    })
++	    Name (EP00, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "endpoint", 0 },
++		    Package () { "remote-endpoint", Package() { \_SB.PCI0.ISP, 4, 0 } },
++		}
++	    })
++	}
++    }
++
++    Scope (\_SB.PCI0)
++    {
++	Device (ISP)
++	{
++	    Name (_DSD, Package () {
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "port4", "PRT4" },
++		}
++	    })
++
++	    Name (PRT4, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "port", 4 }, /* CSI-2 port number */
++		},
++		ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++		Package () {
++		    Package () { "endpoint0", "EP40" },
++		}
++	    })
++
++	    Name (EP40, Package() {
++		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++		Package () {
++		    Package () { "endpoint", 0 },
++		    Package () { "remote-endpoint", Package () { \_SB.PCI0.I2C2.CAM0, 0, 0 } },
++		}
++	    })
++	}
++    }
++
++Here, the port 0 of the "CAM0" device is connected to the port 4 of
++the "ISP" device and vice versa.
++
++
++References
++----------
++
++[1] _DSD (Device Specific Data) Implementation Guide.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm>,
++    referenced 2016-10-03.
++
++[2] Devicetree. <URL:http://www.devicetree.org>, referenced 2016-10-03.
++
++[3] Documentation/devicetree/bindings/graph.txt
++
++[4] Device Properties UUID For _DSD.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf>,
++    referenced 2016-10-04.
++
++[5] Hierarchical Data Extension UUID For _DSD.
++    <URL:http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf>,
++    referenced 2016-10-04.
++
++[6] Advanced Configuration and Power Interface Specification.
++    <URL:http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf>,
++    referenced 2016-10-04.
++
++[7] _DSD Device Properties Usage Rules.
++    Documentation/acpi/DSD-properties-rules.txt
+-- 
+2.7.4
 
->
->> +		adap->done = true;
->> +		wake_up(&adap->wait);
->> +	}
->> +
->> +	return IRQ_HANDLED;
->> +}
->
->> +static u32 cht_wc_i2c_adap_master_func(struct i2c_adapter *adap)
->> +{
->> +	/* This i2c adapter only supports smbus byte transfers */
->
-> smbus -> SMBUS
->
->> +	return I2C_FUNC_SMBUS_BYTE_DATA;
->> +}
->> +
->> +static int cht_wc_i2c_adap_smbus_xfer(struct i2c_adapter *_adap, u16
->> addr,
->> +				      unsigned short flags, char
->> read_write,
->> +				      u8 command, int size,
->> +				      union i2c_smbus_data *data)
->> +{
->> +	struct cht_wc_i2c_adap *adap = i2c_get_adapdata(_adap);
->> +	int ret, reg;
->> +
->
->> +
->> +	/* 3 second timeout, during cable plug the PMIC responds
->> quite slow */
->> +	ret = wait_event_timeout(adap->wait, adap->done, HZ * 3);
->
-> 3 * HZ
-
-Fixed for v2 (as well as all the capitalization remarks)
-
->
->> +	if (ret == 0)
->> +		return -ETIMEDOUT;
->> +	if (adap->nack)
->> +		return -EIO;
->> +
->> +	if (read_write == I2C_SMBUS_READ) {
->> +		ret = regmap_read(adap->regmap, CHT_WC_I2C_RDDATA,
->> &reg);
->> +		if (ret)
->> +			return ret;
->> +
->> +		data->byte = reg;
->> +	}
->> +
->> +	return 0;
->> +}
->
->> +/**** irqchip for the client connected to the extchgr i2c adapter
->> ****/
->
-> Useless ?
-
-It is meant as a visual separator between the i2c-adapter and
-irqchip code.
-
->
->> +static void cht_wc_i2c_irq_lock(struct irq_data *data)
->> +{
->> +	struct cht_wc_i2c_adap *adap =
->> irq_data_get_irq_chip_data(data);
->> +
->> +	mutex_lock(&adap->irqchip_lock);
->> +}
->> +
->> +static void cht_wc_i2c_irq_sync_unlock(struct irq_data *data)
->> +{
->> +	struct cht_wc_i2c_adap *adap =
->> irq_data_get_irq_chip_data(data);
->> +	int ret;
->> +
->> +	if (adap->irq_mask != adap->old_irq_mask) {
->> +		ret = regmap_write(adap->regmap,
->> CHT_WC_EXTCHGRIRQ_MSK,
->> +				   adap->irq_mask);
->> +		if (ret == 0)
->> +			adap->old_irq_mask = adap->irq_mask;
->> +		else
->> +			dev_err(&adap->adapter.dev, "Error writing
->> extchgrirq_msk\n");
->
-> extchgrirq_msk -> EXTCHGRIRQ_MSK ?
-
-Fixed for v2.
-
->> +	}
->> +
->> +	mutex_unlock(&adap->irqchip_lock);
->> +}
->
->
->> +static const struct bq24190_platform_data bq24190_pdata = {
->> +	.no_register_reset = true,
->> +	.extcon_name = "cht_wcove_pwrsrc",
->> +	.get_ext_bat_property = cht_wc_fg_get_property,
->> +};
->> +
->> +static int cht_wc_i2c_adap_i2c_probe(struct platform_device *pdev)
->> +{
->> +	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev-
->>> dev.parent);
->> +	struct cht_wc_i2c_adap *adap;
->
->> +	struct i2c_board_info board_info = {
->> +		.type = "bq24190",
->> +		.addr = 0x6b,
->> +		.platform_data = (void *)&bq24190_pdata,
->> +	};
->> +	int ret, irq;
->> +
->
->> +	/* Clear and activate i2c-adapter interrupts, disable client
->> irq */
->
-> irq -> IRQ
->
->> +
->> +	/* Alloc and register client irq */
->
-> Ditto.
->
->> +	adap->irq_domain = irq_domain_add_linear(pdev->dev.of_node,
->> 1,
->> +						 &irq_domain_simple_o
->> ps, NULL);
->
-> Can you use irq_domain_add_simple()?
-
-We don't have (nor want) a static virq for the irq,
-so we would pass 0 for irq_domain_add_simple()'s
-first_irq argument which makes it equivalent to
-irq_domain_add_linear but with one more function
-argument and making it less clear what is going on.
-
-> And why do we need separate domain for one IRQ line?
-
-Every irq-chip needs its own domain to map its hwirq
-numbers to virq numbers (which are globally unique).
-
->
->> +	if (!adap->irq_domain)
->> +		return -ENOMEM;
->> +
->> +	adap->client_irq = irq_create_mapping(adap->irq_domain, 0);
->> +	if (!adap->client_irq) {
->> +		ret = -ENOMEM;
->> +		goto remove_irq_domain;
->> +	}
->> +
->> +	irq_set_chip_data(adap->client_irq, adap);
->> +	irq_set_chip_and_handler(adap->client_irq, &adap->irqchip,
->> +				 handle_simple_irq);
->> +
->
->> +	board_info.irq = adap->client_irq;
->> +	adap->client = i2c_new_device(&adap->adapter, &board_info);
->> +	if (!adap->client) {
->> +		ret = -ENOMEM;
->> +		goto del_adapter;
->> +	}
->
-> I would split this to some other module with board info.
-
-We need both the adapter and the irq line to instantiate
-the i2c-client for the external charger both of which are
-readily available here.
-
-> By the way, doesn't ACPI have the charger IC node?
-
-There are several (disabled, _STA returns 0) ACPI nodes
-for charger ICs in all the Cherrytrail DSTDs I've (all
-DSTDs seem to be copy and paste from the same templates),
-but none of them points to the i2c bus controlled by
-the Whiskey Cove PMIC. Those nodes seem to all be
-for when the charger IC is directly connected to one
-of the designware-i2c busses. TL;DR: No there is no
-ACPI node for the external charger IC in this case.
-
-Regards,
-
-Hans
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
