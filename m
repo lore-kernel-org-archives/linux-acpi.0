@@ -1,162 +1,83 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 3/3] device property: Add FW type agnostic fwnode_graph_get_remote_node
-Date: Fri, 24 Mar 2017 13:03:52 +0200
-Message-ID: <1490353432-12017-3-git-send-email-sakari.ailus@linux.intel.com>
-References: <1490353432-12017-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490353432-12017-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3] gpio: acpi: Call enable_irq_wake for _IAE GpioInts
+ with Wake set
+Date: Fri, 24 Mar 2017 13:34:03 +0200
+Message-ID: <1490355243.21738.3.camel@linux.intel.com>
+References: <20170324100847.25434-1-hdegoede@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170324100847.25434-1-hdegoede@redhat.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add fwnode_graph_get_remote_node() function which is equivalent to
-of_graph_get_remote_node() on OF.
+On Fri, 2017-03-24 at 11:08 +0100, Hans de Goede wrote:
+> On Bay Trail / Cherry Trail systems with a LID switch, the LID switch
+> is
+> often connect to a gpioint handled by an _IAE event handler.
+> Before this commit such systems would not wake up when opening the
+> lid,
+> requiring the powerbutton to be pressed after opening the lid to
+> wakeup.
+> 
+> Note that Bay Trail / Cherry Trail systems use suspend-to-idle, so
+> the interrupts are generated anyway on those lines on lid switch
+> changes,
+> but they are treated by the IRQ subsystem as spurious while suspended
+> if
+> not marked as wakeup IRQs.
+> 
+> This commit calls enable_irq_wake() for _IAE GpioInts with a valid
+> event handler which have their Wake flag set. This fixes such systems
+> not waking up when opening the lid.
+> 
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/acpi/property.c  | 33 +++++++++++++++++++++++++++++++++
- drivers/base/property.c  | 16 ++++++++++++++++
- drivers/of/property.c    | 11 +++++++++++
- include/linux/fwnode.h   |  2 ++
- include/linux/property.h |  2 ++
- 5 files changed, 64 insertions(+)
+FWIW:
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index d839563..0efcabb 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1228,6 +1228,38 @@ static struct fwnode_handle *acpi_fwnode_graph_get_remote_port_parent(
- 	return parent;
- }
- 
-+static struct fwnode_handle *acpi_fwnode_graph_get_remote_node(
-+	struct fwnode_handle *fwnode, u32 port_id, u32 endpoint_id)
-+{
-+	struct fwnode_handle *endpoint = NULL;
-+
-+	while ((endpoint = fwnode_graph_get_next_endpoint(fwnode, endpoint))) {
-+		struct fwnode_endpoint fwnode_ep;
-+		struct fwnode_handle *remote;
-+		struct acpi_device *adev;
-+		int ret;
-+
-+		ret = fwnode_graph_parse_endpoint(endpoint, &fwnode_ep);
-+		if (ret < 0)
-+			continue;
-+
-+		if (fwnode_ep.port != port_id || fwnode_ep.id != endpoint_id)
-+			continue;
-+
-+		remote = fwnode_graph_get_remote_port_parent(endpoint);
-+		if (!remote)
-+			return NULL;
-+
-+		adev = to_acpi_device_node(remote);
-+		if (!adev)
-+			return NULL;
-+
-+		return acpi_device_is_present(adev) ? remote : NULL;
-+	}
-+
-+	return NULL;
-+}
-+
- static int acpi_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
- 					    struct fwnode_endpoint *endpoint)
- {
-@@ -1252,5 +1284,6 @@ const struct fwnode_operations acpi_fwnode_ops = {
- 	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
- 	.graph_get_remote_port = acpi_fwnode_graph_get_remote_port,
- 	.graph_get_remote_port_parent = acpi_fwnode_graph_get_remote_port_parent,
-+	.graph_get_remote_node = acpi_fwnode_graph_get_remote_node,
- 	.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint,
- };
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 4f355df..ce98e01 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1203,6 +1203,22 @@ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
- EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
- 
- /**
-+ * fwnode_graph_get_remote_node - get remote parent fwnode_handle for given port/endpoint
-+ * @fwnode: pointer to parent fwnode_handle containing graph port/endpoint
-+ * @port: identifier of the parent port node
-+ * @endpoint: identifier of the endpoint node
-+ *
-+ * Return: Remote fwnode handle associated with remote endpoint node linked
-+ *	   to @node. Use fwnode_node_put() on it when done.
-+ */
-+struct fwnode_handle *fwnode_graph_get_remote_node(
-+	struct fwnode_handle *fwnode, u32 port, u32 endpoint)
-+{
-+	return fwnode_call_ptr_op(fwnode, graph_get_remote_node, port, endpoint);
-+}
-+EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_node);
-+
-+/**
-  * fwnode_graph_parse_endpoint - parse common endpoint node properties
-  * @fwnode: pointer to endpoint fwnode_handle
-  * @endpoint: pointer to the fwnode endpoint data structure
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index 572c36c..c73d181 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -863,6 +863,16 @@ static struct fwnode_handle *of_fwnode_graph_get_remote_port_parent(
- 	return NULL;
- }
- 
-+static struct fwnode_handle_node *of_fwnode_graph_get_remote_node(
-+	const struct fwnode_handle *fwnode, u32 port, u32 endpoint)
-+{
-+	struct fwnode_handle *remote;
-+
-+	remote = of_graph_get_remote_node(to_of_node(fwnode), port, endpoint);
-+
-+	return remote ? of_fwnode_handle(remote) : NULL;
-+}
-+
- static int of_fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
- 					  struct fwnode_endpoint *endpoint)
- {
-@@ -892,5 +902,6 @@ const struct fwnode_operations of_fwnode_ops = {
- 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
- 	.graph_get_remote_port = of_fwnode_graph_get_remote_port,
- 	.graph_get_remote_port_parent = of_fwnode_graph_get_remote_port_parent,
-+	.graph_get_remote_node = of_fwnode_graph_get_remote_node,
- 	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
- };
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 351c38d..e1168c0 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -89,6 +89,8 @@ struct fwnode_operations {
- 		struct fwnode_handle *fwnode);
- 	struct fwnode_handle *(*graph_get_remote_port_parent)(
- 		struct fwnode_handle *fwnode);
-+	struct fwnode_handle *(*graph_get_remote_node)(
-+		struct fwnode_handle *fwnode, u32 port, u32 endpoint);
- 	int (*graph_parse_endpoint)(struct fwnode_handle *fwnode,
- 				    struct fwnode_endpoint *endpoint);
- };
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 2f48261..720c30a 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -280,6 +280,8 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
- 	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_graph_get_remote_endpoint(
- 	struct fwnode_handle *fwnode);
-+struct fwnode_handle *fwnode_graph_get_remote_node(
-+	struct fwnode_handle *fwnode, u32 port, u32 endpoint);
- 
- int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
- 				struct fwnode_endpoint *endpoint);
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+> Changes in v2:
+> -Improve commit msg
+> -Add Mika's Acked-by
+> Changes in v3:
+> -Use irqd_is_wakeup_set rather then tracking this ourselves
+> ---
+>  drivers/gpio/gpiolib-acpi.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index 8cd3f66..2972cad 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -266,6 +266,9 @@ static acpi_status
+> acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
+>  		goto fail_free_event;
+>  	}
+>  
+> +	if (agpio->wake_capable == ACPI_WAKE_CAPABLE)
+> +		enable_irq_wake(irq);
+> +
+>  	list_add_tail(&event->node, &acpi_gpio->events);
+>  	return AE_OK;
+>  
+> @@ -339,6 +342,9 @@ void acpi_gpiochip_free_interrupts(struct
+> gpio_chip *chip)
+>  	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio-
+> >events, node) {
+>  		struct gpio_desc *desc;
+>  
+> +		if (irqd_is_wakeup_set(irq_get_irq_data(event->irq)))
+> +			disable_irq_wake(event->irq);
+> +
+>  		free_irq(event->irq, event);
+>  		desc = event->desc;
+>  		if (WARN_ON(IS_ERR(desc)))
+
 -- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
