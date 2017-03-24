@@ -1,122 +1,62 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 1/1] device property: Read strings using string array reading functions
-Date: Fri, 24 Mar 2017 11:24:46 +0200
-Message-ID: <1490347486-9604-1-git-send-email-sakari.ailus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:15816 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965479AbdCXJZj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 24 Mar 2017 05:25:39 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH v5.1 11/13] of: Add nop implementation of
+ of_get_next_parent()
+Date: Fri, 24 Mar 2017 11:28:15 +0200
+Message-ID: <20170324092814.GS10701@valkosipuli.retiisi.org.uk>
+References: <1489667481-28521-12-git-send-email-sakari.ailus@linux.intel.com>
+ <1489752538-23543-1-git-send-email-sakari.ailus@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1489752538-23543-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Always read strings using of_property_read_string_array() instead of
-of_property_read_string(). This allows using a single operation struct
-callback for accessing strings.
+On Fri, Mar 17, 2017 at 02:08:58PM +0200, Sakari Ailus wrote:
+> of_get_next_parent() was only defined if CONFIG_OF was set. Using the
+> function thus requires #ifdef CONFIG_OF ... #endif in all cases. Avoid
+> having to use pre-processor macros around the function by providing a nop
+> implementation of of_get_next_parent().
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Same for pset_prop_read_string_array() and pset_prop_read_string().
+As a result of the changes in v5.1 in the patch 12/13 ("device property: Add
+fwnode_get_next_parent()") of this set, this patch is no longer needed. If
+there are no objections, I'll drop it from the set.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi folks,
+> ---
+> since v5:
+> 
+> - Improved commit message.
+> 
+>  include/linux/of.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/include/linux/of.h b/include/linux/of.h
+> index e5d4225f..cc212a0 100644
+> --- a/include/linux/of.h
+> +++ b/include/linux/of.h
+> @@ -586,6 +586,12 @@ static inline struct device_node *of_get_parent(const struct device_node *node)
+>  	return NULL;
+>  }
+>  
+> +static inline struct device_node *of_get_next_parent(
+> +	const struct device_node *node)
+> +{
+> +	return NULL;
+> +}
+> +
+>  static inline struct device_node *of_get_next_child(
+>  	const struct device_node *node, struct device_node *prev)
+>  {
 
-I picked this patch out of the "Move firmware specific code to firmware
-specific locations" patchset. The rest is either squashed to other patches
-in the ACPI graph support patchset or not applicable after addressing
-all review comments and developments in devicetree tree.
-
-The patches are on top of v5 (v5.1 on some patches) of the ACPI graph
-support patchset:
-
-<URL:http://www.spinics.net/lists/linux-acpi/msg72641.html>
-
-The original set with all patches is here:
-
-<URL:http://www.spinics.net/lists/linux-acpi/msg72647.html>
-
-There are no changes to the patch itself.
-
-Regards,
-Sakari
-
- drivers/base/property.c | 47 ++---------------------------------------------
- 1 file changed, 2 insertions(+), 45 deletions(-)
-
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 0a120e3..325dd7f 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -158,31 +158,6 @@ static int pset_prop_read_string_array(struct property_set *pset,
- 	return 0;
- }
- 
--static int pset_prop_read_string(struct property_set *pset,
--				 const char *propname, const char **strings)
--{
--	const struct property_entry *prop;
--	const char * const *pointer;
--
--	prop = pset_prop_get(pset, propname);
--	if (!prop)
--		return -EINVAL;
--	if (!prop->is_string)
--		return -EILSEQ;
--	if (prop->is_array) {
--		pointer = prop->pointer.str;
--		if (!pointer)
--			return -ENODATA;
--	} else {
--		pointer = &prop->value.str;
--		if (*pointer && strnlen(*pointer, prop->length) >= prop->length)
--			return -EILSEQ;
--	}
--
--	*strings = *pointer;
--	return 0;
--}
--
- struct fwnode_handle *dev_fwnode(struct device *dev)
- {
- 	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
-@@ -606,19 +581,6 @@ static int __fwnode_property_read_string_array(struct fwnode_handle *fwnode,
- 	return -ENXIO;
- }
- 
--static int __fwnode_property_read_string(struct fwnode_handle *fwnode,
--					 const char *propname, const char **val)
--{
--	if (is_of_node(fwnode))
--		return of_property_read_string(to_of_node(fwnode), propname, val);
--	else if (is_acpi_node(fwnode))
--		return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
--					   val, 1);
--	else if (is_pset_node(fwnode))
--		return pset_prop_read_string(to_pset_node(fwnode), propname, val);
--	return -ENXIO;
--}
--
- /**
-  * fwnode_property_read_string_array - return string array property of a node
-  * @fwnode: Firmware node to get the property of
-@@ -670,14 +632,9 @@ EXPORT_SYMBOL_GPL(fwnode_property_read_string_array);
- int fwnode_property_read_string(struct fwnode_handle *fwnode,
- 				const char *propname, const char **val)
- {
--	int ret;
-+	int ret = fwnode_property_read_string_array(fwnode, propname, val, 1);
- 
--	ret = __fwnode_property_read_string(fwnode, propname, val);
--	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
--	    !IS_ERR_OR_NULL(fwnode->secondary))
--		ret = __fwnode_property_read_string(fwnode->secondary,
--						    propname, val);
--	return ret;
-+	return ret < 0 ? ret : 0;
- }
- EXPORT_SYMBOL_GPL(fwnode_property_read_string);
- 
 -- 
-2.7.4
-
+Sakari Ailus
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
