@@ -1,121 +1,32 @@
-From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
-Date: Fri, 24 Mar 2017 18:20:13 +0530
-Message-ID: <d9d33133-859a-0189-76c1-c3ec3abdaed6@codeaurora.org>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
-	<58D49845.9060407@hisilicon.com>
-	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
-	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH v1 0/8] gpio: acpi: Make it working
+Date: Fri, 24 Mar 2017 15:48:29 +0200
+Message-ID: <5aa07c34-cb35-d54d-cf94-32d92ed895ff@linux.intel.com>
+References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "robin.murphy-5wv7dgnIgG8@public.gmane.org" <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:51967 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756726AbdCXNuy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Mar 2017 09:50:54 -0400
+In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-Hi Shameer,
-
-
->>> [  414.700493] specified DMA range outside IOMMU capability
->> <-- error here
->>> [  414.700496] Failed to set up IOMMU for device 0002:81:10.0; retaining
->> platform DMA ops        <-- error here
->>
->> Looks like this triggers the start of the bug.
->> So the below check in iommu_dma_init_domain fails,
->>
->>          if (domain->geometry.force_aperture) {
->>                  if (base > domain->geometry.aperture_end ||
->>                      base + size <= domain->geometry.aperture_start) {
->>
->> and the rest goes out of sync after that. Can you print out the base,
->> aperture_start and end values to see why the check fails ?
+On 03/23/17 21:46, Andy Shevchenko wrote:
+> After this series it's possible to use GPIO pins for input (interrupt)
+> which were configured as output by BIOS by some reason. It's a crucial
+> functionality for IoT open connected boards where user may choose any of
+> available pin for almost any of available function, including GPIO input
+> (interrupt).
 >
-> dev_info(dev, "0x%llx 0x%llx, 0x%llx 0x%llx, 0x%llx 0x%llx\n", base, size, domain->geometry.aperture_start, domain->geometry.aperture_end, *dev->dma_mask, dev->coherent_dma_mask);
+> Current bad behaviour was first reported by Jarkko Nikula few months ago.
 >
-> [  183.752100] ixgbevf 0000:81:10.0: 0x0 0x100000000, 0x0 0xffffffffffff, 0xffffffff 0xffffffff
-> .....
-> [  319.508037] vfio-pci 0000:81:10.0: 0x0 0x0, 0x0 0xffffffffffff, 0xffffffffffffffff 0xffffffffffffffff
->
-> Yes, size seems to be the problem here. When the VF  device gets attached to vfio-pci,
-> somehow the dev->coherent_dma_mask is set to 64 bits and size become zero.
->
-> @@ -107,7 +107,7 @@ int of_dma_configure(struct device *dev, struct device_node *np)
->   	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
->   	if (ret < 0) {
->   		dma_addr = offset = 0;
->  -		size = ';
->  +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->
+It was actually due HW reset default is input buffer disabled and BIOS 
+didn't touch that pin at all if I recall correctly.
 
-But without this series, size is still set as
-dev->coherent_dma_mask + 1 , somehow not sure how it works
-fine in that case ?
-
-I remember i had this change in the V7 patchset, but later
-dropped it for the reason that this change is not relevant
-for this series, but should be there/sent to address the 64bit
-overflow separately.
-
-> @@ -1386,7 +1387,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
->   	 * Assume dma valid range starts at 0 and covers the whole
->   	 * coherent_dma_mask.
->   	 */
->  -	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
->  +	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->  +	arch_setup_dma_ops(dev, 0, size, iommu,
->   			   attr == DEV_DMA_COHERENT);
->
-> With the above fixes, DT boot works fine. But we still get the below crash on ACPI
->
->>> [  402.581445] kernel BUG at drivers/iommu/arm-smmu-v3.c:1064!
-
-Looks like this happens when the ste_live becomes true during
-the initial attach, but later without an detach,
-attach once again happens from vfio. Just thinking why the
-detach_dev is not happening only in ACPI case. Actually not
-having any of arm-smmuv3 or ACPI based setup in my place.
-Can i get some help by having some logs from the arm-smmv3
-driver ?
-
->>> [  402.587007] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
->>> [  402.592479] Modules linked in: vfio_iommu_type1 vfio_pci irqbypass
->> vfio_virqfd vfio ixgbevf ixgb
->
->> The change that this series does is trying to add the dma/iommu ops to the
->> device after the iommu is actually probed.
->> So in your working case, does the device initially gets hooked to iommu_ops
->> and the above same check passes in working case ?
->
-> I believe so. Because didn't notice the "specified DMA range outside IOMMU capability"
-> in the working case.
-
-ok, as i said above not sure why the overflow does not affect without
-this series.
-
-Regards,
-  Sricharan
-
-
->
-> Thanks,
-> Shameer
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
--- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a 
-member of Code Aurora Forum, hosted by The Linux Foundation
+For the set:
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
