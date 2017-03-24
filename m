@@ -1,83 +1,63 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3] gpio: acpi: Call enable_irq_wake for _IAE GpioInts
- with Wake set
-Date: Fri, 24 Mar 2017 13:34:03 +0200
-Message-ID: <1490355243.21738.3.camel@linux.intel.com>
-References: <20170324100847.25434-1-hdegoede@redhat.com>
+From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH 1/3] device property: Move FW type specific functionality
+ to FW specific files
+Date: Fri, 24 Mar 2017 13:42:13 +0200
+Message-ID: <20170324114212.GA16657@valkosipuli.retiisi.org.uk>
+References: <1490353432-12017-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20170324100847.25434-1-hdegoede@redhat.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-gpio@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1490353432-12017-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2017-03-24 at 11:08 +0100, Hans de Goede wrote:
-> On Bay Trail / Cherry Trail systems with a LID switch, the LID switch
-> is
-> often connect to a gpioint handled by an _IAE event handler.
-> Before this commit such systems would not wake up when opening the
-> lid,
-> requiring the powerbutton to be pressed after opening the lid to
-> wakeup.
+On Fri, Mar 24, 2017 at 01:03:50PM +0200, Sakari Ailus wrote:
+> The device and fwnode property API supports Devicetree, ACPI and pset
+> properties. The implementation of this functionality for each firmware
+> type was embedded in the fwnode property core. Move it out to firmware
+> type specific locations, making it easier to maintain.
 > 
-> Note that Bay Trail / Cherry Trail systems use suspend-to-idle, so
-> the interrupts are generated anyway on those lines on lid switch
-> changes,
-> but they are treated by the IRQ subsystem as spurious while suspended
-> if
-> not marked as wakeup IRQs.
-> 
-> This commit calls enable_irq_wake() for _IAE GpioInts with a valid
-> event handler which have their Wake flag set. This fixes such systems
-> not waking up when opening the lid.
-> 
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-FWIW:
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Oh, this escaped me a bit early.
 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
-> Changes in v2:
-> -Improve commit msg
-> -Add Mika's Acked-by
-> Changes in v3:
-> -Use irqd_is_wakeup_set rather then tracking this ourselves
-> ---
->  drivers/gpio/gpiolib-acpi.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 8cd3f66..2972cad 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -266,6 +266,9 @@ static acpi_status
-> acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
->  		goto fail_free_event;
->  	}
->  
-> +	if (agpio->wake_capable == ACPI_WAKE_CAPABLE)
-> +		enable_irq_wake(irq);
-> +
->  	list_add_tail(&event->node, &acpi_gpio->events);
->  	return AE_OK;
->  
-> @@ -339,6 +342,9 @@ void acpi_gpiochip_free_interrupts(struct
-> gpio_chip *chip)
->  	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio-
-> >events, node) {
->  		struct gpio_desc *desc;
->  
-> +		if (irqd_is_wakeup_set(irq_get_irq_data(event->irq)))
-> +			disable_irq_wake(event->irq);
-> +
->  		free_irq(event->irq, event);
->  		desc = event->desc;
->  		if (WARN_ON(IS_ERR(desc)))
+This set is the other part split off from the earlier "Move firmware
+specific code to firmware specific locations" set. It depends on my earlier
+the fwnode fixes, ACPI graph support patchsets and patch "device property:
+Read strings using string array reading functions" that are intended for the
+PM tree. They also depend on patch "of: Move OF property and graph API from
+base.c to property.c" which is intended for the DT tree --- this patch
+additionally depends on the patches on DT tree.
+
+The only change in the patches from the previous set is rebase, and a new
+patch adding support for fwnode_graph_get_remote_node() has been added. The
+last patch is currently untested. I'll test it in the near future; this set
+is not mergeable for a while until the dependent patches have been merged to
+the respective trees and a new rc1 release is available.
+
+I'm uploading the patches to the two branches here:
+
+Fwnode fixes + ACPI graph support + "device property:
+Read strings using string array reading functions":
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-all>
+
+The previous patches on Rob H's for-next branch + "of: Move OF property
+and graph API from base.c to property.c" + this patchset:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned-on-next>
+
+It may still take a while until the patches get there.
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
