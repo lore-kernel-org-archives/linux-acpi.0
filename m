@@ -1,80 +1,102 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V9 00/11] IOMMU probe deferral support
-Date: Fri, 24 Mar 2017 15:09:49 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA81750BC12@lhreml504-mbs>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
-	<58D49845.9060407@hisilicon.com>
-	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
-	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
-	<20170324144340.GA17560@red-moon>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2] gpio: acpi: Call enable_irq_wake for _IAE GpioInts with Wake set
+Date: Fri, 24 Mar 2017 16:16:12 +0100
+Message-ID: <2621777.XspNn8L99p@aspire.rjw.lan>
+References: <20170320173221.3397-1-hdegoede@redhat.com> <2997741.ylvZKAC5a8@aspire.rjw.lan> <2506dfe4-a01e-f73a-0e11-fc2d99d6b91a@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170324144340.GA17560@red-moon>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54498 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757303AbdCXPVu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Mar 2017 11:21:50 -0400
+In-Reply-To: <2506dfe4-a01e-f73a-0e11-fc2d99d6b91a@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org]
-> Sent: Friday, March 24, 2017 2:44 PM
-> To: Shameerali Kolothum Thodi
-> Cc: Sricharan R; Wangzhou (B); robin.murphy-5wv7dgnIgG8@public.gmane.org;
-> will.deacon-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org;
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org; linux-
-> pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org;
-> hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-> Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
+On Friday, March 24, 2017 10:51:53 AM Hans de Goede wrote:
+> Hi,
 > 
-> On Fri, Mar 24, 2017 at 09:27:51AM +0000, Shameerali Kolothum Thodi wrote:
-> 
-> [...]
-> 
-> > @@ -107,7 +107,7 @@ int of_dma_configure(struct device *dev, struct
-> device_node *np)
-> >   	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
-> >   	if (ret < 0) {
-> >   		dma_addr = offset = 0;
-> >  -		size = dev->coherent_dma_mask + 1;
-> >  +		size = max(dev->coherent_dma_mask, dev-
-> >coherent_dma_mask + 1);
+> On 20-03-17 22:59, Rafael J. Wysocki wrote:
+> > On Monday, March 20, 2017 06:32:21 PM Hans de Goede wrote:
+> >> On Bay Trail / Cherry Trail systems with a LID switch, the LID switch is
+> >> often connect to a gpioint handled by an _IAE event handler.
+> >> Before this commit such systems would not wake up when opening the lid,
+> >> requiring the powerbutton to be pressed after opening the lid to wakeup.
+> >>
+> >> Note that Bay Trail / Cherry Trail systems use suspend-to-idle, so
+> >> the interrupts are generated anyway on those lines on lid switch changes,
+> >> but they are treated by the IRQ subsystem as spurious while suspended if
+> >> not marked as wakeup IRQs.
+> >>
+> >> This commit calls enable_irq_wake() for _IAE GpioInts with a valid
+> >> event handler which have their Wake flag set. This fixes such systems
+> >> not waking up when opening the lid.
+> >>
+> >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> ---
+> >> Changes in v2:
+> >> -Improve commit msg
+> >> -Add Mika's Acked-by
+> >> ---
+> >>  drivers/gpio/gpiolib-acpi.c | 9 +++++++++
+> >>  1 file changed, 9 insertions(+)
+> >>
+> >> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> >> index 8cd3f66..18207b2 100644
+> >> --- a/drivers/gpio/gpiolib-acpi.c
+> >> +++ b/drivers/gpio/gpiolib-acpi.c
+> >> @@ -28,6 +28,7 @@ struct acpi_gpio_event {
+> >>  	acpi_handle handle;
+> >>  	unsigned int pin;
+> >>  	unsigned int irq;
+> >> +	bool irq_wake_enabled;
+> >>  	struct gpio_desc *desc;
+> >>  };
+> >>
+> >> @@ -266,6 +267,11 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
+> >>  		goto fail_free_event;
+> >>  	}
+> >>
+> >> +	if (agpio->wake_capable == ACPI_WAKE_CAPABLE) {
+> >> +		enable_irq_wake(irq);
+> >> +		event->irq_wake_enabled = true;
+> >> +	}
+> >> +
+> >>  	list_add_tail(&event->node, &acpi_gpio->events);
+> >>  	return AE_OK;
+> >>
+> >> @@ -339,6 +345,9 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+> >>  	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
+> >>  		struct gpio_desc *desc;
+> >>
+> >> +		if (event->irq_wake_enabled)
 > >
-> > @@ -1386,7 +1387,8 @@ int acpi_dma_configure(struct device *dev, enum
-> dev_dma_attr attr)
-> >   	 * Assume dma valid range starts at 0 and covers the whole
-> >   	 * coherent_dma_mask.
-> >   	 */
-> >  -	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1,
-> iommu,
-> >  +	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask +
-> 1);
+> > It has just occurred to me that if the event is in the list, the IRQ will be
+> > enabled to wake up as long as agpio->wake_capable == ACPI_WAKE_CAPABLE, so it
+> > looks like it should be sufficient to check
+> >
+> > 	if (agpio->wake_capable == ACPI_WAKE_CAPABLE)
+> >
+> > here and the new flag is not necessary.  Or is it?
 > 
-> size is not defined in acpi_dma_configure(), so there is something missing in
-> the diff above, just to make sure we are testing the same thing.
+> We don't have (readily available) access to the acpi_resource_gpio struct
+> in acpi_gpiochip_free_interrupts, so I'm going to go with Andy's suggestion
+> instead and change the if to:
 > 
-> Mind posting kernel logs with and without patch above (fixed) for DT boot
-> and ACPI boot please.
+>                  if (irqd_is_wakeup_set(irq_get_irq_data(event->irq)))
+>                          disable_irq_wake(event->irq);
+> 
+> Still need to run some quick tests and then I will send v3 with this
+> change.
 
-Sure. We will rerun the tests to create the logs again and share.
-
-Also need to double check, v9 patches are applied correctly on top of our branch.
-If I remember correctly v7 was fine with DT(didn't test with ACPI). But then as 
-Shicharan said it had that size fix.
+OK, fair enough.
 
 Thanks,
-Shameer
-[...]
+Rafael
+
