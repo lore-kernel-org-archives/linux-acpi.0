@@ -1,57 +1,55 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 0/8] gpio: acpi: Make it working
-Date: Fri, 24 Mar 2017 18:01:57 +0200
-Message-ID: <20170324160157.GF2957@lahna.fi.intel.com>
-References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 0/2] additional sysfs entries for CPPC
+Date: Fri, 24 Mar 2017 10:34:42 -0600
+Message-ID: <e2721cec-0ad0-636d-9652-60cd440e2d01@codeaurora.org>
+References: <1481763994-28146-1-git-send-email-pprakash@codeaurora.org>
+ <b147a3c2-5435-84b2-f3ff-6fb96e764fd5@redhat.com>
+ <72d699cd-06fb-7896-1325-5fc74c4f9888@redhat.com>
+ <CAJZ5v0jKDF7fys_ZHM0FvOw+xtQv5hKBBHxeZs80NRiRx=e=AA@mail.gmail.com>
+ <f09519cd-4399-5253-8e8d-30611a85b228@codeaurora.org>
+ <11d1f119-1dac-1045-cd86-14972982bb29@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:43132 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757554AbdCXQes (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2017 12:34:48 -0400
+In-Reply-To: <11d1f119-1dac-1045-cd86-14972982bb29@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <ahs3@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexey Klimov <alexey.klimov@arm.com>, Hoan Tran <hotran@apm.com>, Christopher Covington <cov@codeaurora.org>
 
-On Thu, Mar 23, 2017 at 09:46:10PM +0200, Andy Shevchenko wrote:
-> Currently GPIO ACPI library provides an API to get a GPIO resources
-> (IO or interrupt) from ACPI tables for the individual drivers.
-> 
-> This library has few flaws which makes some devices not working:
->  - the library allows to abuse ACPI by using a _CRS fallback mechanism
->  - the library neglects flags of the resource
-> 
-> In this series:
->  - the _CRS fallback is forbidden
->  - the pin configuration follows what firmware wants to
->  - the documentation is updated in order to clarify corner cases
-> 
-> After this series it's possible to use GPIO pins for input (interrupt)
-> which were configured as output by BIOS by some reason. It's a crucial
-> functionality for IoT open connected boards where user may choose any of
-> available pin for almost any of available function, including GPIO input
-> (interrupt).
-> 
-> Current bad behaviour was first reported by Jarkko Nikula few months ago.
-> 
-> Andy Shevchenko (8):
->   gpiolib: Export gpiod_configure_flags() to internal users
->   gpio: acpi: Align acpi_find_gpio() with DT version
->   gpio: acpi: Do sanity check for GpioInt in acpi_find_gpio()
->   gpio: acpi: Even more tighten up ACPI GPIO lookups
->   gpio: acpi: Synchronize acpi_find_gpio() and acpi_gpio_count()
->   gpio: acpi: Explain how to get GPIO descriptors in ACPI case
->   gpio: acpi: Factor out acpi_gpio_to_gpiod_flags() helper
->   gpio: acpi: Override GPIO initialization flags
-> 
->  Documentation/acpi/gpio-properties.txt |  60 ++++++++++++
->  drivers/gpio/gpiolib-acpi.c            | 162 +++++++++++++++++++--------------
->  drivers/gpio/gpiolib.c                 |  10 +-
->  drivers/gpio/gpiolib.h                 |  17 +++-
->  4 files changed, 176 insertions(+), 73 deletions(-)
 
-Really nice work!
+On 3/3/2017 11:32 AM, Prakash, Prashanth wrote:
+> Hi Rafael,
+>
+> On 2/13/2017 9:38 AM, Prakash, Prashanth wrote:
+> [...]
+>>>> Tested-by: Al Stone <ahs3@redhat.com>
+>>> I'm not actually sure about the assumption this series is based on.
+>>>
+>>> I don't see anything in the spec to guarantee that it will always be
+>>> safe to evaluate _CPC only once and cache its output.
+>> Among the Performance capabilities registers(section 8.4.7.1.1), the only
+>> register that can change dynamically is Guaranteed performance register.
+>> We are not supporting/using Guaranteed performance at the moment.
+>>
+>> Guaranteed performance Register has an associated Notify event which will be
+>> invoked when it changes. No such events are associated with other capabilities
+>> register. Similar distinction is made in the beginning of section 8.4.7.1.1:
+>> "Figure 8-47 outlines the static performance thresholds of the platform
+>>  and the dynamic guaranteed performance threshold."
+>>
+>> I agree spec isn't very clear about marking these registers as static except
+>> that one sentence I quoted above, but there is enough in spec to guarantee
+>> that the capabilities we are using will not change dynamically.
+> Does the above sound reasonable? Any other feedback on this patch set?
 
-For the whole series,
+Gentle Ping
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+--
+Thanks,
+Prashanth
