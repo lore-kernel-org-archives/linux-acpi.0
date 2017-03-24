@@ -1,63 +1,121 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH 1/3] device property: Move FW type specific functionality
- to FW specific files
-Date: Fri, 24 Mar 2017 13:42:13 +0200
-Message-ID: <20170324114212.GA16657@valkosipuli.retiisi.org.uk>
-References: <1490353432-12017-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
+Date: Fri, 24 Mar 2017 18:20:13 +0530
+Message-ID: <d9d33133-859a-0189-76c1-c3ec3abdaed6@codeaurora.org>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+	<58D49845.9060407@hisilicon.com>
+	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
+	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1490353432-12017-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "robin.murphy-5wv7dgnIgG8@public.gmane.org" <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 24, 2017 at 01:03:50PM +0200, Sakari Ailus wrote:
-> The device and fwnode property API supports Devicetree, ACPI and pset
-> properties. The implementation of this functionality for each firmware
-> type was embedded in the fwnode property core. Move it out to firmware
-> type specific locations, making it easier to maintain.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Hi Shameer,
 
-Oh, this escaped me a bit early.
 
-This set is the other part split off from the earlier "Move firmware
-specific code to firmware specific locations" set. It depends on my earlier
-the fwnode fixes, ACPI graph support patchsets and patch "device property:
-Read strings using string array reading functions" that are intended for the
-PM tree. They also depend on patch "of: Move OF property and graph API from
-base.c to property.c" which is intended for the DT tree --- this patch
-additionally depends on the patches on DT tree.
+>>> [  414.700493] specified DMA range outside IOMMU capability
+>> <-- error here
+>>> [  414.700496] Failed to set up IOMMU for device 0002:81:10.0; retaining
+>> platform DMA ops        <-- error here
+>>
+>> Looks like this triggers the start of the bug.
+>> So the below check in iommu_dma_init_domain fails,
+>>
+>>          if (domain->geometry.force_aperture) {
+>>                  if (base > domain->geometry.aperture_end ||
+>>                      base + size <= domain->geometry.aperture_start) {
+>>
+>> and the rest goes out of sync after that. Can you print out the base,
+>> aperture_start and end values to see why the check fails ?
+>
+> dev_info(dev, "0x%llx 0x%llx, 0x%llx 0x%llx, 0x%llx 0x%llx\n", base, size, domain->geometry.aperture_start, domain->geometry.aperture_end, *dev->dma_mask, dev->coherent_dma_mask);
+>
+> [  183.752100] ixgbevf 0000:81:10.0: 0x0 0x100000000, 0x0 0xffffffffffff, 0xffffffff 0xffffffff
+> .....
+> [  319.508037] vfio-pci 0000:81:10.0: 0x0 0x0, 0x0 0xffffffffffff, 0xffffffffffffffff 0xffffffffffffffff
+>
+> Yes, size seems to be the problem here. When the VF  device gets attached to vfio-pci,
+> somehow the dev->coherent_dma_mask is set to 64 bits and size become zero.
+>
+> @@ -107,7 +107,7 @@ int of_dma_configure(struct device *dev, struct device_node *np)
+>   	ret = of_dma_get_range(np, &dma_addr, &paddr, &size);
+>   	if (ret < 0) {
+>   		dma_addr = offset = 0;
+>  -		size = ';
+>  +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>
 
-The only change in the patches from the previous set is rebase, and a new
-patch adding support for fwnode_graph_get_remote_node() has been added. The
-last patch is currently untested. I'll test it in the near future; this set
-is not mergeable for a while until the dependent patches have been merged to
-the respective trees and a new rc1 release is available.
+But without this series, size is still set as
+dev->coherent_dma_mask + 1 , somehow not sure how it works
+fine in that case ?
 
-I'm uploading the patches to the two branches here:
+I remember i had this change in the V7 patchset, but later
+dropped it for the reason that this change is not relevant
+for this series, but should be there/sent to address the 64bit
+overflow separately.
 
-Fwnode fixes + ACPI graph support + "device property:
-Read strings using string array reading functions":
+> @@ -1386,7 +1387,8 @@ int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+>   	 * Assume dma valid range starts at 0 and covers the whole
+>   	 * coherent_dma_mask.
+>   	 */
+>  -	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
+>  +	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>  +	arch_setup_dma_ops(dev, 0, size, iommu,
+>   			   attr == DEV_DMA_COHERENT);
+>
+> With the above fixes, DT boot works fine. But we still get the below crash on ACPI
+>
+>>> [  402.581445] kernel BUG at drivers/iommu/arm-smmu-v3.c:1064!
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-all>
+Looks like this happens when the ste_live becomes true during
+the initial attach, but later without an detach,
+attach once again happens from vfio. Just thinking why the
+detach_dev is not happening only in ACPI case. Actually not
+having any of arm-smmuv3 or ACPI based setup in my place.
+Can i get some help by having some logs from the arm-smmv3
+driver ?
 
-The previous patches on Rob H's for-next branch + "of: Move OF property
-and graph API from base.c to property.c" + this patchset:
+>>> [  402.587007] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+>>> [  402.592479] Modules linked in: vfio_iommu_type1 vfio_pci irqbypass
+>> vfio_virqfd vfio ixgbevf ixgb
+>
+>> The change that this series does is trying to add the dma/iommu ops to the
+>> device after the iommu is actually probed.
+>> So in your working case, does the device initially gets hooked to iommu_ops
+>> and the above same check passes in working case ?
+>
+> I believe so. Because didn't notice the "specified DMA range outside IOMMU capability"
+> in the working case.
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=acpi-graph-cleaned-on-next>
+ok, as i said above not sure why the overflow does not affect without
+this series.
 
-It may still take a while until the patches get there.
+Regards,
+  Sricharan
+
+
+>
+> Thanks,
+> Shameer
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a 
+member of Code Aurora Forum, hosted by The Linux Foundation
