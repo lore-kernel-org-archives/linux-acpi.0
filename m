@@ -1,55 +1,86 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH 0/2] additional sysfs entries for CPPC
-Date: Fri, 24 Mar 2017 10:34:42 -0600
-Message-ID: <e2721cec-0ad0-636d-9652-60cd440e2d01@codeaurora.org>
-References: <1481763994-28146-1-git-send-email-pprakash@codeaurora.org>
- <b147a3c2-5435-84b2-f3ff-6fb96e764fd5@redhat.com>
- <72d699cd-06fb-7896-1325-5fc74c4f9888@redhat.com>
- <CAJZ5v0jKDF7fys_ZHM0FvOw+xtQv5hKBBHxeZs80NRiRx=e=AA@mail.gmail.com>
- <f09519cd-4399-5253-8e8d-30611a85b228@codeaurora.org>
- <11d1f119-1dac-1045-cd86-14972982bb29@codeaurora.org>
+From: Josh Poimboeuf <jpoimboe@redhat.com>
+Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function
+ graph tracing
+Date: Fri, 24 Mar 2017 13:12:54 -0500
+Message-ID: <20170324181254.gouyrbmppukrrbb6@treble>
+References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
+ <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43132 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757554AbdCXQes (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2017 12:34:48 -0400
-In-Reply-To: <11d1f119-1dac-1045-cd86-14972982bb29@codeaurora.org>
+Received: from mx1.redhat.com ([209.132.183.28]:43806 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934718AbdCXSNM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Mar 2017 14:13:12 -0400
+Content-Disposition: inline
+In-Reply-To: <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <ahs3@redhat.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexey Klimov <alexey.klimov@arm.com>, Hoan Tran <hotran@apm.com>, Christopher Covington <cov@codeaurora.org>
+To: Paul Menzel <pmenzel@molgen.mpg.de>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>
 
+On Tue, Mar 21, 2017 at 09:44:03PM +0100, Paul Menzel wrote:
+> I checked out Linux 4.9.16, applied your patch on top, and copied the Debian
+> 4.9 Linux kernel configuration, did `make menuconfig`, disabled building
+> debugging symbols, and executed `ARCH=i386 make -j40 deb-pkg`.
+> 
+> I installed that package on the Lenovo X60, and the result with tracing
+> enabled has improved. The system suspends without a crash. Unfortunately,
+> instead of resuming when pressing the power button, it starts from scratch.
+> Suspend and resume without tracing enabled works though.
+> 
+> I’ll try to collect logs, but I don’t know, if there will be any, if the
+> system just resets.
+> 
+> Maybe, this can be reproduced in QEMU?
 
-On 3/3/2017 11:32 AM, Prakash, Prashanth wrote:
-> Hi Rafael,
->
-> On 2/13/2017 9:38 AM, Prakash, Prashanth wrote:
-> [...]
->>>> Tested-by: Al Stone <ahs3@redhat.com>
->>> I'm not actually sure about the assumption this series is based on.
->>>
->>> I don't see anything in the spec to guarantee that it will always be
->>> safe to evaluate _CPC only once and cache its output.
->> Among the Performance capabilities registers(section 8.4.7.1.1), the only
->> register that can change dynamically is Guaranteed performance register.
->> We are not supporting/using Guaranteed performance at the moment.
->>
->> Guaranteed performance Register has an associated Notify event which will be
->> invoked when it changes. No such events are associated with other capabilities
->> register. Similar distinction is made in the beginning of section 8.4.7.1.1:
->> "Figure 8-47 outlines the static performance thresholds of the platform
->>  and the dynamic guaranteed performance threshold."
->>
->> I agree spec isn't very clear about marking these registers as static except
->> that one sentence I quoted above, but there is enough in spec to guarantee
->> that the capabilities we are using will not change dynamically.
-> Does the above sound reasonable? Any other feedback on this patch set?
+So I was able to recreate this issue in qemu, and after some hours of
+debugging I managed to figure it out.
 
-Gentle Ping
+It's rebooting during the resume because of a triple fault in
+prepare_ftrace_return().
 
---
-Thanks,
-Prashanth
+acpi wakeup for secondary cpu
+  startup_32_smp()
+    load_ucode_ap()
+      prepare_ftrace_return()
+        ftrace_graph_is_dead()
+	  dereferences virtual address (kill_ftrace_graph) in real mode <-- BOOM
+
+I tried fixing it by changing load_ucode_ap() to notrace, but that
+function calls some other functions which also have mcount hooks, which
+call other functions, etc.
+
+Instead I was able to "fix" it by ignoring ftrace calls in real mode:
+
+-----
+index 8f3d9cf..5c0d0c6 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -983,6 +983,9 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
+ 	unsigned long return_hooker = (unsigned long)
+ 				&return_to_handler;
+ 
++	if (__builtin_return_address(0) < TASK_SIZE_MAX)
++		return;
++
+ 	if (unlikely(ftrace_graph_is_dead()))
+ 		return;
+---------------
+
+I'm not sure what the best fix should really be.  A few ideas off the
+top of my head:
+
+- A real mode check similar to the above (except it should probably be
+  more precise)
+
+- Make tracing_graph_pause a percpu variable so that it can be read from
+  prepare_ftrace_return()
+
+- pause_graph_tracing() from ftrace_suspend_notifier_call()
+
+Steven, thoughts?
+
+-- 
+Josh
