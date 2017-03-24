@@ -1,63 +1,34 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3] gpio: acpi: Call enable_irq_wake for _IAE GpioInts with Wake set
-Date: Fri, 24 Mar 2017 11:08:47 +0100
-Message-ID: <20170324100847.25434-1-hdegoede@redhat.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-gpio@vger.kernel.org
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: [PATCH v1 4/8] gpio: acpi: Even more tighten up ACPI GPIO
+ lookups
+Date: Fri, 24 Mar 2017 11:46:10 +0100
+Message-ID: <1490352370.2404.5.camel@hadess.net>
+References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+         <20170323194618.26548-5-andriy.shevchenko@linux.intel.com>
+         <20170323201241.GB2502@dtor-ws>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:51942 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935578AbdCXKqt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2017 06:46:49 -0400
+In-Reply-To: <20170323201241.GB2502@dtor-ws>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>
 
-On Bay Trail / Cherry Trail systems with a LID switch, the LID switch is
-often connect to a gpioint handled by an _IAE event handler.
-Before this commit such systems would not wake up when opening the lid,
-requiring the powerbutton to be pressed after opening the lid to wakeup.
+On Thu, 2017-03-23 at 13:12 -0700, Dmitry Torokhov wrote:
+> 
+<snip>
+> > To prevent the possible misconfiguration tighten up even more ACPI
+> > GPIO lookups
+> > for case without connection ID provided.
+> 
+> I wonder if this will break Goodix. Irina, Bastien?
 
-Note that Bay Trail / Cherry Trail systems use suspend-to-idle, so
-the interrupts are generated anyway on those lines on lid switch changes,
-but they are treated by the IRQ subsystem as spurious while suspended if
-not marked as wakeup IRQs.
-
-This commit calls enable_irq_wake() for _IAE GpioInts with a valid
-event handler which have their Wake flag set. This fixes such systems
-not waking up when opening the lid.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Changes in v2:
--Improve commit msg
--Add Mika's Acked-by
-Changes in v3:
--Use irqd_is_wakeup_set rather then tracking this ourselves
----
- drivers/gpio/gpiolib-acpi.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 8cd3f66..2972cad 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -266,6 +266,9 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
- 		goto fail_free_event;
- 	}
- 
-+	if (agpio->wake_capable == ACPI_WAKE_CAPABLE)
-+		enable_irq_wake(irq);
-+
- 	list_add_tail(&event->node, &acpi_gpio->events);
- 	return AE_OK;
- 
-@@ -339,6 +342,9 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
- 	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
- 		struct gpio_desc *desc;
- 
-+		if (irqd_is_wakeup_set(irq_get_irq_data(event->irq)))
-+			disable_irq_wake(event->irq);
-+
- 		free_irq(event->irq, event);
- 		desc = event->desc;
- 		if (WARN_ON(IS_ERR(desc)))
--- 
-2.9.3
-
+My Goodix tablet has been on the fritz for nearly a year. Hopefully,
+32-bit-UEFI support will be available for my preferred distribution
+soon, and I'd be able to tell you.
