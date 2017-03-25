@@ -1,50 +1,56 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH] ACPI / IPMI: allow ACPI_IPMI with IPMI_SSIF
-Date: Fri, 24 Mar 2017 21:56:36 -0500
-Message-ID: <78897278-9240-6794-e99b-f3ff3013304f@acm.org>
-References: <1490284420-26657-1-git-send-email-okaya@codeaurora.org>
-Reply-To: minyard@acm.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function graph tracing
+Date: Sat, 25 Mar 2017 14:20:11 +0100
+Message-ID: <5766300.HtmE7iLEgV@aspire.rjw.lan>
+References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com> <20170324181254.gouyrbmppukrrbb6@treble> <20170324144114.16a37d47@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1490284420-26657-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62530 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750766AbdCYNZu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 25 Mar 2017 09:25:50 -0400
+In-Reply-To: <20170324144114.16a37d47@gandalf.local.home>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>, Paul Menzel <pmenzel@molgen.mpg.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-Oops, yes, this is an issue.
+On Friday, March 24, 2017 02:41:14 PM Steven Rostedt wrote:
+> On Fri, 24 Mar 2017 13:12:54 -0500
+> Josh Poimboeuf <jpoimboe@redhat.com> wrote:
+> 
+> 
+> > Instead I was able to "fix" it by ignoring ftrace calls in real mode:
+> > 
+> > -----
+> > index 8f3d9cf..5c0d0c6 100644
+> > --- a/arch/x86/kernel/ftrace.c
+> > +++ b/arch/x86/kernel/ftrace.c
+> > @@ -983,6 +983,9 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
+> >  	unsigned long return_hooker = (unsigned long)
+> >  				&return_to_handler;
+> >  
+> > +	if (__builtin_return_address(0) < TASK_SIZE_MAX)
+> > +		return;
+> > +
+> >  	if (unlikely(ftrace_graph_is_dead()))
+> >  		return;
+> > ---------------
+> > 
+> > I'm not sure what the best fix should really be.  A few ideas off the
+> > top of my head:
+> > 
+> > - A real mode check similar to the above (except it should probably be
+> >   more precise)
+> 
+> The real mode check hack may be good enough for now. Make sure that
+> it's commented well.
 
-However, it should probably depend on IPMI_HANDLER, not the individual 
-interface types.
+Agreed.
 
--corey
+Thanks,
+Rafael
 
-On 03/23/2017 10:53 AM, Sinan Kaya wrote:
-> ACPI_IPMI driver currently depends on IPMI System Interface (IPMI_SI) driver
-> to be enabled. IPMI_SI driver only handles KCS, SMIC and BT BMC interfaces.
->
-> IPMI_SSIF is an alternative BMC communication method. It allows BMC to be
-> accessed over an I2C bus instead of a standard interface.
->
-> Enabling ACPI_IPMI over IPMI_SSIF with this change.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->   drivers/acpi/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 83e5f7e..8767062 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -256,7 +256,7 @@ config ACPI_PROCESSOR
->   
->   config ACPI_IPMI
->   	tristate "IPMI"
-> -	depends on IPMI_SI
-> +	depends on IPMI_SI||IPMI_SSIF
->   	default n
->   	help
->   	  This driver enables the ACPI to access the BMC controller. And it
