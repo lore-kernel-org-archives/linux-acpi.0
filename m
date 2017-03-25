@@ -1,63 +1,46 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function
- graph tracing
-Date: Fri, 24 Mar 2017 14:41:14 -0400
-Message-ID: <20170324144114.16a37d47@gandalf.local.home>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
-        <c6c72c7a0199bc79fdbe2318713e35d9@molgen.mpg.de>
-        <20170324181254.gouyrbmppukrrbb6@treble>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: [PATCH] ACPI / IPMI: change warning to debug on timeout
+Date: Fri, 24 Mar 2017 21:55:07 -0500
+Message-ID: <537c0d7a-fd95-2e7f-be07-9e3ca79ca07a@acm.org>
+References: <1490283150-24000-1-git-send-email-okaya@codeaurora.org>
+Reply-To: minyard@acm.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:33220 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934744AbdCXSlT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 24 Mar 2017 14:41:19 -0400
-In-Reply-To: <20170324181254.gouyrbmppukrrbb6@treble>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1490283150-24000-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, timur@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Paul Menzel <pmenzel@molgen.mpg.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-On Fri, 24 Mar 2017 13:12:54 -0500
-Josh Poimboeuf <jpoimboe@redhat.com> wrote:
+Why would a timeout for a message be expected?  The BMC should
+at least respond with an error for an incorrect message.
 
+-corey
 
-> Instead I was able to "fix" it by ignoring ftrace calls in real mode:
-> 
-> -----
-> index 8f3d9cf..5c0d0c6 100644
-> --- a/arch/x86/kernel/ftrace.c
-> +++ b/arch/x86/kernel/ftrace.c
-> @@ -983,6 +983,9 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
->  	unsigned long return_hooker = (unsigned long)
->  				&return_to_handler;
->  
-> +	if (__builtin_return_address(0) < TASK_SIZE_MAX)
-> +		return;
-> +
->  	if (unlikely(ftrace_graph_is_dead()))
->  		return;
-> ---------------
-> 
-> I'm not sure what the best fix should really be.  A few ideas off the
-> top of my head:
-> 
-> - A real mode check similar to the above (except it should probably be
->   more precise)
-
-The real mode check hack may be good enough for now. Make sure that
-it's commented well.
-
--- Steve
-
-> 
-> - Make tracing_graph_pause a percpu variable so that it can be read from
->   prepare_ftrace_return()
-> 
-> - pause_graph_tracing() from ftrace_suspend_notifier_call()
-> 
-> Steven, thoughts?
-> 
-
+On 03/23/2017 10:32 AM, Sinan Kaya wrote:
+> Getting timeout message from BMC when trying to read from a non-existent
+> FRU. This is expected but warning is not.
+>
+> Let's reduce the warning to debug.
+>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>   drivers/acpi/acpi_ipmi.c | 3 +--
+>   1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+> index 747c2ba..1b64419 100644
+> --- a/drivers/acpi/acpi_ipmi.c
+> +++ b/drivers/acpi/acpi_ipmi.c
+> @@ -429,8 +429,7 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+>   	if (msg->recv_type == IPMI_RESPONSE_RECV_TYPE &&
+>   	    msg->msg.data_len == 1) {
+>   		if (msg->msg.data[0] == IPMI_TIMEOUT_COMPLETION_CODE) {
+> -			dev_WARN_ONCE(dev, true,
+> -				      "Unexpected response (timeout).\n");
+> +			dev_dbg_once(dev, "Unexpected response (timeout).\n");
+>   			tx_msg->msg_done = ACPI_IPMI_TIMEOUT;
+>   		}
+>   		goto out_comp;
