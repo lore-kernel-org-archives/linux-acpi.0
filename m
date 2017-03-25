@@ -1,55 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function graph tracing
-Date: Sat, 25 Mar 2017 14:20:11 +0100
-Message-ID: <5766300.HtmE7iLEgV@aspire.rjw.lan>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com> <20170324181254.gouyrbmppukrrbb6@treble> <20170324144114.16a37d47@gandalf.local.home>
+Subject: Re: [PATCH 0/2] additional sysfs entries for CPPC
+Date: Sat, 25 Mar 2017 14:32:30 +0100
+Message-ID: <2559450.4I6KQ8XthE@aspire.rjw.lan>
+References: <1481763994-28146-1-git-send-email-pprakash@codeaurora.org> <11d1f119-1dac-1045-cd86-14972982bb29@codeaurora.org> <e2721cec-0ad0-636d-9652-60cd440e2d01@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62530 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59197 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750766AbdCYNZu (ORCPT
+        by vger.kernel.org with ESMTP id S1751042AbdCYNiI (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 25 Mar 2017 09:25:50 -0400
-In-Reply-To: <20170324144114.16a37d47@gandalf.local.home>
+        Sat, 25 Mar 2017 09:38:08 -0400
+In-Reply-To: <e2721cec-0ad0-636d-9652-60cd440e2d01@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>, Paul Menzel <pmenzel@molgen.mpg.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <ahs3@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Klimov <alexey.klimov@arm.com>, Hoan Tran <hotran@apm.com>, Christopher Covington <cov@codeaurora.org>
 
-On Friday, March 24, 2017 02:41:14 PM Steven Rostedt wrote:
-> On Fri, 24 Mar 2017 13:12:54 -0500
-> Josh Poimboeuf <jpoimboe@redhat.com> wrote:
+On Friday, March 24, 2017 10:34:42 AM Prakash, Prashanth wrote:
 > 
+> On 3/3/2017 11:32 AM, Prakash, Prashanth wrote:
+> > Hi Rafael,
+> >
+> > On 2/13/2017 9:38 AM, Prakash, Prashanth wrote:
+> > [...]
+> >>>> Tested-by: Al Stone <ahs3@redhat.com>
+> >>> I'm not actually sure about the assumption this series is based on.
+> >>>
+> >>> I don't see anything in the spec to guarantee that it will always be
+> >>> safe to evaluate _CPC only once and cache its output.
+> >> Among the Performance capabilities registers(section 8.4.7.1.1), the only
+> >> register that can change dynamically is Guaranteed performance register.
+> >> We are not supporting/using Guaranteed performance at the moment.
+> >>
+> >> Guaranteed performance Register has an associated Notify event which will be
+> >> invoked when it changes. No such events are associated with other capabilities
+> >> register. Similar distinction is made in the beginning of section 8.4.7.1.1:
+> >> "Figure 8-47 outlines the static performance thresholds of the platform
+> >>  and the dynamic guaranteed performance threshold."
+> >>
+> >> I agree spec isn't very clear about marking these registers as static except
+> >> that one sentence I quoted above, but there is enough in spec to guarantee
+> >> that the capabilities we are using will not change dynamically.
+> > Does the above sound reasonable? Any other feedback on this patch set?
 > 
-> > Instead I was able to "fix" it by ignoring ftrace calls in real mode:
-> > 
-> > -----
-> > index 8f3d9cf..5c0d0c6 100644
-> > --- a/arch/x86/kernel/ftrace.c
-> > +++ b/arch/x86/kernel/ftrace.c
-> > @@ -983,6 +983,9 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
-> >  	unsigned long return_hooker = (unsigned long)
-> >  				&return_to_handler;
-> >  
-> > +	if (__builtin_return_address(0) < TASK_SIZE_MAX)
-> > +		return;
-> > +
-> >  	if (unlikely(ftrace_graph_is_dead()))
-> >  		return;
-> > ---------------
-> > 
-> > I'm not sure what the best fix should really be.  A few ideas off the
-> > top of my head:
-> > 
-> > - A real mode check similar to the above (except it should probably be
-> >   more precise)
-> 
-> The real mode check hack may be good enough for now. Make sure that
-> it's commented well.
+> Gentle Ping
 
-Agreed.
+There are concerns that some CPPC parameters may change at run time on some
+systems even though the spec doesn't mention that possibility, so the optimization
+here may be premature.
 
 Thanks,
 Rafael
