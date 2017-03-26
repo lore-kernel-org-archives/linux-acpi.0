@@ -1,176 +1,164 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with compilation
- units
-Date: Sun, 26 Mar 2017 15:37:59 +0300
-Message-ID: <1490531879.708.8.camel@linux.intel.com>
-References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
-         <20170323121252.vi7oggwr6bfghe3b@dell>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
+ to get from of / ACPI
+Date: Sun, 26 Mar 2017 17:07:33 +0200
+Message-ID: <1e35ebb1-0b80-3b73-c055-0b802be985d7@redhat.com>
+References: <20170325135550.22509-1-hdegoede@redhat.com>
+ <20170325135550.22509-4-hdegoede@redhat.com>
+ <1490530535.21738.31.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53515 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47446 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751313AbdCZMms (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 26 Mar 2017 08:42:48 -0400
-In-Reply-To: <20170323121252.vi7oggwr6bfghe3b@dell>
+        id S1751242AbdCZPHn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 26 Mar 2017 11:07:43 -0400
+In-Reply-To: <1490530535.21738.31.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
 
-On Thu, 2017-03-23 at 12:12 +0000, Lee Jones wrote:
-> On Fri, 17 Mar 2017, Andy Shevchenko wrote:
-> 
-> > Crystal Cove and Whiskey Cove are two different PMICs which are
-> > installed on Intel Atom SoC based platforms.
-> > 
-> > Moreover there are two independent drivers that by some reason were
-> > supposed (*) to get into one kernel module.
-> > 
-> > Fix the mess by clarifying Kconfig option for Crystal Cove and split
-> > Whiskey Cove out of it.
-> > 
-> > (*) It looks like the configuration was never tested with
-> >     INTEL_SOC_PMIC=n. The line in Makefile is actually wrong.
-> > 
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-> > Cc: Linus Walleij <linus.walleij@linaro.org> (maintainer:GPIO
-> > SUBSYSTEM)
-> > Cc: Zhang Rui <rui.zhang@intel.com> (supporter:THERMAL)
-> > Cc: Eduardo Valentin <edubezval@gmail.com> (supporter:THERMAL)
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> > - make option visible
-> > - fix dependencies
-> >  drivers/acpi/Kconfig         |  2 +-
-> 
-> This needs an ACPI Ack before I can do anything with it.
+Hi,
 
-Rafael, can you give you tag?
+On 26-03-17 14:15, Andy Shevchenko wrote:
+> On Sat, 2017-03-25 at 14:55 +0100, Hans de Goede wrote:
+>> Some of or ACPI declared / enumerated devices may have multiple irq
+>> resources declared and the driver may want to use a different irq then
+>> the one with index 0.
+>>
+>> This commit adds a new irq_index field to struct i2c_driver and makes
+>> the i2c-core pass this to of_irq_get / acpi_dev_gpio_irq_get.
+>>
+>> This is esp. useful for ACPI declared devices where the irq with
+>> index 0 may be entirely useless and cause i2c_device_probe to fail
+>> with
+>> -EPROBE_DEFER.
+>
+> Just a side note / question: are we assuming that the index of
+> I2cSerialBus() resource and index of GpioInt() resource should be 1:1
+> mapped?
 
-> 
-> >  drivers/gpio/Kconfig         |  2 +-
-> >  drivers/mfd/Kconfig          | 14 ++++++++++++--
-> >  drivers/mfd/Makefile         |  2 +-
-> >  drivers/platform/x86/Kconfig |  2 +-
-> >  drivers/thermal/Kconfig      |  2 +-
-> >  6 files changed, 17 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 83e5f7e1a20d..03708e08fcb4 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -512,7 +512,7 @@ config XPOWER_PMIC_OPREGION
-> >  
-> >  config BXT_WC_PMIC_OPREGION
-> >  	bool "ACPI operation region support for BXT WhiskeyCove
-> > PMIC"
-> > -	depends on INTEL_SOC_PMIC
-> > +	depends on INTEL_SOC_PMIC_BXTWC
-> >  	help
-> >  	  This config adds ACPI operation region support for BXT
-> > WhiskeyCove PMIC.
-> >  
-> > diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-> > index 05043071fc98..9b1bcb4d0df7 100644
-> > --- a/drivers/gpio/Kconfig
-> > +++ b/drivers/gpio/Kconfig
-> > @@ -1054,7 +1054,7 @@ config GPIO_UCB1400
-> >  
-> >  config GPIO_WHISKEY_COVE
-> >  	tristate "GPIO support for Whiskey Cove PMIC"
-> > -	depends on (X86 || COMPILE_TEST) && INTEL_SOC_PMIC
-> > +	depends on (X86 || COMPILE_TEST) && INTEL_SOC_PMIC_BXTWC
-> >  	select GPIOLIB_IRQCHIP
-> >  	help
-> >  	  Support for GPIO pins on Whiskey Cove PMIC.
-> > diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> > index 55ecdfb74d31..e43afb8956ea 100644
-> > --- a/drivers/mfd/Kconfig
-> > +++ b/drivers/mfd/Kconfig
-> > @@ -425,18 +425,28 @@ config LPC_SCH
-> >  	  System Management Bus and General Purpose I/O.
-> >  
-> >  config INTEL_SOC_PMIC
-> > -	bool "Support for Intel Atom SoC PMIC"
-> > +	bool "Support for Crystal Cove PMIC"
-> >  	depends on GPIOLIB
-> >  	depends on I2C=y
-> >  	select MFD_CORE
-> >  	select REGMAP_I2C
-> >  	select REGMAP_IRQ
-> >  	help
-> > -	  Select this option to enable support for the PMIC device
-> > +	  Select this option to enable support for Crystal Cove
-> > PMIC
-> >  	  on some Intel SoC systems. The PMIC provides ADC, GPIO,
-> >  	  thermal, charger and related power management functions
-> >  	  on these systems.
-> >  
-> > +config INTEL_SOC_PMIC_BXTWC
-> > +	tristate "Support for Intel Broxton Whiskey Cove PMIC"
-> > +	select MFD_CORE
-> > +	select REGMAP_IRQ
-> > +	help
-> > +	  Select this option to enable support for Whiskey Cove
-> > PMIC
-> > +	  on Intel Broxton systems. The PMIC provides ADC, GPIO,
-> > +	  thermal, charger and related power management functions
-> > +	  on these systems.
-> > +
-> >  config MFD_INTEL_LPSS
-> >  	tristate
-> >  	select COMMON_CLK
-> > diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-> > index 31ce07611a6f..201aeaf5112a 100644
-> > --- a/drivers/mfd/Makefile
-> > +++ b/drivers/mfd/Makefile
-> > @@ -207,8 +207,8 @@ obj-$(CONFIG_MFD_RT5033)	+= rt5033.o
-> >  obj-$(CONFIG_MFD_SKY81452)	+= sky81452.o
-> >  
-> >  intel-soc-pmic-objs		:= intel_soc_pmic_core.o
-> > intel_soc_pmic_crc.o
-> > -intel-soc-pmic-$(CONFIG_INTEL_PMC_IPC)	+=
-> > intel_soc_pmic_bxtwc.o
-> >  obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
-> > +obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)	+= intel_soc_pmic_bxtwc.o
-> >  obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
-> >  
-> >  obj-$(CONFIG_MFD_ALTERA_A10SR)	+= altera-a10sr.o
-> > diff --git a/drivers/platform/x86/Kconfig
-> > b/drivers/platform/x86/Kconfig
-> > index e1bffc9bb194..883fbe7a2466 100644
-> > --- a/drivers/platform/x86/Kconfig
-> > +++ b/drivers/platform/x86/Kconfig
-> > @@ -1019,7 +1019,7 @@ config INTEL_PMC_IPC
-> >  config INTEL_BXTWC_PMIC_TMU
-> >  	tristate "Intel BXT Whiskey Cove TMU Driver"
-> >  	depends on REGMAP
-> > -	depends on INTEL_SOC_PMIC && INTEL_PMC_IPC
-> > +	depends on INTEL_SOC_PMIC_BXTWC && INTEL_PMC_IPC
-> >  	---help---
-> >  	  Select this driver to use Intel BXT Whiskey Cove PMIC TMU
-> > feature.
-> >  	  This driver enables the alarm wakeup functionality in the
-> > TMU unit
-> > diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> > index 776b34396144..751e50a3d946 100644
-> > --- a/drivers/thermal/Kconfig
-> > +++ b/drivers/thermal/Kconfig
-> > @@ -365,7 +365,7 @@ endmenu
-> >  
-> >  config INTEL_BXT_PMIC_THERMAL
-> >  	tristate "Intel Broxton PMIC thermal driver"
-> > -	depends on X86 && INTEL_SOC_PMIC && REGMAP
-> > +	depends on X86 && INTEL_SOC_PMIC_BXTWC && REGMAP
-> >  	help
-> >  	  Select this driver for Intel Broxton PMIC with ADC
-> > channels monitoring
-> >  	  system temperature measurements and alerts.
-> 
-> 
+TL;DR: No
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Drivers can use irq_index and/or i2c_acpi_new_device
+independently of each other. If they want both the irq at index
+0 and others, they should not use irq_index, so they get the
+irq at index 0 as usual and they can call acpi_dev_gpio_irq_get
+themselves to get other irqs, like how they can call the new
+i2c_acpi_new_device function to get i2c-clients for I2cSerialBus
+with another index then 0.
+
+The purpose of irq_index in the i2c_driver struct is for drivers
+which don't care about the irq at index 0 and want another one
+instead, this could even be a driver for an acpi device with
+only a single I2cSerialBus resource and multiple irq resources.
+
+Specifically this is useful for driver where the irq-resource
+at index 0 points to a irq-host which does not have a driver
+in Linux, as otherwise i2c_device_probe will always fail with
+-EPROBE_DEFER waiting for the non-existent irq-host/irqchip
+driver to load. Alternatively we could add a no_irq boolean
+flag to struct i2c_driver, that would work fine for my purposes
+too and might be more generic, as it fixes the no irqchip
+driver, but we don't care anyways, case for all possible
+scenarios. Where as the irq_index fix relies on their being
+another irq-resource which does have a matching irqchip
+driver.
+
+Drivers which want another irq would then need to combine
+the no_irq flag with calling acpi_dev_gpio_irq_get with
+a non 0 index to get the irq which they do actually want
+(just like drivers which want to listen to multiple irqs
+would have to do).
+
+> One nit below, and
+>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>
+>
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>> Changes in v2:
+>> -Actually also use the irq_index for of interrupts
+>> Changes in v3:
+>> -Add kernel doc for new i2c_driver irq_index member
+>> -Remove duplicate assignment of driver in i2c_device_probe
+>> ---
+>>  drivers/i2c/i2c-core.c | 10 ++++++----
+>>  include/linux/i2c.h    |  4 ++++
+>>  2 files changed, 10 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+>> index 062b480..a7dfa6c 100644
+>> --- a/drivers/i2c/i2c-core.c
+>> +++ b/drivers/i2c/i2c-core.c
+>> @@ -983,6 +983,8 @@ static int i2c_device_probe(struct device *dev)
+>>  	if (!client)
+>>  		return 0;
+>>
+>> +	driver = to_i2c_driver(dev->driver);
+>> +
+>>  	if (!client->irq) {
+>>  		int irq = -ENOENT;
+>>
+>> @@ -992,9 +994,11 @@ static int i2c_device_probe(struct device *dev)
+>>  		} else if (dev->of_node) {
+>>  			irq = of_irq_get_byname(dev->of_node, "irq");
+>>  			if (irq == -EINVAL || irq == -ENODATA)
+>> -				irq = of_irq_get(dev->of_node, 0);
+>> +				irq = of_irq_get(dev->of_node,
+>> +						 driver->irq_index);
+>>  		} else if (ACPI_COMPANION(dev)) {
+>> -			irq =
+>> acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
+>> +			irq =
+>> acpi_dev_gpio_irq_get(ACPI_COMPANION(dev),
+>> +						    driver-
+>>> irq_index);
+>>  		}
+>>  		if (irq == -EPROBE_DEFER)
+>>  			return irq;
+>> @@ -1005,8 +1009,6 @@ static int i2c_device_probe(struct device *dev)
+>>  		client->irq = irq;
+>>  	}
+>>
+>> -	driver = to_i2c_driver(dev->driver);
+>> -
+>>  	/*
+>>  	 * An I2C ID table is not mandatory, if and only if, a
+>> suitable Device
+>>  	 * Tree match table entry is supplied for the probing device.
+>> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+>> index 369ebfa..79de1d1 100644
+>> --- a/include/linux/i2c.h
+>> +++ b/include/linux/i2c.h
+>> @@ -149,6 +149,7 @@ enum i2c_alert_protocol {
+>>   * @detect: Callback for device detection
+>>   * @address_list: The I2C addresses to probe (for detect)
+>>   * @clients: List of detected clients we created (for i2c-core use
+>> only)
+>> + * @irq_index: IRQ index for retreiving irq from OF/ACPI
+>>   *
+>>   * The driver.owner field should be set to the module owner of this
+>> driver.
+>>   * The driver.name field should be set to the name of this driver.
+>> @@ -212,6 +213,9 @@ struct i2c_driver {
+>>  	int (*detect)(struct i2c_client *, struct i2c_board_info *);
+>>  	const unsigned short *address_list;
+>>  	struct list_head clients;
+>
+>> +
+>> +	/* IRQ index for retreiving irq from OF/ACPI */
+>
+> Since kernel doc in place the above is redundant.
+
+True, but most other fields (which also have kerneldoc) have a comment
+explaining them inside the struct declaration too, so I followed that
+example.
+
+Regards,
+
+Hans
