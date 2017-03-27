@@ -1,129 +1,187 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
-Date: Mon, 27 Mar 2017 18:33:14 +0100
-Message-ID: <20170327173314.GA17035@red-moon>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
-	<58D49845.9060407@hisilicon.com>
-	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
-	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
-	<db3d68f8-713c-9ae2-7df9-324bc1b375b1@arm.com>
-	<5FC3163CFD30C246ABAA99954A238FA81750CCC4@lhreml504-mbs>
-	<f67fb561-4238-6933-04f3-0f910f9232d1@arm.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+Date: Mon, 27 Mar 2017 12:56:19 -0600
+Message-ID: <6ea7e293-bde4-3c22-a987-cec1843da39b@redhat.com>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
+ <20170321144521.GA4392@red-moon>
+ <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
+ <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E204C0AB7@FRAEML521-MBX.china.huawei.com>
+ <20170327152702.GB12092@red-moon>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <f67fb561-4238-6933-04f3-0f910f9232d1-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:33939 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751522AbdC0TEA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2017 15:04:00 -0400
+Received: by mail-qt0-f170.google.com with SMTP id n21so46123645qta.1
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Mar 2017 12:03:58 -0700 (PDT)
+In-Reply-To: <20170327152702.GB12092@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Yimin (Leo)" <yimin@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "majun (F)" <majun258@huawei.com>, dvhart@infradead.org
 
-On Mon, Mar 27, 2017 at 05:18:15PM +0100, Robin Murphy wrote:
-
-[...]
-
-> >> [  145.212351] iommu: Adding device 0000:81:10.0 to group 5
-> >> [  145.212367] ixgbevf 0000:81:10.0: 0x0 0x100000000, 0x0 0xffffffffffff,
-> >> 0xffffffff 0xffffffff
-> >> [  145.213261] ixgbevf 0000:81:10.0: enabling device (0000 -> 0002)
-> >> [  145.213394] ixgbe 0000:81:00.0 eth0: VF Reset msg received from vf 0
-> >> [  145.214272] ixgbe 0000:81:00.0: VF 0 has no MAC address assigned, you
-> >> may have to assign one manually
-> >> [  145.224379] ixgbevf 0000:81:10.0: MAC address not assigned by
-> >> administrator.
-> >> [  145.224384] ixgbevf 0000:81:10.0: Assigning random MAC address
-> >> [  145.225941] ixgbevf 0000:81:10.0: 1a:85:06:48:a7:19
-> >> [  145.225944] ixgbevf 0000:81:10.0: MAC: 1
-> >> [  145.225946] ixgbevf 0000:81:10.0: Intel(R) 82599 Virtual Function
-> >> [  145.299961] ixgbe 0000:81:00.0 eth0: NIC Link is Up 1 Gbps, Flow Control:
-> >> None
-> >> [  154.947742] nfs: server 172.18.45.166 not responding, still trying
-> >> [  191.025780] nfs: server 172.18.45.166 not responding, still trying
-> >> [  191.026122] nfs: server 172.18.45.166 OK
-> >> [  191.026317] nfs: server 172.18.45.166 OK
-> >> [  263.706402] VFIO - User Level meta-driver version: 0.3
-> >> [  269.757613] vfio-pci 0000:81:10.0: 0x0 0x0, 0x0 0xffffffffffff, 0xffffffffffffffff
-> >> 0xffffffffffffffff
-> >> [  269.757617] specified DMA range outside IOMMU capability
-> >> [  269.757618] Failed to set up IOMMU for device 0000:81:10.0; retaining
-> >> platform DMA ops
-> >>
-> >>  From the logs its clear that  when ixgbevf driver originally probes and adds
-> >> the device
-> >>  to smmu  the dma mask is 32, but when it binds to vfio-pci, it becomes 64 bit.
-> > 
-> > Just to add to that, the mask is set to 64 bit in the ixgebvf driver probe[1]
+On 03/27/2017 09:27 AM, Lorenzo Pieralisi wrote:
+> [+Al,Darren to comment on _DSD review process]
 > 
-> Aha, but of course it's still the same struct device getting bound to
-> VFIO later, so whatever mask the first driver set is still in there when
-> we go through of_dma_configure() the second time (and the fact that we
-> go through more than once being the new behaviour). So yes, this is a
-> legitimate problem and we really do need to be robust against size
-> overflow. I reckon the below tweak of your fix is probably the way to
-> go; cleaning up the arch_setup_dma_ops() interface can happen later.
+> On Mon, Mar 27, 2017 at 12:24:45PM +0000, Gabriele Paoloni wrote:
+>> Hi Marc Many thanks for your comments
+>>
+>>> -----Original Message-----
+>>> From: linuxarm-bounces@huawei.com [mailto:linuxarm-bounces@huawei.com]
+>>> On Behalf Of Marc Zyngier
+>>> Sent: 27 March 2017 09:47
+>>> To: John Garry; Lorenzo Pieralisi; Guohanjun (Hanjun Guo)
+>>> Cc: Rafael J. Wysocki; Yimin (Leo); Greg KH; Linuxarm; linux-
+>>> kernel@vger.kernel.org; Sinan Kaya; linux-acpi@vger.kernel.org; Hanjun
+>>> Guo; Tomasz Nowicki; Thomas Gleixner; linux-arm-
+>>> kernel@lists.infradead.org
+>>> Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+>>>
+>>> Hanjun, John,
+>>>
+>>> On 22/03/17 14:12, John Garry wrote:
+>>>> On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
+>>>>> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
+>>>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>>
+>>>>>> With the preparation of platform msi support and interrupt producer
+>>>>>> in DSDT, we can add mbigen ACPI support now.
+>>>>>>
+>>>>>> We are using Interrupt resource type in _CRS methd to indicate
+>>> number
+>>>>>> of irq pins instead of num_pins in DT to avoid _DSD usage in this
+>>> case.
+>>>>>>
+>>>>>> For mbigen,
+>>>>>>     Device(MBI0) {
+>>>>>>           Name(_HID, "HISI0152")
+>>>>>>           Name(_UID, Zero)
+>>>>>>           Name(_CRS, ResourceTemplate() {
+>>>>>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+>>>>>> 		  Interrupt(ResourceProducer,...) {12,14,....}
+>>>>>
+>>>>> What do these interrupt numbers represent ? This looks wrong to me.
+>>>>> An interrupt descriptor is there to describe the interrupts a device
+>>>>> can generate; you are using it just to add a "standard" (that is
+>>>>> not standard at all) way of counting the number of vectors allocated
+>>>>> to this specific chip and that's just wrong.
+>>>>>
+>>>>
+>>>> As I understand, the count of interrupts we are declaring for the
+>>> mbigen
+>>>> is the same as the sum of interrupts for that mbigen's children.
+>>>>
+>>>> So at the point we probe the mbigen, can we just deference the
+>>> children
+>>>> to count their interrupts, and use this as the #msis?
+>>>>
+>>>>> Can't you use something like Agustin did in the QCOM combiner:
+>>>>>
+>>>>> drivers/irqchip/qcom-irq-combiner.c
+>>>>>
+>>>>> to detect the MSI vector length (ie by describing the MBIgen through
+>>>>> generic registers and use the bit width to compute the vector
+>>>>> lenght) ? I am not sure how feasible it is given that my knowledge
+>>>>> of MBIgen is pretty poor.
+>>>>>
+>>>>> I understand we want to avoid _DSD properties but we should not
+>>>>> work around standard bindings to achieve that goal.
+>>>>>
+>>>>
+>>>> We use "num-pins" for dt solution, but it is not so welcome here.
+>>>
+>>> Well, this device is already completely out of any standard description
+>>> on the ACPI side. And given that it bloats both the ACPI tables and the
+>>> kernel data structures, I can only suggest that you take advantage of
+>>> _DSD here, as misusing the standard properties is not something that we
+>>> should condone. It will also make the driver more manageable, as it
+>>> will
+>>> use similar properties on both firmware implementations.
+>>>
+>>> I feel like I need to stress the urgency here. We're at -rc4, and still
+>>> with unsolved issues. None of us want to miss the next merge window.
+>>>
+>>
+>> As follow up our guys would work on a solution whose ACPI table looks
+>> like the following one:
+>>
+>> For mbigen,
+>>     Device(MBI0) {
+>>           Name(_HID, "HISI0152")
+>>           Name(_UID, Zero)
+>>           Name(_CRS, ResourceTemplate() {
+>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+>>           })
+>>
+>>     Name(_DSD, Package () {
+>>       ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>>       Package ()
+>>       {
+>>         Package () {"num-pins", xxx}
+>>       }
+>>     })
+>>     }
 
-Yes. On ACPI the additional issue is, given that we now call
-*_dma_configure multiple times, we end up adding the _same_ stream
-id to an existing fwspec ids array which triggers the SMMUv3 driver bug,
-because we try to configure the same id twice (it does not happen
-in DT since you have a check similar to the one I added below).
+Please fix the indentation here; the ASL parser doesn't care, but I don't
+see '}'s as clearly as it does :).  In particular, _DSD usage *must* be for
+a device and it does not look like that if one doesn't carefully count all
+the parentheses and braces.
 
-ACPI fix(es) below please let me know if it actually fixes the issues:
+>>
+>> For devices,
+>>    Device(COM0) {
+>>           Name(_HID, "ACPIIDxx")
+>>           Name(_UID, Zero)
+>>           Name(_CRS, ResourceTemplate() {
+>>                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+>> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+>>           })
+>>     }
+>>
+>>
+>> Marc, Lorenzo if you are ok with the above we will submit v10 based on this...
+> 
+> I am ok with it. I am not 100% up-to-date on what's the status on _DSD
+> bindings/review/guidelines but it would be certainly a good idea to
+> kickstart the process for MBIgen which basically means following this
+> as far as I know (and post to the relevant mailing list):
+> 
+> https://github.com/ahs3/dsd/blob/master/documentation/process_rules.txt
 
--- >8 --
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 36a9abf..e7b1940 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -543,6 +543,14 @@ static const struct iommu_ops *iort_iommu_xlate(struct device *dev,
- 	const struct iommu_ops *ops = NULL;
- 	int ret = -ENODEV;
- 	struct fwnode_handle *iort_fwnode;
-+	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-+
-+	/*
-+	 * If we already translated the fwspec there
-+	 * is nothing left to do, return the iommu_ops.
-+	 */
-+	if (fwspec && fwspec->ops)
-+		return fwspec->ops;
- 
- 	if (node) {
- 		iort_fwnode = iort_get_fwnode(node);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 823b005..2a513cc 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1376,18 +1376,20 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
- int acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
- {
- 	const struct iommu_ops *iommu;
-+	u64 size;
- 
- 	iort_set_dma_mask(dev);
- 
- 	iommu = iort_iommu_configure(dev);
- 	if (IS_ERR(iommu))
- 		return PTR_ERR(iommu);
-+
-+	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
- 	/*
- 	 * Assume dma valid range starts at 0 and covers the whole
- 	 * coherent_dma_mask.
- 	 */
--	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
--			   attr == DEV_DMA_COHERENT);
-+	arch_setup_dma_ops(dev, 0, size, iommu, attr == DEV_DMA_COHERENT);
- 
- 	return 0;
- }
+So, let's correct this bit: consider that URL deprecated, please, and refer
+instead to the text that was agreed upon and in the kernel tree:
+
+	Documentation/acpi/DSD-properties-rules.txt
+
+> Al and Darren may add to that as they have more insights.
+
+Since this use of _DSD is very specific to this device, and this device
+only, I don't have any real objections.  I will say that "num-pins" is
+not terribly descriptive so it would be really good to either use a much
+more descriptive name or add plenty of commentary in the code -- and
+preferably both.  I would recommend including the ASL in the code comments,
+with a description of how the property is to be used and what it means.
+
+> I would like to send IORT patches to Catalin as soon as possible so
+> as Marc pointed out the sooner we sort this out the better.
+> 
+> Thanks,
+> Lorenzo
+> 
+
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
