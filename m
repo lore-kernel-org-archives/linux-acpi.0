@@ -1,40 +1,148 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 2/3] device property: Move fwnode graph ops to firmware
- specific locations
-Date: Mon, 27 Mar 2017 14:52:00 +0300
-Message-ID: <20170327115200.GB2957@lahna.fi.intel.com>
-References: <1490353432-12017-1-git-send-email-sakari.ailus@linux.intel.com>
- <1490353432-12017-2-git-send-email-sakari.ailus@linux.intel.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+Date: Mon, 27 Mar 2017 12:24:45 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E204C0AB7@FRAEML521-MBX.china.huawei.com>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+        <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
+        <20170321144521.GA4392@red-moon>
+        <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
+ <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1490353432-12017-2-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:35479 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753394AbdC0MZM (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2017 08:25:12 -0400
+In-Reply-To: <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, John Garry <john.garry@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Yimin (Leo)" <yimin@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "majun (F)" <majun258@huawei.com>
 
-On Fri, Mar 24, 2017 at 01:03:51PM +0200, Sakari Ailus wrote:
->  const struct fwnode_operations acpi_fwnode_ops = {
->  	.property_present = acpi_fwnode_property_present,
->  	.property_read_int_array = acpi_fwnode_property_read_int_array,
-> @@ -1193,4 +1248,9 @@ const struct fwnode_operations acpi_fwnode_ops = {
->  	.get_parent = acpi_fwnode_get_parent,
->  	.get_next_child_node = acpi_get_next_subnode,
->  	.get_named_child_node = acpi_fwnode_get_named_child_node,
-> +	.graph_get_next_endpoint = acpi_fwnode_graph_get_next_endpoint,
-> +	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
-> +	.graph_get_remote_port = acpi_fwnode_graph_get_remote_port,
-> +	.graph_get_remote_port_parent = acpi_fwnode_graph_get_remote_port_parent,
-> +	.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint,
->  };
+Hi Marc Many thanks for your comments
 
-Not sure if it is possible but it would be nice to have a single
-primitive implementation specific graph callback and then build
-everything else on top of that in generic code. Here you have 5
-callbacks just for graph support.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: linuxarm-bounces@huawei.com [mailto:linuxarm-bounces@huawei.com]
+> On Behalf Of Marc Zyngier
+> Sent: 27 March 2017 09:47
+> To: John Garry; Lorenzo Pieralisi; Guohanjun (Hanjun Guo)
+> Cc: Rafael J. Wysocki; Yimin (Leo); Greg KH; Linuxarm; linux-
+> kernel@vger.kernel.org; Sinan Kaya; linux-acpi@vger.kernel.org; Hanjun
+> Guo; Tomasz Nowicki; Thomas Gleixner; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+> 
+> Hanjun, John,
+> 
+> On 22/03/17 14:12, John Garry wrote:
+> > On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
+> >> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
+> >>> From: Hanjun Guo <hanjun.guo@linaro.org>
+> >>>
+> >>> With the preparation of platform msi support and interrupt producer
+> >>> in DSDT, we can add mbigen ACPI support now.
+> >>>
+> >>> We are using Interrupt resource type in _CRS methd to indicate
+> number
+> >>> of irq pins instead of num_pins in DT to avoid _DSD usage in this
+> case.
+> >>>
+> >>> For mbigen,
+> >>>     Device(MBI0) {
+> >>>           Name(_HID, "HISI0152")
+> >>>           Name(_UID, Zero)
+> >>>           Name(_CRS, ResourceTemplate() {
+> >>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+> >>> 		  Interrupt(ResourceProducer,...) {12,14,....}
+> >>
+> >> What do these interrupt numbers represent ? This looks wrong to me.
+> >> An interrupt descriptor is there to describe the interrupts a device
+> >> can generate; you are using it just to add a "standard" (that is
+> >> not standard at all) way of counting the number of vectors allocated
+> >> to this specific chip and that's just wrong.
+> >>
+> >
+> > As I understand, the count of interrupts we are declaring for the
+> mbigen
+> > is the same as the sum of interrupts for that mbigen's children.
+> >
+> > So at the point we probe the mbigen, can we just deference the
+> children
+> > to count their interrupts, and use this as the #msis?
+> >
+> >> Can't you use something like Agustin did in the QCOM combiner:
+> >>
+> >> drivers/irqchip/qcom-irq-combiner.c
+> >>
+> >> to detect the MSI vector length (ie by describing the MBIgen through
+> >> generic registers and use the bit width to compute the vector
+> >> lenght) ? I am not sure how feasible it is given that my knowledge
+> >> of MBIgen is pretty poor.
+> >>
+> >> I understand we want to avoid _DSD properties but we should not
+> >> work around standard bindings to achieve that goal.
+> >>
+> >
+> > We use "num-pins" for dt solution, but it is not so welcome here.
+> 
+> Well, this device is already completely out of any standard description
+> on the ACPI side. And given that it bloats both the ACPI tables and the
+> kernel data structures, I can only suggest that you take advantage of
+> _DSD here, as misusing the standard properties is not something that we
+> should condone. It will also make the driver more manageable, as it
+> will
+> use similar properties on both firmware implementations.
+> 
+> I feel like I need to stress the urgency here. We're at -rc4, and still
+> with unsolved issues. None of us want to miss the next merge window.
+> 
+
+As follow up our guys would work on a solution whose ACPI table looks
+like the following one:
+
+For mbigen,
+    Device(MBI0) {
+          Name(_HID, "HISI0152")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+          })
+
+    Name(_DSD, Package () {
+      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+      Package ()
+      {
+        Package () {"num-pins", xxx}
+      }
+    })
+    }
+
+For devices,
+   Device(COM0) {
+          Name(_HID, "ACPIIDxx")
+          Name(_UID, Zero)
+          Name(_CRS, ResourceTemplate() {
+                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
+		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
+          })
+    }
+
+
+Marc, Lorenzo if you are ok with the above we will submit v10 based on this...
+
+Many Thanks
+Gab
+
+
+> Thanks,
+> 
+> 	M.
+> --
+> Jazz is not dead. It just smells funny...
+> _______________________________________________
+> linuxarm mailing list
+> linuxarm@huawei.com
+> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
