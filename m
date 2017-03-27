@@ -1,148 +1,148 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
-Date: Mon, 27 Mar 2017 12:24:45 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E204C0AB7@FRAEML521-MBX.china.huawei.com>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
-        <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
-        <20170321144521.GA4392@red-moon>
-        <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
- <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
+From: Juri Lelli <juri.lelli@arm.com>
+Subject: [ANNOUNCE] OSPM-summit is on next Monday
+Date: Mon, 27 Mar 2017 14:25:35 +0100
+Message-ID: <20170327132535.GJ10289@e106622-lin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:35479 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753394AbdC0MZM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2017 08:25:12 -0400
-In-Reply-To: <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
-Content-Language: en-US
+Received: from foss.arm.com ([217.140.101.70]:34932 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752975AbdC0NZW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Mar 2017 09:25:22 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, John Garry <john.garry@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Yimin (Leo)" <yimin@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "majun (F)" <majun258@huawei.com>
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, juri.lelli@arm.com, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@>
 
-Hi Marc Many thanks for your comments
+Hi,
 
-> -----Original Message-----
-> From: linuxarm-bounces@huawei.com [mailto:linuxarm-bounces@huawei.com]
-> On Behalf Of Marc Zyngier
-> Sent: 27 March 2017 09:47
-> To: John Garry; Lorenzo Pieralisi; Guohanjun (Hanjun Guo)
-> Cc: Rafael J. Wysocki; Yimin (Leo); Greg KH; Linuxarm; linux-
-> kernel@vger.kernel.org; Sinan Kaya; linux-acpi@vger.kernel.org; Hanjun
-> Guo; Tomasz Nowicki; Thomas Gleixner; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
-> 
-> Hanjun, John,
-> 
-> On 22/03/17 14:12, John Garry wrote:
-> > On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
-> >> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
-> >>> From: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>
-> >>> With the preparation of platform msi support and interrupt producer
-> >>> in DSDT, we can add mbigen ACPI support now.
-> >>>
-> >>> We are using Interrupt resource type in _CRS methd to indicate
-> number
-> >>> of irq pins instead of num_pins in DT to avoid _DSD usage in this
-> case.
-> >>>
-> >>> For mbigen,
-> >>>     Device(MBI0) {
-> >>>           Name(_HID, "HISI0152")
-> >>>           Name(_UID, Zero)
-> >>>           Name(_CRS, ResourceTemplate() {
-> >>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-> >>> 		  Interrupt(ResourceProducer,...) {12,14,....}
-> >>
-> >> What do these interrupt numbers represent ? This looks wrong to me.
-> >> An interrupt descriptor is there to describe the interrupts a device
-> >> can generate; you are using it just to add a "standard" (that is
-> >> not standard at all) way of counting the number of vectors allocated
-> >> to this specific chip and that's just wrong.
-> >>
-> >
-> > As I understand, the count of interrupts we are declaring for the
-> mbigen
-> > is the same as the sum of interrupts for that mbigen's children.
-> >
-> > So at the point we probe the mbigen, can we just deference the
-> children
-> > to count their interrupts, and use this as the #msis?
-> >
-> >> Can't you use something like Agustin did in the QCOM combiner:
-> >>
-> >> drivers/irqchip/qcom-irq-combiner.c
-> >>
-> >> to detect the MSI vector length (ie by describing the MBIgen through
-> >> generic registers and use the bit width to compute the vector
-> >> lenght) ? I am not sure how feasible it is given that my knowledge
-> >> of MBIgen is pretty poor.
-> >>
-> >> I understand we want to avoid _DSD properties but we should not
-> >> work around standard bindings to achieve that goal.
-> >>
-> >
-> > We use "num-pins" for dt solution, but it is not so welcome here.
-> 
-> Well, this device is already completely out of any standard description
-> on the ACPI side. And given that it bloats both the ACPI tables and the
-> kernel data structures, I can only suggest that you take advantage of
-> _DSD here, as misusing the standard properties is not something that we
-> should condone. It will also make the driver more manageable, as it
-> will
-> use similar properties on both firmware implementations.
-> 
-> I feel like I need to stress the urgency here. We're at -rc4, and still
-> with unsolved issues. None of us want to miss the next merge window.
-> 
+we are only a week away from the OSPM-summit!
 
-As follow up our guys would work on a solution whose ACPI table looks
-like the following one:
+Pack your bags (or stay tuned for the live streaming).
 
-For mbigen,
-    Device(MBI0) {
-          Name(_HID, "HISI0152")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-          })
+Don't forget to subscribe to the summit mailing list to receive updates by
+either following the instructions available at the following link
+http://groups.google.com/group/ospm-summit-2017/boxsubscribe?email=<your_email>
+or sending an email to ospm-summit-2017+subscribe@googlegroups.com
 
-    Name(_DSD, Package () {
-      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-      Package ()
-      {
-        Package () {"num-pins", xxx}
-      }
-    })
-    }
+Archives are available at https://groups.google.com/forum/#!forum/ospm-summit-2017
 
-For devices,
-   Device(COM0) {
-          Name(_HID, "ACPIIDxx")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
-          })
-    }
+More information about schedule and logistics follow.
+
+---
+
+Power Management and Scheduling in the Linux Kernel (OSPM-summit)
+April 3-4, 2017
+Scuola Superiore Sant'Anna (SSSA)
+Pisa, Italy
+http://retis.sssup.it/ospm-summit/
+
+---
+
+.:: FOCUS
+
+Power management and scheduling techniques to reduce energy consumption while
+meeting performance and latency requirements are receiving considerable
+attention from the Linux Kernel development community. 
+
+The Power Management and Scheduling in the Linux Kernel (OSPM-summit) summit
+aims at fostering further interest and discussion to happen.
+
+.:: SCHEDULE
+
+The summit is organized to cover two days of discussions and talks.
+
+What follows is a tentative schedule, subject to last minute changes.
+Find more info and real time updates on this shared document:
+https://docs.google.com/spreadsheets/d/1B-IsUIGitvRa7ZzppEAJBMgGpIgRAAnu_OhDAGYg6SQ/edit?usp=sharing
+
+Monday (2017-04-03)
+*******************
+09:00AM - 09:30AM	Welcome and Introduction (DAY 1)
+---
+09:30AM - 10:20AM	Tooling/LISA
+---
+10:20AM - 11:10AM	About The Need to Power Instrument The Linux Kernel
+---
+11:10AM - 11:20AM	Break
+---
+11:20AM - 12:10AM	What are the latest evolutions in PELT and what next
+---
+12:10AM - 01:00PM	PELT decay clamping/UTIL_EST
+---
+01:00PM - 02:30PM	Lunch
+---
+02:30PM - 03:20PM	EAS where we are
+---	
+03:20PM - 04:10PM	Energy model/Exotic topologies
+---					
+04:10PM - 04:20PM	Break
+---
+04:20PM - 05:10PM	Schedtune
+---					
+05:10PM - 06:00PM	SCHED_DEADLINE and reclaiming
 
 
-Marc, Lorenzo if you are ok with the above we will submit v10 based on this...
+Tuesday (2017-04-04)
+********************
+09:00AM - 09:30AM	Welcome and Introduction (DAY 2)
+---
+09:30AM - 10:20AM	Discussion about possible improvements in the schedutil governor
+---
+10:20AM - 11:10AM	Schedutil for SCHED_DEADLINE
+---
+11:10AM - 11:20AM	Break
+---
+11:20AM - 12:10AM	Parameterizing CFS load balancing: nr_running/util/load
+---					
+12:10AM - 01:00PM	Tracepoints for PELT
+---
+01:00PM - 02:30PM	Lunch
+---			
+02:30PM - 03:20PM	IRQ prediction
+---		
+03:20PM - 04:10PM	I/O scheduling and power management with storage devices
+---					
+04:10PM - 04:20PM	Break
+---
+04:20PM - 05:10PM	SCHED_DEADLINE group scheduling
+---					
+05:10PM - 06:00PM	A Hierarchical Scheduling Model for Dynamic Soft-Realtime Systems
+---
+06:00PM - 06:30PM	Closing Remarks				
 
-Many Thanks
-Gab
+We are looking into setting up live streaming of the sessions. Details
+will be soon shared through the shared doc mentioned above and the
+event mailing list.
 
+List of attendees is also available in the doc and on the event website.
 
-> Thanks,
-> 
-> 	M.
-> --
-> Jazz is not dead. It just smells funny...
-> _______________________________________________
-> linuxarm mailing list
-> linuxarm@huawei.com
-> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
+.:: VENUE
+
+The workshop will take place at ReTiS Lab*, Scuola Superiore Sant'Anna, Pisa,
+Italy. Pisa is a small town, walking distance from the city center to the venue
+is 20 minutes, walking distance from the airport to the city center is 30
+minutes. More details are available from the summit web page:
+http://retis.sssup.it/ospm-summit/
+
+A map of the town with venue location, points of interest and
+transportation information is available at:
+https://drive.google.com/open?id=1ANKOXr2cuZkABXskDurgrGdl_js&usp=sharing
+
+Bus from Airport to city centre takes about 10 min and costs 1.20 euros
+(2 euros if bought on board). Large bills are usually not accepted.
+
+Taxi from Airport to city centre costs 10/15 euros. Credit cards are not
+accepted.
+
+.:: ORGANIZERS (in alphabetical order)
+
+Luca Abeni (SSSA)
+Patrick Bellasi (ARM)
+Tommaso Cucinotta (SSSA)
+Dietmar Eggemann (ARM)
+Sudeep Holla (ARM)
+Juri Lelli (ARM)
+Lorenzo Pieralisi (ARM)
+Morten Rasmussen (ARM)
