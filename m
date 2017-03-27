@@ -1,189 +1,90 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH v3 1/3] mfd: intel_soc_pmic: Fix a mess with compilation
- units
-Date: Mon, 27 Mar 2017 10:14:42 +0800
-Message-ID: <1490580882.2587.1.camel@intel.com>
-References: <20170317153715.48555-1-andriy.shevchenko@linux.intel.com>
-         <20170323121252.vi7oggwr6bfghe3b@dell>
-         <1490531879.708.8.camel@linux.intel.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
+Date: Mon, 27 Mar 2017 09:46:43 +0100
+Message-ID: <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
+ <20170321144521.GA4392@red-moon>
+ <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1490531879.708.8.camel@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Eduardo Valentin <edubezval@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: John Garry <john.garry@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <guohanjun@huawei.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, linuxarm@huawei.com, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2017-03-26 at 15:37 +0300, Andy Shevchenko wrote:
-> On Thu, 2017-03-23 at 12:12 +0000, Lee Jones wrote:
-> > 
-> > On Fri, 17 Mar 2017, Andy Shevchenko wrote:
-> > 
-> > > 
-> > > Crystal Cove and Whiskey Cove are two different PMICs which are
-> > > installed on Intel Atom SoC based platforms.
-> > > 
-> > > Moreover there are two independent drivers that by some reason
-> > > were
-> > > supposed (*) to get into one kernel module.
-> > > 
-> > > Fix the mess by clarifying Kconfig option for Crystal Cove and
-> > > split
-> > > Whiskey Cove out of it.
-> > > 
-> > > (*) It looks like the configuration was never tested with
-> > >     INTEL_SOC_PMIC=n. The line in Makefile is actually wrong.
-> > > 
-> > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-> > > Cc: Linus Walleij <linus.walleij@linaro.org> (maintainer:GPIO
-> > > SUBSYSTEM)
-> > > Cc: Zhang Rui <rui.zhang@intel.com> (supporter:THERMAL)
-> > > Cc: Eduardo Valentin <edubezval@gmail.com> (supporter:THERMAL)
-> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com
-> > > >
-> > > ---
-> > > - make option visible
-> > > - fix dependencies
-> > >  drivers/acpi/Kconfig         |  2 +-
-> > This needs an ACPI Ack before I can do anything with it.
-> Rafael, can you give you tag?
+Hanjun, John,
+
+On 22/03/17 14:12, John Garry wrote:
+> On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
+>> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
+>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>
+>>> With the preparation of platform msi support and interrupt producer
+>>> in DSDT, we can add mbigen ACPI support now.
+>>>
+>>> We are using Interrupt resource type in _CRS methd to indicate number
+>>> of irq pins instead of num_pins in DT to avoid _DSD usage in this case.
+>>>
+>>> For mbigen,
+>>>     Device(MBI0) {
+>>>           Name(_HID, "HISI0152")
+>>>           Name(_UID, Zero)
+>>>           Name(_CRS, ResourceTemplate() {
+>>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
+>>> 		  Interrupt(ResourceProducer,...) {12,14,....}
+>>
+>> What do these interrupt numbers represent ? This looks wrong to me.
+>> An interrupt descriptor is there to describe the interrupts a device
+>> can generate; you are using it just to add a "standard" (that is
+>> not standard at all) way of counting the number of vectors allocated
+>> to this specific chip and that's just wrong.
+>>
 > 
-> > 
-> > 
-> > > 
-> > >  drivers/gpio/Kconfig         |  2 +-
-> > >  drivers/mfd/Kconfig          | 14 ++++++++++++--
-> > >  drivers/mfd/Makefile         |  2 +-
-> > >  drivers/platform/x86/Kconfig |  2 +-
-> > > 
+> As I understand, the count of interrupts we are declaring for the mbigen 
+> is the same as the sum of interrupts for that mbigen's children.
+> 
+> So at the point we probe the mbigen, can we just deference the children 
+> to count their interrupts, and use this as the #msis?
+> 
+>> Can't you use something like Agustin did in the QCOM combiner:
+>>
+>> drivers/irqchip/qcom-irq-combiner.c
+>>
+>> to detect the MSI vector length (ie by describing the MBIgen through
+>> generic registers and use the bit width to compute the vector
+>> lenght) ? I am not sure how feasible it is given that my knowledge
+>> of MBIgen is pretty poor.
+>>
+>> I understand we want to avoid _DSD properties but we should not
+>> work around standard bindings to achieve that goal.
+>>
+> 
+> We use "num-pins" for dt solution, but it is not so welcome here.
 
-> > >  drivers/thermal/Kconfig      |  2 +-
+Well, this device is already completely out of any standard description
+on the ACPI side. And given that it bloats both the ACPI tables and the
+kernel data structures, I can only suggest that you take advantage of
+_DSD here, as misusing the standard properties is not something that we
+should condone. It will also make the driver more manageable, as it will
+use similar properties on both firmware implementations.
 
-For the thermal part,
-Acked-by: Zhang Rui <rui.zhang@intel.com>
+I feel like I need to stress the urgency here. We're at -rc4, and still
+with unsolved issues. None of us want to miss the next merge window.
 
-thanks,
-rui
-> > >  6 files changed, 17 insertions(+), 7 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > > index 83e5f7e1a20d..03708e08fcb4 100644
-> > > --- a/drivers/acpi/Kconfig
-> > > +++ b/drivers/acpi/Kconfig
-> > > @@ -512,7 +512,7 @@ config XPOWER_PMIC_OPREGION
-> > >  
-> > >  config BXT_WC_PMIC_OPREGION
-> > >  	bool "ACPI operation region support for BXT WhiskeyCove
-> > > PMIC"
-> > > -	depends on INTEL_SOC_PMIC
-> > > +	depends on INTEL_SOC_PMIC_BXTWC
-> > >  	help
-> > >  	  This config adds ACPI operation region support for BXT
-> > > WhiskeyCove PMIC.
-> > >  
-> > > diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-> > > index 05043071fc98..9b1bcb4d0df7 100644
-> > > --- a/drivers/gpio/Kconfig
-> > > +++ b/drivers/gpio/Kconfig
-> > > @@ -1054,7 +1054,7 @@ config GPIO_UCB1400
-> > >  
-> > >  config GPIO_WHISKEY_COVE
-> > >  	tristate "GPIO support for Whiskey Cove PMIC"
-> > > -	depends on (X86 || COMPILE_TEST) && INTEL_SOC_PMIC
-> > > +	depends on (X86 || COMPILE_TEST) && INTEL_SOC_PMIC_BXTWC
-> > >  	select GPIOLIB_IRQCHIP
-> > >  	help
-> > >  	  Support for GPIO pins on Whiskey Cove PMIC.
-> > > diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> > > index 55ecdfb74d31..e43afb8956ea 100644
-> > > --- a/drivers/mfd/Kconfig
-> > > +++ b/drivers/mfd/Kconfig
-> > > @@ -425,18 +425,28 @@ config LPC_SCH
-> > >  	  System Management Bus and General Purpose I/O.
-> > >  
-> > >  config INTEL_SOC_PMIC
-> > > -	bool "Support for Intel Atom SoC PMIC"
-> > > +	bool "Support for Crystal Cove PMIC"
-> > >  	depends on GPIOLIB
-> > >  	depends on I2C=y
-> > >  	select MFD_CORE
-> > >  	select REGMAP_I2C
-> > >  	select REGMAP_IRQ
-> > >  	help
-> > > -	  Select this option to enable support for the PMIC
-> > > device
-> > > +	  Select this option to enable support for Crystal Cove
-> > > PMIC
-> > >  	  on some Intel SoC systems. The PMIC provides ADC,
-> > > GPIO,
-> > >  	  thermal, charger and related power management
-> > > functions
-> > >  	  on these systems.
-> > >  
-> > > +config INTEL_SOC_PMIC_BXTWC
-> > > +	tristate "Support for Intel Broxton Whiskey Cove PMIC"
-> > > +	select MFD_CORE
-> > > +	select REGMAP_IRQ
-> > > +	help
-> > > +	  Select this option to enable support for Whiskey Cove
-> > > PMIC
-> > > +	  on Intel Broxton systems. The PMIC provides ADC, GPIO,
-> > > +	  thermal, charger and related power management
-> > > functions
-> > > +	  on these systems.
-> > > +
-> > >  config MFD_INTEL_LPSS
-> > >  	tristate
-> > >  	select COMMON_CLK
-> > > diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-> > > index 31ce07611a6f..201aeaf5112a 100644
-> > > --- a/drivers/mfd/Makefile
-> > > +++ b/drivers/mfd/Makefile
-> > > @@ -207,8 +207,8 @@ obj-$(CONFIG_MFD_RT5033)	+= rt5033.o
-> > >  obj-$(CONFIG_MFD_SKY81452)	+= sky81452.o
-> > >  
-> > >  intel-soc-pmic-objs		:= intel_soc_pmic_core.o
-> > > intel_soc_pmic_crc.o
-> > > -intel-soc-pmic-$(CONFIG_INTEL_PMC_IPC)	+=
-> > > intel_soc_pmic_bxtwc.o
-> > >  obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
-> > > +obj-$(CONFIG_INTEL_SOC_PMIC_BXTWC)	+=
-> > > intel_soc_pmic_bxtwc.o
-> > >  obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
-> > >  
-> > >  obj-$(CONFIG_MFD_ALTERA_A10SR)	+= altera-a10sr.o
-> > > diff --git a/drivers/platform/x86/Kconfig
-> > > b/drivers/platform/x86/Kconfig
-> > > index e1bffc9bb194..883fbe7a2466 100644
-> > > --- a/drivers/platform/x86/Kconfig
-> > > +++ b/drivers/platform/x86/Kconfig
-> > > @@ -1019,7 +1019,7 @@ config INTEL_PMC_IPC
-> > >  config INTEL_BXTWC_PMIC_TMU
-> > >  	tristate "Intel BXT Whiskey Cove TMU Driver"
-> > >  	depends on REGMAP
-> > > -	depends on INTEL_SOC_PMIC && INTEL_PMC_IPC
-> > > +	depends on INTEL_SOC_PMIC_BXTWC && INTEL_PMC_IPC
-> > >  	---help---
-> > >  	  Select this driver to use Intel BXT Whiskey Cove PMIC
-> > > TMU
-> > > feature.
-> > >  	  This driver enables the alarm wakeup functionality in
-> > > the
-> > > TMU unit
-> > > diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> > > index 776b34396144..751e50a3d946 100644
-> > > --- a/drivers/thermal/Kconfig
-> > > +++ b/drivers/thermal/Kconfig
-> > > @@ -365,7 +365,7 @@ endmenu
-> > >  
-> > >  config INTEL_BXT_PMIC_THERMAL
-> > >  	tristate "Intel Broxton PMIC thermal driver"
-> > > -	depends on X86 && INTEL_SOC_PMIC && REGMAP
-> > > +	depends on X86 && INTEL_SOC_PMIC_BXTWC && REGMAP
-> > >  	help
-> > >  	  Select this driver for Intel Broxton PMIC with ADC
-> > > channels monitoring
-> > >  	  system temperature measurements and alerts.
-> > 
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
