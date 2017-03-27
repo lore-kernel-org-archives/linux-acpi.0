@@ -1,187 +1,258 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
-Date: Mon, 27 Mar 2017 12:56:19 -0600
-Message-ID: <6ea7e293-bde4-3c22-a987-cec1843da39b@redhat.com>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
- <1488890410-15503-16-git-send-email-guohanjun@huawei.com>
- <20170321144521.GA4392@red-moon>
- <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com>
- <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E204C0AB7@FRAEML521-MBX.china.huawei.com>
- <20170327152702.GB12092@red-moon>
-Reply-To: ahs3@redhat.com
+From: dann frazier <dann.frazier@canonical.com>
+Subject: Re: [PATCH V7 2/7] PCI: Apply the new generic I/O management on PCI
+ IO hosts
+Date: Mon, 27 Mar 2017 13:46:08 -0600
+Message-ID: <CALdTtns5TBaJvT-_OSmqXzdMJBRj_q3OxEFFa-vLnYmOxi6TuQ@mail.gmail.com>
+References: <1489372963-9000-1-git-send-email-yuanzhichang@hisilicon.com> <1489372963-9000-3-git-send-email-yuanzhichang@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f170.google.com ([209.85.216.170]:33939 "EHLO
-        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751522AbdC0TEA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2017 15:04:00 -0400
-Received: by mail-qt0-f170.google.com with SMTP id n21so46123645qta.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Mar 2017 12:03:58 -0700 (PDT)
-In-Reply-To: <20170327152702.GB12092@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1489372963-9000-3-git-send-email-yuanzhichang@hisilicon.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, frowand.list@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, rafael@kernel.org, Mark Rutland <mark.rutland@arm.com>, rjw@rjwysocki.net, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, lorenzo.pieralisi@arm.com, benh@kernel.crashing.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-pci@vger.kernel.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, minyard@acm.org, liviu.dudau@arm.com, zourongrong@gmail.com, john.garry@huawei.com, gabriele.paoloni@huawei.com, zhich
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Yimin (Leo)" <yimin@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "majun (F)" <majun258@huawei.com>, dvhart@infradead.org
 
-On 03/27/2017 09:27 AM, Lorenzo Pieralisi wrote:
-> [+Al,Darren to comment on _DSD review process]
-> 
-> On Mon, Mar 27, 2017 at 12:24:45PM +0000, Gabriele Paoloni wrote:
->> Hi Marc Many thanks for your comments
->>
->>> -----Original Message-----
->>> From: linuxarm-bounces@huawei.com [mailto:linuxarm-bounces@huawei.com]
->>> On Behalf Of Marc Zyngier
->>> Sent: 27 March 2017 09:47
->>> To: John Garry; Lorenzo Pieralisi; Guohanjun (Hanjun Guo)
->>> Cc: Rafael J. Wysocki; Yimin (Leo); Greg KH; Linuxarm; linux-
->>> kernel@vger.kernel.org; Sinan Kaya; linux-acpi@vger.kernel.org; Hanjun
->>> Guo; Tomasz Nowicki; Thomas Gleixner; linux-arm-
->>> kernel@lists.infradead.org
->>> Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
->>>
->>> Hanjun, John,
->>>
->>> On 22/03/17 14:12, John Garry wrote:
->>>> On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
->>>>> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
->>>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>>>>
->>>>>> With the preparation of platform msi support and interrupt producer
->>>>>> in DSDT, we can add mbigen ACPI support now.
->>>>>>
->>>>>> We are using Interrupt resource type in _CRS methd to indicate
->>> number
->>>>>> of irq pins instead of num_pins in DT to avoid _DSD usage in this
->>> case.
->>>>>>
->>>>>> For mbigen,
->>>>>>     Device(MBI0) {
->>>>>>           Name(_HID, "HISI0152")
->>>>>>           Name(_UID, Zero)
->>>>>>           Name(_CRS, ResourceTemplate() {
->>>>>>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->>>>>> 		  Interrupt(ResourceProducer,...) {12,14,....}
->>>>>
->>>>> What do these interrupt numbers represent ? This looks wrong to me.
->>>>> An interrupt descriptor is there to describe the interrupts a device
->>>>> can generate; you are using it just to add a "standard" (that is
->>>>> not standard at all) way of counting the number of vectors allocated
->>>>> to this specific chip and that's just wrong.
->>>>>
->>>>
->>>> As I understand, the count of interrupts we are declaring for the
->>> mbigen
->>>> is the same as the sum of interrupts for that mbigen's children.
->>>>
->>>> So at the point we probe the mbigen, can we just deference the
->>> children
->>>> to count their interrupts, and use this as the #msis?
->>>>
->>>>> Can't you use something like Agustin did in the QCOM combiner:
->>>>>
->>>>> drivers/irqchip/qcom-irq-combiner.c
->>>>>
->>>>> to detect the MSI vector length (ie by describing the MBIgen through
->>>>> generic registers and use the bit width to compute the vector
->>>>> lenght) ? I am not sure how feasible it is given that my knowledge
->>>>> of MBIgen is pretty poor.
->>>>>
->>>>> I understand we want to avoid _DSD properties but we should not
->>>>> work around standard bindings to achieve that goal.
->>>>>
->>>>
->>>> We use "num-pins" for dt solution, but it is not so welcome here.
->>>
->>> Well, this device is already completely out of any standard description
->>> on the ACPI side. And given that it bloats both the ACPI tables and the
->>> kernel data structures, I can only suggest that you take advantage of
->>> _DSD here, as misusing the standard properties is not something that we
->>> should condone. It will also make the driver more manageable, as it
->>> will
->>> use similar properties on both firmware implementations.
->>>
->>> I feel like I need to stress the urgency here. We're at -rc4, and still
->>> with unsolved issues. None of us want to miss the next merge window.
->>>
->>
->> As follow up our guys would work on a solution whose ACPI table looks
->> like the following one:
->>
->> For mbigen,
->>     Device(MBI0) {
->>           Name(_HID, "HISI0152")
->>           Name(_UID, Zero)
->>           Name(_CRS, ResourceTemplate() {
->>                   Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->>           })
->>
->>     Name(_DSD, Package () {
->>       ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>       Package ()
->>       {
->>         Package () {"num-pins", xxx}
->>       }
->>     })
->>     }
+On Sun, Mar 12, 2017 at 8:42 PM, zhichang.yuan
+<yuanzhichang@hisilicon.com> wrote:
+> After introducing the new generic I/O space management(LIBIO), the original PCI
+> MMIO relevant helpers need to be updated based on the new interfaces defined in
+> LIBIO.
+> This patch adapts the corresponding code to match the changes introduced by
+> LIBIO.
+> Signed-off-by: zhichang.yuan <yuanzhichang@hisilicon.com>
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>        #earlier draft
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>       #drivers/pci parts
+> ---
+>  drivers/acpi/pci_root.c |  8 +++--
+>  drivers/of/address.c    |  4 ++-
+>  drivers/pci/pci.c       | 96 +++++++++++--------------------------------------
+>  include/linux/pci.h     |  3 +-
+>  4 files changed, 30 insertions(+), 81 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 919be0a..4d8cc24 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -730,7 +730,8 @@ static void acpi_pci_root_validate_resources(struct device *dev,
+>         }
+>  }
+>
+> -static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
+> +static void acpi_pci_root_remap_iospace(struct fwnode_handle *fwnode,
+> +                       struct resource_entry *entry)
+>  {
+>  #ifdef PCI_IOBASE
+>         struct resource *res = entry->res;
+> @@ -739,7 +740,7 @@ static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
+>         resource_size_t length = resource_size(res);
+>         unsigned long port;
+>
+> -       if (pci_register_io_range(cpu_addr, length))
+> +       if (pci_register_io_range(fwnode, cpu_addr, length))
+>                 goto err;
+>
+>         port = pci_address_to_pio(cpu_addr);
+> @@ -781,7 +782,8 @@ int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
+>         else {
+>                 resource_list_for_each_entry_safe(entry, tmp, list) {
+>                         if (entry->res->flags & IORESOURCE_IO)
+> -                               acpi_pci_root_remap_iospace(entry);
+> +                               acpi_pci_root_remap_iospace(&device->fwnode,
+> +                                               entry);
+>
+>                         if (entry->res->flags & IORESOURCE_DISABLED)
+>                                 resource_list_destroy_entry(entry);
+> diff --git a/drivers/of/address.c b/drivers/of/address.c
+> index 02b2903..fb5d16a 100644
+> --- a/drivers/of/address.c
+> +++ b/drivers/of/address.c
+> @@ -2,6 +2,7 @@
+>  #define pr_fmt(fmt)    "OF: " fmt
+>
+>  #include <linux/device.h>
+> +#include <linux/fwnode.h>
+>  #include <linux/io.h>
+>  #include <linux/ioport.h>
+>  #include <linux/module.h>
+> @@ -323,7 +324,8 @@ int of_pci_range_to_resource(struct of_pci_range *range,
+>
+>         if (res->flags & IORESOURCE_IO) {
+>                 unsigned long port;
+> -               err = pci_register_io_range(range->cpu_addr, range->size);
+> +               err = pci_register_io_range(&np->fwnode, range->cpu_addr,
+> +                               range->size);
+>                 if (err)
+>                         goto invalid_range;
+>                 port = pci_address_to_pio(range->cpu_addr);
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 7904d02..079319f 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -3238,65 +3238,37 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
+>  }
+>  EXPORT_SYMBOL(pci_request_regions_exclusive);
+>
+> -#ifdef PCI_IOBASE
+> -struct io_range {
+> -       struct list_head list;
+> -       phys_addr_t start;
+> -       resource_size_t size;
+> -};
+> -
+> -static LIST_HEAD(io_range_list);
+> -static DEFINE_SPINLOCK(io_range_lock);
+> -#endif
+> -
+>  /*
+>   * Record the PCI IO range (expressed as CPU physical address + size).
+>   * Return a negative value if an error has occured, zero otherwise
+>   */
+> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+> +int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t addr,
+> +                       resource_size_t size)
+>  {
+>         int err = 0;
+>
+>  #ifdef PCI_IOBASE
+> -       struct io_range *range;
+> -       resource_size_t allocated_size = 0;
+> -
+> -       /* check if the range hasn't been previously recorded */
+> -       spin_lock(&io_range_lock);
+> -       list_for_each_entry(range, &io_range_list, list) {
+> -               if (addr >= range->start && addr + size <= range->start + size) {
+> -                       /* range already registered, bail out */
+> -                       goto end_register;
+> -               }
+> -               allocated_size += range->size;
+> -       }
+> -
+> -       /* range not registed yet, check for available space */
+> -       if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
+> -               /* if it's too big check if 64K space can be reserved */
+> -               if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
+> -                       err = -E2BIG;
+> -                       goto end_register;
+> -               }
+> +       struct libio_range *range, *tmprange;
+>
+> -               size = SZ_64K;
+> -               pr_warn("Requested IO range too big, new size set to 64K\n");
+> -       }
+> +       if (!size || addr + size < addr)
+> +               return -EINVAL;
+>
+> -       /* add the range to the list */
+> -       range = kzalloc(sizeof(*range), GFP_ATOMIC);
+> -       if (!range) {
+> -               err = -ENOMEM;
+> -               goto end_register;
+> -       }
+> +       WARN_ON(!PAGE_ALIGNED(addr) || !PAGE_ALIGNED(size));
+>
+> -       range->start = addr;
+> +       range = kzalloc(sizeof(*range), GFP_KERNEL);
+> +       if (!range)
+> +               return -ENOMEM;
+> +       range->node = fwnode;
+> +       range->flags = IO_CPU_MMIO;
+>         range->size = size;
+> +       range->hw_start = addr;
+>
+> -       list_add_tail(&range->list, &io_range_list);
+> -
+> -end_register:
+> -       spin_unlock(&io_range_lock);
+> +       tmprange = register_libio_range(range);
+> +       if (tmprange != range) {
+> +               kfree(range);
+> +               if (!IS_ERR(tmprange))
+> +                       err = 0;
+> +       }
+>  #endif
+>
+>         return err;
+> @@ -3307,21 +3279,10 @@ phys_addr_t pci_pio_to_address(unsigned long pio)
+>         phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
+>
+>  #ifdef PCI_IOBASE
+> -       struct io_range *range;
+> -       resource_size_t allocated_size = 0;
+> -
+>         if (pio > IO_SPACE_LIMIT)
+>                 return address;
+>
+> -       spin_lock(&io_range_lock);
+> -       list_for_each_entry(range, &io_range_list, list) {
+> -               if (pio >= allocated_size && pio < allocated_size + range->size) {
+> -                       address = range->start + pio - allocated_size;
+> -                       break;
+> -               }
+> -               allocated_size += range->size;
+> -       }
+> -       spin_unlock(&io_range_lock);
+> +       address = libio_to_hwaddr(pio);
+>  #endif
+>
+>         return address;
+> @@ -3330,25 +3291,8 @@ phys_addr_t pci_pio_to_address(unsigned long pio)
+>  unsigned long __weak pci_address_to_pio(phys_addr_t address)
+>  {
+>  #ifdef PCI_IOBASE
+> -       struct io_range *res;
+> -       resource_size_t offset = 0;
+> -       unsigned long addr = -1;
+> -
+> -       spin_lock(&io_range_lock);
+> -       list_for_each_entry(res, &io_range_list, list) {
+> -               if (address >= res->start && address < res->start + res->size) {
+> -                       addr = address - res->start + offset;
+> -                       break;
+> -               }
+> -               offset += res->size;
+> -       }
+> -       spin_unlock(&io_range_lock);
+> -
+> -       return addr;
+> +       return libio_translate_cpuaddr(address);
+>  #else
+> -       if (address > IO_SPACE_LIMIT)
+> -               return (unsigned long)-1;
+> -
+>         return (unsigned long) address;
+>  #endif
+>  }
 
-Please fix the indentation here; the ASL parser doesn't care, but I don't
-see '}'s as clearly as it does :).  In particular, _DSD usage *must* be for
-a device and it does not look like that if one doesn't carefully count all
-the parentheses and braces.
+fyi, this fails to build if PCI_IOBASE is defined and CONFIG_LIBIO=n:
 
->>
->> For devices,
->>    Device(COM0) {
->>           Name(_HID, "ACPIIDxx")
->>           Name(_UID, Zero)
->>           Name(_CRS, ResourceTemplate() {
->>                  Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
->> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
->>           })
->>     }
->>
->>
->> Marc, Lorenzo if you are ok with the above we will submit v10 based on this...
-> 
-> I am ok with it. I am not 100% up-to-date on what's the status on _DSD
-> bindings/review/guidelines but it would be certainly a good idea to
-> kickstart the process for MBIgen which basically means following this
-> as far as I know (and post to the relevant mailing list):
-> 
-> https://github.com/ahs3/dsd/blob/master/documentation/process_rules.txt
+drivers/built-in.o: In function `pci_register_io_range':
+/home/ubuntu/linux-4.10.0/drivers/pci/pci.c:3266: undefined reference
+to `register_libio_range'
+drivers/built-in.o: In function `pci_pio_to_address':
+/home/ubuntu/linux-4.10.0/drivers/pci/pci.c:3285: undefined reference
+to `libio_to_hwaddr'
+drivers/built-in.o: In function `pci_address_to_pio':
+/home/ubuntu/linux-4.10.0/drivers/pci/pci.c:3294: undefined reference
+to `libio_translate_cpuaddr'
 
-So, let's correct this bit: consider that URL deprecated, please, and refer
-instead to the text that was agreed upon and in the kernel tree:
+  -dann
 
-	Documentation/acpi/DSD-properties-rules.txt
-
-> Al and Darren may add to that as they have more insights.
-
-Since this use of _DSD is very specific to this device, and this device
-only, I don't have any real objections.  I will say that "num-pins" is
-not terribly descriptive so it would be really good to either use a much
-more descriptive name or add plenty of commentary in the code -- and
-preferably both.  I would recommend including the ASL in the code comments,
-with a description of how the property is to be used and what it means.
-
-> I would like to send IORT patches to Catalin as soon as possible so
-> as Marc pointed out the sooner we sort this out the better.
-> 
-> Thanks,
-> Lorenzo
-> 
-
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index eb3da1a..6401327 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1194,7 +1194,8 @@ int __must_check pci_bus_alloc_resource(struct pci_bus *bus,
+>                         void *alignf_data);
+>
+>
+> -int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+> +int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t addr,
+> +                       resource_size_t size);
+>  unsigned long pci_address_to_pio(phys_addr_t addr);
+>  phys_addr_t pci_pio_to_address(unsigned long pio);
+>  int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
+> --
+> 1.9.1
+>
