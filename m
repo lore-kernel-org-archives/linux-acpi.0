@@ -1,63 +1,35 @@
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: Re: [PATCH] acpi: fix incompatibility with mcount-based function
- graph tracing
-Date: Mon, 27 Mar 2017 09:08:43 -0500
-Message-ID: <20170327140843.fx5y32rnc3mqiyke@treble>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
- <20170324181254.gouyrbmppukrrbb6@treble>
- <20170324144114.16a37d47@gandalf.local.home>
- <5766300.HtmE7iLEgV@aspire.rjw.lan>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V3] ACPI / IPMI: allow ACPI_IPMI with IPMI_SSIF
+Date: Mon, 27 Mar 2017 10:21:36 -0400
+Message-ID: <6b3eb826-acca-d3b5-5520-18d9ffd03e9c@codeaurora.org>
+References: <1490450575-29450-1-git-send-email-okaya@codeaurora.org>
+ <1b71a9cf-f7c7-7bc4-2934-a357b0b5016b@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54790 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752536AbdC0OIw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Mar 2017 10:08:52 -0400
-Content-Disposition: inline
-In-Reply-To: <5766300.HtmE7iLEgV@aspire.rjw.lan>
+Received: from smtp.codeaurora.org ([198.145.29.96]:49022 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752800AbdC0OWG (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2017 10:22:06 -0400
+In-Reply-To: <1b71a9cf-f7c7-7bc4-2934-a357b0b5016b@acm.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Paul Menzel <pmenzel@molgen.mpg.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: minyard@acm.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On Sat, Mar 25, 2017 at 02:20:11PM +0100, Rafael J. Wysocki wrote:
-> On Friday, March 24, 2017 02:41:14 PM Steven Rostedt wrote:
-> > On Fri, 24 Mar 2017 13:12:54 -0500
-> > Josh Poimboeuf <jpoimboe@redhat.com> wrote:
-> > 
-> > 
-> > > Instead I was able to "fix" it by ignoring ftrace calls in real mode:
-> > > 
-> > > -----
-> > > index 8f3d9cf..5c0d0c6 100644
-> > > --- a/arch/x86/kernel/ftrace.c
-> > > +++ b/arch/x86/kernel/ftrace.c
-> > > @@ -983,6 +983,9 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
-> > >  	unsigned long return_hooker = (unsigned long)
-> > >  				&return_to_handler;
-> > >  
-> > > +	if (__builtin_return_address(0) < TASK_SIZE_MAX)
-> > > +		return;
-> > > +
-> > >  	if (unlikely(ftrace_graph_is_dead()))
-> > >  		return;
-> > > ---------------
-> > > 
-> > > I'm not sure what the best fix should really be.  A few ideas off the
-> > > top of my head:
-> > > 
-> > > - A real mode check similar to the above (except it should probably be
-> > >   more precise)
-> > 
-> > The real mode check hack may be good enough for now. Make sure that
-> > it's commented well.
+Rafael,
+
+On 3/25/2017 9:25 PM, Corey Minyard wrote:
+> If the ACPI people ack this, I can queue it, or they can take it with:
 > 
-> Agreed.
+> Acked-by: Corey Minyard <cminyard@mvista.com>
 
-Just to clarify, there are two bugs related to function graph tracing
-and suspend/resume.  The original patch in this thread (which removes
-'-Os' from the acpi Makefile) is still needed.
+What's your preference?
+
+Sinan
 
 -- 
-Josh
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
