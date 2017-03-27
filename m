@@ -1,148 +1,78 @@
-From: Juri Lelli <juri.lelli@arm.com>
-Subject: [ANNOUNCE] OSPM-summit is on next Monday
-Date: Mon, 27 Mar 2017 14:25:35 +0100
-Message-ID: <20170327132535.GJ10289@e106622-lin>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v1.1 3/3] device property:
+ fwnode_property_read_string_array() returns nr of strings
+Date: Mon, 27 Mar 2017 16:36:18 +0300
+Message-ID: <20170327133618.GH2957@lahna.fi.intel.com>
+References: <1488806791-25488-4-git-send-email-sakari.ailus@linux.intel.com>
+ <1489584688-15624-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34932 "EHLO foss.arm.com"
+Received: from mga09.intel.com ([134.134.136.24]:16786 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752975AbdC0NZW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Mar 2017 09:25:22 -0400
+        id S1751124AbdC0Nkr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Mar 2017 09:40:47 -0400
 Content-Disposition: inline
+In-Reply-To: <1489584688-15624-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, juri.lelli@arm.com, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Hi,
+On Wed, Mar 15, 2017 at 03:31:28PM +0200, Sakari Ailus wrote:
+> Functionally fwnode_property_read_string_array() should match
+> of_property_read_string_array() and work as a drop-in substitute for the
+> latter. of_property_read_string_array() returns the number of strings read
+> if the target string pointer array is non-NULL. Make
+> fwnode_property_read_string_array() do the same.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> This patch replaces v1 3/3 patch in this set.
+> 
+> Instead of changing the return value of fwnode / device property API
+> string array access on OF, change the behaviour on pset and ACPI instead.
+> This makes them to return the number of strings read on success.
+> 
+> I can merge this with patch 2/3 which is changing the same part of the
+> file, however I'm sending this separately at least for now as I think it's
+> easier to review this way, rather than making a bugfix and a change of the
+> behaviour in the same patch.
+> 
+> Regards,
+> Sakari
+> 
+>  drivers/base/property.c | 64 +++++++++++++++++++++++++++++++++++--------------
+>  1 file changed, 46 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 8c98390..82187ac 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -340,8 +340,8 @@ EXPORT_SYMBOL_GPL(device_property_read_u64_array);
+>   * Function reads an array of string properties with @propname from the device
+>   * firmware description and stores them to @val if found.
+>   *
+> - * Return: number of values if @val was %NULL,
+> - *         %0 if the property was found (success),
+> + * Return: number of values read on success if @val is non-NULL,
+> + *	   number of values available on success if @val is NULL,
+>   *	   %-EINVAL if given arguments are not valid,
+>   *	   %-ENODATA if the property does not have a value,
+>   *	   %-EPROTO or %-EILSEQ if the property is not an array of strings,
+> @@ -549,29 +549,57 @@ static int __fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+>  			of_property_read_string_array(to_of_node(fwnode),
+>  						      propname, val, nval) :
+>  			of_property_count_strings(to_of_node(fwnode), propname);
+> -	else if (is_acpi_node(fwnode))
+> -		return acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
+> -					   val, nval);
+> -	else if (is_pset_node(fwnode)) {
+> +	else if (is_acpi_node(fwnode)) {
+> +		int array_len =
+> +			acpi_node_prop_read(fwnode, propname, DEV_PROP_STRING,
 
-we are only a week away from the OSPM-summit!
+Why not change acpi_node_prop_read() instead? This way you don't need to
+add the extra code dealing with the return value here.
 
-Pack your bags (or stay tuned for the live streaming).
-
-Don't forget to subscribe to the summit mailing list to receive updates by
-either following the instructions available at the following link
-http://groups.google.com/group/ospm-summit-2017/boxsubscribe?email=<your_email>
-or sending an email to ospm-summit-2017+subscribe@googlegroups.com
-
-Archives are available at https://groups.google.com/forum/#!forum/ospm-summit-2017
-
-More information about schedule and logistics follow.
-
----
-
-Power Management and Scheduling in the Linux Kernel (OSPM-summit)
-April 3-4, 2017
-Scuola Superiore Sant'Anna (SSSA)
-Pisa, Italy
-http://retis.sssup.it/ospm-summit/
-
----
-
-.:: FOCUS
-
-Power management and scheduling techniques to reduce energy consumption while
-meeting performance and latency requirements are receiving considerable
-attention from the Linux Kernel development community. 
-
-The Power Management and Scheduling in the Linux Kernel (OSPM-summit) summit
-aims at fostering further interest and discussion to happen.
-
-.:: SCHEDULE
-
-The summit is organized to cover two days of discussions and talks.
-
-What follows is a tentative schedule, subject to last minute changes.
-Find more info and real time updates on this shared document:
-https://docs.google.com/spreadsheets/d/1B-IsUIGitvRa7ZzppEAJBMgGpIgRAAnu_OhDAGYg6SQ/edit?usp=sharing
-
-Monday (2017-04-03)
-*******************
-09:00AM - 09:30AM	Welcome and Introduction (DAY 1)
----
-09:30AM - 10:20AM	Tooling/LISA
----
-10:20AM - 11:10AM	About The Need to Power Instrument The Linux Kernel
----
-11:10AM - 11:20AM	Break
----
-11:20AM - 12:10AM	What are the latest evolutions in PELT and what next
----
-12:10AM - 01:00PM	PELT decay clamping/UTIL_EST
----
-01:00PM - 02:30PM	Lunch
----
-02:30PM - 03:20PM	EAS where we are
----	
-03:20PM - 04:10PM	Energy model/Exotic topologies
----					
-04:10PM - 04:20PM	Break
----
-04:20PM - 05:10PM	Schedtune
----					
-05:10PM - 06:00PM	SCHED_DEADLINE and reclaiming
-
-
-Tuesday (2017-04-04)
-********************
-09:00AM - 09:30AM	Welcome and Introduction (DAY 2)
----
-09:30AM - 10:20AM	Discussion about possible improvements in the schedutil governor
----
-10:20AM - 11:10AM	Schedutil for SCHED_DEADLINE
----
-11:10AM - 11:20AM	Break
----
-11:20AM - 12:10AM	Parameterizing CFS load balancing: nr_running/util/load
----					
-12:10AM - 01:00PM	Tracepoints for PELT
----
-01:00PM - 02:30PM	Lunch
----			
-02:30PM - 03:20PM	IRQ prediction
----		
-03:20PM - 04:10PM	I/O scheduling and power management with storage devices
----					
-04:10PM - 04:20PM	Break
----
-04:20PM - 05:10PM	SCHED_DEADLINE group scheduling
----					
-05:10PM - 06:00PM	A Hierarchical Scheduling Model for Dynamic Soft-Realtime Systems
----
-06:00PM - 06:30PM	Closing Remarks				
-
-We are looking into setting up live streaming of the sessions. Details
-will be soon shared through the shared doc mentioned above and the
-event mailing list.
-
-List of attendees is also available in the doc and on the event website.
-
-.:: VENUE
-
-The workshop will take place at ReTiS Lab*, Scuola Superiore Sant'Anna, Pisa,
-Italy. Pisa is a small town, walking distance from the city center to the venue
-is 20 minutes, walking distance from the airport to the city center is 30
-minutes. More details are available from the summit web page:
-http://retis.sssup.it/ospm-summit/
-
-A map of the town with venue location, points of interest and
-transportation information is available at:
-https://drive.google.com/open?id=1ANKOXr2cuZkABXskDurgrGdl_js&usp=sharing
-
-Bus from Airport to city centre takes about 10 min and costs 1.20 euros
-(2 euros if bought on board). Large bills are usually not accepted.
-
-Taxi from Airport to city centre costs 10/15 euros. Credit cards are not
-accepted.
-
-.:: ORGANIZERS (in alphabetical order)
-
-Luca Abeni (SSSA)
-Patrick Bellasi (ARM)
-Tommaso Cucinotta (SSSA)
-Dietmar Eggemann (ARM)
-Sudeep Holla (ARM)
-Juri Lelli (ARM)
-Lorenzo Pieralisi (ARM)
-Morten Rasmussen (ARM)
+Ditto for the pset counterpart.
