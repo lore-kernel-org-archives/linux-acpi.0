@@ -1,171 +1,50 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v9 15/15] irqchip: mbigen: Add ACPI support
-Date: Tue, 28 Mar 2017 04:23:46 +0800
-Message-ID: <58D974D2.7060809@linaro.org>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com> <1488890410-15503-16-git-send-email-guohanjun@huawei.com> <20170321144521.GA4392@red-moon> <12635f14-8cbd-61ba-74fa-495a81f94038@huawei.com> <c07135ba-f14f-fa2f-bd1b-e00cc758b3e7@arm.com> <EE11001F9E5DDD47B7634E2F8A612F2E204C0AB7@FRAEML521-MBX.china.huawei.com> <20170327152702.GB12092@red-moon> <6ea7e293-bde4-3c22-a987-cec1843da39b@redhat.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 1/3] device property: fwnode_property_read_string_array()
+ may return -EILSEQ
+Date: Tue, 28 Mar 2017 00:39:19 +0300
+Message-ID: <c98228fc-ef7f-7c92-38c8-d8462d8647d5@linux.intel.com>
+References: <1488806791-25488-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1488806791-25488-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170327135322.GI2957@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f43.google.com ([74.125.83.43]:34284 "EHLO
-        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751716AbdC0UX7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2017 16:23:59 -0400
-Received: by mail-pg0-f43.google.com with SMTP id 21so50678551pgg.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Mar 2017 13:23:58 -0700 (PDT)
-In-Reply-To: <6ea7e293-bde4-3c22-a987-cec1843da39b@redhat.com>
+Received: from mga07.intel.com ([134.134.136.100]:57026 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751739AbdC0Vjj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Mar 2017 17:39:39 -0400
+In-Reply-To: <20170327135322.GI2957@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ahs3@redhat.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Yimin (Leo)" <yimin@huawei.com>, Greg KH <gregkh@linuxfoundation.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "majun (F)" <majun258@huawei.com>, dvhart@infradead.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-Hi Al,
+Hi Mika,
 
-Thanks for your feedback, reply inline.
-
-On 03/28/2017 02:56 AM, Al Stone wrote:
-> On 03/27/2017 09:27 AM, Lorenzo Pieralisi wrote:
->> [+Al,Darren to comment on _DSD review process]
+Mika Westerberg wrote:
+> On Mon, Mar 06, 2017 at 03:26:29PM +0200, Sakari Ailus wrote:
+>> fwnode_property_read_string_array() may return -EILSEQ through
+>> of_property_read_string_array(). Document this.
 >>
->> On Mon, Mar 27, 2017 at 12:24:45PM +0000, Gabriele Paoloni wrote:
->>> Hi Marc Many thanks for your comments
->>>> Hanjun, John,
->>>>
->>>> On 22/03/17 14:12, John Garry wrote:
->>>>> On 21/03/2017 14:45, Lorenzo Pieralisi wrote:
->>>>>> On Tue, Mar 07, 2017 at 08:40:10PM +0800, Hanjun Guo wrote:
->>>>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>>>>>
->>>>>>> With the preparation of platform msi support and interrupt producer
->>>>>>> in DSDT, we can add mbigen ACPI support now.
->>>>>>>
->>>>>>> We are using Interrupt resource type in _CRS methd to indicate
->>>> number
->>>>>>> of irq pins instead of num_pins in DT to avoid _DSD usage in this
->>>> case.
->>>>>>>
->>>>>>> For mbigen,
->>>>>>>      Device(MBI0) {
->>>>>>>            Name(_HID, "HISI0152")
->>>>>>>            Name(_UID, Zero)
->>>>>>>            Name(_CRS, ResourceTemplate() {
->>>>>>>                    Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->>>>>>> 		  Interrupt(ResourceProducer,...) {12,14,....}
->>>>>>
->>>>>> What do these interrupt numbers represent ? This looks wrong to me.
->>>>>> An interrupt descriptor is there to describe the interrupts a device
->>>>>> can generate; you are using it just to add a "standard" (that is
->>>>>> not standard at all) way of counting the number of vectors allocated
->>>>>> to this specific chip and that's just wrong.
->>>>>>
->>>>>
->>>>> As I understand, the count of interrupts we are declaring for the
->>>> mbigen
->>>>> is the same as the sum of interrupts for that mbigen's children.
->>>>>
->>>>> So at the point we probe the mbigen, can we just deference the
->>>> children
->>>>> to count their interrupts, and use this as the #msis?
->>>>>
->>>>>> Can't you use something like Agustin did in the QCOM combiner:
->>>>>>
->>>>>> drivers/irqchip/qcom-irq-combiner.c
->>>>>>
->>>>>> to detect the MSI vector length (ie by describing the MBIgen through
->>>>>> generic registers and use the bit width to compute the vector
->>>>>> lenght) ? I am not sure how feasible it is given that my knowledge
->>>>>> of MBIgen is pretty poor.
->>>>>>
->>>>>> I understand we want to avoid _DSD properties but we should not
->>>>>> work around standard bindings to achieve that goal.
->>>>>>
->>>>>
->>>>> We use "num-pins" for dt solution, but it is not so welcome here.
->>>>
->>>> Well, this device is already completely out of any standard description
->>>> on the ACPI side. And given that it bloats both the ACPI tables and the
->>>> kernel data structures, I can only suggest that you take advantage of
->>>> _DSD here, as misusing the standard properties is not something that we
->>>> should condone. It will also make the driver more manageable, as it
->>>> will
->>>> use similar properties on both firmware implementations.
->>>>
->>>> I feel like I need to stress the urgency here. We're at -rc4, and still
->>>> with unsolved issues. None of us want to miss the next merge window.
->>>>
->>>
->>> As follow up our guys would work on a solution whose ACPI table looks
->>> like the following one:
->>>
->>> For mbigen,
->>>      Device(MBI0) {
->>>            Name(_HID, "HISI0152")
->>>            Name(_UID, Zero)
->>>            Name(_CRS, ResourceTemplate() {
->>>                    Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->>>            })
->>>
->>>      Name(_DSD, Package () {
->>>        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>>        Package ()
->>>        {
->>>          Package () {"num-pins", xxx}
->>>        }
->>>      })
->>>      }
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 >
-> Please fix the indentation here; the ASL parser doesn't care, but I don't
-> see '}'s as clearly as it does :).  In particular, _DSD usage *must* be for
-> a device and it does not look like that if one doesn't carefully count all
-> the parentheses and braces.
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-I will fix it :)
+Thanks!
 
 >
->>>
->>> For devices,
->>>     Device(COM0) {
->>>            Name(_HID, "ACPIIDxx")
->>>            Name(_UID, Zero)
->>>            Name(_CRS, ResourceTemplate() {
->>>                   Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
->>> 		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12}
->>>            })
->>>      }
->>>
->>>
->>> Marc, Lorenzo if you are ok with the above we will submit v10 based on this...
->>
->> I am ok with it. I am not 100% up-to-date on what's the status on _DSD
->> bindings/review/guidelines but it would be certainly a good idea to
->> kickstart the process for MBIgen which basically means following this
->> as far as I know (and post to the relevant mailing list):
->>
->> https://github.com/ahs3/dsd/blob/master/documentation/process_rules.txt
+> Though, I wonder if it would be good to change the function to only
+> return what the DT version does. Now the caller needs to check for both
+> values.
 >
-> So, let's correct this bit: consider that URL deprecated, please, and refer
-> instead to the text that was agreed upon and in the kernel tree:
->
-> 	Documentation/acpi/DSD-properties-rules.txt
->
->> Al and Darren may add to that as they have more insights.
->
-> Since this use of _DSD is very specific to this device, and this device
-> only, I don't have any real objections.
 
-Thanks for the confirmation.
+It's rather that this value is currently returned by 
+of_property_read_string_array(). I'd guess though that most callers 
+don't care about the error code.
 
-> I will say that "num-pins" is
-> not terribly descriptive so it would be really good to either use a much
-> more descriptive name or add plenty of commentary in the code -- and
-> preferably both.  I would recommend including the ASL in the code comments,
-> with a description of how the property is to be used and what it means.
+-- 
+Kind regards,
 
-"num-pins" is used for mbigen DT support:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/interrupt-controller/hisilicon,mbigen-v2.txt
-
-I think we can use the name unchanged and adding more comments
-as you suggested, will cc you for this updated patch.
-
-Thanks
-Hanjun
+Sakari Ailus
+sakari.ailus@linux.intel.com
