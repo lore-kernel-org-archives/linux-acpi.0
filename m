@@ -1,34 +1,27 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v5 00/13] ACPI graph support
-Date: Mon, 27 Mar 2017 14:03:21 +0300
-Message-ID: <20170327110321.GX2957@lahna.fi.intel.com>
-References: <1489667481-28521-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170324154556.GD2957@lahna.fi.intel.com>
- <0b9104c2-4a3a-47db-ff1d-8f835fe3b567@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/1] device property: Read strings using string array
+ reading functions
+Date: Mon, 27 Mar 2017 14:11:05 +0300
+Message-ID: <20170327111105.GY2957@lahna.fi.intel.com>
+References: <1490347486-9604-1-git-send-email-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:8138 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751804AbdC0LSe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Mar 2017 07:18:34 -0400
 Content-Disposition: inline
-In-Reply-To: <0b9104c2-4a3a-47db-ff1d-8f835fe3b567-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+In-Reply-To: <1490347486-9604-1-git-send-email-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com
 
-On Mon, Mar 27, 2017 at 12:17:50AM +0300, Sakari Ailus wrote:
-> Could you also review the other related patches? There are just a few and
-> they're relatively simple:
-> 
-> Set of three patches (which precedes what you reviewed):
-> 
-> <URL:http://www.spinics.net/lists/linux-acpi/msg72895.html>
-> 
-> And then finally:
-> 
-> <URL:http://www.spinics.net/lists/linux-acpi/msg72888.html>
+On Fri, Mar 24, 2017 at 11:24:46AM +0200, Sakari Ailus wrote:
+>  drivers/base/property.c | 47 ++---------------------------------------------
+>  1 file changed, 2 insertions(+), 45 deletions(-)
 
-Sure, I'll go ahead and check those now.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This tells it all :)
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
