@@ -1,52 +1,49 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v3] gpio: acpi: Call enable_irq_wake for _IAE GpioInts
- with Wake set
-Date: Tue, 28 Mar 2017 15:23:42 +0200
-Message-ID: <CACRpkdb22Bofjk1dXCwyi_cWjmw6C1DgQ-NwEPcuR8cti63OPw@mail.gmail.com>
-References: <20170324100847.25434-1-hdegoede@redhat.com>
+Subject: Re: [PATCH v1 0/8] gpio: acpi: Make it working
+Date: Tue, 28 Mar 2017 15:24:59 +0200
+Message-ID: <CACRpkdaF=+toeuUGkYz1y-09b8Dp476vp_hf6A6D6an0GrmZFQ@mail.gmail.com>
+References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f47.google.com ([209.85.214.47]:36911 "EHLO
-        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932214AbdC1NXw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 09:23:52 -0400
-Received: by mail-it0-f47.google.com with SMTP id 190so18146670itm.0
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2017 06:23:44 -0700 (PDT)
-In-Reply-To: <20170324100847.25434-1-hdegoede@redhat.com>
+Received: from mail-it0-f48.google.com ([209.85.214.48]:35168 "EHLO
+        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752228AbdC1NZD (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 09:25:03 -0400
+Received: by mail-it0-f48.google.com with SMTP id y18so111893580itc.0
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2017 06:25:02 -0700 (PDT)
+In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Mar 24, 2017 at 11:08 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+On Thu, Mar 23, 2017 at 8:46 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-> On Bay Trail / Cherry Trail systems with a LID switch, the LID switch is
-> often connect to a gpioint handled by an _IAE event handler.
-> Before this commit such systems would not wake up when opening the lid,
-> requiring the powerbutton to be pressed after opening the lid to wakeup.
+> Currently GPIO ACPI library provides an API to get a GPIO resources
+> (IO or interrupt) from ACPI tables for the individual drivers.
 >
-> Note that Bay Trail / Cherry Trail systems use suspend-to-idle, so
-> the interrupts are generated anyway on those lines on lid switch changes,
-> but they are treated by the IRQ subsystem as spurious while suspended if
-> not marked as wakeup IRQs.
+> This library has few flaws which makes some devices not working:
+>  - the library allows to abuse ACPI by using a _CRS fallback mechanism
+>  - the library neglects flags of the resource
 >
-> This commit calls enable_irq_wake() for _IAE GpioInts with a valid
-> event handler which have their Wake flag set. This fixes such systems
-> not waking up when opening the lid.
+> In this series:
+>  - the _CRS fallback is forbidden
+>  - the pin configuration follows what firmware wants to
+>  - the documentation is updated in order to clarify corner cases
 >
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
-> Changes in v2:
-> -Improve commit msg
-> -Add Mika's Acked-by
-> Changes in v3:
-> -Use irqd_is_wakeup_set rather then tracking this ourselves
+> After this series it's possible to use GPIO pins for input (interrupt)
+> which were configured as output by BIOS by some reason. It's a crucial
+> functionality for IoT open connected boards where user may choose any of
+> available pin for almost any of available function, including GPIO input
+> (interrupt).
+>
+> Current bad behaviour was first reported by Jarkko Nikula few months ago.
 
-This looks like it should be applied for fixes and tagged for stable.
-
-Patch applied.
+I see there are some outstanding comments in the patches but it looks
+OK overall to me, waiting for a v2 before applying, please collect ACKs
+and relevant Tested-by:s.
 
 Yours,
 Linus Walleij
