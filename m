@@ -1,83 +1,121 @@
-From: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
-Date: Tue, 28 Mar 2017 21:37:59 +0530
-Message-ID: <eaf340c4-3d11-fdc5-df0b-b6fa42f35751@codeaurora.org>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
-	<58D49845.9060407@hisilicon.com>
-	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
-	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
-	<db3d68f8-713c-9ae2-7df9-324bc1b375b1@arm.com>
-	<5FC3163CFD30C246ABAA99954A238FA81750CCC4@lhreml504-mbs>
-	<f67fb561-4238-6933-04f3-0f910f9232d1@arm.com>
-	<8d7ba471-84d4-b9f3-9d2a-de166f6839d4@codeaurora.org>
-	<5FC3163CFD30C246ABAA99954A238FA81750D76E@lhreml504-mbs>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 4/8] gpio: acpi: Even more tighten up ACPI GPIO
+ lookups
+Date: Tue, 28 Mar 2017 19:31:24 +0300
+Message-ID: <1490718684.708.37.camel@linux.intel.com>
+References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+         <20170323194618.26548-5-andriy.shevchenko@linux.intel.com>
+         <20170323201241.GB2502@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA81750D76E@lhreml504-mbs>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170323201241.GB2502@dtor-ws>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Bastien Nocera <hadess@hadess.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Thu, 2017-03-23 at 13:12 -0700, Dmitry Torokhov wrote:
+> On Thu, Mar 23, 2017 at 09:46:14PM +0200, Andy Shevchenko wrote:
+> > The commit 10cf4899f8af ("gpiolib: tighten up ACPI legacy gpio
+> > lookups")
+> > prevents to getting same resource twice if the driver asks twice
+> > using same
+> 
+> s/same/different/
+> 
+> > connection ID.
 
-On 3/28/2017 7:45 PM, Shameerali Kolothum Thodi wrote:
->
->
->> -----Original Message-----
->> From: Sricharan R [mailto:sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org]
->> Sent: Tuesday, March 28, 2017 5:54 AM
->> To: Robin Murphy; Shameerali Kolothum Thodi; Wangzhou (B);
->> will.deacon-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org;
->> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org;
->> linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org;
->> bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org; linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
->> acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org;
->> okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
->> Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
->>
->> Hi,
->>
-> [...]
->
->>>>>  From the logs its clear that  when ixgbevf driver originally probes
->>>>> and adds the device  to smmu  the dma mask is 32, but when it binds
->>>>> to vfio-pci, it becomes 64 bit.
->>>>
->>>> Just to add to that, the mask is set to 64 bit in the ixgebvf driver
->>>> probe[1]
->>>
->>> Aha, but of course it's still the same struct device getting bound to
->>> VFIO later, so whatever mask the first driver set is still in there
->>> when we go through of_dma_configure() the second time (and the fact
->>> that we go through more than once being the new behaviour). So yes,
->>> this is a legitimate problem and we really do need to be robust
->>> against size overflow. I reckon the below tweak of your fix is
->>> probably the way to go; cleaning up the arch_setup_dma_ops() interface
->> can happen later.
->>>
->>
->> ok, i will add this fix separately and also the acpi fix that lorenzo has
->> suggested in patch #8 in to the series after testing confirmation.
->>
-> I can confirm that the patches fixes the issues reported here . Both
-> DT and ACPI works now.
->
+Oh, yeah, though it didn't fix a potential issue described below.
 
-Thanks for the testing. Will repost with the fixes.
+> > But the whole idea of fallback might bring some problems. Imagine
+> > the case when
+> > we have two versions of BIOS/hardware where in one _DSD is
+> > introduced along
+> > with GPIO resources, but the other one uses just plain GPIO resource
+> > for
+> > another purpose
+> > 
+> > Case 1:
+> > 
+> >     Device (DEVX)
+> >     {
+> >         ...
+> >         Name (_CRS, ResourceTemplate ()
+> >         {
+> >             GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+> >                     "\\_SB.GPO0", 0, ResourceConsumer) {15}
+> >         })
+> >         Name (_DSD, Package ()
+> >         {
+> >             ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >             Package ()
+> >             {
+> >                 Package () {"some-gpios", Package() {^DEVX, 0, 0, 0
+> > }},
+> >             }
+> >         })
+> >     }
+> > 
+> > Case 2:
+> > 
+> >     Device (DEVX)
+> >     {
+> >         ...
+> >         Name (_CRS, ResourceTemplate ()
+> >         {
+> >             GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+> >                     "\\_SB.GPO0", 0, ResourceConsumer) {27}
+> >         })
+> >     }
+> > 
+> > To prevent the possible misconfiguration tighten up even more ACPI
+> > GPIO lookups
+> > for case without connection ID provided.
 
-Regards,
-  Sricharan
+> I wonder if this will break Goodix. Irina, Bastien?
+
+It would be helpful if anyone can test it.
+
+Btw, which particular driver do you have in mind that might be broken
+after such change? Ah, Goodix is a vendor of touchscreens, right?
+
+I'm going through drivers which are using ACPI enumeration and
+gpiod_get() API to create mapping tables. I didn't touch drivers/input/
+folder yet.
+
+So, potential problems might be there:
+
+drivers/input/touchscreen/elants_i2c.c
+drivers/input/touchscreen/goodix.c
+drivers/input/touchscreen/melfas_mip4.c
+drivers/input/touchscreen/raydium_i2c_ts.c
+drivers/input/touchscreen/silead.c
+drivers/input/touchscreen/surface3_spi.c
+
+(except silead which Hans tested few times)
+
+> > In the past the issue had been triggered by "use mctrl_gpio helpers"
+> > series
+> > [1,2].
+> > 
+> > Besides above, removal of the main logic of
+> > acpi_can_fallback_to_crs()
+> > eliminates a potential memory leak when the same device has been
+> > unbound and
+> > bound again.
+> 
+> Where? We'll reuse lookup table as ACPI device is still the same.
+
+I used to have issues with unbind/bind cycle with pointer to struct
+device * (IIRC platform device), but you probably right since pointer to
+struct acpi_device is used here in your change.
+
+I will remove this paragraph from commit message.
+
+Thanks for review!
 
 -- 
-"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a 
-member of Code Aurora Forum, hosted by The Linux Foundation
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
