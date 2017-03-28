@@ -1,154 +1,68 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v22 02/11] clocksource: arm_arch_timer: separate out
- device-tree code and remove arch_timer_detect_rate
-Date: Tue, 28 Mar 2017 16:58:14 +0200
-Message-ID: <20170328145814.GE2123@mai>
-References: <20170321163122.9183-1-fu.wei@linaro.org>
- <20170321163122.9183-3-fu.wei@linaro.org>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [V9, 07/11] iommu: of: Handle IOMMU lookup failure with deferred
+	probing or error
+Date: Tue, 28 Mar 2017 10:00:01 -0500
+Message-ID: <20170328150001.j57jko6mx35npgp2@rob-hp-laptop>
+References: <1489086061-9356-8-git-send-email-sricharan@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f180.google.com ([209.85.128.180]:32801 "EHLO
-        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752600AbdC1O6a (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 10:58:30 -0400
-Received: by mail-wr0-f180.google.com with SMTP id w43so93869126wrb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2017 07:58:19 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170321163122.9183-3-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1489086061-9356-8-git-send-email-sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Wed, Mar 22, 2017 at 12:31:13AM +0800, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
+On Fri, Mar 10, 2017 at 12:30:57AM +0530, Sricharan R wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 > 
-> Currently, the counter frequency detection call(arch_timer_detect_rate)
-> includes getting the frequency from the device-tree property, the per-cpu
-> arch-timer and the memory-mapped (MMIO) timer interfaces.
-> But reading device-tree property will be needed only when system boot with
-> device-tree, and reading from the per-cpu arch-timer and the memory-mapped
-> (MMIO) timer interfaces will be needed only when the system initializes
-> the relevant timer.
+> Failures to look up an IOMMU when parsing the DT iommus property need to
+> be handled separately from the .of_xlate() failures to support deferred
+> probing.
 > 
-> This patch separates out device-tree code, keep them in device-tree init
-> function, and removes arch_timer_detect_rate founction, then uses the
-> arch_timer_get_cntfrq and arch_timer_mem_get_cntfrq directly.
+> The lack of a registered IOMMU can be caused by the lack of a driver for
+> the IOMMU, the IOMMU device probe not having been performed yet, having
+> been deferred, or having failed.
 > 
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> The first case occurs when the device tree describes the bus master and
+> IOMMU topology correctly but no device driver exists for the IOMMU yet
+> or the device driver has not been compiled in. Return NULL, the caller
+> will configure the device without an IOMMU.
+> 
+> The second and third cases are handled by deferring the probe of the bus
+> master device which will eventually get reprobed after the IOMMU.
+> 
+> The last case is currently handled by deferring the probe of the bus
+> master device as well. A mechanism to either configure the bus master
+> device without an IOMMU or to fail the bus master device probe depending
+> on whether the IOMMU is optional or mandatory would be a good
+> enhancement.
+> 
+> Tested-by: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> Signed-off-by: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 > ---
->  drivers/clocksource/arm_arch_timer.c | 58 +++++++++++++++++++-----------------
->  1 file changed, 30 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index 843f923..29ca7d6 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -560,30 +560,6 @@ static u32 arch_timer_mem_get_cntfrq(void __iomem *cntbase)
->  	return readl_relaxed(cntbase + CNTFRQ);
->  }
->  
-> -static void
-> -arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
-> -{
-> -	/* Who has more than one independent system counter? */
-> -	if (arch_timer_rate)
-> -		return;
-> -
-> -	/*
-> -	 * Try to determine the frequency from the device tree or CNTFRQ,
-> -	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-> -	 */
-> -	if (!acpi_disabled ||
-> -	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-> -		if (cntbase)
-> -			arch_timer_rate = arch_timer_mem_get_cntfrq(cntbase);
-> -		else
-> -			arch_timer_rate = arch_timer_get_cntfrq();
-> -	}
-> -
-> -	/* Check the timer frequency. */
-> -	if (arch_timer_rate == 0)
-> -		pr_warn("frequency not available\n");
-> -}
-> -
->  static void arch_timer_banner(unsigned type)
->  {
->  	pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
-> @@ -958,7 +934,17 @@ static int __init arch_timer_of_init(struct device_node *np)
->  	for (i = ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
->  		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
->  
-> -	arch_timer_detect_rate(NULL, np);
-> +	/*
-> +	 * Try to determine the frequency from the device tree,
-> +	 * if fail, get the frequency from the sysreg CNTFRQ.
-> +	 */
-> +	if (!arch_timer_rate &&
+>  drivers/base/dma-mapping.c | 5 +++--
+>  drivers/iommu/of_iommu.c   | 4 ++--
+>  drivers/of/device.c        | 7 ++++++-
+>  include/linux/of_device.h  | 9 ++++++---
+>  4 files changed, 17 insertions(+), 8 deletions(-)
 
-This variable is set only if "arm,armv7-timer" and "arm,armv7-timer-mem" are
-declared together in the DT, right ?
+Maybe it is the same issue reported for VFIO, but virtio-pci is broken 
+with v8 of this series. Bisecting blames this commit which looks like it 
+hasn't changeed. 
 
-Two declarations for a single variable ? Ignore the !arch_timer_rate.
+Rob
 
-> +	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
-> +		arch_timer_rate = arch_timer_get_cntfrq();
-> +	if (!arch_timer_rate) {
-> +		pr_err(FW_BUG "frequency not available.\n");
-> +		return -EINVAL;
-> +	}
-
-Please, clarify this block, the conditions are unclear.
-
->  
->  	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
->  
-> @@ -1069,7 +1055,19 @@ static int __init arch_timer_mem_init(struct device_node *np)
->  		goto out;
->  	}
->  
-> -	arch_timer_detect_rate(base, np);
-> +	/*
-> +	 * Try to determine the frequency from the device tree,
-> +	 * if fail, get the frequency from the CNTFRQ reg of MMIO timer.
-> +	 */
-> +	if (!arch_timer_rate &&
-> +	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
-> +		arch_timer_rate = arch_timer_mem_get_cntfrq(base);
-> +	if (!arch_timer_rate) {
-> +		pr_err(FW_BUG "MMIO frequency not available.\n");
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
->  	ret = arch_timer_mem_register(base, irq);
->  	if (ret)
->  		goto out;
-> @@ -1130,8 +1128,12 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
->  		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
->  		gtdt->non_secure_el2_flags);
->  
-> -	/* Get the frequency from CNTFRQ */
-> -	arch_timer_detect_rate(NULL, NULL);
-> +	/* Get the frequency from the sysreg CNTFRQ */
-> +	arch_timer_rate = arch_timer_get_cntfrq();
-> +	if (!arch_timer_rate) {
-> +		pr_err(FW_BUG "frequency not available.\n");
-> +		return -EINVAL;
-> +	}
->  
->  	arch_timer_uses_ppi = arch_timer_select_ppi();
->  	if (!arch_timer_ppi[arch_timer_uses_ppi]) {
-> -- 
-> 2.9.3
-> 
-
--- 
-
- <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+P.S. Doesn't look like you have copied the DT maintainers nor list for 
+the DT changes.
