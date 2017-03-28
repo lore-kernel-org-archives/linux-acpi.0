@@ -1,200 +1,143 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [Update][PATCH v9.1 15/15] irqchip: mbigen: Add ACPI support
-Date: Tue, 28 Mar 2017 20:21:05 +0800
-Message-ID: <1490703665-4932-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, linux-kernel@vger.kernel.org, linuxarm@huawei.com, huxinwei@huawei.com, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, MaJun <majun258@huawei.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2 3/3] device property: fwnode_property_read_string_array() returns nr of strings
+Date: Tue, 28 Mar 2017 15:22:19 +0300
+Message-ID: <1490703739-28270-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1490703739-28270-1-git-send-email-sakari.ailus@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490703739-28270-1-git-send-email-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: sudeep.holla-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-With the preparation of platform msi support and interrupt producer
-in commit d44fa3d46079 ("ACPI: Add support for ResourceSource/IRQ
-domain mapping"), we can add mbigen ACPI support now.
+Functionally fwnode_property_read_string_array() should match
+of_property_read_string_array() and work as a drop-in substitute for the
+latter. of_property_read_string_array() returns the number of strings read
+if the target string pointer array is non-NULL. Make
+fwnode_property_read_string_array() do the same.
 
-Now that the major framework changes are ready, we just need to add
-the ACPI probe code which creates the irqdomain for devices connecting
-to it.
-
-In order to create the irqdomain, we need to know the number of hw
-irqs as input which is provided by mbigen. In DT case, we are using
-"num-pins" property to describe it, and we will take advantage of
-that too using _DSD in ACPI as there is no standard way of describe
-it in ACPI way, also according to the _DSD rule described in
-Documentation/acpi/DSD-properties-rules.txt, it doesn't break
-the rules.
-
-The DSDT is represented as below:
-
-For mbigen,
-  Device(MBI0) {
-          Name(_HID, "HISI0152")
-          Name(_UID, Zero)
-          Name(_CRS, ResourceTemplate() {
-                  Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-          })
-
-         Name(_DSD, Package () {
-                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-                 Package () {
-                         Package () {"num-pins", 378}
-                 }
-        })
- }
-
-For devices,
- Device(SAS0) {
-         Name(_HID, "HISIxxxx")
-         Name(_UID, Zero)
-         Name(_CRS, ResourceTemplate() {
-                 Memory32Fixed(ReadWrite, 0xb0030000, 0x10000)
-		 Interrupt(ResourceConsumer,..., "\_SB.MBI0") {12, ...}
-         })
- }
-
-So for the devices connected to the mbigen, as we clearly say that
-it refers to a specific interrupt controller (mbigen), we can get
-the virq from mbigen's irqdomain once it's created successfully.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: MaJun <majun258@huawei.com>
-Cc: Al Stone <ahs3@redhat.com>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/irqchip/irq-mbigen.c | 75 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 72 insertions(+), 3 deletions(-)
+ drivers/acpi/property.c | 22 +++++++++++++++++-----
+ drivers/base/property.c | 12 ++++++------
+ 2 files changed, 23 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/irqchip/irq-mbigen.c b/drivers/irqchip/irq-mbigen.c
-index 3756408..061cdb8 100644
---- a/drivers/irqchip/irq-mbigen.c
-+++ b/drivers/irqchip/irq-mbigen.c
-@@ -16,6 +16,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 3afddcd..06f8fda 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -699,6 +699,8 @@ static int acpi_data_prop_read_single(struct acpi_device_data *data,
+ 			return ret;
  
-+#include <linux/acpi.h>
- #include <linux/interrupt.h>
- #include <linux/irqchip.h>
- #include <linux/module.h>
-@@ -180,7 +181,7 @@ static int mbigen_domain_translate(struct irq_domain *d,
- 				    unsigned long *hwirq,
- 				    unsigned int *type)
+ 		*(char **)val = obj->string.pointer;
++
++		return 1;
+ 	} else {
+ 		ret = -EINVAL;
+ 	}
+@@ -708,7 +710,15 @@ static int acpi_data_prop_read_single(struct acpi_device_data *data,
+ int acpi_dev_prop_read_single(struct acpi_device *adev, const char *propname,
+ 			      enum dev_prop_type proptype, void *val)
  {
--	if (is_of_node(fwspec->fwnode)) {
-+	if (is_of_node(fwspec->fwnode) || is_acpi_device_node(fwspec->fwnode)) {
- 		if (fwspec->param_count != 2)
- 			return -EINVAL;
- 
-@@ -271,6 +272,58 @@ static int mbigen_of_create_domain(struct platform_device *pdev,
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI
-+static int mbigen_acpi_create_domain(struct platform_device *pdev,
-+				     struct mbigen_device *mgn_chip)
-+{
-+	struct irq_domain *domain;
-+	u32 num_pins = 0;
+-	return adev ? acpi_data_prop_read_single(&adev->data, propname, proptype, val) : -EINVAL;
 +	int ret;
 +
-+	/*
-+	 * "num-pins" is the total number of interrupt pins implemented in
-+	 * this mbigen instance, and mbigen is an interrupt controller
-+	 * connected to ITS  converting wired interrupts into MSI, so we
-+	 * use "num-pins" to alloc MSI vectors which are needed by client
-+	 * devices connected to it.
-+	 *
-+	 * Here is the DSDT device node used for mbigen in firmware:
-+	 *	Device(MBI0) {
-+	 *		Name(_HID, "HISI0152")
-+	 *		Name(_UID, Zero)
-+	 *		Name(_CRS, ResourceTemplate() {
-+	 *			Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
-+	 *		})
-+	 *
-+	 *		Name(_DSD, Package () {
-+	 *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+	 *			Package () {
-+	 *				Package () {"num-pins", 378}
-+	 *			}
-+	 *		})
-+	 *	}
-+	 */
-+	ret = device_property_read_u32(&pdev->dev, "num-pins", &num_pins);
-+	if (ret || num_pins == 0)
++	if (!adev)
 +		return -EINVAL;
 +
-+	domain = platform_msi_create_device_domain(&pdev->dev, num_pins,
-+						   mbigen_write_msg,
-+						   &mbigen_domain_ops,
-+						   mgn_chip);
-+	if (!domain)
-+		return -ENOMEM;
-+
++	ret = acpi_data_prop_read_single(&adev->data, propname, proptype, val);
++	if (ret < 0 || proptype != ACPI_TYPE_STRING)
++		return ret;
 +	return 0;
-+}
-+#else
-+static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
-+					    struct mbigen_device *mgn_chip)
-+{
-+	return -ENODEV;
-+}
-+#endif
-+
- static int mbigen_device_probe(struct platform_device *pdev)
- {
- 	struct mbigen_device *mgn_chip;
-@@ -289,9 +342,18 @@ static int mbigen_device_probe(struct platform_device *pdev)
- 	if (IS_ERR(mgn_chip->base))
- 		return PTR_ERR(mgn_chip->base);
+ }
  
--	err = mbigen_of_create_domain(pdev, mgn_chip);
--	if (err)
-+	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-+		err = mbigen_of_create_domain(pdev, mgn_chip);
-+	else if (ACPI_COMPANION(&pdev->dev))
-+		err = mbigen_acpi_create_domain(pdev, mgn_chip);
-+	else
-+		err = -EINVAL;
-+
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain",
-+			mgn_chip->base);
- 		return err;
-+	}
+ static int acpi_copy_property_array_u8(const union acpi_object *items, u8 *val,
+@@ -784,7 +794,7 @@ static int acpi_copy_property_array_string(const union acpi_object *items,
  
- 	platform_set_drvdata(pdev, mgn_chip);
- 	return 0;
-@@ -303,10 +365,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
- };
- MODULE_DEVICE_TABLE(of, mbigen_of_match);
+ 		val[i] = items[i].string.pointer;
+ 	}
+-	return 0;
++	return nval;
+ }
  
-+static const struct acpi_device_id mbigen_acpi_match[] = {
-+	{ "HISI0152", 0 },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
-+
- static struct platform_driver mbigen_platform_driver = {
- 	.driver = {
- 		.name		= "Hisilicon MBIGEN-V2",
- 		.of_match_table	= mbigen_of_match,
-+		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
- 	},
- 	.probe			= mbigen_device_probe,
- };
+ static int acpi_data_prop_read(struct acpi_device_data *data,
+@@ -798,7 +808,7 @@ static int acpi_data_prop_read(struct acpi_device_data *data,
+ 
+ 	if (val && nval == 1) {
+ 		ret = acpi_data_prop_read_single(data, propname, proptype, val);
+-		if (!ret)
++		if (ret >= 0)
+ 			return ret;
+ 	}
+ 
+@@ -809,7 +819,7 @@ static int acpi_data_prop_read(struct acpi_device_data *data,
+ 	if (!val)
+ 		return obj->package.count;
+ 
+-	if (nval > obj->package.count)
++	if (proptype != DEV_PROP_STRING && nval > obj->package.count)
+ 		return -EOVERFLOW;
+ 	else if (nval <= 0)
+ 		return -EINVAL;
+@@ -830,7 +840,9 @@ static int acpi_data_prop_read(struct acpi_device_data *data,
+ 		ret = acpi_copy_property_array_u64(items, (u64 *)val, nval);
+ 		break;
+ 	case DEV_PROP_STRING:
+-		ret = acpi_copy_property_array_string(items, (char **)val, nval);
++		ret = acpi_copy_property_array_string(
++			items, (char **)val,
++			min_t(u32, nval, obj->package.count));
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 686e985..b517485 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -176,7 +176,7 @@ static int pset_prop_read_string_array(struct property_set *pset,
+ 
+ 	memcpy(strings, pointer, length);
+ 
+-	return 0;
++	return array_len;
+ }
+ 
+ static int pset_prop_read_string(struct property_set *pset,
+@@ -362,8 +362,8 @@ EXPORT_SYMBOL_GPL(device_property_read_u64_array);
+  * Function reads an array of string properties with @propname from the device
+  * firmware description and stores them to @val if found.
+  *
+- * Return: number of values if @val was %NULL,
+- *         %0 if the property was found (success),
++ * Return: number of values read on success if @val is non-NULL,
++ *	   number of values available on success if @val is NULL,
+  *	   %-EINVAL if given arguments are not valid,
+  *	   %-ENODATA if the property does not have a value,
+  *	   %-EPROTO or %-EILSEQ if the property is not an array of strings,
+@@ -603,8 +603,8 @@ static int __fwnode_property_read_string(struct fwnode_handle *fwnode,
+  * Read an string list property @propname from the given firmware node and store
+  * them to @val if found.
+  *
+- * Return: number of values if @val was %NULL,
+- *         %0 if the property was found (success),
++ * Return: number of values read on success if @val is non-NULL,
++ *	   number of values available on success if @val is NULL,
+  *	   %-EINVAL if given arguments are not valid,
+  *	   %-ENODATA if the property does not have a value,
+  *	   %-EPROTO or %-EILSEQ if the property is not an array of strings,
+@@ -651,7 +651,7 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ 	    !IS_ERR_OR_NULL(fwnode->secondary))
+ 		ret = __fwnode_property_read_string(fwnode->secondary,
+ 						    propname, val);
+-	return ret;
++	return ret < 0 ? ret : 0;
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_read_string);
+ 
 -- 
-1.9.1
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
