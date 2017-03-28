@@ -1,13 +1,15 @@
-From: "majun (Euler7)" <majun258@huawei.com>
-Subject: Re: [Update][PATCH v9.1 15/15] irqchip: mbigen: Add ACPI support
-Date: Tue, 28 Mar 2017 20:30:27 +0800
-Message-ID: <58DA5763.4060509@huawei.com>
-References: <1490703665-4932-1-git-send-email-hanjun.guo@linaro.org>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v22 00/11] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Tue, 28 Mar 2017 20:34:12 +0800
+Message-ID: <CADyBb7ujZKDF0aUJZRUN81jor04mZ-V5ESWScAjaxoHQUeVFSA@mail.gmail.com>
+References: <20170321163122.9183-1-fu.wei@linaro.org>
+ <1cc5a994-0af6-79ea-930d-44b3fc789427@jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1490703665-4932-1-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <1cc5a994-0af6-79ea-930d-44b3fc789427@jonmasters.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,115 +19,225 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, yimin@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, huxinwei@huawei.com, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, majun258@huawei.com
+To: Jon Masters <jcm@jonmasters.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, "Abdulhamid,
+ Harb" <harba@codeaurora.org>, Julien Grall <julien.grall@arm.com>, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgaGFuanVuOgoJVGhpcyBwYXRjaCB3b3JrcyBmaW5lIG9uIG15IEQwNSBib2FyZC4KClRlc3Rl
-ZC1ieTogTWFKdW4gPG1hanVuMjU4QGh1YXdlaS5jb20+CgpCZXN0IFJlZ2FyZHMKTWFqdW4KCtTa
-IDIwMTcvMy8yOCAyMDoyMSwgSGFuanVuIEd1byDQtLXAOgo+IFdpdGggdGhlIHByZXBhcmF0aW9u
-IG9mIHBsYXRmb3JtIG1zaSBzdXBwb3J0IGFuZCBpbnRlcnJ1cHQgcHJvZHVjZXIKPiBpbiBjb21t
-aXQgZDQ0ZmEzZDQ2MDc5ICgiQUNQSTogQWRkIHN1cHBvcnQgZm9yIFJlc291cmNlU291cmNlL0lS
-UQo+IGRvbWFpbiBtYXBwaW5nIiksIHdlIGNhbiBhZGQgbWJpZ2VuIEFDUEkgc3VwcG9ydCBub3cu
-Cj4gCj4gTm93IHRoYXQgdGhlIG1ham9yIGZyYW1ld29yayBjaGFuZ2VzIGFyZSByZWFkeSwgd2Ug
-anVzdCBuZWVkIHRvIGFkZAo+IHRoZSBBQ1BJIHByb2JlIGNvZGUgd2hpY2ggY3JlYXRlcyB0aGUg
-aXJxZG9tYWluIGZvciBkZXZpY2VzIGNvbm5lY3RpbmcKPiB0byBpdC4KPiAKPiBJbiBvcmRlciB0
-byBjcmVhdGUgdGhlIGlycWRvbWFpbiwgd2UgbmVlZCB0byBrbm93IHRoZSBudW1iZXIgb2YgaHcK
-PiBpcnFzIGFzIGlucHV0IHdoaWNoIGlzIHByb3ZpZGVkIGJ5IG1iaWdlbi4gSW4gRFQgY2FzZSwg
-d2UgYXJlIHVzaW5nCj4gIm51bS1waW5zIiBwcm9wZXJ0eSB0byBkZXNjcmliZSBpdCwgYW5kIHdl
-IHdpbGwgdGFrZSBhZHZhbnRhZ2Ugb2YKPiB0aGF0IHRvbyB1c2luZyBfRFNEIGluIEFDUEkgYXMg
-dGhlcmUgaXMgbm8gc3RhbmRhcmQgd2F5IG9mIGRlc2NyaWJlCj4gaXQgaW4gQUNQSSB3YXksIGFs
-c28gYWNjb3JkaW5nIHRvIHRoZSBfRFNEIHJ1bGUgZGVzY3JpYmVkIGluCj4gRG9jdW1lbnRhdGlv
-bi9hY3BpL0RTRC1wcm9wZXJ0aWVzLXJ1bGVzLnR4dCwgaXQgZG9lc24ndCBicmVhawo+IHRoZSBy
-dWxlcy4KPiAKPiBUaGUgRFNEVCBpcyByZXByZXNlbnRlZCBhcyBiZWxvdzoKPiAKPiBGb3IgbWJp
-Z2VuLAo+ICAgRGV2aWNlKE1CSTApIHsKPiAgICAgICAgICAgTmFtZShfSElELCAiSElTSTAxNTIi
-KQo+ICAgICAgICAgICBOYW1lKF9VSUQsIFplcm8pCj4gICAgICAgICAgIE5hbWUoX0NSUywgUmVz
-b3VyY2VUZW1wbGF0ZSgpIHsKPiAgICAgICAgICAgICAgICAgICBNZW1vcnkzMkZpeGVkKFJlYWRX
-cml0ZSwgMHhhMDA4MDAwMCwgMHgxMDAwMCkKPiAgICAgICAgICAgfSkKPiAKPiAgICAgICAgICBO
-YW1lKF9EU0QsIFBhY2thZ2UgKCkgewo+ICAgICAgICAgICAgICAgICAgVG9VVUlEKCJkYWZmZDgx
-NC02ZWJhLTRkOGMtOGE5MS1iYzliYmY0YWEzMDEiKSwKPiAgICAgICAgICAgICAgICAgIFBhY2th
-Z2UgKCkgewo+ICAgICAgICAgICAgICAgICAgICAgICAgICBQYWNrYWdlICgpIHsibnVtLXBpbnMi
-LCAzNzh9Cj4gICAgICAgICAgICAgICAgICB9Cj4gICAgICAgICB9KQo+ICB9Cj4gCj4gRm9yIGRl
-dmljZXMsCj4gIERldmljZShTQVMwKSB7Cj4gICAgICAgICAgTmFtZShfSElELCAiSElTSXh4eHgi
-KQo+ICAgICAgICAgIE5hbWUoX1VJRCwgWmVybykKPiAgICAgICAgICBOYW1lKF9DUlMsIFJlc291
-cmNlVGVtcGxhdGUoKSB7Cj4gICAgICAgICAgICAgICAgICBNZW1vcnkzMkZpeGVkKFJlYWRXcml0
-ZSwgMHhiMDAzMDAwMCwgMHgxMDAwMCkKPiAJCSBJbnRlcnJ1cHQoUmVzb3VyY2VDb25zdW1lciwu
-Li4sICJcX1NCLk1CSTAiKSB7MTIsIC4uLn0KPiAgICAgICAgICB9KQo+ICB9Cj4gCj4gU28gZm9y
-IHRoZSBkZXZpY2VzIGNvbm5lY3RlZCB0byB0aGUgbWJpZ2VuLCBhcyB3ZSBjbGVhcmx5IHNheSB0
-aGF0Cj4gaXQgcmVmZXJzIHRvIGEgc3BlY2lmaWMgaW50ZXJydXB0IGNvbnRyb2xsZXIgKG1iaWdl
-biksIHdlIGNhbiBnZXQKPiB0aGUgdmlycSBmcm9tIG1iaWdlbidzIGlycWRvbWFpbiBvbmNlIGl0
-J3MgY3JlYXRlZCBzdWNjZXNzZnVsbHkuCj4gCj4gU2lnbmVkLW9mZi1ieTogSGFuanVuIEd1byA8
-aGFuanVuLmd1b0BsaW5hcm8ub3JnPgo+IFNpZ25lZC1vZmYtYnk6IE1hSnVuIDxtYWp1bjI1OEBo
-dWF3ZWkuY29tPgo+IENjOiBBbCBTdG9uZSA8YWhzM0ByZWRoYXQuY29tPgo+IENjOiBEYXJyZW4g
-SGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+Cj4gQ2M6IExvcmVuem8gUGllcmFsaXNpIDxsb3Jl
-bnpvLnBpZXJhbGlzaUBhcm0uY29tPgo+IENjOiBNYXJjIFp5bmdpZXIgPG1hcmMuenluZ2llckBh
-cm0uY29tPgo+IC0tLQo+ICBkcml2ZXJzL2lycWNoaXAvaXJxLW1iaWdlbi5jIHwgNzUgKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0KPiAgMSBmaWxlIGNoYW5nZWQs
-IDcyIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvaXJxY2hpcC9pcnEtbWJpZ2VuLmMgYi9kcml2ZXJzL2lycWNoaXAvaXJxLW1iaWdlbi5jCj4g
-aW5kZXggMzc1NjQwOC4uMDYxY2RiOCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2lycWNoaXAvaXJx
-LW1iaWdlbi5jCj4gKysrIGIvZHJpdmVycy9pcnFjaGlwL2lycS1tYmlnZW4uYwo+IEBAIC0xNiw2
-ICsxNiw3IEBACj4gICAqIGFsb25nIHdpdGggdGhpcyBwcm9ncmFtLiAgSWYgbm90LCBzZWUgPGh0
-dHA6Ly93d3cuZ251Lm9yZy9saWNlbnNlcy8+Lgo+ICAgKi8KPiAgCj4gKyNpbmNsdWRlIDxsaW51
-eC9hY3BpLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9pbnRlcnJ1cHQuaD4KPiAgI2luY2x1ZGUgPGxp
-bnV4L2lycWNoaXAuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgo+IEBAIC0xODAsNyAr
-MTgxLDcgQEAgc3RhdGljIGludCBtYmlnZW5fZG9tYWluX3RyYW5zbGF0ZShzdHJ1Y3QgaXJxX2Rv
-bWFpbiAqZCwKPiAgCQkJCSAgICB1bnNpZ25lZCBsb25nICpod2lycSwKPiAgCQkJCSAgICB1bnNp
-Z25lZCBpbnQgKnR5cGUpCj4gIHsKPiAtCWlmIChpc19vZl9ub2RlKGZ3c3BlYy0+Zndub2RlKSkg
-ewo+ICsJaWYgKGlzX29mX25vZGUoZndzcGVjLT5md25vZGUpIHx8IGlzX2FjcGlfZGV2aWNlX25v
-ZGUoZndzcGVjLT5md25vZGUpKSB7Cj4gIAkJaWYgKGZ3c3BlYy0+cGFyYW1fY291bnQgIT0gMikK
-PiAgCQkJcmV0dXJuIC1FSU5WQUw7Cj4gIAo+IEBAIC0yNzEsNiArMjcyLDU4IEBAIHN0YXRpYyBp
-bnQgbWJpZ2VuX29mX2NyZWF0ZV9kb21haW4oc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiwK
-PiAgCXJldHVybiAwOwo+ICB9Cj4gIAo+ICsjaWZkZWYgQ09ORklHX0FDUEkKPiArc3RhdGljIGlu
-dCBtYmlnZW5fYWNwaV9jcmVhdGVfZG9tYWluKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYs
-Cj4gKwkJCQkgICAgIHN0cnVjdCBtYmlnZW5fZGV2aWNlICptZ25fY2hpcCkKPiArewo+ICsJc3Ry
-dWN0IGlycV9kb21haW4gKmRvbWFpbjsKPiArCXUzMiBudW1fcGlucyA9IDA7Cj4gKwlpbnQgcmV0
-Owo+ICsKPiArCS8qCj4gKwkgKiAibnVtLXBpbnMiIGlzIHRoZSB0b3RhbCBudW1iZXIgb2YgaW50
-ZXJydXB0IHBpbnMgaW1wbGVtZW50ZWQgaW4KPiArCSAqIHRoaXMgbWJpZ2VuIGluc3RhbmNlLCBh
-bmQgbWJpZ2VuIGlzIGFuIGludGVycnVwdCBjb250cm9sbGVyCj4gKwkgKiBjb25uZWN0ZWQgdG8g
-SVRTICBjb252ZXJ0aW5nIHdpcmVkIGludGVycnVwdHMgaW50byBNU0ksIHNvIHdlCj4gKwkgKiB1
-c2UgIm51bS1waW5zIiB0byBhbGxvYyBNU0kgdmVjdG9ycyB3aGljaCBhcmUgbmVlZGVkIGJ5IGNs
-aWVudAo+ICsJICogZGV2aWNlcyBjb25uZWN0ZWQgdG8gaXQuCj4gKwkgKgo+ICsJICogSGVyZSBp
-cyB0aGUgRFNEVCBkZXZpY2Ugbm9kZSB1c2VkIGZvciBtYmlnZW4gaW4gZmlybXdhcmU6Cj4gKwkg
-KglEZXZpY2UoTUJJMCkgewo+ICsJICoJCU5hbWUoX0hJRCwgIkhJU0kwMTUyIikKPiArCSAqCQlO
-YW1lKF9VSUQsIFplcm8pCj4gKwkgKgkJTmFtZShfQ1JTLCBSZXNvdXJjZVRlbXBsYXRlKCkgewo+
-ICsJICoJCQlNZW1vcnkzMkZpeGVkKFJlYWRXcml0ZSwgMHhhMDA4MDAwMCwgMHgxMDAwMCkKPiAr
-CSAqCQl9KQo+ICsJICoKPiArCSAqCQlOYW1lKF9EU0QsIFBhY2thZ2UgKCkgewo+ICsJICoJCQlU
-b1VVSUQoImRhZmZkODE0LTZlYmEtNGQ4Yy04YTkxLWJjOWJiZjRhYTMwMSIpLAo+ICsJICoJCQlQ
-YWNrYWdlICgpIHsKPiArCSAqCQkJCVBhY2thZ2UgKCkgeyJudW0tcGlucyIsIDM3OH0KPiArCSAq
-CQkJfQo+ICsJICoJCX0pCj4gKwkgKgl9Cj4gKwkgKi8KPiArCXJldCA9IGRldmljZV9wcm9wZXJ0
-eV9yZWFkX3UzMigmcGRldi0+ZGV2LCAibnVtLXBpbnMiLCAmbnVtX3BpbnMpOwo+ICsJaWYgKHJl
-dCB8fCBudW1fcGlucyA9PSAwKQo+ICsJCXJldHVybiAtRUlOVkFMOwo+ICsKPiArCWRvbWFpbiA9
-IHBsYXRmb3JtX21zaV9jcmVhdGVfZGV2aWNlX2RvbWFpbigmcGRldi0+ZGV2LCBudW1fcGlucywK
-PiArCQkJCQkJICAgbWJpZ2VuX3dyaXRlX21zZywKPiArCQkJCQkJICAgJm1iaWdlbl9kb21haW5f
-b3BzLAo+ICsJCQkJCQkgICBtZ25fY2hpcCk7Cj4gKwlpZiAoIWRvbWFpbikKPiArCQlyZXR1cm4g
-LUVOT01FTTsKPiArCj4gKwlyZXR1cm4gMDsKPiArfQo+ICsjZWxzZQo+ICtzdGF0aWMgaW5saW5l
-IGludCBtYmlnZW5fYWNwaV9jcmVhdGVfZG9tYWluKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBk
-ZXYsCj4gKwkJCQkJICAgIHN0cnVjdCBtYmlnZW5fZGV2aWNlICptZ25fY2hpcCkKPiArewo+ICsJ
-cmV0dXJuIC1FTk9ERVY7Cj4gK30KPiArI2VuZGlmCj4gKwo+ICBzdGF0aWMgaW50IG1iaWdlbl9k
-ZXZpY2VfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgewo+ICAJc3RydWN0
-IG1iaWdlbl9kZXZpY2UgKm1nbl9jaGlwOwo+IEBAIC0yODksOSArMzQyLDE4IEBAIHN0YXRpYyBp
-bnQgbWJpZ2VuX2RldmljZV9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAJ
-aWYgKElTX0VSUihtZ25fY2hpcC0+YmFzZSkpCj4gIAkJcmV0dXJuIFBUUl9FUlIobWduX2NoaXAt
-PmJhc2UpOwo+ICAKPiAtCWVyciA9IG1iaWdlbl9vZl9jcmVhdGVfZG9tYWluKHBkZXYsIG1nbl9j
-aGlwKTsKPiAtCWlmIChlcnIpCj4gKwlpZiAoSVNfRU5BQkxFRChDT05GSUdfT0YpICYmIHBkZXYt
-PmRldi5vZl9ub2RlKQo+ICsJCWVyciA9IG1iaWdlbl9vZl9jcmVhdGVfZG9tYWluKHBkZXYsIG1n
-bl9jaGlwKTsKPiArCWVsc2UgaWYgKEFDUElfQ09NUEFOSU9OKCZwZGV2LT5kZXYpKQo+ICsJCWVy
-ciA9IG1iaWdlbl9hY3BpX2NyZWF0ZV9kb21haW4ocGRldiwgbWduX2NoaXApOwo+ICsJZWxzZQo+
-ICsJCWVyciA9IC1FSU5WQUw7Cj4gKwo+ICsJaWYgKGVycikgewo+ICsJCWRldl9lcnIoJnBkZXYt
-PmRldiwgIkZhaWxlZCB0byBjcmVhdGUgbWJpLWdlbkAlcCBpcnFkb21haW4iLAo+ICsJCQltZ25f
-Y2hpcC0+YmFzZSk7Cj4gIAkJcmV0dXJuIGVycjsKPiArCX0KPiAgCj4gIAlwbGF0Zm9ybV9zZXRf
-ZHJ2ZGF0YShwZGV2LCBtZ25fY2hpcCk7Cj4gIAlyZXR1cm4gMDsKPiBAQCAtMzAzLDEwICszNjUs
-MTcgQEAgc3RhdGljIGludCBtYmlnZW5fZGV2aWNlX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
-Y2UgKnBkZXYpCj4gIH07Cj4gIE1PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIG1iaWdlbl9vZl9tYXRj
-aCk7Cj4gIAo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IGFjcGlfZGV2aWNlX2lkIG1iaWdlbl9hY3Bp
-X21hdGNoW10gPSB7Cj4gKwl7ICJISVNJMDE1MiIsIDAgfSwKPiArCXt9Cj4gK307Cj4gK01PRFVM
-RV9ERVZJQ0VfVEFCTEUoYWNwaSwgbWJpZ2VuX2FjcGlfbWF0Y2gpOwo+ICsKPiAgc3RhdGljIHN0
-cnVjdCBwbGF0Zm9ybV9kcml2ZXIgbWJpZ2VuX3BsYXRmb3JtX2RyaXZlciA9IHsKPiAgCS5kcml2
-ZXIgPSB7Cj4gIAkJLm5hbWUJCT0gIkhpc2lsaWNvbiBNQklHRU4tVjIiLAo+ICAJCS5vZl9tYXRj
-aF90YWJsZQk9IG1iaWdlbl9vZl9tYXRjaCwKPiArCQkuYWNwaV9tYXRjaF90YWJsZSA9IEFDUElf
-UFRSKG1iaWdlbl9hY3BpX21hdGNoKSwKPiAgCX0sCj4gIAkucHJvYmUJCQk9IG1iaWdlbl9kZXZp
-Y2VfcHJvYmUsCj4gIH07Cj4gCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
-bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi Jon,
+
+Thanks for your email
+ An hour ago, I just got some feedback from Lorenzo, will update my
+patchset ASAP according to his suggestion.
+
+But I still need some feedback form Mark, I can see some progress here:
+https://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git/log/?h=arch-timer/gtdt
+
+I guess I should rebase my patchset to his gtdt branch for v23.
+
+So now, I am waiting for Mark's feedback to move on.
+
+On 28 March 2017 at 19:32, Jon Masters <jcm@jonmasters.org> wrote:
+> Anyone got review comments for this series?
+>
+> On 03/21/2017 12:31 PM, fu.wei@linaro.org wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
+>>
+>> This patchset:
+>>     (1)Preparation for adding GTDT support in arm_arch_timer:
+>>         1. Introduce a wrapper function to get the frequency from mmio.
+>>         2. separate out device-tree code from arch_timer_detect_rate
+>>         3. remove arch_timer_detect_rate use arch_timer_*get_cntfrq directly
+>>         4. Refactor arch_timer_needs_probing, and move it into DT init call
+>>         5. Introduce some new structs and refactor the MMIO timer init code
+>>         for reusing some common code.
+>>
+>>     (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+>>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>>     memory-mapped timer and SBSA Generic Watchdog timer.
+>>     This driver can help to simplify all the relevant timer drivers,
+>>     and separate all the ACPI GTDT knowledge from them.
+>>
+>>     (3)Simplify ACPI code for arm_arch_timer
+>>
+>>     (4)Add GTDT support for ARM memory-mapped timer.
+>>
+>> This patchset has been tested on the following platforms with ACPI enabled:
+>>     (1)ARM Foundation v8 model
+>>
+>> Changelog:
+>> v22: https://lkml.org/lkml/2017/3/21/
+>>      Rebase to git://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git arch-timer/cleanup
+>>      Only Introduce arch_timer_mem_get_cntfrq to get the frequency from mmio.
+>>      Merged patch 2,3(about arch_timer_detect_rate).
+>>      Keep arch_timer_rate, do NOT split it for different types of timer.
+>>      Improve  memory-mapped timer support by comments and variable name:
+>>          data-->timer_mem
+>>          frame-->gtdt_frame
+>>      Delete zero check for SBSA watchdog irq.
+>>      Skip secure SBSA watchdog in GTDT driver.
+>>      Delete Kconfig modification for SBSA watchdog driver.
+>>      Delete no_irq, using nr_res instead.
+>>
+>> v21: https://lkml.org/lkml/2017/2/6/734
+>>      Introduce two functions to get the frequency from mmio and sysreg.
+>>      Remove arch_timer_detect_rate use arch_timer_get_*_freq directly
+>>      Split arch_timer_rate for different types of timer.
+>>      Skip secure timer frame in GTDT driver.
+>>      Rebase to git://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git arch-timer/cleanup
+>>      (The first 6 patches in v20 have been merged into arch-timer/cleanup branch)
+>>
+>> v20: https://lkml.org/lkml/2017/1/18/534
+>>      Reorder the first 4 patches and split the 4th patches.
+>>      Leave CNTHCTL_* as they originally were.
+>>      Fix the bug in arch_timer_select_ppi.
+>>      Split "Rework counter frequency detection" patch.
+>>      Rework the arch_timer_detect_rate function.
+>>      Improve the commit message of "Refactor MMIO timer probing".
+>>      Rebase to 4.10.0-rc4
+>>
+>> v19: https://lkml.org/lkml/2016/12/21/25
+>>      Fix a '\n' missing in a error message in arch_timer_mem_init.
+>>      Add "request_mem_region" for ioremapping cntbase, according to
+>>      f947ee1 clocksource/drivers/arm_arch_timer: Map frame with of_io_request_and_map()
+>>      Rebase to 4.9.0-gfb779ff
+>>
+>> v18: https://lkml.org/lkml/2016/12/8/446
+>>      Fix 8/15 patch problem of "int ret;" in arch_timer_acpi_init.
+>>      Rebase to 4.9.0-rc8-g9269898
+>>
+>> v17: https://lkml.org/lkml/2016/11/25/140
+>>      Take out some cleanups from 4/15.
+>>      Merge 5/15 and 6/15, improve PPI determination code,
+>>      improve commit message.
+>>      Rework counter frequency detection.
+>>      Move arch_timer_needs_of_probing into DT init call.
+>>      Move Platform Timer scan loop back to timer init call to avoid allocating
+>>      and free memory.
+>>      Improve all the exported functions' comment.
+>>
+>> v16: https://lkml.org/lkml/2016/11/16/268
+>>      Fix patchset problem about static enum ppi_nr of 01/13 in v15.
+>>      Refactor arch_timer_detect_rate.
+>>      Refactor arch_timer_needs_probing.
+>>
+>> v15: https://lkml.org/lkml/2016/11/15/366
+>>      Re-order patches
+>>      Add arm_arch_timer refactoring patches to prepare for GTDT:
+>>          1. rename some  enums and defines, and some cleanups
+>>          2. separate out arch_timer_uses_ppi init code and fix a potential bug
+>>          3. Improve some new structs, refactor the timer init code.
+>>      Since the some structs have been changed, GTDT parser for memory-mapped
+>>      timer and SBSA Generic Watchdog timer have been update.
+>>
+>> v14: https://lkml.org/lkml/2016/9/28/573
+>>      Separate memory-mapped timer GTDT support into two patches
+>>          1. Refactor the timer init code to prepare for GTDT
+>>          2. Add GTDT support for memory-mapped timer
+>>
+>> v13: http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1231717.html
+>>      Improve arm_arch_timer code for memory-mapped
+>>      timer GTDT support, refactor original memory-mapped timer
+>>      dt support for reusing some common code.
+>>
+>> v12: https://lkml.org/lkml/2016/9/13/250
+>>      Rebase to latest Linux 4.8-rc6
+>>      Delete the confusing "skipping" in the error message.
+>>
+>> V11: https://lkml.org/lkml/2016/9/6/354
+>>      Rebase to latest Linux 4.8-rc5
+>>      Delete typedef (suggested by checkpatch.pl)
+>>
+>> V10: https://lkml.org/lkml/2016/7/26/215
+>>      Drop the "readq" patch.
+>>      Rebase to latest Linux 4.7.
+>>
+>> V9: https://lkml.org/lkml/2016/7/25/345
+>>     Improve pr_err message in acpi gtdt driver.
+>>     Update Commit message for 7/9
+>>     shorten the irq mapping function name
+>>     Improve GTDT driver for memory-mapped timer
+>>
+>> v8: https://lkml.org/lkml/2016/7/19/660
+>>     Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+>>     and also improve printk message.
+>>     Simplify is_timer_block and is_watchdog.
+>>     Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+>>     Delete __init in include/linux/acpi.h for GTDT API
+>>     Make ARM64 select GTDT.
+>>     Delete "#include <linux/module.h>" from acpi_gtdt.c
+>>     Simplify GT block parse code.
+>>
+>> v7: https://lkml.org/lkml/2016/7/13/769
+>>     Move the GTDT driver to drivers/acpi/arm64
+>>     Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+>>     Merge 3 patches of GTDT parser driver.
+>>     Fix the for_each_platform_timer bug.
+>>
+>> v6: https://lkml.org/lkml/2016/6/29/580
+>>     split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+>>     and SBSA Generic Watchdog timer
+>>     Improve driver by suggestions and example code from Daniel Lezcano
+>>
+>> v5: https://lkml.org/lkml/2016/5/24/356
+>>     Sorting out all patches, simplify the API of GTDT driver:
+>>     GTDT driver just fills the data struct for arm_arch_timer driver.
+>>
+>> v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+>>     Delete the kvm relevant patches
+>>     Separate two patches for sorting out the code for arm_arch_timer.
+>>     Improve irq info export code to allow missing irq info in GTDT table.
+>>
+>> v3: https://lkml.org/lkml/2016/2/1/658
+>>     Improve GTDT driver code:
+>>       (1)improve pr_* by defining pr_fmt(fmt)
+>>       (2)simplify gtdt_sbsa_gwdt_init
+>>       (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+>>       to get GTDT table.
+>>     Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+>>     Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+>>
+>> v2: https://lkml.org/lkml/2015/12/2/10
+>>     Rebase to latest kernel version(4.4-rc3).
+>>     Fix the bug about the config problem,
+>>     use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+>>
+>> v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+>>
+>> Fu Wei (11):
+>>   clocksource: arm_arch_timer: introduce a wrapper function to get the
+>>     frequency from mmio.
+>>   clocksource: arm_arch_timer: separate out device-tree code and remove
+>>     arch_timer_detect_rate
+>>   clocksource: arm_arch_timer: refactor arch_timer_needs_probing
+>>   clocksource: arm_arch_timer: move arch_timer_needs_of_probing into DT
+>>     init call
+>>   clocksource: arm_arch_timer: introduce some new structs to prepare for
+>>     GTDT
+>>   clocksource: arm_arch_timer: refactor MMIO timer probing.
+>>   acpi/arm64: Add GTDT table parse driver
+>>   clocksource: arm_arch_timer: simplify ACPI support code.
+>>   acpi/arm64: Add memory-mapped timer support in GTDT driver
+>>   clocksource: arm_arch_timer: add GTDT support for memory-mapped timer
+>>   acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+>>
+>>  arch/arm64/Kconfig                   |   1 +
+>>  drivers/acpi/arm64/Kconfig           |   3 +
+>>  drivers/acpi/arm64/Makefile          |   1 +
+>>  drivers/acpi/arm64/gtdt.c            | 381 +++++++++++++++++++++++++++++++++++
+>>  drivers/clocksource/arm_arch_timer.c | 326 +++++++++++++++++++-----------
+>>  include/clocksource/arm_arch_timer.h |  17 ++
+>>  include/linux/acpi.h                 |   7 +
+>>  7 files changed, 614 insertions(+), 122 deletions(-)
+>>  create mode 100644 drivers/acpi/arm64/gtdt.c
+>>
+>
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
