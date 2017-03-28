@@ -1,73 +1,70 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V9 00/11] IOMMU probe deferral support
-Date: Tue, 28 Mar 2017 14:15:56 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA81750D76E@lhreml504-mbs>
-References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
-	<58D49845.9060407@hisilicon.com>
-	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
-	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
-	<db3d68f8-713c-9ae2-7df9-324bc1b375b1@arm.com>
-	<5FC3163CFD30C246ABAA99954A238FA81750CCC4@lhreml504-mbs>
-	<f67fb561-4238-6933-04f3-0f910f9232d1@arm.com>
-	<8d7ba471-84d4-b9f3-9d2a-de166f6839d4@codeaurora.org>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v22 00/11] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Tue, 28 Mar 2017 22:29:10 +0800
+Message-ID: <CADyBb7vddnQ4TZXaem3q=+v=vC41J7O4cVsokn04S2jGGU8veA@mail.gmail.com>
+References: <20170321163122.9183-1-fu.wei@linaro.org> <1cc5a994-0af6-79ea-930d-44b3fc789427@jonmasters.org>
+ <CADyBb7ujZKDF0aUJZRUN81jor04mZ-V5ESWScAjaxoHQUeVFSA@mail.gmail.com> <20170328130552.GA8643@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <8d7ba471-84d4-b9f3-9d2a-de166f6839d4-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170328130552.GA8643@leverpostej>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Jon Masters <jcm@jonmasters.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Mark,
+
+On 28 March 2017 at 21:05, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Tue, Mar 28, 2017 at 08:34:12PM +0800, Fu Wei wrote:
+>> Hi Jon,
+>>
+>> Thanks for your email
+>>  An hour ago, I just got some feedback from Lorenzo, will update my
+>> patchset ASAP according to his suggestion.
+>>
+>> But I still need some feedback form Mark, I can see some progress here:
+>> https://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git/log/?h=arch-timer/gtdt
+>>
+>> I guess I should rebase my patchset to his gtdt branch for v23.
+>>
+>> So now, I am waiting for Mark's feedback to move on.
+>
+> Sorry for the delay; I have not had the time to focus on this as I would
+> like to. I'm happy with patches 1-4, but from patch 5 onwards, there's
+> one change I'd like to see.
+>
+> I'd prefer that mmio timer frame rame N was always stored at
+> arch_timer_mem::frame[N], rather than arch_timer_mem::frame[] being in
+> an arbitrary order. That will make arch_timer_mem_frame::frame_nr
+> redundant.
+>
+> To allow arch_timer_mem::frame[] this to be sparse, I'm happy to have a
+> bool arch_timer_mem_frame::valid field that we set when probing each
+> frame. Then we don't need arch_timer_mem::num_frames.
+>
+> This will make iterating over the frames far less confusing, and makes
+> it simple to detect when a frame number is erroneously reused.
+>
+> Otherwise, I'm largely happy to pick the rest and apply any fixups
+> myself.
+
+Great thanks for your feedback!
+I will follow your suggestion to improve my patches, then post it in a day.
+
+So I will rebase my patchset on arch-timer/gtdt branch of your REPO
+https://git.kernel.org/pub/scm/linux/kernel/git/mark/linux.git/log/?h=arch-timer/gtdt
+
+>
+> Thanks,
+> Mark.
 
 
-> -----Original Message-----
-> From: Sricharan R [mailto:sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org]
-> Sent: Tuesday, March 28, 2017 5:54 AM
-> To: Robin Murphy; Shameerali Kolothum Thodi; Wangzhou (B);
-> will.deacon-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org;
-> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org;
-> linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org;
-> bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org; linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org;
-> okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-> Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
-> 
-> Hi,
-> 
-[...]
 
-> >>>  From the logs its clear that  when ixgbevf driver originally probes
-> >>> and adds the device  to smmu  the dma mask is 32, but when it binds
-> >>> to vfio-pci, it becomes 64 bit.
-> >>
-> >> Just to add to that, the mask is set to 64 bit in the ixgebvf driver
-> >> probe[1]
-> >
-> > Aha, but of course it's still the same struct device getting bound to
-> > VFIO later, so whatever mask the first driver set is still in there
-> > when we go through of_dma_configure() the second time (and the fact
-> > that we go through more than once being the new behaviour). So yes,
-> > this is a legitimate problem and we really do need to be robust
-> > against size overflow. I reckon the below tweak of your fix is
-> > probably the way to go; cleaning up the arch_setup_dma_ops() interface
-> can happen later.
-> >
-> 
-> ok, i will add this fix separately and also the acpi fix that lorenzo has
-> suggested in patch #8 in to the series after testing confirmation.
-> 
-I can confirm that the patches fixes the issues reported here . Both 
-DT and ACPI works now.
- 
-Cheers,
-Shameer 
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
