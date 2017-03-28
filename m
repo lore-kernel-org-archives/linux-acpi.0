@@ -1,56 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI : Update platform device numa node based on _PXM method
-Date: Tue, 28 Mar 2017 23:43:12 +0200
-Message-ID: <1932728.uFK6bUjlgv@aspire.rjw.lan>
-References: <1490108070-24061-1-git-send-email-shankerd@codeaurora.org>
+Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing and suspend-to-ram
+Date: Tue, 28 Mar 2017 23:47:36 +0200
+Message-ID: <3586585.nrmPruLJgf@aspire.rjw.lan>
+References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com> <2443543.DcYTiKRKUq@aspire.rjw.lan> <20170328214218.qnvkyukxrpkquxvr@treble>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43557 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754318AbdC1Vsz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Mar 2017 17:48:55 -0400
-In-Reply-To: <1490108070-24061-1-git-send-email-shankerd@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170328214218.qnvkyukxrpkquxvr@treble>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>, Paul Menzel <pmenzel@molgen.mpg.de>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Shanker Donthineni <shankerd@codeaurora.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Vikram Sethi <vikrams@codeaurora.org>
 
-On Tuesday, March 21, 2017 09:54:30 AM Shanker Donthineni wrote:
-> The optional _PXM method evaluates to an integer that identifies the
-> proximity domain of a device object. This patch implements support for
-> ACPI _PXM method and updates the platform device numa node id using
-> acpi_get_node(), which provides the PXM to NUMA mapping information.
+On Tuesday, March 28, 2017 04:42:18 PM Josh Poimboeuf wrote:
+> On Tue, Mar 28, 2017 at 11:12:42PM +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, March 28, 2017 10:55:46 AM Josh Poimboeuf wrote:
+> > > On Tue, Mar 28, 2017 at 11:39:41AM -0400, Steven Rostedt wrote:
+> > > > On Tue, 28 Mar 2017 11:51:45 +0200
+> > > > Paul Menzel <pmenzel@molgen.mpg.de> wrote:
+> > > > 
+> > > > > With both patches applied `./analyze_suspend.py -config 
+> > > > > suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
+> > > > > suspend and resume work perfectly, when tracing is enabled.
+> > > > > 
+> > > > > Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+> > > > > 
+> > > > > It’d be awesome, if you could tag both patches for inclusion into the 
+> > > > > stable Linux Kernel series.
+> > > > 
+> > > > As long as they are not dependent on my patch series, I'm fine with
+> > > > these going to stable.
+> > > 
+> > > Stable sounds fine to me too.  Both patches are independent of your
+> > > x86-32 fentry patch set.
+> > 
+> > Does https://patchwork.kernel.org/patch/9628301/ need to go into any particular
+> > -stable series or just all of them?
+> > 
+> > Or should a Fixes: tag be added to it?
 > 
-> Signed-off-by: Shanker Donthineni <shankerd@codeaurora.org>
-
-What exactly is the motivation here?
-
-> ---
->  drivers/acpi/acpi_platform.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
+> As far as I can tell this issue has been around since the function_graph
+> tracer was introduced in 2008:
 > 
-> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> index b4c1a6a..83d953e 100644
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -119,11 +119,14 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
->  	if (IS_ERR(pdev))
->  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
->  			PTR_ERR(pdev));
-> -	else
-> +	else {
-> +		set_dev_node(&pdev->dev, acpi_get_node(adev->handle));
->  		dev_dbg(&adev->dev, "created platform device %s\n",
->  			dev_name(&pdev->dev));
-> +	}
->  
->  	kfree(resources);
-> +
->  	return pdev;
->  }
->  EXPORT_SYMBOL_GPL(acpi_create_platform_device);
+>   15e6cb3673ea ("tracing: add a tracer to catch execution time of kernel functions")
 > 
+> (Though only for gcc >= 4.4.)
+> 
+> Not sure if it's overkill to specify 'Fixes' for an 8+ year old bug?  I
+> guess it can't hurt anything.
+> 
+> I think it can go in all of the stable branches.
 
+OK, thanks!
