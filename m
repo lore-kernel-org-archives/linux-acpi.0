@@ -1,119 +1,58 @@
-From: Paul Menzel <pmenzel@molgen.mpg.de>
-Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing
- and suspend-to-ram
-Date: Tue, 28 Mar 2017 11:51:45 +0200
-Message-ID: <918c4518-f4ca-0b94-6a28-3996be68469a@molgen.mpg.de>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
- <20170324181254.gouyrbmppukrrbb6@treble>
- <20170324144114.16a37d47@gandalf.local.home>
- <5766300.HtmE7iLEgV@aspire.rjw.lan> <20170327140843.fx5y32rnc3mqiyke@treble>
- <20170327145441.aybim6rmc6nxelij@treble>
- <d8fd5cfd-e273-ad29-9281-2436cb0c3723@molgen.mpg.de>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH V13 10/10] arm/arm64: KVM: add guest SEA support
+Date: Tue, 28 Mar 2017 17:53:38 +0800
+Message-ID: <5c7f6092-9358-08ac-5341-2364637c2008@huawei.com>
+References: <1490136425-4324-1-git-send-email-tbaicar@codeaurora.org>
+ <1490136425-4324-11-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.molgen.mpg.de ([141.14.17.11]:39974 "EHLO mx1.molgen.mpg.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753558AbdC1JwM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Mar 2017 05:52:12 -0400
-In-Reply-To: <d8fd5cfd-e273-ad29-9281-2436cb0c3723@molgen.mpg.de>
+Received: from szxga01-in.huawei.com ([45.249.212.187]:4801 "EHLO
+        dggrg01-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753702AbdC1Jzi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Mar 2017 05:55:38 -0400
+In-Reply-To: <1490136425-4324-11-git-send-email-tbaicar@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Poimboeuf <jpoimboe@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Tyler Baicar <tbaicar@codeaurora.org>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vg
 
-Dear Josh,
+Hi,
 
+On 2017/3/22 6:47, Tyler Baicar wrote:
+> +	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
+> +
+> +	/* The host kernel will handle the synchronous external abort. There
+> +	 * is no need to pass the error into the guest.
+> +	 */
+> +	if (is_abort_synchronous(fault_status))
+> +		sea_status = handle_guest_sea((unsigned long)fault_ipa,
+> +				    kvm_vcpu_get_hsr(vcpu));
+>  
+>  	is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
+> -	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
+> +	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu)) && sea_status) {
+>  		kvm_inject_vabt(vcpu);
+>  		return 1;
+>  	}
+       After the host kernel correctly handle the synchronous external abort, the sea_status
+       will return 0, so the code logical will be continue go-no, whether it is better directly return
+       after correctly handle the SEA? such as below.
 
-On 03/27/17 17:01, Paul Menzel wrote:
+	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu)) && sea_status) {
+  		kvm_inject_vabt(vcpu);
+  		return 1;
+  	} else
+                return 1;
 
-> On 03/27/17 16:54, Josh Poimboeuf wrote:
->> On x86-32, with CONFIG_FIRMWARE and multiple CPUs, if you enable
->> function graph tracing and then suspend to RAM, it will triple fault and
->> reboot when it resumes.
->>
->> The first fault happens when booting a secondary CPU:
->>
->> startup_32_smp()
->>   load_ucode_ap()
->>     prepare_ftrace_return()
->>       ftrace_graph_is_dead()
->>         (accesses 'kill_ftrace_graph')
->>
->> The early head_32.S code calls into load_ucode_ap(), which has an an
->> ftrace hook, so it calls prepare_ftrace_return(), which calls
->> ftrace_graph_is_dead(), which tries to access the global
->> 'kill_ftrace_graph' variable with a virtual address, causing a fault
->> because the CPU is still in real mode.
->>
->> The fix is to add a check in prepare_ftrace_return() to make sure it's
->> running in protected mode before continuing.  The check makes sure the
->> stack pointer is a virtual kernel address.  It's a bit of a hack, but
->> it's not very intrusive and it works well enough.
->>
->> For reference, here are a few other ways this could have potentially
->> been fixed:
->>
->> - Move startup_32_smp()'s call to load_ucode_ap() down to *after* paging
->>   is enabled.  (No idea what that would break.)
->>
->> - Track down load_ucode_ap()'s entire callee tree and mark all the
->>   functions 'notrace'.  (Probably not realistic.)
->>
->> - Pause graph tracing in ftrace_suspend_notifier_call() or bringup_cpu()
->>   or __cpu_up(), and ensure that the pause facility can be queried from
->>   real mode.
->>
->> Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
->> Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
->> ---
->>  arch/x86/kernel/ftrace.c | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
->
-> Thank you for debugging this. It’s great that you were able to reproduce
-> this in QEMU. Hopefully, that’ll make for an easy test case. ;-)
->
->> diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
->> index 8f3d9cf..1c5c4e2 100644
->> --- a/arch/x86/kernel/ftrace.c
->> +++ b/arch/x86/kernel/ftrace.c
->> @@ -983,6 +983,17 @@ void prepare_ftrace_return(unsigned long
->> self_addr, unsigned long *parent,
->>      unsigned long return_hooker = (unsigned long)
->>                  &return_to_handler;
->>
->> +    /*
->> +     * When resuming from suspend-to-ram, this function can be
->> indirectly
->> +     * called from early CPU startup code while the CPU is in real mode,
->> +     * which would fail miserably.  Make sure the stack pointer is a
->> +     * virtual address.
->> +     *
->> +     * This check isn't as accurate as virt_addr_valid(), but it
->> should be
->> +     * good enough for this purpose, and it's fast.
->> +     */
->> +    if (unlikely((long)__builtin_frame_address(0) >= 0)) return;
->
-> The coding style requires the `return;` to be on a separate line.
->
->> +
->>      if (unlikely(ftrace_graph_is_dead()))
->>          return;
->
-> I’ll test your change this evening.
+>  
+> -	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
+> -
+>  	trace_kvm_guest_fault(*vcpu_pc(vcpu), kvm_vcpu_get_hsr(vcpu),
+>  			      kvm_vcpu_get_hfar(vcpu), fault_ipa);
+>  
+> -	/* Check the stage-2 fault is trans. fault or write fault */
+> -	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
+>  	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
 
-With both patches applied `./analyze_suspend.py -config 
-suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
-suspend and resume work perfectly, when tracing is enabled.
-
-Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-
-It’d be awesome, if you could tag both patches for inclusion into the 
-stable Linux Kernel series.
-
-
-Kind regards,
-
-Paul
