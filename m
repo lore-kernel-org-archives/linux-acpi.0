@@ -1,41 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V3] ACPI / IPMI: allow ACPI_IPMI with IPMI_SSIF
-Date: Tue, 28 Mar 2017 17:20:30 +0200
-Message-ID: <2114234.4yPomsncjf@aspire.rjw.lan>
-References: <1490450575-29450-1-git-send-email-okaya@codeaurora.org>
- <6b3eb826-acca-d3b5-5520-18d9ffd03e9c@codeaurora.org>
- <43180304-6bc7-049e-dfc8-13f3c9a0fe48@acm.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing
+ and suspend-to-ram
+Date: Tue, 28 Mar 2017 11:39:41 -0400
+Message-ID: <20170328113941.37469c9b@gandalf.local.home>
+References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
+        <20170324181254.gouyrbmppukrrbb6@treble>
+        <20170324144114.16a37d47@gandalf.local.home>
+        <5766300.HtmE7iLEgV@aspire.rjw.lan>
+        <20170327140843.fx5y32rnc3mqiyke@treble>
+        <20170327145441.aybim6rmc6nxelij@treble>
+        <d8fd5cfd-e273-ad29-9281-2436cb0c3723@molgen.mpg.de>
+        <918c4518-f4ca-0b94-6a28-3996be68469a@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <43180304-6bc7-049e-dfc8-13f3c9a0fe48@acm.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: minyard@acm.org
-Cc: sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, timur@codeaurora.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:60668 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751590AbdC1Pjw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Mar 2017 11:39:52 -0400
+In-Reply-To: <918c4518-f4ca-0b94-6a28-3996be68469a@molgen.mpg.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Paul Menzel <pmenzel@molgen.mpg.de>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tuesday, March 28, 2017 07:31:50 AM Corey Minyard wrote:
-> On 03/27/2017 09:21 AM, Sinan Kaya wrote:
-> > Rafael,
-> >
-> > On 3/25/2017 9:25 PM, Corey Minyard wrote:
-> >> If the ACPI people ack this, I can queue it, or they can take it with:
-> >>
-> >> Acked-by: Corey Minyard <cminyard@mvista.com>
-> > What's your preference?
+On Tue, 28 Mar 2017 11:51:45 +0200
+Paul Menzel <pmenzel@molgen.mpg.de> wrote:
+
+> With both patches applied `./analyze_suspend.py -config 
+> suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
+> suspend and resume work perfectly, when tracing is enabled.
 > 
-> I can take it, it's all ready, I just need the ack.
+> Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+> 
+> It’d be awesome, if you could tag both patches for inclusion into the 
+> stable Linux Kernel series.
 
-OK, feel free to add an ACK from me then.
+As long as they are not dependent on my patch series, I'm fine with
+these going to stable.
 
-Thanks,
-Rafael
+-- Steve
