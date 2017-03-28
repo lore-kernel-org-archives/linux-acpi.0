@@ -1,105 +1,186 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v6 10/12] device property: Add support for fwnode endpoints
-Date: Tue, 28 Mar 2017 10:52:25 +0300
-Message-ID: <1490687547-18311-11-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 06/12] device property: Add support for remote endpoints
+Date: Tue, 28 Mar 2017 10:52:21 +0300
+Message-ID: <1490687547-18311-7-git-send-email-sakari.ailus@linux.intel.com>
 References: <1490687547-18311-1-git-send-email-sakari.ailus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:34004 "EHLO mga05.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:58423 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754656AbdC1Hxb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Mar 2017 03:53:31 -0400
+        id S1754664AbdC1Hxl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Mar 2017 03:53:41 -0400
 In-Reply-To: <1490687547-18311-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, rafael@kernel.org
 Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
 
-Similar to OF endpoints, endpoint type nodes can be also supported on
-ACPI. In order to make it possible for drivers to ignore the matter,
-add a type for fwnode_endpoint and a function to parse them.
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On ACPI, find the child node index instead of relying on the "endpoint"
-property.
+This follows DT implementation of of_graph_* APIs but we call them
+fwnode_graph_* instead. For DT nodes the existing of_graph_* implementation
+will be used. For ACPI we use the new ACPI graph implementation instead.
 
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/base/property.c  | 32 ++++++++++++++++++++++++++++++++
- include/linux/fwnode.h   | 12 ++++++++++++
- include/linux/property.h |  3 +++
- 3 files changed, 47 insertions(+)
+ drivers/base/property.c  | 123 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/property.h |   9 ++++
+ 2 files changed, 132 insertions(+)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 22849a8..8a53b8f 100644
+index 538b248..4e98a6f 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -1311,3 +1311,35 @@ fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
- 	return endpoint;
+@@ -15,6 +15,7 @@
+ #include <linux/kernel.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
++#include <linux/of_graph.h>
+ #include <linux/property.h>
+ #include <linux/etherdevice.h>
+ #include <linux/phy.h>
+@@ -1176,3 +1177,125 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen)
+ 	return device_get_mac_addr(dev, "address", addr, alen);
  }
- EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
+ EXPORT_SYMBOL(device_get_mac_address);
 +
 +/**
-+ * fwnode_graph_parse_endpoint - parse common endpoint node properties
-+ * @fwnode: pointer to endpoint fwnode_handle
-+ * @endpoint: pointer to the fwnode endpoint data structure
++ * device_graph_get_next_endpoint - Get next endpoint firmware node
++ * @fwnode: Pointer to the parent firmware node
++ * @prev: Previous endpoint node or %NULL to get the first
 + *
-+ * Parse @fwnode representing a graph endpoint node and store the
-+ * information in @endpoint. The caller must hold a reference to
-+ * @fwnode.
++ * Returns an endpoint firmware node pointer or %NULL if no more endpoints
++ * are available.
 + */
-+int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
-+				struct fwnode_endpoint *endpoint)
++struct fwnode_handle *
++fwnode_graph_get_next_endpoint(struct fwnode_handle *fwnode,
++			       struct fwnode_handle *prev)
 +{
-+	struct fwnode_handle *port_fwnode = fwnode_get_parent(fwnode);
++	struct fwnode_handle *endpoint = NULL;
 +
-+	memset(endpoint, 0, sizeof(*endpoint));
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
 +
-+	endpoint->local_fwnode = fwnode;
++		node = of_graph_get_next_endpoint(to_of_node(fwnode),
++						  to_of_node(prev));
 +
-+	if (is_acpi_node(port_fwnode)) {
-+		fwnode_property_read_u32(port_fwnode, "port", &endpoint->port);
-+		fwnode_property_read_u32(fwnode, "endpoint", &endpoint->id);
-+	} else {
-+		fwnode_property_read_u32(port_fwnode, "reg", &endpoint->port);
-+		fwnode_property_read_u32(fwnode, "reg", &endpoint->id);
++		if (node)
++			endpoint = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		endpoint = acpi_graph_get_next_endpoint(fwnode, prev);
++		if (IS_ERR(endpoint))
++			endpoint = NULL;
 +	}
 +
-+	fwnode_handle_put(port_fwnode);
++	return endpoint;
 +
-+	return 0;
 +}
-+EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 8bd28ce..3dff239 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -27,4 +27,16 @@ struct fwnode_handle {
- 	struct fwnode_handle *secondary;
- };
- 
-+/**
-+ * struct fwnode_endpoint - Fwnode graph endpoint
-+ * @port: Port number
-+ * @id: Endpoint id
-+ * @local_fwnode: reference to the related fwnode
-+ */
-+struct fwnode_endpoint {
-+	unsigned int port;
-+	unsigned int id;
-+	const struct fwnode_handle *local_fwnode;
-+};
++EXPORT_SYMBOL_GPL(fwnode_graph_get_next_endpoint);
 +
- #endif
++/**
++ * fwnode_graph_get_remote_port_parent - Return fwnode of a remote device
++ * @fwnode: Endpoint firmware node pointing to the remote endpoint
++ *
++ * Extracts firmware node of a remote device the @fwnode points to.
++ */
++struct fwnode_handle *
++fwnode_graph_get_remote_port_parent(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *parent = NULL;
++
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_graph_get_remote_port_parent(to_of_node(fwnode));
++		if (node)
++			parent = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		int ret;
++
++		ret = acpi_graph_get_remote_endpoint(fwnode, &parent, NULL,
++						     NULL);
++		if (ret)
++			return NULL;
++	}
++
++	return parent;
++}
++EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port_parent);
++
++/**
++ * fwnode_graph_get_remote_port - Return fwnode of a remote port
++ * @fwnode: Endpoint firmware node pointing to the remote endpoint
++ *
++ * Extracts firmware node of a remote port the @fwnode points to.
++ */
++struct fwnode_handle *fwnode_graph_get_remote_port(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *port = NULL;
++
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_graph_get_remote_port(to_of_node(fwnode));
++		if (node)
++			port = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		int ret;
++
++		ret = acpi_graph_get_remote_endpoint(fwnode, NULL, &port, NULL);
++		if (ret)
++			return NULL;
++	}
++
++	return port;
++}
++EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_port);
++
++/**
++ * fwnode_graph_get_remote_endpoint - Return fwnode of a remote endpoint
++ * @fwnode: Endpoint firmware node pointing to the remote endpoint
++ *
++ * Extracts firmware node of a remote endpoint the @fwnode points to.
++ */
++struct fwnode_handle *
++fwnode_graph_get_remote_endpoint(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *endpoint = NULL;
++
++	if (is_of_node(fwnode)) {
++		struct device_node *node;
++
++		node = of_parse_phandle(to_of_node(fwnode), "remote-endpoint",
++					0);
++		if (node)
++			endpoint = &node->fwnode;
++	} else if (is_acpi_node(fwnode)) {
++		int ret;
++
++		ret = acpi_graph_get_remote_endpoint(fwnode, NULL, NULL,
++						     &endpoint);
++		if (ret)
++			return NULL;
++	}
++
++	return endpoint;
++}
++EXPORT_SYMBOL_GPL(fwnode_graph_get_remote_endpoint);
 diff --git a/include/linux/property.h b/include/linux/property.h
-index 6e20a12..3a4e435 100644
+index 514b195..8d7809c 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -280,4 +280,7 @@ struct fwnode_handle *fwnode_graph_get_remote_port(
- struct fwnode_handle *fwnode_graph_get_remote_endpoint(
- 	struct fwnode_handle *fwnode);
+@@ -268,4 +268,13 @@ int device_get_phy_mode(struct device *dev);
  
-+int fwnode_graph_parse_endpoint(struct fwnode_handle *fwnode,
-+				struct fwnode_endpoint *endpoint);
+ void *device_get_mac_address(struct device *dev, char *addr, int alen);
+ 
++struct fwnode_handle *fwnode_graph_get_next_endpoint(
++	struct fwnode_handle *fwnode, struct fwnode_handle *prev);
++struct fwnode_handle *fwnode_graph_get_remote_port_parent(
++	struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_graph_get_remote_port(
++	struct fwnode_handle *fwnode);
++struct fwnode_handle *fwnode_graph_get_remote_endpoint(
++	struct fwnode_handle *fwnode);
 +
  #endif /* _LINUX_PROPERTY_H_ */
 -- 
