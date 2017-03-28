@@ -1,67 +1,67 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH] ACPI / IPMI: change warning to debug on timeout
-Date: Tue, 28 Mar 2017 17:45:25 -0500
-Message-ID: <65822175-1361-e688-bf7a-6c45d9b87649@acm.org>
-References: <1490283150-24000-1-git-send-email-okaya@codeaurora.org>
- <537c0d7a-fd95-2e7f-be07-9e3ca79ca07a@acm.org>
- <39c54677-1472-afff-ec70-45a790f56e50@codeaurora.org>
- <67243d7f-0195-a214-b9d4-bdac48743893@acm.org>
- <CAJZ5v0hbPkzwV0wkTm1rE4d3R-xu9CAQBV68p=S-eHWCQMEuRA@mail.gmail.com>
-Reply-To: minyard@acm.org
+From: Shanker Donthineni <shankerd@codeaurora.org>
+Subject: Re: [PATCH] ACPI : Update platform device numa node based on _PXM
+ method
+Date: Tue, 28 Mar 2017 17:51:20 -0500
+Message-ID: <18560c7a-c9c5-1cf1-2e74-cf28c3a16b97@codeaurora.org>
+References: <1490108070-24061-1-git-send-email-shankerd@codeaurora.org>
+ <1932728.uFK6bUjlgv@aspire.rjw.lan>
+ <6b298342-2746-f6d5-0b0e-67c20fd4c002@codeaurora.org>
+ <13204058.j7zPSh58G6@aspire.rjw.lan>
+Reply-To: shankerd@codeaurora.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hbPkzwV0wkTm1rE4d3R-xu9CAQBV68p=S-eHWCQMEuRA@mail.gmail.com>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:43862 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752794AbdC1Wv3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 18:51:29 -0400
+In-Reply-To: <13204058.j7zPSh58G6@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Vikram Sethi <vikrams@codeaurora.org>
 
-On 03/28/2017 05:06 PM, Rafael J. Wysocki wrote:
-> On Tue, Mar 28, 2017 at 10:01 PM, Corey Minyard <minyard@acm.org> wrote:
->> On 03/25/2017 09:08 AM, Sinan Kaya wrote:
->>> On 3/24/2017 10:55 PM, Corey Minyard wrote:
->>>> Why would a timeout for a message be expected?  The BMC should
->>>> at least respond with an error for an incorrect message.
->>> Let me add some more context...
->>>
->>> In this particular case, the FRU ID that I was trying to access was
->>> correct.
->>>
->>> Platform supports PCIe hotplug. The FRU is embedded into the HW that
->>> is being removed. That's what I mean by non-existent.
->>>
->>> When the device is ejected and a FRU command is executed, BMC times out
->>> reaching to the FRU on the device.
->>>
->>> When the device is inserted, everything works as expected.
->>
->> I haven't added this yet.  Someone who knows more about the ACPI side of
->> IPMI
->> should probably comment.  So I've added Lv Zheng.
->>
->> This is ok with me, though.  If you remove a management controller, a
->> timeout is
->> expected.  However, if the management controller is still present, a timeout
->> is
->> probably not the best error code, "destination unavailable" is probably a
->> better
->> choice.
->>
->> So:
->>
->> Acked-by: Corey Minyard <cminyard@mvista.com>
->>
->> -corey
-> FWIW, this change is fine by me, so please feel free to route this
-> through the IPMI tree along with the other patch from Sinan.
+Hi Rafael,
 
-Ok, done, with your ack added.
 
-Thanks,
+On 03/28/2017 05:15 PM, Rafael J. Wysocki wrote:
+> On Tuesday, March 28, 2017 05:14:13 PM Shanker Donthineni wrote:
+>> Hi Rafael,
+>>
+>>
+>> On 03/28/2017 04:43 PM, Rafael J. Wysocki wrote:
+>>> On Tuesday, March 21, 2017 09:54:30 AM Shanker Donthineni wrote:
+>>>> The optional _PXM method evaluates to an integer that identifies the
+>>>> proximity domain of a device object. This patch implements support for
+>>>> ACPI _PXM method and updates the platform device numa node id using
+>>>> acpi_get_node(), which provides the PXM to NUMA mapping information.
+>>>>
+>>>> Signed-off-by: Shanker Donthineni <shankerd@codeaurora.org>
+>>> What exactly is the motivation here?
+>> We have a couple of platform devices some of them are attached
+>> to socket0 and others to a different socket. We would like to covert
+>> memory allocations in Qualcomm platform device drivers to a NUMA
+>> aware allocation to improve performance.
+> All of the above information should be there in the patch changelog and
+> presumably the patch should be a part of a larger series so the way this
+> feature is going to be used is more clear.
 
--corey
+Sorry, I didn't quite get what's larger series? I'm happy to include above information in commit/changelog text. We are trying to allocate memory using standard  function devm_kmalloc() but the function is always allocating memory from NUMA node 0. The inline function dev_to_node(dev) always returns -1 on our system even though we are setting PXM method in ACPI DSDT to non-zero value.
 
+For device tree based kernel, the field 'dev->numa_node' is populated based on the DT property which is specified according to the below document. But in case of ACPI based kernel this NUMA field is always initialized to -1 for platform devices.
+
+https://www.kernel.org/doc/Documentation/devicetree/bindings/numa.txt
+
+Please guide me, should I send v2 patch with the suggested changelog text? otherwise I don't have any other patches to show our use case.
+
+>
 > Thanks,
 > Rafael
+>
+
+-- 
+Shanker Donthineni
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
