@@ -1,74 +1,123 @@
-From: "Baicar, Tyler" <tbaicar@codeaurora.org>
-Subject: Re: [PATCH V13 10/10] arm/arm64: KVM: add guest SEA support
-Date: Tue, 28 Mar 2017 10:44:48 -0600
-Message-ID: <35db9a6e-7ae3-3326-db1c-5cfff9ea27f3@codeaurora.org>
-References: <1490136425-4324-1-git-send-email-tbaicar@codeaurora.org>
- <1490136425-4324-11-git-send-email-tbaicar@codeaurora.org>
- <5c7f6092-9358-08ac-5341-2364637c2008@huawei.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 6/8] gpio: acpi: Explain how to get GPIO descriptors
+ in ACPI case
+Date: Tue, 28 Mar 2017 19:39:23 +0300
+Message-ID: <1490719163.708.40.camel@linux.intel.com>
+References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+         <20170323194618.26548-7-andriy.shevchenko@linux.intel.com>
+         <20170323202838.GA11818@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <5c7f6092-9358-08ac-5341-2364637c2008@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: gengdongjiu <gengdongjiu@huawei.com>, christoffer.dall@linaro.org, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, nkaje@codeaurora.org, zjzhang@codeaurora.org, mark.rutland@arm.com, james.morse@arm.com, akpm@linux-foundation.org, eun.taik.lee@samsung.com, sandeepa.s.prabhu@gmail.com, labbott@redhat.com, shijie.huang@arm.com, rruigrok@codeaurora.org, paul.gortmaker@windriver.com, tn@semihalf.com, fu.wei@linaro.org, rostedt@goodmis.org, bristot@redhat.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Suzuki.Poulose@arm.com, punit.agrawal@arm
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170323202838.GA11818@dtor-ws>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Thu, 2017-03-23 at 13:28 -0700, Dmitry Torokhov wrote:
+> On Thu, Mar 23, 2017 at 09:46:16PM +0200, Andy Shevchenko wrote:
 
 
-On 3/28/2017 3:53 AM, gengdongjiu wrote:
-> Hi,
->
-> On 2017/3/22 6:47, Tyler Baicar wrote:
->> +	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
->> +
->> +	/* The host kernel will handle the synchronous external abort. There
->> +	 * is no need to pass the error into the guest.
->> +	 */
->> +	if (is_abort_synchronous(fault_status))
->> +		sea_status = handle_guest_sea((unsigned long)fault_ipa,
->> +				    kvm_vcpu_get_hsr(vcpu));
->>   
->>   	is_iabt = kvm_vcpu_trap_is_iabt(vcpu);
->> -	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu))) {
->> +	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu)) && sea_status) {
->>   		kvm_inject_vabt(vcpu);
->>   		return 1;
->>   	}
->         After the host kernel correctly handle the synchronous external abort, the sea_status
->         will return 0, so the code logical will be continue go-no, whether it is better directly return
->         after correctly handle the SEA? such as below.
->
-> 	if (unlikely(!is_iabt && kvm_vcpu_dabt_isextabt(vcpu)) && sea_status) {
->    		kvm_inject_vabt(vcpu);
->    		return 1;
->    	} else
->                  return 1;
-Yes, I will return after successful SEA handling in the next patch set.
+> > +Using the _CRS fallback
+> > +-----------------------
+> > +
+> > +If a device does not have _DSD or the driver does not create ACPI
+> > GPIO
+> > +mapping, the Linux GPIO framework refuses to return any GPIOs. This
+> > is
+> > +because the driver does not know what it actually gets. For example
+> > if we
+> > +have a device like below:
+> > +
+> > +  Device (BTH)
+> > +  {
+> > +      Name (_HID, ...)
+> > +
+> > +      Name (_CRS, ResourceTemplate () {
+> > +          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
+> > +                  "\\_SB.GPO0", 0, ResourceConsumer) {15}
+> > +          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
+> > +                  "\\_SB.GPO0", 0, ResourceConsumer) {27}
+> > +      })
+> > +  }
+> > +
+> > +The driver might expect to get the right GPIO when it does:
+> > +
+> > +  desc = gpiod_get(dev, "reset", GPIOD_OUT_LOW);
+> > +
+> > +but since there is no way to know the mapping between "reset" and
+> > +the GpioIo() in _CRS desc will hold ERR_PTR(-ENOENT).
+> > +
+> > +The driver author can solve this by passing the mapping explictly
+> > +(the recommended way and documented in the above chapter).
+> 
+> If the driver is not platform specific, then it would have no idea
+> about
+> mapping between _CRS GPIOs and names. All such stuff should be hidden
+> in
+> platform glue (i.e drivers/platform/x86/platform_crap.c).
 
-Thanks,
-Tyler
->
->>   
->> -	fault_ipa = kvm_vcpu_get_fault_ipa(vcpu);
->> -
->>   	trace_kvm_guest_fault(*vcpu_pc(vcpu), kvm_vcpu_get_hsr(vcpu),
->>   			      kvm_vcpu_get_hfar(vcpu), fault_ipa);
->>   
->> -	/* Check the stage-2 fault is trans. fault or write fault */
->> -	fault_status = kvm_vcpu_trap_get_fault_type(vcpu);
->>   	if (fault_status != FSC_FAULT && fault_status != FSC_PERM &&
+It might be interpreted that all platform data from all the drivers
+should gone. While ideal case should be like this and I totally agree
+with you, we are living in non-ideal world, that's why we used to and
+continue using some ID-based quirks (PCI enumeration, I2C enumeration,
+ACPI enumeration, SPI enumeration, UART enumeration, an so on, so on).
+
+Moreover ACPI comes into ARM(64) world which might have its own troubles
+with generating correct tables and we might end up with quirks there.
+
+So, I disagree that here is possible to hide like you said "all such
+stuff in ...platform_crap.c".
+
+> > +
+> > +Getting GPIO descriptor
+> > +-----------------------
+> > +
+> > +There are two main approaches to get GPIO resource from ACPI:
+> > +	desc = gpiod_get(dev, connection_id, flags);
+> > +	desc = gpiod_get_index(dev, connection_id, index, flags);
+> > +
+> > +We may consider two different cases here, i.e. when connection ID
+> > is
+> > +provided and otherwise.
+> > +
+> > +Case 1:
+> > +	desc = gpiod_get(dev, "non-null-connection-id", flags);
+> > +	desc = gpiod_get_index(dev, "non-null-connection-id",
+> > index, flags);
+> > +
+> > +Case 2:
+> > +	desc = gpiod_get(dev, NULL, flags);
+> > +	desc = gpiod_get_index(dev, NULL, index, flags);
+> > +
+> > +Case 1 assumes that corresponding ACPI device description must have
+> > +defined device properties and will prevent to getting any GPIO
+> > resources
+> > +otherwise.
+> > +
+> > +Case 2 explicitly tells GPIO core to look for resources in _CRS.
+> > +
+> > +Be aware that gpiod_get_index() in cases 1 and 2, assuming that
+> > there
+> > +are two versions of ACPI device description provided and no mapping
+> > is
+> > +present in the driver, will return different resources. That's why
+> > a
+> > +certain driver has to handle them carefully as explained in
+> > previous
+> > +chapter.
+> 
+> I think that this wording is too x86-centric. We are talking about
+> consumers of GPIOs here (i.e. drivers), which need unified behavior
+> between ACPI, DT, and static board properties, they do not really care
+> about _CRS or _DSD.
+
+If the certain driver cares about ACPI enumerated devices it might care
+about supporting it disregarding on how new firmware is used (supporting
+_DSD or not).
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
