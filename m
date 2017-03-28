@@ -1,43 +1,185 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing
- and suspend-to-ram
-Date: Tue, 28 Mar 2017 11:39:41 -0400
-Message-ID: <20170328113941.37469c9b@gandalf.local.home>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
-        <20170324181254.gouyrbmppukrrbb6@treble>
-        <20170324144114.16a37d47@gandalf.local.home>
-        <5766300.HtmE7iLEgV@aspire.rjw.lan>
-        <20170327140843.fx5y32rnc3mqiyke@treble>
-        <20170327145441.aybim6rmc6nxelij@treble>
-        <d8fd5cfd-e273-ad29-9281-2436cb0c3723@molgen.mpg.de>
-        <918c4518-f4ca-0b94-6a28-3996be68469a@molgen.mpg.de>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v22 11/11] acpi/arm64: Add SBSA Generic Watchdog support
+ in GTDT driver
+Date: Tue, 28 Mar 2017 16:41:12 +0100
+Message-ID: <20170328154111.GC18046@red-moon>
+References: <20170321163122.9183-1-fu.wei@linaro.org>
+ <20170321163122.9183-12-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:60668 "EHLO mail.kernel.org"
+Received: from foss.arm.com ([217.140.101.70]:51262 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751590AbdC1Pjw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Mar 2017 11:39:52 -0400
-In-Reply-To: <918c4518-f4ca-0b94-6a28-3996be68469a@molgen.mpg.de>
+        id S1751386AbdC1Pky (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Mar 2017 11:40:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20170321163122.9183-12-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Menzel <pmenzel@molgen.mpg.de>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: fu.wei@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, mark.rutland@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, tn@semihalf.com, christoffer.dall@linaro.org, julien.grall@arm.com
 
-On Tue, 28 Mar 2017 11:51:45 +0200
-Paul Menzel <pmenzel@molgen.mpg.de> wrote:
-
-> With both patches applied `./analyze_suspend.py -config 
-> suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
-> suspend and resume work perfectly, when tracing is enabled.
+On Wed, Mar 22, 2017 at 12:31:22AM +0800, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 > 
-> Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+> This driver adds support for parsing SBSA Generic Watchdog timer
+> in GTDT, parse all info in SBSA Generic Watchdog Structure in GTDT,
+> and creating a platform device with that information.
 > 
-> It’d be awesome, if you could tag both patches for inclusion into the 
-> stable Linux Kernel series.
+> This allows the operating system to obtain device data from the
+> resource of platform device. The platform device named "sbsa-gwdt"
+> can be used by the ARM SBSA Generic Watchdog driver.
+> 
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+> ---
+>  drivers/acpi/arm64/gtdt.c | 94 +++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 94 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
+> index f471873..5d167f0 100644
+> --- a/drivers/acpi/arm64/gtdt.c
+> +++ b/drivers/acpi/arm64/gtdt.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/init.h>
+>  #include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+>  
+>  #include <clocksource/arm_arch_timer.h>
+>  
+> @@ -59,6 +60,17 @@ static inline bool is_timer_block(void *platform_timer)
+>  	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
+>  }
+>  
+> +static inline bool is_non_secure_watchdog(void *platform_timer)
+> +{
+> +	struct acpi_gtdt_header *gh = platform_timer;
+> +	struct acpi_gtdt_watchdog *wd = platform_timer;
+> +
+> +	if (gh->type != ACPI_GTDT_TYPE_WATCHDOG)
+> +		return false;
+> +
+> +	return !(wd->timer_flags & ACPI_GTDT_WATCHDOG_SECURE);
+> +}
+> +
+>  static int __init map_gt_gsi(u32 interrupt, u32 flags)
+>  {
+>  	int trigger, polarity;
+> @@ -285,3 +297,85 @@ int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
+>  
+>  	return 0;
+>  }
+> +
+> +/*
+> + * Initialize a SBSA generic Watchdog platform device info from GTDT
+> + */
+> +static int __init gtdt_import_sbsa_gwdt(struct acpi_gtdt_watchdog *wd,
+> +					int index)
+> +{
+> +	struct platform_device *pdev;
+> +	int irq = map_gt_gsi(wd->timer_interrupt, wd->timer_flags);
+> +
+> +	/*
+> +	 * According to SBSA specification the size of refresh and control
+> +	 * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 – 0xFFF).
+> +	 */
+> +	struct resource res[] = {
+> +		DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
+> +		DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
+> +		DEFINE_RES_IRQ(irq),
+> +	};
+> +	int nr_res = ARRAY_SIZE(res);
+> +
+> +	pr_debug("found a Watchdog (0x%llx/0x%llx gsi:%u flags:0x%x).\n",
+> +		 wd->refresh_frame_address, wd->control_frame_address,
+> +		 wd->timer_interrupt, wd->timer_flags);
+> +
+> +	if (!(wd->refresh_frame_address && wd->control_frame_address)) {
+> +		pr_err(FW_BUG "failed to get the Watchdog base address.\n");
+> +		return -EINVAL;
 
-As long as they are not dependent on my patch series, I'm fine with
-these going to stable.
+You should unmap the gsi here.
 
--- Steve
+> +	}
+> +
+> +	if (irq <= 0) {
+> +		pr_warn("failed to map the Watchdog interrupt.\n");
+> +		nr_res--;
+> +	}
+> +
+> +	/*
+> +	 * Add a platform device named "sbsa-gwdt" to match the platform driver.
+> +	 * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watchdog
+> +	 * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get device
+
+Nit: I would not hardcode drivers paths in comments.
+
+> +	 * info below by matching this name.
+> +	 */
+> +	pdev = platform_device_register_simple("sbsa-gwdt", index, res, nr_res);
+> +	if (IS_ERR(pdev)) {
+> +		acpi_unregister_gsi(wd->timer_interrupt);
+> +		return PTR_ERR(pdev);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init gtdt_sbsa_gwdt_init(void)
+> +{
+> +	int ret, i = 0;
+> +	void *platform_timer;
+> +	struct acpi_table_header *table;
+> +
+> +	if (acpi_disabled)
+> +		return 0;
+> +
+> +	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
+> +		return -EINVAL;
+> +
+> +	ret = acpi_gtdt_init(table, NULL);
+> +	if (ret)
+> +		return ret;
+
+Ok, I missed previous versions reviews so I miss the background
+here and I apologise.
+
+I do not understand why you call acpi_gtdt_init() again (or better,
+why acpi_gtdt_init() does not return straight away) here if the
+stashed pointer in acpi_gtdt_desc is already set. I am not a big fan
+of the for_each_platform_timer macro either, here you can just read
+the ACPI_SIG_GTDT and parse its entries, I see no point in calling
+acpi_gtdt_init() again, there is nothing to stash for later probing,
+is there ?
+
+Or it is just to reuse common parsing code ? Regardless, if the
+acpi_gtdt_desc struct is already initialized acpi_gtdt_init() should
+just return or I am missing the point.
+
+I would like clarifications on the acpi_gtdt_init() call above please
+(plus GSI unmap fix), apart from that:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> +	for_each_platform_timer(platform_timer) {
+> +		if (is_non_secure_watchdog(platform_timer)) {
+> +			ret = gtdt_import_sbsa_gwdt(platform_timer, i);
+> +			if (ret)
+> +				break;
+> +			i++;
+> +		}
+> +	}
+> +
+> +	if (i)
+> +		pr_info("found %d SBSA generic Watchdog(s).\n", i);
+> +
+> +	return ret;
+> +}
+> +
+> +device_initcall(gtdt_sbsa_gwdt_init);
+> -- 
+> 2.9.3
+> 
