@@ -1,49 +1,73 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v1 0/8] gpio: acpi: Make it working
-Date: Tue, 28 Mar 2017 15:24:59 +0200
-Message-ID: <CACRpkdaF=+toeuUGkYz1y-09b8Dp476vp_hf6A6D6an0GrmZFQ@mail.gmail.com>
-References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V9 00/11] IOMMU probe deferral support
+Date: Tue, 28 Mar 2017 14:15:56 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA81750D76E@lhreml504-mbs>
+References: <1489086061-9356-1-git-send-email-sricharan@codeaurora.org>
+	<58D49845.9060407@hisilicon.com>
+	<0ea8022b-a19b-335d-6cc6-81510196f891@codeaurora.org>
+	<5FC3163CFD30C246ABAA99954A238FA81750B7CB@lhreml504-mbs>
+	<db3d68f8-713c-9ae2-7df9-324bc1b375b1@arm.com>
+	<5FC3163CFD30C246ABAA99954A238FA81750CCC4@lhreml504-mbs>
+	<f67fb561-4238-6933-04f3-0f910f9232d1@arm.com>
+	<8d7ba471-84d4-b9f3-9d2a-de166f6839d4@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f48.google.com ([209.85.214.48]:35168 "EHLO
-        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752228AbdC1NZD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 09:25:03 -0400
-Received: by mail-it0-f48.google.com with SMTP id y18so111893580itc.0
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2017 06:25:02 -0700 (PDT)
-In-Reply-To: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <8d7ba471-84d4-b9f3-9d2a-de166f6839d4-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sricharan R <sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "Wangzhou (B)" <wangzhou1-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hdegoede@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thu, Mar 23, 2017 at 8:46 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
 
-> Currently GPIO ACPI library provides an API to get a GPIO resources
-> (IO or interrupt) from ACPI tables for the individual drivers.
->
-> This library has few flaws which makes some devices not working:
->  - the library allows to abuse ACPI by using a _CRS fallback mechanism
->  - the library neglects flags of the resource
->
-> In this series:
->  - the _CRS fallback is forbidden
->  - the pin configuration follows what firmware wants to
->  - the documentation is updated in order to clarify corner cases
->
-> After this series it's possible to use GPIO pins for input (interrupt)
-> which were configured as output by BIOS by some reason. It's a crucial
-> functionality for IoT open connected boards where user may choose any of
-> available pin for almost any of available function, including GPIO input
-> (interrupt).
->
-> Current bad behaviour was first reported by Jarkko Nikula few months ago.
 
-I see there are some outstanding comments in the patches but it looks
-OK overall to me, waiting for a v2 before applying, please collect ACKs
-and relevant Tested-by:s.
+> -----Original Message-----
+> From: Sricharan R [mailto:sricharan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org]
+> Sent: Tuesday, March 28, 2017 5:54 AM
+> To: Robin Murphy; Shameerali Kolothum Thodi; Wangzhou (B);
+> will.deacon-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org;
+> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org;
+> linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org;
+> bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org; linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org; hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org;
+> okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+> Subject: Re: [PATCH V9 00/11] IOMMU probe deferral support
+> 
+> Hi,
+> 
+[...]
 
-Yours,
-Linus Walleij
+> >>>  From the logs its clear that  when ixgbevf driver originally probes
+> >>> and adds the device  to smmu  the dma mask is 32, but when it binds
+> >>> to vfio-pci, it becomes 64 bit.
+> >>
+> >> Just to add to that, the mask is set to 64 bit in the ixgebvf driver
+> >> probe[1]
+> >
+> > Aha, but of course it's still the same struct device getting bound to
+> > VFIO later, so whatever mask the first driver set is still in there
+> > when we go through of_dma_configure() the second time (and the fact
+> > that we go through more than once being the new behaviour). So yes,
+> > this is a legitimate problem and we really do need to be robust
+> > against size overflow. I reckon the below tweak of your fix is
+> > probably the way to go; cleaning up the arch_setup_dma_ops() interface
+> can happen later.
+> >
+> 
+> ok, i will add this fix separately and also the acpi fix that lorenzo has
+> suggested in patch #8 in to the series after testing confirmation.
+> 
+I can confirm that the patches fixes the issues reported here . Both 
+DT and ACPI works now.
+ 
+Cheers,
+Shameer 
