@@ -1,50 +1,81 @@
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing
- and suspend-to-ram
-Date: Tue, 28 Mar 2017 10:55:46 -0500
-Message-ID: <20170328155546.g7cbjblcehjfskyr@treble>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
- <20170324181254.gouyrbmppukrrbb6@treble>
- <20170324144114.16a37d47@gandalf.local.home>
- <5766300.HtmE7iLEgV@aspire.rjw.lan>
- <20170327140843.fx5y32rnc3mqiyke@treble>
- <20170327145441.aybim6rmc6nxelij@treble>
- <d8fd5cfd-e273-ad29-9281-2436cb0c3723@molgen.mpg.de>
- <918c4518-f4ca-0b94-6a28-3996be68469a@molgen.mpg.de>
- <20170328113941.37469c9b@gandalf.local.home>
+From: Sricharan R <sricharan@codeaurora.org>
+Subject: Re: [V9, 07/11] iommu: of: Handle IOMMU lookup failure with deferred
+ probing or error
+Date: Tue, 28 Mar 2017 21:36:30 +0530
+Message-ID: <7312ddb8-3d6e-0665-9e7e-1a39c6fb597b@codeaurora.org>
+References: <1489086061-9356-8-git-send-email-sricharan@codeaurora.org>
+ <20170328150001.j57jko6mx35npgp2@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50428 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752318AbdC1P4F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Mar 2017 11:56:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20170328113941.37469c9b@gandalf.local.home>
+Received: from smtp.codeaurora.org ([198.145.29.96]:35060 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751386AbdC1QGq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 12:06:46 -0400
+In-Reply-To: <20170328150001.j57jko6mx35npgp2@rob-hp-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Paul Menzel <pmenzel@molgen.mpg.de>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Rob Herring <robh@kernel.org>
+Cc: lorenzo.pieralisi@arm.com, linux-arm-msm@vger.kernel.org, joro@8bytes.org, will.deacon@arm.com, robdclark@gmail.com, okaya@codeaurora.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, hanjun.guo@linaro.org, linux-pci@vger.kernel.org, bhelgaas@google.com, tn@semihalf.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, m.szyprowski@samsung.com
 
-On Tue, Mar 28, 2017 at 11:39:41AM -0400, Steven Rostedt wrote:
-> On Tue, 28 Mar 2017 11:51:45 +0200
-> Paul Menzel <pmenzel@molgen.mpg.de> wrote:
-> 
-> > With both patches applied `./analyze_suspend.py -config 
-> > suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
-> > suspend and resume work perfectly, when tracing is enabled.
-> > 
-> > Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-> > 
-> > It’d be awesome, if you could tag both patches for inclusion into the 
-> > stable Linux Kernel series.
-> 
-> As long as they are not dependent on my patch series, I'm fine with
-> these going to stable.
+Hi,
 
-Stable sounds fine to me too.  Both patches are independent of your
-x86-32 fentry patch set.
+On 3/28/2017 8:30 PM, Rob Herring wrote:
+> On Fri, Mar 10, 2017 at 12:30:57AM +0530, Sricharan R wrote:
+>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>>
+>> Failures to look up an IOMMU when parsing the DT iommus property need to
+>> be handled separately from the .of_xlate() failures to support deferred
+>> probing.
+>>
+>> The lack of a registered IOMMU can be caused by the lack of a driver for
+>> the IOMMU, the IOMMU device probe not having been performed yet, having
+>> been deferred, or having failed.
+>>
+>> The first case occurs when the device tree describes the bus master and
+>> IOMMU topology correctly but no device driver exists for the IOMMU yet
+>> or the device driver has not been compiled in. Return NULL, the caller
+>> will configure the device without an IOMMU.
+>>
+>> The second and third cases are handled by deferring the probe of the bus
+>> master device which will eventually get reprobed after the IOMMU.
+>>
+>> The last case is currently handled by deferring the probe of the bus
+>> master device as well. A mechanism to either configure the bus master
+>> device without an IOMMU or to fail the bus master device probe depending
+>> on whether the IOMMU is optional or mandatory would be a good
+>> enhancement.
+>>
+>> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> Signed-off-by: Laurent Pichart <laurent.pinchart+renesas@ideasonboard.com>
+>> Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+>> ---
+>>  drivers/base/dma-mapping.c | 5 +++--
+>>  drivers/iommu/of_iommu.c   | 4 ++--
+>>  drivers/of/device.c        | 7 ++++++-
+>>  include/linux/of_device.h  | 9 ++++++---
+>>  4 files changed, 17 insertions(+), 8 deletions(-)
+>
+> Maybe it is the same issue reported for VFIO, but virtio-pci is broken
+> with v8 of this series. Bisecting blames this commit which looks like it
+> hasn't changeed.
+
+Ya, as Robin mentioned it was broken at patch #2 and
+comes out after this patch. I am going to repost this series with
+couple of more fixes added as well.
+
+>
+> Rob
+>
+> P.S. Doesn't look like you have copied the DT maintainers nor list for
+> the DT changes.
+
+Ha, really sorry about that. will add it.
+
+Regards,
+  Sricharan
 
 -- 
-Josh
+"QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a 
+member of Code Aurora Forum, hosted by The Linux Foundation
