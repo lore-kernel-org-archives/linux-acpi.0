@@ -1,64 +1,117 @@
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing
- and suspend-to-ram
-Date: Tue, 28 Mar 2017 16:42:18 -0500
-Message-ID: <20170328214218.qnvkyukxrpkquxvr@treble>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com>
- <20170328113941.37469c9b@gandalf.local.home>
- <20170328155546.g7cbjblcehjfskyr@treble>
- <2443543.DcYTiKRKUq@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
+Date: Tue, 28 Mar 2017 23:42:29 +0200
+Message-ID: <4029834.c3GWUpRlkb@aspire.rjw.lan>
+References: <20170316161736.339-1-hdegoede@redhat.com> <20170316161736.339-2-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45548 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752515AbdC1Vml (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Mar 2017 17:42:41 -0400
-Content-Disposition: inline
-In-Reply-To: <2443543.DcYTiKRKUq@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170316161736.339-2-hdegoede@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Paul Menzel <pmenzel@molgen.mpg.de>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>
 
-On Tue, Mar 28, 2017 at 11:12:42PM +0200, Rafael J. Wysocki wrote:
-> On Tuesday, March 28, 2017 10:55:46 AM Josh Poimboeuf wrote:
-> > On Tue, Mar 28, 2017 at 11:39:41AM -0400, Steven Rostedt wrote:
-> > > On Tue, 28 Mar 2017 11:51:45 +0200
-> > > Paul Menzel <pmenzel@molgen.mpg.de> wrote:
-> > > 
-> > > > With both patches applied `./analyze_suspend.py -config 
-> > > > suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
-> > > > suspend and resume work perfectly, when tracing is enabled.
-> > > > 
-> > > > Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-> > > > 
-> > > > It’d be awesome, if you could tag both patches for inclusion into the 
-> > > > stable Linux Kernel series.
-> > > 
-> > > As long as they are not dependent on my patch series, I'm fine with
-> > > these going to stable.
-> > 
-> > Stable sounds fine to me too.  Both patches are independent of your
-> > x86-32 fentry patch set.
+On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
+> acpi_dev_found just iterates over all acpi-ids and sees if one matches.
+> This means that it will return true for devices which are in the dsdt
+> but disabled (their _STA method returns 0).
 > 
-> Does https://patchwork.kernel.org/patch/9628301/ need to go into any particular
-> -stable series or just all of them?
+> For some drivers it is useful to be able to check if a certain hid
+> is not only present in the namespace, but also actually present as in
+> acpi_device_is_present() will return true for the device. For example
+> because if a certain device is present then the driver will want to use
+> an extcon or IIO adc channel provided by that device.
 > 
-> Or should a Fixes: tag be added to it?
+> This commit adds a new acpi_dev_present helper which drivers can use
+> to this end.
+> 
+> Arguably acpi_dev_present is what acpi_dev_found should have been, but
+> there are too many users to just change acpi_dev_found without the risk
+> of breaking something.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-As far as I can tell this issue has been around since the function_graph
-tracer was introduced in 2008:
+Andy, Mika, any concerns about this patch, please?
 
-  15e6cb3673ea ("tracing: add a tracer to catch execution time of kernel functions")
-
-(Though only for gcc >= 4.4.)
-
-Not sure if it's overkill to specify 'Fixes' for an 8+ year old bug?  I
-guess it can't hurt anything.
-
-I think it can go in all of the stable branches.
-
--- 
-Josh
+> ---
+>  drivers/acpi/utils.c    | 34 ++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h |  1 +
+>  include/linux/acpi.h    |  5 +++++
+>  3 files changed, 40 insertions(+)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 22c0995..40f8953 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -736,6 +736,40 @@ bool acpi_dev_found(const char *hid)
+>  }
+>  EXPORT_SYMBOL(acpi_dev_found);
+>  
+> +static acpi_status acpi_dev_present_cb(acpi_handle ah, u32 level, void *ctx,
+> +				     void **retval)
+> +{
+> +	/*
+> +	 * acpi_get_devices() does all the work for us, if we get called
+> +	 * a device with a matching hid has been found and its _STA indicates
+> +	 * it is present.
+> +	 */
+> +	*(bool *)ctx = true;
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +/**
+> + * acpi_dev_present - Detect that a given ACPI device is present
+> + * @hid: Hardware ID of the device.
+> + *
+> + * Return %true if the device was present at the moment of invocation.
+> + * Note that if the device is pluggable, it may since have disappeared.
+> + *
+> + * Note that unlike acpi_dev_found() this function checks the status
+> + * of the device so for devices which are present in the dsdt, but
+> + * which are disabled (their _STA callback returns 0) this function
+> + * will return false.
+> + */
+> +bool acpi_dev_present(const char *hid)
+> +{
+> +	bool present = false;
+> +
+> +	acpi_get_devices(hid, acpi_dev_present_cb, &present, NULL);
+> +
+> +	return present;
+> +}
+> +EXPORT_SYMBOL(acpi_dev_present);
+> +
+>  /*
+>   * acpi_backlight= handling, this is done here rather then in video_detect.c
+>   * because __setup cannot be used in modules.
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index ef0ae8a..29f6b5f 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -88,6 +88,7 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+>  	}
+>  
+>  bool acpi_dev_found(const char *hid);
+> +bool acpi_dev_present(const char *hid);
+>  
+>  #ifdef CONFIG_ACPI
+>  
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 673acda..059ffdc 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -614,6 +614,11 @@ static inline bool acpi_dev_found(const char *hid)
+>  	return false;
+>  }
+>  
+> +static inline bool acpi_dev_present(const char *hid)
+> +{
+> +	return false;
+> +}
+> +
+>  static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+>  {
+>  	return false;
+> 
