@@ -1,55 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ftrace/x86: fix x86-32 triple fault with graph tracing and suspend-to-ram
-Date: Tue, 28 Mar 2017 23:47:36 +0200
-Message-ID: <3586585.nrmPruLJgf@aspire.rjw.lan>
-References: <6559f36c6c6cdc2552b0bccf31de967367aa790d.1489672478.git.jpoimboe@redhat.com> <2443543.DcYTiKRKUq@aspire.rjw.lan> <20170328214218.qnvkyukxrpkquxvr@treble>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH] acpi: apei: check for pending errors when probing HED
+ type GHES entries
+Date: Tue, 28 Mar 2017 16:00:17 -0600
+Message-ID: <ffbdbfba-9b52-a4cb-d310-5ef0f3020e95@redhat.com>
+References: <1490732054-4720-1-git-send-email-tbaicar@codeaurora.org>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170328214218.qnvkyukxrpkquxvr@treble>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Paul Menzel <pmenzel@molgen.mpg.de>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Borislav Petkov <bp@alien8.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:35156 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753064AbdC1WAc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 18:00:32 -0400
+Received: by mail-qt0-f180.google.com with SMTP id x35so76406545qtc.2
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2017 15:00:26 -0700 (PDT)
+In-Reply-To: <1490732054-4720-1-git-send-email-tbaicar@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>, rjw@rjwysocki.net, lenb@kernel.org, bp@suse.de, prarit@redhat.com, bhelgaas@google.com, punit.agrawal@arm.com, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shiju.jose@huawei.com, James.Morse@arm.com
 
-On Tuesday, March 28, 2017 04:42:18 PM Josh Poimboeuf wrote:
-> On Tue, Mar 28, 2017 at 11:12:42PM +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, March 28, 2017 10:55:46 AM Josh Poimboeuf wrote:
-> > > On Tue, Mar 28, 2017 at 11:39:41AM -0400, Steven Rostedt wrote:
-> > > > On Tue, 28 Mar 2017 11:51:45 +0200
-> > > > Paul Menzel <pmenzel@molgen.mpg.de> wrote:
-> > > > 
-> > > > > With both patches applied `./analyze_suspend.py -config 
-> > > > > suspend-callgraph.cfg -filter i915` succeeds on a Lenovo X60t, so 
-> > > > > suspend and resume work perfectly, when tracing is enabled.
-> > > > > 
-> > > > > Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-> > > > > 
-> > > > > It’d be awesome, if you could tag both patches for inclusion into the 
-> > > > > stable Linux Kernel series.
-> > > > 
-> > > > As long as they are not dependent on my patch series, I'm fine with
-> > > > these going to stable.
-> > > 
-> > > Stable sounds fine to me too.  Both patches are independent of your
-> > > x86-32 fentry patch set.
-> > 
-> > Does https://patchwork.kernel.org/patch/9628301/ need to go into any particular
-> > -stable series or just all of them?
-> > 
-> > Or should a Fixes: tag be added to it?
-> 
-> As far as I can tell this issue has been around since the function_graph
-> tracer was introduced in 2008:
-> 
->   15e6cb3673ea ("tracing: add a tracer to catch execution time of kernel functions")
-> 
-> (Though only for gcc >= 4.4.)
-> 
-> Not sure if it's overkill to specify 'Fixes' for an 8+ year old bug?  I
-> guess it can't hurt anything.
-> 
-> I think it can go in all of the stable branches.
+On 03/28/2017 02:14 PM, Tyler Baicar wrote:
+> If a HED type error occurs prior to GHES probing, the kernel will
+> never report the error. The HED driver will see that no notifiers
+> are registers, and clear the interrupt.
 
-OK, thanks!
+..."registers" or "registered"?
+
+> This becomes a more serious problem with firmware that supports
+> GHESv2 acknowledgements from the kernel. The firmware will populate
+> the error and wait for the kernel ack. But since the kernel will
+> never process the error we get into a state that the firmware will
+> not send any more errors and the kernel will never see or ack the
+> original error.
+> 
+> Check for pending errors when probing HED type GHES entries to
+> avoid the above situation.
+> 
+> This patch is based on Shiju's patch that adds support for GSIV
+> and GPIO notification types:
+> https://patchwork.kernel.org/patch/9628817/
+> 
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index fd39929..cf5e938 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1035,6 +1035,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>  			register_acpi_hed_notifier(&ghes_notifier_hed);
+>  		list_add_rcu(&ghes->list, &ghes_hed);
+>  		mutex_unlock(&ghes_list_mutex);
+> +		ghes_proc(ghes);
+>  		break;
+>  	case ACPI_HEST_NOTIFY_NMI:
+>  		ghes_nmi_add(ghes);
+> 
+
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
