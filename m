@@ -1,39 +1,90 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V2 0/2] additional sysfs entries for CPPC
-Date: Wed, 29 Mar 2017 13:49:58 -0600
-Message-ID: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V2 1/2] ACPI / CPPC: Read lowest non linear perf in cppc_get_perf_caps
+Date: Wed, 29 Mar 2017 13:49:59 -0600
+Message-ID: <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
+References: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46652 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:46780 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753049AbdC2TuU (ORCPT
+        with ESMTP id S1753160AbdC2TuU (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 15:50:20 -0400
+In-Reply-To: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: rjw@rjwysocki.net, hotran@apm.com, ahs3@redhat.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-This patch-set adds few additional sysfs entries to expose the
-performance capabilities of each CPU. The performance capabilities
-include highest perf, lowest perf, nominal perf and lowest
-non-linear perf. See 8.4.7.1 for ACPI 6.1 spec for details on
-these capabilities.
+Read lowest non linear perf in cppc_get_perf_caps so that it can be exposed
+via sysfs to the usespace. Lowest non linear perf is the lowest performance
+level at which nonlinear power savings are achieved.
 
-cppc_cpufreq driver operates in KHz scale whereas the delivered
-performance computed in userspace will be in abstract CPPC scale, so
-exposing perf capabilities should allow userspace to figure out the
-conversion factor from CPPC scale to KHz.
+Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+---
+ drivers/acpi/cppc_acpi.c | 19 +++++++++++--------
+ include/acpi/cppc_acpi.h |  1 +
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-Changes in V2:
- - Removed caching of perf caps based on Rafael's inputs
-
-Prashanth Prakash (2):
-  ACPI / CPPC: Read lowest non linear perf in cppc_get_perf_caps
-  ACPI / CPPC: add sysfs entries for CPPC perf capabilities
-
- drivers/acpi/cppc_acpi.c | 80 ++++++++++++++++++++++++++----------------------
- include/acpi/cppc_acpi.h |  3 +-
- 2 files changed, 46 insertions(+), 37 deletions(-)
-
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 3ca0729..f5f3c29 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -972,9 +972,9 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ {
+ 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+-	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
+-								 *nom_perf;
+-	u64 high, low, nom;
++	struct cpc_register_resource *highest_reg, *lowest_reg,
++		*lowest_non_linear_reg, *nominal_reg;
++	u64 high, low, nom, low_non_linear;
+ 	int ret = 0, regs_in_pcc = 0;
+ 
+ 	if (!cpc_desc) {
+@@ -984,12 +984,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 
+ 	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
+ 	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
+-	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
+-	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
++	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
++	nominal_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
+ 
+ 	/* Are any of the regs PCC ?*/
+ 	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
+-		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
++		CPC_IN_PCC(lowest_non_linear_reg) || CPC_IN_PCC(nominal_reg)) {
+ 		regs_in_pcc = 1;
+ 		down_write(&pcc_data.pcc_lock);
+ 		/* Ring doorbell once to update PCC subspace */
+@@ -1005,10 +1005,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 	cpc_read(cpunum, lowest_reg, &low);
+ 	perf_caps->lowest_perf = low;
+ 
+-	cpc_read(cpunum, nom_perf, &nom);
++	cpc_read(cpunum, nominal_reg, &nom);
+ 	perf_caps->nominal_perf = nom;
+ 
+-	if (!high || !low || !nom)
++	cpc_read(cpunum, lowest_non_linear_reg, &low_non_linear);
++	perf_caps->lowest_non_linear_perf = low_non_linear;
++
++	if (!high || !low || !nom || !low_non_linear)
+ 		ret = -EFAULT;
+ 
+ out_err:
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index 427a7c3..3f64660 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -103,6 +103,7 @@ struct cppc_perf_caps {
+ 	u32 highest_perf;
+ 	u32 nominal_perf;
+ 	u32 lowest_perf;
++	u32 lowest_non_linear_perf;
+ };
+ 
+ struct cppc_perf_ctrls {
 -- 
 Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
