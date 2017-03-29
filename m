@@ -1,75 +1,59 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v22 07/11] acpi/arm64: Add GTDT table parse driver
-Date: Wed, 29 Mar 2017 11:21:18 +0100
-Message-ID: <20170329102118.GB10807@red-moon>
-References: <20170321163122.9183-1-fu.wei@linaro.org>
- <20170321163122.9183-8-fu.wei@linaro.org>
- <20170328113535.GA17440@red-moon>
- <CADyBb7v9jaiQjaWzwafkih_tsU+-hNi+TA7hcDbFgtLLChXM_g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI : Update platform device numa node based on _PXM method
+Date: Wed, 29 Mar 2017 12:24:42 +0200
+Message-ID: <CAJZ5v0hSDE_b8FKBoLAkts5Tn1QQryGZbqP2zUpJA-bAKqeqZg@mail.gmail.com>
+References: <1490108070-24061-1-git-send-email-shankerd@codeaurora.org>
+ <1932728.uFK6bUjlgv@aspire.rjw.lan> <6b298342-2746-f6d5-0b0e-67c20fd4c002@codeaurora.org>
+ <13204058.j7zPSh58G6@aspire.rjw.lan> <18560c7a-c9c5-1cf1-2e74-cf28c3a16b97@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59632 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755116AbdC2KUz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Mar 2017 06:20:55 -0400
-Content-Disposition: inline
-In-Reply-To: <CADyBb7v9jaiQjaWzwafkih_tsU+-hNi+TA7hcDbFgtLLChXM_g@mail.gmail.com>
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:35179 "EHLO
+        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932124AbdC2KYo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 06:24:44 -0400
+In-Reply-To: <18560c7a-c9c5-1cf1-2e74-cf28c3a16b97@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Wei
+To: shankerd@codeaurora.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Vikram Sethi <vikrams@codeaurora.org>
 
-On Wed, Mar 29, 2017 at 05:48:17PM +0800, Fu Wei wrote:
+On Wed, Mar 29, 2017 at 12:51 AM, Shanker Donthineni
+<shankerd@codeaurora.org> wrote:
+> Hi Rafael,
+>
+>
+> On 03/28/2017 05:15 PM, Rafael J. Wysocki wrote:
+>> On Tuesday, March 28, 2017 05:14:13 PM Shanker Donthineni wrote:
+>>> Hi Rafael,
+>>>
+>>>
+>>> On 03/28/2017 04:43 PM, Rafael J. Wysocki wrote:
+>>>> On Tuesday, March 21, 2017 09:54:30 AM Shanker Donthineni wrote:
+>>>>> The optional _PXM method evaluates to an integer that identifies the
+>>>>> proximity domain of a device object. This patch implements support for
+>>>>> ACPI _PXM method and updates the platform device numa node id using
+>>>>> acpi_get_node(), which provides the PXM to NUMA mapping information.
+>>>>>
+>>>>> Signed-off-by: Shanker Donthineni <shankerd@codeaurora.org>
+>>>> What exactly is the motivation here?
+>>> We have a couple of platform devices some of them are attached
+>>> to socket0 and others to a different socket. We would like to covert
+>>> memory allocations in Qualcomm platform device drivers to a NUMA
+>>> aware allocation to improve performance.
+>> All of the above information should be there in the patch changelog and
+>> presumably the patch should be a part of a larger series so the way this
+>> feature is going to be used is more clear.
+>
+> Sorry, I didn't quite get what's larger series? I'm happy to include above information in
+> commit/changelog text. We are trying to allocate memory using standard  function
+> devm_kmalloc() but the function is always allocating memory from NUMA node 0.
+> The inline function dev_to_node(dev) always returns -1 on our system even though
+> we are setting PXM method in ACPI DSDT to non-zero value.
 
-[...]
+OK
 
->  * @platform_timer_count: It points to a integer variable which is used
->  *                           for storing the number of platform timers.
->  *                           This pointer could be NULL, if the caller
->  *                           doesn't need this info.
-> 
-> >
-> >> + *
-> >> + * Return: 0 if success, -EINVAL if error.
-> >> + */
-> >> +int __init acpi_gtdt_init(struct acpi_table_header *table,
-> >> +                       int *platform_timer_count)
-> >> +{
-> >> +     int ret = 0;
-> >> +     int timer_count = 0;
-> >> +     void *platform_timer = NULL;
-> >> +     struct acpi_table_gtdt *gtdt;
-> >> +
-> >> +     gtdt = container_of(table, struct acpi_table_gtdt, header);
-> >> +     acpi_gtdt_desc.gtdt = gtdt;
-> >> +     acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
-> >> +
-> >> +     if (table->revision < 2)
-> >> +             pr_warn("Revision:%d doesn't support Platform Timers.\n",
-> >> +                     table->revision);
-> >
-> > Ok, two points here. First, I am not sure why you should warn if the
-> > table revision is < 2, is that a FW bug ? I do not think it is, you
-> > can just return 0.
-> 
-> I used pr_debug here before v20, then I got Hanjun's suggestion:
-> -------
-> GTDT table revision is updated to 2 in ACPI 5.1, we will
-> not support ACPI version under 5.1 and disable ACPI in FADT
-> parse before this code is called, so if we get revision
-> <2 here, I think we need to print warning (we need to keep
-> the firmware stick to the spec on ARM64).
-> -------
-> https://lkml.org/lkml/2017/1/19/82
-> 
-> So I started to use pr_warn.
-
-Thanks for the explanation, so it is a FW bug and the warning
-is granted :) just leave it there.
-
-Still, please check my comment on acpi_gtdt_init() being called
-multiple times on patch 11.
+So please add the above to the patch changelog too.
 
 Thanks,
-Lorenzo
+Rafael
