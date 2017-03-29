@@ -1,121 +1,94 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
-Date: Wed, 29 Mar 2017 17:13:54 +0100
-Message-ID: <20170329161354.GC11297@red-moon>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
- <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
- <20170329101400.GA10807@red-moon>
- <58DBA010.1020002@linaro.org>
- <20170329123821.GA10988@red-moon>
- <58DBAFD6.7070300@linaro.org>
- <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH 1/1] of: Move OF property and graph API from base.c to
+ property.c
+Date: Wed, 29 Mar 2017 09:28:26 -0700
+Message-ID: <58DBE0AA.2080403@gmail.com>
+References: <1490353147-11917-1-git-send-email-sakari.ailus@linux.intel.com>
+ <58DAF70E.9000305@gmail.com>
+ <fb9cdd4e-e837-f925-da2b-9e4d25602e1e@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35948 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752944AbdC2QNa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Mar 2017 12:13:30 -0400
-Content-Disposition: inline
-In-Reply-To: <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33618 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752264AbdC2Q2p (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 12:28:45 -0400
+In-Reply-To: <fb9cdd4e-e837-f925-da2b-9e4d25602e1e@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com
 
-On Wed, Mar 29, 2017 at 03:52:47PM +0100, Marc Zyngier wrote:
-> On 29/03/17 14:00, Hanjun Guo wrote:
-> > On 03/29/2017 08:38 PM, Lorenzo Pieralisi wrote:
-> >> On Wed, Mar 29, 2017 at 07:52:48PM +0800, Hanjun Guo wrote:
-> >>> Hi Lorenzo,
-> >>>
-> >>> On 03/29/2017 06:14 PM, Lorenzo Pieralisi wrote:
-> >>>> Hi Hanjun, Marc,
-> >>>>
-> >>>> On Tue, Mar 07, 2017 at 08:40:05PM +0800, Hanjun Guo wrote:
-> >>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>>
-> >>>>> For devices connecting to ITS, the devices need to identify themself
-> >>>>> through a dev id; this dev id is represented in the IORT table in named
-> >>>>> component node [1] for platform devices, so this patch adds code that
-> >>>>> scans the IORT table to retrieve the devices' dev id.
-> >>>>>
-> >>>>> Leveraging the iort_node_map_platform_id() IORT API, add a new function
-> >>>>> call, iort_pmsi_get_dev_id() and use it in its_pmsi_prepare() to allow
-> >>>>> retrieving dev id in ACPI platforms.
-> >>>>>
-> >>>>> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
-> >>>>>
-> >>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>> [lorenzo.pieralisi@arm.com: rewrote commit log]
-> >>>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>>>> Tested-by: Ming Lei <ming.lei@canonical.com>
-> >>>>> Tested-by: Wei Xu <xuwei5@hisilicon.com>
-> >>>>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> >>>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> >>>>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>>>> Cc: Tomasz Nowicki <tn@semihalf.com>
-> >>>>> Cc: Thomas Gleixner <tglx@linutronix.de>
-> >>>>> ---
-> >>>>>   drivers/acpi/arm64/iort.c                     | 24 ++++++++++++++++++++++++
-> >>>>>   drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
-> >>>>>   include/linux/acpi_iort.h                     |  5 +++++
-> >>>>>   3 files changed, 31 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> To simplify merging ACPI/IRQCHIP changes via different trees it
-> >>>> would be good to split this patch; I am not sure what's the best
-> >>>> way of handling it though given that we would end up in a merge
-> >>>> ordering dependency anyway (ie we can create an empty stub
-> >>>> for iort_pmsi_get_dev_id() but that would create a dependency
-> >>>> between ARM64 and irqchip trees anyway).
-> >>>
-> >>> The first 12 patches for ACPI platform MSI and later 3 patches
-> >>> for mbigen have no "physical" dependency, which means they can
-> >>> be merged and compiled independently, they only have functional
-> >>> dependency only.
-> >>>
-> >>> We already had SAS, XGE, USB and even UART drivers depend on
-> >>> the mbigen ACPI support, so I don't think the dependency of ACPI
-> >>> platform MSI and mbigen patches cares much if those two parts are
-> >>> merged in one merge window, even they are merged independently via
-> >>> different tree.
-> >>>
-> >>>>
-> >>>> Please let me know what's your preferred way of handling this.
-> >>>
-> >>> So in my opinion, they can be merged independently via ARM64 and
-> >>> irqchip tree with no ordering dependency, is it OK?
-> >>
-> >> I am speaking about merging MBIgen AND ITS patches via IRQCHIP and
-> >> ACPI/IORT for ARM64, that's why I replied to this patch. I do not
-> >> think that's feasible to split patches in two separate branches
-> >> without having a dependency between them.
-> >>
-> >> Sure, the last three patches can go via IRQCHIP but that was not
-> >> my question :)
-> > 
-> > Sorry, I misunderstood that :(
-> > 
-> > Since it's not feasible to split patches, the best way I got is that
-> > we get Marc's ack then merge it.
+On 03/29/17 02:14, Sakari Ailus wrote:
+> Hi Frank,
 > 
-> I believe there is a way to make this work without too much hassle. I
-> suggest we drop the ITS change from this patch entirely, and I instead
-> queue this patch:
+> Thank you for the review.
 > 
-> https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/irqchip-4.12&id=e6db07d0f3b6da1f8cfd485776bfefa4fcdbfc45
+> Frank Rowand wrote:
+>> Hi Sakari,
+>>
+>> On 03/24/17 03:59, Sakari Ailus wrote:
+>>> base.c contains both core OF functions and increasingly other
+>>> functionality such as accessing properties and graphs, including
+>>> convenience functions. In the near future this would also include OF
+>>> specific implementation of the fwnode property and graph APIs. Prepare for
+>>> this by moving the functionality to property.c.
+>>
+>> For future me, for when I look back and read this commit, please add something
+>> to the effect of:
+>>
+>>   Create driver/of/property.c to contain procedures for accessing and
+>>   interpreting device tree properties.  The procedures are moved from
+>>   drivers/of/base.c, with no changes other than copying only the
+>>   includes required by the moved procedures.
 > 
-> That way, no dependency between the two trees. Lorenzo takes all the
-> patches flagged "ACPI", I take all those flagged "irqchip" or "msi", and
-> everything should be perfectly standalone.
+> How about this as the commit message combining the two and dropping the last sentence from the original description:
 > 
-> Thoughts?
+> base.c contains both core OF functions and increasingly other
+> functionality such as accessing properties and graphs, including
+> convenience functions. In the near future this would also include OF
+> specific implementation of the fwnode property and graph APIs.
+> 
+> Create driver/of/property.c to contain procedures for accessing and
+> interpreting device tree properties. The procedures are moved from
+> drivers/of/base.c, with no changes other than copying only the
+> includes required by the moved procedures.
 
-Perfect for me. Hanjun, I can cherry pick Marc's patch above, rework
-this patch and post the resulting branch for everyone to have a final
-test.
+Sounds good (and same for your below comments).
 
-Ok ?
+-Frank
 
-Thanks !
-Lorenzo
+> 
+> ...
+> 
+>>> diff --git a/drivers/of/property.c b/drivers/of/property.c
+>>> new file mode 100644
+>>> index 0000000..afcf00a
+>>> --- /dev/null
+>>> +++ b/drivers/of/property.c
+>>> @@ -0,0 +1,727 @@
+>>> +/*
+>>> + * drivers/of/property.c - Devicetree properties and graphs.
+>>
+>>     * drivers/of/property.c - Procedures for accessing and interpreting
+>>     * Devicetree properties and graphs.
+>>     *
+>>     * Initially created by copying procedures from drivers/of/base.c
+>>
+>> The reference to base.c provides a documentation trail to all of the
+>> earlier git commits that created and modified the procedures.
+> 
+> I'll add that.
+> 
+>>
+>> It would also be useful to say what procedures do and do not belong
+>> in this file.  My understanding is that the intent is for
+>> drivers/of/property.c and drivers/acpi/property.c to provide the
+>> respective functionality that is used by drivers/base/property.c
+>> and that drivers also may directly access the procedures in
+>> drivers/of/property.c.
+> 
+> I'll add something along those lines. The fwnode op struct and the operations in that will be in this file as well.
+> 
+
