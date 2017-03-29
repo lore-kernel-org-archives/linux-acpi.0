@@ -1,163 +1,108 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v22 02/11] clocksource: arm_arch_timer: separate out
- device-tree code and remove arch_timer_detect_rate
-Date: Wed, 29 Mar 2017 16:41:42 +0200
-Message-ID: <20170329144142.GL2123@mai>
-References: <20170321163122.9183-1-fu.wei@linaro.org>
- <20170321163122.9183-3-fu.wei@linaro.org>
- <20170328145814.GE2123@mai>
- <CADyBb7uD1OqpPZf+ADsgbWryCGMGE3GqXOxz_4+1RzC1Pqsccg@mail.gmail.com>
- <CADyBb7tzJAuvG73v6ZoBVO4ehCC3RMsc1pq5gKF2eQ94j6GXrg@mail.gmail.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
+Date: Wed, 29 Mar 2017 15:52:47 +0100
+Message-ID: <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
+ <20170329101400.GA10807@red-moon> <58DBA010.1020002@linaro.org>
+ <20170329123821.GA10988@red-moon> <58DBAFD6.7070300@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CADyBb7tzJAuvG73v6ZoBVO4ehCC3RMsc1pq5gKF2eQ94j6GXrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <58DBAFD6.7070300@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 29, 2017 at 01:11:58PM +0800, Fu Wei wrote:
-> Hi Daniel,
+On 29/03/17 14:00, Hanjun Guo wrote:
+> On 03/29/2017 08:38 PM, Lorenzo Pieralisi wrote:
+>> On Wed, Mar 29, 2017 at 07:52:48PM +0800, Hanjun Guo wrote:
+>>> Hi Lorenzo,
+>>>
+>>> On 03/29/2017 06:14 PM, Lorenzo Pieralisi wrote:
+>>>> Hi Hanjun, Marc,
+>>>>
+>>>> On Tue, Mar 07, 2017 at 08:40:05PM +0800, Hanjun Guo wrote:
+>>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>
+>>>>> For devices connecting to ITS, the devices need to identify themself
+>>>>> through a dev id; this dev id is represented in the IORT table in named
+>>>>> component node [1] for platform devices, so this patch adds code that
+>>>>> scans the IORT table to retrieve the devices' dev id.
+>>>>>
+>>>>> Leveraging the iort_node_map_platform_id() IORT API, add a new function
+>>>>> call, iort_pmsi_get_dev_id() and use it in its_pmsi_prepare() to allow
+>>>>> retrieving dev id in ACPI platforms.
+>>>>>
+>>>>> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
+>>>>>
+>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>> [lorenzo.pieralisi@arm.com: rewrote commit log]
+>>>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>>> Tested-by: Ming Lei <ming.lei@canonical.com>
+>>>>> Tested-by: Wei Xu <xuwei5@hisilicon.com>
+>>>>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+>>>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>>>>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>>> Cc: Tomasz Nowicki <tn@semihalf.com>
+>>>>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>>>>> ---
+>>>>>   drivers/acpi/arm64/iort.c                     | 24 ++++++++++++++++++++++++
+>>>>>   drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
+>>>>>   include/linux/acpi_iort.h                     |  5 +++++
+>>>>>   3 files changed, 31 insertions(+), 1 deletion(-)
+>>>>
+>>>> To simplify merging ACPI/IRQCHIP changes via different trees it
+>>>> would be good to split this patch; I am not sure what's the best
+>>>> way of handling it though given that we would end up in a merge
+>>>> ordering dependency anyway (ie we can create an empty stub
+>>>> for iort_pmsi_get_dev_id() but that would create a dependency
+>>>> between ARM64 and irqchip trees anyway).
+>>>
+>>> The first 12 patches for ACPI platform MSI and later 3 patches
+>>> for mbigen have no "physical" dependency, which means they can
+>>> be merged and compiled independently, they only have functional
+>>> dependency only.
+>>>
+>>> We already had SAS, XGE, USB and even UART drivers depend on
+>>> the mbigen ACPI support, so I don't think the dependency of ACPI
+>>> platform MSI and mbigen patches cares much if those two parts are
+>>> merged in one merge window, even they are merged independently via
+>>> different tree.
+>>>
+>>>>
+>>>> Please let me know what's your preferred way of handling this.
+>>>
+>>> So in my opinion, they can be merged independently via ARM64 and
+>>> irqchip tree with no ordering dependency, is it OK?
+>>
+>> I am speaking about merging MBIgen AND ITS patches via IRQCHIP and
+>> ACPI/IORT for ARM64, that's why I replied to this patch. I do not
+>> think that's feasible to split patches in two separate branches
+>> without having a dependency between them.
+>>
+>> Sure, the last three patches can go via IRQCHIP but that was not
+>> my question :)
 > 
-> On 29 March 2017 at 11:41, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> > Hi Daniel,
-> >
-> > Great thanks for your review, allow me to answer your question below:
-> >
-> > On 28 March 2017 at 22:58, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> >> On Wed, Mar 22, 2017 at 12:31:13AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> >>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >>>
-> >>> Currently, the counter frequency detection call(arch_timer_detect_rate)
-> >>> includes getting the frequency from the device-tree property, the per-cpu
-> >>> arch-timer and the memory-mapped (MMIO) timer interfaces.
-> >>> But reading device-tree property will be needed only when system boot with
-> >>> device-tree, and reading from the per-cpu arch-timer and the memory-mapped
-> >>> (MMIO) timer interfaces will be needed only when the system initializes
-> >>> the relevant timer.
-> >>>
-> >>> This patch separates out device-tree code, keep them in device-tree init
-> >>> function, and removes arch_timer_detect_rate founction, then uses the
-> >>> arch_timer_get_cntfrq and arch_timer_mem_get_cntfrq directly.
-> >>>
-> >>> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >>> ---
-> >>>  drivers/clocksource/arm_arch_timer.c | 58 +++++++++++++++++++-----------------
-> >>>  1 file changed, 30 insertions(+), 28 deletions(-)
-> >>>
-> >>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> >>> index 843f923..29ca7d6 100644
-> >>> --- a/drivers/clocksource/arm_arch_timer.c
-> >>> +++ b/drivers/clocksource/arm_arch_timer.c
-> >>> @@ -560,30 +560,6 @@ static u32 arch_timer_mem_get_cntfrq(void __iomem *cntbase)
-> >>>       return readl_relaxed(cntbase + CNTFRQ);
-> >>>  }
-> >>>
-> >>> -static void
-> >>> -arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
-> >>> -{
-> >>> -     /* Who has more than one independent system counter? */
-> >>> -     if (arch_timer_rate)
-> >>> -             return;
-> >>> -
-> >>> -     /*
-> >>> -      * Try to determine the frequency from the device tree or CNTFRQ,
-> >>> -      * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-> >>> -      */
-> >>> -     if (!acpi_disabled ||
-> >>> -         of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-> >>> -             if (cntbase)
-> >>> -                     arch_timer_rate = arch_timer_mem_get_cntfrq(cntbase);
-> >>> -             else
-> >>> -                     arch_timer_rate = arch_timer_get_cntfrq();
-> >>> -     }
-> >>> -
-> >>> -     /* Check the timer frequency. */
-> >>> -     if (arch_timer_rate == 0)
-> >>> -             pr_warn("frequency not available\n");
-> >>> -}
-> >>> -
-> >>>  static void arch_timer_banner(unsigned type)
-> >>>  {
-> >>>       pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
-> >>> @@ -958,7 +934,17 @@ static int __init arch_timer_of_init(struct device_node *np)
-> >>>       for (i = ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PPI; i++)
-> >>>               arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
-> >>>
-> >>> -     arch_timer_detect_rate(NULL, np);
-> >>> +     /*
-> >>> +      * Try to determine the frequency from the device tree,
-> >>> +      * if fail, get the frequency from the sysreg CNTFRQ.
-> >>> +      */
-> >>> +     if (!arch_timer_rate &&
-> >>
-> >> This variable is set only if "arm,armv7-timer" and "arm,armv7-timer-mem" are
-> >> declared together in the DT, right ?
-> >>
-> >> Two declarations for a single variable ? Ignore the !arch_timer_rate.
-> >
-> > In this function, we try to initialize per-CPU arm arch_timer by DT.
-> > this "!arch_timer_rate" is for testing that if we have got system
-> > counter frequency from the memory-mapped timer. If so, we just skip
-> > getting the frequency from DT or sysreg cntfrq again.
-> > This variable is set only if "arm,armv7-timer-mem" is initialized
-> > earlier than "arm,armv7-timer", in another word, maybe the node of
-> > "arm,armv7-timer-mem" is declared earlier than  "arm,armv7-timer-mem"
-> > one in DT.
-> >
-> > we do this check is for keeping the same init logic as before in the
-> > DT, try to avoid any possibility of  breaking devices which boot by
-> > DT.
-> >
-> >>
-> >>> +         of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
-> >>> +             arch_timer_rate = arch_timer_get_cntfrq();
-> >>> +     if (!arch_timer_rate) {
-> >>> +             pr_err(FW_BUG "frequency not available.\n");
-> >>> +             return -EINVAL;
-> >>> +     }
-> >>
-> >> Please, clarify this block, the conditions are unclear.
-> >
-> > this "!arch_timer_rate" is for verifying that if the system counter
-> > frequency we just got from DT or sysreg cntfrq is valid(non-zero).
-> >
-> > So here, you can see I check arch_timer_rate twice, but they are for
-> > different cases.
+> Sorry, I misunderstood that :(
 > 
-> I think about this several times,
-> For this block, it is a little unclear, so I think this will be better:
-> 
-> + /*
-> + * Try to determine the frequency:
-> + * If we have got it in arch_timer_mem_of_init, we don't need to get
-> it again, skip.
-> + * Otherwise, try to get the frequency from the device tree,
-> + * if fail, try to get it from the sysreg CNTFRQ.
-> + * Last, verify the arch_timer_rate before leaving this block.
-> + */
-> + if (!arch_timer_rate) {
-> +         if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
-> +                 arch_timer_rate = arch_timer_get_cntfrq();
-> +         if (!arch_timer_rate) {
-> +                 pr_err(FW_BUG "frequency not available.\n");
-> +                 return -EINVAL;
-> +         }
-> + }
+> Since it's not feasible to split patches, the best way I got is that
+> we get Marc's ack then merge it.
 
-Hi Fu Wei,
+I believe there is a way to make this work without too much hassle. I
+suggest we drop the ITS change from this patch entirely, and I instead
+queue this patch:
 
-in my previous comment, I was suggesting to remove the first arch_timer_rate
-check.
+https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/irqchip-4.12&id=e6db07d0f3b6da1f8cfd485776bfefa4fcdbfc45
 
-The code assumes something else initialized this variable. There is clearly a
-conflict in the variable assignment. So if a node is defined twice for this
-variable, then it is more sane to consider the second pass overwrites the first
-one. As the DT are specifying the same rate, for -mem and !-mem, then it should
-have not an impact (to be verified).
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That way, no dependency between the two trees. Lorenzo takes all the
+patches flagged "ACPI", I take all those flagged "irqchip" or "msi", and
+everything should be perfectly standalone.
+
+Thoughts?
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
