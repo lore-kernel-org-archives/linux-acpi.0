@@ -1,93 +1,43 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 1/1] of: Move OF property and graph API from base.c to
- property.c
-Date: Wed, 29 Mar 2017 12:14:01 +0300
-Message-ID: <fb9cdd4e-e837-f925-da2b-9e4d25602e1e@linux.intel.com>
-References: <1490353147-11917-1-git-send-email-sakari.ailus@linux.intel.com>
- <58DAF70E.9000305@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
+Date: Wed, 29 Mar 2017 12:26:38 +0300
+Message-ID: <20170329092638.GU2957@lahna.fi.intel.com>
+References: <20170316161736.339-1-hdegoede@redhat.com>
+ <20170316161736.339-2-hdegoede@redhat.com>
+ <4029834.c3GWUpRlkb@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:17265 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752720AbdC2JOM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Mar 2017 05:14:12 -0400
-In-Reply-To: <58DAF70E.9000305@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4029834.c3GWUpRlkb@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org
-Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com
 
-Hi Frank,
+On Tue, Mar 28, 2017 at 11:42:29PM +0200, Rafael J. Wysocki wrote:
+> On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
+> > acpi_dev_found just iterates over all acpi-ids and sees if one matches.
+> > This means that it will return true for devices which are in the dsdt
+> > but disabled (their _STA method returns 0).
+> > 
+> > For some drivers it is useful to be able to check if a certain hid
+> > is not only present in the namespace, but also actually present as in
+> > acpi_device_is_present() will return true for the device. For example
+> > because if a certain device is present then the driver will want to use
+> > an extcon or IIO adc channel provided by that device.
+> > 
+> > This commit adds a new acpi_dev_present helper which drivers can use
+> > to this end.
+> > 
+> > Arguably acpi_dev_present is what acpi_dev_found should have been, but
+> > there are too many users to just change acpi_dev_found without the risk
+> > of breaking something.
+> > 
+> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Andy, Mika, any concerns about this patch, please?
 
-Thank you for the review.
+No concerns from my side.
 
-Frank Rowand wrote:
-> Hi Sakari,
->
-> On 03/24/17 03:59, Sakari Ailus wrote:
->> base.c contains both core OF functions and increasingly other
->> functionality such as accessing properties and graphs, including
->> convenience functions. In the near future this would also include OF
->> specific implementation of the fwnode property and graph APIs. Prepare for
->> this by moving the functionality to property.c.
->
-> For future me, for when I look back and read this commit, please add something
-> to the effect of:
->
->   Create driver/of/property.c to contain procedures for accessing and
->   interpreting device tree properties.  The procedures are moved from
->   drivers/of/base.c, with no changes other than copying only the
->   includes required by the moved procedures.
-
-How about this as the commit message combining the two and dropping the 
-last sentence from the original description:
-
-base.c contains both core OF functions and increasingly other
-functionality such as accessing properties and graphs, including
-convenience functions. In the near future this would also include OF
-specific implementation of the fwnode property and graph APIs.
-
-Create driver/of/property.c to contain procedures for accessing and
-interpreting device tree properties. The procedures are moved from
-drivers/of/base.c, with no changes other than copying only the
-includes required by the moved procedures.
-
-...
-
->> diff --git a/drivers/of/property.c b/drivers/of/property.c
->> new file mode 100644
->> index 0000000..afcf00a
->> --- /dev/null
->> +++ b/drivers/of/property.c
->> @@ -0,0 +1,727 @@
->> +/*
->> + * drivers/of/property.c - Devicetree properties and graphs.
->
->     * drivers/of/property.c - Procedures for accessing and interpreting
->     * Devicetree properties and graphs.
->     *
->     * Initially created by copying procedures from drivers/of/base.c
->
-> The reference to base.c provides a documentation trail to all of the
-> earlier git commits that created and modified the procedures.
-
-I'll add that.
-
->
-> It would also be useful to say what procedures do and do not belong
-> in this file.  My understanding is that the intent is for
-> drivers/of/property.c and drivers/acpi/property.c to provide the
-> respective functionality that is used by drivers/base/property.c
-> and that drivers also may directly access the procedures in
-> drivers/of/property.c.
-
-I'll add something along those lines. The fwnode op struct and the 
-operations in that will be in this file as well.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
