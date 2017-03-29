@@ -1,1515 +1,397 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 1/1] of: Move OF property and graph API from base.c to property.c
-Date: Thu, 30 Mar 2017 00:24:54 +0300
-Message-ID: <1490822694-30238-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Xavier Gnata <xavier.gnata@gmail.com>
+Subject: Dell Inspiron on kernel 4.10 : battery detected only after AC power
+ adapter event
+Date: Wed, 29 Mar 2017 23:57:51 +0200
+Message-ID: <b9ecf98e-5317-772b-9bfd-46f5ce2d829f@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------CAA744FE207D470C20E5975E"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27699 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932949AbdC2VZx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Mar 2017 17:25:53 -0400
+Received: from mail-wr0-f176.google.com ([209.85.128.176]:34113 "EHLO
+        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932215AbdC2V54 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 17:57:56 -0400
+Received: by mail-wr0-f176.google.com with SMTP id l43so35296331wre.1
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Mar 2017 14:57:54 -0700 (PDT)
+Received: from ?IPv6:2001:a61:3179:c501:f59a:445c:3892:33a2? ([2001:a61:3179:c501:f59a:445c:3892:33a2])
+        by smtp.gmail.com with ESMTPSA id k203sm711830wmk.4.2017.03.29.14.57.52
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 29 Mar 2017 14:57:53 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: devicetree@vger.kernel.org, rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, mark.rutland@arm.com, broonie@kernel.org, robh@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
+To: linux-acpi@vger.kernel.org
 
-base.c contains both core OF functions and increasingly other
-functionality such as accessing properties and graphs, including
-convenience functions. In the near future this would also include OF
-specific implementation of the fwnode property and graph APIs.
+This is a multi-part message in MIME format.
+--------------CAA744FE207D470C20E5975E
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Create driver/of/property.c to contain procedures for accessing and
-interpreting device tree properties. The procedures are moved from
-drivers/of/base.c, with no changes other than copying only the includes
-required by the moved procedures.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v1:
+When I boot a Dell 15" serie 7000 with or without it AC power adapter no 
+battery is detected:
 
-- Improved commit message.
+acpi -i -b -a
+Adapter 0: off-line
 
-- Tell that OF property and graph interface functions are located in the
-  newly created property.c, and that the origin of the functions in
-  property.c is base.c.
+As soon as I plug or unplug the AC adapter, the battery is detected:
+acpi -i -b -a
+Battery 0: Charging, 62%, 01:13:00 until charged
+Battery 0: design capacity 3950 mAh, last full capacity 3850 mAh = 97%
+Adapter 0: on-line
 
- drivers/of/Makefile   |   2 +-
- drivers/of/base.c     | 702 -----------------------------------------------
- drivers/of/property.c | 732 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 733 insertions(+), 703 deletions(-)
- create mode 100644 drivers/of/property.c
+cat /proc/cmdline
+BOOT_IMAGE=/boot/vmlinuz-4.10.0-13-generic 
+root=UUID=42930a1e-fbdc-4cd8-a1d2-caf2bd33de1b ro acpi_osi=Linux quiet 
+splash vt.handoff=7
 
-diff --git a/drivers/of/Makefile b/drivers/of/Makefile
-index d7efd9d..97dc01c 100644
---- a/drivers/of/Makefile
-+++ b/drivers/of/Makefile
-@@ -1,4 +1,4 @@
--obj-y = base.o device.o platform.o
-+obj-y = base.o device.o platform.o property.o
- obj-$(CONFIG_OF_DYNAMIC) += dynamic.o
- obj-$(CONFIG_OF_FLATTREE) += fdt.o
- obj-$(CONFIG_OF_EARLY_FLATTREE) += fdt_address.o
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index d7c4629..d57188d 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -1113,427 +1113,6 @@ struct device_node *of_find_node_by_phandle(phandle handle)
- }
- EXPORT_SYMBOL(of_find_node_by_phandle);
- 
--/**
-- * of_property_count_elems_of_size - Count the number of elements in a property
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @elem_size:	size of the individual element
-- *
-- * Search for a property in a device node and count the number of elements of
-- * size elem_size in it. Returns number of elements on sucess, -EINVAL if the
-- * property does not exist or its length does not match a multiple of elem_size
-- * and -ENODATA if the property does not have a value.
-- */
--int of_property_count_elems_of_size(const struct device_node *np,
--				const char *propname, int elem_size)
--{
--	struct property *prop = of_find_property(np, propname, NULL);
--
--	if (!prop)
--		return -EINVAL;
--	if (!prop->value)
--		return -ENODATA;
--
--	if (prop->length % elem_size != 0) {
--		pr_err("size of %s in node %s is not a multiple of %d\n",
--		       propname, np->full_name, elem_size);
--		return -EINVAL;
--	}
--
--	return prop->length / elem_size;
--}
--EXPORT_SYMBOL_GPL(of_property_count_elems_of_size);
--
--/**
-- * of_find_property_value_of_size
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @min:	minimum allowed length of property value
-- * @max:	maximum allowed length of property value (0 means unlimited)
-- * @len:	if !=NULL, actual length is written to here
-- *
-- * Search for a property in a device node and valid the requested size.
-- * Returns the property value on success, -EINVAL if the property does not
-- *  exist, -ENODATA if property does not have a value, and -EOVERFLOW if the
-- * property data is too small or too large.
-- *
-- */
--static void *of_find_property_value_of_size(const struct device_node *np,
--			const char *propname, u32 min, u32 max, size_t *len)
--{
--	struct property *prop = of_find_property(np, propname, NULL);
--
--	if (!prop)
--		return ERR_PTR(-EINVAL);
--	if (!prop->value)
--		return ERR_PTR(-ENODATA);
--	if (prop->length < min)
--		return ERR_PTR(-EOVERFLOW);
--	if (max && prop->length > max)
--		return ERR_PTR(-EOVERFLOW);
--
--	if (len)
--		*len = prop->length;
--
--	return prop->value;
--}
--
--/**
-- * of_property_read_u32_index - Find and read a u32 from a multi-value property.
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @index:	index of the u32 in the list of values
-- * @out_value:	pointer to return value, modified only if no error.
-- *
-- * Search for a property in a device node and read nth 32-bit value from
-- * it. Returns 0 on success, -EINVAL if the property does not exist,
-- * -ENODATA if property does not have a value, and -EOVERFLOW if the
-- * property data isn't large enough.
-- *
-- * The out_value is modified only if a valid u32 value can be decoded.
-- */
--int of_property_read_u32_index(const struct device_node *np,
--				       const char *propname,
--				       u32 index, u32 *out_value)
--{
--	const u32 *val = of_find_property_value_of_size(np, propname,
--					((index + 1) * sizeof(*out_value)),
--					0,
--					NULL);
--
--	if (IS_ERR(val))
--		return PTR_ERR(val);
--
--	*out_value = be32_to_cpup(((__be32 *)val) + index);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(of_property_read_u32_index);
--
--/**
-- * of_property_read_variable_u8_array - Find and read an array of u8 from a
-- * property, with bounds on the minimum and maximum array size.
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_values:	pointer to return value, modified only if return value is 0.
-- * @sz_min:	minimum number of array elements to read
-- * @sz_max:	maximum number of array elements to read, if zero there is no
-- *		upper limit on the number of elements in the dts entry but only
-- *		sz_min will be read.
-- *
-- * Search for a property in a device node and read 8-bit value(s) from
-- * it. Returns number of elements read on success, -EINVAL if the property
-- * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-- * if the property data is smaller than sz_min or longer than sz_max.
-- *
-- * dts entry of array should be like:
-- *	property = /bits/ 8 <0x50 0x60 0x70>;
-- *
-- * The out_values is modified only if a valid u8 value can be decoded.
-- */
--int of_property_read_variable_u8_array(const struct device_node *np,
--					const char *propname, u8 *out_values,
--					size_t sz_min, size_t sz_max)
--{
--	size_t sz, count;
--	const u8 *val = of_find_property_value_of_size(np, propname,
--						(sz_min * sizeof(*out_values)),
--						(sz_max * sizeof(*out_values)),
--						&sz);
--
--	if (IS_ERR(val))
--		return PTR_ERR(val);
--
--	if (!sz_max)
--		sz = sz_min;
--	else
--		sz /= sizeof(*out_values);
--
--	count = sz;
--	while (count--)
--		*out_values++ = *val++;
--
--	return sz;
--}
--EXPORT_SYMBOL_GPL(of_property_read_variable_u8_array);
--
--/**
-- * of_property_read_variable_u16_array - Find and read an array of u16 from a
-- * property, with bounds on the minimum and maximum array size.
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_values:	pointer to return value, modified only if return value is 0.
-- * @sz_min:	minimum number of array elements to read
-- * @sz_max:	maximum number of array elements to read, if zero there is no
-- *		upper limit on the number of elements in the dts entry but only
-- *		sz_min will be read.
-- *
-- * Search for a property in a device node and read 16-bit value(s) from
-- * it. Returns number of elements read on success, -EINVAL if the property
-- * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-- * if the property data is smaller than sz_min or longer than sz_max.
-- *
-- * dts entry of array should be like:
-- *	property = /bits/ 16 <0x5000 0x6000 0x7000>;
-- *
-- * The out_values is modified only if a valid u16 value can be decoded.
-- */
--int of_property_read_variable_u16_array(const struct device_node *np,
--					const char *propname, u16 *out_values,
--					size_t sz_min, size_t sz_max)
--{
--	size_t sz, count;
--	const __be16 *val = of_find_property_value_of_size(np, propname,
--						(sz_min * sizeof(*out_values)),
--						(sz_max * sizeof(*out_values)),
--						&sz);
--
--	if (IS_ERR(val))
--		return PTR_ERR(val);
--
--	if (!sz_max)
--		sz = sz_min;
--	else
--		sz /= sizeof(*out_values);
--
--	count = sz;
--	while (count--)
--		*out_values++ = be16_to_cpup(val++);
--
--	return sz;
--}
--EXPORT_SYMBOL_GPL(of_property_read_variable_u16_array);
--
--/**
-- * of_property_read_variable_u32_array - Find and read an array of 32 bit
-- * integers from a property, with bounds on the minimum and maximum array size.
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_values:	pointer to return value, modified only if return value is 0.
-- * @sz_min:	minimum number of array elements to read
-- * @sz_max:	maximum number of array elements to read, if zero there is no
-- *		upper limit on the number of elements in the dts entry but only
-- *		sz_min will be read.
-- *
-- * Search for a property in a device node and read 32-bit value(s) from
-- * it. Returns number of elements read on success, -EINVAL if the property
-- * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-- * if the property data is smaller than sz_min or longer than sz_max.
-- *
-- * The out_values is modified only if a valid u32 value can be decoded.
-- */
--int of_property_read_variable_u32_array(const struct device_node *np,
--			       const char *propname, u32 *out_values,
--			       size_t sz_min, size_t sz_max)
--{
--	size_t sz, count;
--	const __be32 *val = of_find_property_value_of_size(np, propname,
--						(sz_min * sizeof(*out_values)),
--						(sz_max * sizeof(*out_values)),
--						&sz);
--
--	if (IS_ERR(val))
--		return PTR_ERR(val);
--
--	if (!sz_max)
--		sz = sz_min;
--	else
--		sz /= sizeof(*out_values);
--
--	count = sz;
--	while (count--)
--		*out_values++ = be32_to_cpup(val++);
--
--	return sz;
--}
--EXPORT_SYMBOL_GPL(of_property_read_variable_u32_array);
--
--/**
-- * of_property_read_u64 - Find and read a 64 bit integer from a property
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_value:	pointer to return value, modified only if return value is 0.
-- *
-- * Search for a property in a device node and read a 64-bit value from
-- * it. Returns 0 on success, -EINVAL if the property does not exist,
-- * -ENODATA if property does not have a value, and -EOVERFLOW if the
-- * property data isn't large enough.
-- *
-- * The out_value is modified only if a valid u64 value can be decoded.
-- */
--int of_property_read_u64(const struct device_node *np, const char *propname,
--			 u64 *out_value)
--{
--	const __be32 *val = of_find_property_value_of_size(np, propname,
--						sizeof(*out_value),
--						0,
--						NULL);
--
--	if (IS_ERR(val))
--		return PTR_ERR(val);
--
--	*out_value = of_read_number(val, 2);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(of_property_read_u64);
--
--/**
-- * of_property_read_variable_u64_array - Find and read an array of 64 bit
-- * integers from a property, with bounds on the minimum and maximum array size.
-- *
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_values:	pointer to return value, modified only if return value is 0.
-- * @sz_min:	minimum number of array elements to read
-- * @sz_max:	maximum number of array elements to read, if zero there is no
-- *		upper limit on the number of elements in the dts entry but only
-- *		sz_min will be read.
-- *
-- * Search for a property in a device node and read 64-bit value(s) from
-- * it. Returns number of elements read on success, -EINVAL if the property
-- * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-- * if the property data is smaller than sz_min or longer than sz_max.
-- *
-- * The out_values is modified only if a valid u64 value can be decoded.
-- */
--int of_property_read_variable_u64_array(const struct device_node *np,
--			       const char *propname, u64 *out_values,
--			       size_t sz_min, size_t sz_max)
--{
--	size_t sz, count;
--	const __be32 *val = of_find_property_value_of_size(np, propname,
--						(sz_min * sizeof(*out_values)),
--						(sz_max * sizeof(*out_values)),
--						&sz);
--
--	if (IS_ERR(val))
--		return PTR_ERR(val);
--
--	if (!sz_max)
--		sz = sz_min;
--	else
--		sz /= sizeof(*out_values);
--
--	count = sz;
--	while (count--) {
--		*out_values++ = of_read_number(val, 2);
--		val += 2;
--	}
--
--	return sz;
--}
--EXPORT_SYMBOL_GPL(of_property_read_variable_u64_array);
--
--/**
-- * of_property_read_string - Find and read a string from a property
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_string:	pointer to null terminated return string, modified only if
-- *		return value is 0.
-- *
-- * Search for a property in a device tree node and retrieve a null
-- * terminated string value (pointer to data, not a copy). Returns 0 on
-- * success, -EINVAL if the property does not exist, -ENODATA if property
-- * does not have a value, and -EILSEQ if the string is not null-terminated
-- * within the length of the property data.
-- *
-- * The out_string pointer is modified only if a valid string can be decoded.
-- */
--int of_property_read_string(const struct device_node *np, const char *propname,
--				const char **out_string)
--{
--	const struct property *prop = of_find_property(np, propname, NULL);
--	if (!prop)
--		return -EINVAL;
--	if (!prop->value)
--		return -ENODATA;
--	if (strnlen(prop->value, prop->length) >= prop->length)
--		return -EILSEQ;
--	*out_string = prop->value;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(of_property_read_string);
--
--/**
-- * of_property_match_string() - Find string in a list and return index
-- * @np: pointer to node containing string list property
-- * @propname: string list property name
-- * @string: pointer to string to search for in string list
-- *
-- * This function searches a string list property and returns the index
-- * of a specific string value.
-- */
--int of_property_match_string(const struct device_node *np, const char *propname,
--			     const char *string)
--{
--	const struct property *prop = of_find_property(np, propname, NULL);
--	size_t l;
--	int i;
--	const char *p, *end;
--
--	if (!prop)
--		return -EINVAL;
--	if (!prop->value)
--		return -ENODATA;
--
--	p = prop->value;
--	end = p + prop->length;
--
--	for (i = 0; p < end; i++, p += l) {
--		l = strnlen(p, end - p) + 1;
--		if (p + l > end)
--			return -EILSEQ;
--		pr_debug("comparing %s with %s\n", string, p);
--		if (strcmp(string, p) == 0)
--			return i; /* Found it; return index */
--	}
--	return -ENODATA;
--}
--EXPORT_SYMBOL_GPL(of_property_match_string);
--
--/**
-- * of_property_read_string_helper() - Utility helper for parsing string properties
-- * @np:		device node from which the property value is to be read.
-- * @propname:	name of the property to be searched.
-- * @out_strs:	output array of string pointers.
-- * @sz:		number of array elements to read.
-- * @skip:	Number of strings to skip over at beginning of list.
-- *
-- * Don't call this function directly. It is a utility helper for the
-- * of_property_read_string*() family of functions.
-- */
--int of_property_read_string_helper(const struct device_node *np,
--				   const char *propname, const char **out_strs,
--				   size_t sz, int skip)
--{
--	const struct property *prop = of_find_property(np, propname, NULL);
--	int l = 0, i = 0;
--	const char *p, *end;
--
--	if (!prop)
--		return -EINVAL;
--	if (!prop->value)
--		return -ENODATA;
--	p = prop->value;
--	end = p + prop->length;
--
--	for (i = 0; p < end && (!out_strs || i < skip + sz); i++, p += l) {
--		l = strnlen(p, end - p) + 1;
--		if (p + l > end)
--			return -EILSEQ;
--		if (out_strs && i >= skip)
--			*out_strs++ = p;
--	}
--	i -= skip;
--	return i <= 0 ? -ENODATA : i;
--}
--EXPORT_SYMBOL_GPL(of_property_read_string_helper);
--
- void of_print_phandle_args(const char *msg, const struct of_phandle_args *args)
- {
- 	int i;
-@@ -2180,47 +1759,6 @@ int of_alias_get_highest_id(const char *stem)
- }
- EXPORT_SYMBOL_GPL(of_alias_get_highest_id);
- 
--const __be32 *of_prop_next_u32(struct property *prop, const __be32 *cur,
--			       u32 *pu)
--{
--	const void *curv = cur;
--
--	if (!prop)
--		return NULL;
--
--	if (!cur) {
--		curv = prop->value;
--		goto out_val;
--	}
--
--	curv += sizeof(*cur);
--	if (curv >= prop->value + prop->length)
--		return NULL;
--
--out_val:
--	*pu = be32_to_cpup(curv);
--	return curv;
--}
--EXPORT_SYMBOL_GPL(of_prop_next_u32);
--
--const char *of_prop_next_string(struct property *prop, const char *cur)
--{
--	const void *curv = cur;
--
--	if (!prop)
--		return NULL;
--
--	if (!cur)
--		return prop->value;
--
--	curv += strlen(cur) + 1;
--	if (curv >= prop->value + prop->length)
--		return NULL;
--
--	return curv;
--}
--EXPORT_SYMBOL_GPL(of_prop_next_string);
--
- /**
-  * of_console_check() - Test and setup console for DT setup
-  * @dn - Pointer to device node
-@@ -2295,243 +1833,3 @@ int of_find_last_cache_level(unsigned int cpu)
- 
- 	return cache_level;
- }
--
--/**
-- * of_graph_parse_endpoint() - parse common endpoint node properties
-- * @node: pointer to endpoint device_node
-- * @endpoint: pointer to the OF endpoint data structure
-- *
-- * The caller should hold a reference to @node.
-- */
--int of_graph_parse_endpoint(const struct device_node *node,
--			    struct of_endpoint *endpoint)
--{
--	struct device_node *port_node = of_get_parent(node);
--
--	WARN_ONCE(!port_node, "%s(): endpoint %s has no parent node\n",
--		  __func__, node->full_name);
--
--	memset(endpoint, 0, sizeof(*endpoint));
--
--	endpoint->local_node = node;
--	/*
--	 * It doesn't matter whether the two calls below succeed.
--	 * If they don't then the default value 0 is used.
--	 */
--	of_property_read_u32(port_node, "reg", &endpoint->port);
--	of_property_read_u32(node, "reg", &endpoint->id);
--
--	of_node_put(port_node);
--
--	return 0;
--}
--EXPORT_SYMBOL(of_graph_parse_endpoint);
--
--/**
-- * of_graph_get_port_by_id() - get the port matching a given id
-- * @parent: pointer to the parent device node
-- * @id: id of the port
-- *
-- * Return: A 'port' node pointer with refcount incremented. The caller
-- * has to use of_node_put() on it when done.
-- */
--struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
--{
--	struct device_node *node, *port;
--
--	node = of_get_child_by_name(parent, "ports");
--	if (node)
--		parent = node;
--
--	for_each_child_of_node(parent, port) {
--		u32 port_id = 0;
--
--		if (of_node_cmp(port->name, "port") != 0)
--			continue;
--		of_property_read_u32(port, "reg", &port_id);
--		if (id == port_id)
--			break;
--	}
--
--	of_node_put(node);
--
--	return port;
--}
--EXPORT_SYMBOL(of_graph_get_port_by_id);
--
--/**
-- * of_graph_get_next_endpoint() - get next endpoint node
-- * @parent: pointer to the parent device node
-- * @prev: previous endpoint node, or NULL to get first
-- *
-- * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-- * of the passed @prev node is decremented.
-- */
--struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
--					struct device_node *prev)
--{
--	struct device_node *endpoint;
--	struct device_node *port;
--
--	if (!parent)
--		return NULL;
--
--	/*
--	 * Start by locating the port node. If no previous endpoint is specified
--	 * search for the first port node, otherwise get the previous endpoint
--	 * parent port node.
--	 */
--	if (!prev) {
--		struct device_node *node;
--
--		node = of_get_child_by_name(parent, "ports");
--		if (node)
--			parent = node;
--
--		port = of_get_child_by_name(parent, "port");
--		of_node_put(node);
--
--		if (!port) {
--			pr_err("graph: no port node found in %s\n",
--			       parent->full_name);
--			return NULL;
--		}
--	} else {
--		port = of_get_parent(prev);
--		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
--			      __func__, prev->full_name))
--			return NULL;
--	}
--
--	while (1) {
--		/*
--		 * Now that we have a port node, get the next endpoint by
--		 * getting the next child. If the previous endpoint is NULL this
--		 * will return the first child.
--		 */
--		endpoint = of_get_next_child(port, prev);
--		if (endpoint) {
--			of_node_put(port);
--			return endpoint;
--		}
--
--		/* No more endpoints under this port, try the next one. */
--		prev = NULL;
--
--		do {
--			port = of_get_next_child(parent, port);
--			if (!port)
--				return NULL;
--		} while (of_node_cmp(port->name, "port"));
--	}
--}
--EXPORT_SYMBOL(of_graph_get_next_endpoint);
--
--/**
-- * of_graph_get_endpoint_by_regs() - get endpoint node of specific identifiers
-- * @parent: pointer to the parent device node
-- * @port_reg: identifier (value of reg property) of the parent port node
-- * @reg: identifier (value of reg property) of the endpoint node
-- *
-- * Return: An 'endpoint' node pointer which is identified by reg and at the same
-- * is the child of a port node identified by port_reg. reg and port_reg are
-- * ignored when they are -1.
-- */
--struct device_node *of_graph_get_endpoint_by_regs(
--	const struct device_node *parent, int port_reg, int reg)
--{
--	struct of_endpoint endpoint;
--	struct device_node *node = NULL;
--
--	for_each_endpoint_of_node(parent, node) {
--		of_graph_parse_endpoint(node, &endpoint);
--		if (((port_reg == -1) || (endpoint.port == port_reg)) &&
--			((reg == -1) || (endpoint.id == reg)))
--			return node;
--	}
--
--	return NULL;
--}
--EXPORT_SYMBOL(of_graph_get_endpoint_by_regs);
--
--/**
-- * of_graph_get_remote_port_parent() - get remote port's parent node
-- * @node: pointer to a local endpoint device_node
-- *
-- * Return: Remote device node associated with remote endpoint node linked
-- *	   to @node. Use of_node_put() on it when done.
-- */
--struct device_node *of_graph_get_remote_port_parent(
--			       const struct device_node *node)
--{
--	struct device_node *np;
--	unsigned int depth;
--
--	/* Get remote endpoint node. */
--	np = of_parse_phandle(node, "remote-endpoint", 0);
--
--	/* Walk 3 levels up only if there is 'ports' node. */
--	for (depth = 3; depth && np; depth--) {
--		np = of_get_next_parent(np);
--		if (depth == 2 && of_node_cmp(np->name, "ports"))
--			break;
--	}
--	return np;
--}
--EXPORT_SYMBOL(of_graph_get_remote_port_parent);
--
--/**
-- * of_graph_get_remote_port() - get remote port node
-- * @node: pointer to a local endpoint device_node
-- *
-- * Return: Remote port node associated with remote endpoint node linked
-- *	   to @node. Use of_node_put() on it when done.
-- */
--struct device_node *of_graph_get_remote_port(const struct device_node *node)
--{
--	struct device_node *np;
--
--	/* Get remote endpoint node. */
--	np = of_parse_phandle(node, "remote-endpoint", 0);
--	if (!np)
--		return NULL;
--	return of_get_next_parent(np);
--}
--EXPORT_SYMBOL(of_graph_get_remote_port);
--
--/**
-- * of_graph_get_remote_node() - get remote parent device_node for given port/endpoint
-- * @node: pointer to parent device_node containing graph port/endpoint
-- * @port: identifier (value of reg property) of the parent port node
-- * @endpoint: identifier (value of reg property) of the endpoint node
-- *
-- * Return: Remote device node associated with remote endpoint node linked
-- *	   to @node. Use of_node_put() on it when done.
-- */
--struct device_node *of_graph_get_remote_node(const struct device_node *node,
--					     u32 port, u32 endpoint)
--{
--	struct device_node *endpoint_node, *remote;
--
--	endpoint_node = of_graph_get_endpoint_by_regs(node, port, endpoint);
--	if (!endpoint_node) {
--		pr_debug("no valid endpoint (%d, %d) for node %s\n",
--			 port, endpoint, node->full_name);
--		return NULL;
--	}
--
--	remote = of_graph_get_remote_port_parent(endpoint_node);
--	of_node_put(endpoint_node);
--	if (!remote) {
--		pr_debug("no valid remote node\n");
--		return NULL;
--	}
--
--	if (!of_device_is_available(remote)) {
--		pr_debug("not available for remote node\n");
--		return NULL;
--	}
--
--	return remote;
--}
--EXPORT_SYMBOL(of_graph_get_remote_node);
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-new file mode 100644
-index 0000000..e9fc8bb
---- /dev/null
-+++ b/drivers/of/property.c
-@@ -0,0 +1,732 @@
-+/*
-+ * drivers/of/property.c - Procedures for accessing and interpreting
-+ *			   Devicetree properties and graphs.
-+ *
-+ * Initially created by copying procedures from drivers/of/base.c. This
-+ * file contains the OF property as well as the OF graph interface
-+ * functions.
-+ *
-+ * Paul Mackerras	August 1996.
-+ * Copyright (C) 1996-2005 Paul Mackerras.
-+ *
-+ *  Adapted for 64bit PowerPC by Dave Engebretsen and Peter Bergner.
-+ *    {engebret|bergner}@us.ibm.com
-+ *
-+ *  Adapted for sparc and sparc64 by David S. Miller davem@davemloft.net
-+ *
-+ *  Reconsolidated from arch/x/kernel/prom.c by Stephen Rothwell and
-+ *  Grant Likely.
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ */
-+
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_graph.h>
-+#include <linux/string.h>
-+
-+#include "of_private.h"
-+/**
-+ * of_property_count_elems_of_size - Count the number of elements in a property
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @elem_size:	size of the individual element
-+ *
-+ * Search for a property in a device node and count the number of elements of
-+ * size elem_size in it. Returns number of elements on sucess, -EINVAL if the
-+ * property does not exist or its length does not match a multiple of elem_size
-+ * and -ENODATA if the property does not have a value.
-+ */
-+int of_property_count_elems_of_size(const struct device_node *np,
-+				const char *propname, int elem_size)
-+{
-+	struct property *prop = of_find_property(np, propname, NULL);
-+
-+	if (!prop)
-+		return -EINVAL;
-+	if (!prop->value)
-+		return -ENODATA;
-+
-+	if (prop->length % elem_size != 0) {
-+		pr_err("size of %s in node %s is not a multiple of %d\n",
-+		       propname, np->full_name, elem_size);
-+		return -EINVAL;
-+	}
-+
-+	return prop->length / elem_size;
-+}
-+EXPORT_SYMBOL_GPL(of_property_count_elems_of_size);
-+
-+/**
-+ * of_find_property_value_of_size
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @min:	minimum allowed length of property value
-+ * @max:	maximum allowed length of property value (0 means unlimited)
-+ * @len:	if !=NULL, actual length is written to here
-+ *
-+ * Search for a property in a device node and valid the requested size.
-+ * Returns the property value on success, -EINVAL if the property does not
-+ *  exist, -ENODATA if property does not have a value, and -EOVERFLOW if the
-+ * property data is too small or too large.
-+ *
-+ */
-+static void *of_find_property_value_of_size(const struct device_node *np,
-+			const char *propname, u32 min, u32 max, size_t *len)
-+{
-+	struct property *prop = of_find_property(np, propname, NULL);
-+
-+	if (!prop)
-+		return ERR_PTR(-EINVAL);
-+	if (!prop->value)
-+		return ERR_PTR(-ENODATA);
-+	if (prop->length < min)
-+		return ERR_PTR(-EOVERFLOW);
-+	if (max && prop->length > max)
-+		return ERR_PTR(-EOVERFLOW);
-+
-+	if (len)
-+		*len = prop->length;
-+
-+	return prop->value;
-+}
-+
-+/**
-+ * of_property_read_u32_index - Find and read a u32 from a multi-value property.
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @index:	index of the u32 in the list of values
-+ * @out_value:	pointer to return value, modified only if no error.
-+ *
-+ * Search for a property in a device node and read nth 32-bit value from
-+ * it. Returns 0 on success, -EINVAL if the property does not exist,
-+ * -ENODATA if property does not have a value, and -EOVERFLOW if the
-+ * property data isn't large enough.
-+ *
-+ * The out_value is modified only if a valid u32 value can be decoded.
-+ */
-+int of_property_read_u32_index(const struct device_node *np,
-+				       const char *propname,
-+				       u32 index, u32 *out_value)
-+{
-+	const u32 *val = of_find_property_value_of_size(np, propname,
-+					((index + 1) * sizeof(*out_value)),
-+					0,
-+					NULL);
-+
-+	if (IS_ERR(val))
-+		return PTR_ERR(val);
-+
-+	*out_value = be32_to_cpup(((__be32 *)val) + index);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_u32_index);
-+
-+/**
-+ * of_property_read_variable_u8_array - Find and read an array of u8 from a
-+ * property, with bounds on the minimum and maximum array size.
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_values:	pointer to return value, modified only if return value is 0.
-+ * @sz_min:	minimum number of array elements to read
-+ * @sz_max:	maximum number of array elements to read, if zero there is no
-+ *		upper limit on the number of elements in the dts entry but only
-+ *		sz_min will be read.
-+ *
-+ * Search for a property in a device node and read 8-bit value(s) from
-+ * it. Returns number of elements read on success, -EINVAL if the property
-+ * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-+ * if the property data is smaller than sz_min or longer than sz_max.
-+ *
-+ * dts entry of array should be like:
-+ *	property = /bits/ 8 <0x50 0x60 0x70>;
-+ *
-+ * The out_values is modified only if a valid u8 value can be decoded.
-+ */
-+int of_property_read_variable_u8_array(const struct device_node *np,
-+					const char *propname, u8 *out_values,
-+					size_t sz_min, size_t sz_max)
-+{
-+	size_t sz, count;
-+	const u8 *val = of_find_property_value_of_size(np, propname,
-+						(sz_min * sizeof(*out_values)),
-+						(sz_max * sizeof(*out_values)),
-+						&sz);
-+
-+	if (IS_ERR(val))
-+		return PTR_ERR(val);
-+
-+	if (!sz_max)
-+		sz = sz_min;
-+	else
-+		sz /= sizeof(*out_values);
-+
-+	count = sz;
-+	while (count--)
-+		*out_values++ = *val++;
-+
-+	return sz;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_variable_u8_array);
-+
-+/**
-+ * of_property_read_variable_u16_array - Find and read an array of u16 from a
-+ * property, with bounds on the minimum and maximum array size.
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_values:	pointer to return value, modified only if return value is 0.
-+ * @sz_min:	minimum number of array elements to read
-+ * @sz_max:	maximum number of array elements to read, if zero there is no
-+ *		upper limit on the number of elements in the dts entry but only
-+ *		sz_min will be read.
-+ *
-+ * Search for a property in a device node and read 16-bit value(s) from
-+ * it. Returns number of elements read on success, -EINVAL if the property
-+ * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-+ * if the property data is smaller than sz_min or longer than sz_max.
-+ *
-+ * dts entry of array should be like:
-+ *	property = /bits/ 16 <0x5000 0x6000 0x7000>;
-+ *
-+ * The out_values is modified only if a valid u16 value can be decoded.
-+ */
-+int of_property_read_variable_u16_array(const struct device_node *np,
-+					const char *propname, u16 *out_values,
-+					size_t sz_min, size_t sz_max)
-+{
-+	size_t sz, count;
-+	const __be16 *val = of_find_property_value_of_size(np, propname,
-+						(sz_min * sizeof(*out_values)),
-+						(sz_max * sizeof(*out_values)),
-+						&sz);
-+
-+	if (IS_ERR(val))
-+		return PTR_ERR(val);
-+
-+	if (!sz_max)
-+		sz = sz_min;
-+	else
-+		sz /= sizeof(*out_values);
-+
-+	count = sz;
-+	while (count--)
-+		*out_values++ = be16_to_cpup(val++);
-+
-+	return sz;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_variable_u16_array);
-+
-+/**
-+ * of_property_read_variable_u32_array - Find and read an array of 32 bit
-+ * integers from a property, with bounds on the minimum and maximum array size.
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_values:	pointer to return value, modified only if return value is 0.
-+ * @sz_min:	minimum number of array elements to read
-+ * @sz_max:	maximum number of array elements to read, if zero there is no
-+ *		upper limit on the number of elements in the dts entry but only
-+ *		sz_min will be read.
-+ *
-+ * Search for a property in a device node and read 32-bit value(s) from
-+ * it. Returns number of elements read on success, -EINVAL if the property
-+ * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-+ * if the property data is smaller than sz_min or longer than sz_max.
-+ *
-+ * The out_values is modified only if a valid u32 value can be decoded.
-+ */
-+int of_property_read_variable_u32_array(const struct device_node *np,
-+			       const char *propname, u32 *out_values,
-+			       size_t sz_min, size_t sz_max)
-+{
-+	size_t sz, count;
-+	const __be32 *val = of_find_property_value_of_size(np, propname,
-+						(sz_min * sizeof(*out_values)),
-+						(sz_max * sizeof(*out_values)),
-+						&sz);
-+
-+	if (IS_ERR(val))
-+		return PTR_ERR(val);
-+
-+	if (!sz_max)
-+		sz = sz_min;
-+	else
-+		sz /= sizeof(*out_values);
-+
-+	count = sz;
-+	while (count--)
-+		*out_values++ = be32_to_cpup(val++);
-+
-+	return sz;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_variable_u32_array);
-+
-+/**
-+ * of_property_read_u64 - Find and read a 64 bit integer from a property
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_value:	pointer to return value, modified only if return value is 0.
-+ *
-+ * Search for a property in a device node and read a 64-bit value from
-+ * it. Returns 0 on success, -EINVAL if the property does not exist,
-+ * -ENODATA if property does not have a value, and -EOVERFLOW if the
-+ * property data isn't large enough.
-+ *
-+ * The out_value is modified only if a valid u64 value can be decoded.
-+ */
-+int of_property_read_u64(const struct device_node *np, const char *propname,
-+			 u64 *out_value)
-+{
-+	const __be32 *val = of_find_property_value_of_size(np, propname,
-+						sizeof(*out_value),
-+						0,
-+						NULL);
-+
-+	if (IS_ERR(val))
-+		return PTR_ERR(val);
-+
-+	*out_value = of_read_number(val, 2);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_u64);
-+
-+/**
-+ * of_property_read_variable_u64_array - Find and read an array of 64 bit
-+ * integers from a property, with bounds on the minimum and maximum array size.
-+ *
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_values:	pointer to return value, modified only if return value is 0.
-+ * @sz_min:	minimum number of array elements to read
-+ * @sz_max:	maximum number of array elements to read, if zero there is no
-+ *		upper limit on the number of elements in the dts entry but only
-+ *		sz_min will be read.
-+ *
-+ * Search for a property in a device node and read 64-bit value(s) from
-+ * it. Returns number of elements read on success, -EINVAL if the property
-+ * does not exist, -ENODATA if property does not have a value, and -EOVERFLOW
-+ * if the property data is smaller than sz_min or longer than sz_max.
-+ *
-+ * The out_values is modified only if a valid u64 value can be decoded.
-+ */
-+int of_property_read_variable_u64_array(const struct device_node *np,
-+			       const char *propname, u64 *out_values,
-+			       size_t sz_min, size_t sz_max)
-+{
-+	size_t sz, count;
-+	const __be32 *val = of_find_property_value_of_size(np, propname,
-+						(sz_min * sizeof(*out_values)),
-+						(sz_max * sizeof(*out_values)),
-+						&sz);
-+
-+	if (IS_ERR(val))
-+		return PTR_ERR(val);
-+
-+	if (!sz_max)
-+		sz = sz_min;
-+	else
-+		sz /= sizeof(*out_values);
-+
-+	count = sz;
-+	while (count--) {
-+		*out_values++ = of_read_number(val, 2);
-+		val += 2;
-+	}
-+
-+	return sz;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_variable_u64_array);
-+
-+/**
-+ * of_property_read_string - Find and read a string from a property
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_string:	pointer to null terminated return string, modified only if
-+ *		return value is 0.
-+ *
-+ * Search for a property in a device tree node and retrieve a null
-+ * terminated string value (pointer to data, not a copy). Returns 0 on
-+ * success, -EINVAL if the property does not exist, -ENODATA if property
-+ * does not have a value, and -EILSEQ if the string is not null-terminated
-+ * within the length of the property data.
-+ *
-+ * The out_string pointer is modified only if a valid string can be decoded.
-+ */
-+int of_property_read_string(const struct device_node *np, const char *propname,
-+				const char **out_string)
-+{
-+	const struct property *prop = of_find_property(np, propname, NULL);
-+	if (!prop)
-+		return -EINVAL;
-+	if (!prop->value)
-+		return -ENODATA;
-+	if (strnlen(prop->value, prop->length) >= prop->length)
-+		return -EILSEQ;
-+	*out_string = prop->value;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_string);
-+
-+/**
-+ * of_property_match_string() - Find string in a list and return index
-+ * @np: pointer to node containing string list property
-+ * @propname: string list property name
-+ * @string: pointer to string to search for in string list
-+ *
-+ * This function searches a string list property and returns the index
-+ * of a specific string value.
-+ */
-+int of_property_match_string(const struct device_node *np, const char *propname,
-+			     const char *string)
-+{
-+	const struct property *prop = of_find_property(np, propname, NULL);
-+	size_t l;
-+	int i;
-+	const char *p, *end;
-+
-+	if (!prop)
-+		return -EINVAL;
-+	if (!prop->value)
-+		return -ENODATA;
-+
-+	p = prop->value;
-+	end = p + prop->length;
-+
-+	for (i = 0; p < end; i++, p += l) {
-+		l = strnlen(p, end - p) + 1;
-+		if (p + l > end)
-+			return -EILSEQ;
-+		pr_debug("comparing %s with %s\n", string, p);
-+		if (strcmp(string, p) == 0)
-+			return i; /* Found it; return index */
-+	}
-+	return -ENODATA;
-+}
-+EXPORT_SYMBOL_GPL(of_property_match_string);
-+
-+/**
-+ * of_property_read_string_helper() - Utility helper for parsing string properties
-+ * @np:		device node from which the property value is to be read.
-+ * @propname:	name of the property to be searched.
-+ * @out_strs:	output array of string pointers.
-+ * @sz:		number of array elements to read.
-+ * @skip:	Number of strings to skip over at beginning of list.
-+ *
-+ * Don't call this function directly. It is a utility helper for the
-+ * of_property_read_string*() family of functions.
-+ */
-+int of_property_read_string_helper(const struct device_node *np,
-+				   const char *propname, const char **out_strs,
-+				   size_t sz, int skip)
-+{
-+	const struct property *prop = of_find_property(np, propname, NULL);
-+	int l = 0, i = 0;
-+	const char *p, *end;
-+
-+	if (!prop)
-+		return -EINVAL;
-+	if (!prop->value)
-+		return -ENODATA;
-+	p = prop->value;
-+	end = p + prop->length;
-+
-+	for (i = 0; p < end && (!out_strs || i < skip + sz); i++, p += l) {
-+		l = strnlen(p, end - p) + 1;
-+		if (p + l > end)
-+			return -EILSEQ;
-+		if (out_strs && i >= skip)
-+			*out_strs++ = p;
-+	}
-+	i -= skip;
-+	return i <= 0 ? -ENODATA : i;
-+}
-+EXPORT_SYMBOL_GPL(of_property_read_string_helper);
-+
-+const __be32 *of_prop_next_u32(struct property *prop, const __be32 *cur,
-+			       u32 *pu)
-+{
-+	const void *curv = cur;
-+
-+	if (!prop)
-+		return NULL;
-+
-+	if (!cur) {
-+		curv = prop->value;
-+		goto out_val;
-+	}
-+
-+	curv += sizeof(*cur);
-+	if (curv >= prop->value + prop->length)
-+		return NULL;
-+
-+out_val:
-+	*pu = be32_to_cpup(curv);
-+	return curv;
-+}
-+EXPORT_SYMBOL_GPL(of_prop_next_u32);
-+
-+const char *of_prop_next_string(struct property *prop, const char *cur)
-+{
-+	const void *curv = cur;
-+
-+	if (!prop)
-+		return NULL;
-+
-+	if (!cur)
-+		return prop->value;
-+
-+	curv += strlen(cur) + 1;
-+	if (curv >= prop->value + prop->length)
-+		return NULL;
-+
-+	return curv;
-+}
-+EXPORT_SYMBOL_GPL(of_prop_next_string);
-+
-+/**
-+ * of_graph_parse_endpoint() - parse common endpoint node properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to the OF endpoint data structure
-+ *
-+ * The caller should hold a reference to @node.
-+ */
-+int of_graph_parse_endpoint(const struct device_node *node,
-+			    struct of_endpoint *endpoint)
-+{
-+	struct device_node *port_node = of_get_parent(node);
-+
-+	WARN_ONCE(!port_node, "%s(): endpoint %s has no parent node\n",
-+		  __func__, node->full_name);
-+
-+	memset(endpoint, 0, sizeof(*endpoint));
-+
-+	endpoint->local_node = node;
-+	/*
-+	 * It doesn't matter whether the two calls below succeed.
-+	 * If they don't then the default value 0 is used.
-+	 */
-+	of_property_read_u32(port_node, "reg", &endpoint->port);
-+	of_property_read_u32(node, "reg", &endpoint->id);
-+
-+	of_node_put(port_node);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(of_graph_parse_endpoint);
-+
-+/**
-+ * of_graph_get_port_by_id() - get the port matching a given id
-+ * @parent: pointer to the parent device node
-+ * @id: id of the port
-+ *
-+ * Return: A 'port' node pointer with refcount incremented. The caller
-+ * has to use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_port_by_id(struct device_node *parent, u32 id)
-+{
-+	struct device_node *node, *port;
-+
-+	node = of_get_child_by_name(parent, "ports");
-+	if (node)
-+		parent = node;
-+
-+	for_each_child_of_node(parent, port) {
-+		u32 port_id = 0;
-+
-+		if (of_node_cmp(port->name, "port") != 0)
-+			continue;
-+		of_property_read_u32(port, "reg", &port_id);
-+		if (id == port_id)
-+			break;
-+	}
-+
-+	of_node_put(node);
-+
-+	return port;
-+}
-+EXPORT_SYMBOL(of_graph_get_port_by_id);
-+
-+/**
-+ * of_graph_get_next_endpoint() - get next endpoint node
-+ * @parent: pointer to the parent device node
-+ * @prev: previous endpoint node, or NULL to get first
-+ *
-+ * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-+ * of the passed @prev node is decremented.
-+ */
-+struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
-+					struct device_node *prev)
-+{
-+	struct device_node *endpoint;
-+	struct device_node *port;
-+
-+	if (!parent)
-+		return NULL;
-+
-+	/*
-+	 * Start by locating the port node. If no previous endpoint is specified
-+	 * search for the first port node, otherwise get the previous endpoint
-+	 * parent port node.
-+	 */
-+	if (!prev) {
-+		struct device_node *node;
-+
-+		node = of_get_child_by_name(parent, "ports");
-+		if (node)
-+			parent = node;
-+
-+		port = of_get_child_by_name(parent, "port");
-+		of_node_put(node);
-+
-+		if (!port) {
-+			pr_err("graph: no port node found in %s\n",
-+			       parent->full_name);
-+			return NULL;
-+		}
-+	} else {
-+		port = of_get_parent(prev);
-+		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-+			      __func__, prev->full_name))
-+			return NULL;
-+	}
-+
-+	while (1) {
-+		/*
-+		 * Now that we have a port node, get the next endpoint by
-+		 * getting the next child. If the previous endpoint is NULL this
-+		 * will return the first child.
-+		 */
-+		endpoint = of_get_next_child(port, prev);
-+		if (endpoint) {
-+			of_node_put(port);
-+			return endpoint;
-+		}
-+
-+		/* No more endpoints under this port, try the next one. */
-+		prev = NULL;
-+
-+		do {
-+			port = of_get_next_child(parent, port);
-+			if (!port)
-+				return NULL;
-+		} while (of_node_cmp(port->name, "port"));
-+	}
-+}
-+EXPORT_SYMBOL(of_graph_get_next_endpoint);
-+
-+/**
-+ * of_graph_get_endpoint_by_regs() - get endpoint node of specific identifiers
-+ * @parent: pointer to the parent device node
-+ * @port_reg: identifier (value of reg property) of the parent port node
-+ * @reg: identifier (value of reg property) of the endpoint node
-+ *
-+ * Return: An 'endpoint' node pointer which is identified by reg and at the same
-+ * is the child of a port node identified by port_reg. reg and port_reg are
-+ * ignored when they are -1.
-+ */
-+struct device_node *of_graph_get_endpoint_by_regs(
-+	const struct device_node *parent, int port_reg, int reg)
-+{
-+	struct of_endpoint endpoint;
-+	struct device_node *node = NULL;
-+
-+	for_each_endpoint_of_node(parent, node) {
-+		of_graph_parse_endpoint(node, &endpoint);
-+		if (((port_reg == -1) || (endpoint.port == port_reg)) &&
-+			((reg == -1) || (endpoint.id == reg)))
-+			return node;
-+	}
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL(of_graph_get_endpoint_by_regs);
-+
-+/**
-+ * of_graph_get_remote_port_parent() - get remote port's parent node
-+ * @node: pointer to a local endpoint device_node
-+ *
-+ * Return: Remote device node associated with remote endpoint node linked
-+ *	   to @node. Use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_remote_port_parent(
-+			       const struct device_node *node)
-+{
-+	struct device_node *np;
-+	unsigned int depth;
-+
-+	/* Get remote endpoint node. */
-+	np = of_parse_phandle(node, "remote-endpoint", 0);
-+
-+	/* Walk 3 levels up only if there is 'ports' node. */
-+	for (depth = 3; depth && np; depth--) {
-+		np = of_get_next_parent(np);
-+		if (depth == 2 && of_node_cmp(np->name, "ports"))
-+			break;
-+	}
-+	return np;
-+}
-+EXPORT_SYMBOL(of_graph_get_remote_port_parent);
-+
-+/**
-+ * of_graph_get_remote_port() - get remote port node
-+ * @node: pointer to a local endpoint device_node
-+ *
-+ * Return: Remote port node associated with remote endpoint node linked
-+ *	   to @node. Use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_remote_port(const struct device_node *node)
-+{
-+	struct device_node *np;
-+
-+	/* Get remote endpoint node. */
-+	np = of_parse_phandle(node, "remote-endpoint", 0);
-+	if (!np)
-+		return NULL;
-+	return of_get_next_parent(np);
-+}
-+EXPORT_SYMBOL(of_graph_get_remote_port);
-+
-+/**
-+ * of_graph_get_remote_node() - get remote parent device_node for given port/endpoint
-+ * @node: pointer to parent device_node containing graph port/endpoint
-+ * @port: identifier (value of reg property) of the parent port node
-+ * @endpoint: identifier (value of reg property) of the endpoint node
-+ *
-+ * Return: Remote device node associated with remote endpoint node linked
-+ *	   to @node. Use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_remote_node(const struct device_node *node,
-+					     u32 port, u32 endpoint)
-+{
-+	struct device_node *endpoint_node, *remote;
-+
-+	endpoint_node = of_graph_get_endpoint_by_regs(node, port, endpoint);
-+	if (!endpoint_node) {
-+		pr_debug("no valid endpoint (%d, %d) for node %s\n",
-+			 port, endpoint, node->full_name);
-+		return NULL;
-+	}
-+
-+	remote = of_graph_get_remote_port_parent(endpoint_node);
-+	of_node_put(endpoint_node);
-+	if (!remote) {
-+		pr_debug("no valid remote node\n");
-+		return NULL;
-+	}
-+
-+	if (!of_device_is_available(remote)) {
-+		pr_debug("not available for remote node\n");
-+		return NULL;
-+	}
-+
-+	return remote;
-+}
-+EXPORT_SYMBOL(of_graph_get_remote_node);
--- 
-2.7.4
+I've tried with and without acpi_osi=Linux but it makes no difference.
 
+Attached : dmesg and dsdt. What else do you need?
+Looks like a buggy dsdt table but I'm not an expert.
+
+
+Xavier
+
+
+--------------CAA744FE207D470C20E5975E
+Content-Type: application/gzip;
+ name="dmesg_dsdt.tar.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="dmesg_dsdt.tar.gz"
+
+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
+--------------CAA744FE207D470C20E5975E--
