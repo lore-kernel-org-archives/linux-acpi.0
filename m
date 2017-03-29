@@ -1,54 +1,120 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V2] acpi: apei: check for pending errors when probing HED type GHES entries
-Date: Wed, 29 Mar 2017 09:54:40 -0600
-Message-ID: <1490802880-10239-1-git-send-email-tbaicar@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:37712 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932318AbdC2Pyq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 11:54:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v22 07/11] acpi/arm64: Add GTDT table parse driver
+Date: Wed, 29 Mar 2017 17:02:36 +0100
+Message-ID: <20170329160236.GB11297@red-moon>
+References: <20170321163122.9183-1-fu.wei@linaro.org>
+ <20170321163122.9183-8-fu.wei@linaro.org>
+ <20170328113535.GA17440@red-moon>
+ <CADyBb7v9jaiQjaWzwafkih_tsU+-hNi+TA7hcDbFgtLLChXM_g@mail.gmail.com>
+ <20170329102118.GB10807@red-moon>
+ <CADyBb7sDnp+p5Z=Cde-YS2UG8pxo9O=Tvkq8D79k37wOrUw19Q@mail.gmail.com>
+ <20170329113305.GA10960@red-moon>
+ <CADyBb7snT+fvZYDyjUW7ZCVLX-ha4VXYBhfZsi8a3wOeYtdHkQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CADyBb7snT+fvZYDyjUW7ZCVLX-ha4VXYBhfZsi8a3wOeYtdHkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, bp@suse.de, prarit@redhat.com, bhelgaas@google.com, punit.agrawal@arm.com, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shiju.jose@huawei.com, James.Morse@arm.com, ahs3@redhat.com
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
 
-If a HED type error occurs prior to GHES probing, the kernel will
-never report the error. The HED driver will see that no notifiers
-are registered, and clear the interrupt.
+On Wed, Mar 29, 2017 at 09:42:39PM +0800, Fu Wei wrote:
 
-This becomes a more serious problem with firmware that supports
-GHESv2 acknowledgements from the kernel. The firmware will populate
-the error and wait for the kernel ack. But since the kernel will
-never process the error we get into a state that the firmware will
-not send any more errors and the kernel will never see or ack the
-original error.
+[...]
 
-Check for pending errors when probing HED type GHES entries to
-avoid the above situation.
+> >> For calling acpi_gtdt_init() twice:
+> >> (1) 1st time: in early boot(bootmem), for init arch_timer and
+> >> memory-mapped timer, we initialize the acpi_gtdt_desc.
+> >> you can see that all the items in this struct are pointer.
+> >> (2) 2nd time: when system switch from bootmem to slab, all the
+> >> pointers in the acpi_gtdt_desc are invalid, so we have to
+> >> re-initialize(re-map) them.
+> >>
+> >> I have tested it, if we don't re-initialize  the acpi_gtdt_desc,
+> >> system will go wrong.
+> >
+> > Ok, that's what I feared. My complaint on patch 11 is that:
+> >
+> > 1) Stashing the GTDT pointer in acpi_gtdt_desc is not needed to
+> >    parse SBSA watchdogs
+> 
+> The acpi_gtdt_desc is for sharing the info between acpi_gtdt_init and
+> acpi_gtdt_c3stop, ;acpi_gtdt_map_ppi
+> I re-use it in parsing SBSA watchdogs, because I try to re-use acpi_gtdt_init.
+> 
+> > 2) It is not clear at all from the code or the commit log _why_ you
+> >    need to call acpi_gtdt_init() again (ie technically you don't need
+> >    to call it - you grab a valid pointer to the table and parse the
+> >    watchdogs in the _same_ function gtdt_sbsa_gwdt_init())
+> 
+> yes, we can avoid calling acpi_gtdt_init(), do the same thing in
+> parsing SBSA watchdogs info.
+> But if we will do the same thing(getting gtdt, platform_timer,
+> timer_count), why not just re-using the same function?
 
-This patch is based on Shiju's patch that adds support for GSIV
-and GPIO notification types:
-https://patchwork.kernel.org/patch/9628817/
+Because that's not trivial to understand why it is needed,
+it actually isn't :). Anyway, instead of painting the bikeshed
+let's add the comment below and be done with this.
 
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 1 +
- 1 file changed, 1 insertion(+)
+> So my suggestion is that:
+> Could we re-use acpi_gtdt_init, and a comment at the head of SBSA
+> watchdogs info parsing function to summarize this issue?
+> The comment like this
+> 
+> Note: although the global variable acpi_gtdt_desc has been initialized
+> by acpi_gtdt_init, when we initialized arch_timer. But when we call this
+> function to get SBSA watchdogs info from GTDT, the system has switch
+> from bootmem  to slab, so the pointers in acpi_gtdt_desc are dated, we
+> need to  re-initialize(remap) them. So we call acpi_gtdt_init again here.
+"Note: Even though the global variable acpi_gtdt_desc has been
+initialized by acpi_gtdt_init() while initializing the arch timers, when
+we call this function to get SBSA watchdogs info from GTDT, the pointers
+stashed in it are stale (since they are early temporary mappings carried
+out before acpi_permanent_mmap is set) and we need to
+re-initialize them with permanent mapped pointer values to let the
+GTDT parsing possible".
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index fd39929..cf5e938 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -1035,6 +1035,7 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 			register_acpi_hed_notifier(&ghes_notifier_hed);
- 		list_add_rcu(&ghes->list, &ghes_hed);
- 		mutex_unlock(&ghes_list_mutex);
-+		ghes_proc(ghes);
- 		break;
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_add(ghes);
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+I still think that if we write the code by omitting acpi_gtdt_init()
+call (which does things that are completely useless for SBSA watchdog)
+it becomes simpler and much easier to understand, up to you, either you
+do it or I will at -rc1 ;-)
 
+Lorenzo
+
+> 
+> 
+> Is that OK for you? :-)
+> 
+> >
+> > I do not think there is much you can do to improve the arch timer gtdt
+> > interface (and it is too late for that anyway) but in patch 11 it would
+> > be ideal if you avoid calling acpi_gtdt_init() again, just parse GTDT
+> > entries and initialize the corresponding watchdogs (ie pointers stashed
+> > in acpi_gtdt_desc are stale anyway but that's __initdata so I can live
+> > with that).
+> >
+> > You should add comments to summarize this issue so that it can be
+> > easily understood by anyone maintaining this code, it is not crystal
+> > clear by reading the code why you need to multiple acpi_gtdt_init()
+> > calls and that's not a piffling detail.
+> >
+> > The ACPI patches are fine with me otherwise, I will complete the
+> > review shortly.
+> >
+> > Thanks !
+> > Lorenzo
+> 
+> 
+> 
+> -- 
+> Best regards,
+> 
+> Fu Wei
+> Software Engineer
+> Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
