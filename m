@@ -1,120 +1,121 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v22 07/11] acpi/arm64: Add GTDT table parse driver
-Date: Wed, 29 Mar 2017 17:02:36 +0100
-Message-ID: <20170329160236.GB11297@red-moon>
-References: <20170321163122.9183-1-fu.wei@linaro.org>
- <20170321163122.9183-8-fu.wei@linaro.org>
- <20170328113535.GA17440@red-moon>
- <CADyBb7v9jaiQjaWzwafkih_tsU+-hNi+TA7hcDbFgtLLChXM_g@mail.gmail.com>
- <20170329102118.GB10807@red-moon>
- <CADyBb7sDnp+p5Z=Cde-YS2UG8pxo9O=Tvkq8D79k37wOrUw19Q@mail.gmail.com>
- <20170329113305.GA10960@red-moon>
- <CADyBb7snT+fvZYDyjUW7ZCVLX-ha4VXYBhfZsi8a3wOeYtdHkQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
+Date: Wed, 29 Mar 2017 17:13:54 +0100
+Message-ID: <20170329161354.GC11297@red-moon>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
+ <20170329101400.GA10807@red-moon>
+ <58DBA010.1020002@linaro.org>
+ <20170329123821.GA10988@red-moon>
+ <58DBAFD6.7070300@linaro.org>
+ <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:35948 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752944AbdC2QNa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Mar 2017 12:13:30 -0400
 Content-Disposition: inline
-In-Reply-To: <CADyBb7snT+fvZYDyjUW7ZCVLX-ha4VXYBhfZsi8a3wOeYtdHkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
+In-Reply-To: <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Nowicki <tn@semihalf.com>, Ma Jun <majun258@huawei.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, huxinwei@huawei.com, yimin@huawei.com, linuxarm@huawei.com
 
-On Wed, Mar 29, 2017 at 09:42:39PM +0800, Fu Wei wrote:
-
-[...]
-
-> >> For calling acpi_gtdt_init() twice:
-> >> (1) 1st time: in early boot(bootmem), for init arch_timer and
-> >> memory-mapped timer, we initialize the acpi_gtdt_desc.
-> >> you can see that all the items in this struct are pointer.
-> >> (2) 2nd time: when system switch from bootmem to slab, all the
-> >> pointers in the acpi_gtdt_desc are invalid, so we have to
-> >> re-initialize(re-map) them.
+On Wed, Mar 29, 2017 at 03:52:47PM +0100, Marc Zyngier wrote:
+> On 29/03/17 14:00, Hanjun Guo wrote:
+> > On 03/29/2017 08:38 PM, Lorenzo Pieralisi wrote:
+> >> On Wed, Mar 29, 2017 at 07:52:48PM +0800, Hanjun Guo wrote:
+> >>> Hi Lorenzo,
+> >>>
+> >>> On 03/29/2017 06:14 PM, Lorenzo Pieralisi wrote:
+> >>>> Hi Hanjun, Marc,
+> >>>>
+> >>>> On Tue, Mar 07, 2017 at 08:40:05PM +0800, Hanjun Guo wrote:
+> >>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+> >>>>>
+> >>>>> For devices connecting to ITS, the devices need to identify themself
+> >>>>> through a dev id; this dev id is represented in the IORT table in named
+> >>>>> component node [1] for platform devices, so this patch adds code that
+> >>>>> scans the IORT table to retrieve the devices' dev id.
+> >>>>>
+> >>>>> Leveraging the iort_node_map_platform_id() IORT API, add a new function
+> >>>>> call, iort_pmsi_get_dev_id() and use it in its_pmsi_prepare() to allow
+> >>>>> retrieving dev id in ACPI platforms.
+> >>>>>
+> >>>>> [1]: https://static.docs.arm.com/den0049/b/DEN0049B_IO_Remapping_Table.pdf
+> >>>>>
+> >>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >>>>> [lorenzo.pieralisi@arm.com: rewrote commit log]
+> >>>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >>>>> Tested-by: Ming Lei <ming.lei@canonical.com>
+> >>>>> Tested-by: Wei Xu <xuwei5@hisilicon.com>
+> >>>>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> >>>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> >>>>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >>>>> Cc: Tomasz Nowicki <tn@semihalf.com>
+> >>>>> Cc: Thomas Gleixner <tglx@linutronix.de>
+> >>>>> ---
+> >>>>>   drivers/acpi/arm64/iort.c                     | 24 ++++++++++++++++++++++++
+> >>>>>   drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
+> >>>>>   include/linux/acpi_iort.h                     |  5 +++++
+> >>>>>   3 files changed, 31 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> To simplify merging ACPI/IRQCHIP changes via different trees it
+> >>>> would be good to split this patch; I am not sure what's the best
+> >>>> way of handling it though given that we would end up in a merge
+> >>>> ordering dependency anyway (ie we can create an empty stub
+> >>>> for iort_pmsi_get_dev_id() but that would create a dependency
+> >>>> between ARM64 and irqchip trees anyway).
+> >>>
+> >>> The first 12 patches for ACPI platform MSI and later 3 patches
+> >>> for mbigen have no "physical" dependency, which means they can
+> >>> be merged and compiled independently, they only have functional
+> >>> dependency only.
+> >>>
+> >>> We already had SAS, XGE, USB and even UART drivers depend on
+> >>> the mbigen ACPI support, so I don't think the dependency of ACPI
+> >>> platform MSI and mbigen patches cares much if those two parts are
+> >>> merged in one merge window, even they are merged independently via
+> >>> different tree.
+> >>>
+> >>>>
+> >>>> Please let me know what's your preferred way of handling this.
+> >>>
+> >>> So in my opinion, they can be merged independently via ARM64 and
+> >>> irqchip tree with no ordering dependency, is it OK?
 > >>
-> >> I have tested it, if we don't re-initialize  the acpi_gtdt_desc,
-> >> system will go wrong.
-> >
-> > Ok, that's what I feared. My complaint on patch 11 is that:
-> >
-> > 1) Stashing the GTDT pointer in acpi_gtdt_desc is not needed to
-> >    parse SBSA watchdogs
+> >> I am speaking about merging MBIgen AND ITS patches via IRQCHIP and
+> >> ACPI/IORT for ARM64, that's why I replied to this patch. I do not
+> >> think that's feasible to split patches in two separate branches
+> >> without having a dependency between them.
+> >>
+> >> Sure, the last three patches can go via IRQCHIP but that was not
+> >> my question :)
+> > 
+> > Sorry, I misunderstood that :(
+> > 
+> > Since it's not feasible to split patches, the best way I got is that
+> > we get Marc's ack then merge it.
 > 
-> The acpi_gtdt_desc is for sharing the info between acpi_gtdt_init and
-> acpi_gtdt_c3stop, ;acpi_gtdt_map_ppi
-> I re-use it in parsing SBSA watchdogs, because I try to re-use acpi_gtdt_init.
+> I believe there is a way to make this work without too much hassle. I
+> suggest we drop the ITS change from this patch entirely, and I instead
+> queue this patch:
 > 
-> > 2) It is not clear at all from the code or the commit log _why_ you
-> >    need to call acpi_gtdt_init() again (ie technically you don't need
-> >    to call it - you grab a valid pointer to the table and parse the
-> >    watchdogs in the _same_ function gtdt_sbsa_gwdt_init())
+> https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/irqchip-4.12&id=e6db07d0f3b6da1f8cfd485776bfefa4fcdbfc45
 > 
-> yes, we can avoid calling acpi_gtdt_init(), do the same thing in
-> parsing SBSA watchdogs info.
-> But if we will do the same thing(getting gtdt, platform_timer,
-> timer_count), why not just re-using the same function?
-
-Because that's not trivial to understand why it is needed,
-it actually isn't :). Anyway, instead of painting the bikeshed
-let's add the comment below and be done with this.
-
-> So my suggestion is that:
-> Could we re-use acpi_gtdt_init, and a comment at the head of SBSA
-> watchdogs info parsing function to summarize this issue?
-> The comment like this
+> That way, no dependency between the two trees. Lorenzo takes all the
+> patches flagged "ACPI", I take all those flagged "irqchip" or "msi", and
+> everything should be perfectly standalone.
 > 
-> Note: although the global variable acpi_gtdt_desc has been initialized
-> by acpi_gtdt_init, when we initialized arch_timer. But when we call this
-> function to get SBSA watchdogs info from GTDT, the system has switch
-> from bootmem  to slab, so the pointers in acpi_gtdt_desc are dated, we
-> need to  re-initialize(remap) them. So we call acpi_gtdt_init again here.
-"Note: Even though the global variable acpi_gtdt_desc has been
-initialized by acpi_gtdt_init() while initializing the arch timers, when
-we call this function to get SBSA watchdogs info from GTDT, the pointers
-stashed in it are stale (since they are early temporary mappings carried
-out before acpi_permanent_mmap is set) and we need to
-re-initialize them with permanent mapped pointer values to let the
-GTDT parsing possible".
+> Thoughts?
 
-I still think that if we write the code by omitting acpi_gtdt_init()
-call (which does things that are completely useless for SBSA watchdog)
-it becomes simpler and much easier to understand, up to you, either you
-do it or I will at -rc1 ;-)
+Perfect for me. Hanjun, I can cherry pick Marc's patch above, rework
+this patch and post the resulting branch for everyone to have a final
+test.
 
+Ok ?
+
+Thanks !
 Lorenzo
-
-> 
-> 
-> Is that OK for you? :-)
-> 
-> >
-> > I do not think there is much you can do to improve the arch timer gtdt
-> > interface (and it is too late for that anyway) but in patch 11 it would
-> > be ideal if you avoid calling acpi_gtdt_init() again, just parse GTDT
-> > entries and initialize the corresponding watchdogs (ie pointers stashed
-> > in acpi_gtdt_desc are stale anyway but that's __initdata so I can live
-> > with that).
-> >
-> > You should add comments to summarize this issue so that it can be
-> > easily understood by anyone maintaining this code, it is not crystal
-> > clear by reading the code why you need to multiple acpi_gtdt_init()
-> > calls and that's not a piffling detail.
-> >
-> > The ACPI patches are fine with me otherwise, I will complete the
-> > review shortly.
-> >
-> > Thanks !
-> > Lorenzo
-> 
-> 
-> 
-> -- 
-> Best regards,
-> 
-> Fu Wei
-> Software Engineer
-> Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
