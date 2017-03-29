@@ -1,148 +1,93 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v1 6/8] gpio: acpi: Explain how to get GPIO descriptors
- in ACPI case
-Date: Wed, 29 Mar 2017 00:12:35 -0700
-Message-ID: <20170329071235.GB38261@dtor-ws>
-References: <20170323194618.26548-1-andriy.shevchenko@linux.intel.com>
- <20170323194618.26548-7-andriy.shevchenko@linux.intel.com>
- <20170323202838.GA11818@dtor-ws>
- <1490719163.708.40.camel@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 1/1] of: Move OF property and graph API from base.c to
+ property.c
+Date: Wed, 29 Mar 2017 12:14:01 +0300
+Message-ID: <fb9cdd4e-e837-f925-da2b-9e4d25602e1e@linux.intel.com>
+References: <1490353147-11917-1-git-send-email-sakari.ailus@linux.intel.com>
+ <58DAF70E.9000305@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1490719163.708.40.camel@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:17265 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752720AbdC2JOM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Mar 2017 05:14:12 -0400
+In-Reply-To: <58DAF70E.9000305@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frank Rowand <frowand.list@gmail.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org
+Cc: sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, mika.westerberg@linux.intel.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com
 
-On Tue, Mar 28, 2017 at 07:39:23PM +0300, Andy Shevchenko wrote:
-> On Thu, 2017-03-23 at 13:28 -0700, Dmitry Torokhov wrote:
-> > On Thu, Mar 23, 2017 at 09:46:16PM +0200, Andy Shevchenko wrote:
-> 
-> 
-> > > +Using the _CRS fallback
-> > > +-----------------------
-> > > +
-> > > +If a device does not have _DSD or the driver does not create ACPI
-> > > GPIO
-> > > +mapping, the Linux GPIO framework refuses to return any GPIOs. This
-> > > is
-> > > +because the driver does not know what it actually gets. For example
-> > > if we
-> > > +have a device like below:
-> > > +
-> > > +  Device (BTH)
-> > > +  {
-> > > +      Name (_HID, ...)
-> > > +
-> > > +      Name (_CRS, ResourceTemplate () {
-> > > +          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
-> > > +                  "\\_SB.GPO0", 0, ResourceConsumer) {15}
-> > > +          GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionNone,
-> > > +                  "\\_SB.GPO0", 0, ResourceConsumer) {27}
-> > > +      })
-> > > +  }
-> > > +
-> > > +The driver might expect to get the right GPIO when it does:
-> > > +
-> > > +  desc = gpiod_get(dev, "reset", GPIOD_OUT_LOW);
-> > > +
-> > > +but since there is no way to know the mapping between "reset" and
-> > > +the GpioIo() in _CRS desc will hold ERR_PTR(-ENOENT).
-> > > +
-> > > +The driver author can solve this by passing the mapping explictly
-> > > +(the recommended way and documented in the above chapter).
-> > 
-> > If the driver is not platform specific, then it would have no idea
-> > about
-> > mapping between _CRS GPIOs and names. All such stuff should be hidden
-> > in
-> > platform glue (i.e drivers/platform/x86/platform_crap.c).
-> 
-> It might be interpreted that all platform data from all the drivers
-> should gone. While ideal case should be like this and I totally agree
-> with you, we are living in non-ideal world, that's why we used to and
-> continue using some ID-based quirks (PCI enumeration, I2C enumeration,
-> ACPI enumeration, SPI enumeration, UART enumeration, an so on, so on).
-> 
-> Moreover ACPI comes into ARM(64) world which might have its own troubles
-> with generating correct tables and we might end up with quirks there.
+Hi Frank,
 
-*gasp* I thought ACPI was the magic that would fix all issues with cure
-embedded hacks.
+Thank you for the review.
 
-> 
-> So, I disagree that here is possible to hide like you said "all such
-> stuff in ...platform_crap.c".
+Frank Rowand wrote:
+> Hi Sakari,
+>
+> On 03/24/17 03:59, Sakari Ailus wrote:
+>> base.c contains both core OF functions and increasingly other
+>> functionality such as accessing properties and graphs, including
+>> convenience functions. In the near future this would also include OF
+>> specific implementation of the fwnode property and graph APIs. Prepare for
+>> this by moving the functionality to property.c.
+>
+> For future me, for when I look back and read this commit, please add something
+> to the effect of:
+>
+>   Create driver/of/property.c to contain procedures for accessing and
+>   interpreting device tree properties.  The procedures are moved from
+>   drivers/of/base.c, with no changes other than copying only the
+>   includes required by the moved procedures.
 
-Well, Hans already posted such patch for select x86 platforms with
-Silead touchscreens. I am sure these platforms have more warts that
-could be added to the same file in platform/x86/...
+How about this as the commit message combining the two and dropping the 
+last sentence from the original description:
 
-> 
-> > > +
-> > > +Getting GPIO descriptor
-> > > +-----------------------
-> > > +
-> > > +There are two main approaches to get GPIO resource from ACPI:
-> > > +	desc = gpiod_get(dev, connection_id, flags);
-> > > +	desc = gpiod_get_index(dev, connection_id, index, flags);
-> > > +
-> > > +We may consider two different cases here, i.e. when connection ID
-> > > is
-> > > +provided and otherwise.
-> > > +
-> > > +Case 1:
-> > > +	desc = gpiod_get(dev, "non-null-connection-id", flags);
-> > > +	desc = gpiod_get_index(dev, "non-null-connection-id",
-> > > index, flags);
-> > > +
-> > > +Case 2:
-> > > +	desc = gpiod_get(dev, NULL, flags);
-> > > +	desc = gpiod_get_index(dev, NULL, index, flags);
-> > > +
-> > > +Case 1 assumes that corresponding ACPI device description must have
-> > > +defined device properties and will prevent to getting any GPIO
-> > > resources
-> > > +otherwise.
-> > > +
-> > > +Case 2 explicitly tells GPIO core to look for resources in _CRS.
-> > > +
-> > > +Be aware that gpiod_get_index() in cases 1 and 2, assuming that
-> > > there
-> > > +are two versions of ACPI device description provided and no mapping
-> > > is
-> > > +present in the driver, will return different resources. That's why
-> > > a
-> > > +certain driver has to handle them carefully as explained in
-> > > previous
-> > > +chapter.
-> > 
-> > I think that this wording is too x86-centric. We are talking about
-> > consumers of GPIOs here (i.e. drivers), which need unified behavior
-> > between ACPI, DT, and static board properties, they do not really care
-> > about _CRS or _DSD.
-> 
-> If the certain driver cares about ACPI enumerated devices it might care
-> about supporting it disregarding on how new firmware is used (supporting
-> _DSD or not).
+base.c contains both core OF functions and increasingly other
+functionality such as accessing properties and graphs, including
+convenience functions. In the near future this would also include OF
+specific implementation of the fwnode property and graph APIs.
 
-The drivers might care about ACPI enumerations, but they do not care
-about warts of particular platform that chose to implement their ACPI
-tables with missing or invalid data. I say that such knowledge should
-not go into generic driver, but rather some other entity that woudl fix
-up whatever wrong the platform did. It could be an ACPI table override,
-or block of code in platform/x86/..., DT overlay, it does not really
-matter as long as we do not litter drivers with hacks for random boxes.
+Create driver/of/property.c to contain procedures for accessing and
+interpreting device tree properties. The procedures are moved from
+drivers/of/base.c, with no changes other than copying only the
+includes required by the moved procedures.
 
-Yes, we used to do that (DMI tables, etc), because there was no better
-alternative. Now that we have generic device properties, we have better
-ways of addressing these issues.
+...
 
-Thanks.
+>> diff --git a/drivers/of/property.c b/drivers/of/property.c
+>> new file mode 100644
+>> index 0000000..afcf00a
+>> --- /dev/null
+>> +++ b/drivers/of/property.c
+>> @@ -0,0 +1,727 @@
+>> +/*
+>> + * drivers/of/property.c - Devicetree properties and graphs.
+>
+>     * drivers/of/property.c - Procedures for accessing and interpreting
+>     * Devicetree properties and graphs.
+>     *
+>     * Initially created by copying procedures from drivers/of/base.c
+>
+> The reference to base.c provides a documentation trail to all of the
+> earlier git commits that created and modified the procedures.
+
+I'll add that.
+
+>
+> It would also be useful to say what procedures do and do not belong
+> in this file.  My understanding is that the intent is for
+> drivers/of/property.c and drivers/acpi/property.c to provide the
+> respective functionality that is used by drivers/base/property.c
+> and that drivers also may directly access the procedures in
+> drivers/of/property.c.
+
+I'll add something along those lines. The fwnode op struct and the 
+operations in that will be in this file as well.
 
 -- 
-Dmitry
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
