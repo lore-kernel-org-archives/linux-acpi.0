@@ -1,217 +1,66 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v22 09/11] acpi/arm64: Add memory-mapped timer support in
- GTDT driver
-Date: Wed, 29 Mar 2017 17:47:05 +0100
-Message-ID: <20170329164705.GA11442@red-moon>
-References: <20170321163122.9183-1-fu.wei@linaro.org>
- <20170321163122.9183-10-fu.wei@linaro.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
+Date: Wed, 29 Mar 2017 19:50:52 +0300
+Message-ID: <1490806252.708.53.camel@linux.intel.com>
+References: <20170316161736.339-1-hdegoede@redhat.com>
+         <20170316161736.339-2-hdegoede@redhat.com>
+         <4029834.c3GWUpRlkb@aspire.rjw.lan>
+         <20170329092638.GU2957@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170321163122.9183-10-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:22094 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752225AbdC2Qu6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Mar 2017 12:50:58 -0400
+In-Reply-To: <20170329092638.GU2957@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Wed, Mar 22, 2017 at 12:31:20AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On Wed, 2017-03-29 at 12:26 +0300, Mika Westerberg wrote:
+> On Tue, Mar 28, 2017 at 11:42:29PM +0200, Rafael J. Wysocki wrote:
+> > On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
+> > > acpi_dev_found just iterates over all acpi-ids and sees if one
+> > > matches.
+> > > This means that it will return true for devices which are in the
+> > > dsdt
+> > > but disabled (their _STA method returns 0).
+> > > 
+> > > For some drivers it is useful to be able to check if a certain hid
+> > > is not only present in the namespace, but also actually present as
+> > > in
+> > > acpi_device_is_present() will return true for the device. For
+> > > example
+> > > because if a certain device is present then the driver will want
+> > > to use
+> > > an extcon or IIO adc channel provided by that device.
+> > > 
+> > > This commit adds a new acpi_dev_present helper which drivers can
+> > > use
+> > > to this end.
+> > > 
+> > > Arguably acpi_dev_present is what acpi_dev_found should have been,
+> > > but
+> > > there are too many users to just change acpi_dev_found without the
+> > > risk
+> > > of breaking something.
+> > > 
+> > > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > 
+> > Andy, Mika, any concerns about this patch, please?
 > 
-> On platforms booting with ACPI, architected memory-mapped timers'
-> configuration data is provided by firmware through the ACPI GTDT
-> static table.
+> No concerns from my side.
 > 
-> The clocksource architected timer kernel driver requires a firmware
-> interface to collect timer configuration and configure its driver.
-> this infrastructure is present for device tree systems, but it is
-> missing on systems booting with ACPI.
-> 
-> Implement the kernel infrastructure required to parse the static
-> ACPI GTDT table so that the architected timer clocksource driver can
-> make use of it on systems booting with ACPI, therefore enabling
-> the corresponding timers configuration.
-> 
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/acpi/arm64/gtdt.c | 130 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h      |   1 +
->  2 files changed, 131 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
-> index 8a03b4b..f471873 100644
-> --- a/drivers/acpi/arm64/gtdt.c
-> +++ b/drivers/acpi/arm64/gtdt.c
-> @@ -37,6 +37,28 @@ struct acpi_gtdt_descriptor {
->  
->  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
->  
-> +static inline void *next_platform_timer(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	platform_timer += gh->length;
-> +	if (platform_timer < acpi_gtdt_desc.gtdt_end)
-> +		return platform_timer;
-> +
-> +	return NULL;
-> +}
-> +
-> +#define for_each_platform_timer(_g)				\
-> +	for (_g = acpi_gtdt_desc.platform_timer; _g;	\
-> +	     _g = next_platform_timer(_g))
-> +
-> +static inline bool is_timer_block(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
-> +}
-> +
->  static int __init map_gt_gsi(u32 interrupt, u32 flags)
->  {
->  	int trigger, polarity;
-> @@ -155,3 +177,111 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
->  
->  	return ret;
->  }
-> +
-> +static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
-> +					 struct arch_timer_mem *timer_mem)
-> +{
-> +	int i, j;
-> +	struct acpi_gtdt_timer_entry *gtdt_frame;
-> +
-> +	if (!block->timer_count) {
-> +		pr_err(FW_BUG "GT block present, but frame count is zero.");
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
-> +		pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
-> +		       block->timer_count);
-> +		return -EINVAL;
-> +	}
-> +
-> +	timer_mem->cntctlbase = (phys_addr_t)block->block_address;
-> +	/*
-> +	 * The CNTCTLBase frame is 4KB (register offsets 0x000 - 0xFFC).
-> +	 * See ARM DDI 0487A.k_iss10775, page I1-5129, Table I1-3
-> +	 * "CNTCTLBase memory map".
-> +	 */
-> +	timer_mem->size = SZ_4K;
-> +
-> +	gtdt_frame = (void *)block + block->timer_offset;
-> +	if (gtdt_frame + block->timer_count != (void *)block + block->header.length)
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * Get the GT timer Frame data for every GT Block Timer
-> +	 */
-> +	for (i = 0, j = 0; i < block->timer_count; i++, gtdt_frame++) {
-> +		struct arch_timer_mem_frame *frame = &timer_mem->frame[j];
-> +
-> +		if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
-> +			continue;
-> +
-> +		if (!gtdt_frame->base_address || !gtdt_frame->timer_interrupt)
-> +			return -EINVAL;
-> +
-> +		frame->phys_irq = map_gt_gsi(gtdt_frame->timer_interrupt,
-> +					     gtdt_frame->timer_flags);
-> +		if (frame->phys_irq <= 0) {
-> +			pr_warn("failed to map physical timer irq in frame %d.\n",
-> +				i);
-> +			return -EINVAL;
-> +		}
-> +
-> +		frame->virt_irq =
-> +			map_gt_gsi(gtdt_frame->virtual_timer_interrupt,
-> +				   gtdt_frame->virtual_timer_flags);
-> +		if (frame->virt_irq <= 0) {
-> +			pr_warn("failed to map virtual timer irq in frame %d.\n",
-> +				i);
-> +			acpi_unregister_gsi(gtdt_frame->timer_interrupt);
-> +			return -EINVAL;
-> +		}
-> +
-> +		frame->frame_nr = gtdt_frame->frame_number;
-> +		frame->cntbase = gtdt_frame->base_address;
-> +		/*
-> +		 * The CNTBaseN frame is 4KB (register offsets 0x000 - 0xFFC).
-> +		 * See ARM DDI 0487A.k_iss10775, page I1-5130, Table I1-4
-> +		 * "CNTBaseN memory map".
-> +		 */
-> +		frame->size = SZ_4K;
-> +		j++;
-> +	}
-> +	timer_mem->num_frames = j;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
-> + * @timer_mem:	the pointer to the array of struct arch_timer_mem for returning
-> + *		the result of parsing. The element number of this array should
-> + *		be platform_timer_count(the total number of platform timers).
-> + * @count:	The pointer of int variate for returning the number of GT
-> + *		blocks we have parsed.
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Nit: this comment was wrong on all the patches I reviewed :) must be
-some copy and paste.
+Neither from me.
 
-> + *
-> + * Return: 0 if success, -EINVAL/-ENODEV if error.
-> + */
-> +int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
-> +				    int *timer_count)
-> +{
-> +	int ret;
-> +	void *platform_timer;
-> +
-> +	*timer_count = 0;
-> +	for_each_platform_timer(platform_timer) {
-> +		if (is_timer_block(platform_timer)) {
-> +			ret = gtdt_parse_timer_block(platform_timer, timer_mem);
-> +			if (ret)
-> +				return ret;
+I briefly looked in the code and indeed we have no existing helper as a
+such, so, if you think this is the best way to go, I would agree.
 
-Isn't there some unwinding to carry out here (eg GSI) ?
-
-Otherwise it looks fine (minus Mark's request for using frame numbers
-as indexes that you should change).
-
-Lorenzo
-
-> +			timer_mem++;
-> +			(*timer_count)++;
-> +		}
-> +	}
-> +
-> +	if (*timer_count)
-> +		pr_info("found %d memory-mapped timer block(s).\n",
-> +			*timer_count);
-> +
-> +	return 0;
-> +}
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 4b5c146..3193724 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -599,6 +599,7 @@ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
->  int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
->  int acpi_gtdt_map_ppi(int type);
->  bool acpi_gtdt_c3stop(int type);
-> +int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
->  #endif
->  
->  #else	/* !CONFIG_ACPI */
-> -- 
-> 2.9.3
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
