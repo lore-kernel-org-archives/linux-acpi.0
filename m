@@ -1,135 +1,202 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Update][PATCH v9.1 15/15] irqchip: mbigen: Add ACPI support
-Date: Wed, 29 Mar 2017 11:01:02 +0800
-Message-ID: <58DB236E.9000006@linaro.org>
-References: <1490703665-4932-1-git-send-email-hanjun.guo@linaro.org> <6fb7a454-7829-0147-9b53-2d85e9200ad3@redhat.com>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v22 02/11] clocksource: arm_arch_timer: separate out
+ device-tree code and remove arch_timer_detect_rate
+Date: Wed, 29 Mar 2017 11:41:07 +0800
+Message-ID: <CADyBb7uD1OqpPZf+ADsgbWryCGMGE3GqXOxz_4+1RzC1Pqsccg@mail.gmail.com>
+References: <20170321163122.9183-1-fu.wei@linaro.org> <20170321163122.9183-3-fu.wei@linaro.org>
+ <20170328145814.GE2123@mai>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f53.google.com ([74.125.83.53]:32910 "EHLO
-        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752552AbdC2DBS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Mar 2017 23:01:18 -0400
-Received: by mail-pg0-f53.google.com with SMTP id x125so3373257pgb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2017 20:01:17 -0700 (PDT)
-In-Reply-To: <6fb7a454-7829-0147-9b53-2d85e9200ad3@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170328145814.GE2123@mai>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
 List-Id: linux-acpi@vger.kernel.org
-To: ahs3@redhat.com, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Thomas Gleixner <tglx@linutronix.de>, Kefeng Wang <wangkefeng.wang@huawei.com>, huxinwei@huawei.com, yimin@huawei.com, MaJun <majun258@huawei.com>, Darren Hart <dvhart@infradead.org>
 
-On 03/29/2017 03:13 AM, Al Stone wrote:
-> On 03/28/2017 06:21 AM, Hanjun Guo wrote:
-[...]
->>
->> +#ifdef CONFIG_ACPI
->> +static int mbigen_acpi_create_domain(struct platform_device *pdev,
->> +				     struct mbigen_device *mgn_chip)
->> +{
->> +	struct irq_domain *domain;
->> +	u32 num_pins = 0;
->> +	int ret;
->> +
->> +	/*
->> +	 * "num-pins" is the total number of interrupt pins implemented in
->> +	 * this mbigen instance, and mbigen is an interrupt controller
->> +	 * connected to ITS  converting wired interrupts into MSI, so we
->> +	 * use "num-pins" to alloc MSI vectors which are needed by client
->> +	 * devices connected to it.
->> +	 *
->> +	 * Here is the DSDT device node used for mbigen in firmware:
->> +	 *	Device(MBI0) {
->> +	 *		Name(_HID, "HISI0152")
->> +	 *		Name(_UID, Zero)
->> +	 *		Name(_CRS, ResourceTemplate() {
->> +	 *			Memory32Fixed(ReadWrite, 0xa0080000, 0x10000)
->> +	 *		})
->> +	 *
->> +	 *		Name(_DSD, Package () {
->> +	 *			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> +	 *			Package () {
->> +	 *				Package () {"num-pins", 378}
->> +	 *			}
->> +	 *		})
->> +	 *	}
->> +	 */
->
-> Excellent.  These comments I really like.  Thanks for doing this!
->
->> +	ret = device_property_read_u32(&pdev->dev, "num-pins", &num_pins);
->> +	if (ret || num_pins == 0)
->> +		return -EINVAL;
->> +
->> +	domain = platform_msi_create_device_domain(&pdev->dev, num_pins,
->> +						   mbigen_write_msg,
->> +						   &mbigen_domain_ops,
->> +						   mgn_chip);
->> +	if (!domain)
->> +		return -ENOMEM;
->> +
->> +	return 0;
->> +}
->> +#else
->> +static inline int mbigen_acpi_create_domain(struct platform_device *pdev,
->> +					    struct mbigen_device *mgn_chip)
->> +{
->> +	return -ENODEV;
->> +}
->> +#endif
->> +
->>   static int mbigen_device_probe(struct platform_device *pdev)
->>   {
->>   	struct mbigen_device *mgn_chip;
->> @@ -289,9 +342,18 @@ static int mbigen_device_probe(struct platform_device *pdev)
->>   	if (IS_ERR(mgn_chip->base))
->>   		return PTR_ERR(mgn_chip->base);
->>
->> -	err = mbigen_of_create_domain(pdev, mgn_chip);
->> -	if (err)
->> +	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
->> +		err = mbigen_of_create_domain(pdev, mgn_chip);
->> +	else if (ACPI_COMPANION(&pdev->dev))
->> +		err = mbigen_acpi_create_domain(pdev, mgn_chip);
->> +	else
->> +		err = -EINVAL;
->> +
->> +	if (err) {
->> +		dev_err(&pdev->dev, "Failed to create mbi-gen@%p irqdomain",
->> +			mgn_chip->base);
->>   		return err;
->> +	}
->>
->>   	platform_set_drvdata(pdev, mgn_chip);
->>   	return 0;
->> @@ -303,10 +365,17 @@ static int mbigen_device_probe(struct platform_device *pdev)
->>   };
->>   MODULE_DEVICE_TABLE(of, mbigen_of_match);
->>
->> +static const struct acpi_device_id mbigen_acpi_match[] = {
->> +	{ "HISI0152", 0 },
->> +	{}
->> +};
->> +MODULE_DEVICE_TABLE(acpi, mbigen_acpi_match);
->> +
->>   static struct platform_driver mbigen_platform_driver = {
->>   	.driver = {
->>   		.name		= "Hisilicon MBIGEN-V2",
->>   		.of_match_table	= mbigen_of_match,
->> +		.acpi_match_table = ACPI_PTR(mbigen_acpi_match),
->>   	},
->>   	.probe			= mbigen_device_probe,
->>   };
->>
->
-> All LGTM.
->
-> Reviewed-by: Al Stone <ahs3@redhat.com>
+Hi Daniel,
 
-Thank you Al :)
+Great thanks for your review, allow me to answer your question below:
 
-Marc, Lorenzo, since it's little bit late and urgent, could we merge
-this version?
+On 28 March 2017 at 22:58, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote=
+:
+> On Wed, Mar 22, 2017 at 12:31:13AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>
+>> Currently, the counter frequency detection call(arch_timer_detect_rate)
+>> includes getting the frequency from the device-tree property, the per-cp=
+u
+>> arch-timer and the memory-mapped (MMIO) timer interfaces.
+>> But reading device-tree property will be needed only when system boot wi=
+th
+>> device-tree, and reading from the per-cpu arch-timer and the memory-mapp=
+ed
+>> (MMIO) timer interfaces will be needed only when the system initializes
+>> the relevant timer.
+>>
+>> This patch separates out device-tree code, keep them in device-tree init
+>> function, and removes arch_timer_detect_rate founction, then uses the
+>> arch_timer_get_cntfrq and arch_timer_mem_get_cntfrq directly.
+>>
+>> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> ---
+>>  drivers/clocksource/arm_arch_timer.c | 58 +++++++++++++++++++----------=
+-------
+>>  1 file changed, 30 insertions(+), 28 deletions(-)
+>>
+>> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/=
+arm_arch_timer.c
+>> index 843f923..29ca7d6 100644
+>> --- a/drivers/clocksource/arm_arch_timer.c
+>> +++ b/drivers/clocksource/arm_arch_timer.c
+>> @@ -560,30 +560,6 @@ static u32 arch_timer_mem_get_cntfrq(void __iomem *=
+cntbase)
+>>       return readl_relaxed(cntbase + CNTFRQ);
+>>  }
+>>
+>> -static void
+>> -arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+>> -{
+>> -     /* Who has more than one independent system counter? */
+>> -     if (arch_timer_rate)
+>> -             return;
+>> -
+>> -     /*
+>> -      * Try to determine the frequency from the device tree or CNTFRQ,
+>> -      * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
+>> -      */
+>> -     if (!acpi_disabled ||
+>> -         of_property_read_u32(np, "clock-frequency", &arch_timer_rate))=
+ {
+>> -             if (cntbase)
+>> -                     arch_timer_rate =3D arch_timer_mem_get_cntfrq(cntb=
+ase);
+>> -             else
+>> -                     arch_timer_rate =3D arch_timer_get_cntfrq();
+>> -     }
+>> -
+>> -     /* Check the timer frequency. */
+>> -     if (arch_timer_rate =3D=3D 0)
+>> -             pr_warn("frequency not available\n");
+>> -}
+>> -
+>>  static void arch_timer_banner(unsigned type)
+>>  {
+>>       pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
+>> @@ -958,7 +934,17 @@ static int __init arch_timer_of_init(struct device_=
+node *np)
+>>       for (i =3D ARCH_TIMER_PHYS_SECURE_PPI; i < ARCH_TIMER_MAX_TIMER_PP=
+I; i++)
+>>               arch_timer_ppi[i] =3D irq_of_parse_and_map(np, i);
+>>
+>> -     arch_timer_detect_rate(NULL, np);
+>> +     /*
+>> +      * Try to determine the frequency from the device tree,
+>> +      * if fail, get the frequency from the sysreg CNTFRQ.
+>> +      */
+>> +     if (!arch_timer_rate &&
+>
+> This variable is set only if "arm,armv7-timer" and "arm,armv7-timer-mem" =
+are
+> declared together in the DT, right ?
+>
+> Two declarations for a single variable ? Ignore the !arch_timer_rate.
 
-Thanks
-Hanjun
+In this function, we try to initialize per-CPU arm arch_timer by DT.
+this "!arch_timer_rate" is for testing that if we have got system
+counter frequency from the memory-mapped timer. If so, we just skip
+getting the frequency from DT or sysreg cntfrq again.
+This variable is set only if "arm,armv7-timer-mem" is initialized
+earlier than "arm,armv7-timer", in another word, maybe the node of
+"arm,armv7-timer-mem" is declared earlier than  "arm,armv7-timer-mem"
+one in DT.
+
+we do this check is for keeping the same init logic as before in the
+DT, try to avoid any possibility of  breaking devices which boot by
+DT.
+
+>
+>> +         of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+>> +             arch_timer_rate =3D arch_timer_get_cntfrq();
+>> +     if (!arch_timer_rate) {
+>> +             pr_err(FW_BUG "frequency not available.\n");
+>> +             return -EINVAL;
+>> +     }
+>
+> Please, clarify this block, the conditions are unclear.
+
+this "!arch_timer_rate" is for verifying that if the system counter
+frequency we just got from DT or sysreg cntfrq is valid(non-zero).
+
+So here, you can see I check arch_timer_rate twice, but they are for
+different cases.
+
+>
+>>
+>>       arch_timer_c3stop =3D !of_property_read_bool(np, "always-on");
+>>
+>> @@ -1069,7 +1055,19 @@ static int __init arch_timer_mem_init(struct devi=
+ce_node *np)
+>>               goto out;
+>>       }
+>>
+>> -     arch_timer_detect_rate(base, np);
+>> +     /*
+>> +      * Try to determine the frequency from the device tree,
+>> +      * if fail, get the frequency from the CNTFRQ reg of MMIO timer.
+>> +      */
+>> +     if (!arch_timer_rate &&
+>> +         of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+>> +             arch_timer_rate =3D arch_timer_mem_get_cntfrq(base);
+>> +     if (!arch_timer_rate) {
+>> +             pr_err(FW_BUG "MMIO frequency not available.\n");
+>> +             ret =3D -EINVAL;
+>> +             goto out;
+>> +     }
+>> +
+>>       ret =3D arch_timer_mem_register(base, irq);
+>>       if (ret)
+>>               goto out;
+>> @@ -1130,8 +1128,12 @@ static int __init arch_timer_acpi_init(struct acp=
+i_table_header *table)
+>>               map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt=
+,
+>>               gtdt->non_secure_el2_flags);
+>>
+>> -     /* Get the frequency from CNTFRQ */
+>> -     arch_timer_detect_rate(NULL, NULL);
+>> +     /* Get the frequency from the sysreg CNTFRQ */
+>> +     arch_timer_rate =3D arch_timer_get_cntfrq();
+>> +     if (!arch_timer_rate) {
+>> +             pr_err(FW_BUG "frequency not available.\n");
+>> +             return -EINVAL;
+>> +     }
+>>
+>>       arch_timer_uses_ppi =3D arch_timer_select_ppi();
+>>       if (!arch_timer_ppi[arch_timer_uses_ppi]) {
+>> --
+>> 2.9.3
+>>
+>
+> --
+>
+>  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for A=
+RM SoCs
+>
+> Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+> <http://twitter.com/#!/linaroorg> Twitter |
+> <http://www.linaro.org/linaro-blog/> Blog
+
+
+
+--=20
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
