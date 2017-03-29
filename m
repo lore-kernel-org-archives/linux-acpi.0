@@ -1,90 +1,142 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V2 1/2] ACPI / CPPC: Read lowest non linear perf in cppc_get_perf_caps
-Date: Wed, 29 Mar 2017 13:49:59 -0600
-Message-ID: <1490817000-13876-2-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V2 2/2] ACPI / CPPC: add sysfs entries for CPPC perf capabilities
+Date: Wed, 29 Mar 2017 13:50:00 -0600
+Message-ID: <1490817000-13876-3-git-send-email-pprakash@codeaurora.org>
 References: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46780 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:46934 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753160AbdC2TuU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 15:50:20 -0400
+        with ESMTP id S1753324AbdC2TuV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2017 15:50:21 -0400
 In-Reply-To: <1490817000-13876-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: rjw@rjwysocki.net, hotran@apm.com, ahs3@redhat.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-Read lowest non linear perf in cppc_get_perf_caps so that it can be exposed
-via sysfs to the usespace. Lowest non linear perf is the lowest performance
-level at which nonlinear power savings are achieved.
+Computed delivered performance using CPPC feedback counters are in the
+CPPC abstract scale, whereas cppc_cpufreq driver operates in KHz scale.
+Exposing the CPPC performance capabilities (highest,lowest, nominal,
+lowest non-linear) will allow userspace to figure out the conversion
+factor from CPPC abstract scale to KHz.
+
+Also rename ctr_wrap_time to wraparound_time so that show_cppc_data()
+macro will work with it.
 
 Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 ---
- drivers/acpi/cppc_acpi.c | 19 +++++++++++--------
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/acpi/cppc_acpi.c | 61 ++++++++++++++++++++++++++----------------------
+ include/acpi/cppc_acpi.h |  2 +-
+ 2 files changed, 34 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 3ca0729..f5f3c29 100644
+index f5f3c29..90ac2f2 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -972,9 +972,9 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- {
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
--	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
--								 *nom_perf;
--	u64 high, low, nom;
-+	struct cpc_register_resource *highest_reg, *lowest_reg,
-+		*lowest_non_linear_reg, *nominal_reg;
-+	u64 high, low, nom, low_non_linear;
- 	int ret = 0, regs_in_pcc = 0;
+@@ -132,49 +132,54 @@ struct cppc_attr {
  
- 	if (!cpc_desc) {
-@@ -984,12 +984,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ #define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
  
- 	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
- 	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
--	ref_perf = &cpc_desc->cpc_regs[REFERENCE_PERF];
--	nom_perf = &cpc_desc->cpc_regs[NOMINAL_PERF];
-+	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
-+	nominal_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
- 
- 	/* Are any of the regs PCC ?*/
- 	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
--		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
-+		CPC_IN_PCC(lowest_non_linear_reg) || CPC_IN_PCC(nominal_reg)) {
- 		regs_in_pcc = 1;
- 		down_write(&pcc_data.pcc_lock);
- 		/* Ring doorbell once to update PCC subspace */
-@@ -1005,10 +1005,13 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	cpc_read(cpunum, lowest_reg, &low);
- 	perf_caps->lowest_perf = low;
- 
--	cpc_read(cpunum, nom_perf, &nom);
-+	cpc_read(cpunum, nominal_reg, &nom);
- 	perf_caps->nominal_perf = nom;
- 
--	if (!high || !low || !nom)
-+	cpc_read(cpunum, lowest_non_linear_reg, &low_non_linear);
-+	perf_caps->lowest_non_linear_perf = low_non_linear;
++#define show_cppc_data(access_fn, struct_name, member_name)		\
++	static ssize_t show_##member_name(struct kobject *kobj,		\
++					struct attribute *attr,	char *buf) \
++	{								\
++		struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);		\
++		struct struct_name st_name = {0};			\
++		int ret;						\
++									\
++		ret = access_fn(cpc_ptr->cpu_id, &st_name);		\
++		if (ret)						\
++			return ret;					\
++									\
++		return scnprintf(buf, PAGE_SIZE, "%llu\n",		\
++				(u64)st_name.member_name);		\
++	}								\
++	define_one_cppc_ro(member_name)
 +
-+	if (!high || !low || !nom || !low_non_linear)
- 		ret = -EFAULT;
++show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, highest_perf);
++show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, lowest_perf);
++show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, nominal_perf);
++show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, lowest_non_linear_perf);
++show_cppc_data(cppc_get_perf_ctrs, cppc_perf_fb_ctrs, reference_perf);
++show_cppc_data(cppc_get_perf_ctrs, cppc_perf_fb_ctrs, wraparound_time);
++
+ static ssize_t show_feedback_ctrs(struct kobject *kobj,
+ 		struct attribute *attr, char *buf)
+ {
+ 	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
+ 	struct cppc_perf_fb_ctrs fb_ctrs = {0};
++	int ret;
  
- out_err:
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 427a7c3..3f64660 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -103,6 +103,7 @@ struct cppc_perf_caps {
- 	u32 highest_perf;
- 	u32 nominal_perf;
- 	u32 lowest_perf;
-+	u32 lowest_non_linear_perf;
+-	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
++	ret = cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
++	if (ret)
++		return ret;
+ 
+ 	return scnprintf(buf, PAGE_SIZE, "ref:%llu del:%llu\n",
+ 			fb_ctrs.reference, fb_ctrs.delivered);
+ }
+ define_one_cppc_ro(feedback_ctrs);
+ 
+-static ssize_t show_reference_perf(struct kobject *kobj,
+-		struct attribute *attr, char *buf)
+-{
+-	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
+-	struct cppc_perf_fb_ctrs fb_ctrs = {0};
+-
+-	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%llu\n",
+-			fb_ctrs.reference_perf);
+-}
+-define_one_cppc_ro(reference_perf);
+-
+-static ssize_t show_wraparound_time(struct kobject *kobj,
+-				struct attribute *attr, char *buf)
+-{
+-	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
+-	struct cppc_perf_fb_ctrs fb_ctrs = {0};
+-
+-	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%llu\n", fb_ctrs.ctr_wrap_time);
+-
+-}
+-define_one_cppc_ro(wraparound_time);
+-
+ static struct attribute *cppc_attrs[] = {
+ 	&feedback_ctrs.attr,
+ 	&reference_perf.attr,
+ 	&wraparound_time.attr,
++	&highest_perf.attr,
++	&lowest_perf.attr,
++	&lowest_non_linear_perf.attr,
++	&nominal_perf.attr,
+ 	NULL
  };
  
- struct cppc_perf_ctrls {
+@@ -1086,7 +1091,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 	perf_fb_ctrs->delivered = delivered;
+ 	perf_fb_ctrs->reference = reference;
+ 	perf_fb_ctrs->reference_perf = ref_perf;
+-	perf_fb_ctrs->ctr_wrap_time = ctr_wrap_time;
++	perf_fb_ctrs->wraparound_time = ctr_wrap_time;
+ out_err:
+ 	if (regs_in_pcc)
+ 		up_write(&pcc_data.pcc_lock);
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index 3f64660..08c2c78 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -116,7 +116,7 @@ struct cppc_perf_fb_ctrs {
+ 	u64 reference;
+ 	u64 delivered;
+ 	u64 reference_perf;
+-	u64 ctr_wrap_time;
++	u64 wraparound_time;
+ };
+ 
+ /* Per CPU container for runtime CPPC management. */
 -- 
 Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
