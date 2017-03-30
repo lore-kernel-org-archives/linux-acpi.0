@@ -1,90 +1,157 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / scan: Prefer devices without _HID/_CID for _ADR matching
-Date: Thu, 30 Mar 2017 22:56:36 +0200
-Message-ID: <1816647.tOAZ7v3nRx@aspire.rjw.lan>
-References: <20161225102148.7706-1-hdegoede@redhat.com> <2022116.4lq1KAmrJA@aspire.rjw.lan> <651067e1-e87f-6dba-0b99-c158655d2086@redhat.com>
+From: dann frazier <dann.frazier@canonical.com>
+Subject: Re: [PATCH V8 0/7] LPC: legacy ISA I/O support
+Date: Thu, 30 Mar 2017 15:42:10 -0600
+Message-ID: <CALdTtnsoxNrfmaRn=OtessSC=Ln7pHV5dUBd75uDax3watEoAw@mail.gmail.com>
+References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <651067e1-e87f-6dba-0b99-c158655d2086@redhat.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, rafael@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, lorenzo.pieralisi@arm.com, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Corey Minyard <minyard@acm.org>, benh@kernel.crashing.org, John Garry <john.garry@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Zou Rongrong <zourongrong@gmail.com>, linux-pci@vger.kernel.org, olof@lix
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, January 01, 2017 09:30:06 PM Hans de Goede wrote:
-> Hi,
-> 
-> On 30-12-16 02:27, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > The way acpi_find_child_device() works currently is that, if there
-> > are two (or more) devices with the same _ADR value in the same
-> > namespace scope (which is not specifically allowed by the spec and
-> > the OS behavior in that case is not defined), the first one of them
-> > found to be present (with the help of _STA) will be returned.
-> >
-> > This covers the majority of cases, but is not sufficient if some of
-> > the devices in question have a _HID (or _CID) returning some valid
-> > ACPI/PNP device IDs (which is disallowed by the spec) and the
-> > ASL writers' expectation appears to be that the OS will match
-> > devices without a valid ACPI/PNP device ID against a given bus
-> > address first.
-> >
-> > To cover this special case as well, modify find_child_checks()
-> > to prefer devices without ACPI/PNP device IDs over devices that
-> > have them.
-> >
-> > Suggested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >
-> > I'm not actually sure if this is sufficient to fix the original 80860F14 uid "2"
-> > sd-controller problem on CherryTrail.  Hans, can you please check?
-> 
-> Ok, just booted a kernel with this patch replacing my own attempt
-> at fixing this, and the kernel still sees and initializes the
-> mmc controller in question correctly with this patch:
-> 
-> Tested-by: Hans de Goede <hdegoede@redhat.com>
+On Thu, Mar 30, 2017 at 9:26 AM, zhichang.yuan
+<yuanzhichang@hisilicon.com> wrote:
+> This patchset supports the IPMI-bt device attached to the Low-Pin-Count
+> interface implemented on Hisilicon Hip06/Hip07 SoC.
+>                         -----------
+>                         | LPC host|
+>                         |         |
+>                         -----------
+>                              |
+>                 _____________V_______________LPC
+>                   |                       |
+>                   V                       V
+>                                      ------------
+>                                      |  BT(ipmi)|
+>                                      ------------
+>
+> When master accesses those peripherals beneath the Hip06/Hip07 LPC, a specific
+> LPC driver is needed to make LPC host generate the standard LPC I/O cycles with
+> the target peripherals'I/O port addresses. But on curent arm64 world, there is
+> no real I/O accesses. All the I/O operations through in/out pair are based on
+> MMIO which is not satisfied the I/O mechanism on Hip06/Hip07 LPC.
+> To solve this issue and keep the relevant existing peripherals' driver
+> untouched, this patchset implements:
+>   - introduces a generic I/O space management framwork, LIBIO, to support I/O
+>     operations of both MMIO buses and the host controllers which access their
+>     peripherals with host local I/O addresses;
+>   - redefines the in/out accessors to provide unified interfaces for MMIO and
+>     legacy I/O. Based on the LIBIO, the calling of in/out() from upper-layer
+>     drivers, such as ipmi-si, will be redirected to the corresponding
+>     device-specific I/O hooks to perfrom the I/O accesses.
+> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC peripherals can
+> be supported without any changes on the existing ipmi-si driver.
+>
+> Changes from V7:
+>   - Based on Arnd's comment, rename the LIBIO as LOGIC_PIO;
+>   - Improved the mapping process in LOGIC_PIO to gain better efficiency when
+>     redirecting the I/O accesses to right device driver;
+>   - To reduce the impact on PCI MMIO to a minimum, add a new
+>     CONFIG_INDIRECT_PIO for indirect-IO hosts/devices;
+>   - Added a new ACPI handler for indirect-IO hosts/devices;
+>   - Fixed the compile issues on V6;
+>
+> Changes from V6:
+>   - According to the comments from Bjorn and Alex, merge PCI IO and indirect-IO
+>     into a generic I/O space management, LIBIO;
+>   - Adopted the '_DEP' to replace the platform bus notifier. In this way, we can
+>     ensure the LPC peripherals' I/O resources had been translated to logical IO
+>     before the LPC peripheral enumeration;
+>   - Replaced the rwlock with rcu list based on Alex's suggestion;
+>   - Applied relaxed write/read to LPC driver;
+>   - Some bugs fixing and some optimazations based on the comments of V6;
+>
+> Changes from V5:
+>   - Made the extio driver more generic and locate in lib/;
+>   - Supported multiple indirect-IO bus instances;
+>   - Extended the pci_register_io_range() to support indirect-IO, then dropped
+>   the I/O reservation used in previous patchset;
+>   - Reimplemented the ACPI LPC support;
+>   - Fixed some bugs, including the compile error on other archs, the module
+>   building failure found by Ming Lei, etc;
+>
+> Changes from V4:
+>   - Some revises based on the comments from Bjorn, Rob on V4;
+>   - Fixed the compile error on some platforms, such as openrisc;
+>
+> Changes from V3:
+>   - UART support deferred to a separate patchset; This patchset only support
+>   ipmi device under LPC;
+>   - LPC bus I/O range is fixed to 0 ~ (PCIBIOS_MIN_IO - 1), which is separeted
+>   from PCI/PCIE PIO space;
+>   - Based on Arnd's remarks, removed the ranges property from Hip06 lpc dts and
+>   added a new fixup function, of_isa_indirect_io(), to get the I/O address
+>   directly from LPC dts configurations;
+>   - Support in(w,l)/out(w,l) for Hip06 lpc I/O;
+>   - Decouple the header file dependency on the gerenic io.h by defining in/out
+>   as normal functions in c file;
+>   - removed unused macro definitions in the LPC driver;
+>
+> Changes from V2:
+>   - Support the PIO retrieval from the linux PIO generated by
+>   pci_address_to_pio. This method replace the 4K PIO reservation in V2;
+>   - Support the flat-tree earlycon;
+>   - Some revises based on Arnd's remarks;
+>   - Make sure the linux PIO range allocated to Hip06 LPC peripherals starts
+>   from non-ZERO;
+>
+> Changes from V1:
+>   - Support the ACPI LPC device;
+>   - Optimize the dts LPC driver in ISA compatible mode;
+>   - Reserve the IO range below 4K in avoid the possible conflict with PCI host
+>   IO ranges;
+>   - Support the LPC uart and relevant earlycon;
+>
+> V7 thread here: https://lkml.org/lkml/2017/3/12/279
+> v6 thread here: https://lkml.org/lkml/2017/1/24/25
+> v5 thread here: https://lkml.org/lkml/2016/11/7/955
+> v4 thread here: https://lkml.org/lkml/2016/10/20/149
+> v3 thread here: https://lkml.org/lkml/2016/9/14/326
+> v2 thread here: https://lkml.org/lkml/2016/9/7/356
+> v1 thread here: https://lkml.org/lkml/2015/12/29/154
+>
+>
+> Signed-off-by: Zhichang Yuan <yuanzhichang@hisilicon.com>
+> zhichang.yuan (6):
+>   LIBIO: Introduce a generic PIO mapping method
+>   PCI: Apply the new generic I/O management on PCI IO hosts
+>   OF: Add missing I/O range exception for indirect-IO devices
+>   LPC: Support the device-tree LPC host on Hip06/Hip07
+>   ACPI: Support the probing on the devices which apply indirect-IO
+>   LPC: Add the ACPI LPC support
+>
+>  .../arm/hisilicon/hisilicon-low-pin-count.txt      |  33 ++
+>  MAINTAINERS                                        |   8 +
+>  arch/arm64/boot/dts/hisilicon/hip06-d03.dts        |   4 +
+>  arch/arm64/boot/dts/hisilicon/hip06.dtsi           |  14 +
+>  arch/arm64/boot/dts/hisilicon/hip07-d05.dts        |   4 +
+>  arch/arm64/boot/dts/hisilicon/hip07.dtsi           |  14 +
+>  drivers/acpi/Makefile                              |   1 +
+>  drivers/acpi/acpi_indirectio.c                     | 344 +++++++++++++
+>  drivers/acpi/internal.h                            |   5 +
+>  drivers/acpi/pci_root.c                            |   8 +-
+>  drivers/acpi/scan.c                                |   1 +
+>  drivers/bus/Kconfig                                |   9 +
+>  drivers/bus/Makefile                               |   1 +
+>  drivers/bus/hisi_lpc.c                             | 547 +++++++++++++++++++++
+>  drivers/of/address.c                               |  95 +++-
+>  drivers/pci/pci.c                                  | 104 +---
+>  include/asm-generic/io.h                           |  50 ++
+>  include/linux/logic_pio.h                          | 174 +++++++
+>  include/linux/pci.h                                |   3 +-
+>  lib/Kconfig                                        |  26 +
+>  lib/Makefile                                       |   2 +
+>  lib/logic_pio.c                                    | 413 ++++++++++++++++
+>  22 files changed, 1758 insertions(+), 102 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
+>  create mode 100644 drivers/acpi/acpi_indirectio.c
+>  create mode 100644 drivers/bus/hisi_lpc.c
+>  create mode 100644 include/linux/logic_pio.h
+>  create mode 100644 lib/logic_pio.c
 
-Unfortunately, this breaks discrete graphics enumeration in
+Booted up on a D05, was able to use the LPC-connected IPMI interface.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=194889
-
-so can you please check if the patch below doesn't break the platform fixed by
-the above?
-
-Thanks,
-Rafael
-
-
----
- drivers/acpi/glue.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-Index: linux-pm/drivers/acpi/glue.c
-===================================================================
---- linux-pm.orig/drivers/acpi/glue.c
-+++ linux-pm/drivers/acpi/glue.c
-@@ -99,13 +99,13 @@ static int find_child_checks(struct acpi
- 		return -ENODEV;
- 
- 	/*
--	 * If the device has a _HID (or _CID) returning a valid ACPI/PNP
--	 * device ID, it is better to make it look less attractive here, so that
--	 * the other device with the same _ADR value (that may not have a valid
--	 * device ID) can be matched going forward.  [This means a second spec
--	 * violation in a row, so whatever we do here is best effort anyway.]
-+	 * If the device has a _HID returning a valid ACPI/PNP device ID, it is
-+	 * better to make it look less attractive here, so that the other device
-+	 * with the same _ADR value (that may not have a valid device ID) can be
-+	 * matched going forward.  [This means a second spec violation in a row,
-+	 * so whatever we do here is best effort anyway.]
- 	 */
--	return sta_present && list_empty(&adev->pnp.ids) ?
-+	return sta_present && !adev->pnp.type.platform_id ?
- 			FIND_CHILD_MAX_SCORE : FIND_CHILD_MIN_SCORE;
- }
- 
+Tested-by: dann frazier <dann.frazier@canonical.com>
