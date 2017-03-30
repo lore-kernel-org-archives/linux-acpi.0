@@ -1,301 +1,94 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: [PATCH v3 7/8] arm64: exception: handle asynchronous SError interrupt
-Date: Thu, 30 Mar 2017 18:31:07 +0800
-Message-ID: <1490869877-118713-8-git-send-email-xiexiuqi@huawei.com>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: use designated initializers
+Date: Thu, 30 Mar 2017 14:26:08 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E58E285@ORSMSX110.amr.corp.intel.com>
+References: <20161217010425.GA140581@beast>
+ <1AE640813FDE7649BE1B193DEA596E886CDFF348@SHSMSX101.ccr.corp.intel.com>
+ <CAGXu5jJk2+_r_72B=yqz9=s=S3VY6v8o7jis7e6YMhy2tSJgHw@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E886CE6BD95@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
-Cc: wuquanming@huawei.com, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, Wang Xiongfeng <wangxiongfengi2@huawei.com>, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CE6BD95@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Kees Cook <keescook@chromium.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Error Synchronization Barrier (ESB; part of the ARMv8.2 Extensions)
-is used to synchronize Unrecoverable errors. That is, containable errors
-architecturally consumed by the PE and not silently propagated.
-
-With ESB it is generally possible to isolate an unrecoverable error
-between two ESB instructions. So, it's possible to recovery from
-unrecoverable errors reported by asynchronous SError interrupt.
-
-If ARMv8.2 RAS Extension is not support, ESB is treated as a NOP.
-
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Signed-off-by: Wang Xiongfeng <wangxiongfengi2@huawei.com>
----
- arch/arm64/Kconfig           | 16 ++++++++++
- arch/arm64/include/asm/esr.h | 14 +++++++++
- arch/arm64/kernel/entry.S    | 70 ++++++++++++++++++++++++++++++++++++++++++--
- arch/arm64/kernel/traps.c    | 54 ++++++++++++++++++++++++++++++++--
- 4 files changed, 150 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 859a90e..7402175 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -911,6 +911,22 @@ endmenu
- 
- menu "ARMv8.2 architectural features"
- 
-+config ARM64_ESB
-+	bool "Enable support for Error Synchronization Barrier (ESB)"
-+	default n
-+	help
-+	  Error Synchronization Barrier (ESB; part of the ARMv8.2 Extensions)
-+	  is used to synchronize Unrecoverable errors. That is, containable errors
-+	  architecturally consumed by the PE and not silently propagated.
-+
-+	  Without ESB it is not generally possible to isolate an Unrecoverable
-+	  error because it is not known which instruction generated the error.
-+
-+	  Selecting this option allows inject esb instruction before the exception
-+	  change. If ARMv8.2 RAS Extension is not support, ESB is treated as a NOP.
-+
-+	  Note that ESB instruction can introduce slight overhead, so say N if unsure.
-+
- config ARM64_UAO
- 	bool "Enable support for User Access Override (UAO)"
- 	default y
-diff --git a/arch/arm64/include/asm/esr.h b/arch/arm64/include/asm/esr.h
-index f20c64a..22f9c90 100644
---- a/arch/arm64/include/asm/esr.h
-+++ b/arch/arm64/include/asm/esr.h
-@@ -106,6 +106,20 @@
- #define ESR_ELx_AR 		(UL(1) << 14)
- #define ESR_ELx_CM 		(UL(1) << 8)
- 
-+#define ESR_Elx_DFSC_SEI	(0x11)
-+
-+#define ESR_ELx_AET_SHIFT	(10)
-+#define ESR_ELx_AET_MAX		(7)
-+#define ESR_ELx_AET_MASK	(UL(7) << ESR_ELx_AET_SHIFT)
-+#define ESR_ELx_AET(esr)	(((esr) & ESR_ELx_AET_MASK) >> ESR_ELx_AET_SHIFT)
-+
-+#define ESR_ELx_AET_UC		(0)
-+#define ESR_ELx_AET_UEU		(1)
-+#define ESR_ELx_AET_UEO		(2)
-+#define ESR_ELx_AET_UER		(3)
-+#define ESR_ELx_AET_CE		(6)
-+
-+
- /* ISS field definitions for exceptions taken in to Hyp */
- #define ESR_ELx_CV		(UL(1) << 24)
- #define ESR_ELx_COND_SHIFT	(20)
-diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
-index 43512d4..d8a7306 100644
---- a/arch/arm64/kernel/entry.S
-+++ b/arch/arm64/kernel/entry.S
-@@ -69,7 +69,14 @@
- #define BAD_FIQ		2
- #define BAD_ERROR	3
- 
-+	.arch_extension ras
-+
- 	.macro	kernel_entry, el, regsize = 64
-+#ifdef CONFIG_ARM64_ESB
-+	.if	\el == 0
-+	esb
-+	.endif
-+#endif
- 	sub	sp, sp, #S_FRAME_SIZE
- 	.if	\regsize == 32
- 	mov	w0, w0				// zero upper 32 bits of x0
-@@ -208,6 +215,7 @@ alternative_else_nop_endif
- #endif
- 
- 	.if	\el == 0
-+	msr	daifset, #0xF			// Set flags
- 	ldr	x23, [sp, #S_SP]		// load return stack pointer
- 	msr	sp_el0, x23
- #ifdef CONFIG_ARM64_ERRATUM_845719
-@@ -226,6 +234,15 @@ alternative_else_nop_endif
- 
- 	msr	elr_el1, x21			// set up the return data
- 	msr	spsr_el1, x22
-+
-+#ifdef CONFIG_ARM64_ESB
-+	.if \el == 0
-+	esb					// Error Synchronization Barrier
-+	mrs	x21, disr_el1			// Check for deferred error
-+	tbnz	x21, #31, el1_sei
-+	.endif
-+#endif
-+
- 	ldp	x0, x1, [sp, #16 * 0]
- 	ldp	x2, x3, [sp, #16 * 1]
- 	ldp	x4, x5, [sp, #16 * 2]
-@@ -318,7 +335,7 @@ ENTRY(vectors)
- 	ventry	el1_sync_invalid		// Synchronous EL1t
- 	ventry	el1_irq_invalid			// IRQ EL1t
- 	ventry	el1_fiq_invalid			// FIQ EL1t
--	ventry	el1_error_invalid		// Error EL1t
-+	ventry	el1_error			// Error EL1t
- 
- 	ventry	el1_sync			// Synchronous EL1h
- 	ventry	el1_irq				// IRQ EL1h
-@@ -328,7 +345,7 @@ ENTRY(vectors)
- 	ventry	el0_sync			// Synchronous 64-bit EL0
- 	ventry	el0_irq				// IRQ 64-bit EL0
- 	ventry	el0_fiq_invalid			// FIQ 64-bit EL0
--	ventry	el0_error_invalid		// Error 64-bit EL0
-+	ventry	el0_error			// Error 64-bit EL0
- 
- #ifdef CONFIG_COMPAT
- 	ventry	el0_sync_compat			// Synchronous 32-bit EL0
-@@ -508,12 +525,31 @@ el1_preempt:
- 	ret	x24
- #endif
- 
-+	.align	6
-+el1_error:
-+	kernel_entry 1
-+el1_sei:
-+	/*
-+	 * asynchronous SError interrupt from kernel
-+	 */
-+	mov	x0, sp
-+	mrs	x1, esr_el1
-+	mov	x2, #1				// exception level of SEI generated
-+	b	do_sei
-+ENDPROC(el1_error)
-+
-+
- /*
-  * EL0 mode handlers.
-  */
- 	.align	6
- el0_sync:
- 	kernel_entry 0
-+#ifdef CONFIG_ARM64_ESB
-+	mrs     x26, disr_el1
-+	tbnz    x26, #31, el0_sei		// check DISR.A
-+	msr	daifclr, #0x4			// unmask SEI
-+#endif
- 	mrs	x25, esr_el1			// read the syndrome register
- 	lsr	x24, x25, #ESR_ELx_EC_SHIFT	// exception class
- 	cmp	x24, #ESR_ELx_EC_SVC64		// SVC in 64-bit state
-@@ -688,8 +724,38 @@ el0_inv:
- ENDPROC(el0_sync)
- 
- 	.align	6
-+el0_error:
-+	kernel_entry 0
-+el0_sei:
-+	/*
-+	 * asynchronous SError interrupt from userspace
-+	 */
-+	ct_user_exit
-+	mov	x0, sp
-+	mrs	x1, esr_el1
-+	mov	x2, #0
-+	bl	do_sei
-+	b	ret_to_user
-+ENDPROC(el0_error)
-+
-+	.align	6
- el0_irq:
- 	kernel_entry 0
-+#ifdef CONFIG_ARM64_ESB
-+	mrs     x26, disr_el1
-+	tbz     x26, #31, el0_irq_naked          // check DISR.A
-+
-+	mov	x0, sp
-+	mrs	x1, esr_el1
-+	mov	x2, 0
-+
-+	/*
-+	 * The SEI generated at EL0 is not affect this irq context,
-+	 * so after sei handler, we continue process this irq.
-+	 */
-+	bl	do_sei
-+	msr     daifclr, #0x4                   // unmask SEI
-+#endif
- el0_irq_naked:
- 	enable_dbg
- #ifdef CONFIG_TRACE_IRQFLAGS
-diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
-index b6d6727..99be6d8 100644
---- a/arch/arm64/kernel/traps.c
-+++ b/arch/arm64/kernel/traps.c
-@@ -643,6 +643,34 @@ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr)
- 		handler[reason], smp_processor_id(), esr,
- 		esr_get_class_string(esr));
- 
-+	die("Oops - bad mode", regs, 0);
-+	local_irq_disable();
-+	panic("bad mode");
-+}
-+
-+static const char *sei_context[] = {
-+	"userspace",			/* EL0 */
-+	"kernel",			/* EL1 */
-+};
-+
-+static const char *sei_severity[] = {
-+	[0 ... ESR_ELx_AET_MAX] =	"Unknown",
-+	[ESR_ELx_AET_UC]	=	"Uncontainable",
-+	[ESR_ELx_AET_UEU]	=	"Unrecoverable",
-+	[ESR_ELx_AET_UEO]	=	"Restartable",
-+	[ESR_ELx_AET_UER]	=	"Recoverable",
-+	[ESR_ELx_AET_CE]	=	"Corrected",
-+};
-+
-+DEFINE_PER_CPU(int, sei_in_process);
-+asmlinkage void do_sei(struct pt_regs *regs, unsigned int esr, int el)
-+{
-+	int aet = ESR_ELx_AET(esr);
-+	console_verbose();
-+
-+	pr_crit("Asynchronous SError interrupt detected on CPU%d, %s, %s\n",
-+		smp_processor_id(), sei_context[el], sei_severity[aet]);
-+
- 	/*
- 	 * In firmware first mode, we could assume firmware will only generate one
- 	 * of cper records at a time. There is no risk for one cpu to parse ghes table.
-@@ -653,9 +681,31 @@ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr)
- 		this_cpu_dec(sei_in_process);
- 	}
- 
--	die("Oops - bad mode", regs, 0);
-+	if (el == 0 && IS_ENABLED(CONFIG_ARM64_ESB) &&
-+	    cpus_have_cap(ARM64_HAS_RAS_EXTN)) {
-+		siginfo_t info;
-+		void __user *pc = (void __user *)instruction_pointer(regs);
-+
-+		if (aet >= ESR_ELx_AET_UEO)
-+			return;
-+
-+		if (aet == ESR_ELx_AET_UEU) {
-+			info.si_signo = SIGILL;
-+			info.si_errno = 0;
-+			info.si_code  = ILL_ILLOPC;
-+			info.si_addr  = pc;
-+
-+			current->thread.fault_address = 0;
-+			current->thread.fault_code = 0;
-+
-+			force_sig_info(info.si_signo, &info, current);
-+
-+			return;
-+		}
-+	}
-+
- 	local_irq_disable();
--	panic("bad mode");
-+	panic("Asynchronous SError interrupt");
- }
- 
- /*
--- 
-1.8.3.1
+WWVzLCBBQ1BJQ0EgbXVzdCBzdXBwb3J0IG1hbnkgY29tcGlsZXJzLCBzbyB3ZSBrZWVwIHRoZSBj
+b2RlIGFzIHNpbXBsZSBhcyBwb3NzaWJsZS4NCg0KTWFueSBvZiB0aGUgY29ycG9yYXRlIE9TIHZl
+bmRvcnMgdXNlIHRoZWlyIG93biBjb21waWxlcnMuDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3Nh
+Z2UtLS0tLQ0KPiBGcm9tOiBaaGVuZywgTHYNCj4gU2VudDogV2VkbmVzZGF5LCBNYXJjaCAyOSwg
+MjAxNyA3OjEyIFBNDQo+IFRvOiBLZWVzIENvb2sgPGtlZXNjb29rQGNocm9taXVtLm9yZz4NCj4g
+Q2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IE1vb3JlLCBSb2JlcnQNCj4gPHJvYmVy
+dC5tb29yZUBpbnRlbC5jb20+OyBXeXNvY2tpLCBSYWZhZWwgSg0KPiA8cmFmYWVsLmoud3lzb2Nr
+aUBpbnRlbC5jb20+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz47IGxpbnV4LQ0KPiBhY3Bp
+QHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0OiBSRTogW1BBVENI
+XSBBQ1BJQ0E6IHVzZSBkZXNpZ25hdGVkIGluaXRpYWxpemVycw0KPiANCj4gSGksDQo+IA0KPiA+
+IEZyb206IGtlZXNjb29rQGdvb2dsZS5jb20gW21haWx0bzprZWVzY29va0Bnb29nbGUuY29tXSBP
+biBCZWhhbGYgT2YNCj4gPiBLZWVzIENvb2sNCj4gPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJ
+Q0E6IHVzZSBkZXNpZ25hdGVkIGluaXRpYWxpemVycw0KPiA+DQo+ID4gT24gU3VuLCBEZWMgMTgs
+IDIwMTYgYXQgMTA6MDYgUE0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiB3cm90
+ZToNCj4gPiA+IEhpLA0KPiA+ID4NCj4gPiA+PiBGcm9tOiBLZWVzIENvb2sgW21haWx0bzprZWVz
+Y29va0BjaHJvbWl1bS5vcmddDQo+ID4gPj4gU3ViamVjdDogW1BBVENIXSBBQ1BJQ0E6IHVzZSBk
+ZXNpZ25hdGVkIGluaXRpYWxpemVycw0KPiA+ID4+DQo+ID4gPj4gUHJlcGFyZSB0byBtYXJrIHNl
+bnNpdGl2ZSBrZXJuZWwgc3RydWN0dXJlcyBmb3IgcmFuZG9taXphdGlvbiBieQ0KPiA+ID4+IG1h
+a2luZyBzdXJlIHRoZXkncmUgdXNpbmcgZGVzaWduYXRlZCBpbml0aWFsaXplcnMuIFRoZXNlIHdl
+cmUNCj4gPiA+PiBpZGVudGlmaWVkIGR1cmluZyBhbGx5ZXNjb25maWcgYnVpbGRzIG9mIHg4Niwg
+YXJtLCBhbmQgYXJtNjQsIHdpdGgNCj4gPiA+PiBtb3N0IGluaXRpYWxpemVyIGZpeGVzIGV4dHJh
+Y3RlZCBmcm9tIGdyc2VjdXJpdHkuDQo+ID4gPg0KPiA+ID4gVGhpcyBjb21taXQgaXMgbm90IHN1
+aXRhYmxlIGZvciBBQ1BJQ0EgdXBzdHJlYW0uDQo+ID4gPiBJdCdzIG5vdCBwb3J0YWJsZS4gUGxl
+YXNlIGRyb3AuDQo+ID4NCj4gPiBXaGF0IGNvbXBpbGVycyBhcmUgYnVpbGRpbmcgdGhpcyB0aGF0
+IGRvIG5vdCBzdXBwb3J0IGRlc2lnbmF0ZWQNCj4gPiBpbml0aWFsaXplcnM/IEFsc28sIGNvdWxk
+bid0IHRoaXMgYmUgbWFkZSBpbnRvIGEgbWFjcm8gc28gaXQgY291bGQgYmUNCj4gPiBzdXBwb3J0
+ZWQgaW4gZWl0aGVyIGNhc2U/DQo+IA0KPiBJdCdzIE1TVkMuDQo+IEluIEFDUElDQSB1cHN0cmVh
+bSwgaXQgc3VwcG9ydHMgSW50ZWwgY29tcGlsZXIsIEdDQyBhbmQgTVNWQy4NCj4gDQo+ID4NCj4g
+PiAjaWZkZWYgX19HTlVDX18NCj4gPiAjIGRlZmluZSBBQ1BJX1NMRUVQX0ZVTkNUSU9OUyhsZWdh
+Y3ksIGV4dGVuZGVkKSB7IFwNCj4gPiAgICAgLmxlZ2FjeV9mdW5jdGlvbiA9IGxlZ2FjeSwgXA0K
+PiA+ICAgICAuZXh0ZW5kZWRfZnVuY3Rpb24gPSBleHRlbmRlZCwgXA0KPiA+IH0NCj4gPiAjZWxz
+ZQ0KPiA+ICMgZGVmaW5lIEFDUElfU0xFRVBfRlVOQ1RJT05TKGxlZ2FjeSwgZXh0ZW5kZWQpIHsg
+bGVnYWN5LCBleHRlbmRlZCB9DQo+ID4gI2VuZGlmDQo+ID4NCj4gPiAuLi4NCj4gPg0KPiA+ICBz
+dGF0aWMgc3RydWN0IGFjcGlfc2xlZXBfZnVuY3Rpb25zIGFjcGlfc2xlZXBfZGlzcGF0Y2hbXSA9
+IHsNCj4gPiAgICAgICAgIEFDUElfU0xFRVBfRlVOQ1RJT05TKA0KPiA+ICAgICAgICAgICAgICAg
+IEFDUElfSFdfT1BUSU9OQUxfRlVOQ1RJT04oYWNwaV9od19sZWdhY3lfc2xlZXApLA0KPiA+ICAg
+ICAgICAgICAgICAgIGFjcGlfaHdfZXh0ZW5kZWRfc2xlZXApLCAuLi4NCj4gDQo+IFRoZXJlIGFy
+ZSBtYW55IHN1Y2ggY2FzZXMgaW4gQUNQSUNBLCBhbmQgSSBjb3VsZG4ndCBzZWUgdGhlIGJlbmVm
+aXQgdG8NCj4gaW50cm9kdWNlIHN1Y2ggbWVjaGFuaXNtIHRvIHN1Y2ggYSBzb2Z0d2FyZSB3aG9z
+ZSBwdXJwb3NlcyBjb250YWluDQo+IHBvcnRhYmlsaXR5Lg0KPiBVbmxlc3MgeW91IGNhbiBpbnZl
+bnQgYSBtZWNoYW5pc20gdGhhdCBjYW4gYmUgdXRpbGl6ZWQgYnkgYWxsIHN1Y2gNCj4gY2FzZXMu
+DQo+IFRoZW4geW91IHNob3VsZCBwdXQgaXQgaW50byBhY2djYy5oIGFuZCBpbXBsZW1lbnQgYSBy
+ZXBsYWNlYWJsZSBpbg0KPiBhY21zdmMuaC4NCj4gQWZ0ZXIgdGhhdCwgeW91IHN1cmVseSBuZWVk
+IHRvIGRvIGEgY2xlYW51cCBpbiB0aGUgZW50aXJlIEFDUElDQSBjb2RlDQo+IGJhc2UgdXNpbmcg
+dGhpcyBuZXcgbWVjaGFuaXNtLg0KPiANCj4gVGhhbmtzDQo+IEx2DQo+IA0KPiA+DQo+ID4NCj4g
+PiAtS2Vlcw0KPiA+DQo+ID4gPg0KPiA+ID4gVGhhbmtzDQo+ID4gPiBMdg0KPiA+ID4NCj4gPiA+
+Pg0KPiA+ID4+IFNpZ25lZC1vZmYtYnk6IEtlZXMgQ29vayA8a2Vlc2Nvb2tAY2hyb21pdW0ub3Jn
+Pg0KPiA+ID4+IC0tLQ0KPiA+ID4+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2h3eGZzbGVlcC5jIHwg
+MTEgKysrKysrLS0tLS0NCj4gPiA+PiAgMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwg
+NSBkZWxldGlvbnMoLSkNCj4gPiA+Pg0KPiA+ID4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkv
+YWNwaWNhL2h3eGZzbGVlcC5jDQo+ID4gPj4gYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2h3eGZzbGVl
+cC5jIGluZGV4IGY3NmUwZWFiMzJiOC4uMjVjZDVjNjZlMTAyDQo+ID4gPj4gMTAwNjQ0DQo+ID4g
+Pj4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9od3hmc2xlZXAuYw0KPiA+ID4+ICsrKyBiL2Ry
+aXZlcnMvYWNwaS9hY3BpY2EvaHd4ZnNsZWVwLmMNCj4gPiA+PiBAQCAtNzAsMTEgKzcwLDEyIEBA
+IHN0YXRpYyBhY3BpX3N0YXR1cyBhY3BpX2h3X3NsZWVwX2Rpc3BhdGNoKHU4DQo+ID4gPj4gc2xl
+ZXBfc3RhdGUsIHUzMiBmdW5jdGlvbl9pZCk7DQo+ID4gPj4gIC8qIExlZ2FjeSBmdW5jdGlvbnMg
+YXJlIG9wdGlvbmFsLCBiYXNlZCB1cG9uIEFDUElfUkVEVUNFRF9IQVJEV0FSRQ0KPiA+ID4+ICov
+DQo+ID4gPj4NCj4gPiA+PiAgc3RhdGljIHN0cnVjdCBhY3BpX3NsZWVwX2Z1bmN0aW9ucyBhY3Bp
+X3NsZWVwX2Rpc3BhdGNoW10gPSB7DQo+ID4gPj4gLSAgICAge0FDUElfSFdfT1BUSU9OQUxfRlVO
+Q1RJT04oYWNwaV9od19sZWdhY3lfc2xlZXApLA0KPiA+ID4+IC0gICAgICBhY3BpX2h3X2V4dGVu
+ZGVkX3NsZWVwfSwNCj4gPiA+PiAtICAgICB7QUNQSV9IV19PUFRJT05BTF9GVU5DVElPTihhY3Bp
+X2h3X2xlZ2FjeV93YWtlX3ByZXApLA0KPiA+ID4+IC0gICAgICBhY3BpX2h3X2V4dGVuZGVkX3dh
+a2VfcHJlcH0sDQo+ID4gPj4gLSAgICAge0FDUElfSFdfT1BUSU9OQUxfRlVOQ1RJT04oYWNwaV9o
+d19sZWdhY3lfd2FrZSksDQo+IGFjcGlfaHdfZXh0ZW5kZWRfd2FrZX0NCj4gPiA+PiArICAgICB7
+IC5sZWdhY3lfZnVuY3Rpb24gPQ0KPiBBQ1BJX0hXX09QVElPTkFMX0ZVTkNUSU9OKGFjcGlfaHdf
+bGVnYWN5X3NsZWVwKSwNCj4gPiA+PiArICAgICAgIC5leHRlbmRlZF9mdW5jdGlvbiA9IGFjcGlf
+aHdfZXh0ZW5kZWRfc2xlZXAgfSwNCj4gPiA+PiArICAgICB7IC5sZWdhY3lfZnVuY3Rpb24gPQ0K
+PiBBQ1BJX0hXX09QVElPTkFMX0ZVTkNUSU9OKGFjcGlfaHdfbGVnYWN5X3dha2VfcHJlcCksDQo+
+ID4gPj4gKyAgICAgICAuZXh0ZW5kZWRfZnVuY3Rpb24gPSBhY3BpX2h3X2V4dGVuZGVkX3dha2Vf
+cHJlcCB9LA0KPiA+ID4+ICsgICAgIHsgLmxlZ2FjeV9mdW5jdGlvbiA9DQo+IEFDUElfSFdfT1BU
+SU9OQUxfRlVOQ1RJT04oYWNwaV9od19sZWdhY3lfd2FrZSksDQo+ID4gPj4gKyAgICAgICAuZXh0
+ZW5kZWRfZnVuY3Rpb24gPSBhY3BpX2h3X2V4dGVuZGVkX3dha2UgfQ0KPiA+ID4+ICB9Ow0KPiA+
+ID4+DQo+ID4gPj4gIC8qDQo+ID4gPj4gLS0NCj4gPiA+PiAyLjcuNA0KPiA+ID4+DQo+ID4gPj4N
+Cj4gPiA+PiAtLQ0KPiA+ID4+IEtlZXMgQ29vaw0KPiA+ID4+IE5leHVzIFNlY3VyaXR5DQo+ID4N
+Cj4gPg0KPiA+DQo+ID4gLS0NCj4gPiBLZWVzIENvb2sNCj4gPiBQaXhlbCBTZWN1cml0eQ0K
