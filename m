@@ -1,126 +1,200 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
-Date: Thu, 30 Mar 2017 17:52:33 +0200
-Message-ID: <20170330155233.dfnqe7d2xkr32zlo@ninjato>
-References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
- <20170323204747.w2nxxrpjwypiygwb@ninjato>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v3 1/8] trace: ras: add ARM processor error information
+ trace event
+Date: Thu, 30 Mar 2017 12:02:20 -0400
+Message-ID: <20170330120220.56e624d9@gandalf.local.home>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
+        <1490869877-118713-2-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="gnrvw7pdweomcqbh"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:39445 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933356AbdC3Pwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:52:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20170323204747.w2nxxrpjwypiygwb@ninjato>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1490869877-118713-2-git-send-email-xiexiuqi@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, hanjun.guo@linaro.org, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com, Tyler Baicar <tbaicar@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
-Cc: jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+
+On Thu, 30 Mar 2017 18:31:01 +0800
+Xie XiuQi <xiexiuqi@huawei.com> wrote:
+
+> Add a new trace event for ARM processor error information, so that
+> the user will know what error occurred. With this information the
+> user may take appropriate action.
+> 
+> These trace events are consistent with the ARM processor error
+> information table which defined in UEFI 2.6 spec section N.2.4.4.1.
+> 
+> ---
+> v2: add trace enabled condition as Steven's suggestion.
+>     fix a typo.
+> ---
+> 
+> Cc: Steven Rostedt <rostedt@goodmis.org>
+> Cc: Tyler Baicar <tbaicar@codeaurora.org>
+> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 10 ++++++
+>  include/linux/cper.h     |  5 +++
+>  include/ras/ras_event.h  | 87 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 102 insertions(+)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 81eabc6..6be0333 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -518,9 +518,19 @@ static void ghes_do_proc(struct ghes *ghes,
+>  		else if (!uuid_le_cmp(sec_type, CPER_SEC_PROC_ARM) &&
+>  			 trace_arm_event_enabled()) {
+>  			struct cper_sec_proc_arm *arm_err;
+> +			struct cper_arm_err_info *err_info;
+> +			int i;
+>  
+>  			arm_err = acpi_hest_generic_data_payload(gdata);
+>  			trace_arm_event(arm_err);
+> +
+> +			if (trace_arm_proc_err_enabled()) {
+> +				err_info = (struct cper_arm_err_info *)(arm_err + 1);
+> +				for (i = 0; i < arm_err->err_info_num; i++) {
+> +					trace_arm_proc_err(err_info);
+> +					err_info += 1;
+> +				}
+> +			}
+>  		} else if (trace_unknown_sec_event_enabled()) {
+>  			void *unknown_err = acpi_hest_generic_data_payload(gdata);
+>  			trace_unknown_sec_event(&sec_type,
+> diff --git a/include/linux/cper.h b/include/linux/cper.h
+> index 85450f3..0cae900 100644
+> --- a/include/linux/cper.h
+> +++ b/include/linux/cper.h
+> @@ -270,6 +270,11 @@ enum {
+>  #define CPER_ARM_INFO_VALID_VIRT_ADDR		0x0008
+>  #define CPER_ARM_INFO_VALID_PHYSICAL_ADDR	0x0010
+>  
+> +#define CPER_ARM_INFO_TYPE_CACHE		0
+> +#define CPER_ARM_INFO_TYPE_TLB			1
+> +#define CPER_ARM_INFO_TYPE_BUS			2
+> +#define CPER_ARM_INFO_TYPE_UARCH		3
+> +
+>  #define CPER_ARM_INFO_FLAGS_FIRST		0x0001
+>  #define CPER_ARM_INFO_FLAGS_LAST		0x0002
+>  #define CPER_ARM_INFO_FLAGS_PROPAGATED		0x0004
+> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
+> index 13befad..026b094 100644
+> --- a/include/ras/ras_event.h
+> +++ b/include/ras/ras_event.h
+> @@ -206,6 +206,93 @@
+>  		  __entry->running_state, __entry->psci_state)
+>  );
+>  
+> +#define ARM_PROC_ERR_TYPE	\
+> +	EM ( CPER_ARM_INFO_TYPE_CACHE, "cache error" )	\
+> +	EM ( CPER_ARM_INFO_TYPE_TLB,  "TLB error" )	\
+> +	EM ( CPER_ARM_INFO_TYPE_BUS, "bus error" )	\
+> +	EMe ( CPER_ARM_INFO_TYPE_UARCH, "micro-architectural error" )
+> +
+> +#define ARM_PROC_ERR_FLAGS	\
+> +	EM ( CPER_ARM_INFO_FLAGS_FIRST, "First error captured" )	\
+> +	EM ( CPER_ARM_INFO_FLAGS_LAST,  "Last error captured" )	\
+> +	EM ( CPER_ARM_INFO_FLAGS_PROPAGATED, "Propagated" )	\
+> +	EMe ( CPER_ARM_INFO_FLAGS_OVERFLOW, "Overflow" )
+> +
+
+Can flags have more than one bit set?
+
+> +/*
+> + * First define the enums in MM_ACTION_RESULT to be exported to userspace
+> + * via TRACE_DEFINE_ENUM().
+> + */
+> +#undef EM
+> +#undef EMe
+> +#define EM(a, b) TRACE_DEFINE_ENUM(a);
+> +#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
+> +
+> +ARM_PROC_ERR_TYPE
+> +ARM_PROC_ERR_FLAGS
+> +
+> +/*
+> + * Now redefine the EM() and EMe() macros to map the enums to the strings
+> + * that will be printed in the output.
+> + */
+> +#undef EM
+> +#undef EMe
+> +#define EM(a, b)		{ a, b },
+> +#define EMe(a, b)	{ a, b }
+> +
+> +TRACE_EVENT(arm_proc_err,
+> +
+> +	TP_PROTO(const struct cper_arm_err_info *err),
+> +
+> +	TP_ARGS(err),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(u8, type)
+> +		__field(u16, multiple_error)
+> +		__field(u8, flags)
+> +		__field(u64, error_info)
+> +		__field(u64, virt_fault_addr)
+> +		__field(u64, physical_fault_addr)
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->type = err->type;
+> +
+> +		if (err->validation_bits & CPER_ARM_INFO_VALID_MULTI_ERR)
+> +			__entry->multiple_error = err->multiple_error;
+> +		else
+> +			__entry->multiple_error = ~0;
+> +
+> +		if (err->validation_bits & CPER_ARM_INFO_VALID_FLAGS)
+> +			__entry->flags = err->flags;
+> +		else
+> +			__entry->flags = ~0;
+> +
+> +		if (err->validation_bits & CPER_ARM_INFO_VALID_ERR_INFO)
+> +			__entry->error_info = err->error_info;
+> +		else
+> +			__entry->error_info = 0ULL;
+> +
+> +		if (err->validation_bits & CPER_ARM_INFO_VALID_VIRT_ADDR)
+> +			__entry->virt_fault_addr = err->virt_fault_addr;
+> +		else
+> +			__entry->virt_fault_addr = 0ULL;
+> +
+> +		if (err->validation_bits & CPER_ARM_INFO_VALID_PHYSICAL_ADDR)
+> +			__entry->physical_fault_addr = err->physical_fault_addr;
+> +		else
+> +			__entry->physical_fault_addr = 0ULL;
+
+else statements add a lot of branch conditions, and kills the branch
+prediction. What about setting up default values, and then setting only
+if the if statement is true.
 
 
---gnrvw7pdweomcqbh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+	memset(&__entry->error_info, 0,
+	       sizeof(__entry) - offsetof(typeof(__entry), error_info)));
+	__entry->multiple_error = ~0;
+	__entry->flags = ~0;
 
-On Thu, Mar 23, 2017 at 09:47:47PM +0100, Wolfram Sang wrote:
-> On Fri, Mar 10, 2017 at 04:58:35PM +0300, Viktor Krasnov wrote:
->=20
-> Thanks for the patch!
->=20
-> adding linux-acpi to CC. This is more an ACPI question than I2C.
+	if (...)
 
-Mika? Andy? Jarkko? Any input on this?
+> +	),
+> +
+> +	TP_printk("ARM Processor Error: type %s; count: %u; flags: %s;"
+> +		  " error info: %016llx; virtual address: %016llx;"
+> +		  " physical address: %016llx",
+> +		  __print_symbolic(__entry->type, ARCH_PROC_ERR_TYPE),
+> +		  __entry->multiple_error,
+> +		  __print_symbolic(__entry->flags, ARCH_PROC_ERR_FLAGS),
 
->=20
-> > From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
-> >=20
-> > Description of the problem:
-> >  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIB=
-M";
-> >  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
-> >    Interface Specification, version 1.0": "Each device must specify=20
-> >    'SMBUS01' as its _HID and use a unique _UID value";
-> >  - unfortunately, BIOS vendors (like AMI) seem to ignore this requireme=
-nt
-> >    and implement "SMB0001" HID instead of "SMBUS01";
-> >  - I speculate that they do this because only "SMB0001" is hard coded in
-> >    Windows SMBus driver produced by Microsoft.
-> >=20
-> > This leads to following situation:
-> >  - SMBus works out of box in Windows but not in Linux;
-> >  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
-> >    SMBus work in Linux. Moreover the same board vendors complain that
-> >    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
-> >    and produce errors.  So they need to constantly patch the compiler f=
-or=20
-> >    each new version of BIOS.
-> >=20
-> > As it is very unlikely that BIOS vendors implement a correct HID in
-> > future, I would propose to consider whether it is possible to work arou=
-nd
-> > the problem by adding MS HID to the Linux i2c-scmi driver.
-> >=20
-> > Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
-> > Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
-> > Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
-> > ---
-> >  drivers/i2c/busses/i2c-scmi.c | 1 +
-> >  include/acpi/acpi_drivers.h   | 2 ++
-> >  2 files changed, 3 insertions(+)
-> >=20
-> > diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scm=
-i.c
-> > index dfc98df..fb9aee0 100644
-> > --- a/drivers/i2c/busses/i2c-scmi.c
-> > +++ b/drivers/i2c/busses/i2c-scmi.c
-> > @@ -51,6 +51,7 @@ struct acpi_smbus_cmi {
-> >  static const struct acpi_device_id acpi_smbus_cmi_ids[] =3D {
-> >  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
-> >  	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
-> > +	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
-> >  	{"", 0}
-> >  };
-> >  MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
-> > diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> > index 29c6912..d34538b 100644
-> > --- a/include/acpi/acpi_drivers.h
-> > +++ b/include/acpi/acpi_drivers.h
-> > @@ -60,6 +60,8 @@
-> >  #define ACPI_DOCK_HID			"LNXDOCK"
-> >  /* Quirk for broken IBM BIOSes */
-> >  #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
-> > +/* SMBUS HID definition as supported by Microsoft Windows */
-> > +#define ACPI_SMBUS_MS_HID		"SMB0001"
-> > =20
-> >  /*
-> >   * For fixed hardware buttons, we fabricate acpi_devices with HID
-> > --=20
-> > 1.9.3
-> >=20
+Again, can flags have more than one bit set? If so, then this wont work.
 
+-- Steve
 
-
---gnrvw7pdweomcqbh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAljdKb0ACgkQFA3kzBSg
-KbasTRAAqAB//05EKR4ylTU9DIfzr6Gtq7T4/KISf3hCtLp6PBePc1Y2J5ICOC43
-p/kSOwy898nYXCvXZED/hIPtJzYil+56mBhMcUC7X7KBLXhCRRf8p7BrRXRygZGN
-6rGSbLAxMF3hGb4L8JObQA9aGw//b5BjxMpiymcVr+vMr35alHzyJNk03dODjXvQ
-YocAPjlvA/v65xzhlP/XZfH+DSotH4w5ZHhZpfPTGHdEo22wMVEQvJrENRUF3/8r
-SYRyTO7Pmt+LhoBPmk4VtojRfdJtpEzVELP21ojoXb9r6toyGThOdX7d7MCjDUZO
-uS+cO4IhWTba8YZgsNBwRCMyJZP0PNW0EMUquibprhg8gE9pEvRvuH5gBCMuo2hR
-RGtqVBQs322WK+nbDBCq9UhL/IXEp8ClR9av9/TqwU65vV4yzc5vAgqAR54iHD6e
-vf8j3QADH0uX0PcnE8PZq/9nzsTAvHDf+ac4dYyMY63JthlE0Ozol86r9KqsGX6b
-sRGCUxCvdWd+R34K6HuJ+vzHvMKB0YdWgd0FY8ehKle9NNox624ZTxXWM1k8qMG8
-H/ByKtgmDlWRg4pszS+EdKgu6zfHELcdzfyR+fKJ7X+33dr6T39IcZWZapPp+02U
-V/m8DbD+KLd+6Ki6zZbze0Uue+vPLmsgytve88xVIxGdG1f2Fio=
-=UQGP
------END PGP SIGNATURE-----
-
---gnrvw7pdweomcqbh--
+> +		  __entry->error_info, __entry->virt_fault_addr,
+> +		  __entry->physical_fault_addr)
+> +);
+> +
+>  /*
+>   * Unknown Section Report
+>   *
