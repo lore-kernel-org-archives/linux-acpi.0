@@ -1,239 +1,166 @@
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v22 09/11] acpi/arm64: Add memory-mapped timer support in
- GTDT driver
-Date: Thu, 30 Mar 2017 15:54:43 +0800
-Message-ID: <CADyBb7vzrK1qRWgVsE7knGijD=b424236Sf9todeepR0EeOPaQ@mail.gmail.com>
-References: <20170321163122.9183-1-fu.wei@linaro.org> <20170321163122.9183-10-fu.wei@linaro.org>
- <20170329164705.GA11442@red-moon>
+From: Wei Xu <xuwei5@hisilicon.com>
+Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
+Date: Thu, 30 Mar 2017 09:32:57 +0100
+Message-ID: <58DCC2B9.9020109@hisilicon.com>
+References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
+ <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
+ <20170329101400.GA10807@red-moon> <58DBA010.1020002@linaro.org>
+ <20170329123821.GA10988@red-moon> <58DBAFD6.7070300@linaro.org>
+ <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
+ <20170329161354.GC11297@red-moon> <20170329173243.GA6091@red-moon>
+ <58DC7674.8020301@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170329164705.GA11442@red-moon>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "Abdulhamid, Harb" <harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <58DC7674.8020301@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, majun258@huaiwei.com, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+Hi All,
 
-On 30 March 2017 at 00:47, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
-> On Wed, Mar 22, 2017 at 12:31:20AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
->> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On 2017/3/30 4:07, Hanjun Guo wrote:
+> On 03/30/2017 01:32 AM, Lorenzo Pieralisi wrote:
+>> On Wed, Mar 29, 2017 at 05:13:54PM +0100, Lorenzo Pieralisi wrote:
+>>> On Wed, Mar 29, 2017 at 03:52:47PM +0100, Marc Zyngier wrote:
+>>>> On 29/03/17 14:00, Hanjun Guo wrote:
+>>>>> On 03/29/2017 08:38 PM, Lorenzo Pieralisi wrote:
+>>>>>> On Wed, Mar 29, 2017 at 07:52:48PM +0800, Hanjun Guo wrote:
+>>>>>>> Hi Lorenzo,
+>>>>>>>
+>>>>>>> On 03/29/2017 06:14 PM, Lorenzo Pieralisi wrote:
+>>>>>>>> Hi Hanjun, Marc,
+>>>>>>>>
+>>>>>>>> On Tue, Mar 07, 2017 at 08:40:05PM +0800, Hanjun Guo wrote:
+> [...]
+>>>>>>>>>    drivers/acpi/arm64/iort.c                     | 24 ++++++++++++++++++++++++
+>>>>>>>>>    drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
+>>>>>>>>>    include/linux/acpi_iort.h                     |  5 +++++
+>>>>>>>>>    3 files changed, 31 insertions(+), 1 deletion(-)
+>>>>>>>>
+>>>>>>>> To simplify merging ACPI/IRQCHIP changes via different trees it
+>>>>>>>> would be good to split this patch; I am not sure what's the best
+>>>>>>>> way of handling it though given that we would end up in a merge
+>>>>>>>> ordering dependency anyway (ie we can create an empty stub
+>>>>>>>> for iort_pmsi_get_dev_id() but that would create a dependency
+>>>>>>>> between ARM64 and irqchip trees anyway).
+>>>>>>>
+>>>>>>> The first 12 patches for ACPI platform MSI and later 3 patches
+>>>>>>> for mbigen have no "physical" dependency, which means they can
+>>>>>>> be merged and compiled independently, they only have functional
+>>>>>>> dependency only.
+>>>>>>>
+>>>>>>> We already had SAS, XGE, USB and even UART drivers depend on
+>>>>>>> the mbigen ACPI support, so I don't think the dependency of ACPI
+>>>>>>> platform MSI and mbigen patches cares much if those two parts are
+>>>>>>> merged in one merge window, even they are merged independently via
+>>>>>>> different tree.
+>>>>>>>
+>>>>>>>>
+>>>>>>>> Please let me know what's your preferred way of handling this.
+>>>>>>>
+>>>>>>> So in my opinion, they can be merged independently via ARM64 and
+>>>>>>> irqchip tree with no ordering dependency, is it OK?
+>>>>>>
+>>>>>> I am speaking about merging MBIgen AND ITS patches via IRQCHIP and
+>>>>>> ACPI/IORT for ARM64, that's why I replied to this patch. I do not
+>>>>>> think that's feasible to split patches in two separate branches
+>>>>>> without having a dependency between them.
+>>>>>>
+>>>>>> Sure, the last three patches can go via IRQCHIP but that was not
+>>>>>> my question :)
+>>>>>
+>>>>> Sorry, I misunderstood that :(
+>>>>>
+>>>>> Since it's not feasible to split patches, the best way I got is that
+>>>>> we get Marc's ack then merge it.
+>>>>
+>>>> I believe there is a way to make this work without too much hassle. I
+>>>> suggest we drop the ITS change from this patch entirely, and I instead
+>>>> queue this patch:
+>>>>
+>>>> https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/irqchip-4.12&id=e6db07d0f3b6da1f8cfd485776bfefa4fcdbfc45
+>>>>
+>>>> That way, no dependency between the two trees. Lorenzo takes all the
+>>>> patches flagged "ACPI", I take all those flagged "irqchip" or "msi", and
+>>>> everything should be perfectly standalone.
+>>>>
+>>>> Thoughts?
+>>>
+>>> Perfect for me. Hanjun, I can cherry pick Marc's patch above, rework
+>>> this patch and post the resulting branch for everyone to have a final
+>>> test.
 >>
->> On platforms booting with ACPI, architected memory-mapped timers'
->> configuration data is provided by firmware through the ACPI GTDT
->> static table.
+>> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/arm64-acpi-4.12
 >>
->> The clocksource architected timer kernel driver requires a firmware
->> interface to collect timer configuration and configure its driver.
->> this infrastructure is present for device tree systems, but it is
->> missing on systems booting with ACPI.
->>
->> Implement the kernel infrastructure required to parse the static
->> ACPI GTDT table so that the architected timer clocksource driver can
->> make use of it on systems booting with ACPI, therefore enabling
->> the corresponding timers configuration.
->>
->> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> ---
->>  drivers/acpi/arm64/gtdt.c | 130 ++++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/acpi.h      |   1 +
->>  2 files changed, 131 insertions(+)
->>
->> diff --git a/drivers/acpi/arm64/gtdt.c b/drivers/acpi/arm64/gtdt.c
->> index 8a03b4b..f471873 100644
->> --- a/drivers/acpi/arm64/gtdt.c
->> +++ b/drivers/acpi/arm64/gtdt.c
->> @@ -37,6 +37,28 @@ struct acpi_gtdt_descriptor {
->>
->>  static struct acpi_gtdt_descriptor acpi_gtdt_desc __initdata;
->>
->> +static inline void *next_platform_timer(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     platform_timer += gh->length;
->> +     if (platform_timer < acpi_gtdt_desc.gtdt_end)
->> +             return platform_timer;
->> +
->> +     return NULL;
->> +}
->> +
->> +#define for_each_platform_timer(_g)                          \
->> +     for (_g = acpi_gtdt_desc.platform_timer; _g;    \
->> +          _g = next_platform_timer(_g))
->> +
->> +static inline bool is_timer_block(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
->> +}
->> +
->>  static int __init map_gt_gsi(u32 interrupt, u32 flags)
->>  {
->>       int trigger, polarity;
->> @@ -155,3 +177,111 @@ int __init acpi_gtdt_init(struct acpi_table_header *table,
->>
->>       return ret;
->>  }
->> +
->> +static int __init gtdt_parse_timer_block(struct acpi_gtdt_timer_block *block,
->> +                                      struct arch_timer_mem *timer_mem)
->> +{
->> +     int i, j;
->> +     struct acpi_gtdt_timer_entry *gtdt_frame;
->> +
->> +     if (!block->timer_count) {
->> +             pr_err(FW_BUG "GT block present, but frame count is zero.");
->> +             return -ENODEV;
->> +     }
->> +
->> +     if (block->timer_count > ARCH_TIMER_MEM_MAX_FRAMES) {
->> +             pr_err(FW_BUG "GT block lists %d frames, ACPI spec only allows 8\n",
->> +                    block->timer_count);
->> +             return -EINVAL;
->> +     }
->> +
->> +     timer_mem->cntctlbase = (phys_addr_t)block->block_address;
->> +     /*
->> +      * The CNTCTLBase frame is 4KB (register offsets 0x000 - 0xFFC).
->> +      * See ARM DDI 0487A.k_iss10775, page I1-5129, Table I1-3
->> +      * "CNTCTLBase memory map".
->> +      */
->> +     timer_mem->size = SZ_4K;
->> +
->> +     gtdt_frame = (void *)block + block->timer_offset;
->> +     if (gtdt_frame + block->timer_count != (void *)block + block->header.length)
->> +             return -EINVAL;
->> +
->> +     /*
->> +      * Get the GT timer Frame data for every GT Block Timer
->> +      */
->> +     for (i = 0, j = 0; i < block->timer_count; i++, gtdt_frame++) {
->> +             struct arch_timer_mem_frame *frame = &timer_mem->frame[j];
->> +
->> +             if (gtdt_frame->common_flags & ACPI_GTDT_GT_IS_SECURE_TIMER)
->> +                     continue;
->> +
->> +             if (!gtdt_frame->base_address || !gtdt_frame->timer_interrupt)
->> +                     return -EINVAL;
->> +
->> +             frame->phys_irq = map_gt_gsi(gtdt_frame->timer_interrupt,
->> +                                          gtdt_frame->timer_flags);
->> +             if (frame->phys_irq <= 0) {
->> +                     pr_warn("failed to map physical timer irq in frame %d.\n",
->> +                             i);
->> +                     return -EINVAL;
->> +             }
->> +
->> +             frame->virt_irq =
->> +                     map_gt_gsi(gtdt_frame->virtual_timer_interrupt,
->> +                                gtdt_frame->virtual_timer_flags);
->> +             if (frame->virt_irq <= 0) {
->> +                     pr_warn("failed to map virtual timer irq in frame %d.\n",
->> +                             i);
->> +                     acpi_unregister_gsi(gtdt_frame->timer_interrupt);
->> +                     return -EINVAL;
->> +             }
->> +
->> +             frame->frame_nr = gtdt_frame->frame_number;
->> +             frame->cntbase = gtdt_frame->base_address;
->> +             /*
->> +              * The CNTBaseN frame is 4KB (register offsets 0x000 - 0xFFC).
->> +              * See ARM DDI 0487A.k_iss10775, page I1-5130, Table I1-4
->> +              * "CNTBaseN memory map".
->> +              */
->> +             frame->size = SZ_4K;
->> +             j++;
->> +     }
->> +     timer_mem->num_frames = j;
->> +
->> +     return 0;
->> +}
->> +
->> +/**
->> + * acpi_arch_timer_mem_init() - Get the info of all GT blocks in GTDT table.
->> + * @timer_mem:       the pointer to the array of struct arch_timer_mem for returning
->> + *           the result of parsing. The element number of this array should
->> + *           be platform_timer_count(the total number of platform timers).
->> + * @count:   The pointer of int variate for returning the number of GT
->> + *           blocks we have parsed.
->
-> Nit: this comment was wrong on all the patches I reviewed :) must be
-> some copy and paste.
+>> Please have a look and let me know if that's ok, I planned to send
+>> a PR to Catalin by the end of the week (first 7 patches up to
+>> 7fc3061df075 ("ACPI: platform: setup MSI domain for ACPI based platform
+>> device")).
+> 
+> Perfect for me too, Lorenzo, Marc, Thank you very much.
+> 
+> I'm currently in paternity leave and can't reach the machine,
+> I had a detail review with the patches, they looks good to me,
+> Ma Jun and Wei Xu will test on Hisilicon machines and give the
+> feedback.
 
-Thanks ,
+Thanks to all of you!
+Tested on D05 board with this branch, the SAS disks and XGE port are working fine.
+The log is as below:
 
- * @timer_count: It points to a integer variable which is used for storing the
- *                         number of GT blocks we have parsed.
-
-Is that OK for you?
->
->> + *
->> + * Return: 0 if success, -EINVAL/-ENODEV if error.
->> + */
->> +int __init acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem,
->> +                                 int *timer_count)
->> +{
->> +     int ret;
->> +     void *platform_timer;
->> +
->> +     *timer_count = 0;
->> +     for_each_platform_timer(platform_timer) {
->> +             if (is_timer_block(platform_timer)) {
->> +                     ret = gtdt_parse_timer_block(platform_timer, timer_mem);
->> +                     if (ret)
->> +                             return ret;
->
-> Isn't there some unwinding to carry out here (eg GSI) ?
-
-Thanks for your reminding,
-it should be in gtdt_parse_timer_block, will do
-
->
-> Otherwise it looks fine (minus Mark's request for using frame numbers
-> as indexes that you should change).
->
-> Lorenzo
->
->> +                     timer_mem++;
->> +                     (*timer_count)++;
->> +             }
->> +     }
->> +
->> +     if (*timer_count)
->> +             pr_info("found %d memory-mapped timer block(s).\n",
->> +                     *timer_count);
->> +
->> +     return 0;
->> +}
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 4b5c146..3193724 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -599,6 +599,7 @@ int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
->>  int acpi_gtdt_init(struct acpi_table_header *table, int *platform_timer_count);
->>  int acpi_gtdt_map_ppi(int type);
->>  bool acpi_gtdt_c3stop(int type);
->> +int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count);
->>  #endif
->>
->>  #else        /* !CONFIG_ACPI */
->> --
->> 2.9.3
->>
+	estuary:/$ dmesg
+	[    0.000000] Booting Linux on physical CPU 0x10000
+	[    0.000000] Linux version 4.11.0-rc3-14418-gea60d0a (xuwei@EstBuildSvr1) (gcc version 4.9.2 20140904 (prerelease) (crosstool-NG linaro-1.13.1-4.9-2014.09 - Linaro GCC 4.9-2014.09) ) #28 SMP PREEMPT Thu Mar 30 16:15:42 CST 2017
+	[    0.000000] Boot CPU: AArch64 Processor [410fd082]
+	[    0.000000] efi: Getting EFI parameters from FDT:
+	[    0.000000] efi: EFI v2.60 by EDK II
+	[    0.000000] efi:  SMBIOS=0x3f040000  SMBIOS 3.0=0x39af0000 ACPI=0x39bc0000  ACPI 2.0=0x39bc0014  MEMATTR=0x3ccb0098
+	[    0.000000] cma: Reserved 16 MiB at 0x000000003e000000
 
 
+	estuary:/$ ping 192.168.1.107
+	PING 192.168.1.107 (192.168.1.107): 56 data bytes
+	64 bytes from 192.168.1.107: seq=0 ttl=64 time=0.273 ms
+	64 bytes from 192.168.1.107: seq=1 ttl=64 time=0.102 ms
+	64 bytes from 192.168.1.107: seq=2 ttl=64 time=0.103 ms
+	64 bytes from 192.168.1.107: seq=3 ttl=64 time=0.098 ms
+	^C
+	--- 192.168.1.107 ping statistics ---
+	4 packets transmitted, 4 packets received, 0% packet loss
+	round-trip min/avg/max = 0.098/0.144/0.273 ms
 
--- 
-Best regards,
+	estuary:/$ lspci -mk
+	30:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	91:00.0 "Class 0300" "19e5" "1711" "0000" "0000"
+	90:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	20:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	10:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	80:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	00:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	c0:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	88:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+	
+	estuary:/$ cat /dev/sd
+	sda   sdb   sdc   sdd   sde   sdf   sdg   sdh   sdi   sdj   sdk sdl
+	sda1  sdb1  sdc1  sdd1  sde1  sdf1  sdg1  sdh1  sdi1  sdj1  sdk1 sdl1
 
-Fu Wei
-Software Engineer
-Red Hat
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best Regards,
+Wei
+
+> 
+> Thanks
+> Hanjun
+> 
+> .
+> 
