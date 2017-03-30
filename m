@@ -1,71 +1,126 @@
-From: <kchristopher@framingham.edu>
-Subject: 13919 linux-acpi
-Date: Thu, 30 Mar 2017 15:50:27 -0000
-Message-ID: <149088902765.6120.15926902826912652454@hinet.net>
-Reply-To: <kchristopher@framingham.edu>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
+Date: Thu, 30 Mar 2017 17:52:33 +0200
+Message-ID: <20170330155233.dfnqe7d2xkr32zlo@ninjato>
+References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+ <20170323204747.w2nxxrpjwypiygwb@ninjato>
 Mime-Version: 1.0
-Content-Type: application/zip; name="38629.zip"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="gnrvw7pdweomcqbh"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 114-39-158-38.dynamic.hinet.net ([114.39.158.38]:43847 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S933356AbdC3Pux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:50:53 -0400
-Content-Disposition: attachment
+Received: from sauhun.de ([88.99.104.3]:39445 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933356AbdC3Pwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Mar 2017 11:52:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20170323204747.w2nxxrpjwypiygwb@ninjato>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Cc: jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-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
+
+--gnrvw7pdweomcqbh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Mar 23, 2017 at 09:47:47PM +0100, Wolfram Sang wrote:
+> On Fri, Mar 10, 2017 at 04:58:35PM +0300, Viktor Krasnov wrote:
+>=20
+> Thanks for the patch!
+>=20
+> adding linux-acpi to CC. This is more an ACPI question than I2C.
+
+Mika? Andy? Jarkko? Any input on this?
+
+>=20
+> > From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> >=20
+> > Description of the problem:
+> >  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIB=
+M";
+> >  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
+> >    Interface Specification, version 1.0": "Each device must specify=20
+> >    'SMBUS01' as its _HID and use a unique _UID value";
+> >  - unfortunately, BIOS vendors (like AMI) seem to ignore this requireme=
+nt
+> >    and implement "SMB0001" HID instead of "SMBUS01";
+> >  - I speculate that they do this because only "SMB0001" is hard coded in
+> >    Windows SMBus driver produced by Microsoft.
+> >=20
+> > This leads to following situation:
+> >  - SMBus works out of box in Windows but not in Linux;
+> >  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
+> >    SMBus work in Linux. Moreover the same board vendors complain that
+> >    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
+> >    and produce errors.  So they need to constantly patch the compiler f=
+or=20
+> >    each new version of BIOS.
+> >=20
+> > As it is very unlikely that BIOS vendors implement a correct HID in
+> > future, I would propose to consider whether it is possible to work arou=
+nd
+> > the problem by adding MS HID to the Linux i2c-scmi driver.
+> >=20
+> > Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> > Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> > Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+> > ---
+> >  drivers/i2c/busses/i2c-scmi.c | 1 +
+> >  include/acpi/acpi_drivers.h   | 2 ++
+> >  2 files changed, 3 insertions(+)
+> >=20
+> > diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scm=
+i.c
+> > index dfc98df..fb9aee0 100644
+> > --- a/drivers/i2c/busses/i2c-scmi.c
+> > +++ b/drivers/i2c/busses/i2c-scmi.c
+> > @@ -51,6 +51,7 @@ struct acpi_smbus_cmi {
+> >  static const struct acpi_device_id acpi_smbus_cmi_ids[] =3D {
+> >  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
+> >  	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
+> > +	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
+> >  	{"", 0}
+> >  };
+> >  MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+> > diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> > index 29c6912..d34538b 100644
+> > --- a/include/acpi/acpi_drivers.h
+> > +++ b/include/acpi/acpi_drivers.h
+> > @@ -60,6 +60,8 @@
+> >  #define ACPI_DOCK_HID			"LNXDOCK"
+> >  /* Quirk for broken IBM BIOSes */
+> >  #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+> > +/* SMBUS HID definition as supported by Microsoft Windows */
+> > +#define ACPI_SMBUS_MS_HID		"SMB0001"
+> > =20
+> >  /*
+> >   * For fixed hardware buttons, we fabricate acpi_devices with HID
+> > --=20
+> > 1.9.3
+> >=20
+
+
+
+--gnrvw7pdweomcqbh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAljdKb0ACgkQFA3kzBSg
+KbasTRAAqAB//05EKR4ylTU9DIfzr6Gtq7T4/KISf3hCtLp6PBePc1Y2J5ICOC43
+p/kSOwy898nYXCvXZED/hIPtJzYil+56mBhMcUC7X7KBLXhCRRf8p7BrRXRygZGN
+6rGSbLAxMF3hGb4L8JObQA9aGw//b5BjxMpiymcVr+vMr35alHzyJNk03dODjXvQ
+YocAPjlvA/v65xzhlP/XZfH+DSotH4w5ZHhZpfPTGHdEo22wMVEQvJrENRUF3/8r
+SYRyTO7Pmt+LhoBPmk4VtojRfdJtpEzVELP21ojoXb9r6toyGThOdX7d7MCjDUZO
+uS+cO4IhWTba8YZgsNBwRCMyJZP0PNW0EMUquibprhg8gE9pEvRvuH5gBCMuo2hR
+RGtqVBQs322WK+nbDBCq9UhL/IXEp8ClR9av9/TqwU65vV4yzc5vAgqAR54iHD6e
+vf8j3QADH0uX0PcnE8PZq/9nzsTAvHDf+ac4dYyMY63JthlE0Ozol86r9KqsGX6b
+sRGCUxCvdWd+R34K6HuJ+vzHvMKB0YdWgd0FY8ehKle9NNox624ZTxXWM1k8qMG8
+H/ByKtgmDlWRg4pszS+EdKgu6zfHELcdzfyR+fKJ7X+33dr6T39IcZWZapPp+02U
+V/m8DbD+KLd+6Ki6zZbze0Uue+vPLmsgytve88xVIxGdG1f2Fio=
+=UQGP
+-----END PGP SIGNATURE-----
+
+--gnrvw7pdweomcqbh--
