@@ -1,63 +1,83 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
- to get from of / ACPI
-Date: Thu, 30 Mar 2017 19:39:04 +0200
-Message-ID: <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
-References: <20170325135550.22509-1-hdegoede@redhat.com>
- <20170325135550.22509-4-hdegoede@redhat.com>
- <1490530535.21738.31.camel@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
+Date: Thu, 30 Mar 2017 22:04:42 +0200
+Message-ID: <CAJZ5v0ikLr_RSXtqdAUwp2=86d4nAZb6WXKiVEqir5LwWTyY5g@mail.gmail.com>
+References: <20170316161736.339-1-hdegoede@redhat.com> <20170316161736.339-2-hdegoede@redhat.com>
+ <4029834.c3GWUpRlkb@aspire.rjw.lan> <20170329092638.GU2957@lahna.fi.intel.com>
+ <1490806252.708.53.camel@linux.intel.com> <20170330083341.GA10207@h08.hostsharing.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39952 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933150AbdC3RjI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Mar 2017 13:39:08 -0400
-In-Reply-To: <1490530535.21738.31.camel@linux.intel.com>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:34090 "EHLO
+        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933493AbdC3UEt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Mar 2017 16:04:49 -0400
+In-Reply-To: <20170330083341.GA10207@h08.hostsharing.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
 
-Hi,
+On Thu, Mar 30, 2017 at 10:33 AM, Lukas Wunner <lukas@wunner.de> wrote:
+> [cc += Robert Moore]
+>
+> Hi Hans,
+>
+> I'm the author of acpi_dev_found(), please in the future use git blame
+> to determine relevant authors of existing code that should be cc'ed,
+> I noticed your patch only now:
+>
+> On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
+>> acpi_dev_found just iterates over all acpi-ids and sees if one matches.
+>> This means that it will return true for devices which are in the dsdt
+>> but disabled (their _STA method returns 0).
+>>
+>> For some drivers it is useful to be able to check if a certain hid
+>> is not only present in the namespace, but also actually present as in
+>> acpi_device_is_present() will return true for the device. For example
+>> because if a certain device is present then the driver will want to use
+>> an extcon or IIO adc channel provided by that device.
+>>
+>> This commit adds a new acpi_dev_present helper which drivers can use
+>> to this end.
+>>
+>> Arguably acpi_dev_present is what acpi_dev_found should have been, but
+>> there are too many users to just change acpi_dev_found without the risk
+>> of breaking something.
+>
+> I originally did submit an acpi_dev_present() function which was identical
+> to what you've submitted now:
+> http://www.spinics.net/lists/linux-acpi/msg61865.html
+>
+> However Robert Moore raised an objection that "Traversing the namespace
+> over and over is truly brute force":
+> http://www.spinics.net/lists/linux-acpi/msg61911.html
+>
+> For my use case, which was apple_gmux_present(), just detecting presence
+> of the HID in the namespace was sufficient, I did not have the need to
+> execute _STA.  Hence to address Robert Moore's concern I switched to
+> simply traversing the acpi_bus_id_list.
+>
+> Rafael objected to the acpi_dev_present() name as it suggested that _STA
+> is checked even though it wasn't, so I renamed the function to
+> acpi_dev_found() with commit c68ae33e7fb4.
+>
+> The objection raised by Robert Moore applies to your patch as well since
+> it is identical to my original patch.
 
-Sorry for doing this in the middle of the thread, but this is the only
-mail I could find in my archives (I guess I delete mail to aggressively).
+Good point, actually.
 
-Anyways self-nack for this series, there are multiple issues with it:
+> The return value of _STA seems to
+> be cached in the "status" field of struct acpi_device, so you may
+> be able to overcome Robert Moore's objection by calling bus_find_device()
+> with a callback which contains the check in acpi_device_is_present().
+> See drivers/firmware/efi/dev-path-parser.c for an example (parse_acpi_path()
+> and match_acpi_dev()).  This is probably faster than acpi_get_devices()
+> because it just traverses a list instead of walking the namespace and it
+> avoids the call to _STA.  (Some devices just return a constant when _STA
+> is called, others may take more time.)
 
-1) In hindsight the irq_index is a bad idea and instead we need a noirq
-flag in i2c_driver
+Yes, that would be preferred.
 
-2) The i2c_acpi_new_device() function needs to have a board_info
-argument
-
-3) The cht_wc_fuel_gauge driver actually is a driver for the
-Maxim MAX17047 Fuel Gauge. After much poking and reading of
-the dsdt I've finally found out what the mysterious INT33FE
-ACPI device in the dsdt represents, here is a comment from
-a new platform/x86 driver I'm writing for it:
-
-/*
-  * Intel Cherry Trail ACPI INT33FE pseudo device driver
-  * Some Intel Cherry Trail based device which ship with Windows 10, have
-  * this weird INT33FE ACPI device with a CRS table with 4 I2cSerialBusV2
-  * resources, for 4 different chips attached to various i2c busses:
-  * 1. The Whiskey Cove pmic, which is also described by the INT34D3 ACPI device
-  * 2. Maxim MAX17047 Fuel Gauge Controller
-  * 3. FUSB300C USB Type-C Controller
-  * 4. PI3USB30532 USB switch
-  *
-  * So this driver is a stub / pseudo driver whose only purpose is to
-  * instantiate i2c-clients for chips 2 - 4, so that standard i2c drivers
-  * for these chips can bind to the them.
-  */
-
-So the plan is to have this stub driver instantiate an i2c client
-with an id of max17047 and then have a proper max17047 battery
-power-supply driver which will get bound to that i2c-client.
-
-Regards,
-
-Hans
+Thanks,
+Rafael
