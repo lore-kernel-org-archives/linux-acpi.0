@@ -1,166 +1,90 @@
-From: Wei Xu <xuwei5@hisilicon.com>
-Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
-Date: Thu, 30 Mar 2017 09:32:57 +0100
-Message-ID: <58DCC2B9.9020109@hisilicon.com>
-References: <1488890410-15503-1-git-send-email-guohanjun@huawei.com>
- <1488890410-15503-11-git-send-email-guohanjun@huawei.com>
- <20170329101400.GA10807@red-moon> <58DBA010.1020002@linaro.org>
- <20170329123821.GA10988@red-moon> <58DBAFD6.7070300@linaro.org>
- <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
- <20170329161354.GC11297@red-moon> <20170329173243.GA6091@red-moon>
- <58DC7674.8020301@linaro.org>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
+Date: Thu, 30 Mar 2017 10:33:41 +0200
+Message-ID: <20170330083341.GA10207@h08.hostsharing.net>
+References: <20170316161736.339-1-hdegoede@redhat.com>
+ <20170316161736.339-2-hdegoede@redhat.com>
+ <4029834.c3GWUpRlkb@aspire.rjw.lan>
+ <20170329092638.GU2957@lahna.fi.intel.com>
+ <1490806252.708.53.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <58DC7674.8020301@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: huxinwei@huawei.com, Kefeng Wang <wangkefeng.wang@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>, yimin@huawei.com, Greg KH <gregkh@linuxfoundation.org>, majun258@huaiwei.com, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ma Jun <majun258@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout2.hostsharing.net ([83.223.90.233]:43063 "EHLO
+        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753828AbdC3Idp (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Mar 2017 04:33:45 -0400
+Content-Disposition: inline
+In-Reply-To: <1490806252.708.53.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Robert Moore <robert.moore@intel.com>
 
-Hi All,
+[cc += Robert Moore]
 
-On 2017/3/30 4:07, Hanjun Guo wrote:
-> On 03/30/2017 01:32 AM, Lorenzo Pieralisi wrote:
->> On Wed, Mar 29, 2017 at 05:13:54PM +0100, Lorenzo Pieralisi wrote:
->>> On Wed, Mar 29, 2017 at 03:52:47PM +0100, Marc Zyngier wrote:
->>>> On 29/03/17 14:00, Hanjun Guo wrote:
->>>>> On 03/29/2017 08:38 PM, Lorenzo Pieralisi wrote:
->>>>>> On Wed, Mar 29, 2017 at 07:52:48PM +0800, Hanjun Guo wrote:
->>>>>>> Hi Lorenzo,
->>>>>>>
->>>>>>> On 03/29/2017 06:14 PM, Lorenzo Pieralisi wrote:
->>>>>>>> Hi Hanjun, Marc,
->>>>>>>>
->>>>>>>> On Tue, Mar 07, 2017 at 08:40:05PM +0800, Hanjun Guo wrote:
-> [...]
->>>>>>>>>    drivers/acpi/arm64/iort.c                     | 24 ++++++++++++++++++++++++
->>>>>>>>>    drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
->>>>>>>>>    include/linux/acpi_iort.h                     |  5 +++++
->>>>>>>>>    3 files changed, 31 insertions(+), 1 deletion(-)
->>>>>>>>
->>>>>>>> To simplify merging ACPI/IRQCHIP changes via different trees it
->>>>>>>> would be good to split this patch; I am not sure what's the best
->>>>>>>> way of handling it though given that we would end up in a merge
->>>>>>>> ordering dependency anyway (ie we can create an empty stub
->>>>>>>> for iort_pmsi_get_dev_id() but that would create a dependency
->>>>>>>> between ARM64 and irqchip trees anyway).
->>>>>>>
->>>>>>> The first 12 patches for ACPI platform MSI and later 3 patches
->>>>>>> for mbigen have no "physical" dependency, which means they can
->>>>>>> be merged and compiled independently, they only have functional
->>>>>>> dependency only.
->>>>>>>
->>>>>>> We already had SAS, XGE, USB and even UART drivers depend on
->>>>>>> the mbigen ACPI support, so I don't think the dependency of ACPI
->>>>>>> platform MSI and mbigen patches cares much if those two parts are
->>>>>>> merged in one merge window, even they are merged independently via
->>>>>>> different tree.
->>>>>>>
->>>>>>>>
->>>>>>>> Please let me know what's your preferred way of handling this.
->>>>>>>
->>>>>>> So in my opinion, they can be merged independently via ARM64 and
->>>>>>> irqchip tree with no ordering dependency, is it OK?
->>>>>>
->>>>>> I am speaking about merging MBIgen AND ITS patches via IRQCHIP and
->>>>>> ACPI/IORT for ARM64, that's why I replied to this patch. I do not
->>>>>> think that's feasible to split patches in two separate branches
->>>>>> without having a dependency between them.
->>>>>>
->>>>>> Sure, the last three patches can go via IRQCHIP but that was not
->>>>>> my question :)
->>>>>
->>>>> Sorry, I misunderstood that :(
->>>>>
->>>>> Since it's not feasible to split patches, the best way I got is that
->>>>> we get Marc's ack then merge it.
->>>>
->>>> I believe there is a way to make this work without too much hassle. I
->>>> suggest we drop the ITS change from this patch entirely, and I instead
->>>> queue this patch:
->>>>
->>>> https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/irqchip-4.12&id=e6db07d0f3b6da1f8cfd485776bfefa4fcdbfc45
->>>>
->>>> That way, no dependency between the two trees. Lorenzo takes all the
->>>> patches flagged "ACPI", I take all those flagged "irqchip" or "msi", and
->>>> everything should be perfectly standalone.
->>>>
->>>> Thoughts?
->>>
->>> Perfect for me. Hanjun, I can cherry pick Marc's patch above, rework
->>> this patch and post the resulting branch for everyone to have a final
->>> test.
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/arm64-acpi-4.12
->>
->> Please have a look and let me know if that's ok, I planned to send
->> a PR to Catalin by the end of the week (first 7 patches up to
->> 7fc3061df075 ("ACPI: platform: setup MSI domain for ACPI based platform
->> device")).
-> 
-> Perfect for me too, Lorenzo, Marc, Thank you very much.
-> 
-> I'm currently in paternity leave and can't reach the machine,
-> I had a detail review with the patches, they looks good to me,
-> Ma Jun and Wei Xu will test on Hisilicon machines and give the
-> feedback.
+Hi Hans,
 
-Thanks to all of you!
-Tested on D05 board with this branch, the SAS disks and XGE port are working fine.
-The log is as below:
+I'm the author of acpi_dev_found(), please in the future use git blame
+to determine relevant authors of existing code that should be cc'ed,
+I noticed your patch only now:
 
-	estuary:/$ dmesg
-	[    0.000000] Booting Linux on physical CPU 0x10000
-	[    0.000000] Linux version 4.11.0-rc3-14418-gea60d0a (xuwei@EstBuildSvr1) (gcc version 4.9.2 20140904 (prerelease) (crosstool-NG linaro-1.13.1-4.9-2014.09 - Linaro GCC 4.9-2014.09) ) #28 SMP PREEMPT Thu Mar 30 16:15:42 CST 2017
-	[    0.000000] Boot CPU: AArch64 Processor [410fd082]
-	[    0.000000] efi: Getting EFI parameters from FDT:
-	[    0.000000] efi: EFI v2.60 by EDK II
-	[    0.000000] efi:  SMBIOS=0x3f040000  SMBIOS 3.0=0x39af0000 ACPI=0x39bc0000  ACPI 2.0=0x39bc0014  MEMATTR=0x3ccb0098
-	[    0.000000] cma: Reserved 16 MiB at 0x000000003e000000
+On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
+> acpi_dev_found just iterates over all acpi-ids and sees if one matches.
+> This means that it will return true for devices which are in the dsdt
+> but disabled (their _STA method returns 0).
+>
+> For some drivers it is useful to be able to check if a certain hid
+> is not only present in the namespace, but also actually present as in
+> acpi_device_is_present() will return true for the device. For example
+> because if a certain device is present then the driver will want to use
+> an extcon or IIO adc channel provided by that device.
+>
+> This commit adds a new acpi_dev_present helper which drivers can use
+> to this end.
+>
+> Arguably acpi_dev_present is what acpi_dev_found should have been, but
+> there are too many users to just change acpi_dev_found without the risk
+> of breaking something.
 
+I originally did submit an acpi_dev_present() function which was identical
+to what you've submitted now:
+http://www.spinics.net/lists/linux-acpi/msg61865.html
 
-	estuary:/$ ping 192.168.1.107
-	PING 192.168.1.107 (192.168.1.107): 56 data bytes
-	64 bytes from 192.168.1.107: seq=0 ttl=64 time=0.273 ms
-	64 bytes from 192.168.1.107: seq=1 ttl=64 time=0.102 ms
-	64 bytes from 192.168.1.107: seq=2 ttl=64 time=0.103 ms
-	64 bytes from 192.168.1.107: seq=3 ttl=64 time=0.098 ms
-	^C
-	--- 192.168.1.107 ping statistics ---
-	4 packets transmitted, 4 packets received, 0% packet loss
-	round-trip min/avg/max = 0.098/0.144/0.273 ms
+However Robert Moore raised an objection that "Traversing the namespace
+over and over is truly brute force":
+http://www.spinics.net/lists/linux-acpi/msg61911.html
 
-	estuary:/$ lspci -mk
-	30:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	91:00.0 "Class 0300" "19e5" "1711" "0000" "0000"
-	90:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	20:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	10:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	80:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	00:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	c0:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	88:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
-	
-	estuary:/$ cat /dev/sd
-	sda   sdb   sdc   sdd   sde   sdf   sdg   sdh   sdi   sdj   sdk sdl
-	sda1  sdb1  sdc1  sdd1  sde1  sdf1  sdg1  sdh1  sdi1  sdj1  sdk1 sdl1
+For my use case, which was apple_gmux_present(), just detecting presence
+of the HID in the namespace was sufficient, I did not have the need to
+execute _STA.  Hence to address Robert Moore's concern I switched to
+simply traversing the acpi_bus_id_list.
 
-Best Regards,
-Wei
+Rafael objected to the acpi_dev_present() name as it suggested that _STA
+is checked even though it wasn't, so I renamed the function to
+acpi_dev_found() with commit c68ae33e7fb4.
 
-> 
-> Thanks
-> Hanjun
-> 
-> .
-> 
+The objection raised by Robert Moore applies to your patch as well since
+it is identical to my original patch.  The return value of _STA seems to
+be cached in the "status" field of struct acpi_device, so you may
+be able to overcome Robert Moore's objection by calling bus_find_device()
+with a callback which contains the check in acpi_device_is_present().
+See drivers/firmware/efi/dev-path-parser.c for an example (parse_acpi_path()
+and match_acpi_dev()).  This is probably faster than acpi_get_devices()
+because it just traverses a list instead of walking the namespace and it
+avoids the call to _STA.  (Some devices just return a constant when _STA
+is called, others may take more time.)
+
+FWIW, all existing users of acpi_dev_found(), except for the hisilicon
+Ethernet driver, originally used acpi_get_devices() and I converted
+them to acpi_dev_found to deduplicate code.  Thus it would be safe to
+convert those to your new function acpi_dev_present().  I also converted
+sound/soc/intel/common/sst-match-acpi.c to acpi_dev_found() but the
+Intel folks switched back to acpi_get_devices() because just like you
+they had the need to check _STA.  If you introduce a new helper which
+checks _STA, it would be good if you could amend sst-match-acpi.c to
+use it so as to deduplicate code.
+
+Thanks,
+
+Lukas
