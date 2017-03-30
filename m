@@ -1,7 +1,8 @@
 From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: [PATCH v3 6/8] arm64: RAS: add ras extension runtime detection
-Date: Thu, 30 Mar 2017 18:31:06 +0800
-Message-ID: <1490869877-118713-7-git-send-email-xiexiuqi@huawei.com>
+Subject: [PATCH v3 3/8] arm64: apei: add a per-cpu variable to indecate sei is
+ processing
+Date: Thu, 30 Mar 2017 18:31:03 +0800
+Message-ID: <1490869877-118713-4-git-send-email-xiexiuqi@huawei.com>
 References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,80 +22,48 @@ To: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, 
 Cc: wuquanming@huawei.com, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, zhengqiang10@huawei.com, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-According to <<RAS Extension PRD03>> document, we add RAS extension
-feature runtime detection, which would be used for error recovery
-in the future.
+Add a per-cpu variable to indicate sei is processing, with which we could use to
+reserve a separate virtual space address page for sei in next patch
 
 Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 ---
- arch/arm64/include/asm/cpucaps.h |  3 ++-
- arch/arm64/include/asm/sysreg.h  |  2 ++
- arch/arm64/kernel/cpufeature.c   | 11 +++++++++++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ arch/arm64/kernel/traps.c | 4 ++++
+ include/acpi/ghes.h       | 2 ++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/arch/arm64/include/asm/cpucaps.h b/arch/arm64/include/asm/cpucaps.h
-index fb78a5d..3847cf8 100644
---- a/arch/arm64/include/asm/cpucaps.h
-+++ b/arch/arm64/include/asm/cpucaps.h
-@@ -37,7 +37,8 @@
- #define ARM64_HAS_NO_FPSIMD			16
- #define ARM64_WORKAROUND_REPEAT_TLBI		17
- #define ARM64_WORKAROUND_QCOM_FALKOR_E1003	18
-+#define ARM64_HAS_RAS_EXTN			19
+diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
+index 53710a2..955dc8c 100644
+--- a/arch/arm64/kernel/traps.c
++++ b/arch/arm64/kernel/traps.c
+@@ -615,6 +615,8 @@ const char *esr_get_class_string(u32 esr)
+ 	return esr_class_str[ESR_ELx_EC(esr)];
+ }
  
--#define ARM64_NCAPS				19
-+#define ARM64_NCAPS				20
++DEFINE_PER_CPU(int, sei_in_process);
++
+ /*
+  * bad_mode handles the impossible case in the exception vector. This is always
+  * fatal.
+@@ -632,7 +634,9 @@ asmlinkage void bad_mode(struct pt_regs *regs, int reason, unsigned int esr)
+ 	 * of cper records at a time. There is no risk for one cpu to parse ghes table.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_ACPI_APEI_SEI) && ESR_ELx_EC(esr) == ESR_ELx_EC_SERROR) {
++		this_cpu_inc(sei_in_process);
+ 		ghes_notify_sei();
++		this_cpu_dec(sei_in_process);
+ 	}
  
- #endif /* __ASM_CPUCAPS_H */
-diff --git a/arch/arm64/include/asm/sysreg.h b/arch/arm64/include/asm/sysreg.h
-index ac24b6e..32964c7 100644
---- a/arch/arm64/include/asm/sysreg.h
-+++ b/arch/arm64/include/asm/sysreg.h
-@@ -157,6 +157,7 @@
- #define ID_AA64ISAR0_AES_SHIFT		4
+ 	die("Oops - bad mode", regs, 0);
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 10d752e..eed79ea 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -102,4 +102,6 @@ static inline void *acpi_hest_generic_data_payload(struct acpi_hest_generic_data
+ int ghes_notify_sea(void);
+ int ghes_notify_sei(void);
  
- /* id_aa64pfr0 */
-+#define ID_AA64PFR0_RAS_SHIFT		28
- #define ID_AA64PFR0_GIC_SHIFT		24
- #define ID_AA64PFR0_ASIMD_SHIFT		20
- #define ID_AA64PFR0_FP_SHIFT		16
-@@ -165,6 +166,7 @@
- #define ID_AA64PFR0_EL1_SHIFT		4
- #define ID_AA64PFR0_EL0_SHIFT		0
- 
-+#define ID_AA64PFR0_RAS_V1		0x1
- #define ID_AA64PFR0_FP_NI		0xf
- #define ID_AA64PFR0_FP_SUPPORTED	0x0
- #define ID_AA64PFR0_ASIMD_NI		0xf
-diff --git a/arch/arm64/kernel/cpufeature.c b/arch/arm64/kernel/cpufeature.c
-index abda8e8..b0fb81e 100644
---- a/arch/arm64/kernel/cpufeature.c
-+++ b/arch/arm64/kernel/cpufeature.c
-@@ -98,6 +98,7 @@
- };
- 
- static const struct arm64_ftr_bits ftr_id_aa64pfr0[] = {
-+	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, ID_AA64PFR0_RAS_SHIFT, 4, 0),
- 	ARM64_FTR_BITS(FTR_HIDDEN, FTR_STRICT, FTR_EXACT, ID_AA64PFR0_GIC_SHIFT, 4, 0),
- 	S_ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64PFR0_ASIMD_SHIFT, 4, ID_AA64PFR0_ASIMD_NI),
- 	S_ARM64_FTR_BITS(FTR_VISIBLE, FTR_STRICT, FTR_LOWER_SAFE, ID_AA64PFR0_FP_SHIFT, 4, ID_AA64PFR0_FP_NI),
-@@ -860,6 +861,16 @@ static bool has_no_fpsimd(const struct arm64_cpu_capabilities *entry, int __unus
- 		.min_field_value = 0,
- 		.matches = has_no_fpsimd,
- 	},
-+	{
-+		.desc = "ARM64 RAS Extension Support",
-+		.capability = ARM64_HAS_RAS_EXTN,
-+		.def_scope = SCOPE_SYSTEM,
-+		.matches = has_cpuid_feature,
-+		.sys_reg = SYS_ID_AA64PFR0_EL1,
-+		.sign = FTR_UNSIGNED,
-+		.field_pos = ID_AA64PFR0_RAS_SHIFT,
-+		.min_field_value = ID_AA64PFR0_RAS_V1,
-+	},
- 	{},
- };
- 
++DECLARE_PER_CPU(int, sei_in_process);
++
+ #endif /* GHES_H */
 -- 
 1.8.3.1
