@@ -1,90 +1,205 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH 1/2] acpi: utils: Add new acpi_dev_present helper
-Date: Thu, 30 Mar 2017 10:33:41 +0200
-Message-ID: <20170330083341.GA10207@h08.hostsharing.net>
-References: <20170316161736.339-1-hdegoede@redhat.com>
- <20170316161736.339-2-hdegoede@redhat.com>
- <4029834.c3GWUpRlkb@aspire.rjw.lan>
- <20170329092638.GU2957@lahna.fi.intel.com>
- <1490806252.708.53.camel@linux.intel.com>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: [PATCH v3 4/8] APEI: GHES: reserve a virtual page for SEI context
+Date: Thu, 30 Mar 2017 18:31:04 +0800
+Message-ID: <1490869877-118713-5-git-send-email-xiexiuqi@huawei.com>
+References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:43063 "EHLO
-        mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753828AbdC3Idp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Mar 2017 04:33:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1490806252.708.53.camel@linux.intel.com>
+Received: from szxga02-in.huawei.com ([45.249.212.188]:4852 "EHLO
+        dggrg02-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754032AbdC3Kek (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Mar 2017 06:34:40 -0400
+In-Reply-To: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Chen-Yu Tsai <wens@csie.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Robert Moore <robert.moore@intel.com>
+To: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, james.morse@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com
+Cc: linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, xiexiuqi@huawei.com, wangxiongfeng2@huawei.com
 
-[cc += Robert Moore]
+On arm64 platform, SEI may interrupt code which had interrupts masked.
+But SEI could be masked, so it's not treated as NMI, however SEA is
+treated as NMI.
 
-Hi Hans,
+So, the  memory area used to transfer hardware error information from
+BIOS to Linux can be determined only in NMI, SEI(arm64), IRQ or timer
+handler.
 
-I'm the author of acpi_dev_found(), please in the future use git blame
-to determine relevant authors of existing code that should be cc'ed,
-I noticed your patch only now:
+In this patch, we add a virtual page for SEI context.
 
-On Thursday, March 16, 2017 05:17:35 PM Hans de Goede wrote:
-> acpi_dev_found just iterates over all acpi-ids and sees if one matches.
-> This means that it will return true for devices which are in the dsdt
-> but disabled (their _STA method returns 0).
->
-> For some drivers it is useful to be able to check if a certain hid
-> is not only present in the namespace, but also actually present as in
-> acpi_device_is_present() will return true for the device. For example
-> because if a certain device is present then the driver will want to use
-> an extcon or IIO adc channel provided by that device.
->
-> This commit adds a new acpi_dev_present helper which drivers can use
-> to this end.
->
-> Arguably acpi_dev_present is what acpi_dev_found should have been, but
-> there are too many users to just change acpi_dev_found without the risk
-> of breaking something.
+Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+---
+ drivers/acpi/apei/ghes.c | 98 +++++++++++++++++++++++-------------------------
+ 1 file changed, 47 insertions(+), 51 deletions(-)
 
-I originally did submit an acpi_dev_present() function which was identical
-to what you've submitted now:
-http://www.spinics.net/lists/linux-acpi/msg61865.html
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 045d101..b1f9b1f 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -108,26 +108,33 @@
+ 
+ /*
+  * Because the memory area used to transfer hardware error information
+- * from BIOS to Linux can be determined only in NMI, IRQ or timer
+- * handler, but general ioremap can not be used in atomic context, so
+- * a special version of atomic ioremap is implemented for that.
++ * from BIOS to Linux can be determined only in NMI, SEI (ARM64), IRQ or
++ * timer handler, but general ioremap can not be used in atomic context,
++ * so a special version of atomic ioremap is implemented for that.
+  */
+ 
+ /*
+- * Two virtual pages are used, one for IRQ/PROCESS context, the other for
+- * NMI context (optionally).
++ * 3 virtual pages are used, one for IRQ/PROCESS context, one for SEI
++ * (on ARM64 platform), and the other for NMI context (optionally).
+  */
++#ifdef CONFIG_ACPI_APEI_SEI
++#define GHES_IOREMAP_PAGES           3
++#define GHES_IOREMAP_SEI_PAGE(base)	((base) + PAGE_SIZE*2)
++#else
+ #define GHES_IOREMAP_PAGES           2
++#endif
++
+ #define GHES_IOREMAP_IRQ_PAGE(base)	(base)
+ #define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
+ 
+ /* virtual memory area for atomic ioremap */
+ static struct vm_struct *ghes_ioremap_area;
+ /*
+- * These 2 spinlock is used to prevent atomic ioremap virtual memory
++ * These 3 spinlock is used to prevent atomic ioremap virtual memory
+  * area from being mapped simultaneously.
+  */
+ static DEFINE_RAW_SPINLOCK(ghes_ioremap_lock_nmi);
++static DEFINE_SPINLOCK(ghes_ioremap_lock_sei);
+ static DEFINE_SPINLOCK(ghes_ioremap_lock_irq);
+ 
+ static struct gen_pool *ghes_estatus_pool;
+@@ -155,54 +162,55 @@ static void ghes_ioremap_exit(void)
+ 	free_vm_area(ghes_ioremap_area);
+ }
+ 
+-static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
++static void __iomem *ghes_ioremap_pfn(u64 pfn)
+ {
+-	unsigned long vaddr;
++	unsigned long vaddr, flags = 0;
+ 	phys_addr_t paddr;
+ 	pgprot_t prot;
+ 
+-	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
+-
+-	paddr = pfn << PAGE_SHIFT;
+-	prot = arch_apei_get_mem_attribute(paddr);
+-	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
+-
+-	return (void __iomem *)vaddr;
+-}
+-
+-static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
+-{
+-	unsigned long vaddr, paddr;
+-	pgprot_t prot;
+-
+-	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
++	if (in_nmi()) {
++		raw_spin_lock(&ghes_ioremap_lock_nmi);
++		vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
++	} else if (this_cpu_read(sei_in_process)) {
++		spin_lock_irqsave(&ghes_ioremap_lock_sei, flags);
++		vaddr = (unsigned long)GHES_IOREMAP_SEI_PAGE(ghes_ioremap_area->addr);
++	} else {
++		spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
++		vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
++	}
+ 
+ 	paddr = pfn << PAGE_SHIFT;
+ 	prot = arch_apei_get_mem_attribute(paddr);
+-
+ 	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
+ 
+ 	return (void __iomem *)vaddr;
+ }
+ 
+-static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
++static void ghes_iounmap(void __iomem *vaddr_ptr)
+ {
+ 	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
+ 	void *base = ghes_ioremap_area->addr;
++	unsigned long page, flags = 0;
++
++	if (in_nmi()) {
++		page = (unsigned long)GHES_IOREMAP_NMI_PAGE(base);
++	} else if (this_cpu_read(sei_in_process)) {
++		page = (unsigned long)GHES_IOREMAP_SEI_PAGE(base);
++	} else {
++		page = (unsigned long)GHES_IOREMAP_IRQ_PAGE(base);
++	}
+ 
+-	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_NMI_PAGE(base));
++	BUG_ON(vaddr != page);
+ 	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
+ 	arch_apei_flush_tlb_one(vaddr);
+-}
+-
+-static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
+-{
+-	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
+-	void *base = ghes_ioremap_area->addr;
+ 
+-	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_IRQ_PAGE(base));
+-	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
+-	arch_apei_flush_tlb_one(vaddr);
++	if (in_nmi()) {
++		raw_spin_unlock(&ghes_ioremap_lock_nmi);
++	} else if (this_cpu_read(sei_in_process)) {
++		spin_unlock_irqrestore(&ghes_ioremap_lock_sei, flags);
++	} else {
++		spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
++	}
+ }
+ 
+ static int ghes_estatus_pool_init(void)
+@@ -327,20 +335,13 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+ 				  int from_phys)
+ {
+ 	void __iomem *vaddr;
+-	unsigned long flags = 0;
+-	int in_nmi = in_nmi();
+ 	u64 offset;
+ 	u32 trunk;
+ 
+ 	while (len > 0) {
+ 		offset = paddr - (paddr & PAGE_MASK);
+-		if (in_nmi) {
+-			raw_spin_lock(&ghes_ioremap_lock_nmi);
+-			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
+-		} else {
+-			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
+-			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
+-		}
++		vaddr = ghes_ioremap_pfn(paddr >> PAGE_SHIFT);
++
+ 		trunk = PAGE_SIZE - offset;
+ 		trunk = min(trunk, len);
+ 		if (from_phys)
+@@ -350,13 +351,8 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+ 		len -= trunk;
+ 		paddr += trunk;
+ 		buffer += trunk;
+-		if (in_nmi) {
+-			ghes_iounmap_nmi(vaddr);
+-			raw_spin_unlock(&ghes_ioremap_lock_nmi);
+-		} else {
+-			ghes_iounmap_irq(vaddr);
+-			spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
+-		}
++
++		ghes_iounmap(vaddr);
+ 	}
+ }
+ 
+-- 
+1.8.3.1
 
-However Robert Moore raised an objection that "Traversing the namespace
-over and over is truly brute force":
-http://www.spinics.net/lists/linux-acpi/msg61911.html
-
-For my use case, which was apple_gmux_present(), just detecting presence
-of the HID in the namespace was sufficient, I did not have the need to
-execute _STA.  Hence to address Robert Moore's concern I switched to
-simply traversing the acpi_bus_id_list.
-
-Rafael objected to the acpi_dev_present() name as it suggested that _STA
-is checked even though it wasn't, so I renamed the function to
-acpi_dev_found() with commit c68ae33e7fb4.
-
-The objection raised by Robert Moore applies to your patch as well since
-it is identical to my original patch.  The return value of _STA seems to
-be cached in the "status" field of struct acpi_device, so you may
-be able to overcome Robert Moore's objection by calling bus_find_device()
-with a callback which contains the check in acpi_device_is_present().
-See drivers/firmware/efi/dev-path-parser.c for an example (parse_acpi_path()
-and match_acpi_dev()).  This is probably faster than acpi_get_devices()
-because it just traverses a list instead of walking the namespace and it
-avoids the call to _STA.  (Some devices just return a constant when _STA
-is called, others may take more time.)
-
-FWIW, all existing users of acpi_dev_found(), except for the hisilicon
-Ethernet driver, originally used acpi_get_devices() and I converted
-them to acpi_dev_found to deduplicate code.  Thus it would be safe to
-convert those to your new function acpi_dev_present().  I also converted
-sound/soc/intel/common/sst-match-acpi.c to acpi_dev_found() but the
-Intel folks switched back to acpi_get_devices() because just like you
-they had the need to check _STA.  If you introduce a new helper which
-checks _STA, it would be good if you could amend sst-match-acpi.c to
-use it so as to deduplicate code.
-
-Thanks,
-
-Lukas
