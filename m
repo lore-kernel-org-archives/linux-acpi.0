@@ -1,38 +1,71 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH V8 5/6] ACPI: Support the probing on the devices which apply  indirect-IO
-Date: Thu, 30 Mar 2017 22:31:10 +0200
-Message-ID: <1908501.jAQQKvjW4f@aspire.rjw.lan>
-References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com> <1490887619-61732-6-git-send-email-yuanzhichang@hisilicon.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
+ to get from of / ACPI
+Date: Thu, 30 Mar 2017 22:39:54 +0200
+Message-ID: <20170330203954.GA1452@katana>
+References: <20170325135550.22509-1-hdegoede@redhat.com>
+ <20170325135550.22509-4-hdegoede@redhat.com>
+ <1490530535.21738.31.camel@linux.intel.com>
+ <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490887619-61732-6-git-send-email-yuanzhichang-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "zhichang.yuan" <yuanzhichang-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, brian.starkey-5wv7dgnIgG8@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, minyard-HInyCGIudOg@public.gmane.org, zourongrong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhichang.yuan02-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kantyzc-9Onoh4P/yGk@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, March 30, 2017 11:26:58 PM zhichang.yuan wrote:
-> On some platforms(such as Hip06/Hip07), the legacy ISA/LPC devices access I/O
-> with some special host-local I/O ports known on x86. To access the I/O
-> peripherals, an indirect-IO mechanism is introduced to mapped the host-local
-> I/O to system logical/fake PIO similar the PCI MMIO on architectures where no
-> separate I/O space exists. Just as PCI MMIO, the host I/O range should be
-> registered before probing the downstream devices and set up the I/O mapping.
-> But current ACPI bus probing doesn't support these indirect-IO hosts/devices.
-> 
-> This patch introdueces a new ACPI handler for this device category. Through the
-> handler attach callback, the indirect-IO hosts I/O registration is done and
-> all peripherals' I/O resources are translated into logic/fake PIO before
-> starting the enumeration.
 
-Can you explain to me briefly what exactly this code is expected to be doing?
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+Hi Hans,
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Sorry for doing this in the middle of the thread, but this is the only
+> mail I could find in my archives (I guess I delete mail to aggressively).
+
+I use patchwork to track patches (which is mentioned in MAINTAINERS).
+And patchwork has the nice feature to download patches or series of
+patches as mbox. And from there you can reply directly, or bounce to
+yourself first, etc. That's what I do when I lost a mail.
+
+> Anyways self-nack for this series, there are multiple issues with it:
+>=20
+> 1) In hindsight the irq_index is a bad idea and instead we need a noirq
+> flag in i2c_driver
+
+What do you mean by that? No IRQ assigned? In Linux, 0 is no irq. I
+guess you mean something else...
+
+Thanks for the heads up,
+
+   Wolfram
+
+
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJY3W0aAAoJEBQN5MwUoCm2OlwQAIkKbDq0/crq2N1aoWERoxAz
+1tIM+iWhQ+bNyXt34qPTU3JXZC1KkaZ2YO6qo2VBbu2SKdFF4yweWxKfUB4SboPU
+/4CHO7xspm3ES/z6sLGEbjcHeoPV2NC2ol67uKI1KTvV63Yz0zjrrE7pMPGlf8PW
+PpA+yAmMVSsXM7iTEn5bKBdrxo6R4oKhPKC0gxAGlHfMNXJY1meLWrEwmjycOwrV
+uJjeQyze5NTsXlw/C0+cMXp6pNa0cmsMEKcSpYQCQl/09VPW+aTmSmic6wEhMhiv
+kpecnx7ltFg/k/Sx9WKj5zfx3CoH+UUY4zd8/bLwNILrG1pMYFOLlZNFOl5ib1dF
+6f7mUKUJ16sLgf7+U+oRB80NWI9a4dvvEfLhqJvi691pB8vY3sfV1WbxAB6OkPCH
+dtQbDTz30jcBPllQo5tsnFAlwHCCnKv13sDJ3XNpCNSCj68hy5wRZqV38JwAuYs1
+u5gqXki3/XKHtEghyFRmFD/ZIsgt6wgJdowPDj+mZwNhDxqB2p4qZgiHVlsGXEnw
+U+JOBZxCwWCVFjYyO3w8p8ss1GI44bygpkYe0IdjxzaAKiQCO1zQ4WvJVeHhKmaj
+GQl1/krA1az+hMK6snC9iUpWGtmJBjAXsVO+LF1oBlUUjFAAzP6rz4TOG0gdBHGJ
+Od52qNRye6pkp4el80HT
+=NH87
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
