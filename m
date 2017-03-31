@@ -1,68 +1,49 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] device property: Move fwnode graph ops to firmware
- specific locations
-Date: Fri, 31 Mar 2017 10:30:21 +0300
-Message-ID: <20170331073021.GD2957@lahna.fi.intel.com>
-References: <1490353432-12017-1-git-send-email-sakari.ailus@linux.intel.com>
- <1490353432-12017-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170327115200.GB2957@lahna.fi.intel.com>
- <20170330151019.GL16657@valkosipuli.retiisi.org.uk>
+Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
+Date: Fri, 31 Mar 2017 10:47:22 +0300
+Message-ID: <20170331074722.GF2957@lahna.fi.intel.com>
+References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+ <20170323204747.w2nxxrpjwypiygwb@ninjato>
+ <20170330155233.dfnqe7d2xkr32zlo@ninjato>
+ <20170331072004.GC2957@lahna.fi.intel.com>
+ <1490945467.3894.426.camel@vkrasnov.dev.rtsoft.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:53924 "EHLO mga06.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:24445 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753694AbdCaHci (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 03:32:38 -0400
+        id S932564AbdCaHx7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 03:53:59 -0400
 Content-Disposition: inline
-In-Reply-To: <20170330151019.GL16657@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1490945467.3894.426.camel@vkrasnov.dev.rtsoft.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org, mark.rutland@arm.com, broonie@kernel.org, ahs3@redhat.com, frowand.list@gmail.com
+To: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Cc: Wolfram Sang <wsa@the-dreams.de>, jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Thu, Mar 30, 2017 at 06:10:19PM +0300, Sakari Ailus wrote:
-> Hi Mika,
+On Fri, Mar 31, 2017 at 10:31:07AM +0300, Viktor Krasnov wrote:
+> Hello Mika,
 > 
-> Thank you for the review.
+> thanks for the review.
 > 
-> On Mon, Mar 27, 2017 at 02:52:00PM +0300, Mika Westerberg wrote:
-> > On Fri, Mar 24, 2017 at 01:03:51PM +0200, Sakari Ailus wrote:
-> > >  const struct fwnode_operations acpi_fwnode_ops = {
-> > >  	.property_present = acpi_fwnode_property_present,
-> > >  	.property_read_int_array = acpi_fwnode_property_read_int_array,
-> > > @@ -1193,4 +1248,9 @@ const struct fwnode_operations acpi_fwnode_ops = {
-> > >  	.get_parent = acpi_fwnode_get_parent,
-> > >  	.get_next_child_node = acpi_get_next_subnode,
-> > >  	.get_named_child_node = acpi_fwnode_get_named_child_node,
-> > > +	.graph_get_next_endpoint = acpi_fwnode_graph_get_next_endpoint,
-> > > +	.graph_get_remote_endpoint = acpi_fwnode_graph_get_remote_endpoint,
-> > > +	.graph_get_remote_port = acpi_fwnode_graph_get_remote_port,
-> > > +	.graph_get_remote_port_parent = acpi_fwnode_graph_get_remote_port_parent,
-> > > +	.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint,
-> > >  };
-> > 
-> > Not sure if it is possible but it would be nice to have a single
-> > primitive implementation specific graph callback and then build
-> > everything else on top of that in generic code. Here you have 5
-> > callbacks just for graph support.
+> > > --- a/include/acpi/acpi_drivers.h
+> > > +++ b/include/acpi/acpi_drivers.h
+> > > @@ -60,6 +60,8 @@
+> > > #define ACPI_DOCK_HID			"LNXDOCK"
+> > > /* Quirk for broken IBM BIOSes */
+> > > #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+> > > +/* SMBUS HID definition as supported by Microsoft Windows */
+> > > +#define ACPI_SMBUS_MS_HID		"SMB0001"
 > 
-> Getting the parent of the port in OF graph is OF specific, the port parent
-> is not necessarily a direct parent node of the port (in presence of the
-> "ports" node that contains all port nodes).
+> > I agree with the reasoning but why do you add the ID here also? Wouldn't
+> > it suffice if added only to the i2c-scmi.c driver?
 > 
-> I could potentially remove graph_get_remote_port() and use
-> graph_get_remote_endpoint() and graph_get_parent() instead. I didn't
-> originally do that as I thought it could be better ot leave it up to the
-> implementation.
-> 
-> What do you think?
+> This has been done by analogy with existing ACPI_SMBUS_IBM_HID which is
+> defined in acpi_drivers.h. I think that it may look confusing when some
+> HIDs are defined in i2c-scmi.c and others - in acpi_drivers.h. Could you
+> please clarify this moment and confirm that all HIDs must be defined
+> only in i2c-scmi.c? I will rework the patch then.
 
-Well we are dealing with two kinds of objects here, ports and endpoins.
-Maybe we can the low level functions parse and return these and then add
-generic code on top of that only deals with the port and endpoint
-objects. Something like get_graph() which parses the firmware structure
-and returns Linux port and endpoint object tree.
-
-Not sure if it is overkill in this case but adding 5 callbacks just for
-graphs smells like the design could be improved ;-)
+If there is only one file using a HID, then I think it is fine to keep
+it in the driver itself. If multiple files share the HID then it makes
+sense to put it to include/acpi/acpi_drivers.h.
