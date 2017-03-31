@@ -1,76 +1,48 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [GIT PULL] ACPI IORT changes for v4.12
-Date: Fri, 31 Mar 2017 11:02:26 +0100
-Message-ID: <20170331100226.GA30762@red-moon>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
+Date: Fri, 31 Mar 2017 13:01:55 +0300
+Message-ID: <1490954515.708.72.camel@linux.intel.com>
+References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+         <20170323204747.w2nxxrpjwypiygwb@ninjato>
+         <20170330155233.dfnqe7d2xkr32zlo@ninjato>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57532 "EHLO foss.arm.com"
+Received: from mga03.intel.com ([134.134.136.65]:20794 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754272AbdCaKCB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1753338AbdCaKCB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Fri, 31 Mar 2017 06:02:01 -0400
-Content-Disposition: inline
+In-Reply-To: <20170330155233.dfnqe7d2xkr32zlo@ninjato>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, john.garry@huawei.com, rjw@rjwysocki.net, marc.zyngier@arm.com
+To: Wolfram Sang <wsa@the-dreams.de>, Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+Cc: jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-Hi Catalin, Will,
+On Thu, 2017-03-30 at 17:52 +0200, Wolfram Sang wrote:
+> On Thu, Mar 23, 2017 at 09:47:47PM +0100, Wolfram Sang wrote:
+> > On Fri, Mar 10, 2017 at 04:58:35PM +0300, Viktor Krasnov wrote:
 
-I have collected the following ACPI/IORT patches for the 4.12 release:
+> > > Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> > > Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> > > Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
 
-- IORT interface minor clean-ups
-- IORT platform devices (IORT named components) devid mapping interface
-  implementation
-- ACPI core changes to enable platform MSIs
 
-ACPI core changes have been acknowledged by the ACPI maintainer and
-I reviewed/updated the IORT patches.
+A bit of offtopic here, but I have noticed kontron.com address in SoB
+lines.
 
-This pull request provides the groundwork to implement platform MSIs
-in ACPI for ARM64, the irqchip changes enabling GIC ITS platform
-MSIs will be merged via the irqchip tree.
+I would like to know if Kontron will follow ACPI spec when assembling
+firmwares for its board [1]?
 
-Please consider pulling it.
+Table name LPW8 for SSDT is not allowed by spec and can't be just
+decompiled without hacking either table or decompiler.
 
-Thanks !
-Lorenzo
+[1] http://www.kontron.com/products/boards-and-standard-form-factors/sma
+rc/smarc-sxbt.html
 
-The following changes since commit 97da3854c526d3a6ee05c849c96e48d21527606c:
+P.S. We may continue privately to not contaminate mailing list with
+unnecessary noise.
 
-  Linux 4.11-rc3 (2017-03-19 19:09:39 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/acpi-arm64-for-v4.12
-
-for you to fetch changes up to d4f54a186667ffd19eac8e3f48c51d940a9b9784:
-
-  ACPI: platform: setup MSI domain for ACPI based platform device (2017-03-30 10:20:01 +0100)
-
-----------------------------------------------------------------
-ACPI ARM64 specific changes for v4.12.
-
-Patches contain:
-
-- IORT kernel interface misc clean-ups
-- IORT id mapping interface refactoring in preparation for platform
-  MSI (IORT named components -> GIC ITS mappings) devid mapping code
-- IORT id mapping implementation for named components nodes to ITS nodes,
-  in order to provide the kernel with a firmware interface to map
-  platform devices devids to GIC ITS components
-
-----------------------------------------------------------------
-Hanjun Guo (7):
-      ACPI/IORT: Fix the indentation in iort_scan_node()
-      ACPI/IORT: Add missing comment for iort_dev_find_its_id()
-      ACPI/IORT: Rework iort_match_node_callback() return value handling
-      ACPI/IORT: Rename iort_node_map_rid() to make it generic
-      ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
-      ACPI: platform-msi: retrieve devid from IORT
-      ACPI: platform: setup MSI domain for ACPI based platform device
-
- drivers/acpi/arm64/iort.c | 158 +++++++++++++++++++++++++++++++++++++---------
- drivers/acpi/glue.c       |   6 ++
- include/linux/acpi_iort.h |   3 +
- 3 files changed, 136 insertions(+), 31 deletions(-)
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
