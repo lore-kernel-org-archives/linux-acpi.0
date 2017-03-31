@@ -1,509 +1,176 @@
-From: George Cherian <george.cherian@cavium.com>
-Subject: [PATCH 2/2] ACPI / CPPC: Make cppc acpi driver aware of pcc subspace ids
-Date: Fri, 31 Mar 2017 06:24:02 +0000
-Message-ID: <1490941442-11954-3-git-send-email-george.cherian@cavium.com>
-References: <1490941442-11954-1-git-send-email-george.cherian@cavium.com>
+From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
+Subject: Re: [PATCH V8 0/7] LPC: legacy ISA I/O support
+Date: Fri, 31 Mar 2017 14:36:33 +0800
+Message-ID: <58DDF8F1.8010309@hisilicon.com>
+References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
+ <CALdTtnsoxNrfmaRn=OtessSC=Ln7pHV5dUBd75uDax3watEoAw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0058.outbound.protection.outlook.com ([104.47.36.58]:46741
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753049AbdCaGYd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 02:24:33 -0400
-In-Reply-To: <1490941442-11954-1-git-send-email-george.cherian@cavium.com>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:4932 "EHLO
+        dggrg03-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751012AbdCaGhk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 02:37:40 -0400
+In-Reply-To: <CALdTtnsoxNrfmaRn=OtessSC=Ln7pHV5dUBd75uDax3watEoAw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
-Cc: ashwin.chaugule@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, jassisinghbrar@gmail.com, robert.moore@intel.com, lv.zheng@intel.com, George Cherian <george.cherian@cavium.com>
+To: dann frazier <dann.frazier@canonical.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, rafael@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, lorenzo.pieralisi@arm.com, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Corey Minyard <minyard@acm.org>, benh@kernel.crashing.org, John Garry <john.garry@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Zou Rongrong <zourongrong@gmail.com>, linux-pci@vger.kernel.
 
-Based on Section 14.1 of ACPI specification, it is possible to have a
-maximum of 256 PCC subspace ids. Add support of multiple PCC subspace id
-instead of using a single global pcc_data structure.
+Hi, Dann,
 
-While at that fix the time_delta check in send_pcc_cmd() so that last_mpar_reset
-and mpar_count is initialized properly. Also maintain a global total_mpar_count
-which is a sum of per subspace id mpar value.
+Many thanks for your tests!
 
-Signed-off-by: George Cherian <george.cherian@cavium.com>
----
- drivers/acpi/cppc_acpi.c | 189 ++++++++++++++++++++++++++---------------------
- 1 file changed, 105 insertions(+), 84 deletions(-)
+Best,
+Zhichang
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 3ca0729..7ba05ac 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -77,12 +77,16 @@ struct cppc_pcc_data {
- 	wait_queue_head_t pcc_write_wait_q;
- };
- 
--/* Structure to represent the single PCC channel */
--static struct cppc_pcc_data pcc_data = {
--	.pcc_subspace_idx = -1,
--	.platform_owns_pcc = true,
--};
-+/* Array  to represent the PCC channel per subspace id */
-+static struct cppc_pcc_data pcc_data[MAX_PCC_SUBSPACES];
-+/*
-+ * It is quiet possible that multiple CPU's can share
-+ * same subspace ids. The cpu_pcc_subspace_idx maintains
-+ * the cpu to pcc subspace id map.
-+ */
-+static DEFINE_PER_CPU(int, cpu_pcc_subspace_idx);
- 
-+static int total_mpar_count;
- /*
-  * The cpc_desc structure contains the ACPI register details
-  * as described in the per CPU _CPC tables. The details
-@@ -93,7 +97,8 @@ static struct cppc_pcc_data pcc_data = {
- static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
- 
- /* pcc mapped address + header size + offset within PCC subspace */
--#define GET_PCC_VADDR(offs) (pcc_data.pcc_comm_addr + 0x8 + (offs))
-+#define GET_PCC_VADDR(offs, pcc_ss_id) (pcc_data[pcc_ss_id].pcc_comm_addr + \
-+						0x8 + (offs))
- 
- /* Check if a CPC regsiter is in PCC */
- #define CPC_IN_PCC(cpc) ((cpc)->type == ACPI_TYPE_BUFFER &&		\
-@@ -183,13 +188,17 @@ static struct kobj_type cppc_ktype = {
- 	.default_attrs = cppc_attrs,
- };
- 
--static int check_pcc_chan(bool chk_err_bit)
-+static int check_pcc_chan(int cpunum, bool chk_err_bit)
- {
- 	int ret = -EIO, status = 0;
--	struct acpi_pcct_shared_memory __iomem *generic_comm_base = pcc_data.pcc_comm_addr;
--	ktime_t next_deadline = ktime_add(ktime_get(), pcc_data.deadline);
--
--	if (!pcc_data.platform_owns_pcc)
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
-+	struct cppc_pcc_data *pcc_ss_data = &pcc_data[pcc_ss_id];
-+	struct acpi_pcct_shared_memory __iomem *generic_comm_base =
-+		pcc_ss_data->pcc_comm_addr;
-+	ktime_t next_deadline = ktime_add(ktime_get(),
-+					  pcc_ss_data->deadline);
-+
-+	if (!pcc_ss_data->platform_owns_pcc)
- 		return 0;
- 
- 	/* Retry in case the remote processor was too slow to catch up. */
-@@ -214,7 +223,7 @@ static int check_pcc_chan(bool chk_err_bit)
- 	}
- 
- 	if (likely(!ret))
--		pcc_data.platform_owns_pcc = false;
-+		pcc_ss_data->platform_owns_pcc = false;
- 	else
- 		pr_err("PCC check channel failed. Status=%x\n", status);
- 
-@@ -225,11 +234,13 @@ static int check_pcc_chan(bool chk_err_bit)
-  * This function transfers the ownership of the PCC to the platform
-  * So it must be called while holding write_lock(pcc_lock)
-  */
--static int send_pcc_cmd(u16 cmd)
-+static int send_pcc_cmd(int cpunum, u16 cmd)
- {
- 	int ret = -EIO, i;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
-+	struct cppc_pcc_data *pcc_ss_data = &pcc_data[pcc_ss_id];
- 	struct acpi_pcct_shared_memory *generic_comm_base =
--		(struct acpi_pcct_shared_memory *) pcc_data.pcc_comm_addr;
-+		(struct acpi_pcct_shared_memory *)pcc_ss_data->pcc_comm_addr;
- 	static ktime_t last_cmd_cmpl_time, last_mpar_reset;
- 	static int mpar_count;
- 	unsigned int time_delta;
-@@ -244,24 +255,24 @@ static int send_pcc_cmd(u16 cmd)
- 		 * before write completion, so first send a WRITE command to
- 		 * platform
- 		 */
--		if (pcc_data.pending_pcc_write_cmd)
--			send_pcc_cmd(CMD_WRITE);
-+		if (pcc_ss_data->pending_pcc_write_cmd)
-+			send_pcc_cmd(cpunum, CMD_WRITE);
- 
--		ret = check_pcc_chan(false);
-+		ret = check_pcc_chan(cpunum, false);
- 		if (ret)
- 			goto end;
- 	} else /* CMD_WRITE */
--		pcc_data.pending_pcc_write_cmd = FALSE;
-+		pcc_ss_data->pending_pcc_write_cmd = FALSE;
- 
- 	/*
- 	 * Handle the Minimum Request Turnaround Time(MRTT)
- 	 * "The minimum amount of time that OSPM must wait after the completion
- 	 * of a command before issuing the next command, in microseconds"
- 	 */
--	if (pcc_data.pcc_mrtt) {
-+	if (pcc_ss_data->pcc_mrtt) {
- 		time_delta = ktime_us_delta(ktime_get(), last_cmd_cmpl_time);
--		if (pcc_data.pcc_mrtt > time_delta)
--			udelay(pcc_data.pcc_mrtt - time_delta);
-+		if (pcc_ss_data->pcc_mrtt > time_delta)
-+			udelay(pcc_ss_data->pcc_mrtt - time_delta);
- 	}
- 
- 	/*
-@@ -275,16 +286,16 @@ static int send_pcc_cmd(u16 cmd)
- 	 * not send the request to the platform after hitting the MPAR limit in
- 	 * any 60s window
- 	 */
--	if (pcc_data.pcc_mpar) {
-+	if (pcc_ss_data->pcc_mpar) {
- 		if (mpar_count == 0) {
- 			time_delta = ktime_ms_delta(ktime_get(), last_mpar_reset);
--			if (time_delta < 60 * MSEC_PER_SEC) {
-+			if ((time_delta < 60 * MSEC_PER_SEC) && last_mpar_reset) {
- 				pr_debug("PCC cmd not sent due to MPAR limit");
- 				ret = -EIO;
- 				goto end;
- 			}
- 			last_mpar_reset = ktime_get();
--			mpar_count = pcc_data.pcc_mpar;
-+			mpar_count = total_mpar_count;
- 		}
- 		mpar_count--;
- 	}
-@@ -295,10 +306,10 @@ static int send_pcc_cmd(u16 cmd)
- 	/* Flip CMD COMPLETE bit */
- 	writew_relaxed(0, &generic_comm_base->status);
- 
--	pcc_data.platform_owns_pcc = true;
-+	pcc_ss_data->platform_owns_pcc = true;
- 
- 	/* Ring doorbell */
--	ret = mbox_send_message(pcc_data.pcc_channel, &cmd);
-+	ret = mbox_send_message(pcc_ss_data->pcc_channel, &cmd);
- 	if (ret < 0) {
- 		pr_err("Err sending PCC mbox message. cmd:%d, ret:%d\n",
- 				cmd, ret);
-@@ -306,15 +317,15 @@ static int send_pcc_cmd(u16 cmd)
- 	}
- 
- 	/* wait for completion and check for PCC errro bit */
--	ret = check_pcc_chan(true);
-+	ret = check_pcc_chan(cpunum, true);
- 
--	if (pcc_data.pcc_mrtt)
-+	if (pcc_ss_data->pcc_mrtt)
- 		last_cmd_cmpl_time = ktime_get();
- 
--	if (pcc_data.pcc_channel->mbox->txdone_irq)
--		mbox_chan_txdone(pcc_data.pcc_channel, ret);
-+	if (pcc_ss_data->pcc_channel->mbox->txdone_irq)
-+		mbox_chan_txdone(pcc_ss_data->pcc_channel, ret);
- 	else
--		mbox_client_txdone(pcc_data.pcc_channel, ret);
-+		mbox_client_txdone(pcc_ss_data->pcc_channel, ret);
- 
- end:
- 	if (cmd == CMD_WRITE) {
-@@ -324,12 +335,12 @@ static int send_pcc_cmd(u16 cmd)
- 				if (!desc)
- 					continue;
- 
--				if (desc->write_cmd_id == pcc_data.pcc_write_cnt)
-+				if (desc->write_cmd_id == pcc_ss_data->pcc_write_cnt)
- 					desc->write_cmd_status = ret;
- 			}
- 		}
--		pcc_data.pcc_write_cnt++;
--		wake_up_all(&pcc_data.pcc_write_wait_q);
-+		pcc_ss_data->pcc_write_cnt++;
-+		wake_up_all(&pcc_ss_data->pcc_write_wait_q);
- 	}
- 
- 	return ret;
-@@ -531,16 +542,16 @@ int acpi_get_psd_map(struct cppc_cpudata **all_cpu_data)
- }
- EXPORT_SYMBOL_GPL(acpi_get_psd_map);
- 
--static int register_pcc_channel(int pcc_subspace_idx)
-+static int register_pcc_channel(int pcc_ss_idx)
- {
- 	struct acpi_pcct_hw_reduced *cppc_ss;
- 	u64 usecs_lat;
- 
--	if (pcc_subspace_idx >= 0) {
--		pcc_data.pcc_channel = pcc_mbox_request_channel(&cppc_mbox_cl,
--				pcc_subspace_idx);
-+	if (pcc_ss_idx >= 0) {
-+		pcc_data[pcc_ss_idx].pcc_channel =
-+			pcc_mbox_request_channel(&cppc_mbox_cl,	pcc_ss_idx);
- 
--		if (IS_ERR(pcc_data.pcc_channel)) {
-+		if (IS_ERR(pcc_data[pcc_ss_idx].pcc_channel)) {
- 			pr_err("Failed to find PCC communication channel\n");
- 			return -ENODEV;
- 		}
-@@ -551,7 +562,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 		 * PCC channels) and stored pointers to the
- 		 * subspace communication region in con_priv.
- 		 */
--		cppc_ss = (pcc_data.pcc_channel)->con_priv;
-+		cppc_ss = (pcc_data[pcc_ss_idx].pcc_channel)->con_priv;
- 
- 		if (!cppc_ss) {
- 			pr_err("No PCC subspace found for CPPC\n");
-@@ -564,19 +575,21 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 		 * So add an arbitrary amount of wait on top of Nominal.
- 		 */
- 		usecs_lat = NUM_RETRIES * cppc_ss->latency;
--		pcc_data.deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
--		pcc_data.pcc_mrtt = cppc_ss->min_turnaround_time;
--		pcc_data.pcc_mpar = cppc_ss->max_access_rate;
--		pcc_data.pcc_nominal = cppc_ss->latency;
--
--		pcc_data.pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
--		if (!pcc_data.pcc_comm_addr) {
-+		pcc_data[pcc_ss_idx].deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
-+		pcc_data[pcc_ss_idx].pcc_mrtt = cppc_ss->min_turnaround_time;
-+		pcc_data[pcc_ss_idx].pcc_mpar = cppc_ss->max_access_rate;
-+		pcc_data[pcc_ss_idx].pcc_nominal = cppc_ss->latency;
-+		total_mpar_count += cppc_ss->max_access_rate;
-+
-+		pcc_data[pcc_ss_idx].pcc_comm_addr =
-+			acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
-+		if (!pcc_data[pcc_ss_idx].pcc_comm_addr) {
- 			pr_err("Failed to ioremap PCC comm region mem\n");
- 			return -ENOMEM;
- 		}
- 
- 		/* Set flag so that we dont come here for each CPU. */
--		pcc_data.pcc_channel_acquired = true;
-+		pcc_data[pcc_ss_idx].pcc_channel_acquired = true;
- 	}
- 
- 	return 0;
-@@ -656,6 +669,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	struct device *cpu_dev;
- 	acpi_handle handle = pr->handle;
- 	unsigned int num_ent, i, cpc_rev;
-+	unsigned int pcc_subspace_id = 0;
- 	acpi_status status;
- 	int ret = -EFAULT;
- 
-@@ -728,12 +742,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 			 * so extract it only once.
- 			 */
- 			if (gas_t->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
--				if (pcc_data.pcc_subspace_idx < 0)
--					pcc_data.pcc_subspace_idx = gas_t->access_width;
--				else if (pcc_data.pcc_subspace_idx != gas_t->access_width) {
--					pr_debug("Mismatched PCC ids.\n");
--					goto out_free;
--				}
-+				pcc_subspace_id = gas_t->access_width;
-+				pcc_data[pcc_subspace_id].pcc_subspace_idx = gas_t->access_width;
-+				per_cpu(cpu_pcc_subspace_idx, pr->id) = gas_t->access_width;
- 			} else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
- 				if (gas_t->address) {
- 					void __iomem *addr;
-@@ -766,14 +777,14 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	if (ret)
- 		goto out_free;
- 
--	/* Register PCC channel once for all CPUs. */
--	if (!pcc_data.pcc_channel_acquired) {
--		ret = register_pcc_channel(pcc_data.pcc_subspace_idx);
-+	/* Register PCC channel once for all PCC subspace id. */
-+	if (!pcc_data[pcc_subspace_id].pcc_channel_acquired) {
-+		ret = register_pcc_channel(pcc_data[pcc_subspace_id].pcc_subspace_idx);
- 		if (ret)
- 			goto out_free;
- 
--		init_rwsem(&pcc_data.pcc_lock);
--		init_waitqueue_head(&pcc_data.pcc_write_wait_q);
-+		init_rwsem(&pcc_data[pcc_subspace_id].pcc_lock);
-+		init_waitqueue_head(&pcc_data[pcc_subspace_id].pcc_write_wait_q);
- 	}
- 
- 	/* Everything looks okay */
-@@ -883,6 +894,7 @@ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
- {
- 	int ret_val = 0;
- 	void __iomem *vaddr = 0;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
- 
- 	if (reg_res->type == ACPI_TYPE_INTEGER) {
-@@ -892,7 +904,7 @@ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
- 
- 	*val = 0;
- 	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
--		vaddr = GET_PCC_VADDR(reg->address);
-+		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
- 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		vaddr = reg_res->sys_mem_vaddr;
- 	else if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE)
-@@ -927,10 +939,11 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- {
- 	int ret_val = 0;
- 	void __iomem *vaddr = 0;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
- 
- 	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
--		vaddr = GET_PCC_VADDR(reg->address);
-+		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
- 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		vaddr = reg_res->sys_mem_vaddr;
- 	else if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE)
-@@ -974,6 +987,8 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
- 	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
- 								 *nom_perf;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
-+	struct cppc_pcc_data *pcc_ss_data = &pcc_data[pcc_ss_id];
- 	u64 high, low, nom;
- 	int ret = 0, regs_in_pcc = 0;
- 
-@@ -991,9 +1006,9 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
- 		CPC_IN_PCC(ref_perf) || CPC_IN_PCC(nom_perf)) {
- 		regs_in_pcc = 1;
--		down_write(&pcc_data.pcc_lock);
-+		down_write(&pcc_ss_data->pcc_lock);
- 		/* Ring doorbell once to update PCC subspace */
--		if (send_pcc_cmd(CMD_READ) < 0) {
-+		if (send_pcc_cmd(cpunum, CMD_READ) < 0) {
- 			ret = -EIO;
- 			goto out_err;
- 		}
-@@ -1013,7 +1028,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 
- out_err:
- 	if (regs_in_pcc)
--		up_write(&pcc_data.pcc_lock);
-+		up_write(&pcc_ss_data->pcc_lock);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
-@@ -1030,6 +1045,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
- 	struct cpc_register_resource *delivered_reg, *reference_reg,
- 		*ref_perf_reg, *ctr_wrap_reg;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
-+	struct cppc_pcc_data *pcc_ss_data = &pcc_data[pcc_ss_id];
- 	u64 delivered, reference, ref_perf, ctr_wrap_time;
- 	int ret = 0, regs_in_pcc = 0;
- 
-@@ -1053,10 +1070,10 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	/* Are any of the regs PCC ?*/
- 	if (CPC_IN_PCC(delivered_reg) || CPC_IN_PCC(reference_reg) ||
- 		CPC_IN_PCC(ctr_wrap_reg) || CPC_IN_PCC(ref_perf_reg)) {
--		down_write(&pcc_data.pcc_lock);
-+		down_write(&pcc_ss_data->pcc_lock);
- 		regs_in_pcc = 1;
- 		/* Ring doorbell once to update PCC subspace */
--		if (send_pcc_cmd(CMD_READ) < 0) {
-+		if (send_pcc_cmd(cpunum, CMD_READ) < 0) {
- 			ret = -EIO;
- 			goto out_err;
- 		}
-@@ -1086,7 +1103,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	perf_fb_ctrs->ctr_wrap_time = ctr_wrap_time;
- out_err:
- 	if (regs_in_pcc)
--		up_write(&pcc_data.pcc_lock);
-+		up_write(&pcc_ss_data->pcc_lock);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_get_perf_ctrs);
-@@ -1102,6 +1119,8 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- {
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
- 	struct cpc_register_resource *desired_reg;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
-+	struct cppc_pcc_data *pcc_ss_data = &pcc_data[pcc_ss_id];
- 	int ret = 0;
- 
- 	if (!cpc_desc) {
-@@ -1119,11 +1138,11 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	 * achieve that goal here
- 	 */
- 	if (CPC_IN_PCC(desired_reg)) {
--		down_read(&pcc_data.pcc_lock);	/* BEGIN Phase-I */
--		if (pcc_data.platform_owns_pcc) {
--			ret = check_pcc_chan(false);
-+		down_read(&pcc_ss_data->pcc_lock); /* BEGIN Phase-I */
-+		if (pcc_ss_data->platform_owns_pcc) {
-+			ret = check_pcc_chan(cpu, false);
- 			if (ret) {
--				up_read(&pcc_data.pcc_lock);
-+				up_read(&pcc_ss_data->pcc_lock);
- 				return ret;
- 			}
- 		}
-@@ -1131,8 +1150,8 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 		 * Update the pending_write to make sure a PCC CMD_READ will not
- 		 * arrive and steal the channel during the switch to write lock
- 		 */
--		pcc_data.pending_pcc_write_cmd = true;
--		cpc_desc->write_cmd_id = pcc_data.pcc_write_cnt;
-+		pcc_ss_data->pending_pcc_write_cmd = true;
-+		cpc_desc->write_cmd_id = pcc_ss_data->pcc_write_cnt;
- 		cpc_desc->write_cmd_status = 0;
- 	}
- 
-@@ -1143,7 +1162,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
- 
- 	if (CPC_IN_PCC(desired_reg))
--		up_read(&pcc_data.pcc_lock);	/* END Phase-I */
-+		up_read(&pcc_ss_data->pcc_lock);	/* END Phase-I */
- 	/*
- 	 * This is Phase-II where we transfer the ownership of PCC to Platform
- 	 *
-@@ -1191,15 +1210,15 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	 * the write command before servicing the read command
- 	 */
- 	if (CPC_IN_PCC(desired_reg)) {
--		if (down_write_trylock(&pcc_data.pcc_lock)) {	/* BEGIN Phase-II */
-+		if (down_write_trylock(&pcc_ss_data->pcc_lock)) {/* BEGIN Phase-II */
- 			/* Update only if there are pending write commands */
--			if (pcc_data.pending_pcc_write_cmd)
--				send_pcc_cmd(CMD_WRITE);
--			up_write(&pcc_data.pcc_lock);		/* END Phase-II */
-+			if (pcc_ss_data->pending_pcc_write_cmd)
-+				send_pcc_cmd(cpu, CMD_WRITE);
-+			up_write(&pcc_ss_data->pcc_lock);	/* END Phase-II */
- 		} else
- 			/* Wait until pcc_write_cnt is updated by send_pcc_cmd */
--			wait_event(pcc_data.pcc_write_wait_q,
--				cpc_desc->write_cmd_id != pcc_data.pcc_write_cnt);
-+			wait_event(pcc_ss_data->pcc_write_wait_q,
-+				   cpc_desc->write_cmd_id != pcc_ss_data->pcc_write_cnt);
- 
- 		/* send_pcc_cmd updates the status in case of failure */
- 		ret = cpc_desc->write_cmd_status;
-@@ -1232,6 +1251,8 @@ unsigned int cppc_get_transition_latency(int cpu_num)
- 	unsigned int latency_ns = 0;
- 	struct cpc_desc *cpc_desc;
- 	struct cpc_register_resource *desired_reg;
-+	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu_num);
-+	struct cppc_pcc_data *pcc_ss_data = &pcc_data[pcc_ss_id];
- 
- 	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
- 	if (!cpc_desc)
-@@ -1241,11 +1262,11 @@ unsigned int cppc_get_transition_latency(int cpu_num)
- 	if (!CPC_IN_PCC(desired_reg))
- 		return CPUFREQ_ETERNAL;
- 
--	if (pcc_data.pcc_mpar)
--		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_data.pcc_mpar);
-+	if (pcc_ss_data->pcc_mpar)
-+		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_ss_data->pcc_mpar);
- 
--	latency_ns = max(latency_ns, pcc_data.pcc_nominal * 1000);
--	latency_ns = max(latency_ns, pcc_data.pcc_mrtt * 1000);
-+	latency_ns = max(latency_ns, pcc_ss_data->pcc_nominal * 1000);
-+	latency_ns = max(latency_ns, pcc_ss_data->pcc_mrtt * 1000);
- 
- 	return latency_ns;
- }
--- 
-2.1.4
+On 2017/3/31 5:42, dann frazier wrote:
+> On Thu, Mar 30, 2017 at 9:26 AM, zhichang.yuan
+> <yuanzhichang@hisilicon.com> wrote:
+>> This patchset supports the IPMI-bt device attached to the Low-Pin-Count
+>> interface implemented on Hisilicon Hip06/Hip07 SoC.
+>>                         -----------
+>>                         | LPC host|
+>>                         |         |
+>>                         -----------
+>>                              |
+>>                 _____________V_______________LPC
+>>                   |                       |
+>>                   V                       V
+>>                                      ------------
+>>                                      |  BT(ipmi)|
+>>                                      ------------
+>>
+>> When master accesses those peripherals beneath the Hip06/Hip07 LPC, a specific
+>> LPC driver is needed to make LPC host generate the standard LPC I/O cycles with
+>> the target peripherals'I/O port addresses. But on curent arm64 world, there is
+>> no real I/O accesses. All the I/O operations through in/out pair are based on
+>> MMIO which is not satisfied the I/O mechanism on Hip06/Hip07 LPC.
+>> To solve this issue and keep the relevant existing peripherals' driver
+>> untouched, this patchset implements:
+>>   - introduces a generic I/O space management framwork, LIBIO, to support I/O
+>>     operations of both MMIO buses and the host controllers which access their
+>>     peripherals with host local I/O addresses;
+>>   - redefines the in/out accessors to provide unified interfaces for MMIO and
+>>     legacy I/O. Based on the LIBIO, the calling of in/out() from upper-layer
+>>     drivers, such as ipmi-si, will be redirected to the corresponding
+>>     device-specific I/O hooks to perfrom the I/O accesses.
+>> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC peripherals can
+>> be supported without any changes on the existing ipmi-si driver.
+>>
+>> Changes from V7:
+>>   - Based on Arnd's comment, rename the LIBIO as LOGIC_PIO;
+>>   - Improved the mapping process in LOGIC_PIO to gain better efficiency when
+>>     redirecting the I/O accesses to right device driver;
+>>   - To reduce the impact on PCI MMIO to a minimum, add a new
+>>     CONFIG_INDIRECT_PIO for indirect-IO hosts/devices;
+>>   - Added a new ACPI handler for indirect-IO hosts/devices;
+>>   - Fixed the compile issues on V6;
+>>
+>> Changes from V6:
+>>   - According to the comments from Bjorn and Alex, merge PCI IO and indirect-IO
+>>     into a generic I/O space management, LIBIO;
+>>   - Adopted the '_DEP' to replace the platform bus notifier. In this way, we can
+>>     ensure the LPC peripherals' I/O resources had been translated to logical IO
+>>     before the LPC peripheral enumeration;
+>>   - Replaced the rwlock with rcu list based on Alex's suggestion;
+>>   - Applied relaxed write/read to LPC driver;
+>>   - Some bugs fixing and some optimazations based on the comments of V6;
+>>
+>> Changes from V5:
+>>   - Made the extio driver more generic and locate in lib/;
+>>   - Supported multiple indirect-IO bus instances;
+>>   - Extended the pci_register_io_range() to support indirect-IO, then dropped
+>>   the I/O reservation used in previous patchset;
+>>   - Reimplemented the ACPI LPC support;
+>>   - Fixed some bugs, including the compile error on other archs, the module
+>>   building failure found by Ming Lei, etc;
+>>
+>> Changes from V4:
+>>   - Some revises based on the comments from Bjorn, Rob on V4;
+>>   - Fixed the compile error on some platforms, such as openrisc;
+>>
+>> Changes from V3:
+>>   - UART support deferred to a separate patchset; This patchset only support
+>>   ipmi device under LPC;
+>>   - LPC bus I/O range is fixed to 0 ~ (PCIBIOS_MIN_IO - 1), which is separeted
+>>   from PCI/PCIE PIO space;
+>>   - Based on Arnd's remarks, removed the ranges property from Hip06 lpc dts and
+>>   added a new fixup function, of_isa_indirect_io(), to get the I/O address
+>>   directly from LPC dts configurations;
+>>   - Support in(w,l)/out(w,l) for Hip06 lpc I/O;
+>>   - Decouple the header file dependency on the gerenic io.h by defining in/out
+>>   as normal functions in c file;
+>>   - removed unused macro definitions in the LPC driver;
+>>
+>> Changes from V2:
+>>   - Support the PIO retrieval from the linux PIO generated by
+>>   pci_address_to_pio. This method replace the 4K PIO reservation in V2;
+>>   - Support the flat-tree earlycon;
+>>   - Some revises based on Arnd's remarks;
+>>   - Make sure the linux PIO range allocated to Hip06 LPC peripherals starts
+>>   from non-ZERO;
+>>
+>> Changes from V1:
+>>   - Support the ACPI LPC device;
+>>   - Optimize the dts LPC driver in ISA compatible mode;
+>>   - Reserve the IO range below 4K in avoid the possible conflict with PCI host
+>>   IO ranges;
+>>   - Support the LPC uart and relevant earlycon;
+>>
+>> V7 thread here: https://lkml.org/lkml/2017/3/12/279
+>> v6 thread here: https://lkml.org/lkml/2017/1/24/25
+>> v5 thread here: https://lkml.org/lkml/2016/11/7/955
+>> v4 thread here: https://lkml.org/lkml/2016/10/20/149
+>> v3 thread here: https://lkml.org/lkml/2016/9/14/326
+>> v2 thread here: https://lkml.org/lkml/2016/9/7/356
+>> v1 thread here: https://lkml.org/lkml/2015/12/29/154
+>>
+>>
+>> Signed-off-by: Zhichang Yuan <yuanzhichang@hisilicon.com>
+>> zhichang.yuan (6):
+>>   LIBIO: Introduce a generic PIO mapping method
+>>   PCI: Apply the new generic I/O management on PCI IO hosts
+>>   OF: Add missing I/O range exception for indirect-IO devices
+>>   LPC: Support the device-tree LPC host on Hip06/Hip07
+>>   ACPI: Support the probing on the devices which apply indirect-IO
+>>   LPC: Add the ACPI LPC support
+>>
+>>  .../arm/hisilicon/hisilicon-low-pin-count.txt      |  33 ++
+>>  MAINTAINERS                                        |   8 +
+>>  arch/arm64/boot/dts/hisilicon/hip06-d03.dts        |   4 +
+>>  arch/arm64/boot/dts/hisilicon/hip06.dtsi           |  14 +
+>>  arch/arm64/boot/dts/hisilicon/hip07-d05.dts        |   4 +
+>>  arch/arm64/boot/dts/hisilicon/hip07.dtsi           |  14 +
+>>  drivers/acpi/Makefile                              |   1 +
+>>  drivers/acpi/acpi_indirectio.c                     | 344 +++++++++++++
+>>  drivers/acpi/internal.h                            |   5 +
+>>  drivers/acpi/pci_root.c                            |   8 +-
+>>  drivers/acpi/scan.c                                |   1 +
+>>  drivers/bus/Kconfig                                |   9 +
+>>  drivers/bus/Makefile                               |   1 +
+>>  drivers/bus/hisi_lpc.c                             | 547 +++++++++++++++++++++
+>>  drivers/of/address.c                               |  95 +++-
+>>  drivers/pci/pci.c                                  | 104 +---
+>>  include/asm-generic/io.h                           |  50 ++
+>>  include/linux/logic_pio.h                          | 174 +++++++
+>>  include/linux/pci.h                                |   3 +-
+>>  lib/Kconfig                                        |  26 +
+>>  lib/Makefile                                       |   2 +
+>>  lib/logic_pio.c                                    | 413 ++++++++++++++++
+>>  22 files changed, 1758 insertions(+), 102 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
+>>  create mode 100644 drivers/acpi/acpi_indirectio.c
+>>  create mode 100644 drivers/bus/hisi_lpc.c
+>>  create mode 100644 include/linux/logic_pio.h
+>>  create mode 100644 lib/logic_pio.c
+> 
+> Booted up on a D05, was able to use the LPC-connected IPMI interface.
+> 
+> Tested-by: dann frazier <dann.frazier@canonical.com>
+> 
+> .
+> 
 
