@@ -1,65 +1,85 @@
-From: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-Subject: Re: [PATCH V8 5/6] ACPI: Support the probing on the devices which
- apply indirect-IO
-Date: Fri, 31 Mar 2017 14:52:46 +0800
-Message-ID: <58DDFCBE.1030705@hisilicon.com>
-References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
- <1490887619-61732-6-git-send-email-yuanzhichang@hisilicon.com>
- <1908501.jAQQKvjW4f@aspire.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] i2c: i2c-scmi: add a MS HID
+Date: Fri, 31 Mar 2017 10:20:04 +0300
+Message-ID: <20170331072004.GC2957@lahna.fi.intel.com>
+References: <1489154315-26499-1-git-send-email-vkrasnov@dev.rtsoft.ru>
+ <20170323204747.w2nxxrpjwypiygwb@ninjato>
+ <20170330155233.dfnqe7d2xkr32zlo@ninjato>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1908501.jAQQKvjW4f@aspire.rjw.lan>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: mark.rutland@arm.com, benh@kernel.crashing.org, gabriele.paoloni@huawei.com, rafael@kernel.org, linux-pci@vger.kernel.org, will.deacon@arm.com, linuxarm@huawei.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, arnd@arndb.de, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, devicetree@vger.kernel.org, minyard@acm.org, john.garry@huawei.com, zourongrong@gmail.com, robh+dt@kernel.org, bhelgaas@google.com, kantyzc@163.com, zhichang.yuan02@gmail.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, olof@lixom.net, brian.starkey@arm.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170330155233.dfnqe7d2xkr32zlo@ninjato>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>, jdelvare@suse.com, linux-i2c@vger.kernel.org, Edgar Cherkasov <echerkasov@dev.rtsoft.ru>, Michael Brunner <Michael.Brunner@kontron.com>, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, Rafael,
-
-Thanks for reviewing this!
-
-On 2017/3/31 4:31, Rafael J. Wysocki wrote:
-> On Thursday, March 30, 2017 11:26:58 PM zhichang.yuan wrote:
->> On some platforms(such as Hip06/Hip07), the legacy ISA/LPC devices access I/O
->> with some special host-local I/O ports known on x86. To access the I/O
->> peripherals, an indirect-IO mechanism is introduced to mapped the host-local
->> I/O to system logical/fake PIO similar the PCI MMIO on architectures where no
->> separate I/O space exists. Just as PCI MMIO, the host I/O range should be
->> registered before probing the downstream devices and set up the I/O mapping.
->> But current ACPI bus probing doesn't support these indirect-IO hosts/devices.
->>
->> This patch introdueces a new ACPI handler for this device category. Through the
->> handler attach callback, the indirect-IO hosts I/O registration is done and
->> all peripherals' I/O resources are translated into logic/fake PIO before
->> starting the enumeration.
+On Thu, Mar 30, 2017 at 05:52:33PM +0200, Wolfram Sang wrote:
+> On Thu, Mar 23, 2017 at 09:47:47PM +0100, Wolfram Sang wrote:
+> > On Fri, Mar 10, 2017 at 04:58:35PM +0300, Viktor Krasnov wrote:
+> > 
+> > Thanks for the patch!
+> > 
+> > adding linux-acpi to CC. This is more an ACPI question than I2C.
 > 
-> Can you explain to me briefly what exactly this code is expected to be doing?
+> Mika? Andy? Jarkko? Any input on this?
+> 
+> > 
+> > > From: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> > > 
+> > > Description of the problem:
+> > >  - i2c-scmi driver contains only two identifiers "SMBUS01" and "SMBUSIBM";
+> > >  - the fist HID (SMBUS01) is clearly defined in "SMBus Control Method
+> > >    Interface Specification, version 1.0": "Each device must specify 
+> > >    'SMBUS01' as its _HID and use a unique _UID value";
+> > >  - unfortunately, BIOS vendors (like AMI) seem to ignore this requirement
+> > >    and implement "SMB0001" HID instead of "SMBUS01";
+> > >  - I speculate that they do this because only "SMB0001" is hard coded in
+> > >    Windows SMBus driver produced by Microsoft.
+> > > 
+> > > This leads to following situation:
+> > >  - SMBus works out of box in Windows but not in Linux;
+> > >  - board vendors are forced to add correct "SMBUS01" HID to BIOS to make
+> > >    SMBus work in Linux. Moreover the same board vendors complain that
+> > >    tools (3-rd party ASL compiler) do not like the "SMBUS01" identifier
+> > >    and produce errors.  So they need to constantly patch the compiler for 
+> > >    each new version of BIOS.
+> > > 
+> > > As it is very unlikely that BIOS vendors implement a correct HID in
+> > > future, I would propose to consider whether it is possible to work around
+> > > the problem by adding MS HID to the Linux i2c-scmi driver.
+> > > 
+> > > Signed-off-by: Edgar Cherkasov <echerkasov@dev.rtsoft.ru>
+> > > Signed-off-by: Michael Brunner <Michael.Brunner@kontron.com>
+> > > Acked-by: Viktor Krasnov <vkrasnov@dev.rtsoft.ru>
+> > > ---
+> > >  drivers/i2c/busses/i2c-scmi.c | 1 +
+> > >  include/acpi/acpi_drivers.h   | 2 ++
+> > >  2 files changed, 3 insertions(+)
+> > > 
+> > > diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+> > > index dfc98df..fb9aee0 100644
+> > > --- a/drivers/i2c/busses/i2c-scmi.c
+> > > +++ b/drivers/i2c/busses/i2c-scmi.c
+> > > @@ -51,6 +51,7 @@ struct acpi_smbus_cmi {
+> > >  static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
+> > >  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
+> > >  	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
+> > > +	{ACPI_SMBUS_MS_HID, (kernel_ulong_t)&smbus_methods},
+> > >  	{"", 0}
+> > >  };
+> > >  MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+> > > diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> > > index 29c6912..d34538b 100644
+> > > --- a/include/acpi/acpi_drivers.h
+> > > +++ b/include/acpi/acpi_drivers.h
+> > > @@ -60,6 +60,8 @@
+> > >  #define ACPI_DOCK_HID			"LNXDOCK"
+> > >  /* Quirk for broken IBM BIOSes */
+> > >  #define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+> > > +/* SMBUS HID definition as supported by Microsoft Windows */
+> > > +#define ACPI_SMBUS_MS_HID		"SMB0001"
 
-As you know currently for ARM architecture IO space is memory mapped and
-is only used by pci devices. The port number is dynamically allocated
-converting the device IO address into a PIO token: i.e.
-http://lxr.free-electrons.com/source/drivers/acpi/pci_root.c#L745
-This patch is meant to support a new class of IO host controller
-that are not PCI based and that still require to have the IO addresses
-be translated in the same PIO token space as the PCI controller
-
-Thanks,
-Zhichang
-
-> 
-> Thanks,
-> Rafael
-> 
-> 
-> .
-> 
+I agree with the reasoning but why do you add the ID here also? Wouldn't
+it suffice if added only to the i2c-scmi.c driver?
