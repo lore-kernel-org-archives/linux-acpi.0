@@ -1,89 +1,72 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v3 4/8] APEI: GHES: reserve a virtual page for SEI context
-Date: Fri, 31 Mar 2017 17:22:42 +0100
-Message-ID: <58DE8252.7070709@arm.com>
-References: <1490869877-118713-1-git-send-email-xiexiuqi@huawei.com> <1490869877-118713-5-git-send-email-xiexiuqi@huawei.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v3 3/4] i2c: core: Allow drivers to specify index for irq
+ to get from of / ACPI
+Date: Fri, 31 Mar 2017 18:23:33 +0200
+Message-ID: <20170331162332.dar3f3mval2ch2uh@ninjato>
+References: <20170325135550.22509-1-hdegoede@redhat.com>
+ <20170325135550.22509-4-hdegoede@redhat.com>
+ <1490530535.21738.31.camel@linux.intel.com>
+ <1935239d-fdd8-3917-9865-de389e6728e8@redhat.com>
+ <20170330203954.GA1452@katana>
+ <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="34gmuqwk37mjcy6l"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33862 "EHLO foss.arm.com"
+Received: from sauhun.de ([88.99.104.3]:43552 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933182AbdCaQXG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 31 Mar 2017 12:23:06 -0400
-In-Reply-To: <1490869877-118713-5-git-send-email-xiexiuqi@huawei.com>
+        id S933182AbdCaQXi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 31 Mar 2017 12:23:38 -0400
+Content-Disposition: inline
+In-Reply-To: <149df3eb-8111-4c91-472e-f6c708302ede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, fu.wei@linaro.org, rostedt@goodmis.org, hanjun.guo@linaro.org, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com, zhengqiang10@huawei.com, wuquanming@huawei.com, wangxiongfeng2@huawei.com
-
-Hi Xie XiuQi,
-
-On 30/03/17 11:31, Xie XiuQi wrote:
-> On arm64 platform, SEI may interrupt code which had interrupts masked.
-> But SEI could be masked, so it's not treated as NMI, however SEA is
-> treated as NMI.
-> 
-> So, the  memory area used to transfer hardware error information from
-> BIOS to Linux can be determined only in NMI, SEI(arm64), IRQ or timer
-> handler.
-> 
-> In this patch, we add a virtual page for SEI context.
-
-I don't think this is the best way of solving the interaction problem. If we
-ever need to add another notification method this gets even more complicated,
-and the ioremap code has to know how these methods can interact.
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sebastian Reichel <sre@kernel.org>, linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-pm@vger.kernel.org
 
 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 045d101..b1f9b1f 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -155,54 +162,55 @@ static void ghes_ioremap_exit(void)
-
-> -static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
-> -{
-> -	unsigned long vaddr, paddr;
-> -	pgprot_t prot;
-> -
-> -	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
-> +	if (in_nmi()) {
-> +		raw_spin_lock(&ghes_ioremap_lock_nmi);
-> +		vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
-> +	} else if (this_cpu_read(sei_in_process)) {
-
-> +		spin_lock_irqsave(&ghes_ioremap_lock_sei, flags);
-
-I think this one should be a raw_spin_lock. I'm pretty sure this is for RT-linux
-where spin_lock() on a contented lock will call schedule() in the same way
-mutex_lock() does. If interrupts were masked by arch code then you need to use
-raw_spin_lock.
-So now we need to know how we got in here, we interrupted the SError handler so
-this should only be Synchronous External Abort. Having to know how we got here
-is another problem with this approach.
+--34gmuqwk37mjcy6l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 
-As suggested earlier[0], I think the best way is to allocate one page of virtual
-address space per struct ghes, and move the locks out to the notify calls, which
-can know how they are called.
+> Note I said "flag in i2c_driver" the idea is that the driver can tell
+> the i2c_core that it is not going to use i2c_client->irq by
+> setting i2c_driver->no_irq and that the i2c_core then will not bother
+> with trying to get an irq in i2c_device_probe(), this is esp. useful
+> for ACPI i2c instantiated devices where we otherwise might end up
+> returning -EPROBE_DEFER (waiting for an irq to show up) without
+> needing the irq, which is esp. troublesome when there is no driver
+> for the irqchip the ACPI irq resource points to as then we end up
+> waiting indefinitely.
 
-I've pushed a branch to:
-http://www.linux-arm.org/git?p=linux-jm.git;a=commit;h=refs/heads/apei_ioremap_rework/v1
+Okay, thanks. I understand the big picture. But does it really need to
+be fixed in I2C core? Independent of I2C: if an irq is described in ACPI
+and the driver for the needed irq controller is not available, that can
+lead to various problems everywhere.
 
-I intend to post those patches as an RFC series later in the cycle, I've only
-build tested it so far.
-
-
-Thanks,
-
-James
-
-> +		vaddr = (unsigned long)GHES_IOREMAP_SEI_PAGE(ghes_ioremap_area->addr);
-> +	} else {
-> +		spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
-> +		vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
-> +	}
+Or maybe you simply want to be early and don't want to get deferred? Are
+we talking then about boot optimizations or necessities?
 
 
-[0] https://lkml.org/lkml/2017/3/20/434
+--34gmuqwk37mjcy6l
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAljegoEACgkQFA3kzBSg
+KbYyHhAAiZaNfmzUBc11Gh9JZMI1zs1otTiuNYsBc5CxZSpcQzTtrmR5qv6rt8rl
+Dmur4KQHkgHyqpPy17I7iORu+1+HfqmQbstDvr8cMoaHDsdqHsRWRKvEmkmG+pMa
+xWBA/YqBzJ2Kp6/CNKEltUPvBxdjNCepzVZy+cU0wuq6PUu+9k27Tpu0tildQbaa
+CbaEV5hAq0f4Ko6ElZcgP6Z6l7cwUv2O/BbvVCoAYc1lro7BMOrPWBcoL0IuANox
+Es50HnmCpLycJau/FkikhsFsVbEuR0lGD80sPcSLgi9qe649hSVhbUTaLs1EXHf3
+Dej/lU0+pfa+DqbJ8E5zna3VufjG+zca9rtSrM9k/DfIIlgPP1ytt/sJ2c7164/u
+K9H0Wd2m2FJmVvu6UCti60euCAMBHMSexnXXPL2mA1lul+sqRHMWGO7/tVn0IWxo
+JIW4Xf/jrVEP6W+GimZfpt+PJgHf0zeduu5gU7zLwt5qil0E5nqgfmYSspe33goc
+yrvSbqkTDVQdDrHJuvocZxdBk5Qhn/Bc13jD4ZSQ/kRI3dKnxuxX/m8ToXj39y6N
+RSnW91i1qDPVFoMuMc5d0DRt6YrBalIWtPJjNXEBbMYvv81RigPP+cmpVPz4A8ov
+e6Mn0hTCrzMSZP2Jm8Feu/5kTINyfGDeKIBx5IIuB3oofduBTMU=
+=I8V2
+-----END PGP SIGNATURE-----
+
+--34gmuqwk37mjcy6l--
