@@ -1,157 +1,216 @@
-From: dann frazier <dann.frazier@canonical.com>
-Subject: Re: [PATCH V8 0/7] LPC: legacy ISA I/O support
-Date: Thu, 30 Mar 2017 15:42:10 -0600
-Message-ID: <CALdTtnsoxNrfmaRn=OtessSC=Ln7pHV5dUBd75uDax3watEoAw@mail.gmail.com>
-References: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
+From: "majun (Euler7)" <majun258@huawei.com>
+Subject: Re: [PATCH v9 10/15] ACPI: platform-msi: retrieve dev id from IORT
+Date: Fri, 31 Mar 2017 10:41:26 +0800
+Message-ID: <58DDC1D6.6070203@huawei.com>
+References: <58DBA010.1020002@linaro.org> <20170329123821.GA10988@red-moon>
+ <58DBAFD6.7070300@linaro.org> <d620f35e-f335-bab5-49e0-a92375e00ea5@arm.com>
+ <20170329161354.GC11297@red-moon> <20170329173243.GA6091@red-moon>
+ <58DC7674.8020301@linaro.org> <58DCC2B9.9020109@hisilicon.com>
+ <20170330142820.GA6865@red-moon>
+ <71ff43b9-788d-ee38-f223-bda4750444d4@huawei.com>
+ <20170330165401.GA16741@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1490887619-61732-1-git-send-email-yuanzhichang@hisilicon.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "zhichang.yuan" <yuanzhichang@hisilicon.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, rafael@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, lorenzo.pieralisi@arm.com, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Corey Minyard <minyard@acm.org>, benh@kernel.crashing.org, John Garry <john.garry@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, xuwei5@hisilicon.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, Zou Rongrong <zourongrong@gmail.com>, linux-pci@vger.kernel.org, olof@lix
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([45.249.212.189]:4927 "EHLO
+        dggrg03-dlp.huawei.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750903AbdCaCmT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Mar 2017 22:42:19 -0400
+In-Reply-To: <20170330165401.GA16741@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, John Garry <john.garry@huawei.com>
+Cc: majun258@huawei.com, Wei Xu <xuwei5@hisilicon.com>, yimin@huawei.com, "Rafael J. Wysocki" <rafael@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Greg KH <gregkh@linuxfoundation.org>, majun258@huaiwei.com, linux-kernel@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 30, 2017 at 9:26 AM, zhichang.yuan
-<yuanzhichang@hisilicon.com> wrote:
-> This patchset supports the IPMI-bt device attached to the Low-Pin-Count
-> interface implemented on Hisilicon Hip06/Hip07 SoC.
->                         -----------
->                         | LPC host|
->                         |         |
->                         -----------
->                              |
->                 _____________V_______________LPC
->                   |                       |
->                   V                       V
->                                      ------------
->                                      |  BT(ipmi)|
->                                      ------------
->
-> When master accesses those peripherals beneath the Hip06/Hip07 LPC, a specific
-> LPC driver is needed to make LPC host generate the standard LPC I/O cycles with
-> the target peripherals'I/O port addresses. But on curent arm64 world, there is
-> no real I/O accesses. All the I/O operations through in/out pair are based on
-> MMIO which is not satisfied the I/O mechanism on Hip06/Hip07 LPC.
-> To solve this issue and keep the relevant existing peripherals' driver
-> untouched, this patchset implements:
->   - introduces a generic I/O space management framwork, LIBIO, to support I/O
->     operations of both MMIO buses and the host controllers which access their
->     peripherals with host local I/O addresses;
->   - redefines the in/out accessors to provide unified interfaces for MMIO and
->     legacy I/O. Based on the LIBIO, the calling of in/out() from upper-layer
->     drivers, such as ipmi-si, will be redirected to the corresponding
->     device-specific I/O hooks to perfrom the I/O accesses.
-> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC peripherals can
-> be supported without any changes on the existing ipmi-si driver.
->
-> Changes from V7:
->   - Based on Arnd's comment, rename the LIBIO as LOGIC_PIO;
->   - Improved the mapping process in LOGIC_PIO to gain better efficiency when
->     redirecting the I/O accesses to right device driver;
->   - To reduce the impact on PCI MMIO to a minimum, add a new
->     CONFIG_INDIRECT_PIO for indirect-IO hosts/devices;
->   - Added a new ACPI handler for indirect-IO hosts/devices;
->   - Fixed the compile issues on V6;
->
-> Changes from V6:
->   - According to the comments from Bjorn and Alex, merge PCI IO and indirect-IO
->     into a generic I/O space management, LIBIO;
->   - Adopted the '_DEP' to replace the platform bus notifier. In this way, we can
->     ensure the LPC peripherals' I/O resources had been translated to logical IO
->     before the LPC peripheral enumeration;
->   - Replaced the rwlock with rcu list based on Alex's suggestion;
->   - Applied relaxed write/read to LPC driver;
->   - Some bugs fixing and some optimazations based on the comments of V6;
->
-> Changes from V5:
->   - Made the extio driver more generic and locate in lib/;
->   - Supported multiple indirect-IO bus instances;
->   - Extended the pci_register_io_range() to support indirect-IO, then dropped
->   the I/O reservation used in previous patchset;
->   - Reimplemented the ACPI LPC support;
->   - Fixed some bugs, including the compile error on other archs, the module
->   building failure found by Ming Lei, etc;
->
-> Changes from V4:
->   - Some revises based on the comments from Bjorn, Rob on V4;
->   - Fixed the compile error on some platforms, such as openrisc;
->
-> Changes from V3:
->   - UART support deferred to a separate patchset; This patchset only support
->   ipmi device under LPC;
->   - LPC bus I/O range is fixed to 0 ~ (PCIBIOS_MIN_IO - 1), which is separeted
->   from PCI/PCIE PIO space;
->   - Based on Arnd's remarks, removed the ranges property from Hip06 lpc dts and
->   added a new fixup function, of_isa_indirect_io(), to get the I/O address
->   directly from LPC dts configurations;
->   - Support in(w,l)/out(w,l) for Hip06 lpc I/O;
->   - Decouple the header file dependency on the gerenic io.h by defining in/out
->   as normal functions in c file;
->   - removed unused macro definitions in the LPC driver;
->
-> Changes from V2:
->   - Support the PIO retrieval from the linux PIO generated by
->   pci_address_to_pio. This method replace the 4K PIO reservation in V2;
->   - Support the flat-tree earlycon;
->   - Some revises based on Arnd's remarks;
->   - Make sure the linux PIO range allocated to Hip06 LPC peripherals starts
->   from non-ZERO;
->
-> Changes from V1:
->   - Support the ACPI LPC device;
->   - Optimize the dts LPC driver in ISA compatible mode;
->   - Reserve the IO range below 4K in avoid the possible conflict with PCI host
->   IO ranges;
->   - Support the LPC uart and relevant earlycon;
->
-> V7 thread here: https://lkml.org/lkml/2017/3/12/279
-> v6 thread here: https://lkml.org/lkml/2017/1/24/25
-> v5 thread here: https://lkml.org/lkml/2016/11/7/955
-> v4 thread here: https://lkml.org/lkml/2016/10/20/149
-> v3 thread here: https://lkml.org/lkml/2016/9/14/326
-> v2 thread here: https://lkml.org/lkml/2016/9/7/356
-> v1 thread here: https://lkml.org/lkml/2015/12/29/154
->
->
-> Signed-off-by: Zhichang Yuan <yuanzhichang@hisilicon.com>
-> zhichang.yuan (6):
->   LIBIO: Introduce a generic PIO mapping method
->   PCI: Apply the new generic I/O management on PCI IO hosts
->   OF: Add missing I/O range exception for indirect-IO devices
->   LPC: Support the device-tree LPC host on Hip06/Hip07
->   ACPI: Support the probing on the devices which apply indirect-IO
->   LPC: Add the ACPI LPC support
->
->  .../arm/hisilicon/hisilicon-low-pin-count.txt      |  33 ++
->  MAINTAINERS                                        |   8 +
->  arch/arm64/boot/dts/hisilicon/hip06-d03.dts        |   4 +
->  arch/arm64/boot/dts/hisilicon/hip06.dtsi           |  14 +
->  arch/arm64/boot/dts/hisilicon/hip07-d05.dts        |   4 +
->  arch/arm64/boot/dts/hisilicon/hip07.dtsi           |  14 +
->  drivers/acpi/Makefile                              |   1 +
->  drivers/acpi/acpi_indirectio.c                     | 344 +++++++++++++
->  drivers/acpi/internal.h                            |   5 +
->  drivers/acpi/pci_root.c                            |   8 +-
->  drivers/acpi/scan.c                                |   1 +
->  drivers/bus/Kconfig                                |   9 +
->  drivers/bus/Makefile                               |   1 +
->  drivers/bus/hisi_lpc.c                             | 547 +++++++++++++++++++++
->  drivers/of/address.c                               |  95 +++-
->  drivers/pci/pci.c                                  | 104 +---
->  include/asm-generic/io.h                           |  50 ++
->  include/linux/logic_pio.h                          | 174 +++++++
->  include/linux/pci.h                                |   3 +-
->  lib/Kconfig                                        |  26 +
->  lib/Makefile                                       |   2 +
->  lib/logic_pio.c                                    | 413 ++++++++++++++++
->  22 files changed, 1758 insertions(+), 102 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
->  create mode 100644 drivers/acpi/acpi_indirectio.c
->  create mode 100644 drivers/bus/hisi_lpc.c
->  create mode 100644 include/linux/logic_pio.h
->  create mode 100644 lib/logic_pio.c
+Hi Lorenzo:
 
-Booted up on a D05, was able to use the LPC-connected IPMI interface.
+在 2017/3/31 0:54, Lorenzo Pieralisi 写道:
+> On Thu, Mar 30, 2017 at 05:14:34PM +0100, John Garry wrote:
+>>
+>>>>>>>
+>>>>>>> Perfect for me. Hanjun, I can cherry pick Marc's patch above, rework
+>>>>>>> this patch and post the resulting branch for everyone to have a final
+>>>>>>> test.
+[...]
+>>>>
+>>>> Thanks to all of you!
+>>>> Tested on D05 board with this branch, the SAS disks and XGE port are working fine.
+>>>
+>>> Ma Jun and Wei Xu, I pushed out a signed tag in preparation for a pull
+>>> request to Catalin tomorrow, please carry out last few checks before
+>>> I send it:
+>>>
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/acpi-arm64-for-v4.12
+>>>
+>>> You should try to merge it with Marc's branch:
+>>>
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irqchip-4.12
+>>>
+>>> and test the resulting branch, that's how they will go upstream.
+>>>
+>>> Please let me know, thank you for your help !
+>>>
+>>
+>> Hi Lorenzo,
+>>
+>> xuwei is away now, and it is night time with majun, so I tested.
+>> majun can retest tomorrow again to triple-check. I did not touch the
+>> ITS patch Marc made which had the weak version of
+>> iort_pmis_get_dev_id(), but it should not affect anything in my
+>> test.
+>>
+>> After merging your tag to Marc's branch, here is the git log:
+>> git log --oneline
+>> 8b6f3f8 Merge tag 'acpi-arm64-for-v4.12' into irq/irqchip-4.12
+>> d4f54a1 ACPI: platform: setup MSI domain for ACPI based platform device
+>> ae7c183 ACPI: platform-msi: retrieve devid from IORT
+>> e6db07d irqchip/gic-v3-its: Add IORT hook for platform MSI support
+>> 8ca4f1d ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
+>> 697f609 ACPI/IORT: Rename iort_node_map_rid() to make it generic
+>> d11349c irqchip: mbigen: Add ACPI support
+>> aa15f11 irqchip: mbigen: introduce mbigen_of_create_domain()
+>> 964bac1 irqchip: mbigen: drop module owner
+>> b8302fe msi: platform: make platform_msi_create_device_domain() ACPI aware
+>> d264edb irqchip: gicv3-its: platform-msi: scan MADT to create
+>> platform msi domain
+>> baf1168 irqchip: gicv3-its: platform-msi: refactor its_pmsi_init()
+>> to prepare for ACPI
+>> fbdda90 irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+>> cc9eb0d irqchip: gic-v3-its: keep the include header files in
+>> alphabetic order
+>> ff3eeb4 irqchip: mtk-sysirq: prevent unnecessary visibility when set_type
+>> ea04362 irqchip: mtk-sysirq: extend intpol base to arbitrary number
+>> 3382357 dt-bindings: mediatek: multiple bases support for sysirq
+>> 4015616 irqchip: replace moxa with ftintc010
+>> 532278c irqchip: faraday: fix the trigger types
+>> 923fa67 irqchip: refactor Gemini driver to reflect Faraday origin
+>> 44d64ce irqchip: augment Gemini bindings to reflect Faraday origin
+>> c02ed2e Linux 4.11-rc4
+>>
+>> And some testing:
+>>
+[...]
+>>
+>> Disk /dev/sdf: 186.3 GiB, 200049647616 bytes, 390721968 sectors
+>> Units: sectors of 1 * 512 = 512 bytes
+>> Sector size (logical/physical): 512 bytes / 512 bytes
+>> I/O size (minimum/optimal): 512 bytes / 131072 bytes
+>>
+>> root@(none)$
+>>
+>> Looks ok
+> 
+> Great, thanks !
+> 
+>> @majun, please test as well.
+> 
+> Yes, final test, PR is ready to be sent, I reviewed Hanjun patches
+> but I just want to avoid breaking them given that we had to carry
+> out changes for the split PR.
+> 
+I tested these patches again as you suggested, all of the related devices，
+xge/sas/usb/uart, are working fine on my hisilicon board just like before.
 
-Tested-by: dann frazier <dann.frazier@canonical.com>
+The git log is:
+565fdf3 Merge tag 'acpi-arm64-for-v4.12' into marc-irq-4.12
+d4f54a1 ACPI: platform: setup MSI domain for ACPI based platform device
+ae7c183 ACPI: platform-msi: retrieve devid from IORT
+e6db07d irqchip/gic-v3-its: Add IORT hook for platform MSI support
+8ca4f1d ACPI/IORT: Introduce iort_node_map_platform_id() to retrieve dev id
+697f609 ACPI/IORT: Rename iort_node_map_rid() to make it generic
+d11349c irqchip: mbigen: Add ACPI support
+aa15f11 irqchip: mbigen: introduce mbigen_of_create_domain()
+964bac1 irqchip: mbigen: drop module owner
+b8302fe msi: platform: make platform_msi_create_device_domain() ACPI aware
+d264edb irqchip: gicv3-its: platform-msi: scan MADT to create platform msi domain
+baf1168 irqchip: gicv3-its: platform-msi: refactor its_pmsi_init() to prepare for ACPI
+fbdda90 irqchip: gicv3-its: platform-msi: refactor its_pmsi_prepare()
+cc9eb0d irqchip: gic-v3-its: keep the include header files in alphabetic order
+ff3eeb4 irqchip: mtk-sysirq: prevent unnecessary visibility when set_type
+ea04362 irqchip: mtk-sysirq: extend intpol base to arbitrary number
+3382357 dt-bindings: mediatek: multiple bases support for sysirq
+4015616 irqchip: replace moxa with ftintc010
+532278c irqchip: faraday: fix the trigger types
+923fa67 irqchip: refactor Gemini driver to reflect Faraday origin
+44d64ce irqchip: augment Gemini bindings to reflect Faraday origin
+c02ed2e Linux 4.11-rc4
+
+Thanks
+Ma Jun
+
+> Thanks,
+> Lorenzo
+> 
+>>
+>> Thanks,
+>> John
+>>
+>>> Lorenzo
+>>>
+>>>> The log is as below:
+>>>>
+>>>> 	estuary:/$ dmesg
+>>>> 	[    0.000000] Booting Linux on physical CPU 0x10000
+>>>> 	[    0.000000] Linux version 4.11.0-rc3-14418-gea60d0a (xuwei@EstBuildSvr1) (gcc version 4.9.2 20140904 (prerelease) (crosstool-NG linaro-1.13.1-4.9-2014.09 - Linaro GCC 4.9-2014.09) ) #28 SMP PREEMPT Thu Mar 30 16:15:42 CST 2017
+>>>> 	[    0.000000] Boot CPU: AArch64 Processor [410fd082]
+>>>> 	[    0.000000] efi: Getting EFI parameters from FDT:
+>>>> 	[    0.000000] efi: EFI v2.60 by EDK II
+>>>> 	[    0.000000] efi:  SMBIOS=0x3f040000  SMBIOS 3.0=0x39af0000 ACPI=0x39bc0000  ACPI 2.0=0x39bc0014  MEMATTR=0x3ccb0098
+>>>> 	[    0.000000] cma: Reserved 16 MiB at 0x000000003e000000
+>>>>
+>>>>
+>>>> 	estuary:/$ ping 192.168.1.107
+>>>> 	PING 192.168.1.107 (192.168.1.107): 56 data bytes
+>>>> 	64 bytes from 192.168.1.107: seq=0 ttl=64 time=0.273 ms
+>>>> 	64 bytes from 192.168.1.107: seq=1 ttl=64 time=0.102 ms
+>>>> 	64 bytes from 192.168.1.107: seq=2 ttl=64 time=0.103 ms
+>>>> 	64 bytes from 192.168.1.107: seq=3 ttl=64 time=0.098 ms
+>>>> 	^C
+>>>> 	--- 192.168.1.107 ping statistics ---
+>>>> 	4 packets transmitted, 4 packets received, 0% packet loss
+>>>> 	round-trip min/avg/max = 0.098/0.144/0.273 ms
+>>>>
+>>>> 	estuary:/$ lspci -mk
+>>>> 	30:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	91:00.0 "Class 0300" "19e5" "1711" "0000" "0000"
+>>>> 	90:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	20:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	10:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	80:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	00:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	c0:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	88:00.0 "Class 0604" "19e5" "1610" "0000" "0000" "pcieport"
+>>>> 	
+>>>> 	estuary:/$ cat /dev/sd
+>>>> 	sda   sdb   sdc   sdd   sde   sdf   sdg   sdh   sdi   sdj   sdk sdl
+>>>> 	sda1  sdb1  sdc1  sdd1  sde1  sdf1  sdg1  sdh1  sdi1  sdj1  sdk1 sdl1
+>>>>
+>>>> Best Regards,
+>>>> Wei
+>>>>
+>>>>>
+>>>>> Thanks
+>>>>> Hanjun
+>>>>>
+>>>>> .
+>>>>>
+>>>>
+>>> _______________________________________________
+>>> linuxarm mailing list
+>>> linuxarm@huawei.com
+>>> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
+>>>
+>>> .
+>>>
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
+
